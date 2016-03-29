@@ -207,7 +207,7 @@ def go_library_impl(ctx):
   emit_go_compile_action(ctx, set(sources), deps, out_lib)
 
   transitive_libs = set([out_lib])
-  for dep in ctx.attr.deps:
+  for dep in deps:
      transitive_libs += dep.transitive_go_library_object
 
   runfiles = ctx.runfiles(collect_data = True)
