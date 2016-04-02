@@ -1,0 +1,10 @@
+#ifndef BAZEL_RULES_GO_EXAMPLES_CGO_CC_DEPENDENCY_VERSION_H_
+#define BAZEL_RULES_GO_EXAMPLES_CGO_CC_DEPENDENCY_VERSION_H_
+
+#ifdef __cplusplus
+extern "C" void PrintCXXVersion();
+#else
+void PrintCXXVersion();
+#endif
+
+#endif  // BAZEL_RULES_GO_EXAMPLES_CGO_CC_DEPENDENCY_VERSION_H_

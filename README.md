@@ -18,12 +18,13 @@ The rules should be considered experimental. They support:
 * binaries
 * tests
 * vendoring
+* cgo
 
 They currently do not support (in order of importance):
 
 * `//+build` tags
 * auto generated BUILD files.
-* C/C++ interoperation (cgo, swig etc.)
+* C/C++ interoperation except cgo (swig etc.)
 * race detector
 * coverage
 * test sharding
