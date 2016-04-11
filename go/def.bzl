@@ -254,6 +254,30 @@ def go_library_impl(ctx):
     transitive_cgo_deps = transitive_cgo_deps,
   )
 
+def _c_linker_options(ctx, blacklist=[]):
+  """Extracts flags to pass to $(CC) on link from the current context
+
+  Args:
+    ctx: the current context
+    blacklist: Any flags starts with any of these prefixes are filtered out from
+      the return value.
+
+  Returns:
+    A list of command line flags
+  """
+  cpp = ctx.fragments.cpp
+  features = ctx.features
+  options = cpp.compiler_options(features)
+  options += cpp.unfiltered_compiler_options(features)
+  options += cpp.link_options
+  options += cpp.mostly_static_link_options(ctx.features, False)
+  filtered = []
+  for opt in options:
+    if any([opt.startswith(prefix) for prefix in blacklist]):
+      continue
+    filtered.append(opt)
+  return filtered
+
 def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
@@ -276,12 +300,7 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
   ld = "%s" % ctx.fragments.cpp.compiler_executable
   if ld[0] != '/':
     ld = ('../' * out_depth) + ld
-  ld = " ".join([ld] + ctx.fragments.cpp.link_options)
-  ldflags = [
-      # DO NOT SUBMIT
-      # TODO(yugui) How can I avoid the hardcoded path to /usr/bin/ld and
-      # reflect link_flags configuration from CROSSTOOL instead?
-      "-B/usr/bin",
+  ldflags = _c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * (out.count("/") + 1)),
       "-L" + prefix,
   ]
@@ -470,10 +489,8 @@ def _cgo_codegen_impl(ctx):
     linkopts += d.cc.link_flags
     deps += d.cc.libs
 
-  # any of ctx.attr.deps can implicitly depend on libstdc++.
-  linkopts += ["-lstdc++"]
-
   cc = ctx.fragments.cpp.compiler_executable
+  copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   cmds = [
       "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
       # We cannot use env for CC because $(CC) on OSX is relative
@@ -483,10 +500,8 @@ def _cgo_codegen_impl(ctx):
       "objdir=$(pwd)/" + ctx.outputs.outs[0].dirname,
       "mkdir -p $objdir",
       "cd " + ctx.label.package,
-      ' '.join(["$GOROOT/bin/go", "tool", "cgo",
-                "-objdir", "$objdir", "--"] +
-               ctx.fragments.cpp.c_options + ctx.attr.copts +
-               [f.label.name for f in ctx.attr.srcs]),
+      ' '.join(["$GOROOT/bin/go", "tool", "cgo", "-objdir", "$objdir", "--"] +
+               copts + [f.label.name for f in ctx.attr.srcs]),
       "rm -f $objdir/_cgo_.o $objdir/_cgo_flags"]
   ctx.action(
       inputs = inputs,
@@ -643,18 +658,18 @@ _cgo_import = rule(
 Args:
   cgo_o: The loadable object to extract dynamic symbols from.
   sample_go_src: A go source which is compiled together with the generated file.
-
     The generated file will have the same Go package name as this file.
   out: Destination of the generated codes.
 """
 
 def _cgo_object_impl(ctx):
-  arguments = ctx.fragments.cpp.c_options + [
+  arguments = _c_linker_options(ctx, blacklist=[
+      # never link any dendency libraries
+      "-l", "-L",
+      # manage flags to ld(1) by ourselves
+      "-Wl,"])
+  arguments += [
       "-o", ctx.outputs.out.path,
-      # DO NOT SUBMIT
-      # TODO(yugui) How can I avoid the hardcoded path to /usr/bin/ld and
-      # reflect link_flags configuration from CROSSTOOL instead?
-      "-B/usr/bin",
       "-nostdlib",
       "-Wl,-r",
   ]
