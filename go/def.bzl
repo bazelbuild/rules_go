@@ -661,7 +661,7 @@ Args:
 
 def _cgo_object_impl(ctx):
   arguments = _c_linker_options(ctx, blacklist=[
-      # never link any dendency libraries
+      # never link any dependency libraries
       "-l", "-L",
       # manage flags to ld(1) by ourselves
       "-Wl,"])
