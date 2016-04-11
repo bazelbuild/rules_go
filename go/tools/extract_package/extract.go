@@ -22,11 +22,11 @@ func extract(fname string) (string, error) {
 func main() {
 	args := os.Args
 	if len(args) != 2 {
-		log.Fatalln("Usage: extract_package GO_FILE")
+		log.Fatal("Usage: extract_package GO_FILE")
 	}
 	name, err := extract(args[1])
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 	fmt.Println(name)
 }

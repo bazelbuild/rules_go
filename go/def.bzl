@@ -553,15 +553,12 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
   Args:
     name: A unique name of the rule
     srcs: list of Go source files.
-
       Each of them must contain `import "C"`.
     c_hdrs: C/C++ header files necessary to determine kinds of
       C/C++ identifiers in srcs.
     deps: A list of cc_library rules.
-
       The generated codes are expected to be linked with these deps.
     linkopts: A list of linker options,
-
       These flags are passed to the linker when the generated codes
       are linked into the target binary.
   """
@@ -685,7 +682,7 @@ def _cgo_object_impl(ctx):
       inputs = [lo],
       outputs = [ctx.outputs.out],
       mnemonic = "CGoObject",
-      progress_message = "Linking %s" % ctx.outputs.out.path,
+      progress_message = "Linking %s" % ctx.outputs.out.short_path,
       executable = ctx.fragments.cpp.compiler_executable,
       arguments = arguments,
   )
@@ -733,7 +730,6 @@ def cgo_library(name, srcs,
   Args:
     name: A unique name for this rule.
     srcs: The list of Go, C and C++ files that are processed to build a Go library.
-
       Those Go files must contain `import "C"`.
       C and C++ files can be anything allowed in `srcs` attribute of `cc_library`.
     copts: Add these flags to the C++ compiler.
