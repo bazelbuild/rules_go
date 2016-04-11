@@ -1,3 +1,0 @@
-// +build ignored
-
-package main

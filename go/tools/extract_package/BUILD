@@ -16,10 +16,5 @@ go_binary(
 go_test(
     name = "extract_package_test",
     srcs = ["extract_test.go"],
-    data = [
-        "extract.go",
-        "extract_test.go",
-        "ignored.go",
-    ],
     library = ":extract_package_lib",
 )
