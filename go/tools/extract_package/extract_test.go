@@ -27,9 +27,6 @@ func TestExtract(t *testing.T) {
 			t.Fatal(err)
 		}
 		defer os.Remove(f.Name())
-		if err := f.Close(); err != nil {
-			t.Fatal(err)
-		}
 		if err := ioutil.WriteFile(f.Name(), []byte(spec.src), 0644); err != nil {
 			t.Fatal(err)
 		}
