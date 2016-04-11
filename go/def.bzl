@@ -729,18 +729,19 @@ def cgo_library(name, srcs,
 
   Args:
     name: A unique name for this rule.
-    srcs: The list of Go, C and C++ files that are processed to build a Go library.
+    srcs: List of Go, C and C++ files that are processed to build a Go library.
       Those Go files must contain `import "C"`.
       C and C++ files can be anything allowed in `srcs` attribute of `cc_library`.
     copts: Add these flags to the C++ compiler.
     linkopts: Add these flags to the C++ linker.
     deps: List of C/C++ libraries to be linked into the binary target.
       They must be `cc_library` rules.
+    data: List of files needed by this rule at runtime.
 
   NOTE:
-    `srcs` cannot contain pure-Go files, which do not contain `import "C"`.
-    So you need to define another `go_library` when you need to build a go
-    package with both cgo-enabled and pure-Go sources.
+    `srcs` cannot contain pure-Go files, which do not have `import "C"`.
+    So you need to define another `go_library` when you build a go package with
+    both cgo-enabled and pure-Go sources.
 
     ```
     cgo_library(

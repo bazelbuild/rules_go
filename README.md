@@ -5,6 +5,7 @@
   <ul>
     <li><a href="#go_prefix">go_prefix</a></li>
     <li><a href="#go_library">go_library</a></li>
+    <li><a href="#cgo_library">cgo_library</a></li>
     <li><a href="#go_binary">go_binary</a></li>
     <li><a href="#go_test">go_test</a></li>
   </ul>
@@ -198,6 +199,92 @@ go_library(name, srcs, deps, data)
     </tr>
   </tbody>
 </table>
+
+<a name="cgo_library"></a>
+## cgo\_library
+
+```python
+cgo_library(name, srcs, copts, linkopts, deps, data)
+```
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <code>Name, required</code>
+        <p>A unique name for this rule.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>srcs</code></td>
+      <td>
+        <code>List of labels, required</code>
+        <p>List of Go, C and C++ files that are processed to build a Go
+        library.</p>
+        <p>Those Go files must contain <code>import "C"</code>. C and C++ files
+        can be anything allowed in <code>srcs</code> attribute of
+        <code>cc_library</code>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>copts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>Add these flags to the C++ compiler</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>linkopts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>Add these flags to the C++ linker</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <code>List of labels, optional</code>
+        <p>List of C/C++ libraries to be linked into the binary target.
+        They must be <code>cc_library</code> rules.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>data</code></td>
+      <td>
+        <code>List of labels, optional</code>
+        <p>List of files needed by this rule at runtime.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### NOTE
+
+`srcs` cannot contain pure-Go files, which do not have `import "C"`.
+So you need to define another `go_library` when you build a go package with
+both cgo-enabled and pure-Go sources.
+
+```python
+cgo_library(
+    name = "cgo-enabled",
+    srcs = ["cgo-enabled.go", "foo.cc", "bar.S", "baz.a"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["pure-go.go"],
+    library = ":cgo_enabled",
+)
+```
 
 <a name="go_binary"></a>
 ## go\_binary
