@@ -304,18 +304,33 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
       "-Wl,-rpath,$ORIGIN/" + ("../" * (out.count("/") + 1)),
       "-L" + prefix,
   ]
-  cmds = symlink_tree_commands(out_dir, tree_layout)
-  cmds += [
-    "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
-    "cd " + out_dir,
-    ' '.join([
+
+  link_cmd = [
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "link", "-L", ".",
       "-o", prefix + out,
-      "-s",
+  ]
+
+  # workaround for a bug in ld(1) on Mac OS X.
+  # http://lists.apple.com/archives/Darwin-dev/2006/Sep/msg00084.html
+  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2 or earlier.
+  if ctx.fragments.cpp.cpu != 'darwin':
+    link_cmd += ["-s"]
+
+  link_cmd += [
       "-extld", ld,
-      "-extldflags", "'" + " ".join(ldflags), "'",
-      prefix + lib.path[config_strip:]]),
+      "-extldflags", "'%s'" % " ".join(ldflags),
+      prefix + lib.path[config_strip:],
+  ]
+
+  cmds = symlink_tree_commands(out_dir, tree_layout)
+  # Avoided -s on OSX but but it requires dsymutil to be on $PATH.
+  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2 or earlier.
+  cmds += ["export PATH=$PATH:/usr/bin"]
+  cmds += [
+    "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
+    "cd " + out_dir,
+    ' '.join(link_cmd),
     "mv -f " + prefix + out + " " + ("../" * out_depth) + executable.path,
   ]
 
