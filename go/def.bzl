@@ -286,6 +286,7 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   out = executable.path[config_strip:]
+  pkg_depth = out.count('/')
   prefix = _go_prefix(ctx)
 
   for l in transitive_libs:
@@ -301,9 +302,13 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
   if ld[0] != '/':
     ld = ('../' * out_depth) + ld
   ldflags = _c_linker_options(ctx) + [
-      "-Wl,-rpath,$ORIGIN/" + ("../" * (out.count("/") + 1)),
+      "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
       "-L" + prefix,
   ]
+  for d in cgo_deps:
+    if d.basename.endswith('.so'):
+      dirname = d.short_path[:-len(d.basename)]
+      ldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + dirname]
 
   link_cmd = [
       ('../' * out_depth) + ctx.file.go_tool.path,
@@ -496,13 +501,13 @@ def _cgo_codegen_impl(ctx):
 
   for d in ctx.attr.deps:
     inputs += list(d.cc.transitive_headers)
-
-    if ctx.fragments.cpp.cpu == 'darwin':
-      linkopts += ["-Wl," + lib.short_path for lib in d.cc.libs]
-    else:
-      linkopts += ["-l:" + lib.short_path for lib in d.cc.libs]
-    linkopts += d.cc.link_flags
     deps += d.cc.libs
+    for lib in d.cc.libs:
+      if lib.basename.startswith('lib') and lib.basename.endswith('.so'):
+        dirname = lib.short_path[:-len(lib.basename)]
+        linkopts += ['-L', dirname, '-l', lib.basename[3:-3]]
+      else:
+        linkopts += [lib.short_path]
 
   cc = ctx.fragments.cpp.compiler_executable
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
