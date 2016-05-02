@@ -867,14 +867,14 @@ filegroup(
 def go_repositories():
   native.new_http_archive(
     name=  "golang_linux_amd64",
-    url = "https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz",
+    url = "https://storage.googleapis.com/golang/go1.6.2.linux-amd64.tar.gz",
     build_file_content = GO_TOOLCHAIN_BUILD_FILE,
-    sha256 = "5470eac05d273c74ff8bac7bef5bad0b5abbd1c4052efbdbc8db45332e836b0b"
+    sha256 = "e40c36ae71756198478624ed1bb4ce17597b3c19d243f3f0899bb5740d56212a"
   )
 
   native.new_http_archive(
     name=  "golang_darwin_amd64",
-    url = "https://storage.googleapis.com/golang/go1.6.darwin-amd64.tar.gz",
+    url = "https://storage.googleapis.com/golang/go1.6.2.darwin-amd64.tar.gz",
     build_file_content = GO_TOOLCHAIN_BUILD_FILE,
-    sha256 = "8b686ace24c0166738fd9f6003503f9d55ce03b7f24c963b043ba7bb56f43000"
+    sha256 = "6ebbafcac53bbbf8c4105fa84b63cca3d6ce04370f5a04ac2ac065782397fc26"
   )
