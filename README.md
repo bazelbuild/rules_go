@@ -136,7 +136,7 @@ go_prefix(prefix)
       <td><code>prefix</code></td>
       <td>
         <code>String, required</code>
-        <p>Global prefix used to fully quality all Go targets.</p>
+        <p>Global prefix used to fully qualify all Go targets.</p>
         <p>
           In Go, imports are always fully qualified with a URL, eg.
           <code>github.com/user/project</code>. Hence, a label <code>//foo:bar
