@@ -26,4 +26,7 @@ import (
 func main() {
 	fmt.Println("meaning: ", lib.Meaning())
 	fmt.Println("vendored: ", vendored.Vendored())
+
+	lib.AddTwoNumbers()
+	lib.SubTwoNumbers()
 }

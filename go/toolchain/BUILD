@@ -29,3 +29,12 @@ filegroup(
     }),
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "go_include",
+    srcs = select({
+        ":darwin": ["@golang_darwin_amd64//:go_include"],
+        ":k8": ["@golang_linux_amd64//:go_include"],
+    }),
+    visibility = ["//visibility:public"],
+)

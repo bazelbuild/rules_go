@@ -24,3 +24,7 @@ func TestMeaning(t *testing.T) {
 		t.Errorf("got %d, want 42", m)
 	}
 }
+
+// func TestAddTwoNumbers(t *testing.T) {
+// 	AddTwoNumbers()
+// }
