@@ -25,6 +25,6 @@ func TestMeaning(t *testing.T) {
 	}
 }
 
-// func TestAddTwoNumbers(t *testing.T) {
-// 	AddTwoNumbers()
-// }
+func TestAddTwoNumbers(t *testing.T) {
+	AddTwoNumbers()
+}
