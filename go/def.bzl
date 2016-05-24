@@ -155,6 +155,27 @@ def emit_go_asm_action(ctx, source, out_obj):
       command =  " && ".join(cmds),
   )
 
+def _go_archive_path(ctx, lib_artifact):
+  """Returns the expected path of the library archive in the standard layout
+
+  Args:
+    ctx: The skylark Context
+    lib_artifact: A File which go_library outputs
+
+  Returns:
+    A relative path to the given archive file which is expected in the standard
+    workspace layout of Go. It is relative to the pkg directory under the
+    Go workspace.
+  """
+  config_strip = len(ctx.configuration.bin_dir.path) + 1
+  prefix = _go_prefix(ctx)
+
+  path = lib_artifact.path[config_strip:]
+  if path.endswith("/" + _DEFAULT_LIB + ".a"):
+    path = path[:-len(_DEFAULT_LIB)-3] + ".a"
+
+  return prefix + path
+
 def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   """Construct the command line for compiling Go code.
   Constructs a symlink tree to accomodate for workspace name.
@@ -168,8 +189,6 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
     extra_objects: an iterable of extra object files to be added to the
       output archive file.
   """
-  config_strip = len(ctx.configuration.bin_dir.path) + 1
-
   out_dir = out_lib.path + ".dir"
   out_depth = out_dir.count('/') + 1
   tree_layout = {}
@@ -177,15 +196,15 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   prefix = _go_prefix(ctx)
   import_map = {}
   for d in deps:
-    library_artifact_path = d.go_library_object.path[config_strip:]
-    tree_layout[d.go_library_object.path] = prefix + library_artifact_path
+    tree_layout[d.go_library_object.path] = _go_archive_path(ctx, d.go_library_object)
     inputs += [d.go_library_object]
 
-    source_import = prefix + d.label.package + "/" + d.label.name
-    actual_import = prefix + d.label.package + "/" + d.label.name
+    importpath = prefix + d.label.package + "/" + d.label.name
     if d.label.name == _DEFAULT_LIB:
-      source_import = prefix + d.label.package
+      importpath = prefix + d.label.package
 
+    source_import = importpath
+    actual_import = importpath
     if source_import.rfind(_VENDOR_PREFIX) != -1:
       source_import = source_import[len(_VENDOR_PREFIX) + source_import.rfind(_VENDOR_PREFIX):]
 
@@ -329,13 +348,11 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
   prefix = _go_prefix(ctx)
 
   for l in transitive_libs:
-    library_artifact_path = l.path[config_strip:]
-    tree_layout[l.path] = prefix + library_artifact_path
-
+    tree_layout[l.path] = _go_archive_path(ctx, l)
   for d in cgo_deps:
     tree_layout[d.path] = d.short_path
 
-  tree_layout[lib.path] = prefix + lib.path[config_strip:]
+  tree_layout[lib.path] = _go_archive_path(ctx, lib)
 
   ld = "%s" % ctx.fragments.cpp.compiler_executable
   if ld[0] != '/':

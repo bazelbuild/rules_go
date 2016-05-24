@@ -13,20 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package lib
+package lib_test
 
 import (
-	"reflect"
+	"testing"
+
+	"github.com/bazelbuild/rules_go/examples/lib"
 )
 
-// Meaning calculates the meaning of Life, the Universe and Everything.
-func Meaning() int {
-	return 42
-}
-
-type dummy struct{}
-
-// PkgPath returns the package importpath of this package.
-func PkgPath() string {
-	return reflect.TypeOf(dummy{}).PkgPath()
+func TestLibraryPkgPath(t *testing.T) {
+	if got, want := lib.PkgPath(), "github.com/bazelbuild/rules_go/examples/lib"; got != want {
+		t.Errorf("lib.PkgPath() = %q; want %q", got, want)
+	}
 }
