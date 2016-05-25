@@ -19,6 +19,8 @@ import (
 	"reflect"
 )
 
+var buildTime string
+
 // Meaning calculates the meaning of Life, the Universe and Everything.
 func Meaning() int {
 	return 42
@@ -29,4 +31,9 @@ type dummy struct{}
 // PkgPath returns the package importpath of this package.
 func PkgPath() string {
 	return reflect.TypeOf(dummy{}).PkgPath()
+}
+
+// BuildTime returns the buildTime which should be replaced with -X flag.
+func BuildTime() string {
+	return buildTime
 }

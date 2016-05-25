@@ -16,13 +16,24 @@ limitations under the License.
 package lib_test
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/examples/lib"
 )
 
+var (
+	buildTimeWant = flag.String("lib_test.buildtime", "", "expected value in TestBuildTime")
+)
+
 func TestLibraryPkgPath(t *testing.T) {
 	if got, want := lib.PkgPath(), "github.com/bazelbuild/rules_go/examples/lib"; got != want {
 		t.Errorf("lib.PkgPath() = %q; want %q", got, want)
+	}
+}
+
+func TestBuildTime(t *testing.T) {
+	if got, want := lib.BuildTime(), *buildTimeWant; got != want {
+		t.Errorf("buildTime = %q; want %q", got, want)
 	}
 }

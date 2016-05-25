@@ -336,7 +336,8 @@ def _c_linker_options(ctx, blacklist=[]):
     filtered.append(opt)
   return filtered
 
-def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
+def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps,
+                        x_defs={}):
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
   out_depth = out_dir.count('/') + 1
@@ -371,6 +372,9 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps):
       "tool", "link", "-L", ".",
       "-o", prefix + out,
   ]
+
+  if x_defs:
+    link_cmd += [" -X %s='%s' " % (k, v) for k,v in x_defs.items()]
 
   # workaround for a bug in ld(1) on Mac OS X.
   # http://lists.apple.com/archives/Darwin-dev/2006/Sep/msg00084.html
@@ -411,7 +415,7 @@ def go_binary_impl(ctx):
 
   emit_go_link_action(
     ctx, lib_result.transitive_go_library_object, lib_out, executable,
-    lib_result.transitive_cgo_deps)
+    lib_result.transitive_cgo_deps, ctx.attr.x_defs)
 
   runfiles = ctx.runfiles(collect_data = True,
                           files = ctx.files.data)
@@ -449,7 +453,7 @@ def go_test_impl(ctx):
   emit_go_link_action(
     ctx, lib_result.transitive_go_library_object,
     ctx.outputs.main_lib, ctx.outputs.executable,
-    lib_result.transitive_cgo_deps)
+    lib_result.transitive_cgo_deps, ctx.attr.x_defs)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
@@ -526,6 +530,7 @@ go_binary = rule(
     go_binary_impl,
     attrs = go_library_attrs + {
         "stamp": attr.bool(default = False),
+        "x_defs": attr.string_dict(),
     },
     executable = True,
     fragments = ["cpp"],
@@ -542,6 +547,7 @@ go_test = rule(
             ),
             cfg = HOST_CFG,
         ),
+        "x_defs": attr.string_dict(),
     },
     executable = True,
     fragments = ["cpp"],

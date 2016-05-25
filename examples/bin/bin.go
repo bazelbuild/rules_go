@@ -23,9 +23,12 @@ import (
 	"github.com/bazelbuild/rules_go/examples/lib"
 )
 
+var buildTime string
+
 func main() {
 	fmt.Println("meaning: ", lib.Meaning())
 	fmt.Println("vendored: ", vendored.Vendored())
+	fmt.Println("build time: ", buildTime)
 
 	lib.AddTwoNumbers()
 	lib.SubTwoNumbers()

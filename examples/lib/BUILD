@@ -30,4 +30,11 @@ go_test(
     deps = [
          ":go_default_library",
     ],
+    x_defs = {
+        "github.com/bazelbuild/rules_go/examples/lib.buildTime": "05/19/2016 10:30am",
+    },
+    args = [
+        "-lib_test.buildtime",
+        "'05/19/2016 10:30am'",
+    ],
 )
