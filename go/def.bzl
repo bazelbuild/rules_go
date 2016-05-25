@@ -581,7 +581,7 @@ def _cgo_codegen_impl(ctx):
       "export CXX=$CC",
       "objdir=$(pwd)/" + ctx.outputs.outs[0].dirname,
       "mkdir -p $objdir",
-      "cd " + ctx.label.package,
+      "cd " + (ctx.label.package or '.'),
       ' '.join(["$GOROOT/bin/go", "tool", "cgo", "-objdir", "$objdir", "--"] +
                copts + [f.label.name for f in ctx.attr.srcs]),
       "rm -f $objdir/_cgo_.o $objdir/_cgo_flags"]
