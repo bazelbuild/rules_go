@@ -155,26 +155,23 @@ def emit_go_asm_action(ctx, source, out_obj):
       command =  " && ".join(cmds),
   )
 
-def _go_archive_path(ctx, lib_artifact):
-  """Returns the expected path of the library archive in the standard layout
+def _go_importpath(ctx):
+  """Returns the expected importpath of the go_library being built.
 
   Args:
     ctx: The skylark Context
-    lib_artifact: A File which go_library outputs
 
   Returns:
-    A relative path to the given archive file which is expected in the standard
-    workspace layout of Go. It is relative to the pkg directory under the
-    Go workspace.
+    Go importpath of the library
   """
-  config_strip = len(ctx.configuration.bin_dir.path) + 1
-  prefix = _go_prefix(ctx)
-
-  path = lib_artifact.path[config_strip:]
-  if path.endswith("/" + _DEFAULT_LIB + ".a"):
-    path = path[:-len(_DEFAULT_LIB)-3] + ".a"
-
-  return prefix + path
+  path = _go_prefix(ctx)[:-1]
+  if ctx.label.package:
+    path += "/" + ctx.label.package
+  if ctx.label.name != _DEFAULT_LIB:
+    path += "/" + ctx.label.name
+  if path.rfind(_VENDOR_PREFIX) != -1:
+    path = path[len(_VENDOR_PREFIX) + path.rfind(_VENDOR_PREFIX):]
+  return path
 
 def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   """Construct the command line for compiling Go code.
@@ -189,46 +186,29 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
     extra_objects: an iterable of extra object files to be added to the
       output archive file.
   """
-  out_dir = out_lib.path + ".dir"
-  out_depth = out_dir.count('/') + 1
   tree_layout = {}
   inputs = []
-  prefix = _go_prefix(ctx)
-  import_map = {}
   for d in deps:
-    tree_layout[d.go_library_object.path] = _go_archive_path(ctx, d.go_library_object)
+    actual_path = d.go_library_object.path
+    importpath = d.transitive_go_importmap[actual_path]
+    tree_layout[actual_path] = importpath + ".a"
     inputs += [d.go_library_object]
 
-    importpath = prefix + d.label.package + "/" + d.label.name
-    if d.label.name == _DEFAULT_LIB:
-      importpath = prefix + d.label.package
-
-    source_import = importpath
-    actual_import = importpath
-    if source_import.rfind(_VENDOR_PREFIX) != -1:
-      source_import = source_import[len(_VENDOR_PREFIX) + source_import.rfind(_VENDOR_PREFIX):]
-
-    if source_import != actual_import:
-      if source_import in import_map:
-        fail("duplicate import %s: adding %s and have %s"
-             % (source_import, actual_import, import_map[source_import]))
-      import_map[source_import] = actual_import
-
   inputs += list(sources)
+  prefix = _go_prefix(ctx)
   for s in sources:
     tree_layout[s.path] = prefix + s.path
 
+  out_dir = out_lib.path + ".dir"
+  out_depth = out_dir.count('/') + 1
   cmds = symlink_tree_commands(out_dir, tree_layout)
   args = [
       "cd ", out_dir, "&&",
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "compile",
       "-o", ('../' * out_depth) + out_lib.path, "-pack",
-
-      # Import path.
-      "-I", "."] + [
-        "-importmap=%s=%s" % (k,v) for k, v in import_map.items()
-      ]
+      "-I", "."
+  ]
 
   # Set -p to the import path of the library, ie.
   # (ctx.label.package + "/" ctx.label.name) for now.
@@ -290,9 +270,11 @@ def go_library_impl(ctx):
                          extra_objects=extra_objects)
 
   transitive_libs = set([out_lib])
+  transitive_importmap = {out_lib.path: _go_importpath(ctx)}
   for dep in ctx.attr.deps:
      transitive_libs += dep.transitive_go_library_object
      transitive_cgo_deps += dep.transitive_cgo_deps
+     transitive_importmap += dep.transitive_go_importmap
 
   dylibs = []
   if cgo_object:
@@ -310,6 +292,7 @@ def go_library_impl(ctx):
     transitive_go_library_object = transitive_libs,
     cgo_object = cgo_object,
     transitive_cgo_deps = transitive_cgo_deps,
+    transitive_go_importmap = transitive_importmap
   )
 
 def _c_linker_options(ctx, blacklist=[]):
@@ -336,8 +319,8 @@ def _c_linker_options(ctx, blacklist=[]):
     filtered.append(opt)
   return filtered
 
-def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps,
-                        x_defs={}):
+def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
+                        executable, x_defs={}):
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
   out_depth = out_dir.count('/') + 1
@@ -349,11 +332,15 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps,
   prefix = _go_prefix(ctx)
 
   for l in transitive_libs:
-    tree_layout[l.path] = _go_archive_path(ctx, l)
+    actual_path = l.path
+    importpath = importmap[actual_path]
+    tree_layout[l.path] = importpath + ".a"
+
   for d in cgo_deps:
     tree_layout[d.path] = d.short_path
 
-  tree_layout[lib.path] = _go_archive_path(ctx, lib)
+  main_archive = importmap[lib.path] + ".a"
+  tree_layout[lib.path] = main_archive
 
   ld = "%s" % ctx.fragments.cpp.compiler_executable
   if ld[0] != '/':
@@ -385,7 +372,7 @@ def emit_go_link_action(ctx, transitive_libs, lib, executable, cgo_deps,
   link_cmd += [
       "-extld", ld,
       "-extldflags", "'%s'" % " ".join(ldflags),
-      prefix + lib.path[config_strip:],
+      main_archive,
   ]
 
   cmds = symlink_tree_commands(out_dir, tree_layout)
@@ -414,8 +401,12 @@ def go_binary_impl(ctx):
   lib_out = ctx.outputs.lib
 
   emit_go_link_action(
-    ctx, lib_result.transitive_go_library_object, lib_out, executable,
-    lib_result.transitive_cgo_deps, ctx.attr.x_defs)
+    ctx, 
+    transitive_libs=lib_result.transitive_go_library_object,
+    importmap=lib_result.transitive_go_importmap,
+    cgo_deps=lib_result.transitive_cgo_deps,
+    lib=lib_out, executable=executable,
+    x_defs=ctx.attr.x_defs)
 
   runfiles = ctx.runfiles(collect_data = True,
                           files = ctx.files.data)
@@ -433,7 +424,7 @@ def go_test_impl(ctx):
   main_go = ctx.outputs.main_go
   prefix = _go_prefix(ctx)
 
-  go_import = prefix + ctx.label.package + "/" + ctx.label.name
+  go_import = _go_importpath(ctx)
 
   args = (["--package", go_import, "--output", ctx.outputs.main_go.path] +
           cmd_helper.template(lib_result.go_sources, "%{path}"))
@@ -450,10 +441,15 @@ def go_test_impl(ctx):
   emit_go_compile_action(
     ctx, set([main_go]), ctx.attr.deps + [lib_result], ctx.outputs.main_lib)
 
+  importmap = lib_result.transitive_go_importmap + {
+      ctx.outputs.main_lib.path: _go_importpath(ctx) + "_main_test"}
   emit_go_link_action(
-    ctx, lib_result.transitive_go_library_object,
-    ctx.outputs.main_lib, ctx.outputs.executable,
-    lib_result.transitive_cgo_deps, ctx.attr.x_defs)
+    ctx,
+    importmap=importmap,
+    transitive_libs=lib_result.transitive_go_library_object,
+    cgo_deps=lib_result.transitive_cgo_deps,
+    lib=ctx.outputs.main_lib, executable=ctx.outputs.executable,
+    x_defs=ctx.attr.x_defs)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
@@ -502,6 +498,7 @@ go_library_attrs = go_env_attrs + {
         providers = [
             "direct_deps",
             "go_library_object",
+            "transitive_go_importmap",
             "transitive_go_library_object",
             "transitive_cgo_deps",
         ],
