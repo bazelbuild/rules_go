@@ -327,8 +327,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   tree_layout = {}
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
-  out = executable.path[config_strip:]
-  pkg_depth = out.count('/')
+  pkg_depth = executable.dirname[config_strip:].count('/') + 1
   prefix = _go_prefix(ctx)
 
   for l in transitive_libs:
@@ -357,7 +356,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   link_cmd = [
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "link", "-L", ".",
-      "-o", prefix + out,
+      "-o", _go_importpath(ctx),
   ]
 
   if x_defs:
@@ -383,7 +382,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
     "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
     "cd " + out_dir,
     ' '.join(link_cmd),
-    "mv -f " + prefix + out + " " + ("../" * out_depth) + executable.path,
+    "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
   ]
 
   ctx.action(
