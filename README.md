@@ -35,7 +35,7 @@ They currently do not support (in order of importance):
 * Decide on the name of your package, eg. `github.com/joe/project`
 * Add the following to your WORKSPACE file:
 
-    ```python
+    ```bzl
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
@@ -50,7 +50,7 @@ They currently do not support (in order of importance):
   workspace using `go_prefix`. It is strongly recommended that the prefix is not
   empty.
 
-    ```python
+    ```bzl
     load("@io_bazel_rules_go//go:def.bzl", "go_prefix")
 
     go_prefix("github.com/joe/project")
@@ -58,7 +58,7 @@ They currently do not support (in order of importance):
 
 * For a library `github.com/joe/project/lib`, create `lib/BUILD`, containing
 
-    ```python
+    ```bzl
     load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
     go_library(
@@ -69,7 +69,7 @@ They currently do not support (in order of importance):
 
 * Inside your project, you can use this library by declaring a dependency
 
-    ```python
+    ```bzl
     go_binary(
         ...
         deps = ["//lib:go_default_library"]
@@ -82,7 +82,7 @@ They currently do not support (in order of importance):
   libraries should have BUILD files like normal libraries.
 * To declare a test,
 
-    ```python
+    ```bzl
     go_test(
         name = "mytest",
         srcs = ["file_test.go"],
@@ -117,7 +117,7 @@ These rules are not supported by Google's Go team.
 <a name="go_prefix"></a>
 ## go\_prefix
 
-```python
+```bzl
 go_prefix(prefix)
 ```
 
@@ -154,7 +154,7 @@ go_prefix(prefix)
 <a name="go_library"></a>
 ## go\_library
 
-```python
+```bzl
 go_library(name, srcs, deps, data)
 ```
 <table class="table table-condensed table-bordered table-params">
@@ -203,7 +203,7 @@ go_library(name, srcs, deps, data)
 <a name="cgo_library"></a>
 ## cgo\_library
 
-```python
+```bzl
 cgo_library(name, srcs, copts, linkopts, deps, data)
 ```
 <table class="table table-condensed table-bordered table-params">
@@ -273,7 +273,7 @@ cgo_library(name, srcs, copts, linkopts, deps, data)
 So you need to define another `go_library` when you build a go package with
 both cgo-enabled and pure-Go sources.
 
-```python
+```bzl
 cgo_library(
     name = "cgo-enabled",
     srcs = ["cgo-enabled.go", "foo.cc", "bar.S", "baz.a"],
@@ -289,7 +289,7 @@ go_library(
 <a name="go_binary"></a>
 ## go\_binary
 
-```python
+```bzl
 go_binary(name, srcs, deps, data)
 ```
 <table class="table table-condensed table-bordered table-params">
@@ -338,7 +338,7 @@ go_binary(name, srcs, deps, data)
 <a name="go_test"></a>
 ## go\_test
 
-```python
+```bzl
 go_test(name, srcs, deps, data)
 ```
 <table class="table table-condensed table-bordered table-params">
