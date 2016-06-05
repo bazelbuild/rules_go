@@ -241,10 +241,18 @@ def go_library_impl(ctx):
   if hasattr(ctx.attr, "cgo_object"):
     cgo_object = ctx.attr.cgo_object
 
+  transitive_libs = set()
+  transitive_importmap = {}
+
   if ctx.attr.library:
     go_srcs += ctx.attr.library.go_sources
     asm_srcs += ctx.attr.library.asm_sources
-    deps += ctx.attr.library.direct_deps
+    if hasattr(ctx.attr.library, "direct_deps"):
+      deps += ctx.attr.library.direct_deps
+    if hasattr(ctx.attr.library, "transitive_go_library_object"):
+      transitive_libs += ctx.attr.library.transitive_go_library_object
+    if hasattr(ctx.attr.library, "transitive_go_importmap"):
+      transitive_importmap += ctx.attr.library.transitive_go_importmap
     if ctx.attr.library.cgo_object:
       if cgo_object:
         fail("go_library %s cannot have cgo_object because the package " +
@@ -269,8 +277,8 @@ def go_library_impl(ctx):
   emit_go_compile_action(ctx, go_srcs, deps, out_lib,
                          extra_objects=extra_objects)
 
-  transitive_libs = set([out_lib])
-  transitive_importmap = {out_lib.path: _go_importpath(ctx)}
+  transitive_libs += set([out_lib])
+  transitive_importmap += {out_lib.path: _go_importpath(ctx)}
   for dep in ctx.attr.deps:
      transitive_libs += dep.transitive_go_library_object
      transitive_cgo_deps += dep.transitive_cgo_deps
@@ -354,10 +362,11 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
       dirname = d.short_path[:-len(d.basename)]
       ldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + dirname]
 
+  real_out_path = prefix + out
   link_cmd = [
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "link", "-L", ".",
-      "-o", prefix + out,
+      "-o", real_out_path,
   ]
 
   if x_defs:
@@ -382,6 +391,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   cmds += [
     "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
     "cd " + out_dir,
+    "mkdir -p %s" % (real_out_path[:real_out_path.rfind('/')],),
     ' '.join(link_cmd),
     "mv -f " + prefix + out + " " + ("../" * out_depth) + executable.path,
   ]
@@ -401,7 +411,7 @@ def go_binary_impl(ctx):
   lib_out = ctx.outputs.lib
 
   emit_go_link_action(
-    ctx, 
+    ctx,
     transitive_libs=lib_result.transitive_go_library_object,
     importmap=lib_result.transitive_go_importmap,
     cgo_deps=lib_result.transitive_cgo_deps,
