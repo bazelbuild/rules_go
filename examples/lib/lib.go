@@ -17,13 +17,15 @@ package lib
 
 import (
 	"reflect"
+
+	"github.com/bazelbuild/rules_go/examples/lib/deep"
 )
 
 var buildTime string
 
-// Meaning calculates the meaning of Life, the Universe and Everything.
+// Meaning returns the meaning of Life, the Universe and Everything.
 func Meaning() int {
-	return 42
+	return deep.Thought()
 }
 
 type dummy struct{}

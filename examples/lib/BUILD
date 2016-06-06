@@ -12,6 +12,7 @@ go_library(
         "lib.go",
         "sub.s",
     ],
+    deps = ["//examples/lib/deep:go_default_library"],
 )
 
 go_test(

@@ -271,7 +271,7 @@ def go_library_impl(ctx):
 
   transitive_libs = set([out_lib])
   transitive_importmap = {out_lib.path: _go_importpath(ctx)}
-  for dep in ctx.attr.deps:
+  for dep in deps:
      transitive_libs += dep.transitive_go_library_object
      transitive_cgo_deps += dep.transitive_cgo_deps
      transitive_importmap += dep.transitive_go_importmap
