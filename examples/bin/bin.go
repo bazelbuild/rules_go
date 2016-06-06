@@ -18,9 +18,8 @@ package main
 import (
 	"fmt"
 
-	"github_com/user/vendored"
-
 	"github.com/bazelbuild/rules_go/examples/lib"
+	"github.com/user/vendored"
 )
 
 var buildTime string
