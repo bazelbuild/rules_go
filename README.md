@@ -314,8 +314,8 @@ go_binary(name, srcs, deps, data)
       <td><code>srcs</code></td>
       <td>
         <code>List of labels, required</code>
-        <p>List of Go <code>.go</code> source files used to build the
-        binary</p>
+        <p>List of Go <code>.go</code> (at least one) or ASM <code>.s/.S</code>
+        source files used to build the binary</p>
       </td>
     </tr>
     <tr>
@@ -363,8 +363,8 @@ go_test(name, srcs, deps, data)
       <td><code>srcs</code></td>
       <td>
         <code>List of labels, required</code>
-        <p>List of Go <code>.go</code> source files used to build the
-        test</p>
+        <p>List of Go <code>.go</code> (at least one) or ASM <code>.s/.S</code>
+        source files used to build the test</p>
       </td>
     </tr>
     <tr>
