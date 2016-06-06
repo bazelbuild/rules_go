@@ -275,7 +275,7 @@ both cgo-enabled and pure-Go sources.
 
 ```bzl
 cgo_library(
-    name = "cgo-enabled",
+    name = "cgo_enabled",
     srcs = ["cgo-enabled.go", "foo.cc", "bar.S", "baz.a"],
 )
 

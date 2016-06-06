@@ -175,7 +175,7 @@ def _go_importpath(ctx):
 
 def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   """Construct the command line for compiling Go code.
-  Constructs a symlink tree to accomodate for workspace name.
+  Constructs a symlink tree to accommodate for workspace name.
 
   Args:
     ctx: The skylark Context.
@@ -830,7 +830,7 @@ def cgo_library(name, srcs,
 
     ```
     cgo_library(
-        name = "cgo-enabled",
+        name = "cgo_enabled",
         srcs = ["cgo-enabled.go", "foo.cc", "bar.S", "baz.a"],
     )
 
