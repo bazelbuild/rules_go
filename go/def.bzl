@@ -365,7 +365,8 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
 
   # workaround for a bug in ld(1) on Mac OS X.
   # http://lists.apple.com/archives/Darwin-dev/2006/Sep/msg00084.html
-  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2 or earlier.
+  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
+  # or earlier.
   if ctx.fragments.cpp.cpu != 'darwin':
     link_cmd += ["-s"]
 
@@ -377,7 +378,8 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
 
   cmds = symlink_tree_commands(out_dir, tree_layout)
   # Avoided -s on OSX but but it requires dsymutil to be on $PATH.
-  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2 or earlier.
+  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
+  # or earlier.
   cmds += ["export PATH=$PATH:/usr/bin"]
   cmds += [
     "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
@@ -816,7 +818,8 @@ def cgo_library(name, srcs,
     name: A unique name for this rule.
     srcs: List of Go, C and C++ files that are processed to build a Go library.
       Those Go files must contain `import "C"`.
-      C and C++ files can be anything allowed in `srcs` attribute of `cc_library`.
+      C and C++ files can be anything allowed in `srcs` attribute of
+      `cc_library`.
     copts: Add these flags to the C++ compiler.
     linkopts: Add these flags to the C++ linker.
     deps: List of C/C++ libraries to be linked into the binary target.
