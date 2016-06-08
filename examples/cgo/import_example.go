@@ -7,12 +7,13 @@ import (
 	//#include "use_exported.h"
 	//#include "cc_dependency/version.h"
 	"C"
-	"math"
+
+	"github.com/bazelbuild/rules_go/examples/cgo/sub"
 )
 
 // Nsqrt returns the square root of n.
 func Nsqrt(n int) int {
-	return int(math.Floor(float64(C.sqrt(C.double(n)))))
+	return int(sub.Floor(float64(C.sqrt(C.double(n)))))
 }
 
 func PrintGoVersion() {

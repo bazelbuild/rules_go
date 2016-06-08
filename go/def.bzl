@@ -90,9 +90,14 @@ def symlink_tree_commands(dest_dir, artifact_dict):
   ]
 
   for old_path, new_path in artifact_dict.items():
-    new_dir = new_path[:new_path.rfind('/')]
-    up = (new_dir.count('/') + 1 +
-          dest_dir.count('/') + 1)
+    pos = new_path.rfind('/')
+    if pos >= 0:
+      new_dir = new_path[:pos]
+      up = (new_dir.count('/') + 1 +
+            dest_dir.count('/') + 1)
+    else:
+      new_dir = ''
+      up = dest_dir.count('/') + 1
     cmds += [
       "mkdir -p %s/%s" % (dest_dir, new_dir),
       "ln -s %s%s %s/%s" % ('../' * up, old_path, dest_dir, new_path),
@@ -557,16 +562,21 @@ go_test = rule(
     test = True,
 )
 
-def _cgo_codegen_impl(ctx):
-  out_dir = ctx.label.package + "/" + ctx.attr.outdir
-  pkg_depth = ctx.label.package.count("/") + 1
+def _pkg_dir(workspace_root, package_name):
+  if workspace_root and package_name:
+    return workspace_root + "/" + package_name
+  if workspace_root:
+    return workspace_root
+  if package_name:
+    return package_name
+  return "."
 
-  inputs = ctx.files.srcs + ctx.files.c_hdrs + ctx.files.toolchain
+def _cgo_codegen_impl(ctx):
+  srcs = ctx.files.srcs + ctx.files.c_hdrs
   linkopts = ctx.attr.linkopts
   deps = set([], order="link")
-
   for d in ctx.attr.deps:
-    inputs += list(d.cc.transitive_headers)
+    srcs += list(d.cc.transitive_headers)
     deps += d.cc.libs
     for lib in d.cc.libs:
       if lib.basename.startswith('lib') and lib.basename.endswith('.so'):
@@ -575,22 +585,34 @@ def _cgo_codegen_impl(ctx):
       else:
         linkopts += [lib.short_path]
 
+  # collect files from $(SRCDIR), $(GENDIR) and $(BINDIR)
+  tree_layout = {}
+  for s in srcs:
+    tree_layout[s.path] = s.short_path
+
+  out_dir = (ctx.configuration.genfiles_dir.path + '/' +
+             _pkg_dir(ctx.label.workspace_root, ctx.label.package) + "/" +
+             ctx.attr.outdir)
   cc = ctx.fragments.cpp.compiler_executable
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
-  cmds = [
+  cmds = symlink_tree_commands(out_dir + "/src", tree_layout) + [
       "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
       # We cannot use env for CC because $(CC) on OSX is relative
       # and '../' does not work fine due to symlinks.
       "export CC=$(cd $(dirname {cc}); pwd)/$(basename {cc})".format(cc=cc),
       "export CXX=$CC",
-      "objdir=$(pwd)/" + ctx.outputs.outs[0].dirname,
+      "objdir=$(pwd)/%s/gen" % out_dir,
       "mkdir -p $objdir",
-      "cd " + (ctx.label.package or '.'),
+      # The working directory must be the directory of the target go package
+      # to prevent cgo from prefixing mangled directory names to the output
+      # files.
+      "cd %s/src/$(dirname %s)" % (out_dir, ctx.files.srcs[0].short_path),
       ' '.join(["$GOROOT/bin/go", "tool", "cgo", "-objdir", "$objdir", "--"] +
-               copts + [f.label.name for f in ctx.attr.srcs]),
+               copts + [f.basename for f in ctx.files.srcs]),
       "rm -f $objdir/_cgo_.o $objdir/_cgo_flags"]
+
   ctx.action(
-      inputs = inputs,
+      inputs = srcs + ctx.files.toolchain,
       outputs = ctx.outputs.outs,
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
@@ -649,28 +671,31 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
       are linked into the target binary.
   """
   outdir = name + ".dir"
+  outgen = outdir + "/gen"
 
   go_thunks = []
   c_thunks = []
   for s in srcs:
     if not s.endswith('.go'):
       fail("not a .go file: %s" % s)
-    stem = s[:-3]
-    go_thunks.append(outdir + "/" + stem + ".cgo1.go")
-    c_thunks.append(outdir + "/" + stem + ".cgo2.c")
+    basename = s[:-3]
+    if basename.rfind("/") >= 0:
+      basename = basename[basename.rfind("/")+1:]
+    go_thunks.append(outgen + "/" + basename + ".cgo1.go")
+    c_thunks.append(outgen + "/" + basename + ".cgo2.c")
 
   outs = struct(
       name = name,
 
-      outdir = outdir,
+      outdir = outgen,
       go_thunks = go_thunks,
       c_thunks = c_thunks,
       c_exports = [
-          outdir + "/_cgo_export.c",
-          outdir + "/_cgo_export.h",
-          ],
-      c_dummy = outdir + "/_cgo_main.c",
-      gotypes = outdir + "/_cgo_gotypes.go",
+          outgen + "/_cgo_export.c",
+          outgen + "/_cgo_export.h",
+      ],
+      c_dummy = outgen + "/_cgo_main.c",
+      gotypes = outgen + "/_cgo_gotypes.go",
   )
 
   _cgo_codegn_rule(
@@ -686,10 +711,10 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
       outdir = outdir,
       outs = outs.go_thunks + outs.c_thunks + outs.c_exports + [
           outs.c_dummy, outs.gotypes,
-          ],
+      ],
 
       visibility = ["//visibility:private"],
-      )
+  )
   return outs
 
 def _cgo_import_impl(ctx):
@@ -810,6 +835,7 @@ def cgo_library(name, srcs,
                 copts=[],
                 linkopts=[],
                 deps=[],
+                go_deps=[],
                 **kwargs):
   """Builds a cgo-enabled go library.
 
@@ -857,14 +883,17 @@ def cgo_library(name, srcs,
       toolchain = toolchain,
   )
 
+  pkg_dir = _pkg_dir(
+      "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
+      PACKAGE_NAME)
   # Bundles objects into an archive so that _cgo_.o and _all.o can share them.
   native.cc_library(
       name = cgogen.outdir + "/_cgo_lib",
       srcs = cgogen.c_thunks + cgogen.c_exports + c_srcs + c_hdrs,
       deps = deps,
       copts = copts + [
-          "-I", PACKAGE_NAME,
-          "-I", "$(GENDIR)/" + PACKAGE_NAME + "/" + cgogen.outdir,
+          "-I", pkg_dir,
+          "-I", "$(GENDIR)/" + pkg_dir + "/" + cgogen.outdir,
           # The generated thunks often contain unused variables.
           "-Wno-unused-variable",
       ],
@@ -890,7 +919,7 @@ def cgo_library(name, srcs,
       name = "%s.cgo.importgen" % name,
       cgo_o = cgogen.outdir + "/_cgo_.o",
       out = cgogen.outdir + "/_cgo_import.go",
-      sample_go_src = srcs[0],
+      sample_go_src = go_srcs[0],
       go_tool = go_tool,
       toolchain = toolchain,
       visibility = ["//visibility:private"],
@@ -911,6 +940,7 @@ def cgo_library(name, srcs,
           cgogen.outdir + "/_cgo_import.go",
       ],
       cgo_object = cgogen.outdir + "/_cgo_object",
+      deps = go_deps,
       go_tool = go_tool,
       toolchain = toolchain,
       **kwargs
