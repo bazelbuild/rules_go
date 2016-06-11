@@ -833,9 +833,8 @@ def cgo_library(name, srcs,
                 toolchain=None,
                 go_tool=None,
                 copts=[],
-                linkopts=[],
-                deps=[],
-                go_deps=[],
+                clinkopts=[],
+                cdeps=[],
                 **kwargs):
   """Builds a cgo-enabled go library.
 
@@ -846,9 +845,10 @@ def cgo_library(name, srcs,
       C and C++ files can be anything allowed in `srcs` attribute of
       `cc_library`.
     copts: Add these flags to the C++ compiler.
-    linkopts: Add these flags to the C++ linker.
-    deps: List of C/C++ libraries to be linked into the binary target.
+    clinkopts: Add these flags to the C++ linker.
+    cdeps: List of C/C++ libraries to be linked into the binary target.
       They must be `cc_library` rules.
+    deps: List of other libraries to be linked to this library target.
     data: List of files needed by this rule at runtime.
 
   NOTE:
@@ -877,8 +877,8 @@ def cgo_library(name, srcs,
       name = name + ".cgo",
       srcs = go_srcs,
       c_hdrs = c_hdrs,
-      deps = deps,
-      linkopts = linkopts,
+      deps = cdeps,
+      linkopts = clinkopts,
       go_tool = go_tool,
       toolchain = toolchain,
   )
@@ -890,14 +890,14 @@ def cgo_library(name, srcs,
   native.cc_library(
       name = cgogen.outdir + "/_cgo_lib",
       srcs = cgogen.c_thunks + cgogen.c_exports + c_srcs + c_hdrs,
-      deps = deps,
+      deps = cdeps,
       copts = copts + [
           "-I", pkg_dir,
           "-I", "$(GENDIR)/" + pkg_dir + "/" + cgogen.outdir,
           # The generated thunks often contain unused variables.
           "-Wno-unused-variable",
       ],
-      linkopts = linkopts,
+      linkopts = clinkopts,
       linkstatic = 1,
       # _cgo_.o and _all.o keep all objects in this archive.
       # But it should not be very annoying in the final binary target
@@ -910,9 +910,9 @@ def cgo_library(name, srcs,
   native.cc_binary(
       name = cgogen.outdir + "/_cgo_.o",
       srcs = [cgogen.c_dummy],
-      deps = deps + [cgogen.outdir + "/_cgo_lib"],
+      deps = cdeps + [cgogen.outdir + "/_cgo_lib"],
       copts = copts,
-      linkopts = linkopts,
+      linkopts = clinkopts,
       visibility = ["//visibility:private"],
   )
   _cgo_import(
@@ -940,7 +940,6 @@ def cgo_library(name, srcs,
           cgogen.outdir + "/_cgo_import.go",
       ],
       cgo_object = cgogen.outdir + "/_cgo_object",
-      deps = go_deps,
       go_tool = go_tool,
       toolchain = toolchain,
       **kwargs

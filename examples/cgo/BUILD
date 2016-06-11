@@ -13,9 +13,9 @@ cgo_library(
         "use_exported.c",
         "use_exported.h",
     ],
-    deps = ["//examples/cgo/cc_dependency:version"],
-    linkopts = ["-lm"],
-    go_deps = [":sub"],
+    deps = [":sub"],
+    cdeps = ["//examples/cgo/cc_dependency:version"],
+    clinkopts = ["-lm"],
     visibility = ["//visibility:private"],
 )
 
@@ -30,7 +30,7 @@ go_library(
 cgo_library(
     name = "sub",
     srcs = ["sub/floor.go"],
-    linkopts = ["-lm"],
+    clinkopts = ["-lm"],
     visibility = ["//visibility:private"],
 )
 
