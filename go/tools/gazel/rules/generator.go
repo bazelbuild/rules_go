@@ -41,6 +41,7 @@ type Generator interface {
 // See also https://github.com/bazelbuild/rules_go#go_prefix.
 func NewGenerator(goPrefix string) Generator {
 	return &generator{
+		goPrefix: goPrefix,
 		// TODO(yugui) Support another resolver to cover the pattern 2 in
 		// https://github.com/bazelbuild/rules_go/issues/16#issuecomment-216010843
 		r: structuredResolver{goPrefix: goPrefix},
@@ -48,15 +49,25 @@ func NewGenerator(goPrefix string) Generator {
 }
 
 type generator struct {
-	r labelResolver
+	goPrefix string
+	r        labelResolver
 }
 
 func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error) {
+	var rules []*bzl.Rule
+	if rel == "" {
+		p, err := newRule("go_prefix", []interface{}{g.goPrefix}, nil)
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, p)
+	}
+
 	r, err := g.generate(rel, pkg)
 	if err != nil {
 		return nil, err
 	}
-	rules := []*bzl.Rule{r}
+	rules = append(rules, r)
 
 	if len(pkg.TestGoFiles) > 0 {
 		t, err := g.generateTest(rel, pkg, r.AttrString("name"))
