@@ -13,14 +13,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package lib
+package rules
 
 import (
-	"example.com/repo/lib/deep"
+	"testing"
 )
 
-// Answer returns the ultimate answer to life, the universe and everything.
-func Answer() int {
-	var d deep.Thought
-	return d.Compute()
+func TestLabelString(t *testing.T) {
+	for _, spec := range []struct {
+		l    label
+		want string
+	}{
+		{
+			l:    label{name: "foo"},
+			want: "//:foo",
+		},
+		{
+			l:    label{pkg: "foo/bar", name: "baz"},
+			want: "//foo/bar:baz",
+		},
+		{
+			l:    label{repo: "com_example_repo", pkg: "foo/bar", name: "baz"},
+			want: "@com_example_repo//foo/bar:baz",
+		},
+		{
+			l:    label{relative: true, name: "foo"},
+			want: ":foo",
+		},
+	} {
+		if got, want := spec.l.String(), spec.want; got != want {
+			t.Errorf("%#v.String() = %q; want %q", spec.l, got, want)
+		}
+	}
 }

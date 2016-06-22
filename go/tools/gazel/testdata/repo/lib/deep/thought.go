@@ -13,14 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package lib
+package deep
 
-import (
-	"example.com/repo/lib/deep"
-)
+// Thought is an emulator of the Deep Thought computer.
+type Thought struct{}
 
-// Answer returns the ultimate answer to life, the universe and everything.
-func Answer() int {
-	var d deep.Thought
-	return d.Compute()
-}
+func (t Thought) Compute() int { return 42 }

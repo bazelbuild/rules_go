@@ -38,6 +38,13 @@ func TestGenerator(t *testing.T) {
 					},
 				},
 			},
+			"lib/deep": {
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_library"},
+					},
+				},
+			},
 			"bin": {
 				{
 					Call: &bzl.CallExpr{
@@ -49,9 +56,9 @@ func TestGenerator(t *testing.T) {
 	}
 
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo)
+	g, err := New(repo, "example.com/repo")
 	if err != nil {
-		t.Errorf("New(%q) failed with %v; want success", repo, err)
+		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
 		return
 	}
 	g.g = stub
@@ -66,6 +73,10 @@ func TestGenerator(t *testing.T) {
 		{
 			Path: "lib/BUILD",
 			Stmt: []bzl.Expr{stub.fixtures["lib"][0].Call},
+		},
+		{
+			Path: "lib/deep/BUILD",
+			Stmt: []bzl.Expr{stub.fixtures["lib/deep"][0].Call},
 		},
 		{
 			Path: "bin/BUILD",
