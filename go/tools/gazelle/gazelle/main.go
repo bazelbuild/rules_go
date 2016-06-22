@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	bzl "github.com/bazelbuild/buildifier/core"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/generator"
@@ -30,9 +31,16 @@ import (
 var (
 	goPrefix = flag.String("go_prefix", "", "go_prefix of the target workspace")
 	repoRoot = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix")
+	mode     = flag.String("mode", "print", "print, fix or diff")
 )
 
-func run(dirs []string) error {
+var modeFromName = map[string]func(*bzl.File) error{
+	"print": printFile,
+	"fix":   fixFile,
+	"diff":  diffFile,
+}
+
+func run(dirs []string, emit func(*bzl.File) error) error {
 	g, err := generator.New(*repoRoot, *goPrefix)
 	if err != nil {
 		return err
@@ -44,7 +52,8 @@ func run(dirs []string) error {
 			return err
 		}
 		for _, f := range files {
-			if _, err := os.Stdout.Write(bzl.Format(f)); err != nil {
+			f.Path = filepath.Join(*repoRoot, f.Path)
+			if err := emit(f); err != nil {
 				return err
 			}
 		}
@@ -65,6 +74,11 @@ notice.
 It takes a list of paths to Go package directories.
 It recursively traverses its subpackages.
 All the directories must be under the directory specified in -repo_root.
+
+There are several modes of gazelle.
+In print mode, gazelle prints reconciled BUILD files to stdout.
+In fix mode, gazelle creates BUILD files or updates existing ones.
+In diff mode, gazelle shows diff.
 
 FLAGS:
 `)
@@ -87,7 +101,13 @@ func main() {
 		// TODO(yugui): Guess repoRoot at the same time as goPrefix
 		*repoRoot = flag.Arg(0)
 	}
-	if err := run(flag.Args()); err != nil {
+
+	emit := modeFromName[*mode]
+	if emit == nil {
+		log.Fatalf("unrecognized mode %s", *mode)
+	}
+
+	if err := run(flag.Args(), emit); err != nil {
 		log.Fatal(err)
 	}
 }
