@@ -6,11 +6,22 @@ go_library(
         "construct.go",
         "doc.go",
         "generator.go",
+        "resolve.go",
+        "resolve_structured.go",
     ],
     visibility = ["//visibility:public"],
     deps = [
         "@io_bazel_buildifier//core:go_default_library",
     ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "resolve_structured_test.go",
+        "resolve_test.go",
+    ],
+    library = ":go_default_library",
 )
 
 go_test(

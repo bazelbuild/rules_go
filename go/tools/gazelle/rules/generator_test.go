@@ -51,7 +51,7 @@ func packageFromDir(t *testing.T, dir string) *build.Package {
 }
 
 func TestGenerator(t *testing.T) {
-	g := rules.NewGenerator()
+	g := rules.NewGenerator("example.com/repo")
 	for _, spec := range []struct {
 		dir  string
 		want string
@@ -65,6 +65,7 @@ func TestGenerator(t *testing.T) {
 						"doc.go",
 						"lib.go",
 					],
+					deps = ["//lib/deep:go_default_library"],
 				)
 			`,
 		},
@@ -74,6 +75,7 @@ func TestGenerator(t *testing.T) {
 				go_binary(
 					name = "bin",
 					srcs = ["main.go"],
+					deps = ["//lib:go_default_library"],
 				)
 			`,
 		},

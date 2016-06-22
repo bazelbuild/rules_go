@@ -18,8 +18,15 @@ package rules
 import (
 	"go/build"
 	"path"
+	"strings"
 
 	bzl "github.com/bazelbuild/buildifier/core"
+)
+
+const (
+	// defaultLibName is the name of the default go_library rule in a Go
+	// package directory. It must be consistent to _DEFAULT_LIB in go/def.bzl.
+	defaultLibName = "go_default_library"
 )
 
 // Generator generates Bazel build rules for Go build targets
@@ -35,28 +42,70 @@ type Generator interface {
 }
 
 // NewGenerator returns an implementation of Generator.
-func NewGenerator() Generator {
-	return new(generator)
+//
+// "goPrefix" is the go_prefix corresponding to the repository root.
+// See also https://github.com/bazelbuild/rules_go#go_prefix.
+func NewGenerator(goPrefix string) Generator {
+	return &generator{
+		// TODO(yugui): Support another resolver to cover the pattern 2 in
+		// https://github.com/bazelbuild/rules_go/issues/16#issuecomment-216010843
+		r: structuredResolver{goPrefix: goPrefix},
+	}
 }
 
-type generator struct{}
+type generator struct {
+	r labelResolver
+}
 
 func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error) {
+	r, err := g.generate(rel, pkg)
+	if err != nil {
+		return nil, err
+	}
+	return []*bzl.Rule{r}, nil
+}
+
+func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) {
 	kind := "go_library"
-	name := "go_default_library"
+	name := defaultLibName
 	if pkg.IsCommand() {
 		kind = "go_binary"
 		name = path.Base(pkg.Dir)
 	}
 
-	var rules []*bzl.Rule
-	r, err := newRule(kind, nil, []keyvalue{
+	attrs := []keyvalue{
 		{key: "name", value: name},
 		{key: "srcs", value: pkg.GoFiles},
-	})
+	}
+
+	deps, err := g.dependencies(pkg.Imports, rel)
 	if err != nil {
 		return nil, err
 	}
-	rules = append(rules, r)
-	return rules, nil
+	if len(deps) > 0 {
+		attrs = append(attrs, keyvalue{key: "deps", value: deps})
+	}
+
+	return newRule(kind, nil, attrs)
+}
+
+func (g *generator) dependencies(imports []string, dir string) ([]string, error) {
+	var deps []string
+	for _, p := range imports {
+		if isStandard(p) {
+			continue
+		}
+		l, err := g.r.resolve(p, dir)
+		if err != nil {
+			return nil, err
+		}
+		deps = append(deps, l.String())
+	}
+	return deps, nil
+}
+
+// isStandard determines if importpath points a Go standard package.
+func isStandard(importpath string) bool {
+	seg := strings.SplitN(importpath, "/", 2)[0]
+	return !strings.Contains(seg, ".")
 }

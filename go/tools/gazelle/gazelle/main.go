@@ -28,11 +28,12 @@ import (
 )
 
 var (
-	repoRoot = flag.String("repo_root", "", "path to a root directory of a repository")
+	goPrefix = flag.String("go_prefix", "", "go_prefix of the target workspace")
+	repoRoot = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix")
 )
 
 func run(dirs []string) error {
-	g, err := generator.New(*repoRoot)
+	g, err := generator.New(*repoRoot, *goPrefix)
 	if err != nil {
 		return err
 	}
@@ -74,10 +75,16 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
+	if *goPrefix == "" {
+		// TODO(yugui): Extract go_prefix from the top level BUILD file if
+		// exists
+		log.Fatal("-go_prefix is required")
+	}
 	if *repoRoot == "" {
 		if flag.NArg() != 1 {
 			log.Fatal("-repo_root is required")
 		}
+		// TODO(yugui): Guess repoRoot at the same time as goPrefix
 		*repoRoot = flag.Arg(0)
 	}
 	if err := run(flag.Args()); err != nil {

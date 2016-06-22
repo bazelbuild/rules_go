@@ -38,7 +38,9 @@ type Generator struct {
 // New returns a new Generator which is responsible for a Go repository.
 //
 // "repoRoot" is a path to the root directory of the repository.
-func New(repoRoot string) (*Generator, error) {
+// "goPrefix" is the go_prefix corresponding to the repository root directory.
+// See also https://github.com/bazelbuild/rules_go#go_prefix.
+func New(repoRoot, goPrefix string) (*Generator, error) {
 	bctx := build.Default
 	// Ignore source files in $GOROOT and $GOPATH
 	bctx.GOROOT = ""
@@ -51,7 +53,7 @@ func New(repoRoot string) (*Generator, error) {
 	return &Generator{
 		repoRoot: filepath.Clean(repoRoot),
 		bctx:     bctx,
-		g:        rules.NewGenerator(),
+		g:        rules.NewGenerator(goPrefix),
 	}, nil
 }
 
