@@ -28,8 +28,9 @@ import (
 )
 
 var (
-	goPrefix = flag.String("go_prefix", "", "go_prefix of the target workspace")
-	repoRoot = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix")
+	rulesGoRepo = flag.String("rules_go_repo", generator.DefaultRulesGoRepo, "repository name of rules_go")
+	goPrefix    = flag.String("go_prefix", "", "go_prefix of the target workspace")
+	repoRoot    = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix")
 )
 
 func run(dirs []string) error {
@@ -37,6 +38,7 @@ func run(dirs []string) error {
 	if err != nil {
 		return err
 	}
+	g.RulesGoRepo = *rulesGoRepo
 
 	for _, d := range dirs {
 		files, err := g.Generate(d)

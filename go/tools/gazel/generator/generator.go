@@ -28,11 +28,21 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazel/rules"
 )
 
+const (
+	// DefaultRulesGoRepo is the canonical workspace name of rules_go
+	DefaultRulesGoRepo = "@io_bazel_rules_go"
+)
+
 // Generator generates BUILD files for a Go repository.
 type Generator struct {
 	repoRoot string
 	bctx     build.Context
 	g        rules.Generator
+
+	// RulesGoRepo overrides Bazel repository name of rules_go.
+	// It is configurable only for importing external repositories into
+	// rules_go itself. So you usually don't have to specifiy this value.
+	RulesGoRepo string
 }
 
 // New returns a new Generator which is responsible for a Go repository.
@@ -51,9 +61,10 @@ func New(repoRoot, goPrefix string) (*Generator, error) {
 		return nil, err
 	}
 	return &Generator{
-		repoRoot: filepath.Clean(repoRoot),
-		bctx:     bctx,
-		g:        rules.NewGenerator(goPrefix),
+		repoRoot:    filepath.Clean(repoRoot),
+		bctx:        bctx,
+		g:           rules.NewGenerator(goPrefix),
+		RulesGoRepo: DefaultRulesGoRepo,
 	}, nil
 }
 
@@ -81,14 +92,11 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 			rel = ""
 		}
 
-		rs, err := g.g.Generate(filepath.ToSlash(rel), pkg)
+		file, err := g.generateOne(rel, pkg)
 		if err != nil {
 			return err
 		}
-		file := &bzl.File{Path: filepath.Join(rel, "BUILD")}
-		for _, r := range rs {
-			file.Stmt = append(file.Stmt, r.Call)
-		}
+
 		files = append(files, file)
 		return nil
 	})
@@ -96,6 +104,54 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+func (g *Generator) generateOne(rel string, pkg *build.Package) (*bzl.File, error) {
+	rs, err := g.g.Generate(filepath.ToSlash(rel), pkg)
+	if err != nil {
+		return nil, err
+	}
+
+	file := &bzl.File{Path: filepath.Join(rel, "BUILD")}
+	for _, r := range rs {
+		file.Stmt = append(file.Stmt, r.Call)
+	}
+	if load := g.generateLoad(file); load != nil {
+		file.Stmt = append([]bzl.Expr{load}, file.Stmt...)
+	}
+	return file, nil
+}
+
+func (g *Generator) generateLoad(f *bzl.File) bzl.Expr {
+	var list []string
+	for _, kind := range []string{
+		"go_prefix",
+		"go_library",
+		"go_binary",
+		"go_test",
+		// TODO(yugui) Support cgo_library
+	} {
+		if len(f.Rules(kind)) > 0 {
+			list = append(list, kind)
+		}
+	}
+	if len(list) == 0 {
+		return nil
+	}
+	return loadExpr(fmt.Sprintf("%s//go:def.bzl", g.RulesGoRepo), list...)
+}
+
+func loadExpr(ruleFile string, rules ...string) bzl.Expr {
+	var list []bzl.Expr
+	for _, r := range append([]string{ruleFile}, rules...) {
+		list = append(list, &bzl.StringExpr{Value: r})
+	}
+
+	return &bzl.CallExpr{
+		X:            &bzl.LiteralExpr{Token: "load"},
+		List:         list,
+		ForceCompact: true,
+	}
 }
 
 func isDescendingDir(dir, root string) bool {
