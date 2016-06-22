@@ -261,7 +261,7 @@ cgo_library(name, srcs, copts, clinkopts, cdeps, deps, data)
       <td><code>deps</code></td>
       <td>
         <code>List of labels, optional</code>
-        <p>List of other libraries to be linked to this library</p>
+        <p>List of other Go libraries to be linked to this library</p>
       </td>
     </tr>
     <tr>
@@ -329,7 +329,7 @@ go_binary(name, srcs, deps, data)
       <td><code>deps</code></td>
       <td>
         <code>List of labels, optional</code>
-        <p>List of other libraries to linked to this binary target</p>
+        <p>List of other Go libraries to linked to this binary target</p>
       </td>
     </tr>
     <tr>
@@ -378,7 +378,7 @@ go_test(name, srcs, deps, data)
       <td><code>deps</code></td>
       <td>
         <code>List of labels, optional</code>
-        <p>List of other libraries to linked to this test target</p>
+        <p>List of other Go libraries to linked to this test target</p>
       </td>
     </tr>
     <tr>
