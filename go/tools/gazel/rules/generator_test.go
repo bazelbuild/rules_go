@@ -67,6 +67,12 @@ func TestGenerator(t *testing.T) {
 					],
 					deps = ["//lib/deep:go_default_library"],
 				)
+
+				go_test(
+					name = "go_default_test",
+					srcs = ["lib_test.go"],
+					library = ":go_default_library",
+				)
 			`,
 		},
 		{

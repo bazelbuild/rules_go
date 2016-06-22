@@ -56,7 +56,16 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 	if err != nil {
 		return nil, err
 	}
-	return []*bzl.Rule{r}, nil
+	rules := []*bzl.Rule{r}
+
+	if len(pkg.TestGoFiles) > 0 {
+		t, err := g.generateTest(rel, pkg, r.AttrString("name"))
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, t)
+	}
+	return rules, nil
 }
 
 func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) {
@@ -81,6 +90,27 @@ func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) 
 	}
 
 	return newRule(kind, nil, attrs)
+}
+
+func (g *generator) generateTest(rel string, pkg *build.Package, library string) (*bzl.Rule, error) {
+	name := library + "_test"
+	if library == "go_default_library" {
+		name = "go_default_test"
+	}
+	attrs := []keyvalue{
+		{key: "name", value: name},
+		{key: "srcs", value: pkg.TestGoFiles},
+		{key: "library", value: ":" + library},
+	}
+
+	deps, err := g.dependencies(pkg.TestImports, rel)
+	if err != nil {
+		return nil, err
+	}
+	if len(deps) > 0 {
+		attrs = append(attrs, keyvalue{key: "deps", value: deps})
+	}
+	return newRule("go_test", nil, attrs)
 }
 
 func (g *generator) dependencies(imports []string, dir string) ([]string, error) {
