@@ -103,3 +103,24 @@ func TestGenerator(t *testing.T) {
 		}
 	}
 }
+
+func TestGeneratorGoPrefix(t *testing.T) {
+	g := rules.NewGenerator("example.com/repo/lib/deep")
+	want := `
+		go_prefix("example.com/repo/lib/deep")
+
+		go_library(
+			name = "go_default_library",
+			srcs = ["thought.go"],
+		)
+	`
+	pkg := packageFromDir(t, filepath.FromSlash("lib/deep"))
+	rules, err := g.Generate("", pkg)
+	if err != nil {
+		t.Errorf("g.Generate(%q, %#v) failed with %v; want success", "", pkg, err)
+	}
+
+	if got, want := format(rules), canonicalize(t, "BUILD", want); got != want {
+		t.Errorf("g.Generate(%q, %#v) = %s; want %s", "", pkg, got, want)
+	}
+}
