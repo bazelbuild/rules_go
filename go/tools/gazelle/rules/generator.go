@@ -31,6 +31,9 @@ const (
 	// defaultLibName. It does not need to be consistent to something but it
 	// just needs to be unique in the Bazel package
 	defaultTestName = "go_default_test"
+	// defaultXTestName is a name of an external test corresponding to
+	// defaultLibName.
+	defaultXTestName = "go_default_xtest"
 )
 
 // Generator generates Bazel build rules for Go build targets
@@ -70,6 +73,14 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 
 	if len(pkg.TestGoFiles) > 0 {
 		t, err := g.generateTest(rel, pkg, r.AttrString("name"))
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, t)
+	}
+
+	if len(pkg.XTestGoFiles) > 0 {
+		t, err := g.generateXTest(rel, pkg, r.AttrString("name"))
 		if err != nil {
 			return nil, err
 		}
@@ -120,6 +131,24 @@ func (g *generator) generateTest(rel string, pkg *build.Package, library string)
 	if len(deps) > 0 {
 		attrs = append(attrs, keyvalue{key: "deps", value: deps})
 	}
+	return newRule("go_test", nil, attrs)
+}
+
+func (g *generator) generateXTest(rel string, pkg *build.Package, library string) (*bzl.Rule, error) {
+	name := library + "_xtest"
+	if library == defaultLibName {
+		name = defaultXTestName
+	}
+	attrs := []keyvalue{
+		{key: "name", value: name},
+		{key: "srcs", value: pkg.XTestGoFiles},
+	}
+
+	deps, err := g.dependencies(pkg.XTestImports, rel)
+	if err != nil {
+		return nil, err
+	}
+	attrs = append(attrs, keyvalue{key: "deps", value: deps})
 	return newRule("go_test", nil, attrs)
 }
 

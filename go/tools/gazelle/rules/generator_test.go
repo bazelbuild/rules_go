@@ -73,6 +73,12 @@ func TestGenerator(t *testing.T) {
 					srcs = ["lib_test.go"],
 					library = ":go_default_library",
 				)
+
+				go_test(
+					name = "go_default_xtest",
+					srcs = ["lib_external_test.go"],
+					deps = [":go_default_library"],
+				)
 			`,
 		},
 		{
