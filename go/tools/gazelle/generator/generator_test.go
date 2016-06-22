@@ -34,6 +34,11 @@ func TestGenerator(t *testing.T) {
 			"lib": {
 				{
 					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_prefix"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
 						X: &bzl.LiteralExpr{Token: "go_library"},
 					},
 				},
@@ -42,6 +47,11 @@ func TestGenerator(t *testing.T) {
 				{
 					Call: &bzl.CallExpr{
 						X: &bzl.LiteralExpr{Token: "go_library"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_test"},
 					},
 				},
 			},
@@ -72,15 +82,26 @@ func TestGenerator(t *testing.T) {
 	want := []*bzl.File{
 		{
 			Path: "lib/BUILD",
-			Stmt: []bzl.Expr{stub.fixtures["lib"][0].Call},
+			Stmt: []bzl.Expr{
+				loadExpr("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_library"),
+				stub.fixtures["lib"][0].Call,
+				stub.fixtures["lib"][1].Call,
+			},
 		},
 		{
 			Path: "lib/deep/BUILD",
-			Stmt: []bzl.Expr{stub.fixtures["lib/deep"][0].Call},
+			Stmt: []bzl.Expr{
+				loadExpr("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test"),
+				stub.fixtures["lib/deep"][0].Call,
+				stub.fixtures["lib/deep"][1].Call,
+			},
 		},
 		{
 			Path: "bin/BUILD",
-			Stmt: []bzl.Expr{stub.fixtures["bin"][0].Call},
+			Stmt: []bzl.Expr{
+				loadExpr("@io_bazel_rules_go//go:def.bzl", "go_binary"),
+				stub.fixtures["bin"][0].Call,
+			},
 		},
 	}
 	sort.Sort(fileSlice(want))

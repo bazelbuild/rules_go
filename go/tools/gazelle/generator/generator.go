@@ -28,6 +28,11 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 )
 
+const (
+	// goRulesBzl is the label of the Skylark file which provides Go rules
+	goRulesBzl = "@io_bazel_rules_go//go:def.bzl"
+)
+
 // Generator generates BUILD files for a Go repository.
 type Generator struct {
 	repoRoot string
@@ -81,14 +86,11 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 			rel = ""
 		}
 
-		rs, err := g.g.Generate(filepath.ToSlash(rel), pkg)
+		file, err := g.generateOne(rel, pkg)
 		if err != nil {
 			return err
 		}
-		file := &bzl.File{Path: filepath.Join(rel, "BUILD")}
-		for _, r := range rs {
-			file.Stmt = append(file.Stmt, r.Call)
-		}
+
 		files = append(files, file)
 		return nil
 	})
@@ -96,6 +98,54 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+func (g *Generator) generateOne(rel string, pkg *build.Package) (*bzl.File, error) {
+	rs, err := g.g.Generate(filepath.ToSlash(rel), pkg)
+	if err != nil {
+		return nil, err
+	}
+
+	file := &bzl.File{Path: filepath.Join(rel, "BUILD")}
+	for _, r := range rs {
+		file.Stmt = append(file.Stmt, r.Call)
+	}
+	if load := g.generateLoad(file); load != nil {
+		file.Stmt = append([]bzl.Expr{load}, file.Stmt...)
+	}
+	return file, nil
+}
+
+func (g *Generator) generateLoad(f *bzl.File) bzl.Expr {
+	var list []string
+	for _, kind := range []string{
+		"go_prefix",
+		"go_library",
+		"go_binary",
+		"go_test",
+		// TODO(yugui): Support cgo_library
+	} {
+		if len(f.Rules(kind)) > 0 {
+			list = append(list, kind)
+		}
+	}
+	if len(list) == 0 {
+		return nil
+	}
+	return loadExpr(goRulesBzl, list...)
+}
+
+func loadExpr(ruleFile string, rules ...string) bzl.Expr {
+	var list []bzl.Expr
+	for _, r := range append([]string{ruleFile}, rules...) {
+		list = append(list, &bzl.StringExpr{Value: r})
+	}
+
+	return &bzl.CallExpr{
+		X:            &bzl.LiteralExpr{Token: "load"},
+		List:         list,
+		ForceCompact: true,
+	}
 }
 
 func isDescendingDir(dir, root string) bool {
