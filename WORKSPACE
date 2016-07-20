@@ -25,3 +25,14 @@ new_git_repository(
     commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
     remote = "https://github.com/golang/glog.git",
 )
+
+git_repository(
+    name = "io_bazel_buildifier",
+    commit = "0ca1d7991357ae7a7555589af88930d82cf07c0a",
+    remote = "https://github.com/bazelbuild/buildifier.git",
+)
+
+local_repository(
+    name = "io_bazel_rules_go",
+    path = ".",
+)
