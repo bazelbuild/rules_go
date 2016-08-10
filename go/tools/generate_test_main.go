@@ -30,9 +30,10 @@ import (
 
 // Cases holds template data.
 type Cases struct {
-	Package string
-	RunDir  string
-	Names   []string
+	Package     string
+	RunDir      string
+	Names       []string
+	HasTestMain bool
 }
 
 func main() {
@@ -76,6 +77,11 @@ func main() {
 			if !strings.HasPrefix(fn.Name.Name, "Test") {
 				continue
 			}
+			if fn.Name.Name == "TestMain" {
+				// TestMain is not, itself, a test
+				cases.HasTestMain = true
+				continue
+			}
 			cases.Names = append(cases.Names, fn.Name.Name)
 		}
 	}
@@ -101,7 +107,12 @@ var tests = []testing.InternalTest{
 
 func main() {
   os.Chdir("{{.RunDir}}")
+  {{if not .HasTestMain}}
   testing.Main(everything, tests, nil, nil)
+  {{else}}
+  m := testing.MainStart(everything, tests, nil, nil)
+  undertest.TestMain(m)
+  {{end}}
 }
 `))
 	if err := tpl.Execute(outFile, &cases); err != nil {
