@@ -23,8 +23,9 @@ The rules should be considered experimental. They support:
 
 They currently do not support (in order of importance):
 
-* `//+build` tags
-* auto generated BUILD files.
+* build constraints/tags (`//+build` comments - see <a
+  href="https://golang.org/pkg/go/build/">here</a>))
+* auto generating BUILD files
 * C/C++ interoperation except cgo (swig etc.)
 * race detector
 * coverage
@@ -47,8 +48,10 @@ They currently do not support (in order of importance):
     ```
 
 * Add a `BUILD` file to the top of your workspace, declaring the name of your
-  workspace using `go_prefix`. It is strongly recommended that the prefix is not
-  empty.
+  workspace using `go_prefix`. This prefix is used for Go's "import" statements
+  to refer to packages within your own project, so it's important to choose a
+  prefix that might match the location that another user might choose to put
+  your code into.
 
     ```bzl
     load("@io_bazel_rules_go//go:def.bzl", "go_prefix")
@@ -57,6 +60,9 @@ They currently do not support (in order of importance):
     ```
 
 * For a library `github.com/joe/project/lib`, create `lib/BUILD`, containing
+  a single library with the special name "go_default_library." Using this name tells
+  Bazel to set up the files so it can be imported in .go files as (in this
+  example) `github.com/joe/project/lib`.
 
     ```bzl
     load("@io_bazel_rules_go//go:def.bzl", "go_library")
@@ -67,7 +73,9 @@ They currently do not support (in order of importance):
     )
     ```
 
-* Inside your project, you can use this library by declaring a dependency
+* Inside your project, you can use this library by declaring a dependency on
+  the full Bazel name (including `:go_default_library`), and in the .go files,
+  import it as shown above.
 
     ```bzl
     go_binary(
@@ -76,10 +84,6 @@ They currently do not support (in order of importance):
     )
     ```
 
-* In this case, import the library as `github.com/joe/project/lib`.
-* For vendored libraries, you may depend on
-  `//lib/vendor/github.com/user/project:go_default_library`. Vendored
-  libraries should have BUILD files like normal libraries.
 * To declare a test,
 
     ```bzl
@@ -89,6 +93,8 @@ They currently do not support (in order of importance):
         library = ":go_default_library"
     )
     ```
+
+* For instructions on how to depend on external libraries, see Vendoring.md.
 
 ## FAQ
 
