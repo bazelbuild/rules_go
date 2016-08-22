@@ -133,6 +133,14 @@ def go_environment_vars(ctx):
                                    {"GOOS": "linux",
                                     "GOARCH": "amd64"})
 
+def _emit_generate_params_action(cmds, ctx, fn):
+  cmds_all = ["set -e"]
+  cmds_all += cmds
+  cmds_all_str = "\n".join(cmds_all)
+  f = ctx.new_file(ctx.configuration.bin_dir, fn)
+  ctx.file_action( output = f, content = cmds_all_str, executable = True)
+  return f
+
 def emit_go_asm_action(ctx, source, out_obj):
   """Construct the command line for compiling Go Assembly code.
   Constructs a symlink tree to accomodate for workspace name.
@@ -153,11 +161,13 @@ def emit_go_asm_action(ctx, source, out_obj):
       " ".join(args),
   ]
 
+  f = _emit_generate_params_action(cmds, ctx, out_obj.path + ".GoAsmCompileFile.params")
+
   ctx.action(
       inputs = [source] + ctx.files.toolchain,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
-      command =  " && ".join(cmds),
+      executable = f,
   )
 
 def _go_importpath(ctx):
@@ -176,6 +186,8 @@ def _go_importpath(ctx):
     path += "/" + ctx.label.name
   if path.rfind(_VENDOR_PREFIX) != -1:
     path = path[len(_VENDOR_PREFIX) + path.rfind(_VENDOR_PREFIX):]
+  if path[0] == "/":
+    path = path[1:]
   return path
 
 def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
@@ -227,11 +239,13 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
     cmds += ["cd " + ('../' * out_depth),
              ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
 
+  f = _emit_generate_params_action(cmds, ctx, out_lib.path + ".GoCompileFile.params")
+
   ctx.action(
       inputs = inputs + extra_inputs,
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      command =  " && ".join(cmds),
+      executable = f,
       env = go_environment_vars(ctx))
 
 def go_library_impl(ctx):
@@ -407,11 +421,13 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
     "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
   ]
 
+  f = _emit_generate_params_action(cmds, ctx, lib.path + ".GoLinkFile.params")
+
   ctx.action(
       inputs = (list(transitive_libs) + [lib] +
                 list(cgo_deps) + ctx.files.toolchain),
       outputs = [executable],
-      command = ' && '.join(cmds),
+      executable = f,
       mnemonic = "GoLink",
       env = go_environment_vars(ctx))
 
@@ -626,12 +642,14 @@ def _cgo_codegen_impl(ctx):
                copts + [f.basename for f in ctx.files.srcs]),
       "rm -f $objdir/_cgo_.o $objdir/_cgo_flags"]
 
+  f = _emit_generate_params_action(cmds, ctx, out_dir + ".CGoCodeGenFile.params")
+
   ctx.action(
       inputs = srcs + ctx.files.toolchain,
       outputs = ctx.outputs.outs,
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      command = " && ".join(cmds),
+      executable = f,
       env = go_environment_vars(ctx) + {
           "CGO_LDFLAGS": " ".join(linkopts),
       },
@@ -741,12 +759,13 @@ def _cgo_import_impl(ctx):
        " -dynpackage $(%s %s)"  % (ctx.executable._extract_package.path,
                                    ctx.file.sample_go_src.path)),
   ]
+  f = _emit_generate_params_action(cmds, ctx, ctx.outputs.out.path + ".CGoImportGenFile.params")
   ctx.action(
       inputs = (ctx.files.toolchain +
                 [ctx.file.go_tool, ctx.executable._extract_package,
                  ctx.file.cgo_o, ctx.file.sample_go_src]),
       outputs = [ctx.outputs.out],
-      command = " && ".join(cmds),
+      executable = f,
       mnemonic = "CGoImportGen",
   )
   return struct(
