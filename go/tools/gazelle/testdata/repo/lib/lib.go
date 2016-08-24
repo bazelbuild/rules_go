@@ -16,7 +16,7 @@ limitations under the License.
 package lib
 
 import (
-	"example.com/repo/lib/deep"
+	"example.com/repo/lib/internal/deep"
 )
 
 // Answer returns the ultimate answer to life, the universe and everything.

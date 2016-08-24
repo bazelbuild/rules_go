@@ -43,7 +43,7 @@ func TestGenerator(t *testing.T) {
 					},
 				},
 			},
-			"lib/deep": {
+			"lib/internal/deep": {
 				{
 					Call: &bzl.CallExpr{
 						X: &bzl.LiteralExpr{Token: "go_library"},
@@ -89,11 +89,11 @@ func TestGenerator(t *testing.T) {
 			},
 		},
 		{
-			Path: "lib/deep/BUILD",
+			Path: "lib/internal/deep/BUILD",
 			Stmt: []bzl.Expr{
 				loadExpr("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test"),
-				stub.fixtures["lib/deep"][0].Call,
-				stub.fixtures["lib/deep"][1].Call,
+				stub.fixtures["lib/internal/deep"][0].Call,
+				stub.fixtures["lib/internal/deep"][1].Call,
 			},
 		},
 		{

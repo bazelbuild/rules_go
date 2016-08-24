@@ -65,7 +65,8 @@ func TestGenerator(t *testing.T) {
 						"doc.go",
 						"lib.go",
 					],
-					deps = ["//lib/deep:go_default_library"],
+					visibility = ["//visibility:public"],
+					deps = ["//lib/internal/deep:go_default_library"],
 				)
 
 				go_test(
@@ -82,11 +83,22 @@ func TestGenerator(t *testing.T) {
 			`,
 		},
 		{
+			dir: "lib/internal/deep",
+			want: `
+				go_library(
+					name = "go_default_library",
+					srcs = ["thought.go"],
+					visibility = ["//lib:__subpackages__"],
+				)
+			`,
+		},
+		{
 			dir: "bin",
 			want: `
 				go_binary(
 					name = "bin",
 					srcs = ["main.go"],
+					visibility = ["//visibility:public"],
 					deps = ["//lib:go_default_library"],
 				)
 			`,
@@ -105,22 +117,20 @@ func TestGenerator(t *testing.T) {
 }
 
 func TestGeneratorGoPrefix(t *testing.T) {
-	g := rules.NewGenerator("example.com/repo/lib/deep")
-	want := `
-		go_prefix("example.com/repo/lib/deep")
-
-		go_library(
-			name = "go_default_library",
-			srcs = ["thought.go"],
-		)
-	`
-	pkg := packageFromDir(t, filepath.FromSlash("lib/deep"))
+	g := rules.NewGenerator("example.com/repo/lib")
+	pkg := packageFromDir(t, filepath.FromSlash("lib"))
 	rules, err := g.Generate("", pkg)
 	if err != nil {
 		t.Errorf("g.Generate(%q, %#v) failed with %v; want success", "", pkg, err)
 	}
 
-	if got, want := format(rules), canonicalize(t, "BUILD", want); got != want {
-		t.Errorf("g.Generate(%q, %#v) = %s; want %s", "", pkg, got, want)
+	if got, want := len(rules), 1; got < want {
+		t.Errorf("len(rules) < %d; want >= %d", got, want)
+		return
+	}
+
+	p := rules[0].Call
+	if got, want := bzl.FormatString(p), `go_prefix("example.com/repo/lib")`; got != want {
+		t.Errorf("r = %q; want %q", got, want)
 	}
 }

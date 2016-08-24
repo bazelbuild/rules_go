@@ -16,6 +16,7 @@ limitations under the License.
 package rules
 
 import (
+	"fmt"
 	"go/build"
 	"path"
 	"strings"
@@ -118,9 +119,17 @@ func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) 
 		name = path.Base(pkg.Dir)
 	}
 
+	visibility := "//visibility:public"
+	if i := strings.LastIndex(rel, "/internal/"); i >= 0 {
+		visibility = fmt.Sprintf("//%s:__subpackages__", rel[:i])
+	} else if strings.HasPrefix(rel, "internal/") {
+		visibility = "//:__subpackages__"
+	}
+
 	attrs := []keyvalue{
 		{key: "name", value: name},
 		{key: "srcs", value: pkg.GoFiles},
+		{key: "visibility", value: []string{visibility}},
 	}
 
 	deps, err := g.dependencies(pkg.Imports, rel)
