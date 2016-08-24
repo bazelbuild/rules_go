@@ -13,7 +13,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "@io_bazel_buildifier//core:go_default_library",
-        "@org_golang_x_tools//:go/vcs",
+        "@org_golang_x_tools//go/vcs:go_default_library",
     ],
 )
 
