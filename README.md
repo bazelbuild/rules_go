@@ -3,6 +3,9 @@
 <div class="toc">
   <h2>Rules</h2>
   <ul>
+    <li><a href="#go_repositories">go_repositories</a></li>
+    <li><a href="#go_repository">go_repository</a></li>
+    <li><a href="#new_go_repository">new_go_repository</a></li>
     <li><a href="#go_prefix">go_prefix</a></li>
     <li><a href="#go_library">go_library</a></li>
     <li><a href="#cgo_library">cgo_library</a></li>
@@ -119,6 +122,132 @@ and it should work.
 ## Disclaimer
 
 These rules are not supported by Google's Go team.
+
+<a name="go_repositories"></a>
+## go\_repositories
+
+```bzl
+go_repositories()
+```
+
+Instantiates external dependencies to Go toolchain in a WORKSPACE.
+All the other workspace rules and build rules assume that this rule is
+placed in the WORKSPACE.
+
+
+<a name="go_repository"></a>
+## go\_repository
+
+```bzl
+go_repository(name, importpath, commit, tag)
+```
+
+Fetches a remote repository of a Go project, expecting it contains `BUILD`
+files. It is an analogy to `git_repository` but it recognizes importpath
+redirection of Go.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <code>String, required</code>
+        <p>A unique name for this external dependency.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>importpath</code></td>
+      <td>
+        <code>String, required</code>
+        <p>An import path in Go, which corresponds to the root of the target
+        remote repository</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>commit</code></td>
+      <td>
+        <code>String, coptional</code>
+        <p>The commit hash to checkout in the repository.</p>
+        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>tag</code></td>
+      <td>
+        <code>String, coptional</code>
+        <p>The tag to checkout in the repository.</p>
+        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+<a name="new_go_repository"></a>
+## new\_go\_repository
+
+```bzl
+new_go_repository(name, importpath, commit, tag)
+```
+
+Fetches a remote repository of a Go project and automatically generates
+`BUILD` files in it.  It is an analogy to `new_git_repository` but it recognizes
+importpath redirection of Go.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <code>String, required</code>
+        <p>A unique name for this external dependency.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>importpath</code></td>
+      <td>
+        <code>String, required</code>
+        <p>An import path in Go, which corresponds to the root of the target
+        remote repository</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>commit</code></td>
+      <td>
+        <code>String, coptional</code>
+        <p>The commit hash to checkout in the repository.</p>
+        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>tag</code></td>
+      <td>
+        <code>String, coptional</code>
+        <p>The tag to checkout in the repository.</p>
+        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 
 <a name="go_prefix"></a>
 ## go\_prefix

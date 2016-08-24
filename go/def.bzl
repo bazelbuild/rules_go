@@ -999,6 +999,71 @@ def cgo_library(name, srcs,
       **kwargs
   )
 
+################
+
+def _go_repository_impl(ctx):
+  fetch_repo = ctx.path(ctx.attr._fetch_repo)
+
+  if ctx.attr.commit and ctx.attr.tag:
+    fail("cannot specify both of commit and tag", "commit")
+  if ctx.attr.commit:
+    rev = ctx.attr.commit
+  elif ctx.attr.tag:
+    rev = ctx.attr.tag
+  else:
+    fail("neither commit or tag is specified", "commit")
+
+  # TODO(yugui): support submodule?
+  # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
+  result = ctx.execute([
+      fetch_repo,
+      '--dest', ctx.path(''),
+      '--remote', ctx.attr.importpath,
+      '--rev', rev])
+  if result.return_code:
+    fail("failed to fetch %s: %s" % (ctx.attr.importpath, result.stderr))
+
+def _new_go_repository_impl(ctx):
+  _go_repository_impl(ctx)
+  gazelle = ctx.path(ctx.attr._gazelle)
+
+  result = ctx.execute([
+      gazelle,
+      '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
+      ctx.path('')])
+  if result.return_code:
+    fail("failed to generate BUILD files for %s: %s" % (
+        ctx.attr.importpath, result.stderr))
+
+_go_repository_attrs = {
+    "importpath": attr.string(mandatory = True),
+    "commit": attr.string(),
+    "tag": attr.string(),
+
+    "_fetch_repo": attr.label(
+        default = Label("@io_bazel_rules_go_repository_tools//:bin/fetch_repo"),
+        allow_files = True,
+        single_file = True,
+        executable = True,
+    ),
+}
+
+go_repository = repository_rule(
+    implementation = _go_repository_impl,
+    attrs = _go_repository_attrs,
+)
+
+new_go_repository = repository_rule(
+    implementation = _new_go_repository_impl,
+    attrs = _go_repository_attrs + {
+        "_gazelle": attr.label(
+            default = Label("@io_bazel_rules_go_repository_tools//:bin/gazelle"),
+            allow_files = True,
+            single_file = True,
+            executable = True,
+        ),
+    },
+)
 
 ################
 
@@ -1006,12 +1071,12 @@ repository_tool_deps = {
     'buildifier': struct(
         importpath = 'github.com/bazelbuild/buildifier',
         repo = 'https://github.com/bazelbuild/buildifier',
-        revision = '0ca1d7991357ae7a7555589af88930d82cf07c0a',
+        commit = '0ca1d7991357ae7a7555589af88930d82cf07c0a',
     ),
     'tools': struct(
         importpath = 'golang.org/x/tools',
         repo = 'https://github.com/golang/tools',
-        revision = '2bbdb4568e161d12394da43e88b384c6be63928b',
+        commit = '2bbdb4568e161d12394da43e88b384c6be63928b',
     )
 }
 
@@ -1034,14 +1099,14 @@ def go_internal_tools_deps():
   """only for internal use in rules_go"""
   native.git_repository(
       name = "io_bazel_buildifier",
-      commit = repository_tool_deps['buildifier'].revision,
+      commit = repository_tool_deps['buildifier'].commit,
       remote = repository_tool_deps['buildifier'].repo,
   )
 
   native.new_git_repository(
       name = "org_golang_x_tools",
       build_file_content = X_TOOLS_BUILD,
-      commit = repository_tool_deps['tools'].revision,
+      commit = repository_tool_deps['tools'].commit,
       remote = repository_tool_deps['tools'].repo,
   )
 
@@ -1051,8 +1116,8 @@ def _fetch_repository_tools_deps(ctx, goroot, gopath):
     if result.return_code:
       fail('failed to create directory: %s' % result.stderr)
     ctx.download_and_extract(
-        '%s/archive/%s.zip' % (dep.repo, dep.revision),
-        'src/%s' % dep.importpath, '', 'zip', '%s-%s' % (name, dep.revision))
+        '%s/archive/%s.zip' % (dep.repo, dep.commit),
+        'src/%s' % dep.importpath, '', 'zip', '%s-%s' % (name, dep.commit))
 
   result = ctx.execute([
       'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath, 'PATH=%s/bin' % goroot,

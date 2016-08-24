@@ -67,7 +67,7 @@ func usage() {
 Gazel is a BUILD file generator for Go projects.
 
 Currently its primary usage is to generate BUILD files for external dependencies
-in a go_vendor repository rule.
+in a go_repository rule.
 You can still use Gazel for other purposes, but its interface can change without
 notice.
 
