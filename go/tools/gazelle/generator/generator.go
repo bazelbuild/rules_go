@@ -36,6 +36,7 @@ const (
 // Generator generates BUILD files for a Go repository.
 type Generator struct {
 	repoRoot string
+	goPrefix string
 	bctx     build.Context
 	g        rules.Generator
 }
@@ -57,6 +58,7 @@ func New(repoRoot, goPrefix string) (*Generator, error) {
 	}
 	return &Generator{
 		repoRoot: filepath.Clean(repoRoot),
+		goPrefix: goPrefix,
 		bctx:     bctx,
 		g:        rules.NewGenerator(goPrefix),
 	}, nil
@@ -85,6 +87,11 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 		if rel == "." {
 			rel = ""
 		}
+		if len(files) == 0 && rel != "" {
+			// "dir" was not a buildable Go package but still need a BUILD file
+			// for go_prefix.
+			files = append(files, emptyToplevel(g.goPrefix))
+		}
 
 		file, err := g.generateOne(rel, pkg)
 		if err != nil {
@@ -98,6 +105,21 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+func emptyToplevel(goPrefix string) *bzl.File {
+	return &bzl.File{
+		Path: "BUILD",
+		Stmt: []bzl.Expr{
+			loadExpr("go_prefix"),
+			&bzl.CallExpr{
+				X: &bzl.LiteralExpr{Token: "go_prefix"},
+				List: []bzl.Expr{
+					&bzl.StringExpr{Value: goPrefix},
+				},
+			},
+		},
+	}
 }
 
 func (g *Generator) generateOne(rel string, pkg *build.Package) (*bzl.File, error) {
@@ -132,12 +154,14 @@ func (g *Generator) generateLoad(f *bzl.File) bzl.Expr {
 	if len(list) == 0 {
 		return nil
 	}
-	return loadExpr(goRulesBzl, list...)
+	return loadExpr(list...)
 }
 
-func loadExpr(ruleFile string, rules ...string) bzl.Expr {
-	var list []bzl.Expr
-	for _, r := range append([]string{ruleFile}, rules...) {
+func loadExpr(rules ...string) bzl.Expr {
+	list := []bzl.Expr{
+		&bzl.StringExpr{Value: goRulesBzl},
+	}
+	for _, r := range rules {
 		list = append(list, &bzl.StringExpr{Value: r})
 	}
 

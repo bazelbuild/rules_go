@@ -81,9 +81,21 @@ func TestGenerator(t *testing.T) {
 
 	want := []*bzl.File{
 		{
+			Path: "BUILD",
+			Stmt: []bzl.Expr{
+				loadExpr("go_prefix"),
+				&bzl.CallExpr{
+					X: &bzl.LiteralExpr{Token: "go_prefix"},
+					List: []bzl.Expr{
+						&bzl.StringExpr{Value: "example.com/repo"},
+					},
+				},
+			},
+		},
+		{
 			Path: "lib/BUILD",
 			Stmt: []bzl.Expr{
-				loadExpr("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_library"),
+				loadExpr("go_prefix", "go_library"),
 				stub.fixtures["lib"][0].Call,
 				stub.fixtures["lib"][1].Call,
 			},
@@ -91,7 +103,7 @@ func TestGenerator(t *testing.T) {
 		{
 			Path: "lib/internal/deep/BUILD",
 			Stmt: []bzl.Expr{
-				loadExpr("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test"),
+				loadExpr("go_library", "go_test"),
 				stub.fixtures["lib/internal/deep"][0].Call,
 				stub.fixtures["lib/internal/deep"][1].Call,
 			},
@@ -99,7 +111,7 @@ func TestGenerator(t *testing.T) {
 		{
 			Path: "bin/BUILD",
 			Stmt: []bzl.Expr{
-				loadExpr("@io_bazel_rules_go//go:def.bzl", "go_binary"),
+				loadExpr("go_binary"),
 				stub.fixtures["bin"][0].Call,
 			},
 		},
@@ -107,7 +119,7 @@ func TestGenerator(t *testing.T) {
 	sort.Sort(fileSlice(want))
 
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf("g.Generate(%q) = %v; want %v", repo, prettyFiles(got), prettyFiles(want))
+		t.Errorf("g.Generate(%q) = %s; want %s", repo, prettyFiles(got), prettyFiles(want))
 	}
 }
 
@@ -116,7 +128,7 @@ type prettyFiles []*bzl.File
 func (p prettyFiles) String() string {
 	var items []string
 	for _, f := range p {
-		items = append(items, fmt.Sprintf("{Path: %q, Stmt: %q", f.Path, string(bzl.Format(f))))
+		items = append(items, fmt.Sprintf("{Path: %q, Stmt: %s}", f.Path, string(bzl.Format(f))))
 	}
 	return fmt.Sprintf("[%s]", strings.Join(items, ","))
 }
