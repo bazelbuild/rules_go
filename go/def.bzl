@@ -408,8 +408,8 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   ]
 
   ctx.action(
-      inputs = (list(transitive_libs) + [lib] +
-                list(cgo_deps) + ctx.files.toolchain),
+      inputs = (list(transitive_libs) + [lib] + list(cgo_deps) +
+                ctx.files.toolchain + ctx.files._crosstool),
       outputs = [executable],
       command = ' && '.join(cmds),
       mnemonic = "GoLink",
@@ -529,6 +529,12 @@ go_library_attrs = go_env_attrs + {
     ),
 }
 
+_crosstool_attrs = {
+    "_crosstool": attr.label(
+        default = Label("//tools/defaults:crosstool"),
+    )
+}
+
 go_library_outputs = {
     "lib": "%{name}.a",
 }
@@ -546,7 +552,7 @@ go_library = rule(
 
 go_binary = rule(
     go_binary_impl,
-    attrs = go_library_attrs + {
+    attrs = go_library_attrs + _crosstool_attrs + {
         "stamp": attr.bool(default = False),
         "x_defs": attr.string_dict(),
     },
@@ -557,7 +563,7 @@ go_binary = rule(
 
 go_test = rule(
     go_test_impl,
-    attrs = go_library_attrs + {
+    attrs = go_library_attrs + _crosstool_attrs + {
         "test_generator": attr.label(
             executable = True,
             default = Label(
@@ -576,6 +582,7 @@ go_test = rule(
     },
     test = True,
 )
+
 
 def _pkg_dir(workspace_root, package_name):
   if workspace_root and package_name:
@@ -627,7 +634,7 @@ def _cgo_codegen_impl(ctx):
       "rm -f $objdir/_cgo_.o $objdir/_cgo_flags"]
 
   ctx.action(
-      inputs = srcs + ctx.files.toolchain,
+      inputs = srcs + ctx.files.toolchain + ctx.files._crosstool,
       outputs = ctx.outputs.outs,
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
@@ -644,7 +651,7 @@ def _cgo_codegen_impl(ctx):
 
 _cgo_codegn_rule = rule(
     _cgo_codegen_impl,
-    attrs = go_env_attrs + {
+    attrs = go_env_attrs + _crosstool_attrs + {
         "srcs": attr.label_list(
             allow_files = go_filetype,
             non_empty = True,
@@ -805,7 +812,7 @@ def _cgo_object_impl(ctx):
   arguments += [lo.path]
 
   ctx.action(
-      inputs = [lo],
+      inputs = [lo] + ctx.files._crosstool,
       outputs = [ctx.outputs.out],
       mnemonic = "CGoObject",
       progress_message = "Linking %s" % _short_path(ctx.outputs.out),
@@ -820,7 +827,7 @@ def _cgo_object_impl(ctx):
 
 _cgo_object = rule(
     _cgo_object_impl,
-    attrs = {
+    attrs = _crosstool_attrs + {
         "src": attr.label(
             mandatory = True,
             providers = ["cc"],
