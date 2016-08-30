@@ -133,6 +133,14 @@ def go_environment_vars(ctx):
                                    {"GOOS": "linux",
                                     "GOARCH": "amd64"})
 
+def _tmp_cmd_file(cmds, ctx, fn):
+  cmds_all = ["set -e"]
+  cmds_all += cmds
+  cmds_all_str = "\n".join(cmds_all)
+  f = ctx.new_file(ctx.configuration.bin_dir, fn)
+  ctx.file_action( output = f, content = cmds_all_str, executable = True)
+  return f
+
 def emit_go_asm_action(ctx, source, out_obj):
   """Construct the command line for compiling Go Assembly code.
   Constructs a symlink tree to accomodate for workspace name.
@@ -153,11 +161,13 @@ def emit_go_asm_action(ctx, source, out_obj):
       " ".join(args),
   ]
 
+  f = _tmp_cmd_file(cmds, ctx, out_obj + "GoAsmCompileFile")
+
   ctx.action(
       inputs = [source] + ctx.files.toolchain,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
-      command =  " && ".join(cmds),
+      executable = f,
   )
 
 def _go_importpath(ctx):
@@ -176,6 +186,8 @@ def _go_importpath(ctx):
     path += "/" + ctx.label.name
   if path.rfind(_VENDOR_PREFIX) != -1:
     path = path[len(_VENDOR_PREFIX) + path.rfind(_VENDOR_PREFIX):]
+  if path[0] == "/":
+    path = path[1:]
   return path
 
 def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
@@ -227,11 +239,13 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
     cmds += ["cd " + ('../' * out_depth),
              ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
 
+  f = _tmp_cmd_file(cmds, ctx, out_lib.path + "GoCompileFile")
+
   ctx.action(
       inputs = inputs + extra_inputs,
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      command =  " && ".join(cmds),
+      executable = f,
       env = go_environment_vars(ctx))
 
 def go_library_impl(ctx):
@@ -407,11 +421,13 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
     "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
   ]
 
+  f = _tmp_cmd_file(cmds, ctx, lib.path + "GoLinkFile")
+
   ctx.action(
       inputs = (list(transitive_libs) + [lib] + list(cgo_deps) +
                 ctx.files.toolchain + ctx.files._crosstool),
       outputs = [executable],
-      command = ' && '.join(cmds),
+      executable = f,
       mnemonic = "GoLink",
       env = go_environment_vars(ctx))
 
@@ -633,12 +649,14 @@ def _cgo_codegen_impl(ctx):
                copts + [f.basename for f in ctx.files.srcs]),
       "rm -f $objdir/_cgo_.o $objdir/_cgo_flags"]
 
+  f = _tmp_cmd_file(cmds, ctx, out_dir + "CGoCodeGenFile")
+
   ctx.action(
       inputs = srcs + ctx.files.toolchain + ctx.files._crosstool,
       outputs = ctx.outputs.outs,
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      command = " && ".join(cmds),
+      executable = f,
       env = go_environment_vars(ctx) + {
           "CGO_LDFLAGS": " ".join(linkopts),
       },
@@ -676,7 +694,7 @@ _cgo_codegn_rule = rule(
     output_to_genfiles = True,
 )
 
-def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
+def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
                  go_tool=None, toolchain=None):
   """Generates glue codes for interop between C and Go
 
@@ -688,6 +706,7 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
       C/C++ identifiers in srcs.
     deps: A list of cc_library rules.
       The generated codes are expected to be linked with these deps.
+    copts: Add these flags to the C++ compiler.
     linkopts: A list of linker options,
       These flags are passed to the linker when the generated codes
       are linked into the target binary.
@@ -725,6 +744,7 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
       srcs = srcs,
       c_hdrs = c_hdrs,
       deps = deps,
+      copts = copts,
       linkopts = linkopts,
 
       go_tool = go_tool,
@@ -748,12 +768,13 @@ def _cgo_import_impl(ctx):
        " -dynpackage $(%s %s)"  % (ctx.executable._extract_package.path,
                                    ctx.file.sample_go_src.path)),
   ]
+  f = _tmp_cmd_file(cmds, ctx, ctx.outputs.out.path + "CGoImportGenFile")
   ctx.action(
       inputs = (ctx.files.toolchain +
                 [ctx.file.go_tool, ctx.executable._extract_package,
                  ctx.file.cgo_o, ctx.file.sample_go_src]),
       outputs = [ctx.outputs.out],
-      command = " && ".join(cmds),
+      executable = f,
       mnemonic = "CGoImportGen",
   )
   return struct(
@@ -855,6 +876,7 @@ def cgo_library(name, srcs,
                 toolchain=None,
                 go_tool=None,
                 copts=[],
+                coptsforcodegen=[],
                 clinkopts=[],
                 cdeps=[],
                 **kwargs):
@@ -867,6 +889,7 @@ def cgo_library(name, srcs,
       C and C++ files can be anything allowed in `srcs` attribute of
       `cc_library`.
     copts: Add these flags to the C++ compiler.
+    coptsforcodegen: Add these flags to the C++ compiler during codegen.
     clinkopts: Add these flags to the C++ linker.
     cdeps: List of C/C++ libraries to be linked into the binary target.
       They must be `cc_library` rules.
@@ -901,6 +924,7 @@ def cgo_library(name, srcs,
       c_hdrs = c_hdrs,
       deps = cdeps,
       linkopts = clinkopts,
+      copts = coptsforcodegen,
       go_tool = go_tool,
       toolchain = toolchain,
   )
