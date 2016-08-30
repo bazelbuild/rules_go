@@ -1007,7 +1007,51 @@ def _go_repositories_impl(ctx):
 
 _go_repositories = repository_rule(_go_repositories_impl)
 
-def go_repositories():
-  _go_repositories(
-      name = "io_bazel_rules_go_toolchain",
-  )
+
+def _local_go_repository_impl(ctx):
+  goroot = ctx.attr.goroot
+  if not goroot:
+    result = ctx.execute(['go', 'env', 'GOROOT'])
+    if result.return_code:
+      fail("cannot locate GOROOT: %s" % result.stderr)
+    goroot = result.stdout.rstrip()
+
+  result = ctx.execute(['mkdir', '-p', ctx.path('')])
+  if result.return_code:
+    fail("cannot create directory %s: %s" % (ctx.path(''), result.stderr))
+  ctx.symlink(goroot + '/bin', 'bin')
+  ctx.symlink(goroot + '/pkg', 'pkg')
+  ctx.file('BUILD', GO_TOOLCHAIN_BUILD_FILE, False)
+
+_local_go_repository = repository_rule(
+    _local_go_repository_impl,
+    attrs = {
+        "goroot": attr.string(),
+    },
+    local = True,
+)
+
+
+def go_repositories(local=None):
+  """Instantiates external dependencies to Go toolchain in a `WORKSPACE`.
+
+  By default it fetches the latest distribution of Go toolchain from remote.
+
+  Args:
+    local: Uses this path as `GOROOT` instead of downloading a go toolchain
+      if specified. You can also specify `1` to let `go_repositories`
+      automatically locate `GOROOT`.
+  """
+  name="io_bazel_rules_go_toolchain"
+  if type(local) == "string":
+    _local_go_repository(
+        name = name,
+        goroot = local,
+    )
+    return
+
+  if local:
+    _local_go_repository(name = name)
+    return
+
+  _go_repositories(name = name)

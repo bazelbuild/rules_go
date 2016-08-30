@@ -3,6 +3,7 @@
 <div class="toc">
   <h2>Rules</h2>
   <ul>
+    <li><a href="#go_repositories">go_repositories</a></li>
     <li><a href="#go_prefix">go_prefix</a></li>
     <li><a href="#go_library">go_library</a></li>
     <li><a href="#cgo_library">cgo_library</a></li>
@@ -119,6 +120,45 @@ and it should work.
 ## Disclaimer
 
 These rules are not supported by Google's Go team.
+
+<a name="go_repositories"></a>
+## go\_repositories
+
+```bzl
+go_repositories(local)
+```
+
+Instantiates external dependencies to Go toolchain in a WORKSPACE.
+
+By default it fetches the latest distribution of Go toolchain from remote.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>local</code></td>
+      <td>
+        <code>String or Bool, optional</code>
+        <p>Path to a locally installed Go toolchain</p>
+        <p>
+          Uses this path as <code>GOROOT</code> instead of downloading a
+          go toolchain if specified. You can also specify <code>1</code>
+          to let <code>go_repositories</code> automatically locate
+          <code>GOROOT</code>.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 
 <a name="go_prefix"></a>
 ## go\_prefix
