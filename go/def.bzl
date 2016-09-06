@@ -1001,7 +1001,11 @@ def _go_repository_select_impl(ctx):
   else:
     fail("unsupported operating system: " + os)
 
-  ctx.symlink(goroot, ctx.path(''))
+  gobin = goroot.get_child("bin")
+  gopkg = goroot.get_child("pkg")
+  ctx.symlink(gobin, "bin")
+  ctx.symlink(gopkg, "pkg")
+  ctx.file("BUILD", GO_TOOLCHAIN_BUILD_FILE, False)
 
 _go_repository_select = repository_rule(
     _go_repository_select_impl,
