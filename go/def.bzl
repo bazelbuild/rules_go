@@ -994,6 +994,36 @@ filegroup(
 )
 """
 
+def _go_toolchain_download(ctx, toolchain):
+  """Download the go toolchain into the external workspace."""
+  ctx.download_and_extract(toolchain.url, '.', toolchain.sha256, 'tar.gz', 'go')
+
+def _go_toolchain_symlink(ctx, toolchain):
+  """Symlink a locally installed go toolchain into the external
+  workspace. The local toolchain is located via the goroot attribute.
+  The go version is checked and parsed to confirm a functioning
+  installation.
+  """
+  goroot = ctx.attr.goroot.rstrip("/")
+  ctx.symlink(goroot + "/bin", "bin")
+  ctx.symlink(goroot + "/pkg", "pkg")
+
+  gotool = goroot + "/bin/go"
+  result = ctx.execute([gotool, "version"])
+  if result.return_code:
+    fail("unable to detect go version from %s: %s" % (gotool, result.stderr))
+
+  # Parse output similar to 'go version go1.6.2 darwin/amd64', select
+  # the 3rd element, and split it into an array ['go1', '6', '2']
+  go_version = result.stdout.strip().split(" ")[2].split(".")
+  major = int(go_version[0][2:])
+  minor = int(go_version[1])
+  patch = int(go_version[2])
+  if major != 1:
+    fail("Unsupported go major version: %s" % major)
+  if minor < 5:
+    fail("Unsupported go minor version: %s" % minor)
+
 def _go_repositories_impl(ctx):
   toolchain = _toolchain_map.get(ctx.os.name)
   if not toolchain:
@@ -1002,12 +1032,25 @@ def _go_repositories_impl(ctx):
   result = ctx.execute(["mkdir", "-p", ctx.path('')])
   if result.return_code:
     fail("cannot create directory %s: %s" % (ctx.path(''), result.stderr))
-  ctx.download_and_extract(toolchain.url, '.', toolchain.sha256, 'tar.gz', 'go')
+
+  # If the user has provided an goroot, symlink the local go toolchain
+  # rather than downloading it.
+  if ctx.attr.goroot:
+    _go_toolchain_symlink(ctx, toolchain)
+  else:
+    _go_toolchain_download(ctx, toolchain)
+
   ctx.file("BUILD", GO_TOOLCHAIN_BUILD_FILE, False)
 
-_go_repositories = repository_rule(_go_repositories_impl)
+_go_repositories = repository_rule(
+  implementation = _go_repositories_impl,
+  attrs = {
+    "goroot": attr.string(),
+  },
+)
 
-def go_repositories():
+def go_repositories(goroot = None):
   _go_repositories(
-      name = "io_bazel_rules_go_toolchain",
+    name = "io_bazel_rules_go_toolchain",
+    goroot = goroot,
   )
