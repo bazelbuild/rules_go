@@ -126,9 +126,10 @@ func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) 
 		visibility = "//:__subpackages__"
 	}
 
+	srcs := append(pkg.GoFiles, pkg.SFiles...)
 	attrs := []keyvalue{
 		{key: "name", value: name},
-		{key: "srcs", value: pkg.GoFiles},
+		{key: "srcs", value: srcs},
 		{key: "visibility", value: []string{visibility}},
 	}
 
