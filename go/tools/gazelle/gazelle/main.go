@@ -62,7 +62,7 @@ func run(dirs []string, emit func(*bzl.File) error) error {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `usage: gazelle [flags...] [package-dirs...]
+	fmt.Fprintln(os.Stderr, `usage: gazelle [flags...] package-dir [package-dirs...]
 
 Gazel is a BUILD file generator for Go projects.
 
@@ -105,6 +105,10 @@ func main() {
 	emit := modeFromName[*mode]
 	if emit == nil {
 		log.Fatalf("unrecognized mode %s", *mode)
+	}
+
+	if len(flag.Args()) == 0 {
+		log.Fatal("No package directories given, nothing to do")
 	}
 
 	if err := run(flag.Args(), emit); err != nil {
