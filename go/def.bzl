@@ -609,13 +609,26 @@ def _pkg_dir(workspace_root, package_name):
     return package_name
   return "."
 
+def _exec_path(path):
+  if path.startswith('/'):
+    return path
+  return '${execroot}/' + path
+
 def _cgo_codegen_impl(ctx):
   srcs = ctx.files.srcs + ctx.files.c_hdrs
   linkopts = ctx.attr.linkopts
+  copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   deps = set([], order="link")
   for d in ctx.attr.deps:
     srcs += list(d.cc.transitive_headers)
     deps += d.cc.libs
+    copts += ['-D' + define for define in d.cc.defines]
+    for inc in d.cc.include_directories:
+      copts += ['-I', _exec_path(inc)]
+    for inc in d.cc.quote_include_directories:
+      copts += ['-iquote', _exec_path(inc)]
+    for inc in d.cc.system_include_directories:
+      copts += ['-isystem',  _exec_path(inc)]
     for lib in d.cc.libs:
       if lib.basename.startswith('lib') and lib.basename.endswith('.so'):
         dirname = _short_path(lib)[:-len(lib.basename)]
@@ -632,13 +645,13 @@ def _cgo_codegen_impl(ctx):
              _pkg_dir(ctx.label.workspace_root, ctx.label.package) + "/" +
              ctx.attr.outdir)
   cc = ctx.fragments.cpp.compiler_executable
-  copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   cmds = symlink_tree_commands(out_dir + "/src", tree_layout) + [
       "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
       # We cannot use env for CC because $(CC) on OSX is relative
       # and '../' does not work fine due to symlinks.
       "export CC=$(cd $(dirname {cc}); pwd)/$(basename {cc})".format(cc=cc),
       "export CXX=$CC",
+      "execroot=$(pwd)",
       "objdir=$(pwd)/%s/gen" % out_dir,
       "mkdir -p $objdir",
       # The working directory must be the directory of the target go package
