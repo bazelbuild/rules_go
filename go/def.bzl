@@ -500,13 +500,13 @@ go_env_attrs = {
     "toolchain": attr.label(
         default = Label("//go/toolchain:toolchain"),
         allow_files = True,
-        cfg = HOST_CFG,
+        cfg = "host",
     ),
     "go_tool": attr.label(
         default = Label("//go/toolchain:go_tool"),
         single_file = True,
         allow_files = True,
-        cfg = HOST_CFG,
+        cfg = "host",
     ),
     "go_prefix": attr.label(
         providers = ["go_prefix"],
@@ -515,20 +515,20 @@ go_env_attrs = {
             relative_to_caller_repository = True,
         ),
         allow_files = False,
-        cfg = HOST_CFG,
+        cfg = "host",
     ),
     "go_include": attr.label(
         default = Label("//go/toolchain:go_include"),
         single_file = True,
         allow_files = True,
-        cfg = HOST_CFG,
+        cfg = "host",
     ),
 }
 
 go_library_attrs = go_env_attrs + {
     "data": attr.label_list(
         allow_files = True,
-        cfg = DATA_CFG,
+        cfg = "data",
     ),
     "srcs": attr.label_list(allow_files = go_filetype),
     "deps": attr.label_list(
@@ -585,7 +585,7 @@ go_test = rule(
             default = Label(
                 "//go/tools:generate_test_main",
             ),
-            cfg = HOST_CFG,
+            cfg = "host",
         ),
         "x_defs": attr.string_dict(),
     },
@@ -811,7 +811,7 @@ _cgo_import = rule(
         "_extract_package": attr.label(
             default = Label("//go/tools/extract_package"),
             executable = True,
-            cfg = HOST_CFG,
+            cfg = "host",
         ),
     },
 )
