@@ -16,3 +16,8 @@ alias(
     name = "go_include",
     actual = "@io_bazel_rules_go_toolchain//:go_include",
 )
+
+alias(
+    name = "go_root",
+    actual = "@io_bazel_rules_go_toolchain//:go_root",
+)

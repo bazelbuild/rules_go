@@ -1,15 +1,13 @@
 # Go rules
 
-<div class="toc">
-  <h2>Rules</h2>
-  <ul>
-    <li><a href="#go_prefix">go_prefix</a></li>
-    <li><a href="#go_library">go_library</a></li>
-    <li><a href="#cgo_library">cgo_library</a></li>
-    <li><a href="#go_binary">go_binary</a></li>
-    <li><a href="#go_test">go_test</a></li>
-  </ul>
-</div>
+| ---: | :--- |
+| [go_prefix](#go_prefix) | Declare an import prefix. |
+| [go_library](#go_library) | Compile a pure go library. |
+| [cgo_library](#cgo_library) | Build a cgo library. |
+| [go_binary](#go_binary) | Build an executable binary file. |
+| [xgo_binary](#xgo_binary) | Build a cross-compiled binary file. |
+| [go_test](#go_test) | Generate a test. |
+
 
 ## Overview
 
@@ -343,6 +341,48 @@ go_binary(name, srcs, deps, data)
       <td>
         <code>List of labels, optional</code>
         <p>List of files needed by this rule at runtime.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+<a name="xgo_binary"></a>
+## xgo\_binary
+
+```bzl
+xgo_binary(name, deps, os_arch)
+```
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code></td>
+      <td>
+        <code>Name, required</code>
+        <p>A unique name for this rule.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>deps</code></td>
+      <td>
+        <code>Label(s) naming go_binary rules, required</code>
+        <p>The go_binary target to cross-compile.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>os_arch</code></td>
+      <td>
+        <code>string, required</code>
+        <p>Designates the desired platform.  Allowed values are enumerated in [goos_goarch.bzl](https://github.com/bazelbuild/rules_go/blob/master/go/private/goos_goarch.bzl) and correspond to https://golang.org/doc/install/source#environment.</p>
       </td>
     </tr>
   </tbody>
