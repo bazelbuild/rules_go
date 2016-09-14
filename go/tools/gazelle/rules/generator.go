@@ -64,12 +64,16 @@ func NewGenerator(goPrefix string) Generator {
 	return &generator{
 		goPrefix: goPrefix,
 		r: resolverFunc(func(importpath, dir string) (label, error) {
-			if importpath != goPrefix && !strings.HasPrefix(importpath, goPrefix+"/") && !strings.HasPrefix(importpath, "./") {
+			if importpath != goPrefix && !strings.HasPrefix(importpath, goPrefix+"/") && !isRelativePrefix(importpath) {
 				return e.resolve(importpath, dir)
 			}
 			return r.resolve(importpath, dir)
 		}),
 	}
+}
+
+func isRelativePrefix(path string) bool {
+	return strings.HasPrefix(path, "./") || strings.HasPrefix(path, "..")
 }
 
 type generator struct {
