@@ -64,7 +64,7 @@ func NewGenerator(goPrefix string) Generator {
 	return &generator{
 		goPrefix: goPrefix,
 		r: resolverFunc(func(importpath, dir string) (label, error) {
-			if importpath != goPrefix && !strings.HasPrefix(importpath, goPrefix+"/") && !strings.HasPrefix(importpath, "./") {
+			if importpath != goPrefix && !strings.HasPrefix(importpath, goPrefix+"/") && !isRelative(importpath) {
 				return e.resolve(importpath, dir)
 			}
 			return r.resolve(importpath, dir)
@@ -201,4 +201,9 @@ func (g *generator) dependencies(imports []string, dir string) ([]string, error)
 func isStandard(importpath string) bool {
 	seg := strings.SplitN(importpath, "/", 2)[0]
 	return !strings.Contains(seg, ".")
+}
+
+// isRelative determines if an importpath is relative.
+func isRelative(importpath string) bool {
+	return strings.HasPrefix(importpath, "./") || strings.HasPrefix(importpath, "..")
 }

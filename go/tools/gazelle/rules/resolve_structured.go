@@ -30,8 +30,8 @@ type structuredResolver struct {
 // resolve takes a Go importpath within the same respository as r.goPrefix
 // and resolves it into a label in Bazel.
 func (r structuredResolver) resolve(importpath, dir string) (label, error) {
-	if strings.HasPrefix(importpath, "./") {
-		importpath = path.Join(r.goPrefix, dir, importpath[2:])
+	if isRelative(importpath) {
+		importpath = path.Clean(path.Join(r.goPrefix, dir, importpath))
 	}
 
 	if importpath == r.goPrefix {

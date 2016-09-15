@@ -94,6 +94,17 @@ func TestGenerator(t *testing.T) {
 			`,
 		},
 		{
+			dir: "lib/relative_importer",
+			want: `
+				go_library(
+					name = "go_default_library",
+					srcs = ["importer.go"],
+					visibility = ["//visibility:public"],
+					deps = ["//lib/internal/deep:go_default_library"],
+				)
+			`,
+		},
+		{
 			dir: "bin",
 			want: `
 				go_binary(
