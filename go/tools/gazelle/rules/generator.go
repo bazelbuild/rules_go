@@ -166,6 +166,12 @@ func (g *generator) filegroup(rel string, pkg *build.Package) (*bzl.Rule, error)
 	if err != nil {
 		return nil, err
 	}
+	if len(protos) == 0 {
+	   return nil, nil
+	}
+	for i, p := range protos {
+	    protos[i] = filepath.Base(p)
+	}
 	return newRule("filegroup", nil, []keyvalue{
 		{key: "name", value: defaultProtosName},
 		{key: "srcs", value: protos},
