@@ -1,3 +1,4 @@
+#include <dlfcn.h>
 #include <iostream>
 
 #include "examples/cgo/cc_dependency/version.h"
@@ -18,5 +19,12 @@ extern "C" void PrintCXXVersion() {
 #ifndef __APPLE_CC__
     PrintCVersion();
 #endif
+    void* ptr = dlsym(RTLD_DEFAULT, "PrintCXXVersion");
+    if (ptr) {
+        std::cout
+            << "function ptr: " << std::hex << ptr << std::dec << std::endl;
+    } else {
+        std::cout << dlerror() << std::endl;
+    }
     std::cout << "C++ version: " << __cplusplus << std::endl;
 }

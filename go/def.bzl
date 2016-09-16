@@ -635,6 +635,7 @@ def _cgo_codegen_impl(ctx):
         linkopts += ['-L', dirname, '-l', lib.basename[3:-3]]
       else:
         linkopts += [_short_path(lib)]
+    linkopts += d.cc.link_flags
 
   # collect files from $(SRCDIR), $(GENDIR) and $(BINDIR)
   tree_layout = {}
