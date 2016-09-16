@@ -94,7 +94,7 @@ func TestGenerator(t *testing.T) {
 			`,
 		},
 		{
-			dir: "lib/relative_importer",
+			dir: "lib/relativeimporter",
 			want: `
 				go_library(
 					name = "go_default_library",
