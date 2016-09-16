@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"go/build"
 	"path"
+	"path/filepath"
 	"strings"
 
 	bzl "github.com/bazelbuild/buildifier/core"
@@ -35,6 +36,9 @@ const (
 	// defaultXTestName is a name of an external test corresponding to
 	// defaultLibName.
 	defaultXTestName = "go_default_xtest"
+	// defaultProtosName is the name of a filegroup created
+	// whenever the library contains .pb.go files
+	defaultProtosName = "go_default_library_protos"
 )
 
 // Generator generates Bazel build rules for Go build targets
@@ -93,6 +97,14 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 	}
 	rules = append(rules, r)
 
+	p, err := g.filegroup(rel, pkg)
+	if err != nil {
+		return nil, err
+	}
+	if p != nil {
+		rules = append(rules, p)
+	}
+
 	if len(pkg.TestGoFiles) > 0 {
 		t, err := g.generateTest(rel, pkg, r.AttrString("name"))
 		if err != nil {
@@ -141,6 +153,33 @@ func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) 
 	}
 
 	return newRule(kind, nil, attrs)
+}
+
+// filegroup is a small hack for directories with pre-generated .pb.go files
+// and also source .proto files.  This creates a filegroup for the .proto in
+// addition to the usual go_library for the .pb.go files.
+func (g *generator) filegroup(rel string, pkg *build.Package) (*bzl.Rule, error) {
+	if !hasPbGo(pkg.GoFiles) {
+		return nil, nil
+	}
+	protos, err := filepath.Glob(pkg.Dir + "/*.proto")
+	if err != nil {
+		return nil, err
+	}
+	return newRule("filegroup", nil, []keyvalue{
+		{key: "name", value: defaultProtosName},
+		{key: "srcs", value: protos},
+		{key: "visibility", value: []string{"//visibility:public"}},
+	})
+}
+
+func hasPbGo(files []string) bool {
+	for _, s := range files {
+		if strings.HasSuffix(s, ".pb.go") {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *generator) generateTest(rel string, pkg *build.Package, library string) (*bzl.Rule, error) {
