@@ -1046,7 +1046,7 @@ _go_repository_attrs = {
         allow_files = True,
         single_file = True,
         executable = True,
-	cfg = "host",
+        cfg = "host",
     ),
 }
 
@@ -1063,7 +1063,7 @@ new_go_repository = repository_rule(
             allow_files = True,
             single_file = True,
             executable = True,
-	    cfg = "host",
+            cfg = "host",
         ),
     },
 )
