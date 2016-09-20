@@ -175,7 +175,7 @@ redirection of Go.
     <tr>
       <td><code>commit</code></td>
       <td>
-        <code>String, coptional</code>
+        <code>String, optional</code>
         <p>The commit hash to checkout in the repository.</p>
         <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
       </td>
@@ -183,7 +183,7 @@ redirection of Go.
     <tr>
       <td><code>tag</code></td>
       <td>
-        <code>String, coptional</code>
+        <code>String, optional</code>
         <p>The tag to checkout in the repository.</p>
         <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
       </td>
@@ -232,7 +232,7 @@ importpath redirection of Go.
     <tr>
       <td><code>commit</code></td>
       <td>
-        <code>String, coptional</code>
+        <code>String, optional</code>
         <p>The commit hash to checkout in the repository.</p>
         <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
       </td>
@@ -240,7 +240,7 @@ importpath redirection of Go.
     <tr>
       <td><code>tag</code></td>
       <td>
-        <code>String, coptional</code>
+        <code>String, optional</code>
         <p>The tag to checkout in the repository.</p>
         <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
       </td>
