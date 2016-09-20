@@ -1204,6 +1204,7 @@ def _go_repository_select_impl(ctx):
     fail("unsupported operating system: " + os)
 
   ctx.symlink(goroot, ctx.path(''))
+  ctx.file("WORKSPACE", "workspace(name = '%s')" % ctx.name)
 
 _go_repository_select = repository_rule(
     _go_repository_select_impl,
