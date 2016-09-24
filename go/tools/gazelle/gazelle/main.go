@@ -26,11 +26,12 @@ import (
 
 	bzl "github.com/bazelbuild/buildifier/core"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/generator"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
 var (
 	goPrefix = flag.String("go_prefix", "", "go_prefix of the target workspace")
-	repoRoot = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix")
+	repoRoot = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
 	mode     = flag.String("mode", "print", "print, fix or diff")
 )
 
@@ -62,18 +63,19 @@ func run(dirs []string, emit func(*bzl.File) error) error {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `usage: gazelle [flags...] package-dir [package-dirs...]
+	fmt.Fprintln(os.Stderr, `usage: gazelle [flags...] [package-dirs...]
 
 Gazel is a BUILD file generator for Go projects.
 
 Currently its primary usage is to generate BUILD files for external dependencies
 in a go_repository rule.
-You can still use Gazel for other purposes, but its interface can change without
+You can still use Gazelle for other purposes, but its interface can change without
 notice.
 
-It takes a list of paths to Go package directories.
+It takes a list of paths to Go package directories [defaults to . if none given].
 It recursively traverses its subpackages.
 All the directories must be under the directory specified in -repo_root.
+[if -repo_root is not given, gazelle searches $pwd and up for the WORKSPACE file]
 
 There are several modes of gazelle.
 In print mode, gazelle prints reconciled BUILD files to stdout.
@@ -89,17 +91,26 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
+	if *repoRoot == "" {
+		if flag.NArg() == 1 {
+			*repoRoot = flag.Arg(0)
+		} else {
+			fmt.Printf("%v", flag.Args())
+			cwd, err := os.Getwd()
+			if err != nil {
+				log.Fatal(err)
+			}
+			r, err := wspace.Find(cwd)
+			if err != nil {
+				log.Fatalf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
+			}
+			*repoRoot = r
+		}
+	}
 	if *goPrefix == "" {
 		// TODO(yugui): Extract go_prefix from the top level BUILD file if
 		// exists
 		log.Fatal("-go_prefix is required")
-	}
-	if *repoRoot == "" {
-		if flag.NArg() != 1 {
-			log.Fatal("-repo_root is required")
-		}
-		// TODO(yugui): Guess repoRoot at the same time as goPrefix
-		*repoRoot = flag.Arg(0)
 	}
 
 	emit := modeFromName[*mode]
@@ -107,11 +118,12 @@ func main() {
 		log.Fatalf("unrecognized mode %s", *mode)
 	}
 
-	if len(flag.Args()) == 0 {
-		log.Fatal("No package directories given, nothing to do")
+	args := flag.Args()
+	if len(args) == 0 {
+		args = append(args, ".")
 	}
 
-	if err := run(flag.Args(), emit); err != nil {
+	if err := run(args, emit); err != nil {
 		log.Fatal(err)
 	}
 }
