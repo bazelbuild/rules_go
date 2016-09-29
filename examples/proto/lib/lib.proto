@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package examples.lib;
+
+// TODO(pmbethe09): make this also work.
+// option go_package = "github.com/bazelbuild/rules_go/example/proto/lib_proto";
+
+import "examples/proto/dep/useful.proto";
+import "ptypes/wrappers/wrappers.proto";
+
+message LibObject {
+  very.useful.VeryUseful very_useful = 1;
+  int32 are_you_sure = 2;
+  google.protobuf.Int64Value absolutely = 3;
+}
