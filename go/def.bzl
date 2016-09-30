@@ -708,7 +708,7 @@ _cgo_codegn_rule = rule(
     output_to_genfiles = True,
 )
 
-def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
+def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
                  go_tool=None, toolchain=None):
   """Generates glue codes for interop between C and Go
 
@@ -757,6 +757,7 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], linkopts=[],
       srcs = srcs,
       c_hdrs = c_hdrs,
       deps = deps,
+      copts = copts,
       linkopts = linkopts,
 
       go_tool = go_tool,
@@ -933,6 +934,7 @@ def cgo_library(name, srcs,
       srcs = go_srcs,
       c_hdrs = c_hdrs,
       deps = cdeps,
+      copts = copts,
       linkopts = clinkopts,
       go_tool = go_tool,
       toolchain = toolchain,
