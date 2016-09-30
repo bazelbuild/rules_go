@@ -64,9 +64,12 @@ def _proto_import(deps):
 
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
+  bazel_style = ctx.label.name != "go_default_library_protos"
   protos = list(ctx.files.src)
-  go_package_name = ctx.label.name[:-len(_PROTOS_SUFFIX)]
-  m_import_path = ",".join(["M%s=%s%s/%s" % (f.path, _go_prefix(ctx), 
+  go_package_name = "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
+  if not bazel_style:
+    go_package_name = ""
+  m_import_path = ",".join(["M%s=%s%s%s" % (f.path, _go_prefix(ctx), 
                                            ctx.label.package, go_package_name)
                           for f in ctx.files.src])
   for d in ctx.attr.deps:
@@ -80,10 +83,14 @@ def _go_proto_library_gen_impl(ctx):
   if ctx.attr.grpc:
     use_grpc = "plugins=grpc,"
 
+  offset = 0
+  proto_out = ctx.outputs.out
+  if bazel_style:
+    offset = -1  # extra directory added, need to remove
+    proto_out = ctx.new_file(
+        ctx.configuration.bin_dir, ctx.files.src[0].basename[:-5] + "pb.go")
   outdir = "/".join(
-      ctx.outputs.out.dirname.split("/")[:-1-len(ctx.label.package.split("/"))])
-  proto_out = ctx.new_file(
-      ctx.configuration.bin_dir, ctx.files.src[0].basename[:-5] + "pb.go")
+      ctx.outputs.out.dirname.split("/")[:offset-len(ctx.label.package.split("/"))])
   ctx.action(
       inputs=protos + ctx.files.protoc_gen_go,
       outputs=[proto_out],
@@ -99,14 +106,15 @@ def _go_proto_library_gen_impl(ctx):
       executable=ctx.executable.protoc)
   # This is the current hack for files without 'option go_package'
   # Generate into .pb.go, then cp into "real location"
-  ctx.action(
-      inputs=[proto_out],
-      outputs=[ctx.outputs.out],
-      command="cp %s %s" % (proto_out.path, ctx.outputs.out.path),
-      mnemonic="GoProtocGenCp")
+  if bazel_style:
+    ctx.action(
+        inputs=[proto_out],
+    	outputs=[ctx.outputs.out],
+      	command="cp %s %s" % (proto_out.path, ctx.outputs.out.path),
+      	mnemonic="GoProtocGenCp")
   return struct(_protos=protos,
                 _m_import_path=m_import_path,
-                name=(ctx.label.package + "/" + go_package_name))
+                name=(ctx.label.package + go_package_name))
 
 go_proto_library_gen = rule(
     attrs = {
@@ -175,11 +183,14 @@ def go_proto_library(name = None, srcs = None, deps = None,
     fail("exactly 1 src is required")
   if not deps:
     deps = []
+  out = name + "/" + name + ".pb.go"
+  if name == "go_default_library":
+    out = srcs[0][:-6] + ".pb.go"
   go_proto_library_gen(
       name = name + _PROTOS_SUFFIX,
       src = srcs[0],
       deps = [_add_target_suffix(s, _PROTOS_SUFFIX) for s in deps],
-      out = name + "/" + name + ".pb.go",
+      out = out,
       testonly = testonly,
       visibility = visibility,
       grpc = has_services,
@@ -209,7 +220,7 @@ def go_proto_repositories():
   native.git_repository(
       name = "com_google_protobuf",
       remote = "https://github.com/google/protobuf",
-      tag = "v3.0.2",
+      commit = "4f032cd9affcff0747f5987dfdc0a04deee7a46b",
   )
 
   # Needed for gRPC, only loaded by bazel if used
