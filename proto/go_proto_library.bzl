@@ -13,11 +13,11 @@ Does:
 Generate protos using the open-source protoc and protoc-gen-go.
 Handles transitive dependencies.
 gRPC for service generation
-Handles names like 'foo_proto', but not 
+Handles bazel-style names like 'foo_proto',
+and also Go package-style like 'go_default_library'
 
 Does not yet:
 Gets confused if local protos use 'option go_package'
-name = 'go_default_library' (yet)
 
 Usage:
 In WORKSPACE
@@ -40,6 +40,8 @@ go_proto_library(
 """
 
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "new_go_repository")
+
+_DEFAULT_LIB = "go_default_library"  # matching go_library
 
 _PROTOS_SUFFIX = "_protos"
 
@@ -64,14 +66,14 @@ def _proto_import(deps):
 
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
-  bazel_style = ctx.label.name != "go_default_library_protos"
+  bazel_style = ctx.label.name != _DEFAULT_LIB + _PROTOS_SUFFIX
   protos = list(ctx.files.src)
-  go_package_name = "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
-  if not bazel_style:
-    go_package_name = ""
-  m_import_path = ",".join(["M%s=%s%s%s" % (f.path, _go_prefix(ctx), 
-                                           ctx.label.package, go_package_name)
-                          for f in ctx.files.src])
+  go_package_name = ""
+  if bazel_style:
+    go_package_name = "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
+  m_import_path = ",".join(["M%s=%s%s%s" % (f.path, _go_prefix(ctx),
+                                            ctx.label.package, go_package_name)
+                            for f in ctx.files.src])
   for d in ctx.attr.deps:
     if not hasattr(d, "_protos"):
       # should be a raw filegroup then
@@ -109,9 +111,9 @@ def _go_proto_library_gen_impl(ctx):
   if bazel_style:
     ctx.action(
         inputs=[proto_out],
-    	outputs=[ctx.outputs.out],
-      	command="cp %s %s" % (proto_out.path, ctx.outputs.out.path),
-      	mnemonic="GoProtocGenCp")
+      outputs=[ctx.outputs.out],
+        command="cp %s %s" % (proto_out.path, ctx.outputs.out.path),
+        mnemonic="GoProtocGenCp")
   return struct(_protos=protos,
                 _m_import_path=m_import_path,
                 name=(ctx.label.package + go_package_name))
@@ -170,7 +172,7 @@ def go_proto_library(name = None, srcs = None, deps = None,
           typically "foo_proto" for ["foo.proto"]
     srcs: a list of .proto source files, currently only 1 supported
     deps: a mixed list of either go_proto_libraries, or
-          any go_library which has a companion 
+          any go_library which has a companion
           filegroup(name=name+"_protos",...)
           which contains the protos which were used
     has_services: indicates the proto has gRPC services and deps
@@ -184,7 +186,7 @@ def go_proto_library(name = None, srcs = None, deps = None,
   if not deps:
     deps = []
   out = name + "/" + name + ".pb.go"
-  if name == "go_default_library":
+  if name == _DEFAULT_LIB:
     out = srcs[0][:-6] + ".pb.go"
   go_proto_library_gen(
       name = name + _PROTOS_SUFFIX,
