@@ -15,7 +15,7 @@ cgo_library(
     ],
     cdeps = ["//examples/cgo/cc_dependency:version"],
     clinkopts = ["-lm"],
-    copts = ["-DDEFINED_IN_COPTS=\\\"Don't panic\\\""],
+    copts = ["-DDEFINED_IN_COPTS=1"],
     visibility = ["//visibility:private"],
     deps = [":sub"],
 )

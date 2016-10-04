@@ -24,6 +24,6 @@ func printCXXVersion() {
 	C.PrintCXXVersion()
 }
 
-func ReturnDefined() string {
-	return C.DEFINED_IN_COPTS
+func ReturnDefined() int {
+	return int(C.DEFINED_IN_COPTS)
 }
