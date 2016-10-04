@@ -24,7 +24,7 @@ type testCase struct {
 }
 
 func TestFind(t *testing.T) {
-	tmp, err := ioutil.TempDir(os.Getenv("TEST_TMPDIR"), "")
+	tmp, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Fatal(err)
 	}
