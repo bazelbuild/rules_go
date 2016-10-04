@@ -24,7 +24,7 @@ type testCase struct {
 }
 
 func TestFind(t *testing.T) {
-	tmp, err := ioutil.TempDir("", "")
+	tmp, err := ioutil.TempDir(os.Getenv("TEST_TMPDIR"), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestFind(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(tmp, "base", "sub"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := ioutil.WriteFile(filepath.Join(tmp, "base", workspaceFile), []byte{}, 0755); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(tmp, "base", workspaceFile), nil, 0755); err != nil {
 		t.Fatal(err)
 	}
 
