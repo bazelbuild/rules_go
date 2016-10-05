@@ -116,8 +116,7 @@ def _go_proto_library_gen_impl(ctx):
         command="cp %s %s" % (proto_out.path, ctx.outputs.out.path),
         mnemonic="GoProtocGenCp")
   return struct(_protos=protos,
-                _m_import_path=m_import_path,
-                name=(ctx.label.package + go_package_name))
+                _m_import_path=m_import_path))
 
 _go_proto_library_gen = rule(
     attrs = {
