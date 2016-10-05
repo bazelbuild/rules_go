@@ -1,6 +1,7 @@
 workspace(name = "io_bazel_rules_go")
 
-load("//go:def.bzl", "go_repositories", "go_internal_tools_deps", "new_go_repository")
+load("//go:def.bzl", "go_repositories", "new_go_repository")
+load("//go/private:go_repositories.bzl", "go_internal_tools_deps")
 
 go_repositories()
 

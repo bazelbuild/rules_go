@@ -23,3 +23,7 @@ func PrintGoVersion() {
 func printCXXVersion() {
 	C.PrintCXXVersion()
 }
+
+func ReturnDefined() int {
+	return int(C.DEFINED_IN_COPTS)
+}
