@@ -61,7 +61,7 @@ def _exernal_dir(files):
   return "/".join(toks[:2])
 
 def _proto_import(deps):
-  "Compute any needed -I options to protoc from external filegroups."
+  """Compute any needed -I options to protoc from external filegroups."""
   return [_exernal_dir(d.files) for d in deps if not hasattr(d, "_protos")]
 
 def _go_proto_library_gen_impl(ctx):
@@ -90,7 +90,8 @@ def _go_proto_library_gen_impl(ctx):
   if bazel_style:
     offset = -1  # extra directory added, need to remove
     proto_out = ctx.new_file(
-        ctx.configuration.bin_dir, ctx.files.src[0].basename[:-5] + "pb.go")
+        ctx.configuration.bin_dir,
+        ctx.files.src[0].basename[:-len(".proto")] + ".pb.go")
   outdir = "/".join(
       ctx.outputs.out.dirname.split("/")[:offset-len(ctx.label.package.split("/"))])
   ctx.action(
@@ -111,14 +112,14 @@ def _go_proto_library_gen_impl(ctx):
   if bazel_style:
     ctx.action(
         inputs=[proto_out],
-      outputs=[ctx.outputs.out],
+        outputs=[ctx.outputs.out],
         command="cp %s %s" % (proto_out.path, ctx.outputs.out.path),
         mnemonic="GoProtocGenCp")
   return struct(_protos=protos,
                 _m_import_path=m_import_path,
                 name=(ctx.label.package + go_package_name))
 
-go_proto_library_gen = rule(
+_go_proto_library_gen = rule(
     attrs = {
         "deps": attr.label_list(),
         "src": attr.label(
@@ -178,6 +179,7 @@ def go_proto_library(name = None, srcs = None, deps = None,
     has_services: indicates the proto has gRPC services and deps
     testonly: mark as testonly
     visibility: visibility to use on underlying go_library
+    **kwargs: any other args which are passed through to the underlying go_library
   """
   if not name:
     fail("name is required")
@@ -187,8 +189,8 @@ def go_proto_library(name = None, srcs = None, deps = None,
     deps = []
   out = name + "/" + name + ".pb.go"
   if name == _DEFAULT_LIB:
-    out = srcs[0][:-6] + ".pb.go"
-  go_proto_library_gen(
+    out = srcs[0][:-len(".proto")] + ".pb.go"
+  _go_proto_library_gen(
       name = name + _PROTOS_SUFFIX,
       src = srcs[0],
       deps = [_add_target_suffix(s, _PROTOS_SUFFIX) for s in deps],
