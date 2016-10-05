@@ -116,7 +116,7 @@ def _go_proto_library_gen_impl(ctx):
         command="cp %s %s" % (proto_out.path, ctx.outputs.out.path),
         mnemonic="GoProtocGenCp")
   return struct(_protos=protos,
-                _m_import_path=m_import_path))
+                _m_import_path=m_import_path)
 
 _go_proto_library_gen = rule(
     attrs = {
@@ -161,7 +161,7 @@ def _add_target_suffix(target, suffix):
   toks = target.split("/")
   return target + ":" + toks[-1] + suffix
 
-def go_proto_library(name = None, srcs = None, deps = None,
+def go_proto_library(name, srcs = None, deps = None,
                      has_services = 0,
                      testonly = 0, visibility = None,
                      **kwargs):
@@ -181,9 +181,9 @@ def go_proto_library(name = None, srcs = None, deps = None,
     **kwargs: any other args which are passed through to the underlying go_library
   """
   if not name:
-    fail("name is required")
+    fail("name is required", name)
   if not srcs or len(srcs) != 1:
-    fail("exactly 1 src is required")
+    fail("exactly 1 src is required", srcs)
   if not deps:
     deps = []
   out = name + "/" + name + ".pb.go"
