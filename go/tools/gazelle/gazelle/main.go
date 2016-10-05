@@ -102,7 +102,10 @@ func main() {
 	if *goPrefix == "" {
 		var err error
 		if *goPrefix, err = loadGoPrefix(*repoRoot); err != nil {
-			log.Fatal(err)
+			if !os.IsNotExist(err) {
+				log.Fatal(err)
+			}
+			log.Fatalf("-go_prefix not set and no root BUILD file found")
 		}
 	}
 
@@ -152,7 +155,7 @@ func loadGoPrefix(repo string) (string, error) {
 		}
 		return v.Value, nil
 	}
-	return "", errors.New("-go_prefix is required")
+	return "", errors.New("-go_prefix not set, and no go_prefix in root BUILD file")
 }
 
 func repo(args []string) (string, error) {
