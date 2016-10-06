@@ -181,9 +181,9 @@ def go_proto_library(name, srcs = None, deps = None,
     **kwargs: any other args which are passed through to the underlying go_library
   """
   if not name:
-    fail("name is required", name)
+    fail("name is required", "name")
   if not srcs or len(srcs) != 1:
-    fail("exactly 1 src is required", srcs)
+    fail("exactly 1 src is required", "srcs")
   if not deps:
     deps = []
   out = name + "/" + name + ".pb.go"
