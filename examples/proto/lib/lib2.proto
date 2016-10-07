@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package examples.lib;
+
+import "examples/proto/dep/useful.proto";
+import "ptypes/wrappers/wrappers.proto";
+
+message LibObject2 {
+  very.useful.VeryUseful very_useful = 1;
+  int32 are_you_sure = 2;
+  google.protobuf.Int64Value absolutely = 3;
+}
