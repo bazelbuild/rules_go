@@ -52,17 +52,10 @@ def _go_prefix(ctx):
     prefix = prefix + "/"
   return prefix
 
-def _exernal_dir(files):
-  if not files:
-    return []
-  toks = list(files)[0].dirname.split("/")
-  if not toks or toks[0] != "external":
-    return []
-  return "/".join(toks[:2])
-
-def _proto_import(deps):
+def _exernal_dirs(files):
   """Compute any needed -I options to protoc from external filegroups."""
-  return [_exernal_dir(d.files) for d in deps if not hasattr(d, "_protos")]
+  return set(["/".join(f.dirname.split("/")[:2])
+              for f in files if f.dirname[:9] == "external/"])
 
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
@@ -99,7 +92,7 @@ def _go_proto_library_gen_impl(ctx):
       outputs=[proto_out],
       arguments=["-I.", "--go_out=%s%s:%s" % (
           use_grpc, m_import_path, outdir)] + [
-              "-I"+i for i in _proto_import(ctx.attr.deps)
+              "-I"+i for i in _exernal_dirs(protos)
           ] + [
               f.path for f in ctx.files.src
           ],

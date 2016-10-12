@@ -6,6 +6,5 @@ go_proto_library(
     visibility = ["//visibility:public"],
     deps = [
         "//examples/proto/dep:useful_proto",
-        "@com_github_golang_protobuf//ptypes/wrappers:go_default_library",
     ],
 )
