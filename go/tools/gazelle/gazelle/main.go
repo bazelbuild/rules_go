@@ -54,6 +54,7 @@ func run(dirs []string, emit func(*bzl.File) error) error {
 		}
 		for _, f := range files {
 			f.Path = filepath.Join(*repoRoot, f.Path)
+			bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
 			if err := emit(f); err != nil {
 				return err
 			}
