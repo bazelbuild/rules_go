@@ -1,7 +1,6 @@
 package merger
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
@@ -50,7 +49,7 @@ go_test(
 )
 `
 
-// should fix 
+// should fix
 // * updated srcs from new
 // * data and size preserved from old
 // * load stmt fixed to those in use and sorted
@@ -77,12 +76,12 @@ go_test(
 `
 
 func TestMergeWithExisting(t *testing.T) {
-	tmp, err := ioutil.TempFile("", "")
+	tmp, err := ioutil.TempFile(os.Getenv("TEST_TMPDIR"), "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Remove(tmp.Name())
-	if _, err := io.Copy(tmp, bytes.NewBufferString(oldData)); err != nil {
+	if _, err := io.WriteString(tmp, oldData); err != nil {
 		t.Fatal(err)
 	}
 	if err := tmp.Close(); err != nil {

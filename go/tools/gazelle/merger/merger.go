@@ -62,7 +62,7 @@ func MergeWithExisting(newfile *bzl.File) (*bzl.File, error) {
 			newStmt = append(newStmt, c)
 			continue
 		}
-		if literal(c.X) == "load" {
+		if name(c) == "load" {
 			mergeLoad(c, other, f)
 		} else {
 			merge(c, other)
@@ -75,33 +75,15 @@ func MergeWithExisting(newfile *bzl.File) (*bzl.File, error) {
 // merge takes new info from src and merges into dest.
 // pre: these calls are the same X and 'name'
 func merge(src, dest *bzl.CallExpr) {
-	for _, item := range src.List {
-		nkv, ok := item.(*bzl.BinaryExpr)
-		if !ok {
-			continue
-		}
-		k := literal(nkv.X)
+	destRule := &bzl.Rule{dest}
+	srcRule := &bzl.Rule{src}
+	for _, k := range srcRule.AttrKeys() {
 		if !mergeableFields[k] {
 			continue
 		}
 		// TODO(pmbethe09): allow '# keep' on src files.
-		replace(dest, nkv)
+		destRule.SetAttr(k, srcRule.Attr(k))
 	}
-}
-
-func replace(dest *bzl.CallExpr, update *bzl.BinaryExpr) {
-	k := literal(update.X)
-	for i, item := range dest.List {
-		okv, ok := item.(*bzl.BinaryExpr)
-		if !ok {
-			continue
-		}
-		if k == literal(okv.X) {
-			dest.List[i] = update
-			return
-		}
-	}
-	dest.List = append(dest.List, update)
 }
 
 func mergeLoad(src, dest *bzl.CallExpr, oldfile *bzl.File) {
@@ -127,16 +109,7 @@ func mergeLoad(src, dest *bzl.CallExpr, oldfile *bzl.File) {
 }
 
 func ruleUsed(rule string, oldfile *bzl.File) bool {
-	for _, s := range oldfile.Stmt {
-		c, ok := s.(*bzl.CallExpr)
-		if !ok {
-			continue
-		}
-		if rule == literal(c) {
-			return true
-		}
-	}
-	return false
+	return len(oldfile.Rules(rule)) != 0
 }
 
 // match looks for the matching CallExpr in f using X and name
@@ -144,18 +117,14 @@ func ruleUsed(rule string, oldfile *bzl.File) bool {
 // despite the values of the other fields.
 // exception: if c is a 'load' statement, the match is done on the first value.
 func match(f *bzl.File, c *bzl.CallExpr) (*bzl.CallExpr, error) {
-	x := literal(c.X)
-	if x == "" {
-		return nil, fmt.Errorf("expected LiteralExpr, got; %v", c)
-	}
 	var m matcher
-	if x == "load" {
+	if x := name(c); x == "load" {
 		if len(c.List) == 0 {
 			return nil, nil
 		}
 		m = &loadMatcher{stringValue(c.List[0])}
 	} else {
-		m = &nameMatcher{x, get("name", c)}
+		m = &nameMatcher{x, (&bzl.Rule{c}).AttrString("name")}
 	}
 	for _, s := range f.Stmt {
 		other, ok := s.(*bzl.CallExpr)
@@ -178,7 +147,7 @@ type nameMatcher struct {
 }
 
 func (m *nameMatcher) match(c *bzl.CallExpr) bool {
-	return m.x == literal(c.X) && m.name == get("name", c)
+	return m.x == name(c) && m.name == (&bzl.Rule{c}).AttrString("name")
 }
 
 type loadMatcher struct {
@@ -186,41 +155,11 @@ type loadMatcher struct {
 }
 
 func (m *loadMatcher) match(c *bzl.CallExpr) bool {
-	return literal(c.X) == "load" && len(c.List) > 0 && m.load == stringValue(c.List[0])
+	return name(c) == "load" && len(c.List) > 0 && m.load == stringValue(c.List[0])
 }
 
-// get returns the value for the 'name = value' entry in the calls arguments
-// or "" if not found.
-func get(name string, c *bzl.CallExpr) string {
-	v := getValue(name, c)
-	if v == nil {
-		return ""
-	}
-	return stringValue(v)
-}
-
-func getValue(name string, c *bzl.CallExpr) bzl.Expr {
-	for _, arg := range c.List {
-		kv, ok := arg.(*bzl.BinaryExpr)
-		if !ok {
-			continue
-		}
-		if kv.Op != "=" {
-			continue
-		}
-		if literal(kv.X) == name {
-			return kv.Y
-		}
-	}
-	return nil
-}
-
-func literal(e bzl.Expr) string {
-	l, ok := e.(*bzl.LiteralExpr)
-	if !ok {
-		return ""
-	}
-	return l.Token
+func name(c *bzl.CallExpr) string {
+	return (&bzl.Rule{c}).Kind()
 }
 
 func stringValue(e bzl.Expr) string {
