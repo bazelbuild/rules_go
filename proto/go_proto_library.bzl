@@ -132,7 +132,7 @@ _go_proto_library_gen = rule(
         "grpc": attr.int(default = 0),
         "outs": attr.output_list(mandatory = True),
         "protoc": attr.label(
-            default = Label("@com_google_protobuf//:protoc"),
+            default = Label("@com_github_google_protobuf//:protoc"),
             executable = True,
             single_file = True,
             allow_files = True,
@@ -230,7 +230,7 @@ def go_proto_repositories(shared = 1):
   if shared:
     # if using multiple *_proto_library, allows caller to skip this.
     native.git_repository(
-        name = "com_google_protobuf",
+        name = "com_github_google_protobuf",
         remote = "https://github.com/google/protobuf",
         commit = "4f032cd9affcff0747f5987dfdc0a04deee7a46b",
     )

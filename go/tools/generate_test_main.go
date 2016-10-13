@@ -92,7 +92,9 @@ import (
 	"os"
 	"testing"
 
+{{ if .Names }}
         undertest "{{.Package}}"
+{{ end }}
 )
 
 func everything(pat, str string) (bool, error) {

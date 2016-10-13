@@ -167,10 +167,10 @@ func (g *generator) filegroup(rel string, pkg *build.Package) (*bzl.Rule, error)
 		return nil, err
 	}
 	if len(protos) == 0 {
-	   return nil, nil
+		return nil, nil
 	}
 	for i, p := range protos {
-	    protos[i] = filepath.Base(p)
+		protos[i] = filepath.Base(p)
 	}
 	return newRule("filegroup", nil, []keyvalue{
 		{key: "name", value: defaultProtosName},
@@ -230,7 +230,7 @@ func (g *generator) generateXTest(rel string, pkg *build.Package, library string
 func (g *generator) dependencies(imports []string, dir string) ([]string, error) {
 	var deps []string
 	for _, p := range imports {
-		if isStandard(p) {
+		if isStandard(p, g.goPrefix) {
 			continue
 		}
 		l, err := g.r.resolve(p, dir)
@@ -243,9 +243,9 @@ func (g *generator) dependencies(imports []string, dir string) ([]string, error)
 }
 
 // isStandard determines if importpath points a Go standard package.
-func isStandard(importpath string) bool {
+func isStandard(importpath, goPrefix string) bool {
 	seg := strings.SplitN(importpath, "/", 2)[0]
-	return !strings.Contains(seg, ".")
+	return !strings.Contains(seg, ".") && seg != goPrefix
 }
 
 // isRelative determines if an importpath is relative.
