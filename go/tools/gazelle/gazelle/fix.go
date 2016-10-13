@@ -19,13 +19,8 @@ import (
 	"io/ioutil"
 
 	bzl "github.com/bazelbuild/buildifier/core"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
 )
 
 func fixFile(file *bzl.File) error {
-	f, err := merger.MergeWithExisting(file)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(file.Path, bzl.Format(f), 0644)
+	return ioutil.WriteFile(file.Path, bzl.Format(file), 0644)
 }

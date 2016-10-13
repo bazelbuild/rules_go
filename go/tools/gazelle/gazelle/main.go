@@ -28,6 +28,7 @@ import (
 
 	bzl "github.com/bazelbuild/buildifier/core"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/generator"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
@@ -56,6 +57,9 @@ func run(dirs []string, emit func(*bzl.File) error) error {
 		}
 		for _, f := range files {
 			f.Path = filepath.Join(*repoRoot, f.Path)
+			if f, err = merger.MergeWithExisting(f); err != nil {
+				return err
+			}
 			if err := emit(f); err != nil {
 				return err
 			}
