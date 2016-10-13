@@ -1,0 +1,34 @@
+dist: trusty
+sudo: required
+
+env:
+  - V=HEAD URL_BASE=http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=linux-x86_64/lastSuccessfulBuild/artifact/output/ci/ URL="$URL_BASE`wget -qO- $URL_BASE | grep -oP 'bazel-.*?-installer.sh' | uniq`" FLAGS=''
+  - V=0.3.2 URL=https://github.com/bazelbuild/bazel/releases/download/0.3.2/bazel-0.3.2-installer-linux-x86_64.sh FLAGS=''
+  - V=0.3.1 URL=https://github.com/bazelbuild/bazel/releases/download/0.3.1/bazel-0.3.1-installer-linux-x86_64.sh FLAGS=''
+
+before_install:
+  - wget -O install.sh $URL
+  - chmod +x install.sh
+  - ./install.sh --user
+  - rm -f install.sh
+
+script:
+  - |
+    bazel \
+      --output_base=$HOME/.cache/bazel \
+      --batch \
+      --host_jvm_args=-Xmx500m \
+      --host_jvm_args=-Xms500m \
+      test \
+      --verbose_failures \
+      --sandbox_debug \
+      --test_output=errors \
+      --test_strategy=standalone \
+      --spawn_strategy=standalone \
+      --genrule_strategy=standalone \
+      --local_resources=400,1,1.0 \
+      //... \
+      $FLAGS
+
+notifications:
+  email: false

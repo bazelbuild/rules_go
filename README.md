@@ -1,4 +1,4 @@
-# Go rules
+# Go rules [![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go)
 
 <div class="toc">
   <h2>Rules</h2>
