@@ -60,6 +60,7 @@ func run(dirs []string, emit func(*bzl.File) error) error {
 			if f, err = merger.MergeWithExisting(f); err != nil {
 				return err
 			}
+			bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
 			if err := emit(f); err != nil {
 				return err
 			}
