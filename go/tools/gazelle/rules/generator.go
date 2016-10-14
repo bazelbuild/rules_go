@@ -245,7 +245,7 @@ func (g *generator) dependencies(imports []string, dir string) ([]string, error)
 // isStandard determines if importpath points a Go standard package.
 func isStandard(importpath, goPrefix string) bool {
 	seg := strings.SplitN(importpath, "/", 2)[0]
-	return !strings.Contains(seg, ".") && seg != goPrefix
+	return !strings.Contains(seg, ".") && !strings.HasPrefix(importpath, goPrefix+"/")
 }
 
 // isRelative determines if an importpath is relative.
