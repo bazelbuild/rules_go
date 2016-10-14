@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package gostyle;
+
+import "ptypes/any/any.proto";
+
+message GoStyleObject {
+  int32 go_not_bazel = 2;
+  google.protobuf.Any anything = 3;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package very.useful;
+
+// TODO(pmbethe09): Figure out how to make go_package in local .proto files work.
+// option go_package = "github.com/bazelbuild/rules_go/example/proto/dep/useful_proto";
+
+import "ptypes/duration/duration.proto";
+
+message VeryUseful {
+  string very = 1;
+  int32 useful = 2;
+  google.protobuf.Duration timing = 3;
+}

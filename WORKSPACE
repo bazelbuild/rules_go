@@ -17,3 +17,9 @@ local_repository(
     name = "io_bazel_rules_go",
     path = ".",
 )
+
+# Protocol buffers
+
+load("//proto:go_proto_library.bzl", "go_proto_repositories")
+
+go_proto_repositories()

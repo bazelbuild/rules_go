@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package examples.svc;
+
+import "examples/proto/lib/lib.proto";
+import "ptypes/any/any.proto";
+import "ptypes/empty/empty.proto";
+
+message GetRequest {
+  examples.lib.LibObject obj = 1;
+}
+
+service MyService {
+  rpc Get(GetRequest) returns (google.protobuf.Empty);
+  rpc Put(google.protobuf.Any) returns (examples.lib.LibObject);
+}
