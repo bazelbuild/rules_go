@@ -32,7 +32,7 @@ import (
 var (
 	goPrefix = flag.String("go_prefix", "", "go_prefix of the target workspace")
 	repoRoot = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
-	mode     = flag.String("mode", "fix", "print: which prints all of the updated BUILD files\n\tfix: which rewrites all of the BUILD files in place\n\tdiff: which computes the rewrite but then just does a diff")
+	mode     = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
 )
 
 var modeFromName = map[string]func(*bzl.File) error{
