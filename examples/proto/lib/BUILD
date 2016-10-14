@@ -7,7 +7,5 @@ go_proto_library(
         "lib2.proto",
     ],
     visibility = ["//visibility:public"],
-    deps = [
-        "//examples/proto/dep:useful_proto",
-    ],
+    deps = ["//examples/proto/dep:useful_proto"],
 )
