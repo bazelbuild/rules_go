@@ -9,10 +9,11 @@ go_library(
         "print.go",
     ],
     deps = [
+        "//go/tools/gazelle/generator:go_default_library",
+        "//go/tools/gazelle/merger:go_default_library",
+        "//go/tools/gazelle/wspace:go_default_library",
         "@io_bazel_buildifier//core:go_default_library",
         "@io_bazel_buildifier//differ:go_default_library",
-        "//go/tools/gazelle/generator:go_default_library",
-        "//go/tools/gazelle/wspace:go_default_library",
     ],
 )
 

@@ -22,6 +22,5 @@ import (
 )
 
 func fixFile(file *bzl.File) error {
-	// TODO(yugui): Respect exisiting manual configurations as well as possible
 	return ioutil.WriteFile(file.Path, bzl.Format(file), 0644)
 }
