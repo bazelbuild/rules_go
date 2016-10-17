@@ -1,4 +1,8 @@
-# Go rules [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go)](http://ci.bazel.io/job/rules_go) [![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go)
+# Go rules
+
+Bazel ≥0.3.1 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
+:---: | :---: | :---: | :---:
+[![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)
 
 <div class="toc">
   <h2>Rules</h2>
