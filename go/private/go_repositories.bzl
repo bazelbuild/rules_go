@@ -103,16 +103,6 @@ _go_repository_tools = repository_rule(
             allow_files = True,
             single_file = True,
         ),
-        "_x_tools": attr.label(
-            default = Label("@org_golang_x_tools//:BUILD"),
-            allow_files = True,
-            single_file = True,
-        ),
-        "_buildifier": attr.label(
-            default = Label("@io_bazel_buildifier//:BUILD"),
-            allow_files = True,
-            single_file = True,
-        ),
     },
 )
 
