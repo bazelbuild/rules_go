@@ -1,4 +1,15 @@
-// wtool augments your bazel WORKSPACE file with new_go_repository entries
+/*wtool augments your bazel WORKSPACE file with new_go_repository entries
+
+Example Usage: wtool com_github_golang_glog com_google_cloud_go
+will add 2 new_go_repository to your WORKSPACE
+by converting com_github_golang_glog -> github.com/golang/glog
+and so forth and then doing a 'git ls-remote' to get
+the latest commit.
+
+if wtool cannot figure out the bazel -> Go mapping, try
+Other Usage: wtool -asis github.com/golang/glog
+which takes an importpath, and computes the bazel name + ls-remote as above.
+*/
 package main
 
 import (
@@ -20,10 +31,6 @@ import (
 
 var (
 	asis = flag.Bool("asis", false, "if true, leave the import names as-is (by default they are treated as bazel converted names like org_golang_x_net")
-
-	// repoRootForImportPath is overwritten only in unit test to avoid depending on
-	// network communication.
-	repoRootForImportPath = vcs.RepoRootForImportPath
 )
 
 func main() {
@@ -86,7 +93,7 @@ func findImport(nameIn string) (bzl.Expr, error) {
 		return nil, err
 	}
 	log.Printf(importpath)
-	r, err := repoRootForImportPath(importpath, false)
+	r, err := vcs.RepoRootForImportPath(importpath, false)
 	if err != nil {
 		return nil, err
 	}
