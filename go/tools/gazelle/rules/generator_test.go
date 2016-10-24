@@ -118,7 +118,6 @@ func TestGenerator(t *testing.T) {
 					name = "bin",
 					library = ":go_default_library",
 					visibility = ["//visibility:public"],
-					deps = ["go_default_library"],
 				)
 			`,
 		},
@@ -136,7 +135,6 @@ func TestGenerator(t *testing.T) {
 					name = "bin_with_tests",
 					library = ":go_default_library",
 					visibility = ["//visibility:public"],
-					deps = ["go_default_library"],
 				)
 
 				go_test(

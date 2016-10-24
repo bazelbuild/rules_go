@@ -141,11 +141,9 @@ func (g *generator) generateBin(rel, library string, pkg *build.Package) (*bzl.R
 		{key: "name", value: name},
 		{key: "library", value: ":" + library},
 		{key: "visibility", value: []string{visibility}},
-		{key: "deps", value: []string{library}},
 	}
 
 	return newRule(kind, nil, attrs)
-
 }
 
 func (g *generator) generateLib(rel, name string, pkg *build.Package) (*bzl.Rule, error) {

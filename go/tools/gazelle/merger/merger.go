@@ -30,8 +30,9 @@ const keep = "# keep" // marker in srcs or deps to tell gazelle to preserve.
 
 var (
 	mergeableFields = map[string]bool{
-		"srcs": true,
-		"deps": true,
+		"srcs":    true,
+		"deps":    true,
+		"library": true,
 	}
 )
 
@@ -80,12 +81,20 @@ func MergeWithExisting(newfile *bzl.File) (*bzl.File, error) {
 func merge(src, dest *bzl.CallExpr) {
 	destRule := &bzl.Rule{dest}
 	srcRule := &bzl.Rule{src}
+	todo := make(map[string]bool)
+	for k, v := range mergeableFields {
+		todo[k] = v
+	}
 	for _, k := range srcRule.AttrKeys() {
 		if !mergeableFields[k] {
 			continue
 		}
 		keepIfRequested(srcRule.Attr(k), destRule.Attr(k))
 		destRule.SetAttr(k, srcRule.Attr(k))
+		delete(todo, k)
+	}
+	for k := range todo {
+		destRule.DelAttr(k)
 	}
 }
 
