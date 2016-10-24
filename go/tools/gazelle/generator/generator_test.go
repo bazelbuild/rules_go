@@ -65,7 +65,29 @@ func TestGenerator(t *testing.T) {
 			"bin": {
 				{
 					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_library"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
 						X: &bzl.LiteralExpr{Token: "go_binary"},
+					},
+				},
+			},
+			"bin_with_tests": {
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_library"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_binary"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_test"},
 					},
 				},
 			},
@@ -125,8 +147,18 @@ func TestGenerator(t *testing.T) {
 		{
 			Path: "bin/BUILD",
 			Stmt: []bzl.Expr{
-				loadExpr("go_binary"),
+				loadExpr("go_library", "go_binary"),
 				stub.fixtures["bin"][0].Call,
+				stub.fixtures["bin"][1].Call,
+			},
+		},
+		{
+			Path: "bin_with_tests/BUILD",
+			Stmt: []bzl.Expr{
+				loadExpr("go_library", "go_binary", "go_test"),
+				stub.fixtures["bin_with_tests"][0].Call,
+				stub.fixtures["bin_with_tests"][1].Call,
+				stub.fixtures["bin_with_tests"][2].Call,
 			},
 		},
 	}

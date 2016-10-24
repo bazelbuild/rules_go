@@ -91,11 +91,20 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 		rules = append(rules, p)
 	}
 
-	r, err := g.generate(rel, pkg)
+	libName := defaultLibName
+	r, err := g.generateLib(rel, libName, pkg)
 	if err != nil {
 		return nil, err
 	}
 	rules = append(rules, r)
+
+	if pkg.IsCommand() {
+		r, err := g.generateBin(rel, libName, pkg)
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, r)
+	}
 
 	p, err := g.filegroup(rel, pkg)
 	if err != nil {
@@ -123,20 +132,31 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 	return rules, nil
 }
 
-func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) {
-	kind := "go_library"
-	name := defaultLibName
-	if pkg.IsCommand() {
-		kind = "go_binary"
-		name = path.Base(pkg.Dir)
+func (g *generator) generateBin(rel, library string, pkg *build.Package) (*bzl.Rule, error) {
+	kind := "go_binary"
+	name := path.Base(pkg.Dir)
+
+	visibility := checkInternalVisibility(rel, "//visibility:public")
+	attrs := []keyvalue{
+		{key: "name", value: name},
+		{key: "library", value: ":" + library},
+		{key: "visibility", value: []string{visibility}},
+		{key: "deps", value: []string{library}},
 	}
 
+	return newRule(kind, nil, attrs)
+
+}
+
+func (g *generator) generateLib(rel, name string, pkg *build.Package) (*bzl.Rule, error) {
+	kind := "go_library"
+
 	visibility := "//visibility:public"
-	if i := strings.LastIndex(rel, "/internal/"); i >= 0 {
-		visibility = fmt.Sprintf("//%s:__subpackages__", rel[:i])
-	} else if strings.HasPrefix(rel, "internal/") {
-		visibility = "//:__subpackages__"
+	// Libraries made for a go_binary should not be exposed to the public.
+	if pkg.IsCommand() {
+		visibility = "//visibility:private"
 	}
+	visibility = checkInternalVisibility(rel, visibility)
 
 	attrs := []keyvalue{
 		{key: "name", value: name},
@@ -153,6 +173,17 @@ func (g *generator) generate(rel string, pkg *build.Package) (*bzl.Rule, error) 
 	}
 
 	return newRule(kind, nil, attrs)
+}
+
+// checkInternalVisibility overrides the given visibility if the package is
+// internal.
+func checkInternalVisibility(rel, visibility string) string {
+	if i := strings.LastIndex(rel, "/internal/"); i >= 0 {
+		visibility = fmt.Sprintf("//%s:__subpackages__", rel[:i])
+	} else if strings.HasPrefix(rel, "internal/") {
+		visibility = "//:__subpackages__"
+	}
+	return visibility
 }
 
 // filegroup is a small hack for directories with pre-generated .pb.go files

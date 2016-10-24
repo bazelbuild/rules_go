@@ -107,11 +107,42 @@ func TestGenerator(t *testing.T) {
 		{
 			dir: "bin",
 			want: `
+				go_library(
+					name = "go_default_library",
+					srcs = ["main.go"],
+					visibility = ["//visibility:private"],
+					deps = ["//lib:go_default_library"],
+				)
+
 				go_binary(
 					name = "bin",
-					srcs = ["main.go"],
+					library = ":go_default_library",
 					visibility = ["//visibility:public"],
+					deps = ["go_default_library"],
+				)
+			`,
+		},
+		{
+			dir: "bin_with_tests",
+			want: `
+				go_library(
+					name = "go_default_library",
+					srcs = ["main.go"],
+					visibility = ["//visibility:private"],
 					deps = ["//lib:go_default_library"],
+				)
+
+				go_binary(
+					name = "bin_with_tests",
+					library = ":go_default_library",
+					visibility = ["//visibility:public"],
+					deps = ["go_default_library"],
+				)
+
+				go_test(
+					name = "go_default_test",
+					srcs = ["bin_test.go"],
+					library = ":go_default_library",
 				)
 			`,
 		},
