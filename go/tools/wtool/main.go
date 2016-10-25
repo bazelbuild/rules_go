@@ -107,14 +107,14 @@ func findImport(nameIn string) (bzl.Expr, error) {
 	return &bzl.CallExpr{
 		X: &bzl.LiteralExpr{Token: "new_go_repository"},
 		List: []bzl.Expr{
-			binExpr("name", name),
-			binExpr("importpath", importpath),
-			binExpr("commit", commit),
+			attr("name", name),
+			attr("importpath", importpath),
+			attr("commit", commit),
 		},
 	}, nil
 }
 
-func binExpr(key, val string) *bzl.BinaryExpr {
+func attr(key, val string) *bzl.BinaryExpr {
 	return &bzl.BinaryExpr{
 		X:  &bzl.LiteralExpr{Token: key},
 		Op: "=",
