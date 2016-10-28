@@ -128,6 +128,11 @@ filegroup(
 )
 
 filegroup(
+  name = "go_src",
+  srcs = glob(["src/**"]),
+)
+
+filegroup(
   name = "go_include",
   srcs = [ "pkg/include" ],
 )

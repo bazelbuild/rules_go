@@ -493,6 +493,11 @@ go_env_attrs = {
         allow_files = False,
         cfg = "host",
     ),
+    "go_src": attr.label(
+        default = Label("//go/toolchain:go_src"),
+        allow_files = True,
+        cfg = "host",
+    ),
     "go_include": attr.label(
         default = Label("//go/toolchain:go_include"),
         single_file = True,

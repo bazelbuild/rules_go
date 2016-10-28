@@ -21,3 +21,8 @@ alias(
     name = "go_root",
     actual = "@io_bazel_rules_go_toolchain//:go_root",
 )
+
+alias(
+    name = "go_src",
+    actual = "@io_bazel_rules_go_toolchain//:go_src",
+)
