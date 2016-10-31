@@ -27,6 +27,20 @@ var (
 	repoRootForImportPath = vcs.RepoRootForImportPath
 )
 
+// ImportPathToBazelRepoName converts a Go import path into a bazel repo name
+// following the guidelines in http://bazel.io/docs/be/functions.html#workspace
+func ImportPathToBazelRepoName(importpath string) string {
+	components := strings.Split(importpath, "/")
+	labels := strings.Split(components[0], ".")
+	var reversed []string
+	for i := range labels {
+		l := labels[len(labels)-i-1]
+		reversed = append(reversed, l)
+	}
+	repo := strings.Join(append(reversed, components[1:]...), "_")
+	return strings.NewReplacer("-", "_", ".", "_").Replace(repo)
+}
+
 type externalResolver struct{}
 
 // resolve resolves "importpath" into a label, assuming that it is a label in an
@@ -48,18 +62,8 @@ func (e externalResolver) resolve(importpath, dir string) (label, error) {
 		pkg = strings.TrimPrefix(importpath, prefix+"/")
 	}
 
-	components := strings.Split(prefix, "/")
-	labels := strings.Split(components[0], ".")
-	var reversed []string
-	for i := range labels {
-		l := labels[len(labels)-i-1]
-		reversed = append(reversed, l)
-	}
-	repo := strings.Join(append(reversed, components[1:]...), "_")
-	repo = strings.NewReplacer("-", "_", ".", "_").Replace(repo)
-
 	return label{
-		repo: repo,
+		repo: ImportPathToBazelRepoName(prefix),
 		pkg:  pkg,
 		name: defaultLibName,
 	}, nil
