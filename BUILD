@@ -1,7 +1,10 @@
 load("//go:def.bzl", "go_prefix")
 load("//go/private:lines_sorted_test.bzl", "lines_sorted_test")
+load("//proto:go_proto_library.bzl", "go_google_protobuf")
 
 go_prefix("github.com/bazelbuild/rules_go")
+
+go_google_protobuf()
 
 lines_sorted_test(
     name = "contributors_sorted_test",
