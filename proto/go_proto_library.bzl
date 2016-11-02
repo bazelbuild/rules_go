@@ -57,10 +57,37 @@ def _external_dirs(files):
   return set(["/".join(f.dirname.split("/")[:2])
               for f in files if f.dirname[:9] == "external/"])
 
+def _well_known_import_key(name):
+  return "@com_github_golang_protobuf//ptypes/%s:go_default_library" % name
+
+def _well_known_import_value(name):
+  return "external/com_github_golang_protobuf/ptypes/%s/%s.proto" % (name, name)
+
+# map from dependency to proto path to copy to google/protobuf
+_well_known_import_paths = {
+    _well_known_import_key("any"): _well_known_import_value("any"),
+    _well_known_import_key("duration"): _well_known_import_value("duration"),
+    _well_known_import_key("empty"): _well_known_import_value("empty"),
+    _well_known_import_key("struct"): _well_known_import_value("struct"),
+    _well_known_import_key("timestamp"): _well_known_import_value("timestamp"),
+    _well_known_import_key("wrappers"): _well_known_import_value("wrappers"),
+}
+
+def _copy_well_known_protos(ctx):
+  protos = []
+  for d in ctx.attr.deps:
+    if hasattr(d, "_protos"):
+      continue # is a _go_proto_library_gen
+    for f in d.files:
+      if f.path in _well_known_import_paths:
+        protos += [ctx.new_file("google/protobuf")]
+
+
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
   bazel_style = ctx.label.name != _DEFAULT_LIB + _PROTOS_SUFFIX
   protos = list(ctx.files.srcs)
+  well_known = list(ctx.files.well_known_protos)
   go_package_name = ""
   if bazel_style:
     go_package_name = "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
@@ -146,6 +173,7 @@ _go_proto_library_gen = rule(
             allow_files = False,
             cfg = "host",
         ),
+        "well_known_protos": attr.label_list(),
     },
     implementation = _go_proto_library_gen_impl,
 )
@@ -160,6 +188,7 @@ def _add_target_suffix(target, suffix):
 def go_proto_library(name, srcs = None, deps = None,
                      has_services = 0,
                      testonly = 0, visibility = None,
+                     well_known_repo = "com_github_golang_protobuf",
                      **kwargs):
   """Macro which generates and compiles protobufs for Go.
 
@@ -174,6 +203,8 @@ def go_proto_library(name, srcs = None, deps = None,
     has_services: indicates the proto has gRPC services and deps
     testonly: mark as testonly
     visibility: visibility to use on underlying go_library
+    well_known_repo: repo for special-case protos
+                     which should be copied to google/protobuf
     **kwargs: any other args which are passed through to the underlying go_library
   """
   if not name:
@@ -188,6 +219,7 @@ def go_proto_library(name, srcs = None, deps = None,
   if name == _DEFAULT_LIB:
     outs = [s[:-len(".proto")] + ".pb.go"
             for s in srcs]
+  well_known_repo = "@" + well_known_repo + "//"
 
   _go_proto_library_gen(
       name = name + _PROTOS_SUFFIX,
@@ -197,6 +229,8 @@ def go_proto_library(name, srcs = None, deps = None,
       testonly = testonly,
       visibility = visibility,
       grpc = has_services,
+      well_known_protos = [_add_target_suffix(d, _PROTOS_SUFFIX) for d in deps
+                           if d[:len(well_known_repo)] == well_known_repo],
   )
   grpc_deps = []
   if has_services:

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package gostyle;
 
-import "ptypes/any/any.proto";
+import "google/protobuf/any.proto";
 
 message GoStyleObject {
   int32 go_not_bazel = 2;
