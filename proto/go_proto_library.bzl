@@ -87,13 +87,13 @@ def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
   bazel_style = ctx.label.name != _DEFAULT_LIB + _PROTOS_SUFFIX
   protos = list(ctx.files.srcs)
-  well_known = list(ctx.files.well_known_protos)
   go_package_name = ""
   if bazel_style:
     go_package_name = "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
   m_import_path = ",".join(["M%s=%s%s%s" % (f.path, _go_prefix(ctx),
                                             ctx.label.package, go_package_name)
                             for f in ctx.files.srcs])
+  well_known = []
   for d in ctx.attr.deps:
     if not hasattr(d, "_protos"):
       # should be a raw filegroup then
@@ -101,6 +101,8 @@ def _go_proto_library_gen_impl(ctx):
       continue
     protos += d._protos
     m_import_path += "," + d._m_import_path
+  for wk in ctx.files.well_known_protos:
+    well_known = 
   use_grpc = ""
   if ctx.attr.grpc:
     use_grpc = "plugins=grpc,"
