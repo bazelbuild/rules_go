@@ -330,7 +330,7 @@ def _short_path(f):
   return f.path[len(prefix):]
 
 def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
-                        executable, x_defs={}):
+                        executable, x_defs={}, x_defs_file=None):
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
   out_depth = out_dir.count('/') + 1
@@ -367,6 +367,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "link", "-L", ".",
       "-o", _go_importpath(ctx),
+      '"${XDEFS_FROM_FILE[@]}"',
   ]
 
   if x_defs:
@@ -392,6 +393,13 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   cmds += ["export PATH=$PATH:/usr/bin"]
   cmds += [
     "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
+    "XDEFS_FROM_FILE=()"
+  ]
+
+  if x_defs_file:
+    cmds += ['while read -r xdef; do XDEFS_FROM_FILE+=(-X "${xdef}"); done < ' + ctx.file.x_defs_file.path]
+
+  cmds += [
     "cd " + out_dir,
     ' '.join(link_cmd),
     "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
@@ -400,7 +408,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   f = _emit_generate_params_action(cmds, ctx, lib.path + ".GoLinkFile.params")
 
   ctx.action(
-      inputs = (list(transitive_libs) + [lib] + list(cgo_deps) +
+      inputs = (list(transitive_libs) + [lib] + list(cgo_deps) + ctx.files.x_defs_file +
                 ctx.files.toolchain + ctx.files._crosstool),
       outputs = [executable],
       executable = f,
@@ -419,7 +427,8 @@ def go_binary_impl(ctx):
     importmap=lib_result.transitive_go_importmap,
     cgo_deps=lib_result.transitive_cgo_deps,
     lib=lib_out, executable=executable,
-    x_defs=ctx.attr.x_defs)
+    x_defs=ctx.attr.x_defs,
+    x_defs_file=ctx.attr.x_defs_file)
 
   runfiles = ctx.runfiles(collect_data = True,
                           files = ctx.files.data)
@@ -462,7 +471,8 @@ def go_test_impl(ctx):
     transitive_libs=lib_result.transitive_go_library_object,
     cgo_deps=lib_result.transitive_cgo_deps,
     lib=ctx.outputs.main_lib, executable=ctx.outputs.executable,
-    x_defs=ctx.attr.x_defs)
+    x_defs=ctx.attr.x_defs,
+    x_defs_file=ctx.attr.x_defs_file)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
@@ -555,6 +565,10 @@ go_binary = rule(
     attrs = go_library_attrs + _crosstool_attrs + {
         "stamp": attr.bool(default = False),
         "x_defs": attr.string_dict(),
+        "x_defs_file": attr.label(
+            allow_files = True,
+            single_file = True,
+        ),
     },
     executable = True,
     fragments = ["cpp"],
@@ -572,6 +586,10 @@ go_test = rule(
             cfg = "host",
         ),
         "x_defs": attr.string_dict(),
+        "x_defs_file": attr.label(
+            allow_files = True,
+            single_file = True,
+        ),
     },
     executable = True,
     fragments = ["cpp"],
