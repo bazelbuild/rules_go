@@ -5,6 +5,7 @@ go_proto_library(
     name = "my_svc_proto",
     srcs = ["my_svc.proto"],
     has_services = 1,
+    rules_go_repo_only_for_internal_use = "@",
     deps = [
         "//examples/proto/lib:lib_proto",
         "@com_github_golang_protobuf//ptypes/any:go_default_library",

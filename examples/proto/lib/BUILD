@@ -6,6 +6,7 @@ go_proto_library(
         "lib.proto",
         "lib2.proto",
     ],
+    rules_go_repo_only_for_internal_use = "@",
     visibility = ["//visibility:public"],
     deps = ["//examples/proto/dep:useful_proto"],
 )

@@ -161,15 +161,16 @@ def _add_target_suffix(target, suffix):
 
 _well_known_repo = "@com_github_golang_protobuf//ptypes/"
 
-def _well_known_proto_deps(deps):
+def _well_known_proto_deps(deps, repo):
   for d in deps:
     if d[:len(_well_known_repo)] == _well_known_repo:
-      return ["//:" + _GO_GOOGLE_PROTOBUF]
+      return [repo + "//:" + _GO_GOOGLE_PROTOBUF]
   return []
 
 def go_proto_library(name, srcs = None, deps = None,
                      has_services = 0,
                      testonly = 0, visibility = None,
+                     rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
                      **kwargs):
   """Macro which generates and compiles protobufs for Go.
 
@@ -204,7 +205,9 @@ def go_proto_library(name, srcs = None, deps = None,
   _go_proto_library_gen(
       name = name + _PROTOS_SUFFIX,
       srcs = srcs,
-      deps = [_add_target_suffix(s, _PROTOS_SUFFIX) for s in deps] + _well_known_proto_deps(deps),
+      deps = [_add_target_suffix(s, _PROTOS_SUFFIX)
+              for s in deps] + _well_known_proto_deps(
+                  deps, repo=rules_go_repo_only_for_internal_use),
       outs = outs,
       testonly = testonly,
       visibility = visibility,
@@ -230,8 +233,8 @@ def _well_known_import_key(name):
 
 _well_known_imports = ["any", "duration", "empty", "struct", "timestamp", "wrappers"]
 
-# Add this to your root BUILD file to get the magic mappings for .proto files
-# to "google/protobuf/..." for smoother interoperation with non-Go and protos.
+# If you have well_known proto deps, rules_go will add a magic
+# google/protobuf/ directory at the import root
 def go_google_protobuf(name = _GO_GOOGLE_PROTOBUF):
   deps = [_add_target_suffix(_well_known_import_key(wk), _PROTOS_SUFFIX)
           for wk in _well_known_imports]
