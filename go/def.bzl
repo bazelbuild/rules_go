@@ -34,9 +34,21 @@ _DEFAULT_LIB = "go_default_library"
 
 _VENDOR_PREFIX = "/vendor/"
 
-go_filetype = FileType([".go", ".s", ".S"])
+go_filetype = FileType([
+    ".go",
+    ".s",
+    ".S",
+])
+
 # be consistent to cc_library.
-hdr_exts = ['.h', '.hh', '.hpp', '.hxx', '.inc']
+hdr_exts = [
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+    ".inc",
+]
+
 cc_hdr_filetype = FileType(hdr_exts)
 
 ################
@@ -119,11 +131,19 @@ def go_environment_vars(ctx):
                                     "GOARCH": "amd64"})
 
 def _emit_generate_params_action(cmds, ctx, fn):
-  cmds_all = ["set -e"]
+  cmds_all = [
+      # Use bash explicitly. /bin/sh is default, and it may be linked to a
+      # different shell, e.g., /bin/dash on Ubuntu.
+      "#!/bin/bash",
+      "set -e",
+  ]
   cmds_all += cmds
   cmds_all_str = "\n".join(cmds_all) + "\n"
   f = ctx.new_file(ctx.configuration.bin_dir, fn)
-  ctx.file_action( output = f, content = cmds_all_str, executable = True)
+  ctx.file_action(
+      output = f,
+      content = cmds_all_str,
+      executable = True)
   return f
 
 def emit_go_asm_action(ctx, source, out_obj):
@@ -391,6 +411,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "link", "-L", ".",
       "-o", _go_importpath(ctx),
+      '"${STAMP_XDEFS[@]}"',
   ]
 
   if x_defs:
@@ -414,8 +435,25 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
   # or earlier.
   cmds += ["export PATH=$PATH:/usr/bin"]
+
   cmds += [
-    "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
+      "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
+      "STAMP_XDEFS=()",
+  ]
+
+  stamp_inputs = []
+  if ctx.attr.linkstamp:
+    # read workspace status files, converting "KEY value" lines
+    # to "-X $linkstamp.KEY=value" arguments to the go linker.
+    stamp_inputs = [ctx.info_file, ctx.version_file]
+    for f in stamp_inputs:
+      cmds += [
+          "while read -r stamp || [[ -n $stamp ]]; do",
+          "  STAMP_XDEFS+=(-X \"%s.$(echo $stamp | sed -e 's!^\([^ ][^ ]*\) *\(.*\)$!\\1=\\2!')\")" % ctx.attr.linkstamp,
+          "done < " + f.path,
+      ]
+
+  cmds += [
     "cd " + out_dir,
     ' '.join(link_cmd),
     "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
@@ -425,7 +463,7 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
 
   ctx.action(
       inputs = (list(transitive_libs) + [lib] + list(cgo_deps) +
-                ctx.files.toolchain + ctx.files._crosstool),
+                ctx.files.toolchain + ctx.files._crosstool) + stamp_inputs,
       outputs = [executable],
       executable = f,
       mnemonic = "GoLink",
@@ -554,14 +592,18 @@ go_library_attrs = go_env_attrs + {
         ],
     ),
     "library": attr.label(
-        providers = ["go_sources", "asm_sources", "cgo_object"],
+        providers = [
+            "go_sources",
+            "asm_sources",
+            "cgo_object",
+        ],
     ),
 }
 
 _crosstool_attrs = {
     "_crosstool": attr.label(
         default = Label("//tools/defaults:crosstool"),
-    )
+    ),
 }
 
 go_library_outputs = {
@@ -572,7 +614,10 @@ go_library = rule(
     go_library_impl,
     attrs = go_library_attrs + {
         "cgo_object": attr.label(
-            providers = ["cgo_obj", "cgo_deps"],
+            providers = [
+                "cgo_obj",
+                "cgo_deps",
+            ],
         ),
     },
     fragments = ["cpp"],
@@ -582,7 +627,7 @@ go_library = rule(
 go_binary = rule(
     go_binary_impl,
     attrs = go_library_attrs + _crosstool_attrs + {
-        "stamp": attr.bool(default = False),
+        "linkstamp": attr.string(default = ""),
         "x_defs": attr.string_dict(),
     },
     executable = True,
@@ -600,6 +645,7 @@ go_test = rule(
             ),
             cfg = "host",
         ),
+        "linkstamp": attr.string(default = ""),
         "x_defs": attr.string_dict(),
     },
     executable = True,
@@ -611,7 +657,6 @@ go_test = rule(
     },
     test = True,
 )
-
 
 def _pkg_dir(workspace_root, package_name):
   if workspace_root and package_name:
@@ -713,7 +758,6 @@ _cgo_codegn_rule = rule(
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
         "outdir": attr.string(mandatory = True),
-
         "outs": attr.output_list(
             mandatory = True,
             non_empty = True,
@@ -820,11 +864,9 @@ _cgo_import = rule(
             allow_files = True,
             single_file = True,
         ),
-
         "out": attr.output(
             mandatory = True,
         ),
-
         "_extract_package": attr.label(
             default = Label("//go/tools/extract_package"),
             executable = True,
@@ -918,13 +960,13 @@ _cgo_object = rule(
             mandatory = True,
             providers = ["cgo_deps"],
         ),
-
         "out": attr.output(
             mandatory = True,
-         )
+        ),
     },
     fragments = ["cpp"],
 )
+
 """Generates _all.o to be archived together with Go objects.
 
 Args:
@@ -1001,7 +1043,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
       visibility = ["//visibility:private"],
   )
   return cgogen
-
 
 def cgo_genrule(name, srcs,
                 copts=[],

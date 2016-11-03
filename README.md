@@ -457,7 +457,7 @@ go_library(
 ## go\_binary
 
 ```bzl
-go_binary(name, srcs, deps, data)
+go_binary(name, srcs, deps, data, linkstamp)
 ```
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -497,6 +497,23 @@ go_binary(name, srcs, deps, data)
       <td>
         <code>List of labels, optional</code>
         <p>List of files needed by this rule at runtime.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>linkstamp</code></td>
+      <td>
+        <code>String; optional; default is ""</code>
+        <p>The name of a package containing global variables set by the linker
+        as part of a link stamp. This may be used to embed version information
+        in the generated binary. The -X flags will be of the form
+        <code>-X <i>linkstamp</i>.KEY=VALUE</code>. The keys and values are
+        read from <code>bazel-bin/volatile-status.txt</code> and
+        <code>bazel-bin/stable-status.txt</code>. If you build with
+        <code>--workspace_status_command=<i>./status.sh</i></code>, the output
+        of <code>status.sh</code> will be written to these files.
+        <a href="https://github.com/bazelbuild/bazel/blob/master/tools/buildstamp/get_workspace_status">
+        Bazel <code>tools/buildstamp/get_workspace_status</code></a> is
+        a good template which prints Git workspace status.</p>
       </td>
     </tr>
   </tbody>
