@@ -54,10 +54,17 @@ def _go_prefix(ctx):
 
 def _external_dirs(files):
   """Compute any needed -I options to protoc from external filegroups."""
-  return set(["/".join(f.dirname.split("/")[:2])
-              for f in files if f.dirname[:9] == "external/"] +
-             ["/".join(f.dirname.split("/")[:3])
-              for f in files if f.dirname[:10] == "bazel-out/"])
+  res = []
+  for f in files:
+    toks = f.dirname.split("/")
+    if toks[0] == "external":
+      res.append("/".join(toks[:2]))
+    elif len(toks) > 4 and toks[3] == "external":
+      res.append("/".join(toks[:5]))
+    elif toks[1] == "external" or toks[0][:6] == "bazel-":
+      res.append("/".join(toks[:3]))
+    
+  return set(res)
 
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
