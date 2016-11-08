@@ -52,18 +52,37 @@ def _go_prefix(ctx):
     prefix = prefix + "/"
   return prefix
 
+def _external_dir(file):
+  """Returns the include dir for external files or empty.
+
+  file: a bazel File object
+
+  Returns:
+    a string path or "" if nothing to do
+
+  Examples to look for
+    'external/some_repo'
+    'bazel-$project/external/some_repo'
+    'bazel-out/local-fastbuild/genfiles/external/some_repo'
+    'bazel-out/local-fastbuild/genfiles/'
+"""
+  toks = file.dirname.split("/")
+  if toks[0] == "external":
+    return "/".join(toks[:2])
+  if not toks[0].startswith("bazel-"):
+    return ""
+  for idx in range(1, len(toks)):
+    if toks[idx] == "external":
+      return "/".join(toks[:idx+2])
+  return "/".join(toks[:3])
+
 def _external_dirs(files):
   """Compute any needed -I options to protoc from external filegroups."""
   res = []
   for f in files:
-    toks = f.dirname.split("/")
-    if toks[0] == "external":
-      res.append("/".join(toks[:2]))
-    elif len(toks) > 4 and toks[3] == "external":
-      res.append("/".join(toks[:5]))
-    elif toks[1] == "external" or toks[0][:6] == "bazel-":
-      res.append("/".join(toks[:3]))
-    
+    e = _external_dir(f)
+    if e:
+      res.append(e)    
   return set(res)
 
 def _go_proto_library_gen_impl(ctx):
