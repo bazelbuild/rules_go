@@ -135,7 +135,7 @@ func attr(key, val string) *bzl.BinaryExpr {
 }
 
 func lsRemote(repo string) (string, error) {
-	cmd := exec.Command("git", "ls-remote", repo)
+	cmd := exec.Command("git", "ls-remote", repo, "HEAD")
 	r, err := cmd.StdoutPipe()
 	if err != nil {
 		return "", err
