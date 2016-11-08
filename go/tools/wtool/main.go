@@ -1,13 +1,16 @@
-/*wtool augments your bazel WORKSPACE file with new_go_repository entries
+/*
+wtool augments your bazel WORKSPACE file with new_go_repository entries
 
-Example Usage: wtool com_github_golang_glog com_google_cloud_go
+Example Usage:
+  wtool com_github_golang_glog com_google_cloud_go
 will add 2 new_go_repository to your WORKSPACE
 by converting com_github_golang_glog -> github.com/golang/glog
 and so forth and then doing a 'git ls-remote' to get
 the latest commit.
 
-if wtool cannot figure out the bazel -> Go mapping, try
-Other Usage: wtool -asis github.com/golang/glog
+If wtool cannot figure out the bazel -> Go mapping, try
+Other Usage:
+  wtool -asis github.com/golang/glog
 which takes an importpath, and computes the bazel name + ls-remote as above.
 */
 package main
@@ -30,7 +33,13 @@ import (
 )
 
 var (
-	asis = flag.Bool("asis", false, "if true, leave the import names as-is (by default they are treated as bazel converted names like org_golang_x_net")
+	asis    = flag.Bool("asis", false, "if true, leave the import names as-is (by default they are treated as bazel converted names like org_golang_x_net")
+	verbose = flag.Bool("verbose", false, "if true, logging extra information")
+
+	knownPaths = map[string]string{
+		"org_golang_google": "google.golang.org/",
+		"com_google_cloud":  "cloud.google.com/",
+	}
 )
 
 func main() {
@@ -63,6 +72,7 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
+		// TODO(pmbethe09): ignore or maybe update sha1 if already defined in workspace.
 		f.Stmt = append(f.Stmt, imp)
 	}
 	bzl.Rewrite(f, nil)
@@ -75,14 +85,13 @@ func nameAndImportpath(name string) (string, string, error) {
 	}
 	s := strings.Split(name, "_")
 	if len(s) < 4 {
-		return "", "", fmt.Errorf("only 4-part strings supported: %q", name)
+		return "", "", fmt.Errorf("workspace names must be 4-parts or longer: %q", name)
 	}
 	rest := strings.Join(s[3:], "-")
-	if strings.HasPrefix(name, "org_golang_google") {
-		return name, "google.golang.org/" + rest, nil
-	}
-	if strings.HasPrefix(name, "com_google_cloud") {
-		return name, "cloud.google.com/" + rest, nil
+	for k, v := range knownPaths {
+		if strings.HasPrefix(name, k) {
+			return name, v + rest, nil
+		}
 	}
 	return name, strings.Join([]string{s[1] + "." + s[0], s[2], rest}, "/"), nil
 }
@@ -92,7 +101,9 @@ func findImport(nameIn string) (bzl.Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf(importpath)
+	if *verbose {
+		log.Printf(importpath)
+	}
 	r, err := vcs.RepoRootForImportPath(importpath, false)
 	if err != nil {
 		return nil, err
@@ -100,6 +111,7 @@ func findImport(nameIn string) (bzl.Expr, error) {
 	if r.VCS.Cmd != "git" {
 		return nil, fmt.Errorf("only git supported, not %q", r.VCS.Cmd)
 	}
+	// TODO(pmbethe09): allow tag to be provided, e.g. com_github_golang_glog:mybranch
 	commit, err := lsRemote(r.Repo)
 	if err != nil {
 		return nil, err
@@ -138,7 +150,9 @@ func lsRemote(repo string) (string, error) {
 		}
 		return "", fmt.Errorf("nothing returned from ls-remote %q", repo)
 	}
-	log.Printf(b.Text())
+	if *verbose {
+		log.Printf(b.Text())
+	}
 	go cmd.Wait()
 	return strings.Split(b.Text(), "\t")[0], nil
 }
