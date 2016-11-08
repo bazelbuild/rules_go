@@ -44,6 +44,7 @@ load("//go:def.bzl", "go_library", "new_go_repository")
 _DEFAULT_LIB = "go_default_library"  # matching go_library
 _PROTOS_SUFFIX = "_protos"
 _GO_GOOGLE_PROTOBUF = "go_google_protobuf"
+_WELL_KNOWN_REPO = "@com_github_golang_protobuf//ptypes/"
 
 def _go_prefix(ctx):
   """slash terminated go-prefix."""
@@ -185,11 +186,9 @@ def _add_target_suffix(target, suffix):
   toks = target.split("/")
   return target + ":" + toks[-1] + suffix
 
-_well_known_repo = "@com_github_golang_protobuf//ptypes/"
-
 def _well_known_proto_deps(deps, repo):
   for d in deps:
-    if d[:len(_well_known_repo)] == _well_known_repo:
+    if d.startswith(_WELL_KNOWN_REPO):
       return [repo + "//:" + _GO_GOOGLE_PROTOBUF]
   return []
 
@@ -211,6 +210,8 @@ def go_proto_library(name, srcs = None, deps = None,
     has_services: indicates the proto has gRPC services and deps
     testonly: mark as testonly
     visibility: visibility to use on underlying go_library
+    rules_go_repo_only_for_internal_use: don't use this, only to allow
+                                         internal tests to work.
     well_known_repo: repo for special-case protos
                      which should be copied to google/protobuf
     **kwargs: any other args which are passed through to the underlying go_library
@@ -255,7 +256,7 @@ def go_proto_library(name, srcs = None, deps = None,
   )
 
 def _well_known_import_key(name):
-  return "%s%s:go_default_library" % (_well_known_repo, name)
+  return "%s%s:go_default_library" % (_WELL_KNOWN_REPO, name)
 
 _well_known_imports = ["any", "duration", "empty", "struct", "timestamp", "wrappers"]
 
