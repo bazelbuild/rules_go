@@ -111,7 +111,7 @@ func findImport(nameIn string) (bzl.Expr, error) {
 	if r.VCS.Cmd != "git" {
 		return nil, fmt.Errorf("only git supported, not %q", r.VCS.Cmd)
 	}
-	// TODO(pmbethe09): allow tag to be provided, e.g. com_github_golang_glog:mybranch
+	// TODO(pmbethe09): allow ref to be provided, e.g. com_github_golang_glog:mybranch
 	commit, err := lsRemote(r.Repo)
 	if err != nil {
 		return nil, err
