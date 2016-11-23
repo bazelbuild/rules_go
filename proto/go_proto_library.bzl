@@ -98,9 +98,7 @@ def _go_proto_library_gen_impl(ctx):
                             for f in ctx.files.srcs])
   protos, mi = _collect_protos_import(ctx)
   m_import_path += mi
-  use_grpc = ""
-  if ctx.attr.grpc:
-    use_grpc = "plugins=grpc,"
+  use_grpc = "plugins=grpc," if ctx.attr.grpc else ""
 
   # Create work dir, copy all protos there stripping of any external/bazel- prefixes.
   work_dir = ctx.outputs.outs[0].path + ".protoc"
