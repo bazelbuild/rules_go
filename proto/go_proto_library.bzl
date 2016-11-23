@@ -53,49 +53,10 @@ def _go_prefix(ctx):
     prefix = prefix + "/"
   return prefix
 
-def _external_dir(file):
-  """Returns the include dir for external files or empty.
-
-  file: a bazel File object
-
-  Returns:
-    a string path or "" if nothing to do
-
-  Examples to look for
-    'external/some_repo'
-    'bazel-$project/external/some_repo'
-    'bazel-out/local-fastbuild/genfiles/external/some_repo'
-    'bazel-out/local-fastbuild/genfiles/'
-"""
-  toks = file.dirname.split("/")
-  if toks[0] == "external":
-    return "/".join(toks[:2])
-  if not toks[0].startswith("bazel-"):
-    return ""
-  for idx in range(1, len(toks)):
-    if toks[idx] == "external":
-      return "/".join(toks[:idx+2])
-  return "/".join(toks[:3])
-
-def _external_dirs(files):
-  """Compute any needed -I options to protoc from external filegroups."""
-  res = []
-  for f in files:
-    e = _external_dir(f)
-    if e:
-      res.append(e)    
-  return set(res)
-
-def _go_proto_library_gen_impl(ctx):
-  """Rule implementation that generates Go using protoc."""
-  bazel_style = ctx.label.name != _DEFAULT_LIB + _PROTOS_SUFFIX
-  protos = list(ctx.files.srcs)
-  go_package_name = ""
-  if bazel_style:
-    go_package_name = "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
-  m_import_path = ",".join(["M%s=%s%s%s" % (f.path, _go_prefix(ctx),
-                                            ctx.label.package, go_package_name)
-                            for f in ctx.files.srcs])
+def _collect_protos_import(ctx):
+  """Collect the list of transitive protos and m_import_path."""
+  protos = set()
+  m_import_path = ""
   for d in ctx.attr.deps:
     if not hasattr(d, "_protos"):
       # should be a raw filegroup then
@@ -103,45 +64,74 @@ def _go_proto_library_gen_impl(ctx):
       continue
     protos += d._protos
     m_import_path += "," + d._m_import_path
+  return list(protos), m_import_path
+
+def _drop_external(path):
+  """Drop leading '../' indicating an external dir of the form ../$some-repo."""
+  if path[:3] != "../":
+    return path
+  return "/".join(path.split("/")[2:])
+
+def _check_bazel_style(ctx):
+  """If the library name is not 'go_default_library', then we have to create an extra level of indirection."""
+  if ctx.label.name == _DEFAULT_LIB + _PROTOS_SUFFIX:
+    return ctx.outputs.outs, ""
+  proto_outs = [
+      ctx.new_file(
+          ctx.configuration.bin_dir,
+          s.basename[:-len(".proto")] + ".pb.go")
+      for s in ctx.files.srcs
+  ]
+  for proto_out, ctx_out in zip(proto_outs, ctx.outputs.outs):
+    ctx.action(
+        inputs=[proto_out],
+        outputs=[ctx_out],
+        command="cp %s %s" % (proto_out.path, ctx_out.path),
+        mnemonic="GoProtocGenCp")
+  return proto_outs, "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
+
+def _go_proto_library_gen_impl(ctx):
+  """Rule implementation that generates Go using protoc."""
+  proto_outs, go_package_name = _check_bazel_style(ctx)
+  m_import_path = ",".join(["M%s=%s%s%s" % (f.short_path, _go_prefix(ctx),
+                                            ctx.label.package, go_package_name)
+                            for f in ctx.files.srcs])
+  protos, mi = _collect_protos_import(ctx)
+  m_import_path += mi
   use_grpc = ""
   if ctx.attr.grpc:
     use_grpc = "plugins=grpc,"
 
-  offset = 0
-  proto_outs = ctx.outputs.outs
-  if bazel_style:
-    offset = -1  # extra directory added, need to remove
-    proto_outs = [
-        ctx.new_file(
-            ctx.configuration.bin_dir,
-            s.basename[:-len(".proto")] + ".pb.go")
-        for s in ctx.files.srcs
-    ]
-  outdir = "/".join(
-      ctx.outputs.outs[0].dirname.split("/")[:offset-len(ctx.label.package.split("/"))])
+  # Create work dir, copy all protos there stripping of any external/bazel- prefixes.
+  work_dir = ctx.outputs.outs[0].path + ".protoc"
+  root_prefix = "/".join([".." for _ in work_dir.split("/")])
+  cmds = ["set -e", "/bin/rm -f %s; /bin/mkdir -p %s" % (work_dir, work_dir)]
+  srcs = list(ctx.files.srcs)
+  dirs = set([s.short_path[:-1-len(s.basename)]
+              for s in srcs + protos])
+  cmds += ["/bin/mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
+  cmds += ["/bin/cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+           for s in srcs + protos]
+  cmds += ["cd %s" % work_dir,
+           "%s/%s --go_out=%s%s:. %s" % (root_prefix, ctx.executable.protoc.path,
+                                         use_grpc, m_import_path,
+                                         " ".join([f.short_path for f in srcs]))]
+  cmds += ["/bin/cp %s %s/%s" % (p.short_path, root_prefix, p.path)
+           for p in proto_outs]
+  run = ctx.new_file(ctx.configuration.bin_dir, ctx.outputs.outs[0].basename + ".run")
+  ctx.file_action(
+      output = run,
+      content = "\n".join(cmds),
+      executable = True)
+
   ctx.action(
-      inputs=protos + ctx.files.protoc_gen_go,
+      inputs=srcs + protos + ctx.files.protoc_gen_go + [ctx.executable.protoc, run],
       outputs=proto_outs,
-      arguments=["-I.", "--go_out=%s%s:%s" % (
-          use_grpc, m_import_path, outdir)] + [
-              "-I"+i for i in _external_dirs(protos)
-          ] + [
-              f.path for f in ctx.files.srcs
-          ],
       progress_message="Generating into %s" % ctx.outputs.outs[0].dirname,
       mnemonic="GoProtocGen",
-      env = {"PATH": ctx.files.protoc_gen_go[0].dirname},
-      executable=ctx.executable.protoc)
-  # This is the current hack for files without 'option go_package'
-  # Generate into .pb.go, then cp into "real location"
-  if bazel_style:
-    for proto_out, ctx_out in zip(proto_outs, ctx.outputs.outs):
-      ctx.action(
-          inputs=[proto_out],
-          outputs=[ctx_out],
-          command="cp %s %s" % (proto_out.path, ctx_out.path),
-          mnemonic="GoProtocGenCp")
-  return struct(_protos=protos,
+      env = {"PATH": root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname},
+      executable=run)
+  return struct(_protos=protos+srcs,
                 _m_import_path=m_import_path)
 
 _go_proto_library_gen = rule(
@@ -176,6 +166,7 @@ _go_proto_library_gen = rule(
             cfg = "host",
         ),
     },
+    output_to_genfiles = True,
     implementation = _go_proto_library_gen_impl,
 )
 
@@ -212,8 +203,6 @@ def go_proto_library(name, srcs = None, deps = None,
     visibility: visibility to use on underlying go_library
     rules_go_repo_only_for_internal_use: don't use this, only to allow
                                          internal tests to work.
-    well_known_repo: repo for special-case protos
-                     which should be copied to google/protobuf
     **kwargs: any other args which are passed through to the underlying go_library
   """
   if not name:
