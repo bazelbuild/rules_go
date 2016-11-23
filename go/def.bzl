@@ -808,6 +808,39 @@ _cgo_import = rule(
         ),
     },
 )
+
+def _cgo_library_impl(ctx):
+
+  sources = set(ctx.files.srcs)
+  go_srcs = set([s for s in sources if s.basename.endswith('.go')])
+  asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
+  deps = ctx.attr.deps
+
+  cgo_object = None
+  if hasattr(ctx.attr, "cgo_object"):
+    cgo_object = ctx.attr.cgo_object
+
+  return struct(
+    label = ctx.label,
+    go_sources = go_srcs,
+    asm_sources = asm_srcs,
+    cgo_object = cgo_object,
+    direct_deps = deps,
+  )
+
+_cgo_library = rule(
+    _cgo_library_impl,
+    attrs = go_library_attrs + {
+        "cgo_object": attr.label(
+            providers = [
+                "cgo_obj",
+                "cgo_deps",
+            ],
+        ),
+    },
+    fragments = ["cpp"],
+)
+
 """Generates symbol-import directives for cgo
 
 Args:
@@ -882,6 +915,7 @@ def cgo_library(name, srcs,
                 copts=[],
                 clinkopts=[],
                 cdeps=[],
+                skip_go_library=False,
                 **kwargs):
   """Builds a cgo-enabled go library.
 
@@ -983,14 +1017,24 @@ def cgo_library(name, srcs,
       visibility = ["//visibility:private"],
   )
 
-  go_library(
-      name = name,
-      srcs = cgogen.go_thunks + [
-          cgogen.gotypes,
-          cgogen.outdir + "/_cgo_import.go",
-      ],
-      cgo_object = cgogen.outdir + "/_cgo_object",
-      go_tool = go_tool,
-      toolchain = toolchain,
-      **kwargs
-  )
+  if skip_go_library:
+    _cgo_library(
+        name = name,
+        srcs = cgogen.go_thunks + [
+            cgogen.gotypes,
+            cgogen.outdir + "/_cgo_import.go",
+        ],
+        cgo_object = cgogen.outdir + "/_cgo_object",
+    )
+  else:
+    go_library(
+        name = name,
+        srcs = cgogen.go_thunks + [
+            cgogen.gotypes,
+            cgogen.outdir + "/_cgo_import.go",
+        ],
+        cgo_object = cgogen.outdir + "/_cgo_object",
+        go_tool = go_tool,
+        toolchain = toolchain,
+        **kwargs
+    )
