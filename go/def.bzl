@@ -809,32 +809,32 @@ _cgo_import = rule(
     },
 )
 
-def _cgo_library_impl(ctx):
-
-  sources = set(ctx.files.srcs)
-  go_srcs = set([s for s in sources if s.basename.endswith('.go')])
-  asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
-  deps = ctx.attr.deps
-
-  cgo_object = None
-  if hasattr(ctx.attr, "cgo_object"):
-    cgo_object = ctx.attr.cgo_object
-
+def _cgo_genrule_impl(ctx):
   return struct(
     label = ctx.label,
-    go_sources = go_srcs,
-    asm_sources = asm_srcs,
-    cgo_object = cgo_object,
-    direct_deps = deps,
+    go_sources = ctx.files.srcs,
+    asm_sources = [],
+    cgo_object = ctx.attr.cgo_object,
+    direct_deps = ctx.attr.deps,
   )
 
-_cgo_library = rule(
-    _cgo_library_impl,
-    attrs = go_library_attrs + {
+_cgo_genrule = rule(
+    _cgo_genrule_impl,
+    attrs = {
+        "srcs": attr.label_list(allow_files = FileType([".go"])),
         "cgo_object": attr.label(
             providers = [
                 "cgo_obj",
                 "cgo_deps",
+            ],
+        ),
+        "deps": attr.label_list(
+            providers = [
+                "direct_deps",
+                "go_library_object",
+                "transitive_go_importmap",
+                "transitive_go_library_object",
+                "transitive_cgo_deps",
             ],
         ),
     },
@@ -909,47 +909,7 @@ Args:
     to be linked together with src when we generate the final go binary.
 """
 
-def cgo_library(name, srcs,
-                toolchain=None,
-                go_tool=None,
-                copts=[],
-                clinkopts=[],
-                cdeps=[],
-                skip_go_library=False,
-                **kwargs):
-  """Builds a cgo-enabled go library.
-
-  Args:
-    name: A unique name for this rule.
-    srcs: List of Go, C and C++ files that are processed to build a Go library.
-      Those Go files must contain `import "C"`.
-      C and C++ files can be anything allowed in `srcs` attribute of
-      `cc_library`.
-    copts: Add these flags to the C++ compiler.
-    clinkopts: Add these flags to the C++ linker.
-    cdeps: List of C/C++ libraries to be linked into the binary target.
-      They must be `cc_library` rules.
-    deps: List of other libraries to be linked to this library target.
-    data: List of files needed by this rule at runtime.
-
-  NOTE:
-    `srcs` cannot contain pure-Go files, which do not have `import "C"`.
-    So you need to define another `go_library` when you build a go package with
-    both cgo-enabled and pure-Go sources.
-
-    ```
-    cgo_library(
-        name = "cgo_enabled",
-        srcs = ["cgo-enabled.go", "foo.cc", "bar.S", "baz.a"],
-    )
-
-    go_library(
-        name = "go_default_library",
-        srcs = ["pure-go.go"],
-        library = ":cgo_enabled",
-    )
-    ```
-  """
+def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
   go_srcs = [s for s in srcs if s.endswith('.go')]
   c_hdrs = [s for s in srcs if any([s.endswith(ext) for ext in hdr_exts])]
   c_srcs = [s for s in srcs if not s in (go_srcs + c_hdrs)]
@@ -1016,25 +976,89 @@ def cgo_library(name, srcs,
       cgogen = cgogen.name,
       visibility = ["//visibility:private"],
   )
+  return cgogen
 
-  if skip_go_library:
-    _cgo_library(
-        name = name,
-        srcs = cgogen.go_thunks + [
-            cgogen.gotypes,
-            cgogen.outdir + "/_cgo_import.go",
-        ],
-        cgo_object = cgogen.outdir + "/_cgo_object",
+
+def cgo_genrule(name, srcs,
+                copts=[],
+                clinkopts=[],
+                cdeps=[]):
+  cgogen = _setup_cgo_library(
+      name = name,
+      srcs = srcs,
+      cdeps = cdeps,
+      copts = copts,
+      clinkopts = clinkopts,
+      toolchain = None,
+      go_tool = None,
+  )
+  _cgo_genrule(
+      name = name,
+      srcs = cgogen.go_thunks + [
+          cgogen.gotypes,
+          cgogen.outdir + "/_cgo_import.go",
+      ],
+      cgo_object = cgogen.outdir + "/_cgo_object",
+  )
+
+def cgo_library(name, srcs,
+                toolchain=None,
+                go_tool=None,
+                copts=[],
+                clinkopts=[],
+                cdeps=[],
+                **kwargs):
+  """Builds a cgo-enabled go library.
+
+  Args:
+    name: A unique name for this rule.
+    srcs: List of Go, C and C++ files that are processed to build a Go library.
+      Those Go files must contain `import "C"`.
+      C and C++ files can be anything allowed in `srcs` attribute of
+      `cc_library`.
+    copts: Add these flags to the C++ compiler.
+    clinkopts: Add these flags to the C++ linker.
+    cdeps: List of C/C++ libraries to be linked into the binary target.
+      They must be `cc_library` rules.
+    deps: List of other libraries to be linked to this library target.
+    data: List of files needed by this rule at runtime.
+
+  NOTE:
+    `srcs` cannot contain pure-Go files, which do not have `import "C"`.
+    So you need to define another `go_library` when you build a go package with
+    both cgo-enabled and pure-Go sources.
+
+    ```
+    cgo_library(
+        name = "cgo_enabled",
+        srcs = ["cgo-enabled.go", "foo.cc", "bar.S", "baz.a"],
     )
-  else:
+
     go_library(
-        name = name,
-        srcs = cgogen.go_thunks + [
-            cgogen.gotypes,
-            cgogen.outdir + "/_cgo_import.go",
-        ],
-        cgo_object = cgogen.outdir + "/_cgo_object",
-        go_tool = go_tool,
-        toolchain = toolchain,
-        **kwargs
+        name = "go_default_library",
+        srcs = ["pure-go.go"],
+        library = ":cgo_enabled",
     )
+    ```
+  """
+  cgogen = _setup_cgo_library(
+      name = name,
+      srcs = srcs,
+      cdeps = cdeps,
+      copts = copts,
+      clinkopts = clinkopts,
+      go_tool = go_tool,
+      toolchain = toolchain,
+  )
+
+  go_library(
+      name = name,
+      srcs = cgogen.go_thunks + [
+          cgogen.gotypes,
+          cgogen.outdir + "/_cgo_import.go",
+      ],
+      cgo_object = cgogen.outdir + "/_cgo_object",
+      go_tool = go_tool,
+      toolchain = toolchain,
+      **kwargs
+  )

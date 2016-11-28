@@ -1,19 +1,18 @@
 package(default_visibility = ["//visibility:public"])
 
-load("//go:def.bzl", "go_library", "cgo_library")
+load("//go:def.bzl", "go_library", "cgo_genrule")
 
 go_library(
     name = "go_default_library",
     srcs = [
         "types.go",
     ],
-    library = ":cgo_default_library",
+    library = ":cgo_codegen",
 )
 
-cgo_library(
-    name = "cgo_default_library",
+cgo_genrule(
+    name = "cgo_codegen",
     srcs = [
         "cgo_foo.go",
     ],
-    skip_go_library = True,
 )
