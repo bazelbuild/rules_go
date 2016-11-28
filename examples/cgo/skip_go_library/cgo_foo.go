@@ -1,7 +1,7 @@
 package skip_go_library
 
 /*
-#include <sys/eventfd.h>
+#include <stdio.h>
 */
 import "C"
 
