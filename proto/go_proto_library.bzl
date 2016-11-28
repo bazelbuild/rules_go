@@ -56,19 +56,19 @@ def _go_prefix(ctx):
 def _collect_protos_import(ctx):
   """Collect the list of transitive protos and m_import_path."""
   protos = set()
-  m_import_path = ""
+  m_import_path = []
   for d in ctx.attr.deps:
     if not hasattr(d, "_protos"):
       # should be a raw filegroup then
       protos += list(d.files)
       continue
     protos += d._protos
-    m_import_path += "," + d._m_import_path
+    m_import_path.append(d._m_import_path)
   return list(protos), m_import_path
 
 def _drop_external(path):
   """Drop leading '../' indicating an external dir of the form ../$some-repo."""
-  if path[:3] != "../":
+  if not path.startswith("../"):
     return path
   return "/".join(path.split("/")[2:])
 
@@ -93,11 +93,11 @@ def _check_bazel_style(ctx):
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
   proto_outs, go_package_name = _check_bazel_style(ctx)
-  m_import_path = ",".join(["M%s=%s%s%s" % (f.short_path, _go_prefix(ctx),
+  m_imports = ["M%s=%s%s%s" % (f.short_path, _go_prefix(ctx),
                                             ctx.label.package, go_package_name)
-                            for f in ctx.files.srcs])
+                            for f in ctx.files.srcs]
   protos, mi = _collect_protos_import(ctx)
-  m_import_path += mi
+  m_import_path = ",".join(m_imports + mi)
   use_grpc = "plugins=grpc," if ctx.attr.grpc else ""
 
   # Create work dir, copy all protos there stripping of any external/bazel- prefixes.
