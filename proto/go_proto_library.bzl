@@ -47,14 +47,24 @@ _GO_GOOGLE_PROTOBUF = "go_google_protobuf"
 _WELL_KNOWN_REPO = "@com_github_golang_protobuf//ptypes/"
 
 def _go_prefix(ctx):
-  """slash terminated go-prefix."""
+  """Returns slash terminated go-prefix."""
   prefix = ctx.attr.go_prefix.go_prefix
   if prefix and not prefix.endswith("/"):
     prefix = prefix + "/"
   return prefix
 
 def _collect_protos_import(ctx):
-  """Collect the list of transitive protos and m_import_path."""
+  """Collect the list of transitive protos and m_import_path.
+
+  Paths of the form Mpath/to.proto=foo.com/bar specify a mapping into the global Go namespace.
+  https://github.com/golang/protobuf#parameters
+
+  Args:
+    ctx: the standard bazel rule ctx object.
+
+  Returns:
+    (list of unique protos, list of m_import paths)
+  """
   protos = set()
   m_import_path = []
   for d in ctx.attr.deps:
@@ -67,7 +77,18 @@ def _collect_protos_import(ctx):
   return list(protos), m_import_path
 
 def _drop_external(path):
-  """Drop leading '../' indicating an external dir of the form ../$some-repo."""
+  """Drop leading '../' indicating an external dir of the form ../$some-repo.
+
+  Non-generated external protos show up in a parallel directory.
+  e.g. ptypes/any/any.proto is at ../com_github_golang_protobuf/ptypes/any/any.proto
+  So this function detects and drops the 2 leading directories in this case.
+
+  Args:
+    path: short_path of a proto file
+
+  Returns:
+    A cleaned path.
+  """
   if not path.startswith("../"):
     return path
   return "/".join(path.split("/")[2:])
@@ -94,8 +115,8 @@ def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
   proto_outs, go_package_name = _check_bazel_style(ctx)
   m_imports = ["M%s=%s%s%s" % (f.short_path, _go_prefix(ctx),
-                                            ctx.label.package, go_package_name)
-                            for f in ctx.files.srcs]
+                               ctx.label.package, go_package_name)
+               for f in ctx.files.srcs]
   protos, mi = _collect_protos_import(ctx)
   m_import_path = ",".join(m_imports + mi)
   use_grpc = "plugins=grpc," if ctx.attr.grpc else ""
