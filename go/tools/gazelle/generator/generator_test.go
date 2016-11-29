@@ -28,8 +28,15 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
 
+var (
+	buildTagRepoPath = "cgolib_with_build_tags"
+)
+
 func TestGenerator(t *testing.T) {
 	stub := stubRuleGen{
+		goFiles: make(map[string][]string),
+		cFiles:  make(map[string][]string),
+		sFiles:  make(map[string][]string),
 		fixtures: map[string][]*bzl.Rule{
 			"lib": {
 				{
@@ -108,6 +115,23 @@ func TestGenerator(t *testing.T) {
 					},
 				},
 			},
+			buildTagRepoPath: {
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "cgo_library"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_library"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_test"},
+					},
+				},
+			},
 			"allcgolib": {
 				{
 					Call: &bzl.CallExpr{
@@ -133,6 +157,10 @@ func TestGenerator(t *testing.T) {
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
 		return
+	}
+
+	if len(g.bctx.BuildTags) != 2 {
+		t.Errorf("Got %d build tags; want 2", len(g.bctx.BuildTags))
 	}
 	g.g = stub
 
@@ -205,6 +233,15 @@ func TestGenerator(t *testing.T) {
 			},
 		},
 		{
+			Path: "cgolib_with_build_tags/BUILD",
+			Stmt: []bzl.Expr{
+				loadExpr("go_library", "go_test", "cgo_library"),
+				stub.fixtures["cgolib"][0].Call,
+				stub.fixtures["cgolib"][1].Call,
+				stub.fixtures["cgolib"][2].Call,
+			},
+		},
+		{
 			Path: "allcgolib/BUILD",
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_test", "cgo_library"),
@@ -214,10 +251,71 @@ func TestGenerator(t *testing.T) {
 			},
 		},
 	}
+
 	sort.Sort(fileSlice(want))
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("g.Generate(%q) = %s; want: %s", repo, prettyFiles(got), prettyFiles(want))
+	}
+
+	// Tests for build tag filtering.
+
+	// Counter for total files.
+	var otherfiles, linuxfiles int
+
+	// Ensure files were found for each type, as build tags are supported in C and assembly sources.
+	if _, ok := stub.goFiles[buildTagRepoPath]; !ok {
+		t.Errorf("got no Go source files for %q; want more than zero", buildTagRepoPath)
+	}
+	if _, ok := stub.sFiles[buildTagRepoPath]; !ok {
+		t.Errorf("got no assembly source files for %q; want more than zero", buildTagRepoPath)
+	}
+	if _, ok := stub.cFiles[buildTagRepoPath]; !ok {
+		t.Errorf("got no assembly source files for %q; want more than zero", buildTagRepoPath)
+	}
+
+	// Count the Go files in the package.
+	for _, file := range stub.goFiles[buildTagRepoPath] {
+		switch {
+		case strings.HasSuffix(file, "_linux.go"):
+			linuxfiles++
+		case strings.HasSuffix(file, "_other.go"):
+			otherfiles++
+		}
+	}
+
+	// We should have all otherfiles or all linux files depending on GOOS.
+	if otherfiles != 0 && linuxfiles != 0 {
+		t.Errorf("got %d Go source files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
+	}
+
+	// Count the assembly files in the package.
+	for _, file := range stub.sFiles[buildTagRepoPath] {
+		switch {
+		case strings.HasSuffix(file, "_linux.S"):
+			linuxfiles++
+		case strings.HasSuffix(file, "_other.S"):
+			otherfiles++
+		}
+	}
+	// If we fail here, tags worked for Go files but not assembly.
+	if otherfiles != 0 && linuxfiles != 0 {
+		t.Errorf("got %d assembly files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
+	}
+
+	// Count C files.
+	for _, file := range stub.cFiles[buildTagRepoPath] {
+		switch {
+		case strings.HasSuffix(file, "_linux.c"):
+			linuxfiles++
+		case strings.HasSuffix(file, "_other.c"):
+			otherfiles++
+		}
+	}
+
+	// If we fail here, tags worked for assembly and Go files, but not C.
+	if otherfiles != 0 && linuxfiles != 0 {
+		t.Errorf("got %d C files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
 	}
 }
 
@@ -240,8 +338,14 @@ func (p fileSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // stubRuleGen is a test stub implementation of rules.Generator
 type stubRuleGen struct {
 	fixtures map[string][]*bzl.Rule
+	goFiles  map[string][]string
+	sFiles   map[string][]string
+	cFiles   map[string][]string
 }
 
 func (s stubRuleGen) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error) {
+	s.goFiles[rel] = pkg.GoFiles
+	s.cFiles[rel] = pkg.CFiles
+	s.sFiles[rel] = pkg.SFiles
 	return s.fixtures[rel], nil
 }

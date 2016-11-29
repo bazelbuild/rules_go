@@ -56,6 +56,11 @@ func New(repoRoot, goPrefix string) (*Generator, error) {
 	bctx.GOROOT = ""
 	bctx.GOPATH = ""
 
+	// Do not import all files, use platform tags if any.
+	bctx.UseAllFiles = false
+	// Many open-source Go projects depend on these tags being used to filter.
+	bctx.BuildTags = []string{bctx.GOARCH, bctx.GOOS}
+
 	repoRoot, err := filepath.Abs(repoRoot)
 	if err != nil {
 		return nil, err
