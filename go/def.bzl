@@ -982,7 +982,8 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
 def cgo_genrule(name, srcs,
                 copts=[],
                 clinkopts=[],
-                cdeps=[]):
+                cdeps=[],
+                **kwargs):
   cgogen = _setup_cgo_library(
       name = name,
       srcs = srcs,
@@ -999,6 +1000,7 @@ def cgo_genrule(name, srcs,
           cgogen.outdir + "/_cgo_import.go",
       ],
       cgo_object = cgogen.outdir + "/_cgo_object",
+      **kwargs
   )
 
 def cgo_library(name, srcs,
