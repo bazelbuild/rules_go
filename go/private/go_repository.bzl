@@ -27,13 +27,14 @@ def _go_repository_impl(ctx):
 
   # TODO(yugui): support submodule?
   # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
+  remote = ctx.attr.remote if ctx.attr.remote else ctx.attr.importpath
   result = ctx.execute([
       fetch_repo,
       '--dest', ctx.path(''),
-      '--remote', ctx.attr.importpath,
+      '--remote', remote,
       '--rev', rev])
   if result.return_code:
-    fail("failed to fetch %s: %s" % (ctx.attr.importpath, result.stderr))
+    fail("failed to fetch %s: %s" % (remote, result.stderr))
 
 
 def _new_go_repository_impl(ctx):
@@ -54,6 +55,7 @@ def _new_go_repository_impl(ctx):
 
 _go_repository_attrs = {
     "importpath": attr.string(mandatory = True),
+    "remote": attr.string(),
     "commit": attr.string(),
     "tag": attr.string(),
 

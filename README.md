@@ -146,7 +146,7 @@ placed in the WORKSPACE.
 ## go\_repository
 
 ```bzl
-go_repository(name, importpath, commit, tag)
+go_repository(name, importpath, remote, commit, tag)
 ```
 
 Fetches a remote repository of a Go project, expecting it contains `BUILD`
@@ -175,8 +175,16 @@ redirection of Go.
       <td><code>importpath</code></td>
       <td>
         <code>String, required</code>
-        <p>An import path in Go, which corresponds to the root of the target
-        remote repository</p>
+        <p>An import path in Go, which also provides a default value for the
+	root of the target remote repository</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>remote</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The root of the target remote repository, if this differs from the
+	value of <code>importpath</code></p>
       </td>
     </tr>
     <tr>
@@ -203,7 +211,7 @@ redirection of Go.
 ## new\_go\_repository
 
 ```bzl
-new_go_repository(name, importpath, commit, tag)
+new_go_repository(name, importpath, remote, commit, tag)
 ```
 
 Fetches a remote repository of a Go project and automatically generates
@@ -232,8 +240,16 @@ importpath redirection of Go.
       <td><code>importpath</code></td>
       <td>
         <code>String, required</code>
-        <p>An import path in Go, which corresponds to the root of the target
-        remote repository</p>
+        <p>An import path in Go, which also provides a default value for the
+	root of the target remote repository</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>remote</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The root of the target remote repository, if this differs from the
+	value of <code>importpath</code></p>
       </td>
     </tr>
     <tr>
