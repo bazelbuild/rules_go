@@ -200,7 +200,8 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "compile",
       "-o", ('../' * out_depth) + out_lib.path, "-pack",
-      "-I", "."
+      "-I", ".",
+      "-p", _go_importpath(ctx),
   ]
 
   # Set -p to the import path of the library, ie.
