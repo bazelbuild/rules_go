@@ -12,26 +12,30 @@ os:
 
 env:
   - V=HEAD
+  - V=0.4.1
+  - V=0.4.0
   - V=0.3.2
   - V=0.3.1
 
 before_install:
-  - OS=linux
-  - ARCH=x86_64
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then OS=darwin; fi
-  - GH_BASE="https://github.com/bazelbuild/bazel/releases/download/$V"
-  - GH_ARTIFACT="bazel-$V-installer-$OS-$ARCH.sh"
-  - CI_BASE="http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=$OS-$ARCH/lastSuccessfulBuild/artifact/output/ci"
-  - CI_ARTIFACT="bazel--installer.sh"
-  - URL="$GH_BASE/$GH_ARTIFACT"
-  - if [[ "$V" == "HEAD" && "$OS" == "linux" ]]; then CI_ARTIFACT="`wget -qO- $CI_BASE | grep -oP 'bazel-.*?-installer.sh' | uniq`"; fi
-  - if [[ "$V" == "HEAD" && "$OS" == "osx" ]];   then CI_ARTIFACT="`wget -qO- $CI_BASE | pcregrep -o 'bazel-.*?-installer.sh' | uniq`"; fi
-  - if [[ "$V" == "HEAD" ]]; then URL="$CI_BASE/$CI_ARTIFACT"; fi
-  - echo $URL
-  - wget -O install.sh $URL
-  - chmod +x install.sh
-  - ./install.sh --user
-  - rm -f install.sh
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
+      OS=darwin
+    else
+      sysctl kernel.unprivileged_userns_clone=1
+      OS=linux
+    fi
+    if [[ "${V}" == "HEAD" ]]; then
+      CI_BASE="http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=${OS}-x86_64/lastSuccessfulBuild/artifact/output/ci"
+      CI_ARTIFACT="`wget -qO- ${CI_BASE} | grep -o 'bazel-[^\"]*-installer.sh' | uniq`"
+      URL="${CI_BASE}/${CI_ARTIFACT}"
+    else
+      URL="https://github.com/bazelbuild/bazel/releases/download/${V}/bazel-${V}-installer-${OS}-x86_64.sh"
+    fi
+    wget -O install.sh "${URL}"
+    chmod +x install.sh
+    ./install.sh --user
+    rm -f install.sh
 
 script:
   - |
