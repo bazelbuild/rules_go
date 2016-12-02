@@ -195,21 +195,21 @@ _go_repository_select = repository_rule(
 def go_repositories(
     rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
     omit_go=False):
-  
+
   if not omit_go:
     native.new_http_archive(
       name =  "golang_linux_amd64",
-      url = "https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz",
+      url = "https://storage.googleapis.com/golang/go1.7.4.linux-amd64.tar.gz",
       build_file_content = "",
-      sha256 = "508028aac0654e993564b6e2014bf2d4a9751e3b286661b0b0040046cf18028e",
+      sha256 = "47fda42e46b4c3ec93fa5d4d4cc6a748aa3f9411a2a2b7e08e3a6d80d753ec8b",
       strip_prefix = "go",
     )
 
     native.new_http_archive(
       name = "golang_darwin_amd64",
-      url = "https://storage.googleapis.com/golang/go1.7.3.darwin-amd64.tar.gz",
+      url = "https://storage.googleapis.com/golang/go1.7.4.darwin-amd64.tar.gz",
       build_file_content = "",
-      sha256 = "2ef310fa48b43dfed7b4ae063b5facba130ed0db95745c538dfc3e30e7c0de04",
+      sha256 = "f86c727012e33f3f482b049281aaee24211fe29dfafd121d93f32799a6b6ba2d",
       strip_prefix = "go",
     )
 
