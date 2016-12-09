@@ -44,6 +44,17 @@ const (
 	defaultCgoLibName = "cgo_default_library"
 )
 
+// ExternalResolver resolves external packages.
+type ExternalResolver int
+
+const (
+	// External resolves external packages as external packages with
+	// new_go_repository.
+	External ExternalResolver = iota
+	// Vendored resolves external packages as vendored packages in vendor/.
+	Vendored
+)
+
 // Generator generates Bazel build rules for Go build targets
 type Generator interface {
 	// Generate generates build rules for build targets in a Go package in a
@@ -60,13 +71,23 @@ type Generator interface {
 //
 // "goPrefix" is the go_prefix corresponding to the repository root.
 // See also https://github.com/bazelbuild/rules_go#go_prefix.
-func NewGenerator(goPrefix string) Generator {
+// "external" is how external packages should be resolved.
+func NewGenerator(goPrefix string, external ExternalResolver) Generator {
 	var (
 		// TODO(yugui) Support another resolver to cover the pattern 2 in
 		// https://github.com/bazelbuild/rules_go/issues/16#issuecomment-216010843
 		r = structuredResolver{goPrefix: goPrefix}
-		e externalResolver
 	)
+
+	var e labelResolver
+	switch external {
+	case External:
+		e = externalResolver{}
+	case Vendored:
+		e = vendoredResolver{}
+	default:
+		return nil
+	}
 
 	return &generator{
 		goPrefix: goPrefix,

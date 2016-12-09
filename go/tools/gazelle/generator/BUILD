@@ -17,6 +17,7 @@ go_test(
     srcs = ["generator_test.go"],
     library = ":go_default_library",
     deps = [
+        "//go/tools/gazelle/rules:go_default_library",
         "//go/tools/gazelle/testdata:go_default_library",
     ],
 )

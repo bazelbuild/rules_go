@@ -25,6 +25,7 @@ import (
 	"testing"
 
 	bzl "github.com/bazelbuild/buildifier/core"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
 
@@ -34,7 +35,7 @@ var (
 
 func TestBuildTagOverride(t *testing.T) {
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", "BUILD", "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z")
+	g, err := New(repo, "example.com/repo", "BUILD", "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z", rules.External)
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
 		return
@@ -174,9 +175,9 @@ func testGenerator(t *testing.T, buildFileName string) {
 	}
 
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildFileName, "")
+	g, err := New(repo, "example.com/repo", buildFileName, "", rules.External)
 	if err != nil {
-		t.Errorf(`New(%q, "example.com/repo", %q, "") failed with %v; want success`, repo, err, buildFileName)
+		t.Errorf(`New(%q, "example.com/repo", %q, "", rules.External) failed with %v; want success`, repo, err, buildFileName)
 		return
 	}
 

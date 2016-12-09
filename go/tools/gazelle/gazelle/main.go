@@ -31,12 +31,14 @@ import (
 	bzl "github.com/bazelbuild/buildifier/core"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/generator"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
 var (
 	buildFileName  = flag.String("build_file_name", "BUILD", "name of output build files to generate.")
 	buildTags      = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, GOOS and GOARCH are used.")
+	external       = flag.String("external", "external", "external: resolve external packages with new_go_repository\n\tvendored: resolve external packages as packages in vendor/")
 	goPrefix       = flag.String("go_prefix", "", "go_prefix of the target workspace")
 	repoRoot       = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
 	mode           = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
@@ -47,6 +49,11 @@ func init() {
 	// See also #135.
 	// TODO(yugui): Remove this flag when we drop support of Bazel 0.3.2
 	flag.StringVar(&generator.GoRulesBzl, "go_rules_bzl_only_for_internal_use", "@io_bazel_rules_go//go:def.bzl", "hacky flag to build rules_go repository itself")
+}
+
+var externalResolverFromName = map[string]rules.ExternalResolver{
+	"external": rules.External,
+	"vendored": rules.Vendored,
 }
 
 var modeFromName = map[string]func(*bzl.File) error{
@@ -64,8 +71,8 @@ func isValidBuildFileName(buildFileName string) bool {
 	return false
 }
 
-func run(dirs []string, emit func(*bzl.File) error) error {
-	g, err := generator.New(*repoRoot, *goPrefix, *buildFileName, *buildTags)
+func run(dirs []string, emit func(*bzl.File) error, external rules.ExternalResolver) error {
+	g, err := generator.New(*repoRoot, *goPrefix, *buildFileName, *buildTags, external)
 	if err != nil {
 		return err
 	}
@@ -162,12 +169,17 @@ func main() {
 		log.Fatalf("unrecognized mode %s", *mode)
 	}
 
+	er, ok := externalResolverFromName[*external]
+	if !ok {
+		log.Fatalf("unrecognized external resolver %s", *external)
+	}
+
 	args := flag.Args()
 	if len(args) == 0 {
 		args = append(args, ".")
 	}
 
-	if err := run(args, emit); err != nil {
+	if err := run(args, emit, er); err != nil {
 		log.Fatal(err)
 	}
 }

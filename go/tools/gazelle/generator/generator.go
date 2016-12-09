@@ -50,10 +50,11 @@ type Generator struct {
 //
 // "repoRoot" is a path to the root directory of the repository.
 // "goPrefix" is the go_prefix corresponding to the repository root directory.
+// See also https://github.com/bazelbuild/rules_go#go_prefix.
 // "buildFileName" is the name of the BUILD file (BUILD or BUILD.bazel).
 // "buildTags" is a comma-delimited set of build tags to set in the build context.
-// See also https://github.com/bazelbuild/rules_go#go_prefix.
-func New(repoRoot, goPrefix, buildFileName, buildTags string) (*Generator, error) {
+// "external" is how external packages should be resolved.
+func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.ExternalResolver) (*Generator, error) {
 	bctx := build.Default
 	// Ignore source files in $GOROOT and $GOPATH
 	bctx.GOROOT = ""
@@ -81,7 +82,7 @@ func New(repoRoot, goPrefix, buildFileName, buildTags string) (*Generator, error
 		goPrefix:      goPrefix,
 		buildFileName: buildFileName,
 		bctx:          bctx,
-		g:             rules.NewGenerator(goPrefix),
+		g:             rules.NewGenerator(goPrefix, external),
 	}, nil
 }
 
