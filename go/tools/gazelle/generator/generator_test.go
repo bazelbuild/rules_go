@@ -32,6 +32,19 @@ var (
 	buildTagRepoPath = "cgolib_with_build_tags"
 )
 
+func TestBuildTagOverride(t *testing.T) {
+	repo := filepath.Join(testdata.Dir(), "repo")
+	g, err := New(repo, "example.com/repo", "BUILD", "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z")
+	if err != nil {
+		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
+		return
+	}
+
+	if len(g.bctx.BuildTags) != 26 {
+		t.Errorf("Got %d build tags; want 26", len(g.bctx.BuildTags))
+	}
+}
+
 func TestGenerator(t *testing.T) {
 	testGenerator(t, "BUILD")
 }
@@ -161,7 +174,7 @@ func testGenerator(t *testing.T, buildName string) {
 	}
 
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildName)
+	g, err := New(repo, "example.com/repo", buildName, "")
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
 		return

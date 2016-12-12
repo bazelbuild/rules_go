@@ -24,6 +24,7 @@ go_binary(
 
 go_test(
     name = "gazelle_test",
+    size = "small",
     srcs = ["fix_test.go"],
     library = ":go_default_library",
 )

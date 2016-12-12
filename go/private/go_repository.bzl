@@ -41,7 +41,8 @@ def _new_go_repository_impl(ctx):
   _go_repository_impl(ctx)
   gazelle = ctx.path(ctx.attr._gazelle)
 
-  cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix']
+  cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
+          "--build_tags", ",".join(ctx.attr.build_tags)]
   if ctx.attr.rules_go_repo_only_for_internal_use:
     cmds += ["--go_rules_bzl_only_for_internal_use",
              "%s//go:def.bzl" % ctx.attr.rules_go_repo_only_for_internal_use]
@@ -58,7 +59,7 @@ _go_repository_attrs = {
     "remote": attr.string(),
     "commit": attr.string(),
     "tag": attr.string(),
-
+    "build_tags": attr.string_list(),
     "_fetch_repo": attr.label(
         default = Label("@io_bazel_rules_go_repository_tools//:bin/fetch_repo"),
         allow_files = True,

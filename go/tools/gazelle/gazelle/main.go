@@ -33,11 +33,11 @@ import (
 )
 
 var (
-	goPrefix  = flag.String("go_prefix", "", "go_prefix of the target workspace")
-	repoRoot  = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
-	mode      = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
-	buildName = flag.String("build_name", "BUILD", "name of output build files to generate, defaults to 'BUILD'")
-
+	buildName       = flag.String("build_name", "BUILD", "name of output build files to generate, defaults to 'BUILD'")
+	buildTags       = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, GOOS and GOARCH are used.")
+	goPrefix        = flag.String("go_prefix", "", "go_prefix of the target workspace")
+	repoRoot        = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
+	mode            = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
 	validBuildNames = map[string]bool{
 		"BUILD":       true,
 		"BUILD.bazel": true,
@@ -57,7 +57,7 @@ var modeFromName = map[string]func(*bzl.File) error{
 }
 
 func run(dirs []string, emit func(*bzl.File) error) error {
-	g, err := generator.New(*repoRoot, *goPrefix, *buildName)
+	g, err := generator.New(*repoRoot, *goPrefix, *buildName, *buildTags)
 	if err != nil {
 		return err
 	}
