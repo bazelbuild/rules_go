@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	gazelleIgnore = "gazelle:ignore" // marker in a BUILD file to ignore it.
-	keep          = "# keep"         // marker in srcs or deps to tell gazelle to preserve.
+	gazelleIgnore = "# gazelle:ignore" // marker in a BUILD file to ignore it.
+	keep          = "# keep"           // marker in srcs or deps to tell gazelle to preserve.
 )
 
 var (
@@ -56,7 +56,7 @@ func MergeWithExisting(newfile *bzl.File) (*bzl.File, error) {
 	}
 	for _, s := range f.Stmt {
 		for _, c := range s.Comment().After {
-			if strings.Contains(c.Token, gazelleIgnore) {
+			if strings.HasPrefix(c.Token, gazelleIgnore) {
 				return f, nil
 			}
 		}
