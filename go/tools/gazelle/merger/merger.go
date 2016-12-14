@@ -26,7 +26,12 @@ import (
 	bzl "github.com/bazelbuild/buildifier/core"
 )
 
-const keep = "# keep" // marker in srcs or deps to tell gazelle to preserve.
+const (
+	keep = "# keep" // marker in srcs or deps to tell gazelle to preserve.
+
+	goDefaultLibName = "go_default_library"
+	goLibrary        = "go_library"
+)
 
 var (
 	mergeableFields = map[string]bool{
@@ -34,7 +39,40 @@ var (
 		"deps":    true,
 		"library": true,
 	}
+
+	// CustomMerges allows the caller to detect features of a previous file
+	// and do some custom transform/removal.
+	CustomMerges = []func(old, newfile *bzl.File){GoProtoLibraryMerge}
 )
+
+// GoProtoLibraryMerge looks for a go_proto_library(name="go_default_library", ...)
+// and if it finds one it dumps any newly generated go_library and/or related filegroup
+func GoProtoLibraryMerge(old, newfile *bzl.File) {
+	for _, r := range old.Rules("go_proto_library") {
+		if r.Name() != goDefaultLibName {
+			continue
+		}
+		// TODO(pmbethe09): can a proto package have non-generated library srcs?
+		newfile.DelRules(goLibrary, goDefaultLibName)
+		newfile.DelRules("filegroup", goDefaultLibName+"_protos")
+		if len(newfile.Rules(goLibrary)) > 0 {
+			return
+		}
+		for _, load := range newfile.Rules("load") {
+			for i, arg := range load.Call.List {
+				if v := stringValue(arg); v != goLibrary {
+					continue
+				}
+				load.Call.List = append(load.Call.List[:i], load.Call.List[i+1:]...)
+				if len(load.Call.List) == 1 {
+					newfile.DelRules("load", "")
+				}
+				return
+			}
+		}
+		return
+	}
+}
 
 // MergeWithExisting looks for an existing BUILD file at file.Path
 // loads it, and attempts to merge elements of newfile into it.
@@ -50,6 +88,10 @@ func MergeWithExisting(newfile *bzl.File) (*bzl.File, error) {
 	f, err := bzl.Parse(newfile.Path, b)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, m := range CustomMerges {
+		m(f, newfile)
 	}
 
 	var newStmt []bzl.Expr
