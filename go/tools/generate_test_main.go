@@ -30,10 +30,11 @@ import (
 
 // Cases holds template data.
 type Cases struct {
-	Package     string
-	RunDir      string
-	Names       []string
-	HasTestMain bool
+	Package        string
+	RunDir         string
+	TestNames      []string
+	BenchmarkNames []string
+	HasTestMain    bool
 }
 
 func main() {
@@ -74,15 +75,17 @@ func main() {
 			if fn.Recv != nil {
 				continue
 			}
-			if !strings.HasPrefix(fn.Name.Name, "Test") {
-				continue
-			}
 			if fn.Name.Name == "TestMain" {
 				// TestMain is not, itself, a test
 				cases.HasTestMain = true
 				continue
 			}
-			cases.Names = append(cases.Names, fn.Name.Name)
+			if strings.HasPrefix(fn.Name.Name, "Test") {
+				cases.TestNames = append(cases.TestNames, fn.Name.Name)
+			}
+			if strings.HasPrefix(fn.Name.Name, "Benchmark") {
+				cases.BenchmarkNames = append(cases.BenchmarkNames, fn.Name.Name)
+			}
 		}
 	}
 
@@ -92,7 +95,9 @@ import (
 	"os"
 	"testing"
 
-{{ if .Names }}
+{{ if .TestNames }}
+        undertest "{{.Package}}"
+{{else if .BenchmarkNames }}
         undertest "{{.Package}}"
 {{ end }}
 )
@@ -102,7 +107,13 @@ func everything(pat, str string) (bool, error) {
 }
 
 var tests = []testing.InternalTest{
-{{range .Names}}
+{{range .TestNames}}
+   {"{{.}}", undertest.{{.}} },
+{{end}}
+}
+
+var benchmarks = []testing.InternalBenchmark{
+{{range .BenchmarkNames}}
    {"{{.}}", undertest.{{.}} },
 {{end}}
 }
@@ -110,9 +121,9 @@ var tests = []testing.InternalTest{
 func main() {
   os.Chdir("{{.RunDir}}")
   {{if not .HasTestMain}}
-  testing.Main(everything, tests, nil, nil)
+  testing.Main(everything, tests, benchmarks, nil)
   {{else}}
-  m := testing.MainStart(everything, tests, nil, nil)
+  m := testing.MainStart(everything, tests, benchmarks, nil)
   undertest.TestMain(m)
   {{end}}
 }
