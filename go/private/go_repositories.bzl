@@ -176,12 +176,12 @@ _go_repository_select = repository_rule(
         ),
 
         "_linux": attr.label(
-            default = Label("@golang_linux_amd64//:BUILD"),
+            default = Label("@golang_linux_amd64//:VERSION"),
             allow_files = True,
             single_file = True,
         ),
         "_darwin": attr.label(
-            default = Label("@golang_darwin_amd64//:BUILD"),
+            default = Label("@golang_darwin_amd64//:VERSION"),
             allow_files = True,
             single_file = True,
         ),
