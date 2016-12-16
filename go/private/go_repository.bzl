@@ -43,6 +43,8 @@ def _new_go_repository_impl(ctx):
 
   cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
           "--build_tags", ",".join(ctx.attr.build_tags)]
+  if ctx.attr.build_file_name:
+      cmds += ["--build_file_name", ctx.attr.build_file_name]
   if ctx.attr.rules_go_repo_only_for_internal_use:
     cmds += ["--go_rules_bzl_only_for_internal_use",
              "%s//go:def.bzl" % ctx.attr.rules_go_repo_only_for_internal_use]
@@ -55,6 +57,7 @@ def _new_go_repository_impl(ctx):
 
 
 _go_repository_attrs = {
+    "build_file_name": attr.string(),
     "importpath": attr.string(mandatory = True),
     "remote": attr.string(),
     "commit": attr.string(),
