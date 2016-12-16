@@ -1,6 +1,7 @@
 package merger
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -113,12 +114,42 @@ func TestMergeWithExisting(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		afterF, err := MergeWithExisting(newF)
+		afterF, err := MergeWithExisting(newF, tmp.Name())
 		if err != nil {
 			t.Fatal(err)
 		}
 		if s := string(bzl.Format(afterF)); s != tc.expected {
 			t.Errorf("bzl.Format, want %s; got %s", tc.expected, s)
 		}
+	}
+}
+
+func TestMergeWithExistingDifferentName(t *testing.T) {
+	tmp, err := ioutil.TempFile(os.Getenv("TEST_TMPDIR"), "BUILD")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmp.Name())
+	if _, err := io.WriteString(tmp, oldData); err != nil {
+		t.Fatal(err)
+	}
+	if err := tmp.Close(); err != nil {
+		t.Fatal(err)
+	}
+	newTmp, err := ioutil.TempFile(os.Getenv("TEST_TMPDIR"), "BUILD.bazel")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(newTmp.Name())
+	newF, err := bzl.Parse(newTmp.Name(), []byte(newData))
+	if err != nil {
+		t.Fatal(err)
+	}
+	afterF, err := MergeWithExisting(newF, tmp.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	if s := string(bzl.Format(afterF)); s != expected {
+		t.Errorf("bzl.Format, want %s; got %s", expected, s)
 	}
 }

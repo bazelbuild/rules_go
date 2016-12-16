@@ -17,10 +17,18 @@ package main
 
 import (
 	"io/ioutil"
+	"os"
+	"path"
 
 	bzl "github.com/bazelbuild/buildifier/core"
 )
 
 func fixFile(file *bzl.File) error {
-	return ioutil.WriteFile(file.Path, bzl.Format(file), 0644)
+	if err := ioutil.WriteFile(file.Path, bzl.Format(file), 0644); err != nil {
+		return err
+	}
+	if path.Base(file.Path) != *buildFileName {
+		return os.Rename(file.Path, path.Join(path.Dir(file.Path), *buildFileName))
+	}
+	return nil
 }

@@ -53,7 +53,7 @@ func TestGeneratorDotBazel(t *testing.T) {
 	testGenerator(t, "BUILD.bazel")
 }
 
-func testGenerator(t *testing.T, buildName string) {
+func testGenerator(t *testing.T, buildFileName string) {
 	stub := stubRuleGen{
 		goFiles: make(map[string][]string),
 		cFiles:  make(map[string][]string),
@@ -174,9 +174,9 @@ func testGenerator(t *testing.T, buildName string) {
 	}
 
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildName, "")
+	g, err := New(repo, "example.com/repo", buildFileName, "")
 	if err != nil {
-		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
+		t.Errorf(`New(%q, "example.com/repo", %q, "") failed with %v; want success`, repo, err, buildFileName)
 		return
 	}
 
@@ -193,7 +193,7 @@ func testGenerator(t *testing.T, buildName string) {
 
 	want := []*bzl.File{
 		{
-			Path: buildName,
+			Path: buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_prefix"),
 				&bzl.CallExpr{
@@ -205,7 +205,7 @@ func testGenerator(t *testing.T, buildName string) {
 			},
 		},
 		{
-			Path: "lib/" + buildName,
+			Path: "lib/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_prefix", "go_library"),
 				stub.fixtures["lib"][0].Call,
@@ -213,7 +213,7 @@ func testGenerator(t *testing.T, buildName string) {
 			},
 		},
 		{
-			Path: "lib/internal/deep/" + buildName,
+			Path: "lib/internal/deep/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_test"),
 				stub.fixtures["lib/internal/deep"][0].Call,
@@ -221,14 +221,14 @@ func testGenerator(t *testing.T, buildName string) {
 			},
 		},
 		{
-			Path: "lib/relativeimporter/" + buildName,
+			Path: "lib/relativeimporter/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library"),
 				stub.fixtures["lib/relativeimporter"][0].Call,
 			},
 		},
 		{
-			Path: "bin/" + buildName,
+			Path: "bin/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_binary"),
 				stub.fixtures["bin"][0].Call,
@@ -236,7 +236,7 @@ func testGenerator(t *testing.T, buildName string) {
 			},
 		},
 		{
-			Path: "bin_with_tests/" + buildName,
+			Path: "bin_with_tests/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_binary", "go_test"),
 				stub.fixtures["bin_with_tests"][0].Call,
@@ -245,7 +245,7 @@ func testGenerator(t *testing.T, buildName string) {
 			},
 		},
 		{
-			Path: "cgolib/" + buildName,
+			Path: "cgolib/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_test", "cgo_library"),
 				stub.fixtures["cgolib"][0].Call,
@@ -254,7 +254,7 @@ func testGenerator(t *testing.T, buildName string) {
 			},
 		},
 		{
-			Path: "cgolib_with_build_tags/" + buildName,
+			Path: "cgolib_with_build_tags/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_test", "cgo_library"),
 				stub.fixtures["cgolib"][0].Call,
@@ -263,7 +263,7 @@ func testGenerator(t *testing.T, buildName string) {
 			},
 		},
 		{
-			Path: "allcgolib/" + buildName,
+			Path: "allcgolib/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_test", "cgo_library"),
 				stub.fixtures["cgolib"][0].Call,

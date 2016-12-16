@@ -24,7 +24,7 @@ import (
 )
 
 func diffFile(file *bzl.File) error {
-	f, err := ioutil.TempFile("", *buildName)
+	f, err := ioutil.TempFile("", *buildFileName)
 	if err != nil {
 		return err
 	}

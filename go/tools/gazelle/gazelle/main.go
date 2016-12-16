@@ -24,7 +24,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	bzl "github.com/bazelbuild/buildifier/core"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/generator"
@@ -33,15 +35,12 @@ import (
 )
 
 var (
-	buildName       = flag.String("build_name", "BUILD", "name of output build files to generate, defaults to 'BUILD'")
-	buildTags       = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, GOOS and GOARCH are used.")
-	goPrefix        = flag.String("go_prefix", "", "go_prefix of the target workspace")
-	repoRoot        = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
-	mode            = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
-	validBuildNames = map[string]bool{
-		"BUILD":       true,
-		"BUILD.bazel": true,
-	}
+	buildFileName  = flag.String("build_file_name", "BUILD", "name of output build files to generate.")
+	buildTags      = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, GOOS and GOARCH are used.")
+	goPrefix       = flag.String("go_prefix", "", "go_prefix of the target workspace")
+	repoRoot       = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
+	mode           = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
+	buildFileNames = []string{"BUILD.bazel", "BUILD"}
 )
 
 func init() {
@@ -56,8 +55,17 @@ var modeFromName = map[string]func(*bzl.File) error{
 	"diff":  diffFile,
 }
 
+func isValidBuildFileName(buildFileName string) bool {
+	for _, bfn := range buildFileNames {
+		if buildFileName == bfn {
+			return true
+		}
+	}
+	return false
+}
+
 func run(dirs []string, emit func(*bzl.File) error) error {
-	g, err := generator.New(*repoRoot, *goPrefix, *buildName, *buildTags)
+	g, err := generator.New(*repoRoot, *goPrefix, *buildFileName, *buildTags)
 	if err != nil {
 		return err
 	}
@@ -69,12 +77,31 @@ func run(dirs []string, emit func(*bzl.File) error) error {
 		}
 		for _, f := range files {
 			f.Path = filepath.Join(*repoRoot, f.Path)
-			if f, err = merger.MergeWithExisting(f); err != nil {
+			existingFilePath, err := findBuildFile(path.Dir(f.Path))
+			if os.IsNotExist(err) {
+				// No existing file, so write a new one
+				bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
+				if err := emit(f); err != nil {
+					return err
+				}
+				continue
+			}
+			if err != nil {
+				// An unexpected error
+				return err
+			}
+			// Existing file, so merge and maybe remove the old one
+			if f, err = merger.MergeWithExisting(f, existingFilePath); err != nil {
 				return err
 			}
 			bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
 			if err := emit(f); err != nil {
 				return err
+			}
+			if f.Path != existingFilePath {
+				if err := os.Remove(existingFilePath); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -126,8 +153,8 @@ func main() {
 		}
 	}
 
-	if !validBuildNames[*buildName] {
-		log.Fatalf("-build_name %q must be in: %v", *buildName, validBuildNames)
+	if !isValidBuildFileName(*buildFileName) {
+		log.Fatalf("invalid build file name %q, valid names are %s", *buildFileName, strings.Join(buildFileNames, ", "))
 	}
 
 	emit := modeFromName[*mode]
@@ -145,23 +172,27 @@ func main() {
 	}
 }
 
-func readBuild(root string) (data []byte, location string, _ error) {
-	for n := range validBuildNames {
-		p := filepath.Join(root, n)
-		b, err := ioutil.ReadFile(p)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue
+func findBuildFile(repo string) (string, error) {
+	for _, base := range buildFileNames {
+		p := filepath.Join(repo, base)
+		fi, err := os.Stat(p)
+		if err == nil {
+			if fi.Mode().IsRegular() {
+				return p, nil
 			}
-			return nil, "", err
+		} else if !os.IsNotExist(err) {
+			return "", err
 		}
-		return b, p, nil
 	}
-	return nil, "", fmt.Errorf("no build files found at %q", root)
+	return "", os.ErrNotExist
 }
 
 func loadGoPrefix(repo string) (string, error) {
-	b, p, err := readBuild(repo)
+	p, err := findBuildFile(repo)
+	if err != nil {
+		return "", err
+	}
+	b, err := ioutil.ReadFile(p)
 	if err != nil {
 		return "", err
 	}

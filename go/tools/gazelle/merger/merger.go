@@ -19,7 +19,6 @@ package merger
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"sort"
 	"strings"
 
@@ -39,15 +38,11 @@ var (
 	}
 )
 
-// MergeWithExisting looks for an existing BUILD file at file.Path
-// loads it, and attempts to merge elements of newfile into it.
-// returns newfile, nil if FileNotExists
-func MergeWithExisting(newfile *bzl.File) (*bzl.File, error) {
-	b, err := ioutil.ReadFile(newfile.Path)
+// MergeWithExisting merges newfile with an existing build file at
+// existingFilePath and returns newfile.
+func MergeWithExisting(newfile *bzl.File, existingFilePath string) (*bzl.File, error) {
+	b, err := ioutil.ReadFile(existingFilePath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return newfile, nil
-		}
 		return nil, err
 	}
 	f, err := bzl.Parse(newfile.Path, b)
