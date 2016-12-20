@@ -180,7 +180,9 @@ func findBuildFile(repo string) (string, error) {
 			if fi.Mode().IsRegular() {
 				return p, nil
 			}
-		} else if !os.IsNotExist(err) {
+			continue
+		}
+		if !os.IsNotExist(err) {
 			return "", err
 		}
 	}
