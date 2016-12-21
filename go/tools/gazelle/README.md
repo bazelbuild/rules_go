@@ -26,4 +26,3 @@ even if it thinks otherwise
 ## Known Shortcomings
 
 * bazel-style auto generating BUILD (where the library name is other than go_default_library)
-* not yet using BUILD.bazel, which means projects with a `build` directory will have trouble on Mac
