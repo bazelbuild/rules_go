@@ -80,12 +80,6 @@ func main() {
 				cases.HasTestMain = true
 				continue
 			}
-			if strings.HasPrefix(fn.Name.Name, "Test") {
-				cases.TestNames = append(cases.TestNames, fn.Name.Name)
-			}
-			if strings.HasPrefix(fn.Name.Name, "Benchmark") {
-				cases.BenchmarkNames = append(cases.BenchmarkNames, fn.Name.Name)
-			}
 
 			// Here we check the signature of the Test* function. To
 			// be considered a test:
