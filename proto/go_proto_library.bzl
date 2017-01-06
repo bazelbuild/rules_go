@@ -42,16 +42,12 @@ go_proto_library(
 load("//go:def.bzl", "go_library", "new_go_repository")
 
 _DEFAULT_LIB = "go_default_library"  # matching go_library
-_PROTOS_SUFFIX = "_protos"
-_GO_GOOGLE_PROTOBUF = "go_google_protobuf"
-_WELL_KNOWN_REPO = "@com_github_golang_protobuf//ptypes/"
 
-def _go_prefix(ctx):
-  """Returns slash terminated go-prefix."""
-  prefix = ctx.attr.go_prefix.go_prefix
-  if prefix and not prefix.endswith("/"):
-    prefix = prefix + "/"
-  return prefix
+_PROTOS_SUFFIX = "_protos"
+
+_GO_GOOGLE_PROTOBUF = "go_google_protobuf"
+
+_WELL_KNOWN_REPO = "@com_github_golang_protobuf//ptypes/"
 
 def _collect_protos_import(ctx):
   """Collect the list of transitive protos and m_import_path.
@@ -114,9 +110,15 @@ def _check_bazel_style(ctx):
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
   proto_outs, go_package_name = _check_bazel_style(ctx)
-  m_imports = ["M%s=%s%s%s" % (_drop_external(f.short_path), _go_prefix(ctx),
-                               ctx.label.package, go_package_name)
+
+  go_prefix = ctx.attr.go_prefix.go_prefix
+  if go_prefix and ctx.label.package and not go_prefix.endswith("/"):
+    go_prefix = go_prefix + "/"
+  source_go_package = "%s%s%s" % (go_prefix, ctx.label.package, go_package_name)
+
+  m_imports = ["M%s=%s" % (_drop_external(f.short_path), source_go_package)
                for f in ctx.files.srcs]
+
   protos, mi = _collect_protos_import(ctx)
   m_import_path = ",".join(m_imports + mi)
   use_grpc = "plugins=grpc," if ctx.attr.grpc else ""
@@ -266,7 +268,14 @@ def go_proto_library(name, srcs = None, deps = None,
 def _well_known_import_key(name):
   return "%s%s:go_default_library" % (_WELL_KNOWN_REPO, name)
 
-_well_known_imports = ["any", "duration", "empty", "struct", "timestamp", "wrappers"]
+_well_known_imports = [
+    "any",
+    "duration",
+    "empty",
+    "struct",
+    "timestamp",
+    "wrappers",
+]
 
 # If you have well_known proto deps, rules_go will add a magic
 # google/protobuf/ directory at the import root
