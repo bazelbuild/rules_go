@@ -228,7 +228,7 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   # Set -p to the import path of the library, ie.
   # (ctx.label.package + "/" ctx.label.name) for now.
   cmds += [ "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
-    ' '.join(args + ["%s%s" % (prefix, _remove_external_prefix(s.path)) for s in sources]) ]
+    ' '.join(args + [prefix + _remove_external_prefix(i.path) for i in sources])]
   extra_inputs = ctx.files.toolchain
 
   if extra_objects:
@@ -464,7 +464,7 @@ def go_test_impl(ctx):
   go_import = _go_importpath(ctx)
 
   args = (["--package", go_import, "--output", ctx.outputs.main_go.path] +
-          cmd_helper.template(lib_result.go_sources, "%{path}"))
+          [i.path for i in lib_result.go_sources])
 
   inputs = list(lib_result.go_sources) + list(ctx.files.toolchain)
   ctx.action(
