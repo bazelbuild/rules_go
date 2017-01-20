@@ -74,6 +74,15 @@ def symlink_tree_commands(dest_dir, artifact_dict):
     else:
       new_dir = ''
       up = dest_dir.count('/') + 1
+
+    if _is_external(dest_dir):
+      """In old versions of Bazel, external execroot paths were of the form
+      bazel-out/host/bin/external/repo/path/to/target, so counting up the /s
+      worked fine. In bazel 5.0+, execution roots began to look like
+      ../repo/bazel-out/host/bin/path/to/target.  The ../repo basically ends
+      up resolving to 0 path elements, so 2 segments should be removed from the
+      count."""
+      up -= 2
     cmds += [
       "mkdir -p %s/%s" % (dest_dir, new_dir),
       "ln -s %s%s %s/%s" % ('../' * up, old_path, dest_dir, new_path),
@@ -112,7 +121,7 @@ def go_environment_vars(ctx):
 def _emit_generate_params_action(cmds, ctx, fn):
   cmds_all = ["set -e"]
   cmds_all += cmds
-  cmds_all_str = "\n".join(cmds_all)
+  cmds_all_str = "\n".join(cmds_all) + "\n"
   f = ctx.new_file(ctx.configuration.bin_dir, fn)
   ctx.file_action( output = f, content = cmds_all_str, executable = True)
   return f
@@ -166,6 +175,17 @@ def _go_importpath(ctx):
     path = path[1:]
   return path
 
+def _remove_external_prefix(old_path):
+  """Removes the ../repo_name prefix from paths.
+  These prefixes aren't used in the go symlink tree."""
+  if _is_external(old_path):
+    old_path = old_path[old_path.find('/', 3) + 1:]
+  return old_path
+
+def _is_external(p):
+  """Checks if the string starts with ../"""
+  return p[0:3] == '../'
+
 def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   """Construct the command line for compiling Go code.
   Constructs a symlink tree to accommodate for workspace name.
@@ -190,10 +210,12 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   inputs += list(sources)
   prefix = _go_prefix(ctx)
   for s in sources:
-    tree_layout[s.path] = prefix + s.path
+    tree_layout[s.path] = prefix + _remove_external_prefix(s.path)
 
   out_dir = out_lib.path + ".dir"
   out_depth = out_dir.count('/') + 1
+  if _is_external(out_dir):
+    out_depth -= 2
   cmds = symlink_tree_commands(out_dir, tree_layout)
   args = [
       "cd ", out_dir, "&&",
@@ -206,7 +228,7 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   # Set -p to the import path of the library, ie.
   # (ctx.label.package + "/" ctx.label.name) for now.
   cmds += [ "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
-    ' '.join(args + cmd_helper.template(set(sources), prefix + "%{path}"))]
+    ' '.join(args + ["%s%s" % (prefix, _remove_external_prefix(s.path)) for s in sources]) ]
   extra_inputs = ctx.files.toolchain
 
   if extra_objects:
@@ -334,6 +356,8 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
   out_depth = out_dir.count('/') + 1
+  if _is_external(out_dir):
+    out_depth -= 2
   tree_layout = {}
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
