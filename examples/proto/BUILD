@@ -1,4 +1,4 @@
-load("//go:def.bzl", "go_library")
+load("//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -8,4 +8,10 @@ go_library(
         "//examples/proto/gostyle:go_default_library",
         "//examples/proto/lib:lib_proto",
     ],
+)
+
+go_test(
+    name = "proto_test",
+    srcs = ["proto_test.go"],
+    deps = ["//examples/proto/lib:lib_proto"],
 )
