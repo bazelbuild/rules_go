@@ -13,8 +13,8 @@ go_library(
         "//go/tools/gazelle/merger:go_default_library",
         "//go/tools/gazelle/rules:go_default_library",
         "//go/tools/gazelle/wspace:go_default_library",
-        "@io_bazel_buildifier//core:go_default_library",
-        "@io_bazel_buildifier//differ:go_default_library",
+        "@com_github_bazelbuild_buildifier//build:go_default_library",
+        "@com_github_bazelbuild_buildifier//differ:go_default_library",
     ],
 )
 

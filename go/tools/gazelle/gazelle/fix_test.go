@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	bzl "github.com/bazelbuild/buildifier/core"
+	bzl "github.com/bazelbuild/buildifier/build"
 )
 
 func TestFixFile(t *testing.T) {

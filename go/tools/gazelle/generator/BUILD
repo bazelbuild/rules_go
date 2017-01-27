@@ -7,7 +7,7 @@ go_library(
     deps = [
         "//go/tools/gazelle/packages:go_default_library",
         "//go/tools/gazelle/rules:go_default_library",
-        "@io_bazel_buildifier//core:go_default_library",
+        "@com_github_bazelbuild_buildifier//build:go_default_library",
     ],
 )
 

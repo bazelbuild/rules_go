@@ -19,7 +19,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	bzl "github.com/bazelbuild/buildifier/core"
+	bzl "github.com/bazelbuild/buildifier/build"
 	"github.com/bazelbuild/buildifier/differ"
 )
 

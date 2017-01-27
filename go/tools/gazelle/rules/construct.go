@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"reflect"
 
-	bzl "github.com/bazelbuild/buildifier/core"
+	bzl "github.com/bazelbuild/buildifier/build"
 )
 
 type keyvalue struct {

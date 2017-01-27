@@ -18,7 +18,7 @@ repository_tool_deps = {
     'buildifier': struct(
         importpath = 'github.com/bazelbuild/buildifier',
         repo = 'https://github.com/bazelbuild/buildifier',
-        commit = '4190564903f61ddc94bcfda3dc2cdd32d4b330e5',
+        commit = '81c36a8418cb803d381335c95f8bb419ad1efa27',
     ),
     'tools': struct(
         importpath = 'golang.org/x/tools',
@@ -32,7 +32,7 @@ def go_internal_tools_deps():
   # c.f. #135
   # TODO(yugui) Simply use go_repository when we drop support of Bazel 0.3.2.
   buildifier_repository_only_for_internal_use(
-      name = "io_bazel_buildifier",
+      name = "com_github_bazelbuild_buildifier",
       commit = repository_tool_deps['buildifier'].commit,
       importpath = repository_tool_deps['buildifier'].importpath,
   )
@@ -57,7 +57,7 @@ def _fetch_repository_tools_deps(ctx, goroot, gopath):
 
   result = ctx.execute([
       'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath, 'PATH=%s/bin' % goroot,
-      'go', 'generate', 'github.com/bazelbuild/buildifier/core'])
+      'go', 'generate', 'github.com/bazelbuild/buildifier/build'])
   if result.return_code:
     fail("failed to go generate: %s" % result.stderr)
 
