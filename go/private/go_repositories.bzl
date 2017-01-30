@@ -57,7 +57,7 @@ def _fetch_repository_tools_deps(ctx, goroot, gopath):
 
   result = ctx.execute([
       'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath, 'PATH=%s/bin' % goroot,
-      'go', 'generate', 'github.com/bazelbuild/buildifier/core'])
+      'go', 'generate', 'github.com/bazelbuild/buildifier/build'])
   if result.return_code:
     fail("failed to go generate: %s" % result.stderr)
 
