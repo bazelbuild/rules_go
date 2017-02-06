@@ -126,7 +126,7 @@ def _go_proto_library_gen_impl(ctx):
   # Create work dir, copy all protos there stripping of any external/bazel- prefixes.
   work_dir = ctx.outputs.outs[0].path + ".protoc"
   root_prefix = "/".join([".." for _ in work_dir.split("/")])
-  cmds = ["set -e", "/bin/rm -f %s; /bin/mkdir -p %s" % (work_dir, work_dir)]
+  cmds = ["set -e", "/bin/rm -rf %s; /bin/mkdir -p %s" % (work_dir, work_dir)]
   srcs = list(ctx.files.srcs)
   dirs = set([s.short_path[:-1-len(s.basename)]
               for s in srcs + protos])
