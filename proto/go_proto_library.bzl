@@ -307,9 +307,9 @@ def go_proto_repositories(shared=1, rules_go_repo_only_for_internal_use=None):
     # if using multiple *_proto_library, allows caller to skip this.
     native.http_archive(
         name = "com_github_google_protobuf",
-        url = "https://github.com/google/protobuf/archive/v3.1.0.tar.gz",
-        strip_prefix = "protobuf-3.1.0",
-        sha256 = "0a0ae63cbffc274efb573bdde9a253e3f32e458c41261df51c5dbc5ad541e8f7",
+        url = "https://github.com/google/protobuf/archive/v3.2.0.tar.gz",
+        strip_prefix = "protobuf-3.2.0",
+        sha256 = "2a25c2b71c707c5552ec9afdfb22532a93a339e1ca5d38f163fe4107af08c54c",
     )
 
   # Needed for gRPC, only loaded by bazel if used
