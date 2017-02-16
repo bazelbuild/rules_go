@@ -199,17 +199,17 @@ def go_repositories(
   if not omit_go:
     native.new_http_archive(
       name =  "golang_linux_amd64",
-      url = "https://storage.googleapis.com/golang/go1.7.5.linux-amd64.tar.gz",
+      url = "https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz",
       build_file_content = "",
-      sha256 = "2e4dd6c44f0693bef4e7b46cc701513d74c3cc44f2419bf519d7868b12931ac3",
+      sha256 = "53ab94104ee3923e228a2cb2116e5e462ad3ebaeea06ff04463479d7f12d27ca",
       strip_prefix = "go",
     )
 
     native.new_http_archive(
       name = "golang_darwin_amd64",
-      url = "https://storage.googleapis.com/golang/go1.7.5.darwin-amd64.tar.gz",
+      url = "https://storage.googleapis.com/golang/go1.8.darwin-amd64.tar.gz",
       build_file_content = "",
-      sha256 = "2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca",
+      sha256 = "6fdc9f98b76a28655a8770a1fc8197acd8ef746dd4d8a60589ce19604ba2a120",
       strip_prefix = "go",
     )
 
