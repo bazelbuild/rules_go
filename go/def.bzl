@@ -217,19 +217,39 @@ def emit_go_compile_action(ctx, sources, deps, out_lib, extra_objects=[]):
   if _is_external(out_dir):
     out_depth -= 2
   cmds = symlink_tree_commands(out_dir, tree_layout)
+
+  extra_inputs = ctx.files.toolchain
+
+  # cd into the out_dir.
+  cmds.append("export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..")
+  cmds.append(" ".join(["cd", out_dir]))
+
+  # Apply build tags here.
+  use_build_tags = hasattr(ctx.attr, "filter_tags")
+  cleaned_source_paths = [prefix + _remove_external_prefix(i.path) for i in sources]
+  if use_build_tags:
+    filter_args = [
+        ('../' * out_depth) + ctx.executable.filter_tags.path,
+    ]
+    filter_args.extend(cleaned_source_paths)
+    cmds.append("export GOFILES=\"$({})\"".format(" ".join(filter_args)))
+    extra_inputs += [ctx.executable.filter_tags]
+  else:
+    cmds.append("export GOFILES='{}'".format(" ".join(cleaned_source_paths)))
+
   args = [
-      "cd ", out_dir, "&&",
       ('../' * out_depth) + ctx.file.go_tool.path,
       "tool", "compile",
       "-o", ('../' * out_depth) + out_lib.path, "-pack",
-      "-I", "."
+      "-I", ".",
+      "${GOFILES}",
   ]
 
   # Set -p to the import path of the library, ie.
   # (ctx.label.package + "/" ctx.label.name) for now.
-  cmds += [ "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
-    ' '.join(args + [prefix + _remove_external_prefix(i.path) for i in sources])]
-  extra_inputs = ctx.files.toolchain
+  cmds += [
+    ' '.join(args),
+  ]
 
   if extra_objects:
     extra_inputs += extra_objects
@@ -558,6 +578,15 @@ go_library_attrs = go_env_attrs + {
     ),
 }
 
+go_tool_attrs = {
+    "filter_tags": attr.label(
+        default = Label("//go/tools/filter_tags:filter_tags"),
+        cfg = "host",
+        executable = True,
+        allow_files = True,
+    ),
+}
+
 _crosstool_attrs = {
     "_crosstool": attr.label(
         default = Label("//tools/defaults:crosstool"),
@@ -570,7 +599,7 @@ go_library_outputs = {
 
 go_library = rule(
     go_library_impl,
-    attrs = go_library_attrs + {
+    attrs = go_library_attrs + go_tool_attrs + {
         "cgo_object": attr.label(
             providers = ["cgo_obj", "cgo_deps"],
         ),
@@ -581,7 +610,7 @@ go_library = rule(
 
 go_binary = rule(
     go_binary_impl,
-    attrs = go_library_attrs + _crosstool_attrs + {
+    attrs = go_library_attrs + go_tool_attrs + _crosstool_attrs + {
         "stamp": attr.bool(default = False),
         "x_defs": attr.string_dict(),
     },
@@ -591,6 +620,53 @@ go_binary = rule(
 )
 
 go_test = rule(
+    go_test_impl,
+    attrs = go_library_attrs + go_tool_attrs + _crosstool_attrs + {
+        "test_generator": attr.label(
+            executable = True,
+            default = Label(
+                "//go/tools:generate_test_main",
+            ),
+            cfg = "host",
+        ),
+        "x_defs": attr.string_dict(),
+    },
+    executable = True,
+    fragments = ["cpp"],
+    outputs = {
+        "lib": "%{name}.a",
+        "main_lib": "%{name}_main_test.a",
+        "main_go": "%{name}_main_test.go",
+    },
+    test = True,
+)
+
+# go_tool_* rules are for use building tools required by BUILD rules.
+# Without these rules filter_tags will not build since the rules required to
+# build it would be dependent on filter_tags itself!
+go_tool_library = rule(
+    go_library_impl,
+    attrs = go_library_attrs + {
+        "cgo_object": attr.label(
+            providers = ["cgo_obj", "cgo_deps"],
+        ),
+    },
+    fragments = ["cpp"],
+    outputs = go_library_outputs,
+)
+
+go_tool_binary = rule(
+    go_binary_impl,
+    attrs = go_library_attrs + _crosstool_attrs + {
+        "stamp": attr.bool(default = False),
+        "x_defs": attr.string_dict(),
+    },
+    executable = True,
+    fragments = ["cpp"],
+    outputs = go_library_outputs,
+)
+
+go_tool_test = rule(
     go_test_impl,
     attrs = go_library_attrs + _crosstool_attrs + {
         "test_generator": attr.label(
