@@ -448,8 +448,8 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
     stamp_inputs = [ctx.info_file, ctx.version_file]
     for f in stamp_inputs:
       cmds += [
-          "while read -r stamp || [[ -n $stamp ]]; do",
-          "  STAMP_XDEFS+=(-X \"%s.$(echo $stamp | sed -e 's!^\([^ ][^ ]*\) *\(.*\)$!\\1=\\2!')\")" % ctx.attr.linkstamp,
+          "while read -r key value || [[ -n $key ]]; do",
+          "  STAMP_XDEFS+=(-X \"%s.$key=$value\")" % ctx.attr.linkstamp,
           "done < " + f.path,
       ]
 
