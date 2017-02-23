@@ -128,6 +128,7 @@ func main() {
 	tpl := template.Must(template.New("source").Parse(`
 package main
 import (
+	"flag"
 	"os"
 	"testing"
 	"testing/internal/testdeps"
@@ -153,6 +154,12 @@ var benchmarks = []testing.InternalBenchmark{
 
 func main() {
 	os.Chdir("{{.RunDir}}")
+	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
+		if f := flag.Lookup("test.run"); f != nil {
+			f.Value.Set(filter)
+		}
+	}
+
 	m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, nil)
 {{if not .HasTestMain}}
 	os.Exit(m.Run())
