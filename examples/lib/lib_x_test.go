@@ -17,13 +17,15 @@ package lib_test
 
 import (
 	"flag"
+	"os"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/examples/lib"
 )
 
 var (
-	buildTimeWant = flag.String("lib_test.buildtime", "", "expected value in TestBuildTime")
+	buildTimeWant     = flag.String("lib_test.buildtime", "", "expected value in TestBuildTime")
+	wasTestMainCalled = false
 )
 
 func TestLibraryPkgPath(t *testing.T) {
@@ -36,4 +38,15 @@ func TestBuildTime(t *testing.T) {
 	if got, want := lib.BuildTime(), *buildTimeWant; got != want {
 		t.Errorf("buildTime = %q; want %q", got, want)
 	}
+}
+
+func TestMainCalled(t *testing.T) {
+	if !wasTestMainCalled {
+		t.Errorf("TestMain was not called")
+  }
+}
+
+func TestMain(m *testing.M) {
+	wasTestMainCalled = true
+	os.Exit(m.Run())
 }

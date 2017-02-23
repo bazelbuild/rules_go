@@ -130,38 +130,35 @@ package main
 import (
 	"os"
 	"testing"
+	"testing/internal/testdeps"
 
 {{ if .TestNames }}
-        undertest "{{.Package}}"
+	undertest "{{.Package}}"
 {{else if .BenchmarkNames }}
-        undertest "{{.Package}}"
+	undertest "{{.Package}}"
 {{ end }}
 )
 
-func everything(pat, str string) (bool, error) {
-	return true, nil
-}
-
 var tests = []testing.InternalTest{
 {{range .TestNames}}
-   {"{{.}}", undertest.{{.}} },
+	{"{{.}}", undertest.{{.}} },
 {{end}}
 }
 
 var benchmarks = []testing.InternalBenchmark{
 {{range .BenchmarkNames}}
-   {"{{.}}", undertest.{{.}} },
+	{"{{.}}", undertest.{{.}} },
 {{end}}
 }
 
 func main() {
-  os.Chdir("{{.RunDir}}")
-  {{if not .HasTestMain}}
-  testing.Main(everything, tests, benchmarks, nil)
-  {{else}}
-  m := testing.MainStart(everything, tests, benchmarks, nil)
-  undertest.TestMain(m)
-  {{end}}
+	os.Chdir("{{.RunDir}}")
+	m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, nil)
+{{if not .HasTestMain}}
+	os.Exit(m.Run())
+{{else}}
+	undertest.TestMain(m)
+{{end}}
 }
 `))
 	if err := tpl.Execute(outFile, &cases); err != nil {
