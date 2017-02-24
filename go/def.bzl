@@ -400,8 +400,9 @@ def emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
     ld = ('../' * out_depth) + ld
   ldflags = _c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
-      "-L" + prefix,
   ]
+  if prefix:
+    ldflags.append("-L" + prefix)
   for d in cgo_deps:
     if d.basename.endswith('.so'):
       dirname = _short_path(d)[:-len(d.basename)]
