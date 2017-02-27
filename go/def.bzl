@@ -995,20 +995,35 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
   pkg_dir = _pkg_dir(
       "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
       PACKAGE_NAME)
+
+  # Platform-specific settings
+  native.config_setting(
+      name = name + "_windows_setting",
+      values = {
+          "cpu": "x64_windows_msvc",
+      },
+  )
+  platform_copts = select({
+      ":" + name + "_windows_setting": ["-mthreads"],
+      "//conditions:default": ["-pthread"],
+  })
+  platform_linkopts = select({
+      ":" + name + "_windows_setting": ["-mthreads"],
+      "//conditions:default": ["-pthread"],
+  })
+
   # Bundles objects into an archive so that _cgo_.o and _all.o can share them.
   native.cc_library(
       name = cgogen.outdir + "/_cgo_lib",
       srcs = cgogen.c_thunks + cgogen.c_exports + c_srcs + c_hdrs,
       deps = cdeps,
-      # TODO(bazel-team): use -mthreads when windows support is added
-      copts = copts + [
+      copts = copts + platform_copts + [
           "-I", pkg_dir,
           "-I", "$(GENDIR)/" + pkg_dir + "/" + cgogen.outdir,
-          "-pthread",
           # The generated thunks often contain unused variables.
           "-Wno-unused-variable",
       ],
-      linkopts = clinkopts,
+      linkopts = clinkopts + platform_linkopts,
       linkstatic = 1,
       # _cgo_.o and _all.o keep all objects in this archive.
       # But it should not be very annoying in the final binary target
