@@ -30,6 +30,14 @@ const (
 	keep          = "# keep"           // marker in srcs or deps to tell gazelle to preserve.
 )
 
+type GazelleIgnoreError struct {
+	posn bzl.Position
+}
+
+func (e GazelleIgnoreError) Error() string {
+	return fmt.Sprintf("%s found on line %d", gazelleIgnore, e.posn)
+}
+
 var (
 	mergeableFields = map[string]bool{
 		"srcs":    true,
@@ -52,7 +60,7 @@ func MergeWithExisting(newfile *bzl.File, existingFilePath string) (*bzl.File, e
 	for _, s := range f.Stmt {
 		for _, c := range s.Comment().After {
 			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return f, nil
+				return nil, GazelleIgnoreError{c.Start}
 			}
 		}
 	}

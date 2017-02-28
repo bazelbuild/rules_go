@@ -92,6 +92,7 @@ go_library(
 
 type testCase struct {
 	previous, current, expected string
+	ignore                      bool
 }
 
 func TestMergeWithExisting(t *testing.T) {
@@ -104,8 +105,8 @@ func TestMergeWithExisting(t *testing.T) {
 	}
 	defer os.Remove(tmp.Name())
 	for _, tc := range []testCase{
-		{oldData, newData, expected},
-		{ignore, newData, ignore},
+		{oldData, newData, expected, false},
+		{ignore, newData, "", true},
 	} {
 		if err := ioutil.WriteFile(tmp.Name(), []byte(tc.previous), 0755); err != nil {
 			t.Fatal(err)
@@ -115,8 +116,16 @@ func TestMergeWithExisting(t *testing.T) {
 			t.Fatal(err)
 		}
 		afterF, err := MergeWithExisting(newF, tmp.Name())
-		if err != nil {
+		if _, ok := err.(GazelleIgnoreError); ok {
+			if !tc.ignore {
+				t.Fatalf("unexpected ignore: %v", err)
+			}
+			continue
+		} else if err != nil {
 			t.Fatal(err)
+		}
+		if tc.ignore {
+			t.Error("expected ignore")
 		}
 		if s := string(bzl.Format(afterF)); s != tc.expected {
 			t.Errorf("bzl.Format, want %s; got %s", tc.expected, s)

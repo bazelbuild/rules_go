@@ -99,6 +99,10 @@ func run(dirs []string, emit func(*bzl.File) error, external rules.ExternalResol
 			}
 			// Existing file, so merge and maybe remove the old one
 			if f, err = merger.MergeWithExisting(f, existingFilePath); err != nil {
+				if _, ok := err.(merger.GazelleIgnoreError); ok {
+					// found gazelle:ignore comment. Do not rewrite.
+					continue
+				}
 				return err
 			}
 			bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
