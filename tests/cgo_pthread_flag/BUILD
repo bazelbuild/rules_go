@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_test")
+load("//go:def.bzl", "cgo_library", "go_library", "go_test")
 
 cgo_library(
     name = "cgo_default_library",

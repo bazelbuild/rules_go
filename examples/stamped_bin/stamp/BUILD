@@ -1,0 +1,7 @@
+load("//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["stamp.go"],
+    visibility = ["//visibility:public"],
+)

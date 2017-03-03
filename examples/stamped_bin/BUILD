@@ -4,16 +4,15 @@ package(
 
 load("//go:def.bzl", "go_binary", "go_library")
 
-go_binary(
-    name = "stamped_bin",
+go_library(
+    name = "go_default_library",
     srcs = ["main.go"],
-    linkstamp = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
-    deps = [
-        ":stamp",
-    ],
+    visibility = ["//visibility:private"],
+    deps = ["//examples/stamped_bin/stamp:go_default_library"],
 )
 
-go_library(
-    name = "stamp",
-    srcs = ["stamp.go"],
+go_binary(
+    name = "stamped_bin",
+    library = ":go_default_library",
+    visibility = ["//visibility:public"],
 )
