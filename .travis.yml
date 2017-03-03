@@ -50,6 +50,7 @@ script:
       --genrule_strategy=standalone \
       --local_resources=400,1,1.0 \
       //...
+  - tests/run_non_bazel_tests.bash
 
 notifications:
   email: false
