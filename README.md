@@ -315,7 +315,7 @@ go_prefix(prefix)
 ## go\_library
 
 ```bzl
-go_library(name, srcs, deps, data)
+go_library(name, srcs, deps, data, gc_goopts)
 ```
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -357,6 +357,17 @@ go_library(name, srcs, deps, data)
         <p>List of files needed by this rule at runtime.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>gc_goopts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>List of flags to add to the Go compilation command. Subject to
+        <a href="https://bazel.build/versions/master/docs/be/make-variables.html#make-var-substitution">Make
+        variable substitution</a> and
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#sh-tokenization">Bourne
+        shell tokenization</a>.</p>
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -364,7 +375,7 @@ go_library(name, srcs, deps, data)
 ## cgo\_library
 
 ```bzl
-cgo_library(name, srcs, copts, clinkopts, cdeps, deps, data)
+cgo_library(name, srcs, copts, clinkopts, cdeps, deps, data, gc_goopts)
 ```
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -431,6 +442,17 @@ cgo_library(name, srcs, copts, clinkopts, cdeps, deps, data)
         <p>List of files needed by this rule at runtime.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>gc_goopts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>List of flags to add to the Go compilation command. Subject to
+        <a href="https://bazel.build/versions/master/docs/be/make-variables.html#make-var-substitution">Make
+        variable substitution</a> and
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#sh-tokenization">Bourne
+        shell tokenization</a>.</p>
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -457,7 +479,7 @@ go_library(
 ## go\_binary
 
 ```bzl
-go_binary(name, srcs, deps, data, linkstamp)
+go_binary(name, srcs, deps, data, linkstamp, gc_goopts, gc_linkopts)
 ```
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -516,6 +538,28 @@ go_binary(name, srcs, deps, data, linkstamp)
         a good template which prints Git workspace status.</p>
       </td>
     </tr>
+    <tr>
+      <td><code>gc_goopts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>List of flags to add to the Go compilation command. Subject to
+        <a href="https://bazel.build/versions/master/docs/be/make-variables.html#make-var-substitution">Make
+        variable substitution</a> and
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#sh-tokenization">Bourne
+        shell tokenization</a>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>gc_linkopts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>List of flags to add to the Go link command. Subject to
+        <a href="https://bazel.build/versions/master/docs/be/make-variables.html#make-var-substitution">Make
+        variable substitution</a> and
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#sh-tokenization">Bourne
+        shell tokenization</a>.</p>
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -523,7 +567,7 @@ go_binary(name, srcs, deps, data, linkstamp)
 ## go\_test
 
 ```bzl
-go_test(name, srcs, deps, data)
+go_test(name, srcs, deps, data, gc_goopts, gc_linkopts)
 ```
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -563,6 +607,28 @@ go_test(name, srcs, deps, data)
       <td>
         <code>List of labels, optional</code>
         <p>List of files needed by this rule at runtime.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>gc_goopts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>List of flags to add to the Go compilation command. Subject to
+        <a href="https://bazel.build/versions/master/docs/be/make-variables.html#make-var-substitution">Make
+        variable substitution</a> and
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#sh-tokenization">Bourne
+        shell tokenization</a>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>gc_linkopts</code></td>
+      <td>
+        <code>List of strings, optional</code>
+        <p>List of flags to add to the Go link command. Subject to
+        <a href="https://bazel.build/versions/master/docs/be/make-variables.html#make-var-substitution">Make
+        variable substitution</a> and
+        <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#sh-tokenization">Bourne
+        shell tokenization</a>.</p>
       </td>
     </tr>
   </tbody>

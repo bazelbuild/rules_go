@@ -11,6 +11,7 @@
 cd $(dirname "$0")
 
 tests=(
+  gc_opts_unsafe/gc_opts_unsafe.bash
   test_filter_test/test_filter_test.bash
 )
 
