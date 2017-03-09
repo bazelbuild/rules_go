@@ -140,9 +140,11 @@ gazelle -go_prefix github.com/joe/project
 ```
 
 * To update your `BUILD` files later, just run `gazelle`.
-* By default, Gazelle will add external dependencies to your `WORKSPACE` file.
-  If you prefer to use vendoring, run `gazelle` with `-external
-  vendored`. See [Vendoring.md](Vendoring.md).
+* By default, Gazelle assumes external dependencies are present in
+  your `WORKSPACE` file, following a certain naming convention. For example, it 
+  expects the repository for `github.com/jane/utils` to be named
+  `@com_github_jane_utils`. If you prefer to use vendoring, run `gazelle` with
+  `-external vendored`. See [Vendoring.md](Vendoring.md).
 
 See the [Gazelle README](go/tools/gazelle/README.md) for more information.
 
