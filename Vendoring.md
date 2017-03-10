@@ -5,10 +5,11 @@ repositories.
 
 ## Vendoring
 
-The first option is to _vendor_ the libraries - that is, copy them all into a "vendor"
-subdirectory inside your own library, and create your own BUILD files for each
-vendor repository. Vendoring is a part of Go since 1.5 - see https://golang.org/s/go15vendor
-for more details, and note that vendoring is enabled by default since Go 1.6.
+The first option is to _vendor_ the libraries - that is, copy them all into a
+"vendor" subdirectory inside your own library, and create your own BUILD files
+for each vendor repository. Vendoring is a part of Go since 1.5 - see
+https://golang.org/s/go15vendor for more details, and note that vendoring is
+enabled by default since Go 1.6.
 
 Take care to observe the following restrictions while using vendoring:
   * You cannot use `git submodule` since you'll need to be adding the
@@ -21,62 +22,80 @@ Vendoring may be preferable to using external repositories (see below) if
 you have different packages that require different versions of external
 repos.
 
-## WORKSPACE repositories
+## `WORKSPACE` repositories
 
-The other option to use external libraries is to use one of the `repository`
-directives in your WORKSPACE file. This is initially no faster or easier than
-vendoring the libraries, since you still need to create a BUILD file for every
-external package, including subpackages. However, because the BUILD files are
-separate from the source tree (and can even be embedded inside the WORKSPACE
-file using the `build_file_content` attribute of the `new_git_repository` command,
-it is easier to support upgraded versions of external libraries.
+The other option for using external libraries is to import them in your
+`WORKSPACE` file. You can use
+the [`new_go_repository`](README.md#new_go_repository) rule to import
+repositories that conform the the normal Go directory conventions. This is
+similar to `new_git_repository`, but it automatically generates `BUILD` files
+for you using [gazelle](go/tools/gazelle/README.md).
+
+You can use [`go_repository`](README.md#go_repository) if the project you're
+importing already has `BUILD` files. This is like `git_repository` but it
+recognizes importpath redirection.
+
+If you prefer to write your own `BUILD` files for dependencies, you can still
+use `new_git_repository`. Be aware that you can only specify one `BUILD` file
+for the top-level package.
+
+### Example
+
+Here is an example from a `WORKSPACE` file using the repository method for
+`github.com/golang/glog`. 
+
+``` bzl
+# Import Go rules and toolchain.
+git_repository(
+    name = "io_bazel_rules_go",
+    remote = "https://github.com/bazelbuild/rules_go.git",
+    tag = "0.4.1",
+)
+load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+
+# Import Go dependencies.
+new_go_repository(
+    name = "com_github_golang_glog",
+    importpath = "github.com/golang/glob",
+    commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
+)
+```
+
+You could use this library in the `deps` of a `go_library` with the label
+`@com_github_golang_glog//:go_default_library`. If you were vendoring this
+library, you'd refer to it as
+`//vendor/github.com/golang/glog:go_default_library` instead.
 
 ## General rules
 
-In either case, you must follow these rules for your BUILD files (or build file
-contents) for external libraries:
-  * Import the Bazel go rules - you don't get them "for free."
-  * Declare a `go_prefix`, almost certainly matching the name of the repository
-    you're cloning.
-  * Declare a single `go_library` named `go_default_library` in each BUILD
-    file, assuming that each directory contains a single Go package. You can't
-    use a single BUILD file to define subpackages, for example.
-  * Have public visibility (see example below)
-  * Exclude any `*test.go` files from the `go_library` srcs. Normally Go would
-    do this for you, but the `go_library` rule does not.
-  * Manually exclude files with build tags that wouldn't be satisfied - for
-    example, if a file includes the build constraint `//+build !go1.5` and
-    you're using a Go 1.5 or later, you must exclude this file yourself.
+If you write your own `BUILD` files for dependencies, whether they are vendored
+or imported through `WORKSPACE`, here are some things to keep in mind.
 
-If you're using external repositories, each repo can only define a
-*single* BUILD file (or build file contents). This implies that if you're
-importing mulitple libraries from the same repo, you'll need to import
-that repo multiple times, and _not_ simply define multiple targets in the
-single BUILD file/variable.
+* Don't forget to load the Bazel rules from this repository (`go_library`,
+  etc). You don't get them for free.
+* Declare a [`go_prefix`](README.md#go_prefix), almost certainly matching the
+  import path of the repository you're cloning.
+* Declare a single [`go_library`](README.md#go_library) named
+  `go_default_library` in each `BUILD` file, assuming that each directory
+  contains a single Go package. You can't use a single `BUILD` file to define
+  subpackages, for example.
+* Have public visibility.
+* Exclude any `*_test.go` files from the `go_library` srcs. Unlike the `go`
+  tool, `go_library` does not do this automatically.
+* Manually exclude files with build tags that wouldn't be satisfied - for
+  example, if a file includes the build constraint `//+build !go1.5` and
+  you're using a Go 1.5 or later, you must exclude this file yourself.
 
-## Example
+### Example
 
-Here is an example from a WORKSPACE file using the repository method for
-`github.com/golang/glog`. If you were vendoring this library, you'd simply use
-the contents of the GLOG_BUILD variable as your BUILD file.
-
-```bzl
-GLOG_BUILD = """
+``` bzl
 load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_library")
-go_prefix("github.com/golang/glog")
-go_library(
-  name = "go_default_library",
-  srcs = glob(["*.go"]),
-  visibility = ["//visibility:public"],
-)
-"""
 
-new_git_repository(
-  # In other BUILD files, we'll refer to this library as
-  # @golang_glog//:go_default_library
-  name = "golang_glog",
-  build_file_content = GLOG_BUILD,
-  commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
-  remote = "https://github.com/golang/glog",
+go_prefix("github.com/golang/glog")
+
+go_library(
+    name = "go_default_library",
+    srcs = glob(["*.go"], exclude=["*_test.go"]),
+    visibility = ["//visibility:public"],
 )
 ```
