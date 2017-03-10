@@ -187,6 +187,18 @@ func testGenerator(t *testing.T, buildFileName string) {
 					},
 				},
 			},
+			"tests_with_testdata": {
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_test"},
+					},
+				},
+				{
+					Call: &bzl.CallExpr{
+						X: &bzl.LiteralExpr{Token: "go_test"},
+					},
+				},
+			},
 		},
 	}
 
@@ -286,6 +298,14 @@ func testGenerator(t *testing.T, buildFileName string) {
 				stub.fixtures["cgolib"][0].Call,
 				stub.fixtures["cgolib"][1].Call,
 				stub.fixtures["cgolib"][2].Call,
+			},
+		},
+		{
+			Path: "tests_with_testdata/" + buildFileName,
+			Stmt: []bzl.Expr{
+				loadExpr("go_test"),
+				stub.fixtures["tests_with_testdata"][0].Call,
+				stub.fixtures["tests_with_testdata"][1].Call,
 			},
 		},
 	}

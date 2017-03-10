@@ -20,5 +20,6 @@ go_library(
         "repo/**/*.hh",
         "repo/**/*.hxx",
         "repo/**/*.hpp",
+        "repo/**/testdata/**",
     ]),
 )

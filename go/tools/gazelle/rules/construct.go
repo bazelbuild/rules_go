@@ -27,6 +27,11 @@ type keyvalue struct {
 	value interface{}
 }
 
+type globvalue struct {
+	patterns []string
+	excludes []string
+}
+
 func newRule(kind string, args []interface{}, kwargs []keyvalue) (*bzl.Rule, error) {
 	var list []bzl.Expr
 	for i, arg := range args {
@@ -77,6 +82,30 @@ func newValue(val interface{}) (bzl.Expr, error) {
 			list = append(list, elem)
 		}
 		return &bzl.ListExpr{List: list}, nil
+	case reflect.Struct:
+		glob, ok := val.(globvalue)
+		if !ok {
+			return nil, fmt.Errorf("not implemented %T", val)
+		}
+		patternsValue, err := newValue(glob.patterns)
+		if err != nil {
+			return nil, err
+		}
+		globArgs := []bzl.Expr{patternsValue}
+		if len(glob.excludes) > 0 {
+			excludesValue, err := newValue(glob.excludes)
+			if err != nil {
+				return nil, err
+			}
+			globArgs = append(globArgs, &bzl.KeyValueExpr{
+				Key:   &bzl.StringExpr{Value: "excludes"},
+				Value: excludesValue,
+			})
+		}
+		return &bzl.CallExpr{
+			X:    &bzl.LiteralExpr{Token: "glob"},
+			List: globArgs,
+		}, nil
 	default:
 		return nil, fmt.Errorf("not implemented %T", val)
 	}

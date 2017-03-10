@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"go/build"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -69,10 +70,11 @@ type Generator interface {
 
 // NewGenerator returns an implementation of Generator.
 //
+// "repoRoot" is a path to the root directory of the repository.
 // "goPrefix" is the go_prefix corresponding to the repository root.
 // See also https://github.com/bazelbuild/rules_go#go_prefix.
 // "external" is how external packages should be resolved.
-func NewGenerator(goPrefix string, external ExternalResolver) Generator {
+func NewGenerator(repoRoot string, goPrefix string, external ExternalResolver) Generator {
 	var (
 		// TODO(yugui) Support another resolver to cover the pattern 2 in
 		// https://github.com/bazelbuild/rules_go/issues/16#issuecomment-216010843
@@ -90,6 +92,7 @@ func NewGenerator(goPrefix string, external ExternalResolver) Generator {
 	}
 
 	return &generator{
+		repoRoot: repoRoot,
 		goPrefix: goPrefix,
 		r: resolverFunc(func(importpath, dir string) (label, error) {
 			if importpath != goPrefix && !strings.HasPrefix(importpath, goPrefix+"/") && !isRelative(importpath) {
@@ -101,6 +104,7 @@ func NewGenerator(goPrefix string, external ExternalResolver) Generator {
 }
 
 type generator struct {
+	repoRoot string
 	goPrefix string
 	r        labelResolver
 }
@@ -150,8 +154,11 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 		rules = append(rules, p)
 	}
 
+	testdataPath := filepath.Join(g.repoRoot, rel, "testdata")
+	st, err := os.Stat(testdataPath)
+	hasTestdata := err == nil && st.IsDir()
 	if len(pkg.TestGoFiles) > 0 {
-		t, err := g.generateTest(rel, pkg, library, libRule != nil)
+		t, err := g.generateTest(rel, pkg, library, hasTestdata, libRule != nil)
 		if err != nil {
 			return nil, err
 		}
@@ -159,7 +166,7 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 	}
 
 	if len(pkg.XTestGoFiles) > 0 {
-		t, err := g.generateXTest(rel, pkg, library)
+		t, err := g.generateXTest(rel, pkg, library, hasTestdata)
 		if err != nil {
 			return nil, err
 		}
@@ -318,7 +325,7 @@ func hasPbGo(files []string) bool {
 	return false
 }
 
-func (g *generator) generateTest(rel string, pkg *build.Package, library string, hasLib bool) (*bzl.Rule, error) {
+func (g *generator) generateTest(rel string, pkg *build.Package, library string, hasTestdata, hasLib bool) (*bzl.Rule, error) {
 	name := library + "_test"
 	if library == defaultLibName {
 		name = defaultTestName
@@ -326,6 +333,10 @@ func (g *generator) generateTest(rel string, pkg *build.Package, library string,
 	attrs := []keyvalue{
 		{key: "name", value: name},
 		{key: "srcs", value: pkg.TestGoFiles},
+	}
+	if hasTestdata {
+		glob := globvalue{patterns: []string{"testdata/**"}}
+		attrs = append(attrs, keyvalue{key: "data", value: glob})
 	}
 	if hasLib {
 		attrs = append(attrs, keyvalue{key: "library", value: ":" + library})
@@ -341,7 +352,7 @@ func (g *generator) generateTest(rel string, pkg *build.Package, library string,
 	return newRule("go_test", nil, attrs)
 }
 
-func (g *generator) generateXTest(rel string, pkg *build.Package, library string) (*bzl.Rule, error) {
+func (g *generator) generateXTest(rel string, pkg *build.Package, library string, hasTestdata bool) (*bzl.Rule, error) {
 	name := library + "_xtest"
 	if library == defaultLibName {
 		name = defaultXTestName
@@ -350,12 +361,18 @@ func (g *generator) generateXTest(rel string, pkg *build.Package, library string
 		{key: "name", value: name},
 		{key: "srcs", value: pkg.XTestGoFiles},
 	}
+	if hasTestdata {
+		glob := globvalue{patterns: []string{"testdata/**"}}
+		attrs = append(attrs, keyvalue{key: "data", value: glob})
+	}
 
 	deps, err := g.dependencies(pkg.XTestImports, rel)
 	if err != nil {
 		return nil, err
 	}
-	attrs = append(attrs, keyvalue{key: "deps", value: deps})
+	if len(deps) > 0 {
+		attrs = append(attrs, keyvalue{key: "deps", value: deps})
+	}
 	return newRule("go_test", nil, attrs)
 }
 

@@ -79,11 +79,11 @@ func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.Ext
 	}
 
 	return &Generator{
-		repoRoot:      filepath.Clean(repoRoot),
+		repoRoot:      repoRoot,
 		goPrefix:      goPrefix,
 		buildFileName: buildFileName,
 		bctx:          bctx,
-		g:             rules.NewGenerator(goPrefix, external),
+		g:             rules.NewGenerator(repoRoot, goPrefix, external),
 	}, nil
 }
 

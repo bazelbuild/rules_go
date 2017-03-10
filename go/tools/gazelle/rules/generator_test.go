@@ -51,7 +51,8 @@ func packageFromDir(t *testing.T, dir string) *build.Package {
 }
 
 func TestGenerator(t *testing.T) {
-	g := rules.NewGenerator("example.com/repo", rules.External)
+	repoRoot := filepath.Join(testdata.Dir(), "repo")
+	g := rules.NewGenerator(repoRoot, "example.com/repo", rules.External)
 	for _, spec := range []struct {
 		dir  string
 		want string
@@ -207,6 +208,21 @@ func TestGenerator(t *testing.T) {
 					library = ":go_default_library",
 				)
 			`},
+		{
+			dir: "tests_with_testdata",
+			want: `
+				go_test(
+					name = "go_default_test",
+					srcs = ["internal_test.go"],
+					data = glob(["testdata/**"]),
+				)
+
+				go_test(
+					name = "go_default_xtest",
+					srcs = ["external_test.go"],
+					data = glob(["testdata/**"]),
+				)
+			`},
 	} {
 		pkg := packageFromDir(t, filepath.FromSlash(spec.dir))
 		rules, err := g.Generate(spec.dir, pkg)
@@ -221,7 +237,8 @@ func TestGenerator(t *testing.T) {
 }
 
 func TestGeneratorGoPrefix(t *testing.T) {
-	g := rules.NewGenerator("example.com/repo/lib", rules.External)
+	repoRoot := filepath.Join(testdata.Dir(), "repo")
+	g := rules.NewGenerator(repoRoot, "example.com/repo/lib", rules.External)
 	pkg := packageFromDir(t, filepath.FromSlash("lib"))
 	rules, err := g.Generate("", pkg)
 	if err != nil {
