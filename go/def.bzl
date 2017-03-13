@@ -38,6 +38,7 @@ go_filetype = FileType([
     ".go",
     ".s",
     ".S",
+    ".h",  # may be included by .s
 ])
 
 # be consistent to cc_library.
@@ -146,16 +147,20 @@ def _emit_generate_params_action(cmds, ctx, fn):
       executable = True)
   return f
 
-def emit_go_asm_action(ctx, source, out_obj):
+def _emit_go_asm_action(ctx, source, hdrs, out_obj):
   """Construct the command line for compiling Go Assembly code.
   Constructs a symlink tree to accomodate for workspace name.
   Args:
     ctx: The skylark Context.
     source: a source code artifact
+    hdrs: list of .h files that may be included
     out_obj: the artifact (configured target?) that should be produced
   """
-  args = [
-      ctx.file.go_tool.path, "tool", "asm",
+  args = [ctx.file.go_tool.path, "tool", "asm"]
+  include_dirs = set([f.dirname for f in hdrs])
+  for d in include_dirs:
+    args += ["-I", d]
+  args += [
       "-I", ctx.file.go_include.path,
       "-o", out_obj.path,
       source.path,
@@ -169,7 +174,7 @@ def emit_go_asm_action(ctx, source, out_obj):
   f = _emit_generate_params_action(cmds, ctx, out_obj.path + ".GoAsmCompileFile.params")
 
   ctx.action(
-      inputs = [source] + ctx.files.toolchain,
+      inputs = [source] + hdrs + ctx.files.toolchain,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
       executable = f,
@@ -274,6 +279,7 @@ def go_library_impl(ctx):
   sources = set(ctx.files.srcs)
   go_srcs = set([s for s in sources if s.basename.endswith('.go')])
   asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
+  asm_hdrs = [s for s in sources if s.basename.endswith('.h')]
   deps = ctx.attr.deps
 
   cgo_object = None
@@ -283,6 +289,7 @@ def go_library_impl(ctx):
   if ctx.attr.library:
     go_srcs += ctx.attr.library.go_sources
     asm_srcs += ctx.attr.library.asm_sources
+    asm_hdrs += ctx.attr.library.asm_headers
     deps += ctx.attr.library.direct_deps
     if ctx.attr.library.cgo_object:
       if cgo_object:
@@ -300,7 +307,7 @@ def go_library_impl(ctx):
   extra_objects = [cgo_object.cgo_obj] if cgo_object else []
   for src in asm_srcs:
     obj = ctx.new_file(src, "%s.dir/%s.o" % (ctx.label.name, src.basename[:-2]))
-    emit_go_asm_action(ctx, src, obj)
+    _emit_go_asm_action(ctx, src, asm_hdrs, obj)
     extra_objects += [obj]
 
   out_lib = ctx.outputs.lib
@@ -326,6 +333,7 @@ def go_library_impl(ctx):
     runfiles = runfiles,
     go_sources = go_srcs,
     asm_sources = asm_srcs,
+    asm_headers = asm_hdrs,
     go_library_object = out_lib,
     transitive_go_library_object = transitive_libs,
     cgo_object = cgo_object,
@@ -901,6 +909,7 @@ def _cgo_genrule_impl(ctx):
     label = ctx.label,
     go_sources = ctx.files.srcs,
     asm_sources = [],
+    asm_headers = [],
     cgo_object = ctx.attr.cgo_object,
     direct_deps = ctx.attr.deps,
     gc_goopts = [],

@@ -66,6 +66,7 @@ func TestGenerator(t *testing.T) {
 						"doc.go",
 						"lib.go",
 						"asm.s",
+            "asm.h",
 					],
 					visibility = ["//visibility:public"],
 					deps = ["//lib/internal/deep:go_default_library"],

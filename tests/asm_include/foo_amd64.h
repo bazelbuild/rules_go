@@ -1,0 +1,1 @@
+#define FOOVAL 42

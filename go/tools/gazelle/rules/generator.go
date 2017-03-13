@@ -202,18 +202,19 @@ func (g *generator) generateLib(rel, name string, pkg *build.Package, cgoName st
 		{key: "name", value: name},
 	}
 
+	srcs := append([]string{}, pkg.GoFiles...)
 	if cgoName == "" {
-		srcs := append([]string{}, pkg.GoFiles...)
 		srcs = append(srcs, pkg.SFiles...)
-		attrs = append(attrs, keyvalue{key: "srcs", value: srcs})
 		if len(srcs) == 0 {
 			return nil, nil
 		}
+		srcs = append(srcs, pkg.HFiles...)
+		attrs = append(attrs, keyvalue{key: "srcs", value: srcs})
 	} else {
 		// go_library gets mad when an empty slice is passed in, but handles not
 		// being set at all just fine when "library" is set.
-		if len(pkg.GoFiles) != 0 {
-			attrs = append(attrs, keyvalue{key: "srcs", value: pkg.GoFiles})
+		if len(srcs) > 0 {
+			attrs = append(attrs, keyvalue{key: "srcs", value: srcs})
 		}
 		attrs = append(attrs, keyvalue{key: "library", value: ":" + cgoName})
 	}
