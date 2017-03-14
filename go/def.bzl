@@ -395,8 +395,32 @@ def _gc_linkopts(ctx):
     gc_linkopts += ["-X", "%s='%s'" % (k, v)]
   return gc_linkopts
 
+def _extract_extldflags(gc_linkopts, extldflags):
+  """Extracts -extldflags from gc_linkopts and combines them into a single list.
+
+  Args:
+    gc_linkopts: a list of flags passed in through the gc_linkopts attributes.
+      ctx.expand_make_variables should have already been applied.
+    extldflags: a list of flags to be passed to the external linker.
+
+  Return:
+    A tuple containing the filtered gc_linkopts with external flags removed,
+    and a combined list of external flags.
+  """
+  filtered_gc_linkopts = []
+  is_extldflags = False
+  for opt in gc_linkopts:
+    if is_extldflags:
+      is_extldflags = False
+      extldflags += [opt]
+    elif opt == "-extldflags":
+      is_extldflags = True
+    else:
+      filtered_gc_linkopts += [opt]
+  return filtered_gc_linkopts, extldflags
+
 def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
-                        executable, gc_linkopts):
+                         executable, gc_linkopts):
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
   out_depth = out_dir.count('/') + 1
@@ -422,15 +446,16 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   ld = "%s" % ctx.fragments.cpp.compiler_executable
   if ld[0] != '/':
     ld = ('../' * out_depth) + ld
-  ldflags = _c_linker_options(ctx) + [
+  extldflags = _c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
   ]
   if prefix:
-    ldflags.append("-L" + prefix)
+    extldflags.append("-L" + prefix)
   for d in cgo_deps:
     if d.basename.endswith('.so'):
       dirname = _short_path(d)[:-len(d.basename)]
-      ldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + dirname]
+      extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + dirname]
+  gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   link_cmd = [
       ('../' * out_depth) + ctx.file.go_tool.path,
@@ -447,7 +472,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
 
   link_cmd += [
       "-extld", ld,
-      "-extldflags", "'%s'" % " ".join(ldflags),
+      "-extldflags", "'%s'" % " ".join(extldflags),
       main_archive,
   ]
 
