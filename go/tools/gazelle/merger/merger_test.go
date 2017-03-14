@@ -77,7 +77,7 @@ go_test(
 )
 `
 
-const ignore = `# gazelle:ignore
+const ignoreTop = `# gazelle:ignore
 
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
@@ -89,6 +89,14 @@ go_library(
     ],
 )
 `
+
+const ignoreBefore = `# gazelle:ignore
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+`
+
+const ignoreAfterLast = `
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+# gazelle:ignore`
 
 type testCase struct {
 	previous, current, expected string
@@ -106,7 +114,9 @@ func TestMergeWithExisting(t *testing.T) {
 	defer os.Remove(tmp.Name())
 	for _, tc := range []testCase{
 		{oldData, newData, expected, false},
-		{ignore, newData, "", true},
+		{ignoreTop, newData, "", true},
+		{ignoreBefore, newData, "", true},
+		{ignoreAfterLast, newData, "", true},
 	} {
 		if err := ioutil.WriteFile(tmp.Name(), []byte(tc.previous), 0755); err != nil {
 			t.Fatal(err)

@@ -57,12 +57,8 @@ func MergeWithExisting(newfile *bzl.File, existingFilePath string) (*bzl.File, e
 	if err != nil {
 		return nil, err
 	}
-	for _, s := range f.Stmt {
-		for _, c := range s.Comment().After {
-			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return nil, GazelleIgnoreError{c.Start}
-			}
-		}
+	if err := shouldIgnore(f); err != nil {
+		return nil, err
 	}
 
 	var newStmt []bzl.Expr
@@ -87,6 +83,24 @@ func MergeWithExisting(newfile *bzl.File, existingFilePath string) (*bzl.File, e
 	}
 	f.Stmt = append(f.Stmt, newStmt...)
 	return f, nil
+}
+
+// shouldIgnore checks whether "gazelle:ignore" appears at the beginning of
+// a comment before or after any top-level statement in the file.
+func shouldIgnore(oldFile *bzl.File) error {
+	for _, s := range oldFile.Stmt {
+		for _, c := range s.Comment().After {
+			if strings.HasPrefix(c.Token, gazelleIgnore) {
+				return GazelleIgnoreError{c.Start}
+			}
+		}
+		for _, c := range s.Comment().Before {
+			if strings.HasPrefix(c.Token, gazelleIgnore) {
+				return GazelleIgnoreError{c.Start}
+			}
+		}
+	}
+	return nil
 }
 
 // merge takes new info from src and merges into dest.
