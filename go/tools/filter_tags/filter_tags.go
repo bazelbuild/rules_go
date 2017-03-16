@@ -55,12 +55,14 @@ func main() {
 
 	bctx := build.Default
 	bctx.BuildTags = strings.Split(*tags, ",")
-	bctx.CgoEnabled = *cgo // Worth setting? build.MatchFile ignores this.
+	bctx.CgoEnabled = *cgo
 
-	outputs, err := filterFilenames(bctx, flag.Args())
+	filenames, err := filterFilenames(bctx, flag.Args())
 	if err != nil {
 		log.Fatalf("build_tags error: %v\n", err)
 	}
 
-	fmt.Println(strings.Join(outputs, " "))
+	for _, filename := range filenames {
+		fmt.Println(filename)
+	}
 }

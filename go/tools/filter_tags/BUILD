@@ -1,19 +1,15 @@
-package(default_visibility = ["//visibility:public"])
+load("//go/private:go_tool_binary.bzl", "go_tool_binary")
+load("//go:def.bzl", "go_test")
 
-load("//go:def.bzl", "go_prefix", "go_library", "go_binary", "go_test")
-
-go_library(
-    name = "filter_tags_lib",
+go_tool_binary(
+    name = "filter_tags",
     srcs = ["filter_tags.go"],
 )
 
-go_binary(
-    name = "filter_tags",
-    library = ":filter_tags_lib",
-)
-
 go_test(
-    name = "filter_tags_test",
-    srcs = ["filter_tags_test.go"],
-    library = ":filter_tags_lib",
+    name = "filter_tags_tags",
+    srcs = [
+        "filter_tags.go",
+        "filter_tags_test.go",
+    ],
 )

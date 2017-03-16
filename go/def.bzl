@@ -20,8 +20,6 @@ load("//go/private:go_prefix.bzl", "go_prefix")
 
 In order of priority:
 
-- No support for build tags
-
 - BUILD file must be written by hand.
 
 - No support for SWIG
@@ -226,6 +224,8 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
       output archive file.
     gc_goopts: additional flags to pass to the compiler.
   """
+  # Build a symlink tree so that that deps are in directories that match
+  # their import paths.
   tree_layout = {}
   inputs = []
   for d in deps:
@@ -244,20 +244,58 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   if _is_external(out_dir):
     out_depth -= 2
   cmds = symlink_tree_commands(out_dir, tree_layout)
-  args = [
-      "cd ", out_dir, "&&",
-      ('../' * out_depth) + ctx.file.go_tool.path,
-      "tool", "compile",
-      "-o", ('../' * out_depth) + out_lib.path, "-pack",
-      "-I", "."
-  ] + gc_goopts
 
+  # cd into the out_dir.
+  cmds += [
+      'export GOROOT=$(pwd)/%s/..' % ctx.file.go_tool.dirname,
+      'cd ' + out_dir,
+  ]
+
+  # Filter source files using build tags.
+  cleaned_go_source_paths = [
+      prefix + _remove_external_prefix(i.path)
+      for i in sources
+      if not i.basename.startswith("_cgo")]
+  cleaned_cgo_source_paths = [
+      prefix + _remove_external_prefix(i.path)
+      for i in sources
+      if i.basename.startswith("_cgo")]
+  filter_tags_path = ('../' * out_depth) + ctx.executable._filter_tags.path
+  filter_tags_cmd = " ".join([
+      filter_tags_path,
+      '-cgo' if len(cleaned_cgo_source_paths) > 0 else '',
+      '${UNFILTERED_GO_FILES[@]}',
+  ])
+  cmds += [
+      'UNFILTERED_GO_FILES=(%s)' % 
+          ' '.join(["'%s'" % f for f in cleaned_go_source_paths]),
+      'FILTERED_GO_FILES=(%s)' %
+          ' '.join(["'%s'" % f for f in cleaned_cgo_source_paths]),
+      'while read -r line; do',
+      '  if [ -n "$line" ]; then',
+      '    FILTERED_GO_FILES+=("$line")',
+      '  fi',
+      'done < <(%s)' % filter_tags_cmd,
+      'if [ ${#FILTERED_GO_FILES[@]} -eq 0 ]; then',
+      '  echo no buildable Go source files in %s >&1' % str(ctx.label),
+      '  exit 1',
+      'fi',
+  ]
+
+  # Compile filtered files.
+  args = [
+      ("../" * out_depth) + ctx.file.go_tool.path,
+      "tool", "compile",
+      "-o", ("../" * out_depth) + out_lib.path, "-pack",
+      "-I", ".",
+  ] + gc_goopts + ['"${FILTERED_GO_FILES[@]}"']
+
+  # Pack extra objects into an archive, if provided.
   # Set -p to the import path of the library, ie.
   # (ctx.label.package + "/" ctx.label.name) for now.
-  cmds += [ "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
-    ' '.join(args + [prefix + _remove_external_prefix(i.path) for i in sources])]
-  extra_inputs = ctx.files.toolchain
+  cmds += [' '.join(args)]
 
+  extra_inputs = ctx.files.toolchain
   if extra_objects:
     extra_inputs += extra_objects
     objs = ' '.join([c.path for c in extra_objects])
@@ -267,7 +305,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   f = _emit_generate_params_action(cmds, ctx, out_lib.path + ".GoCompileFile.params")
 
   ctx.action(
-      inputs = inputs + extra_inputs,
+      inputs = inputs + extra_inputs + [ctx.executable._filter_tags],
       outputs = [out_lib],
       mnemonic = "GoCompile",
       executable = f,
@@ -624,6 +662,12 @@ go_env_attrs = {
         ),
         allow_files = False,
         cfg = "host",
+    ),
+    "_filter_tags": attr.label(
+        default = Label("//go/tools/filter_tags"),
+        cfg = "host",
+        executable = True,
+        single_file = True,
     ),
 }
 

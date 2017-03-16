@@ -36,8 +36,6 @@ The rules should be considered experimental. They support:
 
 They currently do not support (in order of importance):
 
-* build constraints/tags (`//+build` comments - see <a
-  href="https://golang.org/pkg/go/build/">here</a>)
 * bazel-style auto generating BUILD (where the library name is other than
   go_default_library)
 * C/C++ interoperation except cgo (swig etc.)
