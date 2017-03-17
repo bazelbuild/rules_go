@@ -37,7 +37,6 @@ import (
 
 var (
 	buildFileName  = flag.String("build_file_name", "BUILD", "name of output build files to generate.")
-	buildTags      = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, GOOS and GOARCH are used.")
 	external       = flag.String("external", "external", "external: resolve external packages with new_go_repository\n\tvendored: resolve external packages as packages in vendor/")
 	goPrefix       = flag.String("go_prefix", "", "go_prefix of the target workspace")
 	repoRoot       = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
@@ -72,7 +71,7 @@ func isValidBuildFileName(buildFileName string) bool {
 }
 
 func run(dirs []string, emit func(*bzl.File) error, external rules.ExternalResolver) error {
-	g, err := generator.New(*repoRoot, *goPrefix, *buildFileName, *buildTags, external)
+	g, err := generator.New(*repoRoot, *goPrefix, *buildFileName, external)
 	if err != nil {
 		return err
 	}

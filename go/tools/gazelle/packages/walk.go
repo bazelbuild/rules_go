@@ -43,12 +43,13 @@ func Walk(bctx build.Context, root string, f WalkFunc) error {
 		}
 
 		pkg, err := bctx.ImportDir(path, build.ImportComment)
-		if err != nil {
-			if _, ok := err.(*build.NoGoError); ok {
-				return nil
-			}
-			return err
+		switch err.(type) {
+		case *build.NoGoError:
+			return nil
+		case *build.MultiplePackageError:
+			return f(pkg)
+		default:
+			return f(pkg)
 		}
-		return f(pkg)
 	})
 }
