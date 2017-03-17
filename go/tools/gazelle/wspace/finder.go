@@ -33,5 +33,9 @@ func Find(dir string) (string, error) {
 	if !os.IsNotExist(err) {
 		return "", err
 	}
-	return Find(filepath.Dir(dir))
+	parent := filepath.Dir(dir)
+	if dir == parent {
+		return "", os.ErrNotExist
+	}
+	return Find(parent)
 }
