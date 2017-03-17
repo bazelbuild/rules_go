@@ -16,13 +16,15 @@ result=0
 function check_build_fails {
   local target=$1
   local message=$2
-  bazel build "$target" 2>&1 | tee output.txt
+  local outfile=$(mktemp)
+  bazel build "$target" 2>&1 | tee "$outfile"
   local target_result=${PIPESTATUS[0]}
   if [ $target_result -eq 0 ]; then
     echo "build of $target succeeded but should have failed" >&2
+    echo "wrote output to $outfile" >&2
     return 1
   fi
-  if ! grep -q "$message" output.txt; then
+  if ! grep -q "$message" "$outfile"; then
     echo "build of $target failed for a different reason" >&2
     return 1
   fi
