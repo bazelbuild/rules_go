@@ -261,11 +261,6 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
       for i in sources
       if i.basename.startswith("_cgo")]
   filter_tags_path = ('../' * out_depth) + ctx.executable._filter_tags.path
-  filter_tags_cmd = " ".join([
-      filter_tags_path,
-      '-cgo' if len(cleaned_cgo_source_paths) > 0 else '',
-      '${UNFILTERED_GO_FILES[@]}',
-  ])
   cmds += [
       'UNFILTERED_GO_FILES=(%s)' % 
           ' '.join(["'%s'" % f for f in cleaned_go_source_paths]),
@@ -275,7 +270,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
       '  if [ -n "$line" ]; then',
       '    FILTERED_GO_FILES+=("$line")',
       '  fi',
-      'done < <(%s)' % filter_tags_cmd,
+      'done < <(\'%s\' -cgo "${UNFILTERED_GO_FILES[@]}")' % filter_tags_path,
       'if [ ${#FILTERED_GO_FILES[@]} -eq 0 ]; then',
       '  echo no buildable Go source files in %s >&1' % str(ctx.label),
       '  exit 1',
