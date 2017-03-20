@@ -148,11 +148,14 @@ def _go_repository_select_impl(ctx):
 
   # 1. Configure the goroot path
   if os_name == 'linux':
-    goroot = ctx.path(ctx.attr._linux).dirname
+    go_version = ctx.attr.go_linux_version
   elif os_name == 'mac os x':
-    goroot = ctx.path(ctx.attr._darwin).dirname
+    go_version = ctx.attr.go_darwin_version
   else:
     fail("Unsupported operating system: " + os_name)
+  if go_version == None:
+    fail("No Go toolchain provided for host operating system: " + os_name)
+  goroot = ctx.path(go_version).dirname
 
   # 2. Create the symlinks and write the BUILD file.
   gobin = goroot.get_child("bin")
@@ -175,46 +178,68 @@ _go_repository_select = repository_rule(
             default = "@io_bazel_rules_go",
         ),
 
-        "_linux": attr.label(
-            default = Label("@golang_linux_amd64//:VERSION"),
+        "go_linux_version": attr.label(
             allow_files = True,
             single_file = True,
         ),
-        "_darwin": attr.label(
-            default = Label("@golang_darwin_amd64//:VERSION"),
+        "go_darwin_version": attr.label(
             allow_files = True,
             single_file = True,
         ),
     },
 )
 
+_GO_VERSIONS_SHA256 = {
+    '1.8': {
+        'linux': '53ab94104ee3923e228a2cb2116e5e462ad3ebaeea06ff04463479d7f12d27ca',
+        'darwin': '6fdc9f98b76a28655a8770a1fc8197acd8ef746dd4d8a60589ce19604ba2a120',
+    },
+}
 
 # c.f. #135
 # TODO(yugui) remove the attribute rules_go_repo_only_for_internal_use when we
 # drop support of Bazel 0.3.2
 def go_repositories(
     rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
-    omit_go=False):
+    go_version = None,
+    go_linux = None,
+    go_darwin = None):
 
-  if not omit_go:
-    native.new_http_archive(
-      name =  "golang_linux_amd64",
-      url = "https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz",
-      build_file_content = "",
-      sha256 = "53ab94104ee3923e228a2cb2116e5e462ad3ebaeea06ff04463479d7f12d27ca",
-      strip_prefix = "go",
-    )
+  if not go_version and not go_linux and not go_darwin:
+    go_version = "1.8"
 
+  if go_version:
+    if go_linux:
+      fail("go_repositories: go_version and go_linux can't both be set")
+    if go_darwin:
+      fail("go_repositories: go_version and go_darwin can't both be set")
+    if go_version not in _GO_VERSIONS_SHA256:
+      fail("go_repositories: unsupported version %s; supported versions are %s" %
+           (go_version, " ".join(_GO_VERSIONS_SHA256.keys())))
     native.new_http_archive(
-      name = "golang_darwin_amd64",
-      url = "https://storage.googleapis.com/golang/go1.8.darwin-amd64.tar.gz",
-      build_file_content = "",
-      sha256 = "6fdc9f98b76a28655a8770a1fc8197acd8ef746dd4d8a60589ce19604ba2a120",
-      strip_prefix = "go",
+        name = "golang_linux_amd64",
+        url = "https://storage.googleapis.com/golang/go%s.linux-amd64.tar.gz" % go_version,
+        build_file_content = "",
+        sha256 = _GO_VERSIONS_SHA256[go_version]["linux"],
+        strip_prefix = "go",
     )
+    native.new_http_archive(
+        name = "golang_darwin_amd64",
+        url = "https://storage.googleapis.com/golang/go%s.darwin-amd64.tar.gz" % go_version,
+        build_file_content = "",
+        sha256 = _GO_VERSIONS_SHA256[go_version]["darwin"],
+        strip_prefix = "go",
+    )
+    go_linux = "@golang_linux_amd64"
+    go_darwin = "@golang_darwin_amd64"
+
+  go_linux_version = go_linux + "//:VERSION" if go_linux else None
+  go_darwin_version = go_darwin + "//:VERSION" if go_darwin else None
 
   _go_repository_select(
       name = "io_bazel_rules_go_toolchain",
+      go_linux_version = go_linux_version,
+      go_darwin_version = go_darwin_version,
       rules_go_repo_only_for_internal_use = rules_go_repo_only_for_internal_use,
   )
   _go_repository_tools(

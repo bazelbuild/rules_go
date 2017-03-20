@@ -194,12 +194,82 @@ imported with [`go_repository`](#go_repository), will have libraries named
 ### `go_repositories`
 
 ``` bzl
-go_repositories()
+go_repositories(go_version, go_linux, go_darwin)
 ```
 
-Instantiates external dependencies to Go toolchain in a WORKSPACE.
-All the other workspace rules and build rules assume that this rule is
-placed in the WORKSPACE.
+Adds Go-related external dependencies to the WORKSPACE, including the Go
+toolchain and standard library. All the other workspace rules and build rules
+assume that this rule is placed in the WORKSPACE.
+
+<table class="table table-condensed table-bordered table-params">
+  <colgroup>
+    <col class="col-param" />
+    <col class="param-description" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th colspan="2">Attributes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>go_version</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The Go version to use. If none of the parameters are specified, the
+        most recent stable version of Go will be used.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>go_linux</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>A custom Go repository to use when building on Linux. See below for
+        an example. This cannot be specified at the same time as
+        <code>go_version</code>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>go_darwin</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>A custom Go repository to use when building on macOS. See below for
+        an example. This cannot be specified at the same time as
+        <code>go_version</code>.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+#### Example:
+
+Suppose you have your own fork of Go, perhaps with some custom patches
+applied. To use that toolchain with these rules, declare the toolchain
+repository with a workspace rule, such as `new_git_repository` or
+`local_repository`, then pass it to `go_repositories` as below. The rules expect
+Go binaries and libraries to be present in the `bin/` and `pkg/` directories, so
+you'll need a different repository for each supported host platform.
+
+``` bzl
+new_git_repository(
+    name = "custom_go_linux",
+    remote = "https://github.com/j_r_hacker/go_linux",
+    tag = "2.5",
+    build_file_content = "",
+)
+
+new_git_repository(
+    name = "custom_go_darwin",
+    remote = "https://github.com/j_r_hacker/go_darwin",
+    tag = "2.5",
+    build_file_content = "",
+)
+
+go_repositories(
+    go_linux = "@custom_go_linux",
+    go_darwin = "@custom_go_darwin",
+)
+```
 
 ### `go_repository`
 
