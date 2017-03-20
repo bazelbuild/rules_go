@@ -172,10 +172,10 @@ def _emit_go_asm_action(ctx, source, hdrs, out_obj):
   f = _emit_generate_params_action(cmds, ctx, out_obj.path + ".GoAsmCompileFile.params")
 
   ctx.action(
-      inputs = [source] + hdrs + ctx.files.toolchain,
+      inputs = [f, source] + hdrs + ctx.files.toolchain,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
-      executable = f,
+      command = f.path,
   )
 
 def _go_importpath(ctx):
@@ -300,10 +300,10 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   f = _emit_generate_params_action(cmds, ctx, out_lib.path + ".GoCompileFile.params")
 
   ctx.action(
-      inputs = inputs + extra_inputs + [ctx.executable._filter_tags],
+      inputs = [f] + inputs + extra_inputs + [ctx.executable._filter_tags],
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      executable = f,
+      command = f.path,
       env = go_environment_vars(ctx))
 
 def go_library_impl(ctx):
@@ -547,10 +547,10 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   f = _emit_generate_params_action(cmds, ctx, lib.path + ".GoLinkFile.params")
 
   ctx.action(
-      inputs = (list(transitive_libs) + [lib] + list(cgo_deps) +
+      inputs = [f] + (list(transitive_libs) + [lib] + list(cgo_deps) +
                 ctx.files.toolchain + ctx.files._crosstool) + stamp_inputs,
       outputs = [executable],
-      executable = f,
+      command = f.path,
       mnemonic = "GoLink",
       env = go_environment_vars(ctx))
 
@@ -822,11 +822,11 @@ def _cgo_codegen_impl(ctx):
   f = _emit_generate_params_action(cmds, ctx, out_dir + ".CGoCodeGenFile.params")
 
   ctx.action(
-      inputs = srcs + ctx.files.toolchain + ctx.files._crosstool,
+      inputs = srcs + ctx.files.toolchain + ctx.files._crosstool + [f],
       outputs = ctx.outputs.outs,
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      executable = f,
+      command = f.path,
       env = go_environment_vars(ctx) + {
           "CGO_LDFLAGS": " ".join(linkopts),
       },
@@ -939,10 +939,10 @@ def _cgo_import_impl(ctx):
   f = _emit_generate_params_action(cmds, ctx, ctx.outputs.out.path + ".CGoImportGenFile.params")
   ctx.action(
       inputs = (ctx.files.toolchain +
-                [ctx.file.go_tool, ctx.executable._extract_package,
+                [f, ctx.file.go_tool, ctx.executable._extract_package,
                  ctx.file.cgo_o, ctx.file.sample_go_src]),
       outputs = [ctx.outputs.out],
-      executable = f,
+      command = f.path,
       mnemonic = "CGoImportGen",
   )
   return struct(
