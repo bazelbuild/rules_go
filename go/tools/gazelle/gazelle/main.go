@@ -24,7 +24,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -83,7 +82,7 @@ func run(dirs []string, emit func(*bzl.File) error, external rules.ExternalResol
 		}
 		for _, f := range files {
 			f.Path = filepath.Join(*repoRoot, f.Path)
-			existingFilePath, err := findBuildFile(path.Dir(f.Path))
+			existingFilePath, err := findBuildFile(filepath.Dir(f.Path))
 			if os.IsNotExist(err) {
 				// No existing file, so write a new one
 				bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
