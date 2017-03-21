@@ -146,12 +146,15 @@ placed in the WORKSPACE.
 ## go\_repository
 
 ```bzl
-go_repository(name, importpath, remote, commit, tag)
+go_repository(name, importpath, remote, vcs, commit, tag)
 ```
 
 Fetches a remote repository of a Go project, expecting it contains `BUILD`
 files. It is an analogy to `git_repository` but it recognizes importpath
 redirection of Go.
+
+Either `importpath` or `remote` may be specified. To bypass importpath
+redirection, specify both `remote` and `vcs`.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -174,7 +177,7 @@ redirection of Go.
     <tr>
       <td><code>importpath</code></td>
       <td>
-        <code>String, required</code>
+        <code>String, optional</code>
         <p>An import path in Go, which also provides a default value for the
 	root of the target remote repository</p>
       </td>
@@ -183,8 +186,16 @@ redirection of Go.
       <td><code>remote</code></td>
       <td>
         <code>String, optional</code>
-        <p>The root of the target remote repository, if this differs from the
-	value of <code>importpath</code></p>
+        <p>The URI of the target remote repository, if this cannot be determined
+        from the value of <code>importpath</code>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>vcs</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The version control system to use for fetching the repository. Useful
+        for disabling importpath redirection if necessary.</p>
       </td>
     </tr>
     <tr>
@@ -211,7 +222,7 @@ redirection of Go.
 ## new\_go\_repository
 
 ```bzl
-new_go_repository(name, importpath, remote, commit, tag)
+new_go_repository(name, importpath, remote, vcs, commit, tag)
 ```
 
 Fetches a remote repository of a Go project and automatically generates
@@ -239,7 +250,7 @@ importpath redirection of Go.
     <tr>
       <td><code>importpath</code></td>
       <td>
-        <code>String, required</code>
+        <code>String, optional</code>
         <p>An import path in Go, which also provides a default value for the
 	root of the target remote repository</p>
       </td>
@@ -248,8 +259,15 @@ importpath redirection of Go.
       <td><code>remote</code></td>
       <td>
         <code>String, optional</code>
-        <p>The root of the target remote repository, if this differs from the
-	value of <code>importpath</code></p>
+        <p>The URI of the target remote repository, if this differs from the
+        value of <code>importpath</code></p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>vcs</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The version control system to use for fetching the repository.</p>
       </td>
     </tr>
     <tr>
