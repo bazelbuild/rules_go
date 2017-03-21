@@ -314,6 +314,7 @@ def go_library_impl(ctx):
   asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
   asm_hdrs = [s for s in sources if s.basename.endswith('.h')]
   deps = ctx.attr.deps
+  dep_runfiles = [d.data_runfiles for d in deps]
 
   cgo_object = None
   if hasattr(ctx.attr, "cgo_object"):
@@ -324,6 +325,7 @@ def go_library_impl(ctx):
     asm_srcs += ctx.attr.library.asm_sources
     asm_hdrs += ctx.attr.library.asm_headers
     deps += ctx.attr.library.direct_deps
+    dep_runfiles += [ctx.attr.library.data_runfiles]
     if ctx.attr.library.cgo_object:
       if cgo_object:
         fail("go_library %s cannot have cgo_object because the package " +
@@ -335,6 +337,7 @@ def go_library_impl(ctx):
 
   transitive_cgo_deps = set([], order="link")
   if cgo_object:
+    dep_runfiles += [cgo_object.data_runfiles]
     transitive_cgo_deps += cgo_object.cgo_deps
 
   extra_objects = [cgo_object.cgo_obj] if cgo_object else []
@@ -359,6 +362,9 @@ def go_library_impl(ctx):
     dylibs += [d for d in cgo_object.cgo_deps if d.path.endswith(".so")]
 
   runfiles = ctx.runfiles(files = dylibs, collect_data = True)
+  for d in dep_runfiles:
+    runfiles = runfiles.merge(d)
+
   return struct(
     label = ctx.label,
     files = set([out_lib]),
@@ -562,10 +568,8 @@ def go_binary_impl(ctx):
     lib=lib_out, executable=executable,
     gc_linkopts=_gc_linkopts(ctx))
 
-  runfiles = ctx.runfiles(collect_data = True,
-                          files = ctx.files.data)
   return struct(files = set([executable]) + lib_result.files,
-                runfiles = runfiles,
+                runfiles = lib_result.runfiles,
                 cgo_object = lib_result.cgo_object)
 
 def go_test_impl(ctx):
@@ -613,9 +617,8 @@ def go_test_impl(ctx):
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
   # without code changes.
-  runfiles = ctx.runfiles(collect_data = True,
-                          files = (ctx.files.data + [ctx.outputs.executable] +
-                                   list(lib_result.runfiles.files)))
+  runfiles = ctx.runfiles(files = [ctx.outputs.executable])
+  runfiles = runfiles.merge(lib_result.runfiles)
   return struct(runfiles=runfiles)
 
 go_env_attrs = {
@@ -1038,10 +1041,13 @@ def _cgo_object_impl(ctx):
       executable = ctx.fragments.cpp.compiler_executable,
       arguments = arguments,
   )
+  runfiles = ctx.runfiles(collect_data = True)
+  runfiles = runfiles.merge(ctx.attr.src.data_runfiles)
   return struct(
       files = set([ctx.outputs.out]),
       cgo_obj = ctx.outputs.out,
       cgo_deps = ctx.attr.cgogen.cgo_deps,
+      runfiles = runfiles,
   )
 
 _cgo_object = rule(
