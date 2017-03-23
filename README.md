@@ -125,21 +125,21 @@ a command line tool which is part of this repository.
 
 * You can install Gazelle using the command below. This assumes this repository
   is checked out under [GOPATH](https://github.com/golang/go/wiki/GOPATH).
-  
+
 ```
 go install github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle
 ```
 
 * To run Gazelle for the first time, run the command below from your project
   root directory.
-  
+
 ```
 gazelle -go_prefix github.com/joe/project
 ```
 
 * To update your `BUILD` files later, just run `gazelle`.
 * By default, Gazelle assumes external dependencies are present in
-  your `WORKSPACE` file, following a certain naming convention. For example, it 
+  your `WORKSPACE` file, following a certain naming convention. For example, it
   expects the repository for `github.com/jane/utils` to be named
   `@com_github_jane_utils`. If you prefer to use vendoring, run `gazelle` with
   `-external vendored`. See [Vendoring.md](Vendoring.md).
@@ -183,7 +183,7 @@ in the directory `foo/bar/bar`.
 
 In order to avoid this conflict, you can name your library `go_default_library`.
 The full Bazel label for this library would be `//foo/bar:go_default_library`.
-The import path would be `github.com/joe/project/foo/bar`. 
+The import path would be `github.com/joe/project/foo/bar`.
 
 `BUILD` files generated with Gazelle, including those in external projects
 imported with [`go_repository`](#go_repository), will have libraries named
@@ -805,6 +805,16 @@ go_proto_library(name, srcs, deps, has_services)
         <code>integer, optional, defaults to 0</code>
         <p>If 1, will generate with <code>plugins=grpc</code>
         and add the required dependencies.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>ignore_go_package_option</code></td>
+      <td>
+        <code>integer, optional, defaults to 0</code>
+        <p>If 1, will ignore the go_package option in the srcs proto files.
+        Note: this will not work if the go_package options are specified in more
+        than one line.
+        </p>
       </td>
     </tr>
   </tbody>

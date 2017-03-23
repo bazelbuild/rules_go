@@ -131,8 +131,21 @@ def _go_proto_library_gen_impl(ctx):
   dirs = set([s.short_path[:-1-len(s.basename)]
               for s in srcs + protos])
   cmds += ["/bin/mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
-  cmds += ["/bin/cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
-           for s in srcs + protos]
+
+  if ctx.attr.ignore_go_package_option:
+    # Strip the "option go_package" line from the proto file before compiling,
+    # c.f., https://github.com/bazelbuild/rules_go/issues/323
+    #
+    # NOTE: Using sed does not provide a perfect solution, build will break if
+    # the go_package option splits multiple lines. Use with caution.
+    cmds += ["/bin/sed '/^ *option  *go_package/d' %s > %s/%s" % (s.path, work_dir,
+                                                                  _drop_external(s.short_path))
+             for s in srcs]
+    cmds += ["/bin/cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+             for s in protos]
+  else:
+    cmds += ["/bin/cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+             for s in srcs + protos]
   cmds += ["cd %s" % work_dir,
            "%s/%s --go_out=%s%s:. %s" % (root_prefix, ctx.executable.protoc.path,
                                          use_grpc, m_import_path,
@@ -164,6 +177,7 @@ _go_proto_library_gen = rule(
         ),
         "grpc": attr.int(default = 0),
         "outs": attr.output_list(mandatory = True),
+        "ignore_go_package_option": attr.int(default = 0),
         "protoc": attr.label(
             default = Label("@com_github_google_protobuf//:protoc"),
             executable = True,
@@ -207,6 +221,7 @@ def _well_known_proto_deps(deps, repo):
 def go_proto_library(name, srcs = None, deps = None,
                      has_services = 0,
                      testonly = 0, visibility = None,
+                     ignore_go_package_option = 0,
                      rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
                      **kwargs):
   """Macro which generates and compiles protobufs for Go.
@@ -222,6 +237,8 @@ def go_proto_library(name, srcs = None, deps = None,
     has_services: indicates the proto has gRPC services and deps
     testonly: mark as testonly
     visibility: visibility to use on underlying go_library
+    ignore_go_package_option: if 1, ignore the "option go_package" statement in
+                              the srcs proto files.
     rules_go_repo_only_for_internal_use: don't use this, only to allow
                                          internal tests to work.
     **kwargs: any other args which are passed through to the underlying go_library
@@ -248,6 +265,7 @@ def go_proto_library(name, srcs = None, deps = None,
       outs = outs,
       testonly = testonly,
       visibility = visibility,
+      ignore_go_package_option = ignore_go_package_option,
       grpc = has_services,
   )
   grpc_deps = []
