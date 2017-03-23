@@ -1,4 +1,5 @@
-Want to contribute? Great! First, read this page (including the small print at the end).
+Want to contribute? Great! First, read this page (including the small print at
+the end).
 
 ### Before you contribute
 **Before we can use your code, you must sign the
@@ -13,15 +14,26 @@ your code infringes on other people's patents. You don't have to sign
 the CLA until after you've submitted your code for review and a member has
 approved it, but you must do it before we can put your code into our codebase.
 
-Before you start working on a larger contribution, you should get in touch
-with us first. Use the issue tracker to explain your idea so we can help and
-possibly guide you.
-
-### Code reviews and other contributions.
-**All submissions, including submissions by project members, require review.**
-Please follow the instructions in [the contributors documentation](http://bazel.io/contributing.html).
-
 ### The small print
 Contributions made by corporations are covered by a different agreement than
 the one above, the
 [Software Grant and Corporate Contributor License Agreement](https://cla.developers.google.com/about/google-corporate).
+
+### Contribution process
+
+1. Explain your idea and discuss your plan with members of the team. The best
+   way to do this is to create
+   an [issue](https://github.com/bazelbuild/rules_go/issues) or comment on an
+   existing issue.
+1. Prepare a git commit with your change. Don't forget to
+   add [tests](https://github.com/bazelbuild/rules_go/tree/master/tests). 
+   Run the existing tests with `bazel test //...`. Update
+   [README.md](https://github.com/bazelbuild/rules_go/blob/master/README.md)
+   if appropriate. 
+1. [Create a pull request](https://help.github.com/articles/creating-a-pull-request/).
+   This will start the code review process. **All submissions, including
+   submissions by project members, require review.**
+1. You may be asked to make some changes. You'll also need to sign the CLA at
+   this point, if you haven't done so already. Our continuous integration bots
+   will test your change automatically on supported platforms. Once everything
+   looks good, your change will be merged.
