@@ -10,6 +10,6 @@ import "google/protobuf/struct.proto";
 package foo;
 
 message Foo {
-  int a = 1;
+  int32 a = 1;
   google.protobuf.Struct s = 2;
 }
