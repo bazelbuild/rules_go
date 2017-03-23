@@ -130,7 +130,7 @@ def _go_proto_library_gen_impl(ctx):
   srcs = list(ctx.files.srcs)
   dirs = set([s.short_path[:-1-len(s.basename)]
               for s in srcs + protos])
-  cmds += ["/bin/mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
+  cmds += ["mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
 
   if ctx.attr.ignore_go_package_option:
     # Strip the "option go_package" line from the proto file before compiling,
@@ -138,18 +138,18 @@ def _go_proto_library_gen_impl(ctx):
     #
     # NOTE: Using sed does not provide a perfect solution, build will break if
     # the go_package option splits multiple lines. Use with caution.
-    cmds += ["/bin/sed '/^ *option  *go_package/d' %s > %s/%s" %
+    cmds += ["sed '/^ *option  *go_package/d' %s > %s/%s" %
              (s.path, work_dir, _drop_external(s.short_path)) for s in srcs]
-    cmds += ["/bin/cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+    cmds += ["cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
              for s in protos]
   else:
-    cmds += ["/bin/cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+    cmds += ["cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
              for s in srcs + protos]
   cmds += ["cd %s" % work_dir,
            "%s/%s --go_out=%s%s:. %s" % (root_prefix, ctx.executable.protoc.path,
                                          use_grpc, m_import_path,
                                          " ".join([_drop_external(f.short_path) for f in srcs]))]
-  cmds += ["/bin/cp %s %s/%s" % (_drop_external(p.short_path), root_prefix, p.path)
+  cmds += ["cp %s %s/%s" % (_drop_external(p.short_path), root_prefix, p.path)
            for p in proto_outs]
   run = ctx.new_file(ctx.configuration.bin_dir, ctx.outputs.outs[0].basename + ".run")
   ctx.file_action(
@@ -162,7 +162,8 @@ def _go_proto_library_gen_impl(ctx):
       outputs=proto_outs,
       progress_message="Generating into %s" % ctx.outputs.outs[0].dirname,
       mnemonic="GoProtocGen",
-      env = {"PATH": root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname},
+      env = {"PATH": root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname +
+             ":/bin:/usr/bin"},  # /bin/sed for linux, /usr/bin/sed for macos.
       executable=run)
   return struct(_protos=protos+srcs,
                 _m_import_path=m_import_path)
