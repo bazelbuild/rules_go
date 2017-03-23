@@ -138,9 +138,8 @@ def _go_proto_library_gen_impl(ctx):
     #
     # NOTE: Using sed does not provide a perfect solution, build will break if
     # the go_package option splits multiple lines. Use with caution.
-    cmds += ["/bin/sed '/^ *option  *go_package/d' %s > %s/%s" % (s.path, work_dir,
-                                                                  _drop_external(s.short_path))
-             for s in srcs]
+    cmds += ["/bin/sed '/^ *option  *go_package/d' %s > %s/%s" %
+             (s.path, work_dir, _drop_external(s.short_path)) for s in srcs]
     cmds += ["/bin/cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
              for s in protos]
   else:

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+// This is a fake go_package that would be ignored by specifying
+// ignore_go_package_option = 1.
+option go_package = "foo.com/bar/bla;boo";
+
+// Importing google proto is not affected by ignore_go_package_option.
+import "google/protobuf/struct.proto";
+
+package foo;
+
+message Foo {
+  int a = 1;
+  google.protobuf.Struct s = 2;
+}
