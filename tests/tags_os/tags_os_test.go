@@ -24,3 +24,20 @@ func TestFoo(t *testing.T) {
 func TestBar(t *testing.T) {
 	check("bar", bar, t)
 }
+
+func baz() int
+
+func TestBaz(t *testing.T) {
+	var want int
+	if runtime.GOOS == "darwin" {
+		want = 12
+	} else if runtime.GOOS == "linux" {
+		want = 34
+	} else {
+		want = 56
+	}
+	got := baz()
+	if got != want {
+		t.Errorf("bad return value; got %d, want %d", got, want)
+	}
+}

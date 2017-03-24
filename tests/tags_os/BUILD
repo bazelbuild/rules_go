@@ -6,11 +6,14 @@ go_library(
         # Filtered by filename suffix
         "foo_darwin.go",
         "foo_linux.go",
+        "baz_darwin.s",
+        "baz_linux.s",
         # Filtered by tag
         "foo_unknown.go",
         "bar_d.go",
         "bar_l.go",
         "bar_unknown.go",
+        "baz_other.s",
     ],
 )
 

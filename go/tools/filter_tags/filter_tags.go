@@ -20,8 +20,15 @@ import (
 	"fmt"
 	"go/build"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
+)
+
+var (
+	cgo   = flag.Bool("cgo", false, "Sets whether cgo-using files are allowed to pass the filter.")
+	quiet = flag.Bool("quiet", false, "Don't print filenames. Return code will be 0 if any files pass the filter.")
+	tags  = flag.String("tags", "", "Only pass through files that match these tags.")
 )
 
 // Returns an array of strings containing only the filenames that should build
@@ -49,8 +56,6 @@ func filterFilenames(bctx build.Context, inputs []string) ([]string, error) {
 }
 
 func main() {
-	cgo := flag.Bool("cgo", false, "Sets whether cgo-using files are allowed to pass the filter.")
-	tags := flag.String("tags", "", "Only pass through files that match these tags.")
 	flag.Parse()
 
 	bctx := build.Default
@@ -62,7 +67,12 @@ func main() {
 		log.Fatalf("build_tags error: %v\n", err)
 	}
 
-	for _, filename := range filenames {
-		fmt.Println(filename)
+	if !*quiet {
+		for _, filename := range filenames {
+			fmt.Println(filename)
+		}
+	}
+	if len(filenames) == 0 {
+		os.Exit(1)
 	}
 }

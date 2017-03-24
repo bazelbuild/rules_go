@@ -161,18 +161,24 @@ def _emit_go_asm_action(ctx, source, hdrs, out_obj):
   args += [
       "-I", ctx.file.go_include.path,
       "-o", out_obj.path,
-      source.path,
   ]
+  asm_cmd = "  " + " ".join(args) + " "
   cmds = [
       "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
       "mkdir -p " + out_obj.dirname,
-      " ".join(args),
+      "if '%s' -quiet -cgo '%s'; then"
+          % (ctx.executable._filter_tags.path, source.path),
+      "  %s '%s'" % (asm_cmd, source.path),
+      "else",
+      "  %s /dev/null" % asm_cmd,
+      "fi",
   ]
 
   f = _emit_generate_params_action(cmds, ctx, out_obj.path + ".GoAsmCompileFile.params")
 
+  inputs = hdrs + ctx.files.toolchain + [f, source, ctx.executable._filter_tags]
   ctx.action(
-      inputs = [f, source] + hdrs + ctx.files.toolchain,
+      inputs = inputs,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
       command = f.path,
