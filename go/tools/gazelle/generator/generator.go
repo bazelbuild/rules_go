@@ -53,13 +53,29 @@ type Generator struct {
 // "goPrefix" is the go_prefix corresponding to the repository root directory.
 // See also https://github.com/bazelbuild/rules_go#go_prefix.
 // "buildFileName" is the name of the BUILD file (BUILD or BUILD.bazel).
+// "buildTags" is a comma-delimited set of build tags to set in the build context.
 // "external" is how external packages should be resolved.
-func New(repoRoot, goPrefix, buildFileName string, external rules.ExternalResolver) (*Generator, error) {
-	bctx := rules.NewContext()
+func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.ExternalResolver) (*Generator, error) {
+	bctx := build.Default
+	// Ignore source files in $GOROOT and $GOPATH
+	bctx.GOROOT = ""
+	bctx.GOPATH = ""
 
 	repoRoot, err := filepath.Abs(repoRoot)
 	if err != nil {
 		return nil, err
+	}
+
+	// Explicitly do not import all files, use tags.
+	bctx.UseAllFiles = false
+
+	// By default, set build tags based on GOOS and GOARCH.
+	bctx.BuildTags = []string{bctx.GOARCH, bctx.GOOS}
+
+	// If we received custom buildTags, override the defaults with their comma-separated values.
+	// NOTE: GOOS and GOARCH will not be included as build tags automatically in this case.
+	if len(buildTags) != 0 {
+		bctx.BuildTags = strings.Split(buildTags, ",")
 	}
 
 	return &Generator{

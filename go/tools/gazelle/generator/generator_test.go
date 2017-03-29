@@ -33,6 +33,19 @@ var (
 	buildTagRepoPath = "cgolib_with_build_tags"
 )
 
+func TestBuildTagOverride(t *testing.T) {
+	repo := filepath.Join(testdata.Dir(), "repo")
+	g, err := New(repo, "example.com/repo", "BUILD", "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z", rules.External)
+	if err != nil {
+		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
+		return
+	}
+
+	if len(g.bctx.BuildTags) != 26 {
+		t.Errorf("Got %d build tags; want 26", len(g.bctx.BuildTags))
+	}
+}
+
 func TestGenerator(t *testing.T) {
 	testGenerator(t, "BUILD")
 }
@@ -186,21 +199,18 @@ func testGenerator(t *testing.T, buildFileName string) {
 					},
 				},
 			},
-			"lib_with_ignored_main": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-			},
 		},
 	}
 
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildFileName, rules.External)
+	g, err := New(repo, "example.com/repo", buildFileName, "", rules.External)
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo", %q, "", rules.External) failed with %v; want success`, repo, err, buildFileName)
 		return
+	}
+
+	if len(g.bctx.BuildTags) != 2 {
+		t.Errorf("Got %d build tags; want 2", len(g.bctx.BuildTags))
 	}
 	g.g = stub
 
@@ -276,18 +286,18 @@ func testGenerator(t *testing.T, buildFileName string) {
 			Path: "cgolib_with_build_tags/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_test", "cgo_library"),
-				stub.fixtures["cgolib_with_build_tags"][0].Call,
-				stub.fixtures["cgolib_with_build_tags"][1].Call,
-				stub.fixtures["cgolib_with_build_tags"][2].Call,
+				stub.fixtures["cgolib"][0].Call,
+				stub.fixtures["cgolib"][1].Call,
+				stub.fixtures["cgolib"][2].Call,
 			},
 		},
 		{
 			Path: "allcgolib/" + buildFileName,
 			Stmt: []bzl.Expr{
 				loadExpr("go_library", "go_test", "cgo_library"),
-				stub.fixtures["allcgolib"][0].Call,
-				stub.fixtures["allcgolib"][1].Call,
-				stub.fixtures["allcgolib"][2].Call,
+				stub.fixtures["cgolib"][0].Call,
+				stub.fixtures["cgolib"][1].Call,
+				stub.fixtures["cgolib"][2].Call,
 			},
 		},
 		{
@@ -298,19 +308,72 @@ func testGenerator(t *testing.T, buildFileName string) {
 				stub.fixtures["tests_with_testdata"][1].Call,
 			},
 		},
-		{
-			Path: "lib_with_ignored_main/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library"),
-				stub.fixtures["lib_with_ignored_main"][0].Call,
-			},
-		},
 	}
 
 	sort.Sort(fileSlice(want))
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("g.Generate(%q) = %s; want: %s", repo, prettyFiles(got), prettyFiles(want))
+	}
+
+	// Tests for build tag filtering.
+
+	// Counter for total files.
+	var otherfiles, linuxfiles int
+
+	// Ensure files were found for each type, as build tags are supported in C and assembly sources.
+	if _, ok := stub.goFiles[buildTagRepoPath]; !ok {
+		t.Errorf("got no Go source files for %q; want more than zero", buildTagRepoPath)
+	}
+	if _, ok := stub.sFiles[buildTagRepoPath]; !ok {
+		t.Errorf("got no assembly source files for %q; want more than zero", buildTagRepoPath)
+	}
+	if _, ok := stub.cFiles[buildTagRepoPath]; !ok {
+		t.Errorf("got no assembly source files for %q; want more than zero", buildTagRepoPath)
+	}
+
+	// Count the Go files in the package.
+	for _, file := range stub.goFiles[buildTagRepoPath] {
+		switch {
+		case strings.HasSuffix(file, "_linux.go"):
+			linuxfiles++
+		case strings.HasSuffix(file, "_other.go"):
+			otherfiles++
+		}
+	}
+
+	// We should have all otherfiles or all linux files depending on GOOS.
+	if otherfiles != 0 && linuxfiles != 0 {
+		t.Errorf("got %d Go source files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
+	}
+
+	// Count the assembly files in the package.
+	for _, file := range stub.sFiles[buildTagRepoPath] {
+		switch {
+		case strings.HasSuffix(file, "_linux.S"):
+			linuxfiles++
+		case strings.HasSuffix(file, "_other.S"):
+			otherfiles++
+		}
+	}
+	// If we fail here, tags worked for Go files but not assembly.
+	if otherfiles != 0 && linuxfiles != 0 {
+		t.Errorf("got %d assembly files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
+	}
+
+	// Count C files.
+	for _, file := range stub.cFiles[buildTagRepoPath] {
+		switch {
+		case strings.HasSuffix(file, "_linux.c"):
+			linuxfiles++
+		case strings.HasSuffix(file, "_other.c"):
+			otherfiles++
+		}
+	}
+
+	// If we fail here, tags worked for assembly and Go files, but not C.
+	if otherfiles != 0 && linuxfiles != 0 {
+		t.Errorf("got %d C files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
 	}
 }
 

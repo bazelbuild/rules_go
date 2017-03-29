@@ -103,17 +103,6 @@ func NewGenerator(repoRoot string, goPrefix string, external ExternalResolver) G
 	}
 }
 
-// NewContext creates the Context used by Gazelle.
-// It ignores source files in $GOROOT and $GOPATH and matches all source
-// files with appropriate extensions, regardless of suffix or build tags.
-func NewContext() build.Context {
-	bctx := build.Default
-	bctx.GOROOT = ""
-	bctx.GOPATH = ""
-	bctx.UseAllFiles = true
-	return bctx
-}
-
 type generator struct {
 	repoRoot string
 	goPrefix string

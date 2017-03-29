@@ -43,12 +43,9 @@ func format(rules []*bzl.Rule) string {
 
 func packageFromDir(t *testing.T, dir string) *build.Package {
 	dir = filepath.Join(testdata.Dir(), "repo", dir)
-	bctx := rules.NewContext()
-	pkg, err := bctx.ImportDir(dir, build.ImportComment)
+	pkg, err := build.ImportDir(dir, build.ImportComment)
 	if err != nil {
-		if _, ok := err.(*build.MultiplePackageError); !ok {
-			t.Fatalf("build.ImportDir(%q, build.ImportComment) failed with %v; want success", dir, err)
-		}
+		t.Fatalf("build.ImportDir(%q, build.ImportComment) failed with %v; want success", dir, err)
 	}
 	return pkg
 }
@@ -187,48 +184,6 @@ func TestGenerator(t *testing.T) {
 				)
 			`},
 		{
-			dir: "cgolib_with_build_tags",
-			want: `
-				cgo_library(
-					name = "cgo_default_library",
-					srcs = [
-						"foo.go",
-						"foo_linux.c",
-						"foo_other.c",
-						"foo.h",
-						"asm_linux.S",
-						"asm_other.S",
-					],
-					copts = ["-I/weird/path"],
-					clinkopts = ["-lweird"],
-					visibility = ["//visibility:private"],
-					deps = [
-						"//lib:go_default_library",
-						"//lib/deep:go_default_library",
-					],
-				)
-
-				go_library(
-					name = "go_default_library",
-					srcs = [
-						"pure_linux.go",
-						"pure_other.go",
-					],
-					library = ":cgo_default_library",
-					visibility = ["//visibility:public"],
-					deps = [
-						"//lib:go_default_library",
-						"//lib/deep:go_default_library",
-					],
-				)
-
-				go_test(
-					name = "go_default_test",
-					srcs = ["foo_test.go"],
-					library = ":go_default_library",
-				)
-			`},
-		{
 			dir: "allcgolib",
 			want: `
 				cgo_library(
@@ -267,18 +222,6 @@ func TestGenerator(t *testing.T) {
 					name = "go_default_xtest",
 					srcs = ["external_test.go"],
 					data = glob(["testdata/**"]),
-				)
-			`},
-		{
-			dir: "lib_with_ignored_main",
-			want: `
-				go_library(
-					name = "go_default_library",
-					srcs = [
-						"lib.go",
-						"main.go",
-					],
-					visibility = ["//visibility:public"],
 				)
 			`},
 	} {
