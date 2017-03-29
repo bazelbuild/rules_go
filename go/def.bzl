@@ -581,19 +581,36 @@ def go_test_impl(ctx):
   lib_result = go_library_impl(ctx)
   main_go = ctx.outputs.main_go
   prefix = _go_prefix(ctx)
-
   go_import = _go_importpath(ctx)
 
-  args = (["--package", go_import, "--output", ctx.outputs.main_go.path] +
-          [i.path for i in lib_result.go_sources])
-
-  inputs = list(lib_result.go_sources) + list(ctx.files.toolchain)
+  cmds = [
+      'UNFILTERED_TEST_FILES=(%s)' %
+          ' '.join(["'%s'" % f.path for f in lib_result.go_sources]),
+      'FILTERED_TEST_FILES=()',
+      'while read -r line; do',
+      '  if [ -n "$line" ]; then',
+      '    FILTERED_TEST_FILES+=("$line")',
+      '  fi',
+      'done < <(\'%s\' -cgo "${UNFILTERED_TEST_FILES[@]}")' %
+          ctx.executable._filter_tags.path,
+      ' '.join([
+          "'%s'" % ctx.executable.test_generator.path,
+          '--package',
+          go_import,
+          '--output',
+          "'%s'" % ctx.outputs.main_go.path,
+          '"${FILTERED_TEST_FILES[@]}"',
+      ]),
+  ]
+  f = _emit_generate_params_action(
+      cmds, ctx, main_go.path + ".GoTestGenTest.params")
+  inputs = (list(lib_result.go_sources) + list(ctx.files.toolchain) +
+            [f, ctx.executable._filter_tags, ctx.executable.test_generator])
   ctx.action(
       inputs = inputs,
-      executable = ctx.executable.test_generator,
       outputs = [main_go],
+      command = f.path,
       mnemonic = "GoTestGenTest",
-      arguments = args,
       env = dict(go_environment_vars(ctx), RUNDIR=ctx.label.package))
 
   _emit_go_compile_action(
