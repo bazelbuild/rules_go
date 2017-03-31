@@ -792,7 +792,8 @@ def _exec_path(path):
   return '${execroot}/' + path
 
 def _cgo_codegen_impl(ctx):
-  srcs = ctx.files.srcs + ctx.files.c_hdrs
+  go_srcs = ctx.files.srcs
+  srcs = go_srcs + ctx.files.c_hdrs
   linkopts = ctx.attr.linkopts
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   deps = set([], order="link")
@@ -826,26 +827,40 @@ def _cgo_codegen_impl(ctx):
              p + ctx.attr.outdir)
   cc = ctx.fragments.cpp.compiler_executable
   cmds = symlink_tree_commands(out_dir + "/src", tree_layout) + [
-      "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
+      'export GOROOT=$(pwd)/' + ctx.file.go_tool.dirname + '/..',
       # We cannot use env for CC because $(CC) on OSX is relative
       # and '../' does not work fine due to symlinks.
-      "export CC=$(cd $(dirname {cc}); pwd)/$(basename {cc})".format(cc=cc),
-      "export CXX=$CC",
-      "execroot=$(pwd)",
-      "objdir=$(pwd)/%s/gen" % out_dir,
-      "mkdir -p $objdir",
+      'export CC=$(cd $(dirname {cc}); pwd)/$(basename {cc})'.format(cc=cc),
+      'export CXX=$CC',
+      'execroot=$(pwd)',
+      'filter_tags="$execroot/%s"' % ctx.executable._filter_tags.path,
+      'objdir="$(pwd)/%s/gen"' % out_dir,
+      'mkdir -p "$objdir"',
       # The working directory must be the directory of the target go package
       # to prevent cgo from prefixing mangled directory names to the output
       # files.
-      "cd %s/src/$(dirname %s)" % (out_dir, _short_path(ctx.files.srcs[0])),
-      ' '.join(["$GOROOT/bin/go", "tool", "cgo", "-objdir", "$objdir", "--"] +
-               copts + [f.basename for f in ctx.files.srcs]),
-      "rm -f $objdir/_cgo_.o $objdir/_cgo_flags"]
+      # TODO(#350): this causes errors if sources are in multiple directories.
+      'cd "%s/src/$(dirname %s)"' % (out_dir, _short_path(ctx.files.srcs[0])),
+      'unfiltered_go_files=(%s)' % ' '.join(["'%s'" % f.basename for f in go_srcs]),
+      'filtered_go_files=()',
+      'for file in "${unfiltered_go_files[@]}"; do',
+      '  if "$filter_tags" -cgo -quiet "$file"; then',
+      '    filtered_go_files+=("$file")',
+      '  else',
+      '    grep --max-count 1 "^package " "$file" >"$objdir/$(basename "$file" .go).cgo1.go"',
+      '    echo -n >"$objdir/$(basename "$file" .go).cgo2.c"',
+      '  fi',
+      'done',
+      '"$GOROOT/bin/go" tool cgo -objdir "$objdir" -- %s "${filtered_go_files[@]}"' %
+          ' '.join(['"%s"' % copt for copt in copts]),
+      'rm -f $objdir/_cgo_.o $objdir/_cgo_flags']
 
   f = _emit_generate_params_action(cmds, ctx, out_dir + ".CGoCodeGenFile.params")
 
+  inputs = (srcs + ctx.files.toolchain + ctx.files._crosstool +
+            [f, ctx.executable._filter_tags])
   ctx.action(
-      inputs = srcs + ctx.files.toolchain + ctx.files._crosstool + [f],
+      inputs = inputs,
       outputs = ctx.outputs.outs,
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
