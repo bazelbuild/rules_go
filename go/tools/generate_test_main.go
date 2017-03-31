@@ -20,6 +20,7 @@ package main
 import (
 	"flag"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
 	"log"
@@ -35,6 +36,77 @@ type Cases struct {
 	TestNames      []string
 	BenchmarkNames []string
 	HasTestMain    bool
+	Version        map[string]bool
+}
+
+var codeTpl = `
+package main
+import (
+	"flag"
+	"os"
+	"testing"
+{{ if .Version.go1_8 }}
+	"testing/internal/testdeps"
+{{ end }}
+
+{{ if .TestNames }}
+	undertest "{{.Package}}"
+{{else if .BenchmarkNames }}
+	undertest "{{.Package}}"
+{{ end }}
+)
+
+{{ if not .Version.go1_8 }}
+func everything(pat, str string) (bool, error) {		
+	return true, nil		
+}
+{{ end }}
+
+var tests = []testing.InternalTest{
+{{range .TestNames}}
+	{"{{.}}", undertest.{{.}} },
+{{end}}
+}
+
+var benchmarks = []testing.InternalBenchmark{
+{{range .BenchmarkNames}}
+	{"{{.}}", undertest.{{.}} },
+{{end}}
+}
+
+func main() {
+	os.Chdir("{{.RunDir}}")
+	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
+		if f := flag.Lookup("test.run"); f != nil {
+			f.Value.Set(filter)
+		}
+	}
+
+{{ if .Version.go1_8 }}
+	m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, nil)
+
+	{{if not .HasTestMain}}
+	os.Exit(m.Run())
+	{{else}}
+	undertest.TestMain(m)
+	{{end}}
+{{ else }}
+	{{if not .HasTestMain}}		
+	testing.Main(everything, tests, benchmarks, nil)
+	{{else}}		
+	m := testing.MainStart(everything, tests, benchmarks, nil)
+	undertest.TestMain(m)
+	{{end}}
+{{end}}
+}
+`
+
+func versionMap(versions []string) map[string]bool {
+	m := map[string]bool{}
+	for _, v := range versions {
+		m[strings.Replace(v, ".", "_",-1)] = true
+	}
+	return m
 }
 
 func main() {
@@ -125,49 +197,8 @@ func main() {
 		}
 	}
 
-	tpl := template.Must(template.New("source").Parse(`
-package main
-import (
-	"flag"
-	"os"
-	"testing"
-	"testing/internal/testdeps"
-
-{{ if .TestNames }}
-	undertest "{{.Package}}"
-{{else if .BenchmarkNames }}
-	undertest "{{.Package}}"
-{{ end }}
-)
-
-var tests = []testing.InternalTest{
-{{range .TestNames}}
-	{"{{.}}", undertest.{{.}} },
-{{end}}
-}
-
-var benchmarks = []testing.InternalBenchmark{
-{{range .BenchmarkNames}}
-	{"{{.}}", undertest.{{.}} },
-{{end}}
-}
-
-func main() {
-	os.Chdir("{{.RunDir}}")
-	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
-		if f := flag.Lookup("test.run"); f != nil {
-			f.Value.Set(filter)
-		}
-	}
-
-	m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, nil)
-{{if not .HasTestMain}}
-	os.Exit(m.Run())
-{{else}}
-	undertest.TestMain(m)
-{{end}}
-}
-`))
+	cases.Version = versionMap(build.Default.ReleaseTags)
+	tpl := template.Must(template.New("source").Parse(codeTpl))
 	if err := tpl.Execute(outFile, &cases); err != nil {
 		log.Fatalf("template.Execute(%v): %v", cases, err)
 	}
