@@ -1,4 +1,4 @@
-# Go rules
+# Go rules for [Bazel](https://bazel.build/)
 
 Bazel ≥0.4.4 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
 :---: | :---: | :---: | :---:
