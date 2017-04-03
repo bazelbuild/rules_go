@@ -18,9 +18,9 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 
 	bzl "github.com/bazelbuild/buildifier/build"
-	"github.com/bazelbuild/buildifier/differ"
 )
 
 func diffFile(file *bzl.File) error {
@@ -37,11 +37,17 @@ func diffFile(file *bzl.File) error {
 		return err
 	}
 
-	diff := differ.Find()
-	if _, err := os.Stat(file.Path); os.IsNotExist(err) {
-		diff.Show(os.DevNull, f.Name())
+	origFileName := file.Path
+	if _, err := os.Stat(origFileName); os.IsNotExist(err) {
+		origFileName = os.DevNull
+	}
+	cmd := exec.Command("diff", "-u", origFileName, f.Name())
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if _, ok := err.(*exec.ExitError); ok {
+		// diff returns non-zero when files are different. This is not an error.
 		return nil
 	}
-	diff.Show(file.Path, f.Name())
-	return nil
+	return err
 }
