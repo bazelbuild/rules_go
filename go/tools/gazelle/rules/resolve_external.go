@@ -73,7 +73,7 @@ func (e externalResolver) resolve(importpath, dir string) (label, error) {
 // knownImports are paths which are not static in the vcs package,
 // to allow load balancing between actual repos,
 // but for our case we only need to break the importpath in a known fashion.
-var knownImports = []string{"golang.org/x/", "google.golang.org/", "cloud.google.com/", "gopkg.in/"}
+var knownImports = []string{"golang.org/x/", "google.golang.org/", "cloud.google.com/"}
 
 // specialCases looks for matches in knownImports to avoid making a network call.
 func specialCases(importpath string) string {
