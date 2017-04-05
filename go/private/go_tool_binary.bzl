@@ -34,8 +34,7 @@ def go_tool_binary(name, srcs):
           "build",
           "-o",
           "$@",
-          "$(locations %s)" % " ".join(srcs),
-      ]),
+      ] + ["$(location %s)" % s for s in srcs]),
       executable = True,
       tools = [
         "//go/toolchain",

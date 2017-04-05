@@ -15,6 +15,7 @@
 load("//go/private:go_repositories.bzl", "go_repositories")
 load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 load("//go/private:go_prefix.bzl", "go_prefix")
+load("//go/private:json.bzl", "json_marshal")
 
 """These are bare-bones Go rules.
 
@@ -184,34 +185,20 @@ def _emit_go_asm_action(ctx, source, hdrs, out_obj):
     hdrs: list of .h files that may be included
     out_obj: the artifact (configured target?) that should be produced
   """
-  args = [ctx.file.go_tool.path, "tool", "asm"]
-  include_dirs = set([f.dirname for f in hdrs])
-  for d in include_dirs:
-    args += ["-I", d]
-  args += [
-      "-I", ctx.file.go_include.path,
-      "-o", out_obj.path,
-  ]
-  asm_cmd = "  " + " ".join(args) + " "
-  cmds = [
-      "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
-      "mkdir -p " + out_obj.dirname,
-      "if '%s' -quiet -cgo '%s'; then"
-          % (ctx.executable._filter_tags.path, source.path),
-      "  %s '%s'" % (asm_cmd, source.path),
-      "else",
-      "  %s /dev/null" % asm_cmd,
-      "fi",
-  ]
+  params = {
+      "go_tool": ctx.file.go_tool.path,
+      "includes": [f.dirname for f in hdrs] + [ctx.file.go_include.path],
+      "source": source.path,
+      "out": out_obj.path,
+  }
 
-  f = _emit_generate_params_action(cmds, ctx, out_obj.path + ".GoAsmCompileFile.params")
-
-  inputs = hdrs + ctx.files.toolchain + [f, source, ctx.executable._filter_tags]
+  inputs = hdrs + ctx.files.toolchain + [source]
   ctx.action(
       inputs = inputs,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
-      command = f.path,
+      executable = ctx.executable._asm,
+      arguments = [json_marshal(params)],
   )
 
 def _go_importpath(ctx):
@@ -719,6 +706,12 @@ go_env_attrs = {
     ),
     "_filter_tags": attr.label(
         default = Label("//go/tools/filter_tags"),
+        cfg = "host",
+        executable = True,
+        single_file = True,
+    ),
+    "_asm": attr.label(
+        default = Label("//go/tools/build:asm"),
         cfg = "host",
         executable = True,
         single_file = True,
