@@ -40,6 +40,14 @@ func TestAsm(t *testing.T) {
 	}
 }
 
-func TestCgo(t *testing.T) {
-	check(cgo, t)
+func TestCgoGo(t *testing.T) {
+	check(cgoGo, t)
+}
+
+func TestCgoC(t *testing.T) {
+	check(cgoC, t)
+}
+
+func TestCgoCGroup(t *testing.T) {
+	check(cgoCGroup, t)
 }

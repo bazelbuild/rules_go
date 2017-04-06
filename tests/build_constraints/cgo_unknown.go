@@ -3,8 +3,12 @@
 package build_constraints
 
 /*
-const char* cgo = "unknown";
+const char* cgoGo = "unknown";
+const char* cgoC;
+const char* cgoCGroup;
 */
 import "C"
 
-var cgo = C.GoString(C.cgo)
+var cgoGo = C.GoString(C.cgoGo)
+var cgoC = C.GoString(C.cgoC)
+var cgoCGroup = C.GoString(C.cgoCGroup)

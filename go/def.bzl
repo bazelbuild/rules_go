@@ -50,6 +50,22 @@ hdr_exts = [
 
 cc_hdr_filetype = FileType(hdr_exts)
 
+# Extensions of files we can build with the Go compiler or with cc_library.
+# This is a subset of the extensions recognized by go/build.
+cgo_filetype = FileType([
+    ".go",
+    ".c",
+    ".cc",
+    ".cxx",
+    ".cpp",
+    ".s",
+    ".S",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+])
+
 ################
 
 def _go_prefix(ctx):
@@ -58,6 +74,20 @@ def _go_prefix(ctx):
   if prefix != "" and not prefix.endswith("/"):
     prefix = prefix + "/"
   return prefix
+
+def _relative_path_from_dir(from_dir, to_file):
+  """Returns a relative path from from_dir to to_file.
+
+  Useful for constructing paths from working directories, mostly for symlinks.
+  Both paths must be relative to the execroot.
+  """
+  if _is_external(from_dir):
+    from_dir = _remove_external_prefix(from_dir)
+  if from_dir == "" or from_dir == ".":
+    up = 0
+  else:
+    up = from_dir.count('/') + 1
+  return up * "../" + to_file
 
 # TODO(bazel-team): it would be nice if Bazel had this built-in.
 def symlink_tree_commands(dest_dir, artifact_dict):
@@ -791,6 +821,52 @@ def _exec_path(path):
     return path
   return '${execroot}/' + path
 
+def _cgo_filter_srcs_impl(ctx):
+  srcs = ctx.files.srcs
+  dsts = []
+  cmds = []
+  for src in srcs:
+    stem, _, ext = src.path.rpartition('.')
+    dst_basename = "%s.filtered.%s" % (stem, ext)
+    dst = ctx.new_file(src, dst_basename)
+    cmds += [
+        "if '%s' -cgo -quiet '%s'; then" %
+            (ctx.executable._filter_tags.path, src.path),
+        "  ln -s '%s' '%s'" %
+            (_relative_path_from_dir(dst.dirname, src.path), dst.path),
+        "else",
+        "  echo -n >'%s'" % dst.path,
+        "fi",
+    ]
+    dsts.append(dst)
+
+  script_name = ctx.label.package + "/" + ctx.label.name + ".CGoFilterSrcs.params"
+  f = _emit_generate_params_action(cmds, ctx, script_name)
+  ctx.action(
+      inputs = [f, ctx.executable._filter_tags] + srcs,
+      outputs = dsts,
+      command = f.path,
+      mnemonic = "CgoFilterSrcs",
+  )
+  return struct(
+      files = set(dsts),
+  )
+
+_cgo_filter_srcs = rule(
+    implementation = _cgo_filter_srcs_impl,
+    attrs = {
+        "srcs": attr.label_list(
+            allow_files = cgo_filetype,
+        ),
+        "_filter_tags": attr.label(
+            default = Label("//go/tools/filter_tags"),
+            cfg = "host",
+            executable = True,
+            single_file = True,
+        ),
+    },
+)    
+
 def _cgo_codegen_impl(ctx):
   go_srcs = ctx.files.srcs
   srcs = go_srcs + ctx.files.c_hdrs
@@ -1119,6 +1195,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
   c_hdrs = [s for s in srcs if any([s.endswith(ext) for ext in hdr_exts])]
   c_srcs = [s for s in srcs if not s in (go_srcs + c_hdrs)]
 
+  # Split cgo files into .go parts and .c parts (plus some other files).
   cgogen = _cgo_codegen(
       name = name + ".cgo",
       srcs = go_srcs,
@@ -1129,6 +1206,16 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
       go_tool = go_tool,
       toolchain = toolchain,
   )
+
+  # Filter c_srcs with build constraints.
+  c_filtered_srcs = []
+  if len(c_srcs) > 0:
+    c_filtered_srcs_name = name + "_filter_cgo_srcs"
+    _cgo_filter_srcs(
+        name = c_filtered_srcs_name,
+        srcs = c_srcs,
+    )
+    c_filtered_srcs.append(":" + c_filtered_srcs_name)
 
   pkg_dir = _pkg_dir(
       "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
@@ -1153,7 +1240,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
   # Bundles objects into an archive so that _cgo_.o and _all.o can share them.
   native.cc_library(
       name = cgogen.outdir + "/_cgo_lib",
-      srcs = cgogen.c_thunks + cgogen.c_exports + c_srcs + c_hdrs,
+      srcs = cgogen.c_thunks + cgogen.c_exports + c_filtered_srcs + c_hdrs,
       deps = cdeps,
       copts = copts + platform_copts + [
           "-I", pkg_dir,

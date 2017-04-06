@@ -29,5 +29,16 @@ cgo_library(
         # Check that constraints apply to cgo files.
         "cgo_linux.go",
         "cgo_unknown.go",
+        "cgo_linux.c",
+        "cgo_unknown.c",
+        ":c_srcs_group",
+    ],
+)
+
+filegroup(
+    name = "c_srcs_group",
+    srcs = [
+        "cgo_group_linux.c",
+        "cgo_group_unknown.c",
     ],
 )
