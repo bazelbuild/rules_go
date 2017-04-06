@@ -15,9 +15,9 @@
 load("//go/private:go_repository.bzl", "buildifier_repository_only_for_internal_use", "new_go_repository")
 
 repository_tool_deps = {
-    'buildifier': struct(
+    'buildtools': struct(
         importpath = 'github.com/bazelbuild/buildifier',
-        repo = 'https://github.com/bazelbuild/buildifier',
+        repo = 'https://github.com/bazelbuild/buildtools',
         commit = '81c36a8418cb803d381335c95f8bb419ad1efa27',
     ),
     'tools': struct(
@@ -33,8 +33,10 @@ def go_internal_tools_deps():
   # TODO(yugui) Simply use go_repository when we drop support of Bazel 0.3.2.
   buildifier_repository_only_for_internal_use(
       name = "com_github_bazelbuild_buildifier",
-      commit = repository_tool_deps['buildifier'].commit,
-      importpath = repository_tool_deps['buildifier'].importpath,
+      commit = repository_tool_deps['buildtools'].commit,
+      importpath = repository_tool_deps['buildtools'].importpath,
+      remote = repository_tool_deps['buildtools'].repo,
+      vcs = 'git',
   )
 
   new_go_repository(
