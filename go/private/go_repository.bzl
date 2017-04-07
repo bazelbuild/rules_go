@@ -50,9 +50,7 @@ def _new_go_repository_impl(ctx):
           "--build_tags", ",".join(ctx.attr.build_tags)]
   if ctx.attr.build_file_name:
       cmds += ["--build_file_name", ctx.attr.build_file_name]
-  if ctx.attr.rules_go_repo_only_for_internal_use:
-    cmds += ["--go_rules_bzl_only_for_internal_use",
-             "%s//go:def.bzl" % ctx.attr.rules_go_repo_only_for_internal_use]
+
   cmds += [ctx.path('')]
 
   result = ctx.execute(cmds)
@@ -95,25 +93,5 @@ new_go_repository = repository_rule(
             executable = True,
             cfg = "host",
         ),
-        # See also #135.
-        # TODO(yugui) Remove this attribute when we drop support of Bazel 0.3.2.
-        "rules_go_repo_only_for_internal_use": attr.string(),
     },
-)
-
-# See also #135.
-# TODO(yugui) Remove this rule when we drop support of Bazel 0.3.2.
-def _buildifier_repository_impl(ctx):
-  _go_repository_impl(ctx)
-  result = ctx.execute([
-      "find", ctx.path(''), '(', '-name', 'BUILD', '-or', '-name', '*.bzl', ')',
-      '-exec',
-      'sed', '-i', '', '-e', 's!@io_bazel_rules_go//!@//!', '{}',
-      ';'])
-  if result.return_code:
-    fail("Failed to postprocess BUILD files in buildifier: %s" % result.stderr)
-
-buildifier_repository_only_for_internal_use = repository_rule(
-    implementation = _buildifier_repository_impl,
-    attrs = _go_repository_attrs,
 )

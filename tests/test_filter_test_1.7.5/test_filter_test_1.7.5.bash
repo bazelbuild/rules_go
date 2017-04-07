@@ -50,4 +50,8 @@ for file in "${TEST_FILES[@]}"; do
 done
 
 cd "$WORKSPACE_DIR"
-bazel test --test_filter=Pass :go_default_test
+bazel test \
+  --test_filter=Pass \
+  --genrule_strategy=standalone \
+  --spawn_strategy=standalone \
+  :go_default_test

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:go_repository.bzl", "buildifier_repository_only_for_internal_use", "new_go_repository")
+load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 
 repository_tool_deps = {
     'buildtools': struct(
@@ -29,9 +29,7 @@ repository_tool_deps = {
 
 def go_internal_tools_deps():
   """only for internal use in rules_go"""
-  # c.f. #135
-  # TODO(yugui) Simply use go_repository when we drop support of Bazel 0.3.2.
-  buildifier_repository_only_for_internal_use(
+  go_repository(
       name = "com_github_bazelbuild_buildifier",
       commit = repository_tool_deps['buildtools'].commit,
       importpath = repository_tool_deps['buildtools'].importpath,
@@ -43,9 +41,6 @@ def go_internal_tools_deps():
       name = "org_golang_x_tools",
       commit = repository_tool_deps['tools'].commit,
       importpath = repository_tool_deps['tools'].importpath,
-      # c.f. #135
-      # TODO(yugui) Remove this attribute when we drop support of Bazel 0.3.2.
-      rules_go_repo_only_for_internal_use = "@",
   )
 
 def _fetch_repository_tools_deps(ctx, goroot, gopath):
@@ -114,7 +109,7 @@ _go_repository_tools = repository_rule(
 )
 
 GO_TOOLCHAIN_BUILD_FILE = """
-load("{rules_go_repo}//go/private:go_root.bzl", "go_root")
+load("@io_bazel_rules_go//go/private:go_root.bzl", "go_root")
 
 package(
   default_visibility = [ "//visibility:public" ])
@@ -169,17 +164,12 @@ def _go_repository_select_impl(ctx):
 
   ctx.file("BUILD", GO_TOOLCHAIN_BUILD_FILE.format(
     goroot = goroot,
-    rules_go_repo = ctx.attr.rules_go_repo_only_for_internal_use,
   ))
 
 
 _go_repository_select = repository_rule(
     _go_repository_select_impl,
     attrs = {
-        "rules_go_repo_only_for_internal_use": attr.string(
-            default = "@io_bazel_rules_go",
-        ),
-
         "go_linux_version": attr.label(
             allow_files = True,
             single_file = True,
@@ -206,11 +196,7 @@ _GO_VERSIONS_SHA256 = {
     },
 }
 
-# c.f. #135
-# TODO(yugui) remove the attribute rules_go_repo_only_for_internal_use when we
-# drop support of Bazel 0.3.2
 def go_repositories(
-    rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
     go_version = None,
     go_linux = None,
     go_darwin = None):
@@ -250,7 +236,6 @@ def go_repositories(
       name = "io_bazel_rules_go_toolchain",
       go_linux_version = go_linux_version,
       go_darwin_version = go_darwin_version,
-      rules_go_repo_only_for_internal_use = rules_go_repo_only_for_internal_use,
   )
   _go_repository_tools(
       name = "io_bazel_rules_go_repository_tools",

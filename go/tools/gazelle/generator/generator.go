@@ -29,13 +29,9 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 )
 
-var (
-	// GoRulesBzl is the label of the Skylark file which provides Go rules
-	// You usually don't need to overwrite this variable.
-	//
-	// See also #135.
-	// TODO(yugui): Make it a constant when we drop support of Bazel 0.3.2.
-	GoRulesBzl = "@io_bazel_rules_go//go:def.bzl"
+const (
+	// goRulesBzl is the label of the Skylark file which provides Go rules
+	goRulesBzl = "@io_bazel_rules_go//go:def.bzl"
 )
 
 // Generator generates BUILD files for a Go repository.
@@ -184,7 +180,7 @@ func loadExpr(rules ...string) *bzl.CallExpr {
 	sort.Strings(rules)
 
 	list := []bzl.Expr{
-		&bzl.StringExpr{Value: GoRulesBzl},
+		&bzl.StringExpr{Value: goRulesBzl},
 	}
 	for _, r := range rules {
 		list = append(list, &bzl.StringExpr{Value: r})
