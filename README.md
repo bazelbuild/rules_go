@@ -4,6 +4,13 @@ Bazel ≥0.4.4 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
 :---: | :---: | :---: | :---:
 [![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)
 
+## Announcements
+
+* **April 7, 2017** Builds using rules_go recently broke
+([#361](https://github.com/bazelbuild/rules_go/issues/361)) because of a name
+change in buildifier, one of our dependencies. You can upgrade to `0.3.4`,
+`0.4.2`, or `master` to get your build working again.
+
 ## Contents
 
 * [Overview](#overview)
@@ -57,7 +64,7 @@ BUILD.bazel files in bazelbuild/buildifier).
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.4.1",
+        tag = "0.4.2",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
