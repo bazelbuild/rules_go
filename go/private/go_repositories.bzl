@@ -53,9 +53,12 @@ def _fetch_repository_tools_deps(ctx, goroot, gopath):
     result = ctx.execute(['mkdir', '-p', ctx.path('src/' + dep.importpath)])
     if result.return_code:
       fail('failed to create directory: %s' % result.stderr)
-    ctx.download_and_extract(
-        '%s/archive/%s.zip' % (dep.repo, dep.commit),
-        'src/%s' % dep.importpath, '', 'zip', '%s-%s' % (name, dep.commit))
+    archive = name + '.tar.gz'
+    ctx.download(
+        url = '%s/archive/%s.tar.gz' % (dep.repo, dep.commit),
+        output = archive)
+    ctx.execute([
+        'tar', '-C', 'src/%s' % dep.importpath, '-xf', archive, '--strip', '1'])
 
   result = ctx.execute([
       'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath, 'PATH=%s/bin' % goroot,
