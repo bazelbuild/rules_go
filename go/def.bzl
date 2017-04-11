@@ -59,10 +59,29 @@ def _go_prefix(ctx):
     prefix = prefix + "/"
   return prefix
 
-# TODO(bazel-team): it would be nice if Bazel had this built-in.
-def symlink_tree_commands(dest_dir, artifact_dict):
-  """Symlink_tree_commands returns a list of commands to create the
-  dest_dir, and populate it according to the given dict.
+def _relative_path_from_dir(from_dir, to_file):
+  """Returns a relative path from from_dir to to_file.
+
+  Used to construct paths from working directories. Both paths must be relative
+  to the execroot and must not contain "." or "..". The execroot may be
+  referenced with an empty path.
+  """
+  _check_execroot_path(from_dir)
+  _check_execroot_path(to_file)
+  up = from_dir.count("/") + 1 if from_dir != "" else 0
+  return up * "../" + to_file
+
+def _check_execroot_path(path):
+  if path == "":
+    return
+  parts = path.split("/")
+  for part in parts:
+    if part in ["", ".", ".."]:
+      fail("_check_execroot_path: bad path: %s" % path)
+
+def _symlink_tree_commands(dest_dir, artifact_dict):
+  """Returns a list of commands to create the dest_dir, and populate it
+  according to the given dict.
 
   Args:
     dest_dir: The destination directory, a string.
@@ -71,32 +90,14 @@ def symlink_tree_commands(dest_dir, artifact_dict):
   Returns:
     A list of commands that will setup the symlink tree.
   """
-  cmds = [
-    "rm -rf " + dest_dir,
-    "mkdir -p " + dest_dir,
-  ]
-
+  cmds = ["mkdir -p " + dest_dir]
   for old_path, new_path in artifact_dict.items():
-    pos = new_path.rfind('/')
-    if pos >= 0:
-      new_dir = new_path[:pos]
-      up = (new_dir.count('/') + 1 +
-            dest_dir.count('/') + 1)
-    else:
-      new_dir = ''
-      up = dest_dir.count('/') + 1
-
-    if _is_external(dest_dir):
-      """In old versions of Bazel, external execroot paths were of the form
-      bazel-out/host/bin/external/repo/path/to/target, so counting up the /s
-      worked fine. In bazel 5.0+, execution roots began to look like
-      ../repo/bazel-out/host/bin/path/to/target.  The ../repo basically ends
-      up resolving to 0 path elements, so 2 segments should be removed from the
-      count."""
-      up -= 2
+    link_path = dest_dir + "/" + new_path
+    link_dir = link_path.rpartition("/")[0]
+    rel_path = _relative_path_from_dir(link_dir, old_path)
     cmds += [
-      "mkdir -p %s/%s" % (dest_dir, new_dir),
-      "ln -s %s%s %s/%s" % ('../' * up, old_path, dest_dir, new_path),
+        "mkdir -p '%s'" % link_dir,
+        "ln -s '%s' '%s'" % (rel_path, link_path),
     ]
   return cmds
 
@@ -204,17 +205,6 @@ def _go_importpath(ctx):
     path = path[1:]
   return path
 
-def _remove_external_prefix(old_path):
-  """Removes the ../repo_name prefix from paths.
-  These prefixes aren't used in the go symlink tree."""
-  if _is_external(old_path):
-    old_path = old_path[old_path.find('/', 3) + 1:]
-  return old_path
-
-def _is_external(p):
-  """Checks if the string starts with ../"""
-  return p[0:3] == '../'
-
 def _emit_go_compile_action(ctx, sources, deps, out_lib,
                             extra_objects, gc_goopts):
   """Construct the command line for compiling Go code.
@@ -243,30 +233,28 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   inputs += list(sources)
   prefix = _go_prefix(ctx)
   for s in sources:
-    tree_layout[s.path] = prefix + _remove_external_prefix(s.path)
+    tree_layout[s.path] = prefix + s.path
 
   out_dir = out_lib.path + ".dir"
-  out_depth = out_dir.count('/') + 1
-  if _is_external(out_dir):
-    out_depth -= 2
-  cmds = symlink_tree_commands(out_dir, tree_layout)
+  cmds = _symlink_tree_commands(out_dir, tree_layout)
 
   # cd into the out_dir.
   cmds += [
-      'export GOROOT=$(pwd)/%s/..' % ctx.file.go_tool.dirname,
-      'cd ' + out_dir,
+      "export GOROOT=$(cd $(dirname '%s')/..; pwd)" % ctx.file.go_tool.path,
+      "cd '%s'" % out_dir,
   ]
 
   # Filter source files using build tags.
   cleaned_go_source_paths = [
-      prefix + _remove_external_prefix(i.path)
+      prefix + i.path
       for i in sources
       if not i.basename.startswith("_cgo")]
   cleaned_cgo_source_paths = [
-      prefix + _remove_external_prefix(i.path)
+      prefix + i.path
       for i in sources
       if i.basename.startswith("_cgo")]
-  filter_tags_path = ('../' * out_depth) + ctx.executable._filter_tags.path
+  filter_tags_path = _relative_path_from_dir(
+      out_dir, ctx.executable._filter_tags.path)
   cmds += [
       'UNFILTERED_GO_FILES=(%s)' % 
           ' '.join(["'%s'" % f for f in cleaned_go_source_paths]),
@@ -284,24 +272,26 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   ]
 
   # Compile filtered files.
-  args = [
-      ("../" * out_depth) + ctx.file.go_tool.path,
-      "tool", "compile",
-      "-o", ("../" * out_depth) + out_lib.path, "-pack",
-      "-I", ".",
-  ] + gc_goopts + ['"${FILTERED_GO_FILES[@]}"']
+  cmds += [
+      "'%s' tool compile -o '%s' -pack -I . %s \"${FILTERED_GO_FILES[@]}\"" %
+          (_relative_path_from_dir(out_dir, ctx.file.go_tool.path),
+           _relative_path_from_dir(out_dir, out_lib.path),
+           ' '.join(["'%s'" % opt for opt in gc_goopts])),
+  ]
 
   # Pack extra objects into an archive, if provided.
   # Set -p to the import path of the library, ie.
   # (ctx.label.package + "/" ctx.label.name) for now.
-  cmds += [' '.join(args)]
-
   extra_inputs = ctx.files.toolchain
   if extra_objects:
     extra_inputs += extra_objects
-    objs = ' '.join([c.path for c in extra_objects])
-    cmds += ["cd " + ('../' * out_depth),
-             ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
+    cmds += [
+        "cd '%s'" % _relative_path_from_dir(out_dir, ""),
+        "'%s' tool pack r '%s' %s" %
+            (ctx.file.go_tool.path,
+             out_lib.path,
+             ' '.join(["'%s'" % obj.path for obj in extra_objects]))
+    ]
 
   f = _emit_generate_params_action(cmds, ctx, out_lib.path + ".GoCompileFile.params")
 
@@ -468,9 +458,6 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
                          executable, gc_linkopts):
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
-  out_depth = out_dir.count('/') + 1
-  if _is_external(out_dir):
-    out_depth -= 2
   tree_layout = {}
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
@@ -490,7 +477,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
 
   ld = "%s" % ctx.fragments.cpp.compiler_executable
   if ld[0] != '/':
-    ld = ('../' * out_depth) + ld
+    ld = _relative_path_from_dir(out_dir, ld)
   extldflags = _c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
   ]
@@ -503,7 +490,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   link_cmd = [
-      ('../' * out_depth) + ctx.file.go_tool.path,
+      "'%s'" % _relative_path_from_dir(out_dir, ctx.file.go_tool.path),
       "tool", "link", "-L", ".",
       "-o", _go_importpath(ctx),
   ] + gc_linkopts + ['"${STAMP_XDEFS[@]}"']
@@ -521,7 +508,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
       main_archive,
   ]
 
-  cmds = symlink_tree_commands(out_dir, tree_layout)
+  cmds = _symlink_tree_commands(out_dir, tree_layout)
   # Avoided -s on OSX but but it requires dsymutil to be on $PATH.
   # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
   # or earlier.
@@ -547,7 +534,8 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   cmds += [
     "cd " + out_dir,
     ' '.join(link_cmd),
-    "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
+    "mv -f '%s' '%s'" %
+        (_go_importpath(ctx), _relative_path_from_dir(out_dir, executable.path)),
   ]
 
   f = _emit_generate_params_action(cmds, ctx, lib.path + ".GoLinkFile.params")
@@ -826,7 +814,7 @@ def _cgo_codegen_impl(ctx):
   out_dir = (ctx.configuration.genfiles_dir.path + '/' +
              p + ctx.attr.outdir)
   cc = ctx.fragments.cpp.compiler_executable
-  cmds = symlink_tree_commands(out_dir + "/src", tree_layout) + [
+  cmds = _symlink_tree_commands(out_dir + "/src", tree_layout) + [
       'export GOROOT=$(pwd)/' + ctx.file.go_tool.dirname + '/..',
       # We cannot use env for CC because $(CC) on OSX is relative
       # and '../' does not work fine due to symlinks.
