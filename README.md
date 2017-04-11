@@ -6,6 +6,9 @@ Bazel ≥0.4.4 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
 
 ## Announcements
 
+* **April 12, 2017**
+Release [0.4.3](https://github.com/bazelbuild/rules_go/releases/tag/0.4.3) is
+now available!
 * **April 7, 2017** Builds using rules_go recently broke
 ([#361](https://github.com/bazelbuild/rules_go/issues/361)) because of a name
 change in buildifier, one of our dependencies. You can upgrade to `0.3.4`,
@@ -18,20 +21,20 @@ change in buildifier, one of our dependencies. You can upgrade to `0.3.4`,
 * [Generating build files](#generating-build-files)
 * [FAQ](#faq)
 * [Repository rules](#repository-rules)
- * [go_repositories](#go_repositories)
- * [go_repository](#go_repository)
- * [new_go_repository](#new_go_repository)
+  * [go_repositories](#go_repositories)
+  * [go_repository](#go_repository)
+  * [new_go_repository](#new_go_repository)
 * [Build rules](#build-rules)
- * [go_prefix](#go_prefix)
- * [go_library](#go_library)
- * [cgo_library](#cgo_library)
- * [go_binary](#go_binary)
- * [go_test](#go_test)
- * [go_proto_library](#go_proto_library)
+  * [go_prefix](#go_prefix)
+  * [go_library](#go_library)
+  * [cgo_library](#cgo_library)
+  * [go_binary](#go_binary)
+  * [go_test](#go_test)
+  * [go_proto_library](#go_proto_library)
 
 ## Overview
 
-The rules should be considered experimental. They support:
+The rules are in the alpha stage of development. They support:
 
 * libraries
 * binaries
@@ -43,6 +46,7 @@ The rules should be considered experimental. They support:
 
 They currently do not support (in order of importance):
 
+* cross compilation
 * bazel-style auto generating BUILD (where the library name is other than
   go_default_library)
 * C/C++ interoperation except cgo (swig etc.)
@@ -64,7 +68,7 @@ BUILD.bazel files in bazelbuild/buildifier).
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.4.2",
+        tag = "0.4.3",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
