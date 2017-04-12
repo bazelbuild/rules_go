@@ -39,6 +39,9 @@ If you prefer to write your own `BUILD` files for dependencies, you can still
 use `new_git_repository`. Be aware that you can only specify one `BUILD` file
 for the top-level package.
 
+Experimental: some users may find [wtool](go/tools/wtool/README.md) helpful for
+managing new_go_repository entries in their WORKSPACE file.
+
 ### Example
 
 Here is an example from a `WORKSPACE` file using the repository method for

@@ -50,7 +50,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-Note: this repo requires bazel ≥ 0.4.4 to function (due to the use of
+Note: since 0.4.x this repo requires bazel ≥ 0.4.4 to function (due to the use of
 BUILD.bazel files in bazelbuild/buildifier).
 
 ## Setup
@@ -856,7 +856,7 @@ go_proto_library(name, srcs, deps, has_services)
       <td><code>name</code></td>
       <td>
         <code>Name, required</code>
-        <p>A unique name for the underlying go_library rule.</p>
+        <p>A unique name for the underlying go_library rule. (usually `go_default_library`)</p>
       </td>
     </tr>
     <tr>
