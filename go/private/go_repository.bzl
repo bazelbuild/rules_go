@@ -47,7 +47,8 @@ def _new_go_repository_impl(ctx):
 
   cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
           '--repo_root', ctx.path(''),
-          "--build_tags", ",".join(ctx.attr.build_tags)]
+          "--build_tags", ",".join(ctx.attr.build_tags),
+          "--external", ctx.attr.external]
   if ctx.attr.build_file_name:
       cmds += ["--build_file_name", ctx.attr.build_file_name]
 
@@ -86,6 +87,7 @@ go_repository = repository_rule(
 new_go_repository = repository_rule(
     implementation = _new_go_repository_impl,
     attrs = _go_repository_attrs + {
+        "external": attr.string(default="external"),        
         "_gazelle": attr.label(
             default = Label("@io_bazel_rules_go_repository_tools//:bin/gazelle"),
             allow_files = True,
