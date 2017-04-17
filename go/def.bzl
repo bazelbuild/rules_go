@@ -840,7 +840,10 @@ def _cgo_filter_srcs_impl(ctx):
     ]
     dsts.append(dst)
 
-  script_name = ctx.label.package + "/" + ctx.label.name + ".CGoFilterSrcs.params"
+  if ctx.label.package == "":
+    script_name = ctx.label.name + ".CGoFilterSrcs.params"
+  else:
+    script_name = ctx.label.package + "/" + ctx.label.name + ".CGoFilterSrcs.params"
   f = _emit_generate_params_action(cmds, ctx, script_name)
   ctx.action(
       inputs = [f, ctx.executable._filter_tags] + srcs,

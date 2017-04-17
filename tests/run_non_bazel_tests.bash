@@ -13,6 +13,7 @@ cd $(dirname "$0")
 prefix=">>>>>>"
 
 tests=(
+  cgo_library_root_dir/cgo_library_root_dir.bash
   gc_opts_unsafe/gc_opts_unsafe.bash
   test_filter_test/test_filter_test.bash
 )
