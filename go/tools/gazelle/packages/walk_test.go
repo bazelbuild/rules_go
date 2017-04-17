@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sort"
+	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
@@ -31,78 +31,159 @@ func tempDir() (string, error) {
 	return ioutil.TempDir(os.Getenv("TEST_TMPDIR"), "walk_test")
 }
 
-func TestWalkSimple(t *testing.T) {
-	dir, err := tempDir()
+type fileSpec struct {
+	path, content string
+}
+
+func checkFiles(t *testing.T, files []fileSpec, want []*build.Package) {
+	dir, err := createFiles(files)
 	if err != nil {
-		t.Fatalf("tempDir() failed with %v; want success", err)
+		t.Fatalf("createFiles() failed with %v; want success", err)
 	}
 	defer os.RemoveAll(dir)
 
-	fname := filepath.Join(dir, "lib.go")
-	if err := ioutil.WriteFile(fname, []byte("package lib"), 0600); err != nil {
-		t.Fatalf(`ioutil.WriteFile(%q, "package lib", 0600) failed with %v; want success`, fname, err)
+	got, err := walkPackages(dir)
+	if err != nil {
+		t.Errorf("walkPackages(%q) failed with %v; want success", dir, err)
 	}
+	checkPackages(t, got, want)
+}
 
-	var n int
-	err = packages.Walk(build.Default, dir, func(pkg *build.Package) error {
-		if got, want := pkg.Name, "lib"; got != want {
-			t.Errorf("pkg.Name = %q; want %q", got, want)
+func createFiles(files []fileSpec) (string, error) {
+	dir, err := tempDir()
+	if err != nil {
+		return "", err
+	}
+	for _, f := range files {
+		path := filepath.Join(dir, f.path)
+		if strings.HasSuffix(f.path, "/") {
+			if err := os.MkdirAll(path, 0700); err != nil {
+				return dir, err
+			}
+			continue
 		}
-		n++
+		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			return "", err
+		}
+		if err := ioutil.WriteFile(path, []byte(f.content), 0600); err != nil {
+			return "", err
+		}
+	}
+	return dir, nil
+}
+
+func walkPackages(root string) ([]*build.Package, error) {
+	var pkgs []*build.Package
+	err := packages.Walk(build.Default, root, func(pkg *build.Package) error {
+		pkgs = append(pkgs, pkg)
 		return nil
 	})
 	if err != nil {
-		t.Errorf("packages.Walk(build.Default, %q, func) failed with %v; want success", dir, err)
+		return nil, err
 	}
-	if got, want := n, 1; got != want {
-		t.Errorf("n = %d; want %d", got, want)
+	return pkgs, nil
+}
+
+func checkPackages(t *testing.T, got []*build.Package, want []*build.Package) {
+	if len(got) != len(want) {
+		t.Fatalf("got %d packages; want %d", len(got), len(want))
+	}
+	for i := 0; i < len(got); i++ {
+		checkPackage(t, got[i], want[i])
 	}
 }
 
-func TestWalkNested(t *testing.T) {
-	dir, err := tempDir()
-	if err != nil {
-		t.Fatalf("tempDir() failed with %v; want success", err)
+func checkPackage(t *testing.T, got, want *build.Package) {
+	if !reflect.DeepEqual(got.Name, want.Name) {
+		t.Errorf("got package name %q; want %q", got.Name, want.Name)
 	}
-	defer os.RemoveAll(dir)
+	if !reflect.DeepEqual(got.GoFiles, want.GoFiles) {
+		t.Errorf("in package %q, got GoFiles %v; want %v", got.Name, got.GoFiles, want.GoFiles)
+	}
+	if !reflect.DeepEqual(got.CgoFiles, want.CgoFiles) {
+		t.Errorf("in package %q, got CgoFiles %v; want %v", got.Name, got.CgoFiles, want.CgoFiles)
+	}
+	if !reflect.DeepEqual(got.CFiles, want.CFiles) {
+		t.Errorf("in package %q, got CFiles %v; want %v", got.Name, got.CFiles, want.CFiles)
+	}
+	if !reflect.DeepEqual(got.TestGoFiles, want.TestGoFiles) {
+		t.Errorf("in package %q, got TestGoFiles %v; want %v", got.Name, got.TestGoFiles, want.TestGoFiles)
+	}
+	if !reflect.DeepEqual(got.XTestGoFiles, want.XTestGoFiles) {
+		t.Errorf("in package %q, got XTestGoFiles %v; want %v", got.Name, got.XTestGoFiles, want.XTestGoFiles)
+	}
+}
 
-	for _, p := range []struct {
-		path, content string
-	}{
+func TestWalkEmpty(t *testing.T) {
+	files := []fileSpec{
+		{path: "a/foo.c"},
+		{path: "b/"},
+	}
+	want := []*build.Package{}
+	checkFiles(t, files, want)
+}
+
+func TestWalkSimple(t *testing.T) {
+	files := []fileSpec{{path: "lib.go", content: "package lib"}}
+	want := []*build.Package{
+		{
+			Name:    "lib",
+			GoFiles: []string{"lib.go"},
+		},
+	}
+	checkFiles(t, files, want)
+}
+
+func TestWalkNested(t *testing.T) {
+	files := []fileSpec{
 		{path: "a/foo.go", content: "package a"},
 		{path: "b/c/bar.go", content: "package c"},
 		{path: "b/d/baz.go", content: "package main"},
-	} {
-		path := filepath.Join(dir, p.path)
-		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-			t.Fatalf("os.MkdirAll(%q, 0700) failed with %v; want success", filepath.Dir(path), err)
-		}
-		if err := ioutil.WriteFile(path, []byte(p.content), 0600); err != nil {
-			t.Fatalf("ioutil.WriteFile(%q, %q, 0600) failed with %v; want success", path, p.content, err)
-		}
 	}
+	want := []*build.Package{
+		{
+			Name:    "a",
+			GoFiles: []string{"foo.go"},
+		},
+		{
+			Name:    "c",
+			GoFiles: []string{"bar.go"},
+		},
+		{
+			Name:    "main",
+			GoFiles: []string{"baz.go"},
+		},
+	}
+	checkFiles(t, files, want)
+}
 
-	var dirs, pkgs []string
-	err = packages.Walk(build.Default, dir, func(pkg *build.Package) error {
-		rel, err := filepath.Rel(dir, pkg.Dir)
-		if err != nil {
-			t.Errorf("filepath.Rel(%q, %q) failed with %v; want success", dir, pkg.Dir, err)
-			return err
-		}
-		dirs = append(dirs, filepath.ToSlash(rel))
-		pkgs = append(pkgs, pkg.Name)
-		return nil
-	})
+func TestMultiplePackagesWithDefault(t *testing.T) {
+	files := []fileSpec{
+		{path: "a/a.go", content: "package a"},
+		{path: "a/b.go", content: "package b"},
+	}
+	want := []*build.Package{
+		{
+			Name:    "a",
+			GoFiles: []string{"a.go"},
+		},
+	}
+	checkFiles(t, files, want)
+}
+
+func TestMultiplePackagesWithoutDefault(t *testing.T) {
+	files := []fileSpec{
+		{path: "a/b.go", content: "package b"},
+		{path: "a/c.go", content: "package c"},
+	}
+	dir, err := createFiles(files)
 	if err != nil {
-		t.Errorf("packages.Walk(build.Default, %q, func) failed with %v; want success", dir, err)
+		t.Fatalf("createFiles() failed with %v; want success", err)
 	}
+	defer os.RemoveAll(dir)
 
-	sort.Strings(dirs)
-	if got, want := dirs, []string{"a", "b/c", "b/d"}; !reflect.DeepEqual(got, want) {
-		t.Errorf("pkgs = %q; want %q", got, want)
-	}
-	sort.Strings(pkgs)
-	if got, want := pkgs, []string{"a", "c", "main"}; !reflect.DeepEqual(got, want) {
-		t.Errorf("pkgs = %q; want %q", got, want)
+	_, err = walkPackages(dir)
+	if _, ok := err.(*build.MultiplePackageError); !ok {
+		t.Errorf("got %v; want MultiplePackageError", err)
 	}
 }
