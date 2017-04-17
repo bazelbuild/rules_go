@@ -60,7 +60,7 @@ def _new_go_repository_impl(ctx):
 
 
 _go_repository_attrs = {
-    "build_file_name": attr.string(),
+    "build_file_name": attr.string(default="BUILD.bazel"),
     "importpath": attr.string(),
     "remote": attr.string(),
     "vcs": attr.string(default="", values=["", "git", "hg", "svn", "bzr"]),

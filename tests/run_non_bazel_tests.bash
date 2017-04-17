@@ -14,6 +14,7 @@ prefix=">>>>>>"
 
 tests=(
   gc_opts_unsafe/gc_opts_unsafe.bash
+  new_go_repository_build_name/new_go_repository_build_name.bash
   test_filter_test/test_filter_test.bash
 )
 
