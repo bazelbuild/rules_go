@@ -20,7 +20,8 @@
 set -euo pipefail
 
 TEST_DIR=$(cd $(dirname "$0"); pwd)
-RULES_DIR=$(cd "$TEST_DIR/../.."; pwd)
+source "$TEST_DIR/../non_bazel_tests_common.bash"
+
 WORKSPACE_DIR=$(mktemp -d)
 
 function cleanup {
@@ -31,7 +32,4 @@ trap cleanup EXIT
 cp -r "$TEST_DIR"/* "$WORKSPACE_DIR"
 cd "$WORKSPACE_DIR"
 sed -e "s|@@RULES_DIR@@|$RULES_DIR|" <WORKSPACE.in >WORKSPACE
-bazel test \
-  --genrule_strategy=standalone \
-  --spawn_strategy=standalone \
-  //:go_default_test
+bazel_batch_test //:go_default_test

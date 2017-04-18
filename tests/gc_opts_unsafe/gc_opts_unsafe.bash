@@ -10,6 +10,7 @@
 # error message.
 
 cd $(dirname "$0")
+source ../non_bazel_tests_common.bash
 
 result=0
 
@@ -17,7 +18,7 @@ function check_build_fails {
   local target=$1
   local message=$2
   local outfile=$(mktemp)
-  bazel build "$target" 2>&1 | tee "$outfile"
+  bazel_build "$target" 2>&1 | tee "$outfile"
   local target_result=${PIPESTATUS[0]}
   if [ $target_result -eq 0 ]; then
     echo "build of $target succeeded but should have failed" >&2

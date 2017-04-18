@@ -25,7 +25,7 @@
 set -euo pipefail
 
 TEST_DIR=$(cd $(dirname "$0"); pwd)
-RULES_DIR=$(cd "$TEST_DIR/../.."; pwd)
+source "$TEST_DIR/../non_bazel_tests_common.bash"
 
 GO_VERSION=1.7.5
 WORKSPACE_DIR=$(mktemp -d)
@@ -79,11 +79,7 @@ EOF
 cp "$TEST_DIR"/BUILD "$WORKSPACE_DIR"
 cp "$TEST_DIR"/print_version.go "$WORKSPACE_DIR"
 pushd "$WORKSPACE_DIR"
-ACTUAL_VERSION=$(bazel \
-                   run \
-                   --genrule_strategy=standalone \
-                   --spawn_strategy=standalone \
-                   //:print_version)
+ACTUAL_VERSION=$(bazel_batch_run //:print_version)
 popd
 if [ "$ACTUAL_VERSION" != "go$GO_VERSION" ]; then
   echo "bad version; got $ACTUAL_VERSION, want $GO_VERSION" >&1

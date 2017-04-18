@@ -24,7 +24,7 @@
 set -euo pipefail
 
 TEST_DIR=$(cd $(dirname "$0"); pwd)
-RULES_DIR=$(cd "$TEST_DIR/../.."; pwd)
+source "$TEST_DIR/../non_bazel_tests_common.bash"
 WORKSPACE_DIR=$(mktemp -d)
 TEST_FILES=(
   BUILD
@@ -50,8 +50,4 @@ for file in "${TEST_FILES[@]}"; do
 done
 
 cd "$WORKSPACE_DIR"
-bazel test \
-  --test_filter=Pass \
-  --genrule_strategy=standalone \
-  --spawn_strategy=standalone \
-  :go_default_test
+bazel_batch_test --test_filter=Pass //:go_default_test
