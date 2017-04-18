@@ -1,0 +1,38 @@
+local_repository(
+    name = "io_bazel_rules_go",
+    path = "@@RULES_DIR@@",
+)
+load("@io_bazel_rules_go//go:def.bzl", "go_repositories", "new_go_repository")
+go_repositories()
+
+# TODO(#409): don't specify build tags for repositories. We should generate
+# platform-independent BUILD files without hints.
+BUILD_TAGS = ["amd64", "@@GOOS@@"]
+
+new_go_repository(
+    name = "org_golang_x_crypto",
+    importpath = "golang.org/x/crypto",
+    commit = "efac7f277b17c19894091e358c6130cb6bd51117",
+    build_tags = BUILD_TAGS,
+)
+
+new_go_repository(
+    name = "org_golang_x_net",
+    importpath = "golang.org/x/net",
+    commit = "5602c733f70afc6dcec6766be0d5034d4c4f14de",
+    build_tags = BUILD_TAGS,
+)
+
+new_go_repository(
+    name = "org_golang_x_text",
+    importpath = "golang.org/x/text",
+    commit = "a9a820217f98f7c8a207ec1e45a874e1fe12c478",
+    build_tags = BUILD_TAGS,
+)
+
+new_go_repository(
+    name = "org_golang_x_tools",
+    importpath = "golang.org/x/tools",
+    commit = "663269851cdddc898f963782f74ea574bcd5c814",
+    build_tags = BUILD_TAGS,
+)

@@ -16,6 +16,7 @@ tests=(
   cgo_library_root_dir/cgo_library_root_dir.bash
   gc_opts_unsafe/gc_opts_unsafe.bash
   new_go_repository_build_name/new_go_repository_build_name.bash
+  popular_repos/popular_repos.bash
   test_filter_test/test_filter_test.bash
 )
 
