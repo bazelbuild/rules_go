@@ -93,7 +93,7 @@ func findPackage(bctx build.Context, dir string) (*build.Package, error) {
 func findPackageFiles(dir string) (packageGoFiles map[string][]os.FileInfo, otherFiles []os.FileInfo, err error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 
 	packageGoFiles = make(map[string][]os.FileInfo)
@@ -128,7 +128,7 @@ func findPackageFiles(dir string) (packageGoFiles map[string][]os.FileInfo, othe
 		}
 		packageGoFiles[packageName] = append(packageGoFiles[packageName], file)
 	}
-	return
+	return packageGoFiles, otherFiles, nil
 }
 
 func defaultPackageName(dir string) string {
@@ -143,26 +143,29 @@ func defaultPackageName(dir string) string {
 func selectPackageName(packageGoFiles map[string][]os.FileInfo, dir string) (string, error) {
 	if len(packageGoFiles) == 0 {
 		return "", &build.NoGoError{Dir: dir}
-	} else if len(packageGoFiles) == 1 {
+	}
+
+	if len(packageGoFiles) == 1 {
 		var packageName string
 		for name, _ := range packageGoFiles {
 			packageName = name
 		}
 		return packageName, nil
-	} else {
-		defaultName := defaultPackageName(dir)
-		if _, ok := packageGoFiles[defaultName]; ok {
-			return defaultName, nil
-		}
-
-		err := &build.MultiplePackageError{Dir: dir}
-		for name, files := range packageGoFiles {
-			// Add the first file for each package for the error message.
-			// Error() method expects these lists to be the same length. File
-			// lists are guaranteed to be non-empty.
-			err.Packages = append(err.Packages, name)
-			err.Files = append(err.Files, files[0].Name())
-		}
-		return "", err
 	}
+
+	defaultName := defaultPackageName(dir)
+	if _, ok := packageGoFiles[defaultName]; ok {
+		return defaultName, nil
+	}
+
+	err := &build.MultiplePackageError{Dir: dir}
+	for name, files := range packageGoFiles {
+		// Add the first file for each package for the error message.
+		// Error() method expects these lists to be the same length. File
+		// lists must be non-empty. These lists are only created by
+		// findPackageFiles for packages with .go files present.
+		err.Packages = append(err.Packages, name)
+		err.Files = append(err.Files, files[0].Name())
+	}
+	return "", err
 }
