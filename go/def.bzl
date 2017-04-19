@@ -604,7 +604,7 @@ def go_binary_impl(ctx):
     lib=lib_out, executable=executable,
     gc_linkopts=_gc_linkopts(ctx))
 
-  return struct(files = set([executable]) + lib_result.files,
+  return struct(files = set([executable]),
                 runfiles = lib_result.runfiles,
                 cgo_object = lib_result.cgo_object)
 
@@ -672,7 +672,10 @@ def go_test_impl(ctx):
   # without code changes.
   runfiles = ctx.runfiles(files = [ctx.outputs.executable])
   runfiles = runfiles.merge(lib_result.runfiles)
-  return struct(runfiles=runfiles)
+  return struct(
+      files = set([ctx.outputs.executable]),
+      runfiles = runfiles,
+  )
 
 go_env_attrs = {
     "toolchain": attr.label(
