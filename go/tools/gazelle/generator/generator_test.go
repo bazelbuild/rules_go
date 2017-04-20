@@ -18,6 +18,9 @@ package generator
 import (
 	"fmt"
 	"go/build"
+	"io/ioutil"
+	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -47,11 +50,16 @@ func TestBuildTagOverride(t *testing.T) {
 }
 
 func TestGenerator(t *testing.T) {
-	testGenerator(t, "BUILD")
+	testGenerator(t, "BUILD", "")
+}
+
+func TestGeneratorWithTags(t *testing.T) {
+	testGenerator(t, "BUILD", "linux")
+	testGenerator(t, "BUILD", "darwin")
 }
 
 func TestGeneratorDotBazel(t *testing.T) {
-	testGenerator(t, "BUILD.bazel")
+	testGenerator(t, "BUILD.bazel", "")
 }
 
 func TestLoadExprSorted(t *testing.T) {
@@ -70,11 +78,12 @@ func TestLoadExprSorted(t *testing.T) {
 	}
 }
 
-func testGenerator(t *testing.T, buildFileName string) {
+func testGenerator(t *testing.T, buildFileName, buildTags string) {
 	stub := stubRuleGen{
-		goFiles: make(map[string][]string),
-		cFiles:  make(map[string][]string),
-		sFiles:  make(map[string][]string),
+		goFiles:  make(map[string][]string),
+		cgoFiles: make(map[string][]string),
+		cFiles:   make(map[string][]string),
+		sFiles:   make(map[string][]string),
 		fixtures: map[string][]*bzl.Rule{
 			"lib": {
 				{
@@ -203,15 +212,12 @@ func testGenerator(t *testing.T, buildFileName string) {
 	}
 
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildFileName, "", rules.External)
+	g, err := New(repo, "example.com/repo", buildFileName, buildTags, rules.External)
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo", %q, "", rules.External) failed with %v; want success`, repo, err, buildFileName)
 		return
 	}
 
-	if len(g.bctx.BuildTags) != 2 {
-		t.Errorf("Got %d build tags; want 2", len(g.bctx.BuildTags))
-	}
 	g.g = stub
 
 	got, err := g.Generate(repo)
@@ -316,8 +322,54 @@ func testGenerator(t *testing.T, buildFileName string) {
 		t.Errorf("g.Generate(%q) = %s; want: %s", repo, prettyFiles(got), prettyFiles(want))
 	}
 
-	// Tests for build tag filtering.
+	if buildTags == "" {
+		checkNoBuildConstraints(t, stub)
+	} else {
+		checkBuildConstraints(t, stub)
+	}
+}
 
+func checkNoBuildConstraints(t *testing.T, stub stubRuleGen) {
+	// Check that all .go, .s, and .c files were found.
+	var wantGoFiles, wantSFiles, wantCFiles []string
+	dir := filepath.Join(testdata.Dir(), "repo", buildTagRepoPath)
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range files {
+		name := file.Name()
+		ext := path.Ext(name)
+		switch ext {
+		case ".go":
+			if !strings.HasSuffix(name, "_test.go") {
+				wantGoFiles = append(wantGoFiles, name)
+			}
+		case ".S":
+			wantSFiles = append(wantSFiles, name)
+		case ".c":
+			wantCFiles = append(wantCFiles, name)
+		}
+	}
+	fmt.Fprintf(os.Stderr, "cgo file count: %d\n", len(stub.cgoFiles[buildTagRepoPath]))
+	var gotGoFiles []string
+	gotGoFiles = append(gotGoFiles, stub.goFiles[buildTagRepoPath]...)
+	gotGoFiles = append(gotGoFiles, stub.cgoFiles[buildTagRepoPath]...)
+	sort.Strings(gotGoFiles)
+	gotSFiles := stub.sFiles[buildTagRepoPath]
+	gotCFiles := stub.cFiles[buildTagRepoPath]
+	if !reflect.DeepEqual(gotGoFiles, wantGoFiles) {
+		t.Errorf(".go files without constraints: got %v; want %v", gotGoFiles, wantGoFiles)
+	}
+	if !reflect.DeepEqual(gotSFiles, wantSFiles) {
+		t.Errorf(".S files without constraints: got %v; want %v", gotSFiles, wantSFiles)
+	}
+	if !reflect.DeepEqual(gotCFiles, wantCFiles) {
+		t.Errorf(".c files without constraints; got %v; want %v", gotCFiles, wantCFiles)
+	}
+}
+
+func checkBuildConstraints(t *testing.T, stub stubRuleGen) {
 	// Counter for total files.
 	var otherfiles, linuxfiles int
 
@@ -397,12 +449,14 @@ func (p fileSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 type stubRuleGen struct {
 	fixtures map[string][]*bzl.Rule
 	goFiles  map[string][]string
+	cgoFiles map[string][]string
 	sFiles   map[string][]string
 	cFiles   map[string][]string
 }
 
 func (s stubRuleGen) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error) {
 	s.goFiles[rel] = pkg.GoFiles
+	s.cgoFiles[rel] = pkg.CgoFiles
 	s.cFiles[rel] = pkg.CFiles
 	s.sFiles[rel] = pkg.SFiles
 	return s.fixtures[rel], nil

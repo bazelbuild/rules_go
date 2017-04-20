@@ -62,15 +62,13 @@ func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.Ext
 		return nil, err
 	}
 
-	// Explicitly do not import all files, use tags.
-	bctx.UseAllFiles = false
-
-	// By default, set build tags based on GOOS and GOARCH.
-	bctx.BuildTags = []string{bctx.GOARCH, bctx.GOOS}
-
-	// If we received custom buildTags, override the defaults with their comma-separated values.
-	// NOTE: GOOS and GOARCH will not be included as build tags automatically in this case.
-	if len(buildTags) != 0 {
+	// If build tags are not specified, do not apply build constraints.
+	// The rules filter files at compile time, so it's not usually necessary
+	// to filter when generating BUILD files, too.
+	if buildTags == "" {
+		bctx.UseAllFiles = true
+	} else {
+		bctx.UseAllFiles = false
 		bctx.BuildTags = strings.Split(buildTags, ",")
 	}
 

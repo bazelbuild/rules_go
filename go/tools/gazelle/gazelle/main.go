@@ -36,7 +36,7 @@ import (
 
 var (
 	buildFileName  = flag.String("build_file_name", "BUILD", "name of output build files to generate.")
-	buildTags      = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, GOOS and GOARCH are used.")
+	buildTags      = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, Gazelle will not\n\tfilter sources with build constraints.")
 	external       = flag.String("external", "external", "external: resolve external packages with new_go_repository\n\tvendored: resolve external packages as packages in vendor/")
 	goPrefix       = flag.String("go_prefix", "", "go_prefix of the target workspace")
 	repoRoot       = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
