@@ -434,6 +434,12 @@ importpath redirection of Go.
 go_prefix(prefix)
 ```
 
+`go_prefix` declares the common prefix of the import path which is shared by
+all Go libraries in the repository. A `go_prefix` rule must be declared in the
+top-level BUILD file for any repository containing Go rules. This is used by the
+Bazel rules during compilation to map import paths to dependencies. See the
+[FAQ](#whats-up-with-the-go_default_library-name) for more information.
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -450,15 +456,6 @@ go_prefix(prefix)
       <td>
         <code>String, required</code>
         <p>Global prefix used to fully qualify all Go targets.</p>
-        <p>
-          In Go, imports are always fully qualified with a URL, eg.
-          <code>github.com/user/project</code>. Hence, a label <code>//foo:bar
-          </code> from within a Bazel workspace must be referred to as
-          <code>github.com/user/project/foo/bar</code>. To make this work, each
-          rule must know the repository's URL. This is achieved, by having all
-          go rules depend on a globally unique target that has a
-          <code>go_prefix</code> transitive info provider.
-        </p>
       </td>
     </tr>
   </tbody>
@@ -469,6 +466,11 @@ go_prefix(prefix)
 ```bzl
 go_library(name, srcs, deps, data, library, gc_goopts)
 ```
+
+`go_library` builds a Go library from a set of source files that are all part of
+the same package. This library cannot contain cgo code (see
+[`cgo_library`](#cgo_library)).
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -538,6 +540,11 @@ go_library(name, srcs, deps, data, library, gc_goopts)
 ```bzl
 cgo_library(name, srcs, copts, clinkopts, cdeps, deps, data, gc_goopts)
 ```
+
+`cgo_library` builds a Go library from a set of cgo source files that are part
+of the same package. This library cannot contain pure Go code (see the note
+below).
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -641,6 +648,11 @@ go_library(
 ```bzl
 go_binary(name, srcs, deps, data, library, linkstamp, x_defs, gc_goopts, gc_linkopts)
 ```
+
+`go_binary` builds an executable from a set of source files, which must all be
+in the `main` package. You can run the with `bazel run`, or you can run it
+directly.
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -747,6 +759,17 @@ go_binary(name, srcs, deps, data, library, linkstamp, x_defs, gc_goopts, gc_link
 ```bzl
 go_test(name, srcs, deps, data, library, gc_goopts, gc_linkopts)
 ```
+
+`go_test` builds a set of tests that can be run with `bazel test`. This can
+contain sources for internal tests or external tests, but not both (see example
+below).
+
+You can run specific tests by passing the
+[`--test_filter=pattern`](https://bazel.build/versions/master/docs/bazel-user-manual.html#flag--test_filter)
+argument to Bazel. You can pass arguments to tests by passing
+[`--test_arg=arg`](https://bazel.build/versions/master/docs/bazel-user-manual.html#flag--test_arg)
+arguments to Bazel.
+
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
     <col class="col-param" />
@@ -821,22 +844,38 @@ go_test(name, srcs, deps, data, library, gc_goopts, gc_linkopts)
   </tbody>
 </table>
 
-#### NOTE
+#### Example
 
-In order for a `go_test` to refer to private definitions within a `go_library`,
-it must on the library's sources through the `library` attribute, _not_ the
-`deps` attribute.
+To write an internal test, reference the library being tested with the `library`
+attribute instead of the `deps` attribute. This will compile the test sources
+into the same package as the library sources.
 
 ``` bzl
 go_library(
     name = "go_default_library",
-    srcs = glob(["*.go"], exclude=["*_test.go"]),
+    srcs = ["lib.go"],
 )
 
 go_test(
     name = "go_default_test",
-    srcs = glob(["*_test.go"]),
+    srcs = ["lib_test.go"],
     library = ":go_default_library",
+)
+```
+
+To write an external test, reference the library being tested with the `deps`
+attribute.
+
+``` bzl
+go_library(
+    name = "go_default_library",
+    srcs = ["lib.go"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["lib_x_test.go"],
+    deps = [":go_default_library"],
 )
 ```
 
