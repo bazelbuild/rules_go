@@ -711,7 +711,7 @@ go_env_attrs = {
         single_file = True,
     ),
     "_asm": attr.label(
-        default = Label("//go/tools/build:asm"),
+        default = Label("//go/tools/builders:asm"),
         cfg = "host",
         executable = True,
         single_file = True,
