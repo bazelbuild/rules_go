@@ -300,6 +300,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
       "-o", out_lib.path, "-pack",
       "-I", ".",
       "-I", out_dir,
+      "-trimpath", "$(pwd)",
   ] + gc_goopts + ['"${FILTERED_GO_FILES[@]}"']
 
   # Pack extra objects into an archive, if provided.
