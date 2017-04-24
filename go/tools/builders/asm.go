@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// asm builds a single .s file with "go tool asm". It is invoked by the
+// Go rules as an action.
 package main
 
 import (
@@ -37,6 +39,41 @@ type params struct {
 	Out string `json:"out"`
 }
 
+func run(p params) error {
+	goRoot := filepath.Dir(filepath.Dir(p.GoTool))
+	if err := os.Setenv("GOROOT", goRoot); err != nil {
+		return fmt.Errorf("error setting environment: %v", err)
+	}
+
+	var source string
+	if match, err := matchFile(p.Source); err != nil {
+		return fmt.Errorf("error applying constraints: %v", err)
+	} else if match {
+		source = p.Source
+	} else {
+		source = os.DevNull
+	}
+
+	outDir := filepath.Dir(p.Out)
+	if err := os.MkdirAll(outDir, 0600); err != nil {
+		return fmt.Errorf("error creating output directory: %v", err)
+	}
+
+	args := []string{"tool", "asm"}
+	for _, d := range p.Includes {
+		args = append(args, "-I", d)
+	}
+	args = append(args, "-o", p.Out, source)
+	cmd := exec.Command(p.GoTool, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("error running assembler: %v", err)
+	}
+
+	return nil
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Fprintf(os.Stderr, "usage: %s params\n", os.Args[0])
@@ -49,34 +86,7 @@ func main() {
 		log.Fatalf("error parsing params file: %v", err)
 	}
 
-	goRoot := filepath.Dir(filepath.Dir(p.GoTool))
-	if err := os.Setenv("GOROOT", goRoot); err != nil {
-		log.Fatalf("error setting environment: %v", err)
-	}
-
-	var source string
-	if match, err := matchFile(p.Source); err != nil {
-		log.Fatalf("error applying constraints: %v", err)
-	} else if match {
-		source = p.Source
-	} else {
-		source = os.DevNull
-	}
-
-	outDir := filepath.Dir(p.Out)
-	if err := os.MkdirAll(outDir, 0600); err != nil {
-		log.Fatalf("error creating output directory: %v", err)
-	}
-
-	args := []string{"tool", "asm"}
-	for _, d := range p.Includes {
-		args = append(args, "-I", d)
-	}
-	args = append(args, "-o", p.Out, source)
-	cmd := exec.Command(p.GoTool, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		log.Fatalf("error running assembler: %v", err)
+	if err := run(p); err != nil {
+		log.Fatal(err)
 	}
 }
