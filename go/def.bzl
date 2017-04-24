@@ -272,31 +272,24 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
 
   inputs += list(sources)
   prefix = _go_prefix(ctx)
-  for s in sources:
-    tree_layout[s.path] = prefix + _remove_external_prefix(s.path)
 
   out_dir = out_lib.path + ".dir"
-  out_depth = out_dir.count('/') + 1
-  if _is_external(out_dir):
-    out_depth -= 2
   cmds = symlink_tree_commands(out_dir, tree_layout)
 
   # cd into the out_dir.
   cmds += [
       'export GOROOT=$(pwd)/%s/..' % ctx.file.go_tool.dirname,
-      'cd ' + out_dir,
   ]
 
   # Filter source files using build tags.
   cleaned_go_source_paths = [
-      prefix + _remove_external_prefix(i.path)
+      i.path
       for i in sources
       if not i.basename.startswith("_cgo")]
   cleaned_cgo_source_paths = [
-      prefix + _remove_external_prefix(i.path)
+      i.path
       for i in sources
       if i.basename.startswith("_cgo")]
-  filter_tags_path = ('../' * out_depth) + ctx.executable._filter_tags.path
   cmds += [
       'UNFILTERED_GO_FILES=(%s)' % 
           ' '.join(["'%s'" % f for f in cleaned_go_source_paths]),
@@ -306,7 +299,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
       '  if [ -n "$line" ]; then',
       '    FILTERED_GO_FILES+=("$line")',
       '  fi',
-      'done < <(\'%s\' -cgo "${UNFILTERED_GO_FILES[@]}")' % filter_tags_path,
+      'done < <(\'%s\' -cgo "${UNFILTERED_GO_FILES[@]}")' % ctx.executable._filter_tags.path,
       'if [ ${#FILTERED_GO_FILES[@]} -eq 0 ]; then',
       '  echo no buildable Go source files in %s >&1' % str(ctx.label),
       '  exit 1',
@@ -315,10 +308,11 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
 
   # Compile filtered files.
   args = [
-      ("../" * out_depth) + ctx.file.go_tool.path,
+      ctx.file.go_tool.path,
       "tool", "compile",
-      "-o", ("../" * out_depth) + out_lib.path, "-pack",
+      "-o", out_lib.path, "-pack",
       "-I", ".",
+      "-I", out_dir,
   ] + gc_goopts + ['"${FILTERED_GO_FILES[@]}"']
 
   # Pack extra objects into an archive, if provided.
@@ -330,8 +324,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   if extra_objects:
     extra_inputs += extra_objects
     objs = ' '.join([c.path for c in extra_objects])
-    cmds += ["cd " + ('../' * out_depth),
-             ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
+    cmds += [ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
 
   f = _emit_generate_params_action(cmds, ctx, out_lib.path + ".GoCompileFile.params")
 
