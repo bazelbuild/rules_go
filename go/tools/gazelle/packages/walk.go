@@ -44,8 +44,8 @@ type WalkFunc func(pkg *build.Package) error
 // names matches the directory name, "f" will be called on that package and the
 // other packages will be silently ignored. If none of the package names match
 // the directory name, a *build.MultiplePackageError error is returned.
-func Walk(bctx build.Context, root string, f WalkFunc) error {
-	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,8 @@ func Walk(bctx build.Context, root string, f WalkFunc) error {
 			return filepath.SkipDir
 		}
 
-		pkg, err := findPackage(bctx, path)
+		defaultName := defaultPackageName(path, repoRoot, goPrefix)
+		pkg, err := findPackage(bctx, defaultName, path)
 		if err != nil {
 			if _, ok := err.(*build.NoGoError); ok {
 				return nil
@@ -67,13 +68,13 @@ func Walk(bctx build.Context, root string, f WalkFunc) error {
 	})
 }
 
-func findPackage(bctx build.Context, dir string) (*build.Package, error) {
+func findPackage(bctx build.Context, defaultName, dir string) (*build.Package, error) {
 	packageGoFiles, otherFiles, err := findPackageFiles(dir)
 	if err != nil {
 		return nil, err
 	}
 
-	packageName, err := selectPackageName(packageGoFiles, dir)
+	packageName, err := selectPackageName(packageGoFiles, defaultName, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -131,16 +132,19 @@ func findPackageFiles(dir string) (packageGoFiles map[string][]os.FileInfo, othe
 	return packageGoFiles, otherFiles, nil
 }
 
-func defaultPackageName(dir string) string {
-	pname := filepath.Base(dir)
-	if pname == "." || pname == "/" {
-		// We'll only use this name at the root of the filesystem.
+func defaultPackageName(dir, repoRoot, goPrefix string) string {
+	if dir != repoRoot {
+		return filepath.Base(dir)
+	}
+	name := path.Base(goPrefix)
+	if name == "." || name == "/" {
+		// This can happen if go_prefix is empty or is all slashes.
 		return "unnamed"
 	}
-	return pname
+	return name
 }
 
-func selectPackageName(packageGoFiles map[string][]os.FileInfo, dir string) (string, error) {
+func selectPackageName(packageGoFiles map[string][]os.FileInfo, defaultName, dir string) (string, error) {
 	if len(packageGoFiles) == 0 {
 		return "", &build.NoGoError{Dir: dir}
 	}
@@ -153,7 +157,6 @@ func selectPackageName(packageGoFiles map[string][]os.FileInfo, dir string) (str
 		return packageName, nil
 	}
 
-	defaultName := defaultPackageName(dir)
 	if _, ok := packageGoFiles[defaultName]; ok {
 		return defaultName, nil
 	}

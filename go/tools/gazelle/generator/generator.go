@@ -96,7 +96,7 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 	}
 
 	var files []*bzl.File
-	err = packages.Walk(g.bctx, dir, func(pkg *build.Package) error {
+	err = packages.Walk(g.bctx, g.repoRoot, g.goPrefix, dir, func(pkg *build.Package) error {
 		rel, err := filepath.Rel(g.repoRoot, pkg.Dir)
 		if err != nil {
 			return err

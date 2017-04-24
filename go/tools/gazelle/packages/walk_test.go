@@ -35,14 +35,14 @@ type fileSpec struct {
 	path, content string
 }
 
-func checkFiles(t *testing.T, files []fileSpec, want []*build.Package) {
+func checkFiles(t *testing.T, files []fileSpec, goPrefix string, want []*build.Package) {
 	dir, err := createFiles(files)
 	if err != nil {
 		t.Fatalf("createFiles() failed with %v; want success", err)
 	}
 	defer os.RemoveAll(dir)
 
-	got, err := walkPackages(dir)
+	got, err := walkPackages(dir, goPrefix, dir)
 	if err != nil {
 		t.Errorf("walkPackages(%q) failed with %v; want success", dir, err)
 	}
@@ -72,9 +72,9 @@ func createFiles(files []fileSpec) (string, error) {
 	return dir, nil
 }
 
-func walkPackages(root string) ([]*build.Package, error) {
+func walkPackages(repoRoot, goPrefix, dir string) ([]*build.Package, error) {
 	var pkgs []*build.Package
-	err := packages.Walk(build.Default, root, func(pkg *build.Package) error {
+	err := packages.Walk(build.Default, repoRoot, goPrefix, dir, func(pkg *build.Package) error {
 		pkgs = append(pkgs, pkg)
 		return nil
 	})
@@ -120,7 +120,7 @@ func TestWalkEmpty(t *testing.T) {
 		{path: "b/"},
 	}
 	want := []*build.Package{}
-	checkFiles(t, files, want)
+	checkFiles(t, files, "", want)
 }
 
 func TestWalkSimple(t *testing.T) {
@@ -131,7 +131,7 @@ func TestWalkSimple(t *testing.T) {
 			GoFiles: []string{"lib.go"},
 		},
 	}
-	checkFiles(t, files, want)
+	checkFiles(t, files, "", want)
 }
 
 func TestWalkNested(t *testing.T) {
@@ -154,7 +154,7 @@ func TestWalkNested(t *testing.T) {
 			GoFiles: []string{"baz.go"},
 		},
 	}
-	checkFiles(t, files, want)
+	checkFiles(t, files, "", want)
 }
 
 func TestMultiplePackagesWithDefault(t *testing.T) {
@@ -168,7 +168,7 @@ func TestMultiplePackagesWithDefault(t *testing.T) {
 			GoFiles: []string{"a.go"},
 		},
 	}
-	checkFiles(t, files, want)
+	checkFiles(t, files, "", want)
 }
 
 func TestMultiplePackagesWithoutDefault(t *testing.T) {
@@ -182,7 +182,38 @@ func TestMultiplePackagesWithoutDefault(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	_, err = walkPackages(dir)
+	_, err = walkPackages(dir, "", dir)
+	if _, ok := err.(*build.MultiplePackageError); !ok {
+		t.Errorf("got %v; want MultiplePackageError", err)
+	}
+}
+
+func TestRootWithPrefix(t *testing.T) {
+	files := []fileSpec{
+		{path: "a.go", content: "package a"},
+		{path: "b.go", content: "package b"},
+	}
+	want := []*build.Package{
+		{
+			Name:    "a",
+			GoFiles: []string{"a.go"},
+		},
+	}
+	checkFiles(t, files, "github.com/a", want)
+}
+
+func TestRootWithoutPrefix(t *testing.T) {
+	files := []fileSpec{
+		{path: "a.go", content: "package a"},
+		{path: "b.go", content: "package b"},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatalf("createFiles() failed with %v; want success", err)
+	}
+	defer os.RemoveAll(dir)
+
+	_, err = walkPackages(dir, "", dir)
 	if _, ok := err.(*build.MultiplePackageError); !ok {
 		t.Errorf("got %v; want MultiplePackageError", err)
 	}
