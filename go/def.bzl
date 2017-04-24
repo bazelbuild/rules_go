@@ -313,7 +313,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
     objs = ' '.join([c.path for c in extra_objects])
     cmds += [ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
 
-  f = _emit_generate_params_action(cmds, ctx, out_lib.path + ".GoCompileFile.params")
+  f = _emit_generate_params_action(cmds, ctx, out_lib.basename + ".GoCompileFile.params")
 
   ctx.action(
       inputs = [f] + inputs + extra_inputs + [ctx.executable._filter_tags],
@@ -560,7 +560,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
     "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
   ]
 
-  f = _emit_generate_params_action(cmds, ctx, lib.path + ".GoLinkFile.params")
+  f = _emit_generate_params_action(cmds, ctx, lib.basename + ".GoLinkFile.params")
 
   ctx.action(
       inputs = [f] + (list(transitive_libs) + [lib] + list(cgo_deps) +
