@@ -56,8 +56,7 @@ func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error 
 			return filepath.SkipDir
 		}
 
-		defaultName := defaultPackageName(path, repoRoot, goPrefix)
-		pkg, err := findPackage(bctx, defaultName, path)
+		pkg, err := findPackage(bctx, defaultPackageName(path, repoRoot, goPrefix), path)
 		if err != nil {
 			if _, ok := err.(*build.NoGoError); ok {
 				return nil
