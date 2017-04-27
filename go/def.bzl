@@ -90,6 +90,27 @@ def _relative_path_from_dir(from_dir, to_file):
     up = from_dir.count('/') + 1
   return up * "../" + to_file
 
+def build_file_tree(ctx, dest_dir, artifact_dict):
+  """build_file_tree creates the specified file structure.
+
+  Args:
+    dest_dir: The destination directory, a string.
+    artifact_dict: The mapping of exec-path => path in the dest_dir.
+                   All keys must be files.
+  Returns: The set of files created.
+  """
+  linked = []
+  for src, new_path in artifact_dict.items():
+    new_file = ctx.new_file(dest_dir + "/" + new_path)
+    linked += [new_file]
+    ctx.action(
+        inputs=[src],
+        outputs=[new_file],
+        command=["cp", src.path, new_file.path],
+    )
+  return linked
+
+
 # TODO(bazel-team): it would be nice if Bazel had this built-in.
 def symlink_tree_commands(dest_dir, artifact_dict):
   """Symlink_tree_commands returns a list of commands to create the
@@ -252,19 +273,15 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   tree_layout = {}
   inputs = []
   for d in deps:
-    actual_path = d.go_library_object.path
-    importpath = d.transitive_go_importmap[actual_path]
-    tree_layout[actual_path] = importpath + ".a"
-    inputs += [d.go_library_object]
+    importpath = d.transitive_go_importmap[d.go_library_object.path]
+    tree_layout[d.go_library_object] = importpath + ".a"
 
   inputs += list(sources)
   prefix = _go_prefix(ctx)
 
-  out_dir = out_lib.path + ".dir"
-  cmds = symlink_tree_commands(out_dir, tree_layout)
+  inputs += build_file_tree(ctx, out_lib.basename + ".dir", tree_layout)
 
-  # cd into the out_dir.
-  cmds += [
+  cmds = [
       'export GOROOT=$(pwd)/%s/..' % ctx.file.go_tool.dirname,
   ]
 
@@ -299,7 +316,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
       "tool", "compile",
       "-o", out_lib.path, "-pack",
       "-I", ".",
-      "-I", out_dir,
+      "-I", out_lib.path + ".dir",
       "-trimpath", "$(pwd)",
   ] + gc_goopts + ['"${FILTERED_GO_FILES[@]}"']
 
