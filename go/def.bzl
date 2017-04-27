@@ -90,11 +90,13 @@ def _relative_path_from_dir(from_dir, to_file):
     up = from_dir.count('/') + 1
   return up * "../" + to_file
 
-def build_file_tree(ctx, dest_dir, artifact_dict):
-  """build_file_tree creates the specified file structure.
+def _build_file_tree(ctx, dest_dir, artifact_dict):
+  """_build_file_tree creates the specified file structure.
 
   Args:
     dest_dir: The destination directory, a string.
+              Because all files are added with ctx.new_file, this should
+              be relative to the current package, not the working directory.
     artifact_dict: The mapping of exec-path => path in the dest_dir.
                    All keys must be files.
   Returns: The set of files created.
@@ -279,7 +281,7 @@ def _emit_go_compile_action(ctx, sources, deps, out_lib,
   inputs += list(sources)
   prefix = _go_prefix(ctx)
 
-  inputs += build_file_tree(ctx, out_lib.basename + ".dir", tree_layout)
+  inputs += _build_file_tree(ctx, out_lib.basename + ".dir", tree_layout)
 
   cmds = [
       'export GOROOT=$(pwd)/%s/..' % ctx.file.go_tool.dirname,
