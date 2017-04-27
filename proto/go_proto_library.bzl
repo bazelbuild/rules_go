@@ -321,6 +321,7 @@ def go_proto_repositories(shared = 1):
       name = "com_github_golang_protobuf",
       importpath = "github.com/golang/protobuf",
       commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
+      repo_deps = ["io_bazel_rules_go"],
   )
   if shared:
     # if using multiple *_proto_library, allows caller to skip this.
@@ -336,9 +337,15 @@ def go_proto_repositories(shared = 1):
       name = "org_golang_x_net",
       commit = "4971afdc2f162e82d185353533d3cf16188a9f4e",
       importpath = "golang.org/x/net",
+      repo_deps = ["io_bazel_rules_go"],
   )
   new_go_repository(
       name = "org_golang_google_grpc",
       tag = "v1.0.4",
       importpath = "google.golang.org/grpc",
+      repo_deps = [
+          "io_bazel_rules_go",
+          "org_golang_x_net",
+          "com_github_golang_protobuf",
+      ],
   )
