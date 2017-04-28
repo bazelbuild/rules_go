@@ -939,6 +939,10 @@ def _cgo_codegen_impl(ctx):
       '    echo -n >"$objdir/$(basename "$file" .go).cgo2.c"',
       '  fi',
       'done',
+      'if [ ${#filtered_go_files[@]} -eq 0 ]; then',
+      '  echo no buildable Go source files in %s >&1' % str(ctx.label),
+      '  exit 1',
+      'fi',
       '"$GOROOT/bin/go" tool cgo -objdir "$objdir" -- %s "${filtered_go_files[@]}"' %
           ' '.join(['"%s"' % copt for copt in copts]),
       'rm -f $objdir/_cgo_.o $objdir/_cgo_flags']
@@ -963,7 +967,7 @@ def _cgo_codegen_impl(ctx):
       cgo_deps = deps,
   )
 
-_cgo_codegn_rule = rule(
+_cgo_codegen_rule = rule(
     _cgo_codegen_impl,
     attrs = go_env_attrs + _crosstool_attrs + {
         "srcs": attr.label_list(
@@ -1033,7 +1037,7 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
       gotypes = outgen + "/_cgo_gotypes.go",
   )
 
-  _cgo_codegn_rule(
+  _cgo_codegen_rule(
       name = name,
       srcs = srcs,
       c_hdrs = c_hdrs,
