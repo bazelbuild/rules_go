@@ -73,3 +73,42 @@ func TestTestWorkspace(t *testing.T) {
 		t.Errorf("Unable to get workspace with error %s", err)
 	}
 }
+
+func TestTestWorkspaceWithoutDefaultSet(t *testing.T) {
+	if oldVal, ok := os.LookupEnv(TEST_WORKSPACE); ok {
+		defer os.Setenv(TEST_WORKSPACE, oldVal)
+	} else {
+		t.Errorf("Terrible things are happening. You can't read env variables")
+	}
+	os.Unsetenv(TEST_WORKSPACE)
+
+	workspace, err := TestWorkspace()
+
+	if workspace != "" {
+		t.Errorf("Workspace should be left empty but was: %s", workspace)
+	}
+
+	if err == nil {
+		t.Errorf("Expected error but instead passed")
+	}
+}
+
+func TestTestWorkspaceWithDefaultSet(t *testing.T) {
+	if oldVal, ok := os.LookupEnv(TEST_WORKSPACE); ok {
+		defer os.Setenv(TEST_WORKSPACE, oldVal)
+	} else {
+		t.Errorf("Terrible things are happening. You can't read env variables")
+	}
+	os.Unsetenv(TEST_WORKSPACE)
+
+	SetDefaultTestWorkspace("default_value")
+	workspace, err := TestWorkspace()
+
+	if workspace == "" {
+		t.Errorf("Workspace is left empty")
+	}
+
+	if err != nil {
+		t.Errorf("Unable to get workspace with error %s", err)
+	}
+}
