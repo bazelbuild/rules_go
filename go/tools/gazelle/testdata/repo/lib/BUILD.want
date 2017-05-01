@@ -3,8 +3,8 @@ go_library(
     srcs = [
         "doc.go",
         "lib.go",
-        "asm.s",
         "asm.h",
+        "asm.s",
     ],
     visibility = ["//visibility:public"],
     deps = ["//lib/internal/deep:go_default_library"],

@@ -1,0 +1,73 @@
+cgo_library(
+    name = "cgo_default_library",
+    srcs = [
+        "cgo_generic.go",
+        "cgo_generic.c",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "cgo_linux.go",
+            "cgo_linux.c",
+        ],
+        "//conditions:default": [],
+    }),
+    copts = [
+        "-DGENERIC",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "-DLINUX",
+        ],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:private"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "generic.go",
+        "release.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "suffix_amd64.go",
+            "suffix_darwin.go",
+            "tag_a.go",
+            "tag_d.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "suffix_amd64.go",
+            "suffix_linux.go",
+            "tag_a.go",
+            "tag_l.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            "suffix_amd64.go",
+            "tag_a.go",
+        ],
+        "//conditions:default": [],
+    }),
+    library = ":cgo_default_library",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//platforms/generic:go_default_library",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "//platforms/darwin:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "//platforms/linux:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = [
+        "generic_test.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "suffix_linux_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+)

@@ -2,17 +2,14 @@ cgo_library(
     name = "cgo_default_library",
     srcs = [
         "foo.go",
+        "asm.S",
         "foo.c",
         "foo.h",
-        "asm.S",
     ],
-    copts = ["-I/weird/path"],
     clinkopts = ["-lweird"],
+    copts = ["-I/weird/path"],
     visibility = ["//visibility:private"],
-    deps = [
-        "//lib:go_default_library",
-        "//lib/deep:go_default_library",
-    ],
+    deps = ["//lib:go_default_library"],
 )
 
 go_library(
@@ -21,8 +18,8 @@ go_library(
     library = ":cgo_default_library",
     visibility = ["//visibility:public"],
     deps = [
-        "//lib:go_default_library",
         "//lib/deep:go_default_library",
+        "//lib:go_default_library",
     ],
 )
 

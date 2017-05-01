@@ -32,9 +32,9 @@ go_test(
 go_test(
     name = "go_default_xtest",
     srcs = ["generator_test.go"],
-    data = glob(["testdata/**/*"]),
     deps = [
         ":go_default_library",
+        "//go/tools/gazelle/packages:go_default_library",
         "//go/tools/gazelle/testdata:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],

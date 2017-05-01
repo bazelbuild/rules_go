@@ -107,6 +107,9 @@ const (
 	// csExt is applied to other assembly files, ending with .S. These are built
 	// with the C compiler if cgo code is present.
 	csExt
+
+	// protoExt is applied to .proto files.
+	protoExt
 )
 
 // fileNameInfo returns information that can be inferred from the name of
@@ -146,6 +149,8 @@ func fileNameInfo(dir, name string) fileInfo {
 		category = sExt
 	case ".S":
 		category = csExt
+	case ".proto":
+		category = protoExt
 	case ".m", ".f", ".F", ".for", ".f90", ".swig", ".swigcxx", ".syso":
 		category = unsupportedExt
 	default:

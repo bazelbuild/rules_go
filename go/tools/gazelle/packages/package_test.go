@@ -16,6 +16,7 @@ limitations under the License.
 package packages
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -64,16 +65,20 @@ func TestCleanPlatformStrings(t *testing.T) {
 }
 
 func TestMapPlatformStrings(t *testing.T) {
-	f := func(s string) string {
-		return s + "x"
+	f := func(s string) (string, error) {
+		if len(s) > 0 && s[0] == 'e' {
+			return "", fmt.Errorf("invalid string: %s", s)
+		}
+		return s + "x", nil
 	}
 	ps := PlatformStrings{
-		Generic: []string{"a"},
+		Generic: []string{"a", "e1"},
 		Platform: map[string][]string{
-			"linux": []string{"b"},
+			"linux": []string{"b", "e2"},
 		},
 	}
-	got := ps.Map(f)
+	got, gotErrors := ps.Map(f)
+
 	want := PlatformStrings{
 		Generic: []string{"ax"},
 		Platform: map[string][]string{
@@ -82,5 +87,13 @@ func TestMapPlatformStrings(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %#v; want %#v", got, want)
+	}
+
+	wantErrors := []error{
+		fmt.Errorf("invalid string: e1"),
+		fmt.Errorf("invalid string: e2"),
+	}
+	if !reflect.DeepEqual(gotErrors, wantErrors) {
+		t.Errorf("got errors %#v; want errors %#v", gotErrors, wantErrors)
 	}
 }

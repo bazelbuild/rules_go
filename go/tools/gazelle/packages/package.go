@@ -17,6 +17,7 @@ package packages
 
 import (
 	"fmt"
+	"go/build"
 	"sort"
 	"strings"
 )
@@ -40,6 +41,20 @@ func init() {
 	}
 }
 
+// PreprocessTags performs some automatic processing on generic and
+// platform-specific tags before they are used to match files.
+func PreprocessTags(genericTags map[string]bool, platforms PlatformConstraints) {
+	genericTags["cgo"] = true
+	for _, t := range build.Default.ReleaseTags {
+		genericTags[t] = true
+	}
+	for _, platformTags := range platforms {
+		for t, _ := range genericTags {
+			platformTags[t] = true
+		}
+	}
+}
+
 // Package contains metadata about a Go package extracted from a directory.
 // It fills a similar role to go/build.Package, but it separates files by
 // target instead of by type, and it supports multiple platforms.
@@ -48,6 +63,9 @@ type Package struct {
 	Name string
 
 	Library, CgoLibrary, Binary, Test, XTest Target
+
+	Protos  []string
+	HasPbGo bool
 }
 
 // Target contains metadata about a buildable Go target in a package.
@@ -167,7 +185,14 @@ func (p *Package) addFile(info fileInfo, cgo bool, buildTags map[string]bool, pl
 		p.CgoLibrary.addFile(info, buildTags, platforms)
 	case info.category == goExt || info.category == sExt || info.category == hExt:
 		p.Library.addFile(info, buildTags, platforms)
+	case info.category == protoExt:
+		p.Protos = append(p.Protos, info.name)
 	}
+
+	if strings.HasSuffix(info.name, ".pb.go") {
+		p.HasPbGo = true
+	}
+
 	return nil
 }
 
@@ -286,21 +311,30 @@ func uniq(ss []string) []string {
 // Map applies a function to the strings in "ps" and returns a new
 // PlatformStrings with the results. This is useful for converting import
 // paths to labels.
-func (ps *PlatformStrings) Map(f func(string) string) PlatformStrings {
-	result := PlatformStrings{Generic: make([]string, len(ps.Generic))}
-	for i, s := range ps.Generic {
-		result.Generic[i] = f(s)
+func (ps *PlatformStrings) Map(f func(string) (string, error)) (PlatformStrings, []error) {
+	result := PlatformStrings{Generic: make([]string, 0, len(ps.Generic))}
+	var errors []error
+	for _, s := range ps.Generic {
+		if r, err := f(s); err != nil {
+			errors = append(errors, err)
+		} else {
+			result.Generic = append(result.Generic, r)
+		}
 	}
 
 	if ps.Platform != nil {
 		result.Platform = make(map[string][]string)
 		for n, ss := range ps.Platform {
-			result.Platform[n] = make([]string, len(ss))
-			for i, s := range ss {
-				result.Platform[n][i] = f(s)
+			result.Platform[n] = make([]string, 0, len(ss))
+			for _, s := range ss {
+				if r, err := f(s); err != nil {
+					errors = append(errors, err)
+				} else {
+					result.Platform[n] = append(result.Platform[n], r)
+				}
 			}
 		}
 	}
 
-	return result
+	return result, errors
 }

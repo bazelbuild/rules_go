@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
@@ -32,19 +31,21 @@ var (
 
 func TestBuildTagOverride(t *testing.T) {
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", "BUILD", "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z", rules.External)
+	g, err := New(repo, "example.com/repo", "BUILD", "a,b", rules.External)
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
 		return
 	}
 
-	if got, want := len(g.bctx.BuildTags), 26; got != want {
-		t.Errorf("Got %d build tags; want %d", got, want)
-	}
-
-	for name, platformTags := range g.platforms {
-		if got, want := len(platformTags), len(packages.DefaultPlatformConstraints[name]); got != want {
-			t.Errorf("on platform %q, got %d build tags; want %d", name, got, want)
+	expectedTags := []string{"a", "b", "cgo", "go1.8", "go1.7"}
+	for _, tag := range expectedTags {
+		if !g.buildTags[tag] {
+			t.Errorf("tag %q not set", tag)
+		}
+		for name, platformTags := range g.platforms {
+			if !platformTags[tag] {
+				t.Errorf("on platform %q, tag %q not set", name, tag)
+			}
 		}
 	}
 }

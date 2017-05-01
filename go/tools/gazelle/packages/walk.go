@@ -16,21 +16,17 @@ limitations under the License.
 package packages
 
 import (
-	"fmt"
 	"go/build"
-	"go/parser"
-	"go/token"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
 	"strings"
 )
 
 // A WalkFunc is a callback called by Walk for each package.
-type WalkFunc func(pkg *build.Package) error
+type WalkFunc func(pkg *Package) error
 
 // Walk walks through directories under "root".
 // It calls back "f" for each package.
@@ -45,7 +41,7 @@ type WalkFunc func(pkg *build.Package) error
 // names matches the directory name, "f" will be called on that package and the
 // other packages will be silently ignored. If none of the package names match
 // the directory name, a *build.MultiplePackageError error is returned.
-func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error {
+func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix, dir string, f WalkFunc) error {
 	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -57,14 +53,7 @@ func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error 
 			return filepath.SkipDir
 		}
 
-		pr := packageReader{
-			bctx:     bctx,
-			repoRoot: repoRoot,
-			goPrefix: goPrefix,
-			dir:      path,
-		}
-
-		pkg, err := pr.findPackage()
+		pkg, err := FindPackage(path, buildTags, platforms, repoRoot, goPrefix)
 		if err != nil {
 			if _, ok := err.(*build.NoGoError); ok {
 				return nil
@@ -75,73 +64,135 @@ func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error 
 	})
 }
 
+// FindPackage reads source files in a given directory and returns a Package
+// containing information about those files and how to build them.
+//
+// If no buildable .go files are found in the directory, *build.NoGoError will
+// be returned. If buildable .go files from multiple packages are found in
+// a directory, *build.MultiplePackageError will be returned. Various I/O
+// and parse errors are also possible.
+func FindPackage(dir string, buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix string) (*Package, error) {
+	pr := packageReader{
+		buildTags: buildTags,
+		platforms: platforms,
+		repoRoot:  repoRoot,
+		goPrefix:  goPrefix,
+		dir:       dir,
+	}
+	return pr.findPackage()
+}
+
 // packageReader reads package metadata from a directory.
 type packageReader struct {
-	bctx                    build.Context
+	buildTags               map[string]bool
+	platforms               PlatformConstraints
 	repoRoot, goPrefix, dir string
 	warnHook                func(error)
 }
 
-func (pr *packageReader) findPackage() (*build.Package, error) {
-	packageGoFiles, otherFiles, err := pr.findPackageFiles()
-	if err != nil {
-		return nil, err
-	}
+func (pr *packageReader) findPackage() (*Package, error) {
+	var goFiles, otherFiles []string
 
-	packageName, err := pr.selectPackageName(packageGoFiles)
-	if err != nil {
-		return nil, err
-	}
-
-	var files []os.FileInfo
-	files = append(files, packageGoFiles[packageName]...)
-	files = append(files, otherFiles...)
-	sort.Sort(byName(files))
-	pr.bctx.ReadDir = func(dir string) ([]os.FileInfo, error) {
-		return files, nil
-	}
-	return pr.bctx.ImportDir(pr.dir, build.ImportComment)
-}
-
-func (pr *packageReader) findPackageFiles() (packageGoFiles map[string][]os.FileInfo, otherFiles []os.FileInfo, err error) {
+	// List the files in the directory and split into .go files and other files.
+	// We need to process the Go files first to determine which package we'll
+	// generate rules for if there are multiple packages.
 	files, err := ioutil.ReadDir(pr.dir)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-
-	packageGoFiles = make(map[string][]os.FileInfo)
 	for _, file := range files {
 		if file.IsDir() {
 			continue
 		}
 
 		name := file.Name()
-		filename := filepath.Join(pr.dir, name)
-		ext := path.Ext(name)
-		isGo := ext == ".go"
-
-		if !isGo {
-			otherFiles = append(otherFiles, file)
-			continue
-		}
-		fset := token.NewFileSet()
-		ast, err := parser.ParseFile(fset, filename, nil, parser.PackageClauseOnly)
-		if err != nil {
-			pr.warn(fmt.Errorf("%s: error parsing package clause: %v", filename, err))
+		if name == "" || name[0] == '.' || name[0] == '_' {
 			continue
 		}
 
-		packageName := ast.Name.Name
-		if packageName == "documentation" {
-			// go/build ignores this package.
-			continue
+		if strings.HasSuffix(name, ".go") {
+			goFiles = append(goFiles, name)
+		} else {
+			otherFiles = append(otherFiles, name)
 		}
-		if strings.HasSuffix(packageName, "_test") {
-			packageName = packageName[:len(packageName)-len("_test")]
-		}
-		packageGoFiles[packageName] = append(packageGoFiles[packageName], file)
 	}
-	return packageGoFiles, otherFiles, nil
+
+	// Process the .go files.
+	packageMap := make(map[string]*Package)
+	cgo := false
+	for _, goFile := range goFiles {
+		info, err := pr.goFileInfo(goFile)
+		if err != nil {
+			pr.warn(err)
+			continue
+		}
+		if info.packageName == "documentation" {
+			// go/build ignores this package
+			continue
+		}
+
+		cgo = cgo || info.isCgo
+
+		if _, ok := packageMap[info.packageName]; !ok {
+			packageMap[info.packageName] = &Package{
+				Name: info.packageName,
+				Dir:  pr.dir,
+			}
+		}
+		packageMap[info.packageName].addFile(info, false, pr.buildTags, pr.platforms)
+	}
+
+	// Select a package to generate rules for.
+	pkg, err := pr.selectPackage(packageMap)
+	if err != nil {
+		return nil, err
+	}
+
+	// Process the other files.
+	for _, file := range otherFiles {
+		info, err := pr.otherFileInfo(file)
+		if err != nil {
+			pr.warn(err)
+			continue
+		}
+		pkg.addFile(info, cgo, pr.buildTags, pr.platforms)
+	}
+
+	return pkg, nil
+}
+
+func (pr *packageReader) selectPackage(packageMap map[string]*Package) (*Package, error) {
+	packagesWithGo := make(map[string]*Package)
+	for name, pkg := range packageMap {
+		if pkg.HasGo() {
+			packagesWithGo[name] = pkg
+		}
+	}
+
+	if len(packagesWithGo) == 0 {
+		return nil, &build.NoGoError{Dir: pr.dir}
+	}
+
+	if len(packagesWithGo) == 1 {
+		for _, pkg := range packagesWithGo {
+			return pkg, nil
+		}
+	}
+
+	if pkg, ok := packagesWithGo[pr.defaultPackageName()]; ok {
+		return pkg, nil
+	}
+
+	err := &build.MultiplePackageError{Dir: pr.dir}
+	for name, pkg := range packagesWithGo {
+		// Add the first file for each package for the error message.
+		// Error() method expects these lists to be the same length. File
+		// lists must be non-empty. These lists are only created by
+		// findPackageFiles for packages with .go files present.
+		err.Packages = append(err.Packages, name)
+		err.Files = append(err.Files, pkg.firstGoFile())
+	}
+	return nil, err
 }
 
 func (pr *packageReader) defaultPackageName() string {
@@ -156,56 +207,10 @@ func (pr *packageReader) defaultPackageName() string {
 	return name
 }
 
-func (pr *packageReader) selectPackageName(packageGoFiles map[string][]os.FileInfo) (string, error) {
-	if len(packageGoFiles) == 0 {
-		return "", &build.NoGoError{Dir: pr.dir}
-	}
-
-	if len(packageGoFiles) == 1 {
-		var packageName string
-		for name, _ := range packageGoFiles {
-			packageName = name
-		}
-		return packageName, nil
-	}
-
-	defaultName := pr.defaultPackageName()
-	if _, ok := packageGoFiles[defaultName]; ok {
-		return defaultName, nil
-	}
-
-	err := &build.MultiplePackageError{Dir: pr.dir}
-	for name, files := range packageGoFiles {
-		// Add the first file for each package for the error message.
-		// Error() method expects these lists to be the same length. File
-		// lists must be non-empty. These lists are only created by
-		// findPackageFiles for packages with .go files present.
-		err.Packages = append(err.Packages, name)
-		err.Files = append(err.Files, files[0].Name())
-	}
-	return "", err
-}
-
 func (pr *packageReader) warn(err error) {
 	if pr.warnHook != nil {
 		pr.warnHook(err)
 		return
 	}
 	log.Println(err)
-}
-
-type byName []os.FileInfo
-
-var _ sort.Interface = byName{}
-
-func (s byName) Len() int {
-	return len(s)
-}
-
-func (s byName) Less(i, j int) bool {
-	return s[i].Name() < s[j].Name()
-}
-
-func (s byName) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
 }

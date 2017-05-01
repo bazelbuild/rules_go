@@ -29,10 +29,8 @@ function cleanup {
 }
 trap cleanup EXIT
 
-GOOS=$(uname | tr '[:upper:]' '[:lower:]')
 sed -e "s|@@RULES_DIR@@|$RULES_DIR|" \
-    -e "s|@@GOOS@@|$GOOS|" \
-    <"$TEST_DIR/WORKSPACE.in" >"$WORKSPACE_DIR/WORKSPACE"
+  <"$TEST_DIR/WORKSPACE.in" >"$WORKSPACE_DIR/WORKSPACE"
 cd "$WORKSPACE_DIR"
 touch BUILD
 
@@ -86,6 +84,15 @@ excludes=(
   -@org_golang_x_tools//refactor/importgraph:go_default_xtest
   -@org_golang_x_tools//refactor/rename:go_default_test
 )
+
+case $(uname) in
+  Linux)
+    excludes+=(
+      # TODO: cgo_library dependency only has darwin sources.
+      @org_golang_x_text//collate/tools/colcmp
+    )
+    ;;
+esac
 
 bazel_batch_test --keep_going -- "${targets[@]}" "${excludes[@]}"
 

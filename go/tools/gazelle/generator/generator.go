@@ -19,7 +19,6 @@ package generator
 
 import (
 	"fmt"
-	"go/build"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -39,7 +38,7 @@ type Generator struct {
 	repoRoot      string
 	goPrefix      string
 	buildFileName string
-	bctx          build.Context
+	buildTags     map[string]bool
 	platforms     packages.PlatformConstraints
 	g             rules.Generator
 }
@@ -50,35 +49,31 @@ type Generator struct {
 // "goPrefix" is the go_prefix corresponding to the repository root directory.
 // See also https://github.com/bazelbuild/rules_go#go_prefix.
 // "buildFileName" is the name of the BUILD file (BUILD or BUILD.bazel).
-// "buildTags" is a comma-delimited set of build tags to set in the build context.
+// "buildTags" is a comma-delimited set of build tags that are true on all
+// platforms. "cgo" and release tags (e.g., "go1.8") will be added to this.
 // "external" is how external packages should be resolved.
 func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.ExternalResolver) (*Generator, error) {
-	bctx := build.Default
-	// Ignore source files in $GOROOT and $GOPATH
-	bctx.GOROOT = ""
-	bctx.GOPATH = ""
-
 	repoRoot, err := filepath.Abs(repoRoot)
 	if err != nil {
 		return nil, err
 	}
 
-	// If build tags are not specified, do not apply build constraints.
-	// The rules filter files at compile time, so it's not usually necessary
-	// to filter when generating BUILD files, too.
-	if buildTags == "" {
-		bctx.UseAllFiles = true
-	} else {
-		bctx.UseAllFiles = false
-		bctx.BuildTags = strings.Split(buildTags, ",")
+	genericTags := make(map[string]bool)
+	for _, t := range strings.Split(buildTags, ",") {
+		if strings.HasPrefix(t, "!") {
+			return nil, fmt.Errorf("build tags may not start with '!': %q", buildTags)
+		}
+		genericTags[t] = true
 	}
+	platforms := packages.DefaultPlatformConstraints
+	packages.PreprocessTags(genericTags, platforms)
 
 	return &Generator{
 		repoRoot:      repoRoot,
 		goPrefix:      goPrefix,
 		buildFileName: buildFileName,
-		bctx:          bctx,
-		platforms:     packages.DefaultPlatformConstraints,
+		buildTags:     genericTags,
+		platforms:     platforms,
 		g:             rules.NewGenerator(repoRoot, goPrefix, external),
 	}, nil
 }
@@ -98,7 +93,7 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 	}
 
 	var files []*bzl.File
-	err = packages.Walk(g.bctx, g.repoRoot, g.goPrefix, dir, func(pkg *build.Package) error {
+	err = packages.Walk(g.buildTags, g.platforms, g.repoRoot, g.goPrefix, dir, func(pkg *packages.Package) error {
 		rel, err := filepath.Rel(g.repoRoot, pkg.Dir)
 		if err != nil {
 			return err
@@ -141,7 +136,7 @@ func (g *Generator) emptyToplevel() *bzl.File {
 	}
 }
 
-func (g *Generator) generateOne(rel string, pkg *build.Package) (*bzl.File, error) {
+func (g *Generator) generateOne(rel string, pkg *packages.Package) (*bzl.File, error) {
 	rs, err := g.g.Generate(filepath.ToSlash(rel), pkg)
 	if err != nil {
 		return nil, err
