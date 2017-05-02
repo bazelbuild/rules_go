@@ -23,9 +23,7 @@ before_install:
       OS=linux
     fi
     if [[ "${V}" == "HEAD" ]]; then
-      CI_BASE="http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=${OS}-x86_64/lastSuccessfulBuild/artifact/output/ci"
-      CI_ARTIFACT="`wget -qO- ${CI_BASE} | grep -o 'bazel-[^\"]*-installer.sh' | uniq`"
-      URL="${CI_BASE}/${CI_ARTIFACT}"
+      URL="http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=${OS}-x86_64/lastSuccessfulBuild/artifact/output/ci/bazel--installer.sh"
     else
       URL="https://github.com/bazelbuild/bazel/releases/download/${V}/bazel-${V}-installer-${OS}-x86_64.sh"
     fi
