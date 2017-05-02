@@ -173,6 +173,8 @@ def go_environment_vars(ctx):
                                     "GOARCH": "386"},
                            "darwin": {"GOOS": "darwin",
                                       "GOARCH": "amd64"},
+                           "darwin_x86_64": {"GOOS": "darwin",
+                                             "GOARCH": "amd64"},
                            "freebsd": {"GOOS": "freebsd",
                                        "GOARCH": "amd64"},
                            "armeabi-v7a": {"GOOS": "linux",
@@ -182,6 +184,10 @@ def go_environment_vars(ctx):
   return bazel_to_go_toolchain.get(ctx.fragments.cpp.cpu,
                                    {"GOOS": "linux",
                                     "GOARCH": "amd64"})
+
+def _is_darwin_cpu(ctx):
+  cpu = ctx.fragments.cpp.cpu
+  return cpu == "darwin" or cpu == "darwin_x86_64"
 
 def _emit_generate_params_action(cmds, ctx, fn):
   cmds_all = [
@@ -542,7 +548,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   # http://lists.apple.com/archives/Darwin-dev/2006/Sep/msg00084.html
   # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
   # or earlier.
-  if ctx.fragments.cpp.cpu != 'darwin':
+  if not _is_darwin_cpu(ctx):
     link_cmd += ["-s"]
 
   link_cmd += [
@@ -1151,7 +1157,7 @@ def _cgo_object_impl(ctx):
       "-nostdlib",
       "-Wl,-r",
   ]
-  if ctx.fragments.cpp.cpu == "darwin":
+  if _is_darwin_cpu(ctx):
     arguments += ["-shared", "-Wl,-all_load"]
   else:
     arguments += ["-Wl,-whole-archive"]
