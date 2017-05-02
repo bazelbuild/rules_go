@@ -52,7 +52,7 @@ func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error 
 		if !info.IsDir() {
 			return nil
 		}
-		if base := info.Name(); base == "" || base[0] == '.' || base[0] == '_' || base == "testdata" {
+		if base := info.Name(); base == "" || base[0] == '.' || base == "testdata" {
 			return filepath.SkipDir
 		}
 
