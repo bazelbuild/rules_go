@@ -796,8 +796,8 @@ def _cgo_codegen_impl(ctx):
       '  if %s -cgo -quiet "$file"; then' % ctx.executable._filter_tags.path,
       '    filtered_go_files+=("$file")',
       '  else',
-      '    grep --max-count 1 "^package " "$file" >"$objdir/$name.cgo1.go"',
-      '    echo -n >"$objdir/$name.cgo2.c"',
+      '    grep --max-count 1 "^package " "$file" >"$objdir/$name.go"',
+      '    echo -n >"$objdir/$name.c"',
       '  fi',
       'done',
       '"$GOROOT/bin/go" tool cgo -objdir "$objdir" -- %s "${filtered_go_files[@]}"' %
@@ -806,8 +806,8 @@ def _cgo_codegen_impl(ctx):
       # TODO(#350): might be fixed by this?.
       'for file in "${filtered_go_files[@]}"; do',
       '  name=$(basename "$file" .go)',
-      '  mv $objdir/*$name.cgo1.go $objdir/$name.cgo1.go',
-      '  mv $objdir/*$name.cgo2.c $objdir/$name.cgo2.c',
+      '  mv $objdir/*$name.cgo1.go $objdir/$name.go',
+      '  mv $objdir/*$name.cgo2.c $objdir/$name.c',
       'done',
       'rm -f $objdir/_cgo_.o $objdir/_cgo_flags',
     ]
@@ -885,8 +885,8 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
     basename = s[:-3]
     if basename.rfind("/") >= 0:
       basename = basename[basename.rfind("/")+1:]
-    go_thunks.append(outgen + "/" + basename + ".cgo1.go")
-    c_thunks.append(outgen + "/" + basename + ".cgo2.c")
+    go_thunks.append(outgen + "/" + basename + ".go")
+    c_thunks.append(outgen + "/" + basename + ".c")
 
   outs = struct(
       name = name,
