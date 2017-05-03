@@ -170,8 +170,7 @@ def _go_importpath(ctx):
     path = path[1:]
   return path
 
-def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_lib,
-                            extra_objects, gc_goopts):
+def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_object, gc_goopts):
   """Construct the command line for compiling Go code.
   Constructs a symlink tree to accommodate for workspace name.
 
@@ -182,9 +181,7 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_lib,
     deps: an iterable of dependencies. Each dependency d should have an
       artifact in d.transitive_go_libraries representing all imported libraries.
     libpaths: the set of paths to search for imported libraries.
-    out_lib: the artifact (configured target?) that should be produced
-    extra_objects: an iterable of extra object files to be added to the
-      output archive file.
+    out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
   inputs = depset(sources)
@@ -221,7 +218,7 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_lib,
   args = [
       ctx.file.go_tool.path,
       "tool", "compile",
-      "-o", out_lib.path, "-pack",
+      "-o", out_object.path,
       "-trimpath", "$(pwd)",
       "-I", ".",
   ]
@@ -236,19 +233,32 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_lib,
   # (ctx.label.package + "/" ctx.label.name) for now.
   cmds += [' '.join(args)]
 
-  if extra_objects:
-    inputs += extra_objects
-    objs = ' '.join([c.path for c in extra_objects])
-    cmds += [ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
-
   f = _emit_generate_params_action(cmds, ctx, ctx.label.name + "." + step + ".GoCompileFile.params")
   inputs += [f, ctx.executable._filter_tags] + ctx.files.toolchain
   ctx.action(
       inputs = list(inputs),
-      outputs = [out_lib],
+      outputs = [out_object],
       mnemonic = "GoCompile",
       command = f.path,
-      env = go_environment_vars(ctx))
+      env = go_environment_vars(ctx),
+  )
+
+def _emit_go_pack_action(ctx, out_lib, archives):
+  """Construct the command line for packing objects together.
+
+  Args:
+    ctx: The skylark Context.
+    out_lib: the archive that should be produced
+    objects: an iterable of object or archive files to be added to the output archive file.
+  """
+  ctx.action(
+      inputs = archives + ctx.files.toolchain,
+      outputs = [out_lib],
+      mnemonic = "GoPack",
+      executable = ctx.file.go_tool,
+      arguments = ["tool", "pack", "c", out_lib.path] + [a.path for a in archives],
+      env = go_environment_vars(ctx),
+  )
 
 def go_library_impl(ctx):
   """Implements the go_library() rule."""
@@ -292,6 +302,7 @@ def go_library_impl(ctx):
 
   lib_name = _go_importpath(ctx) + ".a"
   out_lib = ctx.new_file(lib_name)
+  out_object = ctx.new_file(ctx.label.name + ".o")
   search_path = out_lib.path[:-len(lib_name)]
   gc_goopts = _gc_goopts(ctx)
   transitive_go_libraries = depset([out_lib])
@@ -306,10 +317,10 @@ def go_library_impl(ctx):
       sources = go_srcs,
       deps = deps,
       libpaths = transitive_go_library_paths, 
-      out_lib = out_lib, 
-      extra_objects = extra_objects, 
+      out_object = out_object, 
       gc_goopts = gc_goopts,
   )
+  _emit_go_pack_action(ctx, out_lib, [out_object] + extra_objects)
 
   dylibs = []
   if cgo_object:
@@ -498,6 +509,7 @@ def go_test_impl(ctx):
 
   lib_result = go_library_impl(ctx)
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
+  main_object = ctx.new_file(ctx.label.name + "_main_test.o")
   main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
   prefix = _go_prefix(ctx)
   go_import = _go_importpath(ctx)
@@ -538,10 +550,10 @@ def go_test_impl(ctx):
     sources=depset([main_go]),
     deps=ctx.attr.deps + [lib_result],
     libpaths=lib_result.transitive_go_library_paths,
-    out_lib=main_lib,
-    extra_objects=[],
-    gc_goopts=_gc_goopts(ctx))
-
+    out_object=main_object,
+    gc_goopts=_gc_goopts(ctx),
+  )
+  _emit_go_pack_action(ctx, main_lib, [main_object])
   _emit_go_link_action(
     ctx,
     transitive_go_library_paths=lib_result.transitive_go_library_paths,
