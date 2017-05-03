@@ -504,9 +504,6 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
                          executable, gc_linkopts):
   """Sets up a symlink tree to libraries to link together."""
   out_dir = executable.path + ".dir"
-  out_depth = out_dir.count('/') + 1
-  if _is_external(out_dir):
-    out_depth -= 2
   tree_layout = {}
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
@@ -517,16 +514,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
     actual_path = l.path
     importpath = importmap[actual_path]
     tree_layout[l.path] = importpath + ".a"
-
-  for d in cgo_deps:
-    tree_layout[d.path] = _short_path(d)
-
-  main_archive = importmap[lib.path] + ".a"
-  tree_layout[lib.path] = main_archive
-
   ld = "%s" % ctx.fragments.cpp.compiler_executable
-  if ld[0] != '/':
-    ld = ('../' * out_depth) + ld
   extldflags = _c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
   ]
@@ -539,9 +527,10 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   link_cmd = [
-      ('../' * out_depth) + ctx.file.go_tool.path,
-      "tool", "link", "-L", ".",
-      "-o", _go_importpath(ctx),
+      ctx.file.go_tool.path,
+      "tool", "link", "-L", ".", 
+      "-L", out_dir,
+      "-o", executable.path,
   ] + gc_linkopts + ['"${STAMP_XDEFS[@]}"']
 
   # workaround for a bug in ld(1) on Mac OS X.
@@ -554,7 +543,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
   link_cmd += [
       "-extld", ld,
       "-extldflags", "'%s'" % " ".join(extldflags),
-      main_archive,
+      lib.path,
   ]
 
   cmds = symlink_tree_commands(out_dir, tree_layout)
@@ -581,9 +570,7 @@ def _emit_go_link_action(ctx, importmap, transitive_libs, cgo_deps, lib,
       ]
 
   cmds += [
-    "cd " + out_dir,
     ' '.join(link_cmd),
-    "mv -f " + _go_importpath(ctx) + " " + ("../" * out_depth) + executable.path,
   ]
 
   f = _emit_generate_params_action(cmds, ctx, lib.basename + ".GoLinkFile.params")
@@ -906,7 +893,7 @@ def _cgo_codegen_impl(ctx):
         dirname = _short_path(lib)[:-len(lib.basename)]
         linkopts += ['-L', dirname, '-l', lib.basename[3:-3]]
       else:
-        linkopts += [_short_path(lib)]
+        linkopts += [lib.path]
     linkopts += d.cc.link_flags
 
   # collect files from $(SRCDIR), $(GENDIR) and $(BINDIR)
