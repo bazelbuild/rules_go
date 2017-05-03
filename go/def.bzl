@@ -89,23 +89,21 @@ def go_environment_vars(ctx):
     A dict of environment variables for running Go tool commands that build for
     the target OS and architecture.
   """
-  bazel_to_go_toolchain = {"k8": {"GOOS": "linux",
-                                  "GOARCH": "amd64"},
-                           "piii": {"GOOS": "linux",
-                                    "GOARCH": "386"},
-                           "darwin": {"GOOS": "darwin",
-                                      "GOARCH": "amd64"},
-                           "darwin_x86_64": {"GOOS": "darwin",
-                                             "GOARCH": "amd64"},
-                           "freebsd": {"GOOS": "freebsd",
-                                       "GOARCH": "amd64"},
-                           "armeabi-v7a": {"GOOS": "linux",
-                                           "GOARCH": "arm"},
-                           "arm": {"GOOS": "linux",
-                                   "GOARCH": "arm"}}
-  return bazel_to_go_toolchain.get(ctx.fragments.cpp.cpu,
-                                   {"GOOS": "linux",
-                                    "GOARCH": "amd64"})
+  default_toolchain = {"GOOS": "linux", "GOARCH": "amd64"}
+  bazel_to_go_toolchain = {
+    "k8": {"GOOS": "linux", "GOARCH": "amd64"},
+    "piii": {"GOOS": "linux", "GOARCH": "386"},
+    "darwin": {"GOOS": "darwin", "GOARCH": "amd64"},
+    "darwin_x86_64": {"GOOS": "darwin", "GOARCH": "amd64"},
+    "freebsd": {"GOOS": "freebsd", "GOARCH": "amd64"},
+    "armeabi-v7a": {"GOOS": "linux", "GOARCH": "arm"},
+    "arm": {"GOOS": "linux", "GOARCH": "arm"}
+  }
+  env = {}
+  if hasattr(ctx.file, "go_tool"):
+    env["GOROOT"] = ctx.file.go_tool.dirname + "/.."
+  env.update(bazel_to_go_toolchain.get(ctx.fragments.cpp.cpu, default_toolchain))
+  return env
 
 def _is_darwin_cpu(ctx):
   cpu = ctx.fragments.cpp.cpu
@@ -192,9 +190,7 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_lib,
   inputs = depset(sources)
   prefix = _go_prefix(ctx)
 
-  cmds = [
-      'export GOROOT=$(pwd)/%s/..' % ctx.file.go_tool.dirname,
-  ]
+  cmds = []
 
   # Filter source files using build tags.
   cleaned_go_source_paths = [
@@ -448,7 +444,6 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
   cmds = ["export PATH=$PATH:/usr/bin"]
 
   cmds += [
-      "export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/..",
       "STAMP_XDEFS=()",
   ]
 
@@ -474,7 +469,8 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
       outputs = [executable],
       command = f.path,
       mnemonic = "GoLink",
-      env = go_environment_vars(ctx))
+      env = go_environment_vars(ctx),
+  )
 
 def go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
@@ -752,6 +748,7 @@ _cgo_filter_srcs = rule(
             single_file = True,
         ),
     },
+    fragments = ["cpp"],
 )    
 
 def _cgo_codegen_impl(ctx):
@@ -786,7 +783,6 @@ def _cgo_codegen_impl(ctx):
              p + ctx.attr.outdir)
   cc = ctx.fragments.cpp.compiler_executable
   cmds = [
-      'export GOROOT=$(pwd)/' + ctx.file.go_tool.dirname + '/..',
       # We cannot use env for CC because $(CC) on OSX is relative
       # and '../' does not work fine due to symlinks.
       'export CC=$(cd $(dirname {cc}); pwd)/$(basename {cc})'.format(cc=cc),
@@ -933,7 +929,6 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
 
 def _cgo_import_impl(ctx):
   cmds = [
-      ("export GOROOT=$(pwd)/" + ctx.file.go_tool.dirname + "/.."),
       (ctx.file.go_tool.path + " tool cgo" +
        " -dynout " + ctx.outputs.out.path +
        " -dynimport " + ctx.file.cgo_o.path +
@@ -948,6 +943,7 @@ def _cgo_import_impl(ctx):
       outputs = [ctx.outputs.out],
       command = f.path,
       mnemonic = "CGoImportGen",
+      env = go_environment_vars(ctx),
   )
   return struct(
       files = set([ctx.outputs.out]),
@@ -973,6 +969,7 @@ _cgo_import = rule(
             cfg = "host",
         ),
     },
+    fragments = ["cpp"],
 )
 
 def _cgo_genrule_impl(ctx):
