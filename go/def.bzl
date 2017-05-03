@@ -388,7 +388,7 @@ def go_library_impl(ctx):
     _emit_go_asm_action(ctx, src, asm_hdrs, obj)
     extra_objects += [obj]
 
-  out_lib = ctx.outputs.lib
+  out_lib = _output_lib(ctx)
   gc_goopts = _gc_goopts(ctx)
   _emit_go_compile_action(ctx, go_srcs, deps, out_lib, extra_objects, gc_goopts)
 
@@ -600,7 +600,7 @@ def go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
   lib_result = go_library_impl(ctx)
   executable = ctx.outputs.executable
-  lib_out = ctx.outputs.lib
+  lib_out = _output_lib(ctx)
 
   _emit_go_link_action(
     ctx,
@@ -621,7 +621,7 @@ def go_test_impl(ctx):
   test into a binary."""
 
   lib_result = go_library_impl(ctx)
-  main_go = ctx.outputs.main_go
+  main_go = _output_test_main_go(ctx)
   prefix = _go_prefix(ctx)
   go_import = _go_importpath(ctx)
 
@@ -640,7 +640,7 @@ def go_test_impl(ctx):
           '--package',
           go_import,
           '--output',
-          "'%s'" % ctx.outputs.main_go.path,
+          "'%s'" % main_go.path,
           '"${FILTERED_TEST_FILES[@]}"',
       ]),
   ]
@@ -655,22 +655,24 @@ def go_test_impl(ctx):
       mnemonic = "GoTestGenTest",
       env = dict(go_environment_vars(ctx), RUNDIR=ctx.label.package))
 
+  main_lib = _output_test_main_lib(ctx)
+
   _emit_go_compile_action(
     ctx,
     sources=set([main_go]),
     deps=ctx.attr.deps + [lib_result],
-    out_lib=ctx.outputs.main_lib,
+    out_lib=main_lib,
     extra_objects=[],
     gc_goopts=_gc_goopts(ctx))
 
   importmap = lib_result.transitive_go_importmap + {
-      ctx.outputs.main_lib.path: _go_importpath(ctx) + "_main_test"}
+      main_lib.path: _go_importpath(ctx) + "_main_test"}
   _emit_go_link_action(
     ctx,
     importmap=importmap,
     transitive_libs=lib_result.transitive_go_library_object,
     cgo_deps=lib_result.transitive_cgo_deps,
-    lib=ctx.outputs.main_lib, executable=ctx.outputs.executable,
+    lib=main_lib, executable=ctx.outputs.executable,
     gc_linkopts=_gc_linkopts(ctx))
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
@@ -775,9 +777,17 @@ go_link_attrs = go_library_attrs + _crosstool_attrs + {
     "x_defs": attr.string_dict(),
 }
 
-go_library_outputs = {
-    "lib": "%{name}.a",
-}
+def _output_lib(ctx):
+    new_path = ctx.label.name.replace("/", "_") + ".a"
+    return ctx.new_file(new_path)
+
+def _output_test_main_lib(ctx):
+    new_path = ctx.label.name.replace("/", "_") + "_main_test.a"
+    return ctx.new_file(new_path)
+
+def _output_test_main_go(ctx):
+    new_path = ctx.label.name.replace("/", "_") + "_main_test.go"
+    return ctx.new_file(new_path)
 
 go_library = rule(
     go_library_impl,
@@ -790,7 +800,6 @@ go_library = rule(
         ),
     },
     fragments = ["cpp"],
-    outputs = go_library_outputs,
 )
 
 go_binary = rule(
@@ -798,7 +807,6 @@ go_binary = rule(
     attrs = go_library_attrs + _crosstool_attrs + go_link_attrs,
     executable = True,
     fragments = ["cpp"],
-    outputs = go_library_outputs,
 )
 
 go_test = rule(
@@ -814,11 +822,6 @@ go_test = rule(
     },
     executable = True,
     fragments = ["cpp"],
-    outputs = {
-        "lib": "%{name}.a",
-        "main_lib": "%{name}_main_test.a",
-        "main_go": "%{name}_main_test.go",
-    },
     test = True,
 )
 
