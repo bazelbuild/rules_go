@@ -299,7 +299,7 @@ def go_library_impl(ctx):
   search_path = out_lib.path[:-len(lib_name)]
   gc_goopts = _gc_goopts(ctx)
   transitive_go_libraries = depset([out_lib])
-  transitive_go_library_paths = [search_path]
+  transitive_go_library_paths = depset([search_path])
   for dep in deps:
     transitive_go_libraries += dep.transitive_go_libraries
     transitive_cgo_deps += dep.transitive_cgo_deps
