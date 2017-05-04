@@ -173,15 +173,17 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_lib,
 
   Args:
     ctx: The skylark Context.
+    step: used to generate unique names for this step of a rule.
     sources: an iterable of source code artifacts (or CTs? or labels?)
     deps: an iterable of dependencies. Each dependency d should have an
       artifact in d.transitive_go_libraries representing all imported libraries.
+    libpaths: the set of paths to search for imported libraries.
     out_lib: the artifact (configured target?) that should be produced
     extra_objects: an iterable of extra object files to be added to the
       output archive file.
     gc_goopts: additional flags to pass to the compiler.
   """
-  inputs = depset() + sources
+  inputs = depset(sources)
   prefix = _go_prefix(ctx)
 
   cmds = [
@@ -232,16 +234,15 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_lib,
   # (ctx.label.package + "/" ctx.label.name) for now.
   cmds += [' '.join(args)]
 
-  inputs += ctx.files.toolchain
   if extra_objects:
     inputs += extra_objects
     objs = ' '.join([c.path for c in extra_objects])
     cmds += [ctx.file.go_tool.path + " tool pack r " + out_lib.path + " " + objs]
 
   f = _emit_generate_params_action(cmds, ctx, ctx.label.name + "." + step + ".GoCompileFile.params")
-  inputs += [f]
+  inputs += [f, ctx.executable._filter_tags] + ctx.files.toolchain
   ctx.action(
-      inputs = list(inputs) + [ctx.executable._filter_tags],
+      inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",
       command = f.path,
@@ -291,22 +292,22 @@ def go_library_impl(ctx):
   out_lib = ctx.new_file(lib_name)
   search_path = out_lib.path[:-len(lib_name)]
   gc_goopts = _gc_goopts(ctx)
-  transitive_libs = depset([out_lib])
-  transitive_lib_paths = [search_path]
+  transitive_go_libraries = depset([out_lib])
+  transitive_go_library_paths = [search_path]
   for dep in deps:
-     transitive_libs += dep.transitive_go_libraries
-     transitive_cgo_deps += dep.transitive_cgo_deps
-     transitive_lib_paths += dep.transitive_go_library_paths
+    transitive_go_libraries += dep.transitive_go_libraries
+    transitive_cgo_deps += dep.transitive_cgo_deps
+    transitive_go_library_paths += dep.transitive_go_library_paths
 
   _emit_go_compile_action(ctx,
-    step="lib",
-    sources=go_srcs,
-    deps= deps,
-    libpaths=transitive_lib_paths, 
-    out_lib=out_lib, 
-    extra_objects=extra_objects, 
-    gc_goopts=gc_goopts,
-    )
+      step = "lib",
+      sources = go_srcs,
+      deps = deps,
+      libpaths = transitive_go_library_paths, 
+      out_lib = out_lib, 
+      extra_objects = extra_objects, 
+      gc_goopts = gc_goopts,
+  )
 
   dylibs = []
   if cgo_object:
@@ -326,8 +327,8 @@ def go_library_impl(ctx):
     cgo_object = cgo_object,
     direct_deps = ctx.attr.deps,
     transitive_cgo_deps = transitive_cgo_deps,
-    transitive_go_libraries = transitive_libs,
-    transitive_go_library_paths = transitive_lib_paths,
+    transitive_go_libraries = transitive_go_libraries,
+    transitive_go_library_paths = transitive_go_library_paths,
     gc_goopts = gc_goopts,
   )
 
@@ -393,7 +394,7 @@ def _extract_extldflags(gc_linkopts, extldflags):
       filtered_gc_linkopts += [opt]
   return filtered_gc_linkopts, extldflags
 
-def _emit_go_link_action(ctx, transitive_lib_paths, transitive_libs, cgo_deps, libs,
+def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_libraries, cgo_deps, libs,
                          executable, gc_linkopts):
   """Sets up a symlink tree to libraries to link together."""
   config_strip = len(ctx.configuration.bin_dir.path) + 1
@@ -417,7 +418,7 @@ def _emit_go_link_action(ctx, transitive_lib_paths, transitive_libs, cgo_deps, l
       "tool", "link", 
       "-L", "."
   ]
-  for path in transitive_lib_paths:
+  for path in transitive_go_library_paths:
     link_cmd += ["-L", path]
   link_cmd += [
       "-o", executable.path,
@@ -457,14 +458,12 @@ def _emit_go_link_action(ctx, transitive_lib_paths, transitive_libs, cgo_deps, l
           "done < " + f.path,
       ]
 
-  cmds += [
-    ' '.join(link_cmd),
-  ]
+  cmds += [' '.join(link_cmd)]
 
   f = _emit_generate_params_action(cmds, ctx, lib.basename + ".GoLinkFile.params")
 
   ctx.action(
-      inputs = [f] + (list(transitive_libs) + [lib] + list(cgo_deps) +
+      inputs = [f] + (list(transitive_go_libraries) + [lib] + list(cgo_deps) +
                 ctx.files.toolchain + ctx.files._crosstool) + stamp_inputs,
       outputs = [executable],
       command = f.path,
@@ -476,8 +475,8 @@ def go_binary_impl(ctx):
   lib_result = go_library_impl(ctx)
   _emit_go_link_action(
     ctx,
-    transitive_libs=lib_result.transitive_go_libraries,
-    transitive_lib_paths=lib_result.transitive_go_library_paths,
+    transitive_go_libraries=lib_result.transitive_go_libraries,
+    transitive_go_library_paths=lib_result.transitive_go_library_paths,
     cgo_deps=lib_result.transitive_cgo_deps,
     libs=lib_result.files,
     executable=ctx.outputs.executable,
@@ -543,8 +542,8 @@ def go_test_impl(ctx):
 
   _emit_go_link_action(
     ctx,
-    transitive_lib_paths=lib_result.transitive_go_library_paths,
-    transitive_libs=lib_result.transitive_go_libraries,
+    transitive_go_library_paths=lib_result.transitive_go_library_paths,
+    transitive_go_libraries=lib_result.transitive_go_libraries,
     cgo_deps=lib_result.transitive_cgo_deps,
     libs=[main_lib],
     executable=ctx.outputs.executable,
@@ -792,12 +791,12 @@ def _cgo_codegen_impl(ctx):
       'unfiltered_go_files=(%s)' % ' '.join(["'%s'" % f.path for f in go_srcs]),
       'filtered_go_files=()',
       'for file in "${unfiltered_go_files[@]}"; do',
-      '  name=$(basename "$file" .go)',
+      '  stem=$(basename "$file" .go)',
       '  if %s -cgo -quiet "$file"; then' % ctx.executable._filter_tags.path,
       '    filtered_go_files+=("$file")',
       '  else',
-      '    grep --max-count 1 "^package " "$file" >"$objdir/$name.go"',
-      '    echo -n >"$objdir/$name.c"',
+      '    grep --max-count 1 "^package " "$file" >"$objdir/$stem.go"',
+      '    echo -n >"$objdir/$stem.c"',
       '  fi',
       'done',
       '"$GOROOT/bin/go" tool cgo -objdir "$objdir" -- %s "${filtered_go_files[@]}"' %
@@ -805,9 +804,9 @@ def _cgo_codegen_impl(ctx):
       # Rename the outputs using glob so we don't have to understand cgo's mangling
       # TODO(#350): might be fixed by this?.
       'for file in "${filtered_go_files[@]}"; do',
-      '  name=$(basename "$file" .go)',
-      '  mv $objdir/*$name.cgo1.go $objdir/$name.go',
-      '  mv $objdir/*$name.cgo2.c $objdir/$name.c',
+      '  stem=$(basename "$file" .go)',
+      '  mv "$objdir/"*"$stem.cgo1.go" "$objdir/$stem.go"',
+      '  mv "$objdir/"*"$stem.cgo2.c" "$objdir/$stem.c"',
       'done',
       'rm -f $objdir/_cgo_.o $objdir/_cgo_flags',
     ]
