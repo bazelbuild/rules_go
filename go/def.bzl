@@ -243,20 +243,20 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_object, gc_g
       env = go_environment_vars(ctx),
   )
 
-def _emit_go_pack_action(ctx, out_lib, archives):
+def _emit_go_pack_action(ctx, out_lib, objects):
   """Construct the command line for packing objects together.
 
   Args:
     ctx: The skylark Context.
     out_lib: the archive that should be produced
-    objects: an iterable of object or archive files to be added to the output archive file.
+    objects: an iterable of object files to be added to the output archive file.
   """
   ctx.action(
-      inputs = archives + ctx.files.toolchain,
+      inputs = objects + ctx.files.toolchain,
       outputs = [out_lib],
       mnemonic = "GoPack",
       executable = ctx.file.go_tool,
-      arguments = ["tool", "pack", "c", out_lib.path] + [a.path for a in archives],
+      arguments = ["tool", "pack", "c", out_lib.path] + [a.path for a in objects],
       env = go_environment_vars(ctx),
   )
 
