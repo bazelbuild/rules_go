@@ -6,6 +6,9 @@ Bazel ≥0.4.4 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
 
 ## Announcements
 
+* **May 5, 2017**
+Release [0.4.4](https://github.com/bazelbuild/rules_go/releases/tag/0.4.4) is
+now available!
 * **April 12, 2017**
 Release [0.4.3](https://github.com/bazelbuild/rules_go/releases/tag/0.4.3) is
 now available!
@@ -68,7 +71,7 @@ BUILD.bazel files in bazelbuild/buildifier).
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.4.3",
+        tag = "0.4.4",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
