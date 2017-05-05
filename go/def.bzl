@@ -170,13 +170,11 @@ def _go_importpath(ctx):
     path = path[1:]
   return path
 
-def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_object, gc_goopts):
+def _emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts):
   """Construct the command line for compiling Go code.
-  Constructs a symlink tree to accommodate for workspace name.
 
   Args:
     ctx: The skylark Context.
-    step: used to generate unique names for this step of a rule.
     sources: an iterable of source code artifacts (or CTs? or labels?)
     deps: an iterable of dependencies. Each dependency d should have an
       artifact in d.transitive_go_libraries representing all imported libraries.
@@ -184,62 +182,29 @@ def _emit_go_compile_action(ctx, step, sources, deps, libpaths, out_object, gc_g
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
-  inputs = depset(sources)
-  prefix = _go_prefix(ctx)
-
-  cmds = []
-
-  # Filter source files using build tags.
-  cleaned_go_source_paths = [
-      i.path
-      for i in sources
-      if not i.basename.startswith("_cgo")]
-  cleaned_cgo_source_paths = [
-      i.path
-      for i in sources
-      if i.basename.startswith("_cgo")]
-  cmds += [
-      'UNFILTERED_GO_FILES=(%s)' % 
-          ' '.join(["'%s'" % f for f in cleaned_go_source_paths]),
-      'FILTERED_GO_FILES=(%s)' %
-          ' '.join(["'%s'" % f for f in cleaned_cgo_source_paths]),
-      'while read -r line; do',
-      '  if [ -n "$line" ]; then',
-      '    FILTERED_GO_FILES+=("$line")',
-      '  fi',
-      'done < <(\'%s\' -cgo "${UNFILTERED_GO_FILES[@]}")' % ctx.executable._filter_tags.path,
-      'if [ ${#FILTERED_GO_FILES[@]} -eq 0 ]; then',
-      '  echo no buildable Go source files in %s >&1' % str(ctx.label),
-      '  exit 1',
-      'fi',
-  ]
-
+  go_sources = ["" + i.path for i in sources if not i.basename.startswith("_cgo")]
+  cgo_sources = [i.path for i in sources if i.basename.startswith("_cgo")]
   # Compile filtered files.
   args = [
+      "-run", "-cgo",
       ctx.file.go_tool.path,
       "tool", "compile",
       "-o", out_object.path,
-      "-trimpath", "$(pwd)",
-      "-I", ".",
+      "-trimpath", "≡.",
+      "-I", "≡.",
   ]
+  inputs = depset(sources + ctx.files.toolchain)
   for dep in deps:
     inputs += dep.transitive_go_libraries
   for path in libpaths:
     args += ["-I", path]
-  args += gc_goopts + ['"${FILTERED_GO_FILES[@]}"']
-
-  # Pack extra objects into an archive, if provided.
-  # Set -p to the import path of the library, ie.
-  # (ctx.label.package + "/" ctx.label.name) for now.
-  cmds += [' '.join(args)]
-
-  f = _emit_generate_params_action(cmds, ctx, ctx.label.name + "." + step + ".GoCompileFile.params")
-  inputs += [f, ctx.executable._filter_tags] + ctx.files.toolchain
+  args += gc_goopts + go_sources + cgo_sources
   ctx.action(
       inputs = list(inputs),
       outputs = [out_object],
       mnemonic = "GoCompile",
-      command = f.path,
+      executable = ctx.executable._filter_tags,
+      arguments = args,
       env = go_environment_vars(ctx),
   )
 
@@ -313,7 +278,6 @@ def go_library_impl(ctx):
     transitive_go_library_paths += dep.transitive_go_library_paths
 
   _emit_go_compile_action(ctx,
-      step = "lib",
       sources = go_srcs,
       deps = deps,
       libpaths = transitive_go_library_paths, 
@@ -546,7 +510,6 @@ def go_test_impl(ctx):
 
   _emit_go_compile_action(
     ctx,
-    step="test",
     sources=depset([main_go]),
     deps=ctx.attr.deps + [lib_result],
     libpaths=lib_result.transitive_go_library_paths,
