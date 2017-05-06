@@ -15,4 +15,5 @@ limitations under the License.
 
 package stamp
 
-var BUILD_TIMESTAMP = "fail"
+var NOT_A_TIMESTAMP = "fail"
+var BUILD_TIMESTAMP = NOT_A_TIMESTAMP

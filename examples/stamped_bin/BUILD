@@ -1,18 +1,8 @@
-package(
-    default_visibility = ["//visibility:public"],
-)
+load("//go:def.bzl", "go_test")
 
-load("//go:def.bzl", "go_binary", "go_library")
-
-go_library(
-    name = "go_default_library",
-    srcs = ["main.go"],
-    visibility = ["//visibility:private"],
+go_test(
+    name = "go_default_xtest",
+    srcs = ["stamped_bin_test.go"],
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
-)
-
-go_binary(
-    name = "stamped_bin",
-    library = ":go_default_library",
-    visibility = ["//visibility:public"],
+    linkstamp = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
 )

@@ -13,18 +13,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package stamped_bin_test
 
 import (
-	"fmt"
-	"os"
+	"testing"
 
 	"github.com/bazelbuild/rules_go/examples/stamped_bin/stamp"
 )
 
-func main() {
-	fmt.Println(stamp.BUILD_TIMESTAMP)
-	if stamp.BUILD_TIMESTAMP == "fail" {
-		os.Exit(1)
+func TestStampedBin(t *testing.T) {
+	if stamp.BUILD_TIMESTAMP == stamp.NOT_A_TIMESTAMP {
+		t.Errorf("Expected timestamp to have been modified, got %s.", stamp.BUILD_TIMESTAMP)
 	}
 }
