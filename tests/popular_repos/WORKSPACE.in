@@ -9,11 +9,14 @@ go_repositories()
 # platform-independent BUILD files without hints.
 BUILD_TAGS = ["amd64", "@@GOOS@@"]
 
-new_go_repository(
+go_repository(
     name = "org_golang_x_crypto",
     importpath = "golang.org/x/crypto",
     commit = "efac7f277b17c19894091e358c6130cb6bd51117",
     build_tags = BUILD_TAGS,
+    url = "https://codeload.github.com/golang/crypto/zip/efac7f277b17c19894091e358c6130cb6bd51117",
+    strip_prefix = "crypto-efac7f277b17c19894091e358c6130cb6bd51117",
+    type = "zip",
 )
 
 new_go_repository(
