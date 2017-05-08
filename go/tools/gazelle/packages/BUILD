@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "doc.go",
+        "package.go",
         "walk.go",
     ],
     visibility = ["//visibility:public"],
