@@ -41,6 +41,7 @@ def go_internal_tools_deps():
       name = "org_golang_x_tools",
       commit = repository_tool_deps['tools'].commit,
       importpath = repository_tool_deps['tools'].importpath,
+      repo_deps = ["io_bazel_rules_go"],
   )
 
 def _fetch_repository_tools_deps(ctx, goroot, gopath):
