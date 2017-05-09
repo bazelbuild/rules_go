@@ -285,15 +285,14 @@ go_repositories(
 ### `go_repository`
 
 ```bzl
-go_repository(name, importpath, remote, vcs, commit, tag)
+go_repository(name, importpath, remote, vcs, commit, tag, build_tags, url, string_prefix, type, sha256, build_file_name, disable_build_file_generation)
 ```
 
-Fetches a remote repository of a Go project, expecting it contains `BUILD`
-files. It is an analogy to `git_repository` but it recognizes importpath
-redirection of Go.
+Fetches a remote repository of a Go project, and generates `BUILD`
+files if needed.
+In vcs mode it recognizes importpath redirection of Go.
 
-Either `importpath` or `remote` may be specified. To bypass importpath
-redirection, specify both `remote` and `vcs`.
+The `importpath` import path must always be specified. If url is specified, it is expected to be the url for a source archive. If `remote` and `vcs` are both specified, they control the source repository to be cloned for the import path. If neither a vcs nor a url are specified, the vcs will be inferred from the import path using the normal go logic.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -353,74 +352,57 @@ redirection, specify both `remote` and `vcs`.
         <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
       </td>
     </tr>
-  </tbody>
-</table>
-
-### `new_go_repository`
-
-```bzl
-new_go_repository(name, importpath, remote, vcs, commit, tag)
-```
-
-Fetches a remote repository of a Go project and automatically generates
-`BUILD` files in it.  It is an analogy to `new_git_repository` but it recognizes
-importpath redirection of Go.
-
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
     <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>name</code></td>
+      <td><code>build_tags</code></td>
       <td>
-        <code>String, required</code>
-        <p>A unique name for this external dependency.</p>
+        <code>String, optional</code>
+        <p>The set of tags to pass to gazelle when generating build files.</p>
       </td>
     </tr>
     <tr>
-      <td><code>importpath</code></td>
+      <td><code>url</code></td>
       <td>
         <code>String, optional</code>
-        <p>An import path in Go, which also provides a default value for the
-        root of the target remote repository</p>
+        <p>The url for a source code archive.</p>
+        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
       </td>
     </tr>
     <tr>
-      <td><code>remote</code></td>
+      <td><code>strip_prefix</code></td>
       <td>
         <code>String, optional</code>
-        <p>The URI of the target remote repository, if this differs from the
-        value of <code>importpath</code></p>
+        <p>The internal path prefix to strip when the archive is extracted.</p>
+        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
       </td>
     </tr>
     <tr>
-      <td><code>vcs</code></td>
+      <td><code>type</code></td>
       <td>
         <code>String, optional</code>
-        <p>The version control system to use for fetching the repository.</p>
+        <p>The type of the archive, only needed if it cannot be inferred from the file extension.</p>
+        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
       </td>
     </tr>
     <tr>
-      <td><code>commit</code></td>
+      <td><code>sha256</code></td>
       <td>
         <code>String, optional</code>
-        <p>The commit hash to checkout in the repository.</p>
-        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+        <p>The expected SHA-256 hash of the file downloaded.</p>
+        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
       </td>
     </tr>
     <tr>
-      <td><code>tag</code></td>
+      <td><code>build_file_name</code></td>
       <td>
         <code>String, optional</code>
-        <p>The tag to checkout in the repository.</p>
-        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+        <p>The name to use for the generated build files, defaults to BUILD.bazel.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>disable_build_file_generation</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>Used to force build file generation to not run, even when the repository does not have a root build file.</p>
       </td>
     </tr>
   </tbody>

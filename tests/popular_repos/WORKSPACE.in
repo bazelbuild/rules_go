@@ -2,7 +2,7 @@ local_repository(
     name = "io_bazel_rules_go",
     path = "@@RULES_DIR@@",
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_repositories", "new_go_repository")
+load("@io_bazel_rules_go//go:def.bzl", "go_repositories", "go_repository", "new_go_repository")
 go_repositories()
 
 # TODO(#409): don't specify build tags for repositories. We should generate

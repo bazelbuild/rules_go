@@ -14,8 +14,6 @@
 
 
 def _go_repository_impl(ctx):
-  # TODO(iancottrell): Decide if commit and tag apply to non vcs forms
-  # TODO(iancottrell): Decide if commit and tag should remain mutually exclusive
   if ctx.attr.commit and ctx.attr.tag:
     fail("cannot specify both of commit and tag", "commit")
   if ctx.attr.commit:
@@ -28,7 +26,7 @@ def _go_repository_impl(ctx):
   if ctx.attr.url:
     # explicit source url
     if ctx.attr.vcs:
-        fail("cannot specify both of vcs and url")
+      fail("cannot specify both of vcs and url")
     ctx.download_and_extract(
         url = ctx.attr.url,
         sha256 = ctx.attr.sha256,
@@ -68,8 +66,8 @@ def _go_repository_impl(ctx):
   cmds += [ctx.path('')]
   result = ctx.execute(cmds)
   if result.return_code:
-      fail("failed to generate BUILD files for %s: %s" % (
-          ctx.attr.importpath, result.stderr))
+    fail("failed to generate BUILD files for %s: %s" % (
+        ctx.attr.importpath, result.stderr))
 
 
 go_repository = repository_rule(
@@ -113,4 +111,6 @@ go_repository = repository_rule(
     },
 )
 
+# This is for legacy compatability
+# Originally this was the only rule that triggered BUILD file generation.
 new_go_repository = go_repository
