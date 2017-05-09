@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 def _go_repository_impl(ctx):
   if ctx.attr.commit and ctx.attr.tag:
     fail("cannot specify both of commit and tag", "commit")
@@ -50,24 +49,27 @@ def _go_repository_impl(ctx):
     if result.return_code:
       fail("failed to fetch %s: %s" % (ctx.name, result.stderr))
 
-  if (ctx.attr.disable_build_file_generation or 
-      ctx.path('BUILD').exists or 
-      ctx.path(ctx.attr.build_file_name).exists):
-    # Do not generate build files for this repository
-    return
-
-  # Build file generation is needed
-  gazelle = ctx.path(ctx.attr._gazelle)
-  cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
-          '--repo_root', ctx.path(''),
-          "--build_tags", ",".join(ctx.attr.build_tags)]
-  if ctx.attr.build_file_name:
-      cmds += ["--build_file_name", ctx.attr.build_file_name]
-  cmds += [ctx.path('')]
-  result = ctx.execute(cmds)
-  if result.return_code:
-    fail("failed to generate BUILD files for %s: %s" % (
-        ctx.attr.importpath, result.stderr))
+  generate = ctx.attr.build_file_generation == "on"
+  if ctx.attr.build_file_generation == "auto":
+    generate = True
+    for name in ['BUILD', 'BUILD.bazel', ctx.attr.build_file_name]:
+      path = ctx.path(name)
+      if path.exists and not ctx.execute(['test', '-f', path]).return_code:
+        generate = False
+        break
+  if generate:
+    # Build file generation is needed
+    gazelle = ctx.path(ctx.attr._gazelle)
+    cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
+            '--repo_root', ctx.path(''),
+            "--build_tags", ",".join(ctx.attr.build_tags)]
+    if ctx.attr.build_file_name:
+        cmds += ["--build_file_name", ctx.attr.build_file_name]
+    cmds += [ctx.path('')]
+    result = ctx.execute(cmds)
+    if result.return_code:
+      fail("failed to generate BUILD files for %s: %s" % (
+          ctx.attr.importpath, result.stderr))
 
 
 go_repository = repository_rule(
@@ -91,7 +93,7 @@ go_repository = repository_rule(
 
         # Attributes for a repository that needs automatic build file generation
         "build_file_name": attr.string(default="BUILD.bazel"),
-        "disable_build_file_generation": attr.bool(default=False),
+        "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
 
         # Hidden attributes for tool dependancies
         "_fetch_repo": attr.label(

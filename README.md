@@ -285,7 +285,7 @@ go_repositories(
 ### `go_repository`
 
 ```bzl
-go_repository(name, importpath, remote, vcs, commit, tag, build_tags, url, string_prefix, type, sha256, build_file_name, disable_build_file_generation)
+go_repository(name, importpath, remote, vcs, commit, tag, build_tags, url, string_prefix, type, sha256, build_file_name, build_file_generation)
 ```
 
 Fetches a remote repository of a Go project, and generates `BUILD`
@@ -399,10 +399,13 @@ The `importpath` import path must always be specified. If url is specified, it i
       </td>
     </tr>
     <tr>
-      <td><code>disable_build_file_generation</code></td>
+      <td><code>build_file_generation</code></td>
       <td>
         <code>String, optional</code>
-        <p>Used to force build file generation to not run, even when the repository does not have a root build file.</p>
+        <p>Used to force build file generation.</p>
+        <p>off means do not generate build files</p>
+        <p>on means always run gazelle, even if build files are already present</p>
+        <p>auto is the default and runs gazelle only if there is no root build file</p>
       </td>
     </tr>
   </tbody>
