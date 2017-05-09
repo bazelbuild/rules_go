@@ -79,6 +79,7 @@ func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error 
 type packageReader struct {
 	bctx                    build.Context
 	repoRoot, goPrefix, dir string
+	warnHook                func(error)
 }
 
 func (pr *packageReader) findPackage() (*build.Package, error) {
@@ -188,5 +189,9 @@ func (pr *packageReader) selectPackageName(packageGoFiles map[string][]os.FileIn
 }
 
 func (pr *packageReader) warn(err error) {
+	if pr.warnHook != nil {
+		pr.warnHook(err)
+		return
+	}
 	log.Println(err)
 }

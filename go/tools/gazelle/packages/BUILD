@@ -4,10 +4,17 @@ go_library(
     name = "go_default_library",
     srcs = [
         "doc.go",
+        "fileinfo.go",
         "package.go",
         "walk.go",
     ],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["fileinfo_test.go"],
+    library = ":go_default_library",
 )
 
 go_test(
