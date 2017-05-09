@@ -57,21 +57,20 @@ func (p *Package) HasGo() bool {
 	return p.Library.HasGo() || p.CgoLibrary.HasGo() || p.Binary.HasGo() || p.Test.HasGo() || p.XTest.HasGo()
 }
 
-// firstGoFile returns the name of a .go file and true if the package contains
-// at least one .go file, or "" and false otherwise. Used by HasGo and for
-// error reporting.
-func (p *Package) firstGoFile() (string, bool) {
-	if f, ok := p.Library.firstGoFile(); ok {
-		return f, true
+// firstGoFile returns the name of a .go file if the package contains at least
+// one .go file, or "" otherwise. Used by HasGo and for error reporting.
+func (p *Package) firstGoFile() string {
+	if f := p.Library.firstGoFile(); f != "" {
+		return f
 	}
-	if f, ok := p.CgoLibrary.firstGoFile(); ok {
-		return f, true
+	if f := p.CgoLibrary.firstGoFile(); f != "" {
+		return f
 	}
-	if f, ok := p.Binary.firstGoFile(); ok {
-		return f, true
+	if f := p.Binary.firstGoFile(); f != "" {
+		return f
 	}
-	if f, ok := p.Test.firstGoFile(); ok {
-		return f, true
+	if f := p.Test.firstGoFile(); f != "" {
+		return f
 	}
 	return p.XTest.firstGoFile()
 }
@@ -80,13 +79,12 @@ func (t *Target) HasGo() bool {
 	return t.Sources.HasGo()
 }
 
-func (t *Target) firstGoFile() (string, bool) {
+func (t *Target) firstGoFile() string {
 	return t.Sources.firstGoFile()
 }
 
 func (ts *PlatformStrings) HasGo() bool {
-	_, ok := ts.firstGoFile()
-	return ok
+	return ts.firstGoFile() != ""
 }
 
 func (ts *PlatformStrings) IsEmpty() bool {
@@ -101,18 +99,18 @@ func (ts *PlatformStrings) IsEmpty() bool {
 	return true
 }
 
-func (ts *PlatformStrings) firstGoFile() (string, bool) {
+func (ts *PlatformStrings) firstGoFile() string {
 	for _, f := range ts.Generic {
 		if strings.HasSuffix(f, ".go") {
-			return f, true
+			return f
 		}
 	}
 	for _, fs := range ts.Platform {
 		for _, f := range fs {
 			if strings.HasSuffix(f, ".go") {
-				return f, true
+				return f
 			}
 		}
 	}
-	return "", false
+	return ""
 }
