@@ -29,14 +29,6 @@ import (
 	"strings"
 )
 
-// packageReader holds the state used to read package metadata from a directory.
-// This mostly exists to avoid passing the same of parameters to every function.
-type packageReader struct {
-	bctx               build.Context
-	repoRoot, goPrefix string
-	dir                string
-}
-
 // A WalkFunc is a callback called by Walk for each package.
 type WalkFunc func(pkg *build.Package) error
 
@@ -81,6 +73,12 @@ func Walk(bctx build.Context, repoRoot, goPrefix, dir string, f WalkFunc) error 
 		}
 		return f(pkg)
 	})
+}
+
+// packageReader reads package metadata from a directory.
+type packageReader struct {
+	bctx                    build.Context
+	repoRoot, goPrefix, dir string
 }
 
 func (pr *packageReader) findPackage() (*build.Package, error) {
