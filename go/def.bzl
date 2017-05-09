@@ -182,28 +182,26 @@ def _emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts)
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
-  go_sources = ["" + i.path for i in sources if not i.basename.startswith("_cgo")]
-  cgo_sources = [i.path for i in sources if i.basename.startswith("_cgo")]
   # Compile filtered files.
   args = [
-      "-run", "-cgo",
+      "-cgo",
       ctx.file.go_tool.path,
       "tool", "compile",
       "-o", out_object.path,
-      "-trimpath", "≡.",
-      "-I", "≡.",
+      "-trimpath", "-abs-.",
+      "-I", "-abs-.",
   ]
   inputs = depset(sources + ctx.files.toolchain)
   for dep in deps:
     inputs += dep.transitive_go_libraries
   for path in libpaths:
     args += ["-I", path]
-  args += gc_goopts + go_sources + cgo_sources
+  args += gc_goopts + [("" if i.basename.startswith("_cgo") else "-filter-") + i.path for i in sources]
   ctx.action(
       inputs = list(inputs),
       outputs = [out_object],
       mnemonic = "GoCompile",
-      executable = ctx.executable._filter_tags,
+      executable = ctx.executable._filter_exec,
       arguments = args,
       env = go_environment_vars(ctx),
   )
@@ -578,6 +576,12 @@ go_env_attrs = {
     ),
     "_filter_tags": attr.label(
         default = Label("//go/tools/filter_tags"),
+        cfg = "host",
+        executable = True,
+        single_file = True,
+    ),
+    "_filter_exec": attr.label(
+        default = Label("//go/tools/filter_exec"),
         cfg = "host",
         executable = True,
         single_file = True,
