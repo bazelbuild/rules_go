@@ -28,19 +28,18 @@ var (
 )
 
 // ImportPathToBazelRepoName converts a Go import path into a bazel repo name
- // following the guidelines in http://bazel.io/docs/be/functions.html#workspace
- func ImportPathToBazelRepoName(importpath string) string {
-      components := strings.Split(importpath, "/")
-      labels := strings.Split(components[0], ".")
-      var reversed []string
-      for i := range labels {
-      	   l := labels[len(labels)-i-1]
- 	     reversed = append(reversed, l)
- 	     }
- 	     repo := strings.Join(append(reversed, components[1:]...), "_")
- 	     return strings.NewReplacer("-", "_", ".", "_").Replace(repo)
- }
- 
+// following the guidelines in http://bazel.io/docs/be/functions.html#workspace
+func ImportPathToBazelRepoName(importpath string) string {
+	components := strings.Split(importpath, "/")
+	labels := strings.Split(components[0], ".")
+	var reversed []string
+	for i := range labels {
+		l := labels[len(labels)-i-1]
+		reversed = append(reversed, l)
+	}
+	repo := strings.Join(append(reversed, components[1:]...), "_")
+	return strings.NewReplacer("-", "_", ".", "_").Replace(repo)
+}
 
 type externalResolver struct{}
 
@@ -49,13 +48,14 @@ type externalResolver struct{}
 // recommended reverse-DNS form of workspace name as described in
 // http://bazel.io/docs/be/functions.html#workspace.
 func (e externalResolver) resolve(importpath, dir string) (label, error) {
-	prefix := specialCases(importpath)
+	prefix := findCachedRepoRoot(importpath)
 	if prefix == "" {
 		r, err := repoRootForImportPath(importpath, false)
 		if err != nil {
 			return label{}, err
 		}
 		prefix = r.Root
+		repoRootCache[prefix] = 0
 	}
 
 	var pkg string
@@ -70,22 +70,55 @@ func (e externalResolver) resolve(importpath, dir string) (label, error) {
 	}, nil
 }
 
-// knownImports are paths which are not static in the vcs package,
-// to allow load balancing between actual repos,
-// but for our case we only need to break the importpath in a known fashion.
-var knownImports = []string{"golang.org/x/", "google.golang.org/", "cloud.google.com/"}
+func findCachedRepoRoot(importpath string) string {
+	// subpaths contains slices of importpath with components removed. For
+	// example:
+	//   golang.org/x/tools/go/vcs
+	//   golang.org/x/tools/go
+	//   golang.org/x/tools
+	subpaths := []string{importpath}
 
-// specialCases looks for matches in knownImports to avoid making a network call.
-func specialCases(importpath string) string {
-	for _, known := range knownImports {
-		if !strings.HasPrefix(importpath, known) {
-			continue
+	for {
+		if n, ok := repoRootCache[importpath]; ok {
+			if n >= len(subpaths) {
+				// The import path is shorter than expected. Treat as a miss.
+				return ""
+			}
+			// Cache hit.
+			return subpaths[len(subpaths)-n-1]
 		}
-		l := len(known)
-		if idx := strings.Index(importpath[l:], "/"); idx != -1 {
-			return importpath[:l+idx]
+
+		// Prefix not found. Remove the last component and try again.
+		i := strings.LastIndexByte(importpath, '/')
+		if i < 0 {
+			// Cache miss.
+			return ""
 		}
-		return importpath
+		importpath = importpath[:i]
+		subpaths = append(subpaths, importpath)
 	}
-	return ""
+}
+
+// repoCache is a map of known repo prefixes to the number of additional
+// path components needed to form the repo root. For example, for the key
+// "golang.org/x", the value is 1, since one additional component is needed
+// to form a full repository path (for example, "golang.org/x/net").
+//
+// This is initially populated by a set of well-known servers, but
+// externalResolver.resolve will add entries as it looks up new packages.
+var repoRootCache map[string]int
+
+// resetRepoRootCache creates repoRootCache and adds special cases. It is
+// called during initialization and in tests.
+func resetRepoRootCache() {
+	repoRootCache = map[string]int{
+		"golang.org/x":      1,
+		"google.golang.org": 1,
+		"cloud.google.com":  1,
+		"github.com":        2,
+	}
+}
+
+func init() {
+	resetRepoRootCache()
 }

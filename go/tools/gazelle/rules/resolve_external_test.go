@@ -28,14 +28,18 @@ type special struct {
 }
 
 func TestSpecialCases(t *testing.T) {
+	resetRepoRootCache()
 	for _, c := range []special{
 		{"golang.org/x/net/context", "golang.org/x/net"},
 		{"golang.org/x/tools/go/vcs", "golang.org/x/tools"},
 		{"golang.org/x/goimports", "golang.org/x/goimports"},
 		{"cloud.google.com/fashion/industry", "cloud.google.com/fashion"},
+		{"github.com/foo", ""},
+		{"github.com/foo/bar", "github.com/foo/bar"},
+		{"github.com/foo/bar/baz", "github.com/foo/bar"},
 		{"unsupported.org/x/net/context", ""},
 	} {
-		if got := specialCases(c.in); got != c.want {
+		if got := findCachedRepoRoot(c.in); got != c.want {
 			t.Errorf("specialCases(%q) = %q; want %q", c.in, got, c.want)
 		}
 	}
@@ -43,6 +47,7 @@ func TestSpecialCases(t *testing.T) {
 
 func TestExternalResolver(t *testing.T) {
 	repoRootForImportPath = stubRepoRootForImportPath
+	resetRepoRootCache()
 
 	var r externalResolver
 	for _, spec := range []struct {
