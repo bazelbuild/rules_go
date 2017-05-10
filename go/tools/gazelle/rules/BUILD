@@ -13,6 +13,7 @@ go_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//go/tools/gazelle/packages:go_default_library",
         "@com_github_bazelbuild_buildifier//build:go_default_library",
         "@org_golang_x_tools//go/vcs:go_default_library",
     ],
@@ -33,8 +34,8 @@ go_test(
     srcs = ["generator_test.go"],
     data = glob(["testdata/**/*"]),
     deps = [
-        "@com_github_bazelbuild_buildifier//build:go_default_library",
         ":go_default_library",
         "//go/tools/gazelle/testdata:go_default_library",
+        "@com_github_bazelbuild_buildifier//build:go_default_library",
     ],
 )

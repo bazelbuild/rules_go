@@ -18,8 +18,10 @@ package rules
 import (
 	"fmt"
 	"reflect"
+	"sort"
 
 	bzl "github.com/bazelbuild/buildifier/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
 
 type keyvalue struct {
@@ -68,10 +70,13 @@ func newValue(val interface{}) (bzl.Expr, error) {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return &bzl.LiteralExpr{Token: fmt.Sprintf("%d", val)}, nil
+
 	case reflect.Float32, reflect.Float64:
 		return &bzl.LiteralExpr{Token: fmt.Sprintf("%f", val)}, nil
+
 	case reflect.String:
 		return &bzl.StringExpr{Value: val.(string)}, nil
+
 	case reflect.Slice, reflect.Array:
 		var list []bzl.Expr
 		for i := 0; i < rv.Len(); i++ {
@@ -82,30 +87,73 @@ func newValue(val interface{}) (bzl.Expr, error) {
 			list = append(list, elem)
 		}
 		return &bzl.ListExpr{List: list}, nil
-	case reflect.Struct:
-		glob, ok := val.(globvalue)
-		if !ok {
-			return nil, fmt.Errorf("not implemented %T", val)
-		}
-		patternsValue, err := newValue(glob.patterns)
-		if err != nil {
-			return nil, err
-		}
-		globArgs := []bzl.Expr{patternsValue}
-		if len(glob.excludes) > 0 {
-			excludesValue, err := newValue(glob.excludes)
+
+	case reflect.Map:
+		rkeys := rv.MapKeys()
+		sort.Slice(rkeys, func(i, j int) bool {
+			return rkeys[i].String() < rkeys[j].String()
+		})
+		args := make([]bzl.Expr, 0, len(rkeys))
+		for _, rk := range rkeys {
+			k := &bzl.StringExpr{Value: rk.String()}
+			v, err := newValue(rv.MapIndex(rk))
 			if err != nil {
 				return nil, err
 			}
-			globArgs = append(globArgs, &bzl.KeyValueExpr{
-				Key:   &bzl.StringExpr{Value: "excludes"},
-				Value: excludesValue,
-			})
+			args = append(args, &bzl.KeyValueExpr{Key: k, Value: v})
 		}
-		return &bzl.CallExpr{
-			X:    &bzl.LiteralExpr{Token: "glob"},
-			List: globArgs,
-		}, nil
+		sel := &bzl.CallExpr{
+			X:    &bzl.LiteralExpr{Token: "select"},
+			List: []bzl.Expr{&bzl.DictExpr{List: args}},
+		}
+		return sel, nil
+
+	case reflect.Struct:
+		switch val := val.(type) {
+		case globvalue:
+			patternsValue, err := newValue(val.patterns)
+			if err != nil {
+				return nil, err
+			}
+			globArgs := []bzl.Expr{patternsValue}
+			if len(val.excludes) > 0 {
+				excludesValue, err := newValue(val.excludes)
+				if err != nil {
+					return nil, err
+				}
+				globArgs = append(globArgs, &bzl.KeyValueExpr{
+					Key:   &bzl.StringExpr{Value: "excludes"},
+					Value: excludesValue,
+				})
+			}
+			return &bzl.CallExpr{
+				X:    &bzl.LiteralExpr{Token: "glob"},
+				List: globArgs,
+			}, nil
+
+		case packages.PlatformStrings:
+			gen, err := newValue(val.Generic)
+			if err != nil {
+				return nil, err
+			}
+			if len(val.Platform) == 0 {
+				return gen, nil
+			}
+
+			sel, err := newValue(val.Platform)
+			if err != nil {
+				return nil, err
+			}
+			if len(val.Generic) == 0 {
+				return sel, nil
+			}
+
+			return &bzl.BinaryExpr{X: gen, Op: "+", Y: sel}, nil
+
+		default:
+			return nil, fmt.Errorf("not implemented %T", val)
+		}
+
 	default:
 		return nil, fmt.Errorf("not implemented %T", val)
 	}
