@@ -16,6 +16,7 @@ limitations under the License.
 package rules
 
 import (
+	"path"
 	"strings"
 
 	"golang.org/x/tools/go/vcs"
@@ -84,17 +85,17 @@ func findCachedRepoRoot(importpath string) string {
 				// The import path is shorter than expected. Treat as a miss.
 				return ""
 			}
-			// Cache hit.
+			// Cache hit. Restore n components of the import path to get the
+			// repository root.
 			return subpaths[len(subpaths)-n-1]
 		}
 
 		// Prefix not found. Remove the last component and try again.
-		i := strings.LastIndexByte(importpath, '/')
-		if i < 0 {
+		importpath = path.Dir(importpath)
+		if importpath == "." || importpath == "/" {
 			// Cache miss.
 			return ""
 		}
-		importpath = importpath[:i]
 		subpaths = append(subpaths, importpath)
 	}
 }
