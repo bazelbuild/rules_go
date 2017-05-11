@@ -49,6 +49,7 @@ _GO_GOOGLE_PROTOBUF = "go_google_protobuf"
 
 _WELL_KNOWN_REPO = "@com_github_golang_protobuf//ptypes/"
 
+
 def _collect_protos_import(ctx):
   """Collect the list of transitive protos and m_import_path.
 
@@ -72,6 +73,7 @@ def _collect_protos_import(ctx):
     m_import_path.append(d._m_import_path)
   return list(protos), m_import_path
 
+
 def _drop_external(path):
   """Drop leading '../' indicating an external dir of the form ../$some-repo.
 
@@ -89,23 +91,24 @@ def _drop_external(path):
     return path
   return "/".join(path.split("/")[2:])
 
+
 def _check_bazel_style(ctx):
   """If the library name is not 'go_default_library', then we have to create an extra level of indirection."""
   if ctx.label.name == _DEFAULT_LIB + _PROTOS_SUFFIX:
     return ctx.outputs.outs, ""
   proto_outs = [
-      ctx.new_file(
-          ctx.configuration.bin_dir,
-          s.basename[:-len(".proto")] + ".pb.go")
+      ctx.new_file(ctx.configuration.bin_dir,
+                   s.basename[:-len(".proto")] + ".pb.go")
       for s in ctx.files.srcs
   ]
   for proto_out, ctx_out in zip(proto_outs, ctx.outputs.outs):
     ctx.action(
-        inputs=[proto_out],
-        outputs=[ctx_out],
-        command="cp %s %s" % (proto_out.path, ctx_out.path),
-        mnemonic="GoProtocGenCp")
+        inputs = [proto_out],
+        outputs = [ctx_out],
+        command = "cp %s %s" % (proto_out.path, ctx_out.path),
+        mnemonic = "GoProtocGenCp")
   return proto_outs, "/" + ctx.label.name[:-len(_PROTOS_SUFFIX)]
+
 
 def _go_proto_library_gen_impl(ctx):
   """Rule implementation that generates Go using protoc."""
@@ -116,8 +119,10 @@ def _go_proto_library_gen_impl(ctx):
     go_prefix = go_prefix + "/"
   source_go_package = "%s%s%s" % (go_prefix, ctx.label.package, go_package_name)
 
-  m_imports = ["M%s=%s" % (_drop_external(f.short_path), source_go_package)
-               for f in ctx.files.srcs]
+  m_imports = [
+      "M%s=%s" % (_drop_external(f.short_path), source_go_package)
+      for f in ctx.files.srcs
+  ]
 
   protos, mi = _collect_protos_import(ctx)
   m_import_path = ",".join(m_imports + mi)
@@ -128,8 +133,7 @@ def _go_proto_library_gen_impl(ctx):
   root_prefix = "/".join([".." for _ in work_dir.split("/")])
   cmds = ["set -e", "/bin/rm -rf %s; /bin/mkdir -p %s" % (work_dir, work_dir)]
   srcs = list(ctx.files.srcs)
-  dirs = set([s.short_path[:-1-len(s.basename)]
-              for s in srcs + protos])
+  dirs = set([s.short_path[:-1 - len(s.basename)] for s in srcs + protos])
   cmds += ["mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
 
   if ctx.attr.ignore_go_package_option:
@@ -138,70 +142,81 @@ def _go_proto_library_gen_impl(ctx):
     #
     # NOTE: Using sed does not provide a perfect solution, build will break if
     # the go_package option splits multiple lines. Use with caution.
-    cmds += ["sed '/^ *option  *go_package/d' %s > %s/%s" %
-             (s.path, work_dir, _drop_external(s.short_path)) for s in srcs]
-    cmds += ["cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
-             for s in protos]
+    cmds += [
+        "sed '/^ *option  *go_package/d' %s > %s/%s" %
+        (s.path, work_dir, _drop_external(s.short_path)) for s in srcs
+    ]
+    cmds += [
+        "cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+        for s in protos
+    ]
   else:
-    cmds += ["cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
-             for s in srcs + protos]
-  cmds += ["cd %s" % work_dir,
-           "%s/%s --go_out=%s%s:. %s" % (root_prefix, ctx.executable.protoc.path,
-                                         use_grpc, m_import_path,
-                                         " ".join([_drop_external(f.short_path) for f in srcs]))]
-  cmds += ["cp %s %s/%s" % (_drop_external(p.short_path), root_prefix, p.path)
-           for p in proto_outs]
-  run = ctx.new_file(ctx.configuration.bin_dir, ctx.outputs.outs[0].basename + ".run")
-  ctx.file_action(
-      output = run,
-      content = "\n".join(cmds),
-      executable = True)
+    cmds += [
+        "cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+        for s in srcs + protos
+    ]
+  cmds += [
+      "cd %s" % work_dir,
+      "%s/%s --go_out=%s%s:. %s" %
+      (root_prefix, ctx.executable.protoc.path, use_grpc, m_import_path,
+       " ".join([_drop_external(f.short_path) for f in srcs]))
+  ]
+  cmds += [
+      "cp %s %s/%s" % (_drop_external(p.short_path), root_prefix, p.path)
+      for p in proto_outs
+  ]
+  run = ctx.new_file(ctx.configuration.bin_dir,
+                     ctx.outputs.outs[0].basename + ".run")
+  ctx.file_action(output = run, content = "\n".join(cmds), executable = True)
 
   ctx.action(
-      inputs=srcs + protos + ctx.files.protoc_gen_go + [ctx.executable.protoc, run],
-      outputs=proto_outs,
-      progress_message="Generating into %s" % ctx.outputs.outs[0].dirname,
-      mnemonic="GoProtocGen",
-      env = {"PATH": root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname +
-             ":/bin:/usr/bin"},  # /bin/sed for linux, /usr/bin/sed for macos.
-      executable=run)
-  return struct(_protos=protos+srcs,
-                _m_import_path=m_import_path)
+      inputs = srcs + protos + ctx.files.protoc_gen_go +
+      [ctx.executable.protoc, run],
+      outputs = proto_outs,
+      progress_message = "Generating into %s" % ctx.outputs.outs[0].dirname,
+      mnemonic = "GoProtocGen",
+      env = {
+          "PATH":
+              root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname +
+              ":/bin:/usr/bin"
+      },  # /bin/sed for linux, /usr/bin/sed for macos.
+      executable = run)
+  return struct(_protos = protos + srcs, _m_import_path = m_import_path)
+
 
 _go_proto_library_gen = rule(
     attrs = {
-        "deps": attr.label_list(),
-        "srcs": attr.label_list(
-            mandatory = True,
-            allow_files = True,
-        ),
-        "grpc": attr.int(default = 0),
-        "outs": attr.output_list(mandatory = True),
-        "ignore_go_package_option": attr.int(default = 0),
-        "protoc": attr.label(
-            executable = True,
-            single_file = True,
-            allow_files = True,
-            cfg = "host",
-        ),
-        "protoc_gen_go": attr.label(
-            allow_files = True,
-            cfg = "host",
-        ),
-        "_protos": attr.label_list(default = []),
-        "go_prefix": attr.label(
-            providers = ["go_prefix"],
-            default = Label(
-                "//:go_prefix",
-                relative_to_caller_repository = True,
-            ),
-            allow_files = False,
-            cfg = "host",
-        ),
+        "deps":
+            attr.label_list(),
+        "srcs":
+            attr.label_list(mandatory = True, allow_files = True),
+        "grpc":
+            attr.int(default = 0),
+        "outs":
+            attr.output_list(mandatory = True),
+        "ignore_go_package_option":
+            attr.int(default = 0),
+        "protoc":
+            attr.label(
+                executable = True,
+                single_file = True,
+                allow_files = True,
+                cfg = "host"),
+        "protoc_gen_go":
+            attr.label(allow_files = True, cfg = "host"),
+        "_protos":
+            attr.label_list(default = []),
+        "go_prefix":
+            attr.label(
+                providers = ["go_prefix"],
+                default = Label(
+                    "//:go_prefix", relative_to_caller_repository = True),
+                allow_files = False,
+                cfg = "host"),
     },
     output_to_genfiles = True,
-    implementation = _go_proto_library_gen_impl,
-)
+    implementation = _go_proto_library_gen_impl)
+
 
 def _add_target_suffix(target, suffix):
   idx = target.find(":")
@@ -210,20 +225,26 @@ def _add_target_suffix(target, suffix):
   toks = target.split("/")
   return target + ":" + toks[-1] + suffix
 
+
 def _well_known_proto_deps(deps, repo):
   for d in deps:
     if d.startswith(_WELL_KNOWN_REPO):
       return [repo + "//:" + _GO_GOOGLE_PROTOBUF]
   return []
 
-def go_proto_library(name, srcs = None, deps = None,
-                     has_services = 0,
-                     testonly = 0, visibility = None,
-                     ignore_go_package_option = 0,
-                     protoc = "@com_github_google_protobuf//:protoc",
-                     protoc_gen_go = "@com_github_golang_protobuf//protoc-gen-go",
-                     rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
-                     **kwargs):
+
+def go_proto_library(
+    name,
+    srcs = None,
+    deps = None,
+    has_services = 0,
+    testonly = 0,
+    visibility = None,
+    ignore_go_package_option = 0,
+    protoc = "@com_github_google_protobuf//:protoc",
+    protoc_gen_go = "@com_github_golang_protobuf//protoc-gen-go",
+    rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
+    **kwargs):
   """Macro which generates and compiles protobufs for Go.
 
   Args:
@@ -253,26 +274,23 @@ def go_proto_library(name, srcs = None, deps = None,
   if not deps:
     deps = []
   # bazel-style
-  outs = [name + "/" + s[:-len(".proto")] + ".pb.go"
-          for s in srcs]
+  outs = [name + "/" + s[:-len(".proto")] + ".pb.go" for s in srcs]
   if name == _DEFAULT_LIB:
-    outs = [s[:-len(".proto")] + ".pb.go"
-            for s in srcs]
+    outs = [s[:-len(".proto")] + ".pb.go" for s in srcs]
 
   _go_proto_library_gen(
       name = name + _PROTOS_SUFFIX,
       srcs = srcs,
       deps = [_add_target_suffix(s, _PROTOS_SUFFIX)
               for s in deps] + _well_known_proto_deps(
-                  deps, repo=rules_go_repo_only_for_internal_use),
+                  deps, repo = rules_go_repo_only_for_internal_use),
       outs = outs,
       testonly = testonly,
       visibility = visibility,
       ignore_go_package_option = ignore_go_package_option,
       grpc = has_services,
       protoc = protoc,
-      protoc_gen_go = protoc_gen_go,
-  )
+      protoc_gen_go = protoc_gen_go)
   grpc_deps = []
   if has_services:
     grpc_deps += [
@@ -282,14 +300,16 @@ def go_proto_library(name, srcs = None, deps = None,
   go_library(
       name = name,
       srcs = [":" + name + _PROTOS_SUFFIX],
-      deps = deps + grpc_deps + ["@com_github_golang_protobuf//proto:go_default_library"],
+      deps = deps + grpc_deps +
+      ["@com_github_golang_protobuf//proto:go_default_library"],
       testonly = testonly,
       visibility = visibility,
-      **kwargs
-  )
+      **kwargs)
+
 
 def _well_known_import_key(name):
   return "%s%s:go_default_library" % (_WELL_KNOWN_REPO, name)
+
 
 _well_known_imports = [
     "any",
@@ -300,45 +320,45 @@ _well_known_imports = [
     "wrappers",
 ]
 
+
 # If you have well_known proto deps, rules_go will add a magic
 # google/protobuf/ directory at the import root
 def go_google_protobuf(name = _GO_GOOGLE_PROTOBUF):
-  deps = [_add_target_suffix(_well_known_import_key(wk), _PROTOS_SUFFIX)
-          for wk in _well_known_imports]
+  deps = [
+      _add_target_suffix(_well_known_import_key(wk), _PROTOS_SUFFIX)
+      for wk in _well_known_imports
+  ]
   outs = [wk + ".proto" for wk in _well_known_imports]
 
   native.genrule(
       name = name,
       srcs = deps,
-      outs = ["google/protobuf/"+o for o in outs],
+      outs = ["google/protobuf/" + o for o in outs],
       cmd = "cp $(SRCS) $(@D)/google/protobuf/",
-      visibility = ["//visibility:public"],
-  )
+      visibility = ["//visibility:public"])
+
 
 def go_proto_repositories(shared = 1):
   """Add this to your WORKSPACE to pull in all of the needed dependencies."""
   new_go_repository(
       name = "com_github_golang_protobuf",
       importpath = "github.com/golang/protobuf",
-      commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
-  )
+      commit = "8ee79997227bf9b34611aee7946ae64735e6fd93")
   if shared:
     # if using multiple *_proto_library, allows caller to skip this.
     native.http_archive(
         name = "com_github_google_protobuf",
         url = "https://github.com/google/protobuf/archive/v3.2.0.tar.gz",
         strip_prefix = "protobuf-3.2.0",
-        sha256 = "2a25c2b71c707c5552ec9afdfb22532a93a339e1ca5d38f163fe4107af08c54c",
-    )
+        sha256 =
+        "2a25c2b71c707c5552ec9afdfb22532a93a339e1ca5d38f163fe4107af08c54c")
 
   # Needed for gRPC, only loaded by bazel if used
   new_go_repository(
       name = "org_golang_x_net",
       commit = "4971afdc2f162e82d185353533d3cf16188a9f4e",
-      importpath = "golang.org/x/net",
-  )
+      importpath = "golang.org/x/net")
   new_go_repository(
       name = "org_golang_google_grpc",
       tag = "v1.0.4",
-      importpath = "google.golang.org/grpc",
-  )
+      importpath = "google.golang.org/grpc")

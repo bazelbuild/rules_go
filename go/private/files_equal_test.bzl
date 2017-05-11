@@ -12,15 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests that two files contain the same data."""
+
 
 def _impl(ctx):
   if ctx.file.golden == ctx.file.actual:
     fail("GOLDEN and ACTUAL should be different files")
   ctx.file_action(
-      output=ctx.outputs.executable,
-      content="\n".join([
+      output = ctx.outputs.executable,
+      content = "\n".join([
           "#!/bin/bash",
           "function checksum() {",
           "  if command -v openssl >/dev/null; then",
@@ -43,9 +43,9 @@ def _impl(ctx):
           "  exit 1",
           "fi",
       ]),
-      executable=True)
-  return struct(runfiles=ctx.runfiles([ctx.file.golden,
-                                       ctx.file.actual]))
+      executable = True)
+  return struct(runfiles = ctx.runfiles([ctx.file.golden, ctx.file.actual]))
+
 
 def _runpath(f):
   """Figures out the proper runfiles path for a file, using voodoo"""
@@ -54,18 +54,17 @@ def _runpath(f):
   else:
     return f.path
 
+
 files_equal_test = rule(
     attrs = {
-        "golden": attr.label(
-            mandatory = True,
-            allow_files = True,
-            single_file = True),
-        "actual": attr.label(
-            mandatory = True,
-            allow_files = True,
-            single_file = True),
-        "error_message": attr.string(
-            default="FILES DO NOT HAVE EQUAL CONTENTS"),
+        "golden":
+            attr.label(
+                mandatory = True, allow_files = True, single_file = True),
+        "actual":
+            attr.label(
+                mandatory = True, allow_files = True, single_file = True),
+        "error_message":
+            attr.string(default = "FILES DO NOT HAVE EQUAL CONTENTS"),
     },
     implementation = _impl,
     test = True)

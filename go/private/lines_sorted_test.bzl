@@ -15,7 +15,12 @@
 
 load("//go/private:files_equal_test.bzl", "files_equal_test")
 
-def lines_sorted_test(name, file, cmd="cat $< >$@", visibility=None, **kwargs):
+
+def lines_sorted_test(name,
+                      file,
+                      cmd = "cat $< >$@",
+                      visibility = None,
+                      **kwargs):
   """Tests that lines within a file are sorted."""
 
   native.genrule(
@@ -24,8 +29,7 @@ def lines_sorted_test(name, file, cmd="cat $< >$@", visibility=None, **kwargs):
       srcs = [file],
       outs = [name + "_lines.txt"],
       cmd = cmd,
-      visibility = visibility,
-   )
+      visibility = visibility)
 
   native.genrule(
       name = name + "_lines_sorted",
@@ -33,13 +37,11 @@ def lines_sorted_test(name, file, cmd="cat $< >$@", visibility=None, **kwargs):
       srcs = [name + "_lines.txt"],
       outs = [name + "_lines_sorted.txt"],
       cmd = "sort $< >$@",
-      visibility = visibility,
-   )
+      visibility = visibility)
 
   files_equal_test(
       name = name,
       actual = name + "_lines.txt",
       golden = name + "_lines_sorted.txt",
       visibility = visibility,
-      **kwargs
-   )
+      **kwargs)

@@ -16,17 +16,18 @@ load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 load("//go/private:bzl_format.bzl", "bzl_format_repositories")
 
 repository_tool_deps = {
-    'buildtools': struct(
-        importpath = 'github.com/bazelbuild/buildifier',
-        repo = 'https://github.com/bazelbuild/buildtools',
-        commit = '81c36a8418cb803d381335c95f8bb419ad1efa27',
-    ),
-    'tools': struct(
-        importpath = 'golang.org/x/tools',
-        repo = 'https://github.com/golang/tools',
-        commit = '3d92dd60033c312e3ae7cac319c792271cf67e37',
-    )
+    'buildtools':
+        struct(
+            importpath = 'github.com/bazelbuild/buildifier',
+            repo = 'https://github.com/bazelbuild/buildtools',
+            commit = '81c36a8418cb803d381335c95f8bb419ad1efa27'),
+    'tools':
+        struct(
+            importpath = 'golang.org/x/tools',
+            repo = 'https://github.com/golang/tools',
+            commit = '3d92dd60033c312e3ae7cac319c792271cf67e37')
 }
+
 
 def go_internal_tools_deps():
   """only for internal use in rules_go"""
@@ -35,15 +36,14 @@ def go_internal_tools_deps():
       commit = repository_tool_deps['buildtools'].commit,
       importpath = repository_tool_deps['buildtools'].importpath,
       remote = repository_tool_deps['buildtools'].repo,
-      vcs = 'git',
-  )
+      vcs = 'git')
 
   new_go_repository(
       name = "org_golang_x_tools",
       commit = repository_tool_deps['tools'].commit,
-      importpath = repository_tool_deps['tools'].importpath,
-  )
+      importpath = repository_tool_deps['tools'].importpath)
   bzl_format_repositories()
+
 
 def _fetch_repository_tools_deps(ctx, goroot, gopath):
   for name, dep in repository_tool_deps.items():
@@ -52,16 +52,22 @@ def _fetch_repository_tools_deps(ctx, goroot, gopath):
       fail('failed to create directory: %s' % result.stderr)
     archive = name + '.tar.gz'
     ctx.download(
-        url = '%s/archive/%s.tar.gz' % (dep.repo, dep.commit),
-        output = archive)
+        url = '%s/archive/%s.tar.gz' % (dep.repo, dep.commit), output = archive)
     ctx.execute([
-        'tar', '-C', 'src/%s' % dep.importpath, '-xf', archive, '--strip', '1'])
+        'tar', '-C',
+        'src/%s' % dep.importpath, '-xf', archive, '--strip', '1'
+    ])
 
   result = ctx.execute([
-      'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath, 'PATH=%s/bin' % goroot,
-      'go', 'generate', 'github.com/bazelbuild/buildifier/build'])
+      'env',
+      'GOROOT=%s' % goroot,
+      'GOPATH=%s' % gopath,
+      'PATH=%s/bin' % goroot, 'go', 'generate',
+      'github.com/bazelbuild/buildifier/build'
+  ])
   if result.return_code:
     fail("failed to go generate: %s" % result.stderr)
+
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
@@ -77,6 +83,7 @@ filegroup(
 )
 """
 
+
 def _go_repository_tools_impl(ctx):
   go_tool = ctx.path(ctx.attr._go_tool)
   goroot = go_tool.dirname.dirname
@@ -90,28 +97,31 @@ def _go_repository_tools_impl(ctx):
     ctx.symlink("%s/%s" % (src_path, t), "src/%s/%s" % (prefix, t))
 
     result = ctx.execute([
-        'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath,
-        go_tool, "build",
-        "-o", ctx.path("bin/" + t), "%s/%s" % (prefix, pkg)])
+        'env',
+        'GOROOT=%s' % goroot,
+        'GOPATH=%s' % gopath, go_tool, "build", "-o",
+        ctx.path("bin/" + t),
+        "%s/%s" % (prefix, pkg)
+    ])
     if result.return_code:
       fail("failed to build %s: %s" % (t, result.stderr))
   ctx.file('BUILD', _GO_REPOSITORY_TOOLS_BUILD_FILE, False)
 
+
 _go_repository_tools = repository_rule(
     _go_repository_tools_impl,
     attrs = {
-        "_tools": attr.label(
-            default = Label("//go/tools:BUILD"),
-            allow_files = True,
-            single_file = True,
-        ),
-        "_go_tool": attr.label(
-            default = Label("@io_bazel_rules_go_toolchain//:bin/go"),
-            allow_files = True,
-            single_file = True,
-        ),
-    },
-)
+        "_tools":
+            attr.label(
+                default = Label("//go/tools:BUILD"),
+                allow_files = True,
+                single_file = True),
+        "_go_tool":
+            attr.label(
+                default = Label("@io_bazel_rules_go_toolchain//:bin/go"),
+                allow_files = True,
+                single_file = True),
+    })
 
 GO_TOOLCHAIN_BUILD_FILE = """
 load("@io_bazel_rules_go//go/private:go_root.bzl", "go_root")
@@ -145,6 +155,7 @@ go_root(
 )
 """
 
+
 def _go_repository_select_impl(ctx):
   os_name = ctx.os.name
 
@@ -167,44 +178,39 @@ def _go_repository_select_impl(ctx):
   ctx.symlink(gopkg, "pkg")
   ctx.symlink(gosrc, "src")
 
-  ctx.file("BUILD", GO_TOOLCHAIN_BUILD_FILE.format(
-    goroot = goroot,
-  ))
+  ctx.file("BUILD", GO_TOOLCHAIN_BUILD_FILE.format(goroot = goroot))
 
 
 _go_repository_select = repository_rule(
     _go_repository_select_impl,
     attrs = {
-        "go_linux_version": attr.label(
-            allow_files = True,
-            single_file = True,
-        ),
-        "go_darwin_version": attr.label(
-            allow_files = True,
-            single_file = True,
-        ),
-    },
-)
+        "go_linux_version": attr.label(allow_files = True, single_file = True),
+        "go_darwin_version": attr.label(allow_files = True, single_file = True),
+    })
 
 _GO_VERSIONS_SHA256 = {
     '1.7.5': {
-        'linux': '2e4dd6c44f0693bef4e7b46cc701513d74c3cc44f2419bf519d7868b12931ac3',
-        'darwin': '2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca',
+        'linux':
+            '2e4dd6c44f0693bef4e7b46cc701513d74c3cc44f2419bf519d7868b12931ac3',
+        'darwin':
+            '2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca',
     },
     '1.8': {
-        'linux': '53ab94104ee3923e228a2cb2116e5e462ad3ebaeea06ff04463479d7f12d27ca',
-        'darwin': '6fdc9f98b76a28655a8770a1fc8197acd8ef746dd4d8a60589ce19604ba2a120',
+        'linux':
+            '53ab94104ee3923e228a2cb2116e5e462ad3ebaeea06ff04463479d7f12d27ca',
+        'darwin':
+            '6fdc9f98b76a28655a8770a1fc8197acd8ef746dd4d8a60589ce19604ba2a120',
     },
     '1.8.1': {
-        'linux': 'a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994',
-        'darwin': '25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd',
+        'linux':
+            'a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994',
+        'darwin':
+            '25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd',
     },
 }
 
-def go_repositories(
-    go_version = None,
-    go_linux = None,
-    go_darwin = None):
+
+def go_repositories(go_version = None, go_linux = None, go_darwin = None):
 
   if not go_version and not go_linux and not go_darwin:
     go_version = "1.8.1"
@@ -215,22 +221,23 @@ def go_repositories(
     if go_darwin:
       fail("go_repositories: go_version and go_darwin can't both be set")
     if go_version not in _GO_VERSIONS_SHA256:
-      fail("go_repositories: unsupported version %s; supported versions are %s" %
-           (go_version, " ".join(_GO_VERSIONS_SHA256.keys())))
+      fail(
+          "go_repositories: unsupported version %s; supported versions are %s" %
+          (go_version, " ".join(_GO_VERSIONS_SHA256.keys())))
     native.new_http_archive(
         name = "golang_linux_amd64",
-        url = "https://storage.googleapis.com/golang/go%s.linux-amd64.tar.gz" % go_version,
+        url = "https://storage.googleapis.com/golang/go%s.linux-amd64.tar.gz" %
+        go_version,
         build_file_content = "",
         sha256 = _GO_VERSIONS_SHA256[go_version]["linux"],
-        strip_prefix = "go",
-    )
+        strip_prefix = "go")
     native.new_http_archive(
         name = "golang_darwin_amd64",
-        url = "https://storage.googleapis.com/golang/go%s.darwin-amd64.tar.gz" % go_version,
+        url = "https://storage.googleapis.com/golang/go%s.darwin-amd64.tar.gz" %
+        go_version,
         build_file_content = "",
         sha256 = _GO_VERSIONS_SHA256[go_version]["darwin"],
-        strip_prefix = "go",
-    )
+        strip_prefix = "go")
     go_linux = "@golang_linux_amd64"
     go_darwin = "@golang_darwin_amd64"
 
@@ -240,8 +247,5 @@ def go_repositories(
   _go_repository_select(
       name = "io_bazel_rules_go_toolchain",
       go_linux_version = go_linux_version,
-      go_darwin_version = go_darwin_version,
-  )
-  _go_repository_tools(
-      name = "io_bazel_rules_go_repository_tools",
-  )
+      go_darwin_version = go_darwin_version)
+  _go_repository_tools(name = "io_bazel_rules_go_repository_tools")

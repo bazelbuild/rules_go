@@ -20,20 +20,19 @@
 # depend on a globally unique target that has a "go_prefix" transitive
 # info provider.
 
+
 def _go_prefix_impl(ctx):
   """go_prefix_impl provides the go prefix to use as a transitive info provider."""
   return struct(go_prefix = ctx.attr.prefix)
 
+
 _go_prefix_rule = rule(
-    _go_prefix_impl,
-    attrs = {
+    _go_prefix_impl, attrs = {
         "prefix": attr.string(mandatory = True),
-    },
-)
+    })
+
 
 def go_prefix(prefix):
   """go_prefix sets the Go import name to be used for this workspace."""
-  _go_prefix_rule(name = "go_prefix",
-    prefix = prefix,
-    visibility = ["//visibility:public" ]
-  )
+  _go_prefix_rule(
+      name = "go_prefix", prefix = prefix, visibility = ["//visibility:public"])

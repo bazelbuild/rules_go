@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 def json_marshal(value):
   """Encodes a dict, list, or scalar value as a JSON string.
 
@@ -35,6 +36,7 @@ def json_marshal(value):
     _marshal_value(value, strs)
   return "".join(strs)
 
+
 def _marshal_dict(d, strs):
   strs.append("{")
   sep = ""
@@ -47,6 +49,7 @@ def _marshal_dict(d, strs):
       _marshal_value(v, strs)
   strs.append("}")
 
+
 def _marshal_list(lst, strs):
   strs.append("[")
   sep = ""
@@ -55,6 +58,7 @@ def _marshal_list(lst, strs):
     sep = ","
     _marshal_value(e, strs)
   strs.append("]")
+
 
 def _marshal_value(v, strs):
   if type(v) == "string":
@@ -66,11 +70,8 @@ def _marshal_value(v, strs):
   else:
     fail("could not marshal JSON value of type %s: %s" % (type(v), str(v)))
 
+
 def _quote(s):
   # Limitation: Bazel does not support '\b', '\f' escape sequences.
-  return ('"%s"' % s
-      .replace('\\', '\\\\')
-      .replace('"', '\\"')
-      .replace('\n', '\\n')
-      .replace('\r', '\\r')
-      .replace('\t', '\\t'))
+  return ('"%s"' % s.replace('\\', '\\\\').replace('"', '\\"')
+          .replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t'))

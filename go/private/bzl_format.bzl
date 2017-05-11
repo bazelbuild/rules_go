@@ -38,8 +38,7 @@ py_binary(
 
 
 _bzl_format_yapf_repository = repository_rule(
-    implementation = _bzl_format_yapf_repository_impl,
-    attrs = {})
+    implementation = _bzl_format_yapf_repository_impl, attrs = {})
 
 
 def bzl_format_repositories():
@@ -61,8 +60,7 @@ def _run_yapf_impl(ctx):
 
 
 _run_yapf = rule(
-    _run_yapf_impl,
-    attrs = {
+    _run_yapf_impl, attrs = {
         "yapf": attr.label(),
     })
 

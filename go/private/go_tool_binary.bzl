@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 def go_tool_binary(name, srcs):
   """Builds a Go program using `go build`.
 
@@ -37,8 +38,7 @@ def go_tool_binary(name, srcs):
       ] + ["$(location %s)" % s for s in srcs]),
       executable = True,
       tools = [
-        "//go/toolchain",
-        "//go/toolchain:go_tool",
+          "//go/toolchain",
+          "//go/toolchain:go_tool",
       ],
-      visibility = ["//visibility:public"],
-  )
+      visibility = ["//visibility:public"])
