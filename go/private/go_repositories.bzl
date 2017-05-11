@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
+load("//go/private:bzl_format.bzl", "bzl_format_repositories")
 
 repository_tool_deps = {
     'buildtools': struct(
@@ -42,6 +43,7 @@ def go_internal_tools_deps():
       commit = repository_tool_deps['tools'].commit,
       importpath = repository_tool_deps['tools'].importpath,
   )
+  bzl_format_repositories()
 
 def _fetch_repository_tools_deps(ctx, goroot, gopath):
   for name, dep in repository_tool_deps.items():
