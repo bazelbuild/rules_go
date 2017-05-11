@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 def _go_root_impl(ctx):
   """go_root_impl propogates a GOROOT path string."""
   return struct(go_root = ctx.attr.path)
 
+
 go_root = rule(
-  _go_root_impl,
-  attrs = {
-    "path": attr.string(),
-  },
-)
+    _go_root_impl, attrs = {
+        "path": attr.string(),
+    })
 """Captures the goroot value for use as a label dependency.
 
 Args:

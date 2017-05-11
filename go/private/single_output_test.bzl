@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 def _impl(ctx):
   ctx.file_action(
-      output = ctx.outputs.executable,
-      content = "",
-      executable = True,
-  )
+      output = ctx.outputs.executable, content = "", executable = True)
+
 
 single_output_test = rule(
     implementation = _impl,
     attrs = {
         "dep": attr.label(allow_single_file = True),
     },
-    test = True,
-)
+    test = True)
 """Checks that a dependency produces a single output file.
 
 This test works by setting `allow_single_file = True` on the `dep` attribute.

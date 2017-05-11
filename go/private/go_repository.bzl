@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 def _go_repository_impl(ctx):
   if ctx.attr.commit and ctx.attr.tag:
     fail("cannot specify both of commit and tag", "commit")
@@ -30,8 +31,7 @@ def _go_repository_impl(ctx):
         url = ctx.attr.url,
         sha256 = ctx.attr.sha256,
         stripPrefix = ctx.attr.strip_prefix,
-        type = ctx.attr.type,
-    )
+        type = ctx.attr.type)
   else:
     # Using fetch repo
     if ctx.attr.vcs and not ctx.attr.remote:
@@ -40,11 +40,16 @@ def _go_repository_impl(ctx):
     # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
     result = ctx.execute([
         ctx.path(ctx.attr._fetch_repo),
-        '--dest', ctx.path(''),
-        '--remote', ctx.attr.remote,
-        '--rev', rev,
-        '--vcs', ctx.attr.vcs,
-        '--importpath', ctx.attr.importpath,
+        '--dest',
+        ctx.path(''),
+        '--remote',
+        ctx.attr.remote,
+        '--rev',
+        rev,
+        '--vcs',
+        ctx.attr.vcs,
+        '--importpath',
+        ctx.attr.importpath,
     ])
     if result.return_code:
       fail("failed to fetch %s: %s" % (ctx.name, result.stderr))
@@ -60,58 +65,73 @@ def _go_repository_impl(ctx):
   if generate:
     # Build file generation is needed
     gazelle = ctx.path(ctx.attr._gazelle)
-    cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
-            '--repo_root', ctx.path(''),
-            "--build_tags", ",".join(ctx.attr.build_tags)]
+    cmds = [
+        gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
+        '--repo_root',
+        ctx.path(''), "--build_tags", ",".join(ctx.attr.build_tags)
+    ]
     if ctx.attr.build_file_name:
-        cmds += ["--build_file_name", ctx.attr.build_file_name]
+      cmds += ["--build_file_name", ctx.attr.build_file_name]
     cmds += [ctx.path('')]
     result = ctx.execute(cmds)
     if result.return_code:
-      fail("failed to generate BUILD files for %s: %s" % (
-          ctx.attr.importpath, result.stderr))
+      fail("failed to generate BUILD files for %s: %s" % (ctx.attr.importpath,
+                                                          result.stderr))
 
 
 go_repository = repository_rule(
     implementation = _go_repository_impl,
     attrs = {
         # Fundamental attributes of a go repository
-        "importpath": attr.string(mandatory = True),
-        "commit": attr.string(),
-        "tag": attr.string(),
-        "build_tags": attr.string_list(),
+        "importpath":
+            attr.string(mandatory = True),
+        "commit":
+            attr.string(),
+        "tag":
+            attr.string(),
+        "build_tags":
+            attr.string_list(),
 
         # Attributes for a repository that cannot be inferred from the import path
-        "vcs": attr.string(default="", values=["", "git", "hg", "svn", "bzr"]),
-        "remote": attr.string(),
+        "vcs":
+            attr.string(default = "", values = ["", "git", "hg", "svn", "bzr"]),
+        "remote":
+            attr.string(),
 
         # Attributes for a repository that comes from a source blob not a vcs
-        "url": attr.string(),
-        "strip_prefix": attr.string(),
-        "type": attr.string(),
-        "sha256": attr.string(),
+        "url":
+            attr.string(),
+        "strip_prefix":
+            attr.string(),
+        "type":
+            attr.string(),
+        "sha256":
+            attr.string(),
 
         # Attributes for a repository that needs automatic build file generation
-        "build_file_name": attr.string(default="BUILD.bazel"),
-        "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
+        "build_file_name":
+            attr.string(default = "BUILD.bazel"),
+        "build_file_generation":
+            attr.string(default = "auto", values = ["on", "auto", "off"]),
 
         # Hidden attributes for tool dependancies
-        "_fetch_repo": attr.label(
-            default = Label("@io_bazel_rules_go_repository_tools//:bin/fetch_repo"),
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-        ),
-        "_gazelle": attr.label(
-            default = Label("@io_bazel_rules_go_repository_tools//:bin/gazelle"),
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-        ),
-    },
-)
+        "_fetch_repo":
+            attr.label(
+                default = Label(
+                    "@io_bazel_rules_go_repository_tools//:bin/fetch_repo"),
+                allow_files = True,
+                single_file = True,
+                executable = True,
+                cfg = "host"),
+        "_gazelle":
+            attr.label(
+                default = Label(
+                    "@io_bazel_rules_go_repository_tools//:bin/gazelle"),
+                allow_files = True,
+                single_file = True,
+                executable = True,
+                cfg = "host"),
+    })
 
 # This is for legacy compatability
 # Originally this was the only rule that triggered BUILD file generation.
