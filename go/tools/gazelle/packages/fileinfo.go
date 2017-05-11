@@ -80,7 +80,7 @@ type taggedOpts struct {
 	opts []string
 }
 
-// extCategory indicates how a file should be treated, based on extention.
+// extCategory indicates how a file should be treated, based on extension.
 type extCategory int
 
 const (
@@ -118,23 +118,19 @@ func fileNameInfo(dir, name string) fileInfo {
 	// in goodOSArchFile in go/build.
 	var isTest bool
 	var goos, goarch string
-	i := strings.Index(name, "_")
-	if i >= 0 {
-		stem := name[i : len(name)-len(ext)]
-		l := strings.Split(stem, "_")
-		if n := len(l); n > 0 && l[n-1] == "test" {
-			isTest = true
-			l = l[:n-1]
-		}
-		n := len(l)
-		if n >= 2 && knownOS[l[n-2]] && knownArch[l[n-1]] {
-			goos = l[n-2]
-			goarch = l[n-1]
-		} else if n >= 1 && knownOS[l[n-1]] {
-			goos = l[n-1]
-		} else if n >= 1 && knownArch[l[n-1]] {
-			goarch = l[n-1]
-		}
+	l := strings.Split(name[:len(name)-len(ext)], "_")
+	if len(l) >= 2 && l[len(l)-1] == "test" {
+		isTest = true
+		l = l[:len(l)-1]
+	}
+	switch {
+	case len(l) >= 3 && knownOS[l[len(l)-2]] && knownArch[l[len(l)-1]]:
+		goos = l[len(l)-2]
+		goarch = l[len(l)-1]
+	case len(l) >= 2 && knownOS[l[len(l)-1]]:
+		goos = l[len(l)-1]
+	case len(l) >= 2 && knownArch[l[len(l)-1]]:
+		goarch = l[len(l)-1]
 	}
 
 	// Categorize the file based on extension. Based on go/build.Context.Import.
