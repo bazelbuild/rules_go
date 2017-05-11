@@ -93,14 +93,14 @@ func newValue(val interface{}) (bzl.Expr, error) {
 		sort.Slice(rkeys, func(i, j int) bool {
 			return rkeys[i].String() < rkeys[j].String()
 		})
-		args := make([]bzl.Expr, 0, len(rkeys))
-		for _, rk := range rkeys {
+		args := make([]bzl.Expr, len(rkeys))
+		for i, rk := range rkeys {
 			k := &bzl.StringExpr{Value: rk.String()}
 			v, err := newValue(rv.MapIndex(rk))
 			if err != nil {
 				return nil, err
 			}
-			args = append(args, &bzl.KeyValueExpr{Key: k, Value: v})
+			args[i] = &bzl.KeyValueExpr{Key: k, Value: v}
 		}
 		sel := &bzl.CallExpr{
 			X:    &bzl.LiteralExpr{Token: "select"},
