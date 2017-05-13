@@ -167,6 +167,22 @@ def _go_repository_select_impl(ctx):
   ctx.symlink(gopkg, "pkg")
   ctx.symlink(gosrc, "src")
 
+  cross_targets = (
+      ('linux', 'amd64'),
+      ('linux', 'arm'),
+      ('linux', '386'),
+      ('darwin', 'amd64'),
+      ('freebsd', 'amd64'),
+  )
+
+  for goos, goarch in cross_targets:
+    result = ctx.execute([
+        'env', 'GOROOT=%s' % goroot, 'PATH=%s/bin' % goroot,
+        'GOOS=%s' % goos, 'GOARCH=%s' % goarch,
+        'go', 'install', 'std'])
+    if result.return_code:
+      fail("failed to install cross compiled stdlib: %s" % result.stderr)
+
   ctx.file("BUILD", GO_TOOLCHAIN_BUILD_FILE.format(
     goroot = goroot,
   ))
