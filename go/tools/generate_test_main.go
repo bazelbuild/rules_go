@@ -24,11 +24,31 @@ import (
 	"go/token"
 	"log"
 	"os"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
 )
+
+var (
+	coverFileRegexp = regexp.MustCompile(".+_(?P<cover_var>GoCover_\\d+)\\.cover\\.go")
+
+	testCover      bool     // -cover flag
+	testCoverMode  string   // -covermode flag
+	testCoverPaths []string // -coverpkg flag
+)
+
+// CoverVar holds the name of the generated coverage variables targeting
+// the named file.
+type CoverVar struct {
+	File string // local file name
+	Var  string // name of count struct
+}
+
+type coverInfo struct {
+	Vars map[string]*CoverVar
+}
 
 // Cases holds template data.
 type Cases struct {
@@ -39,6 +59,29 @@ type Cases struct {
 	HasTestMain      bool
 	Version17        bool
 	Version18OrNewer bool
+	Cover            []coverInfo
+}
+
+func (c *Cases) CoverMode() string {
+	if testCoverMode == "" {
+		return "set"
+	}
+	return testCoverMode
+}
+
+func (c *Cases) CoverEnabled() bool {
+	return testCover
+}
+
+// Covered returns a string describing which packages are being tested for coverage.
+// If the covered package is the same as the tested package, it returns the empty string.
+// Otherwise it is a comma-separated human-readable list of packages beginning with
+// " in", ready for use in the coverage message.
+func (c *Cases) Covered() string {
+	if testCoverPaths == nil {
+		return ""
+	}
+	return " in " + strings.Join(testCoverPaths, ", ")
 }
 
 var codeTpl = `
@@ -59,6 +102,13 @@ import (
 {{else if .BenchmarkNames}}
 	undertest "{{.Package}}"
 {{end}}
+
+{{if .CoverEnabled}}
+	{{$pkg := .Package}}
+	{{range $i, $p := .Cover}}
+		_cover{{$i}} {{$pkg | printf "%q"}}
+	{{end}}
+{{end}}
 )
 
 var tests = []testing.InternalTest{
@@ -73,6 +123,45 @@ var benchmarks = []testing.InternalBenchmark{
 {{end}}
 }
 
+{{if .CoverEnabled}}
+
+// Only updated by init functions, so no need for atomicity.
+var (
+	coverCounters = make(map[string][]uint32)
+	coverBlocks = make(map[string][]testing.CoverBlock)
+)
+
+func init() {
+	{{range $i, $p := .Cover}}
+	{{range $file, $cover := $p.Vars}}
+	coverRegisterFile({{printf "%q" $cover.File}}, _cover{{$i}}.{{$cover.Var}}.Count[:], _cover{{$i}}.{{$cover.Var}}.Pos[:], _cover{{$i}}.{{$cover.Var}}.NumStmt[:])
+	{{end}}
+	{{end}}
+}
+
+func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts []uint16) {
+	if 3*len(counter) != len(pos) || len(counter) != len(numStmts) {
+		panic("coverage: mismatched sizes")
+	}
+	if coverCounters[fileName] != nil {
+		// Already registered.
+		return
+	}
+	coverCounters[fileName] = counter
+	block := make([]testing.CoverBlock, len(counter))
+	for i := range counter {
+		block[i] = testing.CoverBlock{
+			Line0: pos[3*i+0],
+			Col0: uint16(pos[3*i+2]),
+			Line1: pos[3*i+1],
+			Col1: uint16(pos[3*i+2]>>16),
+			Stmts: numStmts[i],
+		}
+	}
+	coverBlocks[fileName] = block
+}
+{{end}}
+
 func main() {
 	os.Chdir("{{.RunDir}}")
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
@@ -80,6 +169,15 @@ func main() {
 			f.Value.Set(filter)
 		}
 	}
+
+{{if .CoverEnabled}}
+	testing.RegisterCover(testing.Cover{
+		Mode: {{printf "%q" .CoverMode}},
+		Counters: coverCounters,
+		Blocks: coverBlocks,
+		CoveredPackages: {{printf "%q" .Covered}},
+	})
+{{end}}
 
 {{if .Version18OrNewer}}
 	m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, nil)
@@ -118,12 +216,24 @@ func main() {
 		defer outFile.Close()
 	}
 
+	ci := coverInfo{
+		Vars: map[string]*CoverVar{},
+	}
 	cases := Cases{
 		Package: *pkg,
 		RunDir:  os.Getenv("RUNDIR"),
+		Cover:   []coverInfo{ci},
 	}
 	testFileSet := token.NewFileSet()
 	for _, f := range flag.Args() {
+		coverVar := extractCoverVar(f)
+		if coverVar != "" {
+			ci.Vars[f] = &CoverVar{
+				File: f,
+				Var:  coverVar,
+			}
+		}
+
 		parse, err := parser.ParseFile(testFileSet, f, nil, parser.ParseComments)
 		if err != nil {
 			log.Fatalf("ParseFile(%q): %v", f, err)
@@ -187,6 +297,8 @@ func main() {
 		}
 	}
 
+	testCover = len(ci.Vars) > 0
+
 	goVersion := parseVersion(runtime.Version())
 	if goVersion.Less(version{1, 7}) {
 		log.Fatalf("go version %s not supported", runtime.Version())
@@ -229,4 +341,12 @@ func (x version) Less(y version) bool {
 		}
 	}
 	return len(x) < len(y)
+}
+
+func extractCoverVar(fn string) string {
+	res := coverFileRegexp.FindStringSubmatch(fn)
+	if len(res) > 1 {
+		return res[1]
+	}
+	return ""
 }
