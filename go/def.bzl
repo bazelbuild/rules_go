@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:go_repositories.bzl", "go_repositories")
+load("//go/private:repositories.bzl", "go_repositories")
 load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 load("//go/private:go_prefix.bzl", "go_prefix")
 load("//go/private:json.bzl", "json_marshal")
