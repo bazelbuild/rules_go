@@ -92,7 +92,7 @@ go_repository = repository_rule(
         "sha256": attr.string(),
 
         # Attributes for a repository that needs automatic build file generation
-        "build_file_name": attr.string(default="BUILD.bazel"),
+        "build_file_name": attr.string(default="BUILD.bazel,BUILD"),
         "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
 
         # Hidden attributes for tool dependancies

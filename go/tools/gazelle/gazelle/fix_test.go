@@ -33,7 +33,7 @@ func TestFixFile(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	stubFile := &bzl.File{
-		Path: filepath.Join(dir, "BUILD"),
+		Path: filepath.Join(dir, "BUILD.bazel"),
 		Stmt: []bzl.Expr{
 			&bzl.CallExpr{
 				X: &bzl.LiteralExpr{Token: "foo_rule"},

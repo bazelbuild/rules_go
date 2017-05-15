@@ -27,8 +27,8 @@ func fixFile(file *bzl.File) error {
 	if err := ioutil.WriteFile(file.Path, bzl.Format(file), 0644); err != nil {
 		return err
 	}
-	if filepath.Base(file.Path) != *buildFileName {
-		return os.Rename(file.Path, filepath.Join(filepath.Dir(file.Path), *buildFileName))
+	if filepath.Base(file.Path) != getBuildFileName() {
+		return os.Rename(file.Path, filepath.Join(filepath.Dir(file.Path), getBuildFileName()))
 	}
 	return nil
 }
