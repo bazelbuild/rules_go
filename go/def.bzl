@@ -69,13 +69,6 @@ cgo_filetype = FileType([
 
 ################
 
-def _go_prefix(ctx):
-  """slash terminated go-prefix"""
-  prefix = ctx.attr.go_prefix.go_prefix
-  if prefix != "" and not prefix.endswith("/"):
-    prefix = prefix + "/"
-  return prefix
-
 def go_environment_vars(ctx):
   """Return a map of environment variables for use with actions, based on
   the arguments. Uses the ctx.fragments.cpp.cpu attribute, if present,
@@ -159,7 +152,12 @@ def _go_importpath(ctx):
   Returns:
     Go importpath of the library
   """
-  path = _go_prefix(ctx)[:-1]
+  path = ctx.attr.import_path
+  if path != "":
+    return path
+  path = ctx.attr.go_prefix.go_prefix
+  if path.endswith("/"):
+    path = path[:-1]
   if ctx.label.package:
     path += "/" + ctx.label.package
   if ctx.label.name != _DEFAULT_LIB:
@@ -374,14 +372,11 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
   """Sets up a symlink tree to libraries to link together."""
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
-  prefix = _go_prefix(ctx)
 
   ld = "%s" % ctx.fragments.cpp.compiler_executable
   extldflags = _c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
   ]
-  if prefix:
-    extldflags.append("-L" + prefix)
   for d in cgo_deps:
     if d.basename.endswith('.so'):
       short_dir = d.dirname[len(d.root.path):]
@@ -473,7 +468,6 @@ def go_test_impl(ctx):
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")
   main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
-  prefix = _go_prefix(ctx)
   go_import = _go_importpath(ctx)
 
   cmds = [
@@ -607,6 +601,7 @@ go_library_attrs = go_env_attrs + {
             "transitive_cgo_deps",
         ],
     ),
+    "import_path": attr.string(),
     "library": attr.label(
         providers = [
             "direct_deps",
