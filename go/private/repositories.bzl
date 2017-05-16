@@ -16,6 +16,8 @@
 
 load("//go/private:toolchain.bzl", "go_sdk_repository", "go_repository_select")
 load("//go/private:repository_tools.bzl", "go_repository_tools")
+load("//go/private:bzl_format.bzl", "bzl_format_repositories")
+load("//go/private:go_repository.bzl", "go_repository")
 
 def go_repositories(
     go_version = None,
@@ -75,7 +77,24 @@ def go_repositories(
       strip_prefix = "go",
   )
 
-  go_repository_select(go_version, go_linux, go_darwin)
-  go_repository_tools(
-      name = "io_bazel_rules_go_repository_tools",
+  # Needed for gazelle and wtool
+  native.http_archive(
+      name = "com_github_bazelbuild_buildtools",
+      url = "https://codeload.github.com/bazelbuild/buildtools/zip/d5dcc29f2304aa28c29ecb8337d52bb9de908e0c",
+      strip_prefix = "buildtools-d5dcc29f2304aa28c29ecb8337d52bb9de908e0c",
+      type = "zip",
   )
+
+  # Needed for fetch repo
+  go_repository(
+      name = "org_golang_x_tools",
+      importpath = "golang.org/x/tools",
+      urls = ["https://codeload.github.com/golang/tools/zip/3d92dd60033c312e3ae7cac319c792271cf67e37"],
+      strip_prefix = "tools-3d92dd60033c312e3ae7cac319c792271cf67e37",
+      type = "zip",
+  )
+
+  bzl_format_repositories()
+
+  go_repository_select(go_version, go_linux, go_darwin)
+  go_repository_tools(name = "io_bazel_rules_go_repository_tools")

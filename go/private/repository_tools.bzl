@@ -15,52 +15,6 @@
 load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 load("//go/private:bzl_format.bzl", "bzl_format_repositories")
 
-repository_tool_deps = {
-    'buildtools': struct(
-        importpath = 'github.com/bazelbuild/buildtools',
-        repo = 'https://github.com/bazelbuild/buildtools',
-        commit = 'd5dcc29f2304aa28c29ecb8337d52bb9de908e0c',
-    ),
-    'tools': struct(
-        importpath = 'golang.org/x/tools',
-        repo = 'https://github.com/golang/tools',
-        commit = '3d92dd60033c312e3ae7cac319c792271cf67e37',
-    )
-}
-
-def go_internal_tools_deps():
-  """only for internal use in rules_go"""
-  go_repository(
-      name = "com_github_bazelbuild_buildtools",
-      commit = repository_tool_deps['buildtools'].commit,
-      importpath = repository_tool_deps['buildtools'].importpath,
-  )
-
-  new_go_repository(
-      name = "org_golang_x_tools",
-      commit = repository_tool_deps['tools'].commit,
-      importpath = repository_tool_deps['tools'].importpath,
-  )
-  bzl_format_repositories()
-
-def _fetch_repository_tools_deps(ctx, goroot, gopath):
-  for name, dep in repository_tool_deps.items():
-    result = ctx.execute(['mkdir', '-p', ctx.path('src/' + dep.importpath)])
-    if result.return_code:
-      fail('failed to create directory: %s' % result.stderr)
-    archive = name + '.tar.gz'
-    ctx.download(
-        url = '%s/archive/%s.tar.gz' % (dep.repo, dep.commit),
-        output = archive)
-    ctx.execute([
-        'tar', '-C', 'src/%s' % dep.importpath, '-xf', archive, '--strip', '1'])
-
-  result = ctx.execute([
-      'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath, 'PATH=%s/bin' % goroot,
-      'go', 'generate', 'github.com/bazelbuild/buildtools/build'])
-  if result.return_code:
-    fail("failed to go generate: %s" % result.stderr)
-
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
 
@@ -76,23 +30,34 @@ filegroup(
 """
 
 def _go_repository_tools_impl(ctx):
+  # We have to download this directly because the normal version is based on go_repository
+  # and thus requires the gazelle we build in here to generate it's BUILD files
+  # The commit used here should match the one in repositories.bzl
+  ctx.download_and_extract(
+      url = "https://codeload.github.com/golang/tools/zip/3d92dd60033c312e3ae7cac319c792271cf67e37",
+      type = "zip",
+  )
+
   go_tool = ctx.path(ctx.attr._go_tool)
-  goroot = go_tool.dirname.dirname
-  gopath = ctx.path('')
-  prefix = "github.com/bazelbuild/rules_go/" + ctx.attr._tools.package
-  src_path = ctx.path(ctx.attr._tools).dirname
-
-  _fetch_repository_tools_deps(ctx, goroot, gopath)
-
-  for t, pkg in [("gazelle", 'gazelle/gazelle'), ("fetch_repo", "fetch_repo")]:
-    ctx.symlink("%s/%s" % (src_path, t), "src/%s/%s" % (prefix, t))
-
-    result = ctx.execute([
-        'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath,
-        go_tool, "build",
-        "-o", ctx.path("bin/" + t), "%s/%s" % (prefix, pkg)])
-    if result.return_code:
-      fail("failed to build %s: %s" % (t, result.stderr))
+  x_tools_path = ctx.path('tools-3d92dd60033c312e3ae7cac319c792271cf67e37')
+  buildtools_path = ctx.path(ctx.attr._buildtools).dirname
+  go_tools_path = ctx.path(ctx.attr._tools).dirname
+  # Build something that looks like a normal GOPATH so go install will work
+  ctx.symlink(x_tools_path, "src/golang.org/x/tools")
+  ctx.symlink(buildtools_path, "src/github.com/bazelbuild/buildtools")
+  ctx.symlink(go_tools_path, "src/github.com/bazelbuild/rules_go/go/tools")
+  env = {
+    'GOROOT': str(go_tool.dirname.dirname),
+    'GOPATH': str(ctx.path('')),
+  }
+  # build gazelle and fetch_repo
+  result = ctx.execute([go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle'], environment = env)
+  if result.return_code:
+      fail("failed to build gazelle: %s" % result.stderr)
+  result = ctx.execute([go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'], environment = env)
+  if result.return_code:
+      fail("failed to build fetch_repo: %s" % result.stderr)
+  # add a build file to export the tools
   ctx.file('BUILD', _GO_REPOSITORY_TOOLS_BUILD_FILE, False)
 
 go_repository_tools = repository_rule(
@@ -100,6 +65,11 @@ go_repository_tools = repository_rule(
     attrs = {
         "_tools": attr.label(
             default = Label("//go/tools:BUILD"),
+            allow_files = True,
+            single_file = True,
+        ),
+        "_buildtools": attr.label(
+            default = Label("@com_github_bazelbuild_buildtools//:WORKSPACE"),
             allow_files = True,
             single_file = True,
         ),
