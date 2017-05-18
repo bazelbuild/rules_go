@@ -58,7 +58,7 @@ They currently do not support (in order of importance):
 * test sharding
 
 Note: since 0.4.x this repo requires bazel ≥ 0.4.4 to function (due to the use of
-BUILD.bazel files in bazelbuild/buildifier).
+BUILD.bazel files in bazelbuild/buildtools).
 
 ## Setup
 

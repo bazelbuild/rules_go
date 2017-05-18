@@ -24,7 +24,7 @@ import (
 	"sort"
 	"strings"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 )

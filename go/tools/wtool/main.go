@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 	"golang.org/x/tools/go/vcs"

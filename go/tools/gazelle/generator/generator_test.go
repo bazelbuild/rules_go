@@ -27,7 +27,7 @@ import (
 	"strings"
 	"testing"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )

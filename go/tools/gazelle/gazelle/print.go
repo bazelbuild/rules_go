@@ -18,7 +18,7 @@ package main
 import (
 	"os"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 )
 
 func printFile(f *bzl.File) error {

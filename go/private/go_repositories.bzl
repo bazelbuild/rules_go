@@ -17,9 +17,9 @@ load("//go/private:bzl_format.bzl", "bzl_format_repositories")
 
 repository_tool_deps = {
     'buildtools': struct(
-        importpath = 'github.com/bazelbuild/buildifier',
+        importpath = 'github.com/bazelbuild/buildtools',
         repo = 'https://github.com/bazelbuild/buildtools',
-        commit = '81c36a8418cb803d381335c95f8bb419ad1efa27',
+        commit = 'd5dcc29f2304aa28c29ecb8337d52bb9de908e0c',
     ),
     'tools': struct(
         importpath = 'golang.org/x/tools',
@@ -31,11 +31,9 @@ repository_tool_deps = {
 def go_internal_tools_deps():
   """only for internal use in rules_go"""
   go_repository(
-      name = "com_github_bazelbuild_buildifier",
+      name = "com_github_bazelbuild_buildtools",
       commit = repository_tool_deps['buildtools'].commit,
       importpath = repository_tool_deps['buildtools'].importpath,
-      remote = repository_tool_deps['buildtools'].repo,
-      vcs = 'git',
   )
 
   new_go_repository(
@@ -59,7 +57,7 @@ def _fetch_repository_tools_deps(ctx, goroot, gopath):
 
   result = ctx.execute([
       'env', 'GOROOT=%s' % goroot, 'GOPATH=%s' % gopath, 'PATH=%s/bin' % goroot,
-      'go', 'generate', 'github.com/bazelbuild/buildifier/build'])
+      'go', 'generate', 'github.com/bazelbuild/buildtools/build'])
   if result.return_code:
     fail("failed to go generate: %s" % result.stderr)
 

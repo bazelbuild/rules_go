@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 )
 
 func fixFile(file *bzl.File) error {

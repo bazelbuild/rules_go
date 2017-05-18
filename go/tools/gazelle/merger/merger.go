@@ -22,7 +22,7 @@ import (
 	"sort"
 	"strings"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 )
 
 const (

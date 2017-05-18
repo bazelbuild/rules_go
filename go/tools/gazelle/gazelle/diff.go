@@ -20,7 +20,7 @@ import (
 	"os"
 	"os/exec"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 )
 
 func diffFile(file *bzl.File) error {

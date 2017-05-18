@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 )
 
 const oldData = `

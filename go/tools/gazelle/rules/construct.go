@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"sort"
 
-	bzl "github.com/bazelbuild/buildifier/build"
+	bzl "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
 
