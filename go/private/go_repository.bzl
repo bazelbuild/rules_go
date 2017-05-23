@@ -13,7 +13,7 @@
 # limitations under the License.
 
 def _go_repository_impl(ctx):
-  if ctx.attr.url or ctx.attr.urls:
+  if ctx.attr.urls:
     disallowed = []
     # explicit source url
     if ctx.attr.vcs:
@@ -94,7 +94,6 @@ go_repository = repository_rule(
         "remote": attr.string(),
 
         # Attributes for a repository that comes from a source blob not a vcs
-        "url": attr.string(),
         "urls": attr.string_list(),
         "strip_prefix": attr.string(),
         "type": attr.string(),
