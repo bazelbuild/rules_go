@@ -26,7 +26,6 @@ change in buildifier, one of our dependencies. You can upgrade to `0.3.4`,
 * [Repository rules](#repository-rules)
   * [go_repositories](#go_repositories)
   * [go_repository](#go_repository)
-  * [new_go_repository](#new_go_repository)
 * [Build rules](#build-rules)
   * [go_prefix](#go_prefix)
   * [go_library](#go_library)
@@ -295,7 +294,7 @@ Fetches a remote repository of a Go project, and generates `BUILD`
 files if needed.
 In vcs mode it recognizes importpath redirection of Go.
 
-The `importpath` import path must always be specified. If url is specified, it is expected to be the url for a source archive. If `remote` and `vcs` are both specified, they control the source repository to be cloned for the import path. If neither a vcs nor a url are specified, the vcs will be inferred from the import path using the normal go logic.
+The `importpath` import path must always be specified. If urls are specified, it is expected to be urls for a source archive. If `remote` and `vcs` are both specified, they control the source repository to be cloned for the import path. If neither a vcs nor a url are specified, the vcs will be inferred from the import path using the normal go logic.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -363,10 +362,10 @@ The `importpath` import path must always be specified. If url is specified, it i
       </td>
     </tr>
     <tr>
-      <td><code>url</code></td>
+      <td><code>urls</code></td>
       <td>
-        <code>String, optional</code>
-        <p>The url for a source code archive.</p>
+        <code>List of Strings, optional</code>
+        <p>The urls for a source code archive.</p>
         <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
       </td>
     </tr>
