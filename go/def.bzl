@@ -152,7 +152,7 @@ def _go_importpath(ctx):
   Returns:
     Go importpath of the library
   """
-  path = ctx.attr.import_path
+  path = ctx.attr.importpath
   if path != "":
     return path
   path = ctx.attr.go_prefix.go_prefix
@@ -601,7 +601,7 @@ go_library_attrs = go_env_attrs + {
             "transitive_cgo_deps",
         ],
     ),
-    "import_path": attr.string(),
+    "importpath": attr.string(),
     "library": attr.label(
         providers = [
             "direct_deps",

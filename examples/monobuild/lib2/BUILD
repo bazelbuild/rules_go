@@ -7,5 +7,5 @@ go_library(
     srcs = [
         "lib2.go",
     ],
-    import_path = "totally/different/import/for/lib2",
+    importpath = "totally/different/import/for/lib2",
 )
