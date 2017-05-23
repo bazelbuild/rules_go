@@ -28,6 +28,12 @@ function bazel_test {
 function bazel_batch_test {
   bazel --bazelrc="$BAZELRC" --batch test $BAZEL_BUILD_OPTS "$@"
 }
+function bazel_coverage {
+  bazel --bazelrc="$BAZELRC" coverage $BAZEL_BUILD_OPTS "$@"
+}
+function bazel_batch_coverage {
+  bazel --bazelrc="$BAZELRC" --batch coverage $BAZEL_BUILD_OPTS "$@"
+}
 function bazel_run {
   bazel --bazelrc="$BAZELRC" run $BAZEL_BUILD_OPTS "$@"
 }
