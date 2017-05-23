@@ -14,19 +14,15 @@
 
 def _go_repository_impl(ctx):
   if ctx.attr.urls:
-    disallowed = []
     # explicit source url
     if ctx.attr.vcs:
-      disallowed.append("vcs")
+      fail("cannot specify both of urls and vcs", "vcs")
     if ctx.attr.commit:
-      disallowed.append("commit")
+      fail("cannot specify both of urls and commit", "commit")
     if ctx.attr.tag:
-      disallowed.append("tag")
-    if disallowed:
-      fail("cannot specify and of %s if url or urls is specified", "url")
+      fail("cannot specify both of urls and tag", "tag")
     ctx.download_and_extract(
-        url = ctx.attr.url,
-        urls = ctx.attr.urls,
+        url = ctx.attr.urls,
         sha256 = ctx.attr.sha256,
         stripPrefix = ctx.attr.strip_prefix,
         type = ctx.attr.type,
