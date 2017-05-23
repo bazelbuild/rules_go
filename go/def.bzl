@@ -94,7 +94,8 @@ def go_environment_vars(ctx):
   }
   env = {}
   if hasattr(ctx.file, "go_tool"):
-    env["GOROOT"] = ctx.file.go_tool.dirname + "/.."
+    go_toolchain = get_go_toolchain(ctx)
+    env["GOROOT"] = go_toolchain.root
   env.update(bazel_to_go_toolchain.get(ctx.fragments.cpp.cpu, default_toolchain))
   return env
 
@@ -127,19 +128,20 @@ def _emit_go_asm_action(ctx, source, hdrs, out_obj):
     hdrs: list of .h files that may be included
     out_obj: the artifact (configured target?) that should be produced
   """
+  go_toolchain = get_go_toolchain(ctx)
   params = {
-      "go_tool": ctx.file.go_tool.path,
-      "includes": [f.dirname for f in hdrs] + [ctx.file.go_include.path],
+      "go_tool": go_toolchain.go.path,
+      "includes": [f.dirname for f in hdrs] + [go_toolchain.include.path],
       "source": source.path,
       "out": out_obj.path,
   }
 
-  inputs = hdrs + ctx.files.toolchain + [source]
+  inputs = hdrs + go_toolchain.all_files + [source]
   ctx.action(
       inputs = inputs,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
-      executable = ctx.executable._asm,
+      executable = go_toolchain.asm,
       arguments = [json_marshal(params)],
   )
 
@@ -180,19 +182,20 @@ def _emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts)
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
+  go_toolchain = get_go_toolchain(ctx)
   if ctx.coverage_instrumented():
     sources = _emit_go_cover_action(ctx, sources)
 
   # Compile filtered files.
   args = [
       "-cgo",
-      ctx.file.go_tool.path,
+      go_toolchain.go.path,
       "tool", "compile",
       "-o", out_object.path,
       "-trimpath", "-abs-.",
       "-I", "-abs-.",
   ]
-  inputs = depset(sources + ctx.files.toolchain)
+  inputs = depset(sources + go_toolchain.all_files)
   for dep in deps:
     inputs += dep.transitive_go_libraries
   for path in libpaths:
@@ -202,7 +205,7 @@ def _emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts)
       inputs = list(inputs),
       outputs = [out_object],
       mnemonic = "GoCompile",
-      executable = ctx.executable._filter_exec,
+      executable = go_toolchain.filter_exec,
       arguments = args,
       env = go_environment_vars(ctx),
   )
@@ -217,11 +220,12 @@ def _emit_go_pack_action(ctx, out_lib, objects):
     out_lib: the archive that should be produced
     objects: an iterable of object files to be added to the output archive file.
   """
+  go_toolchain = get_go_toolchain(ctx)
   ctx.action(
-      inputs = objects + ctx.files.toolchain,
+      inputs = objects + go_toolchain.all_files,
       outputs = [out_lib],
       mnemonic = "GoPack",
-      executable = ctx.file.go_tool,
+      executable = go_toolchain.go,
       arguments = ["tool", "pack", "c", out_lib.path] + [a.path for a in objects],
       env = go_environment_vars(ctx),
   )
@@ -236,6 +240,7 @@ def _emit_go_cover_action(ctx, sources):
   Returns:
     A list of Go source code files which might be coverage instrumented.
   """
+  go_toolchain = get_go_toolchain(ctx)
   outputs = []
   # TODO(linuxerwang): make the mode configurable.
   count = 0
@@ -249,7 +254,7 @@ def _emit_go_cover_action(ctx, sources):
     out = ctx.new_file(src, src.basename[:-3] + '_' + cover_var + '.cover.go')
     outputs += [out]
     ctx.action(
-        inputs = [src] + ctx.files.toolchain,
+        inputs = [src] + go_toolchain.all_files,
         outputs = [out],
         mnemonic = "GoCover",
         executable = ctx.file.go_tool,
@@ -262,7 +267,7 @@ def _emit_go_cover_action(ctx, sources):
 
 def go_library_impl(ctx):
   """Implements the go_library() rule."""
-
+  go_toolchain = get_go_toolchain(ctx)
   sources = set(ctx.files.srcs)
   go_srcs = set([s for s in sources if s.basename.endswith('.go')])
   asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
@@ -409,6 +414,7 @@ def _extract_extldflags(gc_linkopts, extldflags):
 def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_libraries, cgo_deps, libs,
                          executable, gc_linkopts):
   """Sets up a symlink tree to libraries to link together."""
+  go_toolchain = get_go_toolchain(ctx)
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
@@ -423,7 +429,7 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   link_cmd = [
-      ctx.file.go_tool.path,
+      go_toolchain.go.path,
       "tool", "link",
       "-L", "."
   ]
@@ -472,7 +478,7 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
 
   ctx.action(
       inputs = [f] + (list(transitive_go_libraries) + [lib] + list(cgo_deps) +
-                ctx.files.toolchain + ctx.files._crosstool) + stamp_inputs,
+                go_toolchain.all_files + ctx.files._crosstool) + stamp_inputs,
       outputs = [executable],
       command = f.path,
       mnemonic = "GoLink",
@@ -503,6 +509,7 @@ def go_test_impl(ctx):
   It emits an action to run the test generator, and then compiles the
   test into a binary."""
 
+  go_toolchain = get_go_toolchain(ctx)
   lib_result = go_library_impl(ctx)
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")
@@ -518,9 +525,9 @@ def go_test_impl(ctx):
       '    FILTERED_TEST_FILES+=("$line")',
       '  fi',
       'done < <(\'%s\' -cgo "${UNFILTERED_TEST_FILES[@]}")' %
-          ctx.executable._filter_tags.path,
+          go_toolchain.filter_tags.path,
       ' '.join([
-          "'%s'" % ctx.executable.test_generator.path,
+          "'%s'" % go_toolchain.test_generator.path,
           '--package',
           go_import,
           '--output',
@@ -530,8 +537,8 @@ def go_test_impl(ctx):
   ]
   f = _emit_generate_params_action(
       cmds, ctx, ctx.label.name + ".GoTestGenTest.params")
-  inputs = (list(lib_result.go_sources) + list(ctx.files.toolchain) +
-            [f, ctx.executable._filter_tags, ctx.executable.test_generator])
+  inputs = (list(lib_result.go_sources) + list(go_toolchain.all_files) +
+            [f, go_toolchain.filter_tags, go_toolchain.test_generator])
   ctx.action(
       inputs = inputs,
       outputs = [main_go],
@@ -577,6 +584,7 @@ go_env_attrs = {
         default = Label("//go/toolchain:go_tool"),
         single_file = True,
         allow_files = True,
+        executable = True,
         cfg = "host",
     ),
     "go_prefix": attr.label(
@@ -600,10 +608,7 @@ go_env_attrs = {
         cfg = "host",
     ),
     "go_root": attr.label(
-        providers = ["go_root"],
-        default = Label(
-            "//go/toolchain:go_root",
-        ),
+        default = Label("//go/toolchain:go_root"),
         allow_files = False,
         cfg = "host",
     ),
@@ -625,7 +630,32 @@ go_env_attrs = {
         executable = True,
         single_file = True,
     ),
+    "_test_generator": attr.label(
+        executable = True,
+        default = Label("//go/tools:generate_test_main"),
+        cfg = "host",
+    ),
+    "_extract_package": attr.label(
+        default = Label("//go/tools/extract_package"),
+        executable = True,
+        cfg = "host",
+    ),
 }
+
+
+def get_go_toolchain(ctx):
+    return struct(
+        go = ctx.executable.go_tool,
+        all_files = ctx.files.toolchain,
+        src = ctx.files.go_src,
+        include = ctx.file.go_include,
+        root = ctx.attr.go_root.path,
+        filter_tags = ctx.executable._filter_tags,
+        filter_exec = ctx.executable._filter_exec,
+        asm = ctx.executable._asm,
+        test_generator = ctx.executable._test_generator,
+        extract_package = ctx.executable._extract_package,
+    )
 
 go_library_attrs = go_env_attrs + {
     "data": attr.label_list(
@@ -687,15 +717,7 @@ go_binary = rule(
 
 go_test = rule(
     go_test_impl,
-    attrs = go_library_attrs + _crosstool_attrs + go_link_attrs + {
-        "test_generator": attr.label(
-            executable = True,
-            default = Label(
-                "//go/tools:generate_test_main",
-            ),
-            cfg = "host",
-        ),
-    },
+    attrs = go_library_attrs + _crosstool_attrs + go_link_attrs,
     executable = True,
     fragments = ["cpp"],
     test = True,
@@ -716,6 +738,7 @@ def _exec_path(path):
   return '${execroot}/' + path
 
 def _cgo_filter_srcs_impl(ctx):
+  go_toolchain = get_go_toolchain(ctx)
   srcs = ctx.files.srcs
   dsts = []
   cmds = []
@@ -725,7 +748,7 @@ def _cgo_filter_srcs_impl(ctx):
     dst = ctx.new_file(src, dst_basename)
     cmds += [
         "if '%s' -cgo -quiet '%s'; then" %
-            (ctx.executable._filter_tags.path, src.path),
+            (go_toolchain.filter_tags.path, src.path),
         "  cp '%s' '%s'" % (src.path, dst.path),
         "else",
         "  echo -n >'%s'" % dst.path,
@@ -739,7 +762,7 @@ def _cgo_filter_srcs_impl(ctx):
     script_name = ctx.label.package + "/" + ctx.label.name + ".CGoFilterSrcs.params"
   f = _emit_generate_params_action(cmds, ctx, script_name)
   ctx.action(
-      inputs = [f, ctx.executable._filter_tags] + srcs,
+      inputs = [f, go_toolchain.filter_tags] + srcs,
       outputs = dsts,
       command = f.path,
       mnemonic = "CgoFilterSrcs",
@@ -750,21 +773,16 @@ def _cgo_filter_srcs_impl(ctx):
 
 _cgo_filter_srcs = rule(
     implementation = _cgo_filter_srcs_impl,
-    attrs = {
+    attrs = go_env_attrs + {
         "srcs": attr.label_list(
             allow_files = cgo_filetype,
-        ),
-        "_filter_tags": attr.label(
-            default = Label("//go/tools/filter_tags"),
-            cfg = "host",
-            executable = True,
-            single_file = True,
         ),
     },
     fragments = ["cpp"],
 )
 
 def _cgo_codegen_impl(ctx):
+  go_toolchain = get_go_toolchain(ctx)
   go_srcs = ctx.files.srcs
   srcs = go_srcs + ctx.files.c_hdrs
   linkopts = ctx.attr.linkopts
@@ -807,7 +825,7 @@ def _cgo_codegen_impl(ctx):
       'filtered_go_files=()',
       'for file in "${unfiltered_go_files[@]}"; do',
       '  stem=$(basename "$file" .go)',
-      '  if %s -cgo -quiet "$file"; then' % ctx.executable._filter_tags.path,
+      '  if %s -cgo -quiet "$file"; then' % go_toolchain.filter_tags.path,
       '    filtered_go_files+=("$file")',
       '  else',
       '    grep --max-count 1 "^package " "$file" >"$objdir/$stem.go"',
@@ -832,8 +850,8 @@ def _cgo_codegen_impl(ctx):
 
   f = _emit_generate_params_action(cmds, ctx, out_dir + ".CGoCodeGenFile.params")
 
-  inputs = (srcs + ctx.files.toolchain + ctx.files._crosstool +
-            [f, ctx.executable._filter_tags])
+  inputs = (srcs + go_toolchain.all_files + ctx.files._crosstool +
+            [f, go_toolchain.filter_tags])
   ctx.action(
       inputs = inputs,
       outputs = ctx.outputs.outs,
@@ -941,17 +959,18 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
   return outs
 
 def _cgo_import_impl(ctx):
+  go_toolchain = get_go_toolchain(ctx)
   cmds = [
-      (ctx.file.go_tool.path + " tool cgo" +
+      (go_toolchain.go.path + " tool cgo" +
        " -dynout " + ctx.outputs.out.path +
        " -dynimport " + ctx.file.cgo_o.path +
-       " -dynpackage $(%s %s)"  % (ctx.executable._extract_package.path,
+       " -dynpackage $(%s %s)"  % (go_toolchain.extract_package.path,
                                    ctx.file.sample_go_src.path)),
   ]
   f = _emit_generate_params_action(cmds, ctx, ctx.outputs.out.path + ".CGoImportGenFile.params")
   ctx.action(
-      inputs = (ctx.files.toolchain +
-                [f, ctx.file.go_tool, ctx.executable._extract_package,
+      inputs = (go_toolchain.all_files +
+                [f, go_toolchain.go, go_toolchain.extract_package,
                  ctx.file.cgo_o, ctx.file.sample_go_src]),
       outputs = [ctx.outputs.out],
       command = f.path,
@@ -975,11 +994,6 @@ _cgo_import = rule(
         ),
         "out": attr.output(
             mandatory = True,
-        ),
-        "_extract_package": attr.label(
-            default = Label("//go/tools/extract_package"),
-            executable = True,
-            cfg = "host",
         ),
     },
     fragments = ["cpp"],

@@ -14,12 +14,12 @@
 
 def _go_root_impl(ctx):
   """go_root_impl propogates a GOROOT path string."""
-  return struct(go_root = ctx.attr.path)
+  return struct(path = ctx.attr.path)
 
 go_root = rule(
   _go_root_impl,
   attrs = {
-    "path": attr.string(),
+    "path": attr.string(mandatory = True),
   },
 )
 """Captures the goroot value for use as a label dependency.
