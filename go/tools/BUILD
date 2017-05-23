@@ -6,4 +6,5 @@ load("//go/private:go_tool_binary.bzl", "go_tool_binary")
 go_tool_binary(
     name = "generate_test_main",
     srcs = ["generate_test_main.go"],
+    visibility = ["//visibility:public"],
 )

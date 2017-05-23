@@ -6,4 +6,5 @@ go_tool_binary(
         "asm.go",
         "filter.go",
     ],
+    visibility = ["//visibility:public"],
 )

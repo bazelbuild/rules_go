@@ -92,5 +92,5 @@ def go_repositories(
 
   bzl_format_repositories()
 
-  go_repository_select(go_version, go_linux, go_darwin)
+  go_repository_select(name = "io_bazel_rules_go_toolchain", go_version = go_version)
   go_repository_tools(name = "io_bazel_rules_go_repository_tools")

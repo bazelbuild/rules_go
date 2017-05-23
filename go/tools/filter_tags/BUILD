@@ -4,6 +4,7 @@ load("//go:def.bzl", "go_test")
 go_tool_binary(
     name = "filter_tags",
     srcs = ["filter_tags.go"],
+    visibility = ["//visibility:public"],
 )
 
 go_test(

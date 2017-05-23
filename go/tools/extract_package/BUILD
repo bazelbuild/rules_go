@@ -4,6 +4,7 @@ load("//go:def.bzl", "go_test")
 go_tool_binary(
     name = "extract_package",
     srcs = ["extract.go"],
+    visibility = ["//visibility:public"],
 )
 
 go_test(

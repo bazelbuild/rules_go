@@ -19,28 +19,42 @@ package(
   default_visibility = [ "//visibility:public" ])
 
 filegroup(
-  name = "toolchain",
+  name = "all_files",
   srcs = glob(["bin/*", "pkg/**", ]),
 )
 
 filegroup(
-  name = "go_tool",
+  name = "go",
   srcs = [ "bin/go" ],
 )
 
 filegroup(
-  name = "go_src",
+  name = "src",
   srcs = glob(["src/**"]),
 )
 
 filegroup(
-  name = "go_include",
+  name = "include",
   srcs = [ "pkg/include" ],
 )
 
 go_root(
-  name = "go_root",
+  name = "root",
   path = "{goroot}",
+)
+"""
+
+GO_SELECT_TOOLCHAIN_BUILD_FILE = """
+alias(
+    name = "go_toolchain",
+    actual = "{toolchain}",
+    visibility = [ "//visibility:public" ],
+)
+
+alias(
+    name = "bootstrap_toolchain",
+    actual = "{bootstrap}",
+    visibility = [ "//visibility:public" ],
 )
 """
 
@@ -58,62 +72,30 @@ go_sdk_repository = repository_rule(
         "url" : attr.string(),
         "strip_prefix" : attr.string(),
         "sha256" : attr.string(),
-    })
-
-def _go_repository_select_impl(ctx):
-  os_name = ctx.os.name
-
-  # 1. Configure the goroot path
-  if os_name == 'linux':
-    go_toolchain = ctx.attr.go_linux_version
-  elif os_name == 'mac os x':
-    go_toolchain = ctx.attr.go_darwin_version
-  else:
-    fail("Unsupported operating system: " + os_name)
-  if go_toolchain == None:
-    fail("No Go toolchain provided for host operating system: " + os_name)
-  goroot = ctx.path(go_toolchain).dirname
-
-  # 2. Create the symlinks.
-  ctx.symlink(goroot.get_child("bin"), "bin")
-  ctx.symlink(goroot.get_child("pkg"), "pkg")
-  ctx.symlink(goroot.get_child("src"), "src")
-  ctx.symlink(goroot.get_child("BUILD.bazel"), "BUILD.bazel")
-
-_go_repository_select = repository_rule(
-    _go_repository_select_impl,
-    attrs = {
-        "go_linux_version": attr.label(
-            allow_files = True,
-            single_file = True,
-        ),
-        "go_darwin_version": attr.label(
-            allow_files = True,
-            single_file = True,
-        ),
     },
 )
 
-def go_repository_select(
-    go_version = None,
-    go_linux = None,
-    go_darwin = None):
-  if not go_version and not go_linux and not go_darwin:
-    go_version = "1.8.3"
+def _go_repository_select_impl(ctx):
+  host = ""
+  if ctx.os.name == 'linux':
+    host = 'linux-x86_64'
+  elif ctx.os.name == 'mac os x':
+    host = 'darwin-x86_64'
+  else:
+    fail("Unsupported operating system: " + ctx.os.name)
+  toolchain = ctx.os.environ.get("GO_TOOLCHAIN")
+  if not toolchain:
+    toolchain = "@io_bazel_rules_go//go/toolchain:go"+ctx.attr.go_version+"-"+host
+  bootstrap = toolchain.split("-cross-")[0] + "-bootstrap"
 
-  if go_version:
-    if go_linux:
-      fail("go_repositories: go_version and go_linux can't both be set")
-    if go_darwin:
-      fail("go_repositories: go_version and go_darwin can't both be set")
-    go_linux = "@go%s.linux-amd64" % go_version
-    go_darwin = "@go%s.darwin-amd64" % go_version
+  ctx.file("BUILD.bazel", GO_SELECT_TOOLCHAIN_BUILD_FILE.format(
+      toolchain=toolchain,
+      bootstrap=bootstrap,
+  ))
 
-  go_linux_version = go_linux + "//:VERSION" if go_linux else None
-  go_darwin_version = go_darwin + "//:VERSION" if go_darwin else None
-
-  _go_repository_select(
-      name = "io_bazel_rules_go_toolchain",
-      go_linux_version = go_linux_version,
-      go_darwin_version = go_darwin_version,
-  )
+go_repository_select = repository_rule(
+    implementation = _go_repository_select_impl,
+    environ = ["GO_TOOLCHAIN"],
+    attrs = {
+        "go_version" : attr.string(default = "1.8.3"),
+    })

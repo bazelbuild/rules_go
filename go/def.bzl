@@ -69,40 +69,6 @@ cgo_filetype = FileType([
 
 ################
 
-def go_environment_vars(ctx):
-  """Return a map of environment variables for use with actions, based on
-  the arguments. Uses the ctx.fragments.cpp.cpu attribute, if present,
-  and picks a default of target_os="linux" and target_arch="amd64"
-  otherwise.
-
-  Args:
-    The skylark Context.
-
-  Returns:
-    A dict of environment variables for running Go tool commands that build for
-    the target OS and architecture.
-  """
-  default_toolchain = {"GOOS": "linux", "GOARCH": "amd64"}
-  bazel_to_go_toolchain = {
-    "k8": {"GOOS": "linux", "GOARCH": "amd64"},
-    "piii": {"GOOS": "linux", "GOARCH": "386"},
-    "darwin": {"GOOS": "darwin", "GOARCH": "amd64"},
-    "darwin_x86_64": {"GOOS": "darwin", "GOARCH": "amd64"},
-    "freebsd": {"GOOS": "freebsd", "GOARCH": "amd64"},
-    "armeabi-v7a": {"GOOS": "linux", "GOARCH": "arm"},
-    "arm": {"GOOS": "linux", "GOARCH": "arm"}
-  }
-  env = {}
-  if hasattr(ctx.file, "go_tool"):
-    go_toolchain = _get_go_toolchain(ctx)
-    env["GOROOT"] = go_toolchain.root
-  env.update(bazel_to_go_toolchain.get(ctx.fragments.cpp.cpu, default_toolchain))
-  return env
-
-def _is_darwin_cpu(ctx):
-  cpu = ctx.fragments.cpp.cpu
-  return cpu == "darwin" or cpu == "darwin_x86_64"
-
 def _emit_generate_params_action(cmds, ctx, fn):
   cmds_all = [
       # Use bash explicitly. /bin/sh is default, and it may be linked to a
@@ -207,7 +173,7 @@ def _emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts)
       mnemonic = "GoCompile",
       executable = go_toolchain.filter_exec,
       arguments = args,
-      env = go_environment_vars(ctx),
+      env = go_toolchain.env,
   )
 
   return sources
@@ -227,7 +193,7 @@ def _emit_go_pack_action(ctx, out_lib, objects):
       mnemonic = "GoPack",
       executable = go_toolchain.go,
       arguments = ["tool", "pack", "c", out_lib.path] + [a.path for a in objects],
-      env = go_environment_vars(ctx),
+      env = go_toolchain.env,
   )
 
 def _emit_go_cover_action(ctx, sources):
@@ -257,9 +223,9 @@ def _emit_go_cover_action(ctx, sources):
         inputs = [src] + go_toolchain.all_files,
         outputs = [out],
         mnemonic = "GoCover",
-        executable = ctx.file.go_tool,
+        executable = go_toolchain.go,
         arguments = ["tool", "cover", "--mode=set", "-var=%s" % cover_var, "-o", out.path, src.path],
-        env = go_environment_vars(ctx),
+        env = go_toolchain.env,
     )
     count += 1
 
@@ -439,14 +405,7 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
       "-o", executable.path,
   ] + gc_linkopts + ['"${STAMP_XDEFS[@]}"']
 
-  # workaround for a bug in ld(1) on Mac OS X.
-  # http://lists.apple.com/archives/Darwin-dev/2006/Sep/msg00084.html
-  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
-  # or earlier.
-  if not _is_darwin_cpu(ctx):
-    link_cmd += ["-s"]
-
-  link_cmd += [
+  link_cmd += go_toolchain.link_flags + [
       "-extld", ld,
       "-extldflags", "'%s'" % " ".join(extldflags),
   ] + [lib.path for lib in libs]
@@ -482,7 +441,7 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
       outputs = [executable],
       command = f.path,
       mnemonic = "GoLink",
-      env = go_environment_vars(ctx),
+      env = go_toolchain.env,
   )
 
 def go_binary_impl(ctx):
@@ -544,7 +503,7 @@ def go_test_impl(ctx):
       outputs = [main_go],
       command = f.path,
       mnemonic = "GoTestGenTest",
-      env = dict(go_environment_vars(ctx), RUNDIR=ctx.label.package))
+      env = go_toolchain.env + { "RUNDIR": ctx.label.package })
 
   _emit_go_compile_action(
     ctx,
@@ -575,18 +534,7 @@ def go_test_impl(ctx):
   )
 
 go_env_attrs = {
-    "toolchain": attr.label(
-        default = Label("//go/toolchain:toolchain"),
-        allow_files = True,
-        cfg = "host",
-    ),
-    "go_tool": attr.label(
-        default = Label("//go/toolchain:go_tool"),
-        single_file = True,
-        allow_files = True,
-        executable = True,
-        cfg = "host",
-    ),
+    "go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     "go_prefix": attr.label(
         providers = ["go_prefix"],
         default = Label(
@@ -596,66 +544,10 @@ go_env_attrs = {
         allow_files = False,
         cfg = "host",
     ),
-    "go_src": attr.label(
-        default = Label("//go/toolchain:go_src"),
-        allow_files = True,
-        cfg = "host",
-    ),
-    "go_include": attr.label(
-        default = Label("//go/toolchain:go_include"),
-        single_file = True,
-        allow_files = True,
-        cfg = "host",
-    ),
-    "go_root": attr.label(
-        default = Label("//go/toolchain:go_root"),
-        allow_files = False,
-        cfg = "host",
-    ),
-    "_filter_tags": attr.label(
-        default = Label("//go/tools/filter_tags"),
-        cfg = "host",
-        executable = True,
-        single_file = True,
-    ),
-    "_filter_exec": attr.label(
-        default = Label("//go/tools/filter_exec"),
-        cfg = "host",
-        executable = True,
-        single_file = True,
-    ),
-    "_asm": attr.label(
-        default = Label("//go/tools/builders:asm"),
-        cfg = "host",
-        executable = True,
-        single_file = True,
-    ),
-    "_test_generator": attr.label(
-        executable = True,
-        default = Label("//go/tools:generate_test_main"),
-        cfg = "host",
-    ),
-    "_extract_package": attr.label(
-        default = Label("//go/tools/extract_package"),
-        executable = True,
-        cfg = "host",
-    ),
 }
 
-
 def _get_go_toolchain(ctx):
-    return struct(
-        go = ctx.executable.go_tool,
-        all_files = ctx.files.toolchain,
-        src = ctx.files.go_src,
-        include = ctx.file.go_include,
-        root = ctx.attr.go_root.path,
-        filter_tags = ctx.executable._filter_tags,
-        filter_exec = ctx.executable._filter_exec,
-        asm = ctx.executable._asm,
-        test_generator = ctx.executable._test_generator,
-        extract_package = ctx.executable._extract_package,
-    )
+    return ctx.attr.go_toolchain
 
 go_library_attrs = go_env_attrs + {
     "data": attr.label_list(
@@ -858,7 +750,7 @@ def _cgo_codegen_impl(ctx):
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       command = f.path,
-      env = go_environment_vars(ctx) + {
+      env = go_toolchain.env + {
           "CGO_LDFLAGS": " ".join(linkopts),
       },
   )
@@ -895,7 +787,7 @@ _cgo_codegen_rule = rule(
 )
 
 def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
-                 go_tool=None, toolchain=None):
+                 go_tool=None, go_toolchain=None):
   """Generates glue codes for interop between C and Go
 
   Args:
@@ -947,7 +839,7 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
       linkopts = linkopts,
 
       go_tool = go_tool,
-      toolchain = toolchain,
+      go_toolchain = go_toolchain,
 
       outdir = outdir,
       outs = outs.go_thunks + outs.c_thunks + outs.c_exports + [
@@ -975,7 +867,7 @@ def _cgo_import_impl(ctx):
       outputs = [ctx.outputs.out],
       command = f.path,
       mnemonic = "CGoImportGen",
-      env = go_environment_vars(ctx),
+      env = go_toolchain.env,
   )
   return struct(
       files = set([ctx.outputs.out]),
@@ -1042,6 +934,7 @@ Args:
 """
 
 def _cgo_object_impl(ctx):
+  go_toolchain = _get_go_toolchain(ctx)
   arguments = _c_linker_options(ctx, blacklist=[
       # never link any dependency libraries
       "-l", "-L",
@@ -1051,11 +944,7 @@ def _cgo_object_impl(ctx):
       "-o", ctx.outputs.out.path,
       "-nostdlib",
       "-Wl,-r",
-  ]
-  if _is_darwin_cpu(ctx):
-    arguments += ["-shared", "-Wl,-all_load"]
-  else:
-    arguments += ["-Wl,-whole-archive"]
+  ] + go_toolchain.cgo_link_flags
 
   lo = ctx.files.src[-1]
   arguments += [lo.path]
@@ -1079,7 +968,7 @@ def _cgo_object_impl(ctx):
 
 _cgo_object = rule(
     _cgo_object_impl,
-    attrs = _crosstool_attrs + {
+    attrs = go_env_attrs + _crosstool_attrs + {
         "src": attr.label(
             mandatory = True,
             providers = ["cc"],
@@ -1103,7 +992,7 @@ Args:
     to be linked together with src when we generate the final go binary.
 """
 
-def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
+def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, go_toolchain):
   go_srcs = [s for s in srcs if s.endswith('.go')]
   c_hdrs = [s for s in srcs if any([s.endswith(ext) for ext in hdr_exts])]
   c_srcs = [s for s in srcs if not s in (go_srcs + c_hdrs)]
@@ -1117,7 +1006,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
       copts = copts,
       linkopts = clinkopts,
       go_tool = go_tool,
-      toolchain = toolchain,
+      go_toolchain = go_toolchain,
   )
 
   # Filter c_srcs with build constraints.
@@ -1185,7 +1074,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, toolchain):
       out = cgogen.outdir + "/_cgo_import.go",
       sample_go_src = go_srcs[0],
       go_tool = go_tool,
-      toolchain = toolchain,
+      go_toolchain = go_toolchain,
       visibility = ["//visibility:private"],
   )
 
@@ -1209,7 +1098,7 @@ def cgo_genrule(name, srcs,
       cdeps = cdeps,
       copts = copts,
       clinkopts = clinkopts,
-      toolchain = None,
+      go_toolchain = None,
       go_tool = None,
   )
   _cgo_genrule(
@@ -1223,7 +1112,7 @@ def cgo_genrule(name, srcs,
   )
 
 def cgo_library(name, srcs,
-                toolchain=None,
+                go_toolchain=None,
                 go_tool=None,
                 copts=[],
                 clinkopts=[],
@@ -1269,7 +1158,7 @@ def cgo_library(name, srcs,
       copts = copts,
       clinkopts = clinkopts,
       go_tool = go_tool,
-      toolchain = toolchain,
+      go_toolchain = go_toolchain,
   )
 
   go_library(
@@ -1280,6 +1169,6 @@ def cgo_library(name, srcs,
       ],
       cgo_object = cgogen.outdir + "/_cgo_object",
       go_tool = go_tool,
-      toolchain = toolchain,
+      go_toolchain = go_toolchain,
       **kwargs
   )

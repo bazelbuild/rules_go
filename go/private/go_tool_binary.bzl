@@ -11,34 +11,60 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+load('//go/private:go_toolchain.bzl', 'toolchain', 'toolchain_type', 'ConstraintValueInfo', 'go_toolchain_core_attrs')
 
-def go_tool_binary(name, srcs):
-  """Builds a Go program using `go build`.
+go_bootstrap_toolchain_type = toolchain_type('go_bootstrap_toolchain')
 
-  This is used instead of `go_binary` for tools that are executed inside
-  actions emitted by the go rules. This avoids a bootstrapping problem. This
-  is very limited and only supports sources in the main package with no
-  dependencies outside the standard library.
+def _go_bootstrap_toolchain_impl(ctx):
+  return toolchain(
+      go_bootstrap_toolchain_type,
+      exec_compatible_with = ctx.attr.exec_compatible_with,
+      target_compatible_with = ctx.attr.target_compatible_with,
+      root = ctx.attr.root.path,
+      go = ctx.executable.go,
+      src = ctx.files.src,
+      include = ctx.file.include,
+      all_files = ctx.files.all_files,
+  )
 
-  Args:
-    name: A unique name for this rule.
-    srcs: list of pure Go source files. No cgo allowed.
-  """
-  native.genrule(
-      name = name,
-      srcs = srcs + ["//go/toolchain:go_src"],
-      outs = [name + "_bin"],
-      cmd = " ".join([
-          "GOROOT=$$(cd $$(dirname $(location //go/toolchain:go_tool))/..; pwd)",
-          "$(location //go/toolchain:go_tool)",
+go_bootstrap_toolchain = rule(
+    _go_bootstrap_toolchain_impl,
+    attrs = go_toolchain_core_attrs,
+)
+
+def go_tool_binary_impl(ctx):
+  toolchain = ctx.attr.toolchain
+  ctx.action(
+      inputs = ctx.files.srcs + toolchain.all_files + toolchain.src,
+      outputs = [ctx.outputs.executable],
+      command = [
+          toolchain.go.path,
           "build",
           "-o",
-          "$@",
-      ] + ["$(location %s)" % s for s in srcs]),
-      executable = True,
-      tools = [
-        "//go/toolchain",
-        "//go/toolchain:go_tool",
-      ],
-      visibility = ["//visibility:public"],
+          ctx.outputs.executable.path,
+      ] + [src.path for src in ctx.files.srcs],
+      mnemonic = "GoBuildTool",
+      env = {
+          "GOROOT": toolchain.root,
+      },
   )
+
+go_tool_binary = rule(
+    go_tool_binary_impl,
+    attrs = {
+        "srcs": attr.label_list(allow_files = FileType([".go"])),
+        "toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:bootstrap_toolchain")),
+    },
+    executable = True,
+)
+"""Builds a Go program using `go build`.
+
+This is used instead of `go_binary` for tools that are executed inside
+actions emitted by the go rules. This avoids a bootstrapping problem. This
+is very limited and only supports sources in the main package with no
+dependencies outside the standard library.
+
+Args:
+  name: A unique name for this rule.
+  srcs: list of pure Go source files. No cgo allowed.
+"""

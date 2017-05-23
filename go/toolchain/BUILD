@@ -1,28 +1,5 @@
-package(
-    default_visibility = ["//visibility:public"],
-)
+package(default_visibility = ["//visibility:public"])
 
-alias(
-    name = "toolchain",
-    actual = "@io_bazel_rules_go_toolchain//:toolchain",
-)
+load(':toolchains.bzl', 'generate_toolchains')
 
-alias(
-    name = "go_tool",
-    actual = "@io_bazel_rules_go_toolchain//:go_tool",
-)
-
-alias(
-    name = "go_include",
-    actual = "@io_bazel_rules_go_toolchain//:go_include",
-)
-
-alias(
-    name = "go_root",
-    actual = "@io_bazel_rules_go_toolchain//:go_root",
-)
-
-alias(
-    name = "go_src",
-    actual = "@io_bazel_rules_go_toolchain//:go_src",
-)
+generate_toolchains()

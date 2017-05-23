@@ -39,7 +39,14 @@ def _go_repository_tools_impl(ctx):
       type = "zip",
   )
 
-  go_tool = ctx.path(ctx.attr._go_tool)
+  # We work this out here because you can't user a toolchain from a repository rule
+  if ctx.os.name == 'linux':
+    go_tool = ctx.path(Label("@go1.8.3.linux-amd64//:bin/go"))
+  elif ctx.os.name == 'mac os x':
+    go_tool = ctx.path(Label("@go1.8.3.darwin-amd64//:bin/go"))
+  else:
+    fail("Unsupported operating system: " + ctx.os.name)
+
   x_tools_path = ctx.path('tools-' + x_tools_commit)
   buildtools_path = ctx.path(ctx.attr._buildtools).dirname
   go_tools_path = ctx.path(ctx.attr._tools).dirname
@@ -74,11 +81,6 @@ go_repository_tools = repository_rule(
         ),
         "_buildtools": attr.label(
             default = Label("@com_github_bazelbuild_buildtools//:WORKSPACE"),
-            allow_files = True,
-            single_file = True,
-        ),
-        "_go_tool": attr.label(
-            default = Label("@io_bazel_rules_go_toolchain//:bin/go"),
             allow_files = True,
             single_file = True,
         ),
