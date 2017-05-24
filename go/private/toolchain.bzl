@@ -99,7 +99,7 @@ def go_repository_select(
     go_linux = None,
     go_darwin = None):
   if not go_version and not go_linux and not go_darwin:
-    go_version = "1.8.2"
+    go_version = "1.8.3"
 
   if go_version:
     if go_linux:
