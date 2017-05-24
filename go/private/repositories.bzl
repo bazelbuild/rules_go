@@ -19,63 +19,37 @@ load("//go/private:repository_tools.bzl", "go_repository_tools")
 load("//go/private:bzl_format.bzl", "bzl_format_repositories")
 load("//go/private:go_repository.bzl", "go_repository")
 
+_sdk_repositories = {
+    # 1.8.2 repositories
+    'go1.8.2.linux-amd64.tar.gz': '5477d6c9a4f96fa120847fafa88319d7b56b5d5068e41c3587eebe248b939be7',
+    'go1.8.2.darwin-amd64.tar.gz': '3f783c33686e6d74f6c811725eb3775c6cf80b9761fa6d4cebc06d6d291be137',
+    # 1.8.1 repositories
+    'go1.8.1.linux-amd64.tar.gz': 'a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994',
+    'go1.8.1.darwin-amd64.tar.gz': '25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd',
+    # 1.8 repositories
+    'go1.8.linux-amd64.tar.gz': '3ab94104ee3923e228a2cb2116e5e462ad3ebaeea06ff04463479d7f12d27ca',
+    'go1.8.darwin-amd64.tar.gz': 'fdc9f98b76a28655a8770a1fc8197acd8ef746dd4d8a60589ce19604ba2a120',
+    # 1.7.5 repositories
+    'go1.7.5.linux-amd64.tar.gz': '2e4dd6c44f0693bef4e7b46cc701513d74c3cc44f2419bf519d7868b12931ac3',
+    'go1.7.5.darwin-amd64.tar.gz': '2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca',
+}
+
 def go_repositories(
     go_version = None,
     go_linux = None,
     go_darwin = None):
 
-  # 1.8.2 repositories
-  go_sdk_repository(
-      name = "go_1.8.2_linux_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.8.2.linux-amd64.tar.gz",
-      sha256 = '5477d6c9a4f96fa120847fafa88319d7b56b5d5068e41c3587eebe248b939be7',
-      strip_prefix = "go",
-  )
-  go_sdk_repository(
-      name = "go_1.8.2_darwin_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.8.2.darwin-amd64.tar.gz",
-      sha256 = '3f783c33686e6d74f6c811725eb3775c6cf80b9761fa6d4cebc06d6d291be137',
-      strip_prefix = "go",
-  )
-  # 1.8.1 repositories
-  go_sdk_repository(
-      name = "go_1.8.1_linux_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz",
-      sha256 = 'a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994',
-      strip_prefix = "go",
-  )
-  go_sdk_repository(
-      name = "go_1.8.1_darwin_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.8.1.darwin-amd64.tar.gz",
-      sha256 = '25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd',
-      strip_prefix = "go",
-  )
-  # 1.8 repositories
-  go_sdk_repository(
-      name = "go_1.8_linux_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz",
-      sha256 = '53ab94104ee3923e228a2cb2116e5e462ad3ebaeea06ff04463479d7f12d27ca',
-      strip_prefix = "go",
-  )
-  go_sdk_repository(
-      name = "go_1.8_darwin_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.8.darwin-amd64.tar.gz",
-      sha256 = '6fdc9f98b76a28655a8770a1fc8197acd8ef746dd4d8a60589ce19604ba2a120',
-      strip_prefix = "go",
-  )
-  # 1.7.5 repositories
-  go_sdk_repository(
-      name = "go_1.7.5_linux_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.7.5.linux-amd64.tar.gz",
-      sha256 = '2e4dd6c44f0693bef4e7b46cc701513d74c3cc44f2419bf519d7868b12931ac3',
-      strip_prefix = "go",
-  )
-  go_sdk_repository(
-      name = "go_1.7.5_darwin_x86_64",
-      url = "https://storage.googleapis.com/golang/go1.7.5.darwin-amd64.tar.gz",
-      sha256 = '2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca',
-      strip_prefix = "go",
-  )
+  for filename, sha256 in _sdk_repositories.items():
+    name = filename
+    for suffix in [".tar.gz", ".zip"]:
+        if name.endswith(suffix):
+            name = name[:-len(suffix)]
+    go_sdk_repository(
+        name = name,
+        url = "https://storage.googleapis.com/golang/" + filename,
+        sha256 = sha256,
+        strip_prefix = "go",
+    )
 
   # Needed for gazelle and wtool
   native.http_archive(
