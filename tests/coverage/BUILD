@@ -5,6 +5,7 @@ go_test(
     size = "small",
     srcs = ["coverage_test.go"],
     library = ":go_default_library",
+    tags = ["manual"],
 )
 
 go_library(
