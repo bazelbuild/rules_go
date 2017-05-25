@@ -21,8 +21,8 @@ def _go_bootstrap_toolchain_impl(ctx):
       target_compatible_with = ctx.attr.target_compatible_with,
       root = ctx.attr.root.path,
       go = ctx.executable.go,
-      src = ctx.files.src,
-      all_files = ctx.files.all_files,
+      tools = ctx.files.tools,
+      stdlib = ctx.files.stdlib,
   )
 
 go_bootstrap_toolchain = rule(
@@ -33,7 +33,7 @@ go_bootstrap_toolchain = rule(
 def _go_tool_binary_impl(ctx):
   toolchain = ctx.attr._go_toolchain #TODO(toolchains): ctx.toolchains[go_bootstrap_toolchain_type]
   ctx.action(
-      inputs = ctx.files.srcs + toolchain.all_files + toolchain.src,
+      inputs = ctx.files.srcs + toolchain.tools + toolchain.stdlib,
       outputs = [ctx.outputs.executable],
       command = [
           toolchain.go.path,

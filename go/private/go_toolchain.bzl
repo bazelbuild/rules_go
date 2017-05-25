@@ -57,9 +57,9 @@ def _go_toolchain_impl(ctx):
           "GOARCH": ctx.attr.goarch,
       },
       go = ctx.executable.go,
-      src = ctx.files.src,
+      tools = ctx.files.tools,
+      stdlib = ctx.files.stdlib,
       headers = ctx.attr.headers,
-      all_files = ctx.files.all_files,
       filter_tags = ctx.executable.filter_tags,
       filter_exec = ctx.executable.filter_exec,
       asm = ctx.executable.asm,
@@ -74,9 +74,9 @@ go_toolchain_core_attrs = {
     "target_compatible_with": attr.label_list(providers = [ConstraintValueInfo]),
     "root": attr.label(),
     "go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host"),
-    "src": attr.label(allow_files = True),
+    "tools": attr.label(allow_files = True),
+    "stdlib": attr.label(allow_files = True),
     "headers": attr.label(),
-    "all_files": attr.label(allow_files = True),
 }
 
 go_toolchain_attrs = go_toolchain_core_attrs + {

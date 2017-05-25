@@ -105,7 +105,7 @@ def _emit_go_asm_action(ctx, source, hdrs, out_obj):
       "out": out_obj.path,
   }
 
-  inputs = hdrs + list(go_toolchain.headers.cc.transitive_headers) + go_toolchain.all_files + [source]
+  inputs = hdrs + list(go_toolchain.headers.cc.transitive_headers) + go_toolchain.tools + [source]
   ctx.action(
       inputs = inputs,
       outputs = [out_obj],
@@ -164,7 +164,7 @@ def _emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts)
       "-trimpath", "-abs-.",
       "-I", "-abs-.",
   ]
-  inputs = depset(sources + go_toolchain.all_files)
+  inputs = depset(sources + [go_toolchain.go])
   for dep in deps:
     inputs += dep.transitive_go_libraries
   for path in libpaths:
@@ -191,7 +191,7 @@ def _emit_go_pack_action(ctx, out_lib, objects):
   """
   go_toolchain = _get_go_toolchain(ctx)
   ctx.action(
-      inputs = objects + go_toolchain.all_files,
+      inputs = objects + go_toolchain.tools,
       outputs = [out_lib],
       mnemonic = "GoPack",
       executable = go_toolchain.go,
@@ -223,7 +223,7 @@ def _emit_go_cover_action(ctx, sources):
     out = ctx.new_file(src, src.basename[:-3] + '_' + cover_var + '.cover.go')
     outputs += [out]
     ctx.action(
-        inputs = [src] + go_toolchain.all_files,
+        inputs = [src] + go_toolchain.tools,
         outputs = [out],
         mnemonic = "GoCover",
         executable = go_toolchain.go,
@@ -440,7 +440,7 @@ def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librari
 
   ctx.action(
       inputs = [f] + (list(transitive_go_libraries) + [lib] + list(cgo_deps) +
-                go_toolchain.all_files + ctx.files._crosstool) + stamp_inputs,
+                go_toolchain.tools + ctx.files._crosstool) + stamp_inputs,
       outputs = [executable],
       command = f.path,
       mnemonic = "GoLink",
@@ -499,7 +499,7 @@ def go_test_impl(ctx):
   ]
   f = _emit_generate_params_action(
       cmds, ctx, ctx.label.name + ".GoTestGenTest.params")
-  inputs = (list(lib_result.go_sources) + list(go_toolchain.all_files) +
+  inputs = (list(lib_result.go_sources) + list(go_toolchain.tools) +
             [f, go_toolchain.filter_tags, go_toolchain.test_generator])
   ctx.action(
       inputs = inputs,
@@ -746,7 +746,7 @@ def _cgo_codegen_impl(ctx):
 
   f = _emit_generate_params_action(cmds, ctx, out_dir + ".CGoCodeGenFile.params")
 
-  inputs = (srcs + go_toolchain.all_files + ctx.files._crosstool +
+  inputs = (srcs + go_toolchain.tools + ctx.files._crosstool +
             [f, go_toolchain.filter_tags])
   ctx.action(
       inputs = inputs,
@@ -860,7 +860,7 @@ def _cgo_import_impl(ctx):
   ]
   f = _emit_generate_params_action(cmds, ctx, ctx.outputs.out.path + ".CGoImportGenFile.params")
   ctx.action(
-      inputs = (go_toolchain.all_files +
+      inputs = (go_toolchain.tools +
                 [f, go_toolchain.go, go_toolchain.extract_package,
                  ctx.file.cgo_o, ctx.file.sample_go_src]),
       outputs = [ctx.outputs.out],
