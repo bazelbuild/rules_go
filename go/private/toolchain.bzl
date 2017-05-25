@@ -80,7 +80,7 @@ def _go_repository_select_impl(ctx):
   if ctx.os.name == 'linux':
     host = 'linux-x86_64'
   elif ctx.os.name == 'mac os x':
-    host = 'darwin-x86_64'
+    host = 'osx-x86_64'
   else:
     fail("Unsupported operating system: " + ctx.os.name)
   toolchain = ctx.os.environ.get("GO_TOOLCHAIN")
