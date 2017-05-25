@@ -64,8 +64,8 @@ def go_repositories(
   for filename, sha256 in _sdk_repositories.items():
     name = filename
     for suffix in [".tar.gz", ".zip"]:
-        if name.endswith(suffix):
-            name = name[:-len(suffix)]
+      if name.endswith(suffix):
+        name = name[:-len(suffix)]
     go_sdk_repository(
         name = name,
         url = "https://storage.googleapis.com/golang/" + filename,
