@@ -17,24 +17,21 @@ Toolchain rules used by go.
 
 ####################################
 #### Special compatability functions
+#TODO(toolchains): Remove this entire block when real toolchains arrive
 
 def _constraint_rule_impl(ctx):
-    return struct()
+    return struct(i_am_a_constraint=True)
 
 _constraint = rule(
     _constraint_rule_impl,
     attrs = {},
 )
 
-def toolchain_type(name):
+def toolchain_type():
     # Should be platform_common.toolchain_type
-    return name
+    return provider()
 
-def toolchain(type, **args):
-    # Should be platform_common.toolchain
-    return struct(type=type, **args)
-
-ConstraintValueInfo = [] # Shoull be platform_common.ConstraintValueInfo
+ConstraintValueInfo = "i_am_a_constraint" # Shoull be platform_common.ConstraintValueInfo
 
 def platform(name, constraint_values):
     return
@@ -48,11 +45,10 @@ def constraint_value(name, setting):
 #### End of special compatability functions
 ###########################################
 
-go_toolchain_type = toolchain_type('go_toolchain')
+go_toolchain_type = toolchain_type()
 
 def _go_toolchain_impl(ctx):
-  return toolchain(
-      go_toolchain_type,
+  return go_toolchain_type(
       exec_compatible_with = ctx.attr.exec_compatible_with,
       target_compatible_with = ctx.attr.target_compatible_with,
       env = {

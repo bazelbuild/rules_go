@@ -534,7 +534,8 @@ def go_test_impl(ctx):
   )
 
 go_env_attrs = {
-    "go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
+    #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
+    "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     "go_prefix": attr.label(
         providers = ["go_prefix"],
         default = Label(
@@ -547,7 +548,7 @@ go_env_attrs = {
 }
 
 def _get_go_toolchain(ctx):
-    return ctx.attr.go_toolchain
+    return ctx.attr._go_toolchain #TODO(toolchains): ctx.toolchains[go_toolchain_type]
 
 go_library_attrs = go_env_attrs + {
     "data": attr.label_list(

@@ -3,6 +3,7 @@ load('//go/private:go_tool_binary.bzl', 'go_bootstrap_toolchain')
 
 def generate_toolchains():
   # Compatability declarations
+  #TODO(toolchains): Swap as many as these as possible for values from @bazel_tools//platforms
   constraint_setting(name = "os")
   constraint_value(name = "android", setting = ":os")
   constraint_value(name = "dragonfly", setting = ":os")
