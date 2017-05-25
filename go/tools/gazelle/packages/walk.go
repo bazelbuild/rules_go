@@ -96,9 +96,7 @@ func (pr *packageReader) findPackage() (*build.Package, error) {
 	var files []os.FileInfo
 	files = append(files, packageGoFiles[packageName]...)
 	files = append(files, otherFiles...)
-	sort.Slice(files, func(i, j int) bool {
-		return files[i].Name() < files[j].Name()
-	})
+	sort.Sort(byName(files))
 	pr.bctx.ReadDir = func(dir string) ([]os.FileInfo, error) {
 		return files, nil
 	}
@@ -194,4 +192,20 @@ func (pr *packageReader) warn(err error) {
 		return
 	}
 	log.Println(err)
+}
+
+type byName []os.FileInfo
+
+var _ sort.Interface = byName{}
+
+func (s byName) Len() int {
+	return len(s)
+}
+
+func (s byName) Less(i, j int) bool {
+	return s[i].Name() < s[j].Name()
+}
+
+func (s byName) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }

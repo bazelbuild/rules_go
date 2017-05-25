@@ -90,9 +90,7 @@ func newValue(val interface{}) (bzl.Expr, error) {
 
 	case reflect.Map:
 		rkeys := rv.MapKeys()
-		sort.Slice(rkeys, func(i, j int) bool {
-			return rkeys[i].String() < rkeys[j].String()
-		})
+		sort.Sort(byString(rkeys))
 		args := make([]bzl.Expr, len(rkeys))
 		for i, rk := range rkeys {
 			k := &bzl.StringExpr{Value: rk.String()}
@@ -157,4 +155,20 @@ func newValue(val interface{}) (bzl.Expr, error) {
 	default:
 		return nil, fmt.Errorf("not implemented %T", val)
 	}
+}
+
+type byString []reflect.Value
+
+var _ sort.Interface = byString{}
+
+func (s byString) Len() int {
+	return len(s)
+}
+
+func (s byString) Less(i, j int) bool {
+	return s[i].String() < s[j].String()
+}
+
+func (s byString) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }

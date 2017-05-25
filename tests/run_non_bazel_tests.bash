@@ -23,6 +23,7 @@ tests=(
 
 # Manual tests are not executed as part of CI.
 manual_tests=(
+  build_gazelle_with_1.7/build_gazelle_with_1.7.bash
   custom_go_toolchain/custom_go_toolchain.bash
   test_filter_test_1.7.5/test_filter_test_1.7.5.bash
 )
