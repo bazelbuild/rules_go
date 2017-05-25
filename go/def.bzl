@@ -94,7 +94,7 @@ def go_environment_vars(ctx):
   }
   env = {}
   if hasattr(ctx.file, "go_tool"):
-    go_toolchain = get_go_toolchain(ctx)
+    go_toolchain = _get_go_toolchain(ctx)
     env["GOROOT"] = go_toolchain.root
   env.update(bazel_to_go_toolchain.get(ctx.fragments.cpp.cpu, default_toolchain))
   return env
@@ -128,7 +128,7 @@ def _emit_go_asm_action(ctx, source, hdrs, out_obj):
     hdrs: list of .h files that may be included
     out_obj: the artifact (configured target?) that should be produced
   """
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   params = {
       "go_tool": go_toolchain.go.path,
       "includes": [f.dirname for f in hdrs] + [go_toolchain.include.path],
@@ -182,7 +182,7 @@ def _emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts)
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   if ctx.coverage_instrumented():
     sources = _emit_go_cover_action(ctx, sources)
 
@@ -220,7 +220,7 @@ def _emit_go_pack_action(ctx, out_lib, objects):
     out_lib: the archive that should be produced
     objects: an iterable of object files to be added to the output archive file.
   """
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   ctx.action(
       inputs = objects + go_toolchain.all_files,
       outputs = [out_lib],
@@ -240,7 +240,7 @@ def _emit_go_cover_action(ctx, sources):
   Returns:
     A list of Go source code files which might be coverage instrumented.
   """
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   outputs = []
   # TODO(linuxerwang): make the mode configurable.
   count = 0
@@ -267,7 +267,7 @@ def _emit_go_cover_action(ctx, sources):
 
 def go_library_impl(ctx):
   """Implements the go_library() rule."""
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   sources = set(ctx.files.srcs)
   go_srcs = set([s for s in sources if s.basename.endswith('.go')])
   asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
@@ -414,7 +414,7 @@ def _extract_extldflags(gc_linkopts, extldflags):
 def _emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_libraries, cgo_deps, libs,
                          executable, gc_linkopts):
   """Sets up a symlink tree to libraries to link together."""
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
@@ -509,7 +509,7 @@ def go_test_impl(ctx):
   It emits an action to run the test generator, and then compiles the
   test into a binary."""
 
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   lib_result = go_library_impl(ctx)
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")
@@ -643,7 +643,7 @@ go_env_attrs = {
 }
 
 
-def get_go_toolchain(ctx):
+def _get_go_toolchain(ctx):
     return struct(
         go = ctx.executable.go_tool,
         all_files = ctx.files.toolchain,
@@ -738,7 +738,7 @@ def _exec_path(path):
   return '${execroot}/' + path
 
 def _cgo_filter_srcs_impl(ctx):
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   srcs = ctx.files.srcs
   dsts = []
   cmds = []
@@ -782,7 +782,7 @@ _cgo_filter_srcs = rule(
 )
 
 def _cgo_codegen_impl(ctx):
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   go_srcs = ctx.files.srcs
   srcs = go_srcs + ctx.files.c_hdrs
   linkopts = ctx.attr.linkopts
@@ -959,7 +959,7 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
   return outs
 
 def _cgo_import_impl(ctx):
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = _get_go_toolchain(ctx)
   cmds = [
       (go_toolchain.go.path + " tool cgo" +
        " -dynout " + ctx.outputs.out.path +
