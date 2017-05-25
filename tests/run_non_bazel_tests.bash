@@ -26,7 +26,7 @@ manual_tests=(
   custom_go_toolchain/custom_go_toolchain.bash
   test_filter_test_1.7.5/test_filter_test_1.7.5.bash
 )
-if [ "$1" == "manual" ]; then
+if [ "$1" != "ci" ]; then
   tests+=("${manual_tests[@]}")
 fi
 
