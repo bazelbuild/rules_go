@@ -31,7 +31,7 @@ go_bootstrap_toolchain = rule(
     attrs = go_toolchain_core_attrs,
 )
 
-def go_tool_binary_impl(ctx):
+def _go_tool_binary_impl(ctx):
   toolchain = ctx.attr._go_toolchain #TODO(toolchains): ctx.toolchains[go_bootstrap_toolchain_type]
   ctx.action(
       inputs = ctx.files.srcs + toolchain.all_files + toolchain.src,
@@ -49,7 +49,7 @@ def go_tool_binary_impl(ctx):
   )
 
 go_tool_binary = rule(
-    go_tool_binary_impl,
+    _go_tool_binary_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = FileType([".go"])),
         #TODO(toolchains): Remove toolchain attribute when we switch to real toolchains

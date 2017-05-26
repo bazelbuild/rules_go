@@ -31,7 +31,7 @@ def toolchain_type():
     # Should be platform_common.toolchain_type
     return provider()
 
-ConstraintValueInfo = "i_am_a_constraint" # Shoull be platform_common.ConstraintValueInfo
+ConstraintValueInfo = "i_am_a_constraint" # Should be platform_common.ConstraintValueInfo
 
 def platform(name, constraint_values):
     return

@@ -503,7 +503,7 @@ def go_test_impl(ctx):
       outputs = [main_go],
       command = f.path,
       mnemonic = "GoTestGenTest",
-      env = go_toolchain.env + { "RUNDIR": ctx.label.package })
+      env = dict(go_toolchain.env, RUNDIR=ctx.label.package))
 
   _emit_go_compile_action(
     ctx,
@@ -787,8 +787,7 @@ _cgo_codegen_rule = rule(
     output_to_genfiles = True,
 )
 
-def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
-                 go_tool=None, go_toolchain=None):
+def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[]):
   """Generates glue codes for interop between C and Go
 
   Args:
@@ -838,10 +837,6 @@ def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[],
       deps = deps,
       copts = copts,
       linkopts = linkopts,
-
-      go_tool = go_tool,
-      go_toolchain = go_toolchain,
-
       outdir = outdir,
       outs = outs.go_thunks + outs.c_thunks + outs.c_exports + [
           outs.c_dummy, outs.gotypes,
@@ -993,7 +988,7 @@ Args:
     to be linked together with src when we generate the final go binary.
 """
 
-def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, go_toolchain):
+def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   go_srcs = [s for s in srcs if s.endswith('.go')]
   c_hdrs = [s for s in srcs if any([s.endswith(ext) for ext in hdr_exts])]
   c_srcs = [s for s in srcs if not s in (go_srcs + c_hdrs)]
@@ -1006,8 +1001,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, go_toolchai
       deps = cdeps,
       copts = copts,
       linkopts = clinkopts,
-      go_tool = go_tool,
-      go_toolchain = go_toolchain,
   )
 
   # Filter c_srcs with build constraints.
@@ -1074,8 +1067,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts, go_tool, go_toolchai
       cgo_o = cgogen.outdir + "/_cgo_.o",
       out = cgogen.outdir + "/_cgo_import.go",
       sample_go_src = go_srcs[0],
-      go_tool = go_tool,
-      go_toolchain = go_toolchain,
       visibility = ["//visibility:private"],
   )
 
@@ -1099,8 +1090,6 @@ def cgo_genrule(name, srcs,
       cdeps = cdeps,
       copts = copts,
       clinkopts = clinkopts,
-      go_toolchain = None,
-      go_tool = None,
   )
   _cgo_genrule(
       name = name,
@@ -1158,8 +1147,6 @@ def cgo_library(name, srcs,
       cdeps = cdeps,
       copts = copts,
       clinkopts = clinkopts,
-      go_tool = go_tool,
-      go_toolchain = go_toolchain,
   )
 
   go_library(
@@ -1169,7 +1156,5 @@ def cgo_library(name, srcs,
           cgogen.outdir + "/_cgo_import.go",
       ],
       cgo_object = cgogen.outdir + "/_cgo_object",
-      go_tool = go_tool,
-      go_toolchain = go_toolchain,
       **kwargs
   )

@@ -39,7 +39,7 @@ def _go_repository_tools_impl(ctx):
       type = "zip",
   )
 
-  # We work this out here because you can't user a toolchain from a repository rule
+  # We work this out here because you can't use a toolchain from a repository rule
   if ctx.os.name == 'linux':
     go_tool = ctx.path(Label("@go1.8.3.linux-amd64//:bin/go"))
   elif ctx.os.name == 'mac os x':

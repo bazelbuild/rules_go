@@ -48,13 +48,13 @@ GO_SELECT_TOOLCHAIN_BUILD_FILE = """
 alias(
     name = "go_toolchain",
     actual = "{toolchain}",
-    visibility = [ "//visibility:public" ],
+    visibility = ["//visibility:public"],
 )
 
 alias(
     name = "bootstrap_toolchain",
     actual = "{bootstrap}",
-    visibility = [ "//visibility:public" ],
+    visibility = ["//visibility:public"],
 )
 """
 
@@ -89,8 +89,8 @@ def _go_repository_select_impl(ctx):
   bootstrap = toolchain.split("-cross-")[0] + "-bootstrap"
 
   ctx.file("BUILD.bazel", GO_SELECT_TOOLCHAIN_BUILD_FILE.format(
-      toolchain=toolchain,
-      bootstrap=bootstrap,
+      toolchain = toolchain,
+      bootstrap = bootstrap,
   ))
 
 go_repository_select = repository_rule(
