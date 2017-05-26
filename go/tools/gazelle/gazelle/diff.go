@@ -37,11 +37,7 @@ func diffFile(file *bzl.File) error {
 		return err
 	}
 
-	origFileName := file.Path
-	if _, err := os.Stat(origFileName); os.IsNotExist(err) {
-		origFileName = os.DevNull
-	}
-	cmd := exec.Command("diff", "-u", origFileName, f.Name())
+	cmd := exec.Command("diff", "-u", "--new-file", file.Path, f.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
