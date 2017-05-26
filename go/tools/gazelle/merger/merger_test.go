@@ -9,7 +9,20 @@ import (
 	bzl "github.com/bazelbuild/buildtools/build"
 )
 
-const oldData = `
+// should fix
+// * updated srcs from new
+// * data and size preserved from old
+// * load stmt fixed to those in use and sorted
+
+type testCase struct {
+	desc, previous, current, expected string
+	ignore                            bool
+}
+
+var testCases = []testCase{
+	{
+		desc: "basic functionality",
+		previous: `
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
 
 go_library(
@@ -27,9 +40,8 @@ go_test(
     data = glob(["testdata/*"]),
     library = ":go_default_library",
 )
-`
-
-const newData = `
+`,
+		current: `
 load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_library")
 
 go_library(
@@ -48,13 +60,9 @@ go_test(
     ],
     library = ":go_default_library",
 )
-`
-
-// should fix
-// * updated srcs from new
-// * data and size preserved from old
-// * load stmt fixed to those in use and sorted
-const expected = `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -68,16 +76,17 @@ go_test(
     name = "go_default_test",
     size = "small",
     srcs = [
+        "gen_test.go",  # keep
         "parse_test.go",
         "print_test.go",
-        "gen_test.go",  # keep
     ],
     data = glob(["testdata/*"]),
     library = ":go_default_library",
 )
-`
-
-const ignoreTop = `# gazelle:ignore
+`},
+	{
+		desc: "ignore top",
+		previous: `# gazelle:ignore
 
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
@@ -88,19 +97,294 @@ go_library(
         "print.go",
     ],
 )
-`
-
-const ignoreBefore = `# gazelle:ignore
+`,
+		ignore: true,
+	}, {
+		desc: "ignore before first",
+		previous: `
+# gazelle:ignore
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-`
-
-const ignoreAfterLast = `
+`,
+		ignore: true,
+	}, {
+		desc: "ignore after last",
+		previous: `
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-# gazelle:ignore`
+# gazelle:ignore`,
+		ignore: true,
+	}, {
+		desc: "merge dicts",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
-type testCase struct {
-	previous, current, expected string
-	ignore                      bool
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "darwin_amd64": [
+            "foo_darwin_amd64.go", # keep
+            "bar_darwin_amd64.go",
+        ],
+        "linux_arm": [
+            "foo_linux_arm.go", # keep
+            "bar_linux_arm.go",
+        ],
+    }),
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "linux_arm": ["baz_linux_arm.go"],
+        "darwin_amd64": ["baz_darwin_amd64.go"],
+        "//conditions:default": [],
+    }),
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "darwin_amd64": [
+            "foo_darwin_amd64.go",  # keep
+            "baz_darwin_amd64.go",
+        ],
+        "linux_arm": [
+            "foo_linux_arm.go",  # keep
+            "baz_linux_arm.go",
+        ],
+        "//conditions:default": [],
+    }),
+)
+`,
+	}, {
+		desc: "merge old dict with gen list",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "linux_arm": [
+            "foo_linux_arm.go", # keep
+            "bar_linux_arm.go", # keep
+        ],
+        "darwin_amd64": [
+            "bar_darwin_amd64.go",
+        ],
+    }),
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["baz.go"],
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["baz.go"] + select({
+        "linux_arm": [
+            "foo_linux_arm.go",  # keep
+            "bar_linux_arm.go",  # keep
+        ],
+    }),
+)
+`,
+	}, {
+		desc: "merge old list with gen dict",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "foo.go", # keep
+        "bar.go", # keep
+    ],
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "linux_arm": [
+            "foo_linux_arm.go",
+            "bar_linux_arm.go",
+        ],
+        "darwin_amd64": [
+            "bar_darwin_amd64.go",
+        ],
+        "//conditions:default": [],
+    }),
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "foo.go",  # keep
+        "bar.go",  # keep
+    ] + select({
+        "linux_arm": [
+            "foo_linux_arm.go",
+            "bar_linux_arm.go",
+        ],
+        "darwin_amd64": [
+            "bar_darwin_amd64.go",
+        ],
+        "//conditions:default": [],
+    }),
+)
+`,
+	}, {
+		desc: "merge old list and dict with gen list and dict",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "foo.go",  # keep
+        "bar.go",
+    ] + select({
+        "linux_arm": [
+            "foo_linux_arm.go",  # keep
+        ],
+        "//conditions:default": [],
+    }),
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["baz.go"] + select({
+        "linux_arm": ["bar_linux_arm.go"],
+        "darwin_amd64": ["foo_darwin_amd64.go"],
+        "//conditions:default": [],
+    }),
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "foo.go",  # keep
+        "baz.go",
+    ] + select({
+        "darwin_amd64": ["foo_darwin_amd64.go"],
+        "linux_arm": [
+            "foo_linux_arm.go",  # keep
+            "bar_linux_arm.go",
+        ],
+        "//conditions:default": [],
+    }),
+)
+`,
+	}, {
+		desc: "delete empty list",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["deleted.go"],
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "linux_arm": ["foo_linux_arm.go"],
+    }),
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "linux_arm": ["foo_linux_arm.go"],
+    }),
+)
+`,
+	}, {
+		desc: "delete empty dict",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "linux_arm": ["foo_linux_arm.go"],
+        "//conditions:default": [],
+    }),
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+)
+`,
+	}, {
+		desc: "delete empty attr",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+    deps = ["deleted"],
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+)
+`,
+	},
 }
 
 func TestMergeWithExisting(t *testing.T) {
@@ -112,38 +396,46 @@ func TestMergeWithExisting(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.Remove(tmp.Name())
-	for _, tc := range []testCase{
-		{oldData, newData, expected, false},
-		{ignoreTop, newData, "", true},
-		{ignoreBefore, newData, "", true},
-		{ignoreAfterLast, newData, "", true},
-	} {
+	for _, tc := range testCases {
 		if err := ioutil.WriteFile(tmp.Name(), []byte(tc.previous), 0755); err != nil {
-			t.Fatal(err)
+			t.Fatalf("%s: %v", tc.desc, err)
 		}
-		newF, err := bzl.Parse(tmp.Name(), []byte(tc.current))
+		newF, err := bzl.Parse("current", []byte(tc.current))
 		if err != nil {
-			t.Fatal(err)
+			t.Fatalf("%s: %v", tc.desc, err)
 		}
 		afterF, err := MergeWithExisting(newF, tmp.Name())
 		if _, ok := err.(GazelleIgnoreError); ok {
 			if !tc.ignore {
-				t.Fatalf("unexpected ignore: %v", err)
+				t.Fatalf("%s: unexpected ignore: %v", tc.desc, err)
 			}
 			continue
 		} else if err != nil {
-			t.Fatal(err)
+			t.Fatalf("%s: %v", tc.desc, err)
 		}
 		if tc.ignore {
-			t.Error("expected ignore")
+			t.Errorf("%s: expected ignore", tc.desc)
 		}
-		if s := string(bzl.Format(afterF)); s != tc.expected {
-			t.Errorf("bzl.Format, want %s; got %s", tc.expected, s)
+
+		want := tc.expected
+		if len(want) > 0 && want[0] == '\n' {
+			want = want[1:]
+		}
+
+		if got := string(bzl.Format(afterF)); got != want {
+			t.Errorf("%s: got %s; want %s", tc.desc, got, want)
 		}
 	}
 }
 
 func TestMergeWithExistingDifferentName(t *testing.T) {
+	oldData := testCases[0].previous
+	newData := testCases[0].current
+	expected := testCases[0].expected
+	if len(expected) > 0 && expected[0] == '\n' {
+		expected = expected[1:]
+	}
+
 	tmp, err := ioutil.TempFile(os.Getenv("TEST_TMPDIR"), "BUILD")
 	if err != nil {
 		t.Fatal(err)
@@ -169,6 +461,6 @@ func TestMergeWithExistingDifferentName(t *testing.T) {
 		t.Error(err)
 	}
 	if s := string(bzl.Format(afterF)); s != expected {
-		t.Errorf("bzl.Format, want %s; got %s", expected, s)
+		t.Errorf("got %s; want %s", s, expected)
 	}
 }
