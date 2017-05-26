@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go/private:go_root.bzl", "go_root")
+
+package(
+  default_visibility = [ "//visibility:public" ])
+
+filegroup(
+  name = "all_files",
+  srcs = glob(["bin/*", "pkg/**", ]),
+)
+
+filegroup(
+  name = "go",
+  srcs = [ "bin/go" ],
+)
+
+filegroup(
+  name = "src",
+  srcs = glob(["src/**"]),
+)
+
+filegroup(
+  name = "include",
+  srcs = [ "pkg/include" ],
+)
+
+go_root(
+  name = "root",
+  path = "{goroot}",
+)

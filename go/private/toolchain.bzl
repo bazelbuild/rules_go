@@ -12,38 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GO_TOOLCHAIN_BUILD_FILE = """
-load("@io_bazel_rules_go//go/private:go_root.bzl", "go_root")
-
-package(
-  default_visibility = [ "//visibility:public" ])
-
-filegroup(
-  name = "all_files",
-  srcs = glob(["bin/*", "pkg/**", ]),
-)
-
-filegroup(
-  name = "go",
-  srcs = [ "bin/go" ],
-)
-
-filegroup(
-  name = "src",
-  srcs = glob(["src/**"]),
-)
-
-filegroup(
-  name = "include",
-  srcs = [ "pkg/include" ],
-)
-
-go_root(
-  name = "root",
-  path = "{goroot}",
-)
-"""
-
 GO_SELECT_TOOLCHAIN_BUILD_FILE = """
 alias(
     name = "go_toolchain",
@@ -64,7 +32,11 @@ def _go_sdk_repository_impl(ctx):
       stripPrefix = ctx.attr.strip_prefix,
       sha256 = ctx.attr.sha256)
   goroot = ctx.path(".")
-  ctx.file("BUILD.bazel", GO_TOOLCHAIN_BUILD_FILE.format(goroot = goroot))
+  ctx.template("BUILD.bazel", 
+    Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
+    substitutions = {"{goroot}": str(goroot)}, 
+    executable = False,
+  )
 
 go_sdk_repository = repository_rule(
     implementation = _go_sdk_repository_impl, 
