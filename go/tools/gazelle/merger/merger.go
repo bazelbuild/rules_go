@@ -104,7 +104,7 @@ func mergeRule(gen, old *bzl.CallExpr) *bzl.CallExpr {
 		} else {
 			genAttr := genRule.Attr(k)
 			var err error
-			mergedAttr, err = mergeAttr(genAttr, oldAttr)
+			mergedAttr, err = mergeExpr(genAttr, oldAttr)
 			if err != nil {
 				// TODO: add a verbose mode and log errors like this.
 				mergedAttr = genAttr
@@ -125,11 +125,20 @@ func mergeRule(gen, old *bzl.CallExpr) *bzl.CallExpr {
 	return &merged
 }
 
-// mergeAttr combines information from gen and old and returns an updated attr.
-// The attrs may be strings, lists, a select call with a dict, or a list plus
-// a select call. An error is returned if the attrs can't be merged, for example
-// because they are in a format Gazelle doesn't understand.
-func mergeAttr(gen, old bzl.Expr) (bzl.Expr, error) {
+// mergeExpr combines information from gen and old and returns an updated
+// expression. The following kinds of expressions are recognized:
+//
+//   * nil
+//   * strings (can only be merged with strings)
+//   * lists of strings
+//   * a call to select with a dict argument. The dict keys must be strings,
+//     and the values must be lists of strings.
+//   * a list of strings combined with a select call using +. The list must
+//     be the left operand.
+//
+// An error is returned if the expressions can't be merged, for example
+// because they are not in one of the above formats.
+func mergeExpr(gen, old bzl.Expr) (bzl.Expr, error) {
 	if _, ok := gen.(*bzl.StringExpr); ok {
 		if shouldKeep(old) {
 			return old, nil
