@@ -22,7 +22,6 @@ def _go_bootstrap_toolchain_impl(ctx):
       root = ctx.attr.root.path,
       go = ctx.executable.go,
       src = ctx.files.src,
-      include = ctx.file.include,
       all_files = ctx.files.all_files,
   )
 

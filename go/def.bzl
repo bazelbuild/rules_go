@@ -95,14 +95,17 @@ def _emit_go_asm_action(ctx, source, hdrs, out_obj):
     out_obj: the artifact (configured target?) that should be produced
   """
   go_toolchain = _get_go_toolchain(ctx)
+  includes = depset()
+  includes += [f.dirname for f in hdrs]
+  includes += [f.dirname for f in go_toolchain.headers.cc.transitive_headers]
   params = {
       "go_tool": go_toolchain.go.path,
-      "includes": [f.dirname for f in hdrs] + [go_toolchain.include.path],
+      "includes": list(includes),
       "source": source.path,
       "out": out_obj.path,
   }
 
-  inputs = hdrs + go_toolchain.all_files + [source]
+  inputs = hdrs + list(go_toolchain.headers.cc.transitive_headers) + go_toolchain.all_files + [source]
   ctx.action(
       inputs = inputs,
       outputs = [out_obj],

@@ -58,7 +58,7 @@ def _go_toolchain_impl(ctx):
       },
       go = ctx.executable.go,
       src = ctx.files.src,
-      include = ctx.file.include,
+      headers = ctx.attr.headers,
       all_files = ctx.files.all_files,
       filter_tags = ctx.executable.filter_tags,
       filter_exec = ctx.executable.filter_exec,
@@ -75,7 +75,7 @@ go_toolchain_core_attrs = {
     "root": attr.label(),
     "go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host"),
     "src": attr.label(allow_files = True),
-    "include": attr.label(allow_files = True, single_file = True),
+    "headers": attr.label(),
     "all_files": attr.label(allow_files = True),
 }
 

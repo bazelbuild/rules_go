@@ -161,7 +161,7 @@ def generate_toolchains():
             goos = target.os.goos,
             goarch = target.arch.goarch,
             go = distribution+"//:go",
-            include = distribution+"//:include",
+            headers = distribution+"//:headers",
             all_files = distribution+"//:all_files",
             link_flags = [],
             cgo_link_flags = [],
@@ -190,7 +190,6 @@ def generate_toolchains():
           target_compatible_with = toolchain["target_compatible_with"],
           root = toolchain["root"],
           go = toolchain["go"],
-          include = toolchain["include"],
           all_files = toolchain["all_files"],
           tags = ["manual"],
       )

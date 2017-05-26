@@ -1,7 +1,11 @@
 load("@io_bazel_rules_go//go/private:go_root.bzl", "go_root")
 
-package(
-  default_visibility = [ "//visibility:public" ])
+package(default_visibility = [ "//visibility:public" ])
+
+go_root(
+  name = "root",
+  path = "{goroot}",
+)
 
 filegroup(
   name = "all_files",
@@ -18,12 +22,7 @@ filegroup(
   srcs = glob(["src/**"]),
 )
 
-filegroup(
-  name = "include",
-  srcs = [ "pkg/include" ],
-)
-
-go_root(
-  name = "root",
-  path = "{goroot}",
+cc_library(
+  name = "headers",
+  hdrs = glob(["pkg/include/*.h"]),
 )
