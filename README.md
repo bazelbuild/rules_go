@@ -59,6 +59,9 @@ They currently do not support (in order of importance):
 Note: since 0.4.x this repo requires bazel ≥ 0.4.4 to function (due to the use of
 BUILD.bazel files in bazelbuild/buildtools).
 
+Note: on master this repo requires bazel ≥ 0.4.5 to function (due to the use of
+repository_ctx.environ).
+
 ## Setup
 
 * Decide on the name of your package, eg. `github.com/joe/project`. It's
