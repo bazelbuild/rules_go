@@ -223,6 +223,7 @@ def go_proto_library(name, srcs = None, deps = None,
                      protoc = "@com_github_google_protobuf//:protoc",
                      protoc_gen_go = "@com_github_golang_protobuf//protoc-gen-go",
                      rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
+                     grpc_deps = None,
                      **kwargs):
   """Macro which generates and compiles protobufs for Go.
 
@@ -252,6 +253,11 @@ def go_proto_library(name, srcs = None, deps = None,
     fail("srcs required", "srcs")
   if not deps:
     deps = []
+  if not grpc_deps:
+    grpc_deps = [
+        "@org_golang_x_net//context:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+    ]
   # bazel-style
   outs = [name + "/" + s[:-len(".proto")] + ".pb.go"
           for s in srcs]
@@ -273,16 +279,12 @@ def go_proto_library(name, srcs = None, deps = None,
       protoc = protoc,
       protoc_gen_go = protoc_gen_go,
   )
-  grpc_deps = []
   if has_services:
-    grpc_deps += [
-        "@org_golang_x_net//context:go_default_library",
-        "@org_golang_google_grpc//:go_default_library",
-    ]
+    deps += grpc_deps
   go_library(
       name = name,
       srcs = [":" + name + _PROTOS_SUFFIX],
-      deps = deps + grpc_deps + ["@com_github_golang_protobuf//proto:go_default_library"],
+      deps = deps + ["@com_github_golang_protobuf//proto:go_default_library"],
       testonly = testonly,
       visibility = visibility,
       **kwargs
