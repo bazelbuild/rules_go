@@ -222,6 +222,9 @@ def go_proto_library(name, srcs = None, deps = None,
                      ignore_go_package_option = 0,
                      protoc = "@com_github_google_protobuf//:protoc",
                      protoc_gen_go = "@com_github_golang_protobuf//protoc-gen-go",
+                     x_net_context = "@org_golang_x_net//context:go_default_library",
+                     google_grpc = "@org_golang_google_grpc//:go_default_library",
+                     golang_protobuf = "@com_github_golang_protobuf//proto:go_default_library",
                      rules_go_repo_only_for_internal_use = "@io_bazel_rules_go",
                      **kwargs):
   """Macro which generates and compiles protobufs for Go.
@@ -242,6 +245,12 @@ def go_proto_library(name, srcs = None, deps = None,
     protoc: override the default version of protoc.  Most users won't need this.
     protoc_gen_go: override the default version of protoc_gen_go.
                    Most users won't need this.
+    x_net_context: override the default version of the context package.  Most
+                   users won't need this.
+    google_grpc: override the default version of grpc.  Most users won't need
+                 this.
+    golang_protobuf: override the default version of proto.  Most users won't
+                     need this.
     rules_go_repo_only_for_internal_use: don't use this, only to allow
                                          internal tests to work.
     **kwargs: any other args which are passed through to the underlying go_library
@@ -275,14 +284,11 @@ def go_proto_library(name, srcs = None, deps = None,
   )
   grpc_deps = []
   if has_services:
-    grpc_deps += [
-        "@org_golang_x_net//context:go_default_library",
-        "@org_golang_google_grpc//:go_default_library",
-    ]
+    grpc_deps += [x_net_context, google_grpc]
   go_library(
       name = name,
       srcs = [":" + name + _PROTOS_SUFFIX],
-      deps = deps + grpc_deps + ["@com_github_golang_protobuf//proto:go_default_library"],
+      deps = deps + grpc_deps + [golang_protobuf],
       testonly = testonly,
       visibility = visibility,
       **kwargs
