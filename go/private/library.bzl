@@ -138,8 +138,7 @@ def go_importpath(ctx):
   return path
 
 def get_gc_goopts(ctx):
-  gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {})
-               for f in ctx.attr.gc_goopts]
+  gc_goopts = ctx.attr.gc_goopts
   if ctx.attr.library:
     gc_goopts += ctx.attr.library.gc_goopts
   return gc_goopts
@@ -159,7 +158,7 @@ def emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts):
   go_toolchain = get_go_toolchain(ctx)
   if ctx.coverage_instrumented():
     sources = _emit_go_cover_action(ctx, sources)
-
+  gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   # Compile filtered files.
   args = [
       "-cgo",
