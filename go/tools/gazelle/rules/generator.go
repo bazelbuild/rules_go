@@ -29,7 +29,7 @@ import (
 
 const (
 	// defaultLibName is the name of the default go_library rule in a Go
-	// package directory. It must be consistent to _DEFAULT_LIB in go/def.bzl.
+	// package directory. It must be consistent to DEFAULT_LIB in go/private/common.bzl.
 	defaultLibName = "go_default_library"
 	// defaultTestName is a name of an internal test corresponding to
 	// defaultLibName. It does not need to be consistent to something but it
