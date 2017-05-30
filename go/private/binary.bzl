@@ -12,22 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:repositories.bzl", "go_repositories")
-load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
-load("//go/private:go_prefix.bzl", "go_prefix")
-load("//go/private:library.bzl", "go_library")
-load("//go/private:binary.bzl", "go_binary")
-load("//go/private:test.bzl", "go_test")
-load("//go/private:cgo.bzl", "cgo_library", "cgo_genrule")
-
-"""These are bare-bones Go rules.
-
-In order of priority:
-
-- BUILD file must be written by hand.
-
-- No support for SWIG
-
-- No test sharding or test XML.
-
-"""
+load("//go/private:def.bzl", "go_binary")
