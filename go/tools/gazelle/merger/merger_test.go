@@ -23,7 +23,9 @@ var testCases = []testCase{
 	{
 		desc: "basic functionality",
 		previous: `
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_prefix", "go_test")
+
+go_prefix("github.com/jr_hacker/tools")
 
 go_library(
     name = "go_default_library",
@@ -44,6 +46,8 @@ go_test(
 		current: `
 load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_library")
 
+go_prefix("")
+
 go_library(
     name = "go_default_library",
     srcs = [
@@ -62,7 +66,9 @@ go_test(
 )
 `,
 		expected: `
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix", "go_test")
+
+go_prefix("github.com/jr_hacker/tools")
 
 go_library(
     name = "go_default_library",
@@ -381,6 +387,40 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
+    srcs = ["foo.go"],
+)
+`,
+	}, {
+		desc: "merge comments",
+		previous: `
+# load
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# rule
+go_library(
+    # unmerged attr
+    name = "go_default_library",
+    # merged attr
+    srcs = ["foo.go"],
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+)
+`,
+		expected: `
+# load
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# rule
+go_library(
+    # unmerged attr
+    name = "go_default_library",
+    # merged attr
     srcs = ["foo.go"],
 )
 `,

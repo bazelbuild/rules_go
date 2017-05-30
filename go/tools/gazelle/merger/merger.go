@@ -46,8 +46,8 @@ var (
 	}
 )
 
-// MergeWithExisting merges genfile with an existing build file at
-// existingFilePath and returns genfile.
+// MergeWithExisting merges genFile with an existing build file at
+// existingFilePath and returns the merged file.
 func MergeWithExisting(genFile *bzl.File, existingFilePath string) (*bzl.File, error) {
 	oldData, err := ioutil.ReadFile(existingFilePath)
 	if err != nil {
@@ -96,26 +96,41 @@ func mergeRule(gen, old *bzl.CallExpr) *bzl.CallExpr {
 	merged.List = nil
 	mergedRule := bzl.Rule{Call: &merged}
 
+	// Copy unnamed arguments from the old rule without merging. The only rule
+	// generated with unnamed arguments is go_prefix, which we currently
+	// leave in place.
+	// TODO: maybe gazelle should allow the prefix to be changed.
+	for _, a := range old.List {
+		if b, ok := a.(*bzl.BinaryExpr); ok && b.Op == "=" {
+			break
+		}
+		merged.List = append(merged.List, a)
+	}
+
+	// Merge attributes from the old rule. Preserve comments on old attributes.
+	// Assume generated attributes have no comments.
 	for _, k := range oldRule.AttrKeys() {
-		oldAttr := oldRule.Attr(k)
-		var mergedAttr bzl.Expr
+		oldAttr := oldRule.AttrDefn(k)
 		if !mergeableFields[k] {
-			mergedAttr = oldAttr
-		} else {
-			genAttr := genRule.Attr(k)
-			var err error
-			mergedAttr, err = mergeExpr(genAttr, oldAttr)
-			if err != nil {
-				// TODO: add a verbose mode and log errors like this.
-				mergedAttr = genAttr
-			}
+			merged.List = append(merged.List, oldAttr)
+			continue
 		}
 
-		if mergedAttr != nil {
-			mergedRule.SetAttr(k, mergedAttr)
+		oldExpr := oldAttr.Y
+		genExpr := genRule.Attr(k)
+		mergedExpr, err := mergeExpr(genExpr, oldExpr)
+		if err != nil {
+			// TODO: add a verbose mode and log errors like this.
+			mergedExpr = genExpr
+		}
+		if mergedExpr != nil {
+			mergedAttr := *oldAttr
+			mergedAttr.Y = mergedExpr
+			merged.List = append(merged.List, &mergedAttr)
 		}
 	}
 
+	// Merge attributes from genRule that we haven't processed already.
 	for _, k := range genRule.AttrKeys() {
 		if mergedRule.Attr(k) == nil {
 			mergedRule.SetAttr(k, genRule.Attr(k))
@@ -146,11 +161,11 @@ func mergeExpr(gen, old bzl.Expr) (bzl.Expr, error) {
 		return gen, nil
 	}
 
-	genList, genDict, err := attrListAndDict(gen)
+	genList, genDict, err := exprListAndDict(gen)
 	if err != nil {
 		return nil, err
 	}
-	oldList, oldDict, err := attrListAndDict(old)
+	oldList, oldDict, err := exprListAndDict(old)
 	if err != nil {
 		return nil, err
 	}
@@ -182,10 +197,10 @@ func mergeExpr(gen, old bzl.Expr) (bzl.Expr, error) {
 	}, nil
 }
 
-// attrListAndDict matches an expression and attempts to extract either a list
+// exprListAndDict matches an expression and attempts to extract either a list
 // of expressions, a call to select with a dictionary, or both.
 // An error is returned if the expression could not be matched.
-func attrListAndDict(expr bzl.Expr) (*bzl.ListExpr, *bzl.DictExpr, error) {
+func exprListAndDict(expr bzl.Expr) (*bzl.ListExpr, *bzl.DictExpr, error) {
 	if expr == nil {
 		return nil, nil, nil
 	}
@@ -199,17 +214,26 @@ func attrListAndDict(expr bzl.Expr) (*bzl.ListExpr, *bzl.DictExpr, error) {
 			}
 		}
 	case *bzl.BinaryExpr:
-		if expr.Op == "+" {
-			if l, ok := expr.X.(*bzl.ListExpr); ok {
-				if call, ok := expr.Y.(*bzl.CallExpr); ok && len(call.List) == 1 {
-					if x, ok := call.X.(*bzl.LiteralExpr); ok && x.Token == "select" {
-						if d, ok := call.List[0].(*bzl.DictExpr); ok {
-							return l, d, nil
-						}
-					}
-				}
-			}
+		if expr.Op != "+" {
+			return nil, nil, fmt.Errorf("expression could not be matched")
 		}
+		l, ok := expr.X.(*bzl.ListExpr)
+		if !ok {
+			return nil, nil, fmt.Errorf("expression could not be matched")
+		}
+		call, ok := expr.Y.(*bzl.CallExpr)
+		if !ok || len(call.List) != 1 {
+			return nil, nil, fmt.Errorf("expression could not be matched")
+		}
+		x, ok := call.X.(*bzl.LiteralExpr)
+		if !ok || x.Token != "select" {
+			return nil, nil, fmt.Errorf("expression could not be matched")
+		}
+		d, ok := call.List[0].(*bzl.DictExpr)
+		if !ok {
+			return nil, nil, fmt.Errorf("expression could not be matched")
+		}
+		return l, d, nil
 	}
 	return nil, nil, fmt.Errorf("expression could not be matched")
 }
