@@ -15,7 +15,46 @@ limitations under the License.
 
 package packages
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
+
+// PlatformConstraints is a map from config_setting labels (for example,
+// "@io_bazel_rules_go//go/platform:linux_amd64") to a sets of build tags
+// that are true on each platform (for example, "linux,amd64").
+type PlatformConstraints map[string]map[string]bool
+
+// ParsePlatformConstraints parses a string that contains all platforms and
+// tags on each platform. The string must contain an even number of fields,
+// separated by whitespace. Even fields (counting from 0) are platform labels.
+// Odd fields are comma-separated tag lists. Tags cannot be negated: they
+// must not start with '!'.
+func ParsePlatformConstraints(platformStr string) (PlatformConstraints, error) {
+	fs := strings.Fields(platformStr)
+	if len(fs)%2 != 0 {
+		return nil, fmt.Errorf("could not parse platform string: odd number of fields.")
+	}
+
+	platforms := make(PlatformConstraints)
+	for i := 0; i < len(fs); i += 2 {
+		name := fs[i]
+		if _, ok := platforms[name]; ok {
+			return nil, fmt.Errorf("could not parse platform string: platform %q defined multiple times", name)
+		}
+
+		tags := strings.Split(fs[i+1], ",")
+		tagSet := make(map[string]bool)
+		for _, t := range tags {
+			if strings.HasPrefix(t, "!") {
+				return nil, fmt.Errorf("could not parse platform string: on platform %q, tag starts with '!': %q", name, t)
+			}
+			tagSet[t] = true
+		}
+		platforms[name] = tagSet
+	}
+	return platforms, nil
+}
 
 // Package contains metadata about a Go package extracted from a directory.
 // It fills a similar role to go/build.Package, but it separates files by

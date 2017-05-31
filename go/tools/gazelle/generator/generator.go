@@ -40,6 +40,7 @@ type Generator struct {
 	goPrefix      string
 	buildFileName string
 	bctx          build.Context
+	platforms     packages.PlatformConstraints
 	g             rules.Generator
 }
 
@@ -51,7 +52,7 @@ type Generator struct {
 // "buildFileName" is the name of the BUILD file (BUILD or BUILD.bazel).
 // "buildTags" is a comma-delimited set of build tags to set in the build context.
 // "external" is how external packages should be resolved.
-func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.ExternalResolver) (*Generator, error) {
+func New(repoRoot, goPrefix, buildFileName, buildTags, platformStr string, external rules.ExternalResolver) (*Generator, error) {
 	bctx := build.Default
 	// Ignore source files in $GOROOT and $GOPATH
 	bctx.GOROOT = ""
@@ -72,11 +73,17 @@ func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.Ext
 		bctx.BuildTags = strings.Split(buildTags, ",")
 	}
 
+	platforms, err := packages.ParsePlatformConstraints(platformStr)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Generator{
 		repoRoot:      repoRoot,
 		goPrefix:      goPrefix,
 		buildFileName: buildFileName,
 		bctx:          bctx,
+		platforms:     platforms,
 		g:             rules.NewGenerator(repoRoot, goPrefix, external),
 	}, nil
 }

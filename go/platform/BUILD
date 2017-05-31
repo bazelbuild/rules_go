@@ -1,0 +1,29 @@
+package(default_visibility = ["//visibility:public"])
+
+# This file declares a config_setting for each supported platform.
+# These can be used in calls to select to choose platform-specific sources
+# and dependencies.
+#
+# Eventually, we hope to be able to use platform or constraint_value instead,
+# but Bazel doesn't support this yet.
+
+config_setting(
+    name = "darwin_amd64",
+    values = {
+        "cpu": "darwin",
+    },
+)
+
+config_setting(
+    name = "linux_amd64",
+    values = {
+        "cpu": "k8",
+    },
+)
+
+config_setting(
+    name = "windows_amd64",
+    values = {
+        "cpu": "x64_windows_msvc",
+    },
+)

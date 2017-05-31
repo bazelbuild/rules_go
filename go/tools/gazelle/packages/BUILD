@@ -19,6 +19,9 @@ go_test(
 
 go_test(
     name = "go_default_xtest",
-    srcs = ["walk_test.go"],
+    srcs = [
+        "package_test.go",
+        "walk_test.go",
+    ],
     deps = [":go_default_library"],
 )
