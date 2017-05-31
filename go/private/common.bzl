@@ -53,15 +53,7 @@ cgo_filetype = FileType([
 go_env_attrs = {
     #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
     "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
-    "go_prefix": attr.label(
-        providers = ["go_prefix"],
-        default = Label(
-            "//:go_prefix",
-            relative_to_caller_repository = True,
-        ),
-        allow_files = False,
-        cfg = "host",
-    ),
+    "_go_prefix": attr.label(default=Label("//:go_prefix", relative_to_caller_repository = True)),
 }
 
 go_library_attrs = go_env_attrs + {

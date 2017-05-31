@@ -124,7 +124,7 @@ def go_importpath(ctx):
   path = ctx.attr.importpath
   if path != "":
     return path
-  path = ctx.attr.go_prefix.go_prefix
+  path = ctx.attr._go_prefix.go_prefix
   if path.endswith("/"):
     path = path[:-1]
   if ctx.label.package:
