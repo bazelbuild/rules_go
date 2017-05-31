@@ -190,6 +190,7 @@ func mergeExpr(gen, old bzl.Expr) (bzl.Expr, error) {
 	if mergedSelect == nil {
 		return mergedList, nil
 	}
+	mergedList.ForceMultiLine = true
 	return &bzl.BinaryExpr{
 		X:  mergedList,
 		Op: "+",
@@ -215,23 +216,23 @@ func exprListAndDict(expr bzl.Expr) (*bzl.ListExpr, *bzl.DictExpr, error) {
 		}
 	case *bzl.BinaryExpr:
 		if expr.Op != "+" {
-			return nil, nil, fmt.Errorf("expression could not be matched")
+			return nil, nil, fmt.Errorf("expression could not be matched: unknown operator: %s", expr.Op)
 		}
 		l, ok := expr.X.(*bzl.ListExpr)
 		if !ok {
-			return nil, nil, fmt.Errorf("expression could not be matched")
+			return nil, nil, fmt.Errorf("expression could not be matched: left operand not a list")
 		}
 		call, ok := expr.Y.(*bzl.CallExpr)
 		if !ok || len(call.List) != 1 {
-			return nil, nil, fmt.Errorf("expression could not be matched")
+			return nil, nil, fmt.Errorf("expression could not be matched: right operand not a call with one argument")
 		}
 		x, ok := call.X.(*bzl.LiteralExpr)
 		if !ok || x.Token != "select" {
-			return nil, nil, fmt.Errorf("expression could not be matched")
+			return nil, nil, fmt.Errorf("expression could not be matched: right operand not a call to select")
 		}
 		d, ok := call.List[0].(*bzl.DictExpr)
 		if !ok {
-			return nil, nil, fmt.Errorf("expression could not be matched")
+			return nil, nil, fmt.Errorf("expression could not be matched: argument to right operand not a dict")
 		}
 		return l, d, nil
 	}

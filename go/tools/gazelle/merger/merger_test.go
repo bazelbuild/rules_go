@@ -198,7 +198,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["baz.go"] + select({
+    srcs = [
+        "baz.go",
+    ] + select({
         "linux_arm": [
             "foo_linux_arm.go",  # keep
             "bar_linux_arm.go",  # keep

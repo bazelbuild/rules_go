@@ -94,15 +94,22 @@ func newValue(val interface{}) (bzl.Expr, error) {
 		args := make([]bzl.Expr, len(rkeys))
 		for i, rk := range rkeys {
 			k := &bzl.StringExpr{Value: rk.String()}
-			v, err := newValue(rv.MapIndex(rk))
+			v, err := newValue(rv.MapIndex(rk).Interface())
 			if err != nil {
 				return nil, err
 			}
+			if l, ok := v.(*bzl.ListExpr); ok {
+				l.ForceMultiLine = true
+			}
 			args[i] = &bzl.KeyValueExpr{Key: k, Value: v}
 		}
+		args = append(args, &bzl.KeyValueExpr{
+			Key:   &bzl.StringExpr{Value: "//conditions:default"},
+			Value: &bzl.ListExpr{},
+		})
 		sel := &bzl.CallExpr{
 			X:    &bzl.LiteralExpr{Token: "select"},
-			List: []bzl.Expr{&bzl.DictExpr{List: args}},
+			List: []bzl.Expr{&bzl.DictExpr{List: args, ForceMultiLine: true}},
 		}
 		return sel, nil
 
@@ -146,6 +153,9 @@ func newValue(val interface{}) (bzl.Expr, error) {
 				return sel, nil
 			}
 
+			if genList, ok := gen.(*bzl.ListExpr); ok {
+				genList.ForceMultiLine = true
+			}
 			return &bzl.BinaryExpr{X: gen, Op: "+", Y: sel}, nil
 
 		default:
