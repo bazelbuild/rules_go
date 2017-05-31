@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain", "go_library_attrs", "go_link_attrs", "emit_generate_params_action")
+load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype")
 load("//go/private:library.bzl", "go_library_impl")
 
 def go_binary_impl(ctx):
@@ -35,7 +35,34 @@ def go_binary_impl(ctx):
 
 go_binary = rule(
     go_binary_impl,
-    attrs = go_library_attrs + go_link_attrs,
+    attrs = {
+        "data": attr.label_list(allow_files = True, cfg = "data"),
+        "srcs": attr.label_list(allow_files = go_filetype),
+        "deps": attr.label_list(
+            providers = [
+                "transitive_go_library_paths",
+                "transitive_go_libraries",
+                "transitive_cgo_deps",
+            ],
+        ),
+        "importpath": attr.string(),
+        "library": attr.label(
+            providers = [
+                "direct_deps",
+                "go_sources",
+                "asm_sources",
+                "cgo_object",
+                "gc_goopts",
+            ],
+        ),
+        "gc_goopts": attr.string_list(),
+        "gc_linkopts": attr.string_list(),
+        "linkstamp": attr.string(),
+        "x_defs": attr.string_dict(),
+        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
+        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
+        "_go_prefix": attr.label(default=Label("//:go_prefix", relative_to_caller_repository = True)),
+    },
     executable = True,
     fragments = ["cpp"],
 )

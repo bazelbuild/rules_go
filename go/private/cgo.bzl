@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_env_attrs", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts")
+load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts")
 load("//go/private:library.bzl", "go_library")
 load("//go/private:binary.bzl", "c_linker_options")
 
@@ -165,10 +165,12 @@ def _cgo_filter_srcs_impl(ctx):
 
 _cgo_filter_srcs = rule(
     implementation = _cgo_filter_srcs_impl,
-    attrs = go_env_attrs + {
+    attrs = {
         "srcs": attr.label_list(
             allow_files = cgo_filetype,
         ),
+        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
+        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
 )
@@ -262,7 +264,7 @@ def _cgo_codegen_impl(ctx):
 
 _cgo_codegen_rule = rule(
     _cgo_codegen_impl,
-    attrs = go_env_attrs + {
+    attrs = {
         "srcs": attr.label_list(
             allow_files = go_filetype,
             non_empty = True,
@@ -281,6 +283,8 @@ _cgo_codegen_rule = rule(
             mandatory = True,
             non_empty = True,
         ),
+        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
+        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
     output_to_genfiles = True,
@@ -311,7 +315,7 @@ def _cgo_import_impl(ctx):
 
 _cgo_import = rule(
     _cgo_import_impl,
-    attrs = go_env_attrs + {
+    attrs = {
         "cgo_o": attr.label(
             allow_files = True,
             single_file = True,
@@ -323,6 +327,8 @@ _cgo_import = rule(
         "out": attr.output(
             mandatory = True,
         ),
+        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
+        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
 )
@@ -371,7 +377,7 @@ def _cgo_object_impl(ctx):
 
 _cgo_object = rule(
     _cgo_object_impl,
-    attrs = go_env_attrs + {
+    attrs = {
         "src": attr.label(
             mandatory = True,
             providers = ["cc"],
@@ -383,6 +389,8 @@ _cgo_object = rule(
         "out": attr.output(
             mandatory = True,
         ),
+        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
+        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
 )

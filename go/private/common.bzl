@@ -50,44 +50,6 @@ cgo_filetype = FileType([
     ".hxx",
 ])
 
-go_env_attrs = {
-    #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-    "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
-    "_go_prefix": attr.label(default=Label("//:go_prefix", relative_to_caller_repository = True)),
-}
-
-go_library_attrs = go_env_attrs + {
-    "data": attr.label_list(
-        allow_files = True,
-        cfg = "data",
-    ),
-    "srcs": attr.label_list(allow_files = go_filetype),
-    "deps": attr.label_list(
-        providers = [
-            "transitive_go_library_paths",
-            "transitive_go_libraries",
-            "transitive_cgo_deps",
-        ],
-    ),
-    "importpath": attr.string(),
-    "library": attr.label(
-        providers = [
-            "direct_deps",
-            "go_sources",
-            "asm_sources",
-            "cgo_object",
-            "gc_goopts",
-        ],
-    ),
-    "gc_goopts": attr.string_list(),
-}
-
-go_link_attrs = go_library_attrs + {
-    "gc_linkopts": attr.string_list(),
-    "linkstamp": attr.string(),
-    "x_defs": attr.string_dict(),
-}
-
 def get_go_toolchain(ctx):
     return ctx.attr._go_toolchain #TODO(toolchains): ctx.toolchains[go_toolchain_type]
 
