@@ -67,6 +67,7 @@ def _go_toolchain_impl(ctx):
       extract_package = ctx.executable.extract_package,
       link_flags = ctx.attr.link_flags,
       cgo_link_flags = ctx.attr.cgo_link_flags,
+      crosstool = ctx.files.crosstool,
   )
 
 go_toolchain_core_attrs = {
@@ -90,6 +91,7 @@ go_toolchain_attrs = go_toolchain_core_attrs + {
     "extract_package": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/extract_package")),
     "link_flags": attr.string_list(default=[]),
     "cgo_link_flags": attr.string_list(default=[]),
+    "crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
 }
 
 go_toolchain = rule(

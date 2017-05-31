@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_env_attrs", "go_filetype", "cgo_filetype", "crosstool_attrs", "cc_hdr_filetype", "hdr_exts")
+load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_env_attrs", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts")
 load("//go/private:library.bzl", "go_library")
 load("//go/private:binary.bzl", "c_linker_options")
 
@@ -242,7 +242,7 @@ def _cgo_codegen_impl(ctx):
 
   f = emit_generate_params_action(cmds, ctx, out_dir + ".CGoCodeGenFile.params")
 
-  inputs = (srcs + go_toolchain.tools + ctx.files._crosstool +
+  inputs = (srcs + go_toolchain.tools + go_toolchain.crosstool +
             [f, go_toolchain.filter_tags])
   ctx.action(
       inputs = inputs,
@@ -262,7 +262,7 @@ def _cgo_codegen_impl(ctx):
 
 _cgo_codegen_rule = rule(
     _cgo_codegen_impl,
-    attrs = go_env_attrs + crosstool_attrs + {
+    attrs = go_env_attrs + {
         "srcs": attr.label_list(
             allow_files = go_filetype,
             non_empty = True,
@@ -353,7 +353,7 @@ def _cgo_object_impl(ctx):
   arguments += [lo.path]
 
   ctx.action(
-      inputs = [lo] + ctx.files._crosstool,
+      inputs = [lo] + go_toolchain.crosstool,
       outputs = [ctx.outputs.out],
       mnemonic = "CGoObject",
       progress_message = "Linking %s" % ctx.outputs.out.short_path,
@@ -371,7 +371,7 @@ def _cgo_object_impl(ctx):
 
 _cgo_object = rule(
     _cgo_object_impl,
-    attrs = go_env_attrs + crosstool_attrs + {
+    attrs = go_env_attrs + {
         "src": attr.label(
             mandatory = True,
             providers = ["cc"],

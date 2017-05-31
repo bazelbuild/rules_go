@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain", "go_library_attrs", "crosstool_attrs", "go_link_attrs", "emit_generate_params_action")
+load("//go/private:common.bzl", "get_go_toolchain", "go_library_attrs", "go_link_attrs", "emit_generate_params_action")
 load("//go/private:library.bzl", "go_library_impl")
 
 def go_binary_impl(ctx):
@@ -35,7 +35,7 @@ def go_binary_impl(ctx):
 
 go_binary = rule(
     go_binary_impl,
-    attrs = go_library_attrs + crosstool_attrs + go_link_attrs,
+    attrs = go_library_attrs + go_link_attrs,
     executable = True,
     fragments = ["cpp"],
 )
@@ -155,7 +155,7 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
 
   ctx.action(
       inputs = [f] + (list(transitive_go_libraries) + [lib] + list(cgo_deps) +
-                go_toolchain.tools + ctx.files._crosstool) + stamp_inputs,
+                go_toolchain.tools + go_toolchain.crosstool) + stamp_inputs,
       outputs = [executable],
       command = f.path,
       mnemonic = "GoLink",

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_library_attrs", "crosstool_attrs", "go_link_attrs")
+load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_library_attrs", "go_link_attrs")
 load("//go/private:library.bzl", "go_library_impl", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
 load("//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 
@@ -89,7 +89,7 @@ def go_test_impl(ctx):
 
 go_test = rule(
     go_test_impl,
-    attrs = go_library_attrs + crosstool_attrs + go_link_attrs,
+    attrs = go_library_attrs + go_link_attrs,
     executable = True,
     fragments = ["cpp"],
     test = True,

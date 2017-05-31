@@ -90,13 +90,7 @@ go_library_attrs = go_env_attrs + {
     "gc_goopts": attr.string_list(),
 }
 
-crosstool_attrs = {
-    "_crosstool": attr.label(
-        default = Label("//tools/defaults:crosstool"),
-    ),
-}
-
-go_link_attrs = go_library_attrs + crosstool_attrs + {
+go_link_attrs = go_library_attrs + {
     "gc_linkopts": attr.string_list(),
     "linkstamp": attr.string(),
     "x_defs": attr.string_dict(),
