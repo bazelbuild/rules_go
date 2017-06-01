@@ -15,36 +15,30 @@
 load("//go/private:common.bzl", "get_go_toolchain", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype")
 load("//go/private:asm.bzl", "emit_go_asm_action")
 
-def go_library_impl(ctx):
-  """Implements the go_library() rule."""
+def emit_library_actions(ctx, sources, deps, cgo_object, library):
   go_toolchain = get_go_toolchain(ctx)
-  sources = set(ctx.files.srcs)
-  go_srcs = set([s for s in sources if s.basename.endswith('.go')])
+
+  go_srcs = depset([s for s in sources if s.basename.endswith('.go')])
   asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
   asm_hdrs = [s for s in sources if s.basename.endswith('.h')]
-  deps = ctx.attr.deps
   dep_runfiles = [d.data_runfiles for d in deps]
 
-  cgo_object = None
-  if hasattr(ctx.attr, "cgo_object"):
-    cgo_object = ctx.attr.cgo_object
-
-  if ctx.attr.library:
-    go_srcs += ctx.attr.library.go_sources
-    asm_srcs += ctx.attr.library.asm_sources
-    asm_hdrs += ctx.attr.library.asm_headers
-    deps += ctx.attr.library.direct_deps
-    dep_runfiles += [ctx.attr.library.data_runfiles]
-    if ctx.attr.library.cgo_object:
+  if library:
+    go_srcs += library.go_sources
+    asm_srcs += library.asm_sources
+    asm_hdrs += library.asm_headers
+    deps += library.direct_deps
+    dep_runfiles += [library.data_runfiles]
+    if library.cgo_object:
       if cgo_object:
         fail("go_library %s cannot have cgo_object because the package " +
              "already has cgo_object in %s" % (ctx.label.name,
-                                               ctx.attr.library.name))
-      cgo_object = ctx.attr.library.cgo_object
+                                               library.name))
+      cgo_object = library.cgo_object
   if not go_srcs:
     fail("may not be empty", "srcs")
 
-  transitive_cgo_deps = set([], order="link")
+  transitive_cgo_deps = depset([], order="link")
   if cgo_object:
     dep_runfiles += [cgo_object.data_runfiles]
     transitive_cgo_deps += cgo_object.cgo_deps
@@ -60,16 +54,16 @@ def go_library_impl(ctx):
   out_object = ctx.new_file(ctx.label.name + ".o")
   search_path = out_lib.path[:-len(lib_name)]
   gc_goopts = get_gc_goopts(ctx)
-  transitive_go_libraries = depset([out_lib])
+  transitive_go_library_deps = depset()
   transitive_go_library_paths = depset([search_path])
   for dep in deps:
-    transitive_go_libraries += dep.transitive_go_libraries
+    transitive_go_library_deps += dep.transitive_go_libraries
     transitive_cgo_deps += dep.transitive_cgo_deps
     transitive_go_library_paths += dep.transitive_go_library_paths
 
   go_srcs = emit_go_compile_action(ctx,
       sources = go_srcs,
-      deps = deps,
+      libs = transitive_go_library_deps,
       libpaths = transitive_go_library_paths,
       out_object = out_object,
       gc_goopts = gc_goopts,
@@ -86,21 +80,47 @@ def go_library_impl(ctx):
 
   return struct(
     label = ctx.label,
-    files = set([out_lib]),
+    files = depset([out_lib]),
     runfiles = runfiles,
     go_sources = go_srcs,
     asm_sources = asm_srcs,
     asm_headers = asm_hdrs,
     cgo_object = cgo_object,
-    direct_deps = ctx.attr.deps,
     transitive_cgo_deps = transitive_cgo_deps,
-    transitive_go_libraries = transitive_go_libraries,
+    transitive_go_libraries = transitive_go_library_deps + [out_lib],
     transitive_go_library_paths = transitive_go_library_paths,
     gc_goopts = gc_goopts,
   )
 
+def _go_library_impl(ctx):
+  """Implements the go_library() rule."""
+  cgo_object = None
+  if hasattr(ctx.attr, "cgo_object"):
+    cgo_object = ctx.attr.cgo_object
+  lib_result = emit_library_actions(ctx,
+      sources = depset(ctx.files.srcs),
+      deps = ctx.attr.deps,
+      cgo_object = cgo_object,
+      library = ctx.attr.library,
+  )
+
+  return struct(
+    label = ctx.label,
+    files = lib_result.files,
+    runfiles = lib_result.runfiles,
+    go_sources = lib_result.go_sources,
+    asm_sources = lib_result.asm_sources,
+    asm_headers = lib_result.asm_headers,
+    cgo_object = lib_result.cgo_object,
+    direct_deps = ctx.attr.deps,
+    transitive_cgo_deps = lib_result.transitive_cgo_deps,
+    transitive_go_libraries = lib_result.transitive_go_libraries,
+    transitive_go_library_paths = lib_result.transitive_go_library_paths,
+    gc_goopts = lib_result.gc_goopts,
+  )
+
 go_library = rule(
-    go_library_impl,
+    _go_library_impl,
     attrs = {
         "data": attr.label_list(allow_files = True, cfg = "data"),
         "srcs": attr.label_list(allow_files = go_filetype),
@@ -166,14 +186,13 @@ def get_gc_goopts(ctx):
     gc_goopts += ctx.attr.library.gc_goopts
   return gc_goopts
 
-def emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts):
+def emit_go_compile_action(ctx, sources, libs, libpaths, out_object, gc_goopts):
   """Construct the command line for compiling Go code.
 
   Args:
     ctx: The skylark Context.
     sources: an iterable of source code artifacts (or CTs? or labels?)
-    deps: an iterable of dependencies. Each dependency d should have an
-      artifact in d.transitive_go_libraries representing all imported libraries.
+    libs: a depset of representing all imported libraries.
     libpaths: the set of paths to search for imported libraries.
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
@@ -191,9 +210,7 @@ def emit_go_compile_action(ctx, sources, deps, libpaths, out_object, gc_goopts):
       "-trimpath", "-abs-.",
       "-I", "-abs-.",
   ]
-  inputs = depset(sources + [go_toolchain.go])
-  for dep in deps:
-    inputs += dep.transitive_go_libraries
+  inputs = depset([go_toolchain.go]) + sources + libs
   for path in libpaths:
     args += ["-I", path]
   args += gc_goopts + [("" if i.basename.startswith("_cgo") else "-filter-") + i.path for i in sources]

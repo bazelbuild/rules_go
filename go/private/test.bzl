@@ -13,17 +13,22 @@
 # limitations under the License.
 
 load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype")
-load("//go/private:library.bzl", "go_library_impl", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
+load("//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
 load("//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 
-def go_test_impl(ctx):
+def _go_test_impl(ctx):
   """go_test_impl implements go testing.
 
   It emits an action to run the test generator, and then compiles the
   test into a binary."""
 
   go_toolchain = get_go_toolchain(ctx)
-  lib_result = go_library_impl(ctx)
+  lib_result = emit_library_actions(ctx,
+      sources = depset(ctx.files.srcs),
+      deps = ctx.attr.deps,
+      cgo_object = None,
+      library = ctx.attr.library,
+  )
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")
   main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
@@ -62,7 +67,7 @@ def go_test_impl(ctx):
   emit_go_compile_action(
     ctx,
     sources=depset([main_go]),
-    deps=ctx.attr.deps + [lib_result],
+    libs=lib_result.transitive_go_libraries,
     libpaths=lib_result.transitive_go_library_paths,
     out_object=main_object,
     gc_goopts=get_gc_goopts(ctx),
@@ -88,7 +93,7 @@ def go_test_impl(ctx):
   )
 
 go_test = rule(
-    go_test_impl,
+    _go_test_impl,
     attrs = {
         "data": attr.label_list(allow_files = True, cfg = "data"),
         "srcs": attr.label_list(allow_files = go_filetype),

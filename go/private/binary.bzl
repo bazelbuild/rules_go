@@ -13,11 +13,16 @@
 # limitations under the License.
 
 load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype")
-load("//go/private:library.bzl", "go_library_impl")
+load("//go/private:library.bzl", "emit_library_actions")
 
-def go_binary_impl(ctx):
+def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
-  lib_result = go_library_impl(ctx)
+  lib_result = emit_library_actions(ctx,
+      sources = depset(ctx.files.srcs),
+      deps = ctx.attr.deps,
+      cgo_object = None,
+      library = ctx.attr.library,
+  )
   emit_go_link_action(
     ctx,
     transitive_go_libraries=lib_result.transitive_go_libraries,
@@ -34,7 +39,7 @@ def go_binary_impl(ctx):
   )
 
 go_binary = rule(
-    go_binary_impl,
+    _go_binary_impl,
     attrs = {
         "data": attr.label_list(allow_files = True, cfg = "data"),
         "srcs": attr.label_list(allow_files = go_filetype),
