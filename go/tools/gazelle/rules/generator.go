@@ -119,30 +119,25 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 		rules = append(rules, p)
 	}
 
-	cgoLibrary := ""
-	if len(pkg.CgoFiles) != 0 {
-		cgoLibrary = defaultCgoLibName
-		r, err := g.generateCgoCLib(rel, cgoLibrary, pkg)
-		if err != nil {
-			return nil, err
-		}
-		rules = append(rules, r)
-	}
-
-	library := defaultLibName
-	libRule, err := g.generateLib(rel, library, pkg, cgoLibrary)
+	cgoLibrary, r, err := g.generateCgoLib(rel, pkg)
 	if err != nil {
 		return nil, err
 	}
-	if libRule != nil {
-		rules = append(rules, libRule)
+	if r != nil {
+		rules = append(rules, r)
 	}
 
-	if pkg.IsCommand() {
-		r, err := g.generateBin(rel, library, pkg)
-		if err != nil {
-			return nil, err
-		}
+	library, r, err := g.generateLib(rel, pkg, cgoLibrary)
+	if err != nil {
+		return nil, err
+	}
+	if r != nil {
+		rules = append(rules, r)
+	}
+
+	if r, err := g.generateBin(rel, pkg, library); err != nil {
+		return nil, err
+	} else if r != nil {
 		rules = append(rules, r)
 	}
 
@@ -157,25 +152,26 @@ func (g *generator) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error
 	testdataPath := filepath.Join(g.repoRoot, rel, "testdata")
 	st, err := os.Stat(testdataPath)
 	hasTestdata := err == nil && st.IsDir()
-	if len(pkg.TestGoFiles) > 0 {
-		t, err := g.generateTest(rel, pkg, library, hasTestdata, libRule != nil)
-		if err != nil {
-			return nil, err
-		}
-		rules = append(rules, t)
+
+	if r, err := g.generateTest(rel, pkg, library, hasTestdata); err != nil {
+		return nil, err
+	} else if r != nil {
+		rules = append(rules, r)
+	}
+	if r, err := g.generateXTest(rel, pkg, library, hasTestdata); err != nil {
+		return nil, err
+	} else if r != nil {
+		rules = append(rules, r)
 	}
 
-	if len(pkg.XTestGoFiles) > 0 {
-		t, err := g.generateXTest(rel, pkg, library, hasTestdata)
-		if err != nil {
-			return nil, err
-		}
-		rules = append(rules, t)
-	}
 	return rules, nil
 }
 
-func (g *generator) generateBin(rel, library string, pkg *build.Package) (*bzl.Rule, error) {
+func (g *generator) generateBin(rel string, pkg *build.Package, library string) (*bzl.Rule, error) {
+	if !pkg.IsCommand() {
+		return nil, nil
+	}
+
 	kind := "go_binary"
 	name := path.Base(pkg.Dir)
 
@@ -189,8 +185,9 @@ func (g *generator) generateBin(rel, library string, pkg *build.Package) (*bzl.R
 	return newRule(kind, nil, attrs)
 }
 
-func (g *generator) generateLib(rel, name string, pkg *build.Package, cgoName string) (*bzl.Rule, error) {
+func (g *generator) generateLib(rel string, pkg *build.Package, cgoName string) (string, *bzl.Rule, error) {
 	kind := "go_library"
+	name := defaultLibName
 
 	visibility := "//visibility:public"
 	// Libraries made for a go_binary should not be exposed to the public.
@@ -206,7 +203,7 @@ func (g *generator) generateLib(rel, name string, pkg *build.Package, cgoName st
 	if cgoName == "" {
 		srcs = append(srcs, pkg.SFiles...)
 		if len(srcs) == 0 {
-			return nil, nil
+			return "", nil, nil
 		}
 		srcs = append(srcs, pkg.HFiles...)
 		attrs = append(attrs, keyvalue{key: "srcs", value: srcs})
@@ -224,18 +221,23 @@ func (g *generator) generateLib(rel, name string, pkg *build.Package, cgoName st
 
 	deps, err := g.dependencies(pkg.Imports, rel)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	if len(deps) > 0 {
 		attrs = append(attrs, keyvalue{key: "deps", value: deps})
 	}
 
-	return newRule(kind, nil, attrs)
+	r, err := newRule(kind, nil, attrs)
+	return name, r, err
 }
 
-// generateCgoCLib generates a cgo_library rule for C/C++ code.
-func (g *generator) generateCgoCLib(rel, name string, pkg *build.Package) (*bzl.Rule, error) {
+func (g *generator) generateCgoLib(rel string, pkg *build.Package) (string, *bzl.Rule, error) {
+	if len(pkg.CgoFiles) == 0 {
+		return "", nil, nil
+	}
+
 	kind := "cgo_library"
+	name := defaultCgoLibName
 
 	attrs := []keyvalue{
 		{key: "name", value: name},
@@ -273,13 +275,14 @@ func (g *generator) generateCgoCLib(rel, name string, pkg *build.Package) (*bzl.
 
 	deps, err := g.dependencies(pkg.Imports, rel)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	if len(deps) > 0 {
 		attrs = append(attrs, keyvalue{key: "deps", value: deps})
 	}
 
-	return newRule(kind, nil, attrs)
+	r, err := newRule(kind, nil, attrs)
+	return name, r, err
 }
 
 // checkInternalVisibility overrides the given visibility if the package is
@@ -326,9 +329,13 @@ func hasPbGo(files []string) bool {
 	return false
 }
 
-func (g *generator) generateTest(rel string, pkg *build.Package, library string, hasTestdata, hasLib bool) (*bzl.Rule, error) {
+func (g *generator) generateTest(rel string, pkg *build.Package, library string, hasTestdata bool) (*bzl.Rule, error) {
+	if len(pkg.TestGoFiles) == 0 {
+		return nil, nil
+	}
+
 	name := library + "_test"
-	if library == defaultLibName {
+	if library == "" || library == defaultLibName {
 		name = defaultTestName
 	}
 	attrs := []keyvalue{
@@ -339,7 +346,7 @@ func (g *generator) generateTest(rel string, pkg *build.Package, library string,
 		glob := globvalue{patterns: []string{"testdata/**"}}
 		attrs = append(attrs, keyvalue{key: "data", value: glob})
 	}
-	if hasLib {
+	if library != "" {
 		attrs = append(attrs, keyvalue{key: "library", value: ":" + library})
 	}
 
@@ -354,8 +361,12 @@ func (g *generator) generateTest(rel string, pkg *build.Package, library string,
 }
 
 func (g *generator) generateXTest(rel string, pkg *build.Package, library string, hasTestdata bool) (*bzl.Rule, error) {
+	if len(pkg.XTestGoFiles) == 0 {
+		return nil, nil
+	}
+
 	name := library + "_xtest"
-	if library == defaultLibName {
+	if library == "" || library == defaultLibName {
 		name = defaultXTestName
 	}
 	attrs := []keyvalue{
