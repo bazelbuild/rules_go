@@ -17,6 +17,9 @@ package lib
 
 import (
 	"example.com/repo/lib/internal/deep"
+
+	// Gazelle should not abort when it finds import paths that don't exist.
+	_ "lib.invalid/does/not/exist"
 )
 
 // Answer returns the ultimate answer to life, the universe and everything.

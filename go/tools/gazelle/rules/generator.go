@@ -385,7 +385,8 @@ func (g *generator) dependencies(imports []string, dir string) ([]string, error)
 		}
 		l, err := g.r.resolve(p, dir)
 		if err != nil {
-			return nil, err
+			log.Printf("in dir %q, could not resolve import path %q: %v", dir, p, err)
+			continue
 		}
 		deps = append(deps, l.String())
 	}
