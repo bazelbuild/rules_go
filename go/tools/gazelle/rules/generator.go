@@ -18,7 +18,6 @@ package rules
 import (
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -132,15 +131,11 @@ func (g *generator) Generate(rel string, pkg *packages.Package) []*bzl.Rule {
 		rules = append(rules, r)
 	}
 
-	testdataPath := filepath.Join(g.repoRoot, rel, "testdata")
-	st, err := os.Stat(testdataPath)
-	hasTestdata := err == nil && st.IsDir()
-
-	if r := g.generateTest(rel, pkg, library, hasTestdata); r != nil {
+	if r := g.generateTest(rel, pkg, library); r != nil {
 		rules = append(rules, r)
 	}
 
-	if r := g.generateXTest(rel, pkg, library, hasTestdata); r != nil {
+	if r := g.generateXTest(rel, pkg, library); r != nil {
 		rules = append(rules, r)
 	}
 
@@ -210,7 +205,7 @@ func (g *generator) filegroup(rel string, pkg *packages.Package) *bzl.Rule {
 	})
 }
 
-func (g *generator) generateTest(rel string, pkg *packages.Package, library string, hasTestdata bool) *bzl.Rule {
+func (g *generator) generateTest(rel string, pkg *packages.Package, library string) *bzl.Rule {
 	if !pkg.Test.HasGo() {
 		return nil
 	}
@@ -222,10 +217,10 @@ func (g *generator) generateTest(rel string, pkg *packages.Package, library stri
 		name = library + "_test"
 	}
 
-	return g.generateRule(rel, "go_test", name, "", library, hasTestdata, pkg.Test)
+	return g.generateRule(rel, "go_test", name, "", library, pkg.HasTestdata, pkg.Test)
 }
 
-func (g *generator) generateXTest(rel string, pkg *packages.Package, library string, hasTestdata bool) *bzl.Rule {
+func (g *generator) generateXTest(rel string, pkg *packages.Package, library string) *bzl.Rule {
 	if !pkg.XTest.HasGo() {
 		return nil
 	}
@@ -237,7 +232,7 @@ func (g *generator) generateXTest(rel string, pkg *packages.Package, library str
 		name = library + "_xtest"
 	}
 
-	return g.generateRule(rel, "go_test", name, "", "", hasTestdata, pkg.XTest)
+	return g.generateRule(rel, "go_test", name, "", "", pkg.HasTestdata, pkg.XTest)
 }
 
 func (g *generator) generateRule(rel, kind, name, visibility, library string, hasTestdata bool, target packages.Target) *bzl.Rule {

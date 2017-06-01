@@ -38,7 +38,14 @@ func packageFromDir(t *testing.T, dir, repoRoot, goPrefix string) *packages.Pack
 	buildTags := map[string]bool{}
 	platforms := packages.DefaultPlatformConstraints
 	packages.PreprocessTags(buildTags, platforms)
-	return packages.FindPackage(dir, buildTags, platforms, repoRoot, goPrefix)
+
+	var pkg *packages.Package
+	packages.Walk(buildTags, platforms, repoRoot, goPrefix, dir, func(p *packages.Package) {
+		if p.Dir == dir {
+			pkg = p
+		}
+	})
+	return pkg
 }
 
 func TestGenerator(t *testing.T) {
@@ -55,6 +62,8 @@ func TestGenerator(t *testing.T) {
 		"lib/internal/deep",
 		"main_test_only",
 		"platforms",
+		"tests_import_testdata",
+		"tests_with_testdata",
 	} {
 		dir := filepath.Join(repoRoot, filepath.FromSlash(rel))
 		pkg := packageFromDir(t, dir, repoRoot, goPrefix)

@@ -65,8 +65,9 @@ type Package struct {
 
 	Library, CgoLibrary, Binary, Test, XTest Target
 
-	Protos  []string
-	HasPbGo bool
+	Protos      []string
+	HasPbGo     bool
+	HasTestdata bool
 }
 
 // Target contains metadata about a buildable Go target in a package.

@@ -93,6 +93,7 @@ func (g *Generator) Generate(dir string) []*bzl.File {
 	}
 
 	var files []*bzl.File
+	haveTopFile := false
 	packages.Walk(g.buildTags, g.platforms, g.repoRoot, g.goPrefix, dir, func(pkg *packages.Package) {
 		rel, err := filepath.Rel(g.repoRoot, pkg.Dir)
 		if err != nil {
@@ -101,15 +102,20 @@ func (g *Generator) Generate(dir string) []*bzl.File {
 		}
 		if rel == "." {
 			rel = ""
-		}
-		if len(files) == 0 && rel != "" {
-			// "dir" was not a buildable Go package but still need a BUILD file
-			// for go_prefix.
-			files = append(files, g.emptyToplevel())
+			haveTopFile = true
 		}
 
 		files = append(files, g.generateOne(rel, pkg))
 	})
+
+	if !haveTopFile {
+		// The top directory of the repository did not contain buildable go
+		// files, but we still need a BUILD file for go_prefix.
+		// TODO: don't generate this file unless Gazelle is actually run on
+		// this directory.
+		files = append(files, g.emptyToplevel())
+	}
+
 	return files
 }
 

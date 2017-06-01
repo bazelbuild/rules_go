@@ -60,7 +60,6 @@ func testGeneratedFileName(t *testing.T, buildFileName string) {
 		return
 	}
 	fs := g.Generate(filepath.Join(repo, "bin"))
-	fs = fs[1:] // ignore empty top-level file with go_prefix
 	if got, want := fs[0].Path, filepath.Join("bin", buildFileName); got != want {
 		t.Errorf("got file named %q; want %q", got, want)
 	}

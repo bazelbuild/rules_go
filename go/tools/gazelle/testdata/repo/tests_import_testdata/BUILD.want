@@ -1,0 +1,11 @@
+go_test(
+    name = "go_default_test",
+    srcs = ["internal_test.go"],
+    deps = ["//tests_import_testdata/testdata:go_default_library"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["external_test.go"],
+    deps = ["//tests_import_testdata/testdata:go_default_library"],
+)

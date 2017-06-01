@@ -35,6 +35,7 @@ cd "$WORKSPACE_DIR"
 touch BUILD
 
 targets=(
+  @org_golang_x_crypto//...
   @org_golang_x_net//...
   @org_golang_x_sys//...
   @org_golang_x_text//...
@@ -83,6 +84,9 @@ excludes=(
   -@org_golang_x_tools//go/ssa/ssautil:go_default_xtest
   -@org_golang_x_tools//go/ssa:go_default_xtest
   -@org_golang_x_tools//refactor/eg:go_default_xtest
+  -@org_golang_x_crypto//ed25519:go_default_test
+  -@org_golang_x_crypto//sha3:go_default_test
+  -@org_golang_x_crypto//ssh/agent:go_default_test
 
   # TODO(#546): deps don't get propagated from cgo_library through go_library
   # to go_test.
@@ -99,6 +103,18 @@ excludes=(
 
   # fiximports requires working GOROOT, not present in CI.
   -@org_golang_x_tools//cmd/fiximports:go_default_test
+
+  # tools tests have unbuildable Go code in testdata directories.
+  -@org_golang_x_tools//cmd/bundle/testdata/...
+  -@org_golang_x_tools//cmd/callgraph/testdata/...
+  -@org_golang_x_tools//cmd/cover/testdata/...
+  -@org_golang_x_tools//cmd/fiximports/testdata/...
+  -@org_golang_x_tools//cmd/goyacc/testdata/...
+  -@org_golang_x_tools//cmd/guru/testdata/...
+  -@org_golang_x_tools//cmd/stringer/testdata/...
+  -@org_golang_x_tools//go/gcimporter15/testdata/...
+  -@org_golang_x_tools//go/loader/testdata/...
+  -@org_golang_x_tools//go/pointer/testdata/...
 
   # some sqlite3 tests rely on sources in the library which are filtered out.
   -@com_github_mattn_go_sqlite3//_example/custom_func:all
@@ -125,9 +141,6 @@ case $(uname) in
 esac
 
 bazel_batch_test --keep_going -- "${targets[@]}" "${excludes[@]}"
-
-# TODO(#415): golang.org/x/crypto can't be built because there is a package
-# named "ssh/testdata", which gazelle doesn't recurse into.
 
 # TODO(#526): github.com/mattn/go-sqlite3 can't be built as an external
 # dependency due to an include issue with cgo.

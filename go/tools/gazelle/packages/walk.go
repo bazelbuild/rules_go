@@ -19,7 +19,6 @@ import (
 	"go/build"
 	"io/ioutil"
 	"log"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -43,44 +42,49 @@ type WalkFunc func(pkg *Package)
 // the directory name, or if some other error occurs, an error will be logged,
 // and "f" will not be called.
 func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix, dir string, f WalkFunc) {
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	// visit walks the directory tree in post-order. It returns whether the
+	// the directory it was called on or any subdirectory contains a Bazel
+	// package. This affects whether "testdata" directories are considered
+	// data dependencies.
+	var visit func(string) bool
+	visit = func(path string) bool {
+		files, err := ioutil.ReadDir(path)
 		if err != nil {
-			return err
+			log.Print(err)
+			return false
 		}
-		if !info.IsDir() {
-			return nil
-		}
-		if base := info.Name(); base == "" || base[0] == '.' || base == "testdata" {
-			return filepath.SkipDir
+		subdirHasPackage := false
+		hasBuild := false
+		hasTestdata := false
+		for _, f := range files {
+			base := f.Name()
+			if f.IsDir() && base != "" && base[0] != '.' {
+				hasPackage := visit(filepath.Join(path, base))
+				if base == "testdata" {
+					hasTestdata = !hasPackage
+				}
+				subdirHasPackage = subdirHasPackage || hasPackage
+			} else if !f.IsDir() && (base == "BUILD" || base == "BUILD.bazel") {
+				hasBuild = true
+			}
 		}
 
-		if pkg := FindPackage(path, buildTags, platforms, repoRoot, goPrefix); pkg != nil {
+		pr := packageReader{
+			buildTags:   buildTags,
+			platforms:   platforms,
+			repoRoot:    repoRoot,
+			goPrefix:    goPrefix,
+			dir:         path,
+			hasTestdata: hasTestdata,
+		}
+		if pkg := pr.findPackage(); pkg != nil {
 			f(pkg)
+			return true
 		}
-		return nil
-	})
-	if err != nil {
-		log.Print(err)
+		return subdirHasPackage || hasBuild
 	}
-}
 
-// FindPackage reads source files in a given directory and returns a Package
-// containing information about those files and how to build them.
-//
-// If no buildable .go files are found in the directory, nil will be returned.
-// If the directory contains multiple buildable packages, the package whose
-// name matches the directory base name will be returned. If there is no such
-// package or if an error occurs, an error will be logged, and nil will be
-// returned.
-func FindPackage(dir string, buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix string) *Package {
-	pr := packageReader{
-		buildTags: buildTags,
-		platforms: platforms,
-		repoRoot:  repoRoot,
-		goPrefix:  goPrefix,
-		dir:       dir,
-	}
-	return pr.findPackage()
+	visit(dir)
 }
 
 // packageReader reads package metadata from a directory.
@@ -88,6 +92,7 @@ type packageReader struct {
 	buildTags               map[string]bool
 	platforms               PlatformConstraints
 	repoRoot, goPrefix, dir string
+	hasTestdata             bool
 }
 
 func (pr *packageReader) findPackage() *Package {
@@ -101,8 +106,10 @@ func (pr *packageReader) findPackage() *Package {
 		log.Print(err)
 		return nil
 	}
+	hasTestdata := false
 	for _, file := range files {
 		if file.IsDir() {
+			hasTestdata = hasTestdata || file.Name() == "testdata"
 			continue
 		}
 
@@ -136,8 +143,9 @@ func (pr *packageReader) findPackage() *Package {
 
 		if _, ok := packageMap[info.packageName]; !ok {
 			packageMap[info.packageName] = &Package{
-				Name: info.packageName,
-				Dir:  pr.dir,
+				Name:        info.packageName,
+				Dir:         pr.dir,
+				HasTestdata: pr.hasTestdata,
 			}
 		}
 		err = packageMap[info.packageName].addFile(info, false, pr.buildTags, pr.platforms)
