@@ -25,35 +25,18 @@ import (
 // that are true on each platform (for example, "linux,amd64").
 type PlatformConstraints map[string]map[string]bool
 
-// ParsePlatformConstraints parses a string that contains all platforms and
-// tags on each platform. The string must contain an even number of fields,
-// separated by whitespace. Even fields (counting from 0) are platform labels.
-// Odd fields are comma-separated tag lists. Tags cannot be negated: they
-// must not start with '!'.
-func ParsePlatformConstraints(platformStr string) (PlatformConstraints, error) {
-	fs := strings.Fields(platformStr)
-	if len(fs)%2 != 0 {
-		return nil, fmt.Errorf("could not parse platform string: odd number of fields.")
-	}
+// DefaultPlatformConstraints is the default set of platforms that Gazelle
+// will generate files for. These are the platforms that both Go and Bazel
+// support.
+var DefaultPlatformConstraints PlatformConstraints
 
-	platforms := make(PlatformConstraints)
-	for i := 0; i < len(fs); i += 2 {
-		name := fs[i]
-		if _, ok := platforms[name]; ok {
-			return nil, fmt.Errorf("could not parse platform string: platform %q defined multiple times", name)
-		}
-
-		tags := strings.Split(fs[i+1], ",")
-		tagSet := make(map[string]bool)
-		for _, t := range tags {
-			if strings.HasPrefix(t, "!") {
-				return nil, fmt.Errorf("could not parse platform string: on platform %q, tag starts with '!': %q", name, t)
-			}
-			tagSet[t] = true
-		}
-		platforms[name] = tagSet
+func init() {
+	DefaultPlatformConstraints = make(PlatformConstraints)
+	arch := "amd64"
+	for _, os := range []string{"darwin", "linux", "windows"} {
+		label := fmt.Sprintf("@io_bazel_rules_go//go/platform:%s_%s", os, arch)
+		DefaultPlatformConstraints[label] = map[string]bool{arch: true, os: true}
 	}
-	return platforms, nil
 }
 
 // Package contains metadata about a Go package extracted from a directory.

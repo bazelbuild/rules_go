@@ -38,7 +38,7 @@ var (
 
 func TestBuildTagOverride(t *testing.T) {
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", "BUILD", "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z", "", rules.External)
+	g, err := New(repo, "example.com/repo", "BUILD", "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z", rules.External)
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
 		return
@@ -212,7 +212,7 @@ func testGenerator(t *testing.T, buildFileName, buildTags string) {
 	}
 
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildFileName, buildTags, "", rules.External)
+	g, err := New(repo, "example.com/repo", buildFileName, buildTags, rules.External)
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo", %q, "", rules.External) failed with %v; want success`, repo, err, buildFileName)
 		return
