@@ -17,6 +17,7 @@ package packages
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -135,4 +136,172 @@ func (ts *PlatformStrings) firstGoFile() string {
 		}
 	}
 	return ""
+}
+
+// addFile adds the file described by "info" to a target in the package "p" if
+// the file is buildable.
+//
+// "cgo" tells whether a ".go" file in the package contains cgo code. This
+// affects whether C files are added to targets.
+// "buildTags" is a set of tags that are true on all platforms.
+// "platforms" is a map from platform names (labels referencing config_settings)
+// to sets of tags that are true on those platforms. The tag sets may include
+// "buildTags".
+//
+// An error is returned if a file is buildable but invalid (for example, a
+// test .go file containing cgo code). Files that are not buildable will not
+// be added to any target (for example, .txt files).
+func (p *Package) addFile(info fileInfo, cgo bool, buildTags map[string]bool, platforms PlatformConstraints) error {
+	var t *Target
+	if info.isXTest {
+		if info.isCgo {
+			return fmt.Errorf("%s: use of cgo in test not supported", info.path)
+		}
+		t = &p.XTest
+	} else if info.isTest {
+		if info.isCgo {
+			return fmt.Errorf("%s: use of cgo in test not supported", info.path)
+		}
+		t = &p.Test
+	} else if info.isCgo || cgo && (info.category == cExt || info.category == hExt || info.category == csExt) {
+		t = &p.CgoLibrary
+	} else if info.category == goExt || info.category == sExt || !cgo && info.category == hExt {
+		t = &p.Library
+	}
+	if t != nil {
+		t.addFile(info, buildTags, platforms)
+	}
+	return nil
+}
+
+func (t *Target) addFile(info fileInfo, buildTags map[string]bool, platforms PlatformConstraints) {
+	if !info.hasConstraints() || info.checkConstraints(buildTags) {
+		t.Sources.addGenericStrings(info.name)
+		t.Imports.addGenericStrings(info.imports...)
+		t.COpts.addGenericOpts(platforms, info.copts)
+		t.CLinkOpts.addGenericOpts(platforms, info.clinkopts)
+		return
+	}
+
+	for name, tags := range platforms {
+		if info.checkConstraints(tags) {
+			t.Sources.addPlatformStrings(name, info.name)
+			t.Imports.addPlatformStrings(name, info.imports...)
+			t.COpts.addTaggedOpts(name, info.copts, tags)
+			t.CLinkOpts.addTaggedOpts(name, info.clinkopts, tags)
+		}
+	}
+}
+
+func (ps *PlatformStrings) addGenericStrings(ss ...string) {
+	ps.Generic = append(ps.Generic, ss...)
+}
+
+func (ps *PlatformStrings) addGenericOpts(platforms PlatformConstraints, opts []taggedOpts) {
+	for _, t := range opts {
+		if t.tags == "" {
+			ps.Generic = append(ps.Generic, t.opts...)
+			continue
+		}
+
+		for name, tags := range platforms {
+			if checkTags(t.tags, tags) {
+				ps.Platform[name] = append(ps.Platform[name], t.opts...)
+			}
+		}
+	}
+}
+
+func (ps *PlatformStrings) addPlatformStrings(name string, ss ...string) {
+	if ps.Platform == nil {
+		ps.Platform = make(map[string][]string)
+	}
+	ps.Platform[name] = append(ps.Platform[name], ss...)
+}
+
+func (ps *PlatformStrings) addTaggedOpts(name string, opts []taggedOpts, tags map[string]bool) {
+	if ps.Platform == nil {
+		ps.Platform = make(map[string][]string)
+	}
+	for _, t := range opts {
+		if t.tags == "" || checkTags(t.tags, tags) {
+			ps.Platform[name] = append(ps.Platform[name], t.opts...)
+		}
+	}
+}
+
+// Clean sorts and de-duplicates PlatformStrings. It also removes any
+// strings from platform-specific lists that also appear in the generic list.
+// This is useful for imports.
+func (ps *PlatformStrings) Clean() {
+	sort.Strings(ps.Generic)
+	ps.Generic = uniq(ps.Generic)
+
+	genSet := make(map[string]bool)
+	for _, s := range ps.Generic {
+		genSet[s] = true
+	}
+
+	if ps.Platform != nil {
+		for n, ss := range ps.Platform {
+			ss = remove(ss, genSet)
+			if len(ss) == 0 {
+				delete(ps.Platform, n)
+				continue
+			}
+			sort.Strings(ss)
+			ps.Platform[n] = uniq(ss)
+		}
+		if len(ps.Platform) == 0 {
+			ps.Platform = nil
+		}
+	}
+}
+
+func remove(ss []string, remove map[string]bool) []string {
+	var r, w int
+	for r, w = 0, 0; r < len(ss); r++ {
+		if !remove[ss[r]] {
+			ss[w] = ss[r]
+			w++
+		}
+	}
+	return ss[:w]
+}
+
+func uniq(ss []string) []string {
+	if len(ss) <= 1 {
+		return ss
+	}
+
+	var r, w int
+	for r, w = 1, 1; r < len(ss); r++ {
+		if ss[r] != ss[r-1] {
+			ss[w] = ss[r]
+			w++
+		}
+	}
+	return ss[:w]
+}
+
+// Map applies a function to the strings in "ps" and returns a new
+// PlatformStrings with the results. This is useful for converting import
+// paths to labels.
+func (ps *PlatformStrings) Map(f func(string) string) PlatformStrings {
+	result := PlatformStrings{Generic: make([]string, len(ps.Generic))}
+	for i, s := range ps.Generic {
+		result.Generic[i] = f(s)
+	}
+
+	if ps.Platform != nil {
+		result.Platform = make(map[string][]string)
+		for n, ss := range ps.Platform {
+			result.Platform[n] = make([]string, len(ss))
+			for i, s := range ss {
+				result.Platform[n][i] = f(s)
+			}
+		}
+	}
+
+	return result
 }

@@ -13,7 +13,10 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["fileinfo_test.go"],
+    srcs = [
+        "fileinfo_test.go",
+        "package_test.go",
+    ],
     library = ":go_default_library",
 )
 
