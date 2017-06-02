@@ -1,0 +1,5 @@
+go_library(
+    name = "go_default_library",
+    srcs = ["thought.go"],
+    visibility = ["//lib:__subpackages__"],
+)

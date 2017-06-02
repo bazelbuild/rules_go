@@ -1,0 +1,11 @@
+go_test(
+    name = "go_default_test",
+    srcs = ["internal_test.go"],
+    data = glob(["testdata/**"]),
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["external_test.go"],
+    data = glob(["testdata/**"]),
+)

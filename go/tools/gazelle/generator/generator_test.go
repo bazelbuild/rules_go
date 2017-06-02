@@ -16,18 +16,12 @@ limitations under the License.
 package generator
 
 import (
-	"fmt"
-	"go/build"
-	"io/ioutil"
-	"os"
-	"path"
 	"path/filepath"
 	"reflect"
-	"sort"
-	"strings"
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
@@ -44,22 +38,38 @@ func TestBuildTagOverride(t *testing.T) {
 		return
 	}
 
-	if len(g.bctx.BuildTags) != 26 {
-		t.Errorf("Got %d build tags; want 26", len(g.bctx.BuildTags))
+	if got, want := len(g.bctx.BuildTags), 26; got != want {
+		t.Errorf("Got %d build tags; want %d", got, want)
+	}
+
+	for name, platformTags := range g.platforms {
+		if got, want := len(platformTags), len(packages.DefaultPlatformConstraints[name]); got != want {
+			t.Errorf("on platform %q, got %d build tags; want %d", name, got, want)
+		}
 	}
 }
 
-func TestGenerator(t *testing.T) {
-	testGenerator(t, "BUILD", "")
+func TestGeneratedFileName(t *testing.T) {
+	testGeneratedFileName(t, "BUILD")
+	testGeneratedFileName(t, "BUILD.bazel")
 }
 
-func TestGeneratorWithTags(t *testing.T) {
-	testGenerator(t, "BUILD", "linux")
-	testGenerator(t, "BUILD", "darwin")
-}
-
-func TestGeneratorDotBazel(t *testing.T) {
-	testGenerator(t, "BUILD.bazel", "")
+func testGeneratedFileName(t *testing.T, buildFileName string) {
+	repo := filepath.Join(testdata.Dir(), "repo")
+	g, err := New(repo, "example.com/repo", buildFileName, "", rules.External)
+	if err != nil {
+		t.Errorf("error creating generator: %v", err)
+		return
+	}
+	fs, err := g.Generate(filepath.Join(repo, "bin"))
+	if err != nil {
+		t.Errorf("error generating files: %v", err)
+		return
+	}
+	fs = fs[1:] // ignore empty top-level file with go_prefix
+	if got, want := fs[0].Path, filepath.Join("bin", buildFileName); got != want {
+		t.Errorf("got file named %q; want %q", got, want)
+	}
 }
 
 func TestLoadExprSorted(t *testing.T) {
@@ -76,388 +86,4 @@ func TestLoadExprSorted(t *testing.T) {
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("loadExpr List strings: want %#v, got %#v", expected, actual)
 	}
-}
-
-func testGenerator(t *testing.T, buildFileName, buildTags string) {
-	stub := stubRuleGen{
-		goFiles:  make(map[string][]string),
-		cgoFiles: make(map[string][]string),
-		cFiles:   make(map[string][]string),
-		sFiles:   make(map[string][]string),
-		fixtures: map[string][]*bzl.Rule{
-			"lib": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_prefix"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-			},
-			"lib/internal/deep": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_test"},
-					},
-				},
-			},
-			"lib/relativeimporter": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-			},
-			"bin": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_binary"},
-					},
-				},
-			},
-			"bin_with_tests": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_binary"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_test"},
-					},
-				},
-			},
-			"cgolib": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "cgo_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_test"},
-					},
-				},
-			},
-			buildTagRepoPath: {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "cgo_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_test"},
-					},
-				},
-			},
-			"allcgolib": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "cgo_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_library"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_test"},
-					},
-				},
-			},
-			"tests_with_testdata": {
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_test"},
-					},
-				},
-				{
-					Call: &bzl.CallExpr{
-						X: &bzl.LiteralExpr{Token: "go_test"},
-					},
-				},
-			},
-		},
-	}
-
-	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildFileName, buildTags, rules.External)
-	if err != nil {
-		t.Errorf(`New(%q, "example.com/repo", %q, "", rules.External) failed with %v; want success`, repo, err, buildFileName)
-		return
-	}
-
-	g.g = stub
-
-	got, err := g.Generate(repo)
-	if err != nil {
-		t.Errorf("g.Generate(%q) failed with %v; want success", repo, err)
-	}
-	sort.Sort(fileSlice(got))
-
-	want := []*bzl.File{
-		{
-			Path: buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_prefix"),
-				&bzl.CallExpr{
-					X: &bzl.LiteralExpr{Token: "go_prefix"},
-					List: []bzl.Expr{
-						&bzl.StringExpr{Value: "example.com/repo"},
-					},
-				},
-			},
-		},
-		{
-			Path: "lib/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_prefix", "go_library"),
-				stub.fixtures["lib"][0].Call,
-				stub.fixtures["lib"][1].Call,
-			},
-		},
-		{
-			Path: "lib/internal/deep/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library", "go_test"),
-				stub.fixtures["lib/internal/deep"][0].Call,
-				stub.fixtures["lib/internal/deep"][1].Call,
-			},
-		},
-		{
-			Path: "lib/relativeimporter/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library"),
-				stub.fixtures["lib/relativeimporter"][0].Call,
-			},
-		},
-		{
-			Path: "bin/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library", "go_binary"),
-				stub.fixtures["bin"][0].Call,
-				stub.fixtures["bin"][1].Call,
-			},
-		},
-		{
-			Path: "bin_with_tests/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library", "go_binary", "go_test"),
-				stub.fixtures["bin_with_tests"][0].Call,
-				stub.fixtures["bin_with_tests"][1].Call,
-				stub.fixtures["bin_with_tests"][2].Call,
-			},
-		},
-		{
-			Path: "cgolib/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library", "go_test", "cgo_library"),
-				stub.fixtures["cgolib"][0].Call,
-				stub.fixtures["cgolib"][1].Call,
-				stub.fixtures["cgolib"][2].Call,
-			},
-		},
-		{
-			Path: "cgolib_with_build_tags/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library", "go_test", "cgo_library"),
-				stub.fixtures["cgolib"][0].Call,
-				stub.fixtures["cgolib"][1].Call,
-				stub.fixtures["cgolib"][2].Call,
-			},
-		},
-		{
-			Path: "allcgolib/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_library", "go_test", "cgo_library"),
-				stub.fixtures["cgolib"][0].Call,
-				stub.fixtures["cgolib"][1].Call,
-				stub.fixtures["cgolib"][2].Call,
-			},
-		},
-		{
-			Path: "tests_with_testdata/" + buildFileName,
-			Stmt: []bzl.Expr{
-				loadExpr("go_test"),
-				stub.fixtures["tests_with_testdata"][0].Call,
-				stub.fixtures["tests_with_testdata"][1].Call,
-			},
-		},
-	}
-
-	sort.Sort(fileSlice(want))
-
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("g.Generate(%q) = %s; want: %s", repo, prettyFiles(got), prettyFiles(want))
-	}
-
-	if buildTags == "" {
-		checkNoBuildConstraints(t, stub)
-	} else {
-		checkBuildConstraints(t, stub)
-	}
-}
-
-func checkNoBuildConstraints(t *testing.T, stub stubRuleGen) {
-	// Check that all .go, .s, and .c files were found.
-	var wantGoFiles, wantSFiles, wantCFiles []string
-	dir := filepath.Join(testdata.Dir(), "repo", buildTagRepoPath)
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, file := range files {
-		name := file.Name()
-		ext := path.Ext(name)
-		switch ext {
-		case ".go":
-			if !strings.HasSuffix(name, "_test.go") {
-				wantGoFiles = append(wantGoFiles, name)
-			}
-		case ".S":
-			wantSFiles = append(wantSFiles, name)
-		case ".c":
-			wantCFiles = append(wantCFiles, name)
-		}
-	}
-	fmt.Fprintf(os.Stderr, "cgo file count: %d\n", len(stub.cgoFiles[buildTagRepoPath]))
-	var gotGoFiles []string
-	gotGoFiles = append(gotGoFiles, stub.goFiles[buildTagRepoPath]...)
-	gotGoFiles = append(gotGoFiles, stub.cgoFiles[buildTagRepoPath]...)
-	sort.Strings(gotGoFiles)
-	gotSFiles := stub.sFiles[buildTagRepoPath]
-	gotCFiles := stub.cFiles[buildTagRepoPath]
-	if !reflect.DeepEqual(gotGoFiles, wantGoFiles) {
-		t.Errorf(".go files without constraints: got %v; want %v", gotGoFiles, wantGoFiles)
-	}
-	if !reflect.DeepEqual(gotSFiles, wantSFiles) {
-		t.Errorf(".S files without constraints: got %v; want %v", gotSFiles, wantSFiles)
-	}
-	if !reflect.DeepEqual(gotCFiles, wantCFiles) {
-		t.Errorf(".c files without constraints; got %v; want %v", gotCFiles, wantCFiles)
-	}
-}
-
-func checkBuildConstraints(t *testing.T, stub stubRuleGen) {
-	// Counter for total files.
-	var otherfiles, linuxfiles int
-
-	// Ensure files were found for each type, as build tags are supported in C and assembly sources.
-	if _, ok := stub.goFiles[buildTagRepoPath]; !ok {
-		t.Errorf("got no Go source files for %q; want more than zero", buildTagRepoPath)
-	}
-	if _, ok := stub.sFiles[buildTagRepoPath]; !ok {
-		t.Errorf("got no assembly source files for %q; want more than zero", buildTagRepoPath)
-	}
-	if _, ok := stub.cFiles[buildTagRepoPath]; !ok {
-		t.Errorf("got no assembly source files for %q; want more than zero", buildTagRepoPath)
-	}
-
-	// Count the Go files in the package.
-	for _, file := range stub.goFiles[buildTagRepoPath] {
-		switch {
-		case strings.HasSuffix(file, "_linux.go"):
-			linuxfiles++
-		case strings.HasSuffix(file, "_other.go"):
-			otherfiles++
-		}
-	}
-
-	// We should have all otherfiles or all linux files depending on GOOS.
-	if otherfiles != 0 && linuxfiles != 0 {
-		t.Errorf("got %d Go source files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
-	}
-
-	// Count the assembly files in the package.
-	for _, file := range stub.sFiles[buildTagRepoPath] {
-		switch {
-		case strings.HasSuffix(file, "_linux.S"):
-			linuxfiles++
-		case strings.HasSuffix(file, "_other.S"):
-			otherfiles++
-		}
-	}
-	// If we fail here, tags worked for Go files but not assembly.
-	if otherfiles != 0 && linuxfiles != 0 {
-		t.Errorf("got %d assembly files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
-	}
-
-	// Count C files.
-	for _, file := range stub.cFiles[buildTagRepoPath] {
-		switch {
-		case strings.HasSuffix(file, "_linux.c"):
-			linuxfiles++
-		case strings.HasSuffix(file, "_other.c"):
-			otherfiles++
-		}
-	}
-
-	// If we fail here, tags worked for assembly and Go files, but not C.
-	if otherfiles != 0 && linuxfiles != 0 {
-		t.Errorf("got %d C files for \"linux\" and %d for \"!linux\" tag; want one or the other", linuxfiles, otherfiles)
-	}
-}
-
-type prettyFiles []*bzl.File
-
-func (p prettyFiles) String() string {
-	var items []string
-	for _, f := range p {
-		items = append(items, fmt.Sprintf("{Path: %q, Stmt: %s}", f.Path, string(bzl.Format(f))))
-	}
-	return fmt.Sprintf("[%s]", strings.Join(items, ","))
-}
-
-type fileSlice []*bzl.File
-
-func (p fileSlice) Less(i, j int) bool { return strings.Compare(p[i].Path, p[j].Path) < 0 }
-func (p fileSlice) Len() int           { return len(p) }
-func (p fileSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// stubRuleGen is a test stub implementation of rules.Generator
-type stubRuleGen struct {
-	fixtures map[string][]*bzl.Rule
-	goFiles  map[string][]string
-	cgoFiles map[string][]string
-	sFiles   map[string][]string
-	cFiles   map[string][]string
-}
-
-func (s stubRuleGen) Generate(rel string, pkg *build.Package) ([]*bzl.Rule, error) {
-	s.goFiles[rel] = pkg.GoFiles
-	s.cgoFiles[rel] = pkg.CgoFiles
-	s.cFiles[rel] = pkg.CFiles
-	s.sFiles[rel] = pkg.SFiles
-	return s.fixtures[rel], nil
 }

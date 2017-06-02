@@ -1,0 +1,23 @@
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "lib.go",
+        "asm.s",
+        "asm.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["//lib/internal/deep:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["lib_test.go"],
+    library = ":go_default_library",
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["lib_external_test.go"],
+    deps = [":go_default_library"],
+)
