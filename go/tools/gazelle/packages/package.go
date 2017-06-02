@@ -274,7 +274,7 @@ func uniq(ss []string) []string {
 	}
 	result := ss[:1]
 	prev := ss[0]
-	for _, s := range ss {
+	for _, s := range ss[1:] {
 		if s != prev {
 			result = append(result, s)
 			prev = s
