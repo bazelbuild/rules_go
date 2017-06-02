@@ -2,7 +2,7 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
-load("//go:def.bzl", "go_library", "go_test", "cgo_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "cgo_library")
 
 cgo_library(
     name = "cgo_lib",

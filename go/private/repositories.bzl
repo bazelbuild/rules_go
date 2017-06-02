@@ -14,10 +14,10 @@
 
 # Once nested repositories work, this file should cease to exist.
 
-load("//go/private:toolchain.bzl", "go_sdk_repository", "go_repository_select")
-load("//go/private:repository_tools.bzl", "go_repository_tools")
-load("//go/private:bzl_format.bzl", "bzl_format_repositories")
-load("//go/private:go_repository.bzl", "go_repository")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_repository_select")
+load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
+load("@io_bazel_rules_go//go/private:bzl_format.bzl", "bzl_format_repositories")
+load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 
 _sdk_repositories = {
     # 1.8.3 repositories

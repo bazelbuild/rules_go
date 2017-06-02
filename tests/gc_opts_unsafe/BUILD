@@ -1,4 +1,4 @@
-load("//go:def.bzl", "cgo_library", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_binary", "go_library", "go_test")
 
 go_library(
     name = "unsafe_srcs_lib",

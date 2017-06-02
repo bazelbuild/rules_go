@@ -1,4 +1,4 @@
-load("//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 config_setting(
     name = "linux_amd64",

@@ -1,5 +1,5 @@
-load("//go/private:go_tool_binary.bzl", "go_tool_binary")
-load("//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go/private:go_tool_binary.bzl", "go_tool_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
 go_tool_binary(
     name = "extract_package",

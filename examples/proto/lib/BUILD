@@ -1,4 +1,4 @@
-load("//proto:go_proto_library.bzl", "go_proto_library")
+load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
 
 go_proto_library(
     name = "lib_proto",

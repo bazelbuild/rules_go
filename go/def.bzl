@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:repositories.bzl", "go_repositories")
-load("//go/private:go_repository.bzl", "go_repository", "new_go_repository")
-load("//go/private:go_prefix.bzl", "go_prefix")
-load("//go/private:library.bzl", "go_library")
-load("//go/private:binary.bzl", "go_binary")
-load("//go/private:test.bzl", "go_test")
-load("//go/private:cgo.bzl", "cgo_library", "cgo_genrule")
+load("@io_bazel_rules_go//go/private:repositories.bzl", "go_repositories")
+load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "new_go_repository")
+load("@io_bazel_rules_go//go/private:go_prefix.bzl", "go_prefix")
+load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
+load("@io_bazel_rules_go//go/private:binary.bzl", "go_binary")
+load("@io_bazel_rules_go//go/private:test.bzl", "go_test")
+load("@io_bazel_rules_go//go/private:cgo.bzl", "cgo_library", "cgo_genrule")
 
 """These are bare-bones Go rules.
 

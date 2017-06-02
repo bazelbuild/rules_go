@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
-load("//go/private:go_tool_binary.bzl", "go_tool_binary")
+load("@io_bazel_rules_go//go/private:go_tool_binary.bzl", "go_tool_binary")
 
 # This binary is used implicitly by go_test().
 go_tool_binary(

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain")
-load("//go/private:json.bzl", "json_marshal")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain")
+load("@io_bazel_rules_go//go/private:json.bzl", "json_marshal")
 
 def emit_go_asm_action(ctx, source, hdrs, out_obj):
   """Construct the command line for compiling Go Assembly code.

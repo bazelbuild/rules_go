@@ -3,7 +3,7 @@ package(
     default_visibility = ["//go/tools/gazelle:__subpackages__"],
 )
 
-load("//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",

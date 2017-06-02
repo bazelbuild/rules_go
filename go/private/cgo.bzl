@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts")
-load("//go/private:library.bzl", "go_library")
-load("//go/private:binary.bzl", "c_linker_options")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts")
+load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
+load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 
 def _cgo_genrule_impl(ctx):
   return struct(

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype")
-load("//go/private:library.bzl", "emit_library_actions")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype")
+load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions")
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
