@@ -152,24 +152,21 @@ func (ts *PlatformStrings) firstGoFile() string {
 // test .go file containing cgo code). Files that are not buildable will not
 // be added to any target (for example, .txt files).
 func (p *Package) addFile(info fileInfo, cgo bool, buildTags map[string]bool, platforms PlatformConstraints) error {
-	var t *Target
-	if info.isXTest {
+	switch {
+	case info.isXTest:
 		if info.isCgo {
 			return fmt.Errorf("%s: use of cgo in test not supported", info.path)
 		}
-		t = &p.XTest
-	} else if info.isTest {
+		p.XTest.addFile(info, buildTags, platforms)
+	case info.isTest:
 		if info.isCgo {
 			return fmt.Errorf("%s: use of cgo in test not supported", info.path)
 		}
-		t = &p.Test
-	} else if info.isCgo || cgo && (info.category == cExt || info.category == hExt || info.category == csExt) {
-		t = &p.CgoLibrary
-	} else if info.category == goExt || info.category == sExt || !cgo && info.category == hExt {
-		t = &p.Library
-	}
-	if t != nil {
-		t.addFile(info, buildTags, platforms)
+		p.Test.addFile(info, buildTags, platforms)
+	case info.isCgo || cgo && (info.category == cExt || info.category == hExt || info.category == csExt):
+		p.CgoLibrary.addFile(info, buildTags, platforms)
+	case info.category == goExt || info.category == sExt || info.category == hExt:
+		p.Library.addFile(info, buildTags, platforms)
 	}
 	return nil
 }
@@ -242,19 +239,21 @@ func (ps *PlatformStrings) Clean() {
 		genSet[s] = true
 	}
 
-	if ps.Platform != nil {
-		for n, ss := range ps.Platform {
-			ss = remove(ss, genSet)
-			if len(ss) == 0 {
-				delete(ps.Platform, n)
-				continue
-			}
-			sort.Strings(ss)
-			ps.Platform[n] = uniq(ss)
+	if ps.Platform == nil {
+		return
+	}
+
+	for n, ss := range ps.Platform {
+		ss = remove(ss, genSet)
+		if len(ss) == 0 {
+			delete(ps.Platform, n)
+			continue
 		}
-		if len(ps.Platform) == 0 {
-			ps.Platform = nil
-		}
+		sort.Strings(ss)
+		ps.Platform[n] = uniq(ss)
+	}
+	if len(ps.Platform) == 0 {
+		ps.Platform = nil
 	}
 }
 
@@ -273,15 +272,15 @@ func uniq(ss []string) []string {
 	if len(ss) <= 1 {
 		return ss
 	}
-
-	var r, w int
-	for r, w = 1, 1; r < len(ss); r++ {
-		if ss[r] != ss[r-1] {
-			ss[w] = ss[r]
-			w++
+	result := ss[:1]
+	prev := ss[0]
+	for _, s := range ss {
+		if s != prev {
+			result = append(result, s)
+			prev = s
 		}
 	}
-	return ss[:w]
+	return result
 }
 
 // Map applies a function to the strings in "ps" and returns a new
