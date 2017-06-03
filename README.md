@@ -715,8 +715,15 @@ directly.
       <td>
         <code>Dict of strings; optional</code>
         <p>Additional -X flags to pass to the linker. Keys and values in this
-        dict are passed as `-X key=value`. This can be used to set static
-        information that doesn't change in each build.</p>
+        dict are passed as <code>-X key=value</code>. This can be used to set
+        static information that doesn't change in each build.</p>
+        <p>If the value is surrounded by curly brackets (e.g.
+        <code>{VAR}</code>), then the value of the corresponding workspace
+        status variable will be used instead. Valid workspace status variables
+        include <code>BUILD_USER</code>, <code>BUILD_EMBED_LABEL</code>, and
+        custom variables provided through a
+        <code>--workspace_status_command</code> as described in
+        <code>linkstamp</code>.</p>
       </td>
     </tr>
     <tr>

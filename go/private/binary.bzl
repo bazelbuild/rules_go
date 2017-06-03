@@ -161,10 +161,19 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
       "-o", executable.path,
   ] + gc_linkopts
 
+  # Process x_defs, either adding them directly to linker options, or
+  # saving them to process through stamping support.
+  stamp_x_defs = {}
   for k, v in x_defs.items():
-    link_cmd += ["-X", "%s='%s'" % (k, v)]
+    if v.startswith("{") and v.endswith("}"):
+      stamp_x_defs[k] = v[1:-1]
+    else:
+      link_cmd += ["-X", "%s='%s'" % (k, v)]
+  need_stamp = stamp_x_defs or ctx.attr.linkstamp
+  if need_stamp:
+    link_cmd.append('"${STAMP_XDEFS[@]}"')
 
-  link_cmd += ['"${STAMP_XDEFS[@]}"'] + go_toolchain.link_flags + [
+  link_cmd += go_toolchain.link_flags + [
       "-extld", ld,
       "-extldflags", "'%s'" % " ".join(extldflags),
   ] + [lib.path for lib in libs]
@@ -174,20 +183,30 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
   # or earlier.
   cmds = ["export PATH=$PATH:/usr/bin"]
 
-  cmds += [
-      "STAMP_XDEFS=()",
-  ]
-
+  # Stamping support
   stamp_inputs = []
-  if ctx.attr.linkstamp:
-    # read workspace status files, converting "KEY value" lines
-    # to "-X $linkstamp.KEY=value" arguments to the go linker.
+  if need_stamp:
     stamp_inputs = [ctx.info_file, ctx.version_file]
-    for f in stamp_inputs:
+    cmds.append("STAMP_XDEFS=()")
+    # x_def option support: grep the workspace status files for a key matching
+    # the requested stamp value.
+    # For example, for x_defs = {"some/pkg.var": "{FOO}"}, look in the workspace
+    # status files for a key "FOO", and pass its value to "some/pkg.var".
+    stamp_inputs_paths = [f.path for f in stamp_inputs]
+    for k,v in stamp_x_defs.items():
+      cmds.append(
+          "STAMP_XDEFS+=(-X \"%s=$(grep '^%s ' %s | cut -d' ' -f2-)\")" % (
+              k, v, ' '.join(stamp_inputs_paths))
+          )
+
+    # linkstamp option support: read workspace status files,
+    # converting "KEY value" lines to "-X $linkstamp.KEY=value" arguments
+    # to the go linker.
+    for path in stamp_inputs_paths:
       cmds += [
           "while read -r key value || [[ -n $key ]]; do",
           "  STAMP_XDEFS+=(-X \"%s.$key=$value\")" % ctx.attr.linkstamp,
-          "done < " + f.path,
+          "done < " + path,
       ]
 
   cmds += [' '.join(link_cmd)]

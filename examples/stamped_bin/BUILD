@@ -1,8 +1,34 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
 go_test(
-    name = "go_default_xtest",
+    name = "stamp_with_linkstamp",
     srcs = ["stamped_bin_test.go"],
-    deps = ["//examples/stamped_bin/stamp:go_default_library"],
     linkstamp = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
+    x_defs = {
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "pass",
+    },
+    deps = ["//examples/stamped_bin/stamp:go_default_library"],
+)
+
+go_test(
+    name = "stamp_with_x_defs",
+    srcs = ["stamped_bin_test.go"],
+    x_defs = {
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.BUILD_TIMESTAMP": "{BUILD_TIMESTAMP}",
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "{Undefined_Var}",  # undefined should set the var to empty
+    },
+    deps = ["//examples/stamped_bin/stamp:go_default_library"],
+)
+
+go_test(
+    name = "stamp_with_linkstamp_and_x_defs",
+    srcs = ["stamped_bin_test.go"],
+    linkstamp = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
+    x_defs = {
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
+    },
+    deps = ["//examples/stamped_bin/stamp:go_default_library"],
 )

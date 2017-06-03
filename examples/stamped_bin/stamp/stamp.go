@@ -17,3 +17,9 @@ package stamp
 
 var NOT_A_TIMESTAMP = "fail"
 var BUILD_TIMESTAMP = NOT_A_TIMESTAMP
+
+// an xdef should set this to ""
+var PassIfEmpty = "fail"
+
+// an xdef should set this to nonempty
+var XdefBuildTimestamp = ""

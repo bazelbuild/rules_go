@@ -22,7 +22,16 @@ import (
 )
 
 func TestStampedBin(t *testing.T) {
-	if stamp.BUILD_TIMESTAMP == stamp.NOT_A_TIMESTAMP {
+	// If we use an x_def when linking to override BUILD_TIMESTAMP but fail to
+	// pass through the workspace status value, it'll be set to empty string -
+	// overridden but still wrong. Check for that case too.
+	if stamp.BUILD_TIMESTAMP == stamp.NOT_A_TIMESTAMP || stamp.BUILD_TIMESTAMP == "" {
 		t.Errorf("Expected timestamp to have been modified, got %s.", stamp.BUILD_TIMESTAMP)
+	}
+	if stamp.XdefBuildTimestamp == "" {
+		t.Errorf("Expected XdefBuildTimestamp to have been modified, got %s.", stamp.XdefBuildTimestamp)
+	}
+	if stamp.PassIfEmpty != "" {
+		t.Errorf("Expected PassIfEmpty to have been set to '', got %s.", stamp.PassIfEmpty)
 	}
 }
