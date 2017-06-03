@@ -80,7 +80,8 @@ def _go_test_impl(ctx):
     cgo_deps=lib_result.transitive_cgo_deps,
     libs=[main_lib],
     executable=ctx.outputs.executable,
-    gc_linkopts=gc_linkopts(ctx))
+    gc_linkopts=gc_linkopts(ctx),
+    x_defs=ctx.attr.x_defs)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
@@ -95,7 +96,10 @@ def _go_test_impl(ctx):
 go_test = rule(
     _go_test_impl,
     attrs = {
-        "data": attr.label_list(allow_files = True, cfg = "data"),
+        "data": attr.label_list(
+            allow_files = True,
+            cfg = "data",
+        ),
         "srcs": attr.label_list(allow_files = go_filetype),
         "deps": attr.label_list(
             providers = [
@@ -120,10 +124,12 @@ go_test = rule(
         "x_defs": attr.string_dict(),
         #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
-        "_go_prefix": attr.label(default=Label("//:go_prefix", relative_to_caller_repository = True)),
+        "_go_prefix": attr.label(default = Label(
+            "//:go_prefix",
+            relative_to_caller_repository = True,
+        )),
     },
     executable = True,
     fragments = ["cpp"],
     test = True,
 )
-
