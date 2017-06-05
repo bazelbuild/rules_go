@@ -85,7 +85,7 @@ func runCommand(bctx build.Context, executable string, input []string) error {
 	// args should now be filtered
 	// if all possible filter candidates were removed, then don't run the command
 	if filtered > 0 && unfiltered == 0 {
-		return fmt.Errorf("All candidates %d were filtered", filtered)
+		return fmt.Errorf("All %d candidate(s) were filtered", filtered)
 	}
 	// if we get here, we want to run the command itself
 	cmd := exec.Command(executable, args...)
