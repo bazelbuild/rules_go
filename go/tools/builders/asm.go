@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"go/build"
 	"log"
 	"os"
 	"os/exec"
@@ -45,8 +46,11 @@ func run(p params) error {
 		return fmt.Errorf("error setting environment: %v", err)
 	}
 
+	bctx := build.Default
+	bctx.CgoEnabled = true
+
 	var source string
-	if match, err := matchFile(p.Source); err != nil {
+	if match, err := matchFile(bctx, p.Source); err != nil {
 		return fmt.Errorf("error applying constraints: %v", err)
 	} else if match {
 		source = p.Source
