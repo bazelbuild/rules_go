@@ -116,7 +116,7 @@ func TestTags(t *testing.T) {
 }
 
 func runTest(t *testing.T, bctx build.Context, inputs []string, expect []string) {
-	got, err := filterFilenames(bctx, inputs)
+	got, err := filterFiles(bctx, inputs)
 	if err != nil {
 		t.Errorf("filter %v,%v,%v,%v failed: %v", bctx.GOOS, bctx.GOARCH, bctx.CgoEnabled, bctx.BuildTags, err)
 	}

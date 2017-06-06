@@ -84,7 +84,7 @@ go_toolchain_attrs = go_toolchain_core_attrs + {
     "is_cross": attr.bool(),
     "goos": attr.string(),
     "goarch": attr.string(),
-    "filter_tags": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/filter_tags")),
+    "filter_tags": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:filter_tags")),
     "filter_exec": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/filter_exec")),
     "asm": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:asm")),
     "test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools:generate_test_main")),
