@@ -441,8 +441,10 @@ func init() {
 }
 
 // readTags reads and extracts build tags from the block of comments and
-// newlines at the start of a file. Each string in the returned slice is
+// newlines and blank lines at the start of a file which is separated from the
+// rest of the file by a blank line. Each string in the returned slice is
 // the trimmed text of a line after a "+build" prefix.
+// Based on go/build.Context.shouldBuild.
 func readTags(path string) ([]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -451,29 +453,34 @@ func readTags(path string) ([]string, error) {
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
 
-	var buildComments []string
-	var prevLineBlank bool
+	// Pass 1: Identify leading run of // comments and blank lines,
+	// which must be followed by a blank line.
+	var lines []string
+	end := 0
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
-			prevLineBlank = true
-		} else if strings.HasPrefix(line, "//") {
-			prevLineBlank = false
-			line = strings.TrimSpace(line[len("//"):])
-			fields := strings.Fields(line)
-			if len(fields) > 0 && fields[0] == "+build" {
-				line = strings.TrimSpace(line[len("+build"):])
-				buildComments = append(buildComments, line)
-			}
-		} else {
-			break
+			end = len(lines)
+			continue
 		}
+		if strings.HasPrefix(line, "//") {
+			lines = append(lines, line[len("//"):])
+			continue
+		}
+		break
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
-	if !prevLineBlank {
-		return nil, nil
+	lines = lines[:end]
+
+	// Pass 2: Process each line in the run.
+	var buildComments []string
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		if len(fields) > 0 && fields[0] == "+build" {
+			buildComments = append(buildComments, strings.Join(fields[1:], " "))
+		}
 	}
 	return buildComments, nil
 }

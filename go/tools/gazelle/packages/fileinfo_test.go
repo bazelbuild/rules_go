@@ -122,6 +122,22 @@ package foo
 				tags:        []string{"linux darwin", "!ignore"},
 			},
 		},
+		{
+			"build tags without blank line",
+			"route.go",
+			`// Copyright 2017
+
+// +build darwin dragonfly freebsd netbsd openbsd
+
+// Package route provides basic functions for the manipulation of
+// packet routing facilities on BSD variants.
+package route
+`,
+			fileInfo{
+				packageName: "route",
+				tags:        []string{"darwin dragonfly freebsd netbsd openbsd"},
+			},
+		},
 	} {
 		if err := ioutil.WriteFile(tc.name, []byte(tc.source), 0600); err != nil {
 			t.Fatal(err)
@@ -746,7 +762,7 @@ func TestReadTags(t *testing.T) {
 package main
 
 `,
-			nil,
+			[]string{"foo"},
 		},
 		{
 			"single comment",
@@ -773,7 +789,7 @@ package main`,
 		{
 			"comment with space",
 			"  //   +build   foo   bar  \n\n",
-			[]string{"foo   bar"},
+			[]string{"foo bar"},
 		},
 		{
 			"slash star comment",
