@@ -230,7 +230,7 @@ def _cgo_codegen_impl(ctx):
   deps = set([], order="link")
   for hdr in ctx.files.c_hdrs:
     copts += [
-        '-iquote', ctx.attr.out_dir,
+        '-iquote', hdr.dirname,
         # TODO: //examples/cgo:cgo_lib relies on this to include
         # cc_dependency/version.h. This may not be intended behavior.
         '-iquote', _strip_prefix(hdr.dirname, ctx.attr.out_dir)
