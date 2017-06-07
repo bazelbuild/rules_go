@@ -17,80 +17,44 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"go/build"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
 
-type params struct {
-	// Path to the "go" binary in the Go toolchain.
-	GoTool string `json:"go_tool"`
-
-	// List of directories that may contain headers included by the source.
-	Includes []string `json:"includes"`
-
-	// The Go assembly source file to build.
-	Source string `json:"source"`
-
-	// Path to the .o file that the assembler should write.
-	Out string `json:"out"`
-}
-
-func run(p params) error {
-	goRoot := filepath.Dir(filepath.Dir(p.GoTool))
-	if err := os.Setenv("GOROOT", goRoot); err != nil {
-		return fmt.Errorf("error setting environment: %v", err)
+func run(args []string) error {
+	// process the args
+	if len(args) < 3 || args[2] != "--" {
+		return fmt.Errorf("Usage: asm gotool source.s -- <extra options>")
 	}
-
+	gotool := args[0]
+	source := args[1]
+	// filter our input file list
 	bctx := build.Default
 	bctx.CgoEnabled = true
-
-	var source string
-	if match, err := matchFile(bctx, p.Source); err != nil {
-		return fmt.Errorf("error applying constraints: %v", err)
-	} else if match {
-		source = p.Source
-	} else {
+	matched, err := matchFile(bctx, source)
+	if err != nil {
+		return err
+	}
+	if !matched {
 		source = os.DevNull
 	}
-
-	outDir := filepath.Dir(p.Out)
-	if err := os.MkdirAll(outDir, 0600); err != nil {
-		return fmt.Errorf("error creating output directory: %v", err)
-	}
-
-	args := []string{"tool", "asm"}
-	for _, d := range p.Includes {
-		args = append(args, "-I", d)
-	}
-	args = append(args, "-o", p.Out, source)
-	cmd := exec.Command(p.GoTool, args...)
+	goargs := []string{"tool", "asm"}
+	goargs = append(goargs, args[3:]...)
+	goargs = append(goargs, source)
+	cmd := exec.Command(gotool, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running assembler: %v", err)
 	}
-
 	return nil
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "usage: %s params\n", os.Args[0])
-		os.Exit(1)
-	}
-
-	paramsData := []byte(os.Args[1])
-	var p params
-	if err := json.Unmarshal(paramsData, &p); err != nil {
-		log.Fatalf("error parsing params file: %v", err)
-	}
-
-	if err := run(p); err != nil {
+	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
 }
