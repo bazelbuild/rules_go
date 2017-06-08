@@ -19,6 +19,15 @@ go_tool_binary(
 )
 
 go_tool_binary(
+    name = "compile",
+    srcs = [
+        "compile.go",
+        "filter.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_binary(
     name = "filter_tags",
     srcs = [
         "filter.go",

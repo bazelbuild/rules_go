@@ -201,24 +201,19 @@ def emit_go_compile_action(ctx, sources, libs, libpaths, out_object, gc_goopts):
   if ctx.coverage_instrumented():
     sources = _emit_go_cover_action(ctx, sources)
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-  # Compile filtered files.
-  args = [
-      "-cgo",
-      go_toolchain.go.path,
-      "tool", "compile",
-      "-o", out_object.path,
-      "-trimpath", "-abs-.",
-      "-I", "-abs-.",
-  ]
   inputs = depset([go_toolchain.go]) + sources + libs
+  go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
+  cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
+  args = [go_toolchain.go.path] + go_sources + ["--"]
+  args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
   for path in libpaths:
     args += ["-I", path]
-  args += gc_goopts + [("" if i.basename.startswith("_cgo") else "-filter-") + i.path for i in sources]
+  args += gc_goopts + cgo_sources
   ctx.action(
       inputs = list(inputs),
       outputs = [out_object],
       mnemonic = "GoCompile",
-      executable = go_toolchain.filter_exec,
+      executable = go_toolchain.compile,
       arguments = args,
       env = go_toolchain.env,
   )
