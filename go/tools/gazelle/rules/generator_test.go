@@ -51,13 +51,14 @@ func TestGenerator(t *testing.T) {
 	goPrefix := "example.com/repo"
 	g := rules.NewGenerator(repoRoot, goPrefix, rules.External)
 	for _, rel := range []string{
-		"lib",
-		"lib/internal/deep",
+		"allcgolib",
 		"bin",
 		"bin_with_tests",
 		"cgolib",
 		"cgolib_with_build_tags",
-		"allcgolib",
+		"lib",
+		"lib/internal/deep",
+		"main_test_only",
 		"platforms",
 	} {
 		dir := filepath.Join(repoRoot, filepath.FromSlash(rel))
