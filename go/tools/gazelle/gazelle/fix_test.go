@@ -16,13 +16,21 @@ limitations under the License.
 package main
 
 import (
+	"flag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 )
+
+func TestMain(m *testing.M) {
+	tmpdir := os.Getenv("TEST_TMPDIR")
+	flag.Set("repo_root", tmpdir)
+	os.Exit(m.Run())
+}
 
 func TestFixFile(t *testing.T) {
 	tmpdir := os.Getenv("TEST_TMPDIR")
@@ -60,5 +68,62 @@ func TestFixFile(t *testing.T) {
 	}
 	if got, want := string(buf), bzl.FormatString(stubFile); got != want {
 		t.Errorf("buf = %q; want %q", got, want)
+	}
+}
+
+func TestCreateFile(t *testing.T) {
+	// Create a directory with a simple .go file.
+	tmpdir := os.Getenv("TEST_TMPDIR")
+	dir, err := ioutil.TempDir(tmpdir, "")
+	if err != nil {
+		t.Fatalf("ioutil.TempDir(%q, %q) failed with %v; want success", tmpdir, "", err)
+	}
+	defer os.RemoveAll(dir)
+
+	goFile := filepath.Join(dir, "main.go")
+	if err = ioutil.WriteFile(goFile, []byte("package main"), 0600); err != nil {
+		t.Fatalf("error writing file %q: %v", goFile, err)
+	}
+
+	// Check that Gazelle creates a new file named "BUILD.bazel".
+	if err = run([]string{dir}, fixFile, rules.External); err != nil {
+		t.Fatalf("error running Gazelle: %v", err)
+	}
+
+	buildFile := filepath.Join(dir, "BUILD.bazel")
+	if _, err = os.Stat(buildFile); err != nil {
+		t.Errorf("could not stat BUILD.bazel: %v", err)
+	}
+}
+
+func TestUpdateFile(t *testing.T) {
+	// Create a directory with a simple .go file and an empty BUILD file.
+	tmpdir := os.Getenv("TEST_TMPDIR")
+	dir, err := ioutil.TempDir(tmpdir, "")
+	if err != nil {
+		t.Fatalf("ioutil.TempDir(%q, %q) failed with %v; want success", tmpdir, "", err)
+	}
+	defer os.RemoveAll(dir)
+
+	goFile := filepath.Join(dir, "main.go")
+	if err = ioutil.WriteFile(goFile, []byte("package main"), 0600); err != nil {
+		t.Fatalf("error writing file %q: %v", goFile, err)
+	}
+
+	buildFile := filepath.Join(dir, "BUILD")
+	if err = ioutil.WriteFile(buildFile, nil, 0600); err != nil {
+		t.Fatalf("error writing file %q: %v", buildFile, err)
+	}
+
+	// Check that Gazelle updates the BUILD file in place.
+	err = run([]string{dir}, fixFile, rules.External)
+	if st, err := os.Stat(buildFile); err != nil {
+		t.Errorf("could not stat BUILD: %v", err)
+	} else if st.Size() == 0 {
+		t.Errorf("BUILD was not updated")
+	}
+
+	if _, err = os.Stat(filepath.Join(dir, "BUILD.bazel")); err == nil {
+		t.Errorf("BUILD.bazel should not exist")
 	}
 }

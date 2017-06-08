@@ -19,14 +19,12 @@ import (
 	"path/filepath"
 )
 
-var bctx = defaultContext()
-
 // filterFiles applies build constraints to a list of input files. It returns
 // list of input files that should be compiled.
-func filterFiles(inputs []string) ([]string, error) {
+func filterFiles(bctx build.Context, inputs []string) ([]string, error) {
 	var outputs []string
 	for _, input := range inputs {
-		if match, err := matchFile(input); err != nil {
+		if match, err := matchFile(bctx, input); err != nil {
 			return nil, err
 		} else if match {
 			outputs = append(outputs, input)
@@ -39,13 +37,7 @@ func filterFiles(inputs []string) ([]string, error) {
 // it should be compiled.
 // TODO(#70): cross compilation: support GOOS, GOARCH that are different
 // from the host platform.
-func matchFile(input string) (bool, error) {
+func matchFile(bctx build.Context, input string) (bool, error) {
 	dir, base := filepath.Split(input)
 	return bctx.MatchFile(dir, base)
-}
-
-func defaultContext() build.Context {
-	bctx := build.Default
-	bctx.CgoEnabled = true
-	return bctx
 }

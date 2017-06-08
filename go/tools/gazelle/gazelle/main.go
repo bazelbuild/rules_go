@@ -114,11 +114,6 @@ func run(dirs []string, emit func(*bzl.File) error, external rules.ExternalResol
 			if err := emit(f); err != nil {
 				return err
 			}
-			if *mode == "fix" && f.Path != existingFilePath {
-				if err := os.Remove(existingFilePath); err != nil {
-					return err
-				}
-			}
 		}
 	}
 	return nil

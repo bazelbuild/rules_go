@@ -21,13 +21,15 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"testing"
 )
 
-var testFileCGO = `
-// This file is not intended to actually build.
+var testfiles = map[string]string{
+	"cgo.go": `
+//+build cgo
 
-package cgo
+package tags
 
 /*
 #include <stdio.h>
@@ -43,29 +45,29 @@ import "C"
 func main() {
 	C.myprint("hello")
 }
-`
-
-var testFileFILENAMETAG = `
-// This file is not intended to actually compile.
-
-package filenametag_darwin
-`
-
-var testFileIGNORE = `
-// This file is not intended to actually build.
-
-//+build ignore
-
-package ignore
-`
-
-var testFileTAGS = `
-// This file is not intended to actually build.
-
-//+build arm,darwin linux,mips
+`,
+	"extra.go": `
+//+build a,b b,c
 
 package tags
-`
+`,
+	"ignore.go": `
+//+build ignore
+
+package tags
+`,
+	"normal.go": `
+package tags
+`,
+	"on_darwin.go": `
+package tags
+`,
+	"system.go": `
+//+build arm,darwin linux,amd64
+
+package tags
+`,
+}
 
 func TestTags(t *testing.T) {
 	tempdir, err := ioutil.TempDir("", "goruletest")
@@ -74,19 +76,16 @@ func TestTags(t *testing.T) {
 	}
 	defer os.RemoveAll(tempdir)
 
-	for k, v := range map[string]string{
-		"cgo.go":    testFileCGO,
-		"darwin.go": testFileFILENAMETAG,
-		"ignore.go": testFileIGNORE,
-		"tags.go":   testFileTAGS,
-	} {
+	input := []string{}
+	for k, v := range testfiles {
 		p := filepath.Join(tempdir, k)
 		if err := ioutil.WriteFile(p, []byte(v), 0644); err != nil {
 			t.Fatalf("WriteFile(%s): %v", p, err)
 		}
+		input = append(input, k)
 	}
+	sort.Strings(input)
 
-	testContext := build.Default
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Getwd: %v", err)
@@ -98,37 +97,30 @@ func TestTags(t *testing.T) {
 	}
 	defer os.Chdir(wd)
 
-	// Test tags.go (tags in +build comments)
-	testContext.BuildTags = []string{"arm", "darwin"}
-	inputs := []string{"tags.go"}
-	outputs, err := filterFilenames(testContext, inputs)
+	bctx := build.Default
+	// Always fake the os and arch
+	bctx.GOOS = "darwin"
+	bctx.GOARCH = "amd64"
+	bctx.CgoEnabled = false
+	runTest(t, bctx, input, []string{"normal.go", "on_darwin.go"})
+	bctx.GOOS = "linux"
+	runTest(t, bctx, input, []string{"normal.go", "system.go"})
+	bctx.GOARCH = "arm"
+	runTest(t, bctx, input, []string{"normal.go"})
+	bctx.BuildTags = []string{"a", "b"}
+	runTest(t, bctx, input, []string{"extra.go", "normal.go"})
+	bctx.BuildTags = []string{"a", "c"}
+	runTest(t, bctx, input, []string{"normal.go"})
+	bctx.CgoEnabled = true
+	runTest(t, bctx, input, []string{"cgo.go", "normal.go"})
+}
+
+func runTest(t *testing.T, bctx build.Context, inputs []string, expect []string) {
+	got, err := filterFilenames(bctx, inputs)
 	if err != nil {
-		t.Errorf("filterFilenames(%s): %v", inputs, err)
+		t.Errorf("filter %v,%v,%v,%v failed: %v", bctx.GOOS, bctx.GOARCH, bctx.CgoEnabled, bctx.BuildTags, err)
 	}
-
-	if !reflect.DeepEqual(inputs, outputs) {
-		t.Error("Output missing an expected file: tags.go")
-	}
-
-	testContext.BuildTags = []string{"arm, linux"}
-	outputs, err = filterFilenames(testContext, inputs)
-	if err != nil {
-		t.Errorf("filterFilenames(%s): %v", inputs, err)
-	}
-
-	if !reflect.DeepEqual([]string{}, outputs) {
-		t.Error("Output contains an unexpected file: tags.go")
-	}
-
-	// Test ignore.go (should not build a file with +ignore comment)
-	testContext.BuildTags = []string{}
-	inputs = []string{"ignore.go"}
-	outputs, err = filterFilenames(testContext, inputs)
-	if err != nil {
-		t.Errorf("filterFilenames(%s): %v", inputs, err)
-	}
-
-	if !reflect.DeepEqual([]string{}, outputs) {
-		t.Error("Output contains an unexpected file: ignore.go")
+	if !reflect.DeepEqual(expect, got) {
+		t.Errorf("filter %v,%v,%v,%v: expect %v got %v", bctx.GOOS, bctx.GOARCH, bctx.CgoEnabled, bctx.BuildTags, expect, got)
 	}
 }

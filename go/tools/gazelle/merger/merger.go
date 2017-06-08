@@ -53,7 +53,7 @@ func MergeWithExisting(genFile *bzl.File, existingFilePath string) (*bzl.File, e
 	if err != nil {
 		return nil, err
 	}
-	oldFile, err := bzl.Parse(genFile.Path, oldData)
+	oldFile, err := bzl.Parse(existingFilePath, oldData)
 	if err != nil {
 		return nil, err
 	}
