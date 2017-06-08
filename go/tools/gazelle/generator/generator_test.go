@@ -25,10 +25,6 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
 
-var (
-	buildTagRepoPath = "cgolib_with_build_tags"
-)
-
 func TestBuildTagOverride(t *testing.T) {
 	repo := filepath.Join(testdata.Dir(), "repo")
 	g, err := New(repo, "example.com/repo", "BUILD", "a,b", rules.External)

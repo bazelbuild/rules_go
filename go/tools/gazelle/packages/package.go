@@ -229,6 +229,9 @@ func (ps *PlatformStrings) addGenericOpts(platforms PlatformConstraints, opts []
 
 		for name, tags := range platforms {
 			if checkTags(t.tags, tags) {
+				if ps.Platform == nil {
+					ps.Platform = make(map[string][]string)
+				}
 				ps.Platform[name] = append(ps.Platform[name], t.opts...)
 			}
 		}
@@ -243,11 +246,11 @@ func (ps *PlatformStrings) addPlatformStrings(name string, ss ...string) {
 }
 
 func (ps *PlatformStrings) addTaggedOpts(name string, opts []taggedOpts, tags map[string]bool) {
-	if ps.Platform == nil {
-		ps.Platform = make(map[string][]string)
-	}
 	for _, t := range opts {
 		if t.tags == "" || checkTags(t.tags, tags) {
+			if ps.Platform == nil {
+				ps.Platform = make(map[string][]string)
+			}
 			ps.Platform[name] = append(ps.Platform[name], t.opts...)
 		}
 	}

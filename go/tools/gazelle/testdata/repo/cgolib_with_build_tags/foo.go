@@ -17,6 +17,9 @@ package cgolibwithtags
 
 /**
 #cgo CFLAGS: -I/weird/path
+#cgo linux CFLAGS: -DGOOS=linux
+#cgo darwin CFLAGS: -DGOOS=darwin
+#cgo windows CFLAGS: -DGOOS=windows
 #cgo LDFLAGS: -lweird
 **/
 import "C"

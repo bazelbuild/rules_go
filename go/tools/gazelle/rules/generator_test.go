@@ -56,6 +56,7 @@ func TestGenerator(t *testing.T) {
 		"bin",
 		"bin_with_tests",
 		"cgolib",
+		"cgolib_with_build_tags",
 		"allcgolib",
 		"platforms",
 	} {

@@ -1,0 +1,56 @@
+cgo_library(
+    name = "cgo_default_library",
+    srcs = [
+        "foo.go",
+        "asm_other.S",
+        "foo.h",
+        "foo_other.c",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "asm_linux.S",
+            "foo_linux.c",
+        ],
+        "//conditions:default": [],
+    }),
+    clinkopts = ["-lweird"],
+    copts = [
+        "-I/weird/path",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "-DGOOS=darwin",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "-DGOOS=linux",
+        ],
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            "-DGOOS=windows",
+        ],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:private"],
+    deps = ["//lib:go_default_library"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "pure_other.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "pure_linux.go",
+        ],
+        "//conditions:default": [],
+    }),
+    library = ":cgo_default_library",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lib/deep:go_default_library",
+        "//lib:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["foo_test.go"],
+    library = ":go_default_library",
+)
