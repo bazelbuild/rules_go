@@ -36,6 +36,7 @@ touch BUILD
 
 targets=(
   @org_golang_x_net//...
+  @org_golang_x_sys//...
   @org_golang_x_text//...
   @org_golang_x_tools//...
 )
@@ -43,19 +44,22 @@ targets=(
 excludes=(
   # TODO(#413): External test depends on symbols defined in internal test.
   -@org_golang_x_tools//container/intsets:go_default_xtest
+  -@org_golang_x_sys//unix:go_default_xtest
 
   # TODO(#414): Error compiling test main.
   -@org_golang_x_net//ipv6:go_default_test
 
-  # TODO(#417): several tests fail. Need to investigate and fix.
+  # TODO(#359): cgo library has platform-specific sources and is empty on
+  # some platforms, causing an error.
+  -@org_golang_x_text//collate/tools/colcmp:all
+
+  # TODO: tests cannot access files in testdata directories.
   -@org_golang_x_net//bpf:go_default_test
   -@org_golang_x_net//html/charset:go_default_test
   -@org_golang_x_net//http2:go_default_test
-  -@org_golang_x_net//icmp:go_default_xtest
-  -@org_golang_x_text//collate/tools/colcmp:all
-  -@org_golang_x_text//encoding/charmap:go_default_test
   -@org_golang_x_text//encoding/japanese:go_default_test
   -@org_golang_x_text//encoding/korean:go_default_test
+  -@org_golang_x_text//encoding/charmap:go_default_test
   -@org_golang_x_text//encoding/simplifiedchinese:go_default_test
   -@org_golang_x_text//encoding/traditionalchinese:go_default_test
   -@org_golang_x_text//encoding/unicode/utf32:go_default_test
@@ -63,8 +67,6 @@ excludes=(
   -@org_golang_x_tools//cmd/bundle:go_default_test
   -@org_golang_x_tools//cmd/callgraph:go_default_test
   -@org_golang_x_tools//cmd/cover:go_default_xtest
-  -@org_golang_x_tools//cmd/fiximports:go_default_test
-  -@org_golang_x_tools//cmd/godoc:go_default_xtest
   -@org_golang_x_tools//cmd/guru:go_default_xtest
   -@org_golang_x_tools//cmd/stringer:go_default_test
   -@org_golang_x_tools//go/buildutil:go_default_xtest
@@ -73,7 +75,6 @@ excludes=(
   -@org_golang_x_tools//go/gccgoexportdata:go_default_xtest
   -@org_golang_x_tools//go/gcexportdata:go_default_xtest
   -@org_golang_x_tools//go/gcimporter15:go_default_test
-  -@org_golang_x_tools//go/gcimporter15:go_default_xtest
   -@org_golang_x_tools//go/internal/gccgoimporter:go_default_test
   -@org_golang_x_tools//go/loader:go_default_xtest
   -@org_golang_x_tools//go/pointer:go_default_xtest
@@ -81,8 +82,15 @@ excludes=(
   -@org_golang_x_tools//go/ssa/ssautil:go_default_xtest
   -@org_golang_x_tools//go/ssa:go_default_xtest
   -@org_golang_x_tools//refactor/eg:go_default_xtest
+
+  # TODO(#417): several tests fail. Need to investigate and fix.
+  -@org_golang_x_tools//cmd/godoc:go_default_xtest
+  -@org_golang_x_tools//go/gcimporter15:go_default_xtest
   -@org_golang_x_tools//refactor/importgraph:go_default_xtest
   -@org_golang_x_tools//refactor/rename:go_default_test
+
+  # icmp tests require adjusting kernel options.
+  -@org_golang_x_net//icmp:go_default_xtest
 )
 
 case $(uname) in
@@ -92,6 +100,13 @@ case $(uname) in
       -@org_golang_x_net//route:all
     )
     ;;
+
+  Linux|Darwin)
+    excludes+=(
+      # windows only supports windows.
+      -@org_golang_x_sys//windows/...
+    )
+    ;;
 esac
 
 bazel_batch_test --keep_going -- "${targets[@]}" "${excludes[@]}"
@@ -99,12 +114,8 @@ bazel_batch_test --keep_going -- "${targets[@]}" "${excludes[@]}"
 # TODO(#415): golang.org/x/crypto can't be built because there is a package
 # named "ssh/testdata", which gazelle doesn't recurse into.
 
-# TODO(#399): golang.org/x/sys can't be built because there is a package named
-# "unix/linux" with multiple packages in ignored files. Gazelle should ignore
-# packages that are effectively empty.
-
-# TODO(#409): golang.org/x/net has a package, route, with BSD-only code. Causes
-# a build error on linux because go_library ends up empty.
+# TODO(#526): github.com/mattn/go-sqlite3 can't be built as an external
+# dependency due to an include issue with cgo.
 
 # TODO: golang.org/x/oauth2 has dependency on
 # cloud.google.com/go/compute/metadata. Not supported yet.

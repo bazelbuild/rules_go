@@ -20,6 +20,12 @@ go_repository(
 )
 
 go_repository(
+    name = "org_golang_x_sys",
+    importpath = "golang.org/x/sys",
+    commit = "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79",
+)
+
+go_repository(
     name = "org_golang_x_text",
     importpath = "golang.org/x/text",
     commit = "a9a820217f98f7c8a207ec1e45a874e1fe12c478",
@@ -29,4 +35,10 @@ go_repository(
     name = "org_golang_x_tools",
     importpath = "golang.org/x/tools",
     commit = "663269851cdddc898f963782f74ea574bcd5c814",
+)
+
+go_repository(
+    name = "com_github_mattn_go_sqlite3",
+    importpath = "github.com/mattn/go-sqlite3",
+    commit = "83772a7051f5e30d8e59746a9e43dfa706b72f3b",
 )
