@@ -88,8 +88,8 @@ excludes=(
 case $(uname) in
   Linux)
     excludes+=(
-      # TODO: cgo_library dependency only has darwin sources.
-      @org_golang_x_text//collate/tools/colcmp
+      # route only supports BSD variants.
+      -@org_golang_x_net//route:all
     )
     ;;
 esac

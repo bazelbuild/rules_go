@@ -45,6 +45,7 @@ func init() {
 // platform-specific tags before they are used to match files.
 func PreprocessTags(genericTags map[string]bool, platforms PlatformConstraints) {
 	genericTags["cgo"] = true
+	genericTags["gc"] = true
 	for _, t := range build.Default.ReleaseTags {
 		genericTags[t] = true
 	}
