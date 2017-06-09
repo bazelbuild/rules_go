@@ -33,19 +33,19 @@ func run(args []string) error {
 	gotool := args[0]
 	args = args[1:]
 	sources := []string{}
-	goargs := []string{}
+	goopts := []string{}
 	bctx := build.Default
 	bctx.CgoEnabled = true
 	for i, s := range args {
 		if s == "--" {
 			if i < len(args) {
-				goargs = args[i+1:]
+				goopts = args[i+1:]
 			}
 			break
 		}
 		sources = append(sources, s)
 	}
-	// filter the soure list to the ones that apply
+	// apply build constraints to the source list
 	sources, err := filterFiles(bctx, sources)
 	if err != nil {
 		return err
@@ -55,13 +55,13 @@ func run(args []string) error {
 	}
 	// Now we need to abs include and trim paths
 	needAbs := false
-	for i, arg := range goargs {
+	for i, arg := range goopts {
 		switch {
 		case needAbs:
 			needAbs = false
 			abs, err := filepath.Abs(arg)
 			if err == nil {
-				goargs[i] = abs
+				goopts[i] = abs
 			}
 		case arg == "-I":
 			needAbs = true
@@ -72,7 +72,7 @@ func run(args []string) error {
 		}
 	}
 
-	goargs = append([]string{"tool", "compile"}, goargs...)
+	goargs := append([]string{"tool", "compile"}, goopts...)
 	goargs = append(goargs, sources...)
 	cmd := exec.Command(gotool, goargs...)
 	cmd.Stdout = os.Stdout
