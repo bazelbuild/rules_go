@@ -135,7 +135,7 @@ def generate_toolchains():
       darwin_amd64: [linux_amd64],
   }
 
-  # Use all the above information to generate all the possible toolchain's we might support
+  # Use all the above information to generate all the possible toolchains we might support
   toolchains = []
   for version in versions:
     major = "go%d" % (version.semver[0])
@@ -143,10 +143,10 @@ def generate_toolchains():
     point = "%s.%d" % (minor, version.semver[2])
     version_constraints = [":" + major, ":" + minor, ":" + point]
     for host in version.hosts:
-      distribution = minor
+      distribution = "@go%d_%d_" % (version.semver[0], version.semver[1])
       if version.semver[2]:
-        distribution = point
-      distribution = "@" + distribution + "." + host.os.goos + "-" + host.arch.goarch
+        distribution += "%d_" % version.semver[2]
+      distribution += "%s_%s" % (host.os.goos, host.arch.goarch)
       for target in [host] + cross_targets.get(host, []):
         toolchain_name = point + "-" + host.os.name + "-" + host.arch.name
         is_cross = host != target

@@ -66,6 +66,7 @@ def go_repositories(
     for suffix in [".tar.gz", ".zip"]:
       if name.endswith(suffix):
         name = name[:-len(suffix)]
+    name = name.replace("-", "_").replace(".", "_")
     go_sdk_repository(
         name = name,
         url = "https://storage.googleapis.com/golang/" + filename,
