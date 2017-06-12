@@ -24,5 +24,5 @@ var PassIfEmpty = "fail"
 // an xdef should set this to nonempty
 var XdefBuildTimestamp = ""
 
-// an xdef with an missing key should leave this alone
+// an xdef with a missing key should leave this alone
 var XdefInvalid = "pass"

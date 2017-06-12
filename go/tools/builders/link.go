@@ -42,9 +42,7 @@ func run(args []string) error {
 	bctx.CgoEnabled = true
 	for i, s := range args {
 		if s == "--" {
-			if i < len(args) {
-				goopts = args[i+1:]
-			}
+			goopts = args[i+1:]
 			break
 		}
 		linkargs = append(linkargs, s)
