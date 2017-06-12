@@ -89,8 +89,11 @@ excludes=(
   -@org_golang_x_tools//refactor/importgraph:go_default_xtest
   -@org_golang_x_tools//refactor/rename:go_default_test
 
-  # icmp tests require adjusting kernel options.
+  # icmp requires adjusting kernel options.
   -@org_golang_x_net//icmp:go_default_xtest
+
+  # fiximports requires working GOROOT, not present in CI.
+  -@org_golang_x_tools//cmd/fiximports:go_default_test
 )
 
 case $(uname) in
