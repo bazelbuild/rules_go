@@ -34,4 +34,7 @@ func TestStampedBin(t *testing.T) {
 	if stamp.PassIfEmpty != "" {
 		t.Errorf("Expected PassIfEmpty to have been set to '', got %s.", stamp.PassIfEmpty)
 	}
+	if stamp.XdefInvalid != "pass" {
+		t.Errorf("Expected XdefInvalid to have been left alone, got %s.", stamp.XdefInvalid)
+	}
 }

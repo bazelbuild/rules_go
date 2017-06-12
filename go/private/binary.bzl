@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions")
 
 def _go_binary_impl(ctx):
@@ -150,14 +150,12 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
-  link_cmd = [
-      go_toolchain.go.path,
-      "tool", "link",
+  link_opts = [
       "-L", "."
   ]
   for path in transitive_go_library_paths:
-    link_cmd += ["-L", path]
-  link_cmd += [
+    link_opts += ["-L", path]
+  link_opts += [
       "-o", executable.path,
   ] + gc_linkopts
 
@@ -168,56 +166,36 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
     if v.startswith("{") and v.endswith("}"):
       stamp_x_defs[k] = v[1:-1]
     else:
-      link_cmd += ["-X", "%s='%s'" % (k, v)]
-  need_stamp = stamp_x_defs or ctx.attr.linkstamp
-  if need_stamp:
-    link_cmd.append('"${STAMP_XDEFS[@]}"')
+      link_opts += ["-X", "%s=%s" % (k, v)]
 
-  link_cmd += go_toolchain.link_flags + [
+  link_opts += go_toolchain.link_flags + [
       "-extld", ld,
-      "-extldflags", "'%s'" % " ".join(extldflags),
+      "-extldflags", " ".join(extldflags),
   ] + [lib.path for lib in libs]
 
-  # Avoided -s on OSX but but it requires dsymutil to be on $PATH.
-  # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
-  # or earlier.
-  cmds = ["export PATH=$PATH:/usr/bin"]
-
+  link_args = [go_toolchain.go.path]
   # Stamping support
   stamp_inputs = []
-  if need_stamp:
+  if stamp_x_defs or ctx.attr.linkstamp:
     stamp_inputs = [ctx.info_file, ctx.version_file]
-    cmds.append("STAMP_XDEFS=()")
-    # x_def option support: grep the workspace status files for a key matching
-    # the requested stamp value.
-    # For example, for x_defs = {"some/pkg.var": "{FOO}"}, look in the workspace
-    # status files for a key "FOO", and pass its value to "some/pkg.var".
-    stamp_inputs_paths = [f.path for f in stamp_inputs]
+    for f in stamp_inputs:
+      link_args += ["-stamp", f.path]
     for k,v in stamp_x_defs.items():
-      cmds.append(
-          "STAMP_XDEFS+=(-X \"%s=$(grep '^%s ' %s | cut -d' ' -f2-)\")" % (
-              k, v, ' '.join(stamp_inputs_paths))
-          )
-
+      link_args += ["-X", "%s=%s" % (k, v)]
     # linkstamp option support: read workspace status files,
     # converting "KEY value" lines to "-X $linkstamp.KEY=value" arguments
     # to the go linker.
-    for path in stamp_inputs_paths:
-      cmds += [
-          "while read -r key value || [[ -n $key ]]; do",
-          "  STAMP_XDEFS+=(-X \"%s.$key=$value\")" % ctx.attr.linkstamp,
-          "done < " + path,
-      ]
+    if ctx.attr.linkstamp:
+      link_args += ["-linkstamp", ctx.attr.linkstamp]
 
-  cmds += [' '.join(link_cmd)]
-
-  f = emit_generate_params_action(cmds, ctx, lib.basename + ".GoLinkFile.params")
+  link_args += ["--"] + link_opts
 
   ctx.action(
-      inputs = [f] + (list(transitive_go_libraries) + [lib] + list(cgo_deps) +
-                go_toolchain.tools + go_toolchain.crosstool) + stamp_inputs,
+      inputs = list(transitive_go_libraries + [lib] + cgo_deps +
+                go_toolchain.tools + go_toolchain.crosstool + stamp_inputs),
       outputs = [executable],
-      command = f.path,
       mnemonic = "GoLink",
+      executable = go_toolchain.link,
+      arguments = link_args,
       env = go_toolchain.env,
   )

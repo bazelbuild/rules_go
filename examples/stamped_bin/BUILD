@@ -7,6 +7,7 @@ go_test(
     x_defs = {
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "pass",
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should set the var to empty
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
 )
@@ -17,7 +18,8 @@ go_test(
     x_defs = {
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.BUILD_TIMESTAMP": "{BUILD_TIMESTAMP}",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
-        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "{Undefined_Var}",  # undefined should set the var to empty
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should set the var to empty
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
 )
@@ -29,6 +31,7 @@ go_test(
     x_defs = {
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should set the var to empty
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
 )

@@ -44,3 +44,13 @@ go_tool_binary(
     ],
     visibility = ["//visibility:public"],
 )
+
+go_tool_binary(
+    name = "link",
+    srcs = [
+        "flags.go",
+        "link.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
