@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 
@@ -34,35 +34,19 @@ def _go_test_impl(ctx):
   main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
   go_import = go_importpath(ctx)
 
-  cmds = [
-      'UNFILTERED_TEST_FILES=(%s)' %
-          ' '.join(["'%s'" % f.path for f in lib_result.go_sources]),
-      'FILTERED_TEST_FILES=()',
-      'while read -r line; do',
-      '  if [ -n "$line" ]; then',
-      '    FILTERED_TEST_FILES+=("$line")',
-      '  fi',
-      'done < <(\'%s\' -cgo "${UNFILTERED_TEST_FILES[@]}")' %
-          go_toolchain.filter_tags.path,
-      ' '.join([
-          "'%s'" % go_toolchain.test_generator.path,
+  ctx.action(
+      inputs = list(lib_result.go_sources),
+      outputs = [main_go],
+      mnemonic = "GoTestGenTest",
+      executable = go_toolchain.test_generator,
+      arguments = [
           '--package',
           go_import,
           '--output',
-          "'%s'" % main_go.path,
-          '"${FILTERED_TEST_FILES[@]}"',
-      ]),
-  ]
-  f = emit_generate_params_action(
-      cmds, ctx, ctx.label.name + ".GoTestGenTest.params")
-  inputs = (list(lib_result.go_sources) + list(go_toolchain.tools) +
-            [f, go_toolchain.filter_tags, go_toolchain.test_generator])
-  ctx.action(
-      inputs = inputs,
-      outputs = [main_go],
-      command = f.path,
-      mnemonic = "GoTestGenTest",
-      env = dict(go_toolchain.env, RUNDIR=ctx.label.package))
+          main_go.path,
+      ] + [src.path for src in lib_result.go_sources],
+      env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
+  )
 
   emit_go_compile_action(
     ctx,

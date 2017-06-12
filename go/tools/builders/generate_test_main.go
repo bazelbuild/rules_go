@@ -19,7 +19,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"go/ast"
+	"go/build"
 	"go/parser"
 	"go/token"
 	"log"
@@ -197,13 +199,25 @@ func main() {
 }
 `
 
-func main() {
-	pkg := flag.String("package", "", "package from which to import test methods.")
-	out := flag.String("output", "", "output file to write. Defaults to stdout.")
-	flag.Parse()
-
+func run(args []string) error {
+	// Prepare our flags
+	flags := flag.NewFlagSet("generate_test_main", flag.ExitOnError)
+	pkg := flags.String("package", "", "package from which to import test methods.")
+	out := flags.String("output", "", "output file to write. Defaults to stdout.")
+	tags := flags.String("tags", "", "Only pass through files that match these tags.")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
 	if *pkg == "" {
-		log.Fatal("must set --package.")
+		return fmt.Errorf("must set --package.")
+	}
+	// filter our input file list
+	bctx := build.Default
+	bctx.CgoEnabled = true
+	bctx.BuildTags = strings.Split(*tags, ",")
+	filenames, err := filterFiles(bctx, flags.Args())
+	if err != nil {
+		return err
 	}
 
 	outFile := os.Stdout
@@ -211,7 +225,7 @@ func main() {
 		var err error
 		outFile, err = os.Create(*out)
 		if err != nil {
-			log.Fatalf("os.Create(%q): %v", *out, err)
+			return fmt.Errorf("os.Create(%q): %v", *out, err)
 		}
 		defer outFile.Close()
 	}
@@ -225,7 +239,7 @@ func main() {
 		Cover:   []coverInfo{ci},
 	}
 	testFileSet := token.NewFileSet()
-	for _, f := range flag.Args() {
+	for _, f := range filenames {
 		coverVar := extractCoverVar(f)
 		if coverVar != "" {
 			ci.Vars[f] = &CoverVar{
@@ -236,7 +250,7 @@ func main() {
 
 		parse, err := parser.ParseFile(testFileSet, f, nil, parser.ParseComments)
 		if err != nil {
-			log.Fatalf("ParseFile(%q): %v", f, err)
+			return fmt.Errorf("ParseFile(%q): %v", f, err)
 		}
 
 		for _, d := range parse.Decls {
@@ -299,9 +313,12 @@ func main() {
 
 	testCover = len(ci.Vars) > 0
 
-	goVersion := parseVersion(runtime.Version())
+	goVersion, err := parseVersion(runtime.Version())
+	if err != nil {
+		return err
+	}
 	if goVersion.Less(version{1, 7}) {
-		log.Fatalf("go version %s not supported", runtime.Version())
+		return fmt.Errorf("go version %s not supported", runtime.Version())
 	} else if goVersion.Less(version{1, 8}) {
 		cases.Version17 = true
 	} else {
@@ -310,23 +327,24 @@ func main() {
 
 	tpl := template.Must(template.New("source").Parse(codeTpl))
 	if err := tpl.Execute(outFile, &cases); err != nil {
-		log.Fatalf("template.Execute(%v): %v", cases, err)
+		return fmt.Errorf("template.Execute(%v): %v", cases, err)
 	}
+	return nil
 }
 
 type version []int
 
-func parseVersion(s string) version {
+func parseVersion(s string) (version, error) {
 	strParts := strings.Split(s[len("go"):], ".")
 	intParts := make([]int, len(strParts))
 	for i, s := range strParts {
 		v, err := strconv.Atoi(s)
 		if err != nil {
-			log.Fatalf("non-number in go version: %s", s)
+			return nil, fmt.Errorf("non-number in go version: %s", s)
 		}
 		intParts[i] = v
 	}
-	return intParts
+	return intParts, nil
 }
 
 func (x version) Less(y version) bool {
@@ -349,4 +367,10 @@ func extractCoverVar(fn string) string {
 		return res[1]
 	}
 	return ""
+}
+
+func main() {
+	if err := run(os.Args[1:]); err != nil {
+		log.Fatal(err)
+	}
 }
