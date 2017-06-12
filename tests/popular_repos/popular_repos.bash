@@ -98,10 +98,12 @@ case $(uname) in
     excludes+=(
       # route only supports BSD variants.
       -@org_golang_x_net//route:all
+      # windows only supports windows.
+      -@org_golang_x_sys//windows/...
     )
     ;;
 
-  Linux|Darwin)
+  Darwin)
     excludes+=(
       # windows only supports windows.
       -@org_golang_x_sys//windows/...
