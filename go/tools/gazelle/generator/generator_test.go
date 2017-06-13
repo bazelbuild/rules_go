@@ -27,7 +27,8 @@ import (
 
 func TestBuildTagOverride(t *testing.T) {
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", "BUILD", "a,b", rules.External)
+	buildTags := map[string]bool{"a": true, "b": true}
+	g, err := New(repo, "example.com/repo", "BUILD", buildTags, rules.External)
 	if err != nil {
 		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
 		return
@@ -53,16 +54,12 @@ func TestGeneratedFileName(t *testing.T) {
 
 func testGeneratedFileName(t *testing.T, buildFileName string) {
 	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildFileName, "", rules.External)
+	g, err := New(repo, "example.com/repo", buildFileName, nil, rules.External)
 	if err != nil {
 		t.Errorf("error creating generator: %v", err)
 		return
 	}
-	fs, err := g.Generate(filepath.Join(repo, "bin"))
-	if err != nil {
-		t.Errorf("error generating files: %v", err)
-		return
-	}
+	fs := g.Generate(filepath.Join(repo, "bin"))
 	fs = fs[1:] // ignore empty top-level file with go_prefix
 	if got, want := fs[0].Path, filepath.Join("bin", buildFileName); got != want {
 		t.Errorf("got file named %q; want %q", got, want)

@@ -17,6 +17,7 @@ package rules
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"sort"
 
@@ -34,20 +35,13 @@ type globvalue struct {
 	excludes []string
 }
 
-func newRule(kind string, args []interface{}, kwargs []keyvalue) (*bzl.Rule, error) {
+func newRule(kind string, args []interface{}, kwargs []keyvalue) *bzl.Rule {
 	var list []bzl.Expr
-	for i, arg := range args {
-		expr, err := newValue(arg)
-		if err != nil {
-			return nil, fmt.Errorf("wrong arg %v at args[%d]: %v", arg, i, err)
-		}
-		list = append(list, expr)
+	for _, arg := range args {
+		list = append(list, newValue(arg))
 	}
 	for _, arg := range kwargs {
-		expr, err := newValue(arg.value)
-		if err != nil {
-			return nil, fmt.Errorf("wrong value %v at kwargs[%q]: %v", arg.value, arg.key, err)
-		}
+		expr := newValue(arg.value)
 		list = append(list, &bzl.BinaryExpr{
 			X:  &bzl.LiteralExpr{Token: arg.key},
 			Op: "=",
@@ -60,33 +54,30 @@ func newRule(kind string, args []interface{}, kwargs []keyvalue) (*bzl.Rule, err
 			X:    &bzl.LiteralExpr{Token: kind},
 			List: list,
 		},
-	}, nil
+	}
 }
 
 // newValue converts a Go value into the corresponding expression in Bazel BUILD file.
-func newValue(val interface{}) (bzl.Expr, error) {
+func newValue(val interface{}) bzl.Expr {
 	rv := reflect.ValueOf(val)
 	switch rv.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return &bzl.LiteralExpr{Token: fmt.Sprintf("%d", val)}, nil
+		return &bzl.LiteralExpr{Token: fmt.Sprintf("%d", val)}
 
 	case reflect.Float32, reflect.Float64:
-		return &bzl.LiteralExpr{Token: fmt.Sprintf("%f", val)}, nil
+		return &bzl.LiteralExpr{Token: fmt.Sprintf("%f", val)}
 
 	case reflect.String:
-		return &bzl.StringExpr{Value: val.(string)}, nil
+		return &bzl.StringExpr{Value: val.(string)}
 
 	case reflect.Slice, reflect.Array:
 		var list []bzl.Expr
 		for i := 0; i < rv.Len(); i++ {
-			elem, err := newValue(rv.Index(i).Interface())
-			if err != nil {
-				return nil, err
-			}
+			elem := newValue(rv.Index(i).Interface())
 			list = append(list, elem)
 		}
-		return &bzl.ListExpr{List: list}, nil
+		return &bzl.ListExpr{List: list}
 
 	case reflect.Map:
 		rkeys := rv.MapKeys()
@@ -94,10 +85,7 @@ func newValue(val interface{}) (bzl.Expr, error) {
 		args := make([]bzl.Expr, len(rkeys))
 		for i, rk := range rkeys {
 			k := &bzl.StringExpr{Value: rk.String()}
-			v, err := newValue(rv.MapIndex(rk).Interface())
-			if err != nil {
-				return nil, err
-			}
+			v := newValue(rv.MapIndex(rk).Interface())
 			if l, ok := v.(*bzl.ListExpr); ok {
 				l.ForceMultiLine = true
 			}
@@ -111,21 +99,15 @@ func newValue(val interface{}) (bzl.Expr, error) {
 			X:    &bzl.LiteralExpr{Token: "select"},
 			List: []bzl.Expr{&bzl.DictExpr{List: args, ForceMultiLine: true}},
 		}
-		return sel, nil
+		return sel
 
 	case reflect.Struct:
 		switch val := val.(type) {
 		case globvalue:
-			patternsValue, err := newValue(val.patterns)
-			if err != nil {
-				return nil, err
-			}
+			patternsValue := newValue(val.patterns)
 			globArgs := []bzl.Expr{patternsValue}
 			if len(val.excludes) > 0 {
-				excludesValue, err := newValue(val.excludes)
-				if err != nil {
-					return nil, err
-				}
+				excludesValue := newValue(val.excludes)
 				globArgs = append(globArgs, &bzl.KeyValueExpr{
 					Key:   &bzl.StringExpr{Value: "excludes"},
 					Value: excludesValue,
@@ -134,37 +116,28 @@ func newValue(val interface{}) (bzl.Expr, error) {
 			return &bzl.CallExpr{
 				X:    &bzl.LiteralExpr{Token: "glob"},
 				List: globArgs,
-			}, nil
+			}
 
 		case packages.PlatformStrings:
-			gen, err := newValue(val.Generic)
-			if err != nil {
-				return nil, err
-			}
+			gen := newValue(val.Generic)
 			if len(val.Platform) == 0 {
-				return gen, nil
+				return gen
 			}
 
-			sel, err := newValue(val.Platform)
-			if err != nil {
-				return nil, err
-			}
+			sel := newValue(val.Platform)
 			if len(val.Generic) == 0 {
-				return sel, nil
+				return sel
 			}
 
 			if genList, ok := gen.(*bzl.ListExpr); ok {
 				genList.ForceMultiLine = true
 			}
-			return &bzl.BinaryExpr{X: gen, Op: "+", Y: sel}, nil
-
-		default:
-			return nil, fmt.Errorf("not implemented %T", val)
+			return &bzl.BinaryExpr{X: gen, Op: "+", Y: sel}
 		}
-
-	default:
-		return nil, fmt.Errorf("not implemented %T", val)
 	}
+
+	log.Panicf("type not supported: %T", val)
+	return nil
 }
 
 type byString []reflect.Value

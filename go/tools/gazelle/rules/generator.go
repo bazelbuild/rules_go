@@ -64,7 +64,7 @@ type Generator interface {
 	// directory to the Go package directory. It is empty if the package
 	// directory is the repository root itself.
 	// "pkg" is a description about the package.
-	Generate(rel string, pkg *packages.Package) ([]*bzl.Rule, error)
+	Generate(rel string, pkg *packages.Package) []*bzl.Rule
 }
 
 // NewGenerator returns an implementation of Generator.
@@ -108,76 +108,57 @@ type generator struct {
 	r        labelResolver
 }
 
-func (g *generator) Generate(rel string, pkg *packages.Package) ([]*bzl.Rule, error) {
+func (g *generator) Generate(rel string, pkg *packages.Package) []*bzl.Rule {
 	var rules []*bzl.Rule
 	if rel == "" {
-		p, err := newRule("go_prefix", []interface{}{g.goPrefix}, nil)
-		if err != nil {
-			return nil, err
-		}
-		rules = append(rules, p)
+		rules = append(rules, newRule("go_prefix", []interface{}{g.goPrefix}, nil))
 	}
 
-	cgoLibrary, r, err := g.generateCgoLib(rel, pkg)
-	if err != nil {
-		return nil, err
-	}
+	cgoLibrary, r := g.generateCgoLib(rel, pkg)
 	if r != nil {
 		rules = append(rules, r)
 	}
 
-	library, r, err := g.generateLib(rel, pkg, cgoLibrary)
-	if err != nil {
-		return nil, err
-	}
+	library, r := g.generateLib(rel, pkg, cgoLibrary)
 	if r != nil {
 		rules = append(rules, r)
 	}
 
-	if r, err := g.generateBin(rel, pkg, library); err != nil {
-		return nil, err
-	} else if r != nil {
+	if r := g.generateBin(rel, pkg, library); r != nil {
 		rules = append(rules, r)
 	}
 
-	p, err := g.filegroup(rel, pkg)
-	if err != nil {
-		return nil, err
-	}
-	if p != nil {
-		rules = append(rules, p)
+	if r := g.filegroup(rel, pkg); r != nil {
+		rules = append(rules, r)
 	}
 
 	testdataPath := filepath.Join(g.repoRoot, rel, "testdata")
 	st, err := os.Stat(testdataPath)
 	hasTestdata := err == nil && st.IsDir()
 
-	if r, err := g.generateTest(rel, pkg, library, hasTestdata); err != nil {
-		return nil, err
-	} else if r != nil {
-		rules = append(rules, r)
-	}
-	if r, err := g.generateXTest(rel, pkg, library, hasTestdata); err != nil {
-		return nil, err
-	} else if r != nil {
+	if r := g.generateTest(rel, pkg, library, hasTestdata); r != nil {
 		rules = append(rules, r)
 	}
 
-	return rules, nil
+	if r := g.generateXTest(rel, pkg, library, hasTestdata); r != nil {
+		rules = append(rules, r)
+	}
+
+	return rules
 }
 
-func (g *generator) generateBin(rel string, pkg *packages.Package, library string) (*bzl.Rule, error) {
+func (g *generator) generateBin(rel string, pkg *packages.Package, library string) *bzl.Rule {
 	if !pkg.IsCommand() || pkg.Binary.Sources.IsEmpty() && library == "" {
-		return nil, nil
+		return nil
 	}
 	name := filepath.Base(pkg.Dir)
 	visibility := checkInternalVisibility(rel, "//visibility:public")
 	return g.generateRule(rel, "go_binary", name, visibility, library, false, pkg.Binary)
 }
 
-func (g *generator) generateLib(rel string, pkg *packages.Package, cgoName string) (string, *bzl.Rule, error) {
+func (g *generator) generateLib(rel string, pkg *packages.Package, cgoName string) (string, *bzl.Rule) {
 	if !pkg.Library.HasGo() && cgoName == "" {
-		return "", nil, nil
+		return "", nil
 	}
 
 	name := defaultLibName
@@ -189,19 +170,19 @@ func (g *generator) generateLib(rel string, pkg *packages.Package, cgoName strin
 		visibility = checkInternalVisibility(rel, "//visibility:public")
 	}
 
-	rule, err := g.generateRule(rel, "go_library", name, visibility, cgoName, false, pkg.Library)
-	return name, rule, err
+	rule := g.generateRule(rel, "go_library", name, visibility, cgoName, false, pkg.Library)
+	return name, rule
 }
 
-func (g *generator) generateCgoLib(rel string, pkg *packages.Package) (string, *bzl.Rule, error) {
+func (g *generator) generateCgoLib(rel string, pkg *packages.Package) (string, *bzl.Rule) {
 	if !pkg.CgoLibrary.HasGo() {
-		return "", nil, nil
+		return "", nil
 	}
 
 	name := defaultCgoLibName
 	visibility := "//visibility:private"
-	rule, err := g.generateRule(rel, "cgo_library", name, visibility, "", false, pkg.CgoLibrary)
-	return name, rule, err
+	rule := g.generateRule(rel, "cgo_library", name, visibility, "", false, pkg.CgoLibrary)
+	return name, rule
 }
 
 // checkInternalVisibility overrides the given visibility if the package is
@@ -218,9 +199,9 @@ func checkInternalVisibility(rel, visibility string) string {
 // filegroup is a small hack for directories with pre-generated .pb.go files
 // and also source .proto files.  This creates a filegroup for the .proto in
 // addition to the usual go_library for the .pb.go files.
-func (g *generator) filegroup(rel string, pkg *packages.Package) (*bzl.Rule, error) {
+func (g *generator) filegroup(rel string, pkg *packages.Package) *bzl.Rule {
 	if !pkg.HasPbGo || len(pkg.Protos) == 0 {
-		return nil, nil
+		return nil
 	}
 	return newRule("filegroup", nil, []keyvalue{
 		{key: "name", value: defaultProtosName},
@@ -229,9 +210,9 @@ func (g *generator) filegroup(rel string, pkg *packages.Package) (*bzl.Rule, err
 	})
 }
 
-func (g *generator) generateTest(rel string, pkg *packages.Package, library string, hasTestdata bool) (*bzl.Rule, error) {
+func (g *generator) generateTest(rel string, pkg *packages.Package, library string, hasTestdata bool) *bzl.Rule {
 	if !pkg.Test.HasGo() {
-		return nil, nil
+		return nil
 	}
 
 	var name string
@@ -244,9 +225,9 @@ func (g *generator) generateTest(rel string, pkg *packages.Package, library stri
 	return g.generateRule(rel, "go_test", name, "", library, hasTestdata, pkg.Test)
 }
 
-func (g *generator) generateXTest(rel string, pkg *packages.Package, library string, hasTestdata bool) (*bzl.Rule, error) {
+func (g *generator) generateXTest(rel string, pkg *packages.Package, library string, hasTestdata bool) *bzl.Rule {
 	if !pkg.XTest.HasGo() {
-		return nil, nil
+		return nil
 	}
 
 	var name string
@@ -259,7 +240,7 @@ func (g *generator) generateXTest(rel string, pkg *packages.Package, library str
 	return g.generateRule(rel, "go_test", name, "", "", hasTestdata, pkg.XTest)
 }
 
-func (g *generator) generateRule(rel, kind, name, visibility, library string, hasTestdata bool, target packages.Target) (*bzl.Rule, error) {
+func (g *generator) generateRule(rel, kind, name, visibility, library string, hasTestdata bool, target packages.Target) *bzl.Rule {
 	// Construct attrs in the same order that bzl.Rewrite uses. See
 	// namePriority in github.com/bazelbuild/buildtools/build/rewrite.go.
 	attrs := []keyvalue{

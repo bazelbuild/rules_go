@@ -19,6 +19,7 @@ package merger
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"sort"
 	"strings"
 
@@ -30,14 +31,6 @@ const (
 	keep          = "# keep"           // marker in srcs or deps to tell gazelle to preserve.
 )
 
-type GazelleIgnoreError struct {
-	posn bzl.Position
-}
-
-func (e GazelleIgnoreError) Error() string {
-	return fmt.Sprintf("%s found on line %d", gazelleIgnore, e.posn.Line)
-}
-
 var (
 	mergeableFields = map[string]bool{
 		"srcs":    true,
@@ -47,18 +40,22 @@ var (
 )
 
 // MergeWithExisting merges genFile with an existing build file at
-// existingFilePath and returns the merged file.
-func MergeWithExisting(genFile *bzl.File, existingFilePath string) (*bzl.File, error) {
+// existingFilePath and returns the merged file. If a "# gazelle:ignore" comment
+// is found in the file, nil will be returned. If an error occurs, it will be
+// logged, and nil will be returned.
+func MergeWithExisting(genFile *bzl.File, existingFilePath string) *bzl.File {
 	oldData, err := ioutil.ReadFile(existingFilePath)
 	if err != nil {
-		return nil, err
+		log.Print(err)
+		return nil
 	}
 	oldFile, err := bzl.Parse(existingFilePath, oldData)
 	if err != nil {
-		return nil, err
+		log.Print(err)
+		return nil
 	}
-	if err := shouldIgnore(oldFile); err != nil {
-		return nil, err
+	if shouldIgnore(oldFile) {
+		return nil
 	}
 
 	oldStmt := oldFile.Stmt
@@ -66,7 +63,7 @@ func MergeWithExisting(genFile *bzl.File, existingFilePath string) (*bzl.File, e
 	for _, s := range genFile.Stmt {
 		genRule, ok := s.(*bzl.CallExpr)
 		if !ok {
-			return nil, fmt.Errorf("got %v expected only CallExpr in %q", s, genFile.Path)
+			log.Panicf("got %v expected only CallExpr in %q", s, genFile.Path)
 		}
 		i, oldRule := match(oldFile, genRule)
 		if oldRule == nil {
@@ -84,7 +81,7 @@ func MergeWithExisting(genFile *bzl.File, existingFilePath string) (*bzl.File, e
 	}
 
 	oldFile.Stmt = append(oldStmt, newStmt...)
-	return oldFile, nil
+	return oldFile
 }
 
 // merge combines information from gen and old and returns an updated rule.
@@ -395,20 +392,20 @@ func mergeLoad(gen, old *bzl.CallExpr, oldfile *bzl.File) *bzl.CallExpr {
 
 // shouldIgnore checks whether "gazelle:ignore" appears at the beginning of
 // a comment before or after any top-level statement in the file.
-func shouldIgnore(oldFile *bzl.File) error {
+func shouldIgnore(oldFile *bzl.File) bool {
 	for _, s := range oldFile.Stmt {
 		for _, c := range s.Comment().After {
 			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return GazelleIgnoreError{c.Start}
+				return true
 			}
 		}
 		for _, c := range s.Comment().Before {
 			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return GazelleIgnoreError{c.Start}
+				return true
 			}
 		}
 	}
-	return nil
+	return false
 }
 
 // shouldKeep returns whether an expression from the original file should be

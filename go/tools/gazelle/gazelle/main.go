@@ -76,17 +76,14 @@ func isValidBuildFileName(buildFileName string) bool {
 	return false
 }
 
-func run(dirs []string, emit func(*bzl.File) error, external rules.ExternalResolver) error {
-	g, err := generator.New(*repoRoot, *goPrefix, getBuildFileName(), *buildTags, external)
+func run(dirs []string, buildTags map[string]bool, emit func(*bzl.File) error, external rules.ExternalResolver) {
+	g, err := generator.New(*repoRoot, *goPrefix, getBuildFileName(), buildTags, external)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 
 	for _, d := range dirs {
-		files, err := g.Generate(d)
-		if err != nil {
-			return err
-		}
+		files := g.Generate(d)
 		for _, f := range files {
 			f.Path = filepath.Join(*repoRoot, f.Path)
 			existingFilePath, err := findBuildFile(filepath.Dir(f.Path))
@@ -94,29 +91,25 @@ func run(dirs []string, emit func(*bzl.File) error, external rules.ExternalResol
 				// No existing file, so write a new one
 				bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
 				if err := emit(f); err != nil {
-					return err
+					log.Print(err)
 				}
 				continue
 			}
 			if err != nil {
 				// An unexpected error
-				return err
+				log.Print(err)
+				continue
 			}
 			// Existing file, so merge and maybe remove the old one
-			if f, err = merger.MergeWithExisting(f, existingFilePath); err != nil {
-				if _, ok := err.(merger.GazelleIgnoreError); ok {
-					// found gazelle:ignore comment. Do not rewrite.
-					continue
-				}
-				return err
+			if f = merger.MergeWithExisting(f, existingFilePath); f == nil {
+				continue
 			}
 			bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
 			if err := emit(f); err != nil {
-				return err
+				log.Print(err)
 			}
 		}
 	}
-	return nil
 }
 
 func usage() {
@@ -145,6 +138,9 @@ FLAGS:
 }
 
 func main() {
+	log.SetPrefix("gazelle: ")
+	log.SetFlags(0) // don't print timestamps
+
 	flag.Usage = usage
 	flag.Parse()
 
@@ -164,6 +160,11 @@ func main() {
 		}
 	}
 
+	genericTags, err := parseBuildTags(*buildTags)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	emit := modeFromName[*mode]
 	if emit == nil {
 		log.Fatalf("unrecognized mode %s", *mode)
@@ -179,9 +180,7 @@ func main() {
 		args = append(args, ".")
 	}
 
-	if err := run(args, emit, er); err != nil {
-		log.Fatal(err)
-	}
+	run(args, genericTags, emit, er)
 }
 
 func findBuildFile(repo string) (string, error) {
@@ -251,4 +250,15 @@ func repo(args []string) (string, error) {
 		return "", fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
 	}
 	return r, nil
+}
+
+func parseBuildTags(buildTags string) (map[string]bool, error) {
+	tags := make(map[string]bool)
+	for _, t := range strings.Split(buildTags, ",") {
+		if strings.HasPrefix(t, "!") {
+			return nil, fmt.Errorf("build tags can't be negated: %s", t)
+		}
+		tags[t] = true
+	}
+	return tags, nil
 }

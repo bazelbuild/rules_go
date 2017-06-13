@@ -26,7 +26,7 @@ import (
 )
 
 // A WalkFunc is a callback called by Walk for each package.
-type WalkFunc func(pkg *Package) error
+type WalkFunc func(pkg *Package)
 
 // Walk walks through directories under "root".
 // It calls back "f" for each package.
@@ -40,9 +40,10 @@ type WalkFunc func(pkg *Package) error
 // package. If a directory contains multiple packages and one of the package
 // names matches the directory name, "f" will be called on that package and the
 // other packages will be silently ignored. If none of the package names match
-// the directory name, a *build.MultiplePackageError error is returned.
-func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix, dir string, f WalkFunc) error {
-	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+// the directory name, or if some other error occurs, an error will be logged,
+// and "f" will not be called.
+func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix, dir string, f WalkFunc) {
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -53,25 +54,25 @@ func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, go
 			return filepath.SkipDir
 		}
 
-		pkg, err := FindPackage(path, buildTags, platforms, repoRoot, goPrefix)
-		if err != nil {
-			if _, ok := err.(*build.NoGoError); ok {
-				return nil
-			}
-			return err
+		if pkg := FindPackage(path, buildTags, platforms, repoRoot, goPrefix); pkg != nil {
+			f(pkg)
 		}
-		return f(pkg)
+		return nil
 	})
+	if err != nil {
+		log.Print(err)
+	}
 }
 
 // FindPackage reads source files in a given directory and returns a Package
 // containing information about those files and how to build them.
 //
-// If no buildable .go files are found in the directory, *build.NoGoError will
-// be returned. If buildable .go files from multiple packages are found in
-// a directory, *build.MultiplePackageError will be returned. Various I/O
-// and parse errors are also possible.
-func FindPackage(dir string, buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix string) (*Package, error) {
+// If no buildable .go files are found in the directory, nil will be returned.
+// If the directory contains multiple buildable packages, the package whose
+// name matches the directory base name will be returned. If there is no such
+// package or if an error occurs, an error will be logged, and nil will be
+// returned.
+func FindPackage(dir string, buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix string) *Package {
 	pr := packageReader{
 		buildTags: buildTags,
 		platforms: platforms,
@@ -87,10 +88,9 @@ type packageReader struct {
 	buildTags               map[string]bool
 	platforms               PlatformConstraints
 	repoRoot, goPrefix, dir string
-	warnHook                func(error)
 }
 
-func (pr *packageReader) findPackage() (*Package, error) {
+func (pr *packageReader) findPackage() *Package {
 	var goFiles, otherFiles []string
 
 	// List the files in the directory and split into .go files and other files.
@@ -98,7 +98,8 @@ func (pr *packageReader) findPackage() (*Package, error) {
 	// generate rules for if there are multiple packages.
 	files, err := ioutil.ReadDir(pr.dir)
 	if err != nil {
-		return nil, err
+		log.Print(err)
+		return nil
 	}
 	for _, file := range files {
 		if file.IsDir() {
@@ -123,7 +124,7 @@ func (pr *packageReader) findPackage() (*Package, error) {
 	for _, goFile := range goFiles {
 		info, err := pr.goFileInfo(goFile)
 		if err != nil {
-			pr.warn(err)
+			log.Print(err)
 			continue
 		}
 		if info.packageName == "documentation" {
@@ -139,26 +140,35 @@ func (pr *packageReader) findPackage() (*Package, error) {
 				Dir:  pr.dir,
 			}
 		}
-		packageMap[info.packageName].addFile(info, false, pr.buildTags, pr.platforms)
+		err = packageMap[info.packageName].addFile(info, false, pr.buildTags, pr.platforms)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 
 	// Select a package to generate rules for.
 	pkg, err := pr.selectPackage(packageMap)
 	if err != nil {
-		return nil, err
+		if _, ok := err.(*build.NoGoError); !ok {
+			log.Print(err)
+		}
+		return nil
 	}
 
 	// Process the other files.
 	for _, file := range otherFiles {
 		info, err := pr.otherFileInfo(file)
 		if err != nil {
-			pr.warn(err)
+			log.Print(err)
 			continue
 		}
-		pkg.addFile(info, cgo, pr.buildTags, pr.platforms)
+		err = pkg.addFile(info, cgo, pr.buildTags, pr.platforms)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 
-	return pkg, nil
+	return pkg
 }
 
 func (pr *packageReader) selectPackage(packageMap map[string]*Package) (*Package, error) {
@@ -205,12 +215,4 @@ func (pr *packageReader) defaultPackageName() string {
 		return "unnamed"
 	}
 	return name
-}
-
-func (pr *packageReader) warn(err error) {
-	if pr.warnHook != nil {
-		pr.warnHook(err)
-		return
-	}
-	log.Println(err)
 }

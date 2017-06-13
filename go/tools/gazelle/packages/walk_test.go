@@ -16,7 +16,6 @@ limitations under the License.
 package packages_test
 
 import (
-	"go/build"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -46,10 +45,7 @@ func checkFiles(t *testing.T, files []fileSpec, goPrefix string, want []*package
 		p.Dir = filepath.Join(dir, filepath.FromSlash(p.Dir))
 	}
 
-	got, err := walkPackages(dir, goPrefix, dir)
-	if err != nil {
-		t.Errorf("walkPackages(%q) failed with %v; want success", dir, err)
-	}
+	got := walkPackages(dir, goPrefix, dir)
 	checkPackages(t, got, want)
 }
 
@@ -76,16 +72,12 @@ func createFiles(files []fileSpec) (string, error) {
 	return dir, nil
 }
 
-func walkPackages(repoRoot, goPrefix, dir string) ([]*packages.Package, error) {
+func walkPackages(repoRoot, goPrefix, dir string) []*packages.Package {
 	var pkgs []*packages.Package
-	err := packages.Walk(nil, nil, repoRoot, goPrefix, dir, func(pkg *packages.Package) error {
+	packages.Walk(nil, nil, repoRoot, goPrefix, dir, func(pkg *packages.Package) {
 		pkgs = append(pkgs, pkg)
-		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	return pkgs, nil
+	return pkgs
 }
 
 func checkPackages(t *testing.T, got []*packages.Package, want []*packages.Package) {
@@ -196,9 +188,9 @@ func TestMultiplePackagesWithoutDefault(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	_, err = walkPackages(dir, "", dir)
-	if _, ok := err.(*build.MultiplePackageError); !ok {
-		t.Errorf("got %v; want MultiplePackageError", err)
+	got := walkPackages(dir, "", dir)
+	if len(got) > 0 {
+		t.Errorf("got %v; want empty slice", got)
 	}
 }
 
@@ -231,8 +223,8 @@ func TestRootWithoutPrefix(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	_, err = walkPackages(dir, "", dir)
-	if _, ok := err.(*build.MultiplePackageError); !ok {
-		t.Errorf("got %v; want MultiplePackageError", err)
+	got := walkPackages(dir, "", dir)
+	if len(got) > 0 {
+		t.Errorf("got %v; want empty slice", got)
 	}
 }

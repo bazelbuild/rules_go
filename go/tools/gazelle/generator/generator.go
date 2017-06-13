@@ -19,6 +19,7 @@ package generator
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -49,30 +50,26 @@ type Generator struct {
 // "goPrefix" is the go_prefix corresponding to the repository root directory.
 // See also https://github.com/bazelbuild/rules_go#go_prefix.
 // "buildFileName" is the name of the BUILD file (BUILD or BUILD.bazel).
-// "buildTags" is a comma-delimited set of build tags that are true on all
-// platforms. "cgo" and release tags (e.g., "go1.8") will be added to this.
+// "buildTags" is set of build tags that are true on all platforms. Some
+// additional tags will be added to this. May be nil.
 // "external" is how external packages should be resolved.
-func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.ExternalResolver) (*Generator, error) {
+func New(repoRoot, goPrefix, buildFileName string, buildTags map[string]bool, external rules.ExternalResolver) (*Generator, error) {
 	repoRoot, err := filepath.Abs(repoRoot)
 	if err != nil {
 		return nil, err
 	}
 
-	genericTags := make(map[string]bool)
-	for _, t := range strings.Split(buildTags, ",") {
-		if strings.HasPrefix(t, "!") {
-			return nil, fmt.Errorf("build tags may not start with '!': %q", buildTags)
-		}
-		genericTags[t] = true
+	if buildTags == nil {
+		buildTags = make(map[string]bool)
 	}
 	platforms := packages.DefaultPlatformConstraints
-	packages.PreprocessTags(genericTags, platforms)
+	packages.PreprocessTags(buildTags, platforms)
 
 	return &Generator{
 		repoRoot:      repoRoot,
 		goPrefix:      goPrefix,
 		buildFileName: buildFileName,
-		buildTags:     genericTags,
+		buildTags:     buildTags,
 		platforms:     platforms,
 		g:             rules.NewGenerator(repoRoot, goPrefix, external),
 	}, nil
@@ -82,21 +79,25 @@ func New(repoRoot, goPrefix, buildFileName, buildTags string, external rules.Ext
 // the given directory.
 // The directory must be the repository root directory the caller
 // passed to New, or its subdirectory.
-func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
+// Errors will be logged. BUILD files may or may not be returned for directories
+// that have errors, depending on the severity of the error.
+func (g *Generator) Generate(dir string) []*bzl.File {
 	dir, err := filepath.Abs(dir)
 	if err != nil {
-		return nil, err
+		log.Print(err)
+		return nil
 	}
-	dir = filepath.Clean(dir)
 	if !isDescendingDir(dir, g.repoRoot) {
-		return nil, fmt.Errorf("dir %s is not under the repository root %s", dir, g.repoRoot)
+		log.Printf("dir %s is not under the repository root %s", dir, g.repoRoot)
+		return nil
 	}
 
 	var files []*bzl.File
-	err = packages.Walk(g.buildTags, g.platforms, g.repoRoot, g.goPrefix, dir, func(pkg *packages.Package) error {
+	packages.Walk(g.buildTags, g.platforms, g.repoRoot, g.goPrefix, dir, func(pkg *packages.Package) {
 		rel, err := filepath.Rel(g.repoRoot, pkg.Dir)
 		if err != nil {
-			return err
+			log.Print(err)
+			return
 		}
 		if rel == "." {
 			rel = ""
@@ -107,18 +108,9 @@ func (g *Generator) Generate(dir string) ([]*bzl.File, error) {
 			files = append(files, g.emptyToplevel())
 		}
 
-		file, err := g.generateOne(rel, pkg)
-		if err != nil {
-			return err
-		}
-
-		files = append(files, file)
-		return nil
+		files = append(files, g.generateOne(rel, pkg))
 	})
-	if err != nil {
-		return nil, err
-	}
-	return files, nil
+	return files
 }
 
 func (g *Generator) emptyToplevel() *bzl.File {
@@ -136,12 +128,8 @@ func (g *Generator) emptyToplevel() *bzl.File {
 	}
 }
 
-func (g *Generator) generateOne(rel string, pkg *packages.Package) (*bzl.File, error) {
-	rs, err := g.g.Generate(filepath.ToSlash(rel), pkg)
-	if err != nil {
-		return nil, err
-	}
-
+func (g *Generator) generateOne(rel string, pkg *packages.Package) *bzl.File {
+	rs := g.g.Generate(filepath.ToSlash(rel), pkg)
 	file := &bzl.File{Path: filepath.Join(rel, g.buildFileName)}
 	for _, r := range rs {
 		file.Stmt = append(file.Stmt, r.Call)
@@ -149,7 +137,7 @@ func (g *Generator) generateOne(rel string, pkg *packages.Package) (*bzl.File, e
 	if load := g.generateLoad(file); load != nil {
 		file.Stmt = append([]bzl.Expr{load}, file.Stmt...)
 	}
-	return file, nil
+	return file
 }
 
 func (g *Generator) generateLoad(f *bzl.File) bzl.Expr {

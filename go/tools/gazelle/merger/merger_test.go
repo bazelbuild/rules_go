@@ -446,17 +446,16 @@ func TestMergeWithExisting(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", tc.desc, err)
 		}
-		afterF, err := MergeWithExisting(newF, tmp.Name())
-		if _, ok := err.(GazelleIgnoreError); ok {
+		afterF := MergeWithExisting(newF, tmp.Name())
+		if afterF == nil {
 			if !tc.ignore {
-				t.Fatalf("%s: unexpected ignore: %v", tc.desc, err)
+				t.Errorf("%s: got nil; want file", tc.desc)
 			}
 			continue
-		} else if err != nil {
-			t.Fatalf("%s: %v", tc.desc, err)
 		}
-		if tc.ignore {
-			t.Errorf("%s: expected ignore", tc.desc)
+		if afterF != nil && tc.ignore {
+			t.Errorf("%s: got file; want nil", tc.desc)
+			continue
 		}
 
 		want := tc.expected
@@ -498,10 +497,7 @@ func TestMergeWithExistingDifferentName(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	afterF, err := MergeWithExisting(newF, tmp.Name())
-	if err != nil {
-		t.Error(err)
-	}
+	afterF := MergeWithExisting(newF, tmp.Name())
 	if s := string(bzl.Format(afterF)); s != expected {
 		t.Errorf("got %s; want %s", s, expected)
 	}

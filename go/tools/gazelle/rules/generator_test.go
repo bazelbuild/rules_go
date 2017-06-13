@@ -38,12 +38,7 @@ func packageFromDir(t *testing.T, dir, repoRoot, goPrefix string) *packages.Pack
 	buildTags := map[string]bool{}
 	platforms := packages.DefaultPlatformConstraints
 	packages.PreprocessTags(buildTags, platforms)
-
-	pkg, err := packages.FindPackage(dir, buildTags, platforms, repoRoot, goPrefix)
-	if err != nil {
-		t.Fatalf("packages.FindPackage(%q, ...) failed with %v; want success", dir, err)
-	}
-	return pkg
+	return packages.FindPackage(dir, buildTags, platforms, repoRoot, goPrefix)
 }
 
 func TestGenerator(t *testing.T) {
@@ -63,11 +58,7 @@ func TestGenerator(t *testing.T) {
 	} {
 		dir := filepath.Join(repoRoot, filepath.FromSlash(rel))
 		pkg := packageFromDir(t, dir, repoRoot, goPrefix)
-		rules, err := g.Generate(rel, pkg)
-		if err != nil {
-			t.Errorf("g.Generate(%q, %#v) failed with %v; want success", rel, pkg, err)
-			continue
-		}
+		rules := g.Generate(rel, pkg)
 		got := format(rules)
 
 		wantPath := filepath.Join(pkg.Dir, "BUILD.want")
@@ -90,10 +81,7 @@ func TestGeneratorGoPrefix(t *testing.T) {
 	g := rules.NewGenerator(repoRoot, goPrefix, rules.External)
 	dir := filepath.Join(repoRoot, "lib")
 	pkg := packageFromDir(t, dir, repoRoot, goPrefix)
-	rules, err := g.Generate("", pkg)
-	if err != nil {
-		t.Errorf("g.Generate(%q, %#v) failed with %v; want success", "", pkg, err)
-	}
+	rules := g.Generate("", pkg)
 
 	if got, want := len(rules), 1; got < want {
 		t.Errorf("len(rules) < %d; want >= %d", got, want)

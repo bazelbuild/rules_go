@@ -253,13 +253,13 @@ func TestOtherFileInfo(t *testing.T) {
 }
 
 func TestOtherFileInfoFailures(t *testing.T) {
+	var pr packageReader
 	for _, tc := range []struct {
-		desc, name, source, wantError, wantWarning string
+		desc, name, source, wantError string
 	}{
 		{
 			"ignored file",
 			"foo.txt",
-			"",
 			"",
 			"",
 		},
@@ -268,16 +268,12 @@ func TestOtherFileInfoFailures(t *testing.T) {
 			"foo.m",
 			"",
 			"file extension not yet supported",
-			"",
 		},
 	} {
 		if err := ioutil.WriteFile(tc.name, []byte(tc.source), 0600); err != nil {
 			t.Fatal(err)
 		}
 		defer os.Remove(tc.name)
-
-		var warningText string
-		pr := packageReader{warnHook: func(err error) { warningText = err.Error() }}
 
 		var errorText string
 		if _, err := pr.otherFileInfo(tc.name); err != nil {
@@ -286,9 +282,6 @@ func TestOtherFileInfoFailures(t *testing.T) {
 
 		if tc.wantError == "" && errorText != "" || tc.wantError != "" && !strings.Contains(errorText, tc.wantError) {
 			t.Errorf("case %q: got error %q; want error containing %q", tc.desc, errorText, tc.wantError)
-		}
-		if tc.wantWarning == "" && warningText != "" || tc.wantWarning != "" && !strings.Contains(warningText, tc.wantWarning) {
-			t.Errorf("case %q: got warning %q; want warning containing %q", tc.desc, warningText, tc.wantWarning)
 		}
 	}
 }
@@ -593,14 +586,14 @@ import ("C")
 }
 
 func TestCgoFailures(t *testing.T) {
+	var pr packageReader
 	for _, tc := range []struct {
-		desc, source, wantError, wantWarning string
+		desc, source, wantError string
 	}{
 		{
 			"bad go file",
 			"pakcage foo",
 			"expected 'package'",
-			"",
 		},
 		{
 			"unknown cgo verb",
@@ -610,7 +603,6 @@ func TestCgoFailures(t *testing.T) {
 import "C"
 `,
 			"invalid #cgo verb",
-			"",
 		},
 		{
 			"unsupported cgo verb",
@@ -619,7 +611,6 @@ import "C"
 // #cgo pkg-config: foo
 import "C"
 `,
-			"",
 			"not supported",
 		},
 		{
@@ -630,7 +621,6 @@ import "C"
 import "C"
 `,
 			"malformed #cgo argument",
-			"",
 		},
 	} {
 		path := "TestCgoFailures.go"
@@ -639,9 +629,6 @@ import "C"
 		}
 		defer os.Remove(path)
 
-		var warningText string
-		pr := packageReader{warnHook: func(err error) { warningText = err.Error() }}
-
 		var errorText string
 		if _, err := pr.goFileInfo(path); err != nil {
 			errorText = err.Error()
@@ -649,9 +636,6 @@ import "C"
 
 		if tc.wantError == "" && errorText != "" || tc.wantError != "" && !strings.Contains(errorText, tc.wantError) {
 			t.Errorf("case %q: got error %q; want error containing %q", tc.desc, errorText, tc.wantError)
-		}
-		if tc.wantWarning == "" && warningText != "" || tc.wantWarning != "" && !strings.Contains(warningText, tc.wantWarning) {
-			t.Errorf("case %q: got warning %q; want warning containing %q", tc.desc, warningText, tc.wantWarning)
 		}
 	}
 }

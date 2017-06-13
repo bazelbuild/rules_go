@@ -212,7 +212,7 @@ func (pr *packageReader) goFileInfo(name string) (fileInfo, error) {
 					cg = d.Doc
 				}
 				if cg != nil {
-					if err := pr.saveCgo(&info, cg); err != nil {
+					if err := saveCgo(&info, cg); err != nil {
 						return fileInfo{}, err
 					}
 				}
@@ -234,7 +234,7 @@ func (pr *packageReader) goFileInfo(name string) (fileInfo, error) {
 // saveCgo extracts CFLAGS, CPPFLAGS, CXXFLAGS, and LDFLAGS directives
 // from a comment above a "C" import. This is intended to match logic in
 // go/build.Context.saveCgo.
-func (pr *packageReader) saveCgo(info *fileInfo, cg *ast.CommentGroup) error {
+func saveCgo(info *fileInfo, cg *ast.CommentGroup) error {
 	text := cg.Text()
 	for _, line := range strings.Split(text, "\n") {
 		orig := line
@@ -283,7 +283,7 @@ func (pr *packageReader) saveCgo(info *fileInfo, cg *ast.CommentGroup) error {
 		case "LDFLAGS":
 			info.clinkopts = append(info.clinkopts, taggedOpts{tags, opts})
 		case "pkg-config":
-			pr.warn(fmt.Errorf("%s: pkg-config not supported: %s", info.path, orig))
+			return fmt.Errorf("%s: pkg-config not supported: %s", info.path, orig)
 		default:
 			return fmt.Errorf("%s: invalid #cgo verb: %s", info.path, orig)
 		}
@@ -418,11 +418,11 @@ func (pr *packageReader) otherFileInfo(name string) (fileInfo, error) {
 		return info, nil
 	}
 	if info.category == unsupportedExt {
-		return info, fmt.Errorf("%s: file extension not yet supported", name)
+		return fileInfo{}, fmt.Errorf("%s: file extension not yet supported", name)
 	}
 
 	if tags, err := readTags(info.path); err != nil {
-		pr.warn(err)
+		return fileInfo{}, err
 	} else {
 		info.tags = tags
 	}
