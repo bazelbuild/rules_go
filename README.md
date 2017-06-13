@@ -1,11 +1,14 @@
 # Go rules for [Bazel](https://bazel.build/)
 
-Bazel ≥0.4.4 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
+Bazel ≥0.4.5 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
 :---: | :---: | :---: | :---:
 [![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)
 
 ## Announcements
 
+* **June 13, 2017** Release
+[0.5.0](https://github.com/bazelbuild/rules_go/releases/tag/0.5.0) is now
+available!
 * **May 5, 2017**
 Release [0.4.4](https://github.com/bazelbuild/rules_go/releases/tag/0.4.4) is
 now available!
@@ -56,11 +59,8 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-Note: since 0.4.x this repo requires bazel ≥ 0.4.4 to function (due to the use of
-BUILD.bazel files in bazelbuild/buildtools).
-
-Note: on master this repo requires bazel ≥ 0.4.5 to function (due to the use of
-repository_ctx.environ).
+Note: The latest version of these rules (0.5.0) require Bazel ≥ 0.4.5 to work.
+If you use these rules at master, you may need a newer version of Bazel.
 
 ## Setup
 
@@ -73,7 +73,7 @@ repository_ctx.environ).
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.4.4",
+        tag = "0.5.0",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
