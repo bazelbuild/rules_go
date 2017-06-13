@@ -125,14 +125,13 @@ def cgo_library(name, srcs,
 
 def _cgo_filter_srcs_impl(ctx):
   go_toolchain = get_go_toolchain(ctx)
-  out_dir = ctx.attr.out_dir
   srcs = ctx.files.srcs
   outputs = []
   cmds = []
   for src in srcs:
-    dst = ctx.new_file(out_dir + "/" + _strip_prefix(src.path, ctx.attr.strip_prefix))
+    base, _, ext = src.basename.rpartition(".")
+    dst = ctx.new_file(base + "." + ctx.attr.id +"." + ext)
     cmds += [
-      "mkdir -p '%s'" % dst.dirname,
       "if '%s' -cgo -quiet '%s'; then" %
           (go_toolchain.filter_tags.path, src.path),
       "  cp '%s' '%s'" % (src.path, dst.path),
@@ -161,47 +160,25 @@ _cgo_filter_srcs = rule(
     implementation = _cgo_filter_srcs_impl,
     attrs = {
         "srcs": attr.label_list(),
-        "strip_prefix": attr.string(),
-        "out_dir": attr.string(mandatory = True),
+        "id": attr.string(mandatory = True),
         #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
-    output_to_genfiles = True,
 )
 
 def _cgo_select_files_impl(ctx):
-  out_dir = ctx.attr.out_dir
-
   outputs = []
-  cmds = []
   for src in ctx.files.srcs:
     match = any([src.path.endswith(ext) for ext in ctx.attr.exts])
     if ctx.attr.invert:
       match = not match
     if match:
-      dst = ctx.new_file(out_dir + "/" + _strip_prefix(src.path, ctx.attr.strip_prefix))
-      outputs += [dst]
-      cmds += [
-          "mkdir -p '%s'" % dst.dirname,
-          "cp '%s' '%s'" % (src.path, dst.path)
-      ]
-  if ctx.outputs.out_empty_hack:
-    outputs += [ctx.outputs.out_empty_hack]
-    cmds += [
-        "mkdir -p '%s'" % ctx.outputs.out_empty_hack.dirname,
-        "echo -n >'%s'" % ctx.outputs.out_empty_hack.path,
-    ]
-    
-  if outputs:
-    f = emit_generate_params_action(cmds, ctx, ctx.label.name + ".params")
-    ctx.action(
-        inputs = [f] + ctx.files.srcs,
-        outputs = outputs,
-        mnemonic = "CgoSelectFiles",
-        command = f.path,
-    )
-
+      outputs += [src]
+  if ctx.attr.at_least_one_file and not outputs:
+    empty_file = ctx.new_file("empty_file" + ctx.attr.exts[0])
+    ctx.file_action(empty_file, "")
+    outputs += [empty_file]
   return struct(files = set(outputs))
 
 _cgo_select_files = rule(
@@ -210,15 +187,12 @@ _cgo_select_files = rule(
         "srcs": attr.label_list(allow_files = True),
         "exts": attr.string_list(mandatory = True),
         "invert": attr.bool(default = False),
-        "strip_prefix": attr.string(),
-        "out_dir": attr.string(mandatory = True),
         # cc_library requires every target in srcs provide at least one
         # file with an appropriate extension. This rule would provide zero
         # files if nothing matched, so if it's used in srcs for cc_library,
         # it needs to create an empty output file.
-        "out_empty_hack": attr.output(),
+        "at_least_one_file": attr.bool(),
     },
-    output_to_genfiles = True,
 )
 
 def _cgo_codegen_impl(ctx):
@@ -228,13 +202,16 @@ def _cgo_codegen_impl(ctx):
   linkopts = ctx.attr.linkopts
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   deps = set([], order="link")
+  outputs = [
+    ctx.new_file(ctx.attr.out_dir + "/_cgo_export.h"),
+    ctx.new_file(ctx.attr.out_dir + "/_cgo_export.c"),
+    ctx.new_file(ctx.attr.out_dir + "/_cgo_main.c"),
+    ctx.new_file(ctx.attr.out_dir + "/_cgo_gotypes.go"),
+  ]
+  out_dir = outputs[0].dirname
   for hdr in ctx.files.c_hdrs:
-    copts += [
-        '-iquote', hdr.dirname,
-        # TODO: //examples/cgo:cgo_lib relies on this to include
-        # cc_dependency/version.h. This may not be intended behavior.
-        '-iquote', _strip_prefix(hdr.dirname, ctx.attr.out_dir)
-    ]
+    copts += ['-iquote', hdr.dirname]
+  copts += ['-iquote', out_dir]
   for d in ctx.attr.deps:
     srcs += list(d.cc.transitive_headers)
     deps += d.cc.libs
@@ -251,14 +228,6 @@ def _cgo_codegen_impl(ctx):
       else:
         linkopts += [lib.path]
     linkopts += d.cc.link_flags
-
-  outputs = [
-    ctx.new_file(ctx.attr.out_dir + "/_cgo_export.h"),
-    ctx.new_file(ctx.attr.out_dir + "/_cgo_export.c"),
-    ctx.new_file(ctx.attr.out_dir + "/_cgo_main.c"),
-    ctx.new_file(ctx.attr.out_dir + "/_cgo_gotypes.go"),
-  ]
-  out_dir = outputs[0].dirname
 
   cc = ctx.fragments.cpp.compiler_executable
   cmds = [
@@ -292,13 +261,12 @@ def _cgo_codegen_impl(ctx):
   # that were filtered out. We emit explicit commands for each file in order
   # to avoid implement name demangling in bash.
   for s in go_srcs:
+    name, _, _ = s.basename.rpartition('.')
     src_stem, _, _ = s.path.rpartition('.')
     mangled_stem = out_dir + "/" + src_stem.replace('/', '_')
-    dst_stem = _strip_prefix(src_stem, ctx.attr.strip_prefix)
-    gen_go_file = ctx.new_file(ctx.attr.out_dir + "/" + dst_stem + ".cgo1.go")
-    gen_c_file = ctx.new_file(ctx.attr.out_dir + "/" + dst_stem + ".cgo2.c")
+    gen_go_file = ctx.new_file(name + ".cgo1.go")
+    gen_c_file = ctx.new_file(name + ".cgo2.c")
     cmds += [
-      "mkdir -p '%s'" % gen_go_file.dirname,
       "if [ -f '%s' ]; then" % (mangled_stem + ".cgo1.go"),
       "  mv '%s' '%s'" % (mangled_stem + ".cgo1.go", gen_go_file.path),
       "  mv '%s' '%s'" % (mangled_stem + ".cgo2.c", gen_c_file.path),
@@ -309,7 +277,7 @@ def _cgo_codegen_impl(ctx):
     ]
     outputs += [gen_go_file, gen_c_file]
 
-  f = emit_generate_params_action(cmds, ctx, out_dir + "/CGoCodeGenFile.params")
+  f = emit_generate_params_action(cmds, ctx, ctx.label.name + ".CGoCodeGenFile.params")
 
   inputs = (srcs + go_toolchain.tools + go_toolchain.crosstool +
             [f, go_toolchain.filter_tags])
@@ -343,13 +311,11 @@ _cgo_codegen_rule = rule(
         ),
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
-        "strip_prefix": attr.string(),
         "out_dir": attr.string(mandatory = True),
         #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
-    output_to_genfiles = True,
 )
 
 def _cgo_import_impl(ctx):
@@ -476,65 +442,6 @@ def _strip_prefix(path, prefix):
   i = path.rfind(prefix)
   return path[i+len(prefix):] if i >= 0 else path
 
-def _cgo_codegen(name, srcs, c_hdrs=[], deps=[], copts=[], linkopts=[]):
-  """Generates glue codes for interop between C and Go
-
-  Args:
-    name: A unique name of the rule
-    srcs: list of Go source files.
-      Each of them must contain `import "C"`.
-    c_hdrs: C/C++ header files necessary to determine kinds of
-      C/C++ identifiers in srcs.
-    deps: A list of cc_library rules.
-      The generated codes are expected to be linked with these deps.
-    linkopts: A list of linker options,
-      These flags are passed to the linker when the generated codes
-      are linked into the target binary.
-  """
-  out_dir = name + ".dir"
-  outgen = out_dir + "/gen"
-
-  go_thunks = []
-  c_thunks = []
-  for s in srcs:
-    if not s.endswith('.go'):
-      fail("not a .go file: %s" % s)
-    basename = s[:-3]
-    if basename.rfind("/") >= 0:
-      basename = basename[basename.rfind("/")+1:]
-    go_thunks.append(outgen + "/" + basename + ".go")
-    c_thunks.append(outgen + "/" + basename + ".c")
-
-  outs = struct(
-      name = name,
-
-      out_dir = outgen,
-      go_thunks = go_thunks,
-      c_thunks = c_thunks,
-      c_exports = [
-          outgen + "/_cgo_export.c",
-          outgen + "/_cgo_export.h",
-      ],
-      c_dummy = outgen + "/_cgo_main.c",
-      gotypes = outgen + "/_cgo_gotypes.go",
-  )
-
-  _cgo_codegen_rule(
-      name = name,
-      srcs = srcs,
-      c_hdrs = c_hdrs,
-      deps = deps,
-      copts = copts,
-      linkopts = linkopts,
-      out_dir = out_dir,
-      outs = outs.go_thunks + outs.c_thunks + outs.c_exports + [
-          outs.c_dummy, outs.gotypes,
-      ],
-
-      visibility = ["//visibility:private"],
-  )
-  return outs
-
 
 """Generates _all.o to be archived together with Go objects.
 
@@ -545,10 +452,7 @@ Args:
 """
 
 def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
-  cgo_preselect_dir = name + ".cgo_preselect.dir"
-  cgo_filter_dir = name + ".cgo_filter.dir"
-  cgo_codegen_dir = name + ".cgo_codegen.dir"
-  cgo_postselect_dir = name + ".cgo_postselect.dir"
+  cgo_codegen_dir = name + ".cgo.dir"
 
   # Apply build constraints to source files (both Go and C) but not to header
   # files. Separate filtered Go and C sources.
@@ -557,8 +461,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       name = cgo_select_hdrs_name,
       srcs = srcs,
       exts = hdr_exts,
-      out_dir = cgo_codegen_dir,
-      out_empty_hack = cgo_codegen_dir + "/_hdrs_empty_hack.h",
+      at_least_one_file = True,
       visibility = ["//visibility:private"],
   )
   
@@ -567,7 +470,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       name = cgo_select_go_srcs_name,
       srcs = srcs,
       exts = [".go"],
-      out_dir = cgo_codegen_dir,
       visibility = ["//visibility:private"],
   )
 
@@ -577,8 +479,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       srcs = srcs,
       exts = hdr_exts + [".go"],
       invert = True,
-      out_dir = cgo_preselect_dir,
-      out_empty_hack = cgo_preselect_dir + "/_c_srcs_empty_hack.h",
+      at_least_one_file = True,
       visibility = ["//visibility:private"],
   )
 
@@ -586,8 +487,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   _cgo_filter_srcs(
       name = cgo_filter_c_srcs_name,
       srcs = [cgo_select_c_srcs_name],
-      strip_prefix = cgo_preselect_dir,
-      out_dir = cgo_postselect_dir,
+      id = "cgo_filter",
       visibility = ["//visibility:private"],
   )      
 
@@ -601,7 +501,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       deps = cdeps,
       copts = copts,
       linkopts = clinkopts,
-      strip_prefix = cgo_codegen_dir,
       out_dir = cgo_codegen_dir,
       visibility = ["//visibility:private"],
   )
@@ -612,8 +511,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       name = cgo_codegen_select_go_name,
       srcs = [cgo_codegen_name],
       exts = [".go"],
-      strip_prefix = cgo_codegen_dir,
-      out_dir = cgo_postselect_dir,
       visibility = ["//visibility:private"],
   )
 
@@ -626,9 +523,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       ],
       exts = [".go", "_cgo_main.c"],
       invert = True,
-      strip_prefix = cgo_codegen_dir,
-      out_dir = cgo_postselect_dir,
-      out_empty_hack = cgo_postselect_dir + "/_codegen_empty_hack.h",
+      at_least_one_file = True,
       visibility = ["//visibility:private"],
   )
 
@@ -637,8 +532,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       name = cgo_codegen_c_dummy_name,
       srcs = [cgo_codegen_name],
       exts = ["_cgo_main.c"],
-      strip_prefix = cgo_codegen_dir,
-      out_dir = cgo_postselect_dir,
       visibility = ["//visibility:private"],
   )
 
@@ -665,7 +558,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       deps = cdeps,
       copts = copts + platform_copts + [
           "-I", pkg_dir,
-          "-I", "$(GENDIR)/" + pkg_dir + "/" + cgo_postselect_dir,
+          "-I", "$(BINDIR)/" + pkg_dir + "/" + cgo_codegen_dir,
           # The generated thunks often contain unused variables.
           "-Wno-unused-variable",
       ],
