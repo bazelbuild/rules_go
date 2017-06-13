@@ -59,8 +59,10 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-Note: The latest version of these rules (0.5.0) require Bazel ≥ 0.4.5 to work.
-If you use these rules at master, you may need a newer version of Bazel.
+**Note:** The latest version of these rules (0.5.0) require Bazel ≥ 0.4.5 to
+  work.
+
+The `master` branch is only guaranteed to work with the latest version of Bazel.
 
 ## Setup
 
