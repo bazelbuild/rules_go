@@ -42,14 +42,18 @@ def _go_repository_impl(ctx):
       fail("if vcs is specified, remote must also be")
     # TODO(yugui): support submodule?
     # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
-    result = ctx.execute([
-        ctx.path(ctx.attr._fetch_repo),
-        '--dest', ctx.path(''),
-        '--remote', ctx.attr.remote,
-        '--rev', rev,
-        '--vcs', ctx.attr.vcs,
-        '--importpath', ctx.attr.importpath,
-    ])
+    result = env_execute(
+        ctx,
+        [
+            ctx.path(ctx.attr._fetch_repo),
+            '--dest', ctx.path(''),
+            '--remote', ctx.attr.remote,
+            '--rev', rev,
+            '--vcs', ctx.attr.vcs,
+            '--importpath', ctx.attr.importpath,
+        ],
+        environment = {"PATH": ctx.os.environ["PATH"]},  # to find git
+    )
     if result.return_code:
       fail("failed to fetch %s: %s" % (ctx.name, result.stderr))
 
@@ -58,7 +62,7 @@ def _go_repository_impl(ctx):
     generate = True
     for name in ['BUILD', 'BUILD.bazel', ctx.attr.build_file_name]:
       path = ctx.path(name)
-      if path.exists and not ctx.execute(['test', '-f', path]).return_code:
+      if path.exists and not env_execute(ctx, ['test', '-f', path]).return_code:
         generate = False
         break
   if generate:
@@ -70,7 +74,7 @@ def _go_repository_impl(ctx):
     if ctx.attr.build_file_name:
         cmds += ["--build_file_name", ctx.attr.build_file_name]
     cmds += [ctx.path('')]
-    result = ctx.execute(cmds)
+    result = env_execute(ctx, cmds)
     if result.return_code:
       fail("failed to generate BUILD files for %s: %s" % (
           ctx.attr.importpath, result.stderr))
@@ -120,3 +124,17 @@ go_repository = repository_rule(
 # This is for legacy compatability
 # Originally this was the only rule that triggered BUILD file generation.
 new_go_repository = go_repository
+
+def env_execute(ctx, arguments, environment = None, **kwargs):
+  """env_execute prepends "env -i" to "arguments" before passing it to
+  ctx.execute.
+
+  Variables that aren't explicitly mentioned in "environment"
+  are removed from the environment. This should be preferred to "ctx.execute"
+  in most situations.
+  """
+  env_args = ["env", "-i"]
+  if environment:
+    for k, v in environment.items():
+      env_args += ["%s=%s" % (k, v)]
+  return ctx.execute(env_args + arguments, **kwargs)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "new_go_repository")
+load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "new_go_repository", "env_execute")
 load("@io_bazel_rules_go//go/private:bzl_format.bzl", "bzl_format_repositories")
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
@@ -61,10 +61,10 @@ def _go_repository_tools_impl(ctx):
   }
 
   # build gazelle and fetch_repo
-  result = ctx.execute([go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle'], environment = env)
+  result = env_execute(ctx, [go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle'], environment = env)
   if result.return_code:
       fail("failed to build gazelle: %s" % result.stderr)
-  result = ctx.execute([go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'], environment = env)
+  result = env_execute(ctx, [go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'], environment = env)
   if result.return_code:
       fail("failed to build fetch_repo: %s" % result.stderr)
       
