@@ -408,6 +408,11 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   
   # Run cgo on the filtered Go files. This will split them into pure Go files
   # and pure C files, plus a few other glue files.
+  pkg_dir = _pkg_dir(
+      "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
+      PACKAGE_NAME)
+  copts += ["-I", pkg_dir]
+
   cgo_codegen_name = name + ".cgo_codegen"
   _cgo_codegen_rule(
       name = cgo_codegen_name,
@@ -436,10 +441,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   # Compile C sources and generated files into a library. This will be linked
   # into binaries that depend on this cgo_library. It will also be used
   # in _cgo_.o.
-  pkg_dir = _pkg_dir(
-      "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
-      PACKAGE_NAME)
-
   platform_copts = select({
       "@io_bazel_rules_go//go/platform:windows_amd64": ["-mthreads"],
       "//conditions:default": ["-pthread"],
@@ -452,7 +453,6 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       srcs = [cgo_codegen_name],
       deps = cdeps,
       copts = copts + platform_copts + [
-          "-I", pkg_dir,
           "-I", "$(BINDIR)/" + pkg_dir + "/" + cgo_codegen_dir,
           # The generated thunks often contain unused variables.
           "-Wno-unused-variable",

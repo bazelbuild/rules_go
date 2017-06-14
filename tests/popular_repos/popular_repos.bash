@@ -39,6 +39,7 @@ targets=(
   @org_golang_x_sys//...
   @org_golang_x_text//...
   @org_golang_x_tools//...
+  @com_github_mattn_go_sqlite3//...
 )
 
 excludes=(
@@ -83,6 +84,10 @@ excludes=(
   -@org_golang_x_tools//go/ssa:go_default_xtest
   -@org_golang_x_tools//refactor/eg:go_default_xtest
 
+  # TODO(#546): deps don't get propagated from cgo_library through go_library
+  # to go_test.
+  -@com_github_mattn_go_sqlite3//:go_default_test
+
   # TODO(#417): several tests fail. Need to investigate and fix.
   -@org_golang_x_tools//cmd/godoc:go_default_xtest
   -@org_golang_x_tools//go/gcimporter15:go_default_xtest
@@ -94,6 +99,11 @@ excludes=(
 
   # fiximports requires working GOROOT, not present in CI.
   -@org_golang_x_tools//cmd/fiximports:go_default_test
+
+  # some sqlite3 tests rely on sources in the library which are filtered out.
+  -@com_github_mattn_go_sqlite3//_example/custom_func:all
+  -@com_github_mattn_go_sqlite3//_example/trace:all
+  -@com_github_mattn_go_sqlite3//_example/vtable:all
 )
 
 case $(uname) in
