@@ -16,57 +16,8 @@ load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_gene
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 
-def _cgo_genrule_impl(ctx):
-  return struct(
-    label = ctx.label,
-    go_sources = ctx.files.srcs,
-    asm_sources = [],
-    asm_headers = [],
-    cgo_object = ctx.attr.cgo_object,
-    direct_deps = ctx.attr.deps,
-    gc_goopts = [],
-  )
-
-_cgo_genrule = rule(
-    _cgo_genrule_impl,
-    attrs = {
-        "srcs": attr.label_list(allow_files = FileType([".go"])),
-        "cgo_object": attr.label(
-            providers = [
-                "cgo_obj",
-                "cgo_deps",
-            ],
-        ),
-        "deps": attr.label_list(
-            providers = [
-                "direct_deps",
-                "transitive_go_library_paths",
-                "transitive_go_libraries",
-                "transitive_cgo_deps",
-            ],
-        ),
-    },
-    fragments = ["cpp"],
-)
-
-def cgo_genrule(name, srcs,
-                copts=[],
-                clinkopts=[],
-                cdeps=[],
-                **kwargs):
-  cgogen = _setup_cgo_library(
-      name = name,
-      srcs = srcs,
-      cdeps = cdeps,
-      copts = copts,
-      clinkopts = clinkopts,
-  )
-  _cgo_genrule(
-      name = name,
-      srcs = cgogen.go_srcs,
-      cgo_object = cgogen.cgo_object,
-      **kwargs
-  )
+def cgo_genrule(tags=[], **kwargs):
+  return cgo_library(tags=tags+["manual"], **kwargs)
 
 def cgo_library(name, srcs,
                 go_toolchain=None,
