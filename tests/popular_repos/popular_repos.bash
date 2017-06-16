@@ -98,6 +98,10 @@ excludes=(
   -@org_golang_x_tools//refactor/importgraph:go_default_xtest
   -@org_golang_x_tools//refactor/rename:go_default_test
 
+  # ssh needs to accept incoming connections. Not allowed in CI or on Darwin.
+  -@org_golang_x_crypto//ssh:go_default_test
+  -@org_golang_x_crypto//ssh/test:go_default_test
+
   # icmp requires adjusting kernel options.
   -@org_golang_x_net//icmp:go_default_xtest
 
