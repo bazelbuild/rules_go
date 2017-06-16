@@ -23,6 +23,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
 
@@ -73,8 +74,9 @@ func createFiles(files []fileSpec) (string, error) {
 }
 
 func walkPackages(repoRoot, goPrefix, dir string) []*packages.Package {
+	c := &config.Config{RepoRoot: repoRoot, GoPrefix: goPrefix}
 	var pkgs []*packages.Package
-	packages.Walk(nil, nil, repoRoot, goPrefix, dir, func(pkg *packages.Package) {
+	packages.Walk(c, dir, func(pkg *packages.Package) {
 		pkgs = append(pkgs, pkg)
 	})
 	return pkgs

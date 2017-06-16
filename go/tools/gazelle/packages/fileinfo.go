@@ -30,6 +30,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 // fileInfo holds information used to decide how to build a file. This
@@ -172,8 +174,8 @@ func fileNameInfo(dir, name string) fileInfo {
 // goFileInfo returns information about a .go file. It will parse part of the
 // file to determine the package name and imports.
 // This function is intended to match go/build.Context.Import.
-func (pr *packageReader) goFileInfo(name string) (fileInfo, error) {
-	info := fileNameInfo(pr.dir, name)
+func goFileInfo(c *config.Config, dir, name string) (fileInfo, error) {
+	info := fileNameInfo(dir, name)
 	fset := token.NewFileSet()
 	pf, err := parser.ParseFile(fset, info.path, nil, parser.ImportsOnly|parser.ParseComments)
 	if err != nil {
@@ -216,7 +218,7 @@ func (pr *packageReader) goFileInfo(name string) (fileInfo, error) {
 						return fileInfo{}, err
 					}
 				}
-			} else if !pr.isStandard(path) {
+			} else if !isStandard(c.GoPrefix, path) {
 				info.imports = append(info.imports, path)
 			}
 		}
@@ -405,15 +407,15 @@ func safeCgoName(s string, spaces bool) bool {
 }
 
 // isStandard determines if importpath points a Go standard package.
-func (pr *packageReader) isStandard(importpath string) bool {
+func isStandard(goPrefix, importpath string) bool {
 	seg := strings.SplitN(importpath, "/", 2)[0]
-	return !strings.Contains(seg, ".") && !strings.HasPrefix(importpath, pr.goPrefix+"/")
+	return !strings.Contains(seg, ".") && !strings.HasPrefix(importpath, goPrefix+"/")
 }
 
 // otherFileInfo returns information about a non-.go file. It will parse
 // part of the file to determine build tags.
-func (pr *packageReader) otherFileInfo(name string) (fileInfo, error) {
-	info := fileNameInfo(pr.dir, name)
+func otherFileInfo(dir, name string) (fileInfo, error) {
+	info := fileNameInfo(dir, name)
 	if info.category == ignoredExt {
 		return info, nil
 	}

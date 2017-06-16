@@ -21,31 +21,9 @@ import (
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
-
-func TestBuildTagOverride(t *testing.T) {
-	repo := filepath.Join(testdata.Dir(), "repo")
-	buildTags := map[string]bool{"a": true, "b": true}
-	g, err := New(repo, "example.com/repo", "BUILD", buildTags, rules.External)
-	if err != nil {
-		t.Errorf(`New(%q, "example.com/repo") failed with %v; want success`, repo, err)
-		return
-	}
-
-	expectedTags := []string{"a", "b", "cgo", "go1.8", "go1.7"}
-	for _, tag := range expectedTags {
-		if !g.buildTags[tag] {
-			t.Errorf("tag %q not set", tag)
-		}
-		for name, platformTags := range g.platforms {
-			if !platformTags[tag] {
-				t.Errorf("on platform %q, tag %q not set", name, tag)
-			}
-		}
-	}
-}
 
 func TestGeneratedFileName(t *testing.T) {
 	testGeneratedFileName(t, "BUILD")
@@ -53,13 +31,13 @@ func TestGeneratedFileName(t *testing.T) {
 }
 
 func testGeneratedFileName(t *testing.T, buildFileName string) {
-	repo := filepath.Join(testdata.Dir(), "repo")
-	g, err := New(repo, "example.com/repo", buildFileName, nil, rules.External)
-	if err != nil {
-		t.Errorf("error creating generator: %v", err)
-		return
+	c := &config.Config{
+		RepoRoot:            filepath.Join(testdata.Dir(), "repo"),
+		ValidBuildFileNames: []string{buildFileName},
 	}
-	fs := g.Generate(filepath.Join(repo, "bin"))
+	g := New(c)
+
+	fs := g.Generate(filepath.Join(c.RepoRoot, "bin"))
 	fs = fs[1:] // ignore empty top-level file with go_prefix
 	if got, want := fs[0].Path, filepath.Join("bin", buildFileName); got != want {
 		t.Errorf("got file named %q; want %q", got, want)

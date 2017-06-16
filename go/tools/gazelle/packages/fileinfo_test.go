@@ -22,10 +22,13 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 func TestGoFileInfo(t *testing.T) {
-	pr := packageReader{goPrefix: "github.com/local/project"}
+	c := &config.Config{}
+	dir := "."
 	for _, tc := range []struct {
 		desc, name, source string
 		want               fileInfo
@@ -144,7 +147,7 @@ package route
 		}
 		defer os.Remove(tc.name)
 
-		got, err := pr.goFileInfo(tc.name)
+		got, err := goFileInfo(c, dir, tc.name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -166,7 +169,8 @@ package route
 }
 
 func TestGoFileInfoFailures(t *testing.T) {
-	var pr packageReader
+	c := &config.Config{}
+	dir := "."
 	for _, tc := range []struct {
 		desc, name, source, wantError string
 	}{
@@ -202,7 +206,7 @@ import "C"
 		defer os.Remove(tc.name)
 
 		var errorText string
-		if _, err := pr.goFileInfo(tc.name); err != nil {
+		if _, err := goFileInfo(c, dir, tc.name); err != nil {
 			errorText = err.Error()
 		}
 
@@ -213,7 +217,7 @@ import "C"
 }
 
 func TestOtherFileInfo(t *testing.T) {
-	var pr packageReader
+	dir := "."
 	for _, tc := range []struct {
 		desc, name, source string
 		wantTags           []string
@@ -239,7 +243,7 @@ func TestOtherFileInfo(t *testing.T) {
 		}
 		defer os.Remove(tc.name)
 
-		got, err := pr.otherFileInfo(tc.name)
+		got, err := otherFileInfo(dir, tc.name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -253,7 +257,7 @@ func TestOtherFileInfo(t *testing.T) {
 }
 
 func TestOtherFileInfoFailures(t *testing.T) {
-	var pr packageReader
+	dir := "."
 	for _, tc := range []struct {
 		desc, name, source, wantError string
 	}{
@@ -276,7 +280,7 @@ func TestOtherFileInfoFailures(t *testing.T) {
 		defer os.Remove(tc.name)
 
 		var errorText string
-		if _, err := pr.otherFileInfo(tc.name); err != nil {
+		if _, err := otherFileInfo(dir, tc.name); err != nil {
 			errorText = err.Error()
 		}
 
@@ -502,7 +506,8 @@ func TestFileNameInfo(t *testing.T) {
 }
 
 func TestCgo(t *testing.T) {
-	var pr packageReader
+	c := &config.Config{}
+	dir := "."
 	for _, tc := range []struct {
 		desc, source string
 		want         fileInfo
@@ -599,7 +604,7 @@ import ("C")
 		}
 		defer os.Remove(path)
 
-		got, err := pr.goFileInfo(path)
+		got, err := goFileInfo(c, dir, path)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -614,7 +619,8 @@ import ("C")
 }
 
 func TestCgoFailures(t *testing.T) {
-	var pr packageReader
+	c := &config.Config{}
+	dir := "."
 	for _, tc := range []struct {
 		desc, source, wantError string
 	}{
@@ -658,7 +664,7 @@ import "C"
 		defer os.Remove(path)
 
 		var errorText string
-		if _, err := pr.goFileInfo(path); err != nil {
+		if _, err := goFileInfo(c, dir, path); err != nil {
 			errorText = err.Error()
 		}
 
@@ -744,8 +750,7 @@ func TestIsStandard(t *testing.T) {
 		{"foo.com/bar", "foo/bar", true},
 		{"foo.com/bar", "foo.com/bar", false},
 	} {
-		pr := packageReader{goPrefix: tc.goPrefix}
-		if got := pr.isStandard(tc.importpath); got != tc.want {
+		if got := isStandard(tc.goPrefix, tc.importpath); got != tc.want {
 			t.Errorf("for prefix %q, importpath %q: got %#v; want %#v", tc.goPrefix, tc.importpath, got, tc.want)
 		}
 	}

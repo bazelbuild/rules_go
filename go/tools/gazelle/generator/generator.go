@@ -18,13 +18,12 @@ limitations under the License.
 package generator
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 	"sort"
-	"strings"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 )
@@ -36,65 +35,26 @@ const (
 
 // Generator generates BUILD files for a Go repository.
 type Generator struct {
-	repoRoot      string
-	goPrefix      string
-	buildFileName string
-	buildTags     map[string]bool
-	platforms     packages.PlatformConstraints
-	g             rules.Generator
+	c *config.Config
+	g rules.Generator
 }
 
-// New returns a new Generator which is responsible for a Go repository.
-//
-// "repoRoot" is a path to the root directory of the repository.
-// "goPrefix" is the go_prefix corresponding to the repository root directory.
-// See also https://github.com/bazelbuild/rules_go#go_prefix.
-// "buildFileName" is the name of the BUILD file (BUILD or BUILD.bazel).
-// "buildTags" is set of build tags that are true on all platforms. Some
-// additional tags will be added to this. May be nil.
-// "external" is how external packages should be resolved.
-func New(repoRoot, goPrefix, buildFileName string, buildTags map[string]bool, external rules.ExternalResolver) (*Generator, error) {
-	repoRoot, err := filepath.Abs(repoRoot)
-	if err != nil {
-		return nil, err
-	}
-
-	if buildTags == nil {
-		buildTags = make(map[string]bool)
-	}
-	platforms := packages.DefaultPlatformConstraints
-	packages.PreprocessTags(buildTags, platforms)
-
+func New(c *config.Config) *Generator {
 	return &Generator{
-		repoRoot:      repoRoot,
-		goPrefix:      goPrefix,
-		buildFileName: buildFileName,
-		buildTags:     buildTags,
-		platforms:     platforms,
-		g:             rules.NewGenerator(repoRoot, goPrefix, external),
-	}, nil
+		c: c,
+		g: rules.NewGenerator(c),
+	}
 }
 
 // Generate generates a BUILD file for each Go package found under
 // the given directory.
-// The directory must be the repository root directory the caller
-// passed to New, or its subdirectory.
+// "dir" must be an absolute path to the repository root or a subdirectory.
 // Errors will be logged. BUILD files may or may not be returned for directories
 // that have errors, depending on the severity of the error.
 func (g *Generator) Generate(dir string) []*bzl.File {
-	dir, err := filepath.Abs(dir)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	if !isDescendingDir(dir, g.repoRoot) {
-		log.Printf("dir %s is not under the repository root %s", dir, g.repoRoot)
-		return nil
-	}
-
 	var files []*bzl.File
-	packages.Walk(g.buildTags, g.platforms, g.repoRoot, g.goPrefix, dir, func(pkg *packages.Package) {
-		rel, err := filepath.Rel(g.repoRoot, pkg.Dir)
+	packages.Walk(g.c, dir, func(pkg *packages.Package) {
+		rel, err := filepath.Rel(g.c.RepoRoot, pkg.Dir)
 		if err != nil {
 			log.Print(err)
 			return
@@ -115,13 +75,13 @@ func (g *Generator) Generate(dir string) []*bzl.File {
 
 func (g *Generator) emptyToplevel() *bzl.File {
 	return &bzl.File{
-		Path: g.buildFileName,
+		Path: g.c.DefaultBuildFileName(),
 		Stmt: []bzl.Expr{
 			loadExpr("go_prefix"),
 			&bzl.CallExpr{
 				X: &bzl.LiteralExpr{Token: "go_prefix"},
 				List: []bzl.Expr{
-					&bzl.StringExpr{Value: g.goPrefix},
+					&bzl.StringExpr{Value: g.c.GoPrefix},
 				},
 			},
 		},
@@ -130,7 +90,7 @@ func (g *Generator) emptyToplevel() *bzl.File {
 
 func (g *Generator) generateOne(rel string, pkg *packages.Package) *bzl.File {
 	rs := g.g.Generate(filepath.ToSlash(rel), pkg)
-	file := &bzl.File{Path: filepath.Join(rel, g.buildFileName)}
+	file := &bzl.File{Path: filepath.Join(rel, g.c.DefaultBuildFileName())}
 	for _, r := range rs {
 		file.Stmt = append(file.Stmt, r.Call)
 	}
@@ -174,11 +134,4 @@ func loadExpr(rules ...string) *bzl.CallExpr {
 		List:         list,
 		ForceCompact: true,
 	}
-}
-
-func isDescendingDir(dir, root string) bool {
-	if dir == root {
-		return true
-	}
-	return strings.HasPrefix(dir, fmt.Sprintf("%s%c", root, filepath.Separator))
 }

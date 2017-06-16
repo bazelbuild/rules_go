@@ -5,6 +5,7 @@ go_library(
     srcs = ["generator.go"],
     visibility = ["//visibility:public"],
     deps = [
+        "//go/tools/gazelle/config:go_default_library",
         "//go/tools/gazelle/packages:go_default_library",
         "//go/tools/gazelle/rules:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",

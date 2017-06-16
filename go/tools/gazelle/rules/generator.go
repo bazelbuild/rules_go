@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
 
@@ -44,17 +45,6 @@ const (
 	defaultCgoLibName = "cgo_default_library"
 )
 
-// ExternalResolver resolves external packages.
-type ExternalResolver int
-
-const (
-	// External resolves external packages as external packages with
-	// new_go_repository.
-	External ExternalResolver = iota
-	// Vendored resolves external packages as vendored packages in vendor/.
-	Vendored
-)
-
 // Generator generates Bazel build rules for Go build targets
 type Generator interface {
 	// Generate generates build rules for build targets in a Go package in a
@@ -67,34 +57,27 @@ type Generator interface {
 	Generate(rel string, pkg *packages.Package) []*bzl.Rule
 }
 
-// NewGenerator returns an implementation of Generator.
-//
-// "repoRoot" is a path to the root directory of the repository.
-// "goPrefix" is the go_prefix corresponding to the repository root.
-// See also https://github.com/bazelbuild/rules_go#go_prefix.
-// "external" is how external packages should be resolved.
-func NewGenerator(repoRoot string, goPrefix string, external ExternalResolver) Generator {
+func NewGenerator(c *config.Config) Generator {
 	var (
 		// TODO(yugui) Support another resolver to cover the pattern 2 in
 		// https://github.com/bazelbuild/rules_go/issues/16#issuecomment-216010843
-		r = structuredResolver{goPrefix: goPrefix}
+		r = structuredResolver{goPrefix: c.GoPrefix}
 	)
 
 	var e labelResolver
-	switch external {
-	case External:
+	switch c.DepMode {
+	case config.ExternalMode:
 		e = externalResolver{}
-	case Vendored:
+	case config.VendorMode:
 		e = vendoredResolver{}
 	default:
 		return nil
 	}
 
 	return &generator{
-		repoRoot: repoRoot,
-		goPrefix: goPrefix,
+		c: c,
 		r: resolverFunc(func(importpath, dir string) (label, error) {
-			if importpath != goPrefix && !strings.HasPrefix(importpath, goPrefix+"/") && !isRelative(importpath) {
+			if importpath != c.GoPrefix && !strings.HasPrefix(importpath, c.GoPrefix+"/") && !isRelative(importpath) {
 				return e.resolve(importpath, dir)
 			}
 			return r.resolve(importpath, dir)
@@ -103,15 +86,14 @@ func NewGenerator(repoRoot string, goPrefix string, external ExternalResolver) G
 }
 
 type generator struct {
-	repoRoot string
-	goPrefix string
-	r        labelResolver
+	c *config.Config
+	r labelResolver
 }
 
 func (g *generator) Generate(rel string, pkg *packages.Package) []*bzl.Rule {
 	var rules []*bzl.Rule
 	if rel == "" {
-		rules = append(rules, newRule("go_prefix", []interface{}{g.goPrefix}, nil))
+		rules = append(rules, newRule("go_prefix", []interface{}{g.c.GoPrefix}, nil))
 	}
 
 	cgoLibrary, r := g.generateCgoLib(rel, pkg)
@@ -132,7 +114,7 @@ func (g *generator) Generate(rel string, pkg *packages.Package) []*bzl.Rule {
 		rules = append(rules, r)
 	}
 
-	testdataPath := filepath.Join(g.repoRoot, rel, "testdata")
+	testdataPath := filepath.Join(g.c.RepoRoot, rel, "testdata")
 	st, err := os.Stat(testdataPath)
 	hasTestdata := err == nil && st.IsDir()
 

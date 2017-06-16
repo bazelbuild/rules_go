@@ -17,44 +17,11 @@ package packages
 
 import (
 	"fmt"
-	"go/build"
 	"sort"
 	"strings"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
-
-// PlatformConstraints is a map from config_setting labels (for example,
-// "@io_bazel_rules_go//go/platform:linux_amd64") to a sets of build tags
-// that are true on each platform (for example, "linux,amd64").
-type PlatformConstraints map[string]map[string]bool
-
-// DefaultPlatformConstraints is the default set of platforms that Gazelle
-// will generate files for. These are the platforms that both Go and Bazel
-// support.
-var DefaultPlatformConstraints PlatformConstraints
-
-func init() {
-	DefaultPlatformConstraints = make(PlatformConstraints)
-	arch := "amd64"
-	for _, os := range []string{"darwin", "linux", "windows"} {
-		label := fmt.Sprintf("@io_bazel_rules_go//go/platform:%s_%s", os, arch)
-		DefaultPlatformConstraints[label] = map[string]bool{arch: true, os: true}
-	}
-}
-
-// PreprocessTags performs some automatic processing on generic and
-// platform-specific tags before they are used to match files.
-func PreprocessTags(genericTags map[string]bool, platforms PlatformConstraints) {
-	genericTags["cgo"] = true
-	genericTags["gc"] = true
-	for _, t := range build.Default.ReleaseTags {
-		genericTags[t] = true
-	}
-	for _, platformTags := range platforms {
-		for t, _ := range genericTags {
-			platformTags[t] = true
-		}
-	}
-}
 
 // Package contains metadata about a Go package extracted from a directory.
 // It fills a similar role to go/build.Package, but it separates files by
@@ -162,15 +129,11 @@ func (ts *PlatformStrings) firstGoFile() string {
 //
 // "cgo" tells whether a ".go" file in the package contains cgo code. This
 // affects whether C files are added to targets.
-// "buildTags" is a set of tags that are true on all platforms.
-// "platforms" is a map from platform names (labels referencing config_settings)
-// to sets of tags that are true on those platforms. The tag sets may include
-// "buildTags".
 //
 // An error is returned if a file is buildable but invalid (for example, a
 // test .go file containing cgo code). Files that are not buildable will not
 // be added to any target (for example, .txt files).
-func (p *Package) addFile(info fileInfo, cgo bool, buildTags map[string]bool, platforms PlatformConstraints) error {
+func (p *Package) addFile(c *config.Config, info fileInfo, cgo bool) error {
 	switch {
 	case info.category == ignoredExt || info.category == unsupportedExt:
 		return nil
@@ -178,16 +141,16 @@ func (p *Package) addFile(info fileInfo, cgo bool, buildTags map[string]bool, pl
 		if info.isCgo {
 			return fmt.Errorf("%s: use of cgo in test not supported", info.path)
 		}
-		p.XTest.addFile(info, buildTags, platforms)
+		p.XTest.addFile(c, info)
 	case info.isTest:
 		if info.isCgo {
 			return fmt.Errorf("%s: use of cgo in test not supported", info.path)
 		}
-		p.Test.addFile(info, buildTags, platforms)
+		p.Test.addFile(c, info)
 	case info.isCgo || cgo && (info.category == cExt || info.category == hExt || info.category == csExt):
-		p.CgoLibrary.addFile(info, buildTags, platforms)
+		p.CgoLibrary.addFile(c, info)
 	case info.category == goExt || info.category == sExt || info.category == hExt:
-		p.Library.addFile(info, buildTags, platforms)
+		p.Library.addFile(c, info)
 	case info.category == protoExt:
 		p.Protos = append(p.Protos, info.name)
 	}
@@ -199,16 +162,16 @@ func (p *Package) addFile(info fileInfo, cgo bool, buildTags map[string]bool, pl
 	return nil
 }
 
-func (t *Target) addFile(info fileInfo, buildTags map[string]bool, platforms PlatformConstraints) {
-	if !info.hasConstraints() || info.checkConstraints(buildTags) {
+func (t *Target) addFile(c *config.Config, info fileInfo) {
+	if !info.hasConstraints() || info.checkConstraints(c.GenericTags) {
 		t.Sources.addGenericStrings(info.name)
 		t.Imports.addGenericStrings(info.imports...)
-		t.COpts.addGenericOpts(platforms, info.copts)
-		t.CLinkOpts.addGenericOpts(platforms, info.clinkopts)
+		t.COpts.addGenericOpts(c.Platforms, info.copts)
+		t.CLinkOpts.addGenericOpts(c.Platforms, info.clinkopts)
 		return
 	}
 
-	for name, tags := range platforms {
+	for name, tags := range c.Platforms {
 		if info.checkConstraints(tags) {
 			t.Sources.addPlatformStrings(name, info.name)
 			t.Imports.addPlatformStrings(name, info.imports...)
@@ -222,7 +185,7 @@ func (ps *PlatformStrings) addGenericStrings(ss ...string) {
 	ps.Generic = append(ps.Generic, ss...)
 }
 
-func (ps *PlatformStrings) addGenericOpts(platforms PlatformConstraints, opts []taggedOpts) {
+func (ps *PlatformStrings) addGenericOpts(platforms config.PlatformTags, opts []taggedOpts) {
 	for _, t := range opts {
 		if t.tags == "" {
 			ps.Generic = append(ps.Generic, t.opts...)

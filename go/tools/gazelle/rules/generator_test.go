@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
@@ -34,17 +35,22 @@ func format(rules []*bzl.Rule) string {
 	return string(bzl.Format(&f))
 }
 
-func packageFromDir(t *testing.T, dir, repoRoot, goPrefix string) *packages.Package {
-	buildTags := map[string]bool{}
-	platforms := packages.DefaultPlatformConstraints
-	packages.PreprocessTags(buildTags, platforms)
-	return packages.FindPackage(dir, buildTags, platforms, repoRoot, goPrefix)
+func testConfig(repoRoot, goPrefix string) *config.Config {
+	c := &config.Config{
+		RepoRoot:    repoRoot,
+		GoPrefix:    goPrefix,
+		GenericTags: config.BuildTags{},
+		Platforms:   config.DefaultPlatformTags,
+	}
+	c.PreprocessTags()
+	return c
 }
 
 func TestGenerator(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo")
 	goPrefix := "example.com/repo"
-	g := rules.NewGenerator(repoRoot, goPrefix, rules.External)
+	c := testConfig(repoRoot, goPrefix)
+	g := rules.NewGenerator(c)
 	for _, rel := range []string{
 		"allcgolib",
 		"bin",
@@ -57,7 +63,7 @@ func TestGenerator(t *testing.T) {
 		"platforms",
 	} {
 		dir := filepath.Join(repoRoot, filepath.FromSlash(rel))
-		pkg := packageFromDir(t, dir, repoRoot, goPrefix)
+		pkg := packages.FindPackage(c, dir)
 		rules := g.Generate(rel, pkg)
 		got := format(rules)
 
@@ -78,9 +84,10 @@ func TestGenerator(t *testing.T) {
 func TestGeneratorGoPrefix(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo")
 	goPrefix := "example.com/repo/lib"
-	g := rules.NewGenerator(repoRoot, goPrefix, rules.External)
+	c := testConfig(repoRoot, goPrefix)
+	g := rules.NewGenerator(c)
 	dir := filepath.Join(repoRoot, "lib")
-	pkg := packageFromDir(t, dir, repoRoot, goPrefix)
+	pkg := packages.FindPackage(c, dir)
 	rules := g.Generate("", pkg)
 
 	if got, want := len(rules), 1; got < want {
