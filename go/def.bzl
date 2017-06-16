@@ -15,20 +15,82 @@
 load("@io_bazel_rules_go//go/private:repositories.bzl", "go_repositories")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 load("@io_bazel_rules_go//go/private:go_prefix.bzl", "go_prefix")
-load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
-load("@io_bazel_rules_go//go/private:binary.bzl", "go_binary")
-load("@io_bazel_rules_go//go/private:test.bzl", "go_test")
 load("@io_bazel_rules_go//go/private:cgo.bzl", "cgo_library", "cgo_genrule")
 load("@io_bazel_rules_go//go/private:gazelle.bzl", "gazelle")
+load("@io_bazel_rules_go//go/private:wrappers.bzl",
+    _go_library_macro = "go_library_macro",
+    _go_binary_macro = "go_binary_macro",
+    _go_test_macro = "go_test_macro",
+)
 
-"""These are bare-bones Go rules.
 
-In order of priority:
+go_library = _go_library_macro
+"""
+    go_library is a macro for building go libraries.
+    It accepts the following attributes:
+        "importpath": attr.string(),
+        # inputs
+        "srcs": attr.label_list(),
+        "deps": attr.label_list(),
+        "data": attr.label_list(allow_files = True, cfg = "data"),
+        # compile options
+        "gc_goopts": attr.string_list(), # Options for the go compiler if using gc
+        "gccgo_goopts": attr.string_list(), # Options for the go compiler if using gcc
+        # cgo options
+        "cgo": attr.bool(),
+        "cdeps": attr.label_list(), # TODO: Would be nicer to be able to filter deps instead
+        "copts": attr.string_list(), # Options for the the c compiler
+        "clinkopts": attr.string_list(), # Options for the linker
+"""
 
-- BUILD file must be written by hand.
+go_binary = _go_binary_macro
+"""
+    go_library is a macro for building go executables.
+    It accepts the following attributes:
+        "importpath": attr.string(),
+        # inputs
+        "srcs": attr.label_list(),
+        "deps": attr.label_list(),
+        "data": attr.label_list(allow_files = True, cfg = "data"),
+        # compile options
+        "gc_goopts": attr.string_list(), # Options for the go compiler if using gc
+        "gccgo_goopts": attr.string_list(), # Options for the go compiler if using gcc
+        # link options
+        "gc_linkopts": attr.string_list(), # Options for the go linker if using gc
+        "gccgo_linkopts": attr.string_list(), # Options for the go linker if using gcc
+        "stamp": attr.int(),
+        "linkstamp": attr.string(),
+        "x_defs": attr.string_dict(),
+        # cgo options
+        "cgo": attr.bool(),
+        "cdeps": attr.label_list(), # TODO: Would be nicer to be able to filter deps instead
+        "copts": attr.string_list(), # Options for the the c compiler
+        "clinkopts": attr.string_list(), # Options for the linker
+"""
 
-- No support for SWIG
-
-- No test sharding or test XML.
-
+go_test = _go_test_macro
+"""
+    go_test is a macro for building go executable tests.
+    It accepts the following attributes:
+        "importpath": attr.string(),
+        "defines_main": attr.bool(),
+        # inputs
+        "srcs": attr.label_list(),
+        "deps": attr.label_list(),
+        "data": attr.label_list(allow_files = True, cfg = "data"),
+        "library": attr.label(),
+        # compile options
+        "gc_goopts": attr.string_list(), # Options for the go compiler if using gc
+        "gccgo_goopts": attr.string_list(), # Options for the go compiler if using gcc
+        # link options
+        "gc_linkopts": attr.string_list(), # Options for the go linker if using gc
+        "gccgo_linkopts": attr.string_list(), # Options for the go linker if using gcc
+        "stamp": attr.int(),
+        "linkstamp": attr.string(),
+        "x_defs": attr.string_dict(),
+        # cgo options
+        "cgo": attr.bool(),
+        "cdeps": attr.label_list(), # TODO: Would be nicer to be able to filter deps instead
+        "copts": attr.string_list(), # Options for the the c compiler
+        "clinkopts": attr.string_list(), # Options for the linker
 """

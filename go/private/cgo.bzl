@@ -59,7 +59,7 @@ def cgo_library(name, srcs,
     )
     ```
   """
-  cgogen = _setup_cgo_library(
+  cgogen = setup_cgo_library(
       name = name,
       srcs = srcs,
       cdeps = cdeps,
@@ -301,7 +301,7 @@ Args:
     to be linked together with src when we generate the final go binary.
 """
 
-def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
+def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_codegen_dir = name + ".cgo.dir"
 
   # Apply build constraints to source files (both Go and C) but not to header
