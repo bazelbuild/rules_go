@@ -16,7 +16,6 @@
 
 load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_repository_select")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
-load("@io_bazel_rules_go//go/private:bzl_format.bzl", "bzl_format_repositories")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 
 _sdk_repositories = {
@@ -90,8 +89,6 @@ def go_repositories(
       strip_prefix = "tools-3d92dd60033c312e3ae7cac319c792271cf67e37",
       type = "zip",
   )
-
-  bzl_format_repositories()
 
   go_repository_select(name = "io_bazel_rules_go_toolchain", go_version = go_version)
   go_repository_tools(name = "io_bazel_rules_go_repository_tools")

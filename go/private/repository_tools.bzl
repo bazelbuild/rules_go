@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "new_go_repository", "env_execute")
-load("@io_bazel_rules_go//go/private:bzl_format.bzl", "bzl_format_repositories")
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
