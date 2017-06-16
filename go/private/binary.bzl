@@ -14,6 +14,7 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
@@ -52,10 +53,14 @@ def _go_binary_impl(ctx):
     x_defs=ctx.attr.x_defs)
 
   return [
-      struct(
+      GoBinary(
+          executable = ctx.outputs.executable,
+          static = static_executable,
+          cgo_object = lib_result.cgo_object,
+      ),
+      DefaultInfo(
           files = depset([ctx.outputs.executable]),
           runfiles = lib_result.runfiles,
-          cgo_object = lib_result.cgo_object,
       ),
       OutputGroupInfo(
           static = depset([static_executable]),
@@ -70,23 +75,9 @@ go_binary = rule(
             cfg = "data",
         ),
         "srcs": attr.label_list(allow_files = go_filetype),
-        "deps": attr.label_list(
-            providers = [
-                "transitive_go_library_paths",
-                "transitive_go_libraries",
-                "transitive_cgo_deps",
-            ],
-        ),
+        "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
-        "library": attr.label(
-            providers = [
-                "direct_deps",
-                "go_sources",
-                "asm_sources",
-                "cgo_object",
-                "gc_goopts",
-            ],
-        ),
+        "library": attr.label(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),

@@ -15,6 +15,7 @@
 load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_test_impl(ctx):
   """go_test_impl implements go testing.
@@ -75,10 +76,15 @@ def _go_test_impl(ctx):
   # without code changes.
   runfiles = ctx.runfiles(files = [ctx.outputs.executable])
   runfiles = runfiles.merge(lib_result.runfiles)
-  return struct(
-      files = set([ctx.outputs.executable]),
-      runfiles = runfiles,
-  )
+  return [
+      GoBinary(
+          executable = ctx.outputs.executable,
+      ),
+      DefaultInfo(
+          files = set([ctx.outputs.executable]),
+          runfiles = runfiles,
+      ),
+  ]
 
 go_test = rule(
     _go_test_impl,
@@ -88,23 +94,9 @@ go_test = rule(
             cfg = "data",
         ),
         "srcs": attr.label_list(allow_files = go_filetype),
-        "deps": attr.label_list(
-            providers = [
-                "transitive_go_library_paths",
-                "transitive_go_libraries",
-                "transitive_cgo_deps",
-            ],
-        ),
+        "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
-        "library": attr.label(
-            providers = [
-                "direct_deps",
-                "go_sources",
-                "asm_sources",
-                "cgo_object",
-                "gc_goopts",
-            ],
-        ),
+        "library": attr.label(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),

@@ -14,6 +14,7 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype")
 load("@io_bazel_rules_go//go/private:asm.bzl", "emit_go_asm_action")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoSource")
 
 def emit_library_actions(ctx, sources, deps, cgo_object, library):
   go_toolchain = get_go_toolchain(ctx)
@@ -24,17 +25,19 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
   dep_runfiles = [d.data_runfiles for d in deps]
 
   if library:
-    go_srcs += library.go_sources
-    asm_srcs += library.asm_sources
-    asm_hdrs += library.asm_headers
-    deps += library.direct_deps
+    golib = library[GoLibrary]
+    gosrc = library[GoSource]
+    go_srcs += gosrc.go_sources
+    asm_srcs += gosrc.asm_sources
+    asm_hdrs += gosrc.asm_headers
+    deps += golib.direct_deps
     dep_runfiles += [library.data_runfiles]
-    if library.cgo_object:
+    if golib.cgo_object:
       if cgo_object:
         fail("go_library %s cannot have cgo_object because the package " +
              "already has cgo_object in %s" % (ctx.label.name,
-                                               library.name))
-      cgo_object = library.cgo_object
+                                               golib.name))
+      cgo_object = golib.cgo_object
   if not go_srcs:
     fail("may not be empty", "srcs")
 
@@ -61,12 +64,13 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
   transitive_go_library_deps = depset()
   transitive_go_library_paths = depset([searchpath])
   for dep in deps:
-    direct_go_library_deps += [dep.library]
-    direct_search_paths += [dep.searchpath]
-    direct_import_paths += [dep.importpath]
-    transitive_go_library_deps += dep.transitive_go_libraries
-    transitive_cgo_deps += dep.transitive_cgo_deps
-    transitive_go_library_paths += dep.transitive_go_library_paths
+    golib = dep[GoLibrary]
+    direct_go_library_deps += [golib.library]
+    direct_search_paths += [golib.searchpath]
+    direct_import_paths += [golib.importpath]
+    transitive_go_library_deps += golib.transitive_go_libraries
+    transitive_cgo_deps += golib.transitive_cgo_deps
+    transitive_go_library_paths += golib.transitive_go_library_paths
 
   go_srcs = emit_go_compile_action(ctx,
       sources = go_srcs,
@@ -116,46 +120,38 @@ def _go_library_impl(ctx):
       library = ctx.attr.library,
   )
 
-  return struct(
-    label = ctx.label,
-    files = lib_result.files,
-    library = lib_result.library,
-    searchpath = lib_result.searchpath,
-    runfiles = lib_result.runfiles,
-    go_sources = lib_result.go_sources,
-    asm_sources = lib_result.asm_sources,
-    asm_headers = lib_result.asm_headers,
-    importpath = lib_result.importpath,
-    cgo_object = lib_result.cgo_object,
-    direct_deps = lib_result.direct_deps,
-    transitive_cgo_deps = lib_result.transitive_cgo_deps,
-    transitive_go_libraries = lib_result.transitive_go_libraries,
-    transitive_go_library_paths = lib_result.transitive_go_library_paths,
-    gc_goopts = lib_result.gc_goopts,
-  )
+  return [
+      GoLibrary(
+          label = ctx.label,
+          library = lib_result.library,
+          searchpath = lib_result.searchpath,
+          importpath = lib_result.importpath,
+          cgo_object = lib_result.cgo_object,
+          direct_deps = lib_result.direct_deps,
+          transitive_cgo_deps = lib_result.transitive_cgo_deps,
+          transitive_go_libraries = lib_result.transitive_go_libraries,
+          transitive_go_library_paths = lib_result.transitive_go_library_paths,
+          gc_goopts = lib_result.gc_goopts,
+      ),
+      GoSource(
+          go_sources = lib_result.go_sources,
+          asm_sources = lib_result.asm_sources,
+          asm_headers = lib_result.asm_headers,
+      ),
+      DefaultInfo(
+          files = lib_result.files,
+          runfiles = lib_result.runfiles,
+      ),
+  ]
 
 go_library = rule(
     _go_library_impl,
     attrs = {
         "data": attr.label_list(allow_files = True, cfg = "data"),
         "srcs": attr.label_list(allow_files = go_filetype),
-        "deps": attr.label_list(
-            providers = [
-                "transitive_go_library_paths",
-                "transitive_go_libraries",
-                "transitive_cgo_deps",
-            ],
-        ),
+        "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
-        "library": attr.label(
-            providers = [
-                "direct_deps",
-                "go_sources",
-                "asm_sources",
-                "cgo_object",
-                "gc_goopts",
-            ],
-        ),
+        "library": attr.label(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "cgo_object": attr.label(
             providers = [
@@ -198,7 +194,7 @@ def go_importpath(ctx):
 def get_gc_goopts(ctx):
   gc_goopts = ctx.attr.gc_goopts
   if ctx.attr.library:
-    gc_goopts += ctx.attr.library.gc_goopts
+    gc_goopts += ctx.attr.library[GoLibrary].gc_goopts
   return gc_goopts
 
 def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_object, gc_goopts):
