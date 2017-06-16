@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 
@@ -328,15 +328,6 @@ _cgo_object = rule(
 )
 
 
-def _pkg_dir(workspace_root, package_name):
-  if workspace_root and package_name:
-    return workspace_root + "/" + package_name
-  if workspace_root:
-    return workspace_root
-  if package_name:
-    return package_name
-  return "."
-
 def _exec_path(path):
   if path.startswith('/'):
     return path
@@ -359,10 +350,10 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   
   # Run cgo on the filtered Go files. This will split them into pure Go files
   # and pure C files, plus a few other glue files.
-  pkg_dir = _pkg_dir(
+  base_dir = pkg_dir(
       "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
       PACKAGE_NAME)
-  copts += ["-I", pkg_dir]
+  copts += ["-I", base_dir]
 
   cgo_codegen_name = name + ".cgo_codegen"
   _cgo_codegen_rule(
@@ -404,7 +395,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       srcs = [cgo_codegen_name],
       deps = cdeps,
       copts = copts + platform_copts + [
-          "-I", "$(BINDIR)/" + pkg_dir + "/" + cgo_codegen_dir,
+          "-I", "$(BINDIR)/" + base_dir + "/" + cgo_codegen_dir,
           # The generated thunks often contain unused variables.
           "-Wno-unused-variable",
       ],

@@ -90,6 +90,7 @@ var codeTpl = `
 package main
 import (
 	"flag"
+	"log"
 	"os"
 {{if .Version17}}
 	"regexp"
@@ -165,7 +166,10 @@ func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts
 {{end}}
 
 func main() {
-	os.Chdir("{{.RunDir}}")
+	if err := os.Chdir("{{.RunDir}}"); err != nil {
+		log.Fatalf("could not change to test directory: %v", err)
+	}
+
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
 		if f := flag.Lookup("test.run"); f != nil {
 			f.Value.Set(filter)
@@ -203,6 +207,7 @@ func run(args []string) error {
 	// Prepare our flags
 	flags := flag.NewFlagSet("generate_test_main", flag.ExitOnError)
 	pkg := flags.String("package", "", "package from which to import test methods.")
+	runDir := flags.String("rundir", ".", "Path to directory where tests should run.")
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
 	tags := flags.String("tags", "", "Only pass through files that match these tags.")
 	if err := flags.Parse(args); err != nil {
@@ -235,7 +240,7 @@ func run(args []string) error {
 	}
 	cases := Cases{
 		Package: *pkg,
-		RunDir:  os.Getenv("RUNDIR"),
+		RunDir:  *runDir,
 		Cover:   []coverInfo{ci},
 	}
 	testFileSet := token.NewFileSet()
