@@ -34,15 +34,6 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
-var (
-	buildFileName = flag.String("build_file_name", "BUILD.bazel,BUILD", "comma-separated list of valid build file names.\nThe first element of the list is the name of output build files to generate.")
-	buildTags     = flag.String("build_tags", "", "comma-separated list of build tags. If not specified, Gazelle will not\n\tfilter sources with build constraints.")
-	external      = flag.String("external", "external", "external: resolve external packages with new_go_repository\n\tvendored: resolve external packages as packages in vendor/")
-	goPrefix      = flag.String("go_prefix", "", "go_prefix of the target workspace")
-	repoRoot      = flag.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
-	mode          = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
-)
-
 type emitFunc func(*config.Config, *bzl.File) error
 
 var modeFromName = map[string]emitFunc{
@@ -83,7 +74,7 @@ func run(c *config.Config, emit emitFunc) {
 	}
 }
 
-func usage() {
+func usage(fs *flag.FlagSet) {
 	fmt.Fprintln(os.Stderr, `usage: gazelle [flags...] [package-dirs...]
 
 Gazelle is a BUILD file generator for Go projects.
@@ -105,30 +96,42 @@ In diff mode, gazelle shows diff.
 
 FLAGS:
 `)
-	flag.PrintDefaults()
+	fs.PrintDefaults()
 }
 
 func main() {
 	log.SetPrefix("gazelle: ")
 	log.SetFlags(0) // don't print timestamps
 
-	flag.Usage = usage
-	flag.Parse()
-
-	c, err := newConfiguration()
+	c, emit, err := newConfiguration(os.Args[1:])
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	emit := modeFromName[*mode]
-	if emit == nil {
-		log.Fatalf("unrecognized mode %s", *mode)
 	}
 
 	run(c, emit)
 }
 
-func newConfiguration() (*config.Config, error) {
+func newConfiguration(args []string) (*config.Config, emitFunc, error) {
+	fs := flag.NewFlagSet("gazelle", flag.ContinueOnError)
+	// Flag will call this on any parse error. Don't print usage unless
+	// -h or -help were passed explicitly.
+	fs.Usage = func() {}
+
+	buildFileName := fs.String("build_file_name", "BUILD.bazel,BUILD", "comma-separated list of valid build file names.\nThe first element of the list is the name of output build files to generate.")
+	buildTags := fs.String("build_tags", "", "comma-separated list of build tags. If not specified, Gazelle will not\n\tfilter sources with build constraints.")
+	external := fs.String("external", "external", "external: resolve external packages with new_go_repository\n\tvendored: resolve external packages as packages in vendor/")
+	goPrefix := fs.String("go_prefix", "", "go_prefix of the target workspace")
+	repoRoot := fs.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
+	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
+	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			usage(fs)
+			os.Exit(0)
+		}
+		// flag already prints the error; don't print it again.
+		log.Fatal("Try -help for more information.")
+	}
+
 	var c config.Config
 	var err error
 
@@ -139,7 +142,7 @@ func newConfiguration() (*config.Config, error) {
 	for i := range c.Dirs {
 		c.Dirs[i], err = filepath.Abs(c.Dirs[i])
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -148,34 +151,34 @@ func newConfiguration() (*config.Config, error) {
 	} else if len(c.Dirs) == 1 {
 		c.RepoRoot, err = wspace.Find(c.Dirs[0])
 		if err != nil {
-			return nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
+			return nil, nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
 		}
 	} else {
 		cwd, err := filepath.Abs(".")
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		c.RepoRoot, err = wspace.Find(cwd)
 		if err != nil {
-			return nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
+			return nil, nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
 		}
 	}
 
 	for _, dir := range c.Dirs {
 		if !isDescendingDir(dir, c.RepoRoot) {
-			return nil, fmt.Errorf("dir %q is not a subdirectory of repo root %q", dir, c.RepoRoot)
+			return nil, nil, fmt.Errorf("dir %q is not a subdirectory of repo root %q", dir, c.RepoRoot)
 		}
 	}
 
 	c.ValidBuildFileNames = strings.Split(*buildFileName, ",")
 	if len(c.ValidBuildFileNames) == 0 {
-		return nil, fmt.Errorf("no valid build file names specified")
+		return nil, nil, fmt.Errorf("no valid build file names specified")
 	}
 
 	c.GenericTags = make(config.BuildTags)
 	for _, t := range strings.Split(*buildTags, ",") {
 		if strings.HasPrefix(t, "!") {
-			return nil, fmt.Errorf("build tags can't be negated: %s", t)
+			return nil, nil, fmt.Errorf("build tags can't be negated: %s", t)
 		}
 		c.GenericTags[t] = true
 	}
@@ -186,16 +189,21 @@ func newConfiguration() (*config.Config, error) {
 	if c.GoPrefix == "" {
 		c.GoPrefix, err = loadGoPrefix(&c)
 		if err != nil {
-			return nil, fmt.Errorf("-go_prefix not set and not root BUILD file found")
+			return nil, nil, fmt.Errorf("-go_prefix not set and not root BUILD file found")
 		}
 	}
 
 	c.DepMode, err = config.DependencyModeFromString(*external)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &c, err
+	emit, ok := modeFromName[*mode]
+	if !ok {
+		return nil, nil, fmt.Errorf("unrecognized emit mode: %q", *mode)
+	}
+
+	return &c, emit, err
 }
 
 func findBuildFile(c *config.Config, dir string) (string, error) {

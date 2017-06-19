@@ -116,6 +116,9 @@ const (
 	VendorMode
 )
 
+// DependencyModeFromString converts a string from the command line
+// to a DependencyMode. Valid strings are "external", "vendor". An error will
+// be returned for an invalid string.
 func DependencyModeFromString(s string) (DependencyMode, error) {
 	switch s {
 	case "external":
@@ -123,6 +126,6 @@ func DependencyModeFromString(s string) (DependencyMode, error) {
 	case "vendor":
 		return VendorMode, nil
 	default:
-		return 0, fmt.Errorf("invalid dependency mode: %s", s)
+		return 0, fmt.Errorf("unrecognized dependency mode: %q", s)
 	}
 }
