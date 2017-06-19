@@ -74,7 +74,11 @@ func createFiles(files []fileSpec) (string, error) {
 }
 
 func walkPackages(repoRoot, goPrefix, dir string) []*packages.Package {
-	c := &config.Config{RepoRoot: repoRoot, GoPrefix: goPrefix}
+	c := &config.Config{
+		RepoRoot:            repoRoot,
+		GoPrefix:            goPrefix,
+		ValidBuildFileNames: config.DefaultValidBuildFileNames,
+	}
 	var pkgs []*packages.Package
 	packages.Walk(c, dir, func(pkg *packages.Package) {
 		pkgs = append(pkgs, pkg)

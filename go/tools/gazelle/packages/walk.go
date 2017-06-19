@@ -66,7 +66,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 					hasTestdata = !hasPackage
 				}
 				subdirHasPackage = subdirHasPackage || hasPackage
-			} else if !f.IsDir() && (base == "BUILD" || base == "BUILD.bazel") {
+			} else if !f.IsDir() && c.IsValidBuildFileName(base) {
 				hasBuild = true
 			}
 		}
