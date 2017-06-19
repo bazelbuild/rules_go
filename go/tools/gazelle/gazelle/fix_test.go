@@ -23,13 +23,25 @@ import (
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 func TestMain(m *testing.M) {
 	tmpdir := os.Getenv("TEST_TMPDIR")
 	flag.Set("repo_root", tmpdir)
 	os.Exit(m.Run())
+}
+
+func defaultConfig(dir string) *config.Config {
+	c := &config.Config{
+		Dirs:                []string{dir},
+		RepoRoot:            dir,
+		GenericTags:         config.BuildTags{},
+		Platforms:           config.DefaultPlatformTags,
+		ValidBuildFileNames: config.DefaultValidBuildFileNames,
+	}
+	c.PreprocessTags()
+	return c
 }
 
 func TestFixFile(t *testing.T) {
@@ -56,7 +68,8 @@ func TestFixFile(t *testing.T) {
 		},
 	}
 
-	if err := fixFile(stubFile); err != nil {
+	c := defaultConfig(dir)
+	if err := fixFile(c, stubFile); err != nil {
 		t.Errorf("fixFile(%#v) failed with %v; want success", stubFile, err)
 		return
 	}
@@ -86,7 +99,8 @@ func TestCreateFile(t *testing.T) {
 	}
 
 	// Check that Gazelle creates a new file named "BUILD.bazel".
-	run([]string{dir}, nil, fixFile, rules.External)
+	c := defaultConfig(dir)
+	run(c, fixFile)
 
 	buildFile := filepath.Join(dir, "BUILD.bazel")
 	if _, err = os.Stat(buildFile); err != nil {
@@ -114,7 +128,8 @@ func TestUpdateFile(t *testing.T) {
 	}
 
 	// Check that Gazelle updates the BUILD file in place.
-	run([]string{dir}, nil, fixFile, rules.External)
+	c := defaultConfig(dir)
+	run(c, fixFile)
 	if st, err := os.Stat(buildFile); err != nil {
 		t.Errorf("could not stat BUILD: %v", err)
 	} else if st.Size() == 0 {

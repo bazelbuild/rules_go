@@ -69,3 +69,13 @@ def emit_generate_params_action(cmds, ctx, fn):
       executable = True)
   return f
 
+def pkg_dir(workspace_root, package_name):
+  """Returns a relative path to a package directory from the root of the
+  sandbox. Useful at execution-time or run-time."""
+  if workspace_root and package_name:
+    return workspace_root + "/" + package_name
+  if workspace_root:
+    return workspace_root
+  if package_name:
+    return package_name
+  return "."

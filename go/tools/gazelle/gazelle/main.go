@@ -28,9 +28,9 @@ import (
 	"strings"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/generator"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
@@ -43,54 +43,25 @@ var (
 	mode          = flag.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
 )
 
-var externalResolverFromName = map[string]rules.ExternalResolver{
-	"external": rules.External,
-	"vendored": rules.Vendored,
-}
+type emitFunc func(*config.Config, *bzl.File) error
 
-var modeFromName = map[string]func(*bzl.File) error{
+var modeFromName = map[string]emitFunc{
 	"print": printFile,
 	"fix":   fixFile,
 	"diff":  diffFile,
 }
 
-func getBuildFileName() string {
-	validBuildFileNames := validBuildFileNameSlice()
-	if len(validBuildFileNames) == 0 {
-		log.Fatal("No valid build file names specified")
-	}
-
-	return validBuildFileNames[0]
-}
-
-func validBuildFileNameSlice() []string {
-	return strings.Split(*buildFileName, ",")
-}
-
-func isValidBuildFileName(buildFileName string) bool {
-	for _, bfn := range validBuildFileNameSlice() {
-		if buildFileName == bfn {
-			return true
-		}
-	}
-	return false
-}
-
-func run(dirs []string, buildTags map[string]bool, emit func(*bzl.File) error, external rules.ExternalResolver) {
-	g, err := generator.New(*repoRoot, *goPrefix, getBuildFileName(), buildTags, external)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, d := range dirs {
+func run(c *config.Config, emit emitFunc) {
+	g := generator.New(c)
+	for _, d := range c.Dirs {
 		files := g.Generate(d)
 		for _, f := range files {
-			f.Path = filepath.Join(*repoRoot, f.Path)
-			existingFilePath, err := findBuildFile(filepath.Dir(f.Path))
+			f.Path = filepath.Join(c.RepoRoot, f.Path)
+			existingFilePath, err := findBuildFile(c, filepath.Dir(f.Path))
 			if os.IsNotExist(err) {
 				// No existing file, so write a new one
 				bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
-				if err := emit(f); err != nil {
+				if err := emit(c, f); err != nil {
 					log.Print(err)
 				}
 				continue
@@ -105,7 +76,7 @@ func run(dirs []string, buildTags map[string]bool, emit func(*bzl.File) error, e
 				continue
 			}
 			bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
-			if err := emit(f); err != nil {
+			if err := emit(c, f); err != nil {
 				log.Print(err)
 			}
 		}
@@ -144,23 +115,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	if *repoRoot == "" {
-		var err error
-		if *repoRoot, err = repo(flag.Args()); err != nil {
-			log.Fatal(err)
-		}
-	}
-	if *goPrefix == "" {
-		var err error
-		if *goPrefix, err = loadGoPrefix(*repoRoot); err != nil {
-			if !os.IsNotExist(err) {
-				log.Fatal(err)
-			}
-			log.Fatalf("-go_prefix not set and no root BUILD file found")
-		}
-	}
-
-	genericTags, err := parseBuildTags(*buildTags)
+	c, err := newConfiguration()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -170,22 +125,82 @@ func main() {
 		log.Fatalf("unrecognized mode %s", *mode)
 	}
 
-	er, ok := externalResolverFromName[*external]
-	if !ok {
-		log.Fatalf("unrecognized external resolver %s", *external)
-	}
-
-	args := flag.Args()
-	if len(args) == 0 {
-		args = append(args, ".")
-	}
-
-	run(args, genericTags, emit, er)
+	run(c, emit)
 }
 
-func findBuildFile(repo string) (string, error) {
-	for _, base := range validBuildFileNameSlice() {
-		p := filepath.Join(repo, base)
+func newConfiguration() (*config.Config, error) {
+	var c config.Config
+	var err error
+
+	c.Dirs = flag.Args()
+	if len(c.Dirs) == 0 {
+		c.Dirs = []string{"."}
+	}
+	for i := range c.Dirs {
+		c.Dirs[i], err = filepath.Abs(c.Dirs[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if *repoRoot != "" {
+		c.RepoRoot = *repoRoot
+	} else if len(c.Dirs) == 1 {
+		c.RepoRoot, err = wspace.Find(c.Dirs[0])
+		if err != nil {
+			return nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
+		}
+	} else {
+		cwd, err := filepath.Abs(".")
+		if err != nil {
+			return nil, err
+		}
+		c.RepoRoot, err = wspace.Find(cwd)
+		if err != nil {
+			return nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
+		}
+	}
+
+	for _, dir := range c.Dirs {
+		if !isDescendingDir(dir, c.RepoRoot) {
+			return nil, fmt.Errorf("dir %q is not a subdirectory of repo root %q", dir, c.RepoRoot)
+		}
+	}
+
+	c.ValidBuildFileNames = strings.Split(*buildFileName, ",")
+	if len(c.ValidBuildFileNames) == 0 {
+		return nil, fmt.Errorf("no valid build file names specified")
+	}
+
+	c.GenericTags = make(config.BuildTags)
+	for _, t := range strings.Split(*buildTags, ",") {
+		if strings.HasPrefix(t, "!") {
+			return nil, fmt.Errorf("build tags can't be negated: %s", t)
+		}
+		c.GenericTags[t] = true
+	}
+	c.Platforms = config.DefaultPlatformTags
+	c.PreprocessTags()
+
+	c.GoPrefix = *goPrefix
+	if c.GoPrefix == "" {
+		c.GoPrefix, err = loadGoPrefix(&c)
+		if err != nil {
+			return nil, fmt.Errorf("-go_prefix not set and not root BUILD file found")
+		}
+	}
+
+	c.DepMode, err = config.DependencyModeFromString(*external)
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, err
+}
+
+func findBuildFile(c *config.Config, dir string) (string, error) {
+	for _, base := range c.ValidBuildFileNames {
+		p := filepath.Join(dir, base)
 		fi, err := os.Stat(p)
 		if err == nil {
 			if fi.Mode().IsRegular() {
@@ -200,8 +215,8 @@ func findBuildFile(repo string) (string, error) {
 	return "", os.ErrNotExist
 }
 
-func loadGoPrefix(repo string) (string, error) {
-	p, err := findBuildFile(repo)
+func loadGoPrefix(c *config.Config) (string, error) {
+	p, err := findBuildFile(c, c.RepoRoot)
 	if err != nil {
 		return "", err
 	}
@@ -237,28 +252,9 @@ func loadGoPrefix(repo string) (string, error) {
 	return "", errors.New("-go_prefix not set, and no go_prefix in root BUILD file")
 }
 
-func repo(args []string) (string, error) {
-	if len(args) == 1 {
-		return args[0], nil
+func isDescendingDir(dir, root string) bool {
+	if dir == root {
+		return true
 	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	r, err := wspace.Find(cwd)
-	if err != nil {
-		return "", fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
-	}
-	return r, nil
-}
-
-func parseBuildTags(buildTags string) (map[string]bool, error) {
-	tags := make(map[string]bool)
-	for _, t := range strings.Split(buildTags, ",") {
-		if strings.HasPrefix(t, "!") {
-			return nil, fmt.Errorf("build tags can't be negated: %s", t)
-		}
-		tags[t] = true
-	}
-	return tags, nil
+	return strings.HasPrefix(dir, fmt.Sprintf("%s%c", root, filepath.Separator))
 }

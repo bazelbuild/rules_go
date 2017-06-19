@@ -12,61 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 
-def _cgo_genrule_impl(ctx):
-  return struct(
-    label = ctx.label,
-    go_sources = ctx.files.srcs,
-    asm_sources = [],
-    asm_headers = [],
-    cgo_object = ctx.attr.cgo_object,
-    direct_deps = ctx.attr.deps,
-    gc_goopts = [],
-  )
-
-_cgo_genrule = rule(
-    _cgo_genrule_impl,
-    attrs = {
-        "srcs": attr.label_list(allow_files = FileType([".go"])),
-        "cgo_object": attr.label(
-            providers = [
-                "cgo_obj",
-                "cgo_deps",
-            ],
-        ),
-        "deps": attr.label_list(
-            providers = [
-                "direct_deps",
-                "transitive_go_library_paths",
-                "transitive_go_libraries",
-                "transitive_cgo_deps",
-            ],
-        ),
-    },
-    fragments = ["cpp"],
-)
-
-def cgo_genrule(name, srcs,
-                copts=[],
-                clinkopts=[],
-                cdeps=[],
-                **kwargs):
-  cgogen = _setup_cgo_library(
-      name = name,
-      srcs = srcs,
-      cdeps = cdeps,
-      copts = copts,
-      clinkopts = clinkopts,
-  )
-  _cgo_genrule(
-      name = name,
-      srcs = cgogen.go_srcs,
-      cgo_object = cgogen.cgo_object,
-      **kwargs
-  )
+def cgo_genrule(tags=[], **kwargs):
+  return cgo_library(tags=tags+["manual"], **kwargs)
 
 def cgo_library(name, srcs,
                 go_toolchain=None,
@@ -377,15 +328,6 @@ _cgo_object = rule(
 )
 
 
-def _pkg_dir(workspace_root, package_name):
-  if workspace_root and package_name:
-    return workspace_root + "/" + package_name
-  if workspace_root:
-    return workspace_root
-  if package_name:
-    return package_name
-  return "."
-
 def _exec_path(path):
   if path.startswith('/'):
     return path
@@ -408,10 +350,10 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   
   # Run cgo on the filtered Go files. This will split them into pure Go files
   # and pure C files, plus a few other glue files.
-  pkg_dir = _pkg_dir(
+  base_dir = pkg_dir(
       "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
       PACKAGE_NAME)
-  copts += ["-I", pkg_dir]
+  copts += ["-I", base_dir]
 
   cgo_codegen_name = name + ".cgo_codegen"
   _cgo_codegen_rule(
@@ -453,7 +395,7 @@ def _setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       srcs = [cgo_codegen_name],
       deps = cdeps,
       copts = copts + platform_copts + [
-          "-I", "$(BINDIR)/" + pkg_dir + "/" + cgo_codegen_dir,
+          "-I", "$(BINDIR)/" + base_dir + "/" + cgo_codegen_dir,
           # The generated thunks often contain unused variables.
           "-Wno-unused-variable",
       ],

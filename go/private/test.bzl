@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 
@@ -33,6 +33,7 @@ def _go_test_impl(ctx):
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")
   main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
   go_import = go_importpath(ctx)
+  run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
   ctx.action(
       inputs = list(lib_result.go_sources),
@@ -42,6 +43,8 @@ def _go_test_impl(ctx):
       arguments = [
           '--package',
           go_import,
+          '--rundir',
+          run_dir,
           '--output',
           main_go.path,
       ] + [src.path for src in lib_result.go_sources],

@@ -19,9 +19,10 @@ import (
 	"os"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-func printFile(f *bzl.File) error {
+func printFile(c *config.Config, f *bzl.File) error {
 	_, err := os.Stdout.Write(bzl.Format(f))
 	return err
 }

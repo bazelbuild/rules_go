@@ -8,6 +8,7 @@ go_library(
         "package.go",
         "walk.go",
     ],
+    deps = ["//go/tools/gazelle/config:go_default_library"],
     visibility = ["//visibility:public"],
 )
 

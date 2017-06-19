@@ -22,6 +22,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 // A WalkFunc is a callback called by Walk for each package.
@@ -41,7 +43,7 @@ type WalkFunc func(pkg *Package)
 // other packages will be silently ignored. If none of the package names match
 // the directory name, or if some other error occurs, an error will be logged,
 // and "f" will not be called.
-func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, goPrefix, dir string, f WalkFunc) {
+func Walk(c *config.Config, dir string, f WalkFunc) {
 	// visit walks the directory tree in post-order. It returns whether the
 	// the directory it was called on or any subdirectory contains a Bazel
 	// package. This affects whether "testdata" directories are considered
@@ -69,15 +71,7 @@ func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, go
 			}
 		}
 
-		pr := packageReader{
-			buildTags:   buildTags,
-			platforms:   platforms,
-			repoRoot:    repoRoot,
-			goPrefix:    goPrefix,
-			dir:         path,
-			hasTestdata: hasTestdata,
-		}
-		if pkg := pr.findPackage(); pkg != nil {
+		if pkg := findPackage(c, path, hasTestdata); pkg != nil {
 			f(pkg)
 			return true
 		}
@@ -87,32 +81,26 @@ func Walk(buildTags map[string]bool, platforms PlatformConstraints, repoRoot, go
 	visit(dir)
 }
 
-// packageReader reads package metadata from a directory.
-type packageReader struct {
-	buildTags               map[string]bool
-	platforms               PlatformConstraints
-	repoRoot, goPrefix, dir string
-	hasTestdata             bool
-}
-
-func (pr *packageReader) findPackage() *Package {
+// findPackage reads source files in a given directory and returns a Package
+// containing information about those files and how to build them.
+//
+// If no buildable .go files are found in the directory, nil will be returned.
+// If the directory contains multiple buildable packages, the package whose
+// name matches the directory base name will be returned. If there is no such
+// package or if an error occurs, an error will be logged, and nil will be
+// returned.
+func findPackage(c *config.Config, dir string, hasTestdata bool) *Package {
 	var goFiles, otherFiles []string
 
 	// List the files in the directory and split into .go files and other files.
 	// We need to process the Go files first to determine which package we'll
 	// generate rules for if there are multiple packages.
-	files, err := ioutil.ReadDir(pr.dir)
+	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		log.Print(err)
 		return nil
 	}
-	hasTestdata := false
 	for _, file := range files {
-		if file.IsDir() {
-			hasTestdata = hasTestdata || file.Name() == "testdata"
-			continue
-		}
-
 		name := file.Name()
 		if name == "" || name[0] == '.' || name[0] == '_' {
 			continue
@@ -129,7 +117,7 @@ func (pr *packageReader) findPackage() *Package {
 	packageMap := make(map[string]*Package)
 	cgo := false
 	for _, goFile := range goFiles {
-		info, err := pr.goFileInfo(goFile)
+		info, err := goFileInfo(c, dir, goFile)
 		if err != nil {
 			log.Print(err)
 			continue
@@ -144,18 +132,18 @@ func (pr *packageReader) findPackage() *Package {
 		if _, ok := packageMap[info.packageName]; !ok {
 			packageMap[info.packageName] = &Package{
 				Name:        info.packageName,
-				Dir:         pr.dir,
-				HasTestdata: pr.hasTestdata,
+				Dir:         dir,
+				HasTestdata: hasTestdata,
 			}
 		}
-		err = packageMap[info.packageName].addFile(info, false, pr.buildTags, pr.platforms)
+		err = packageMap[info.packageName].addFile(c, info, false)
 		if err != nil {
 			log.Print(err)
 		}
 	}
 
 	// Select a package to generate rules for.
-	pkg, err := pr.selectPackage(packageMap)
+	pkg, err := selectPackage(c, dir, packageMap)
 	if err != nil {
 		if _, ok := err.(*build.NoGoError); !ok {
 			log.Print(err)
@@ -165,12 +153,12 @@ func (pr *packageReader) findPackage() *Package {
 
 	// Process the other files.
 	for _, file := range otherFiles {
-		info, err := pr.otherFileInfo(file)
+		info, err := otherFileInfo(dir, file)
 		if err != nil {
 			log.Print(err)
 			continue
 		}
-		err = pkg.addFile(info, cgo, pr.buildTags, pr.platforms)
+		err = pkg.addFile(c, info, cgo)
 		if err != nil {
 			log.Print(err)
 		}
@@ -179,7 +167,7 @@ func (pr *packageReader) findPackage() *Package {
 	return pkg
 }
 
-func (pr *packageReader) selectPackage(packageMap map[string]*Package) (*Package, error) {
+func selectPackage(c *config.Config, dir string, packageMap map[string]*Package) (*Package, error) {
 	packagesWithGo := make(map[string]*Package)
 	for name, pkg := range packageMap {
 		if pkg.HasGo() {
@@ -188,7 +176,7 @@ func (pr *packageReader) selectPackage(packageMap map[string]*Package) (*Package
 	}
 
 	if len(packagesWithGo) == 0 {
-		return nil, &build.NoGoError{Dir: pr.dir}
+		return nil, &build.NoGoError{Dir: dir}
 	}
 
 	if len(packagesWithGo) == 1 {
@@ -197,11 +185,11 @@ func (pr *packageReader) selectPackage(packageMap map[string]*Package) (*Package
 		}
 	}
 
-	if pkg, ok := packagesWithGo[pr.defaultPackageName()]; ok {
+	if pkg, ok := packagesWithGo[defaultPackageName(c, dir)]; ok {
 		return pkg, nil
 	}
 
-	err := &build.MultiplePackageError{Dir: pr.dir}
+	err := &build.MultiplePackageError{Dir: dir}
 	for name, pkg := range packagesWithGo {
 		// Add the first file for each package for the error message.
 		// Error() method expects these lists to be the same length. File
@@ -213,11 +201,11 @@ func (pr *packageReader) selectPackage(packageMap map[string]*Package) (*Package
 	return nil, err
 }
 
-func (pr *packageReader) defaultPackageName() string {
-	if pr.dir != pr.repoRoot {
-		return filepath.Base(pr.dir)
+func defaultPackageName(c *config.Config, dir string) string {
+	if dir != c.RepoRoot {
+		return filepath.Base(dir)
 	}
-	name := path.Base(pr.goPrefix)
+	name := path.Base(c.GoPrefix)
 	if name == "." || name == "/" {
 		// This can happen if go_prefix is empty or is all slashes.
 		return "unnamed"

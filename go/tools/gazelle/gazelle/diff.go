@@ -21,10 +21,11 @@ import (
 	"os/exec"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-func diffFile(file *bzl.File) error {
-	f, err := ioutil.TempFile("", getBuildFileName())
+func diffFile(c *config.Config, file *bzl.File) error {
+	f, err := ioutil.TempFile("", c.DefaultBuildFileName())
 	if err != nil {
 		return err
 	}
