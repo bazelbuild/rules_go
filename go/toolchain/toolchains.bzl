@@ -154,6 +154,7 @@ def generate_toolchains():
           toolchain_name += "-cross-" + target.os.name + "-" + target.arch.name
         toolchains += [dict(
             name = toolchain_name,
+            sdk = distribution[1:], # We have to strip off the @
             is_cross = is_cross,
             exec_compatible_with = [host.os.constraint, host.arch.constraint],
             target_compatible_with = [target.os.constraint, target.arch.constraint] + version_constraints,
