@@ -123,7 +123,7 @@ func DependencyModeFromString(s string) (DependencyMode, error) {
 	switch s {
 	case "external":
 		return ExternalMode, nil
-	case "vendor":
+	case "vendored":
 		return VendorMode, nil
 	default:
 		return 0, fmt.Errorf("unrecognized dependency mode: %q", s)
