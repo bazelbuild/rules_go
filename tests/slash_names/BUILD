@@ -14,4 +14,5 @@ go_test(
     name = "go_default_test",
     srcs = ["slash_test.go"],
     deps = [":a/pkg", ":b/pkg"],
+    size = "small",
 )

@@ -12,4 +12,5 @@ go_test(
     srcs = ["merger_test.go"],
     library = ":go_default_library",
     deps = ["@com_github_bazelbuild_buildtools//build:go_default_library"],
+    size = "small",
 )

@@ -9,6 +9,7 @@ go_test(
         "c_data.txt",
     ],
     deps = [":go_lib"],
+    size = "small",
 )
 
 go_library(

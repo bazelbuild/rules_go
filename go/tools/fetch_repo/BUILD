@@ -17,4 +17,5 @@ go_test(
     srcs = ["fetch_repo_test.go"],
     library = ":go_default_library",
     deps = ["@org_golang_x_tools//go/vcs:go_default_library"],
+    size = "small",
 )

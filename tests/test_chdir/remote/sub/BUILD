@@ -4,4 +4,5 @@ go_test(
     name = "go_default_test",
     srcs = ["remote_test.go"],
     data = ["remote.txt"],
+    size = "small",
 )

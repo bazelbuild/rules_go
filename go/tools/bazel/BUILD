@@ -13,4 +13,5 @@ go_test(
         "README.md",
     ],
     library = ":go_default_library",
+    size = "small",
 )

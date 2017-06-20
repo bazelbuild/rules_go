@@ -10,6 +10,7 @@ go_test(
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
+    size = "small",
 )
 
 go_test(
@@ -22,6 +23,7 @@ go_test(
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
+    size = "small",
 )
 
 go_test(
@@ -34,4 +36,5 @@ go_test(
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
+    size = "small",
 )

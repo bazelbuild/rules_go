@@ -11,6 +11,7 @@ lines_sorted_test(
     cmd = "grep -v '^#' $< | grep -v '^$$' >$@",
     error_message = "Contributors must be sorted by first name",
     file = "CONTRIBUTORS",
+    size = "small",
 )
 
 lines_sorted_test(
@@ -18,4 +19,5 @@ lines_sorted_test(
     cmd = "grep -v '^#' $< | grep -v '^$$' >$@",
     error_message = "Authors must be sorted by first name",
     file = "AUTHORS",
+    size = "small",
 )

@@ -21,6 +21,7 @@ go_test(
         "lib_test.go",
     ],
     library = ":go_default_library",
+    size = "small",
 )
 
 go_test(
@@ -38,4 +39,5 @@ go_test(
     deps = [
         ":go_default_library",
     ],
+    size = "small",
 )

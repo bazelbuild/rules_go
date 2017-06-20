@@ -39,6 +39,7 @@ go_test(
     name = "cgo_lib_test",
     srcs = ["cgo_lib_test.go"],
     library = ":cgo_lib",
+    size = "small",
 )
 
 genrule(

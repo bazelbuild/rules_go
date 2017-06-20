@@ -45,4 +45,5 @@ go_test(
     name = "go_default_test",
     srcs = ["cgo_select_test.go"],
     library = ":cgo_default_library",
+    size = "small",
 )

@@ -28,6 +28,7 @@ go_test(
         "resolve_test.go",
     ],
     library = ":go_default_library",
+    size = "small",
 )
 
 go_test(
@@ -39,4 +40,5 @@ go_test(
         "//go/tools/gazelle/testdata:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
+    size = "small",
 )

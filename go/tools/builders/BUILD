@@ -7,6 +7,7 @@ go_test(
         "filter.go",
         "filter_test.go",
     ],
+    size = "small",
 )
 
 go_tool_binary(

@@ -13,4 +13,5 @@ go_test(
         "extract.go",
         "extract_test.go",
     ],
+    size = "small",
 )

@@ -7,4 +7,5 @@ go_test(
     srcs = ["local_test.go"],
     tags = ["manual"],
     deps = ["@remote//build:go_default_library"],
+    size = "small",
 )

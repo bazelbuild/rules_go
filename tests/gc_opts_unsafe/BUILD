@@ -38,12 +38,14 @@ go_test(
     ],
     gc_goopts = ["-u"],
     tags = ["manual"],
+    size = "small",
 )
 
 go_test(
     name = "unsafe_library_test",
     library = ":unsafe_srcs_lib",
     tags = ["manual"],
+    size = "small",
 )
 
 cgo_library(
@@ -77,4 +79,5 @@ go_test(
     ],
     gc_linkopts = ["-u"],
     tags = ["manual"],
+    size = "small",
 )

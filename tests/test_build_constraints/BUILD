@@ -10,6 +10,7 @@ go_test(
         "bar_unknown_test.go",
     ],
     library = ":go_default_library",
+    size = "small",
 )
 
 # Contains more test cases. Checks that build constraints are applied to

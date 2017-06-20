@@ -14,4 +14,5 @@ go_test(
     name = "proto_test",
     srcs = ["proto_test.go"],
     deps = ["//examples/proto/lib:lib_proto"],
+    size = "small",
 )
