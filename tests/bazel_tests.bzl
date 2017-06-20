@@ -1,25 +1,9 @@
-_script_template = """
-ANCHOR=$(readlink -f {ANCHOR})
-BASE=$(dirname $ANCHOR)
-CACHE_FILE=$(realpath {CACHE})
-BAZEL_CACHE=$(dirname $CACHE_FILE)
-cd {PACKAGE}
-bazel {ARGS} {TARGET}
-"""
-
-_workspace_template = """
-local_repository(name = "io_bazel_rules_go", path = "must be overriden")
-load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
-go_repositories({GO_VERSION})
-"""
-
 _build_args = [
+    "--fetch=False",
     "--verbose_failures",
     "--sandbox_debug",
     "--spawn_strategy=standalone",
     "--genrule_strategy=standalone",
-    "--override_repository", "io_bazel_rules_go=$BASE",
-    "--experimental_repository_cache", "$BAZEL_CACHE",
 ]
 
 _test_args = _build_args + [
@@ -27,15 +11,16 @@ _test_args = _build_args + [
     "--test_strategy=standalone",
 ]
 
+_coverage_args = _test_args
+
 def _bazel_test_script_impl(ctx):
-  script = ctx.new_file(ctx.label.name+".bash")
-  workspace = ctx.new_file("WORKSPACE")
+  script_file = ctx.new_file(ctx.label.name+".bash")
+  script_content = ''
+  workspace_file = ctx.new_file("WORKSPACE")
+  workspace_content = ''
   go_version = ''
   if ctx.attr.go_version:
     go_version = 'go_version = "%s"' % ctx.attr.go_version
-  ctx.file_action(output=workspace, content=_workspace_template.format(
-    GO_VERSION=go_version,
-  ))
   # Build the bazel startup args
   args = []
   if ctx.attr.batch:
@@ -46,57 +31,66 @@ def _bazel_test_script_impl(ctx):
     args += _build_args
   elif ctx.attr.command == "test":
     args += _test_args
-  args += ctx.attr.args
-
-  ctx.file_action(output=script, executable=True, content=_script_template.format(
-    ANCHOR = ctx.file.anchor.path,
-    CACHE = ctx.file.cache.path,
-    PACKAGE = ctx.label.package,
-    ARGS = " ".join(args),
-    TARGET = ctx.attr.target,
-  ))
+  elif ctx.attr.command == "coverage":
+    args += _coverage_args
+  # Add the repository overrides
+  for ext in ctx.files.externals:
+    _,_,ws = ext.owner.workspace_root.rpartition("/")
+    workspace_content += 'local_repository(name = "{0}", path = "must be overriden")\n'.format(ws)
+    script_content += '{0}=$(dirname $(readlink -f "{1}"))\n'.format(ws, ext.path)
+    args += ["--override_repository", "{0}=${0}".format(ws)]
+  workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(ctx.attr._go_toolchain.sdk, ctx.attr._go_toolchain.root.path)
+  # finalise the workspace file
+  workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_repositories")\n'
+  workspace_content += 'go_repositories({0})\n'.format(go_version)
+  ctx.file_action(output=workspace_file, content=workspace_content)
+  # finalise the script
+  args += ctx.attr.args + [ctx.attr.target]
+  script_content += 'cd {0}\n'.format(ctx.label.package)
+  script_content += 'bazel {0}\n'.format(" ".join(args))
+  ctx.file_action(output=script_file, executable=True, content=script_content)
   return struct(
-    files = depset([script]),
-    runfiles = ctx.runfiles([workspace])
+    files = depset([script_file]),
+    runfiles = ctx.runfiles([workspace_file])
   )
 
 _bazel_test_script = rule(
     _bazel_test_script_impl,
     attrs = {
         "batch": attr.bool(default=True),
-        "command": attr.string(mandatory=True),
+        "command": attr.string(mandatory=True, values=["build", "test", "coverage"]),
         "args": attr.string_list(default=[]),
-        "target": attr.string(),
-        "anchor": attr.label(allow_files=True, single_file=True),
-        "cache": attr.label(allow_files=True, single_file=True),
+        "target": attr.string(mandatory=True),
+        "externals": attr.label_list(allow_files=True),
         "go_version": attr.string(),
+        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     }
 )
 
 def bazel_test(name, batch = None, command = None, args=None, target = None, go_version = None, tags=[]):
   script_name = name+"_script"
-  anchor = "//:README.md"
-  cache = "@rules_go_test_cache//:CACHE"
+  externals = [
+      "@io_bazel_rules_go//:README.md",
+      "@local_config_cc//:cc_wrapper",
+      "@io_bazel_rules_go_toolchain//:BUILD.bazel",
+  ]
   _bazel_test_script(
       name = script_name,
       batch = batch,
       command = command,
       args = args,
       target = target,
-      anchor = anchor,
-      cache = cache,
+      externals = externals,
       go_version = go_version,
   )
   native.sh_test(
       name = name,
       size = "large",
-      timeout="short",
+      timeout = "short",
       srcs = [script_name],
       tags = ["local", "bazel"] + tags,
-      data = native.glob(["**/*"]) + [
-        anchor,
-        cache,
-        "//tests:rules_go_deps",
+      data = native.glob(["**/*"]) + externals + [
+          "//tests:rules_go_deps",
       ],
   )
 
