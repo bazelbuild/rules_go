@@ -13,7 +13,6 @@ cd $(dirname "$0")
 prefix=">>>>>>"
 
 tests=(
-  coverage/coverage.bash
   gc_opts_unsafe/gc_opts_unsafe.bash
   new_go_repository_build_name/new_go_repository_build_name.bash
   popular_repos/popular_repos.bash

@@ -32,6 +32,8 @@ def _bazel_test_script_impl(ctx):
   script_content += 'cd {0}\n'.format(ctx.label.package)
   script_content += 'echo {0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
   script_content += '{0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
+  if ctx.attr.check:
+    script_content += ctx.attr.check
   script_file = ctx.new_file(ctx.label.name+".bash")
   ctx.file_action(output=script_file, executable=True, content=script_content)
   # finalise the bazel options
@@ -50,12 +52,13 @@ _bazel_test_script = rule(
         "target": attr.string(mandatory=True),
         "externals": attr.label_list(allow_files=True),
         "go_version": attr.string(),
+        "check": attr.string(),
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_execroot": attr.label(default = Label("@test_environment//:execroot")),
     }
 )
 
-def bazel_test(name, batch = None, command = None, args=None, target = None, go_version = None, tags=[]):
+def bazel_test(name, batch = None, command = None, args=None, target = None, go_version = None, tags=[], check=""):
   script_name = name+"_script"
   externals = [
       "@io_bazel_rules_go//:README.md",
@@ -70,6 +73,7 @@ def bazel_test(name, batch = None, command = None, args=None, target = None, go_
       target = target,
       externals = externals,
       go_version = go_version,
+      check = check,
   )
   native.sh_test(
       name = name,
