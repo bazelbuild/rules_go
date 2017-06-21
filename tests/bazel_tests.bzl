@@ -1,56 +1,43 @@
-_build_args = [
-    "--fetch=False",
-    "--verbose_failures",
-    "--sandbox_debug",
-    "--spawn_strategy=standalone",
-    "--genrule_strategy=standalone",
-]
 
-_test_args = _build_args + [
-    "--test_output=errors",
-    "--test_strategy=standalone",
-]
-
-_coverage_args = _test_args
+_bazelrc = """
+build --fetch=False --verbose_failures --sandbox_debug --test_output=errors --spawn_strategy=standalone --genrule_strategy=standalone
+test --test_strategy=standalone
+"""
 
 def _bazel_test_script_impl(ctx):
-  script_file = ctx.new_file(ctx.label.name+".bash")
   script_content = ''
-  workspace_file = ctx.new_file("WORKSPACE")
   workspace_content = ''
   go_version = ''
   if ctx.attr.go_version:
     go_version = 'go_version = "%s"' % ctx.attr.go_version
   # Build the bazel startup args
-  args = []
+  bazelrc = ctx.new_file(".bazelrc")
+  args = ["--bazelrc", bazelrc.basename]
   if ctx.attr.batch:
     args += ["--batch"]
   # Add the command and any command specific args
   args += [ctx.attr.command]
-  if ctx.attr.command == "build":
-    args += _build_args
-  elif ctx.attr.command == "test":
-    args += _test_args
-  elif ctx.attr.command == "coverage":
-    args += _coverage_args
-
-  for ext in ctx.files.externals:
-    root = ext.owner.workspace_root
+  for ext in ctx.attr.externals:
+    root = ext.label.workspace_root
     _,_,ws = root.rpartition("/")
     workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
   workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(ctx.attr._go_toolchain.sdk, ctx.attr._go_toolchain.root.path)
   # finalise the workspace file
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_repositories")\n'
   workspace_content += 'go_repositories({0})\n'.format(go_version)
+  workspace_file = ctx.new_file("WORKSPACE")
   ctx.file_action(output=workspace_file, content=workspace_content)
   # finalise the script
   args += ctx.attr.args + [ctx.attr.target]
   script_content += 'cd {0}\n'.format(ctx.label.package)
   script_content += 'bazel {0}\n'.format(" ".join(args))
+  script_file = ctx.new_file(ctx.label.name+".bash")
   ctx.file_action(output=script_file, executable=True, content=script_content)
+  # finalise the bazel options
+  ctx.file_action(output=bazelrc, content=_bazelrc)
   return struct(
     files = depset([script_file]),
-    runfiles = ctx.runfiles([workspace_file])
+    runfiles = ctx.runfiles([workspace_file, bazelrc])
   )
 
 _bazel_test_script = rule(
@@ -99,18 +86,22 @@ def _md5_sum_impl(ctx):
   ctx.action(
     inputs = ctx.files.srcs,
     outputs = [out],
-    command = "md5sum " + " ".join([src.path for src in ctx.files.srcs]) + " > " + out.path,
+    executable = ctx.file._md5sum,
+    arguments = ["-output", out.path] + [src.path for src in ctx.files.srcs],
   )
   return struct(files=depset([out]))
 
 md5_sum = rule(
     _md5_sum_impl,
-    attrs = { "srcs": attr.label_list(allow_files=True) },
+    attrs = { 
+      "srcs": attr.label_list(allow_files=True),
+      "_md5sum":  attr.label(allow_files=True, single_file=True, default=Label("@io_bazel_rules_go//go/tools/builders:md5sum")),
+    },
 )
 
 def _test_environment_impl(ctx):
   execroot, _, ws = str(ctx.path(".")).rpartition("/external/")
-  if not ctx.name == ws:
+  if ctx.name != ws:
     fail("workspace did not match, expected:", ctx.name, "got:", ws)
   ctx.file("WORKSPACE", """
 workspace(name = "%s")

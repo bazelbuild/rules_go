@@ -55,3 +55,11 @@ go_tool_binary(
     visibility = ["//visibility:public"],
 )
 
+go_tool_binary(
+    name = "md5sum",
+    srcs = [
+        "md5sum.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
