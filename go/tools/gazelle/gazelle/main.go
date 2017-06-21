@@ -29,8 +29,9 @@ import (
 
 	bzl "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/generator"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
@@ -43,34 +44,62 @@ var modeFromName = map[string]emitFunc{
 }
 
 func run(c *config.Config, emit emitFunc) {
-	g := generator.New(c)
-	for _, d := range c.Dirs {
-		files := g.Generate(d)
-		for _, f := range files {
-			f.Path = filepath.Join(c.RepoRoot, f.Path)
-			existingFilePath, err := findBuildFile(c, filepath.Dir(f.Path))
-			if os.IsNotExist(err) {
-				// No existing file, so write a new one
-				bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
-				if err := emit(c, f); err != nil {
-					log.Print(err)
-				}
-				continue
-			}
-			if err != nil {
-				// An unexpected error
-				log.Print(err)
-				continue
-			}
-			// Existing file, so merge and maybe remove the old one
-			if f = merger.MergeWithExisting(f, existingFilePath); f == nil {
-				continue
-			}
-			bzl.Rewrite(f, nil) // have buildifier 'format' our rules.
-			if err := emit(c, f); err != nil {
-				log.Print(err)
-			}
+	g := rules.NewGenerator(c)
+	shouldProcessRoot := false
+	didProcessRoot := false
+	for _, dir := range c.Dirs {
+		if c.RepoRoot == dir {
+			shouldProcessRoot = true
 		}
+		packages.Walk(c, dir, func(pkg *packages.Package) {
+			if pkg.Rel == "" {
+				didProcessRoot = true
+			}
+			processPackage(c, g, emit, pkg)
+		})
+	}
+	if shouldProcessRoot && !didProcessRoot {
+		// We did not process a package at the repository root. We need to put
+		// a go_prefix rule there, even if there are no .go files in that directory.
+		pkg := &packages.Package{Dir: c.RepoRoot}
+		processPackage(c, g, emit, pkg)
+	}
+}
+
+func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *packages.Package) {
+	genFile := g.Generate(pkg)
+
+	oldPath, err := findBuildFile(c, pkg.Dir)
+	if os.IsNotExist(err) {
+		// No existing file, so no merge needed.
+		bzl.Rewrite(genFile, nil) // have buildifier 'format' our rules.
+		if err := emit(c, genFile); err != nil {
+			log.Print(err)
+			return
+		}
+	}
+	if err != nil {
+		// An unexpected error
+		log.Print(err)
+		return
+	}
+
+	// Existing file, so merge and replace the old one.
+	oldData, err := ioutil.ReadFile(oldPath)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	oldFile, err := bzl.Parse(oldPath, oldData)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	mergedFile := merger.MergeWithExisting(genFile, oldFile)
+	bzl.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
+	if err := emit(c, mergedFile); err != nil {
+		log.Print(err)
+		return
 	}
 }
 

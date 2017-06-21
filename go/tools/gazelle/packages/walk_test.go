@@ -43,7 +43,7 @@ func checkFiles(t *testing.T, files []fileSpec, goPrefix string, want []*package
 	defer os.RemoveAll(dir)
 
 	for _, p := range want {
-		p.Dir = filepath.Join(dir, filepath.FromSlash(p.Dir))
+		p.Dir = filepath.Join(dir, filepath.FromSlash(p.Rel))
 	}
 
 	got := walkPackages(dir, goPrefix, dir)
@@ -135,7 +135,7 @@ func TestWalkNested(t *testing.T) {
 	want := []*packages.Package{
 		{
 			Name: "a",
-			Dir:  "a",
+			Rel:  "a",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"foo.go"},
@@ -144,7 +144,7 @@ func TestWalkNested(t *testing.T) {
 		},
 		{
 			Name: "c",
-			Dir:  "b/c",
+			Rel:  "b/c",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"bar.go"},
@@ -153,7 +153,7 @@ func TestWalkNested(t *testing.T) {
 		},
 		{
 			Name: "main",
-			Dir:  "b/d",
+			Rel:  "b/d",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"baz.go"},
@@ -172,7 +172,7 @@ func TestMultiplePackagesWithDefault(t *testing.T) {
 	want := []*packages.Package{
 		{
 			Name: "a",
-			Dir:  "a",
+			Rel:  "a",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"a.go"},
@@ -251,7 +251,7 @@ func TestTestdata(t *testing.T) {
 	want := []*packages.Package{
 		{
 			Name: "raw",
-			Dir:  "raw",
+			Rel:  "raw",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"a.go"},
@@ -261,7 +261,7 @@ func TestTestdata(t *testing.T) {
 		},
 		{
 			Name: "with_build",
-			Dir:  "with_build",
+			Rel:  "with_build",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"a.go"},
@@ -271,7 +271,7 @@ func TestTestdata(t *testing.T) {
 		},
 		{
 			Name: "with_build_bazel",
-			Dir:  "with_build_bazel",
+			Rel:  "with_build_bazel",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"a.go"},
@@ -281,7 +281,7 @@ func TestTestdata(t *testing.T) {
 		},
 		{
 			Name: "with_build_nested",
-			Dir:  "with_build_nested",
+			Rel:  "with_build_nested",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"a.go"},
@@ -291,7 +291,7 @@ func TestTestdata(t *testing.T) {
 		},
 		{
 			Name: "testdata",
-			Dir:  "with_go/testdata",
+			Rel:  "with_go/testdata",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"a.go"},
@@ -300,7 +300,7 @@ func TestTestdata(t *testing.T) {
 		},
 		{
 			Name: "with_go",
-			Dir:  "with_go",
+			Rel:  "with_go",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
 					Generic: []string{"a.go"},

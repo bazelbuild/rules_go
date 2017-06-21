@@ -1,9 +1,6 @@
 package merger
 
 import (
-	"io"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
@@ -430,30 +427,25 @@ go_library(
 }
 
 func TestMergeWithExisting(t *testing.T) {
-	tmp, err := ioutil.TempFile(os.Getenv("TEST_TMPDIR"), "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := tmp.Close(); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(tmp.Name())
 	for _, tc := range testCases {
-		if err := ioutil.WriteFile(tmp.Name(), []byte(tc.previous), 0755); err != nil {
-			t.Fatalf("%s: %v", tc.desc, err)
-		}
-		newF, err := bzl.Parse("current", []byte(tc.current))
+		genFile, err := bzl.Parse("current", []byte(tc.current))
 		if err != nil {
-			t.Fatalf("%s: %v", tc.desc, err)
+			t.Errorf("%s: %v", tc.desc, err)
+			continue
 		}
-		afterF := MergeWithExisting(newF, tmp.Name())
-		if afterF == nil {
+		oldFile, err := bzl.Parse("previous", []byte(tc.previous))
+		if err != nil {
+			t.Errorf("%s: %v", tc.desc, err)
+			continue
+		}
+		mergedFile := MergeWithExisting(genFile, oldFile)
+		if mergedFile == nil {
 			if !tc.ignore {
 				t.Errorf("%s: got nil; want file", tc.desc)
 			}
 			continue
 		}
-		if afterF != nil && tc.ignore {
+		if mergedFile != nil && tc.ignore {
 			t.Errorf("%s: got file; want nil", tc.desc)
 			continue
 		}
@@ -463,42 +455,17 @@ func TestMergeWithExisting(t *testing.T) {
 			want = want[1:]
 		}
 
-		if got := string(bzl.Format(afterF)); got != want {
+		if got := string(bzl.Format(mergedFile)); got != want {
 			t.Errorf("%s: got %s; want %s", tc.desc, got, want)
 		}
 	}
 }
 
 func TestMergeWithExistingDifferentName(t *testing.T) {
-	oldData := testCases[0].previous
-	newData := testCases[0].current
-	expected := testCases[0].expected
-	if len(expected) > 0 && expected[0] == '\n' {
-		expected = expected[1:]
-	}
-
-	tmp, err := ioutil.TempFile(os.Getenv("TEST_TMPDIR"), "BUILD")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(tmp.Name())
-	if _, err := io.WriteString(tmp, oldData); err != nil {
-		t.Fatal(err)
-	}
-	if err := tmp.Close(); err != nil {
-		t.Fatal(err)
-	}
-	newTmp, err := ioutil.TempFile(os.Getenv("TEST_TMPDIR"), "BUILD.bazel")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(newTmp.Name())
-	newF, err := bzl.Parse(newTmp.Name(), []byte(newData))
-	if err != nil {
-		t.Fatal(err)
-	}
-	afterF := MergeWithExisting(newF, tmp.Name())
-	if s := string(bzl.Format(afterF)); s != expected {
-		t.Errorf("got %s; want %s", s, expected)
+	oldFile := &bzl.File{Path: "BUILD"}
+	genFile := &bzl.File{Path: "BUILD.bazel"}
+	mergedFile := MergeWithExisting(genFile, oldFile)
+	if got, want := mergedFile.Path, oldFile.Path; got != want {
+		t.Errorf("got %q; want %q", got, want)
 	}
 }

@@ -90,6 +90,16 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 // package or if an error occurs, an error will be logged, and nil will be
 // returned.
 func findPackage(c *config.Config, dir string, hasTestdata bool) *Package {
+	rel, err := filepath.Rel(c.RepoRoot, dir)
+	if err != nil {
+		log.Print(err)
+		return nil
+	}
+	rel = filepath.ToSlash(rel)
+	if rel == "." {
+		rel = ""
+	}
+
 	var goFiles, otherFiles []string
 
 	// List the files in the directory and split into .go files and other files.
@@ -133,6 +143,7 @@ func findPackage(c *config.Config, dir string, hasTestdata bool) *Package {
 			packageMap[info.packageName] = &Package{
 				Name:        info.packageName,
 				Dir:         dir,
+				Rel:         rel,
 				HasTestdata: hasTestdata,
 			}
 		}

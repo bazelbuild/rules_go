@@ -27,8 +27,17 @@ import (
 // It fills a similar role to go/build.Package, but it separates files by
 // target instead of by type, and it supports multiple platforms.
 type Package struct {
-	Dir  string
+	// Name is the symbol found in package declarations of the .go files in
+	// the package. It does not include the "_test" suffix from external tests.
 	Name string
+
+	// Dir is an absolute path to the directory that contains the package.
+	Dir string
+
+	// Rel is the relative path to the package directory from the repository
+	// root. If the directory is the repository root itself, Rel is empty.
+	// Components in Rel are separated with slashes.
+	Rel string
 
 	Library, CgoLibrary, Binary, Test, XTest Target
 

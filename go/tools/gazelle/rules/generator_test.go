@@ -27,20 +27,13 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
 
-func format(rules []*bzl.Rule) string {
-	var f bzl.File
-	for _, r := range rules {
-		f.Stmt = append(f.Stmt, r.Call)
-	}
-	return string(bzl.Format(&f))
-}
-
 func testConfig(repoRoot, goPrefix string) *config.Config {
 	c := &config.Config{
-		RepoRoot:    repoRoot,
-		GoPrefix:    goPrefix,
-		GenericTags: config.BuildTags{},
-		Platforms:   config.DefaultPlatformTags,
+		RepoRoot:            repoRoot,
+		GoPrefix:            goPrefix,
+		GenericTags:         config.BuildTags{},
+		Platforms:           config.DefaultPlatformTags,
+		ValidBuildFileNames: config.DefaultValidBuildFileNames,
 	}
 	c.PreprocessTags()
 	return c
@@ -76,8 +69,8 @@ func TestGenerator(t *testing.T) {
 	} {
 		dir := filepath.Join(repoRoot, filepath.FromSlash(rel))
 		pkg := packageFromDir(c, dir)
-		rules := g.Generate(rel, pkg)
-		got := format(rules)
+		f := g.Generate(pkg)
+		got := string(bzl.Format(f))
 
 		wantPath := filepath.Join(pkg.Dir, "BUILD.want")
 		wantBytes, err := ioutil.ReadFile(wantPath)
@@ -93,22 +86,62 @@ func TestGenerator(t *testing.T) {
 	}
 }
 
-func TestGeneratorGoPrefix(t *testing.T) {
-	repoRoot := filepath.Join(testdata.Dir(), "repo")
+func TestGeneratorGoPrefixLib(t *testing.T) {
+	repoRoot := filepath.Join(testdata.Dir(), "repo", "lib")
 	goPrefix := "example.com/repo/lib"
 	c := testConfig(repoRoot, goPrefix)
 	g := rules.NewGenerator(c)
-	dir := filepath.Join(repoRoot, "lib")
-	pkg := packageFromDir(c, dir)
-	rules := g.Generate("", pkg)
+	pkg := packageFromDir(c, repoRoot)
+	f := g.Generate(pkg)
 
-	if got, want := len(rules), 1; got < want {
-		t.Errorf("len(rules) < %d; want >= %d", got, want)
-		return
+	if got, want := findGoPrefix(f), `go_prefix("example.com/repo/lib")`; got != want {
+		t.Errorf("got %q; want %q", got, want)
 	}
+}
 
-	p := rules[0].Call
-	if got, want := bzl.FormatString(p), `go_prefix("example.com/repo/lib")`; got != want {
-		t.Errorf("r = %q; want %q", got, want)
+func TestGeneratorGoPrefixRoot(t *testing.T) {
+	repoRoot := filepath.Join(testdata.Dir(), "repo")
+	goPrefix := "example.com/repo"
+	c := testConfig(repoRoot, goPrefix)
+	g := rules.NewGenerator(c)
+	pkg := &packages.Package{Dir: repoRoot}
+	f := g.Generate(pkg)
+
+	if got, want := findGoPrefix(f), `go_prefix("example.com/repo")`; got != want {
+		t.Errorf("got %q; want %q", got, want)
+	}
+}
+
+func findGoPrefix(f *bzl.File) string {
+	for _, s := range f.Stmt {
+		c, ok := s.(*bzl.CallExpr)
+		if !ok {
+			continue
+		}
+		x, ok := c.X.(*bzl.LiteralExpr)
+		if !ok {
+			continue
+		}
+		if x.Token == "go_prefix" {
+			return bzl.FormatString(s)
+		}
+	}
+	return ""
+}
+
+func TestGeneratedFileName(t *testing.T) {
+	testGeneratedFileName(t, "BUILD")
+	testGeneratedFileName(t, "BUILD.bazel")
+}
+
+func testGeneratedFileName(t *testing.T, buildFileName string) {
+	c := &config.Config{
+		ValidBuildFileNames: []string{buildFileName},
+	}
+	g := rules.NewGenerator(c)
+	pkg := &packages.Package{}
+	f := g.Generate(pkg)
+	if f.Path != buildFileName {
+		t.Errorf("got %q; want %q", f.Path, buildFileName)
 	}
 }
