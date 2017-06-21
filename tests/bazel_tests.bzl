@@ -33,12 +33,11 @@ def _bazel_test_script_impl(ctx):
     args += _test_args
   elif ctx.attr.command == "coverage":
     args += _coverage_args
-  # Add the repository overrides
+
   for ext in ctx.files.externals:
-    _,_,ws = ext.owner.workspace_root.rpartition("/")
-    workspace_content += 'local_repository(name = "{0}", path = "must be overriden")\n'.format(ws)
-    script_content += '{0}=$(dirname $(readlink -f "{1}"))\n'.format(ws, ext.path)
-    args += ["--override_repository", "{0}=${0}".format(ws)]
+    root = ext.owner.workspace_root
+    _,_,ws = root.rpartition("/")
+    workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
   workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(ctx.attr._go_toolchain.sdk, ctx.attr._go_toolchain.root.path)
   # finalise the workspace file
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_repositories")\n'
@@ -64,6 +63,7 @@ _bazel_test_script = rule(
         "externals": attr.label_list(allow_files=True),
         "go_version": attr.string(),
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
+        "_execroot": attr.label(default = Label("@test_environment//:execroot")),
     }
 )
 
@@ -108,19 +108,36 @@ md5_sum = rule(
     attrs = { "srcs": attr.label_list(allow_files=True) },
 )
 
-def _test_cache_impl(ctx):
+def _test_environment_impl(ctx):
+  execroot, _, ws = str(ctx.path(".")).rpartition("/external/")
+  if not ctx.name == ws:
+    fail("workspace did not match, expected:", ctx.name, "got:", ws)
   ctx.file("WORKSPACE", """
 workspace(name = "%s")
 """ % ctx.name)
   ctx.file("BUILD.bazel", """
-exports_files(["CACHE"])
-""")
-  ctx.file("CACHE", "")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "execroot")
+execroot(
+    name = "execroot",
+    path = "{0}",
+    visibility = ["//visibility:public"],
+)
+""".format(execroot))
 
-_test_cache = repository_rule(
-    implementation = _test_cache_impl,
+_test_environment = repository_rule(
+    implementation = _test_environment_impl,
     attrs = {},
 )
 
-def test_cache():
-  _test_cache(name="rules_go_test_cache")
+def test_environment():
+  _test_environment(name="test_environment")
+
+def _execroot_impl(ctx):
+  return struct(path = ctx.attr.path)
+
+execroot = rule(
+    _execroot_impl, 
+    attrs = {
+        "path": attr.string(mandatory = True),
+    }
+)

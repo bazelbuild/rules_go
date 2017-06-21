@@ -19,5 +19,5 @@ go_proto_repositories()
 
 # Needed for tests
 
-load("@io_bazel_rules_go//tests:bazel_tests.bzl", "test_cache")
-test_cache()
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "test_environment")
+test_environment()
