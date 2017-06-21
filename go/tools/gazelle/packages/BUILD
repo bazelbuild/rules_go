@@ -25,6 +25,9 @@ go_test(
 go_test(
     name = "go_default_xtest",
     srcs = ["walk_test.go"],
-    deps = [":go_default_library"],
+    deps = [
+        ":go_default_library",
+        "//go/tools/gazelle/config:go_default_library",
+    ],
     size = "small",
 )

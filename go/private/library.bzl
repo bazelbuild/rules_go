@@ -49,14 +49,17 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
     emit_go_asm_action(ctx, src, asm_hdrs, obj)
     extra_objects += [obj]
 
-  lib_name = go_importpath(ctx) + ".a"
+  importpath = go_importpath(ctx)
+  lib_name = importpath + ".a"
   out_lib = ctx.new_file(lib_name)
   out_object = ctx.new_file(ctx.label.name + ".o")
   search_path = out_lib.path[:-len(lib_name)]
   gc_goopts = get_gc_goopts(ctx)
+  direct_go_library_paths = []
   transitive_go_library_deps = depset()
   transitive_go_library_paths = depset([search_path])
   for dep in deps:
+    direct_go_library_paths += [dep.importpath]
     transitive_go_library_deps += dep.transitive_go_libraries
     transitive_cgo_deps += dep.transitive_cgo_deps
     transitive_go_library_paths += dep.transitive_go_library_paths
@@ -64,7 +67,8 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
   go_srcs = emit_go_compile_action(ctx,
       sources = go_srcs,
       libs = transitive_go_library_deps,
-      libpaths = transitive_go_library_paths,
+      lib_paths = transitive_go_library_paths,
+      direct_paths = direct_go_library_paths,                                   
       out_object = out_object,
       gc_goopts = gc_goopts,
   )
@@ -85,6 +89,7 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
     go_sources = go_srcs,
     asm_sources = asm_srcs,
     asm_headers = asm_hdrs,
+    importpath = importpath,
     cgo_object = cgo_object,
     direct_deps = deps,
     transitive_cgo_deps = transitive_cgo_deps,
@@ -112,6 +117,7 @@ def _go_library_impl(ctx):
     go_sources = lib_result.go_sources,
     asm_sources = lib_result.asm_sources,
     asm_headers = lib_result.asm_headers,
+    importpath = lib_result.importpath,
     cgo_object = lib_result.cgo_object,
     direct_deps = lib_result.direct_deps,
     transitive_cgo_deps = lib_result.transitive_cgo_deps,
@@ -187,14 +193,16 @@ def get_gc_goopts(ctx):
     gc_goopts += ctx.attr.library.gc_goopts
   return gc_goopts
 
-def emit_go_compile_action(ctx, sources, libs, libpaths, out_object, gc_goopts):
+def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_object, gc_goopts):
   """Construct the command line for compiling Go code.
 
   Args:
     ctx: The skylark Context.
     sources: an iterable of source code artifacts (or CTs? or labels?)
     libs: a depset of representing all imported libraries.
-    libpaths: the set of paths to search for imported libraries.
+    lib_paths: the set of paths to search for imported libraries.
+    direct_paths: iterable of of import paths for the package's direct deps,
+      including those in the library attribute. Used for strict dep checking.
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
@@ -205,9 +213,11 @@ def emit_go_compile_action(ctx, sources, libs, libpaths, out_object, gc_goopts):
   inputs = depset([go_toolchain.go]) + sources + libs
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
-  args = [go_toolchain.go.path] + go_sources + ["--"]
-  args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
-  for path in libpaths:
+  args = [go_toolchain.go.path] + go_sources
+  for path in direct_paths:
+    args += ["-dep", path]
+  args += ["--", "-o", out_object.path, "-trimpath", ".", "-I", "."]
+  for path in lib_paths:
     args += ["-I", path]
   args += gc_goopts + cgo_sources
   ctx.action(

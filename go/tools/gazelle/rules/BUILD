@@ -36,6 +36,7 @@ go_test(
     srcs = ["generator_test.go"],
     deps = [
         ":go_default_library",
+        "//go/tools/gazelle/config:go_default_library",
         "//go/tools/gazelle/packages:go_default_library",
         "//go/tools/gazelle/testdata:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",

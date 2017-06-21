@@ -20,6 +20,7 @@ tests=(
   popular_repos/popular_repos.bash
   test_chdir/test_chdir.bash
   test_filter_test/test_filter_test.bash
+  trans_dep_error/trans_dep_error.bash
 )
 
 # Manual tests are not executed as part of CI.

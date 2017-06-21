@@ -19,30 +19,45 @@ package main
 import (
 	"fmt"
 	"go/build"
+	"go/parser"
+	"go/token"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 func run(args []string) error {
 	// process the args
 	if len(args) < 2 {
-		return fmt.Errorf("Usage: compile gotool [sources] -- <extra options>")
+		return fmt.Errorf("Usage: compile gotool [-dep importpath ...] [sources] -- <extra options>")
 	}
 	gotool := args[0]
 	args = args[1:]
 	sources := []string{}
 	goopts := []string{}
+	deps := []string{}
 	bctx := build.Default
 	bctx.CgoEnabled = true
+	depNext := false
+argsLoop:
 	for i, s := range args {
-		if s == "--" {
+		switch {
+		case s == "--":
 			goopts = args[i+1:]
-			break
+			break argsLoop
+		case depNext:
+			deps = append(deps, s)
+			depNext = false
+		case s == "-dep":
+			depNext = true
+		default:
+			sources = append(sources, s)
 		}
-		sources = append(sources, s)
 	}
+
 	// apply build constraints to the source list
 	sources, err := filterFiles(bctx, sources)
 	if err != nil {
@@ -51,6 +66,12 @@ func run(args []string) error {
 	if len(sources) <= 0 {
 		return fmt.Errorf("no unfiltered sources to compile")
 	}
+
+	// Check that the filtered sources don't import anything outside of deps.
+	if err := checkDirectDeps(bctx, sources, deps); err != nil {
+		return err
+	}
+
 	// Now we need to abs include and trim paths
 	needAbs := false
 	for i, arg := range goopts {
@@ -85,4 +106,63 @@ func main() {
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func checkDirectDeps(bctx build.Context, sources, deps []string) error {
+	depSet := make(map[string]bool)
+	for _, d := range deps {
+		depSet[d] = true
+	}
+
+	var errs depsError
+	fs := token.NewFileSet()
+	for _, s := range sources {
+		f, err := parser.ParseFile(fs, s, nil, parser.ImportsOnly)
+		if err != nil {
+			// Let the compiler report parse errors.
+			continue
+		}
+		for _, i := range f.Imports {
+			path, err := strconv.Unquote(i.Path.Value)
+			if err != nil {
+				// Should never happen, but let the compiler deal with it.
+				continue
+			}
+			if path == "C" || isStandard(bctx, path) || isRelative(path) {
+				// Standard paths don't need to be listed as dependencies (for now).
+				// Relative paths aren't supported yet. We don't emit errors here, but
+				// they will certainly break something else.
+				continue
+			}
+			if !depSet[path] {
+				errs = append(errs, fmt.Errorf("%s: import of %s, which is not a direct dependency", s, path))
+			}
+		}
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
+
+type depsError []error
+
+var _ error = depsError(nil)
+
+func (e depsError) Error() string {
+	errorStrings := make([]string, len(e))
+	for i, err := range e {
+		errorStrings[i] = err.Error()
+	}
+	return "missing strict dependencies:\n\t" + strings.Join(errorStrings, "\n\t")
+}
+
+func isStandard(bctx build.Context, path string) bool {
+	rootPath := filepath.Join(bctx.GOROOT, "src", filepath.FromSlash(path))
+	st, err := os.Stat(rootPath)
+	return err == nil && st.IsDir()
+}
+
+func isRelative(path string) bool {
+	return strings.HasPrefix(path, "./") || strings.HasPrefix(path, "../")
 }

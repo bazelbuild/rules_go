@@ -55,7 +55,8 @@ def _go_test_impl(ctx):
     ctx,
     sources=depset([main_go]),
     libs=lib_result.transitive_go_libraries,
-    libpaths=lib_result.transitive_go_library_paths,
+    lib_paths=lib_result.transitive_go_library_paths,
+    direct_paths=[go_import],
     out_object=main_object,
     gc_goopts=get_gc_goopts(ctx),
   )
