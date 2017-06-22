@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This test verifies that flags passed through gc_goopts and gc_link_opts
-# attributes in go_library, go_binary, go_test, and cgo_library are actually
+# attributes in go_library, go_binary and go_test are actually
 # passed to the Go compiler.
 #
 # Each of the targets listed below is expected to fail, but only if the

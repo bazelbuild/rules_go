@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_test(
     name = "go_default_test",
@@ -19,13 +19,6 @@ go_library(
         # Check that constraints apply to assembly files.
         "asm_linux.s",
         "asm_unknown.s",
-    ],
-    library = ":cgo_default_library",
-)
-
-cgo_library(
-    name = "cgo_default_library",
-    srcs = [
         # Check that constraints apply to cgo files.
         "cgo_linux.go",
         "cgo_unknown.go",
@@ -33,6 +26,7 @@ cgo_library(
         "cgo_unknown.c",
         ":c_srcs_group",
     ],
+    cgo = True,
 )
 
 filegroup(

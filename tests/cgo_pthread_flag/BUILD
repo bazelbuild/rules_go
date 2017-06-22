@@ -1,13 +1,9 @@
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_test")
-
-cgo_library(
-    name = "cgo_default_library",
-    srcs = ["cgo_pthread_flag.go"],
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    library = ":cgo_default_library",
+    srcs = ["cgo_pthread_flag.go"],
+    cgo = True,
 )
 
 go_test(

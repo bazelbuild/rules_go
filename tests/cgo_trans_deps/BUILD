@@ -1,14 +1,10 @@
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_test")
-
-cgo_library(
-    name = "cgo_default_library",
-    srcs = ["cgo_lib.go"],
-    deps = ["//tests/cgo_trans_deps/dep:go_default_library"],
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    library = ":cgo_default_library",
+    srcs = ["cgo_lib.go"],
+    deps = ["//tests/cgo_trans_deps/dep:go_default_library"],
+    cgo = True,
 )
 
 go_test(

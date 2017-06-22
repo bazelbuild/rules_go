@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
 go_library(
     name = "unsafe_srcs_lib",
@@ -48,11 +48,12 @@ go_test(
     size = "small",
 )
 
-cgo_library(
+go_library(
     name = "unsafe_cgo_lib",
     srcs = ["unsafe_cgo.go"],
     gc_goopts = ["-u"],
     tags = ["manual"],
+    cgo = True,
 )
 
 go_library(

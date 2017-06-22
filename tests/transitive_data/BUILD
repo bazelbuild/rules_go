@@ -14,16 +14,16 @@ go_test(
 
 go_library(
     name = "go_lib",
-    srcs = ["empty.go"],
-    data = ["go_data.txt"],
-    library = ":cgo_lib",
-)
-
-cgo_library(
-    name = "cgo_lib",
-    srcs = ["empty_cgo.go"],
+    srcs = [
+        "empty.go",
+        "empty_cgo.go"
+    ],
+    data = [
+        "go_data.txt",
+        "cgo_data.txt",
+    ],
     cdeps = [":c_lib"],
-    data = ["cgo_data.txt"],
+    cgo = True,
 )
 
 cc_library(
