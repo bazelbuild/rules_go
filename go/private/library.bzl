@@ -213,9 +213,11 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
   inputs = depset([go_toolchain.go]) + sources + libs
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
-  args = [go_toolchain.go.path] + go_sources
-  for path in direct_paths:
-    args += ["-dep", path]
+  args = [go_toolchain.go.path]
+  for src in go_sources:
+    args += ["-src", src]
+  for dep in direct_paths:
+    args += ["-dep", dep]
   args += ["--", "-o", out_object.path, "-trimpath", ".", "-I", "."]
   for path in lib_paths:
     args += ["-I", path]

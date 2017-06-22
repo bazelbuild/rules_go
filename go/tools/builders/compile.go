@@ -17,6 +17,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"go/build"
 	"go/parser"
@@ -32,33 +33,24 @@ import (
 func run(args []string) error {
 	// process the args
 	if len(args) < 2 {
-		return fmt.Errorf("Usage: compile gotool [-dep importpath ...] [sources] -- <extra options>")
+		return fmt.Errorf("Usage: compile gotool [-src source ...] [-dep importpath ...] -- <extra options>")
 	}
 	gotool := args[0]
 	args = args[1:]
-	sources := []string{}
-	goopts := []string{}
-	deps := []string{}
-	bctx := build.Default
-	bctx.CgoEnabled = true
-	depNext := false
-argsLoop:
-	for i, s := range args {
-		switch {
-		case s == "--":
-			goopts = args[i+1:]
-			break argsLoop
-		case depNext:
-			deps = append(deps, s)
-			depNext = false
-		case s == "-dep":
-			depNext = true
-		default:
-			sources = append(sources, s)
-		}
+
+	sources := multiFlag{}
+	deps := multiFlag{}
+	flags := flag.NewFlagSet("compile", flag.ContinueOnError)
+	flags.Var(&sources, "src", "A source file to be filtered and compiled")
+	flags.Var(&deps, "dep", "Import path of a direct dependency")
+	if err := flags.Parse(args); err != nil {
+		return err
 	}
+	goopts := flags.Args()
 
 	// apply build constraints to the source list
+	bctx := build.Default
+	bctx.CgoEnabled = true
 	sources, err := filterFiles(bctx, sources)
 	if err != nil {
 		return err

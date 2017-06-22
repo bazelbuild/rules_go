@@ -23,6 +23,7 @@ go_tool_binary(
     name = "compile",
     srcs = [
         "compile.go",
+        "flags.go",
         "filter.go",
     ],
     visibility = ["//visibility:public"],
