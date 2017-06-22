@@ -10,8 +10,11 @@ def _bazel_test_script_impl(ctx):
   go_version = ''
   if ctx.attr.go_version:
     go_version = 'go_version = "%s"' % ctx.attr.go_version
+  subdir = ""
+  if ctx.attr.subdir:
+    subdir = ctx.attr.subdir + "/"
   # Build the bazel startup args
-  bazelrc = ctx.new_file(".bazelrc")
+  bazelrc = ctx.new_file(subdir + ".bazelrc")
   args = ["--bazelrc={0}".format(bazelrc.basename), "--nomaster_blazerc"]
   if ctx.attr.batch:
     args += ["--batch"]
@@ -25,11 +28,22 @@ def _bazel_test_script_impl(ctx):
   # finalise the workspace file
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_repositories")\n'
   workspace_content += 'go_repositories({0})\n'.format(go_version)
-  workspace_file = ctx.new_file("WORKSPACE")
+  if ctx.attr.workspace:
+    workspace_content += ctx.attr.workspace
+  workspace_file = ctx.new_file(subdir + "WORKSPACE")
   ctx.file_action(output=workspace_file, content=workspace_content)
   # finalise the script
   args += ctx.attr.args + [ctx.attr.target]
+  script_content += 'BASE=$(pwd)\n'
   script_content += 'cd {0}\n'.format(ctx.label.package)
+  script_content += 'PACKAGE=$(pwd)\n'
+  if ctx.attr.subdir:
+    script_content += 'cd {0}\n'.format(ctx.attr.subdir)
+    script_content += 'cp BUILD.in BUILD.bazel\n'
+  script_content += 'WORKSPACE=$(pwd)\n'
+  if ctx.attr.prepare:
+    script_content += ctx.attr.prepare
+  script_content += 'cd $WORKSPACE\n'
   script_content += 'echo {0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
   script_content += '{0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
   if ctx.attr.check:
@@ -49,16 +63,19 @@ _bazel_test_script = rule(
         "batch": attr.bool(default=True),
         "command": attr.string(mandatory=True, values=["build", "test", "coverage"]),
         "args": attr.string_list(default=[]),
+        "subdir": attr.string(),
         "target": attr.string(mandatory=True),
         "externals": attr.label_list(allow_files=True),
         "go_version": attr.string(),
+        "workspace": attr.string(),
+        "prepare": attr.string(),
         "check": attr.string(),
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_execroot": attr.label(default = Label("@test_environment//:execroot")),
     }
 )
 
-def bazel_test(name, batch = None, command = None, args=None, target = None, go_version = None, tags=[], check=""):
+def bazel_test(name, batch = None, command = None, args=None, subdir = None, target = None, go_version = None, tags=[], workspace="", prepare="", check=""):
   script_name = name+"_script"
   externals = [
       "@io_bazel_rules_go//:README.md",
@@ -70,9 +87,12 @@ def bazel_test(name, batch = None, command = None, args=None, target = None, go_
       batch = batch,
       command = command,
       args = args,
+      subdir = subdir,
       target = target,
       externals = externals,
       go_version = go_version,
+      workspace = workspace,
+      prepare = prepare,
       check = check,
   )
   native.sh_test(
@@ -83,6 +103,7 @@ def bazel_test(name, batch = None, command = None, args=None, target = None, go_
       tags = ["local", "bazel"] + tags,
       data = native.glob(["**/*"]) + externals + [
           "//tests:rules_go_deps",
+          "//go/tools/gazelle/gazelle",
       ],
   )
 
