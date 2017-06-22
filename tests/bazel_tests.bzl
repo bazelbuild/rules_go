@@ -12,7 +12,7 @@ def _bazel_test_script_impl(ctx):
     go_version = 'go_version = "%s"' % ctx.attr.go_version
   # Build the bazel startup args
   bazelrc = ctx.new_file(".bazelrc")
-  args = ["--bazelrc", bazelrc.basename]
+  args = ["--bazelrc={0}".format(bazelrc.basename), "--nomaster_blazerc"]
   if ctx.attr.batch:
     args += ["--batch"]
   # Add the command and any command specific args
@@ -30,7 +30,8 @@ def _bazel_test_script_impl(ctx):
   # finalise the script
   args += ctx.attr.args + [ctx.attr.target]
   script_content += 'cd {0}\n'.format(ctx.label.package)
-  script_content += 'bazel {0}\n'.format(" ".join(args))
+  script_content += 'echo {0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
+  script_content += '{0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
   script_file = ctx.new_file(ctx.label.name+".bash")
   ctx.file_action(output=script_file, executable=True, content=script_content)
   # finalise the bazel options
@@ -101,6 +102,14 @@ md5_sum = rule(
 
 def _test_environment_impl(ctx):
   execroot, _, ws = str(ctx.path(".")).rpartition("/external/")
+  bazel = ""
+  if "BAZEL" in ctx.os.environ:
+    bazel = ctx.os.environ["BAZEL"]
+  elif "BAZEL_VERSION" in ctx.os.environ:
+    home = ctx.os.environ["HOME"]
+    bazel = home + "/.bazel/{0}/bin/bazel".format(ctx.os.environ["BAZEL_VERSION"])
+  if bazel == "" or not ctx.path(bazel).exists:
+    bazel = ctx.which("bazel")
   if ctx.name != ws:
     fail("workspace did not match, expected:", ctx.name, "got:", ws)
   ctx.file("WORKSPACE", """
@@ -111,9 +120,10 @@ load("@io_bazel_rules_go//tests:bazel_tests.bzl", "execroot")
 execroot(
     name = "execroot",
     path = "{0}",
+    bazel = "{1}",
     visibility = ["//visibility:public"],
 )
-""".format(execroot))
+""".format(execroot, bazel))
 
 _test_environment = repository_rule(
     implementation = _test_environment_impl,
@@ -124,11 +134,15 @@ def test_environment():
   _test_environment(name="test_environment")
 
 def _execroot_impl(ctx):
-  return struct(path = ctx.attr.path)
+  return struct(
+    path = ctx.attr.path,
+    bazel = ctx.attr.bazel,
+  )
 
 execroot = rule(
     _execroot_impl, 
     attrs = {
         "path": attr.string(mandatory = True),
+        "bazel": attr.string(mandatory = True),
     }
 )
