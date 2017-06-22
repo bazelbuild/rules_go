@@ -23,7 +23,7 @@ func TestPreprocessTags(t *testing.T) {
 		Platforms:   DefaultPlatformTags,
 	}
 	c.PreprocessTags()
-	expectedTags := []string{"a", "b", "cgo", "gc", "go1.8", "go1.7"}
+	expectedTags := []string{"a", "b", "cgo", "gc"}
 	for _, tag := range expectedTags {
 		if !c.GenericTags[tag] {
 			t.Errorf("tag %q not set", tag)
@@ -31,6 +31,17 @@ func TestPreprocessTags(t *testing.T) {
 		for name, platformTags := range c.Platforms {
 			if !platformTags[tag] {
 				t.Errorf("on platform %q, tag %q not set", name, tag)
+			}
+		}
+	}
+	unexpectedTags := []string{"x", "go1.8", "go1.7"}
+	for _, tag := range unexpectedTags {
+		if c.GenericTags[tag] {
+			t.Errorf("tag %q unexpectedly set")
+		}
+		for name, platformTags := range c.Platforms {
+			if platformTags[tag] {
+				t.Errorf("on platform %q, tag %q unexpectedly set", name, tag)
 			}
 		}
 	}

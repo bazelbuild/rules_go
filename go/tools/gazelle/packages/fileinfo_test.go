@@ -1004,6 +1004,18 @@ func TestCheckTags(t *testing.T) {
 			"bar",
 			false,
 		},
+		{
+			"release tags",
+			"go1.7,go1.8,go1.9,go1.91,go2.0",
+			"",
+			true,
+		},
+		{
+			"release tag negated",
+			"!go1.8",
+			"",
+			true,
+		},
 	} {
 		if got := checkTags(tc.line, parseTags(tc.tags)); got != tc.want {
 			t.Errorf("case %q: got %#v; want %#v", tc.desc, got, tc.want)

@@ -539,10 +539,31 @@ func checkTags(line string, tags map[string]bool) bool {
 			if not {
 				tag = tag[1:]
 			}
+			if isReleaseTag(tag) {
+				// Release tags are treated as "unknown" and are considered true,
+				// whether or not they are negated.
+				continue
+			}
 			_, ok := tags[tag]
 			groupOk = groupOk && (not != ok)
 		}
 		lineOk = lineOk || groupOk
 	}
 	return lineOk
+}
+
+// isReleaseTag returns whether the tag matches the pattern "go[0-9]\.[0-9]+".
+func isReleaseTag(tag string) bool {
+	if len(tag) < 5 || !strings.HasPrefix(tag, "go") {
+		return false
+	}
+	if tag[2] < '0' || tag[2] > '9' || tag[3] != '.' {
+		return false
+	}
+	for _, c := range tag[4:] {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }

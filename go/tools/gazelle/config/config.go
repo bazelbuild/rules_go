@@ -17,7 +17,6 @@ package config
 
 import (
 	"fmt"
-	"go/build"
 )
 
 // Config holds information about how Gazelle should run. This is mostly
@@ -92,9 +91,6 @@ func init() {
 func (c *Config) PreprocessTags() {
 	c.GenericTags["cgo"] = true
 	c.GenericTags["gc"] = true
-	for _, t := range build.Default.ReleaseTags {
-		c.GenericTags[t] = true
-	}
 	for _, platformTags := range c.Platforms {
 		for t, _ := range c.GenericTags {
 			platformTags[t] = true
