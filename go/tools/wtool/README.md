@@ -13,10 +13,10 @@ run `go install`
   
     wtool -asis github.com/golang/glog [<go-importpath2> ...]
   
-Which will add the HEAD commit of this dependency as a `new_go_repository` to your
+Which will add the HEAD commit of this dependency as a `go_repository` to your
 WORKSPACE file.
 
-    new_go_repository(
+    go_repository(
       name = "com_github_golang_glog",
       commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
       importpath = "github.com/golang/glog",
