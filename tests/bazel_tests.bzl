@@ -46,6 +46,7 @@ def _bazel_test_script_impl(ctx):
   script_content += 'cd $WORKSPACE\n'
   script_content += 'echo {0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
   script_content += '{0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
+  script_content += 'result=$?\n'
   if ctx.attr.check:
     script_content += ctx.attr.check
   script_file = ctx.new_file(ctx.label.name+".bash")

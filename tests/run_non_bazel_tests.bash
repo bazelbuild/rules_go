@@ -16,7 +16,6 @@ tests=(
   gc_opts_unsafe/gc_opts_unsafe.bash
   popular_repos/popular_repos.bash
   test_chdir/test_chdir.bash
-  trans_dep_error/trans_dep_error.bash
 )
 
 # Manual tests are not executed as part of CI.

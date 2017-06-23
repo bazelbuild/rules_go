@@ -1,4 +1,19 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+bazel_test(
+    name = "trans_dep_error",
+    command = "build",
+    target = "//:go_default_library",
+    check = """
+if [ "$result" -eq 0 ]; then
+  echo "error: build succeeded unexpectedly" >&2
+  exit 1
+fi
+""",
+)
+
+go_prefix("github.com/bazelbuild/rules_go/tests/trans_dep_error")
 
 go_library(
     name = "go_default_library",
