@@ -22,6 +22,7 @@ go_library(
 go_binary(
     name = "gazelle",
     library = ":go_default_library",
+    visibility = ["//visibility:public"],
 )
 
 go_test(

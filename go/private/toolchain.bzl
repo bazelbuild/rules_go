@@ -13,6 +13,8 @@
 # limitations under the License.
 
 GO_SELECT_TOOLCHAIN_BUILD_FILE = """
+exports_files(["BUILD.bazel"])
+
 alias(
     name = "go_toolchain",
     actual = "{toolchain}",

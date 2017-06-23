@@ -13,13 +13,9 @@ cd $(dirname "$0")
 prefix=">>>>>>"
 
 tests=(
-  cgo_library_root_dir/cgo_library_root_dir.bash
-  coverage/coverage.bash
   gc_opts_unsafe/gc_opts_unsafe.bash
-  new_go_repository_build_name/new_go_repository_build_name.bash
   popular_repos/popular_repos.bash
   test_chdir/test_chdir.bash
-  test_filter_test/test_filter_test.bash
   trans_dep_error/trans_dep_error.bash
 )
 
@@ -27,7 +23,6 @@ tests=(
 manual_tests=(
   build_gazelle_with_1.7/build_gazelle_with_1.7.bash
   custom_go_toolchain/custom_go_toolchain.bash
-  test_filter_test_1.7.5/test_filter_test_1.7.5.bash
 )
 if [ "$1" != "ci" ]; then
   tests+=("${manual_tests[@]}")

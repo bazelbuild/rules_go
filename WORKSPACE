@@ -16,3 +16,8 @@ go_repository(
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_repositories")
 
 go_proto_repositories()
+
+# Needed for tests
+
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "test_environment")
+test_environment()
