@@ -99,7 +99,7 @@ def bazel_test(name, batch = None, command = None, args=None, subdir = None, tar
   native.sh_test(
       name = name,
       size = "large",
-      timeout = "short",
+      timeout = "moderate",
       srcs = [script_name],
       tags = ["local", "bazel"] + tags,
       data = native.glob(["**/*"]) + externals + [
