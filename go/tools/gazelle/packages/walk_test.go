@@ -314,6 +314,95 @@ func TestTestdata(t *testing.T) {
 	checkFiles(t, files, "", want)
 }
 
+func TestGenerated(t *testing.T) {
+	files := []fileSpec{
+		{
+			path: "gen/BUILD",
+			content: `
+genrule(
+    name = "from_genrule",
+    outs = ["foo.go", "bar.go", "x.txt", "y.c", "z.s"],
+)
+
+gen_other(
+    name = "from_gen_other",
+    out = "baz.go",
+)
+`,
+		},
+		{
+			path: "gen/foo.go",
+			content: `package foo
+
+import "github.com/jr_hacker/stuff"
+`,
+		},
+	}
+	want := []*packages.Package{
+		{
+			Name: "foo",
+			Rel:  "gen",
+			Library: packages.Target{
+				Sources: packages.PlatformStrings{
+					Generic: []string{"foo.go", "bar.go", "baz.go"},
+				},
+				Imports: packages.PlatformStrings{
+					Generic: []string{"github.com/jr_hacker/stuff"},
+				},
+			},
+		},
+	}
+	checkFiles(t, files, "", want)
+}
+
+func TestExcluded(t *testing.T) {
+	files := []fileSpec{
+		{
+			path: "exclude/BUILD",
+			content: `
+# gazelle:exclude do.go
+
+# gazelle:exclude not.go
+x = 0
+# gazelle:exclude build.go
+
+genrule(
+    name = "gen_build",
+    outs = ["build.go"],
+)
+`,
+		},
+		{
+			path:    "exclude/do.go",
+			content: "",
+		},
+		{
+			path:    "exclude/not.go",
+			content: "",
+		},
+		{
+			path:    "exclude/build.go",
+			content: "",
+		},
+		{
+			path:    "exclude/real.go",
+			content: "package exclude",
+		},
+	}
+	want := []*packages.Package{
+		{
+			Name: "exclude",
+			Rel:  "exclude",
+			Library: packages.Target{
+				Sources: packages.PlatformStrings{
+					Generic: []string{"real.go"},
+				},
+			},
+		},
+	}
+	checkFiles(t, files, "", want)
+}
+
 func TestMalformedBuildFile(t *testing.T) {
 	files := []fileSpec{
 		{path: "BUILD", content: "????"},

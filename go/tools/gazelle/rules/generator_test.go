@@ -33,7 +33,7 @@ func testConfig(repoRoot, goPrefix string) *config.Config {
 		GoPrefix:            goPrefix,
 		GenericTags:         config.BuildTags{},
 		Platforms:           config.DefaultPlatformTags,
-		ValidBuildFileNames: config.DefaultValidBuildFileNames,
+		ValidBuildFileNames: []string{"BUILD.old"},
 	}
 	c.PreprocessTags()
 	return c
@@ -60,6 +60,7 @@ func TestGenerator(t *testing.T) {
 		"bin_with_tests",
 		"cgolib",
 		"cgolib_with_build_tags",
+		"gen_and_exclude",
 		"lib",
 		"lib/internal/deep",
 		"main_test_only",

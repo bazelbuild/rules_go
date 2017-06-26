@@ -21,6 +21,7 @@ import (
 	"log"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	bzl "github.com/bazelbuild/buildtools/build"
@@ -126,11 +127,21 @@ func findPackage(c *config.Config, dir string, oldFile *bzl.File, hasTestdata bo
 		rel = ""
 	}
 
-	var goFiles, otherFiles []string
+	// If an existing BUILD file is present, look for comments that exclude
+	// files and rules that produce .go files.
+	var genGoFiles []string
+	var excluded map[string]bool
+	if oldFile == nil {
+		excluded = make(map[string]bool)
+	} else {
+		genGoFiles = findGenGoFiles(oldFile)
+		excluded = findExcludedFiles(oldFile)
+	}
 
 	// List the files in the directory and split into .go files and other files.
 	// We need to process the Go files first to determine which package we'll
 	// generate rules for if there are multiple packages.
+	var goFiles, otherFiles []string
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		log.Print(err)
@@ -138,7 +149,7 @@ func findPackage(c *config.Config, dir string, oldFile *bzl.File, hasTestdata bo
 	}
 	for _, file := range files {
 		name := file.Name()
-		if name == "" || name[0] == '.' || name[0] == '_' {
+		if file.IsDir() || name == "" || name[0] == '.' || name[0] == '_' || excluded[name] {
 			continue
 		}
 
@@ -186,6 +197,22 @@ func findPackage(c *config.Config, dir string, oldFile *bzl.File, hasTestdata bo
 			log.Print(err)
 		}
 		return nil
+	}
+
+	// Process the generated .go files. Note that generated files may have the
+	// same names as static files. Bazel will use the generated files, but we
+	// will look at the content of static files, assuming they will be the same.
+	for _, goFile := range genGoFiles {
+		i := sort.SearchStrings(goFiles, goFile)
+		if excluded[goFile] || i < len(goFiles) && goFiles[i] == goFile {
+			// Explicitly excluded or found a static file with the same name.
+			continue
+		}
+		info := fileNameInfo(dir, goFile)
+		err := pkg.addFile(c, info, false)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 
 	// Process the other files.
@@ -248,4 +275,46 @@ func defaultPackageName(c *config.Config, dir string) string {
 		return "unnamed"
 	}
 	return name
+}
+
+func findGenGoFiles(f *bzl.File) []string {
+	var strs []string
+	for _, r := range f.Rules("") {
+		for _, key := range []string{"out", "outs"} {
+			switch e := r.Attr(key).(type) {
+			case *bzl.StringExpr:
+				strs = append(strs, e.Value)
+			case *bzl.ListExpr:
+				for _, elem := range e.List {
+					if s, ok := elem.(*bzl.StringExpr); ok {
+						strs = append(strs, s.Value)
+					}
+				}
+			}
+		}
+	}
+
+	var goFiles []string
+	for _, s := range strs {
+		if strings.HasSuffix(s, ".go") {
+			goFiles = append(goFiles, s)
+		}
+	}
+	return goFiles
+}
+
+const gazelleExclude = "# gazelle:exclude " // marker in a BUILD file to exclude source files.
+
+func findExcludedFiles(f *bzl.File) map[string]bool {
+	excluded := make(map[string]bool)
+	for _, s := range f.Stmt {
+		comments := append(s.Comment().Before, s.Comment().After...)
+		for _, c := range comments {
+			if strings.HasPrefix(c.Token, gazelleExclude) {
+				f := strings.TrimSpace(c.Token[len(gazelleExclude):])
+				excluded[f] = true
+			}
+		}
+	}
+	return excluded
 }
