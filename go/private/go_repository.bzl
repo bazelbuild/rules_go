@@ -124,7 +124,7 @@ go_repository = repository_rule(
 # This is for legacy compatability
 # Originally this was the only rule that triggered BUILD file generation.
 def new_go_repository(name, **kwargs):
-  print("{0}: new_go_repository has been subsumed into go_repository".format(name))
+  print("{0}: new_go_repository is deprecated. Please migrate to go_repository soon.".format(name))
   return go_repository(name=name, **kwargs)
 
 def env_execute(ctx, arguments, environment = None, **kwargs):
