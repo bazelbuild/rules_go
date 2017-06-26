@@ -23,6 +23,7 @@ import (
 	"strings"
 	"testing"
 
+	bzl "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
@@ -80,7 +81,7 @@ func walkPackages(repoRoot, goPrefix, dir string) []*packages.Package {
 		ValidBuildFileNames: config.DefaultValidBuildFileNames,
 	}
 	var pkgs []*packages.Package
-	packages.Walk(c, dir, func(pkg *packages.Package) {
+	packages.Walk(c, dir, func(pkg *packages.Package, _ *bzl.File) {
 		pkgs = append(pkgs, pkg)
 	})
 	return pkgs
@@ -105,7 +106,8 @@ func checkPackage(t *testing.T, got, want *packages.Package) {
 func TestWalkEmpty(t *testing.T) {
 	files := []fileSpec{
 		{path: "a/foo.c"},
-		{path: "b/"},
+		{path: "b/BUILD"},
+		{path: "c/"},
 	}
 	want := []*packages.Package{}
 	checkFiles(t, files, "", want)
@@ -307,6 +309,43 @@ func TestTestdata(t *testing.T) {
 				},
 			},
 			HasTestdata: false,
+		},
+	}
+	checkFiles(t, files, "", want)
+}
+
+func TestMalformedBuildFile(t *testing.T) {
+	files := []fileSpec{
+		{path: "BUILD", content: "????"},
+		{path: "foo.go", content: "package foo"},
+	}
+	want := []*packages.Package{}
+	checkFiles(t, files, "", want)
+}
+
+func TestMultipleBuildFiles(t *testing.T) {
+	files := []fileSpec{
+		{path: "BUILD"},
+		{path: "BUILD.bazel"},
+		{path: "foo.go", content: "package foo"},
+	}
+	want := []*packages.Package{}
+	checkFiles(t, files, "", want)
+}
+
+func TestMalformedGoFile(t *testing.T) {
+	files := []fileSpec{
+		{path: "a.go", content: "pakcage foo"},
+		{path: "b.go", content: "package foo"},
+	}
+	want := []*packages.Package{
+		{
+			Name: "foo",
+			Library: packages.Target{
+				Sources: packages.PlatformStrings{
+					Generic: []string{"b.go"},
+				},
+			},
 		},
 	}
 	checkFiles(t, files, "", want)

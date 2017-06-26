@@ -8,7 +8,10 @@ go_library(
         "package.go",
         "walk.go",
     ],
-    deps = ["//go/tools/gazelle/config:go_default_library"],
+    deps = [
+        "//go/tools/gazelle/config:go_default_library",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -28,6 +31,7 @@ go_test(
     deps = [
         ":go_default_library",
         "//go/tools/gazelle/config:go_default_library",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
     size = "small",
 )

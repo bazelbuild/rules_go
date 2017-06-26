@@ -23,16 +23,18 @@ import (
 	"path/filepath"
 	"strings"
 
+	bzl "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 // A WalkFunc is a callback called by Walk for each package.
-type WalkFunc func(pkg *Package)
+type WalkFunc func(pkg *Package, oldFile *bzl.File)
 
 // Walk walks through directories under "root".
-// It calls back "f" for each package.
+// It calls back "f" for each package. If an existing BUILD file is present
+// in the directory, it will be parsed and passed to "f" as well.
 //
-// It is similar to "golang.org/x/tools/go/buildutil".ForEachPackage, but
+// Walk is similar to "golang.org/x/tools/go/buildutil".ForEachPackage, but
 // it does not assume the standard Go tree because Bazel rules_go uses
 // go_prefix instead of the standard tree.
 //
@@ -56,8 +58,9 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 			return false
 		}
 		subdirHasPackage := false
-		hasBuild := false
+		var oldFile *bzl.File
 		hasTestdata := false
+		skip := false
 		for _, f := range files {
 			base := f.Name()
 			if f.IsDir() && base != "" && base[0] != '.' {
@@ -67,15 +70,38 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 				}
 				subdirHasPackage = subdirHasPackage || hasPackage
 			} else if !f.IsDir() && c.IsValidBuildFileName(base) {
-				hasBuild = true
+				if oldFile != nil {
+					log.Printf("in directory %s, multiple Bazel files are present: %s, %s",
+						path, filepath.Base(oldFile.Path), base)
+					skip = true
+					continue
+				}
+				oldPath := filepath.Join(path, base)
+				oldData, err := ioutil.ReadFile(oldPath)
+				if err != nil {
+					log.Print(err)
+					skip = true
+					continue
+				}
+				oldFile, err = bzl.Parse(oldPath, oldData)
+				if err != nil {
+					log.Print(err)
+					skip = true
+					continue
+				}
 			}
 		}
 
-		if pkg := findPackage(c, path, hasTestdata); pkg != nil {
-			f(pkg)
+		hasPackage := subdirHasPackage || oldFile != nil
+		if skip {
+			return hasPackage
+		}
+
+		if pkg := findPackage(c, path, oldFile, hasTestdata); pkg != nil {
+			f(pkg, oldFile)
 			return true
 		}
-		return subdirHasPackage || hasBuild
+		return hasPackage
 	}
 
 	visit(dir)
@@ -89,7 +115,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 // name matches the directory base name will be returned. If there is no such
 // package or if an error occurs, an error will be logged, and nil will be
 // returned.
-func findPackage(c *config.Config, dir string, hasTestdata bool) *Package {
+func findPackage(c *config.Config, dir string, oldFile *bzl.File, hasTestdata bool) *Package {
 	rel, err := filepath.Rel(c.RepoRoot, dir)
 	if err != nil {
 		log.Print(err)

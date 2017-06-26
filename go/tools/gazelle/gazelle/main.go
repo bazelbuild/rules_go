@@ -51,50 +51,56 @@ func run(c *config.Config, emit emitFunc) {
 		if c.RepoRoot == dir {
 			shouldProcessRoot = true
 		}
-		packages.Walk(c, dir, func(pkg *packages.Package) {
+		packages.Walk(c, dir, func(pkg *packages.Package, oldFile *bzl.File) {
 			if pkg.Rel == "" {
 				didProcessRoot = true
 			}
-			processPackage(c, g, emit, pkg)
+			processPackage(c, g, emit, pkg, oldFile)
 		})
 	}
 	if shouldProcessRoot && !didProcessRoot {
 		// We did not process a package at the repository root. We need to put
 		// a go_prefix rule there, even if there are no .go files in that directory.
 		pkg := &packages.Package{Dir: c.RepoRoot}
-		processPackage(c, g, emit, pkg)
-	}
-}
-
-func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *packages.Package) {
-	genFile := g.Generate(pkg)
-
-	oldPath, err := findBuildFile(c, pkg.Dir)
-	if os.IsNotExist(err) {
-		// No existing file, so no merge needed.
-		bzl.Rewrite(genFile, nil) // have buildifier 'format' our rules.
-		if err := emit(c, genFile); err != nil {
+		var oldFile *bzl.File
+		var oldData []byte
+		oldPath, err := findBuildFile(c, c.RepoRoot)
+		if os.IsNotExist(err) {
+			goto processRoot
+		}
+		if err != nil {
 			log.Print(err)
 			return
 		}
+		oldData, err = ioutil.ReadFile(oldPath)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		oldFile, err = bzl.Parse(oldPath, oldData)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+
+	processRoot:
+		processPackage(c, g, emit, pkg, oldFile)
 	}
-	if err != nil {
-		// An unexpected error
-		log.Print(err)
+}
+
+func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *packages.Package, oldFile *bzl.File) {
+	genFile := g.Generate(pkg)
+
+	if oldFile == nil {
+		// No existing file, so no merge required.
+		bzl.Rewrite(genFile, nil) // have buildifier 'format' our rules.
+		if err := emit(c, genFile); err != nil {
+			log.Print(err)
+		}
 		return
 	}
 
 	// Existing file, so merge and replace the old one.
-	oldData, err := ioutil.ReadFile(oldPath)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	oldFile, err := bzl.Parse(oldPath, oldData)
-	if err != nil {
-		log.Print(err)
-		return
-	}
 	mergedFile := merger.MergeWithExisting(genFile, oldFile)
 	bzl.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
 	if err := emit(c, mergedFile); err != nil {
