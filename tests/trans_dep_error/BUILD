@@ -8,7 +8,9 @@ bazel_test(
     check = """
 if [ "$result" -eq 0 ]; then
   echo "error: build succeeded unexpectedly" >&2
-  exit 1
+  result=1
+else
+  result=0
 fi
 """,
 )

@@ -154,7 +154,7 @@ func newConfiguration(args []string) (*config.Config, emitFunc, error) {
 
 	buildFileName := fs.String("build_file_name", "BUILD.bazel,BUILD", "comma-separated list of valid build file names.\nThe first element of the list is the name of output build files to generate.")
 	buildTags := fs.String("build_tags", "", "comma-separated list of build tags. If not specified, Gazelle will not\n\tfilter sources with build constraints.")
-	external := fs.String("external", "external", "external: resolve external packages with new_go_repository\n\tvendored: resolve external packages as packages in vendor/")
+	external := fs.String("external", "external", "external: resolve external packages with go_repository\n\tvendored: resolve external packages as packages in vendor/")
 	goPrefix := fs.String("go_prefix", "", "go_prefix of the target workspace")
 	repoRoot := fs.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")

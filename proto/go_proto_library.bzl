@@ -39,7 +39,7 @@ go_proto_library(
 )
 """
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "new_go_repository")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_repository")
 
 _DEFAULT_LIB = "go_default_library"  # matching go_library
 
@@ -323,7 +323,7 @@ def go_google_protobuf(name = _GO_GOOGLE_PROTOBUF):
 
 def go_proto_repositories(shared = 1):
   """Add this to your WORKSPACE to pull in all of the needed dependencies."""
-  new_go_repository(
+  go_repository(
       name = "com_github_golang_protobuf",
       importpath = "github.com/golang/protobuf",
       commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
@@ -338,12 +338,12 @@ def go_proto_repositories(shared = 1):
     )
 
   # Needed for gRPC, only loaded by bazel if used
-  new_go_repository(
+  go_repository(
       name = "org_golang_x_net",
       commit = "4971afdc2f162e82d185353533d3cf16188a9f4e",
       importpath = "golang.org/x/net",
   )
-  new_go_repository(
+  go_repository(
       name = "org_golang_google_grpc",
       tag = "v1.0.4",
       importpath = "google.golang.org/grpc",

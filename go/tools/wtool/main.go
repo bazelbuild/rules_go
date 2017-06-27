@@ -1,9 +1,9 @@
 /*
-wtool augments your bazel WORKSPACE file with new_go_repository entries
+wtool augments your bazel WORKSPACE file with go_repository entries
 
 Example Usage:
   wtool com_github_golang_glog com_google_cloud_go
-will add 2 new_go_repository to your WORKSPACE
+will add 2 go_repository to your WORKSPACE
 by converting com_github_golang_glog -> github.com/golang/glog
 and so forth and then doing a 'git ls-remote' to get
 the latest commit.

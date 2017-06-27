@@ -49,6 +49,7 @@ def _bazel_test_script_impl(ctx):
   script_content += 'result=$?\n'
   if ctx.attr.check:
     script_content += ctx.attr.check
+  script_content += "exit $result\n"
   script_file = ctx.new_file(ctx.label.name+".bash")
   ctx.file_action(output=script_file, executable=True, content=script_content)
   # finalise the bazel options
@@ -99,7 +100,7 @@ def bazel_test(name, batch = None, command = None, args=None, subdir = None, tar
   native.sh_test(
       name = name,
       size = "large",
-      timeout = "short",
+      timeout = "moderate",
       srcs = [script_name],
       tags = ["local", "bazel"] + tags,
       data = native.glob(["**/*"]) + externals + [
