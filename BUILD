@@ -22,9 +22,9 @@ lines_sorted_test(
     file = "AUTHORS",
 )
 
-# This could be any file, used as an anchor point for the directory in tests
-exports_files(["README.md"])
-
 gazelle(
     name = "gazelle",
 )
+
+# This could be any file, used as an anchor point for the directory in tests
+exports_files(["README.md"])

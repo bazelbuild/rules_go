@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+_script_content = """
+BASE=$(pwd)
+WORKSPACE=$(dirname $(readlink WORKSPACE))
+cd "$WORKSPACE"
+$BASE/{gazelle} {args} $@
+"""
+
 def _gazelle_script_impl(ctx):
-  script_content = ''
   args = ctx.attr.args
-  script_content += 'BASE=$(pwd)\n'
-  script_content += 'WORKSPACE=$(dirname $(readlink WORKSPACE))\n'
-  script_content += 'cd $WORKSPACE\n'
   args = [
       "-repo_root", "$WORKSPACE",
       "-go_prefix", ctx.attr._go_prefix.go_prefix,
@@ -26,7 +29,7 @@ def _gazelle_script_impl(ctx):
   ]
   if ctx.attr.build_tags:
     args += ["-build_tags", ",".join(ctx.attr.build_tags)]
-  script_content += '$BASE/{0} {1} $@\n'.format(ctx.file._gazelle.short_path, " ".join(args))
+  script_content = _script_content.format(gazelle=ctx.file._gazelle.short_path, args=" ".join(args))
   script_file = ctx.new_file(ctx.label.name+".bash")
   ctx.file_action(output=script_file, executable=True, content=script_content)
   return struct(
