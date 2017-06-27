@@ -119,11 +119,6 @@ excludes=(
   -@org_golang_x_tools//go/gcimporter15/testdata/...
   -@org_golang_x_tools//go/loader/testdata/...
   -@org_golang_x_tools//go/pointer/testdata/...
-
-  # some sqlite3 tests rely on sources in the library which are filtered out.
-  -@com_github_mattn_go_sqlite3//_example/custom_func:all
-  -@com_github_mattn_go_sqlite3//_example/trace:all
-  -@com_github_mattn_go_sqlite3//_example/vtable:all
 )
 
 case $(uname) in
