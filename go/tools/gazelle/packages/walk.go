@@ -60,10 +60,11 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		haveError := false
 		for _, base := range c.ValidBuildFileNames {
 			oldPath := filepath.Join(path, base)
-			oldData, err := ioutil.ReadFile(oldPath)
-			if os.IsNotExist(err) {
+			st, err := os.Stat(oldPath)
+			if os.IsNotExist(err) || err == nil && st.IsDir() {
 				continue
 			}
+			oldData, err := ioutil.ReadFile(oldPath)
 			if err != nil {
 				log.Print(err)
 				haveError = true
