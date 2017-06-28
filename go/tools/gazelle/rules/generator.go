@@ -66,7 +66,7 @@ func NewGenerator(c *config.Config) Generator {
 	var e labelResolver
 	switch c.DepMode {
 	case config.ExternalMode:
-		e = externalResolver{}
+		e = newExternalResolver()
 	case config.VendorMode:
 		e = vendoredResolver{}
 	default:

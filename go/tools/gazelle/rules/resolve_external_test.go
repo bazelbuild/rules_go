@@ -17,7 +17,6 @@ package rules
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -25,18 +24,8 @@ import (
 	"golang.org/x/tools/go/vcs"
 )
 
-type special struct {
-	in, want  string
-	wantError bool
-}
-
-func TestMain(m *testing.M) {
-	repoRootForImportPath = stubRepoRootForImportPath
-	os.Exit(m.Run())
-}
-
 func TestSpecialCases(t *testing.T) {
-	resetRepoRootCache()
+	r := newStubExternalResolver()
 	for _, c := range []struct {
 		in, want  string
 		wantError bool
@@ -48,9 +37,9 @@ func TestSpecialCases(t *testing.T) {
 		{in: "github.com/foo", wantError: true},
 		{in: "github.com/foo/bar", want: "github.com/foo/bar"},
 		{in: "github.com/foo/bar/baz", want: "github.com/foo/bar"},
-		{in: "unsupported.org/x/net/context", want: ""},
+		{in: "unsupported.org/x/net/context", wantError: true},
 	} {
-		if got, err := findCachedRepoRoot(c.in); err != nil {
+		if got, err := r.lookupPrefix(c.in); err != nil {
 			if !c.wantError {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -63,9 +52,7 @@ func TestSpecialCases(t *testing.T) {
 }
 
 func TestExternalResolver(t *testing.T) {
-	resetRepoRootCache()
-
-	var r externalResolver
+	r := newStubExternalResolver()
 	for _, spec := range []struct {
 		importpath string
 		want       label
@@ -111,6 +98,12 @@ func TestExternalResolver(t *testing.T) {
 			t.Errorf("r.resolve(%q) = %s; want %s", spec.importpath, got, want)
 		}
 	}
+}
+
+func newStubExternalResolver() *externalResolver {
+	r := newExternalResolver()
+	r.repoRootForImportPath = stubRepoRootForImportPath
+	return r
 }
 
 // stubRepoRootForImportPath is a stub implementation of vcs.RepoRootForImportPath
