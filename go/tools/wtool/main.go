@@ -3,7 +3,7 @@ wtool augments your bazel WORKSPACE file with go_repository entries
 
 Example Usage:
   wtool com_github_golang_glog com_google_cloud_go
-will add 2 go_repository to your WORKSPACE
+will add 2 go_repository rules to your WORKSPACE
 by converting com_github_golang_glog -> github.com/golang/glog
 and so forth and then doing a 'git ls-remote' to get
 the latest commit.
@@ -75,6 +75,7 @@ func run(args []string) error {
 		// TODO(pmbethe09): ignore or maybe update sha1 if already defined in workspace.
 		f.Stmt = append(f.Stmt, imp)
 	}
+	updateLoad(f)
 	bf.Rewrite(f, nil)
 	return ioutil.WriteFile(f.Path, bf.Format(f), 0644)
 }
@@ -117,7 +118,7 @@ func findImport(nameIn string) (bf.Expr, error) {
 		return nil, err
 	}
 	return &bf.CallExpr{
-		X: &bf.LiteralExpr{Token: "new_go_repository"},
+		X: &bf.LiteralExpr{Token: "go_repository"},
 		List: []bf.Expr{
 			attr("name", name),
 			attr("importpath", importpath),
@@ -155,4 +156,29 @@ func lsRemote(repo string) (string, error) {
 	}
 	go cmd.Wait()
 	return strings.Split(b.Text(), "\t")[0], nil
+}
+
+func updateLoad(f *bf.File) {
+	for _, s := range f.Stmt {
+		call, ok := s.(*bf.CallExpr)
+		if !ok || len(call.List) == 0 {
+			continue
+		}
+		if x, ok := call.X.(*bf.LiteralExpr); !ok || x.Token != "load" {
+			continue
+		}
+		if label, ok := call.List[0].(*bf.StringExpr); !ok || label.Value != "@io_bazel_rules_go//go:def.bzl" {
+			continue
+		}
+		haveGoRepository := false
+		for _, arg := range call.List[1:] {
+			if sym, ok := arg.(*bf.StringExpr); ok && sym.Value == "go_repository" {
+				haveGoRepository = true
+				break
+			}
+		}
+		if !haveGoRepository {
+			call.List = append(call.List, &bf.StringExpr{Value: "go_repository"})
+		}
+	}
 }
