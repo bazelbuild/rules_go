@@ -20,18 +20,18 @@ import (
 	"os"
 	"os/exec"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-func diffFile(c *config.Config, file *bzl.File) error {
+func diffFile(c *config.Config, file *bf.File) error {
 	f, err := ioutil.TempFile("", c.DefaultBuildFileName())
 	if err != nil {
 		return err
 	}
 	defer os.Remove(f.Name())
 	defer f.Close()
-	if _, err := f.Write(bzl.Format(file)); err != nil {
+	if _, err := f.Write(bf.Format(file)); err != nil {
 		return err
 	}
 	if err := f.Sync(); err != nil {

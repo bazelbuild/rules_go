@@ -25,12 +25,12 @@ import (
 	"sort"
 	"strings"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 // A WalkFunc is a callback called by Walk for each package.
-type WalkFunc func(pkg *Package, oldFile *bzl.File)
+type WalkFunc func(pkg *Package, oldFile *bf.File)
 
 // Walk walks through directories under "root".
 // It calls back "f" for each package. If an existing BUILD file is present
@@ -56,7 +56,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 	visit = func(path string) bool {
 		// Look for an existing BUILD file. Directives in this file may influence
 		// the rest of the process.
-		var oldFile *bzl.File
+		var oldFile *bf.File
 		haveError := false
 		for _, base := range c.ValidBuildFileNames {
 			oldPath := filepath.Join(path, base)
@@ -76,7 +76,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 				haveError = true
 				continue
 			}
-			oldFile, err = bzl.Parse(oldPath, oldData)
+			oldFile, err = bf.Parse(oldPath, oldData)
 			if err != nil {
 				log.Print(err)
 				haveError = true
@@ -154,7 +154,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 // name matches the directory base name will be returned. If there is no such
 // package or if an error occurs, an error will be logged, and nil will be
 // returned.
-func buildPackage(c *config.Config, dir string, oldFile *bzl.File, goFiles, genGoFiles, otherFiles []string, hasTestdata bool) *Package {
+func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGoFiles, otherFiles []string, hasTestdata bool) *Package {
 	rel, err := filepath.Rel(c.RepoRoot, dir)
 	if err != nil {
 		log.Print(err)
@@ -282,16 +282,16 @@ func defaultPackageName(c *config.Config, dir string) string {
 	return name
 }
 
-func findGenGoFiles(f *bzl.File, excluded map[string]bool) []string {
+func findGenGoFiles(f *bf.File, excluded map[string]bool) []string {
 	var strs []string
 	for _, r := range f.Rules("") {
 		for _, key := range []string{"out", "outs"} {
 			switch e := r.Attr(key).(type) {
-			case *bzl.StringExpr:
+			case *bf.StringExpr:
 				strs = append(strs, e.Value)
-			case *bzl.ListExpr:
+			case *bf.ListExpr:
 				for _, elem := range e.List {
-					if s, ok := elem.(*bzl.StringExpr); ok {
+					if s, ok := elem.(*bf.StringExpr); ok {
 						strs = append(strs, s.Value)
 					}
 				}
@@ -310,7 +310,7 @@ func findGenGoFiles(f *bzl.File, excluded map[string]bool) []string {
 
 const gazelleExclude = "# gazelle:exclude " // marker in a BUILD file to exclude source files.
 
-func findExcludedFiles(f *bzl.File) map[string]bool {
+func findExcludedFiles(f *bf.File) map[string]bool {
 	excluded := make(map[string]bool)
 	for _, s := range f.Stmt {
 		comments := append(s.Comment().Before, s.Comment().After...)

@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
@@ -52,16 +52,16 @@ func TestFixFile(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	stubFile := &bzl.File{
+	stubFile := &bf.File{
 		Path: filepath.Join(dir, "BUILD.bazel"),
-		Stmt: []bzl.Expr{
-			&bzl.CallExpr{
-				X: &bzl.LiteralExpr{Token: "foo_rule"},
-				List: []bzl.Expr{
-					&bzl.BinaryExpr{
-						X:  &bzl.LiteralExpr{Token: "name"},
+		Stmt: []bf.Expr{
+			&bf.CallExpr{
+				X: &bf.LiteralExpr{Token: "foo_rule"},
+				List: []bf.Expr{
+					&bf.BinaryExpr{
+						X:  &bf.LiteralExpr{Token: "name"},
 						Op: "=",
-						Y:  &bzl.StringExpr{Value: "bar"},
+						Y:  &bf.StringExpr{Value: "bar"},
 					},
 				},
 			},
@@ -79,7 +79,7 @@ func TestFixFile(t *testing.T) {
 		t.Errorf("ioutil.ReadFile(%q) failed with %v; want success", stubFile.Path, err)
 		return
 	}
-	if got, want := string(buf), bzl.FormatString(stubFile); got != want {
+	if got, want := string(buf), bf.FormatString(stubFile); got != want {
 		t.Errorf("buf = %q; want %q", got, want)
 	}
 }

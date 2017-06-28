@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
@@ -41,7 +41,7 @@ func testConfig(repoRoot, goPrefix string) *config.Config {
 
 func packageFromDir(c *config.Config, dir string) *packages.Package {
 	var pkg *packages.Package
-	packages.Walk(c, dir, func(p *packages.Package, _ *bzl.File) {
+	packages.Walk(c, dir, func(p *packages.Package, _ *bf.File) {
 		if p.Dir == dir {
 			pkg = p
 		}
@@ -71,7 +71,7 @@ func TestGenerator(t *testing.T) {
 		dir := filepath.Join(repoRoot, filepath.FromSlash(rel))
 		pkg := packageFromDir(c, dir)
 		f := g.Generate(pkg)
-		got := string(bzl.Format(f))
+		got := string(bf.Format(f))
 
 		wantPath := filepath.Join(pkg.Dir, "BUILD.want")
 		wantBytes, err := ioutil.ReadFile(wantPath)
@@ -113,18 +113,18 @@ func TestGeneratorGoPrefixRoot(t *testing.T) {
 	}
 }
 
-func findGoPrefix(f *bzl.File) string {
+func findGoPrefix(f *bf.File) string {
 	for _, s := range f.Stmt {
-		c, ok := s.(*bzl.CallExpr)
+		c, ok := s.(*bf.CallExpr)
 		if !ok {
 			continue
 		}
-		x, ok := c.X.(*bzl.LiteralExpr)
+		x, ok := c.X.(*bf.LiteralExpr)
 		if !ok {
 			continue
 		}
 		if x.Token == "go_prefix" {
-			return bzl.FormatString(s)
+			return bf.FormatString(s)
 		}
 	}
 	return ""

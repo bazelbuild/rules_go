@@ -23,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
@@ -81,7 +81,7 @@ func walkPackages(repoRoot, goPrefix, dir string) []*packages.Package {
 		ValidBuildFileNames: config.DefaultValidBuildFileNames,
 	}
 	var pkgs []*packages.Package
-	packages.Walk(c, dir, func(pkg *packages.Package, _ *bzl.File) {
+	packages.Walk(c, dir, func(pkg *packages.Package, _ *bf.File) {
 		pkgs = append(pkgs, pkg)
 	})
 	return pkgs

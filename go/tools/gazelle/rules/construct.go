@@ -21,7 +21,7 @@ import (
 	"reflect"
 	"sort"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
 
@@ -35,69 +35,69 @@ type globvalue struct {
 	excludes []string
 }
 
-func newRule(kind string, args []interface{}, kwargs []keyvalue) *bzl.Rule {
-	var list []bzl.Expr
+func newRule(kind string, args []interface{}, kwargs []keyvalue) *bf.Rule {
+	var list []bf.Expr
 	for _, arg := range args {
 		list = append(list, newValue(arg))
 	}
 	for _, arg := range kwargs {
 		expr := newValue(arg.value)
-		list = append(list, &bzl.BinaryExpr{
-			X:  &bzl.LiteralExpr{Token: arg.key},
+		list = append(list, &bf.BinaryExpr{
+			X:  &bf.LiteralExpr{Token: arg.key},
 			Op: "=",
 			Y:  expr,
 		})
 	}
 
-	return &bzl.Rule{
-		Call: &bzl.CallExpr{
-			X:    &bzl.LiteralExpr{Token: kind},
+	return &bf.Rule{
+		Call: &bf.CallExpr{
+			X:    &bf.LiteralExpr{Token: kind},
 			List: list,
 		},
 	}
 }
 
 // newValue converts a Go value into the corresponding expression in Bazel BUILD file.
-func newValue(val interface{}) bzl.Expr {
+func newValue(val interface{}) bf.Expr {
 	rv := reflect.ValueOf(val)
 	switch rv.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return &bzl.LiteralExpr{Token: fmt.Sprintf("%d", val)}
+		return &bf.LiteralExpr{Token: fmt.Sprintf("%d", val)}
 
 	case reflect.Float32, reflect.Float64:
-		return &bzl.LiteralExpr{Token: fmt.Sprintf("%f", val)}
+		return &bf.LiteralExpr{Token: fmt.Sprintf("%f", val)}
 
 	case reflect.String:
-		return &bzl.StringExpr{Value: val.(string)}
+		return &bf.StringExpr{Value: val.(string)}
 
 	case reflect.Slice, reflect.Array:
-		var list []bzl.Expr
+		var list []bf.Expr
 		for i := 0; i < rv.Len(); i++ {
 			elem := newValue(rv.Index(i).Interface())
 			list = append(list, elem)
 		}
-		return &bzl.ListExpr{List: list}
+		return &bf.ListExpr{List: list}
 
 	case reflect.Map:
 		rkeys := rv.MapKeys()
 		sort.Sort(byString(rkeys))
-		args := make([]bzl.Expr, len(rkeys))
+		args := make([]bf.Expr, len(rkeys))
 		for i, rk := range rkeys {
-			k := &bzl.StringExpr{Value: rk.String()}
+			k := &bf.StringExpr{Value: rk.String()}
 			v := newValue(rv.MapIndex(rk).Interface())
-			if l, ok := v.(*bzl.ListExpr); ok {
+			if l, ok := v.(*bf.ListExpr); ok {
 				l.ForceMultiLine = true
 			}
-			args[i] = &bzl.KeyValueExpr{Key: k, Value: v}
+			args[i] = &bf.KeyValueExpr{Key: k, Value: v}
 		}
-		args = append(args, &bzl.KeyValueExpr{
-			Key:   &bzl.StringExpr{Value: "//conditions:default"},
-			Value: &bzl.ListExpr{},
+		args = append(args, &bf.KeyValueExpr{
+			Key:   &bf.StringExpr{Value: "//conditions:default"},
+			Value: &bf.ListExpr{},
 		})
-		sel := &bzl.CallExpr{
-			X:    &bzl.LiteralExpr{Token: "select"},
-			List: []bzl.Expr{&bzl.DictExpr{List: args, ForceMultiLine: true}},
+		sel := &bf.CallExpr{
+			X:    &bf.LiteralExpr{Token: "select"},
+			List: []bf.Expr{&bf.DictExpr{List: args, ForceMultiLine: true}},
 		}
 		return sel
 
@@ -105,16 +105,16 @@ func newValue(val interface{}) bzl.Expr {
 		switch val := val.(type) {
 		case globvalue:
 			patternsValue := newValue(val.patterns)
-			globArgs := []bzl.Expr{patternsValue}
+			globArgs := []bf.Expr{patternsValue}
 			if len(val.excludes) > 0 {
 				excludesValue := newValue(val.excludes)
-				globArgs = append(globArgs, &bzl.KeyValueExpr{
-					Key:   &bzl.StringExpr{Value: "excludes"},
+				globArgs = append(globArgs, &bf.KeyValueExpr{
+					Key:   &bf.StringExpr{Value: "excludes"},
 					Value: excludesValue,
 				})
 			}
-			return &bzl.CallExpr{
-				X:    &bzl.LiteralExpr{Token: "glob"},
+			return &bf.CallExpr{
+				X:    &bf.LiteralExpr{Token: "glob"},
 				List: globArgs,
 			}
 
@@ -129,10 +129,10 @@ func newValue(val interface{}) bzl.Expr {
 				return sel
 			}
 
-			if genList, ok := gen.(*bzl.ListExpr); ok {
+			if genList, ok := gen.(*bf.ListExpr); ok {
 				genList.ForceMultiLine = true
 			}
-			return &bzl.BinaryExpr{X: gen, Op: "+", Y: sel}
+			return &bf.BinaryExpr{X: gen, Op: "+", Y: sel}
 		}
 	}
 

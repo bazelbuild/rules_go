@@ -18,12 +18,12 @@ package main
 import (
 	"io/ioutil"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-func fixFile(c *config.Config, file *bzl.File) error {
-	if err := ioutil.WriteFile(file.Path, bzl.Format(file), 0644); err != nil {
+func fixFile(c *config.Config, file *bf.File) error {
+	if err := ioutil.WriteFile(file.Path, bf.Format(file), 0644); err != nil {
 		return err
 	}
 	return nil

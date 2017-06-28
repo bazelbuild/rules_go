@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
@@ -35,7 +35,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
-type emitFunc func(*config.Config, *bzl.File) error
+type emitFunc func(*config.Config, *bf.File) error
 
 var modeFromName = map[string]emitFunc{
 	"print": printFile,
@@ -51,7 +51,7 @@ func run(c *config.Config, emit emitFunc) {
 		if c.RepoRoot == dir {
 			shouldProcessRoot = true
 		}
-		packages.Walk(c, dir, func(pkg *packages.Package, oldFile *bzl.File) {
+		packages.Walk(c, dir, func(pkg *packages.Package, oldFile *bf.File) {
 			if pkg.Rel == "" {
 				didProcessRoot = true
 			}
@@ -62,7 +62,7 @@ func run(c *config.Config, emit emitFunc) {
 		// We did not process a package at the repository root. We need to put
 		// a go_prefix rule there, even if there are no .go files in that directory.
 		pkg := &packages.Package{Dir: c.RepoRoot}
-		var oldFile *bzl.File
+		var oldFile *bf.File
 		var oldData []byte
 		oldPath, err := findBuildFile(c, c.RepoRoot)
 		if os.IsNotExist(err) {
@@ -77,7 +77,7 @@ func run(c *config.Config, emit emitFunc) {
 			log.Print(err)
 			return
 		}
-		oldFile, err = bzl.Parse(oldPath, oldData)
+		oldFile, err = bf.Parse(oldPath, oldData)
 		if err != nil {
 			log.Print(err)
 			return
@@ -88,12 +88,12 @@ func run(c *config.Config, emit emitFunc) {
 	}
 }
 
-func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *packages.Package, oldFile *bzl.File) {
+func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
 	genFile := g.Generate(pkg)
 
 	if oldFile == nil {
 		// No existing file, so no merge required.
-		bzl.Rewrite(genFile, nil) // have buildifier 'format' our rules.
+		bf.Rewrite(genFile, nil) // have buildifier 'format' our rules.
 		if err := emit(c, genFile); err != nil {
 			log.Print(err)
 		}
@@ -102,7 +102,7 @@ func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *pac
 
 	// Existing file, so merge and replace the old one.
 	mergedFile := merger.MergeWithExisting(genFile, oldFile)
-	bzl.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
+	bf.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
 	if err := emit(c, mergedFile); err != nil {
 		log.Print(err)
 		return
@@ -267,16 +267,16 @@ func loadGoPrefix(c *config.Config) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	f, err := bzl.Parse(p, b)
+	f, err := bf.Parse(p, b)
 	if err != nil {
 		return "", err
 	}
 	for _, s := range f.Stmt {
-		c, ok := s.(*bzl.CallExpr)
+		c, ok := s.(*bf.CallExpr)
 		if !ok {
 			continue
 		}
-		l, ok := c.X.(*bzl.LiteralExpr)
+		l, ok := c.X.(*bf.LiteralExpr)
 		if !ok {
 			continue
 		}
@@ -286,7 +286,7 @@ func loadGoPrefix(c *config.Config) (string, error) {
 		if len(c.List) != 1 {
 			return "", fmt.Errorf("found go_prefix(%v) with too many args", c.List)
 		}
-		v, ok := c.List[0].(*bzl.StringExpr)
+		v, ok := c.List[0].(*bf.StringExpr)
 		if !ok {
 			return "", fmt.Errorf("found go_prefix(%v) which is not a string", c.List)
 		}

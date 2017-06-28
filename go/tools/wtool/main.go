@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 	"golang.org/x/tools/go/vcs"
@@ -63,7 +63,7 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	f, err := bzl.Parse(p, b)
+	f, err := bf.Parse(p, b)
 	if err != nil {
 		return err
 	}
@@ -75,8 +75,8 @@ func run(args []string) error {
 		// TODO(pmbethe09): ignore or maybe update sha1 if already defined in workspace.
 		f.Stmt = append(f.Stmt, imp)
 	}
-	bzl.Rewrite(f, nil)
-	return ioutil.WriteFile(f.Path, bzl.Format(f), 0644)
+	bf.Rewrite(f, nil)
+	return ioutil.WriteFile(f.Path, bf.Format(f), 0644)
 }
 
 func nameAndImportpath(name string) (string, string, error) {
@@ -96,7 +96,7 @@ func nameAndImportpath(name string) (string, string, error) {
 	return name, strings.Join([]string{s[1] + "." + s[0], s[2], rest}, "/"), nil
 }
 
-func findImport(nameIn string) (bzl.Expr, error) {
+func findImport(nameIn string) (bf.Expr, error) {
 	name, importpath, err := nameAndImportpath(nameIn)
 	if err != nil {
 		return nil, err
@@ -116,9 +116,9 @@ func findImport(nameIn string) (bzl.Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &bzl.CallExpr{
-		X: &bzl.LiteralExpr{Token: "new_go_repository"},
-		List: []bzl.Expr{
+	return &bf.CallExpr{
+		X: &bf.LiteralExpr{Token: "new_go_repository"},
+		List: []bf.Expr{
 			attr("name", name),
 			attr("importpath", importpath),
 			attr("commit", commit),
@@ -126,11 +126,11 @@ func findImport(nameIn string) (bzl.Expr, error) {
 	}, nil
 }
 
-func attr(key, val string) *bzl.BinaryExpr {
-	return &bzl.BinaryExpr{
-		X:  &bzl.LiteralExpr{Token: key},
+func attr(key, val string) *bf.BinaryExpr {
+	return &bf.BinaryExpr{
+		X:  &bf.LiteralExpr{Token: key},
 		Op: "=",
-		Y:  &bzl.StringExpr{Value: val},
+		Y:  &bf.StringExpr{Value: val},
 	}
 }
 

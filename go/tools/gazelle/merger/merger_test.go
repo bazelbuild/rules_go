@@ -3,7 +3,7 @@ package merger
 import (
 	"testing"
 
-	bzl "github.com/bazelbuild/buildtools/build"
+	bf "github.com/bazelbuild/buildtools/build"
 )
 
 // should fix
@@ -428,12 +428,12 @@ go_library(
 
 func TestMergeWithExisting(t *testing.T) {
 	for _, tc := range testCases {
-		genFile, err := bzl.Parse("current", []byte(tc.current))
+		genFile, err := bf.Parse("current", []byte(tc.current))
 		if err != nil {
 			t.Errorf("%s: %v", tc.desc, err)
 			continue
 		}
-		oldFile, err := bzl.Parse("previous", []byte(tc.previous))
+		oldFile, err := bf.Parse("previous", []byte(tc.previous))
 		if err != nil {
 			t.Errorf("%s: %v", tc.desc, err)
 			continue
@@ -455,15 +455,15 @@ func TestMergeWithExisting(t *testing.T) {
 			want = want[1:]
 		}
 
-		if got := string(bzl.Format(mergedFile)); got != want {
+		if got := string(bf.Format(mergedFile)); got != want {
 			t.Errorf("%s: got %s; want %s", tc.desc, got, want)
 		}
 	}
 }
 
 func TestMergeWithExistingDifferentName(t *testing.T) {
-	oldFile := &bzl.File{Path: "BUILD"}
-	genFile := &bzl.File{Path: "BUILD.bazel"}
+	oldFile := &bf.File{Path: "BUILD"}
+	genFile := &bf.File{Path: "BUILD.bazel"}
 	mergedFile := MergeWithExisting(genFile, oldFile)
 	if got, want := mergedFile.Path, oldFile.Path; got != want {
 		t.Errorf("got %q; want %q", got, want)
