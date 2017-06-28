@@ -32,7 +32,6 @@ def _go_test_impl(ctx):
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")
   main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
-  go_import = go_importpath(ctx)
   run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
   ctx.action(
@@ -42,7 +41,7 @@ def _go_test_impl(ctx):
       executable = go_toolchain.test_generator,
       arguments = [
           '--package',
-          go_import,
+          lib_result.importpath,
           '--rundir',
           run_dir,
           '--output',
@@ -54,9 +53,9 @@ def _go_test_impl(ctx):
   emit_go_compile_action(
     ctx,
     sources=depset([main_go]),
-    libs=lib_result.transitive_go_libraries,
-    lib_paths=lib_result.transitive_go_library_paths,
-    direct_paths=[go_import],
+    libs=[lib_result.library],
+    lib_paths=[lib_result.searchpath],
+    direct_paths=[lib_result.importpath],
     out_object=main_object,
     gc_goopts=get_gc_goopts(ctx),
   )

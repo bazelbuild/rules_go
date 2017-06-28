@@ -53,22 +53,26 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
   lib_name = importpath + ".a"
   out_lib = ctx.new_file(lib_name)
   out_object = ctx.new_file(ctx.label.name + ".o")
-  search_path = out_lib.path[:-len(lib_name)]
+  searchpath = out_lib.path[:-len(lib_name)]
   gc_goopts = get_gc_goopts(ctx)
-  direct_go_library_paths = []
+  direct_go_library_deps = []
+  direct_search_paths = []
+  direct_import_paths = []
   transitive_go_library_deps = depset()
-  transitive_go_library_paths = depset([search_path])
+  transitive_go_library_paths = depset([searchpath])
   for dep in deps:
-    direct_go_library_paths += [dep.importpath]
+    direct_go_library_deps += [dep.library]
+    direct_search_paths += [dep.searchpath]
+    direct_import_paths += [dep.importpath]
     transitive_go_library_deps += dep.transitive_go_libraries
     transitive_cgo_deps += dep.transitive_cgo_deps
     transitive_go_library_paths += dep.transitive_go_library_paths
 
   go_srcs = emit_go_compile_action(ctx,
       sources = go_srcs,
-      libs = transitive_go_library_deps,
-      lib_paths = transitive_go_library_paths,
-      direct_paths = direct_go_library_paths,                                   
+      libs = direct_go_library_deps,
+      lib_paths = direct_search_paths,
+      direct_paths = direct_import_paths,
       out_object = out_object,
       gc_goopts = gc_goopts,
   )
@@ -85,6 +89,8 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
   return struct(
     label = ctx.label,
     files = depset([out_lib]),
+    library = out_lib,
+    searchpath = searchpath,
     runfiles = runfiles,
     go_sources = go_srcs,
     asm_sources = asm_srcs,
@@ -113,6 +119,8 @@ def _go_library_impl(ctx):
   return struct(
     label = ctx.label,
     files = lib_result.files,
+    library = lib_result.library,
+    searchpath = lib_result.searchpath,
     runfiles = lib_result.runfiles,
     go_sources = lib_result.go_sources,
     asm_sources = lib_result.asm_sources,
@@ -218,7 +226,7 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
     args += ["-src", src]
   for dep in direct_paths:
     args += ["-dep", dep]
-  args += ["--", "-o", out_object.path, "-trimpath", ".", "-I", "."]
+  args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
   for path in lib_paths:
     args += ["-I", path]
   args += gc_goopts + cgo_sources

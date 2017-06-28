@@ -30,23 +30,33 @@ import (
 	"strings"
 )
 
-func run(args []string) error {
-	// process the args
-	if len(args) < 2 {
-		return fmt.Errorf("Usage: compile gotool [-src source ...] [-dep importpath ...] -- <extra options>")
+func abs(path string) string {
+	if abs, err := filepath.Abs(path); err != nil {
+		return path
+	} else {
+		return abs
 	}
-	gotool := args[0]
-	args = args[1:]
+}
 
+func run(args []string) error {
 	sources := multiFlag{}
 	deps := multiFlag{}
+	search := multiFlag{}
 	flags := flag.NewFlagSet("compile", flag.ContinueOnError)
 	flags.Var(&sources, "src", "A source file to be filtered and compiled")
 	flags.Var(&deps, "dep", "Import path of a direct dependency")
-	if err := flags.Parse(args); err != nil {
+	flags.Var(&search, "I", "Search paths of a direct dependency")
+	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
+	output := flags.String("o", "", "The output object file to write")
+	// process the args
+	if len(args) < 2 {
+		flags.Usage()
+		return fmt.Errorf("The go tool must be specified")
+	}
+	gotool := args[0]
+	if err := flags.Parse(args[1:]); err != nil {
 		return err
 	}
-	goopts := flags.Args()
 
 	// apply build constraints to the source list
 	bctx := build.Default
@@ -64,26 +74,13 @@ func run(args []string) error {
 		return err
 	}
 
-	// Now we need to abs include and trim paths
-	needAbs := false
-	for i, arg := range goopts {
-		switch {
-		case needAbs:
-			needAbs = false
-			abs, err := filepath.Abs(arg)
-			if err == nil {
-				goopts[i] = abs
-			}
-		case arg == "-I":
-			needAbs = true
-		case arg == "-trimpath":
-			needAbs = true
-		default:
-			needAbs = false
-		}
+	goargs := []string{"tool", "compile"}
+	goargs = append(goargs, "-trimpath", abs(*trimpath))
+	for _, path := range search {
+		goargs = append(goargs, "-I", abs(path))
 	}
-
-	goargs := append([]string{"tool", "compile"}, goopts...)
+	goargs = append(goargs, "-o", *output)
+	goargs = append(goargs, flags.Args()...)
 	goargs = append(goargs, sources...)
 	cmd := exec.Command(gotool, goargs...)
 	cmd.Stdout = os.Stdout
