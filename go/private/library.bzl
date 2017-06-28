@@ -229,7 +229,7 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
   args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
   for path in lib_paths:
     args += ["-I", path]
-  args += gc_goopts + cgo_sources
+  args += ["--"] + gc_goopts + cgo_sources
   ctx.action(
       inputs = list(inputs),
       outputs = [out_object],
