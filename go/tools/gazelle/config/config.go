@@ -47,6 +47,10 @@ type Config struct {
 
 	// DepMode determines how imports outside of GoPrefix are resolved.
 	DepMode DependencyMode
+
+	// Log is used to print errors and warnings to the user. It should be used
+	// instead of the global functions in log. It may be overridden by tests.
+	Log Logger
 }
 
 var DefaultValidBuildFileNames = []string{"BUILD.bazel", "BUILD"}

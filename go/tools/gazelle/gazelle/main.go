@@ -69,17 +69,17 @@ func run(c *config.Config, emit emitFunc) {
 			goto processRoot
 		}
 		if err != nil {
-			log.Print(err)
+			c.Log.Print(err)
 			return
 		}
 		oldData, err = ioutil.ReadFile(oldPath)
 		if err != nil {
-			log.Print(err)
+			c.Log.Print(err)
 			return
 		}
 		oldFile, err = bf.Parse(oldPath, oldData)
 		if err != nil {
-			log.Print(err)
+			c.Log.Print(err)
 			return
 		}
 
@@ -95,7 +95,7 @@ func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *pac
 		// No existing file, so no merge required.
 		bf.Rewrite(genFile, nil) // have buildifier 'format' our rules.
 		if err := emit(c, genFile); err != nil {
-			log.Print(err)
+			c.Log.Print(err)
 		}
 		return
 	}
@@ -109,7 +109,7 @@ func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *pac
 
 	bf.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
 	if err := emit(c, mergedFile); err != nil {
-		log.Print(err)
+		c.Log.Print(err)
 		return
 	}
 }

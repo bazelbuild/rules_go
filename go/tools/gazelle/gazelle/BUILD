@@ -26,8 +26,11 @@ go_binary(
 )
 
 go_test(
-    name = "gazelle_test",
+    name = "go_default_test",
     size = "small",
-    srcs = ["fix_test.go"],
+    srcs = [
+        "fix_test.go",
+        "integration_test.go",
+    ],
     library = ":go_default_library",
 )

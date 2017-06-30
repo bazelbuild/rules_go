@@ -17,7 +17,6 @@ package rules
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 
@@ -305,7 +304,7 @@ func (g *generator) dependencies(imports packages.PlatformStrings, dir string) p
 
 	deps, errors := imports.Map(resolve)
 	for _, err := range errors {
-		log.Print(err)
+		g.c.Log.Print(err)
 	}
 	deps.Clean()
 	return deps
