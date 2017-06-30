@@ -29,6 +29,7 @@ change in buildifier, one of our dependencies. You can upgrade to `0.3.4`,
 * [Repository rules](#repository-rules)
   * [go_repositories](#go_repositories)
   * [go_repository](#go_repository)
+  * [new_go_repository](#new_go_repository)
 * [Build rules](#build-rules)
   * [go_prefix](#go_prefix)
   * [go_library](#go_library)
@@ -212,7 +213,7 @@ imported with [`go_repository`](#go_repository), will have libraries named
 ### `go_repositories`
 
 ``` bzl
-go_repositories(go_version, go_linux, go_darwin)
+go_repositories(go_version)
 ```
 
 Adds Go-related external dependencies to the WORKSPACE, including the Go
@@ -238,68 +239,34 @@ assume that this rule is placed in the WORKSPACE.
         most recent stable version of Go will be used.</p>
       </td>
     </tr>
-    <tr>
-      <td><code>go_linux</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>A custom Go repository to use when building on Linux. See below for
-        an example. This cannot be specified at the same time as
-        <code>go_version</code>.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>go_darwin</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>A custom Go repository to use when building on macOS. See below for
-        an example. This cannot be specified at the same time as
-        <code>go_version</code>.</p>
-      </td>
-    </tr>
   </tbody>
 </table>
-
-#### Example:
-
-Suppose you have your own fork of Go, perhaps with some custom patches
-applied. To use that toolchain with these rules, declare the toolchain
-repository with a workspace rule, such as `new_git_repository` or
-`local_repository`, then pass it to `go_repositories` as below. The rules expect
-Go binaries and libraries to be present in the `bin/` and `pkg/` directories, so
-you'll need a different repository for each supported host platform.
-
-``` bzl
-new_git_repository(
-    name = "custom_go_linux",
-    remote = "https://github.com/j_r_hacker/go_linux",
-    tag = "2.5",
-    build_file_content = "",
-)
-
-new_git_repository(
-    name = "custom_go_darwin",
-    remote = "https://github.com/j_r_hacker/go_darwin",
-    tag = "2.5",
-    build_file_content = "",
-)
-
-go_repositories(
-    go_linux = "@custom_go_linux",
-    go_darwin = "@custom_go_darwin",
-)
-```
 
 ### `go_repository`
 
 ```bzl
-go_repository(name, importpath, remote, vcs, commit, tag, build_tags, url, string_prefix, type, sha256, build_file_name, build_file_generation)
+go_repository(name, importpath, commit, tag, vcs, remote, urls, strip_prefix, type, sha256, build_file_name, build_file_generation, build_tags)
 ```
 
-Fetches a remote repository of a Go project, and generates `BUILD`
-files if needed.
-In vcs mode it recognizes importpath redirection of Go.
+Fetches a remote repository of a Go project, and generates `BUILD.bazel` files
+if they are not already present. In vcs mode, it recognizes importpath
+redirection.
 
-The `importpath` import path must always be specified. If urls are specified, it is expected to be urls for a source archive. If `remote` and `vcs` are both specified, they control the source repository to be cloned for the import path. If neither a vcs nor a url are specified, the vcs will be inferred from the import path using the normal go logic.
+`importpath` must always be specified. This is used as the root import path
+for libraries in the repository.
+
+If the repository should be fetched using a VCS, either `commit` or `tag`
+must be specified. `remote` and `vcs` may be specified if they can't be
+inferred from `importpath` using the 
+[normal go logic](https://golang.org/cmd/go/#hdr-Remote_import_paths).
+
+If the repository should be fetched using source archives, `urls` and `sha256`
+must be specified. `strip_prefix` and `type` may be specified to control how
+the archives are unpacked.
+
+`build_file_name`, `build_file_generation`, and `build_tags` may be used to
+control how BUILD.bazel files are generated. By default, Gazelle will generate
+BUILD.bazel files if they are not already present.
 
 <table class="table table-condensed table-bordered table-params">
   <colgroup>
@@ -322,9 +289,34 @@ The `importpath` import path must always be specified. If urls are specified, it
     <tr>
       <td><code>importpath</code></td>
       <td>
+        <code>String, required</code>
+        <p>The root import path for libraries in the repository.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>commit</code></td>
+      <td>
         <code>String, optional</code>
-        <p>An import path in Go, which also provides a default value for the
-        root of the target remote repository</p>
+        <p>The commit hash to checkout in the repository.<br>
+        Either <code>commit</code> or <code>tag</code> must be specified.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>tag</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The tag to checkout in the repository.<br>
+        Either <code>commit</code> or <code>tag</code> must be defined.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>vcs</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The version control system to use for fetching the repository. Useful
+        for disabling importpath redirection if necessary. May be
+        <code>"git"</code>, <code>"hg"</code>, <code>"svn"</code>,
+        or <code>"bzr"</code>.</p>
       </td>
     </tr>
     <tr>
@@ -336,27 +328,64 @@ The `importpath` import path must always be specified. If urls are specified, it
       </td>
     </tr>
     <tr>
-      <td><code>vcs</code></td>
+      <td><code>urls</code></td>
       <td>
-        <code>String, optional</code>
-        <p>The version control system to use for fetching the repository. Useful
-        for disabling importpath redirection if necessary.</p>
+        <code>List of Strings, optional</code>
+        <p>URLs for one or more source code archives.<br>
+        See
+        <a href="https://bazel.build/versions/master/docs/be/workspace.html#http_archive"><code>http_archive</code></a>
+        for more details.</p>
       </td>
     </tr>
     <tr>
-      <td><code>commit</code></td>
+      <td><code>strip_prefix</code></td>
       <td>
         <code>String, optional</code>
-        <p>The commit hash to checkout in the repository.</p>
-        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+        <p>The internal path prefix to strip when the archive is extracted.<br>
+        See
+        <a href="https://bazel.build/versions/master/docs/be/workspace.html#http_archive"><code>http_archive</code></a>
+        for more details.</p>
       </td>
     </tr>
     <tr>
-      <td><code>tag</code></td>
+      <td><code>type</code></td>
       <td>
         <code>String, optional</code>
-        <p>The tag to checkout in the repository.</p>
-        <p>Note that one of either <code>commit</code> or <code>tag</code> must be defined.</p>
+        <p>The type of the archive, only needed if it cannot be inferred from
+        the file extension.<br>
+        See
+        <a href="https://bazel.build/versions/master/docs/be/workspace.html#http_archive"><code>http_archive</code></a>
+        for more details.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>sha256</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The expected SHA-256 hash of the file downloaded.<br>
+        See
+        <a href="https://bazel.build/versions/master/docs/be/workspace.html#http_archive"><code>http_archive</code></a>
+        for more details.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>build_file_name</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>The name to use for the generated build files. Defaults to
+        BUILD.bazel.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>build_file_generation</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>Used to force build file generation.<br>
+        <code>"off"</code> means do not generate build files.<br>
+        <code>"on"</code> means always run gazelle, even if build files are
+        already present<br>
+        <code>"auto"</code> is the default and runs gazelle only if there is
+        no root build file</p>
       </td>
     </tr>
     <tr>
@@ -366,57 +395,25 @@ The `importpath` import path must always be specified. If urls are specified, it
         <p>The set of tags to pass to gazelle when generating build files.</p>
       </td>
     </tr>
-    <tr>
-      <td><code>urls</code></td>
-      <td>
-        <code>List of Strings, optional</code>
-        <p>The urls for a source code archive.</p>
-        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>strip_prefix</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>The internal path prefix to strip when the archive is extracted.</p>
-        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>type</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>The type of the archive, only needed if it cannot be inferred from the file extension.</p>
-        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>sha256</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>The expected SHA-256 hash of the file downloaded.</p>
-        <p>See [http_archive](https://bazel.build/versions/master/docs/be/workspace.html#http_archive) for more details.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>build_file_name</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>The name to use for the generated build files, defaults to BUILD.bazel.</p>
-      </td>
-    </tr>
-    <tr>
-      <td><code>build_file_generation</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>Used to force build file generation.</p>
-        <p>off means do not generate build files</p>
-        <p>on means always run gazelle, even if build files are already present</p>
-        <p>auto is the default and runs gazelle only if there is no root build file</p>
-      </td>
-    </tr>
   </tbody>
 </table>
+
+#### Example:
+
+```bzl
+load("@io_bazel_rules_go//go:def.bzl", "go_repository")
+
+go_repository(
+    name = "org_golang_x_tools",
+    importpath = "golang.org/x/tools",
+    commit = "663269851cdddc898f963782f74ea574bcd5c814",
+)
+```
+
+### `new_go_repository`
+
+`new_go_repository` is deprecated. Please use [`go_repository`](#go_repository)
+instead, which has the same functionality.
 
 ## Build rules
 

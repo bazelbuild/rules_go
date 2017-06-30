@@ -87,7 +87,6 @@ go_repository = repository_rule(
         "importpath": attr.string(mandatory = True),
         "commit": attr.string(),
         "tag": attr.string(),
-        "build_tags": attr.string_list(),
 
         # Attributes for a repository that cannot be inferred from the import path
         "vcs": attr.string(default="", values=["", "git", "hg", "svn", "bzr"]),
@@ -102,6 +101,7 @@ go_repository = repository_rule(
         # Attributes for a repository that needs automatic build file generation
         "build_file_name": attr.string(default="BUILD.bazel,BUILD"),
         "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
+        "build_tags": attr.string_list(),
 
         # Hidden attributes for tool dependancies
         "_fetch_repo": attr.label(
