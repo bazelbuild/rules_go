@@ -175,7 +175,7 @@ func newConfiguration(args []string) (*config.Config, emitFunc, error) {
 	var c config.Config
 	var err error
 
-	c.Dirs = flag.Args()
+	c.Dirs = fs.Args()
 	if len(c.Dirs) == 0 {
 		c.Dirs = []string{"."}
 	}
