@@ -298,7 +298,8 @@ BUILD.bazel files if they are not already present.
       <td>
         <code>String, optional</code>
         <p>The commit hash to checkout in the repository.<br>
-        Either <code>commit</code> or <code>tag</code> must be specified.</p>
+        Exactly one of <code>commit</code> or <code>tag</code> must
+        be specified.</p>
       </td>
     </tr>
     <tr>
@@ -306,7 +307,8 @@ BUILD.bazel files if they are not already present.
       <td>
         <code>String, optional</code>
         <p>The tag to checkout in the repository.<br>
-        Either <code>commit</code> or <code>tag</code> must be defined.</p>
+        Exactly one of <code>commit</code> or <code>tag</code> must
+        be specified.</p>
       </td>
     </tr>
     <tr>
@@ -400,6 +402,9 @@ BUILD.bazel files if they are not already present.
 
 #### Example:
 
+The rule below fetches a repository with Git. Import path redirection is used
+to automatically determine the true location of the repository.
+
 ```bzl
 load("@io_bazel_rules_go//go:def.bzl", "go_repository")
 
@@ -407,6 +412,23 @@ go_repository(
     name = "org_golang_x_tools",
     importpath = "golang.org/x/tools",
     commit = "663269851cdddc898f963782f74ea574bcd5c814",
+)
+```
+
+The rule below fetches a repository archive with HTTP. GitHub provides HTTP
+archives for all repositories. It's generally faster to fetch these than to
+checkout a repository with Git, but the `strip_prefix` part can break if the
+repository is renamed.
+
+```bzl
+load("@io_bazel_rules_go//go:def.bzl", "go_repository")
+
+go_repository(
+    name = "org_golang_x_tools",
+    importpath = "golang.org/x/tools",
+    urls = ["https://codeload.github.com/golang/tools/zip/663269851cdddc898f963782f74ea574bcd5c814"],
+    strip_prefix = "tools-663269851cdddc898f963782f74ea574bcd5c814",
+    type = "zip",
 )
 ```
 
