@@ -118,6 +118,15 @@ def go_rules_dependencies():
       commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
   )
   _maybe(native.http_archive,
+      name = "com_google_protobuf",
+      url = "https://codeload.github.com/google/protobuf/zip/054054c1523342294d50460d652ad2c767df627f",
+      strip_prefix = "protobuf-054054c1523342294d50460d652ad2c767df627f",
+      #sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
+      type = "zip",
+  )
+
+  # Only used by deprecated go_proto_library implementation
+  _maybe(native.http_archive,
       name = "com_github_google_protobuf",
       url = "https://github.com/google/protobuf/archive/v3.4.0.tar.gz",
       strip_prefix = "protobuf-3.4.0",
