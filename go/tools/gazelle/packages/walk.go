@@ -18,6 +18,7 @@ package packages
 import (
 	"go/build"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -65,19 +66,19 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 			}
 			oldData, err := ioutil.ReadFile(oldPath)
 			if err != nil {
-				c.Log.Print(err)
+				log.Print(err)
 				haveError = true
 				continue
 			}
 			if oldFile != nil {
-				c.Log.Printf("in directory %s, multiple Bazel files are present: %s, %s",
+				log.Printf("in directory %s, multiple Bazel files are present: %s, %s",
 					path, filepath.Base(oldFile.Path), base)
 				haveError = true
 				continue
 			}
 			oldFile, err = bf.Parse(oldPath, oldData)
 			if err != nil {
-				c.Log.Print(err)
+				log.Print(err)
 				haveError = true
 				continue
 			}
@@ -91,7 +92,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		// List files and subdirectories.
 		files, err := ioutil.ReadDir(path)
 		if err != nil {
-			c.Log.Print(err)
+			log.Print(err)
 			return false
 		}
 
@@ -156,7 +157,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGoFiles, otherFiles []string, hasTestdata bool) *Package {
 	rel, err := filepath.Rel(c.RepoRoot, dir)
 	if err != nil {
-		c.Log.Print(err)
+		log.Print(err)
 		return nil
 	}
 	rel = filepath.ToSlash(rel)
@@ -170,7 +171,7 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 	for _, goFile := range goFiles {
 		info, err := goFileInfo(c, dir, goFile)
 		if err != nil {
-			c.Log.Print(err)
+			log.Print(err)
 			continue
 		}
 		if info.packageName == "documentation" {
@@ -190,7 +191,7 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 		}
 		err = packageMap[info.packageName].addFile(c, info, false)
 		if err != nil {
-			c.Log.Print(err)
+			log.Print(err)
 		}
 	}
 
@@ -198,7 +199,7 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 	pkg, err := selectPackage(c, dir, packageMap)
 	if err != nil {
 		if _, ok := err.(*build.NoGoError); !ok {
-			c.Log.Print(err)
+			log.Print(err)
 		}
 		return nil
 	}
@@ -215,7 +216,7 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 		info := fileNameInfo(dir, goFile)
 		err := pkg.addFile(c, info, false)
 		if err != nil {
-			c.Log.Print(err)
+			log.Print(err)
 		}
 	}
 
@@ -223,12 +224,12 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 	for _, file := range otherFiles {
 		info, err := otherFileInfo(dir, file)
 		if err != nil {
-			c.Log.Print(err)
+			log.Print(err)
 			continue
 		}
 		err = pkg.addFile(c, info, cgo)
 		if err != nil {
-			c.Log.Print(err)
+			log.Print(err)
 		}
 	}
 

@@ -20,8 +20,6 @@ limitations under the License.
 package main
 
 import (
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -60,7 +58,7 @@ func createFiles(files []fileSpec) (string, error) {
 	return dir, nil
 }
 
-func runGazelle(wd string, args []string) (err error) {
+func runGazelle(wd string, args []string) error {
 	oldWd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -70,38 +68,12 @@ func runGazelle(wd string, args []string) (err error) {
 	}
 	defer os.Chdir(oldWd)
 
-	fatalCalled := false
 	c, emit, err := newConfiguration(args)
 	if err != nil {
 		return err
 	}
-	c.Log.FatalFn = func(v ...interface{}) {
-		fatalCalled = true
-		panic(v)
-	}
-	c.Log.FatalfFn = func(format string, v ...interface{}) {
-		fatalCalled = true
-		err := fmt.Errorf(format, v...)
-		panic(err)
-	}
-
-	defer func() {
-		if fatalCalled {
-			r := recover()
-			if r == nil {
-				err = errors.New("Fatal called but did not recover")
-				return
-			}
-			if e, ok := r.(error); ok {
-				err = e
-			} else {
-				err = fmt.Errorf("%v", r)
-			}
-		}
-	}()
 
 	run(c, emit)
-
 	return nil
 }
 
