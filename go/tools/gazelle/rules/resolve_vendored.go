@@ -1,11 +1,23 @@
 package rules
 
+import (
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
+)
+
 // vendoredResolver resolves external packages as packages in vendor/.
-type vendoredResolver struct{}
+type vendoredResolver struct {
+	prefix string
+}
+
+var _ labelResolver = (*vendoredResolver)(nil)
+
+func newVendoredResolver(c *config.Config) *vendoredResolver {
+	return &vendoredResolver{prefix: c.VendorPrefix}
+}
 
 func (v vendoredResolver) resolve(importpath, dir string) (label, error) {
 	return label{
-		pkg:  "vendor/" + importpath,
+		pkg:  v.prefix + importpath,
 		name: defaultLibName,
 	}, nil
 }

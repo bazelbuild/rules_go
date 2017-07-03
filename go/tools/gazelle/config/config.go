@@ -47,6 +47,10 @@ type Config struct {
 
 	// DepMode determines how imports outside of GoPrefix are resolved.
 	DepMode DependencyMode
+
+	// VendorPrefix is the import prefix for vendored dependencies. It will
+	// usually be "vendor/".
+	VendorPrefix string
 }
 
 var DefaultValidBuildFileNames = []string{"BUILD.bazel", "BUILD"}

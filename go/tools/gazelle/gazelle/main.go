@@ -162,6 +162,7 @@ func newConfiguration(args []string) (*config.Config, emitFunc, error) {
 	external := fs.String("external", "external", "external: resolve external packages with go_repository\n\tvendored: resolve external packages as packages in vendor/")
 	goPrefix := fs.String("go_prefix", "", "go_prefix of the target workspace")
 	repoRoot := fs.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
+	vendorPrefix := fs.String("vendor_prefix", "vendor/", "import prefix for vendored dependencies.")
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -232,6 +233,8 @@ func newConfiguration(args []string) (*config.Config, emitFunc, error) {
 			return nil, nil, fmt.Errorf("-go_prefix not set and not root BUILD file found")
 		}
 	}
+
+	c.VendorPrefix = *vendorPrefix
 
 	c.DepMode, err = config.DependencyModeFromString(*external)
 	if err != nil {
