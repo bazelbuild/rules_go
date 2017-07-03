@@ -73,6 +73,10 @@ def _go_repository_impl(ctx):
             "--build_tags", ",".join(ctx.attr.build_tags)]
     if ctx.attr.build_file_name:
         cmds += ["--build_file_name", ctx.attr.build_file_name]
+    if ctx.attr.build_vendor:
+        cmds += ["--external", "vendored"]
+        if ctx.attr.build_vendor_prefix:
+            cmds += ["--vendor_prefix", ctx.attr.build_vendor_prefix]
     cmds += [ctx.path('')]
     result = env_execute(ctx, cmds)
     if result.return_code:
@@ -102,6 +106,11 @@ go_repository = repository_rule(
         "build_file_name": attr.string(default="BUILD.bazel,BUILD"),
         "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
         "build_tags": attr.string_list(),
+
+        # Attributes for a repository that uses build file generation with
+        # vendored dependencies.
+        "build_vendor": attr.bool(default=False),
+        "build_vendor_prefix": attr.string(default="vendor/"),
 
         # Hidden attributes for tool dependancies
         "_fetch_repo": attr.label(
