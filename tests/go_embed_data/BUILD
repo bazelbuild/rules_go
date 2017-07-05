@@ -6,7 +6,7 @@ go_test(
     data = [
         "BUILD",
         "//:README.md",
-        "@io_bazel_rules_go_toolchain//:BUILD.bazel",
+        "@io_bazel_rules_go_repository_tools//:BUILD.bazel",
     ],
     library = ":go_default_library",
 )
@@ -51,7 +51,7 @@ go_embed_data(
 
 go_embed_data(
     name = "ext",
-    srcs = ["@io_bazel_rules_go_toolchain//:BUILD.bazel"],
+    srcs = ["@io_bazel_rules_go_repository_tools//:BUILD.bazel"],
     out = "embed_ext.go",
     package = "go_embed_data",
     var = "ext",
