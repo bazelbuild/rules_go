@@ -68,7 +68,7 @@ func NewGenerator(c *config.Config) Generator {
 	case config.ExternalMode:
 		e = newExternalResolver()
 	case config.VendorMode:
-		e = vendoredResolver{}
+		e = newVendoredResolver(c)
 	default:
 		return nil
 	}
