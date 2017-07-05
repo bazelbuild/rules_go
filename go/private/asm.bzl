@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain")
-
-def emit_go_asm_action(ctx, source, hdrs, out_obj):
+def emit_go_asm_action(ctx, go_toolchain, source, hdrs, out_obj):
   """Construct the command line for compiling Go Assembly code.
   Constructs a symlink tree to accomodate for workspace name.
   Args:
@@ -23,7 +21,6 @@ def emit_go_asm_action(ctx, source, hdrs, out_obj):
     hdrs: list of .h files that may be included
     out_obj: the artifact (configured target?) that should be produced
   """
-  go_toolchain = get_go_toolchain(ctx)
   includes = depset()
   includes += [f.dirname for f in hdrs]
   includes += [f.dirname for f in go_toolchain.headers.cc.transitive_headers]

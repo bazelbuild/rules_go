@@ -16,7 +16,6 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "NORMAL_MODE",
     "RACE_MODE",
     "compile_modes",
-    "get_go_toolchain",
     "go_filetype",
 )
 load("@io_bazel_rules_go//go/private:library.bzl",
@@ -30,7 +29,9 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   golib, _ = emit_library_actions(ctx,
+      go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
@@ -47,6 +48,7 @@ def _go_binary_impl(ctx):
       executable = race_executable
     emit_go_link_action(
         ctx,
+        go_toolchain = go_toolchain,
         library=golib,
         mode=mode,
         executable=executable,
@@ -62,6 +64,7 @@ def _go_binary_impl(ctx):
   static_executable = ctx.new_file(ctx.attr.name + ".static")
   emit_go_link_action(
       ctx,
+      go_toolchain = go_toolchain,
       library=golib,
       mode=NORMAL_MODE,
       executable=static_executable,
@@ -101,12 +104,11 @@ go_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_go_prefix": attr.label(default = go_prefix_default),
     },
     executable = True,
     fragments = ["cpp"],
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def c_linker_options(ctx, blacklist=[]):
@@ -162,7 +164,7 @@ def _extract_extldflags(gc_linkopts, extldflags):
       filtered_gc_linkopts += [opt]
   return filtered_gc_linkopts, extldflags
 
-def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
+def emit_go_link_action(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs):
   """Adds an action to link the supplied library in the given mode, producing the executable.
   Args:
     ctx: The skylark Context.
@@ -173,7 +175,6 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
     gc_linkopts: basic link options, these may be adjusted by the mode.
     x_defs: link defines, including build stamping ones
   """
-  go_toolchain = get_go_toolchain(ctx)
 
   # Add in any mode specific behaviours
   if mode == RACE_MODE:

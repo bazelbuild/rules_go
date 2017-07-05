@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load('//go/private:go_toolchain.bzl', 'go_toolchain_type')
-
 DEFAULT_LIB = "go_default_library"
-
 VENDOR_PREFIX = "/vendor/"
 
 NORMAL_MODE = "normal"
@@ -59,9 +56,6 @@ cc_hdr_filetype = FileType(hdr_exts)
 # Extensions of files we can build with the Go compiler or with cc_library.
 # This is a subset of the extensions recognized by go/build.
 cgo_filetype = FileType(go_exts + asm_exts + c_exts)
-
-def get_go_toolchain(ctx):
-  return ctx.attr._go_toolchain[go_toolchain_type]
 
 def pkg_dir(workspace_root, package_name):
   """Returns a relative path to a package directory from the root of the

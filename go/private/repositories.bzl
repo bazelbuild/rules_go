@@ -14,9 +14,10 @@
 
 # Once nested repositories work, this file should cease to exist.
 
-load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_repository_select")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
+load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', 'register_go_toolchains')
 
 _sdk_repositories = {
     # 1.8.3 repositories
@@ -60,6 +61,7 @@ def go_repositories(
     go_linux = None,
     go_darwin = None):
 
+  register_go_toolchains()
   for filename, sha256 in _sdk_repositories.items():
     name = filename
     for suffix in [".tar.gz", ".zip"]:
@@ -92,5 +94,4 @@ def go_repositories(
       type = "zip",
   )
 
-  go_repository_select(name = "io_bazel_rules_go_toolchain", go_version = go_version)
   go_repository_tools(name = "io_bazel_rules_go_repository_tools")

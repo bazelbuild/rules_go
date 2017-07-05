@@ -13,14 +13,13 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoPath")
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain")
 
 def _go_vet_generate_impl(ctx):
   print("""
 EXPERIMENTAL: the go_vet_test rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   script_file = ctx.new_file(ctx.label.name+".bash")
   gopath = []
   files = ctx.files.data + [go_toolchain.go]
@@ -49,8 +48,8 @@ _go_vet_generate = rule(
     _go_vet_generate_impl,
     attrs = {
         "data": attr.label_list(providers=[GoPath], cfg = "data"),
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def go_vet_test(name, data, **kwargs):
