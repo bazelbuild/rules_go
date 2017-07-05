@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype", "pkg_dir")
+load("@io_bazel_rules_go//go/private:common.bzl", "go_filetype", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
+load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "get_go_toolchain", "TOOLCHAIN_TYPE")
 
 def _go_test_impl(ctx):
   """go_test_impl implements go testing.
@@ -25,6 +26,7 @@ def _go_test_impl(ctx):
 
   go_toolchain = get_go_toolchain(ctx)
   lib_result = emit_library_actions(ctx,
+      go_toolchain = go_toolchain,
       sources = depset(ctx.files.srcs),
       deps = ctx.attr.deps,
       cgo_object = None,
@@ -54,6 +56,7 @@ def _go_test_impl(ctx):
   if "race" not in ctx.features:
     emit_go_compile_action(
       ctx,
+      go_toolchain = go_toolchain,
       sources=depset([main_go]),
       libs=[lib_result.library],
       lib_paths=[lib_result.searchpath],
@@ -61,9 +64,10 @@ def _go_test_impl(ctx):
       out_object=main_object,
       gc_goopts=get_gc_goopts(ctx),
     )
-    emit_go_pack_action(ctx, main_lib, [main_object])
+    emit_go_pack_action(ctx, go_toolchain, main_lib, [main_object])
     emit_go_link_action(
       ctx,
+      go_toolchain = go_toolchain,
       transitive_go_library_paths=lib_result.transitive_go_library_paths,
       transitive_go_libraries=lib_result.transitive_go_libraries,
       cgo_deps=lib_result.transitive_cgo_deps,
@@ -74,6 +78,7 @@ def _go_test_impl(ctx):
   else:
     emit_go_compile_action(
       ctx,
+      go_toolchain = go_toolchain,
       sources=depset([main_go]),
       libs=[lib_result.race],
       lib_paths=[lib_result.searchpath_race],
@@ -81,9 +86,10 @@ def _go_test_impl(ctx):
       out_object=main_object,
       gc_goopts=get_gc_goopts(ctx) + ["-race"],
     )
-    emit_go_pack_action(ctx, main_lib, [main_object])
+    emit_go_pack_action(ctx, go_toolchain, main_lib, [main_object])
     emit_go_link_action(
       ctx,
+      go_toolchain = go_toolchain,
       transitive_go_library_paths=lib_result.transitive_go_library_paths_race,
       transitive_go_libraries=lib_result.transitive_go_libraries_race,
       cgo_deps=lib_result.transitive_cgo_deps,
@@ -122,8 +128,6 @@ go_test = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_go_prefix": attr.label(default = Label(
             "//:go_prefix",
             relative_to_caller_repository = True,
@@ -132,4 +136,5 @@ go_test = rule(
     executable = True,
     fragments = ["cpp"],
     test = True,
+    toolchains = [TOOLCHAIN_TYPE],
 )
