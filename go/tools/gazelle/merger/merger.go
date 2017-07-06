@@ -246,20 +246,29 @@ func mergeList(gen, old *bf.ListExpr) *bf.ListExpr {
 		gen = &bf.ListExpr{List: []bf.Expr{}}
 	}
 
-	// Build a list of elements from the old list with "# keep" comments. We
-	// must not duplicate these elements, since duplicate elements will be
-	// removed when we rewrite the AST.
+	// Build a list of strings from the gen list and keep matching strings
+	// in the old list. This preserves comments. Also keep anything with
+	// a "# keep" comment, whether or not it's in the gen list.
+	genSet := make(map[string]bool)
+	for _, v := range gen.List {
+		if s := stringValue(v); s != "" {
+			genSet[s] = true
+		}
+	}
+
 	var merged []bf.Expr
 	kept := make(map[string]bool)
 	for _, v := range old.List {
-		if shouldKeep(v) {
+		s := stringValue(v)
+		if shouldKeep(v) || genSet[s] {
 			merged = append(merged, v)
-			if s := stringValue(v); s != "" {
+			if s != "" {
 				kept[s] = true
 			}
 		}
 	}
 
+	// Add anything in the gen list that wasn't kept.
 	for _, v := range gen.List {
 		if s := stringValue(v); kept[s] {
 			continue

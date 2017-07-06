@@ -423,6 +423,32 @@ go_library(
     srcs = ["foo.go"],
 )
 `,
+	}, {
+		desc: "preserve comments",
+		previous: `
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "a.go",  # preserve
+        "b.go",  # comments
+    ],
+)
+`,
+		current: `
+go_library(
+    name = "go_default_library",
+    srcs = ["a.go", "b.go"],
+)
+`,
+		expected: `
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "a.go",  # preserve
+        "b.go",  # comments
+    ],
+)
+`,
 	},
 }
 
