@@ -18,21 +18,20 @@ package rules
 import (
 	"fmt"
 	"path"
+	"strings"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-// A labelResolver resolves a Go importpath into a label in Bazel.
-type labelResolver interface {
+// TODO(jayconrod): move LabelResolver into a new package.
+
+// A LabelResolver resolves a Go importpath into a label in Bazel.
+type LabelResolver interface {
 	// resolve resolves a Go importpath "importpath", which is referenced from
 	// a Go package directory "dir" in the current repository.
 	// "dir" is a relative slash-delimited path from the top level of the
 	// current repository.
 	resolve(importpath, dir string) (label, error)
-}
-
-type resolverFunc func(importpath, dir string) (label, error)
-
-func (f resolverFunc) resolve(importpath, dir string) (label, error) {
-	return f(importpath, dir)
 }
 
 // A label represents a label of a build target in Bazel.
@@ -55,4 +54,37 @@ func (l label) String() string {
 		return fmt.Sprintf("%s//%s", repo, l.pkg)
 	}
 	return fmt.Sprintf("%s//%s:%s", repo, l.pkg, l.name)
+}
+
+func NewLabelResolver(c *config.Config) LabelResolver {
+	var e LabelResolver
+	switch c.DepMode {
+	case config.ExternalMode:
+		e = newExternalResolver()
+	case config.VendorMode:
+		e = vendoredResolver{}
+	}
+
+	return &unifiedResolver{
+		goPrefix: c.GoPrefix,
+		local:    structuredResolver{c.GoPrefix},
+		external: e,
+	}
+}
+
+type unifiedResolver struct {
+	goPrefix        string
+	local, external LabelResolver
+}
+
+func (r *unifiedResolver) resolve(importpath, dir string) (label, error) {
+	if importpath != r.goPrefix && !strings.HasPrefix(importpath, r.goPrefix+"/") && !isRelative(importpath) {
+		return r.external.resolve(importpath, dir)
+	}
+	return r.local.resolve(importpath, dir)
+}
+
+// isRelative determines if an importpath is relative.
+func isRelative(importpath string) bool {
+	return strings.HasPrefix(importpath, "./") || strings.HasPrefix(importpath, "..")
 }
