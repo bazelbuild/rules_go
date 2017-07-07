@@ -39,7 +39,7 @@ type externalResolver struct {
 	cache map[string]repoRootCacheEntry
 }
 
-var _ labelResolver = (*externalResolver)(nil)
+var _ LabelResolver = (*externalResolver)(nil)
 
 func newExternalResolver() *externalResolver {
 	cache := make(map[string]repoRootCacheEntry)

@@ -44,7 +44,7 @@ var modeFromName = map[string]emitFunc{
 }
 
 func run(c *config.Config, emit emitFunc) {
-	g := rules.NewGenerator(c)
+	r := rules.NewLabelResolver(c)
 	shouldProcessRoot := false
 	didProcessRoot := false
 	for _, dir := range c.Dirs {
@@ -55,7 +55,7 @@ func run(c *config.Config, emit emitFunc) {
 			if pkg.Rel == "" {
 				didProcessRoot = true
 			}
-			processPackage(c, g, emit, pkg, oldFile)
+			processPackage(c, r, emit, pkg, oldFile)
 		})
 	}
 	if shouldProcessRoot && !didProcessRoot {
@@ -84,11 +84,12 @@ func run(c *config.Config, emit emitFunc) {
 		}
 
 	processRoot:
-		processPackage(c, g, emit, pkg, oldFile)
+		processPackage(c, r, emit, pkg, oldFile)
 	}
 }
 
-func processPackage(c *config.Config, g rules.Generator, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
+func processPackage(c *config.Config, r rules.LabelResolver, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
+	g := rules.NewGenerator(c, r, oldFile)
 	genFile := g.Generate(pkg)
 
 	if oldFile == nil {

@@ -17,6 +17,7 @@ package rules_test
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -39,37 +40,46 @@ func testConfig(repoRoot, goPrefix string) *config.Config {
 	return c
 }
 
-func packageFromDir(c *config.Config, dir string) *packages.Package {
+func packageFromDir(c *config.Config, dir string) (*packages.Package, *bf.File) {
 	var pkg *packages.Package
-	packages.Walk(c, dir, func(p *packages.Package, _ *bf.File) {
+	var oldFile *bf.File
+	packages.Walk(c, dir, func(p *packages.Package, f *bf.File) {
 		if p.Dir == dir {
 			pkg = p
+			oldFile = f
 		}
 	})
-	return pkg
+	return pkg, oldFile
 }
 
 func TestGenerator(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo")
 	goPrefix := "example.com/repo"
 	c := testConfig(repoRoot, goPrefix)
-	g := rules.NewGenerator(c)
-	for _, rel := range []string{
-		"allcgolib",
-		"bin",
-		"bin_with_tests",
-		"cgolib",
-		"cgolib_with_build_tags",
-		"gen_and_exclude",
-		"lib",
-		"lib/internal/deep",
-		"main_test_only",
-		"platforms",
-		"tests_import_testdata",
-		"tests_with_testdata",
-	} {
-		dir := filepath.Join(repoRoot, filepath.FromSlash(rel))
-		pkg := packageFromDir(c, dir)
+	r := rules.NewLabelResolver(c)
+
+	var dirs []string
+	err := filepath.Walk(repoRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if filepath.Base(path) == "BUILD.want" {
+			dirs = append(dirs, filepath.Dir(path))
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, dir := range dirs {
+		rel, err := filepath.Rel(repoRoot, dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		pkg, oldFile := packageFromDir(c, dir)
+		g := rules.NewGenerator(c, r, oldFile)
 		f := g.Generate(pkg)
 		got := string(bf.Format(f))
 
@@ -91,8 +101,9 @@ func TestGeneratorGoPrefixLib(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo", "lib")
 	goPrefix := "example.com/repo/lib"
 	c := testConfig(repoRoot, goPrefix)
-	g := rules.NewGenerator(c)
-	pkg := packageFromDir(c, repoRoot)
+	r := rules.NewLabelResolver(c)
+	g := rules.NewGenerator(c, r, nil)
+	pkg, _ := packageFromDir(c, repoRoot)
 	f := g.Generate(pkg)
 
 	if got, want := findGoPrefix(f), `go_prefix("example.com/repo/lib")`; got != want {
@@ -104,7 +115,8 @@ func TestGeneratorGoPrefixRoot(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo")
 	goPrefix := "example.com/repo"
 	c := testConfig(repoRoot, goPrefix)
-	g := rules.NewGenerator(c)
+	r := rules.NewLabelResolver(c)
+	g := rules.NewGenerator(c, r, nil)
 	pkg := &packages.Package{Dir: repoRoot}
 	f := g.Generate(pkg)
 
@@ -139,7 +151,8 @@ func testGeneratedFileName(t *testing.T, buildFileName string) {
 	c := &config.Config{
 		ValidBuildFileNames: []string{buildFileName},
 	}
-	g := rules.NewGenerator(c)
+	r := rules.NewLabelResolver(c)
+	g := rules.NewGenerator(c, r, nil)
 	pkg := &packages.Package{}
 	f := g.Generate(pkg)
 	if f.Path != buildFileName {
