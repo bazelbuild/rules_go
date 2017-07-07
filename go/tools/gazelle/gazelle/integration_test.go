@@ -105,6 +105,99 @@ func TestNoGoPrefixArgOrRule(t *testing.T) {
 	}
 }
 
+// TestSelectLabelsSorted checks that string lists in srcs and deps are sorted
+// using buildifier order, even if they are inside select expressions.
+// This applies to both new and existing lists and should preserve comments.
+// buildifier does not do this yet bazelbuild/buildtools#122, so we do this
+// in addition to calling build.Rewrite.
+func TestSelectLabelsSorted(t *testing.T) {
+	dir, err := createFiles([]fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: "BUILD",
+			content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+
+go_prefix("example.com/foo")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+						# top comment
+						"foo.go",  # side comment
+						# bar comment
+						"bar.go",
+        ],
+        "//conditions:default": [],
+    }),
+)
+`,
+		},
+		{
+			path: "foo.go",
+			content: `
+// +build linux
+
+package foo
+
+import (
+    _ "example.com/foo/outer"
+    _ "example.com/foo/outer/inner"
+    _ "github.com/jr_hacker/tools"
+)
+`,
+		},
+		{
+			path: "bar.go",
+			content: `// +build linux
+
+package foo
+`,
+		},
+		{path: "outer/outer.go", content: "package outer"},
+		{path: "outer/inner/inner.go", content: "package inner"},
+	})
+	want := `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+
+go_prefix("example.com/foo")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            # top comment
+            # bar comment
+            "bar.go",
+            "foo.go",  # side comment
+        ],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "//outer:go_default_library",
+            "//outer/inner:go_default_library",
+            "@com_github_jr_hacker_tools//:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
+`
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runGazelle(dir, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {
+		t.Fatal(err)
+	} else if string(got) != want {
+		t.Fatalf("got %s ; want %s", string(got), want)
+	}
+}
+
 // TODO(jayconrod): more tests
 //   multiple directories can be visited
 //   error if directory not under -repo_root

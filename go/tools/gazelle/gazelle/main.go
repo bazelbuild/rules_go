@@ -94,6 +94,7 @@ func processPackage(c *config.Config, r rules.LabelResolver, emit emitFunc, pkg 
 
 	if oldFile == nil {
 		// No existing file, so no merge required.
+		rules.SortLabels(genFile)
 		bf.Rewrite(genFile, nil) // have buildifier 'format' our rules.
 		if err := emit(c, genFile); err != nil {
 			log.Print(err)
@@ -108,6 +109,7 @@ func processPackage(c *config.Config, r rules.LabelResolver, emit emitFunc, pkg 
 		return
 	}
 
+	rules.SortLabels(mergedFile)
 	bf.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
 	if err := emit(c, mergedFile); err != nil {
 		log.Print(err)
