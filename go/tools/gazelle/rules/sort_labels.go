@@ -36,30 +36,32 @@ func SortLabels(f *bf.File) {
 			if attr == nil {
 				continue
 			}
-			bf.Walk(attr.Y, func(e bf.Expr, _ []bf.Expr) {
-				list, ok := e.(*bf.ListExpr)
-				if !ok || len(list.List) == 0 {
-					return
-				}
-
-				keys := make([]stringSortKey, len(list.List))
-				for i, elem := range list.List {
-					s, ok := elem.(*bf.StringExpr)
-					if !ok {
-						return // don't sort lists unless all elements are strings
-					}
-					keys[i] = makeSortKey(i, s)
-				}
-
-				before := keys[0].x.Comment().Before
-				keys[0].x.Comment().Before = nil
-				sort.Sort(byStringExpr(keys))
-				keys[0].x.Comment().Before = append(before, keys[0].x.Comment().Before...)
-				for i, k := range keys {
-					list.List[i] = k.x
-				}
-			})
+			bf.Walk(attr.Y, sortExprLabels)
 		}
+	}
+}
+
+func sortExprLabels(e bf.Expr, _ []bf.Expr) {
+	list, ok := e.(*bf.ListExpr)
+	if !ok || len(list.List) == 0 {
+		return
+	}
+
+	keys := make([]stringSortKey, len(list.List))
+	for i, elem := range list.List {
+		s, ok := elem.(*bf.StringExpr)
+		if !ok {
+			return // don't sort lists unless all elements are strings
+		}
+		keys[i] = makeSortKey(i, s)
+	}
+
+	before := keys[0].x.Comment().Before
+	keys[0].x.Comment().Before = nil
+	sort.Sort(byStringExpr(keys))
+	keys[0].x.Comment().Before = append(before, keys[0].x.Comment().Before...)
+	for i, k := range keys {
+		list.List[i] = k.x
 	}
 }
 
