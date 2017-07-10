@@ -6,19 +6,15 @@ Bazel ≥0.4.5 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
 
 ## Announcements
 
+* **July 10, 2017** Release
+[0.5.1](https://github.com/bazelbuild/rules_go/releases/tag/0.5.1) is now
+available!
 * **June 13, 2017** Release
 [0.5.0](https://github.com/bazelbuild/rules_go/releases/tag/0.5.0) is now
 available!
 * **May 5, 2017**
 Release [0.4.4](https://github.com/bazelbuild/rules_go/releases/tag/0.4.4) is
 now available!
-* **April 12, 2017**
-Release [0.4.3](https://github.com/bazelbuild/rules_go/releases/tag/0.4.3) is
-now available!
-* **April 7, 2017** Builds using rules_go recently broke
-([#361](https://github.com/bazelbuild/rules_go/issues/361)) because of a name
-change in buildifier, one of our dependencies. You can upgrade to `0.3.4`,
-`0.4.2`, or `master` to get your build working again.
 
 ## Contents
 
@@ -60,7 +56,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-**Note:** The latest version of these rules (0.5.0) require Bazel ≥ 0.4.5 to
+**Note:** The latest version of these rules (0.5.1) require Bazel ≥ 0.4.5 to
   work.
 
 The `master` branch is only guaranteed to work with the latest version of Bazel.
@@ -76,7 +72,7 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.5.0",
+        tag = "0.5.1",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
