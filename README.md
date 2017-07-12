@@ -1,20 +1,19 @@
 # Go rules for [Bazel](https://bazel.build/)
 
-Bazel ≥0.4.5 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
+Bazel ≥0.5.2 | linux-x86_64 | ubuntu_15.10-x86_64 | darwin-x86_64
 :---: | :---: | :---: | :---:
 [![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=linux-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=ubuntu_15.10-x86_64) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)](http://ci.bazel.io/job/rules_go/BAZEL_VERSION=latest,PLATFORM_NAME=darwin-x86_64)
 
 ## Announcements
 
+* **July 12, 2017** The rules now require Bazel 0.5.2 or newer at HEAD. The
+latest tagged version, 0.5.1, still works with Bazel 0.4.5 though.
 * **July 10, 2017** Release
 [0.5.1](https://github.com/bazelbuild/rules_go/releases/tag/0.5.1) is now
 available!
 * **June 13, 2017** Release
 [0.5.0](https://github.com/bazelbuild/rules_go/releases/tag/0.5.0) is now
 available!
-* **May 5, 2017**
-Release [0.4.4](https://github.com/bazelbuild/rules_go/releases/tag/0.4.4) is
-now available!
 
 ## Contents
 
