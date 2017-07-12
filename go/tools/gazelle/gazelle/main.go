@@ -25,6 +25,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
@@ -57,37 +58,86 @@ var commandFromName = map[string]command{
 }
 
 func run(c *config.Config, cmd command, emit emitFunc) {
+	v := newVisitor(c, cmd, emit)
+	for _, dir := range c.Dirs {
+		packages.Walk(c, dir, v.visit)
+	}
+	v.finish()
+}
+
+type visitor interface {
+	// visit is called once for each directory with buildable Go code that
+	// Gazelle processes. "pkg" describes the buildable Go code. It will not
+	// be nil. "oldFile" is the existing build file in the visited directory.
+	// It may be nil if no file is present.
+	visit(pkg *packages.Package, oldFile *bf.File)
+
+	// finish is called once after all directories have been visited.
+	finish()
+}
+
+type visitorBase struct {
+	c         *config.Config
+	r         resolve.Resolver
+	l         resolve.Labeler
+	shouldFix bool
+	emit      emitFunc
+}
+
+func newVisitor(c *config.Config, cmd command, emit emitFunc) visitor {
 	l := resolve.NewLabeler(c)
 	r := resolve.NewResolver(c, l)
-	shouldProcessRoot := false
-	didProcessRoot := false
-	shouldFix := cmd == fixCmd
-	for _, dir := range c.Dirs {
-		if c.RepoRoot == dir {
-			shouldProcessRoot = true
-		}
-		packages.Walk(c, dir, func(pkg *packages.Package, oldFile *bf.File) {
-			if pkg.Rel == "" {
-				didProcessRoot = true
-			}
-			processPackage(c, r, l, shouldFix, emit, pkg, oldFile)
-		})
+	base := visitorBase{
+		c:         c,
+		r:         r,
+		l:         l,
+		shouldFix: cmd == fixCmd,
+		emit:      emit,
 	}
-	if shouldProcessRoot && !didProcessRoot {
-		// We did not process a package at the repository root. We need to put
-		// a go_prefix rule there, even if there are no .go files in that directory.
-		pkg := &packages.Package{Dir: c.RepoRoot}
-		var oldFile *bf.File
-		var oldData []byte
-		oldPath, err := findBuildFile(c, c.RepoRoot)
-		if os.IsNotExist(err) {
-			goto processRoot
+	if c.StructureMode == config.HierarchicalMode {
+		v := &hierarchicalVisitor{visitorBase: base}
+		for _, dir := range c.Dirs {
+			if c.RepoRoot == dir {
+				v.shouldProcessRoot = true
+				break
+			}
 		}
+		return v
+	}
+
+	return &flatVisitor{
+		visitorBase: base,
+		rules:       make(map[string][]bf.Expr),
+	}
+}
+
+// hierarchicalVisitor generates and updates one build file per directory.
+type hierarchicalVisitor struct {
+	visitorBase
+	shouldProcessRoot, didProcessRoot bool
+}
+
+func (v *hierarchicalVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
+	g := rules.NewGenerator(v.c, v.r, v.l, pkg.Rel, oldFile)
+	genFile := g.Generate(pkg)
+	v.mergeAndEmit(genFile, oldFile)
+}
+
+func (v *hierarchicalVisitor) finish() {
+	if !v.shouldProcessRoot || v.didProcessRoot {
+		return
+	}
+
+	// We did not process a package at the repository root. We need to put
+	// a go_prefix rule there, even if there are no .go files in that directory.
+	var oldFile *bf.File
+	oldPath, err := findBuildFile(v.c, v.c.RepoRoot)
+	if !os.IsNotExist(err) {
 		if err != nil {
 			log.Print(err)
 			return
 		}
-		oldData, err = ioutil.ReadFile(oldPath)
+		oldData, err := ioutil.ReadFile(oldPath)
 		if err != nil {
 			log.Print(err)
 			return
@@ -97,28 +147,72 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 			log.Print(err)
 			return
 		}
-
-	processRoot:
-		processPackage(c, r, l, shouldFix, emit, pkg, oldFile)
 	}
+
+	pkg := &packages.Package{Dir: v.c.RepoRoot}
+	g := rules.NewGenerator(v.c, v.r, v.l, "", oldFile)
+	genFile := g.Generate(pkg)
+	v.mergeAndEmit(genFile, oldFile)
 }
 
-func processPackage(c *config.Config, r resolve.Resolver, l resolve.Labeler, shouldFix bool, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
-	g := rules.NewGenerator(c, r, l, pkg.Rel, oldFile)
-	genFile := g.Generate(pkg)
+// flatVisitor generates and updates a single build file that contains rules
+// for everything in the repository.
+type flatVisitor struct {
+	visitorBase
+	rules       map[string][]bf.Expr
+	oldRootFile *bf.File
+}
 
+func (v *flatVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
+	g := rules.NewGenerator(v.c, v.r, v.l, "", oldFile)
+	v.rules[pkg.Rel] = g.GenerateRules(pkg)
+}
+
+func (v *flatVisitor) finish() {
+	g := rules.NewGenerator(v.c, v.r, v.l, "", v.oldRootFile)
+	genFile := &bf.File{
+		Path: filepath.Join(v.c.RepoRoot, v.c.DefaultBuildFileName()),
+	}
+
+	packageNames := make([]string, 0, len(v.rules))
+	for name, _ := range v.rules {
+		packageNames = append(packageNames, name)
+	}
+	sort.Strings(packageNames)
+
+	genFile.Stmt = append(genFile.Stmt, nil) // reserve space for load
+	genFile.Stmt = append(genFile.Stmt, g.GeneratePrefix())
+	for _, name := range packageNames {
+		rs := v.rules[name]
+		genFile.Stmt = append(genFile.Stmt, rs...)
+	}
+	genFile.Stmt[0] = g.GenerateLoad(genFile.Stmt[1:])
+
+	if len(genFile.Stmt) == 2 {
+		// No rules generated.
+		return
+	}
+
+	v.mergeAndEmit(genFile, v.oldRootFile)
+}
+
+// mergeAndEmit merges "genFile" with "oldFile". "oldFile" may be nil if
+// no file exists. If v.shouldFix is true, deprecated usage of old rules in
+// "oldFile" will be fixed. The resulting merged file will be emitted using
+// the "v.emit" function.
+func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File) {
 	if oldFile == nil {
 		// No existing file, so no merge required.
 		rules.SortLabels(genFile)
 		bf.Rewrite(genFile, nil) // have buildifier 'format' our rules.
-		if err := emit(c, genFile); err != nil {
+		if err := v.emit(v.c, genFile); err != nil {
 			log.Print(err)
 		}
 		return
 	}
 
 	// Existing file. Fix it or see if it needs fixing before merging.
-	if shouldFix {
+	if v.shouldFix {
 		oldFile = merger.FixFile(oldFile)
 	} else {
 		fixedFile := merger.FixFile(oldFile)
@@ -136,7 +230,7 @@ func processPackage(c *config.Config, r resolve.Resolver, l resolve.Labeler, sho
 
 	rules.SortLabels(mergedFile)
 	bf.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
-	if err := emit(c, mergedFile); err != nil {
+	if err := v.emit(v.c, mergedFile); err != nil {
 		log.Print(err)
 		return
 	}
@@ -214,6 +308,7 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	repoRoot := fs.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
 	fs.Var(&knownImports, "known_import", "import path for which external resolution is skipped (can specify multiple times)")
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
+	flat := fs.Bool("experimental_flat", false, "whether gazelle should generate a single, combined BUILD file.\nThis mode is experimental and may not work yet.")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			usage(fs)
@@ -287,6 +382,12 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	c.DepMode, err = config.DependencyModeFromString(*external)
 	if err != nil {
 		return nil, cmd, nil, err
+	}
+
+	if *flat {
+		c.StructureMode = config.FlatMode
+	} else {
+		c.StructureMode = config.HierarchicalMode
 	}
 
 	emit, ok := modeFromName[*mode]
