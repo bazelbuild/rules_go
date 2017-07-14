@@ -53,7 +53,10 @@ cgo_filetype = FileType([
 ])
 
 def get_go_toolchain(ctx):
-  return ctx.attr._go_toolchain[go_toolchain_type]
+  #TODO(toolchains): Declared providers should be used for all targets
+  if go_toolchain_type in ctx.attr._go_toolchain:
+    return ctx.attr._go_toolchain[go_toolchain_type]
+  return ctx.attr._go_toolchain
 
 def emit_generate_params_action(cmds, ctx, fn):
   cmds_all = [
