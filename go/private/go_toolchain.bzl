@@ -48,7 +48,7 @@ def constraint_value(name, setting):
 go_toolchain_type = toolchain_type()
 
 def _go_toolchain_impl(ctx):
-  return go_toolchain_type(
+  return [go_toolchain_type(
       exec_compatible_with = ctx.attr.exec_compatible_with,
       target_compatible_with = ctx.attr.target_compatible_with,
       env = {
@@ -72,7 +72,7 @@ def _go_toolchain_impl(ctx):
       link_flags = ctx.attr.link_flags,
       cgo_link_flags = ctx.attr.cgo_link_flags,
       crosstool = ctx.files.crosstool,
-  )
+  )]
 
 go_toolchain_core_attrs = {
     "exec_compatible_with": attr.label_list(providers = [ConstraintValueInfo]),
