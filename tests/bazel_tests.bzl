@@ -1,3 +1,4 @@
+load('//go/private:go_toolchain.bzl', 'go_toolchain_type')
 
 _bazelrc = """
 build --fetch=False --verbose_failures --sandbox_debug --test_output=errors --spawn_strategy=standalone --genrule_strategy=standalone
@@ -24,7 +25,8 @@ def _bazel_test_script_impl(ctx):
     root = ext.label.workspace_root
     _,_,ws = root.rpartition("/")
     workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
-  workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(ctx.attr._go_toolchain.sdk, ctx.attr._go_toolchain.root.path)
+  go_toolchain = ctx.attr._go_toolchain[go_toolchain_type]
+  workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(go_toolchain.sdk, go_toolchain.root.path)
   # finalise the workspace file
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_repositories")\n'
   workspace_content += 'go_repositories({0})\n'.format(go_version)

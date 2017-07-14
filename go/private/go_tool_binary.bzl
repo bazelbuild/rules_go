@@ -16,14 +16,14 @@ load('//go/private:go_toolchain.bzl', 'toolchain_type', 'ConstraintValueInfo', '
 go_bootstrap_toolchain_type = toolchain_type()
 
 def _go_bootstrap_toolchain_impl(ctx):
-  return go_bootstrap_toolchain_type(
+  return [go_bootstrap_toolchain_type(
       exec_compatible_with = ctx.attr.exec_compatible_with,
       target_compatible_with = ctx.attr.target_compatible_with,
       root = ctx.attr.root.path,
       go = ctx.executable.go,
       tools = ctx.files.tools,
       stdlib = ctx.files.stdlib,
-  )
+  )]
 
 go_bootstrap_toolchain = rule(
     _go_bootstrap_toolchain_impl,
@@ -31,7 +31,7 @@ go_bootstrap_toolchain = rule(
 )
 
 def _go_tool_binary_impl(ctx):
-  toolchain = ctx.attr._go_toolchain #TODO(toolchains): ctx.toolchains[go_bootstrap_toolchain_type]
+  toolchain = ctx.attr._go_toolchain[go_bootstrap_toolchain_type]
   ctx.action(
       inputs = ctx.files.srcs + toolchain.tools + toolchain.stdlib,
       outputs = [ctx.outputs.executable],

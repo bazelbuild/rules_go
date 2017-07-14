@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load('//go/private:go_toolchain.bzl', 'go_toolchain_type')
+
 DEFAULT_LIB = "go_default_library"
 
 VENDOR_PREFIX = "/vendor/"
@@ -51,7 +53,7 @@ cgo_filetype = FileType([
 ])
 
 def get_go_toolchain(ctx):
-    return ctx.attr._go_toolchain #TODO(toolchains): ctx.toolchains[go_toolchain_type]
+  return ctx.attr._go_toolchain[go_toolchain_type]
 
 def emit_generate_params_action(cmds, ctx, fn):
   cmds_all = [
