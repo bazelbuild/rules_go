@@ -18,12 +18,15 @@ DEFAULT_LIB = "go_default_library"
 
 VENDOR_PREFIX = "/vendor/"
 
-go_filetype = FileType([
+go_exts = [
     ".go",
+]
+
+asm_exts = [
     ".s",
     ".S",
     ".h",  # may be included by .s
-])
+]
 
 # be consistent to cc_library.
 hdr_exts = [
@@ -34,23 +37,23 @@ hdr_exts = [
     ".inc",
 ]
 
-cc_hdr_filetype = FileType(hdr_exts)
-
-# Extensions of files we can build with the Go compiler or with cc_library.
-# This is a subset of the extensions recognized by go/build.
-cgo_filetype = FileType([
-    ".go",
+c_exts = [
     ".c",
     ".cc",
     ".cxx",
     ".cpp",
-    ".s",
-    ".S",
     ".h",
     ".hh",
     ".hpp",
     ".hxx",
-])
+]
+
+go_filetype = FileType(go_exts + asm_exts)
+cc_hdr_filetype = FileType(hdr_exts)
+
+# Extensions of files we can build with the Go compiler or with cc_library.
+# This is a subset of the extensions recognized by go/build.
+cgo_filetype = FileType(go_exts + asm_exts + c_exts)
 
 def get_go_toolchain(ctx):
   return ctx.attr._go_toolchain[go_toolchain_type]

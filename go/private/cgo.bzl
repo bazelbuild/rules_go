@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "emit_generate_params_action", "go_filetype", "cgo_filetype", "cc_hdr_filetype", "hdr_exts", "pkg_dir")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_exts", "hdr_exts", "c_exts", "asm_exts", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 
@@ -87,9 +87,6 @@ _cgo_select_main_c = rule(_cgo_select_main_c_impl, attrs = {"dep": attr.label()}
 def _cgo_codegen_impl(ctx):
   go_toolchain = get_go_toolchain(ctx)
   srcs = ctx.files.srcs
-  go_srcs = [src for src in srcs if src.basename.endswith(".go")]
-  c_hdrs = [src for src in srcs if any([src.basename.endswith(ext) for ext in hdr_exts])]
-  other_srcs = [src for src in srcs if not src in go_srcs and not src in c_hdrs]
   linkopts = ctx.attr.linkopts
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   deps = set([], order="link")
@@ -97,15 +94,38 @@ def _cgo_codegen_impl(ctx):
   cgo_export_c = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.c")
   cgo_main = ctx.new_file(ctx.attr.out_dir + "/_cgo_main.c")
   cgo_types = ctx.new_file(ctx.attr.out_dir + "/_cgo_gotypes.go")
-
-  c_hdrs += [cgo_export_h]
-  c_outs = depset(c_hdrs) + [cgo_export_c]
-  go_outs = depset([cgo_types])
-  outputs = [ cgo_export_h, cgo_export_c, cgo_main, cgo_types]
   out_dir = cgo_main.dirname
 
-  for hdr in c_hdrs:
-    copts += ['-iquote', hdr.dirname]
+  cc = ctx.fragments.cpp.compiler_executable
+  args = [go_toolchain.go.path, "-cc", str(cc), "-objdir", out_dir]
+
+  c_outs = depset([cgo_export_h, cgo_export_c])
+  go_outs = depset([cgo_types])
+  hdrs = []
+
+  for src in srcs:
+    src_stem, _, src_ext = src.path.rpartition('.')
+    mangled_stem = ctx.attr.out_dir + "/" + src_stem.replace('/', '_')
+    if any([src.basename.endswith(ext) for ext in hdr_exts]):
+      copts += ['-iquote', src.dirname]
+      hdrs += [src]
+    elif any([src.basename.endswith(ext) for ext in go_exts]):
+      gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+      gen_c_file = ctx.new_file(mangled_stem + ".cgo2.c")
+      go_outs += [gen_file]
+      c_outs += [gen_c_file]
+      args += ["-src", gen_file.path + "=" + src.path]
+    elif any([src.basename.endswith(ext) for ext in asm_exts]):
+      gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+      go_outs += [gen_file]
+      args += ["-src", gen_file.path + "=" + src.path]
+    elif any([src.basename.endswith(ext) for ext in c_exts]):
+      gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+      c_outs += [gen_file]
+      args += ["-src", gen_file.path + "=" + src.path]
+    else:
+      fail("Unknown source type {0} in {1}".format(src.basename, ctx.label))
+
   for d in ctx.attr.deps:
     srcs += list(d.cc.transitive_headers)
     deps += d.cc.libs
@@ -123,86 +143,25 @@ def _cgo_codegen_impl(ctx):
         linkopts += [lib.path]
     linkopts += d.cc.link_flags
 
-  cc = ctx.fragments.cpp.compiler_executable
-  cmds = [
-      # We cannot use env for CC because $(CC) on OSX is relative
-      # and '../' does not work fine due to symlinks.
-      'export CC=$(cd $(dirname {cc}); pwd)/$(basename {cc})'.format(cc=cc),
-      'export CXX=$CC',
-      "objdir='%s'" % out_dir,
-      'execroot=$(pwd)',
-      'mkdir -p "$objdir"',
-      # Apply build constraints to .go sources before passing them to cgo.
-      # We have to do this here because _cgo_filter_srcs creates empty files
-      # which lack package declarations.
-      'unfiltered_go_files=(%s)' % ' '.join(["'%s'" % f.path for f in go_srcs]),
-      'filtered_go_files=()',
-      'for file in "${unfiltered_go_files[@]}"; do',
-      '  if %s -cgo -quiet "$file"; then' % go_toolchain.filter_tags.path,
-      '    filtered_go_files+=("$file")',
-      '  fi',
-      'done',
-      'if [ ${#filtered_go_files[@]} -eq 0 ]; then',
-      '  echo no buildable Go source files in %s >&1' % str(ctx.label),
-      '  exit 1',
-      'fi',
-      '"$GOROOT/bin/go" tool cgo -objdir "$objdir" -- %s "${filtered_go_files[@]}"' %
-          ' '.join(['"%s"' % copt for copt in copts]),
-      'rm -rf "$objdir"/{_cgo_.o,_cgo_flags}',
-  ]
-
-  # Move generated files into place, and generate empty files for the sources
-  # that were filtered out. We emit explicit commands for each file in order
-  # to avoid implement name demangling in bash.
-  for s in go_srcs:
-    name, _, _ = s.basename.rpartition('.')
-    src_stem, _, _ = s.path.rpartition('.')
-    mangled_stem = out_dir + "/" + src_stem.replace('/', '_')
-    gen_go_file = ctx.new_file(name + ".cgo1.go")
-    gen_c_file = ctx.new_file(name + ".cgo2.c")
-    cmds += [
-      "if [ -f '%s' ]; then" % (mangled_stem + ".cgo1.go"),
-      "  mv '%s' '%s'" % (mangled_stem + ".cgo1.go", gen_go_file.path),
-      "  mv '%s' '%s'" % (mangled_stem + ".cgo2.c", gen_c_file.path),
-      "else",
-      "  grep --max-count=1 '^package ' '%s' >'%s'" % (s.path, gen_go_file.path),
-      "  echo -n >'%s'" % gen_c_file.path,
-      "fi",
-    ]
-    outputs += [gen_go_file, gen_c_file]
-    c_outs += [gen_c_file]
-    go_outs += [gen_go_file]
-
-  for src in other_srcs:
-    base, _, ext = src.basename.rpartition(".")
-    dst = ctx.new_file(base + "." + ctx.label.name +"." + ext)
-    cmds += [
-      "if '%s' -cgo -quiet '%s'; then" %
-          (go_toolchain.filter_tags.path, src.path),
-      "  cp '%s' '%s'" % (src.path, dst.path),
-      "else",
-      "  echo -n >'%s'" % dst.path,
-      "fi",
-    ]
-    outputs += [dst]
-    c_outs += [dst]
-
-  f = emit_generate_params_action(cmds, ctx, ctx.label.name + ".CGoCodeGenFile.params")
-
-  inputs = srcs + go_toolchain.tools + go_toolchain.crosstool + [f, go_toolchain.filter_tags]
+  # The first -- below is to stop the cgo from processing args, the
+  # second is an actual arg to forward to the underlying go tool
+  args += ["--", "--"] + copts
+  inputs = srcs + go_toolchain.tools + go_toolchain.crosstool
+  outputs = list(c_outs + go_outs + [cgo_main])
   ctx.action(
       inputs = inputs,
       outputs = outputs,
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      command = f.path,
+      executable = go_toolchain.cgo,
+      arguments = args,
       env = go_toolchain.env + {
           "CGO_LDFLAGS": " ".join(linkopts),
       },
   )
   return struct(
       label = ctx.label,
-      files = c_outs,
+      files = c_outs + hdrs,
       go_files = go_outs,
       main_c = depset([cgo_main]),
       cgo_deps = deps,
@@ -226,21 +185,21 @@ _cgo_codegen_rule = rule(
 )
 
 def _cgo_import_impl(ctx):
+  #TODO: move the dynpackage part into the cgo wrapper so we can stop using shell
   go_toolchain = get_go_toolchain(ctx)
-  cmds = [
-      (go_toolchain.go.path + " tool cgo" +
-       " -dynout " + ctx.outputs.out.path +
-       " -dynimport " + ctx.file.cgo_o.path +
-       " -dynpackage $(%s %s)"  % (go_toolchain.extract_package.path,
-                                   ctx.files.sample_go_srcs[0].path)),
-  ]
-  f = emit_generate_params_action(cmds, ctx, ctx.outputs.out.path + ".CGoImportGenFile.params")
+  command = (
+      go_toolchain.go.path + " tool cgo" +
+      " -dynout " + ctx.outputs.out.path +
+      " -dynimport " + ctx.file.cgo_o.path +
+      " -dynpackage $(%s %s)"  % (go_toolchain.extract_package.path,
+                                  ctx.files.sample_go_srcs[0].path)
+  )
   ctx.action(
       inputs = (go_toolchain.tools +
-                [f, go_toolchain.go, go_toolchain.extract_package,
+                [go_toolchain.go, go_toolchain.extract_package,
                  ctx.file.cgo_o, ctx.files.sample_go_srcs[0]]),
       outputs = [ctx.outputs.out],
-      command = f.path,
+      command = command,
       mnemonic = "CGoImportGen",
       env = go_toolchain.env,
   )

@@ -57,6 +57,16 @@ go_tool_binary(
 )
 
 go_tool_binary(
+    name = "cgo",
+    srcs = [
+        "flags.go",
+        "filter.go",
+        "cgo.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_binary(
     name = "md5sum",
     srcs = [
         "md5sum.go",
