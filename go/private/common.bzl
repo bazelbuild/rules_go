@@ -58,22 +58,6 @@ cgo_filetype = FileType(go_exts + asm_exts + c_exts)
 def get_go_toolchain(ctx):
   return ctx.attr._go_toolchain[go_toolchain_type]
 
-def emit_generate_params_action(cmds, ctx, fn):
-  cmds_all = [
-      # Use bash explicitly. /bin/sh is default, and it may be linked to a
-      # different shell, e.g., /bin/dash on Ubuntu.
-      "#!/bin/bash",
-      "set -e",
-  ]
-  cmds_all += cmds
-  cmds_all_str = "\n".join(cmds_all) + "\n"
-  f = ctx.new_file(ctx.configuration.bin_dir, fn)
-  ctx.file_action(
-      output = f,
-      content = cmds_all_str,
-      executable = True)
-  return f
-
 def pkg_dir(workspace_root, package_name):
   """Returns a relative path to a package directory from the root of the
   sandbox. Useful at execution-time or run-time."""
