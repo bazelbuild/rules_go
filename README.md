@@ -24,6 +24,7 @@ available!
 * [Overview](#overview)
 * [Setup](#setup)
 * [Generating build files](#generating-build-files)
+* [Build modes](#build-modes)
 * [FAQ](#faq)
 * [Repository rules](#repository-rules)
   * [go_repositories](#go_repositories)
@@ -55,7 +56,6 @@ They currently do not support (in order of importance):
 * bazel-style auto generating BUILD (where the library name is other than
   go_default_library)
 * C/C++ interoperation except cgo (swig etc.)
-* race detector
 * coverage
 * test sharding
 
@@ -85,18 +85,22 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
     go_repositories()
     ```
 
-* If your project follows the structure that `go build` uses, you
-  can [generate your `BUILD` files](#generating-build-files) with Gazelle. If
-  not, read on.
 * Add a `BUILD` file to the top of your project. Declare the name of your
   workspace using `go_prefix`. This is used by Bazel to translate between build
-  targets and import paths.
+  targets and import paths. Also add the gazelle rule.
 
     ```bzl
-    load("@io_bazel_rules_go//go:def.bzl", "go_prefix")
+    load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "gazelle")
 
     go_prefix("github.com/joe/project")
+    gazelle(name = "gazelle")
+
     ```
+
+* If your project follows the structure that `go build` uses, you
+  can [generate your `BUILD` files](#generating-build-files) with Gazelle. If
+  not, or if you just want to understand the things gazelle is going to 
+  generate for you, read on.
 
 * For a library `github.com/joe/project/lib`, create `lib/BUILD`, containing
   a single library with the special name "`go_default_library`." Using this name
@@ -144,28 +148,56 @@ If you project is compatible with the `go` tool, you can generate and update
 your `BUILD` files automatically using [Gazelle](go/tools/gazelle/README.md),
 a command line tool which is part of this repository.
 
-* You can install Gazelle using the command below. This assumes this repository
+* The gazelle rule in your root build file gives you the ability to build and 
+  run gazelle on your project, this is the preferred way to use it. If you want 
+  to you can also install Gazelle using the command below. This assumes this 
+  repository
   is checked out under [GOPATH](https://github.com/golang/go/wiki/GOPATH).
 
 ```
 go install github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle
 ```
 
-* To run Gazelle for the first time, run the command below from your project
-  root directory.
+* To run Gazelle and update your `BUILD` files, run the command below from any 
+  diretory in your project.
 
 ```
-gazelle -go_prefix github.com/joe/project
+bazel run //:gazelle
 ```
 
-* To update your `BUILD` files later, just run `gazelle`.
 * By default, Gazelle assumes external dependencies are present in
   your `WORKSPACE` file, following a certain naming convention. For example, it
   expects the repository for `github.com/jane/utils` to be named
-  `@com_github_jane_utils`. If you prefer to use vendoring, run `gazelle` with
-  `-external vendored`. See [Vendoring.md](Vendoring.md).
+  `@com_github_jane_utils`. If you prefer to use vendoring, add `external=vendored` 
+  to the gazelle rule. See [Vendoring.md](Vendoring.md).
 
 See the [Gazelle README](go/tools/gazelle/README.md) for more information.
+
+## Build modes
+
+### Building static binaries
+
+You can build binaries in static linking mode using
+```
+bazel build --output_groups=static //:my_binary
+```
+
+### Using the race detector
+
+You can run tests with the race detector enabled using
+```
+bazel test --features=race //...
+```
+
+You can build binaries with the race detector enabled using
+```
+bazel test --output_groups=race //...
+```
+
+The difference is because the rules for binaries can produce both race and non 
+race versions interchangeable, but you always want tools used during the build 
+to be non race versions, whereas for tests you need to switch the build mode of
+the executable that will be invoked during testing.
 
 ## FAQ
 
