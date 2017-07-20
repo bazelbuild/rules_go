@@ -82,7 +82,7 @@ func run(args []string) error {
 	// also pick out the cgo sources
 	bctx := build.Default
 	bctx.CgoEnabled = true
-	cgo_srcs := []string{}
+	cgoSrcs := []string{}
 	for _, s := range sources {
 		bits := strings.SplitN(s, "=", 2)
 		if len(bits) != 2 {
@@ -109,7 +109,7 @@ func run(args []string) error {
 				}
 			} else {
 				// filtered, make empty file
-				if err := ioutil.WriteFile(out, []byte("//Empty file"), 0644); err != nil {
+				if err := ioutil.WriteFile(out, []byte(""), 0644); err != nil {
 					return err
 				}
 			}
@@ -118,9 +118,6 @@ func run(args []string) error {
 
 		// Go source, must produce both c and go outputs
 		cOut := strings.TrimSuffix(out, ".cgo1.go") + ".cgo2.c"
-		if err != nil {
-			return err
-		}
 		isCgo, pkg, err := testCgo(in, data)
 		if err != nil {
 			return err
@@ -130,18 +127,18 @@ func run(args []string) error {
 			if err := ioutil.WriteFile(out, []byte("package "+pkg), 0644); err != nil {
 				return err
 			}
-			if err := ioutil.WriteFile(cOut, []byte("//Empty file"), 0644); err != nil {
+			if err := ioutil.WriteFile(cOut, []byte(""), 0644); err != nil {
 				return err
 			}
 		} else if isCgo {
 			// add to cgo file list
-			cgo_srcs = append(cgo_srcs, in)
+			cgoSrcs = append(cgoSrcs, in)
 		} else {
 			// Non cgo file, copy the go and fake the c
 			if err := ioutil.WriteFile(out, data, 0644); err != nil {
 				return err
 			}
-			if err := ioutil.WriteFile(cOut, []byte("//Empty file"), 0644); err != nil {
+			if err := ioutil.WriteFile(cOut, []byte(""), 0644); err != nil {
 				return err
 			}
 		}
@@ -157,7 +154,7 @@ func run(args []string) error {
 
 	goargs := []string{"tool", "cgo", "-objdir", objdir}
 	goargs = append(goargs, flags.Args()...)
-	goargs = append(goargs, cgo_srcs...)
+	goargs = append(goargs, cgoSrcs...)
 	cmd := exec.Command(gotool, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
