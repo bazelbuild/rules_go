@@ -69,7 +69,10 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
 * Decide on the name of your package, eg. `github.com/joe/project`. It's
   important to choose a name that will match where others will download your
   code. This will be a prefix for import paths within your project.
-* Add the following to your WORKSPACE file:
+* Create a file at the top of your repository named `WORKSPACE`, and add the
+  following code, verbatim. This will let Bazel fetch necessary dependencies
+  from this repository and a few others. You can add more external dependencies
+  to this file later (see [go_repository](#go_repository) below).
 
     ```bzl
     git_repository(
