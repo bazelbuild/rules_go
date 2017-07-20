@@ -24,26 +24,12 @@ import (
 	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 )
 
 const (
 	// goRulesBzl is the label of the Skylark file which provides Go rules
 	goRulesBzl = "@io_bazel_rules_go//go:def.bzl"
-	// defaultLibName is the name of the default go_library rule in a Go
-	// package directory. It must be consistent to DEFAULT_LIB in go/private/common.bf.
-	defaultLibName = "go_default_library"
-	// defaultTestName is a name of an internal test corresponding to
-	// defaultLibName. It does not need to be consistent to something but it
-	// just needs to be unique in the Bazel package
-	defaultTestName = "go_default_test"
-	// defaultXTestName is a name of an external test corresponding to
-	// defaultLibName.
-	defaultXTestName = "go_default_xtest"
-	// defaultProtosName is the name of a filegroup created
-	// whenever the library contains .pb.go files
-	defaultProtosName = "go_default_library_protos"
-	// defaultCgoLibName is the name of the default cgo_library rule in a Go package directory.
-	defaultCgoLibName = "cgo_default_library"
 )
 
 // Generator generates Bazel build rules for Go build targets
@@ -56,14 +42,14 @@ type Generator interface {
 	Generate(pkg *packages.Package) *bf.File
 }
 
-func NewGenerator(c *config.Config, r LabelResolver, oldFile *bf.File) Generator {
+func NewGenerator(c *config.Config, r resolve.LabelResolver, oldFile *bf.File) Generator {
 	shouldSetVisibility := oldFile == nil || !hasDefaultVisibility(oldFile)
 	return &generator{c: c, r: r, shouldSetVisibility: shouldSetVisibility}
 }
 
 type generator struct {
 	c                   *config.Config
-	r                   LabelResolver
+	r                   resolve.LabelResolver
 	shouldSetVisibility bool
 }
 
@@ -130,7 +116,7 @@ func (g *generator) generateLib(pkg *packages.Package, cgoName string) (string, 
 		return "", nil
 	}
 
-	name := defaultLibName
+	name := resolve.DefaultLibName
 	var visibility string
 	if pkg.IsCommand() {
 		// Libraries made for a go_binary should not be exposed to the public.
@@ -148,7 +134,7 @@ func (g *generator) generateCgoLib(pkg *packages.Package) (string, *bf.Rule) {
 		return "", nil
 	}
 
-	name := defaultCgoLibName
+	name := resolve.DefaultCgoLibName
 	visibility := "//visibility:private"
 	rule := g.generateRule(pkg.Rel, "cgo_library", name, visibility, "", false, pkg.CgoLibrary)
 	return name, rule
@@ -190,7 +176,7 @@ func (g *generator) filegroup(pkg *packages.Package) *bf.Rule {
 		return nil
 	}
 	return newRule("filegroup", nil, []keyvalue{
-		{key: "name", value: defaultProtosName},
+		{key: "name", value: resolve.DefaultProtosName},
 		{key: "srcs", value: pkg.Protos},
 		{key: "visibility", value: []string{"//visibility:public"}},
 	})
@@ -202,8 +188,8 @@ func (g *generator) generateTest(pkg *packages.Package, library string) *bf.Rule
 	}
 
 	var name string
-	if library == "" || library == defaultLibName {
-		name = defaultTestName
+	if library == "" || library == resolve.DefaultLibName {
+		name = resolve.DefaultTestName
 	} else {
 		name = library + "_test"
 	}
@@ -217,8 +203,8 @@ func (g *generator) generateXTest(pkg *packages.Package, library string) *bf.Rul
 	}
 
 	var name string
-	if library == "" || library == defaultLibName {
-		name = defaultXTestName
+	if library == "" || library == resolve.DefaultLibName {
+		name = resolve.DefaultXTestName
 	} else {
 		name = library + "_xtest"
 	}
@@ -291,7 +277,7 @@ func (g *generator) generateLoad(rs []*bf.Rule) bf.Expr {
 
 func (g *generator) dependencies(imports packages.PlatformStrings, dir string) packages.PlatformStrings {
 	resolve := func(imp string) (string, error) {
-		if l, err := g.r.resolve(imp, dir); err != nil {
+		if l, err := g.r.Resolve(imp, dir); err != nil {
 			return "", fmt.Errorf("in dir %q, could not resolve import path %q: %v", dir, imp, err)
 		} else {
 			return l.String(), nil

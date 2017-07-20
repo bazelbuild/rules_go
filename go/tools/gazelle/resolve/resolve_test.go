@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package rules
+package resolve
 
 import (
 	"testing"
@@ -21,31 +21,31 @@ import (
 
 func TestLabelString(t *testing.T) {
 	for _, spec := range []struct {
-		l    label
+		l    Label
 		want string
 	}{
 		{
-			l:    label{name: "foo"},
+			l:    Label{Name: "foo"},
 			want: "//:foo",
 		},
 		{
-			l:    label{pkg: "foo/bar", name: "baz"},
+			l:    Label{Pkg: "foo/bar", Name: "baz"},
 			want: "//foo/bar:baz",
 		},
 		{
-			l:    label{pkg: "foo/bar", name: "bar"},
+			l:    Label{Pkg: "foo/bar", Name: "bar"},
 			want: "//foo/bar",
 		},
 		{
-			l:    label{repo: "com_example_repo", pkg: "foo/bar", name: "baz"},
+			l:    Label{Repo: "com_example_repo", Pkg: "foo/bar", Name: "baz"},
 			want: "@com_example_repo//foo/bar:baz",
 		},
 		{
-			l:    label{repo: "com_example_repo", pkg: "foo/bar", name: "bar"},
+			l:    Label{Repo: "com_example_repo", Pkg: "foo/bar", Name: "bar"},
 			want: "@com_example_repo//foo/bar",
 		},
 		{
-			l:    label{relative: true, name: "foo"},
+			l:    Label{Relative: true, Name: "foo"},
 			want: ":foo",
 		},
 	} {

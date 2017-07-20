@@ -27,7 +27,7 @@ import (
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 	"golang.org/x/tools/go/vcs"
 )
@@ -82,7 +82,7 @@ func run(args []string) error {
 
 func nameAndImportpath(name string) (string, string, error) {
 	if *asis {
-		return rules.ImportPathToBazelRepoName(name), name, nil
+		return resolve.ImportPathToBazelRepoName(name), name, nil
 	}
 	s := strings.Split(name, "_")
 	if len(s) < 4 {

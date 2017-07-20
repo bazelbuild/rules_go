@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package rules
+package resolve
 
 import (
 	"fmt"
@@ -27,24 +27,24 @@ type structuredResolver struct {
 	goPrefix string
 }
 
-// resolve takes a Go importpath within the same respository as r.goPrefix
+// Resolve takes a Go importpath within the same respository as r.goPrefix
 // and resolves it into a label in Bazel.
-func (r structuredResolver) resolve(importpath, dir string) (label, error) {
+func (r structuredResolver) Resolve(importpath, dir string) (Label, error) {
 	if isRelative(importpath) {
 		importpath = path.Clean(path.Join(r.goPrefix, dir, importpath))
 	}
 
 	if importpath == r.goPrefix {
-		return label{name: defaultLibName}, nil
+		return Label{Name: DefaultLibName}, nil
 	}
 
 	if prefix := r.goPrefix + "/"; strings.HasPrefix(importpath, prefix) {
 		pkg := strings.TrimPrefix(importpath, prefix)
 		if pkg == dir {
-			return label{name: defaultLibName, relative: true}, nil
+			return Label{Name: DefaultLibName, Relative: true}, nil
 		}
-		return label{pkg: pkg, name: defaultLibName}, nil
+		return Label{Pkg: pkg, Name: DefaultLibName}, nil
 	}
 
-	return label{}, fmt.Errorf("importpath %q does not start with goPrefix %q", importpath, r.goPrefix)
+	return Label{}, fmt.Errorf("importpath %q does not start with goPrefix %q", importpath, r.goPrefix)
 }

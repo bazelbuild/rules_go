@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package rules
+package resolve
 
 import (
 	"reflect"
@@ -25,53 +25,53 @@ func TestStructuredResolver(t *testing.T) {
 	for _, spec := range []struct {
 		importpath string
 		curPkg     string
-		want       label
+		want       Label
 	}{
 		{
 			importpath: "example.com/repo",
 			curPkg:     "",
-			want:       label{name: defaultLibName},
+			want:       Label{Name: DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/lib",
 			curPkg:     "",
-			want:       label{pkg: "lib", name: defaultLibName},
+			want:       Label{Pkg: "lib", Name: DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/another",
 			curPkg:     "",
-			want:       label{pkg: "another", name: defaultLibName},
+			want:       Label{Pkg: "another", Name: DefaultLibName},
 		},
 
 		{
 			importpath: "example.com/repo",
 			curPkg:     "lib",
-			want:       label{name: defaultLibName},
+			want:       Label{Name: DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/lib",
 			curPkg:     "lib",
-			want:       label{name: defaultLibName, relative: true},
+			want:       Label{Name: DefaultLibName, Relative: true},
 		},
 		{
 			importpath: "example.com/repo/lib/sub",
 			curPkg:     "lib",
-			want:       label{pkg: "lib/sub", name: defaultLibName},
+			want:       Label{Pkg: "lib/sub", Name: DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/another",
 			curPkg:     "lib",
-			want:       label{pkg: "another", name: defaultLibName},
+			want:       Label{Pkg: "another", Name: DefaultLibName},
 		},
 	} {
 
-		l, err := r.resolve(spec.importpath, spec.curPkg)
+		l, err := r.Resolve(spec.importpath, spec.curPkg)
 		if err != nil {
-			t.Errorf("r.resolve(%q) failed with %v; want success", spec.importpath, err)
+			t.Errorf("r.Resolve(%q) failed with %v; want success", spec.importpath, err)
 			continue
 		}
 		if got, want := l, spec.want; !reflect.DeepEqual(got, want) {
-			t.Errorf("r.resolve(%q) = %s; want %s", spec.importpath, got, want)
+			t.Errorf("r.Resolve(%q) = %s; want %s", spec.importpath, got, want)
 		}
 	}
 }
@@ -84,8 +84,8 @@ func TestStructuredResolverError(t *testing.T) {
 		"example.com/another/sub",
 		"example.com/repo_suffix",
 	} {
-		if l, err := r.resolve(importpath, ""); err == nil {
-			t.Errorf("r.resolve(%q) = %s; want error", importpath, l)
+		if l, err := r.Resolve(importpath, ""); err == nil {
+			t.Errorf("r.Resolve(%q) = %s; want error", importpath, l)
 		}
 	}
 }

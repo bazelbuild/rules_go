@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package rules
+package resolve
 
 import (
 	"fmt"
@@ -55,47 +55,47 @@ func TestExternalResolver(t *testing.T) {
 	r := newStubExternalResolver()
 	for _, spec := range []struct {
 		importpath string
-		want       label
+		want       Label
 	}{
 		{
 			importpath: "example.com/repo",
-			want: label{
-				repo: "com_example_repo",
-				name: defaultLibName,
+			want: Label{
+				Repo: "com_example_repo",
+				Name: DefaultLibName,
 			},
 		},
 		{
 			importpath: "example.com/repo/lib",
-			want: label{
-				repo: "com_example_repo",
-				pkg:  "lib",
-				name: defaultLibName,
+			want: Label{
+				Repo: "com_example_repo",
+				Pkg:  "lib",
+				Name: DefaultLibName,
 			},
 		},
 		{
 			importpath: "example.com/repo.git/lib",
-			want: label{
-				repo: "com_example_repo_git",
-				pkg:  "lib",
-				name: defaultLibName,
+			want: Label{
+				Repo: "com_example_repo_git",
+				Pkg:  "lib",
+				Name: DefaultLibName,
 			},
 		},
 		{
 			importpath: "example.com/lib",
-			want: label{
-				repo: "com_example",
-				pkg:  "lib",
-				name: defaultLibName,
+			want: Label{
+				Repo: "com_example",
+				Pkg:  "lib",
+				Name: DefaultLibName,
 			},
 		},
 	} {
-		l, err := r.resolve(spec.importpath, "some/package")
+		l, err := r.Resolve(spec.importpath, "some/package")
 		if err != nil {
-			t.Errorf("r.resolve(%q) failed with %v; want success", spec.importpath, err)
+			t.Errorf("r.Resolve(%q) failed with %v; want success", spec.importpath, err)
 			continue
 		}
 		if got, want := l, spec.want; !reflect.DeepEqual(got, want) {
-			t.Errorf("r.resolve(%q) = %s; want %s", spec.importpath, got, want)
+			t.Errorf("r.Resolve(%q) = %s; want %s", spec.importpath, got, want)
 		}
 	}
 }

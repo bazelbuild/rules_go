@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package rules
+package resolve
 
 import (
 	"fmt"
@@ -58,14 +58,14 @@ func newExternalResolver() *externalResolver {
 	}
 }
 
-// resolve resolves "importpath" into a label, assuming that it is a label in an
+// Resolve resolves "importpath" into a label, assuming that it is a label in an
 // external repository. It also assumes that the external repository follows the
 // recommended reverse-DNS form of workspace name as described in
 // http://bazel.io/docs/be/functions.html#workspace.
-func (r *externalResolver) resolve(importpath, dir string) (label, error) {
+func (r *externalResolver) Resolve(importpath, dir string) (Label, error) {
 	prefix, err := r.lookupPrefix(importpath)
 	if err != nil {
-		return label{}, err
+		return Label{}, err
 	}
 
 	var pkg string
@@ -73,10 +73,10 @@ func (r *externalResolver) resolve(importpath, dir string) (label, error) {
 		pkg = strings.TrimPrefix(importpath, prefix+"/")
 	}
 
-	return label{
-		repo: ImportPathToBazelRepoName(prefix),
-		pkg:  pkg,
-		name: defaultLibName,
+	return Label{
+		Repo: ImportPathToBazelRepoName(prefix),
+		Pkg:  pkg,
+		Name: DefaultLibName,
 	}, nil
 }
 

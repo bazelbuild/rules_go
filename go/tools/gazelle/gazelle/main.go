@@ -31,6 +31,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
@@ -44,7 +45,7 @@ var modeFromName = map[string]emitFunc{
 }
 
 func run(c *config.Config, emit emitFunc) {
-	r := rules.NewLabelResolver(c)
+	r := resolve.NewLabelResolver(c)
 	shouldProcessRoot := false
 	didProcessRoot := false
 	for _, dir := range c.Dirs {
@@ -88,7 +89,7 @@ func run(c *config.Config, emit emitFunc) {
 	}
 }
 
-func processPackage(c *config.Config, r rules.LabelResolver, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
+func processPackage(c *config.Config, r resolve.LabelResolver, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
 	g := rules.NewGenerator(c, r, oldFile)
 	genFile := g.Generate(pkg)
 
