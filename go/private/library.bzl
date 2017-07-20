@@ -212,7 +212,7 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
   """
   go_toolchain = get_go_toolchain(ctx)
   if ctx.coverage_instrumented():
-    sources = _emit_go_cover_action(ctx, sources)
+    sources = _emit_go_cover_action(ctx, out_object, sources)
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   inputs = depset([go_toolchain.go]) + sources + libs
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
@@ -255,7 +255,7 @@ def emit_go_pack_action(ctx, out_lib, objects):
       env = go_toolchain.env,
   )
 
-def _emit_go_cover_action(ctx, sources):
+def _emit_go_cover_action(ctx, out_object, sources):
   """Construct the command line for test coverage instrument.
 
   Args:
@@ -271,12 +271,14 @@ def _emit_go_cover_action(ctx, sources):
   count = 0
 
   for src in sources:
-    if not src.path.endswith(".go") or src.path.endswith("_test.go"):
+    if (not src.basename.endswith(".go") or 
+        src.basename.endswith("_test.go") or 
+        src.basename.endswith(".cover.go")):
       outputs += [src]
       continue
 
     cover_var = "GoCover_%d" % count
-    out = ctx.new_file(src, src.basename[:-3] + '_' + cover_var + '.cover.go')
+    out = ctx.new_file(out_object, out_object.basename + '_' + src.basename[:-3] + '_' + cover_var + '.cover.go')
     outputs += [out]
     ctx.action(
         inputs = [src] + go_toolchain.tools,
