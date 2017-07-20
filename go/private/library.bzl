@@ -54,23 +54,34 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
 
   importpath = go_importpath(ctx)
   lib_name = importpath + ".a"
-  out_lib = ctx.new_file(lib_name)
-  out_object = ctx.new_file(ctx.label.name + ".o")
+  out_lib = ctx.new_file("~lib~/"+lib_name)
+  out_object = ctx.new_file("~lib~/" + ctx.label.name + ".o")
   searchpath = out_lib.path[:-len(lib_name)]
+  race_lib =  ctx.new_file("~race~/"+lib_name)
+  race_object = ctx.new_file("~race~/" + ctx.label.name + ".o")
+  searchpath_race = race_lib.path[:-len(lib_name)]
   gc_goopts = get_gc_goopts(ctx)
   direct_go_library_deps = []
+  direct_go_library_deps_race = []
   direct_search_paths = []
+  direct_search_paths_race = []
   direct_import_paths = []
   transitive_go_library_deps = depset()
+  transitive_go_library_deps_race = depset()
   transitive_go_library_paths = depset([searchpath])
+  transitive_go_library_paths_race = depset([searchpath_race])
   for dep in deps:
     golib = dep[GoLibrary]
     direct_go_library_deps += [golib.library]
+    direct_go_library_deps_race += [golib.race]
     direct_search_paths += [golib.searchpath]
+    direct_search_paths_race += [golib.searchpath_race]
     direct_import_paths += [golib.importpath]
     transitive_go_library_deps += golib.transitive_go_libraries
+    transitive_go_library_deps_race += golib.transitive_go_libraries_race
     transitive_cgo_deps += golib.transitive_cgo_deps
     transitive_go_library_paths += golib.transitive_go_library_paths
+    transitive_go_library_paths_race += golib.transitive_go_library_paths_race
 
   go_srcs = emit_go_compile_action(ctx,
       sources = go_srcs,
@@ -81,6 +92,15 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
       gc_goopts = gc_goopts,
   )
   emit_go_pack_action(ctx, out_lib, [out_object] + extra_objects)
+  emit_go_compile_action(ctx,
+      sources = go_srcs,
+      libs = direct_go_library_deps_race,
+      lib_paths = direct_search_paths_race,
+      direct_paths = direct_import_paths,
+      out_object = race_object,
+      gc_goopts = gc_goopts + ["-race"],
+  )
+  emit_go_pack_action(ctx, race_lib, [race_object] + extra_objects)
 
   dylibs = []
   if cgo_object:
@@ -94,7 +114,9 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
     label = ctx.label,
     files = depset([out_lib]),
     library = out_lib,
+    race = race_lib,
     searchpath = searchpath,
+    searchpath_race = searchpath_race,
     runfiles = runfiles,
     go_sources = go_srcs,
     asm_sources = asm_srcs,
@@ -104,7 +126,9 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
     direct_deps = deps,
     transitive_cgo_deps = transitive_cgo_deps,
     transitive_go_libraries = transitive_go_library_deps + [out_lib],
+    transitive_go_libraries_race = transitive_go_library_deps_race + [race_lib],
     transitive_go_library_paths = transitive_go_library_paths,
+    transitive_go_library_paths_race = transitive_go_library_paths_race,
     gc_goopts = gc_goopts,
   )
 
@@ -124,13 +148,17 @@ def _go_library_impl(ctx):
       GoLibrary(
           label = ctx.label,
           library = lib_result.library,
+          race = lib_result.race,
           searchpath = lib_result.searchpath,
+          searchpath_race = lib_result.searchpath_race,
           importpath = lib_result.importpath,
           cgo_object = lib_result.cgo_object,
           direct_deps = lib_result.direct_deps,
           transitive_cgo_deps = lib_result.transitive_cgo_deps,
           transitive_go_libraries = lib_result.transitive_go_libraries,
+          transitive_go_libraries_race = lib_result.transitive_go_libraries_race,
           transitive_go_library_paths = lib_result.transitive_go_library_paths,
+          transitive_go_library_paths_race = lib_result.transitive_go_library_paths_race,
           gc_goopts = lib_result.gc_goopts,
       ),
       GoSource(
@@ -141,6 +169,9 @@ def _go_library_impl(ctx):
       DefaultInfo(
           files = lib_result.files,
           runfiles = lib_result.runfiles,
+      ),
+      OutputGroupInfo(
+          race = depset([lib_result.race]),
       ),
   ]
 

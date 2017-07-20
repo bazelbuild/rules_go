@@ -27,14 +27,15 @@ def _go_binary_impl(ctx):
 
   # Default (dynamic) linking
   emit_go_link_action(
-    ctx,
-    transitive_go_libraries=lib_result.transitive_go_libraries,
-    transitive_go_library_paths=lib_result.transitive_go_library_paths,
-    cgo_deps=lib_result.transitive_cgo_deps,
-    libs=lib_result.files,
-    executable=ctx.outputs.executable,
-    gc_linkopts=gc_linkopts(ctx),
-    x_defs=ctx.attr.x_defs)
+      ctx,
+      transitive_go_libraries=lib_result.transitive_go_libraries,
+      transitive_go_library_paths=lib_result.transitive_go_library_paths,
+      cgo_deps=lib_result.transitive_cgo_deps,
+      libs=depset([lib_result.library]),
+      executable=ctx.outputs.executable,
+      gc_linkopts=gc_linkopts(ctx),
+      x_defs=ctx.attr.x_defs,
+  )
 
   # Static linking (in the 'static' output group)
   static_linkopts = [
@@ -43,19 +44,34 @@ def _go_binary_impl(ctx):
   ]
   static_executable = ctx.new_file(ctx.attr.name + ".static")
   emit_go_link_action(
+      ctx,
+      transitive_go_libraries=lib_result.transitive_go_libraries,
+      transitive_go_library_paths=lib_result.transitive_go_library_paths,
+      cgo_deps=lib_result.transitive_cgo_deps,
+      libs=depset([lib_result.library]),
+      executable=static_executable,
+      gc_linkopts=gc_linkopts(ctx) + static_linkopts,
+      x_defs=ctx.attr.x_defs,
+  )
+
+  # with race detector
+  race_executable = ctx.new_file(ctx.attr.name + ".race")
+  emit_go_link_action(
     ctx,
-    transitive_go_libraries=lib_result.transitive_go_libraries,
-    transitive_go_library_paths=lib_result.transitive_go_library_paths,
+    transitive_go_libraries=lib_result.transitive_go_libraries_race,
+    transitive_go_library_paths=lib_result.transitive_go_library_paths_race,
     cgo_deps=lib_result.transitive_cgo_deps,
-    libs=lib_result.files,
-    executable=static_executable,
-    gc_linkopts=gc_linkopts(ctx) + static_linkopts,
-    x_defs=ctx.attr.x_defs)
+    libs=depset([lib_result.race]),
+    executable=race_executable,
+    gc_linkopts=gc_linkopts(ctx) + ["-race"],
+    x_defs=ctx.attr.x_defs,
+  )
 
   return [
       GoBinary(
           executable = ctx.outputs.executable,
           static = static_executable,
+          race = race_executable,
           cgo_object = lib_result.cgo_object,
       ),
       DefaultInfo(
@@ -64,6 +80,7 @@ def _go_binary_impl(ctx):
       ),
       OutputGroupInfo(
           static = depset([static_executable]),
+          race = depset([race_executable]),
       ),
   ]
 

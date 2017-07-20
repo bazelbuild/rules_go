@@ -51,25 +51,46 @@ def _go_test_impl(ctx):
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 
-  emit_go_compile_action(
-    ctx,
-    sources=depset([main_go]),
-    libs=[lib_result.library],
-    lib_paths=[lib_result.searchpath],
-    direct_paths=[lib_result.importpath],
-    out_object=main_object,
-    gc_goopts=get_gc_goopts(ctx),
-  )
-  emit_go_pack_action(ctx, main_lib, [main_object])
-  emit_go_link_action(
-    ctx,
-    transitive_go_library_paths=lib_result.transitive_go_library_paths,
-    transitive_go_libraries=lib_result.transitive_go_libraries,
-    cgo_deps=lib_result.transitive_cgo_deps,
-    libs=[main_lib],
-    executable=ctx.outputs.executable,
-    gc_linkopts=gc_linkopts(ctx),
-    x_defs=ctx.attr.x_defs)
+  if "race" not in ctx.features:
+    emit_go_compile_action(
+      ctx,
+      sources=depset([main_go]),
+      libs=[lib_result.library],
+      lib_paths=[lib_result.searchpath],
+      direct_paths=[lib_result.importpath],
+      out_object=main_object,
+      gc_goopts=get_gc_goopts(ctx),
+    )
+    emit_go_pack_action(ctx, main_lib, [main_object])
+    emit_go_link_action(
+      ctx,
+      transitive_go_library_paths=lib_result.transitive_go_library_paths,
+      transitive_go_libraries=lib_result.transitive_go_libraries,
+      cgo_deps=lib_result.transitive_cgo_deps,
+      libs=[main_lib],
+      executable=ctx.outputs.executable,
+      gc_linkopts=gc_linkopts(ctx),
+      x_defs=ctx.attr.x_defs)
+  else:
+    emit_go_compile_action(
+      ctx,
+      sources=depset([main_go]),
+      libs=[lib_result.race],
+      lib_paths=[lib_result.searchpath_race],
+      direct_paths=[lib_result.importpath],
+      out_object=main_object,
+      gc_goopts=get_gc_goopts(ctx) + ["-race"],
+    )
+    emit_go_pack_action(ctx, main_lib, [main_object])
+    emit_go_link_action(
+      ctx,
+      transitive_go_library_paths=lib_result.transitive_go_library_paths_race,
+      transitive_go_libraries=lib_result.transitive_go_libraries_race,
+      cgo_deps=lib_result.transitive_cgo_deps,
+      libs=[main_lib],
+      executable=ctx.outputs.executable,
+      gc_linkopts=gc_linkopts(ctx) + ["-race"],
+      x_defs=ctx.attr.x_defs)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
