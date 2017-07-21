@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-load('//go/private:go_toolchain.bzl', 'toolchain_type', 'ConstraintValueInfo', 'go_toolchain_core_attrs')
+load('//go/private:go_toolchain.bzl', 'go_toolchain_core_attrs')
 
-go_bootstrap_toolchain_type = toolchain_type()
+BOOTSTRAP_TOOLCHAIN_TYPE = "@io_bazel_rules_go//go:bootstrap_toolchain"
 
 def _go_bootstrap_toolchain_impl(ctx):
-  return [go_bootstrap_toolchain_type(
-      exec_compatible_with = ctx.attr.exec_compatible_with,
-      target_compatible_with = ctx.attr.target_compatible_with,
+  return [platform_common.ToolchainInfo(
+      type = Label(BOOTSTRAP_TOOLCHAIN_TYPE),
+      name = ctx.label.name,
       root = ctx.attr.root.path,
       go = ctx.executable.go,
       tools = ctx.files.tools,
@@ -31,7 +31,7 @@ go_bootstrap_toolchain = rule(
 )
 
 def _go_tool_binary_impl(ctx):
-  toolchain = ctx.attr._go_toolchain[go_bootstrap_toolchain_type]
+  toolchain = ctx.toolchains[BOOTSTRAP_TOOLCHAIN_TYPE]
   ctx.action(
       inputs = ctx.files.srcs + toolchain.tools + toolchain.stdlib,
       outputs = [ctx.outputs.executable],
@@ -51,10 +51,9 @@ go_tool_binary = rule(
     _go_tool_binary_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = FileType([".go"])),
-        #TODO(toolchains): Remove toolchain attribute when we switch to real toolchains
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:bootstrap_toolchain")),
     },
     executable = True,
+    toolchains = [BOOTSTRAP_TOOLCHAIN_TYPE],
 )
 """Builds a Go program using `go build`.
 

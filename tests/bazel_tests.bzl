@@ -1,4 +1,4 @@
-load('//go/private:go_toolchain.bzl', 'go_toolchain_type')
+load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "get_go_toolchain", "TOOLCHAIN_TYPE")
 
 _bazelrc = """
 build --fetch=False --verbose_failures --sandbox_debug --test_output=errors --spawn_strategy=standalone --genrule_strategy=standalone
@@ -6,6 +6,7 @@ test --test_strategy=standalone
 """
 
 def _bazel_test_script_impl(ctx):
+  go_toolchain = get_go_toolchain(ctx)
   script_content = ''
   workspace_content = ''
   go_version = ''
@@ -25,7 +26,6 @@ def _bazel_test_script_impl(ctx):
     root = ext.label.workspace_root
     _,_,ws = root.rpartition("/")
     workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
-  go_toolchain = ctx.attr._go_toolchain[go_toolchain_type]
   workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(go_toolchain.sdk, go_toolchain.root.path)
   # finalise the workspace file
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_repositories")\n'
@@ -74,9 +74,9 @@ _bazel_test_script = rule(
         "workspace": attr.string(),
         "prepare": attr.string(),
         "check": attr.string(),
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_execroot": attr.label(default = Label("@test_environment//:execroot")),
-    }
+    },
+    toolchains = [TOOLCHAIN_TYPE],
 )
 
 def bazel_test(name, batch = None, command = None, args=None, subdir = None, target = None, go_version = None, tags=[], workspace="", prepare="", check=""):
@@ -84,7 +84,6 @@ def bazel_test(name, batch = None, command = None, args=None, subdir = None, tar
   externals = [
       "@io_bazel_rules_go//:README.md",
       "@local_config_cc//:cc_wrapper",
-      "@io_bazel_rules_go_toolchain//:BUILD.bazel",
   ]
   _bazel_test_script(
       name = script_name,
@@ -157,6 +156,7 @@ execroot(
 _test_environment = repository_rule(
     implementation = _test_environment_impl,
     attrs = {},
+    environ = ["BAZEL", "BAZEL_VERSION", "HOME"],
 )
 
 def test_environment():
@@ -173,5 +173,5 @@ execroot = rule(
     attrs = {
         "path": attr.string(mandatory = True),
         "bazel": attr.string(mandatory = True),
-    }
+    },
 )

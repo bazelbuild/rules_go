@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype")
+load("@io_bazel_rules_go//go/private:common.bzl", "go_filetype")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
+load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "get_go_toolchain", "TOOLCHAIN_TYPE")
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
+  go_toolchain = get_go_toolchain(ctx)
   lib_result = emit_library_actions(ctx,
+      go_toolchain = go_toolchain,
       sources = depset(ctx.files.srcs),
       deps = ctx.attr.deps,
       cgo_object = None,
@@ -28,6 +31,7 @@ def _go_binary_impl(ctx):
   # Default (dynamic) linking
   emit_go_link_action(
       ctx,
+      go_toolchain = go_toolchain,
       transitive_go_libraries=lib_result.transitive_go_libraries,
       transitive_go_library_paths=lib_result.transitive_go_library_paths,
       cgo_deps=lib_result.transitive_cgo_deps,
@@ -45,6 +49,7 @@ def _go_binary_impl(ctx):
   static_executable = ctx.new_file(ctx.attr.name + ".static")
   emit_go_link_action(
       ctx,
+      go_toolchain = go_toolchain,
       transitive_go_libraries=lib_result.transitive_go_libraries,
       transitive_go_library_paths=lib_result.transitive_go_library_paths,
       cgo_deps=lib_result.transitive_cgo_deps,
@@ -57,14 +62,15 @@ def _go_binary_impl(ctx):
   # with race detector
   race_executable = ctx.new_file(ctx.attr.name + ".race")
   emit_go_link_action(
-    ctx,
-    transitive_go_libraries=lib_result.transitive_go_libraries_race,
-    transitive_go_library_paths=lib_result.transitive_go_library_paths_race,
-    cgo_deps=lib_result.transitive_cgo_deps,
-    libs=depset([lib_result.race]),
-    executable=race_executable,
-    gc_linkopts=gc_linkopts(ctx) + ["-race"],
-    x_defs=ctx.attr.x_defs,
+      ctx,
+      go_toolchain = go_toolchain,
+      transitive_go_libraries=lib_result.transitive_go_libraries_race,
+      transitive_go_library_paths=lib_result.transitive_go_library_paths_race,
+      cgo_deps=lib_result.transitive_cgo_deps,
+      libs=depset([lib_result.race]),
+      executable=race_executable,
+      gc_linkopts=gc_linkopts(ctx) + ["-race"],
+      x_defs=ctx.attr.x_defs,
   )
 
   return [
@@ -99,8 +105,6 @@ go_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_go_prefix": attr.label(default = Label(
             "//:go_prefix",
             relative_to_caller_repository = True,
@@ -108,6 +112,7 @@ go_binary = rule(
     },
     executable = True,
     fragments = ["cpp"],
+    toolchains = [TOOLCHAIN_TYPE],
 )
 
 def c_linker_options(ctx, blacklist=[]):
@@ -163,10 +168,9 @@ def _extract_extldflags(gc_linkopts, extldflags):
       filtered_gc_linkopts += [opt]
   return filtered_gc_linkopts, extldflags
 
-def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_libraries, cgo_deps, libs,
+def emit_go_link_action(ctx, go_toolchain, transitive_go_library_paths, transitive_go_libraries, cgo_deps, libs,
                          executable, gc_linkopts, x_defs):
   """Sets up a symlink tree to libraries to link together."""
-  go_toolchain = get_go_toolchain(ctx)
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_exts", "hdr_exts", "c_exts", "asm_exts", "pkg_dir")
+load("@io_bazel_rules_go//go/private:common.bzl", "go_exts", "hdr_exts", "c_exts", "asm_exts", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
+load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "get_go_toolchain", "TOOLCHAIN_TYPE")
 
 def cgo_genrule(tags=[], **kwargs):
   return cgo_library(tags=tags+["manual"], **kwargs)
@@ -178,10 +179,9 @@ _cgo_codegen_rule = rule(
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
         "out_dir": attr.string(mandatory = True),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
+    toolchains = [TOOLCHAIN_TYPE],
 )
 
 def _cgo_import_impl(ctx):
@@ -218,10 +218,9 @@ _cgo_import = rule(
         "out": attr.output(
             mandatory = True,
         ),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
+    toolchains = [TOOLCHAIN_TYPE],
 )
 
 """Generates symbol-import directives for cgo
@@ -280,10 +279,9 @@ _cgo_object = rule(
         "out": attr.output(
             mandatory = True,
         ),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
     fragments = ["cpp"],
+    toolchains = [TOOLCHAIN_TYPE],
 )
 
 

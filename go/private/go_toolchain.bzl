@@ -15,42 +15,14 @@
 Toolchain rules used by go.
 """
 
-####################################
-#### Special compatability functions
-#TODO(toolchains): Remove this entire block when real toolchains arrive
+TOOLCHAIN_TYPE = "@io_bazel_rules_go//go:toolchain"
 
-def _constraint_rule_impl(ctx):
-    return struct(i_am_a_constraint=True)
-
-_constraint = rule(
-    _constraint_rule_impl,
-    attrs = {},
-)
-
-def toolchain_type():
-    # Should be platform_common.toolchain_type
-    return provider()
-
-ConstraintValueInfo = "i_am_a_constraint" # Should be platform_common.ConstraintValueInfo
-
-def platform(name, constraint_values):
-    return
-
-def constraint_setting(name):
-    _constraint(name = name)
-
-def constraint_value(name, setting):
-    _constraint(name = name)
-
-#### End of special compatability functions
-###########################################
-
-go_toolchain_type = toolchain_type()
+def get_go_toolchain(ctx):
+    return ctx.toolchains[TOOLCHAIN_TYPE]
 
 def _go_toolchain_impl(ctx):
-  return [go_toolchain_type(
-      exec_compatible_with = ctx.attr.exec_compatible_with,
-      target_compatible_with = ctx.attr.target_compatible_with,
+  return [platform_common.ToolchainInfo(
+      type = Label(TOOLCHAIN_TYPE),
       env = {
           "GOROOT": ctx.attr.root.path,
           "GOOS": ctx.attr.goos,
@@ -76,20 +48,19 @@ def _go_toolchain_impl(ctx):
   )]
 
 go_toolchain_core_attrs = {
-    "exec_compatible_with": attr.label_list(providers = [ConstraintValueInfo]),
-    "target_compatible_with": attr.label_list(providers = [ConstraintValueInfo]),
-    "sdk": attr.string(),
-    "root": attr.label(),
-    "go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host"),
-    "tools": attr.label(allow_files = True),
-    "stdlib": attr.label(allow_files = True),
-    "headers": attr.label(),
+    "sdk": attr.string(mandatory = True),
+    "root": attr.label(mandatory = True),
+    "go": attr.label(mandatory = True, allow_files = True, single_file = True, executable = True, cfg = "host"),
+    "tools": attr.label(mandatory = True, allow_files = True),
+    "stdlib": attr.label(mandatory = True, allow_files = True),
+    "headers": attr.label(mandatory = True),
+    "link_flags": attr.string_list(default=[]),
+    "cgo_link_flags": attr.string_list(default=[]),
+    "goos": attr.string(mandatory = True),
+    "goarch": attr.string(mandatory = True),
 }
 
 go_toolchain_attrs = go_toolchain_core_attrs + {
-    "is_cross": attr.bool(),
-    "goos": attr.string(),
-    "goarch": attr.string(),
     "filter_tags": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:filter_tags")),
     "asm": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:asm")),
     "compile": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:compile")),
@@ -97,8 +68,6 @@ go_toolchain_attrs = go_toolchain_core_attrs + {
     "cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:cgo")),
     "test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:generate_test_main")),
     "extract_package": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/extract_package")),
-    "link_flags": attr.string_list(default=[]),
-    "cgo_link_flags": attr.string_list(default=[]),
     "crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
 }
 

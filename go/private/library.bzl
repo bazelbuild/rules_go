@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype")
+load("@io_bazel_rules_go//go/private:common.bzl", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype")
 load("@io_bazel_rules_go//go/private:asm.bzl", "emit_go_asm_action")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoSource")
+load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "get_go_toolchain", "TOOLCHAIN_TYPE")
 
-def emit_library_actions(ctx, sources, deps, cgo_object, library):
-  go_toolchain = get_go_toolchain(ctx)
-
+def emit_library_actions(ctx, go_toolchain, sources, deps, cgo_object, library):
   go_srcs = depset([s for s in sources if s.basename.endswith('.go')])
   asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
   asm_hdrs = [s for s in sources if s.basename.endswith('.h')]
@@ -49,7 +48,7 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
   extra_objects = [cgo_object.cgo_obj] if cgo_object else []
   for src in asm_srcs:
     obj = ctx.new_file(src, "%s.dir/%s.o" % (ctx.label.name, src.basename[:-2]))
-    emit_go_asm_action(ctx, src, asm_hdrs, obj)
+    emit_go_asm_action(ctx, go_toolchain, src, asm_hdrs, obj)
     extra_objects += [obj]
 
   importpath = go_importpath(ctx)
@@ -84,6 +83,7 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
     transitive_go_library_paths_race += golib.transitive_go_library_paths_race
 
   go_srcs = emit_go_compile_action(ctx,
+      go_toolchain = go_toolchain,
       sources = go_srcs,
       libs = direct_go_library_deps,
       lib_paths = direct_search_paths,
@@ -91,8 +91,9 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
       out_object = out_object,
       gc_goopts = gc_goopts,
   )
-  emit_go_pack_action(ctx, out_lib, [out_object] + extra_objects)
+  emit_go_pack_action(ctx, go_toolchain, out_lib, [out_object] + extra_objects)
   emit_go_compile_action(ctx,
+      go_toolchain = go_toolchain,
       sources = go_srcs,
       libs = direct_go_library_deps_race,
       lib_paths = direct_search_paths_race,
@@ -100,7 +101,7 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
       out_object = race_object,
       gc_goopts = gc_goopts + ["-race"],
   )
-  emit_go_pack_action(ctx, race_lib, [race_object] + extra_objects)
+  emit_go_pack_action(ctx, go_toolchain, race_lib, [race_object] + extra_objects)
 
   dylibs = []
   if cgo_object:
@@ -134,10 +135,12 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
 
 def _go_library_impl(ctx):
   """Implements the go_library() rule."""
+  go_toolchain = get_go_toolchain(ctx)
   cgo_object = None
   if hasattr(ctx.attr, "cgo_object"):
     cgo_object = ctx.attr.cgo_object
   lib_result = emit_library_actions(ctx,
+      go_toolchain = go_toolchain,
       sources = depset(ctx.files.srcs),
       deps = ctx.attr.deps,
       cgo_object = cgo_object,
@@ -190,11 +193,10 @@ go_library = rule(
                 "cgo_deps",
             ],
         ),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_go_prefix": attr.label(default=Label("//:go_prefix", relative_to_caller_repository = True)),
     },
     fragments = ["cpp"],
+    toolchains = [TOOLCHAIN_TYPE],
 )
 
 def go_importpath(ctx):
@@ -228,7 +230,7 @@ def get_gc_goopts(ctx):
     gc_goopts += ctx.attr.library[GoLibrary].gc_goopts
   return gc_goopts
 
-def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_object, gc_goopts):
+def emit_go_compile_action(ctx, go_toolchain, sources, libs, lib_paths, direct_paths, out_object, gc_goopts):
   """Construct the command line for compiling Go code.
 
   Args:
@@ -241,9 +243,8 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
-  go_toolchain = get_go_toolchain(ctx)
   if ctx.coverage_instrumented():
-    sources = _emit_go_cover_action(ctx, out_object, sources)
+    sources = _emit_go_cover_action(ctx, go_toolchain, out_object, sources)
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   inputs = depset([go_toolchain.go]) + sources + libs
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
@@ -268,7 +269,7 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
 
   return sources
 
-def emit_go_pack_action(ctx, out_lib, objects):
+def emit_go_pack_action(ctx, go_toolchain, out_lib, objects):
   """Construct the command line for packing objects together.
 
   Args:
@@ -276,7 +277,6 @@ def emit_go_pack_action(ctx, out_lib, objects):
     out_lib: the archive that should be produced
     objects: an iterable of object files to be added to the output archive file.
   """
-  go_toolchain = get_go_toolchain(ctx)
   ctx.action(
       inputs = objects + go_toolchain.tools,
       outputs = [out_lib],
@@ -286,7 +286,7 @@ def emit_go_pack_action(ctx, out_lib, objects):
       env = go_toolchain.env,
   )
 
-def _emit_go_cover_action(ctx, out_object, sources):
+def _emit_go_cover_action(ctx, go_toolchain, out_object, sources):
   """Construct the command line for test coverage instrument.
 
   Args:
@@ -296,7 +296,6 @@ def _emit_go_cover_action(ctx, out_object, sources):
   Returns:
     A list of Go source code files which might be coverage instrumented.
   """
-  go_toolchain = get_go_toolchain(ctx)
   outputs = []
   # TODO(linuxerwang): make the mode configurable.
   count = 0
