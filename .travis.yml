@@ -26,7 +26,7 @@ before_install:
       # Determine last successful build number. This may change while we are
       # downloading, so it's important to determine ahead of time, in case
       # we need to resume the download.
-      CI_BASE="http://ci.bazel.io/job/Bazel/JAVA_VERSION=1.8,PLATFORM_NAME=${OS}-x86_64/"
+      CI_BASE="http://ci.bazel.io/view/Bazel%20bootstrap%20and%20maintenance/job/Bazel/PLATFORM_NAME=${OS}-x86_64/"
       CI_INDEX_URL="${CI_BASE}/lastSuccessfulBuild/"
       wget -q -O build-index.html "${CI_INDEX_URL}"
       CI_BUILD=$(grep '<title>' build-index.html | sed -e 's/^.*#\([0-9]*\).*$/\1/')
