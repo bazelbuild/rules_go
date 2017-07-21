@@ -1,7 +1,6 @@
 workspace(name = "io_bazel_rules_go")
 
 load("@io_bazel_rules_go//go:def.bzl", "go_repositories", "go_repository")
-
 go_repositories()
 
 # Needed for examples
@@ -21,3 +20,6 @@ go_proto_repositories()
 
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "test_environment")
 test_environment()
+
+load("@io_bazel_rules_go//examples/bindata:bindata.bzl", "bindata_repositories")
+bindata_repositories()
