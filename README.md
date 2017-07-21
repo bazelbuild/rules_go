@@ -259,7 +259,7 @@ for libraries in the repository.
 
 If the repository should be fetched using a VCS, either `commit` or `tag`
 must be specified. `remote` and `vcs` may be specified if they can't be
-inferred from `importpath` using the 
+inferred from `importpath` using the
 [normal go logic](https://golang.org/cmd/go/#hdr-Remote_import_paths).
 
 If the repository should be fetched using source archives, `urls` and `sha256`
