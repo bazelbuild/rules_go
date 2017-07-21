@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_prefix")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test", "go_prefix")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 go_prefix("github.com/bazelbuild/rules_go/tests/coverage")
@@ -27,3 +27,29 @@ if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/go_default_test/te
 fi
     """
 )
+
+go_binary(
+    name = "bin",
+    srcs = ["bin.go"],
+    library = ":bin_lib",
+)
+
+go_library(
+    name = "bin_lib",
+    srcs = ["bin_lib.go"],
+)
+
+bazel_test(
+    name = "bin_coverage",
+    command = "coverage",
+    target = "//:bin",
+    check = """
+no_tests_found=4
+if [ "$result" -ne "$no_tests_found" ]; then
+  echo "error: unexpected bazel exit code: want $no_tests_found, got $result" >&2
+  exit 1
+fi
+result=0
+""",
+)
+

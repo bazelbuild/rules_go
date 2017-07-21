@@ -16,7 +16,7 @@ load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_L
 load("@io_bazel_rules_go//go/private:asm.bzl", "emit_go_asm_action")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoSource")
 
-def emit_library_actions(ctx, sources, deps, cgo_object, library):
+def emit_library_actions(ctx, sources, deps, cgo_object, library, want_coverage):
   go_toolchain = get_go_toolchain(ctx)
 
   go_srcs = depset([s for s in sources if s.basename.endswith('.go')])
@@ -72,7 +72,10 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library):
     transitive_cgo_deps += golib.transitive_cgo_deps
     transitive_go_library_paths += golib.transitive_go_library_paths
 
-  go_srcs = emit_go_compile_action(ctx,
+  if want_coverage:
+    go_srcs = _emit_go_cover_action(ctx, out_object, go_srcs)
+
+  emit_go_compile_action(ctx,
       sources = go_srcs,
       libs = direct_go_library_deps,
       lib_paths = direct_search_paths,
@@ -118,6 +121,7 @@ def _go_library_impl(ctx):
       deps = ctx.attr.deps,
       cgo_object = cgo_object,
       library = ctx.attr.library,
+      want_coverage = ctx.coverage_instrumented(),
   )
 
   return [
@@ -211,8 +215,6 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
     gc_goopts: additional flags to pass to the compiler.
   """
   go_toolchain = get_go_toolchain(ctx)
-  if ctx.coverage_instrumented():
-    sources = _emit_go_cover_action(ctx, out_object, sources)
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   inputs = depset([go_toolchain.go]) + sources + libs
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
@@ -234,8 +236,6 @@ def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_obje
       arguments = args,
       env = go_toolchain.env,
   )
-
-  return sources
 
 def emit_go_pack_action(ctx, out_lib, objects):
   """Construct the command line for packing objects together.
@@ -260,6 +260,8 @@ def _emit_go_cover_action(ctx, out_object, sources):
 
   Args:
     ctx: The skylark Context.
+    out_object: the object file for the library being compiled. Used to name
+      cover files.
     sources: an iterable of Go source files.
 
   Returns:

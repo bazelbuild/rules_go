@@ -29,6 +29,7 @@ def _go_test_impl(ctx):
       deps = ctx.attr.deps,
       cgo_object = None,
       library = ctx.attr.library,
+      want_coverage = False,
   )
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")

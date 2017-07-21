@@ -23,6 +23,7 @@ def _go_binary_impl(ctx):
       deps = ctx.attr.deps,
       cgo_object = None,
       library = ctx.attr.library,
+      want_coverage = False,
   )
 
   # Default (dynamic) linking
