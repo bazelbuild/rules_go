@@ -99,7 +99,7 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
 
 * If your project follows the structure that `go build` uses, you
   can [generate your `BUILD` files](#generating-build-files) with Gazelle. If
-  not, or if you just want to understand the things gazelle is going to 
+  not, or if you just want to understand the things gazelle is going to
   generate for you, read on.
 
 * For a library `github.com/joe/project/lib`, create `lib/BUILD`, containing
@@ -148,9 +148,9 @@ If you project is compatible with the `go` tool, you can generate and update
 your `BUILD` files automatically using [Gazelle](go/tools/gazelle/README.md),
 a command line tool which is part of this repository.
 
-* The gazelle rule in your root build file gives you the ability to build and 
-  run gazelle on your project, this is the preferred way to use it. If you want 
-  to you can also install Gazelle using the command below. This assumes this 
+* The gazelle rule in your root build file gives you the ability to build and
+  run gazelle on your project, this is the preferred way to use it. If you want
+  to you can also install Gazelle using the command below. This assumes this
   repository
   is checked out under [GOPATH](https://github.com/golang/go/wiki/GOPATH).
 
@@ -158,7 +158,7 @@ a command line tool which is part of this repository.
 go install github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle
 ```
 
-* To run Gazelle and update your `BUILD` files, run the command below from any 
+* To run Gazelle and update your `BUILD` files, run the command below from any
   diretory in your project.
 
 ```
@@ -168,7 +168,7 @@ bazel run //:gazelle
 * By default, Gazelle assumes external dependencies are present in
   your `WORKSPACE` file, following a certain naming convention. For example, it
   expects the repository for `github.com/jane/utils` to be named
-  `@com_github_jane_utils`. If you prefer to use vendoring, add `external=vendored` 
+  `@com_github_jane_utils`. If you prefer to use vendoring, add `external=vendored`
   to the gazelle rule. See [Vendoring.md](Vendoring.md).
 
 See the [Gazelle README](go/tools/gazelle/README.md) for more information.
@@ -194,8 +194,8 @@ You can build binaries with the race detector enabled using
 bazel test --output_groups=race //...
 ```
 
-The difference is because the rules for binaries can produce both race and non 
-race versions interchangeable, but you always want tools used during the build 
+The difference is because the rules for binaries can produce both race and non
+race versions interchangeable, but you always want tools used during the build
 to be non race versions, whereas for tests you need to switch the build mode of
 the executable that will be invoked during testing.
 
@@ -291,7 +291,7 @@ for libraries in the repository.
 
 If the repository should be fetched using a VCS, either `commit` or `tag`
 must be specified. `remote` and `vcs` may be specified if they can't be
-inferred from `importpath` using the 
+inferred from `importpath` using the
 [normal go logic](https://golang.org/cmd/go/#hdr-Remote_import_paths).
 
 If the repository should be fetched using source archives, `urls` and `sha256`
@@ -815,6 +815,13 @@ go_test(name, srcs, deps, data, library, gc_goopts, gc_linkopts)
 `go_test` builds a set of tests that can be run with `bazel test`. This can
 contain sources for internal tests or external tests, but not both (see example
 below).
+
+To run all tests in a given directory, and print output on failure (the
+equivalent of "go test ./..."), run
+
+```
+bazel test --test_output=errors //...
+```
 
 You can run specific tests by passing the
 [`--test_filter=pattern`](https://bazel.build/versions/master/docs/bazel-user-manual.html#flag--test_filter)
