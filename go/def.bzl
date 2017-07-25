@@ -20,6 +20,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
 load("@io_bazel_rules_go//go/private:repositories.bzl", "go_repositories")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "new_go_repository")
 load("@io_bazel_rules_go//go/private:go_prefix.bzl", "go_prefix")
+load("@io_bazel_rules_go//go/private:embed_data.bzl", "go_embed_data")
 load("@io_bazel_rules_go//go/private:cgo.bzl", "cgo_library", "cgo_genrule")
 load("@io_bazel_rules_go//go/private:gazelle.bzl", "gazelle")
 load("@io_bazel_rules_go//go/private:wrappers.bzl",
