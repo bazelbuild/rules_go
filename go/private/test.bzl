@@ -103,7 +103,7 @@ def _go_test_impl(ctx):
           executable = ctx.outputs.executable,
       ),
       DefaultInfo(
-          files = set([ctx.outputs.executable]),
+          files = depset([ctx.outputs.executable]),
           runfiles = runfiles,
       ),
   ]

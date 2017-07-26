@@ -61,7 +61,7 @@ def _collect_protos_import(ctx):
   Returns:
     (list of unique protos, list of m_import paths)
   """
-  protos = set()
+  protos = depset()
   m_import_path = []
   for d in ctx.attr.deps:
     if not hasattr(d, "_protos"):
@@ -128,7 +128,7 @@ def _go_proto_library_gen_impl(ctx):
   root_prefix = "/".join([".." for _ in work_dir.split("/")])
   cmds = ["set -e", "/bin/rm -rf %s; /bin/mkdir -p %s" % (work_dir, work_dir)]
   srcs = list(ctx.files.srcs)
-  dirs = set([s.short_path[:-1-len(s.basename)]
+  dirs = depset([s.short_path[:-1-len(s.basename)]
               for s in srcs + protos])
   cmds += ["mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
 

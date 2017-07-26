@@ -89,7 +89,7 @@ def _cgo_codegen_impl(ctx):
   srcs = ctx.files.srcs
   linkopts = ctx.attr.linkopts
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
-  deps = set([], order="link")
+  deps = depset([], order="topological")
   cgo_export_h = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.h")
   cgo_export_c = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.c")
   cgo_main = ctx.new_file(ctx.attr.out_dir + "/_cgo_main.c")
@@ -204,7 +204,7 @@ def _cgo_import_impl(ctx):
       env = go_toolchain.env,
   )
   return struct(
-      files = set([ctx.outputs.out]),
+      files = depset([ctx.outputs.out]),
   )
 
 _cgo_import = rule(
@@ -260,7 +260,7 @@ def _cgo_object_impl(ctx):
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.src.data_runfiles)
   return struct(
-      files = set([ctx.outputs.out]),
+      files = depset([ctx.outputs.out]),
       cgo_obj = ctx.outputs.out,
       cgo_deps = ctx.attr.cgogen.cgo_deps,
       runfiles = runfiles,
