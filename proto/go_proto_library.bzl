@@ -128,8 +128,7 @@ def _go_proto_library_gen_impl(ctx):
   root_prefix = "/".join([".." for _ in work_dir.split("/")])
   cmds = ["set -e", "/bin/rm -rf %s; /bin/mkdir -p %s" % (work_dir, work_dir)]
   srcs = list(ctx.files.srcs)
-  dirs = depset([s.short_path[:-1-len(s.basename)]
-              for s in srcs + protos])
+  dirs = depset([s.short_path[:-1-len(s.basename)] for s in srcs + protos])
   cmds += ["mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
 
   if ctx.attr.ignore_go_package_option:
