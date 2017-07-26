@@ -76,10 +76,11 @@ type fileInfo struct {
 }
 
 // taggedOpts a list of compile or link options which should only be applied
-// if the given set of build tags are satisfied.
+// if the given set of build tags are satisfied. The list is represented as
+// a single string. Bazel will apply Bourne shell tokenization to split it.
 type taggedOpts struct {
 	tags string
-	opts []string
+	opts string
 }
 
 // extCategory indicates how a file should be treated, based on extension.
@@ -281,9 +282,9 @@ func saveCgo(info *fileInfo, cg *ast.CommentGroup) error {
 		// Add tags to appropriate list.
 		switch verb {
 		case "CFLAGS", "CPPFLAGS", "CXXFLAGS":
-			info.copts = append(info.copts, taggedOpts{tags, opts})
+			info.copts = append(info.copts, taggedOpts{tags, strings.Join(opts, " ")})
 		case "LDFLAGS":
-			info.clinkopts = append(info.clinkopts, taggedOpts{tags, opts})
+			info.clinkopts = append(info.clinkopts, taggedOpts{tags, strings.Join(opts, " ")})
 		case "pkg-config":
 			return fmt.Errorf("%s: pkg-config not supported: %s", info.path, orig)
 		default:

@@ -540,12 +540,12 @@ import "C"
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{opts: []string{"-O0"}},
-					{opts: []string{"-O1"}},
-					{opts: []string{"-O2"}},
+					{opts: "-O0"},
+					{opts: "-O1"},
+					{opts: "-O2"},
 				},
 				clinkopts: []taggedOpts{
-					{opts: []string{"-O3", "-O4"}},
+					{opts: "-O3 -O4"},
 				},
 			},
 		},
@@ -561,7 +561,7 @@ import "C"
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{tags: "foo bar,!baz", opts: []string{"-O0"}},
+					{tags: "foo bar,!baz", opts: "-O0"},
 				},
 			},
 		},
@@ -576,8 +576,8 @@ import "C"
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{opts: []string{"-O0"}},
-					{opts: []string{"-O1"}},
+					{opts: "-O0"},
+					{opts: "-O1"},
 				},
 			},
 		},
@@ -593,7 +593,7 @@ import ("C")
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{opts: []string{"-O0"}},
+					{opts: "-O0"},
 				},
 			},
 		},
