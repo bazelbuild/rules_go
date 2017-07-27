@@ -100,7 +100,7 @@ func TestCreateFile(t *testing.T) {
 
 	// Check that Gazelle creates a new file named "BUILD.bazel".
 	c := defaultConfig(dir)
-	run(c, fixFile)
+	run(c, updateCmd, fixFile)
 
 	buildFile := filepath.Join(dir, "BUILD.bazel")
 	if _, err = os.Stat(buildFile); err != nil {
@@ -129,7 +129,7 @@ func TestUpdateFile(t *testing.T) {
 
 	// Check that Gazelle updates the BUILD file in place.
 	c := defaultConfig(dir)
-	run(c, fixFile)
+	run(c, updateCmd, fixFile)
 	if st, err := os.Stat(buildFile); err != nil {
 		t.Errorf("could not stat BUILD: %v", err)
 	} else if st.Size() == 0 {

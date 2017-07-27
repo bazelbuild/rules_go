@@ -44,10 +44,23 @@ var modeFromName = map[string]emitFunc{
 	"diff":  diffFile,
 }
 
-func run(c *config.Config, emit emitFunc) {
+type command int
+
+const (
+	updateCmd command = iota
+	fixCmd
+)
+
+var commandFromName = map[string]command{
+	"update": updateCmd,
+	"fix":    fixCmd,
+}
+
+func run(c *config.Config, cmd command, emit emitFunc) {
 	r := resolve.NewLabelResolver(c)
 	shouldProcessRoot := false
 	didProcessRoot := false
+	shouldFix := cmd == fixCmd
 	for _, dir := range c.Dirs {
 		if c.RepoRoot == dir {
 			shouldProcessRoot = true
@@ -56,7 +69,7 @@ func run(c *config.Config, emit emitFunc) {
 			if pkg.Rel == "" {
 				didProcessRoot = true
 			}
-			processPackage(c, r, emit, pkg, oldFile)
+			processPackage(c, r, shouldFix, emit, pkg, oldFile)
 		})
 	}
 	if shouldProcessRoot && !didProcessRoot {
@@ -85,11 +98,11 @@ func run(c *config.Config, emit emitFunc) {
 		}
 
 	processRoot:
-		processPackage(c, r, emit, pkg, oldFile)
+		processPackage(c, r, shouldFix, emit, pkg, oldFile)
 	}
 }
 
-func processPackage(c *config.Config, r resolve.LabelResolver, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
+func processPackage(c *config.Config, r resolve.LabelResolver, shouldFix bool, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
 	g := rules.NewGenerator(c, r, oldFile)
 	genFile := g.Generate(pkg)
 
@@ -101,6 +114,16 @@ func processPackage(c *config.Config, r resolve.LabelResolver, emit emitFunc, pk
 			log.Print(err)
 		}
 		return
+	}
+
+	// Existing file. Fix it or see if it needs fixing before merging.
+	if shouldFix {
+		oldFile = merger.FixFile(oldFile)
+	} else {
+		fixedFile := merger.FixFile(oldFile)
+		if fixedFile != oldFile {
+			log.Printf("%s: warning: file contains rules whose structure is out of date. Consider running 'gazelle fix'.", oldFile.Path)
+		}
 	}
 
 	// Existing file, so merge and replace the old one.
@@ -119,24 +142,37 @@ func processPackage(c *config.Config, r resolve.LabelResolver, emit emitFunc, pk
 }
 
 func usage(fs *flag.FlagSet) {
-	fmt.Fprintln(os.Stderr, `usage: gazelle [flags...] [package-dirs...]
+	fmt.Fprintln(os.Stderr, `usage: gazelle <command> [flags...] [package-dirs...]
 
-Gazelle is a BUILD file generator for Go projects.
+Gazelle is a BUILD file generator for Go projects. It can create new BUILD files
+for a project that follows "go build" conventions, and it can update BUILD files
+if they already exist. It can be invoked directly in a project workspace, or
+it can be run on an external dependency during the build as part of the
+go_repository rule.
 
-Currently its primary usage is to generate BUILD files for external dependencies
-in a go_repository rule.
-You can still use Gazelle for other purposes, but its interface can change without
-notice.
+Gazelle may be run with one of the commands below. If no command is given,
+Gazelle defaults to "update".
 
-It takes a list of paths to Go package directories [defaults to . if none given].
-It recursively traverses its subpackages.
-All the directories must be under the directory specified in -repo_root.
-[if -repo_root is not given, gazelle searches $pwd and up for the WORKSPACE file]
+  update - Gazelle will create new BUILD files or update existing BUILD files
+      if needed.
+	fix - in addition to the changes made in update, Gazelle will make potentially
+	    breaking changes. For example, it may delete obsolete rules or rename
+      existing rules.
 
-There are several modes of gazelle.
-In print mode, gazelle prints reconciled BUILD files to stdout.
-In fix mode, gazelle creates BUILD files or updates existing ones.
-In diff mode, gazelle shows diff.
+Gazelle has several output modes which can be selected with the -mode flag. The
+output mode determines what Gazelle does with updated BUILD files.
+
+  fix (default) - write updated BUILD files back to disk.
+  print - print updated BUILD files to stdout.
+  diff - diff updated BUILD files against existing files in unified format.
+
+Gazelle accepts a list of paths to Go package directories to process (defaults
+to . if none given). It recursively traverses subdirectories. All directories
+must be under the directory specified by -repo_root; if -repo_root is not given,
+this is the directory containing the WORKSPACE file.
+
+Gazelle is under active delevopment, and its interface may change
+without notice.
 
 FLAGS:
 `)
@@ -147,15 +183,23 @@ func main() {
 	log.SetPrefix("gazelle: ")
 	log.SetFlags(0) // don't print timestamps
 
-	c, emit, err := newConfiguration(os.Args[1:])
+	c, cmd, emit, err := newConfiguration(os.Args[1:])
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	run(c, emit)
+	run(c, cmd, emit)
 }
 
-func newConfiguration(args []string) (*config.Config, emitFunc, error) {
+func newConfiguration(args []string) (*config.Config, command, emitFunc, error) {
+	cmd := updateCmd
+	if len(args) > 0 {
+		if c, ok := commandFromName[args[0]]; ok {
+			cmd = c
+			args = args[1:]
+		}
+	}
+
 	fs := flag.NewFlagSet("gazelle", flag.ContinueOnError)
 	// Flag will call this on any parse error. Don't print usage unless
 	// -h or -help were passed explicitly.
@@ -188,7 +232,7 @@ func newConfiguration(args []string) (*config.Config, emitFunc, error) {
 	for i := range c.Dirs {
 		c.Dirs[i], err = filepath.Abs(c.Dirs[i])
 		if err != nil {
-			return nil, nil, err
+			return nil, cmd, nil, err
 		}
 	}
 
@@ -197,34 +241,34 @@ func newConfiguration(args []string) (*config.Config, emitFunc, error) {
 	} else if len(c.Dirs) == 1 {
 		c.RepoRoot, err = wspace.Find(c.Dirs[0])
 		if err != nil {
-			return nil, nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
+			return nil, cmd, nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
 		}
 	} else {
 		cwd, err := filepath.Abs(".")
 		if err != nil {
-			return nil, nil, err
+			return nil, cmd, nil, err
 		}
 		c.RepoRoot, err = wspace.Find(cwd)
 		if err != nil {
-			return nil, nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
+			return nil, cmd, nil, fmt.Errorf("-repo_root not specified, and WORKSPACE cannot be found: %v", err)
 		}
 	}
 
 	for _, dir := range c.Dirs {
 		if !isDescendingDir(dir, c.RepoRoot) {
-			return nil, nil, fmt.Errorf("dir %q is not a subdirectory of repo root %q", dir, c.RepoRoot)
+			return nil, cmd, nil, fmt.Errorf("dir %q is not a subdirectory of repo root %q", dir, c.RepoRoot)
 		}
 	}
 
 	c.ValidBuildFileNames = strings.Split(*buildFileName, ",")
 	if len(c.ValidBuildFileNames) == 0 {
-		return nil, nil, fmt.Errorf("no valid build file names specified")
+		return nil, cmd, nil, fmt.Errorf("no valid build file names specified")
 	}
 
 	c.GenericTags = make(config.BuildTags)
 	for _, t := range strings.Split(*buildTags, ",") {
 		if strings.HasPrefix(t, "!") {
-			return nil, nil, fmt.Errorf("build tags can't be negated: %s", t)
+			return nil, cmd, nil, fmt.Errorf("build tags can't be negated: %s", t)
 		}
 		c.GenericTags[t] = true
 	}
@@ -235,23 +279,23 @@ func newConfiguration(args []string) (*config.Config, emitFunc, error) {
 	if c.GoPrefix == "" {
 		c.GoPrefix, err = loadGoPrefix(&c)
 		if err != nil {
-			return nil, nil, fmt.Errorf("-go_prefix not set and not root BUILD file found")
+			return nil, cmd, nil, fmt.Errorf("-go_prefix not set and not root BUILD file found")
 		}
 	}
 
 	c.DepMode, err = config.DependencyModeFromString(*external)
 	if err != nil {
-		return nil, nil, err
+		return nil, cmd, nil, err
 	}
 
 	emit, ok := modeFromName[*mode]
 	if !ok {
-		return nil, nil, fmt.Errorf("unrecognized emit mode: %q", *mode)
+		return nil, cmd, nil, fmt.Errorf("unrecognized emit mode: %q", *mode)
 	}
 
 	c.KnownImports = append(c.KnownImports, knownImports...)
 
-	return &c, emit, err
+	return &c, cmd, emit, err
 }
 
 func findBuildFile(c *config.Config, dir string) (string, error) {

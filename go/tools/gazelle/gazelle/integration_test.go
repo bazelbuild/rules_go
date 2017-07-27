@@ -68,12 +68,12 @@ func runGazelle(wd string, args []string) error {
 	}
 	defer os.Chdir(oldWd)
 
-	c, emit, err := newConfiguration(args)
+	c, cmd, emit, err := newConfiguration(args)
 	if err != nil {
 		return err
 	}
 
-	run(c, emit)
+	run(c, cmd, emit)
 	return nil
 }
 
@@ -189,6 +189,159 @@ go_library(
 	}
 
 	if err := runGazelle(dir, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {
+		t.Fatal(err)
+	} else if string(got) != want {
+		t.Fatalf("got %s ; want %s", string(got), want)
+	}
+}
+
+func TestFixAndUpdateChanges(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: "BUILD",
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_test")
+
+go_prefix("example.com/foo")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "extra.go",
+        "pure.go",
+    ],
+    library = ":cgo_default_library",
+    visibility = ["//visibility:default"],
+)
+
+cgo_library(
+    name = "cgo_default_library",
+    srcs = ["cgo.go"],
+)
+`,
+		},
+		{
+			path:    "pure.go",
+			content: "package foo",
+		},
+		{
+			path: "cgo.go",
+			content: `package foo
+
+import "C"
+`,
+		},
+	}
+
+	cases := []struct {
+		cmd, want string
+	}{
+		{
+			cmd: "update",
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_test")
+
+go_prefix("example.com/foo")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cgo.go",
+        "pure.go",
+    ],
+    cgo = True,
+    visibility = ["//visibility:default"],
+)
+
+cgo_library(
+    name = "cgo_default_library",
+    srcs = ["cgo.go"],
+)
+`,
+		}, {
+			cmd: "fix",
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+
+go_prefix("example.com/foo")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cgo.go",
+        "pure.go",
+    ],
+    cgo = True,
+    visibility = ["//visibility:default"],
+)
+`,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.cmd, func(t *testing.T) {
+			dir, err := createFiles(files)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := runGazelle(dir, []string{c.cmd}); err != nil {
+				t.Fatal(err)
+			}
+			if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {
+				t.Fatal(err)
+			} else if string(got) != c.want {
+				t.Fatalf("got %s ; want %s", string(got), c.want)
+			}
+		})
+	}
+}
+
+func TestFixUnlinkedCgoLibrary(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: "BUILD",
+			content: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_prefix")
+
+go_prefix("example.com/foo")
+
+cgo_library(
+    name = "cgo_default_library",
+    srcs = ["cgo.go"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["pure.go"],
+    visibility = ["//visibility:public"],
+)
+`,
+		}, {
+			path:    "pure.go",
+			content: "package foo",
+		},
+	}
+
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+
+go_prefix("example.com/foo")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["pure.go"],
+    visibility = ["//visibility:public"],
+)
+`
+	if err := runGazelle(dir, []string{"fix"}); err != nil {
 		t.Fatal(err)
 	}
 	if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {
