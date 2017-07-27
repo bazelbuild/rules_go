@@ -816,8 +816,8 @@ go_test(name, srcs, deps, data, library, gc_goopts, gc_linkopts)
 contain sources for internal tests or external tests, but not both (see example
 below).
 
-To run all tests in a given directory, and print output on failure (the
-equivalent of "go test ./..."), run
+To run all tests in the workspace, and print output on failure (the
+equivalent of "go test ./..." from `go_prefix` in a `GOPATH` tree), run
 
 ```
 bazel test --test_output=errors //...
