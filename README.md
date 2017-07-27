@@ -6,6 +6,8 @@ Bazel 0.5.2 | Bazel HEAD
 
 ## Announcements
 
+* **July 27, 2017** Bazel 0.5.3 is now available. This includes a change which
+is incompatible with rules\_go 0.5.1 and earlier. rules\_go 0.5.2 should work.
 * **July 17, 2017** Release
 [0.5.2](https://github.com/bazelbuild/rules_go/releases/tag/0.5.2) is now
 available! This fixes an issue with Bazel at HEAD. Note that Bazel 0.5.2 is
@@ -14,9 +16,6 @@ now required.
 latest tagged version, 0.5.1, still works with Bazel 0.4.5 though.
 * **July 10, 2017** Release
 [0.5.1](https://github.com/bazelbuild/rules_go/releases/tag/0.5.1) is now
-available!
-* **June 13, 2017** Release
-[0.5.0](https://github.com/bazelbuild/rules_go/releases/tag/0.5.0) is now
 available!
 
 ## Contents
