@@ -93,7 +93,7 @@ func run(args []string) error {
 	w := bufio.NewWriter(f)
 	defer w.Flush()
 
-	if err = headerTpl.Execute(w, c); err != nil {
+	if err := headerTpl.Execute(w, c); err != nil {
 		return err
 	}
 
