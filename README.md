@@ -1057,14 +1057,16 @@ go_embed_data(name, src, srcs, out, package, var, flatten, string)
     <tr>
       <td><code>package</code></td>
       <td>
-        <code>String, required</code>
-        <p>Go package name for the generated .go file.</p>
+        <code>String, optional, defaults to directory base name</code>
+        <p>Go package name for the generated .go file. This defaults to the
+        name of the directory containing the <code>go_embed_data</code> rule.
+        This attribute is required in the repository root directory though.</p>
       </td>
     </tr>
     <tr>
       <td><code>var</code></td>
       <td>
-        <code>String, required</code>
+        <code>String, optional, defaults to "Data"</code>
         <p>Name of the variable that will contain the embedded data.</p>
       </td>
     </tr>

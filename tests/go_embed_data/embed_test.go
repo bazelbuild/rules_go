@@ -81,7 +81,7 @@ func checkFile(t *testing.T, path string, data []byte) {
 			return
 		}
 		if n == 0 {
-			break
+			return
 		}
 		if n > len(data) {
 			t.Errorf("%q: file on disk is longer than embedded data", path)
