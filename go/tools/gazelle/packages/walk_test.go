@@ -403,6 +403,73 @@ genrule(
 	checkFiles(t, files, "", want)
 }
 
+func TestVendor(t *testing.T) {
+	files := []fileSpec{
+		{path: "vendor/foo/foo.go", content: "package foo"},
+		{path: "x/vendor/bar/bar.go", content: "package bar"},
+	}
+
+	for _, tc := range []struct {
+		desc string
+		mode config.DependencyMode
+		want []*packages.Package
+	}{
+		{
+			desc: "external mode",
+			mode: config.ExternalMode,
+			want: nil,
+		},
+		{
+			desc: "vendored mode",
+			mode: config.VendorMode,
+			want: []*packages.Package{
+				{
+					Name: "foo",
+					Rel:  "vendor/foo",
+					Library: packages.Target{
+						Sources: packages.PlatformStrings{
+							Generic: []string{"foo.go"},
+						},
+					},
+				},
+				{
+					Name: "bar",
+					Rel:  "x/vendor/bar",
+					Library: packages.Target{
+						Sources: packages.PlatformStrings{
+							Generic: []string{"bar.go"},
+						},
+					},
+				},
+			},
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			dir, err := createFiles(files)
+			if err != nil {
+				os.RemoveAll(dir)
+			}
+
+			for _, p := range tc.want {
+				p.Dir = filepath.Join(dir, filepath.FromSlash(p.Rel))
+			}
+
+			c := &config.Config{
+				RepoRoot:            dir,
+				GoPrefix:            "",
+				ValidBuildFileNames: config.DefaultValidBuildFileNames,
+				DepMode:             tc.mode,
+			}
+			var got []*packages.Package
+			packages.Walk(c, dir, func(pkg *packages.Package, _ *bf.File) {
+				got = append(got, pkg)
+			})
+
+			checkPackages(t, got, tc.want)
+		})
+	}
+}
+
 func TestMalformedBuildFile(t *testing.T) {
 	files := []fileSpec{
 		{path: "BUILD", content: "????"},
