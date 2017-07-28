@@ -191,13 +191,14 @@ bazel test --features=race //...
 
 You can build binaries with the race detector enabled using
 ```
-bazel test --output_groups=race //...
+bazel build --output_groups=race //...
 ```
 
-The difference is because the rules for binaries can produce both race and non
-race versions interchangeable, but you always want tools used during the build
-to be non race versions, whereas for tests you need to switch the build mode of
-the executable that will be invoked during testing.
+The difference is necessary because the rules for binaries can produce both
+race and non-race versions, but tools used during the build should always be
+built in the non-race configuration. `--output_groups` is needed to select
+the configuration of the final binary only. For tests, only one executable
+can be tested, and `--features` is needed to select the race configuration.
 
 ## FAQ
 
