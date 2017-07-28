@@ -2,7 +2,7 @@
 
 Bazel 0.5.2 | Bazel HEAD
 :---: | :---:
-[![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=PR/rules_go)](http://ci.bazel.io/job/PR/rules_go)
+[![Build Status](https://travis-ci.org/bazelbuild/rules_go.svg?branch=master)](https://travis-ci.org/bazelbuild/rules_go) | [![Build Status](http://ci.bazel.io/buildStatus/icon?job=PR/rules_go)](http://ci.bazel.io/view/Bazel%20bootstrap%20and%20maintenance/job/PR/job/rules_go/)
 
 ## Announcements
 
