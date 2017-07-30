@@ -21,7 +21,7 @@ $BASE/{gazelle} {args} $@
 
 def _gazelle_script_impl(ctx):
   args = ctx.attr.args
-  args = [
+  args += [
       "-repo_root", "$WORKSPACE",
       "-go_prefix", ctx.attr._go_prefix.go_prefix,
       "-external", ctx.attr.external,
