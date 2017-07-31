@@ -29,16 +29,16 @@ alias(
 """
 
 def _go_sdk_repository_impl(ctx):
-  ctx.download_and_extract(
-      url = ctx.attr.url,
-      stripPrefix = ctx.attr.strip_prefix,
-      sha256 = ctx.attr.sha256)
   goroot = ctx.path(".")
   ctx.template("BUILD.bazel", 
     Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
     substitutions = {"{goroot}": str(goroot)}, 
     executable = False,
   )
+  ctx.download_and_extract(
+      url = ctx.attr.url,
+      stripPrefix = ctx.attr.strip_prefix,
+      sha256 = ctx.attr.sha256)
 
 go_sdk_repository = repository_rule(
     implementation = _go_sdk_repository_impl, 
