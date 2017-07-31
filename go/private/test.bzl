@@ -34,7 +34,13 @@ def _go_test_impl(ctx):
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   main_object = ctx.new_file(ctx.label.name + "_main_test.o")
   main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
-  run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
+  if ctx.attr.rundir:
+    if ctx.attr.rundir.startswith("/"):
+      run_dir = ctx.attr.rundir
+    else:
+      run_dir = pkg_dir(ctx.label.workspace_root, ctx.attr.rundir)
+  else:
+    run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
   ctx.action(
       inputs = list(lib_result.go_sources),
@@ -122,6 +128,7 @@ go_test = rule(
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
+        "rundir": attr.string(),
         "x_defs": attr.string_dict(),
         #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),

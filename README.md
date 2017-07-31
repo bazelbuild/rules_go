@@ -810,7 +810,7 @@ directly.
 ### `go_test`
 
 ```bzl
-go_test(name, srcs, deps, data, library, gc_goopts, gc_linkopts)
+go_test(name, srcs, deps, data, library, gc_goopts, gc_linkopts, rundir)
 ```
 
 `go_test` builds a set of tests that can be run with `bazel test`. This can
@@ -899,6 +899,16 @@ arguments to Bazel.
         variable substitution</a> and
         <a href="https://bazel.build/versions/master/docs/be/common-definitions.html#sh-tokenization">Bourne
         shell tokenization</a>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td><code>rundir</code></td>
+      <td>
+        <code>String, optional</code>
+        <p>Path to the directory the test should run in. This should be relative
+        to the root of the repository the test is defined in. By default, the
+        test will run in the directory of the BUILD file that defines it.
+        Use "." to run the test at the repository root.</p>
       </td>
     </tr>
   </tbody>
