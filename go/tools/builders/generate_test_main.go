@@ -57,7 +57,6 @@ type coverInfo struct {
 type Cases struct {
 	Package          string
 	RunDir           string
-	AltRunDir        string
 	TestNames        []string
 	BenchmarkNames   []string
 	HasTestMain      bool
@@ -168,17 +167,13 @@ func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts
 {{end}}
 
 func main() {
-{{if .AltRunDir}}
-	if err := os.Chdir("{{.RunDir}}"); err != nil {
-		if err := os.Chdir("{{.AltRunDir}}"); err != nil {
+	// Check if we're being run by Bazel and change directories if so.
+	// TEST_SRCDIR is set by the Bazel test runner, so that makes a decent proxy.
+	if _, ok := os.LookupEnv("TEST_SRCDIR"); ok {
+		if err := os.Chdir("{{.RunDir}}"); err != nil {
 			log.Fatalf("could not change to test directory: %v", err)
 		}
 	}
-{{else}}
-	if err := os.Chdir("{{.RunDir}}"); err != nil {
-		log.Fatalf("could not change to test directory: %v", err)
-	}
-{{end}}
 
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
 		if f := flag.Lookup("test.run"); f != nil {
@@ -253,12 +248,6 @@ func run(args []string) error {
 		RunDir:  filepath.FromSlash(*runDir),
 		Cover:   []coverInfo{ci},
 	}
-	if strings.HasPrefix(*runDir, "external/") {
-		if i := len("external/") + strings.IndexByte((*runDir)[len("external/"):], '/'); i != -1 {
-			cases.AltRunDir = filepath.FromSlash((*runDir)[i+1:])
-		}
-	}
-
 	testFileSet := token.NewFileSet()
 	for _, f := range filenames {
 		coverVar := extractCoverVar(f)
