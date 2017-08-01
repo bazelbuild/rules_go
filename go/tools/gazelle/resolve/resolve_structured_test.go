@@ -18,6 +18,8 @@ package resolve
 import (
 	"reflect"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 func TestStructuredResolver(t *testing.T) {
@@ -30,38 +32,38 @@ func TestStructuredResolver(t *testing.T) {
 		{
 			importpath: "example.com/repo",
 			curPkg:     "",
-			want:       Label{Name: DefaultLibName},
+			want:       Label{Name: config.DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/lib",
 			curPkg:     "",
-			want:       Label{Pkg: "lib", Name: DefaultLibName},
+			want:       Label{Pkg: "lib", Name: config.DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/another",
 			curPkg:     "",
-			want:       Label{Pkg: "another", Name: DefaultLibName},
+			want:       Label{Pkg: "another", Name: config.DefaultLibName},
 		},
 
 		{
 			importpath: "example.com/repo",
 			curPkg:     "lib",
-			want:       Label{Name: DefaultLibName},
+			want:       Label{Name: config.DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/lib",
 			curPkg:     "lib",
-			want:       Label{Name: DefaultLibName, Relative: true},
+			want:       Label{Name: config.DefaultLibName, Relative: true},
 		},
 		{
 			importpath: "example.com/repo/lib/sub",
 			curPkg:     "lib",
-			want:       Label{Pkg: "lib/sub", Name: DefaultLibName},
+			want:       Label{Pkg: "lib/sub", Name: config.DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/another",
 			curPkg:     "lib",
-			want:       Label{Pkg: "another", Name: DefaultLibName},
+			want:       Label{Pkg: "another", Name: config.DefaultLibName},
 		},
 	} {
 

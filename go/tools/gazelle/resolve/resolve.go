@@ -23,24 +23,6 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-const (
-	// defaultLibName is the name of the default go_library rule in a Go
-	// package directory. It must be consistent to DEFAULT_LIB in go/private/common.bf.
-	DefaultLibName = "go_default_library"
-	// defaultTestName is a name of an internal test corresponding to
-	// defaultLibName. It does not need to be consistent to something but it
-	// just needs to be unique in the Bazel package
-	DefaultTestName = "go_default_test"
-	// defaultXTestName is a name of an external test corresponding to
-	// defaultLibName.
-	DefaultXTestName = "go_default_xtest"
-	// defaultProtosName is the name of a filegroup created
-	// whenever the library contains .pb.go files
-	DefaultProtosName = "go_default_library_protos"
-	// defaultCgoLibName is the name of the default cgo_library rule in a Go package directory.
-	DefaultCgoLibName = "cgo_default_library"
-)
-
 // A LabelResolver resolves a Go importpath into a label in Bazel.
 type LabelResolver interface {
 	// Resolve resolves a Go importpath "importpath", which is referenced from

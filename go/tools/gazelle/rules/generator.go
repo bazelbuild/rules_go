@@ -27,11 +27,6 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 )
 
-const (
-	// goRulesBzl is the label of the Skylark file which provides Go rules
-	goRulesBzl = "@io_bazel_rules_go//go:def.bzl"
-)
-
 // Generator generates Bazel build rules for Go build targets
 type Generator interface {
 	// Generate generates a syntax tree of a BUILD file for "pkg". The file
@@ -116,7 +111,7 @@ func (g *generator) generateLib(pkg *packages.Package, cgoName string) (string, 
 		return "", nil
 	}
 
-	name := resolve.DefaultLibName
+	name := config.DefaultLibName
 	var visibility string
 	if pkg.IsCommand() {
 		// Libraries made for a go_binary should not be exposed to the public.
@@ -134,7 +129,7 @@ func (g *generator) generateCgoLib(pkg *packages.Package) (string, *bf.Rule) {
 		return "", nil
 	}
 
-	name := resolve.DefaultCgoLibName
+	name := config.DefaultCgoLibName
 	visibility := "//visibility:private"
 	rule := g.generateRule(pkg.Rel, "cgo_library", name, visibility, "", false, pkg.CgoLibrary)
 	return name, rule
@@ -176,7 +171,7 @@ func (g *generator) filegroup(pkg *packages.Package) *bf.Rule {
 		return nil
 	}
 	return newRule("filegroup", nil, []keyvalue{
-		{key: "name", value: resolve.DefaultProtosName},
+		{key: "name", value: config.DefaultProtosName},
 		{key: "srcs", value: pkg.Protos},
 		{key: "visibility", value: []string{"//visibility:public"}},
 	})
@@ -188,8 +183,8 @@ func (g *generator) generateTest(pkg *packages.Package, library string) *bf.Rule
 	}
 
 	var name string
-	if library == "" || library == resolve.DefaultLibName {
-		name = resolve.DefaultTestName
+	if library == "" || library == config.DefaultLibName {
+		name = config.DefaultTestName
 	} else {
 		name = library + "_test"
 	}
@@ -203,8 +198,8 @@ func (g *generator) generateXTest(pkg *packages.Package, library string) *bf.Rul
 	}
 
 	var name string
-	if library == "" || library == resolve.DefaultLibName {
-		name = resolve.DefaultXTestName
+	if library == "" || library == config.DefaultLibName {
+		name = config.DefaultXTestName
 	} else {
 		name = library + "_xtest"
 	}
@@ -259,7 +254,7 @@ func (g *generator) generateLoad(rs []*bf.Rule) bf.Expr {
 		kinds[r.Kind()] = true
 	}
 	args := make([]bf.Expr, 0, len(kinds)+1)
-	args = append(args, &bf.StringExpr{Value: goRulesBzl})
+	args = append(args, &bf.StringExpr{Value: config.RulesGoDefBzlLabel})
 	for _, k := range loadableKinds {
 		if kinds[k] {
 			args = append(args, &bf.StringExpr{Value: k})

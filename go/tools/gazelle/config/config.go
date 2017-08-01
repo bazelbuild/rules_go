@@ -84,7 +84,7 @@ func init() {
 	DefaultPlatformTags = make(PlatformTags)
 	arch := "amd64"
 	for _, os := range []string{"darwin", "linux", "windows"} {
-		label := fmt.Sprintf("@io_bazel_rules_go//go/platform:%s_%s", os, arch)
+		label := fmt.Sprintf("@%s//go/platform:%s_%s", RulesGoRepoName, os, arch)
 		DefaultPlatformTags[label] = BuildTags{arch: true, os: true}
 	}
 }

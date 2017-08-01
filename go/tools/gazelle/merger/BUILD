@@ -7,7 +7,10 @@ go_library(
         "merger.go"
     ],
     visibility = ["//visibility:public"],
-    deps = ["@com_github_bazelbuild_buildtools//build:go_default_library"],
+    deps = [
+        "@io_bazel_rules_go//go/tools/gazelle/config:go_default_library",
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
+    ],
 )
 
 go_test(

@@ -20,6 +20,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"golang.org/x/tools/go/vcs"
 )
 
@@ -80,7 +81,7 @@ func (r *externalResolver) Resolve(importpath, dir string) (Label, error) {
 	return Label{
 		Repo: ImportPathToBazelRepoName(prefix),
 		Pkg:  pkg,
-		Name: DefaultLibName,
+		Name: config.DefaultLibName,
 	}, nil
 }
 

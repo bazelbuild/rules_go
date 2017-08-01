@@ -21,6 +21,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"golang.org/x/tools/go/vcs"
 )
 
@@ -72,7 +73,7 @@ func TestExternalResolver(t *testing.T) {
 			importpath: "example.com/repo",
 			want: Label{
 				Repo: "com_example_repo",
-				Name: DefaultLibName,
+				Name: config.DefaultLibName,
 			},
 		},
 		{
@@ -80,7 +81,7 @@ func TestExternalResolver(t *testing.T) {
 			want: Label{
 				Repo: "com_example_repo",
 				Pkg:  "lib",
-				Name: DefaultLibName,
+				Name: config.DefaultLibName,
 			},
 		},
 		{
@@ -88,7 +89,7 @@ func TestExternalResolver(t *testing.T) {
 			want: Label{
 				Repo: "com_example_repo_git",
 				Pkg:  "lib",
-				Name: DefaultLibName,
+				Name: config.DefaultLibName,
 			},
 		},
 		{
@@ -96,7 +97,7 @@ func TestExternalResolver(t *testing.T) {
 			want: Label{
 				Repo: "com_example",
 				Pkg:  "lib",
-				Name: DefaultLibName,
+				Name: config.DefaultLibName,
 			},
 		},
 	} {
