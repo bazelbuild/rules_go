@@ -27,6 +27,9 @@ import (
 // Gazelle to a newer form that can be merged with freshly generated rules.
 func FixFile(oldFile *bf.File) *bf.File {
 	fixedFile := squashCgoLibrary(oldFile)
+
+	// Run fixLoads after transformations that add or delete rules. Other
+	// transformations may expect fixLoads to repair load statements for them.
 	return fixLoads(fixedFile)
 }
 
