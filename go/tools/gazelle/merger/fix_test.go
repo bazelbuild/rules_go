@@ -25,6 +25,157 @@ func TestFixFile(t *testing.T) {
 	for _, tc := range []struct {
 		desc, old, want string
 	}{
+		// squashCgoLibrary tests
+		{
+			desc: "no cgo_library",
+			old: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+)
+`,
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+)
+`,
+		},
+		{
+			desc: "non-default cgo_library not removed",
+			old: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library")
+
+cgo_library(
+    name = "something_else",
+)
+`,
+			want: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library")
+
+cgo_library(
+    name = "something_else",
+)
+`,
+		},
+		{
+			desc: "unlinked cgo_library not removed",
+			old: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library")
+
+go_library(
+    name = "go_default_library",
+)
+
+cgo_library(
+    name = "cgo_default_library",
+)
+`,
+			want: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library")
+
+go_library(
+    name = "go_default_library",
+)
+
+cgo_library(
+    name = "cgo_default_library",
+)
+`,
+		},
+		{
+			desc: "cgo_library replaced with go_library",
+			old: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library")
+
+# before comment
+cgo_library(
+    name = "cgo_default_library",
+    cdeps = ["cdeps"],
+    clinkopts = ["clinkopts"],
+    copts = ["copts"],
+    data = ["data"],
+    deps = ["deps"],
+    gc_goopts = ["gc_goopts"],
+    srcs = [
+        "foo.go"  # keep
+    ],
+    visibility = ["//visibility:private"],    
+)
+# after comment
+`,
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# before comment
+go_library(
+    name = "go_default_library",
+    visibility = ["//visibility:private"],
+    cgo = True,
+    cdeps = ["cdeps"],
+    clinkopts = ["clinkopts"],
+    copts = ["copts"],
+    data = ["data"],
+    deps = ["deps"],
+    gc_goopts = ["gc_goopts"],
+    srcs = [
+        "foo.go",  # keep
+    ],
+)
+# after comment
+`,
+		}, {
+			desc: "cgo_library merged with go_library",
+			old: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# before go_library
+go_library(
+    name = "go_default_library",
+    srcs = ["pure.go"],
+    deps = ["pure_deps"],
+    data = ["pure_data"],
+    gc_goopts = ["pure_gc_goopts"],
+    library = ":cgo_default_library",
+    cgo = False,
+)
+# after go_library
+
+# before cgo_library
+cgo_library(
+    name = "cgo_default_library",
+    srcs = ["cgo.go"],
+    deps = ["cgo_deps"],
+    data = ["cgo_data"],
+    gc_goopts = ["cgo_gc_goopts"],
+    copts = ["copts"],
+    cdeps = ["cdeps"],
+)
+# after cgo_library
+`,
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# before go_library
+# before cgo_library
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "pure.go",
+        "cgo.go",
+    ],
+    deps = [
+        "pure_deps",
+        "cgo_deps",
+    ],
+    data = [
+        "pure_data",
+        "cgo_data",
+    ],
+    gc_goopts = [
+        "pure_gc_goopts",
+        "cgo_gc_goopts",
+    ],
+    cgo = True,
+    cdeps = ["cdeps"],
+    copts = ["copts"],
+)
+# after go_library
+# after cgo_library
+`,
+		},
 		// fixLoads tests
 		{
 			desc: "add and remove loaded symbols",
