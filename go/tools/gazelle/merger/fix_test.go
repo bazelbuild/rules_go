@@ -57,25 +57,23 @@ cgo_library(
 `,
 		},
 		{
-			desc: "unlinked cgo_library not removed",
+			desc: "unlinked cgo_library removed",
 			old: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library")
 
 go_library(
     name = "go_default_library",
+    library = ":something_else",
 )
 
 cgo_library(
     name = "cgo_default_library",
 )
 `,
-			want: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library")
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-)
-
-cgo_library(
-    name = "cgo_default_library",
+    cgo = True,
 )
 `,
 		},

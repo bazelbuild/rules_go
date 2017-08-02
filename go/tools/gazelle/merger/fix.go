@@ -34,14 +34,17 @@ func FixFile(oldFile *bf.File) *bf.File {
 }
 
 // squashCgoLibrary removes cgo_library rules with the default name and
-// merges their attributes with go_library rules that reference them via the
-// library attribute. If no go_library rule exists, a new one will be created.
+// merges their attributes with go_library with the default name. If no
+// go_library rule exists, a new one will be created.
+//
+// Note that the library attribute is disregarded, so cgo_library and
+// go_library attributes will be squashed even if the cgo_library was unlinked.
+// MergeWithExisting will remove unused values and attributes later.
 func squashCgoLibrary(oldFile *bf.File) *bf.File {
 	// Find the default cgo_library and go_library rules.
 	var cgoLibrary, goLibrary bf.Rule
 	cgoLibraryIndex := -1
 	goLibraryIndex := -1
-	var goLibraryLinked bool
 
 	for i, stmt := range oldFile.Stmt {
 		c, ok := stmt.(*bf.CallExpr)
@@ -65,12 +68,18 @@ func squashCgoLibrary(oldFile *bf.File) *bf.File {
 			}
 			goLibrary = r
 			goLibraryIndex = i
-			goLibraryLinked = r.AttrString("library") == ":"+config.DefaultCgoLibName
 		}
 	}
 
-	if cgoLibrary.Call == nil || goLibrary.Call != nil && (shouldKeep(goLibrary.Call) || !goLibraryLinked) {
+	if cgoLibrary.Call == nil {
 		return oldFile
+	}
+
+	// If go_library has a '# keep' comment, just delete cgo_library.
+	if goLibrary.Call != nil && shouldKeep(goLibrary.Call) {
+		fixedFile := *oldFile
+		fixedFile.Stmt = append(fixedFile.Stmt[:cgoLibraryIndex], fixedFile.Stmt[cgoLibraryIndex+1:]...)
+		return &fixedFile
 	}
 
 	// Copy the comments and attributes from cgo_library into go_library. If no
@@ -88,11 +97,7 @@ func squashCgoLibrary(oldFile *bf.File) *bf.File {
 		fixedGoLibraryExpr.List = append([]bf.Expr{}, goLibrary.Call.List...)
 	}
 
-	if cgoLibraryLibrary := cgoLibrary.Attr("library"); cgoLibraryLibrary != nil {
-		fixedGoLibrary.SetAttr("library", cgoLibraryLibrary)
-	} else {
-		fixedGoLibrary.DelAttr("library")
-	}
+	fixedGoLibrary.DelAttr("library")
 	fixedGoLibrary.SetAttr("cgo", &bf.LiteralExpr{Token: "True"})
 
 	fixedGoLibraryExpr.Comments.Before = append(fixedGoLibraryExpr.Comments.Before, cgoLibrary.Call.Comments.Before...)
@@ -118,6 +123,9 @@ func squashCgoLibrary(oldFile *bf.File) *bf.File {
 		fixedFile.Stmt[cgoLibraryIndex] = &fixedGoLibraryExpr
 	} else {
 		fixedFile.Stmt = append(oldFile.Stmt[:cgoLibraryIndex], oldFile.Stmt[cgoLibraryIndex+1:]...)
+		if goLibraryIndex > cgoLibraryIndex {
+			goLibraryIndex--
+		}
 		fixedFile.Stmt[goLibraryIndex] = &fixedGoLibraryExpr
 	}
 	return &fixedFile
