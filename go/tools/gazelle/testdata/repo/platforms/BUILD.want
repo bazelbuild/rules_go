@@ -1,14 +1,30 @@
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
-cgo_library(
-    name = "cgo_default_library",
+go_library(
+    name = "go_default_library",
     srcs = [
         "cgo_generic.go",
+        "generic.go",
+        "release.go",
         "cgo_generic.c",
     ] + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "suffix_amd64.go",
+            "suffix_darwin.go",
+            "tag_a.go",
+            "tag_d.go",
+        ],
         "@io_bazel_rules_go//go/platform:linux_amd64": [
             "cgo_linux.go",
+            "suffix_amd64.go",
+            "suffix_linux.go",
+            "tag_a.go",
+            "tag_l.go",
             "cgo_linux.c",
+        ],
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            "suffix_amd64.go",
+            "tag_a.go",
         ],
         "//conditions:default": [],
     }),
@@ -20,34 +36,7 @@ cgo_library(
         ],
         "//conditions:default": [],
     }),
-    visibility = ["//visibility:private"],
-)
-
-go_library(
-    name = "go_default_library",
-    srcs = [
-        "generic.go",
-        "release.go",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:darwin_amd64": [
-            "suffix_amd64.go",
-            "suffix_darwin.go",
-            "tag_a.go",
-            "tag_d.go",
-        ],
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
-            "suffix_amd64.go",
-            "suffix_linux.go",
-            "tag_a.go",
-            "tag_l.go",
-        ],
-        "@io_bazel_rules_go//go/platform:windows_amd64": [
-            "suffix_amd64.go",
-            "tag_a.go",
-        ],
-        "//conditions:default": [],
-    }),
-    library = ":cgo_default_library",
+    cgo = True,
     visibility = ["//visibility:public"],
     deps = [
         "//platforms/generic:go_default_library",

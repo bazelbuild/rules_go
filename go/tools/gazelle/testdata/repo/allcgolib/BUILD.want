@@ -1,19 +1,14 @@
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
-cgo_library(
-    name = "cgo_default_library",
+go_library(
+    name = "go_default_library",
     srcs = [
         "foo.go",
         "foo.c",
     ],
-    visibility = ["//visibility:private"],
-    deps = ["//lib:go_default_library"],
-)
-
-go_library(
-    name = "go_default_library",
-    library = ":cgo_default_library",
+    cgo = True,
     visibility = ["//visibility:public"],
+    deps = ["//lib:go_default_library"],
 )
 
 go_test(

@@ -68,12 +68,7 @@ func (g *generator) generateRules(pkg *packages.Package) []*bf.Rule {
 		rules = append(rules, newRule("go_prefix", []interface{}{g.c.GoPrefix}, nil))
 	}
 
-	cgoLibrary, r := g.generateCgoLib(pkg)
-	if r != nil {
-		rules = append(rules, r)
-	}
-
-	library, r := g.generateLib(pkg, cgoLibrary)
+	library, r := g.generateLib(pkg)
 	if r != nil {
 		rules = append(rules, r)
 	}
@@ -106,8 +101,8 @@ func (g *generator) generateBin(pkg *packages.Package, library string) *bf.Rule 
 	return g.generateRule(pkg.Rel, "go_binary", name, visibility, library, false, pkg.Binary)
 }
 
-func (g *generator) generateLib(pkg *packages.Package, cgoName string) (string, *bf.Rule) {
-	if !pkg.Library.HasGo() && cgoName == "" {
+func (g *generator) generateLib(pkg *packages.Package) (string, *bf.Rule) {
+	if !pkg.Library.HasGo() {
 		return "", nil
 	}
 
@@ -120,18 +115,7 @@ func (g *generator) generateLib(pkg *packages.Package, cgoName string) (string, 
 		visibility = checkInternalVisibility(pkg.Rel, "//visibility:public")
 	}
 
-	rule := g.generateRule(pkg.Rel, "go_library", name, visibility, cgoName, false, pkg.Library)
-	return name, rule
-}
-
-func (g *generator) generateCgoLib(pkg *packages.Package) (string, *bf.Rule) {
-	if !pkg.CgoLibrary.HasGo() {
-		return "", nil
-	}
-
-	name := config.DefaultCgoLibName
-	visibility := "//visibility:private"
-	rule := g.generateRule(pkg.Rel, "cgo_library", name, visibility, "", false, pkg.CgoLibrary)
+	rule := g.generateRule(pkg.Rel, "go_library", name, visibility, "", false, pkg.Library)
 	return name, rule
 }
 
@@ -222,6 +206,9 @@ func (g *generator) generateRule(rel, kind, name, visibility, library string, ha
 	if !target.COpts.IsEmpty() {
 		attrs = append(attrs, keyvalue{"copts", target.COpts})
 	}
+	if target.Cgo {
+		attrs = append(attrs, keyvalue{"cgo", true})
+	}
 	if hasTestdata {
 		glob := globvalue{patterns: []string{"testdata/**"}}
 		attrs = append(attrs, keyvalue{"data", glob})
@@ -242,7 +229,6 @@ func (g *generator) generateRule(rel, kind, name, visibility, library string, ha
 func (g *generator) generateLoad(rs []*bf.Rule) bf.Expr {
 	loadableKinds := []string{
 		// keep sorted
-		"cgo_library",
 		"go_binary",
 		"go_library",
 		"go_prefix",

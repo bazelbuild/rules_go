@@ -32,11 +32,12 @@ const (
 
 var (
 	mergeableFields = map[string]bool{
-		"srcs":      true,
+		"cgo":       true,
+		"clinkopts": true,
+		"copts":     true,
 		"deps":      true,
 		"library":   true,
-		"copts":     true,
-		"clinkopts": true,
+		"srcs":      true,
 	}
 )
 
@@ -155,7 +156,16 @@ func mergeRule(gen, old *bf.CallExpr) *bf.CallExpr {
 // An error is returned if the expressions can't be merged, for example
 // because they are not in one of the above formats.
 func mergeExpr(gen, old bf.Expr) (bf.Expr, error) {
-	if _, ok := gen.(*bf.StringExpr); ok {
+	if gen == nil {
+		if shouldKeep(old) {
+			return old, nil
+		}
+		return nil, nil
+	}
+
+	switch gen.(type) {
+	case *bf.StringExpr:
+	case *bf.LiteralExpr:
 		if shouldKeep(old) {
 			return old, nil
 		}

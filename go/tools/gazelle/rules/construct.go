@@ -61,6 +61,13 @@ func newRule(kind string, args []interface{}, kwargs []keyvalue) *bf.Rule {
 func newValue(val interface{}) bf.Expr {
 	rv := reflect.ValueOf(val)
 	switch rv.Kind() {
+	case reflect.Bool:
+		tok := "False"
+		if rv.Bool() {
+			tok = "True"
+		}
+		return &bf.LiteralExpr{Token: tok}
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return &bf.LiteralExpr{Token: fmt.Sprintf("%d", val)}

@@ -39,7 +39,7 @@ type Package struct {
 	// Components in Rel are separated with slashes.
 	Rel string
 
-	Library, CgoLibrary, Binary, Test, XTest Target
+	Library, Binary, Test, XTest Target
 
 	Protos      []string
 	HasPbGo     bool
@@ -50,6 +50,7 @@ type Package struct {
 type Target struct {
 	Sources, Imports PlatformStrings
 	COpts, CLinkOpts PlatformStrings
+	Cgo              bool
 }
 
 // PlatformStrings contains a set of strings associated with a buildable
@@ -73,16 +74,13 @@ func (p *Package) IsCommand() bool {
 // .go source file. If a package does not contain Go code, Gazelle will
 // not generate rules for it.
 func (p *Package) HasGo() bool {
-	return p.Library.HasGo() || p.CgoLibrary.HasGo() || p.Binary.HasGo() || p.Test.HasGo() || p.XTest.HasGo()
+	return p.Library.HasGo() || p.Binary.HasGo() || p.Test.HasGo() || p.XTest.HasGo()
 }
 
 // firstGoFile returns the name of a .go file if the package contains at least
 // one .go file, or "" otherwise. Used by HasGo and for error reporting.
 func (p *Package) firstGoFile() string {
 	if f := p.Library.firstGoFile(); f != "" {
-		return f
-	}
-	if f := p.CgoLibrary.firstGoFile(); f != "" {
 		return f
 	}
 	if f := p.Binary.firstGoFile(); f != "" {
@@ -157,14 +155,11 @@ func (p *Package) addFile(c *config.Config, info fileInfo, cgo bool) error {
 			return fmt.Errorf("%s: use of cgo in test not supported", info.path)
 		}
 		p.Test.addFile(c, info)
-	case info.isCgo || cgo && (info.category == cExt || info.category == hExt || info.category == csExt):
-		p.CgoLibrary.addFile(c, info)
-	case info.category == goExt || info.category == sExt || info.category == hExt:
-		p.Library.addFile(c, info)
 	case info.category == protoExt:
 		p.Protos = append(p.Protos, info.name)
+	default:
+		p.Library.addFile(c, info)
 	}
-
 	if strings.HasSuffix(info.name, ".pb.go") {
 		p.HasPbGo = true
 	}
@@ -173,6 +168,9 @@ func (p *Package) addFile(c *config.Config, info fileInfo, cgo bool) error {
 }
 
 func (t *Target) addFile(c *config.Config, info fileInfo) {
+	if info.isCgo {
+		t.Cgo = true
+	}
 	if !info.hasConstraints() || info.checkConstraints(c.GenericTags) {
 		t.Sources.addGenericStrings(info.name)
 		t.Imports.addGenericStrings(info.imports...)
