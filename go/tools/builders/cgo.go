@@ -83,6 +83,7 @@ func run(args []string) error {
 	bctx := build.Default
 	bctx.CgoEnabled = true
 	cgoSrcs := []string{}
+	pkg := ""
 	for _, s := range sources {
 		bits := strings.SplitN(s, "=", 2)
 		if len(bits) != 2 {
@@ -118,7 +119,8 @@ func run(args []string) error {
 
 		// Go source, must produce both c and go outputs
 		cOut := strings.TrimSuffix(out, ".cgo1.go") + ".cgo2.c"
-		isCgo, pkg, err := testCgo(in, data)
+		isCgo := false
+		isCgo, pkg, err = testCgo(in, data)
 		if err != nil {
 			return err
 		}
@@ -141,6 +143,16 @@ func run(args []string) error {
 			if err := ioutil.WriteFile(cOut, []byte(""), 0644); err != nil {
 				return err
 			}
+		}
+	}
+
+	if len(cgoSrcs) == 0 {
+		// If there were no cgo sources present, generate a minimal cgo input
+		// This is so we can still run the cgo tool to build all the other outputs
+		nullCgo := filepath.Join(objdir, "_cgo_empty.go")
+		cgoSrcs = append(cgoSrcs, nullCgo)
+		if err := ioutil.WriteFile(nullCgo, []byte("package "+pkg+"\n/*\n*/\nimport \"C\"\n"), 0644); err != nil {
+			return err
 		}
 	}
 
