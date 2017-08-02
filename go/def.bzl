@@ -26,6 +26,9 @@ load("@io_bazel_rules_go//go/private:wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_test_macro = "go_test_macro",
 )
+load("@io_bazel_rules_go//go/private:path.bzl", 
+  _go_path = "go_path",
+)
 
 GoLibrary = _GoLibrary
 """
@@ -113,6 +116,11 @@ go_test = _go_test_macro
         "cdeps": attr.label_list(), # TODO: Would be nicer to be able to filter deps instead
         "copts": attr.string_list(), # Options for the the c compiler
         "clinkopts": attr.string_list(), # Options for the linker
+"""
+
+go_path = _go_path
+"""
+    go_path 
 """
 
 

@@ -108,6 +108,7 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
 
   return [
       GoLibrary(
+          label = ctx.label,
           importpath = importpath, # The import path for this library
           direct = direct, # The direct depencancies of the library
           transitive = transitive, # The transitive set of go libraries depended on

@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_prefix")
+load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_prefix", "go_path")
 load("@io_bazel_rules_go//go/private:lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_google_protobuf")
 
@@ -28,3 +28,21 @@ gazelle(
 
 # This could be any file, used as an anchor point for the directory in tests
 exports_files(["README.md"])
+
+go_path(
+    name = "all_srcs",
+    deps = [
+        "//go/tools/builders:asm",
+        "//go/tools/builders:compile",
+        "//go/tools/builders:embed",
+        "//go/tools/builders:filter_tags",
+        "//go/tools/builders:generate_test_main",
+        "//go/tools/builders:link",
+        "//go/tools/builders:cgo",
+        "//go/tools/builders:md5sum",
+        "//go/tools/gazelle/gazelle:gazelle",
+        "//go/tools/fetch_repo:fetch_repo",
+        "//go/tools/wtool:wtool",
+    ],
+    tags = ["manual"],
+)

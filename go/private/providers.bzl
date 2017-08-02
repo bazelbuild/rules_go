@@ -15,3 +15,4 @@
 GoLibrary = provider()
 GoBinary = provider()
 CgoLibrary = provider()
+GoPath = provider()

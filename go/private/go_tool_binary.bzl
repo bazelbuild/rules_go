@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load('//go/private:go_toolchain.bzl', 'toolchain_type', 'ConstraintValueInfo', 'go_toolchain_core_attrs')
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+load("@io_bazel_rules_go//go/private:library.bzl", "go_importpath")
 
 go_bootstrap_toolchain_type = toolchain_type()
 
@@ -46,13 +48,23 @@ def _go_tool_binary_impl(ctx):
           "GOROOT": toolchain.root,
       },
   )
+  return [
+      GoLibrary(
+          label = ctx.label,
+          importpath = go_importpath(ctx),
+          srcs = depset(ctx.files.srcs),
+          transitive = (),
+      ),
+  ]
 
 go_tool_binary = rule(
     _go_tool_binary_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = FileType([".go"])),
+        "importpath": attr.string(),
         #TODO(toolchains): Remove toolchain attribute when we switch to real toolchains
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:bootstrap_toolchain")),
+        "_go_prefix": attr.label(default=Label("//:go_prefix", relative_to_caller_repository = True)),
     },
     executable = True,
 )
