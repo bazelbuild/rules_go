@@ -151,7 +151,7 @@ func run(args []string) error {
 		// This is so we can still run the cgo tool to build all the other outputs
 		nullCgo := filepath.Join(objdir, "_cgo_empty.go")
 		cgoSrcs = append(cgoSrcs, nullCgo)
-		if err := ioutil.WriteFile(nullCgo, []byte("package "+pkg+"\n/* const int ___no_cgo_present; */\nimport \"C\"\n"), 0644); err != nil {
+		if err := ioutil.WriteFile(nullCgo, []byte("package "+pkg+"\n/*\n*/\nimport \"C\"\n"), 0644); err != nil {
 			return err
 		}
 	}
