@@ -16,64 +16,6 @@ load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_exts",
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 
-def cgo_genrule(tags=[], **kwargs):
-  return cgo_library(tags=tags+["manual"], **kwargs)
-
-def cgo_library(name, srcs,
-                go_toolchain=None,
-                go_tool=None,
-                copts=[],
-                clinkopts=[],
-                cdeps=[],
-                **kwargs):
-  """Builds a cgo-enabled go library.
-
-  Args:
-    name: A unique name for this rule.
-    srcs: List of Go, C and C++ files that are processed to build a Go library.
-      Those Go files must contain `import "C"`.
-      C and C++ files can be anything allowed in `srcs` attribute of
-      `cc_library`.
-    copts: Add these flags to the C++ compiler.
-    clinkopts: Add these flags to the C++ linker.
-    cdeps: List of C/C++ libraries to be linked into the binary target.
-      They must be `cc_library` rules.
-    deps: List of other libraries to be linked to this library target.
-    data: List of files needed by this rule at runtime.
-
-  NOTE:
-    `srcs` cannot contain pure-Go files, which do not have `import "C"`.
-    So you need to define another `go_library` when you build a go package with
-    both cgo-enabled and pure-Go sources.
-
-    ```
-    cgo_library(
-        name = "cgo_enabled",
-        srcs = ["cgo-enabled.go", "foo.cc", "bar.S", "baz.a"],
-    )
-
-    go_library(
-        name = "go_default_library",
-        srcs = ["pure-go.go"],
-        library = ":cgo_enabled",
-    )
-    ```
-  """
-  cgogen = setup_cgo_library(
-      name = name,
-      srcs = srcs,
-      cdeps = cdeps,
-      copts = copts,
-      clinkopts = clinkopts,
-  )
-
-  go_library(
-      name = name,
-      srcs = cgogen.go_srcs,
-      cgo_object = cgogen.cgo_object,
-      **kwargs
-  )
-
 def _cgo_select_go_files_impl(ctx):
   return struct(files = ctx.attr.dep.go_files)
 

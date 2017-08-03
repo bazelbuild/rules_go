@@ -18,10 +18,9 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     _GoBinary = "GoBinary",
 )
 load("@io_bazel_rules_go//go/private:repositories.bzl", "go_repositories")
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "new_go_repository")
+load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load("@io_bazel_rules_go//go/private:go_prefix.bzl", "go_prefix")
 load("@io_bazel_rules_go//go/private:embed_data.bzl", "go_embed_data")
-load("@io_bazel_rules_go//go/private:cgo.bzl", "cgo_library", "cgo_genrule")
 load("@io_bazel_rules_go//go/private:gazelle.bzl", "gazelle")
 load("@io_bazel_rules_go//go/private:wrappers.bzl",
     _go_library_macro = "go_library_macro",
@@ -123,3 +122,18 @@ go_test = _go_test_macro
         "copts": attr.string_list(), # Options for the the c compiler
         "clinkopts": attr.string_list(), # Options for the linker
 """
+
+
+# Compatability shims
+def cgo_genrule(name, tags=[], **kwargs):
+  print("DEPRECATED: {0} : cgo_genrule is deprecated. Please migrate to go_library with cgo=True.".format(name))
+  return go_library(name=name, tags=tags+["manual"], cgo=True, **kwargs)
+
+def cgo_library(name, **kwargs):
+  print("DEPRECATED: {0} : cgo_library is deprecated. Please migrate to go_library with cgo=True.".format(name))
+  return go_library(name=name, cgo=True, **kwargs)
+
+def new_go_repository(name, **kwargs):
+  print("DEPRECATED: {0} : new_go_repository is deprecated. Please migrate to go_repository soon.".format(name))
+  return go_repository(name=name, **kwargs)
+
