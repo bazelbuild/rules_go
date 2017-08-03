@@ -487,7 +487,133 @@ cgo_library(
         "-g",  # keep
         "-O2",
     ],
-    clinkopts = ["-lpng"],
+    clinkopts = [
+        "-lpng",
+    ],
+)
+`,
+	}, {
+		desc: "keep scalar attr",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    library = ":lib",  # keep
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    library = ":lib",  # keep
+)
+`,
+	}, {
+		desc: "don't delete list with keep",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "one.go",  # keep
+    ],
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "one.go",  # keep
+    ],
+)
+`,
+	}, {
+		desc: "keep list multiline",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "one.go",  # keep
+        "two.go",
+    ],
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "one.go",  # keep
+    ],
+)
+`,
+	}, {
+		desc: "keep dict list multiline",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "darwin_amd64": [
+            "one_darwin.go",  # keep
+        ],
+        "linux_arm": [
+            "one_linux.go",  # keep
+            "two_linux.go",
+        ],
+    }),
+)
+`,
+		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "darwin_amd64": [
+            "one_darwin.go",  # keep
+        ],
+        "linux_arm": [
+            "one_linux.go",  # keep
+        ],
+    }),
 )
 `,
 	},
@@ -495,36 +621,35 @@ cgo_library(
 
 func TestMergeWithExisting(t *testing.T) {
 	for _, tc := range testCases {
-		genFile, err := bf.Parse("current", []byte(tc.current))
-		if err != nil {
-			t.Errorf("%s: %v", tc.desc, err)
-			continue
-		}
-		oldFile, err := bf.Parse("previous", []byte(tc.previous))
-		if err != nil {
-			t.Errorf("%s: %v", tc.desc, err)
-			continue
-		}
-		mergedFile := MergeWithExisting(genFile, oldFile)
-		if mergedFile == nil {
-			if !tc.ignore {
-				t.Errorf("%s: got nil; want file", tc.desc)
+		t.Run(tc.desc, func(t *testing.T) {
+			genFile, err := bf.Parse("current", []byte(tc.current))
+			if err != nil {
+				t.Fatalf("%s: %v", tc.desc, err)
 			}
-			continue
-		}
-		if mergedFile != nil && tc.ignore {
-			t.Errorf("%s: got file; want nil", tc.desc)
-			continue
-		}
+			oldFile, err := bf.Parse("previous", []byte(tc.previous))
+			if err != nil {
+				t.Fatalf("%s: %v", tc.desc, err)
+			}
+			mergedFile := MergeWithExisting(genFile, oldFile)
+			if mergedFile == nil {
+				if !tc.ignore {
+					t.Errorf("%s: got nil; want file", tc.desc)
+				}
+				return
+			}
+			if mergedFile != nil && tc.ignore {
+				t.Fatalf("%s: got file; want nil", tc.desc)
+			}
 
-		want := tc.expected
-		if len(want) > 0 && want[0] == '\n' {
-			want = want[1:]
-		}
+			want := tc.expected
+			if len(want) > 0 && want[0] == '\n' {
+				want = want[1:]
+			}
 
-		if got := string(bf.Format(mergedFile)); got != want {
-			t.Errorf("%s: got %s; want %s", tc.desc, got, want)
-		}
+			if got := string(bf.Format(mergedFile)); got != want {
+				t.Fatalf("%s: got %s; want %s", tc.desc, got, want)
+			}
+		})
 	}
 }
 

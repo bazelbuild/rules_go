@@ -113,7 +113,7 @@ func mergeRule(gen, old *bf.CallExpr) *bf.CallExpr {
 	// Assume generated attributes have no comments.
 	for _, k := range oldRule.AttrKeys() {
 		oldAttr := oldRule.AttrDefn(k)
-		if !mergeableFields[k] {
+		if !mergeableFields[k] || shouldKeep(oldAttr) {
 			merged.List = append(merged.List, oldAttr)
 			continue
 		}
@@ -156,19 +156,13 @@ func mergeRule(gen, old *bf.CallExpr) *bf.CallExpr {
 // An error is returned if the expressions can't be merged, for example
 // because they are not in one of the above formats.
 func mergeExpr(gen, old bf.Expr) (bf.Expr, error) {
-	if gen == nil {
-		if shouldKeep(old) {
-			return old, nil
-		}
+	if shouldKeep(old) {
+		return old, nil
+	}
+	if gen == nil && (old == nil || isScalar(old)) {
 		return nil, nil
 	}
-
-	switch gen.(type) {
-	case *bf.StringExpr:
-	case *bf.LiteralExpr:
-		if shouldKeep(old) {
-			return old, nil
-		}
+	if isScalar(gen) {
 		return gen, nil
 	}
 
@@ -270,9 +264,11 @@ func mergeList(gen, old *bf.ListExpr) *bf.ListExpr {
 
 	var merged []bf.Expr
 	kept := make(map[string]bool)
+	keepComment := false
 	for _, v := range old.List {
 		s := stringValue(v)
-		if shouldKeep(v) || genSet[s] {
+		if keep := shouldKeep(v); keep || genSet[s] {
+			keepComment = keepComment || keep
 			merged = append(merged, v)
 			if s != "" {
 				kept[s] = true
@@ -291,7 +287,10 @@ func mergeList(gen, old *bf.ListExpr) *bf.ListExpr {
 	if len(merged) == 0 {
 		return nil
 	}
-	return &bf.ListExpr{List: merged}
+	return &bf.ListExpr{
+		List:           merged,
+		ForceMultiLine: gen.ForceMultiLine || old.ForceMultiLine || keepComment,
+	}
 }
 
 func mergeDict(gen, old *bf.DictExpr) (*bf.DictExpr, error) {
@@ -494,6 +493,15 @@ func kind(c *bf.CallExpr) string {
 
 func name(c *bf.CallExpr) string {
 	return (&bf.Rule{c}).Name()
+}
+
+func isScalar(e bf.Expr) bool {
+	switch e.(type) {
+	case *bf.StringExpr, *bf.LiteralExpr:
+		return true
+	default:
+		return false
+	}
 }
 
 func stringValue(e bf.Expr) string {
