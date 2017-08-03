@@ -20,7 +20,7 @@ $BASE/{gazelle} {args} $@
 """
 
 def _gazelle_script_impl(ctx):
-  args = ctx.attr.args
+  args = [ctx.attr.command] + ctx.attr.args
   args += [
       "-repo_root", "$WORKSPACE",
       "-go_prefix", ctx.attr._go_prefix.go_prefix,
@@ -40,10 +40,11 @@ def _gazelle_script_impl(ctx):
 _gazelle_script = rule(
     _gazelle_script_impl,
     attrs = {
-        "mode": attr.string(mandatory=True, values=["print", "fix", "diff"]),
-        "external": attr.string(mandatory=True, values=["external", "vendored"]),
-        "build_tags": attr.string_list(mandatory=True),
-        "args": attr.string_list(mandatory=True),
+        "command": attr.string(values=["update", "fix"], default="update"),
+        "mode": attr.string(values=["print", "fix", "diff"], default="fix"),
+        "external": attr.string(values=["external", "vendored"], default="external"),
+        "build_tags": attr.string_list(),
+        "args": attr.string_list(),
         "_gazelle": attr.label(
             default = Label("@io_bazel_rules_go//go/tools/gazelle/gazelle:gazelle"),
             allow_files = True,
@@ -58,15 +59,12 @@ _gazelle_script = rule(
     }
 )
 
-def gazelle(name, mode = "fix", external="external", build_tags=[], args = []):
+def gazelle(name, **kwargs):
   script_name = name+"_script"
   _gazelle_script(
       name = script_name,
-      mode = mode,
-      external = external,
-      build_tags = build_tags,
-      args = args,
       tags = ["manual"],
+      **kwargs
   )
   native.sh_binary(
       name = name,
