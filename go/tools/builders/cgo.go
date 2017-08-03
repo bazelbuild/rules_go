@@ -83,7 +83,7 @@ func run(args []string) error {
 	bctx := build.Default
 	bctx.CgoEnabled = true
 	cgoSrcs := []string{}
-	pkg := ""
+	pkgName := ""
 	for _, s := range sources {
 		bits := strings.SplitN(s, "=", 2)
 		if len(bits) != 2 {
@@ -119,11 +119,14 @@ func run(args []string) error {
 
 		// Go source, must produce both c and go outputs
 		cOut := strings.TrimSuffix(out, ".cgo1.go") + ".cgo2.c"
-		isCgo := false
-		isCgo, pkg, err = testCgo(in, data)
+		isCgo, pkg, err := testCgo(in, data)
 		if err != nil {
 			return err
 		}
+		if pkg == "" {
+			return fmt.Errorf("%s: error: could not parse package name", in)
+		}
+
 		if !match {
 			// filtered file, fake both the go and the c
 			if err := ioutil.WriteFile(out, []byte("package "+pkg), 0644); err != nil {
@@ -132,7 +135,15 @@ func run(args []string) error {
 			if err := ioutil.WriteFile(cOut, []byte(""), 0644); err != nil {
 				return err
 			}
-		} else if isCgo {
+			continue
+		}
+
+		if pkgName != "" && pkg != pkgName {
+			return fmt.Errorf("multiple packages found: %s and %s", pkgName, pkg)
+		}
+		pkgName = pkg
+
+		if isCgo {
 			// add to cgo file list
 			cgoSrcs = append(cgoSrcs, in)
 		} else {
@@ -145,13 +156,16 @@ func run(args []string) error {
 			}
 		}
 	}
+	if pkgName == "" {
+		return fmt.Errorf("no buildable Go source files found")
+	}
 
 	if len(cgoSrcs) == 0 {
 		// If there were no cgo sources present, generate a minimal cgo input
 		// This is so we can still run the cgo tool to build all the other outputs
 		nullCgo := filepath.Join(objdir, "_cgo_empty.go")
 		cgoSrcs = append(cgoSrcs, nullCgo)
-		if err := ioutil.WriteFile(nullCgo, []byte("package "+pkg+"\n/*\n*/\nimport \"C\"\n"), 0644); err != nil {
+		if err := ioutil.WriteFile(nullCgo, []byte("package "+pkgName+"\n/*\n*/\nimport \"C\"\n"), 0644); err != nil {
 			return err
 		}
 	}
@@ -178,6 +192,8 @@ func run(args []string) error {
 }
 
 func main() {
+	log.SetPrefix("CgoCodegen: ")
+	log.SetFlags(0) // don't print timestamps
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
