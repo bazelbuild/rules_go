@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype", "pkg_dir")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype", "split_srcs", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
@@ -25,7 +25,7 @@ def _go_test_impl(ctx):
 
   go_toolchain = get_go_toolchain(ctx)
   lib_result = emit_library_actions(ctx,
-      sources = depset(ctx.files.srcs),
+      srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
       library = ctx.attr.library,
@@ -42,8 +42,9 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
+  go_srcs = list(split_srcs(lib_result.srcs).go)
   ctx.action(
-      inputs = list(lib_result.go_sources),
+      inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
       executable = go_toolchain.test_generator,
@@ -54,7 +55,7 @@ def _go_test_impl(ctx):
           run_dir,
           '--output',
           main_go.path,
-      ] + [src.path for src in lib_result.go_sources],
+      ] + [src.path for src in go_srcs],
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 

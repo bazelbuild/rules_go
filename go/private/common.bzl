@@ -68,3 +68,39 @@ def pkg_dir(workspace_root, package_name):
   if package_name:
     return package_name
   return "."
+
+def dict_of(st):
+  """Converts struct objects into dictionaries."""
+  data = dict()
+  for key in dir(st):
+    value = getattr(st, key, None)
+    if value != None: # skip methods
+      data[key] = value
+  return data
+
+
+def split_srcs(srcs):
+  go = depset()
+  headers = depset()
+  asm = depset()
+  c = depset()
+  for src in srcs:
+    if any([src.basename.endswith(ext) for ext in go_exts]):
+      go += [src]
+    elif any([src.basename.endswith(ext) for ext in hdr_exts]):
+      headers += [src]
+    elif any([src.basename.endswith(ext) for ext in asm_exts]):
+      asm += [src]
+    elif any([src.basename.endswith(ext) for ext in c_exts]):
+      c += [src]
+    else:
+      fail("Unknown source type {0}".format(src.basename))
+  return struct(
+      go = go,
+      headers = headers,
+      asm = asm,
+      c = c,
+  )
+
+def join_srcs(source):
+  return depset() + source.go + source.headers + source.asm + source.c

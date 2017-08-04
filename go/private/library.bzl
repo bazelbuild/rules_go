@@ -12,24 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype", "dict_of", "split_srcs", "join_srcs")
 load("@io_bazel_rules_go//go/private:asm.bzl", "emit_go_asm_action")
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoSource")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 
-def emit_library_actions(ctx, sources, deps, cgo_object, library, want_coverage):
+def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
   go_toolchain = get_go_toolchain(ctx)
-
-  go_srcs = depset([s for s in sources if s.basename.endswith('.go')])
-  asm_srcs = [s for s in sources if s.basename.endswith('.s') or s.basename.endswith('.S')]
-  asm_hdrs = [s for s in sources if s.basename.endswith('.h')]
   dep_runfiles = [d.data_runfiles for d in deps]
-
   if library:
     golib = library[GoLibrary]
-    gosrc = library[GoSource]
-    go_srcs += gosrc.go_sources
-    asm_srcs += gosrc.asm_sources
-    asm_hdrs += gosrc.asm_headers
+    srcs = golib.srcs + srcs
     deps += golib.direct_deps
     dep_runfiles += [library.data_runfiles]
     if golib.cgo_object:
@@ -38,8 +30,11 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library, want_coverage)
              "already has cgo_object in %s" % (ctx.label.name,
                                                golib.name))
       cgo_object = golib.cgo_object
-  if not go_srcs:
-    fail("may not be empty", "srcs")
+  source = split_srcs(srcs)
+  if source.c:
+    fail("c sources in non cgo rule")
+  if not source.go:
+    fail("no go sources")
 
   transitive_cgo_deps = depset([], order="link")
   if cgo_object:
@@ -47,9 +42,9 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library, want_coverage)
     transitive_cgo_deps += cgo_object.cgo_deps
 
   extra_objects = [cgo_object.cgo_obj] if cgo_object else []
-  for src in asm_srcs:
+  for src in source.asm:
     obj = ctx.new_file(src, "%s.dir/%s.o" % (ctx.label.name, src.basename[:-2]))
-    emit_go_asm_action(ctx, src, asm_hdrs, obj)
+    emit_go_asm_action(ctx, src, source.headers, obj)
     extra_objects += [obj]
 
   importpath = go_importpath(ctx)
@@ -83,6 +78,7 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library, want_coverage)
     transitive_go_library_paths += golib.transitive_go_library_paths
     transitive_go_library_paths_race += golib.transitive_go_library_paths_race
 
+  go_srcs = source.go
   if want_coverage:
     go_srcs = _emit_go_cover_action(ctx, out_object, go_srcs)
 
@@ -113,6 +109,10 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library, want_coverage)
   for d in dep_runfiles:
     runfiles = runfiles.merge(d)
 
+  #TODO: for now, we return transformed sources, this will change
+  transformed = dict_of(source)
+  transformed["go"] = go_srcs
+
   return struct(
     label = ctx.label,
     files = depset([out_lib]),
@@ -121,9 +121,7 @@ def emit_library_actions(ctx, sources, deps, cgo_object, library, want_coverage)
     searchpath = searchpath,
     searchpath_race = searchpath_race,
     runfiles = runfiles,
-    go_sources = go_srcs,
-    asm_sources = asm_srcs,
-    asm_headers = asm_hdrs,
+    srcs = join_srcs(struct(**transformed)),
     importpath = importpath,
     cgo_object = cgo_object,
     direct_deps = deps,
@@ -141,7 +139,7 @@ def _go_library_impl(ctx):
   if hasattr(ctx.attr, "cgo_object"):
     cgo_object = ctx.attr.cgo_object
   lib_result = emit_library_actions(ctx,
-      sources = depset(ctx.files.srcs),
+      srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = cgo_object,
       library = ctx.attr.library,
@@ -164,11 +162,7 @@ def _go_library_impl(ctx):
           transitive_go_library_paths = lib_result.transitive_go_library_paths,
           transitive_go_library_paths_race = lib_result.transitive_go_library_paths_race,
           gc_goopts = lib_result.gc_goopts,
-      ),
-      GoSource(
-          go_sources = lib_result.go_sources,
-          asm_sources = lib_result.asm_sources,
-          asm_headers = lib_result.asm_headers,
+          srcs = lib_result.srcs,
       ),
       DefaultInfo(
           files = lib_result.files,

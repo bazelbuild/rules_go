@@ -19,7 +19,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
   lib_result = emit_library_actions(ctx,
-      sources = depset(ctx.files.srcs),
+      srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
       library = ctx.attr.library,

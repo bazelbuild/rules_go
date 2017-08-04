@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    _GoSource = "GoSource",
     _GoLibrary = "GoLibrary",
     _GoBinary = "GoBinary",
 )
@@ -27,13 +26,6 @@ load("@io_bazel_rules_go//go/private:wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_test_macro = "go_test_macro",
 )
-
-GoSource = _GoSource
-"""
-This is the provider used to expose a go sources to other rules.
-It provides the following fields:
-  TODO: List all the provider fields here
-"""
 
 GoLibrary = _GoLibrary
 """
@@ -52,7 +44,7 @@ It provides the following fields:
 go_library = _go_library_macro
 """
     go_library is a macro for building go libraries.
-    It returns the GoSource and GoLibrary providers,
+    It returns the GoLibrary providers,
     and accepts the following attributes:
         "importpath": attr.string(),
         # inputs

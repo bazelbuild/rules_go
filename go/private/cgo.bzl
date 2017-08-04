@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_exts", "hdr_exts", "c_exts", "asm_exts", "pkg_dir")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "dict_of", "split_srcs", "join_srcs", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 
 def _cgo_select_go_files_impl(ctx):
   return struct(files = ctx.attr.dep.go_files)
@@ -26,9 +27,13 @@ def _cgo_select_main_c_impl(ctx):
 
 _cgo_select_main_c = rule(_cgo_select_main_c_impl, attrs = {"dep": attr.label()})
 
+def _mangle(ctx, src):
+    src_stem, _, src_ext = src.path.rpartition('.')
+    mangled_stem = ctx.attr.out_dir + "/" + src_stem.replace('/', '_')
+    return mangled_stem, src_ext 
+
 def _cgo_codegen_impl(ctx):
   go_toolchain = get_go_toolchain(ctx)
-  srcs = ctx.files.srcs
   linkopts = ctx.attr.linkopts
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   deps = depset([], order="topological")
@@ -43,33 +48,31 @@ def _cgo_codegen_impl(ctx):
 
   c_outs = depset([cgo_export_h, cgo_export_c])
   go_outs = depset([cgo_types])
-  hdrs = []
 
-  for src in srcs:
-    src_stem, _, src_ext = src.path.rpartition('.')
-    mangled_stem = ctx.attr.out_dir + "/" + src_stem.replace('/', '_')
-    if any([src.basename.endswith(ext) for ext in hdr_exts]):
+  source = split_srcs(ctx.files.srcs)
+  for src in source.headers:
       copts += ['-iquote', src.dirname]
-      hdrs += [src]
-    elif any([src.basename.endswith(ext) for ext in go_exts]):
-      gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
-      gen_c_file = ctx.new_file(mangled_stem + ".cgo2.c")
-      go_outs += [gen_file]
-      c_outs += [gen_c_file]
-      args += ["-src", gen_file.path + "=" + src.path]
-    elif any([src.basename.endswith(ext) for ext in asm_exts]):
-      gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
-      go_outs += [gen_file]
-      args += ["-src", gen_file.path + "=" + src.path]
-    elif any([src.basename.endswith(ext) for ext in c_exts]):
-      gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
-      c_outs += [gen_file]
-      args += ["-src", gen_file.path + "=" + src.path]
-    else:
-      fail("Unknown source type {0} in {1}".format(src.basename, ctx.label))
+  for src in source.go:
+    mangled_stem, src_ext = _mangle(ctx, src)
+    gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+    gen_c_file = ctx.new_file(mangled_stem + ".cgo2.c")
+    go_outs += [gen_file]
+    c_outs += [gen_c_file]
+    args += ["-src", gen_file.path + "=" + src.path]
+  for src in source.asm:
+    mangled_stem, src_ext = _mangle(ctx, src)
+    gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+    go_outs += [gen_file]
+    args += ["-src", gen_file.path + "=" + src.path]
+  for src in source.c:
+    mangled_stem, src_ext = _mangle(ctx, src)
+    gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+    c_outs += [gen_file]
+    args += ["-src", gen_file.path + "=" + src.path]
 
+  inputs = ctx.files.srcs + go_toolchain.tools + go_toolchain.crosstool
   for d in ctx.attr.deps:
-    srcs += list(d.cc.transitive_headers)
+    inputs += list(d.cc.transitive_headers)
     deps += d.cc.libs
     copts += ['-D' + define for define in d.cc.defines]
     for inc in d.cc.include_directories:
@@ -88,11 +91,9 @@ def _cgo_codegen_impl(ctx):
   # The first -- below is to stop the cgo from processing args, the
   # second is an actual arg to forward to the underlying go tool
   args += ["--", "--"] + copts
-  inputs = srcs + go_toolchain.tools + go_toolchain.crosstool
-  outputs = list(c_outs + go_outs + [cgo_main])
   ctx.action(
       inputs = inputs,
-      outputs = outputs,
+      outputs = list(c_outs + go_outs + [cgo_main]),
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go_toolchain.cgo,
@@ -101,9 +102,10 @@ def _cgo_codegen_impl(ctx):
           "CGO_LDFLAGS": " ".join(linkopts),
       },
   )
+  
   return struct(
       label = ctx.label,
-      files = c_outs + hdrs,
+      files = c_outs + source.headers,
       go_files = go_outs,
       main_c = depset([cgo_main]),
       cgo_deps = deps,
