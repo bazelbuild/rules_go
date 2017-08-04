@@ -25,7 +25,7 @@ def _go_test_impl(ctx):
 
   go_toolchain = get_go_toolchain(ctx)
   lib_result = emit_library_actions(ctx,
-      sources = depset(ctx.files.srcs),
+      srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
       library = ctx.attr.library,
@@ -43,7 +43,7 @@ def _go_test_impl(ctx):
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
   ctx.action(
-      inputs = list(lib_result.go_sources),
+      inputs = list(lib_result.source.go),
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
       executable = go_toolchain.test_generator,
@@ -54,7 +54,7 @@ def _go_test_impl(ctx):
           run_dir,
           '--output',
           main_go.path,
-      ] + [src.path for src in lib_result.go_sources],
+      ] + [src.path for src in lib_result.source.go],
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 

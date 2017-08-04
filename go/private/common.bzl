@@ -68,3 +68,29 @@ def pkg_dir(workspace_root, package_name):
   if package_name:
     return package_name
   return "."
+
+def dict_of(st):
+  """Converts struct objects into dictionaries."""
+  data = dict()
+  for key in dir(st):
+    value = getattr(st, key, None)
+    if value != None: # skip methods
+      data[key] = value
+  return data
+
+def merge(a, b):
+  """Merges two structs by assuming that all fields present support +="""
+  data = dict_of(a)
+  for key, value in dict_of(b).items():
+    if key in data:
+      data[key] += value
+    else:
+      data[key] = value
+  return data
+
+def replace(a, b):
+  """Returns a dict where values from b are used when present in both a and b"""
+  data = dict_of(a)
+  for key, value in dict_of(b).items():
+    data[key] = value
+  return data
