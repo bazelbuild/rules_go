@@ -25,6 +25,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 type fileSpec struct {
@@ -56,6 +58,29 @@ func createFiles(files []fileSpec) (string, error) {
 		}
 	}
 	return dir, nil
+}
+
+func checkFiles(t *testing.T, dir string, files []fileSpec) {
+	for _, f := range files {
+		path := filepath.Join(dir, f.path)
+		if strings.HasSuffix(f.path, "/") {
+			if st, err := os.Stat(path); err != nil {
+				t.Errorf("could not stat %s: %v", f.path, err)
+			} else if !st.IsDir() {
+				t.Errorf("not a directory: %s", f.path)
+			}
+		} else {
+			gotBytes, err := ioutil.ReadFile(filepath.Join(dir, f.path))
+			if err != nil {
+				t.Errorf("could not read %s: %v", f.path, err)
+				continue
+			}
+			got := string(gotBytes)
+			if got != f.content {
+				t.Errorf("%s: got %s ; want %s", f.path, got, f.content)
+			}
+		}
+	}
 }
 
 func runGazelle(wd string, args []string) error {
@@ -351,13 +376,160 @@ go_library(
 	}
 }
 
+func TestMultipleDirectories(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path:    "a/a.go",
+			content: "package a",
+		}, {
+			path:    "b/b.go",
+			content: "package b",
+		},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"-go_prefix", "example.com/foo", "a", "b"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+	for _, d := range []string{"a", "b"} {
+		path := filepath.Join(dir, d, config.DefaultValidBuildFileNames[0])
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("directory %s not visited: %v", d, err)
+		}
+	}
+}
+
+func TestErrorOutsideWorkspace(t *testing.T) {
+	files := []fileSpec{
+		{path: "a/"},
+		{path: "b/"},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	cases := []struct {
+		name, dir, want string
+		args            []string
+	}{
+		{
+			name: "outside workspace",
+			dir:  dir,
+			args: nil,
+			want: "WORKSPACE cannot be found",
+		}, {
+			name: "outside repo_root",
+			dir:  filepath.Join(dir, "a"),
+			args: []string{"-repo_root", filepath.Join(dir, "b")},
+			want: "not a subdirectory of repo root",
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if err := runGazelle(c.dir, c.args); err == nil {
+				t.Fatal("got success; want %q", c.want)
+			} else if !strings.Contains(err.Error(), c.want) {
+				t.Fatal("got %q; want %q", err, c.want)
+			}
+		})
+	}
+}
+
+func TestBuildFileNameIgnoresBuild(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{path: "BUILD/"},
+		{
+			path:    "a/BUILD",
+			content: "!!! parse error",
+		}, {
+			path:    "a.go",
+			content: "package a",
+		},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(dir)
+
+	args := []string{"-go_prefix", "example.com/foo", "-build_file_name", "BUILD.bazel"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "BUILD.bazel")); err != nil {
+		t.Errorf("BUILD.bazel not created: %v", err)
+	}
+}
+
+func TestExternalVendor(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: "a.go",
+			content: `package foo
+
+import _ "golang.org/x/bar"
+`,
+		}, {
+			path: "vendor/golang.org/x/bar/bar.go",
+			content: `package bar
+
+import _ "golang.org/x/baz"
+`,
+		}, {
+			path:    "vendor/golang.org/x/baz/baz.go",
+			content: "package baz",
+		},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"-go_prefix", "example.com/foo", "-external", "vendored"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+
+	checkFiles(t, dir, []fileSpec{
+		{
+			path: config.DefaultValidBuildFileNames[0],
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+
+go_prefix("example.com/foo")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["a.go"],
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/golang.org/x/bar:go_default_library"],
+)
+`,
+		}, {
+			path: "vendor/golang.org/x/bar/" + config.DefaultValidBuildFileNames[0],
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bar.go"],
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/golang.org/x/baz:go_default_library"],
+)
+`,
+		},
+	})
+}
+
 // TODO(jayconrod): more tests
-//   multiple directories can be visited
-//   error if directory not under -repo_root
-//   -go_prefix will create empty file if not already present
-//   -go_prefix will change existing file if present
-//   -build_file_name to BUILD.bazel ignores BUILD files
-//   "BUILD" directory doesn't cause problems
-//   -external vendor works
 //   run in fix mode in testdata directories to create new files
 //   run in diff mode in testdata directories to update existing files (no change)
