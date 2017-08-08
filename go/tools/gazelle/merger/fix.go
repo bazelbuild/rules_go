@@ -284,7 +284,7 @@ func fixLoads(oldFile *bf.File) *bf.File {
 	var newFirstLoad *bf.CallExpr
 	if len(loads) == 0 {
 		newFirstLoad = fixLoad(nil, usedKinds)
-		changed = true
+		changed = newFirstLoad != nil
 	} else {
 		for i := 0; i < len(loads); i++ {
 			if i == 0 {
@@ -376,6 +376,10 @@ func fixLoad(load *bf.CallExpr, kinds map[string]bool) *bf.CallExpr {
 		}
 	}
 	if added == 0 && removed == 0 {
+		if load != nil && len(load.List) == 1 {
+			// Special case: delete existing empty load.
+			return nil
+		}
 		return load
 	}
 

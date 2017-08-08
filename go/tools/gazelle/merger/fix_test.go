@@ -176,6 +176,31 @@ go_library(
 		},
 		// fixLoads tests
 		{
+			desc: "empty file",
+			old:  "",
+			want: "",
+		}, {
+			desc: "non-Go file",
+			old: `load("@io_bazel_rules_intercal//intercal:def.bzl", "intercal_library")
+
+intercal_library(
+    name = "intercal_default_library",
+    srcs = ["foo.ic"],
+)
+`,
+			want: `load("@io_bazel_rules_intercal//intercal:def.bzl", "intercal_library")
+
+intercal_library(
+    name = "intercal_default_library",
+    srcs = ["foo.ic"],
+)
+`,
+		}, {
+			desc: "empty Go load",
+			old: `load("@io_bazel_rules_go//go:def.bzl")
+`,
+			want: "",
+		}, {
 			desc: "add and remove loaded symbols",
 			old: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
