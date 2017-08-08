@@ -27,30 +27,21 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
 )
 
-var (
-	coverFileRegexp = regexp.MustCompile(".+_(?P<cover_var>GoCover_\\d+)\\.cover\\.go")
-
-	testCover      bool     // -cover flag
-	testCoverMode  string   // -covermode flag
-	testCoverPaths []string // -coverpkg flag
-)
-
-// CoverVar holds the name of the generated coverage variables targeting
-// the named file.
-type CoverVar struct {
-	File string // local file name
-	Var  string // name of count struct
+type CoverFile struct {
+	File string
+	Var  string
 }
 
-type coverInfo struct {
-	Vars map[string]*CoverVar
+type CoverPackage struct {
+	Name   string
+	Import string
+	Files  []CoverFile
 }
 
 // Cases holds template data.
@@ -62,29 +53,7 @@ type Cases struct {
 	HasTestMain      bool
 	Version17        bool
 	Version18OrNewer bool
-	Cover            []coverInfo
-}
-
-func (c *Cases) CoverMode() string {
-	if testCoverMode == "" {
-		return "set"
-	}
-	return testCoverMode
-}
-
-func (c *Cases) CoverEnabled() bool {
-	return testCover
-}
-
-// Covered returns a string describing which packages are being tested for coverage.
-// If the covered package is the same as the tested package, it returns the empty string.
-// Otherwise it is a comma-separated human-readable list of packages beginning with
-// " in", ready for use in the coverage message.
-func (c *Cases) Covered() string {
-	if testCoverPaths == nil {
-		return ""
-	}
-	return " in " + strings.Join(testCoverPaths, ", ")
+	Cover            []*CoverPackage
 }
 
 var codeTpl = `
@@ -93,6 +62,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"fmt"
 {{if .Version17}}
 	"regexp"
 {{end}}
@@ -107,11 +77,8 @@ import (
 	undertest "{{.Package}}"
 {{end}}
 
-{{if .CoverEnabled}}
-	{{$pkg := .Package}}
-	{{range $i, $p := .Cover}}
-		_cover{{$i}} {{$pkg | printf "%q"}}
-	{{end}}
+{{range $p := .Cover}}
+	{{$p.Name}} {{$p.Import | printf "%q"}}
 {{end}}
 )
 
@@ -127,31 +94,33 @@ var benchmarks = []testing.InternalBenchmark{
 {{end}}
 }
 
-{{if .CoverEnabled}}
-
-// Only updated by init functions, so no need for atomicity.
-var (
-	coverCounters = make(map[string][]uint32)
-	coverBlocks = make(map[string][]testing.CoverBlock)
-)
-
-func init() {
-	{{range $i, $p := .Cover}}
-	{{range $file, $cover := $p.Vars}}
-	coverRegisterFile({{printf "%q" $cover.File}}, _cover{{$i}}.{{$cover.Var}}.Count[:], _cover{{$i}}.{{$cover.Var}}.Pos[:], _cover{{$i}}.{{$cover.Var}}.NumStmt[:])
-	{{end}}
-	{{end}}
+func coverRegisterAll() testing.Cover {
+	coverage := testing.Cover{
+		Mode: "set",
+		CoveredPackages: "",
+		Counters: map[string][]uint32{},
+		Blocks: map[string][]testing.CoverBlock{},
+	}
+{{range $p := .Cover}}
+	//{{$p.Import}}
+{{range $v := $p.Files}}
+	{{$var := printf "%s.%s" $p.Name $v.Var}}
+	coverRegisterFile(&coverage, {{$v.File | printf "%q"}}, {{$var}}.Count[:], {{$var}}.Pos[:], {{$var}}.NumStmt[:])
+{{end}}
+{{end}}
+	return coverage
 }
 
-func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts []uint16) {
+func coverRegisterFile(coverage *testing.Cover, fileName string, counter []uint32, pos []uint32, numStmts []uint16) {
 	if 3*len(counter) != len(pos) || len(counter) != len(numStmts) {
 		panic("coverage: mismatched sizes")
 	}
-	if coverCounters[fileName] != nil {
+	if coverage.Counters[fileName] != nil {
 		// Already registered.
+		fmt.Printf("Already covered %s\n", fileName)
 		return
 	}
-	coverCounters[fileName] = counter
+	coverage.Counters[fileName] = counter
 	block := make([]testing.CoverBlock, len(counter))
 	for i := range counter {
 		block[i] = testing.CoverBlock{
@@ -162,9 +131,8 @@ func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts
 			Stmts: numStmts[i],
 		}
 	}
-	coverBlocks[fileName] = block
+	coverage.Blocks[fileName] = block
 }
-{{end}}
 
 func main() {
 	// Check if we're being run by Bazel and change directories if so.
@@ -181,14 +149,10 @@ func main() {
 		}
 	}
 
-{{if .CoverEnabled}}
-	testing.RegisterCover(testing.Cover{
-		Mode: {{printf "%q" .CoverMode}},
-		Counters: coverCounters,
-		Blocks: coverBlocks,
-		CoveredPackages: {{printf "%q" .Covered}},
-	})
-{{end}}
+	coverage := coverRegisterAll()
+	if len(coverage.Counters) > 0 {
+		testing.RegisterCover(coverage)
+	}
 
 {{if .Version18OrNewer}}
 	m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, nil)
@@ -210,11 +174,13 @@ func main() {
 
 func run(args []string) error {
 	// Prepare our flags
+	cover := multiFlag{}
 	flags := flag.NewFlagSet("generate_test_main", flag.ExitOnError)
 	pkg := flags.String("package", "", "package from which to import test methods.")
 	runDir := flags.String("rundir", ".", "Path to directory where tests should run.")
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
 	tags := flags.String("tags", "", "Only pass through files that match these tags.")
+	flags.Var(&cover, "cover", "Information about a coverage variable")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -240,24 +206,34 @@ func run(args []string) error {
 		defer outFile.Close()
 	}
 
-	ci := coverInfo{
-		Vars: map[string]*CoverVar{},
-	}
 	cases := Cases{
 		Package: *pkg,
 		RunDir:  filepath.FromSlash(*runDir),
-		Cover:   []coverInfo{ci},
 	}
+	covered := map[string]*CoverPackage{}
+	for _, c := range cover {
+		bits := strings.SplitN(c, "=", 3)
+		if len(bits) != 3 {
+			return fmt.Errorf("Invalid cover variable arg, expected var=file=package got %s", c)
+		}
+		importPath := bits[2]
+		pkg, found := covered[importPath]
+		if !found {
+			pkg = &CoverPackage{
+				Name:   fmt.Sprintf("covered%d", len(covered)),
+				Import: importPath,
+			}
+			covered[importPath] = pkg
+			cases.Cover = append(cases.Cover, pkg)
+		}
+		pkg.Files = append(pkg.Files, CoverFile{
+			File: bits[1],
+			Var:  bits[0],
+		})
+	}
+
 	testFileSet := token.NewFileSet()
 	for _, f := range filenames {
-		coverVar := extractCoverVar(f)
-		if coverVar != "" {
-			ci.Vars[f] = &CoverVar{
-				File: f,
-				Var:  coverVar,
-			}
-		}
-
 		parse, err := parser.ParseFile(testFileSet, f, nil, parser.ParseComments)
 		if err != nil {
 			return fmt.Errorf("ParseFile(%q): %v", f, err)
@@ -321,8 +297,6 @@ func run(args []string) error {
 		}
 	}
 
-	testCover = len(ci.Vars) > 0
-
 	goVersion, err := parseVersion(runtime.Version())
 	if err != nil {
 		return err
@@ -369,14 +343,6 @@ func (x version) Less(y version) bool {
 		}
 	}
 	return len(x) < len(y)
-}
-
-func extractCoverVar(fn string) string {
-	res := coverFileRegexp.FindStringSubmatch(fn)
-	if len(res) > 1 {
-		return res[1]
-	}
-	return ""
 }
 
 func main() {

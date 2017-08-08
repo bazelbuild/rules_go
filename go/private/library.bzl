@@ -69,9 +69,10 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
     transitive += golib.transitive
 
   go_srcs = source.go
+  cover_vars = ()
   if want_coverage:
-    go_srcs = _emit_go_cover_action(ctx, out_object, go_srcs)
-
+    go_srcs, cover_vars = _emit_go_cover_action(ctx, go_toolchain, go_srcs)
+    
   emit_go_compile_action(ctx,
       sources = go_srcs,
       golibs = direct,
@@ -114,6 +115,7 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
           cgo_deps = cgo_deps, # The direct cgo dependancies of this library
           gc_goopts = gc_goopts, # The options this library was compiled with
           runfiles = runfiles, # The runfiles needed for things including this library
+          cover_vars = cover_vars, # The cover variables for this library
       ),
       CgoLibrary(
           object = cgo_object,
@@ -248,7 +250,7 @@ def emit_go_pack_action(ctx, out_lib, objects):
       env = go_toolchain.env,
   )
 
-def _emit_go_cover_action(ctx, out_object, sources):
+def _emit_go_cover_action(ctx, go_toolchain, sources):
   """Construct the command line for test coverage instrument.
 
   Args:
@@ -260,10 +262,9 @@ def _emit_go_cover_action(ctx, out_object, sources):
   Returns:
     A list of Go source code files which might be coverage instrumented.
   """
-  go_toolchain = get_go_toolchain(ctx)
   outputs = []
   # TODO(linuxerwang): make the mode configurable.
-  count = 0
+  cover_vars = []
 
   for src in sources:
     if (not src.basename.endswith(".go") or 
@@ -272,8 +273,9 @@ def _emit_go_cover_action(ctx, out_object, sources):
       outputs += [src]
       continue
 
-    cover_var = "GoCover_%d" % count
-    out = ctx.new_file(out_object, out_object.basename + '_' + src.basename[:-3] + '_' + cover_var + '.cover.go')
+    cover_var = "Cover_" + src.basename[:-3].replace("-", "_").replace(".", "_")
+    cover_vars += ["{}={}".format(cover_var,src.short_path)]
+    out = ctx.new_file(cover_var + '.cover.go')
     outputs += [out]
     ctx.action(
         inputs = [src] + go_toolchain.tools,
@@ -283,6 +285,5 @@ def _emit_go_cover_action(ctx, out_object, sources):
         arguments = ["tool", "cover", "--mode=set", "-var=%s" % cover_var, "-o", out.path, src.path],
         env = go_toolchain.env,
     )
-    count += 1
 
-  return outputs
+  return outputs, tuple(cover_vars)

@@ -48,6 +48,7 @@ go_tool_binary(
     name = "generate_test_main",
     srcs = [
         "filter.go",
+        "flags.go",
         "generate_test_main.go",
     ],
     visibility = ["//visibility:public"],

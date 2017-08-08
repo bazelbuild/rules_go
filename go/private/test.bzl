@@ -41,21 +41,30 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-  go_srcs = list(split_srcs(golib.transformed).go)
+  go_srcs = list(split_srcs(golib.srcs).go)
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
+  arguments = [
+      '--package',
+      golib.importpath,
+      '--rundir',
+      run_dir,
+      '--output',
+      main_go.path,
+  ]
+  cover_vars = []
+  covered_libs = []
+  for golib in depset([golib]) + golib.transitive:
+    if golib.cover_vars:
+        covered_libs += [golib]
+        for var in golib.cover_vars:
+            arguments += ["-cover", "{}={}".format(var, golib.importpath)]
+
   ctx.action(
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
       executable = go_toolchain.test_generator,
-      arguments = [
-          '--package',
-          golib.importpath,
-          '--rundir',
-          run_dir,
-          '--output',
-          main_go.path,
-      ] + [src.path for src in go_srcs],
+      arguments = arguments + [src.path for src in go_srcs],
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 
@@ -66,7 +75,7 @@ def _go_test_impl(ctx):
       library = None,
       want_coverage = False,
       importpath = ctx.label.name + "~testmain~",
-      golibs = [golib],
+      golibs = [golib] + covered_libs,
   )
 
   mode = ""
