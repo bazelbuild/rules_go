@@ -47,7 +47,7 @@ The rules are in the alpha stage of development. They support:
 * tests
 * vendoring
 * cgo
-* auto generating BUILD files via gazelle
+* auto generating BUILD files via [gazelle](go/tools/gazelle/README.md)
 * protocol buffers (via extension //proto:go_proto_library.bzl)
 
 They currently do not support (in order of importance):
@@ -94,11 +94,10 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
 
     go_prefix("github.com/joe/project")
     gazelle(name = "gazelle")
-
     ```
 
-* If your project follows the structure that `go build` uses, you
-  can [generate your `BUILD` files](#generating-build-files) with Gazelle. If
+* If your project can be built with `go build`, you can
+  [generate your `BUILD` files](#generating-build-files) using Gazelle. If
   not, or if you just want to understand the things gazelle is going to
   generate for you, read on.
 
@@ -144,34 +143,24 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
 
 ## Generating build files
 
-If you project is compatible with the `go` tool, you can generate and update
-your `BUILD` files automatically using [Gazelle](go/tools/gazelle/README.md),
-a command line tool which is part of this repository.
+If your project can be built with `go build`, you can generate and update
+your `BUILD` files automatically using Gazelle, a tool included in this
+repository. See the [Gazelle README](go/tools/gazelle/README.md)
+for more information.
 
-* The gazelle rule in your root build file gives you the ability to build and
-  run gazelle on your project, this is the preferred way to use it. If you want
-  to you can also install Gazelle using the command below. This assumes this
-  repository
-  is checked out under [GOPATH](https://github.com/golang/go/wiki/GOPATH).
-
-```
-go install github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle
-```
-
-* To run Gazelle and update your `BUILD` files, run the command below from any
-  diretory in your project.
+The `gazelle` rule in your root BUILD file gives you the ability to build and
+run gazelle on your project using Bazel. This is the preferred way to run
+Gazelle.
 
 ```
 bazel run //:gazelle
 ```
 
-* By default, Gazelle assumes external dependencies are present in
-  your `WORKSPACE` file, following a certain naming convention. For example, it
-  expects the repository for `github.com/jane/utils` to be named
-  `@com_github_jane_utils`. If you prefer to use vendoring, add `external=vendored`
-  to the gazelle rule. See [Vendoring.md](Vendoring.md).
-
-See the [Gazelle README](go/tools/gazelle/README.md) for more information.
+By default, Gazelle assumes external dependencies are present in your
+`WORKSPACE` file, following a certain naming convention. For example, it expects
+the repository for `github.com/jane/utils` to be named
+`@com_github_jane_utils`. If you prefer to use vendoring, add
+`external=vendored` to the `gazelle` rule. See [Vendoring.md](Vendoring.md).
 
 ## Build modes
 
