@@ -32,7 +32,7 @@ def emit_go_asm_action(ctx, source, hdrs, out_obj):
   for inc in includes:
     asm_args += ["-I", inc]
   ctx.action(
-      inputs = inputs,
+      inputs = list(inputs),
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
       executable = go_toolchain.asm,
