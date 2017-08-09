@@ -24,7 +24,7 @@ def _go_test_impl(ctx):
   test into a binary."""
 
   go_toolchain = get_go_toolchain(ctx)
-  lib_result = emit_library_actions(ctx,
+  golib, _ = emit_library_actions(ctx,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
@@ -42,7 +42,7 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-  go_srcs = list(split_srcs(lib_result.srcs).go)
+  go_srcs = list(split_srcs(golib.srcs).go)
   ctx.action(
       inputs = go_srcs,
       outputs = [main_go],
@@ -50,7 +50,7 @@ def _go_test_impl(ctx):
       executable = go_toolchain.test_generator,
       arguments = [
           '--package',
-          lib_result.importpath,
+          golib.importpath,
           '--rundir',
           run_dir,
           '--output',
@@ -63,18 +63,18 @@ def _go_test_impl(ctx):
     emit_go_compile_action(
       ctx,
       sources=depset([main_go]),
-      libs=[lib_result.library],
-      lib_paths=[lib_result.searchpath],
-      direct_paths=[lib_result.importpath],
+      libs=[golib.library],
+      lib_paths=[golib.searchpath],
+      direct_paths=[golib.importpath],
       out_object=main_object,
       gc_goopts=get_gc_goopts(ctx),
     )
     emit_go_pack_action(ctx, main_lib, [main_object])
     emit_go_link_action(
       ctx,
-      transitive_go_library_paths=lib_result.transitive_go_library_paths,
-      transitive_go_libraries=lib_result.transitive_go_libraries,
-      cgo_deps=lib_result.transitive_cgo_deps,
+      transitive_go_library_paths=golib.transitive_go_library_paths,
+      transitive_go_libraries=golib.transitive_go_libraries,
+      cgo_deps=golib.transitive_cgo_deps,
       libs=[main_lib],
       executable=ctx.outputs.executable,
       gc_linkopts=gc_linkopts(ctx),
@@ -83,18 +83,18 @@ def _go_test_impl(ctx):
     emit_go_compile_action(
       ctx,
       sources=depset([main_go]),
-      libs=[lib_result.race],
-      lib_paths=[lib_result.searchpath_race],
-      direct_paths=[lib_result.importpath],
+      libs=[golib.race],
+      lib_paths=[golib.searchpath_race],
+      direct_paths=[golib.importpath],
       out_object=main_object,
       gc_goopts=get_gc_goopts(ctx) + ["-race"],
     )
     emit_go_pack_action(ctx, main_lib, [main_object])
     emit_go_link_action(
       ctx,
-      transitive_go_library_paths=lib_result.transitive_go_library_paths_race,
-      transitive_go_libraries=lib_result.transitive_go_libraries_race,
-      cgo_deps=lib_result.transitive_cgo_deps,
+      transitive_go_library_paths=golib.transitive_go_library_paths_race,
+      transitive_go_libraries=golib.transitive_go_libraries_race,
+      cgo_deps=golib.transitive_cgo_deps,
       libs=[main_lib],
       executable=ctx.outputs.executable,
       gc_linkopts=gc_linkopts(ctx) + ["-race"],
@@ -104,7 +104,7 @@ def _go_test_impl(ctx):
   # holding the data files, so open-source go tests continue to work
   # without code changes.
   runfiles = ctx.runfiles(files = [ctx.outputs.executable])
-  runfiles = runfiles.merge(lib_result.runfiles)
+  runfiles = runfiles.merge(golib.runfiles)
   return [
       GoBinary(
           executable = ctx.outputs.executable,

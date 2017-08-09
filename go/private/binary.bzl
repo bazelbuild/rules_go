@@ -18,7 +18,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
-  lib_result = emit_library_actions(ctx,
+  golib, _ = emit_library_actions(ctx,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
@@ -29,10 +29,10 @@ def _go_binary_impl(ctx):
   # Default (dynamic) linking
   emit_go_link_action(
       ctx,
-      transitive_go_libraries=lib_result.transitive_go_libraries,
-      transitive_go_library_paths=lib_result.transitive_go_library_paths,
-      cgo_deps=lib_result.transitive_cgo_deps,
-      libs=depset([lib_result.library]),
+      transitive_go_libraries=golib.transitive_go_libraries,
+      transitive_go_library_paths=golib.transitive_go_library_paths,
+      cgo_deps=golib.transitive_cgo_deps,
+      libs=depset([golib.library]),
       executable=ctx.outputs.executable,
       gc_linkopts=gc_linkopts(ctx),
       x_defs=ctx.attr.x_defs,
@@ -46,10 +46,10 @@ def _go_binary_impl(ctx):
   static_executable = ctx.new_file(ctx.attr.name + ".static")
   emit_go_link_action(
       ctx,
-      transitive_go_libraries=lib_result.transitive_go_libraries,
-      transitive_go_library_paths=lib_result.transitive_go_library_paths,
-      cgo_deps=lib_result.transitive_cgo_deps,
-      libs=depset([lib_result.library]),
+      transitive_go_libraries=golib.transitive_go_libraries,
+      transitive_go_library_paths=golib.transitive_go_library_paths,
+      cgo_deps=golib.transitive_cgo_deps,
+      libs=depset([golib.library]),
       executable=static_executable,
       gc_linkopts=gc_linkopts(ctx) + static_linkopts,
       x_defs=ctx.attr.x_defs,
@@ -59,10 +59,10 @@ def _go_binary_impl(ctx):
   race_executable = ctx.new_file(ctx.attr.name + ".race")
   emit_go_link_action(
     ctx,
-    transitive_go_libraries=lib_result.transitive_go_libraries_race,
-    transitive_go_library_paths=lib_result.transitive_go_library_paths_race,
-    cgo_deps=lib_result.transitive_cgo_deps,
-    libs=depset([lib_result.race]),
+    transitive_go_libraries=golib.transitive_go_libraries_race,
+    transitive_go_library_paths=golib.transitive_go_library_paths_race,
+    cgo_deps=golib.transitive_cgo_deps,
+    libs=depset([golib.race]),
     executable=race_executable,
     gc_linkopts=gc_linkopts(ctx) + ["-race"],
     x_defs=ctx.attr.x_defs,
@@ -73,11 +73,10 @@ def _go_binary_impl(ctx):
           executable = ctx.outputs.executable,
           static = static_executable,
           race = race_executable,
-          cgo_object = lib_result.cgo_object,
       ),
       DefaultInfo(
           files = depset([ctx.outputs.executable]),
-          runfiles = lib_result.runfiles,
+          runfiles = golib.runfiles,
       ),
       OutputGroupInfo(
           static = depset([static_executable]),

@@ -14,22 +14,23 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype", "dict_of", "split_srcs", "join_srcs")
 load("@io_bazel_rules_go//go/private:asm.bzl", "emit_go_asm_action")
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "CgoLibrary")
 
 def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
   go_toolchain = get_go_toolchain(ctx)
   dep_runfiles = [d.data_runfiles for d in deps]
   if library:
     golib = library[GoLibrary]
+    cgolib = library[CgoLibrary]
     srcs = golib.srcs + srcs
     deps += golib.direct_deps
     dep_runfiles += [library.data_runfiles]
-    if golib.cgo_object:
+    if cgolib.object:
       if cgo_object:
         fail("go_library %s cannot have cgo_object because the package " +
              "already has cgo_object in %s" % (ctx.label.name,
                                                golib.name))
-      cgo_object = golib.cgo_object
+      cgo_object = cgolib.object
   source = split_srcs(srcs)
   if source.c:
     fail("c sources in non cgo rule")
@@ -113,32 +114,34 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
   transformed = dict_of(source)
   transformed["go"] = go_srcs
 
-  return struct(
-    label = ctx.label,
-    files = depset([out_lib]),
-    library = out_lib,
-    race = race_lib,
-    searchpath = searchpath,
-    searchpath_race = searchpath_race,
-    runfiles = runfiles,
-    srcs = join_srcs(struct(**transformed)),
-    importpath = importpath,
-    cgo_object = cgo_object,
-    direct_deps = deps,
-    transitive_cgo_deps = transitive_cgo_deps,
-    transitive_go_libraries = transitive_go_library_deps + [out_lib],
-    transitive_go_libraries_race = transitive_go_library_deps_race + [race_lib],
-    transitive_go_library_paths = transitive_go_library_paths,
-    transitive_go_library_paths_race = transitive_go_library_paths_race,
-    gc_goopts = gc_goopts,
-  )
+  return [
+    GoLibrary(
+          library = out_lib,
+          race = race_lib,
+          searchpath = searchpath,
+          searchpath_race = searchpath_race,
+          srcs = join_srcs(struct(**transformed)),
+          importpath = importpath,
+          direct_deps = deps,
+          transitive_cgo_deps = transitive_cgo_deps,
+          transitive_go_libraries = transitive_go_library_deps + [out_lib],
+          transitive_go_libraries_race = transitive_go_library_deps_race + [race_lib],
+          transitive_go_library_paths = transitive_go_library_paths,
+          transitive_go_library_paths_race = transitive_go_library_paths_race,
+          gc_goopts = gc_goopts,
+          runfiles = runfiles,
+      ),
+      CgoLibrary(
+          object = cgo_object,
+      ),
+  ]
 
 def _go_library_impl(ctx):
   """Implements the go_library() rule."""
   cgo_object = None
   if hasattr(ctx.attr, "cgo_object"):
     cgo_object = ctx.attr.cgo_object
-  lib_result = emit_library_actions(ctx,
+  golib, cgolib = emit_library_actions(ctx,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = cgo_object,
@@ -146,30 +149,17 @@ def _go_library_impl(ctx):
       want_coverage = ctx.coverage_instrumented(),
   )
 
+  depset([golib])
+
   return [
-      GoLibrary(
-          label = ctx.label,
-          library = lib_result.library,
-          race = lib_result.race,
-          searchpath = lib_result.searchpath,
-          searchpath_race = lib_result.searchpath_race,
-          importpath = lib_result.importpath,
-          cgo_object = lib_result.cgo_object,
-          direct_deps = lib_result.direct_deps,
-          transitive_cgo_deps = lib_result.transitive_cgo_deps,
-          transitive_go_libraries = lib_result.transitive_go_libraries,
-          transitive_go_libraries_race = lib_result.transitive_go_libraries_race,
-          transitive_go_library_paths = lib_result.transitive_go_library_paths,
-          transitive_go_library_paths_race = lib_result.transitive_go_library_paths_race,
-          gc_goopts = lib_result.gc_goopts,
-          srcs = lib_result.srcs,
-      ),
+      golib,
+      cgolib,
       DefaultInfo(
-          files = lib_result.files,
-          runfiles = lib_result.runfiles,
+          files = depset([golib.library]),
+          runfiles = golib.runfiles,
       ),
       OutputGroupInfo(
-          race = depset([lib_result.race]),
+          race = depset([golib.race]),
       ),
   ]
 
