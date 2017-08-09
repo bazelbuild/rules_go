@@ -19,12 +19,17 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "CgoLibrary")
 def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, importpath, golibs=[]):
   go_toolchain = get_go_toolchain(ctx)
   dep_runfiles = [d.data_runfiles for d in deps]
+  direct = depset(golibs)
+  gc_goopts = tuple(ctx.attr.gc_goopts)
+  cgo_deps = depset()
   if library:
     golib = library[GoLibrary]
     cgolib = library[CgoLibrary]
-    srcs = golib.srcs + srcs
-    deps += golib.direct_deps
+    srcs = golib.transformed + srcs
+    direct += golib.direct
     dep_runfiles += [library.data_runfiles]
+    gc_goopts += golib.gc_goopts
+    cgo_deps += golib.cgo_deps
     if cgolib.object:
       if cgo_object:
         fail("go_library %s cannot have cgo_object because the package " +
@@ -37,10 +42,9 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
   if not source.go:
     fail("no go sources")
 
-  transitive_cgo_deps = depset([], order="link")
   if cgo_object:
     dep_runfiles += [cgo_object.data_runfiles]
-    transitive_cgo_deps += cgo_object.cgo_deps
+    cgo_deps += cgo_object.cgo_deps
 
   extra_objects = [cgo_object.cgo_obj] if cgo_object else []
   for src in source.asm:
@@ -55,29 +59,14 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
   race_lib =  ctx.new_file("~race~/"+lib_name)
   race_object = ctx.new_file("~race~/" + importpath + ".o")
   searchpath_race = race_lib.path[:-len(lib_name)]
-  gc_goopts = get_gc_goopts(ctx)
-  direct_go_library_deps = []
-  direct_go_library_deps_race = []
-  direct_search_paths = []
-  direct_search_paths_race = []
-  direct_import_paths = []
-  transitive_go_library_deps = depset()
-  transitive_go_library_deps_race = depset()
-  transitive_go_library_paths = depset([searchpath])
-  transitive_go_library_paths_race = depset([searchpath_race])
+
   for dep in deps:
-    golibs += [dep[GoLibrary]]
-  for golib in golibs:
-    direct_go_library_deps += [golib.library]
-    direct_go_library_deps_race += [golib.race]
-    direct_search_paths += [golib.searchpath]
-    direct_search_paths_race += [golib.searchpath_race]
-    direct_import_paths += [golib.importpath]
-    transitive_go_library_deps += golib.transitive_go_libraries
-    transitive_go_library_deps_race += golib.transitive_go_libraries_race
-    transitive_cgo_deps += golib.transitive_cgo_deps
-    transitive_go_library_paths += golib.transitive_go_library_paths
-    transitive_go_library_paths_race += golib.transitive_go_library_paths_race
+    direct += [dep[GoLibrary]]
+
+  transitive = depset()
+  for golib in direct:
+    transitive += [golib]
+    transitive += golib.transitive
 
   go_srcs = source.go
   if want_coverage:
@@ -85,18 +74,16 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
 
   emit_go_compile_action(ctx,
       sources = go_srcs,
-      libs = direct_go_library_deps,
-      lib_paths = direct_search_paths,
-      direct_paths = direct_import_paths,
+      golibs = direct,
+      mode = "",
       out_object = out_object,
       gc_goopts = gc_goopts,
   )
   emit_go_pack_action(ctx, out_lib, [out_object] + extra_objects)
   emit_go_compile_action(ctx,
       sources = go_srcs,
-      libs = direct_go_library_deps_race,
-      lib_paths = direct_search_paths_race,
-      direct_paths = direct_import_paths,
+      golibs = direct,
+      mode = "_race",
       out_object = race_object,
       gc_goopts = gc_goopts + ("-race",),
   )
@@ -110,26 +97,23 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
   for d in dep_runfiles:
     runfiles = runfiles.merge(d)
 
-  #TODO: for now, we return transformed sources, this will change
   transformed = dict_of(source)
   transformed["go"] = go_srcs
 
   return [
       GoLibrary(
-          library = out_lib,
-          race = race_lib,
-          searchpath = searchpath,
-          searchpath_race = searchpath_race,
-          srcs = join_srcs(struct(**transformed)),
-          importpath = importpath,
-          direct_deps = deps,
-          transitive_cgo_deps = transitive_cgo_deps,
-          transitive_go_libraries = transitive_go_library_deps + [out_lib],
-          transitive_go_libraries_race = transitive_go_library_deps_race + [race_lib],
-          transitive_go_library_paths = transitive_go_library_paths,
-          transitive_go_library_paths_race = transitive_go_library_paths_race,
-          gc_goopts = gc_goopts,
-          runfiles = runfiles,
+          importpath = importpath, # The import path for this library
+          library = out_lib, # The normal library
+          searchpath = searchpath, # The searchpath for the normal library
+          library_race = race_lib, # The library compiled for race detection
+          searchpath_race = searchpath_race, # The searchpath for the race library
+          direct = direct, # The direct depencancies of the library
+          transitive = transitive, # The transitive set of go libraries depended on
+          srcs = depset(srcs), # The original sources
+          transformed = join_srcs(struct(**transformed)), # The transformed sources actually compiled
+          cgo_deps = cgo_deps, # The direct cgo dependancies of this library
+          gc_goopts = gc_goopts, # The options this library was compiled with
+          runfiles = runfiles, # The runfiles needed for things including this library
       ),
       CgoLibrary(
           object = cgo_object,
@@ -158,7 +142,7 @@ def _go_library_impl(ctx):
           runfiles = golib.runfiles,
       ),
       OutputGroupInfo(
-          race = depset([golib.race]),
+          race = depset([golib.library_race]),
       ),
   ]
 
@@ -209,38 +193,31 @@ def go_importpath(ctx):
     path = path[1:]
   return path
 
-def get_gc_goopts(ctx):
-  gc_goopts = tuple(ctx.attr.gc_goopts)
-  if ctx.attr.library:
-    gc_goopts += ctx.attr.library[GoLibrary].gc_goopts
-  return gc_goopts
-
-def emit_go_compile_action(ctx, sources, libs, lib_paths, direct_paths, out_object, gc_goopts):
+def emit_go_compile_action(ctx, sources, golibs, mode, out_object, gc_goopts):
   """Construct the command line for compiling Go code.
 
   Args:
     ctx: The skylark Context.
     sources: an iterable of source code artifacts (or CTs? or labels?)
-    libs: a depset of representing all imported libraries.
-    lib_paths: the set of paths to search for imported libraries.
-    direct_paths: iterable of of import paths for the package's direct deps,
-      including those in the library attribute. Used for strict dep checking.
+    golibs: a depset of representing all imported libraries.
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
   go_toolchain = get_go_toolchain(ctx)
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-  inputs = depset([go_toolchain.go]) + sources + libs
+  inputs = depset([go_toolchain.go]) + sources
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
   args = [go_toolchain.go.path]
   for src in go_sources:
     args += ["-src", src]
-  for dep in direct_paths:
-    args += ["-dep", dep]
+  for golib in golibs:
+    library = getattr(golib, "library" + mode)
+    searchpath = getattr(golib, "searchpath" + mode)
+    inputs += [library]
+    args += ["-dep", golib.importpath]
+    args += ["-I", searchpath]
   args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
-  for path in lib_paths:
-    args += ["-I", path]
   args += ["--"] + gc_goopts + cgo_sources
   ctx.action(
       inputs = list(inputs),

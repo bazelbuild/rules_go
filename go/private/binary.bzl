@@ -30,10 +30,8 @@ def _go_binary_impl(ctx):
   # Default (dynamic) linking
   emit_go_link_action(
       ctx,
-      transitive_go_libraries=golib.transitive_go_libraries,
-      transitive_go_library_paths=golib.transitive_go_library_paths,
-      cgo_deps=golib.transitive_cgo_deps,
-      libs=depset([golib.library]),
+      library=golib,
+      mode="",
       executable=ctx.outputs.executable,
       gc_linkopts=gc_linkopts(ctx),
       x_defs=ctx.attr.x_defs,
@@ -47,10 +45,8 @@ def _go_binary_impl(ctx):
   static_executable = ctx.new_file(ctx.attr.name + ".static")
   emit_go_link_action(
       ctx,
-      transitive_go_libraries=golib.transitive_go_libraries,
-      transitive_go_library_paths=golib.transitive_go_library_paths,
-      cgo_deps=golib.transitive_cgo_deps,
-      libs=depset([golib.library]),
+      library=golib,
+      mode="",
       executable=static_executable,
       gc_linkopts=gc_linkopts(ctx) + static_linkopts,
       x_defs=ctx.attr.x_defs,
@@ -60,10 +56,8 @@ def _go_binary_impl(ctx):
   race_executable = ctx.new_file(ctx.attr.name + ".race")
   emit_go_link_action(
     ctx,
-    transitive_go_libraries=golib.transitive_go_libraries_race,
-    transitive_go_library_paths=golib.transitive_go_library_paths_race,
-    cgo_deps=golib.transitive_cgo_deps,
-    libs=depset([golib.race]),
+    library=golib,
+    mode="_race",
     executable=race_executable,
     gc_linkopts=gc_linkopts(ctx) + ["-race"],
     x_defs=ctx.attr.x_defs,
@@ -164,8 +158,7 @@ def _extract_extldflags(gc_linkopts, extldflags):
       filtered_gc_linkopts += [opt]
   return filtered_gc_linkopts, extldflags
 
-def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_libraries, cgo_deps, libs,
-                         executable, gc_linkopts, x_defs):
+def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
   """Sets up a symlink tree to libraries to link together."""
   go_toolchain = get_go_toolchain(ctx)
   config_strip = len(ctx.configuration.bin_dir.path) + 1
@@ -175,18 +168,24 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
   extldflags = c_linker_options(ctx) + [
       "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
   ]
-  for d in cgo_deps:
-    if d.basename.endswith('.so'):
-      short_dir = d.dirname[len(d.root.path):]
-      extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir]
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   link_opts = [
       "-L", "."
   ]
-  for path in transitive_go_library_paths:
-    link_opts += ["-L", path]
+  libs = depset()
+  cgo_deps = depset()
+  for golib in depset([library]) + library.transitive:
+    libs += [getattr(golib, "library" + mode)]
+    link_opts += ["-L", getattr(golib, "searchpath" + mode)]
+    cgo_deps += golib.cgo_deps
+
+  for d in cgo_deps:
+    if d.basename.endswith('.so'):
+      short_dir = d.dirname[len(d.root.path):]
+      extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir]
+
   link_opts += [
       "-o", executable.path,
   ] + gc_linkopts
@@ -203,7 +202,7 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
   link_opts += go_toolchain.link_flags + [
       "-extld", ld,
       "-extldflags", " ".join(extldflags),
-  ] + [lib.path for lib in libs]
+  ] + [getattr(golib, "library" + mode).path]
 
   link_args = [go_toolchain.go.path]
   # Stamping support
@@ -223,7 +222,7 @@ def emit_go_link_action(ctx, transitive_go_library_paths, transitive_go_librarie
   link_args += ["--"] + link_opts
 
   ctx.action(
-      inputs = list(transitive_go_libraries + [lib] + cgo_deps +
+      inputs = list(libs + cgo_deps +
                 go_toolchain.tools + go_toolchain.crosstool + stamp_inputs),
       outputs = [executable],
       mnemonic = "GoLink",

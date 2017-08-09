@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype", "split_srcs", "pkg_dir")
-load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "get_gc_goopts", "emit_go_pack_action")
+load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "emit_go_pack_action")
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
@@ -41,7 +41,7 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-  go_srcs = list(split_srcs(golib.srcs).go)
+  go_srcs = list(split_srcs(golib.transformed).go)
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   ctx.action(
       inputs = go_srcs,
@@ -69,20 +69,16 @@ def _go_test_impl(ctx):
       golibs = [golib],
   )
 
-  go_library_paths = golib.transitive_go_library_paths
-  go_libraries = golib.transitive_go_libraries
+  mode = ""
   linkopts = gc_linkopts(ctx)
   if "race" in ctx.features:
-    go_library_paths=golib.transitive_go_library_paths_race
-    go_libraries=golib.transitive_go_libraries_race
+    mode = "_race"
     linkopts += ["-race"]
 
   emit_go_link_action(
       ctx,
-      transitive_go_library_paths=go_library_paths,
-      transitive_go_libraries=go_libraries,
-      cgo_deps=golib.transitive_cgo_deps,
-      libs=depset([main_lib.library]),
+      library=main_lib,
+      mode=mode,
       executable=ctx.outputs.executable,
       gc_linkopts=linkopts,
       x_defs=ctx.attr.x_defs)
