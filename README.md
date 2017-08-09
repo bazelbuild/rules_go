@@ -6,6 +6,9 @@ Bazel 0.5.2 | Bazel HEAD
 
 ## Announcements
 
+* **August 9, 2017** Release
+[0.5.3](https://github.com/bazelbuild/rules_go/releases/tag/0.5.3) is
+now available! 
 * **July 27, 2017** Bazel 0.5.3 is now available. This includes a change which
 is incompatible with rules\_go 0.5.1 and earlier. rules\_go 0.5.2 should work.
 * **July 17, 2017** Release
@@ -14,9 +17,6 @@ available! This fixes an issue with Bazel at HEAD. Note that Bazel 0.5.2 is
 now required.
 * **July 12, 2017** The rules now require Bazel 0.5.2 or newer at HEAD. The
 latest tagged version, 0.5.1, still works with Bazel 0.4.5 though.
-* **July 10, 2017** Release
-[0.5.1](https://github.com/bazelbuild/rules_go/releases/tag/0.5.1) is now
-available!
 
 ## Contents
 
@@ -59,7 +59,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-**Note:** The latest version of these rules (0.5.2) require Bazel ≥ 0.5.2 to
+**Note:** The latest version of these rules (0.5.3) require Bazel ≥ 0.5.2 to
   work.
 
 The `master` branch is only guaranteed to work with the latest version of Bazel.
@@ -78,7 +78,7 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.5.2",
+        tag = "0.5.3",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
