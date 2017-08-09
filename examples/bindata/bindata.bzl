@@ -20,7 +20,7 @@ def _bindata_impl(ctx):
   return [
     DefaultInfo(
       files = depset([out])
-    ) 
+    )
   ]
 
 bindata = rule(
