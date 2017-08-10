@@ -69,9 +69,9 @@ def _go_test_impl(ctx):
       golibs = [golib],
   )
 
-  go_library_paths=golib.transitive_go_library_paths
-  go_libraries=golib.transitive_go_libraries
-  linkopts=gc_linkopts(ctx)
+  go_library_paths = golib.transitive_go_library_paths
+  go_libraries = golib.transitive_go_libraries
+  linkopts = gc_linkopts(ctx)
   if "race" in ctx.features:
     go_library_paths=golib.transitive_go_library_paths_race
     go_libraries=golib.transitive_go_libraries_race
