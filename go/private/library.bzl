@@ -98,7 +98,7 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
       lib_paths = direct_search_paths_race,
       direct_paths = direct_import_paths,
       out_object = race_object,
-      gc_goopts = gc_goopts + ["-race"],
+      gc_goopts = gc_goopts + ("-race",),
   )
   emit_go_pack_action(ctx, race_lib, [race_object] + extra_objects)
 
@@ -115,7 +115,7 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
   transformed["go"] = go_srcs
 
   return [
-    GoLibrary(
+      GoLibrary(
           library = out_lib,
           race = race_lib,
           searchpath = searchpath,
@@ -148,8 +148,6 @@ def _go_library_impl(ctx):
       library = ctx.attr.library,
       want_coverage = ctx.coverage_instrumented(),
   )
-
-  depset([golib])
 
   return [
       golib,
@@ -211,7 +209,7 @@ def go_importpath(ctx):
   return path
 
 def get_gc_goopts(ctx):
-  gc_goopts = ctx.attr.gc_goopts
+  gc_goopts = tuple(ctx.attr.gc_goopts)
   if ctx.attr.library:
     gc_goopts += ctx.attr.library[GoLibrary].gc_goopts
   return gc_goopts
