@@ -24,6 +24,7 @@ def _go_binary_impl(ctx):
       cgo_object = None,
       library = ctx.attr.library,
       want_coverage = False,
+      importpath = ctx.label.name + "~main~",
   )
 
   # Default (dynamic) linking

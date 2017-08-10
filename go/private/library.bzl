@@ -16,7 +16,7 @@ load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_L
 load("@io_bazel_rules_go//go/private:asm.bzl", "emit_go_asm_action")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "CgoLibrary")
 
-def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
+def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, importpath, golibs=[]):
   go_toolchain = get_go_toolchain(ctx)
   dep_runfiles = [d.data_runfiles for d in deps]
   if library:
@@ -48,13 +48,12 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
     emit_go_asm_action(ctx, src, source.headers, obj)
     extra_objects += [obj]
 
-  importpath = go_importpath(ctx)
   lib_name = importpath + ".a"
   out_lib = ctx.new_file("~lib~/"+lib_name)
-  out_object = ctx.new_file("~lib~/" + ctx.label.name + ".o")
+  out_object = ctx.new_file("~lib~/" + importpath + ".o")
   searchpath = out_lib.path[:-len(lib_name)]
   race_lib =  ctx.new_file("~race~/"+lib_name)
-  race_object = ctx.new_file("~race~/" + ctx.label.name + ".o")
+  race_object = ctx.new_file("~race~/" + importpath + ".o")
   searchpath_race = race_lib.path[:-len(lib_name)]
   gc_goopts = get_gc_goopts(ctx)
   direct_go_library_deps = []
@@ -67,7 +66,8 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
   transitive_go_library_paths = depset([searchpath])
   transitive_go_library_paths_race = depset([searchpath_race])
   for dep in deps:
-    golib = dep[GoLibrary]
+    golibs += [dep[GoLibrary]]
+  for golib in golibs:
     direct_go_library_deps += [golib.library]
     direct_go_library_deps_race += [golib.race]
     direct_search_paths += [golib.searchpath]
@@ -147,6 +147,7 @@ def _go_library_impl(ctx):
       cgo_object = cgo_object,
       library = ctx.attr.library,
       want_coverage = ctx.coverage_instrumented(),
+      importpath = go_importpath(ctx),
   )
 
   return [

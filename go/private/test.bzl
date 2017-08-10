@@ -30,10 +30,9 @@ def _go_test_impl(ctx):
       cgo_object = None,
       library = ctx.attr.library,
       want_coverage = False,
+      importpath = go_importpath(ctx),
   )
-  main_go = ctx.new_file(ctx.label.name + "_main_test.go")
-  main_object = ctx.new_file(ctx.label.name + "_main_test.o")
-  main_lib = ctx.new_file(ctx.label.name + "_main_test.a")
+
   if ctx.attr.rundir:
     if ctx.attr.rundir.startswith("/"):
       run_dir = ctx.attr.rundir
@@ -43,6 +42,7 @@ def _go_test_impl(ctx):
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
   go_srcs = list(split_srcs(golib.srcs).go)
+  main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   ctx.action(
       inputs = go_srcs,
       outputs = [main_go],
@@ -59,45 +59,32 @@ def _go_test_impl(ctx):
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 
-  if "race" not in ctx.features:
-    emit_go_compile_action(
+  main_lib, _ = emit_library_actions(ctx,
+      srcs = [main_go],
+      deps = [],
+      cgo_object = None,
+      library = None,
+      want_coverage = False,
+      importpath = ctx.label.name + "~testmain~",
+      golibs = [golib],
+  )
+
+  go_library_paths=golib.transitive_go_library_paths
+  go_libraries=golib.transitive_go_libraries
+  linkopts=gc_linkopts(ctx)
+  if "race" in ctx.features:
+    go_library_paths=golib.transitive_go_library_paths_race
+    go_libraries=golib.transitive_go_libraries_race
+    linkopts += ["-race"]
+
+  emit_go_link_action(
       ctx,
-      sources=depset([main_go]),
-      libs=[golib.library],
-      lib_paths=[golib.searchpath],
-      direct_paths=[golib.importpath],
-      out_object=main_object,
-      gc_goopts=get_gc_goopts(ctx),
-    )
-    emit_go_pack_action(ctx, main_lib, [main_object])
-    emit_go_link_action(
-      ctx,
-      transitive_go_library_paths=golib.transitive_go_library_paths,
-      transitive_go_libraries=golib.transitive_go_libraries,
+      transitive_go_library_paths=go_library_paths,
+      transitive_go_libraries=go_libraries,
       cgo_deps=golib.transitive_cgo_deps,
-      libs=[main_lib],
+      libs=depset([main_lib.library]),
       executable=ctx.outputs.executable,
-      gc_linkopts=gc_linkopts(ctx),
-      x_defs=ctx.attr.x_defs)
-  else:
-    emit_go_compile_action(
-      ctx,
-      sources=depset([main_go]),
-      libs=[golib.race],
-      lib_paths=[golib.searchpath_race],
-      direct_paths=[golib.importpath],
-      out_object=main_object,
-      gc_goopts=get_gc_goopts(ctx) + ["-race"],
-    )
-    emit_go_pack_action(ctx, main_lib, [main_object])
-    emit_go_link_action(
-      ctx,
-      transitive_go_library_paths=golib.transitive_go_library_paths_race,
-      transitive_go_libraries=golib.transitive_go_libraries_race,
-      cgo_deps=golib.transitive_cgo_deps,
-      libs=[main_lib],
-      executable=ctx.outputs.executable,
-      gc_linkopts=gc_linkopts(ctx) + ["-race"],
+      gc_linkopts=linkopts,
       x_defs=ctx.attr.x_defs)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
