@@ -41,6 +41,13 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
+  coverage_args = []
+  if ctx.attr.library:
+    coverage_filename_map = ctx.attr.library[GoLibrary].coverage_filename_map
+    if coverage_filename_map:
+      coverage_json = struct(**coverage_filename_map).to_json()
+      coverage_args = ["--coverage_filename_map", coverage_json]
+
   go_srcs = list(split_srcs(golib.srcs).go)
   main_go = ctx.new_file(ctx.label.name + "_main_test.go")
   ctx.action(
@@ -55,7 +62,7 @@ def _go_test_impl(ctx):
           run_dir,
           '--output',
           main_go.path,
-      ] + [src.path for src in go_srcs],
+      ] + coverage_args + [src.path for src in go_srcs],
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 

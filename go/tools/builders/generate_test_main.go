@@ -18,6 +18,7 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -45,6 +46,7 @@ var (
 // CoverVar holds the name of the generated coverage variables targeting
 // the named file.
 type CoverVar struct {
+	SrcFile string // original source file name
 	File string // local file name
 	Var  string // name of count struct
 }
@@ -138,7 +140,7 @@ var (
 func init() {
 	{{range $i, $p := .Cover}}
 	{{range $file, $cover := $p.Vars}}
-	coverRegisterFile({{printf "%q" $cover.File}}, _cover{{$i}}.{{$cover.Var}}.Count[:], _cover{{$i}}.{{$cover.Var}}.Pos[:], _cover{{$i}}.{{$cover.Var}}.NumStmt[:])
+	coverRegisterFile({{printf "%q" $cover.SrcFile}}, _cover{{$i}}.{{$cover.Var}}.Count[:], _cover{{$i}}.{{$cover.Var}}.Pos[:], _cover{{$i}}.{{$cover.Var}}.NumStmt[:])
 	{{end}}
 	{{end}}
 }
@@ -215,13 +217,19 @@ func run(args []string) error {
 	runDir := flags.String("rundir", ".", "Path to directory where tests should run.")
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
 	tags := flags.String("tags", "", "Only pass through files that match these tags.")
+	coverageFilenamesJSON := flags.String("coverage_filename_map", "", "Use these filenames for reporting coverage data.")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if *pkg == "" {
 		return fmt.Errorf("must set --package.")
 	}
-	// filter our input file list
+	coverageFilenames := make(map[string]string)
+	if *coverageFilenamesJSON != "" {
+		if err := json.Unmarshal([]byte(*coverageFilenamesJSON), &coverageFilenames); err != nil {
+			return fmt.Errorf("invalid coverage filename map: %v", err)
+		}
+	}
 	bctx := build.Default
 	bctx.CgoEnabled = true
 	bctx.BuildTags = strings.Split(*tags, ",")
@@ -252,7 +260,12 @@ func run(args []string) error {
 	for _, f := range filenames {
 		coverVar := extractCoverVar(f)
 		if coverVar != "" {
+			srcFile := coverageFilenames[f]
+			if srcFile == "" {
+				srcFile = f
+			}
 			ci.Vars[f] = &CoverVar{
+				SrcFile: srcFile,
 				File: f,
 				Var:  coverVar,
 			}
