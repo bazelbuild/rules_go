@@ -20,7 +20,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"golang.org/x/tools/go/vcs"
 )
 
@@ -31,6 +30,8 @@ import (
 // guidelines in http://bazel.io/docs/be/functions.html#workspace. The remaining
 // portion of the import path is treated as the package name.
 type externalResolver struct {
+	l Labeler
+
 	// repoRootForImportPath is vcs.RepoRootForImportPath by default. It may
 	// be overridden by tests.
 	repoRootForImportPath func(string, bool) (*vcs.RepoRoot, error)
@@ -40,9 +41,9 @@ type externalResolver struct {
 	cache map[string]repoRootCacheEntry
 }
 
-var _ LabelResolver = (*externalResolver)(nil)
+var _ Resolver = (*externalResolver)(nil)
 
-func newExternalResolver(extraKnownImports []string) *externalResolver {
+func newExternalResolver(l Labeler, extraKnownImports []string) *externalResolver {
 	cache := make(map[string]repoRootCacheEntry)
 	for _, e := range []repoRootCacheEntry{
 		{prefix: "golang.org/x", missing: 1},
@@ -58,6 +59,7 @@ func newExternalResolver(extraKnownImports []string) *externalResolver {
 	}
 
 	return &externalResolver{
+		l:     l,
 		cache: cache,
 		repoRootForImportPath: vcs.RepoRootForImportPath,
 	}
@@ -67,7 +69,7 @@ func newExternalResolver(extraKnownImports []string) *externalResolver {
 // external repository. It also assumes that the external repository follows the
 // recommended reverse-DNS form of workspace name as described in
 // http://bazel.io/docs/be/functions.html#workspace.
-func (r *externalResolver) Resolve(importpath, dir string) (Label, error) {
+func (r *externalResolver) Resolve(importpath string) (Label, error) {
 	prefix, err := r.lookupPrefix(importpath)
 	if err != nil {
 		return Label{}, err
@@ -78,11 +80,9 @@ func (r *externalResolver) Resolve(importpath, dir string) (Label, error) {
 		pkg = strings.TrimPrefix(importpath, prefix+"/")
 	}
 
-	return Label{
-		Repo: ImportPathToBazelRepoName(prefix),
-		Pkg:  pkg,
-		Name: config.DefaultLibName,
-	}, nil
+	label := r.l.LibraryLabel(pkg)
+	label.Repo = ImportPathToBazelRepoName(prefix)
+	return label, nil
 }
 
 // lookupPrefix determines the prefix of "importpath" that corresponds to

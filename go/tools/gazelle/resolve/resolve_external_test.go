@@ -101,7 +101,7 @@ func TestExternalResolver(t *testing.T) {
 			},
 		},
 	} {
-		l, err := r.Resolve(spec.importpath, "some/package")
+		l, err := r.Resolve(spec.importpath)
 		if err != nil {
 			t.Errorf("r.Resolve(%q) failed with %v; want success", spec.importpath, err)
 			continue
@@ -113,7 +113,8 @@ func TestExternalResolver(t *testing.T) {
 }
 
 func newStubExternalResolver(extraKnown []string) *externalResolver {
-	r := newExternalResolver(extraKnown)
+	l := NewLabeler(&config.Config{})
+	r := newExternalResolver(l, extraKnown)
 	r.repoRootForImportPath = stubRepoRootForImportPath
 	return r
 }

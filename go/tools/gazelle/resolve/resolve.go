@@ -23,13 +23,11 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-// A LabelResolver resolves a Go importpath into a label in Bazel.
-type LabelResolver interface {
-	// Resolve resolves a Go importpath "importpath", which is referenced from
-	// a Go package directory "dir" in the current repository.
-	// "dir" is a relative slash-delimited path from the top level of the
-	// current repository.
-	Resolve(importpath, dir string) (Label, error)
+// A Resolver resolves a Go importpath into a label in Bazel.
+type Resolver interface {
+	// Resolve resolves a Go importpath "importpath" into a Label. "importpath"
+	// must not be relative. The returned Label will never be relative.
+	Resolve(importpath string) (Label, error)
 }
 
 // A Label represents a label of a build target in Bazel.
@@ -54,35 +52,30 @@ func (l Label) String() string {
 	return fmt.Sprintf("%s//%s:%s", repo, l.Pkg, l.Name)
 }
 
-func NewLabelResolver(c *config.Config) LabelResolver {
-	var e LabelResolver
+func NewResolver(c *config.Config, l Labeler) Resolver {
+	var e Resolver
 	switch c.DepMode {
 	case config.ExternalMode:
-		e = newExternalResolver(c.KnownImports)
+		e = newExternalResolver(l, c.KnownImports)
 	case config.VendorMode:
-		e = vendoredResolver{}
+		e = newVendoredResolver(l)
 	}
 
 	return &unifiedResolver{
 		goPrefix: c.GoPrefix,
-		local:    structuredResolver{c.GoPrefix},
+		local:    &structuredResolver{l: l, goPrefix: c.GoPrefix},
 		external: e,
 	}
 }
 
 type unifiedResolver struct {
 	goPrefix        string
-	local, external LabelResolver
+	local, external Resolver
 }
 
-func (r *unifiedResolver) Resolve(importpath, dir string) (Label, error) {
-	if importpath != r.goPrefix && !strings.HasPrefix(importpath, r.goPrefix+"/") && !isRelative(importpath) {
-		return r.external.Resolve(importpath, dir)
+func (r *unifiedResolver) Resolve(importpath string) (Label, error) {
+	if importpath != r.goPrefix && !strings.HasPrefix(importpath, r.goPrefix+"/") {
+		return r.external.Resolve(importpath)
 	}
-	return r.local.Resolve(importpath, dir)
-}
-
-// isRelative determines if an importpath is relative.
-func isRelative(importpath string) bool {
-	return strings.HasPrefix(importpath, "./") || strings.HasPrefix(importpath, "..")
+	return r.local.Resolve(importpath)
 }

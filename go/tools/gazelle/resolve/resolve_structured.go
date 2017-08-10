@@ -17,7 +17,6 @@ package resolve
 
 import (
 	"fmt"
-	"path"
 	"strings"
 
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
@@ -26,27 +25,24 @@ import (
 // structuredResolver resolves go_library labels within the same repository as
 // the one of goPrefix.
 type structuredResolver struct {
+	l        Labeler
 	goPrefix string
 }
 
+var _ Resolver = (*structuredResolver)(nil)
+
 // Resolve takes a Go importpath within the same respository as r.goPrefix
 // and resolves it into a label in Bazel.
-func (r structuredResolver) Resolve(importpath, dir string) (Label, error) {
-	if isRelative(importpath) {
-		importpath = path.Clean(path.Join(r.goPrefix, dir, importpath))
-	}
-
+func (r *structuredResolver) Resolve(importpath string) (Label, error) {
 	if importpath == r.goPrefix {
 		return Label{Name: config.DefaultLibName}, nil
 	}
 
-	if prefix := r.goPrefix + "/"; strings.HasPrefix(importpath, prefix) {
-		pkg := strings.TrimPrefix(importpath, prefix)
-		if pkg == dir {
-			return Label{Name: config.DefaultLibName, Relative: true}, nil
-		}
-		return Label{Pkg: pkg, Name: config.DefaultLibName}, nil
+	prefix := r.goPrefix + "/"
+	relImportpath := strings.TrimPrefix(importpath, prefix)
+	if relImportpath == importpath {
+		return Label{}, fmt.Errorf("importpath %q does not start with goPrefix %q", importpath, r.goPrefix)
 	}
 
-	return Label{}, fmt.Errorf("importpath %q does not start with goPrefix %q", importpath, r.goPrefix)
+	return r.l.LibraryLabel(relImportpath), nil
 }

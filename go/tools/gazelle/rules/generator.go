@@ -18,6 +18,7 @@ package rules
 import (
 	"fmt"
 	"log"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -37,14 +38,15 @@ type Generator interface {
 	Generate(pkg *packages.Package) *bf.File
 }
 
-func NewGenerator(c *config.Config, r resolve.LabelResolver, oldFile *bf.File) Generator {
+func NewGenerator(c *config.Config, r resolve.Resolver, l resolve.Labeler, oldFile *bf.File) Generator {
 	shouldSetVisibility := oldFile == nil || !hasDefaultVisibility(oldFile)
-	return &generator{c: c, r: r, shouldSetVisibility: shouldSetVisibility}
+	return &generator{c: c, r: r, l: l, shouldSetVisibility: shouldSetVisibility}
 }
 
 type generator struct {
 	c                   *config.Config
-	r                   resolve.LabelResolver
+	r                   resolve.Resolver
+	l                   resolve.Labeler
 	shouldSetVisibility bool
 }
 
@@ -96,7 +98,7 @@ func (g *generator) generateBin(pkg *packages.Package, library string) *bf.Rule 
 	if !pkg.IsCommand() || pkg.Binary.Sources.IsEmpty() && library == "" {
 		return nil
 	}
-	name := filepath.Base(pkg.Dir)
+	name := g.l.BinaryLabel(pkg.Rel).Name
 	visibility := checkInternalVisibility(pkg.Rel, "//visibility:public")
 	return g.generateRule(pkg.Rel, "go_binary", name, visibility, library, false, pkg.Binary)
 }
@@ -106,7 +108,7 @@ func (g *generator) generateLib(pkg *packages.Package) (string, *bf.Rule) {
 		return "", nil
 	}
 
-	name := config.DefaultLibName
+	name := g.l.LibraryLabel(pkg.Rel).Name
 	var visibility string
 	if pkg.IsCommand() {
 		// Libraries made for a go_binary should not be exposed to the public.
@@ -166,13 +168,7 @@ func (g *generator) generateTest(pkg *packages.Package, library string) *bf.Rule
 		return nil
 	}
 
-	var name string
-	if library == "" || library == config.DefaultLibName {
-		name = config.DefaultTestName
-	} else {
-		name = library + "_test"
-	}
-
+	name := g.l.TestLabel(pkg.Rel, false).Name
 	return g.generateRule(pkg.Rel, "go_test", name, "", library, pkg.HasTestdata, pkg.Test)
 }
 
@@ -181,13 +177,7 @@ func (g *generator) generateXTest(pkg *packages.Package, library string) *bf.Rul
 		return nil
 	}
 
-	var name string
-	if library == "" || library == config.DefaultLibName {
-		name = config.DefaultXTestName
-	} else {
-		name = library + "_xtest"
-	}
-
+	name := g.l.TestLabel(pkg.Rel, true).Name
 	return g.generateRule(pkg.Rel, "go_test", name, "", "", pkg.HasTestdata, pkg.XTest)
 }
 
@@ -258,11 +248,15 @@ func (g *generator) generateLoad(rs []*bf.Rule) bf.Expr {
 
 func (g *generator) dependencies(imports packages.PlatformStrings, dir string) packages.PlatformStrings {
 	resolve := func(imp string) (string, error) {
-		if l, err := g.r.Resolve(imp, dir); err != nil {
-			return "", fmt.Errorf("in dir %q, could not resolve import path %q: %v", dir, imp, err)
-		} else {
-			return l.String(), nil
+		if strings.HasPrefix(imp, "./") || strings.HasPrefix(imp, "..") {
+			imp = path.Clean(path.Join(g.c.GoPrefix, dir, imp))
 		}
+		label, err := g.r.Resolve(imp)
+		if err != nil {
+			return "", fmt.Errorf("in dir %q, could not resolve import path %q: %v", dir, imp, err)
+		}
+		label.Relative = label.Repo == "" && label.Pkg == dir
+		return label.String(), nil
 	}
 
 	deps, errors := imports.Map(resolve)

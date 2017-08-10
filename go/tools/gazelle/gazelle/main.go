@@ -57,7 +57,8 @@ var commandFromName = map[string]command{
 }
 
 func run(c *config.Config, cmd command, emit emitFunc) {
-	r := resolve.NewLabelResolver(c)
+	l := resolve.NewLabeler(c)
+	r := resolve.NewResolver(c, l)
 	shouldProcessRoot := false
 	didProcessRoot := false
 	shouldFix := cmd == fixCmd
@@ -69,7 +70,7 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 			if pkg.Rel == "" {
 				didProcessRoot = true
 			}
-			processPackage(c, r, shouldFix, emit, pkg, oldFile)
+			processPackage(c, r, l, shouldFix, emit, pkg, oldFile)
 		})
 	}
 	if shouldProcessRoot && !didProcessRoot {
@@ -98,12 +99,12 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 		}
 
 	processRoot:
-		processPackage(c, r, shouldFix, emit, pkg, oldFile)
+		processPackage(c, r, l, shouldFix, emit, pkg, oldFile)
 	}
 }
 
-func processPackage(c *config.Config, r resolve.LabelResolver, shouldFix bool, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
-	g := rules.NewGenerator(c, r, oldFile)
+func processPackage(c *config.Config, r resolve.Resolver, l resolve.Labeler, shouldFix bool, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
+	g := rules.NewGenerator(c, r, l, oldFile)
 	genFile := g.Generate(pkg)
 
 	if oldFile == nil {

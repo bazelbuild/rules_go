@@ -48,8 +48,11 @@ type Config struct {
 	// DepMode determines how imports outside of GoPrefix are resolved.
 	DepMode DependencyMode
 
-	// KnownImports is a list of imports to add to the external resolver cache
+	// KnownImports is a list of imports to add to the external resolver cache.
 	KnownImports []string
+
+	// StructureMode determines how build files are organized within a project.
+	StructureMode StructureMode
 }
 
 var DefaultValidBuildFileNames = []string{"BUILD.bazel", "BUILD"}
@@ -128,3 +131,17 @@ func DependencyModeFromString(s string) (DependencyMode, error) {
 		return 0, fmt.Errorf("unrecognized dependency mode: %q", s)
 	}
 }
+
+// StructureMode determines how build files are organized within a project.
+type StructureMode int
+
+const (
+	// In HierarchicalMode, one build file is generated per directory. This is
+	// the default mode.
+	HierarchicalMode StructureMode = iota
+
+	// In FlatMode, one build file is generated for the entire repository.
+	// FlatMode build files can be used with new_git_repository or
+	// new_http_archive.
+	FlatMode
+)

@@ -24,8 +24,8 @@ import (
 	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
 
@@ -57,7 +57,8 @@ func TestGenerator(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo")
 	goPrefix := "example.com/repo"
 	c := testConfig(repoRoot, goPrefix)
-	r := resolve.NewLabelResolver(c)
+	l := resolve.NewLabeler(c)
+	r := resolve.NewResolver(c, l)
 
 	var dirs []string
 	err := filepath.Walk(repoRoot, func(path string, info os.FileInfo, err error) error {
@@ -80,7 +81,7 @@ func TestGenerator(t *testing.T) {
 		}
 
 		pkg, oldFile := packageFromDir(c, dir)
-		g := rules.NewGenerator(c, r, oldFile)
+		g := rules.NewGenerator(c, r, l, oldFile)
 		f := g.Generate(pkg)
 		got := string(bf.Format(f))
 
@@ -102,8 +103,9 @@ func TestGeneratorGoPrefixLib(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo", "lib")
 	goPrefix := "example.com/repo/lib"
 	c := testConfig(repoRoot, goPrefix)
-	r := resolve.NewLabelResolver(c)
-	g := rules.NewGenerator(c, r, nil)
+	l := resolve.NewLabeler(c)
+	r := resolve.NewResolver(c, l)
+	g := rules.NewGenerator(c, r, l, nil)
 	pkg, _ := packageFromDir(c, repoRoot)
 	f := g.Generate(pkg)
 
@@ -116,8 +118,9 @@ func TestGeneratorGoPrefixRoot(t *testing.T) {
 	repoRoot := filepath.Join(testdata.Dir(), "repo")
 	goPrefix := "example.com/repo"
 	c := testConfig(repoRoot, goPrefix)
-	r := resolve.NewLabelResolver(c)
-	g := rules.NewGenerator(c, r, nil)
+	l := resolve.NewLabeler(c)
+	r := resolve.NewResolver(c, l)
+	g := rules.NewGenerator(c, r, l, nil)
 	pkg := &packages.Package{Dir: repoRoot}
 	f := g.Generate(pkg)
 
@@ -152,8 +155,9 @@ func testGeneratedFileName(t *testing.T, buildFileName string) {
 	c := &config.Config{
 		ValidBuildFileNames: []string{buildFileName},
 	}
-	r := resolve.NewLabelResolver(c)
-	g := rules.NewGenerator(c, r, nil)
+	l := resolve.NewLabeler(c)
+	r := resolve.NewResolver(c, l)
+	g := rules.NewGenerator(c, r, l, nil)
 	pkg := &packages.Package{}
 	f := g.Generate(pkg)
 	if f.Path != buildFileName {

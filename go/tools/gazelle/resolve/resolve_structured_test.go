@@ -23,56 +23,45 @@ import (
 )
 
 func TestStructuredResolver(t *testing.T) {
-	r := structuredResolver{goPrefix: "example.com/repo"}
 	for _, spec := range []struct {
+		mode       config.StructureMode
 		importpath string
-		curPkg     string
 		want       Label
 	}{
 		{
 			importpath: "example.com/repo",
-			curPkg:     "",
 			want:       Label{Name: config.DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/lib",
-			curPkg:     "",
 			want:       Label{Pkg: "lib", Name: config.DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/another",
-			curPkg:     "",
 			want:       Label{Pkg: "another", Name: config.DefaultLibName},
 		},
 
 		{
 			importpath: "example.com/repo",
-			curPkg:     "lib",
 			want:       Label{Name: config.DefaultLibName},
 		},
 		{
-			importpath: "example.com/repo/lib",
-			curPkg:     "lib",
-			want:       Label{Name: config.DefaultLibName, Relative: true},
-		},
-		{
 			importpath: "example.com/repo/lib/sub",
-			curPkg:     "lib",
 			want:       Label{Pkg: "lib/sub", Name: config.DefaultLibName},
 		},
 		{
 			importpath: "example.com/repo/another",
-			curPkg:     "lib",
 			want:       Label{Pkg: "another", Name: config.DefaultLibName},
 		},
 	} {
-
-		l, err := r.Resolve(spec.importpath, spec.curPkg)
+		l := NewLabeler(&config.Config{StructureMode: spec.mode})
+		r := structuredResolver{l: l, goPrefix: "example.com/repo"}
+		label, err := r.Resolve(spec.importpath)
 		if err != nil {
 			t.Errorf("r.Resolve(%q) failed with %v; want success", spec.importpath, err)
 			continue
 		}
-		if got, want := l, spec.want; !reflect.DeepEqual(got, want) {
+		if got, want := label, spec.want; !reflect.DeepEqual(got, want) {
 			t.Errorf("r.Resolve(%q) = %s; want %s", spec.importpath, got, want)
 		}
 	}
@@ -86,7 +75,7 @@ func TestStructuredResolverError(t *testing.T) {
 		"example.com/another/sub",
 		"example.com/repo_suffix",
 	} {
-		if l, err := r.Resolve(importpath, ""); err == nil {
+		if l, err := r.Resolve(importpath); err == nil {
 			t.Errorf("r.Resolve(%q) = %s; want error", importpath, l)
 		}
 	}
