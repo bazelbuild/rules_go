@@ -80,8 +80,9 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
     transitive_go_library_paths_race += golib.transitive_go_library_paths_race
 
   go_srcs = source.go
+  coverage_map = {}
   if want_coverage:
-    go_srcs = _emit_go_cover_action(ctx, out_object, go_srcs)
+    go_srcs, coverage_map = _emit_go_cover_action(ctx, out_object, go_srcs)
 
   emit_go_compile_action(ctx,
       sources = go_srcs,
@@ -121,6 +122,7 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage):
           searchpath = searchpath,
           searchpath_race = searchpath_race,
           srcs = join_srcs(struct(**transformed)),
+          coverage_filename_map = coverage_map,
           importpath = importpath,
           direct_deps = deps,
           transitive_cgo_deps = transitive_cgo_deps,
@@ -278,10 +280,13 @@ def _emit_go_cover_action(ctx, out_object, sources):
     sources: an iterable of Go source files.
 
   Returns:
-    A list of Go source code files which might be coverage instrumented.
+    A tuple of:
+      * A list of Go source code files which might be coverage instrumented.
+      * A dict from generated coverage file to original source file name.
   """
   go_toolchain = get_go_toolchain(ctx)
   outputs = []
+  outputs_map = {}
   # TODO(linuxerwang): make the mode configurable.
   count = 0
 
@@ -295,6 +300,7 @@ def _emit_go_cover_action(ctx, out_object, sources):
     cover_var = "GoCover_%d" % count
     out = ctx.new_file(out_object, out_object.basename + '_' + src.basename[:-3] + '_' + cover_var + '.cover.go')
     outputs += [out]
+    outputs_map[out.path] = src.path
     ctx.action(
         inputs = [src] + go_toolchain.tools,
         outputs = [out],
@@ -305,4 +311,4 @@ def _emit_go_cover_action(ctx, out_object, sources):
     )
     count += 1
 
-  return outputs
+  return outputs, outputs_map
