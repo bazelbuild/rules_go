@@ -19,7 +19,7 @@ load("@io_bazel_rules_go//go/private:common.bzl",
   "NORMAL_MODE",
   "RACE_MODE",
 )
-load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "get_library", "get_searchpath")
+load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "get_library", "get_searchpath")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_binary_impl(ctx):
@@ -30,7 +30,7 @@ def _go_binary_impl(ctx):
       cgo_object = None,
       library = ctx.attr.library,
       want_coverage = False,
-      importpath = ctx.label.name + "~main~",
+      importpath = go_importpath(ctx),
   )
 
   # Default (dynamic) linking
@@ -64,6 +64,7 @@ def _go_binary_impl(ctx):
   )
 
   return [
+      golib,
       GoBinary(
           executable = ctx.outputs.executable,
           static = static_executable,

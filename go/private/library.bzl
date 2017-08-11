@@ -81,8 +81,8 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
   lib_name = importpath + ".a"
   mode_fields = {} # These are added to the GoLibrary provider directly
   for mode in compile_modes:
-    out_lib = ctx.new_file("~{}~/{}".format(mode, lib_name))
-    out_object = ctx.new_file("~{}~/{}.o".format(mode, importpath))
+    out_lib = ctx.new_file("~{}~{}~/{}".format(mode, ctx.label.name, lib_name))
+    out_object = ctx.new_file("~{}~{}~/{}.o".format(mode, ctx.label.name, importpath))
     searchpath = out_lib.path[:-len(lib_name)]
     mode_fields[mode+"_library"] = out_lib
     mode_fields[mode+"_searchpath"] = searchpath
@@ -199,7 +199,7 @@ def go_importpath(ctx):
     path = path[:-1]
   if ctx.label.package:
     path += "/" + ctx.label.package
-  if ctx.label.name != DEFAULT_LIB:
+  if ctx.label.name != DEFAULT_LIB and not path.endswith(ctx.label.name):
     path += "/" + ctx.label.name
   if path.rfind(VENDOR_PREFIX) != -1:
     path = path[len(VENDOR_PREFIX) + path.rfind(VENDOR_PREFIX):]
