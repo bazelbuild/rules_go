@@ -22,10 +22,12 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
   direct = depset(golibs)
   gc_goopts = tuple(ctx.attr.gc_goopts)
   cgo_deps = depset()
+  cover_vars = ()
   if library:
     golib = library[GoLibrary]
     cgolib = library[CgoLibrary]
     srcs = golib.transformed + srcs
+    cover_vars += golib.cover_vars
     direct += golib.direct
     dep_runfiles += [library.data_runfiles]
     gc_goopts += golib.gc_goopts
@@ -69,10 +71,10 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
     transitive += golib.transitive
 
   go_srcs = source.go
-  cover_vars = ()
   if want_coverage:
-    go_srcs, cover_vars = _emit_go_cover_action(ctx, go_toolchain, go_srcs)
-    
+    go_srcs, cvars = _emit_go_cover_action(ctx, go_toolchain, go_srcs)
+    cover_vars += cvars
+
   emit_go_compile_action(ctx,
       sources = go_srcs,
       golibs = direct,
