@@ -159,7 +159,16 @@ def _extract_extldflags(gc_linkopts, extldflags):
   return filtered_gc_linkopts, extldflags
 
 def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
-  """Sets up a symlink tree to libraries to link together."""
+  """Adds an action to link the supplied library in the given mode, producing the executable.
+  Args:
+    ctx: The skylark Context.
+    library: The library to link.
+    mode: Controls the linking setup affecting things like enabling profilers and sanitizers.
+      (TODO: more detail when we switch to mode constants)
+    executable: The binary to produce.
+    gc_linkopts: basic link options, these may be adjusted by the mode.
+    x_defs: link defines, including build stamping ones
+  """
   go_toolchain = get_go_toolchain(ctx)
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1

@@ -200,6 +200,8 @@ def emit_go_compile_action(ctx, sources, golibs, mode, out_object, gc_goopts):
     ctx: The skylark Context.
     sources: an iterable of source code artifacts (or CTs? or labels?)
     golibs: a depset of representing all imported libraries.
+    mode: Controls the compilation setup affecting things like enabling profilers and sanitizers.
+      (TODO: more detail when we switch to mode constants)
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
