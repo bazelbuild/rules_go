@@ -55,9 +55,9 @@ def _go_test_impl(ctx):
   covered_libs = []
   for golib in depset([golib]) + golib.transitive:
     if golib.cover_vars:
-        covered_libs += [golib]
-        for var in golib.cover_vars:
-            arguments += ["-cover", "{}={}".format(var, golib.importpath)]
+      covered_libs += [golib]
+      for var in golib.cover_vars:
+        arguments += ["-cover", "{}={}".format(var, golib.importpath)]
 
   ctx.action(
       inputs = go_srcs,
