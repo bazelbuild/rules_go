@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype")
-load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions")
+load("@io_bazel_rules_go//go/private:common.bzl",
+  "get_go_toolchain",
+  "go_filetype",
+  "compile_modes",
+  "NORMAL_MODE",
+  "RACE_MODE",
+)
+load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "get_library", "get_searchpath")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_binary_impl(ctx):
@@ -27,15 +33,21 @@ def _go_binary_impl(ctx):
       importpath = ctx.label.name + "~main~",
   )
 
+
   # Default (dynamic) linking
-  emit_go_link_action(
+  race_executable = ctx.new_file(ctx.attr.name + ".race")
+  for mode in compile_modes:
+    executable = ctx.outputs.executable
+    if mode == RACE_MODE:
+      executable = race_executable
+    emit_go_link_action(
       ctx,
       library=golib,
-      mode="",
-      executable=ctx.outputs.executable,
+      mode=mode,
+      executable=executable,
       gc_linkopts=gc_linkopts(ctx),
       x_defs=ctx.attr.x_defs,
-  )
+    )
 
   # Static linking (in the 'static' output group)
   static_linkopts = [
@@ -46,21 +58,10 @@ def _go_binary_impl(ctx):
   emit_go_link_action(
       ctx,
       library=golib,
-      mode="",
+      mode=NORMAL_MODE,
       executable=static_executable,
       gc_linkopts=gc_linkopts(ctx) + static_linkopts,
       x_defs=ctx.attr.x_defs,
-  )
-
-  # with race detector
-  race_executable = ctx.new_file(ctx.attr.name + ".race")
-  emit_go_link_action(
-    ctx,
-    library=golib,
-    mode="_race",
-    executable=race_executable,
-    gc_linkopts=gc_linkopts(ctx) + ["-race"],
-    x_defs=ctx.attr.x_defs,
   )
 
   return [
@@ -164,12 +165,17 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
     ctx: The skylark Context.
     library: The library to link.
     mode: Controls the linking setup affecting things like enabling profilers and sanitizers.
-      (TODO: more detail when we switch to mode constants)
+      This must be one of the values in common.bzl#compile_modes
     executable: The binary to produce.
     gc_linkopts: basic link options, these may be adjusted by the mode.
     x_defs: link defines, including build stamping ones
   """
   go_toolchain = get_go_toolchain(ctx)
+
+  # Add in any mode specific behaviours
+  if mode == RACE_MODE:
+    gc_linkopts += ["-race"]
+
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
@@ -186,8 +192,8 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
   libs = depset()
   cgo_deps = depset()
   for golib in depset([library]) + library.transitive:
-    libs += [getattr(golib, "library" + mode)]
-    link_opts += ["-L", getattr(golib, "searchpath" + mode)]
+    libs += [get_library(golib, mode)]
+    link_opts += ["-L", get_searchpath(golib, mode)]
     cgo_deps += golib.cgo_deps
 
   for d in cgo_deps:
@@ -211,7 +217,7 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
   link_opts += go_toolchain.link_flags + [
       "-extld", ld,
       "-extldflags", " ".join(extldflags),
-  ] + [getattr(golib, "library" + mode).path]
+  ] + [get_library(golib, mode).path]
 
   link_args = [go_toolchain.go.path]
   # Stamping support

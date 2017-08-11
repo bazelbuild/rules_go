@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "go_filetype", "split_srcs", "pkg_dir")
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "get_go_toolchain",
+    "go_filetype",
+    "split_srcs",
+    "pkg_dir",
+    "NORMAL_MODE",
+    "RACE_MODE",
+)
 load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "emit_go_pack_action")
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
@@ -78,11 +85,10 @@ def _go_test_impl(ctx):
       golibs = [golib] + covered_libs,
   )
 
-  mode = ""
+  mode = NORMAL_MODE
   linkopts = gc_linkopts(ctx)
   if "race" in ctx.features:
-    mode = "_race"
-    linkopts += ["-race"]
+    mode = RACE_MODE
 
   emit_go_link_action(
       ctx,

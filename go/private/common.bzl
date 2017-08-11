@@ -18,6 +18,11 @@ DEFAULT_LIB = "go_default_library"
 
 VENDOR_PREFIX = "/vendor/"
 
+NORMAL_MODE = "normal"
+RACE_MODE = "race"
+
+compile_modes = (NORMAL_MODE, RACE_MODE)
+
 go_exts = [
     ".go",
 ]

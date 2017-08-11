@@ -12,7 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "DEFAULT_LIB", "VENDOR_PREFIX", "go_filetype", "dict_of", "split_srcs", "join_srcs")
+load("@io_bazel_rules_go//go/private:common.bzl", 
+  "get_go_toolchain",
+  "DEFAULT_LIB",
+  "VENDOR_PREFIX",
+  "go_filetype",
+  "dict_of",
+  "split_srcs",
+  "join_srcs",
+  "RACE_MODE",
+  "NORMAL_MODE",
+  "compile_modes",
+)
 load("@io_bazel_rules_go//go/private:asm.bzl", "emit_go_asm_action")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "CgoLibrary")
 
@@ -54,14 +65,6 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
     emit_go_asm_action(ctx, src, source.headers, obj)
     extra_objects += [obj]
 
-  lib_name = importpath + ".a"
-  out_lib = ctx.new_file("~lib~/"+lib_name)
-  out_object = ctx.new_file("~lib~/" + importpath + ".o")
-  searchpath = out_lib.path[:-len(lib_name)]
-  race_lib =  ctx.new_file("~race~/"+lib_name)
-  race_object = ctx.new_file("~race~/" + importpath + ".o")
-  searchpath_race = race_lib.path[:-len(lib_name)]
-
   for dep in deps:
     direct += [dep[GoLibrary]]
 
@@ -75,22 +78,22 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
     go_srcs, cvars = _emit_go_cover_action(ctx, go_toolchain, go_srcs)
     cover_vars += cvars
 
-  emit_go_compile_action(ctx,
-      sources = go_srcs,
-      golibs = direct,
-      mode = "",
-      out_object = out_object,
-      gc_goopts = gc_goopts,
-  )
-  emit_go_pack_action(ctx, out_lib, [out_object] + extra_objects)
-  emit_go_compile_action(ctx,
-      sources = go_srcs,
-      golibs = direct,
-      mode = "_race",
-      out_object = race_object,
-      gc_goopts = gc_goopts + ("-race",),
-  )
-  emit_go_pack_action(ctx, race_lib, [race_object] + extra_objects)
+  lib_name = importpath + ".a"
+  mode_fields = {} # These are added to the GoLibrary provider directly
+  for mode in compile_modes:
+    out_lib = ctx.new_file("~{}~/{}".format(mode, lib_name))
+    out_object = ctx.new_file("~{}~/{}.o".format(mode, importpath))
+    searchpath = out_lib.path[:-len(lib_name)]
+    mode_fields[mode+"_library"] = out_lib
+    mode_fields[mode+"_searchpath"] = searchpath
+    emit_go_compile_action(ctx,
+        sources = go_srcs,
+        golibs = direct,
+        mode = mode,
+        out_object = out_object,
+        gc_goopts = gc_goopts,
+    )
+    emit_go_pack_action(ctx, out_lib, [out_object] + extra_objects)
 
   dylibs = []
   if cgo_object:
@@ -106,10 +109,6 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
   return [
       GoLibrary(
           importpath = importpath, # The import path for this library
-          library = out_lib, # The normal library
-          searchpath = searchpath, # The searchpath for the normal library
-          library_race = race_lib, # The library compiled for race detection
-          searchpath_race = searchpath_race, # The searchpath for the race library
           direct = direct, # The direct depencancies of the library
           transitive = transitive, # The transitive set of go libraries depended on
           srcs = depset(srcs), # The original sources
@@ -118,11 +117,22 @@ def emit_library_actions(ctx, srcs, deps, cgo_object, library, want_coverage, im
           gc_goopts = gc_goopts, # The options this library was compiled with
           runfiles = runfiles, # The runfiles needed for things including this library
           cover_vars = cover_vars, # The cover variables for this library
+          **mode_fields
       ),
       CgoLibrary(
           object = cgo_object,
       ),
   ]
+
+def get_library(golib, mode):
+  """Returns the compiled library for the given mode"""
+  # The attribute name must match the one assigned in emit_library_actions 
+  return getattr(golib, mode+"_library")
+
+def get_searchpath(golib, mode):
+  """Returns the search path for the given mode"""
+  # The attribute name must match the one assigned in emit_library_actions 
+  return getattr(golib, mode+"_searchpath")
 
 def _go_library_impl(ctx):
   """Implements the go_library() rule."""
@@ -142,11 +152,11 @@ def _go_library_impl(ctx):
       golib,
       cgolib,
       DefaultInfo(
-          files = depset([golib.library]),
+          files = depset([get_library(golib, NORMAL_MODE)]),
           runfiles = golib.runfiles,
       ),
       OutputGroupInfo(
-          race = depset([golib.library_race]),
+          race = depset([get_library(golib, RACE_MODE)]),
       ),
   ]
 
@@ -205,11 +215,16 @@ def emit_go_compile_action(ctx, sources, golibs, mode, out_object, gc_goopts):
     sources: an iterable of source code artifacts (or CTs? or labels?)
     golibs: a depset of representing all imported libraries.
     mode: Controls the compilation setup affecting things like enabling profilers and sanitizers.
-      (TODO: more detail when we switch to mode constants)
+      This must be one of the values in common.bzl#compile_modes
     out_object: the object file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
   go_toolchain = get_go_toolchain(ctx)
+
+  # Add in any mode specific behaviours
+  if mode == RACE_MODE:
+    gc_goopts = gc_goopts + ("-race",)
+
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   inputs = depset([go_toolchain.go]) + sources
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
@@ -218,11 +233,9 @@ def emit_go_compile_action(ctx, sources, golibs, mode, out_object, gc_goopts):
   for src in go_sources:
     args += ["-src", src]
   for golib in golibs:
-    library = getattr(golib, "library" + mode)
-    searchpath = getattr(golib, "searchpath" + mode)
-    inputs += [library]
+    inputs += [get_library(golib, mode)]
     args += ["-dep", golib.importpath]
-    args += ["-I", searchpath]
+    args += ["-I", get_searchpath(golib,mode)]
   args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
   args += ["--"] + gc_goopts + cgo_sources
   ctx.action(
