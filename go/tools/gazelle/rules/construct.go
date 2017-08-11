@@ -35,7 +35,7 @@ type globvalue struct {
 	excludes []string
 }
 
-func newRule(kind string, args []interface{}, kwargs []keyvalue) *bf.Rule {
+func newRule(kind string, args []interface{}, kwargs []keyvalue) *bf.CallExpr {
 	var list []bf.Expr
 	for _, arg := range args {
 		list = append(list, newValue(arg))
@@ -49,11 +49,9 @@ func newRule(kind string, args []interface{}, kwargs []keyvalue) *bf.Rule {
 		})
 	}
 
-	return &bf.Rule{
-		Call: &bf.CallExpr{
-			X:    &bf.LiteralExpr{Token: kind},
-			List: list,
-		},
+	return &bf.CallExpr{
+		X:    &bf.LiteralExpr{Token: kind},
+		List: list,
 	}
 }
 

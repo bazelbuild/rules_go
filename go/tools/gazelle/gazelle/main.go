@@ -104,7 +104,7 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 }
 
 func processPackage(c *config.Config, r resolve.Resolver, l resolve.Labeler, shouldFix bool, emit emitFunc, pkg *packages.Package, oldFile *bf.File) {
-	g := rules.NewGenerator(c, r, l, oldFile)
+	g := rules.NewGenerator(c, r, l, pkg.Rel, oldFile)
 	genFile := g.Generate(pkg)
 
 	if oldFile == nil {
