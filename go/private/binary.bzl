@@ -33,7 +33,6 @@ def _go_binary_impl(ctx):
       importpath = ctx.label.name + "~main~",
   )
 
-
   # Default (dynamic) linking
   race_executable = ctx.new_file(ctx.attr.name + ".race")
   for mode in compile_modes:
@@ -41,12 +40,12 @@ def _go_binary_impl(ctx):
     if mode == RACE_MODE:
       executable = race_executable
     emit_go_link_action(
-      ctx,
-      library=golib,
-      mode=mode,
-      executable=executable,
-      gc_linkopts=gc_linkopts(ctx),
-      x_defs=ctx.attr.x_defs,
+        ctx,
+        library=golib,
+        mode=mode,
+        executable=executable,
+        gc_linkopts=gc_linkopts(ctx),
+        x_defs=ctx.attr.x_defs,
     )
 
   # Static linking (in the 'static' output group)
