@@ -76,8 +76,10 @@ def go_repositories(
   # Needed for gazelle and wtool
   native.http_archive(
       name = "com_github_bazelbuild_buildtools",
-      url = "https://codeload.github.com/bazelbuild/buildtools/zip/d5dcc29f2304aa28c29ecb8337d52bb9de908e0c",
-      strip_prefix = "buildtools-d5dcc29f2304aa28c29ecb8337d52bb9de908e0c",
+      # master, as of 14 Aug 2017
+      url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
+      strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
+      sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
       type = "zip",
   )
 

@@ -22,6 +22,7 @@ import (
 	"sort"
 
 	bf "github.com/bazelbuild/buildtools/build"
+	bt "github.com/bazelbuild/buildtools/tables"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
 
@@ -155,38 +156,8 @@ func (s byAttrName) Len() int {
 	return len(s)
 }
 
-// namePriority is the sort order for rule attributes.
-// Copied from github.com/bazelbuild/buildifier/build/rewrite.go
-var namePriority = map[string]int{
-	"name":              -99,
-	"gwt_name":          -98,
-	"package_name":      -97,
-	"visible_node_name": -96, // for boq_initial_css_modules and boq_jswire_test_suite
-	"size":              -95,
-	"timeout":           -94,
-	"testonly":          -93,
-	"src":               -92,
-	"srcdir":            -91,
-	"srcs":              -90,
-	"out":               -89,
-	"outs":              -88,
-	"hdrs":              -87,
-	"has_services":      -86, // before api versions, for proto
-	"include":           -85, // before exclude, for glob
-	"of":                -84, // for check_dependencies
-	"baseline":          -83, // for searchbox_library
-	// All others sort here, at 0.
-	"destdir":        1,
-	"exports":        2,
-	"runtime_deps":   3,
-	"deps":           4,
-	"implementation": 5,
-	"implements":     6,
-	"alwayslink":     7,
-}
-
 func (s byAttrName) Less(i, j int) bool {
-	if cmp := namePriority[s[i].key] - namePriority[s[j].key]; cmp != 0 {
+	if cmp := bt.NamePriority[s[i].key] - bt.NamePriority[s[j].key]; cmp != 0 {
 		return cmp < 0
 	}
 	return s[i].key < s[j].key

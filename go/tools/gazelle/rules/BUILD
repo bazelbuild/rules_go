@@ -14,6 +14,7 @@ go_library(
         "//go/tools/gazelle/packages:go_default_library",
         "//go/tools/gazelle/resolve:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
+        "@com_github_bazelbuild_buildtools//tables:go_default_library",
         "@org_golang_x_tools//go/vcs:go_default_library",
     ],
 )
