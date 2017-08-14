@@ -16,6 +16,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    cgo = True,
     clinkopts = ["-lweird"],
     copts = [
         "-I/weird/path",
@@ -31,7 +32,6 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    cgo = True,
     visibility = ["//visibility:public"],
     deps = [
         "//lib/deep:go_default_library",

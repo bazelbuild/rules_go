@@ -9,9 +9,9 @@ go_library(
         "foo.c",
         "foo.h",
     ],
+    cgo = True,
     clinkopts = ["-lweird"],
     copts = ["-I/weird/path"],
-    cgo = True,
     visibility = ["//visibility:public"],
     deps = [
         "//lib/deep:go_default_library",

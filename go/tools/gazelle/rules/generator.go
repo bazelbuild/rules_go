@@ -99,11 +99,11 @@ func (g *generator) GenerateRules(pkg *packages.Package) []bf.Expr {
 		rules = append(rules, r)
 	}
 
-	if r := g.generateTest(pkg, library); r != nil {
+	if r := g.generateTest(pkg, library, false); r != nil {
 		rules = append(rules, r)
 	}
 
-	if r := g.generateXTest(pkg, library); r != nil {
+	if r := g.generateTest(pkg, "", true); r != nil {
 		rules = append(rules, r)
 	}
 
@@ -149,14 +149,17 @@ func (g *generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	}
 	name := g.l.BinaryLabel(pkg.Rel).Name
 	visibility := checkInternalVisibility(pkg.Rel, "//visibility:public")
-	return g.generateRule(pkg.Rel, "go_binary", name, visibility, library, "", "", false, pkg.Binary)
+	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Binary)
+	if library != "" {
+		attrs = append(attrs, keyvalue{"library", ":" + library})
+	}
+	return newRule("go_binary", nil, attrs)
 }
 
 func (g *generator) generateLib(pkg *packages.Package) (string, bf.Expr) {
 	if !pkg.Library.HasGo() {
 		return "", nil
 	}
-
 	name := g.l.LibraryLabel(pkg.Rel).Name
 	var visibility string
 	if pkg.IsCommand() {
@@ -165,14 +168,15 @@ func (g *generator) generateLib(pkg *packages.Package) (string, bf.Expr) {
 	} else {
 		visibility = checkInternalVisibility(pkg.Rel, "//visibility:public")
 	}
-	var importpath string
+
+	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Library)
 	if !pkg.IsCommand() && g.c.StructureMode == config.FlatMode {
 		// TODO(jayconrod): add importpath attributes outside of flat mode after
 		// we have verified it works correctly.
-		importpath = pkg.ImportPath(g.c.GoPrefix)
+		attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
 	}
 
-	rule := g.generateRule(pkg.Rel, "go_library", name, visibility, "", importpath, "", false, pkg.Library)
+	rule := newRule("go_library", nil, attrs)
 	return name, rule
 }
 
@@ -218,63 +222,42 @@ func (g *generator) filegroup(pkg *packages.Package) bf.Expr {
 	})
 }
 
-func (g *generator) generateTest(pkg *packages.Package, library string) bf.Expr {
-	if !pkg.Test.HasGo() {
+func (g *generator) generateTest(pkg *packages.Package, library string, isXTest bool) bf.Expr {
+	target := pkg.Test
+	if isXTest {
+		target = pkg.XTest
+	}
+	if !target.HasGo() {
 		return nil
 	}
-
-	name := g.l.TestLabel(pkg.Rel, false).Name
-	var rundir string
-	if g.c.StructureMode == config.FlatMode {
-		rundir = pkg.Rel
+	name := g.l.TestLabel(pkg.Rel, isXTest).Name
+	attrs := g.commonAttrs(pkg.Rel, name, "", target)
+	if library != "" {
+		attrs = append(attrs, keyvalue{"library", ":" + library})
 	}
-	return g.generateRule(pkg.Rel, "go_test", name, "", library, "", rundir, pkg.HasTestdata, pkg.Test)
+	if pkg.HasTestdata {
+		glob := globvalue{patterns: []string{"testdata/**"}}
+		attrs = append(attrs, keyvalue{"data", glob})
+	}
+	if g.c.StructureMode == config.FlatMode {
+		attrs = append(attrs, keyvalue{"rundir", pkg.Rel})
+	}
+	return newRule("go_test", nil, attrs)
 }
 
-func (g *generator) generateXTest(pkg *packages.Package, library string) bf.Expr {
-	if !pkg.XTest.HasGo() {
-		return nil
-	}
-
-	name := g.l.TestLabel(pkg.Rel, true).Name
-	var rundir string
-	if g.c.StructureMode == config.FlatMode {
-		rundir = pkg.Rel
-	}
-	return g.generateRule(pkg.Rel, "go_test", name, "", "", "", rundir, pkg.HasTestdata, pkg.XTest)
-}
-
-func (g *generator) generateRule(pkgRel, kind, name, visibility, library, importpath, rundir string, hasTestdata bool, target packages.Target) bf.Expr {
-	// Construct attrs in the same order that bf.Rewrite uses. See
-	// namePriority in github.com/bazelbuild/buildtools/build/rewrite.go.
-	attrs := []keyvalue{
-		{"name", name},
-	}
+func (g *generator) commonAttrs(pkgRel, name, visibility string, target packages.Target) []keyvalue {
+	attrs := []keyvalue{{"name", name}}
 	if !target.Sources.IsEmpty() {
 		attrs = append(attrs, keyvalue{"srcs", g.sources(target.Sources, pkgRel)})
+	}
+	if target.Cgo {
+		attrs = append(attrs, keyvalue{"cgo", true})
 	}
 	if !target.CLinkOpts.IsEmpty() {
 		attrs = append(attrs, keyvalue{"clinkopts", g.options(target.CLinkOpts, pkgRel)})
 	}
 	if !target.COpts.IsEmpty() {
 		attrs = append(attrs, keyvalue{"copts", g.options(target.COpts, pkgRel)})
-	}
-	if target.Cgo {
-		attrs = append(attrs, keyvalue{"cgo", true})
-	}
-	if hasTestdata {
-		rel := g.buildPkgRel(pkgRel)
-		glob := globvalue{patterns: []string{path.Join(rel, "testdata/**")}}
-		attrs = append(attrs, keyvalue{"data", glob})
-	}
-	if library != "" {
-		attrs = append(attrs, keyvalue{"library", ":" + library})
-	}
-	if importpath != "" {
-		attrs = append(attrs, keyvalue{"importpath", importpath})
-	}
-	if rundir != "" {
-		attrs = append(attrs, keyvalue{"rundir", rundir})
 	}
 	if g.shouldSetVisibility && visibility != "" {
 		attrs = append(attrs, keyvalue{"visibility", []string{visibility}})
@@ -283,7 +266,7 @@ func (g *generator) generateRule(pkgRel, kind, name, visibility, library, import
 		deps := g.dependencies(target.Imports, pkgRel)
 		attrs = append(attrs, keyvalue{"deps", deps})
 	}
-	return newRule(kind, nil, attrs)
+	return attrs
 }
 
 // sources converts paths in "srcs" which are relative to the Go package
