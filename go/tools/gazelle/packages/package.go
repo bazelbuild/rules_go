@@ -17,6 +17,7 @@ package packages
 
 import (
 	"fmt"
+	"path"
 	"sort"
 	"strings"
 
@@ -75,6 +76,32 @@ func (p *Package) IsCommand() bool {
 // not generate rules for it.
 func (p *Package) HasGo() bool {
 	return p.Library.HasGo() || p.Binary.HasGo() || p.Test.HasGo() || p.XTest.HasGo()
+}
+
+// ImportPath returns the inferred Go import path for this package. This
+// is determined as follows:
+//
+// * If there is no library target or if Name is "main", "" is returned.
+//   This indicates the library cannot be imported.
+// * If "vendor" is a component in p.Rel, everything after the last "vendor"
+//   component is returned.
+// * Otherwise, prefix joined with Rel is returned.
+//
+// TODO(jayconrod): extract canonical import paths from comments on
+// package statements.
+func (p *Package) ImportPath(prefix string) string {
+	if !p.Library.HasGo() || p.IsCommand() {
+		return ""
+	}
+
+	components := strings.Split(p.Rel, "/")
+	for i := len(components) - 1; i >= 0; i-- {
+		if components[i] == "vendor" {
+			return path.Join(components[i+1:]...)
+		}
+	}
+
+	return path.Join(prefix, p.Rel)
 }
 
 // firstGoFile returns the name of a .go file if the package contains at least

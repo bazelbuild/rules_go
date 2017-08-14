@@ -149,7 +149,7 @@ func (g *generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	}
 	name := g.l.BinaryLabel(pkg.Rel).Name
 	visibility := checkInternalVisibility(pkg.Rel, "//visibility:public")
-	return g.generateRule(pkg.Rel, "go_binary", name, visibility, library, false, pkg.Binary)
+	return g.generateRule(pkg.Rel, "go_binary", name, visibility, library, "", "", false, pkg.Binary)
 }
 
 func (g *generator) generateLib(pkg *packages.Package) (string, bf.Expr) {
@@ -165,8 +165,14 @@ func (g *generator) generateLib(pkg *packages.Package) (string, bf.Expr) {
 	} else {
 		visibility = checkInternalVisibility(pkg.Rel, "//visibility:public")
 	}
+	var importpath string
+	if !pkg.IsCommand() && g.c.StructureMode == config.FlatMode {
+		// TODO(jayconrod): add importpath attributes outside of flat mode after
+		// we have verified it works correctly.
+		importpath = pkg.ImportPath(g.c.GoPrefix)
+	}
 
-	rule := g.generateRule(pkg.Rel, "go_library", name, visibility, "", false, pkg.Library)
+	rule := g.generateRule(pkg.Rel, "go_library", name, visibility, "", importpath, "", false, pkg.Library)
 	return name, rule
 }
 
@@ -218,7 +224,11 @@ func (g *generator) generateTest(pkg *packages.Package, library string) bf.Expr 
 	}
 
 	name := g.l.TestLabel(pkg.Rel, false).Name
-	return g.generateRule(pkg.Rel, "go_test", name, "", library, pkg.HasTestdata, pkg.Test)
+	var rundir string
+	if g.c.StructureMode == config.FlatMode {
+		rundir = pkg.Rel
+	}
+	return g.generateRule(pkg.Rel, "go_test", name, "", library, "", rundir, pkg.HasTestdata, pkg.Test)
 }
 
 func (g *generator) generateXTest(pkg *packages.Package, library string) bf.Expr {
@@ -227,10 +237,14 @@ func (g *generator) generateXTest(pkg *packages.Package, library string) bf.Expr
 	}
 
 	name := g.l.TestLabel(pkg.Rel, true).Name
-	return g.generateRule(pkg.Rel, "go_test", name, "", "", pkg.HasTestdata, pkg.XTest)
+	var rundir string
+	if g.c.StructureMode == config.FlatMode {
+		rundir = pkg.Rel
+	}
+	return g.generateRule(pkg.Rel, "go_test", name, "", "", "", rundir, pkg.HasTestdata, pkg.XTest)
 }
 
-func (g *generator) generateRule(pkgRel, kind, name, visibility, library string, hasTestdata bool, target packages.Target) bf.Expr {
+func (g *generator) generateRule(pkgRel, kind, name, visibility, library, importpath, rundir string, hasTestdata bool, target packages.Target) bf.Expr {
 	// Construct attrs in the same order that bf.Rewrite uses. See
 	// namePriority in github.com/bazelbuild/buildtools/build/rewrite.go.
 	attrs := []keyvalue{
@@ -255,6 +269,12 @@ func (g *generator) generateRule(pkgRel, kind, name, visibility, library string,
 	}
 	if library != "" {
 		attrs = append(attrs, keyvalue{"library", ":" + library})
+	}
+	if importpath != "" {
+		attrs = append(attrs, keyvalue{"importpath", importpath})
+	}
+	if rundir != "" {
+		attrs = append(attrs, keyvalue{"rundir", rundir})
 	}
 	if g.shouldSetVisibility && visibility != "" {
 		attrs = append(attrs, keyvalue{"visibility", []string{visibility}})

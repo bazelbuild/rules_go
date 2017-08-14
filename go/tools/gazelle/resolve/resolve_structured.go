@@ -18,8 +18,6 @@ package resolve
 import (
 	"fmt"
 	"strings"
-
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 // structuredResolver resolves go_library labels within the same repository as
@@ -34,15 +32,13 @@ var _ Resolver = (*structuredResolver)(nil)
 // Resolve takes a Go importpath within the same respository as r.goPrefix
 // and resolves it into a label in Bazel.
 func (r *structuredResolver) Resolve(importpath string) (Label, error) {
-	if importpath == r.goPrefix {
-		return Label{Name: config.DefaultLibName}, nil
+	relImportpath := ""
+	if importpath != r.goPrefix {
+		prefix := r.goPrefix + "/"
+		relImportpath = strings.TrimPrefix(importpath, prefix)
+		if relImportpath == importpath {
+			return Label{}, fmt.Errorf("importpath %q does not start with goPrefix %q", importpath, r.goPrefix)
+		}
 	}
-
-	prefix := r.goPrefix + "/"
-	relImportpath := strings.TrimPrefix(importpath, prefix)
-	if relImportpath == importpath {
-		return Label{}, fmt.Errorf("importpath %q does not start with goPrefix %q", importpath, r.goPrefix)
-	}
-
 	return r.l.LibraryLabel(relImportpath), nil
 }
