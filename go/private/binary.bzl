@@ -107,33 +107,8 @@ go_binary = rule(
         "_go_prefix": attr.label(default = go_prefix_default),
     },
     executable = True,
-    fragments = ["cpp"],
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
-def c_linker_options(ctx, blacklist=[]):
-  """Extracts flags to pass to $(CC) on link from the current context
-
-  Args:
-    ctx: the current context
-    blacklist: Any flags starts with any of these prefixes are filtered out from
-      the return value.
-
-  Returns:
-    A list of command line flags
-  """
-  cpp = ctx.fragments.cpp
-  features = ctx.features
-  options = cpp.compiler_options(features)
-  options += cpp.unfiltered_compiler_options(features)
-  options += cpp.link_options
-  options += cpp.mostly_static_link_options(ctx.features, False)
-  filtered = []
-  for opt in options:
-    if any([opt.startswith(prefix) for prefix in blacklist]):
-      continue
-    filtered.append(opt)
-  return filtered
 
 def gc_linkopts(ctx):
   gc_linkopts = [ctx.expand_make_variables("gc_linkopts", f, {})
@@ -183,16 +158,16 @@ def emit_go_link_action(ctx, go_toolchain, library, mode, executable, gc_linkopt
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
-  ld = "%s" % ctx.fragments.cpp.compiler_executable
-  extldflags = c_linker_options(ctx) + [
-      "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
-  ]
+  ld = None
+  extldflags = []
+  if go_toolchain.external_linker:
+    ld = go_toolchain.external_linker.compiler_executable
+    extldflags = go_toolchain.external_linker.options
+  extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)]
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
-  link_opts = [
-      "-L", "."
-  ]
+  link_opts = ["-L", "."]
   libs = depset()
   cgo_deps = depset()
   for golib in depset([library]) + library.transitive:
@@ -205,9 +180,7 @@ def emit_go_link_action(ctx, go_toolchain, library, mode, executable, gc_linkopt
       short_dir = d.dirname[len(d.root.path):]
       extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir]
 
-  link_opts += [
-      "-o", executable.path,
-  ] + gc_linkopts
+  link_opts += ["-o", executable.path] + gc_linkopts
 
   # Process x_defs, either adding them directly to linker options, or
   # saving them to process through stamping support.
@@ -218,11 +191,13 @@ def emit_go_link_action(ctx, go_toolchain, library, mode, executable, gc_linkopt
     else:
       link_opts += ["-X", "%s=%s" % (k, v)]
 
-  link_opts += go_toolchain.link_flags + [
-      "-extld", ld,
-      "-extldflags", " ".join(extldflags),
-  ] + [get_library(golib, mode).path]
-
+  link_opts += go_toolchain.link_flags
+  if ld: 
+    link_opts += [
+        "-extld", ld,
+        "-extldflags", " ".join(extldflags),
+    ]
+  link_opts += [get_library(golib, mode).path]
   link_args = [go_toolchain.go.path]
   # Stamping support
   stamp_inputs = []

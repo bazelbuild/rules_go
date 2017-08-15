@@ -1,4 +1,4 @@
-load('//go/private:go_toolchain.bzl', 'go_toolchain')
+load('//go/private:go_toolchain.bzl', 'go_toolchain', "external_linker")
 load('//go/private:go_tool_binary.bzl', 'go_bootstrap_toolchain')
 
 def _generate_toolchains():
@@ -162,6 +162,7 @@ def register_go_toolchains():
     native.register_toolchains(_label_prefix + toolchain["name"])
 
 def declare_toolchains():
+  external_linker()
   # Use the final dictionaries to create all the toolchains
   for toolchain in _toolchains:
     if "declare" in toolchain:

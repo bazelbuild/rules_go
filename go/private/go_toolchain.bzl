@@ -44,7 +44,13 @@ def _go_toolchain_impl(ctx):
       link_flags = ctx.attr.link_flags,
       cgo_link_flags = ctx.attr.cgo_link_flags,
       crosstool = ctx.files.crosstool,
+      external_linker = ctx.attr._external_linker,
   )]
+
+def _get_linker():
+  # TODO: return None if there is no cpp fragment available
+  # This is not possible right now, we need a new bazel feature
+  return Label("//go/toolchain:external_linker")
 
 go_toolchain_core_attrs = {
     "sdk": attr.string(mandatory = True),
@@ -57,6 +63,7 @@ go_toolchain_core_attrs = {
     "cgo_link_flags": attr.string_list(default=[]),
     "goos": attr.string(mandatory = True),
     "goarch": attr.string(mandatory = True),
+    "_external_linker": attr.label(default=_get_linker),
 }
 
 go_toolchain_attrs = go_toolchain_core_attrs + {
@@ -94,3 +101,25 @@ go_toolchain_flags = rule(
         "compile_flags": attr.string_list(mandatory=True),
     },
 )
+
+def _external_linker_impl(ctx):
+  cpp = ctx.fragments.cpp
+  features = ctx.features
+  options = cpp.compiler_options(features)
+  options += cpp.unfiltered_compiler_options(features)
+  options += cpp.link_options
+  options += cpp.mostly_static_link_options(ctx.features, False)
+  return struct(
+      compiler_executable = cpp.compiler_executable,
+      options = options,
+      c_options = cpp.c_options,
+  )
+
+_external_linker = rule(
+    _external_linker_impl,
+    attrs = {},
+    fragments = ["cpp"],
+)
+
+def external_linker():
+    _external_linker(name="external_linker")

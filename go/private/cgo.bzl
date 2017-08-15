@@ -14,7 +14,6 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "dict_of", "split_srcs", "join_srcs", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
-load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 
 def _cgo_select_go_files_impl(ctx):
@@ -32,10 +31,20 @@ def _mangle(ctx, src):
     mangled_stem = ctx.attr.out_dir + "/" + src_stem.replace('/', '_')
     return mangled_stem, src_ext 
 
+def _c_filter_options(options, blacklist):
+  filtered = []
+  for opt in options:
+    if any([opt.startswith(prefix) for prefix in blacklist]):
+      continue
+    filtered.append(opt)
+  return filtered
+
 def _cgo_codegen_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  if not go_toolchain.external_linker:
+    fail("Go toolchain does not support cgo")
   linkopts = ctx.attr.linkopts[:]
-  copts = ctx.fragments.cpp.c_options + ctx.attr.copts
+  copts = go_toolchain.external_linker.c_options + ctx.attr.copts
   deps = depset([], order="topological")
   cgo_export_h = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.h")
   cgo_export_c = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.c")
@@ -43,7 +52,7 @@ def _cgo_codegen_impl(ctx):
   cgo_types = ctx.new_file(ctx.attr.out_dir + "/_cgo_gotypes.go")
   out_dir = cgo_main.dirname
 
-  cc = ctx.fragments.cpp.compiler_executable
+  cc = go_toolchain.external_linker.compiler_executable
   args = [go_toolchain.go.path, "-cc", str(cc), "-objdir", out_dir]
 
   c_outs = depset([cgo_export_h, cgo_export_c])
@@ -123,7 +132,6 @@ _cgo_codegen_rule = rule(
         "linkopts": attr.string_list(),
         "out_dir": attr.string(mandatory = True),
     },
-    fragments = ["cpp"],
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
@@ -162,7 +170,6 @@ _cgo_import = rule(
             mandatory = True,
         ),
     },
-    fragments = ["cpp"],
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
@@ -177,7 +184,10 @@ Args:
 
 def _cgo_object_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  arguments = c_linker_options(ctx, blacklist=[
+  if not go_toolchain.external_linker:
+    fail("Go toolchain does not support cgo")
+  options = go_toolchain.external_linker.options
+  arguments = _c_filter_options(options, blacklist=[
       # never link any dependency libraries
       "-l", "-L",
       # manage flags to ld(1) by ourselves
@@ -196,11 +206,12 @@ def _cgo_object_impl(ctx):
       outputs = [ctx.outputs.out],
       mnemonic = "CGoObject",
       progress_message = "Linking %s" % ctx.outputs.out.short_path,
-      executable = ctx.fragments.cpp.compiler_executable,
+      executable = go_toolchain.external_linker.compiler_executable,
       arguments = arguments,
   )
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.src.data_runfiles)
+
   return struct(
       files = depset([ctx.outputs.out]),
       cgo_obj = ctx.outputs.out,
@@ -223,7 +234,6 @@ _cgo_object = rule(
             mandatory = True,
         ),
     },
-    fragments = ["cpp"],
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 

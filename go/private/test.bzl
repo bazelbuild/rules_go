@@ -140,7 +140,6 @@ go_test = rule(
         "_go_prefix": attr.label(default = go_prefix_default),
     },
     executable = True,
-    fragments = ["cpp"],
     test = True,
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
