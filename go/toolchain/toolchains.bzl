@@ -39,28 +39,33 @@ def _generate_toolchains():
   # set of sdk's we know how to fetch
   versions = [
       struct(
-          semver = [1,8,3],
+          name = "host",
+          sdk = "@go_host_sdk",
+          hosts = [darwin_amd64, linux_386, linux_amd64, windows_386, windows_amd64, freebsd_386, freebsd_amd64],
+      ),
+      struct(
+          name = "1.8.3",
           hosts = [darwin_amd64, linux_386, linux_amd64, windows_386, windows_amd64, freebsd_386, freebsd_amd64],
           default = True,
       ),
       struct(
-          semver = [1,8,2],
+          name = "1.8.2",
           hosts = [darwin_amd64, linux_amd64],
       ),
       struct(
-          semver = [1,8,1],
+          name = "1.8.1",
           hosts = [darwin_amd64, linux_amd64],
       ),
       struct(
-          semver = [1,8,0],
+          name = "1.8",
           hosts = [darwin_amd64, linux_amd64],
       ),
       struct(
-          semver = [1,7,6],
+          name = "1.7.6",
           hosts = [darwin_amd64, linux_386, linux_amd64, windows_386, windows_amd64, freebsd_386, freebsd_amd64]
       ),
       struct(
-          semver = [1,7,5],
+          name = "1.7.5",
           hosts = [darwin_amd64, linux_amd64],
       ),
   ]
@@ -74,18 +79,22 @@ def _generate_toolchains():
   # Use all the above information to generate all the possible toolchains we might support
   toolchains = []
   for version in versions:
-    major = "go%d" % (version.semver[0])
-    minor = "%s.%d" % (major, version.semver[1])
-    point = "%s.%d" % (minor, version.semver[2])
-    version_constraints = [":" + major, ":" + minor, ":" + point]
+    semver = version.name.split(".", 3)
+    name = "_".join(semver)
+    full_name = version.name
+    if len(semver) == 2:
+        semver += ["0"]
+        full_name += ".0"
+    version_constraints = [":go"+".".join(semver[:index+1]) for index, _ in  enumerate(semver)]
     is_default = getattr(version, "default", False)
     for host in version.hosts:
-      distribution = "@go%d_%d_" % (version.semver[0], version.semver[1])
-      if version.semver[2]:
-        distribution += "%d_" % version.semver[2]
-      distribution += "%s_%s" % (host.os, host.arch)
+      "{}_{}_{}".format(name, host.os, host.arch)
+      if hasattr(version, "sdk"):
+        distribution = version.sdk
+      else:
+        distribution = "@go{}_{}_{}".format(name, host.os, host.arch)
       for target in [host] + cross_targets.get(host, []):
-        toolchain_name = point + "_" + host.os + "_" + host.arch
+        toolchain_name = "{}_{}_{}".format(full_name, host.os, host.arch)
         is_cross = host != target
         if is_cross:
           toolchain_name += "_cross_" + target.os + "_" + target.arch

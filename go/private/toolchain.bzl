@@ -60,3 +60,31 @@ go_sdk_repository = repository_rule(
         "sha256" : attr.string(),
     },
 )
+
+def _go_host_sdk_repository_impl(ctx):
+  root = "@invalid@"
+  if "GOROOT" in ctx.os.environ:
+    root = ctx.os.environ["GOROOT"]
+  else:
+    res = ctx.execute(["go", "env", "GOROOT"])
+    if res.return_code:
+        fail("Could not detect host go version")
+    root = res.stdout.strip()
+    if not root:
+        fail("host go version failed to report it's GOROOT")
+  ctx.template("BUILD.bazel", 
+    Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
+    substitutions = {"{goroot}": root}, 
+    executable = False,
+  )
+  for entry in ["src", "pkg", "bin"]:
+    ctx.symlink(root+"/"+entry, entry)
+
+go_host_sdk_repository = repository_rule(
+    implementation = _go_host_sdk_repository_impl, 
+    attrs = {},
+    environ = [
+      "GOROOT",
+    ],
+)
+

@@ -38,6 +38,7 @@ constraint_value(name = "go1.8.0", constraint_setting = ":go_point_version")
 constraint_value(name = "go1.7", constraint_setting = ":go_minor_version")
 constraint_value(name = "go1.7.6", constraint_setting = ":go_point_version")
 constraint_value(name = "go1.7.5", constraint_setting = ":go_version")
+constraint_value(name = "gohost", constraint_setting = ":go_version")
 
 declare_toolchains()
 
@@ -74,3 +75,4 @@ platform(name="plan9_amd64", constraint_values = [ ":plan9", ":amd64"])
 platform(name="solaris_amd64", constraint_values = [ ":solaris", ":amd64"])
 platform(name="windows_386", constraint_values = [ ":windows", ":386"])
 platform(name="windows_amd64", constraint_values = [ ":windows", ":amd64"])
+platform(name="host", constraint_values = [":linux", ":amd64", ":gohost"])

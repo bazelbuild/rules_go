@@ -14,7 +14,7 @@
 
 # Once nested repositories work, this file should cease to exist.
 
-load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_host_sdk_repository")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', 'register_go_toolchains')
@@ -75,6 +75,9 @@ def go_repositories(
         strip_prefix = "go",
     )
 
+  go_host_sdk_repository(
+      name = "go_host_sdk",
+  )
   # Needed for gazelle and wtool
   native.http_archive(
       name = "com_github_bazelbuild_buildtools",
