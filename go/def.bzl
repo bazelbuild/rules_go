@@ -26,10 +26,10 @@ load("@io_bazel_rules_go//go/private:wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_test_macro = "go_test_macro",
 )
-load("@io_bazel_rules_go//go/private:path.bzl", 
+load("@io_bazel_rules_go//go/private/tools:path.bzl", 
   _go_path = "go_path",
 )
-load("@io_bazel_rules_go//go/private:tools.bzl", 
+load("@io_bazel_rules_go//go/private/tools:vet.bzl", 
   _go_vet_test = "go_vet_test",
 )
 

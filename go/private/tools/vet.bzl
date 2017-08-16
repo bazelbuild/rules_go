@@ -23,8 +23,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   go_toolchain = get_go_toolchain(ctx)
   script_file = ctx.new_file(ctx.label.name+".bash")
   gopath = []
-  files = ctx.files.data
-  files += [go_toolchain.go]
+  files = ctx.files.data + [go_toolchain.go]
   gopath = []
   packages = []
   for data in ctx.attr.data:
