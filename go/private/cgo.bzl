@@ -34,7 +34,7 @@ def _mangle(ctx, src):
 
 def _cgo_codegen_impl(ctx):
   go_toolchain = get_go_toolchain(ctx)
-  linkopts = ctx.attr.linkopts
+  linkopts = ctx.attr.linkopts[:]
   copts = ctx.fragments.cpp.c_options + ctx.attr.copts
   deps = depset([], order="topological")
   cgo_export_h = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.h")
@@ -256,7 +256,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   base_dir = pkg_dir(
       "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
       PACKAGE_NAME)
-  copts += ["-I", base_dir]
+  copts = copts + ["-I", base_dir]
 
   cgo_codegen_name = name + ".cgo_codegen"
   _cgo_codegen_rule(
