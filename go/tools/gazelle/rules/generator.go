@@ -236,7 +236,7 @@ func (g *generator) generateTest(pkg *packages.Package, library string, isXTest 
 		attrs = append(attrs, keyvalue{"library", ":" + library})
 	}
 	if pkg.HasTestdata {
-		glob := globvalue{patterns: []string{"testdata/**"}}
+		glob := globvalue{patterns: []string{path.Join(g.buildPkgRel(pkg.Rel), "testdata/**")}}
 		attrs = append(attrs, keyvalue{"data", glob})
 	}
 	if g.c.StructureMode == config.FlatMode {
