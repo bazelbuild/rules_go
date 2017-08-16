@@ -13,22 +13,24 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
+load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain")
 
 def _go_path_impl(ctx):
   print("""
 EXPERIMENTAL: the go_path rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
+  go_toolchain = get_go_toolchain(ctx)
   # First gather all the library rules
   golibs = depset()
   for dep in ctx.attr.deps:
     golib = dep[GoLibrary]
     golibs += [golib]
     golibs += golib.transitive
-  seen_libs = {}
-  seen_paths = {}
 
   # Now scan them for sources
+  seen_libs = {}
+  seen_paths = {}
   outputs = depset()
   packages = []
   for golib in golibs:
@@ -61,7 +63,7 @@ and
         ctx.template_action(template=src, output=out, substitutions={})
       elif ctx.attr.mode == "link":
         ctx.action(
-            command="ln -s $(realpath $1) $2",
+            command='ln -s $(realpath "$1") "$2"',
             arguments=[src.path, out.path],
             inputs=[src],
             outputs=[out],
@@ -74,13 +76,14 @@ and
       files = package_files,
     )]
   envscript = ctx.new_file("{}/setenv.sh".format(ctx.label.name))
-  gopath = envscript.short_path[:-len(envscript.basename)]
-  #TODO: also set the GOROOT, need new toolchains first
+  gopath, _, _ = envscript.short_path.rpartition("/")
   ctx.file_action(envscript, content="""
-export GOPATH={gopath}
+export GOROOT="{goroot}"
+export GOPATH=$(realpath "{gopath}")
 """.format(
-  gopath = gopath,
-))
+      goroot=go_toolchain.root.path,
+      gopath = gopath,
+  ))
   return [
       DefaultInfo(
           files = outputs + [envscript],
@@ -93,9 +96,10 @@ export GOPATH={gopath}
   ]
 
 go_path = rule(
-  _go_path_impl,
-  attrs = {
-      "deps": attr.label_list(providers=[GoLibrary]),
-      "mode": attr.string(default="link", values=["link", "copy"])
-  },
+    _go_path_impl,
+    attrs = {
+        "deps": attr.label_list(providers=[GoLibrary]),
+        "mode": attr.string(default="link", values=["link", "copy"]),
+        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
+    },
 )
