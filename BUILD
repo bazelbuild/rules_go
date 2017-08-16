@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_prefix", "go_path")
+load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_prefix", "go_path", "go_vet_test")
 load("@io_bazel_rules_go//go/private:lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_google_protobuf")
 
@@ -45,4 +45,9 @@ go_path(
         "//go/tools/wtool:wtool",
     ],
     tags = ["manual"],
+)
+
+go_vet_test(
+    name = "vet",
+    data = [":all_srcs"]
 )

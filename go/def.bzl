@@ -29,6 +29,9 @@ load("@io_bazel_rules_go//go/private:wrappers.bzl",
 load("@io_bazel_rules_go//go/private:path.bzl", 
   _go_path = "go_path",
 )
+load("@io_bazel_rules_go//go/private:tools.bzl", 
+  _go_vet_test = "go_vet_test",
+)
 
 GoLibrary = _GoLibrary
 """
@@ -124,6 +127,11 @@ go_path = _go_path
     targets.
         "deps": attr.label_list(providers=[GoLibrary]), # The set of go libraries to include the export
         "mode": attr.string(default="link", values=["link", "copy"]) # Whether to copy files or produce soft links
+"""
+
+go_vet_test = _go_vet_test
+"""
+    go_vet_test 
 """
 
 
