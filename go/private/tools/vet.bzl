@@ -32,12 +32,12 @@ Please do not rely on it for production use, but feel free to use it and file is
     packages += [package.dir for package in entry.packages]
   ctx.file_action(output=script_file, executable=True, content="""
 export GOROOT="{goroot}"
-export GOPATH={gopath}
+export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
       go=go_toolchain.go.path,
       goroot=go_toolchain.root.path,
-      gopath=":".join(['$(realpath "{}")'.format(entry) for entry in gopath]),
+      gopath=":".join(['$(pwd)/{})'.format(entry) for entry in gopath]),
       packages=" ".join(packages),
   ))
   return struct(
