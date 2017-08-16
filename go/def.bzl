@@ -120,7 +120,10 @@ go_test = _go_test_macro
 
 go_path = _go_path
 """
-    go_path 
+    go_path is a rule for creating `go build` compatible file layouts from a set of Bazel.
+    targets.
+        "deps": attr.label_list(providers=[GoLibrary]), # The set of go libraries to include the export
+        "mode": attr.string(default="link", values=["link", "copy"]) # Whether to copy files or produce soft links
 """
 
 
