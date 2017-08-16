@@ -171,6 +171,21 @@ You can build binaries in static linking mode using
 bazel build --output_groups=static //:my_binary
 ```
 
+You can depend on static binaries (e.g., for packaging) using `filegroup`:
+
+```bzl
+go_binary(
+    name = "foo",
+    srcs = ["foo.go"],
+)
+
+filegroup(
+    name = "foo_static",
+    srcs = [":foo"],
+    output_group = "static",
+)
+```
+
 ### Using the race detector
 
 You can run tests with the race detector enabled using
