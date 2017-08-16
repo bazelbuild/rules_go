@@ -76,11 +76,11 @@ def _cgo_codegen_impl(ctx):
     deps += d.cc.libs
     copts += ['-D' + define for define in d.cc.defines]
     for inc in d.cc.include_directories:
-      copts += ['-I', _exec_path(inc)]
+      copts += ['-I', inc]
     for inc in d.cc.quote_include_directories:
-      copts += ['-iquote', _exec_path(inc)]
+      copts += ['-iquote', inc]
     for inc in d.cc.system_include_directories:
-      copts += ['-isystem', _exec_path(inc)]
+      copts += ['-isystem', inc]
     for lib in d.cc.libs:
       if lib.basename.startswith('lib') and lib.basename.endswith('.so'):
         linkopts += ['-L', lib.dirname, '-l', lib.basename[3:-3]]
@@ -229,12 +229,6 @@ _cgo_object = rule(
     },
     fragments = ["cpp"],
 )
-
-
-def _exec_path(path):
-  if path.startswith('/'):
-    return path
-  return '${execroot}/' + path
 
 
 """Generates _all.o to be archived together with Go objects.
