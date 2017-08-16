@@ -13,13 +13,19 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-  "get_go_toolchain",
-  "go_filetype",
-  "compile_modes",
-  "NORMAL_MODE",
-  "RACE_MODE",
+    "NORMAL_MODE",
+    "RACE_MODE",
+    "compile_modes",
+    "get_go_toolchain",
+    "go_filetype",
 )
-load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "get_library", "get_searchpath")
+load("@io_bazel_rules_go//go/private:library.bzl",
+    "emit_library_actions",
+    "get_library",
+    "get_searchpath",
+    "go_importpath",
+    "go_prefix_default",
+)
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_binary_impl(ctx):
@@ -97,10 +103,7 @@ go_binary = rule(
         "x_defs": attr.string_dict(),
         #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
-        "_go_prefix": attr.label(default = Label(
-            "//:go_prefix",
-            relative_to_caller_repository = True,
-        )),
+        "_go_prefix": attr.label(default = go_prefix_default),
     },
     executable = True,
     fragments = ["cpp"],

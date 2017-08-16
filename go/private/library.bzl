@@ -160,6 +160,11 @@ def _go_library_impl(ctx):
       ),
   ]
 
+def go_prefix_default(importpath):
+  return (None
+          if importpath
+          else Label("//:go_prefix", relative_to_caller_repository = True))
+
 go_library = rule(
     _go_library_impl,
     attrs = {
@@ -177,7 +182,7 @@ go_library = rule(
         ),
         #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
-        "_go_prefix": attr.label(default=Label("//:go_prefix", relative_to_caller_repository = True)),
+        "_go_prefix": attr.label(default = go_prefix_default),
     },
     fragments = ["cpp"],
 )

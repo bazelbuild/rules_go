@@ -20,10 +20,11 @@ $BASE/{gazelle} {args} $@
 """
 
 def _gazelle_script_impl(ctx):
+  prefix = ctx.attr.prefix if ctx.attr.prefix else ctx.attr._go_prefix.go_prefix
   args = [ctx.attr.command] + ctx.attr.args
   args += [
       "-repo_root", "$WORKSPACE",
-      "-go_prefix", ctx.attr._go_prefix.go_prefix,
+      "-go_prefix", prefix,
       "-external", ctx.attr.external,
       "-mode", ctx.attr.mode,
   ]
@@ -37,6 +38,11 @@ def _gazelle_script_impl(ctx):
     runfiles = ctx.runfiles([ctx.file._gazelle])
   )
 
+def _go_prefix_default(prefix):
+  return (None
+          if prefix
+          else Label("//:go_prefix", relative_to_caller_repository = True))
+
 _gazelle_script = rule(
     _gazelle_script_impl,
     attrs = {
@@ -45,6 +51,7 @@ _gazelle_script = rule(
         "external": attr.string(values=["external", "vendored"], default="external"),
         "build_tags": attr.string_list(),
         "args": attr.string_list(),
+        "prefix": attr.string(),
         "_gazelle": attr.label(
             default = Label("@io_bazel_rules_go//go/tools/gazelle/gazelle:gazelle"),
             allow_files = True,
@@ -52,10 +59,7 @@ _gazelle_script = rule(
             executable = True,
             cfg = "host"
         ),
-        "_go_prefix": attr.label(default = Label(
-            "//:go_prefix",
-            relative_to_caller_repository = True,
-        )),
+        "_go_prefix": attr.label(default = _go_prefix_default),
     }
 )
 

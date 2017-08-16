@@ -20,7 +20,13 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "NORMAL_MODE",
     "RACE_MODE",
 )
-load("@io_bazel_rules_go//go/private:library.bzl", "emit_library_actions", "go_importpath", "emit_go_compile_action", "emit_go_pack_action")
+load("@io_bazel_rules_go//go/private:library.bzl",
+    "emit_go_compile_action",
+    "emit_go_pack_action",
+    "emit_library_actions",
+    "go_importpath",
+    "go_prefix_default",
+)
 load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
@@ -131,10 +137,7 @@ go_test = rule(
         "x_defs": attr.string_dict(),
         #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
-        "_go_prefix": attr.label(default = Label(
-            "//:go_prefix",
-            relative_to_caller_repository = True,
-        )),
+        "_go_prefix": attr.label(default = go_prefix_default),
     },
     executable = True,
     fragments = ["cpp"],
