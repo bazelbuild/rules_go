@@ -130,23 +130,9 @@ func (v *hierarchicalVisitor) finish() {
 
 	// We did not process a package at the repository root. We need to put
 	// a go_prefix rule there, even if there are no .go files in that directory.
-	var oldFile *bf.File
-	oldPath, err := findBuildFile(v.c, v.c.RepoRoot)
-	if !os.IsNotExist(err) {
-		if err != nil {
-			log.Print(err)
-			return
-		}
-		oldData, err := ioutil.ReadFile(oldPath)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-		oldFile, err = bf.Parse(oldPath, oldData)
-		if err != nil {
-			log.Print(err)
-			return
-		}
+	oldFile, err := loadBuildFile(v.c, v.c.RepoRoot)
+	if err != nil && !os.IsNotExist(err) {
+		log.Print(err)
 	}
 
 	pkg := &packages.Package{Dir: v.c.RepoRoot}
@@ -164,11 +150,22 @@ type flatVisitor struct {
 }
 
 func (v *flatVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
+	if pkg.Rel == "" {
+		v.oldRootFile = oldFile
+	}
 	g := rules.NewGenerator(v.c, v.r, v.l, "", oldFile)
 	v.rules[pkg.Rel] = g.GenerateRules(pkg)
 }
 
 func (v *flatVisitor) finish() {
+	if v.oldRootFile == nil {
+		var err error
+		v.oldRootFile, err = loadBuildFile(v.c, v.c.RepoRoot)
+		if err != nil && !os.IsNotExist(err) {
+			log.Print(err)
+		}
+	}
+
 	g := rules.NewGenerator(v.c, v.r, v.l, "", v.oldRootFile)
 	genFile := &bf.File{
 		Path: filepath.Join(v.c.RepoRoot, v.c.DefaultBuildFileName()),
@@ -400,33 +397,35 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	return &c, cmd, emit, err
 }
 
-func findBuildFile(c *config.Config, dir string) (string, error) {
+func loadBuildFile(c *config.Config, dir string) (*bf.File, error) {
+	var buildPath string
 	for _, base := range c.ValidBuildFileNames {
 		p := filepath.Join(dir, base)
 		fi, err := os.Stat(p)
 		if err == nil {
 			if fi.Mode().IsRegular() {
-				return p, nil
+				buildPath = p
+				break
 			}
 			continue
 		}
 		if !os.IsNotExist(err) {
-			return "", err
+			return nil, err
 		}
 	}
-	return "", os.ErrNotExist
+	if buildPath == "" {
+		return nil, os.ErrNotExist
+	}
+
+	data, err := ioutil.ReadFile(buildPath)
+	if err != nil {
+		return nil, err
+	}
+	return bf.Parse(buildPath, data)
 }
 
 func loadGoPrefix(c *config.Config) (string, error) {
-	p, err := findBuildFile(c, c.RepoRoot)
-	if err != nil {
-		return "", err
-	}
-	b, err := ioutil.ReadFile(p)
-	if err != nil {
-		return "", err
-	}
-	f, err := bf.Parse(p, b)
+	f, err := loadBuildFile(c, c.RepoRoot)
 	if err != nil {
 		return "", err
 	}

@@ -534,6 +534,16 @@ func TestFlatExternal(t *testing.T) {
 	files := []fileSpec{
 		{path: "WORKSPACE"},
 		{
+			path: "BUILD.bazel",
+			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle")
+
+gazelle(
+    name = "gazelle",
+    prefix = "example.com/repo",
+    args = ["-experimental_flat"],
+)
+`,
+		}, {
 			path:    "a.go",
 			content: `package foo`,
 		}, {
@@ -580,7 +590,13 @@ import (
 	checkFiles(t, dir, []fileSpec{
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_prefix", "go_test")
+			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_binary", "go_library", "go_prefix", "go_test")
+
+gazelle(
+    name = "gazelle",
+    args = ["-experimental_flat"],
+    prefix = "example.com/repo",
+)
 
 go_prefix("example.com/foo")
 
@@ -647,6 +663,17 @@ func TestFlatVendored(t *testing.T) {
 	files := []fileSpec{
 		{path: "WORKSPACE"},
 		{
+			path: "BUILD.bazel",
+			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle")
+
+gazelle(
+    name = "gazelle",
+    args = ["-experimental_flat"],
+    external = "vendored",
+    prefix = "example.com/foo",
+)
+`,
+		}, {
 			path: "foo.go",
 			content: `package foo
 
@@ -680,7 +707,14 @@ import _ "github.com/jr_hacker/stuff/a/b"
 	checkFiles(t, dir, []fileSpec{
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_library", "go_prefix")
+
+gazelle(
+    name = "gazelle",
+    args = ["-experimental_flat"],
+    external = "vendored",
+    prefix = "example.com/foo",
+)
 
 go_prefix("example.com/foo")
 
