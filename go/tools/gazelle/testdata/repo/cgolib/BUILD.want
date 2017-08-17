@@ -11,7 +11,7 @@ go_library(
     ],
     cgo = True,
     clinkopts = ["-lweird"],
-    copts = ["-I/weird/path"],
+    copts = ["-I/weird/path -iquotecgolib/sub"],
     visibility = ["//visibility:public"],
     deps = [
         "//lib/deep:go_default_library",

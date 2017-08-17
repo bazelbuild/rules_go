@@ -322,10 +322,47 @@ func (g *generator) dependencies(imports packages.PlatformStrings, pkgRel string
 	return deps
 }
 
-func (g *generator) options(opts packages.PlatformStrings, rel string) packages.PlatformStrings {
-	// TODO(jayconrod): paths in options (for example, include directories) should
-	// be interpreted relative to the Go package. If the Go package is different
-	// than the Bazel package (as it may be in flat mode), these paths will not
-	// be correct. We should adjust them here, but they are difficult to identify.
+// options transforms package-relative paths in cgo options into repository-
+// root-relative paths that Bazel can understand. For example, if a cgo file
+// in //foo declares an include flag in its copts: "-Ibar", this method
+// will transform that flag into "-Ifoo/bar".
+func (g *generator) options(opts packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
+	fixPath := func(opt string) string {
+		if strings.HasPrefix(opt, "/") {
+			return opt
+		}
+		return path.Clean(path.Join(pkgRel, opt))
+	}
+
+	fixOpts := func(optStr string) (string, error) {
+		opts := strings.Split(optStr, " ")
+		prefixes := []string{"-I", "-L", "-F", "-iquote", "-isystem", "-framework"}
+		isPath := false
+		for i, opt := range opts {
+			if isPath {
+				opts[i] = fixPath(opt)
+				isPath = false
+				continue
+			}
+
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(opt, prefix) {
+					if len(opt) > len(prefix) {
+						opts[i] = prefix + fixPath(opt[len(prefix):])
+					} else {
+						isPath = true
+					}
+					break
+				}
+			}
+		}
+
+		return strings.Join(opts, " "), nil
+	}
+
+	opts, err := opts.Map(fixOpts)
+	if err != nil {
+		log.Panicf("unexpected error when transforming options with build %q, pkg %q: %v", pkgRel, err)
+	}
 	return opts
 }

@@ -16,7 +16,7 @@ limitations under the License.
 package cgolib
 
 /**
-#cgo CFLAGS: -I/weird/path
+#cgo CFLAGS: -I/weird/path -iquotesub/../sub
 #cgo LDFLAGS: -lweird
 **/
 import "C"
