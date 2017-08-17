@@ -99,7 +99,7 @@ go_path = rule(
     _go_path_impl,
     attrs = {
         "deps": attr.label_list(providers=[GoLibrary]),
-        "mode": attr.string(default="link", values=["link", "copy"]),
+        "mode": attr.string(default="copy", values=["link", "copy"]),
         "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
 )
