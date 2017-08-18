@@ -35,7 +35,6 @@ go_path(
         "//go/tools/builders:asm",
         "//go/tools/builders:compile",
         "//go/tools/builders:embed",
-        "//go/tools/builders:filter_tags",
         "//go/tools/builders:generate_test_main",
         "//go/tools/builders:link",
         "//go/tools/builders:cgo",

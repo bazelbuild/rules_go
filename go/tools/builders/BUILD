@@ -36,15 +36,6 @@ go_tool_binary(
 )
 
 go_tool_binary(
-    name = "filter_tags",
-    srcs = [
-        "filter.go",
-        "filter_tags.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
     name = "generate_test_main",
     srcs = [
         "filter.go",
