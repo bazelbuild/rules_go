@@ -540,12 +540,12 @@ import "C"
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{opts: "-O0"},
-					{opts: "-O1"},
-					{opts: "-O2"},
+					{opts: []string{"-O0"}},
+					{opts: []string{"-O1"}},
+					{opts: []string{"-O2"}},
 				},
 				clinkopts: []taggedOpts{
-					{opts: "-O3 -O4"},
+					{opts: []string{"-O3", "-O4"}},
 				},
 			},
 		},
@@ -561,7 +561,7 @@ import "C"
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{tags: "foo bar,!baz", opts: "-O0"},
+					{tags: "foo bar,!baz", opts: []string{"-O0"}},
 				},
 			},
 		},
@@ -576,8 +576,8 @@ import "C"
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{opts: "-O0"},
-					{opts: "-O1"},
+					{opts: []string{"-O0"}},
+					{opts: []string{"-O1"}},
 				},
 			},
 		},
@@ -593,7 +593,7 @@ import ("C")
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{opts: "-O0"},
+					{opts: []string{"-O0"}},
 				},
 			},
 		},
@@ -727,6 +727,30 @@ func TestShellSafety(t *testing.T) {
 		}
 		if output != test.expected {
 			t.Errorf("Expected %q while %q expands with SRCDIR=%q; got %q", test.expected, test.input, test.srcdir, output)
+		}
+	}
+}
+
+func TestJoinOptions(t *testing.T) {
+	for _, tc := range []struct {
+		opts, want []string
+	}{
+		{
+			opts: nil,
+			want: nil,
+		}, {
+			opts: []string{"a", "b", optSeparator},
+			want: []string{"a b"},
+		}, {
+			opts: []string{`a\`, `b'`, `c"`, `d `, optSeparator},
+			want: []string{`a\\ b\' c\" d\ `},
+		}, {
+			opts: []string{"a", "b", optSeparator, "c", optSeparator},
+			want: []string{"a b", "c"},
+		},
+	} {
+		if got := JoinOptions(tc.opts); !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("JoinOptions(%#v): got %#v ; want %#v", tc.opts, got, tc.want)
 		}
 	}
 }

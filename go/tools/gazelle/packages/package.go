@@ -223,7 +223,8 @@ func (ps *PlatformStrings) addGenericStrings(ss ...string) {
 func (ps *PlatformStrings) addGenericOpts(platforms config.PlatformTags, opts []taggedOpts) {
 	for _, t := range opts {
 		if t.tags == "" {
-			ps.Generic = append(ps.Generic, t.opts)
+			ps.Generic = append(ps.Generic, t.opts...)
+			ps.Generic = append(ps.Generic, optSeparator)
 			continue
 		}
 
@@ -232,7 +233,8 @@ func (ps *PlatformStrings) addGenericOpts(platforms config.PlatformTags, opts []
 				if ps.Platform == nil {
 					ps.Platform = make(map[string][]string)
 				}
-				ps.Platform[name] = append(ps.Platform[name], t.opts)
+				ps.Platform[name] = append(ps.Platform[name], t.opts...)
+				ps.Platform[name] = append(ps.Platform[name], optSeparator)
 			}
 		}
 	}
@@ -251,7 +253,8 @@ func (ps *PlatformStrings) addTaggedOpts(name string, opts []taggedOpts, tags ma
 			if ps.Platform == nil {
 				ps.Platform = make(map[string][]string)
 			}
-			ps.Platform[name] = append(ps.Platform[name], t.opts)
+			ps.Platform[name] = append(ps.Platform[name], t.opts...)
+			ps.Platform[name] = append(ps.Platform[name], optSeparator)
 		}
 	}
 }
@@ -312,9 +315,8 @@ func uniq(ss []string) []string {
 	return result
 }
 
-// Map applies a function to the strings in "ps" and returns a new
-// PlatformStrings with the results. This is useful for converting import
-// paths to labels.
+// Map applies a function that processes individual strings to the strings in
+// "ps" and returns a new PlatformStrings with the results.
 func (ps *PlatformStrings) Map(f func(string) (string, error)) (PlatformStrings, []error) {
 	result := PlatformStrings{Generic: make([]string, 0, len(ps.Generic))}
 	var errors []error
@@ -336,6 +338,30 @@ func (ps *PlatformStrings) Map(f func(string) (string, error)) (PlatformStrings,
 				} else {
 					result.Platform[n] = append(result.Platform[n], r)
 				}
+			}
+		}
+	}
+
+	return result, errors
+}
+
+// MapSlice applies a function that processes slices of strings to the strings
+// in "ps" and returns a new PlatformStrings with the results.
+func (ps *PlatformStrings) MapSlice(f func([]string) ([]string, error)) (PlatformStrings, []error) {
+	var result PlatformStrings
+	var errors []error
+	if r, err := f(ps.Generic); err != nil {
+		errors = append(errors, err)
+	} else {
+		result.Generic = r
+	}
+	if ps.Platform != nil {
+		result.Platform = make(map[string][]string)
+		for n, ss := range ps.Platform {
+			if r, err := f(ss); err != nil {
+				errors = append(errors, err)
+			} else {
+				result.Platform[n] = r
 			}
 		}
 	}

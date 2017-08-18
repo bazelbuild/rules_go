@@ -23,6 +23,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -76,12 +77,16 @@ type fileInfo struct {
 }
 
 // taggedOpts a list of compile or link options which should only be applied
-// if the given set of build tags are satisfied. The list is represented as
-// a single string. Bazel will apply Bourne shell tokenization to split it.
+// if the given set of build tags are satisfied. These options have already
+// been tokenized using the same algorithm that "go build" uses.
 type taggedOpts struct {
 	tags string
-	opts string
+	opts []string
 }
+
+// optSeparator is a special option string that is inserted after each group
+// of options that appeared in the same #cgo directive.
+const optSeparator = "\x1D"
 
 // extCategory indicates how a file should be treated, based on extension.
 type extCategory int
@@ -282,9 +287,9 @@ func saveCgo(info *fileInfo, cg *ast.CommentGroup) error {
 		// Add tags to appropriate list.
 		switch verb {
 		case "CFLAGS", "CPPFLAGS", "CXXFLAGS":
-			info.copts = append(info.copts, taggedOpts{tags, strings.Join(opts, " ")})
+			info.copts = append(info.copts, taggedOpts{tags, opts})
 		case "LDFLAGS":
-			info.clinkopts = append(info.clinkopts, taggedOpts{tags, strings.Join(opts, " ")})
+			info.clinkopts = append(info.clinkopts, taggedOpts{tags, opts})
 		case "pkg-config":
 			return fmt.Errorf("%s: pkg-config not supported: %s", info.path, orig)
 		default:
@@ -405,6 +410,44 @@ func safeCgoName(s string, spaces bool) bool {
 		}
 	}
 	return true
+}
+
+// JoinOptions combines shell options grouped by a special separator token
+// and returns a string for each group. The group strings will be escaped
+// such that the original options can be recovered after Bourne shell
+// tokenization.
+func JoinOptions(opts []string) []string {
+	var groups []string
+	begin := 0
+	for i := 0; i < len(opts); i++ {
+		if opts[i] == optSeparator {
+			groups = append(groups, joinOptionGroup(opts[begin:i]))
+			begin = i + 1
+		}
+	}
+	if begin != len(opts) {
+		log.Panicf("JoinOptions: opts were not properly grouped: %#v", opts)
+	}
+	return groups
+}
+
+func joinOptionGroup(opts []string) string {
+	for i, opt := range opts {
+		opts[i] = escapeOption(opt)
+	}
+	return strings.Join(opts, " ")
+}
+
+func escapeOption(opt string) string {
+	return strings.NewReplacer(
+		`\`, `\\`,
+		`'`, `\'`,
+		`"`, `\"`,
+		` `, `\ `,
+		"\t", "\\\t",
+		"\n", "\\\n",
+		"\r", "\\\r",
+	).Replace(opt)
 }
 
 // isStandard determines if importpath points a Go standard package.
