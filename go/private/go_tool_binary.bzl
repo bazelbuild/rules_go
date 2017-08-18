@@ -12,24 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load('//go/private:go_toolchain.bzl', 'go_toolchain_core_attrs')
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_importpath")
-
-def _go_bootstrap_toolchain_impl(ctx):
-  return [platform_common.ToolchainInfo(
-      type = Label("@io_bazel_rules_go//go:bootstrap_toolchain"),
-      name = ctx.label.name,
-      root = ctx.attr.root.path,
-      go = ctx.executable.go,
-      tools = ctx.files.tools,
-      stdlib = ctx.files.stdlib,
-  )]
-
-go_bootstrap_toolchain = rule(
-    _go_bootstrap_toolchain_impl,
-    attrs = go_toolchain_core_attrs,
-)
 
 def _go_tool_binary_impl(ctx):
   toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
@@ -44,7 +28,7 @@ def _go_tool_binary_impl(ctx):
       ] + [src.path for src in ctx.files.srcs],
       mnemonic = "GoBuildTool",
       env = {
-          "GOROOT": toolchain.root,
+          "GOROOT": toolchain.root.path,
       },
   )
   return [

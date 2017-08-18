@@ -21,7 +21,6 @@ def get_go_toolchain(ctx):
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
-      type = Label("@io_bazel_rules_go//go:toolchain"),
       env = {
           "GOROOT": ctx.attr.root.path,
           "GOOS": ctx.attr.goos,
@@ -34,16 +33,16 @@ def _go_toolchain_impl(ctx):
       tools = ctx.files.tools,
       stdlib = ctx.files.stdlib,
       headers = ctx.attr.headers,
-      asm = ctx.executable.asm,
-      compile = ctx.executable.compile,
-      link = ctx.executable.link,
-      cgo = ctx.executable.cgo,
-      test_generator = ctx.executable.test_generator,
-      extract_package = ctx.executable.extract_package,
+      asm = ctx.executable._asm,
+      compile = ctx.executable._compile,
+      link = ctx.executable._link,
+      cgo = ctx.executable._cgo,
+      test_generator = ctx.executable._test_generator,
+      extract_package = ctx.executable._extract_package,
       compile_flags = ctx.attr._go_toolchain_flags.compile_flags,
       link_flags = ctx.attr.link_flags,
       cgo_link_flags = ctx.attr.cgo_link_flags,
-      crosstool = ctx.files.crosstool,
+      crosstool = ctx.files._crosstool,
       external_linker = ctx.attr._external_linker,
   )]
 
@@ -52,34 +51,62 @@ def _get_linker():
   # This is not possible right now, we need a new bazel feature
   return Label("//go/toolchain:external_linker")
 
-go_toolchain_core_attrs = {
-    "sdk": attr.string(mandatory = True),
-    "root": attr.label(mandatory = True),
-    "go": attr.label(mandatory = True, allow_files = True, single_file = True, executable = True, cfg = "host"),
-    "tools": attr.label(mandatory = True, allow_files = True),
-    "stdlib": attr.label(mandatory = True, allow_files = True),
-    "headers": attr.label(mandatory = True),
-    "link_flags": attr.string_list(default=[]),
-    "cgo_link_flags": attr.string_list(default=[]),
-    "goos": attr.string(mandatory = True),
-    "goarch": attr.string(mandatory = True),
-    "_external_linker": attr.label(default=_get_linker),
-}
+def _asm(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/builders:asm")
 
-go_toolchain_attrs = go_toolchain_core_attrs + {
-    "asm": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:asm")),
-    "compile": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:compile")),
-    "link": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:link")),
-    "cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:cgo")),
-    "test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/builders:generate_test_main")),
-    "extract_package": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("//go/tools/extract_package")),
-    "crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
-    "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
-}
+def _compile(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/builders:compile")
+
+def _link(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/builders:link")
+
+def _cgo(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/builders:cgo")
+
+def _test_generator(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/builders:generate_test_main")
+
+def _extract_package(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/extract_package")
 
 go_toolchain = rule(
     _go_toolchain_impl,
-    attrs = go_toolchain_attrs,
+    attrs = {
+        "sdk": attr.string(mandatory = True),
+        "root": attr.label(mandatory = True),
+        "go": attr.label(mandatory = True, allow_files = True, single_file = True, executable = True, cfg = "host"),
+        "tools": attr.label(mandatory = True, allow_files = True),
+        "stdlib": attr.label(mandatory = True, allow_files = True),
+        "headers": attr.label(mandatory = True),
+        "link_flags": attr.string_list(default=[]),
+        "cgo_link_flags": attr.string_list(default=[]),
+        "goos": attr.string(mandatory = True),
+        "goarch": attr.string(mandatory = True),
+        "bootstrap":attr.bool(mandatory = True),
+        # Tools, missing from bootstrap toolchains
+        "_asm": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_asm),
+        "_compile": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_compile),
+        "_link": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_link),
+        "_cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_cgo),
+        "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_test_generator),
+        "_extract_package": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_extract_package),
+        # Hidden internal attributes
+        "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_external_linker": attr.label(default=_get_linker),
+    },
 )
 """Declares a go toolchain for use.
 This is used when porting the rules_go to a new platform.

@@ -1,5 +1,4 @@
 load('//go/private:go_toolchain.bzl', 'external_linker', 'go_toolchain')
-load('//go/private:go_tool_binary.bzl', 'go_bootstrap_toolchain')
 
 def _generate_toolchains():
   # The full set of allowed os and arch combinations for the go toolchain
@@ -105,7 +104,6 @@ def _generate_toolchains():
         base = dict(
             name = toolchain_name,
             impl = toolchain_name + "-impl",
-            declare = go_toolchain,
             host = host,
             target = target,
             typ = "@io_bazel_rules_go//go:toolchain",
@@ -122,6 +120,7 @@ def _generate_toolchains():
             link_flags = [],
             cgo_link_flags = [],
             tags = ["manual"],
+            bootstrap = False,
         )
         bootstrap = _bootstrap(base)
         toolchains += [base, bootstrap]
@@ -147,13 +146,13 @@ def _bootstrap(base):
   bootstrap["name"] = "bootstrap-" + base["name"]
   bootstrap["impl"] = "bootstrap-" + base["impl"]
   bootstrap["typ"] = "@io_bazel_rules_go//go:bootstrap_toolchain"
-  bootstrap["declare"] = go_bootstrap_toolchain
+  bootstrap["bootstrap"] = True
   return bootstrap
 
 def _default(base):
   default = dict(base)
   default["name"] = "default-" + base["name"]
-  default.pop("declare")
+  default["default"] = True
   default["version_constraints"] = []
   return default
 
@@ -169,9 +168,8 @@ def declare_toolchains():
   external_linker()
   # Use the final dictionaries to create all the toolchains
   for toolchain in _toolchains:
-    if "declare" in toolchain:
-      func = toolchain["declare"]
-      func(
+    if "default" not in toolchain:
+      go_toolchain(
           name = toolchain["impl"],
           sdk = toolchain["sdk"],
           root = toolchain["root"],
@@ -183,6 +181,7 @@ def declare_toolchains():
           cgo_link_flags = toolchain["cgo_link_flags"],
           goos = toolchain["target"].os,
           goarch = toolchain["target"].arch,
+          bootstrap = toolchain["bootstrap"],
           tags = ["manual"],
       )
     native.toolchain(
