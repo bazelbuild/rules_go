@@ -80,7 +80,7 @@ and
 export GOROOT="{goroot}"
 export GOPATH="$(pwd)/{gopath}")
 """.format(
-      goroot=go_toolchain.root.path,
+      goroot=go_toolchain.paths.root.path,
       gopath = gopath,
   ))
   return [

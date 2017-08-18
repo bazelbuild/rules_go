@@ -22,7 +22,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   script_file = ctx.new_file(ctx.label.name+".bash")
   gopath = []
-  files = ctx.files.data + [go_toolchain.go]
+  files = ctx.files.data + [go_toolchain.tools.go]
   gopath = []
   packages = []
   for data in ctx.attr.data:
@@ -34,8 +34,8 @@ export GOROOT="{goroot}"
 export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
-      go=go_toolchain.go.path,
-      goroot=go_toolchain.root.path,
+      go=go_toolchain.tools.go.path,
+      goroot=go_toolchain.paths.root.path,
       gopath=":".join(['$(pwd)/{})'.format(entry) for entry in gopath]),
       packages=" ".join(packages),
   ))

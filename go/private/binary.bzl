@@ -191,14 +191,14 @@ def emit_go_link_action(ctx, go_toolchain, library, mode, executable, gc_linkopt
     else:
       link_opts += ["-X", "%s=%s" % (k, v)]
 
-  link_opts += go_toolchain.link_flags
+  link_opts += go_toolchain.flags.link
   if ld: 
     link_opts += [
         "-extld", ld,
         "-extldflags", " ".join(extldflags),
     ]
   link_opts += [get_library(golib, mode).path]
-  link_args = [go_toolchain.go.path]
+  link_args = [go_toolchain.tools.go.path]
   # Stamping support
   stamp_inputs = []
   if stamp_x_defs or ctx.attr.linkstamp:
@@ -217,10 +217,10 @@ def emit_go_link_action(ctx, go_toolchain, library, mode, executable, gc_linkopt
 
   ctx.action(
       inputs = list(libs + cgo_deps +
-                go_toolchain.tools + go_toolchain.crosstool + stamp_inputs),
+                go_toolchain.data.tools + go_toolchain.data.crosstool + stamp_inputs),
       outputs = [executable],
       mnemonic = "GoLink",
-      executable = go_toolchain.link,
+      executable = go_toolchain.tools.link,
       arguments = link_args,
       env = go_toolchain.env,
   )

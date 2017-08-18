@@ -23,16 +23,16 @@ def emit_go_asm_action(ctx, go_toolchain, source, hdrs, out_obj):
   """
   includes = depset()
   includes += [f.dirname for f in hdrs]
-  includes += [f.dirname for f in go_toolchain.headers.cc.transitive_headers]
-  inputs = hdrs + list(go_toolchain.headers.cc.transitive_headers) + go_toolchain.tools + [source]
-  asm_args = [go_toolchain.go.path, source.path, "--", "-o", out_obj.path]
+  includes += [f.dirname for f in go_toolchain.data.headers.cc.transitive_headers]
+  inputs = hdrs + list(go_toolchain.data.headers.cc.transitive_headers) + go_toolchain.data.tools + [source]
+  asm_args = [go_toolchain.tools.go.path, source.path, "--", "-o", out_obj.path]
   for inc in includes:
     asm_args += ["-I", inc]
   ctx.action(
       inputs = list(inputs),
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
-      executable = go_toolchain.asm,
+      executable = go_toolchain.tools.asm,
       arguments = asm_args,
       env = go_toolchain.env,
   )

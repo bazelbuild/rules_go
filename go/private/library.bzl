@@ -230,10 +230,10 @@ def emit_go_compile_action(ctx, go_toolchain, sources, golibs, mode, out_object,
     gc_goopts = gc_goopts + ("-race",)
 
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-  inputs = depset([go_toolchain.go]) + sources
+  inputs = depset([go_toolchain.tools.go]) + sources
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
-  args = [go_toolchain.go.path]
+  args = [go_toolchain.tools.go.path]
   for src in go_sources:
     args += ["-src", src]
   for golib in golibs:
@@ -241,12 +241,12 @@ def emit_go_compile_action(ctx, go_toolchain, sources, golibs, mode, out_object,
     args += ["-dep", golib.importpath]
     args += ["-I", get_searchpath(golib,mode)]
   args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
-  args += ["--"] + gc_goopts + go_toolchain.compile_flags + cgo_sources
+  args += ["--"] + gc_goopts + go_toolchain.flags.compile + cgo_sources
   ctx.action(
       inputs = list(inputs),
       outputs = [out_object],
       mnemonic = "GoCompile",
-      executable = go_toolchain.compile,
+      executable = go_toolchain.tools.compile,
       arguments = args,
       env = go_toolchain.env,
   )
@@ -260,10 +260,10 @@ def emit_go_pack_action(ctx, go_toolchain, out_lib, objects):
     objects: an iterable of object files to be added to the output archive file.
   """
   ctx.action(
-      inputs = objects + go_toolchain.tools,
+      inputs = objects + go_toolchain.data.tools,
       outputs = [out_lib],
       mnemonic = "GoPack",
-      executable = go_toolchain.go,
+      executable = go_toolchain.tools.go,
       arguments = ["tool", "pack", "c", out_lib.path] + [a.path for a in objects],
       env = go_toolchain.env,
   )
@@ -296,10 +296,10 @@ def _emit_go_cover_action(ctx, go_toolchain, sources):
     out = ctx.new_file(cover_var + '.cover.go')
     outputs += [out]
     ctx.action(
-        inputs = [src] + go_toolchain.tools,
+        inputs = [src] + go_toolchain.data.tools,
         outputs = [out],
         mnemonic = "GoCover",
-        executable = go_toolchain.go,
+        executable = go_toolchain.tools.go,
         arguments = ["tool", "cover", "--mode=set", "-var=%s" % cover_var, "-o", out.path, src.path],
         env = go_toolchain.env,
     )

@@ -18,17 +18,17 @@ load("@io_bazel_rules_go//go/private:library.bzl", "go_importpath")
 def _go_tool_binary_impl(ctx):
   toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
   ctx.action(
-      inputs = ctx.files.srcs + toolchain.tools + toolchain.stdlib,
+      inputs = ctx.files.srcs + toolchain.data.tools + toolchain.data.stdlib,
       outputs = [ctx.outputs.executable],
       command = [
-          toolchain.go.path,
+          toolchain.tools.go.path,
           "build",
           "-o",
           ctx.outputs.executable.path,
       ] + [src.path for src in ctx.files.srcs],
       mnemonic = "GoBuildTool",
       env = {
-          "GOROOT": toolchain.root.path,
+          "GOROOT": toolchain.paths.root.path,
       },
   )
   return [

@@ -21,28 +21,36 @@ def get_go_toolchain(ctx):
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
+      name = ctx.label.name,
+      sdk = ctx.attr.sdk,
       env = {
           "GOROOT": ctx.attr.root.path,
           "GOOS": ctx.attr.goos,
           "GOARCH": ctx.attr.goarch,
       },
-      name = ctx.label.name,
-      sdk = ctx.attr.sdk,
-      go = ctx.executable.go,
-      root = ctx.attr.root,
-      tools = ctx.files.tools,
-      stdlib = ctx.files.stdlib,
-      headers = ctx.attr.headers,
-      asm = ctx.executable._asm,
-      compile = ctx.executable._compile,
-      link = ctx.executable._link,
-      cgo = ctx.executable._cgo,
-      test_generator = ctx.executable._test_generator,
-      extract_package = ctx.executable._extract_package,
-      compile_flags = ctx.attr._go_toolchain_flags.compile_flags,
-      link_flags = ctx.attr.link_flags,
-      cgo_link_flags = ctx.attr.cgo_link_flags,
-      crosstool = ctx.files._crosstool,
+      paths = struct(
+        root = ctx.attr.root,
+      ),
+      tools = struct(
+        go = ctx.executable.go,
+        asm = ctx.executable._asm,
+        compile = ctx.executable._compile,
+        link = ctx.executable._link,
+        cgo = ctx.executable._cgo,
+        test_generator = ctx.executable._test_generator,
+        extract_package = ctx.executable._extract_package,
+      ),
+      flags = struct(
+        compile = ctx.attr._go_toolchain_flags.compile_flags,
+        link = ctx.attr.link_flags,
+        link_cgo = ctx.attr.cgo_link_flags,
+      ),
+      data = struct(
+        tools = ctx.files.tools,
+        stdlib = ctx.files.stdlib,
+        headers = ctx.attr.headers,
+        crosstool = ctx.files._crosstool,
+      ),
       external_linker = ctx.attr._external_linker,
   )]
 

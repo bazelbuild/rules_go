@@ -49,7 +49,7 @@ def _cgo_codegen_impl(ctx):
   out_dir = cgo_main.dirname
 
   cc = go_toolchain.external_linker.compiler_executable
-  args = [go_toolchain.go.path, "-cc", str(cc), "-objdir", out_dir]
+  args = [go_toolchain.tools.go.path, "-cc", str(cc), "-objdir", out_dir]
 
   c_outs = depset([cgo_export_h, cgo_export_c])
   go_outs = depset([cgo_types])
@@ -75,7 +75,7 @@ def _cgo_codegen_impl(ctx):
     c_outs += [gen_file]
     args += ["-src", gen_file.path + "=" + src.path]
 
-  inputs = ctx.files.srcs + go_toolchain.tools + go_toolchain.crosstool
+  inputs = ctx.files.srcs + go_toolchain.data.tools + go_toolchain.data.crosstool
   for d in ctx.attr.deps:
     inputs += list(d.cc.transitive_headers)
     deps += d.cc.libs
@@ -101,7 +101,7 @@ def _cgo_codegen_impl(ctx):
       outputs = list(c_outs + go_outs + [cgo_main]),
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      executable = go_toolchain.cgo,
+      executable = go_toolchain.tools.cgo,
       arguments = args,
       env = go_toolchain.env + {
           "CGO_LDFLAGS": " ".join(linkopts),
@@ -135,15 +135,15 @@ def _cgo_import_impl(ctx):
   #TODO: move the dynpackage part into the cgo wrapper so we can stop using shell
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   command = (
-      go_toolchain.go.path + " tool cgo" +
+      go_toolchain.tools.go.path + " tool cgo" +
       " -dynout " + ctx.outputs.out.path +
       " -dynimport " + ctx.file.cgo_o.path +
-      " -dynpackage $(%s %s)"  % (go_toolchain.extract_package.path,
+      " -dynpackage $(%s %s)"  % (go_toolchain.tools.extract_package.path,
                                   ctx.files.sample_go_srcs[0].path)
   )
   ctx.action(
-      inputs = (go_toolchain.tools +
-                [go_toolchain.go, go_toolchain.extract_package,
+      inputs = (go_toolchain.data.tools +
+                [go_toolchain.tools.go, go_toolchain.tools.extract_package,
                  ctx.file.cgo_o, ctx.files.sample_go_srcs[0]]),
       outputs = [ctx.outputs.out],
       command = command,
@@ -192,13 +192,13 @@ def _cgo_object_impl(ctx):
       "-o", ctx.outputs.out.path,
       "-nostdlib",
       "-Wl,-r",
-  ] + go_toolchain.cgo_link_flags
+  ] + go_toolchain.flags.link_cgo
 
   lo = ctx.files.src[-1]
   arguments += [lo.path]
 
   ctx.action(
-      inputs = [lo] + go_toolchain.crosstool,
+      inputs = [lo] + go_toolchain.data.crosstool,
       outputs = [ctx.outputs.out],
       mnemonic = "CGoObject",
       progress_message = "Linking %s" % ctx.outputs.out.short_path,

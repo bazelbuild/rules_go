@@ -76,7 +76,7 @@ def _go_test_impl(ctx):
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
-      executable = go_toolchain.test_generator,
+      executable = go_toolchain.tools.test_generator,
       arguments = arguments + [src.path for src in go_srcs],
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
