@@ -243,7 +243,7 @@ def emit_go_compile_action(ctx, sources, golibs, mode, out_object, gc_goopts):
     args += ["-dep", golib.importpath]
     args += ["-I", get_searchpath(golib,mode)]
   args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
-  args += ["--"] + gc_goopts + cgo_sources
+  args += ["--"] + gc_goopts + go_toolchain.compile_flags + cgo_sources
   ctx.action(
       inputs = list(inputs),
       outputs = [out_object],
