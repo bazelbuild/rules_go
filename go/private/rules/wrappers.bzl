@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:binary.bzl", "go_binary")
-load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
-load("@io_bazel_rules_go//go/private:test.bzl", "go_test")
-load("@io_bazel_rules_go//go/private:cgo.bzl", "setup_cgo_library")
+load("@io_bazel_rules_go//go/private/rules:binary.bzl", "go_binary")
+load("@io_bazel_rules_go//go/private/rules:library.bzl", "go_library")
+load("@io_bazel_rules_go//go/private/rules:test.bzl", "go_test")
+load("@io_bazel_rules_go//go/private/rules:cgo.bzl", "setup_cgo_library")
 
 def go_library_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
   cgo_object = None

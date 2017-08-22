@@ -14,19 +14,16 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
+    "go_importpath",
     "split_srcs",
     "pkg_dir",
     "NORMAL_MODE",
     "RACE_MODE",
 )
-load("@io_bazel_rules_go//go/private:library.bzl",
-    "emit_go_compile_action",
-    "emit_go_pack_action",
-    "emit_library_actions",
-    "go_importpath",
+load("@io_bazel_rules_go//go/private/rules:prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//go/private:binary.bzl", "emit_go_link_action", "gc_linkopts")
+load("@io_bazel_rules_go//go/private/rules:binary.bzl", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_test_impl(ctx):
@@ -36,7 +33,7 @@ def _go_test_impl(ctx):
   test into a binary."""
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  golib, _ = emit_library_actions(ctx,
+  golib, _ = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
@@ -81,7 +78,7 @@ def _go_test_impl(ctx):
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 
-  main_lib, _ = emit_library_actions(ctx,
+  main_lib, _ = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       srcs = [main_go],
       deps = [],
@@ -97,7 +94,7 @@ def _go_test_impl(ctx):
   if "race" in ctx.features:
     mode = RACE_MODE
 
-  emit_go_link_action(
+  go_toolchain.actions.link(
       ctx,
       go_toolchain = go_toolchain,
       library=main_lib,

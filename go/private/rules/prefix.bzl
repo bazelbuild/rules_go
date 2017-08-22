@@ -37,3 +37,9 @@ def go_prefix(prefix):
     prefix = prefix,
     visibility = ["//visibility:public" ]
   )
+
+def go_prefix_default(importpath):
+  return (None
+          if importpath
+          else Label("//:go_prefix", relative_to_caller_repository = True))
+

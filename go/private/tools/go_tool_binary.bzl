@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
-load("@io_bazel_rules_go//go/private:library.bzl", "go_importpath")
+load("@io_bazel_rules_go//go/private:common.bzl", "go_importpath")
 
 def _go_tool_binary_impl(ctx):
   toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]

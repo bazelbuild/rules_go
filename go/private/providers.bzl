@@ -16,3 +16,27 @@ GoLibrary = provider()
 GoBinary = provider()
 CgoLibrary = provider()
 GoPath = provider()
+
+def library_attr(mode):
+  """Returns the attribute name for the library of the given mode"""
+  return mode+"_library"
+
+def get_library(golib, mode):
+  """Returns the compiled library for the given mode
+
+  golib must be a GoLibrary
+  """
+  return getattr(golib, library_attr(mode))
+
+def searchpath_attr(mode):
+  """Returns the search path for the given mode"""
+  return mode+"_searchpath"
+
+def get_searchpath(golib, mode):
+  """Returns the search path for the given mode
+  
+  golib must be a GoLibrary
+  """
+  return getattr(golib, searchpath_attr(mode))
+
+

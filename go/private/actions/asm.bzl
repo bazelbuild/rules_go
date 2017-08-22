@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def emit_go_asm_action(ctx, go_toolchain, source, hdrs, out_obj):
+def emit_asm(ctx, go_toolchain, source, hdrs, out_obj):
   """Construct the command line for compiling Go Assembly code.
   Constructs a symlink tree to accomodate for workspace name.
   Args:

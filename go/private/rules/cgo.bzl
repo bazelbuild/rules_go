@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl", "dict_of", "split_srcs", "join_srcs", "pkg_dir")
-load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 
 def _cgo_select_go_files_impl(ctx):

@@ -14,10 +14,12 @@
 """
 Toolchain rules used by go.
 """
-
-#TODO: Remove this once all users (kubernetes) no longer use it
-def get_go_toolchain(ctx):
-    return ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+load("@io_bazel_rules_go//go/private/actions:asm.bzl", "emit_asm")
+load("@io_bazel_rules_go//go/private/actions:compile.bzl", "emit_compile")
+load("@io_bazel_rules_go//go/private/actions:cover.bzl", "emit_cover")
+load("@io_bazel_rules_go//go/private/actions:library.bzl", "emit_library")
+load("@io_bazel_rules_go//go/private/actions:link.bzl", "emit_link")
+load("@io_bazel_rules_go//go/private/actions:pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
@@ -28,6 +30,14 @@ def _go_toolchain_impl(ctx):
           "GOOS": ctx.attr.goos,
           "GOARCH": ctx.attr.goarch,
       },
+      actions = struct(
+          asm = emit_asm,
+          compile = emit_compile,
+          cover = emit_cover,
+          library = emit_library,
+          link = emit_link,
+          pack = emit_pack,
+      ),
       paths = struct(
         root = ctx.attr.root,
       ),
@@ -118,11 +128,6 @@ go_toolchain = rule(
 )
 """Declares a go toolchain for use.
 This is used when porting the rules_go to a new platform.
-Args:
-  name: The name of the toolchain instance.
-  exec_compatible_with: The set of constraints this toolchain requires to execute.
-  target_compatible_with: The set of constraints for the outputs built with this toolchain.
-  go: The location of the `go` binary.
 """
 
 def _go_toolchain_flags(ctx):
