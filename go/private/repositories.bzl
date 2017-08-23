@@ -17,7 +17,7 @@
 load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_host_sdk_repository")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
-load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', 'register_go_toolchains')
+load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', 'go_register_toolchains')
 
 _sdk_repositories = {
     # 1.9 repositories
@@ -68,12 +68,8 @@ _sdk_repositories = {
     'go1.7.5.darwin-amd64.tar.gz': '2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca',
 }
 
-def go_repositories(
-    go_version = None,
-    go_linux = None,
-    go_darwin = None):
-
-  register_go_toolchains()
+def go_rules_dependancies():
+  # Add all the basic sdk repositories
   for filename, sha256 in _sdk_repositories.items():
     name = filename
     for suffix in [".tar.gz", ".zip"]:

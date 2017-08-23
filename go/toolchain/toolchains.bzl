@@ -1,6 +1,8 @@
 load('//go/private:go_toolchain.bzl', 'external_linker', 'go_toolchain')
 load('//go/private:go_tool_binary.bzl', 'go_bootstrap_toolchain')
 
+DEFAULT_VERSION = "1.9"
+
 def _generate_toolchains():
   # The full set of allowed os and arch combinations for the go toolchain
   # This is the set of targets allowed, of which the set of hosts is a strict subset
@@ -46,7 +48,6 @@ def _generate_toolchains():
       struct(
           name = "1.9",
           hosts = [darwin_amd64, linux_386, linux_amd64, windows_386, windows_amd64, freebsd_386, freebsd_amd64],
-          default = True,
       ),
       struct(
           name = "1.8.3",
@@ -90,7 +91,6 @@ def _generate_toolchains():
         semver += ["0"]
         full_name += ".0"
     version_constraints = [":go"+".".join(semver[:index+1]) for index, _ in  enumerate(semver)]
-    is_default = getattr(version, "default", False)
     for host in version.hosts:
       "{}_{}_{}".format(name, host.os, host.arch)
       if hasattr(version, "sdk"):
@@ -125,8 +125,7 @@ def _generate_toolchains():
         )
         bootstrap = _bootstrap(base)
         toolchains += [base, bootstrap]
-        if is_default:
-            toolchains += [_default(base), _default(bootstrap)]
+        toolchains += [_default(base, version.name), _default(bootstrap, version.name)]
 
   # Now we go through the generated toolchains, adding exceptions, and removing invalid combinations.
   for toolchain in toolchains:
@@ -150,19 +149,22 @@ def _bootstrap(base):
   bootstrap["declare"] = go_bootstrap_toolchain
   return bootstrap
 
-def _default(base):
+def _default(base, version):
   default = dict(base)
   default["name"] = "default-" + base["name"]
   default.pop("declare")
   default["version_constraints"] = []
+  default["match_version"] = version
   return default
 
 _toolchains = _generate_toolchains()
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
-def register_go_toolchains():
+def go_register_toolchains(go_version=DEFAULT_VERSION):
   # Use the final dictionaries to register all the toolchains
   for toolchain in _toolchains:
+    if "match_version" in toolchain and toolchain["match_version"] != go_version:
+        continue
     native.register_toolchains(_label_prefix + toolchain["name"])
 
 def declare_toolchains():

@@ -29,7 +29,8 @@ latest tagged version, 0.5.1, still works with Bazel 0.4.5 though.
 * [Build modes](#build-modes)
 * [FAQ](#faq)
 * [Repository rules](#repository-rules)
-  * [go_repositories](#go_repositories)
+  * [go_rules_dependancies](#go_rules_dependancies)
+  * [go_register_toolchains](#go_register_toolchains)
   * [go_repository](#go_repository)
   * [new_go_repository](#new_go_repository)
 * [Build rules](#build-rules)
@@ -83,9 +84,10 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
         remote = "https://github.com/bazelbuild/rules_go.git",
         tag = "0.5.4",
     )
-    load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependancies", "go_register_toolchains")
 
-    go_repositories()
+    go_rules_dependancies()
+    go_register_toolchains()
     ```
 
 * Add a `BUILD` file to the top of your project. Declare the name of your
@@ -252,37 +254,26 @@ imported with [`go_repository`](#go_repository), will have libraries named
 
 ## Repository rules
 
-### `go_repositories`
+### `go_rules_dependancies`
 
 ``` bzl
-go_repositories(go_version)
+go_rules_dependancies()
 ```
 
 Adds Go-related external dependencies to the WORKSPACE, including the Go
 toolchain and standard library. All the other workspace rules and build rules
 assume that this rule is placed in the WORKSPACE.
+When nested workspaces arrive this will be redundant.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>go_version</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>The Go version to use. If none of the parameters are specified, the
-        most recent stable version of Go will be used.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+### `go_register_toolchains`
+
+``` bzl
+go_register_toolchains(go_version)
+```
+
+Installs the built in go toolchains.
+If go_version is specified it sets the go version to use by default.
+
 
 ### `go_repository`
 
