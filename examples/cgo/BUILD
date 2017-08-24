@@ -22,6 +22,9 @@ go_library(
     deps = [":sub"],
 )
 
+# TODO(#746) exclude because gazelle does not recognise the rule below
+# gazelle:exclude sub
+
 go_library(
     name = "sub",
     srcs = ["sub/floor.go"],

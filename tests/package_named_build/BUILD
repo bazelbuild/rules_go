@@ -1,5 +1,9 @@
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
+# The following directories are really data not code
+# gazelle:exclude local
+# gazelle:exclude remote
+
 bazel_test(
     name = "package_named_build",
     command = "test",
