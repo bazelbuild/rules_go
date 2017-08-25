@@ -44,9 +44,13 @@ def _generate_toolchains():
           hosts = [darwin_amd64, linux_386, linux_amd64, windows_386, windows_amd64, freebsd_386, freebsd_amd64],
       ),
       struct(
-          name = "1.8.3",
+          name = "1.9",
           hosts = [darwin_amd64, linux_386, linux_amd64, windows_386, windows_amd64, freebsd_386, freebsd_amd64],
           default = True,
+      ),
+      struct(
+          name = "1.8.3",
+          hosts = [darwin_amd64, linux_386, linux_amd64, windows_386, windows_amd64, freebsd_386, freebsd_amd64],
       ),
       struct(
           name = "1.8.2",

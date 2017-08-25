@@ -30,6 +30,8 @@ constraint_setting(name = "go_minor_version")
 constraint_setting(name = "go_point_version")
 
 constraint_value(name = "go1", constraint_setting = ":go_version")
+constraint_value(name = "go1.9", constraint_setting = ":go_minor_version")
+constraint_value(name = "go1.9.0", constraint_setting = ":go_point_version")
 constraint_value(name = "go1.8", constraint_setting = ":go_minor_version")
 constraint_value(name = "go1.8.3", constraint_setting = ":go_point_version")
 constraint_value(name = "go1.8.2", constraint_setting = ":go_point_version")
