@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_test")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+go_prefix("github.com/bazelbuild/rules_go")
+
+go_test(
+    name = "go_default_test",
+    size = "small",
+    srcs = [
+        "test_1.7_test.go",
+        "test_other_test.go",
+    ],
+    data = ["@io_bazel_rules_go//go/tools/gazelle/gazelle:gazelle"],
+    tags = ["manual"],
+)
+
+bazel_test(
+    name = "build_with_1.7.5",
+    command = "test",
+    target = "//:go_default_test",
+    go_version = "1.7.5",
+    tags = ["dev"],
+    externals = [
+        "@com_github_bazelbuild_buildtools//differ:go_default_library",
+        "@org_golang_x_tools//go/vcs:go_default_library",
+    ],
+)

@@ -25,9 +25,9 @@ def _go_sdk_repository_impl(ctx):
       sha256 = ctx.attr.sha256)
 
   # Build the standard library for valid cross compile platforms
-  if ctx.name.endswith("linux_amd64"):
+  if ctx.name.endswith("linux_amd64") and ctx.os.name == "linux":
     _cross_compile_stdlib(ctx, "windows", "amd64")
-  if ctx.name.endswith("darwin_amd64"):
+  if ctx.name.endswith("darwin_amd64") and ctx.os.name == "mac os x":
     _cross_compile_stdlib(ctx, "linux", "amd64")
 
 def _cross_compile_stdlib(ctx, goos, goarch):

@@ -7,9 +7,6 @@ def _bazel_test_script_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   script_content = ''
   workspace_content = ''
-  go_version = ''
-  if ctx.attr.go_version:
-    go_version = 'go_version = "%s"' % ctx.attr.go_version
   subdir = ""
   if ctx.attr.subdir:
     subdir = ctx.attr.subdir + "/"
@@ -27,8 +24,10 @@ def _bazel_test_script_impl(ctx):
   workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(go_toolchain.sdk, go_toolchain.root.path)
   # finalise the workspace file
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")\n'
-  workspace_content += 'go_rules_dependencies()\n'
-  workspace_content += 'go_register_toolchains()\n'
+  if ctx.attr.go_version:
+    workspace_content += 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
+  else:
+    workspace_content += 'go_register_toolchains()\n'
   if ctx.attr.workspace:
     workspace_content += ctx.attr.workspace
   workspace_file = ctx.new_file(subdir + "WORKSPACE")
@@ -78,12 +77,19 @@ _bazel_test_script = rule(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def bazel_test(name, batch = None, command = None, args=None, subdir = None, target = None, go_version = None, tags=[], workspace="", prepare="", check=""):
+def bazel_test(name, batch = None, command = None, args=None, subdir = None, target = None, go_version = None, tags=[], externals=[], workspace="", prepare="", check=""):
   script_name = name+"_script"
-  externals = [
+  externals = externals + [
       "@io_bazel_rules_go//:README.md",
       "@local_config_cc//:cc_wrapper",
   ]
+  if go_version:
+    sdk_name = go_version.replace("-", "_").replace(".", "_")
+    externals.extend([
+      "@go{}_linux_amd64//:go".format(sdk_name),
+      "@go{}_darwin_amd64//:go".format(sdk_name),
+    ])
+
   _bazel_test_script(
       name = script_name,
       batch = batch,
