@@ -1,7 +1,7 @@
 workspace(name = "io_bazel_rules_go")
 
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependancies", "go_register_toolchains", "go_repository")
-go_rules_dependancies()
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains", "go_repository")
+go_rules_dependencies()
 go_register_toolchains()
 
 # Needed for examples

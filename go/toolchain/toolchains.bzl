@@ -164,7 +164,7 @@ def go_register_toolchains(go_version=DEFAULT_VERSION):
   # Use the final dictionaries to register all the toolchains
   for toolchain in _toolchains:
     if "match_version" in toolchain and toolchain["match_version"] != go_version:
-        continue
+      continue
     native.register_toolchains(_label_prefix + toolchain["name"])
 
 def declare_toolchains():

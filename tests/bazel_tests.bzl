@@ -26,8 +26,8 @@ def _bazel_test_script_impl(ctx):
     workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
   workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(go_toolchain.sdk, go_toolchain.root.path)
   # finalise the workspace file
-  workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependancies", "go_register_toolchains")\n'
-  workspace_content += 'go_rules_dependancies()\n'
+  workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")\n'
+  workspace_content += 'go_rules_dependencies()\n'
   workspace_content += 'go_register_toolchains()\n'
   if ctx.attr.workspace:
     workspace_content += ctx.attr.workspace

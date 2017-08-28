@@ -113,7 +113,7 @@ def emit_library_actions(ctx, go_toolchain, srcs, deps, cgo_object, library, wan
           transitive = transitive, # The transitive set of go libraries depended on
           srcs = depset(srcs), # The original sources
           transformed = join_srcs(struct(**transformed)), # The transformed sources actually compiled
-          cgo_deps = cgo_deps, # The direct cgo dependancies of this library
+          cgo_deps = cgo_deps, # The direct cgo dependencies of this library
           gc_goopts = gc_goopts, # The options this library was compiled with
           runfiles = runfiles, # The runfiles needed for things including this library
           cover_vars = cover_vars, # The cover variables for this library

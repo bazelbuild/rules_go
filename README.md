@@ -29,7 +29,7 @@ latest tagged version, 0.5.1, still works with Bazel 0.4.5 though.
 * [Build modes](#build-modes)
 * [FAQ](#faq)
 * [Repository rules](#repository-rules)
-  * [go_rules_dependancies](#go_rules_dependancies)
+  * [go_rules_dependencies](#go_rules_dependencies)
   * [go_register_toolchains](#go_register_toolchains)
   * [go_repository](#go_repository)
   * [new_go_repository](#new_go_repository)
@@ -84,9 +84,9 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
         remote = "https://github.com/bazelbuild/rules_go.git",
         tag = "0.5.4",
     )
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependancies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 
-    go_rules_dependancies()
+    go_rules_dependencies()
     go_register_toolchains()
     ```
 
@@ -254,16 +254,16 @@ imported with [`go_repository`](#go_repository), will have libraries named
 
 ## Repository rules
 
-### `go_rules_dependancies`
+### `go_rules_dependencies`
 
 ``` bzl
-go_rules_dependancies()
+go_rules_dependencies()
 ```
 
 Adds Go-related external dependencies to the WORKSPACE, including the Go
 toolchain and standard library. All the other workspace rules and build rules
 assume that this rule is placed in the WORKSPACE.
-When nested workspaces arrive this will be redundant.
+When [nested workspaces](https://bazel.build/designs/2016/09/19/recursive-ws-parsing.html) arrive this will be redundant.
 
 ### `go_register_toolchains`
 
@@ -271,8 +271,7 @@ When nested workspaces arrive this will be redundant.
 go_register_toolchains(go_version)
 ```
 
-Installs the built in go toolchains.
-If go_version is specified it sets the go version to use by default.
+Installs the Go toolchains. If `go_version` is specified, it sets the SDK version to use (for example, `"1.8.2"`). By default, the latest SDK will be used.
 
 
 ### `go_repository`
