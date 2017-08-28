@@ -58,7 +58,9 @@ _sdk_repositories = {
 def go_repositories(
     go_version = None,
     go_linux = None,
-    go_darwin = None):
+    go_darwin = None,
+    omit_com_github_bazelbuild_buildtools = False,
+    omit_org_golang_x_tools = False):
 
   for filename, sha256 in _sdk_repositories.items():
     name = filename
@@ -74,23 +76,25 @@ def go_repositories(
     )
 
   # Needed for gazelle and wtool
-  native.http_archive(
-      name = "com_github_bazelbuild_buildtools",
-      # master, as of 14 Aug 2017
-      url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
-      strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
-      sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
-      type = "zip",
-  )
+  if not omit_com_github_bazelbuild_buildtools:
+    native.http_archive(
+        name = "com_github_bazelbuild_buildtools",
+        # master, as of 14 Aug 2017
+        url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
+        strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
+        sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
+        type = "zip",
+    )
 
   # Needed for fetch repo
-  go_repository(
-      name = "org_golang_x_tools",
-      importpath = "golang.org/x/tools",
-      urls = ["https://codeload.github.com/golang/tools/zip/3d92dd60033c312e3ae7cac319c792271cf67e37"],
-      strip_prefix = "tools-3d92dd60033c312e3ae7cac319c792271cf67e37",
-      type = "zip",
-  )
+  if not omit_org_golang_x_tools:
+    go_repository(
+        name = "org_golang_x_tools",
+        importpath = "golang.org/x/tools",
+        urls = ["https://codeload.github.com/golang/tools/zip/3d92dd60033c312e3ae7cac319c792271cf67e37"],
+        strip_prefix = "tools-3d92dd60033c312e3ae7cac319c792271cf67e37",
+        type = "zip",
+    )
 
   go_repository_select(name = "io_bazel_rules_go_toolchain", go_version = go_version)
   go_repository_tools(name = "io_bazel_rules_go_repository_tools")
