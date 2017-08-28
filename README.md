@@ -62,7 +62,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-**Note:** The latest version of these rules (0.5.3) require Bazel ≥ 0.5.2 to
+**Note:** The latest version of these rules (0.5.4) require Bazel ≥ 0.5.2 to
   work.
 
 The `master` branch is only guaranteed to work with the latest version of Bazel.
@@ -81,7 +81,7 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.5.3",
+        tag = "0.5.4",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
