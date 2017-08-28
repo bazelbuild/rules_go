@@ -32,12 +32,8 @@ def _mangle(ctx, src):
     return mangled_stem, src_ext 
 
 def _c_filter_options(options, blacklist):
-  filtered = []
-  for opt in options:
-    if any([opt.startswith(prefix) for prefix in blacklist]):
-      continue
-    filtered.append(opt)
-  return filtered
+  return [opt for opt in options
+        if not any([opt.startswith(prefix) for prefix in blacklist])]
 
 def _cgo_codegen_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]

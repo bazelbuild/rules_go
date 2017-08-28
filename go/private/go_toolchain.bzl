@@ -105,10 +105,10 @@ go_toolchain_flags = rule(
 def _external_linker_impl(ctx):
   cpp = ctx.fragments.cpp
   features = ctx.features
-  options = cpp.compiler_options(features)
-  options += cpp.unfiltered_compiler_options(features)
-  options += cpp.link_options
-  options += cpp.mostly_static_link_options(ctx.features, False)
+  options = (cpp.compiler_options(features) +
+        cpp.unfiltered_compiler_options(features) +
+        cpp.link_options +
+        cpp.mostly_static_link_options(features, False))
   return struct(
       compiler_executable = cpp.compiler_executable,
       options = options,

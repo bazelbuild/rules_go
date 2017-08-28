@@ -1,4 +1,4 @@
-load('//go/private:go_toolchain.bzl', 'go_toolchain', "external_linker")
+load('//go/private:go_toolchain.bzl', 'external_linker', 'go_toolchain')
 load('//go/private:go_tool_binary.bzl', 'go_bootstrap_toolchain')
 
 def _generate_toolchains():
