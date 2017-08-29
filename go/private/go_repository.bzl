@@ -110,7 +110,7 @@ go_repository = repository_rule(
         "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
         "build_tags": attr.string_list(),
 
-        # Hidden attributes for tool dependancies
+        # Hidden attributes for tool dependencies
         "_fetch_repo": attr.label(
             default = Label("@io_bazel_rules_go_repository_tools//:bin/fetch_repo"),
             allow_files = True,

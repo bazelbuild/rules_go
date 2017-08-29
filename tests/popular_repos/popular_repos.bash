@@ -48,9 +48,6 @@ excludes=(
   -@org_golang_x_tools//container/intsets:go_default_xtest
   -@org_golang_x_sys//unix:go_default_xtest
 
-  # TODO(#414): Error compiling test main.
-  -@org_golang_x_net//ipv6:go_default_test
-
   # TODO(#359): cgo library has platform-specific sources and is empty on
   # some platforms, causing an error.
   -@org_golang_x_text//collate/tools/colcmp:all

@@ -1,11 +1,10 @@
-load('//go/private:go_toolchain.bzl', 'go_toolchain_type')
-
 _bazelrc = """
 build --fetch=False --verbose_failures --sandbox_debug --test_output=errors --spawn_strategy=standalone --genrule_strategy=standalone
 test --test_strategy=standalone
 """
 
 def _bazel_test_script_impl(ctx):
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   script_content = ''
   workspace_content = ''
   go_version = ''
@@ -25,11 +24,11 @@ def _bazel_test_script_impl(ctx):
     root = ext.label.workspace_root
     _,_,ws = root.rpartition("/")
     workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
-  go_toolchain = ctx.attr._go_toolchain[go_toolchain_type]
-  workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(go_toolchain.sdk, go_toolchain.root.path)
+  workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(go_toolchain.sdk, go_toolchain.paths.root.path)
   # finalise the workspace file
-  workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_repositories")\n'
-  workspace_content += 'go_repositories({0})\n'.format(go_version)
+  workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")\n'
+  workspace_content += 'go_rules_dependencies()\n'
+  workspace_content += 'go_register_toolchains()\n'
   if ctx.attr.workspace:
     workspace_content += ctx.attr.workspace
   workspace_file = ctx.new_file(subdir + "WORKSPACE")
@@ -74,9 +73,9 @@ _bazel_test_script = rule(
         "workspace": attr.string(),
         "prepare": attr.string(),
         "check": attr.string(),
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_execroot": attr.label(default = Label("@test_environment//:execroot")),
-    }
+    },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def bazel_test(name, batch = None, command = None, args=None, subdir = None, target = None, go_version = None, tags=[], workspace="", prepare="", check=""):
@@ -84,7 +83,6 @@ def bazel_test(name, batch = None, command = None, args=None, subdir = None, tar
   externals = [
       "@io_bazel_rules_go//:README.md",
       "@local_config_cc//:cc_wrapper",
-      "@io_bazel_rules_go_toolchain//:BUILD.bazel",
   ]
   _bazel_test_script(
       name = script_name,
@@ -178,5 +176,5 @@ execroot = rule(
     attrs = {
         "path": attr.string(mandatory = True),
         "bazel": attr.string(mandatory = True),
-    }
+    },
 )

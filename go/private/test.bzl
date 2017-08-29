@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "get_go_toolchain",
     "go_filetype",
     "split_srcs",
     "pkg_dir",
@@ -36,8 +35,9 @@ def _go_test_impl(ctx):
   It emits an action to run the test generator, and then compiles the
   test into a binary."""
 
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   golib, _ = emit_library_actions(ctx,
+      go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
@@ -76,12 +76,13 @@ def _go_test_impl(ctx):
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
-      executable = go_toolchain.test_generator,
+      executable = go_toolchain.tools.test_generator,
       arguments = arguments + [src.path for src in go_srcs],
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 
   main_lib, _ = emit_library_actions(ctx,
+      go_toolchain = go_toolchain,
       srcs = [main_go],
       deps = [],
       cgo_object = None,
@@ -98,6 +99,7 @@ def _go_test_impl(ctx):
 
   emit_go_link_action(
       ctx,
+      go_toolchain = go_toolchain,
       library=main_lib,
       mode=mode,
       executable=ctx.outputs.executable,
@@ -135,11 +137,9 @@ go_test = rule(
         "linkstamp": attr.string(),
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_go_prefix": attr.label(default = go_prefix_default),
     },
     executable = True,
-    fragments = ["cpp"],
     test = True,
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

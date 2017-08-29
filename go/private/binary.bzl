@@ -16,7 +16,6 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "NORMAL_MODE",
     "RACE_MODE",
     "compile_modes",
-    "get_go_toolchain",
     "go_filetype",
 )
 load("@io_bazel_rules_go//go/private:library.bzl",
@@ -30,7 +29,9 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   golib, _ = emit_library_actions(ctx,
+      go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
@@ -47,6 +48,7 @@ def _go_binary_impl(ctx):
       executable = race_executable
     emit_go_link_action(
         ctx,
+        go_toolchain = go_toolchain,
         library=golib,
         mode=mode,
         executable=executable,
@@ -62,6 +64,7 @@ def _go_binary_impl(ctx):
   static_executable = ctx.new_file(ctx.attr.name + ".static")
   emit_go_link_action(
       ctx,
+      go_toolchain = go_toolchain,
       library=golib,
       mode=NORMAL_MODE,
       executable=static_executable,
@@ -101,37 +104,11 @@ go_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
         "_go_prefix": attr.label(default = go_prefix_default),
     },
     executable = True,
-    fragments = ["cpp"],
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
-def c_linker_options(ctx, blacklist=[]):
-  """Extracts flags to pass to $(CC) on link from the current context
-
-  Args:
-    ctx: the current context
-    blacklist: Any flags starts with any of these prefixes are filtered out from
-      the return value.
-
-  Returns:
-    A list of command line flags
-  """
-  cpp = ctx.fragments.cpp
-  features = ctx.features
-  options = cpp.compiler_options(features)
-  options += cpp.unfiltered_compiler_options(features)
-  options += cpp.link_options
-  options += cpp.mostly_static_link_options(ctx.features, False)
-  filtered = []
-  for opt in options:
-    if any([opt.startswith(prefix) for prefix in blacklist]):
-      continue
-    filtered.append(opt)
-  return filtered
 
 def gc_linkopts(ctx):
   gc_linkopts = [ctx.expand_make_variables("gc_linkopts", f, {})
@@ -162,7 +139,7 @@ def _extract_extldflags(gc_linkopts, extldflags):
       filtered_gc_linkopts += [opt]
   return filtered_gc_linkopts, extldflags
 
-def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
+def emit_go_link_action(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs):
   """Adds an action to link the supplied library in the given mode, producing the executable.
   Args:
     ctx: The skylark Context.
@@ -173,7 +150,6 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
     gc_linkopts: basic link options, these may be adjusted by the mode.
     x_defs: link defines, including build stamping ones
   """
-  go_toolchain = get_go_toolchain(ctx)
 
   # Add in any mode specific behaviours
   if mode == RACE_MODE:
@@ -182,16 +158,16 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
-  ld = "%s" % ctx.fragments.cpp.compiler_executable
-  extldflags = c_linker_options(ctx) + [
-      "-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth),
-  ]
+  ld = None
+  extldflags = []
+  if go_toolchain.external_linker:
+    ld = go_toolchain.external_linker.compiler_executable
+    extldflags = go_toolchain.external_linker.options
+  extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)]
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
-  link_opts = [
-      "-L", "."
-  ]
+  link_opts = ["-L", "."]
   libs = depset()
   cgo_deps = depset()
   for golib in depset([library]) + library.transitive:
@@ -204,9 +180,7 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
       short_dir = d.dirname[len(d.root.path):]
       extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir]
 
-  link_opts += [
-      "-o", executable.path,
-  ] + gc_linkopts
+  link_opts += ["-o", executable.path] + gc_linkopts
 
   # Process x_defs, either adding them directly to linker options, or
   # saving them to process through stamping support.
@@ -217,12 +191,14 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
     else:
       link_opts += ["-X", "%s=%s" % (k, v)]
 
-  link_opts += go_toolchain.link_flags + [
-      "-extld", ld,
-      "-extldflags", " ".join(extldflags),
-  ] + [get_library(golib, mode).path]
-
-  link_args = [go_toolchain.go.path]
+  link_opts += go_toolchain.flags.link
+  if ld: 
+    link_opts += [
+        "-extld", ld,
+        "-extldflags", " ".join(extldflags),
+    ]
+  link_opts += [get_library(golib, mode).path]
+  link_args = [go_toolchain.tools.go.path]
   # Stamping support
   stamp_inputs = []
   if stamp_x_defs or ctx.attr.linkstamp:
@@ -241,10 +217,10 @@ def emit_go_link_action(ctx, library, mode, executable, gc_linkopts, x_defs):
 
   ctx.action(
       inputs = list(libs + cgo_deps +
-                go_toolchain.tools + go_toolchain.crosstool + stamp_inputs),
+                go_toolchain.data.tools + go_toolchain.data.crosstool + stamp_inputs),
       outputs = [executable],
       mnemonic = "GoLink",
-      executable = go_toolchain.link,
+      executable = go_toolchain.tools.link,
       arguments = link_args,
       env = go_toolchain.env,
   )

@@ -12,22 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GO_SELECT_TOOLCHAIN_BUILD_FILE = """
-exports_files(["BUILD.bazel"])
-
-alias(
-    name = "go_toolchain",
-    actual = "{toolchain}",
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "bootstrap_toolchain",
-    actual = "{bootstrap}",
-    visibility = ["//visibility:public"],
-)
-"""
-
 def _go_sdk_repository_impl(ctx):
   goroot = ctx.path(".")
   ctx.template("BUILD.bazel", 
@@ -40,6 +24,34 @@ def _go_sdk_repository_impl(ctx):
       stripPrefix = ctx.attr.strip_prefix,
       sha256 = ctx.attr.sha256)
 
+  # Build the standard library for valid cross compile platforms
+  if ctx.name.endswith("linux_amd64"):
+    _cross_compile_stdlib(ctx, "windows", "amd64")
+  if ctx.name.endswith("darwin_amd64"):
+    _cross_compile_stdlib(ctx, "linux", "amd64")
+
+def _cross_compile_stdlib(ctx, goos, goarch):
+  env = {
+      "CGO_ENABLED": "0",
+      "GOROOT": str(ctx.path(".")),
+      "GOOS": goos,
+      "GOARCH": goarch,
+  }
+  res = ctx.execute(
+      ["bin/go", "install", "-v", "std"], 
+      environment = env,
+  )
+  if res.return_code:
+    print("failed: ", res.stderr)
+    fail("go standard library cross compile %s to %s-%s failed" % (ctx.name, goos, goarch))
+  res = ctx.execute(
+      ["bin/go", "install", "-v", "runtime/cgo"], 
+      environment = env,
+  )
+  if res.return_code:
+    print("failed: ", res.stderr)
+    fail("go runtime cgo cross compile %s to %s-%s failed" % (ctx.name, goos, goarch))
+
 go_sdk_repository = repository_rule(
     implementation = _go_sdk_repository_impl, 
     attrs = {
@@ -49,27 +61,30 @@ go_sdk_repository = repository_rule(
     },
 )
 
-def _go_repository_select_impl(ctx):
-  host = ""
-  if ctx.os.name == 'linux':
-    host = 'linux-x86_64'
-  elif ctx.os.name == 'mac os x':
-    host = 'osx-x86_64'
+def _go_host_sdk_repository_impl(ctx):
+  root = "@invalid@"
+  if "GOROOT" in ctx.os.environ:
+    root = ctx.os.environ["GOROOT"]
   else:
-    fail("Unsupported operating system: " + ctx.os.name)
-  toolchain = ctx.os.environ.get("GO_TOOLCHAIN")
-  if not toolchain:
-    toolchain = "@io_bazel_rules_go//go/toolchain:go"+ctx.attr.go_version+"-"+host
-  bootstrap = toolchain.split("-cross-")[0] + "-bootstrap"
+    res = ctx.execute(["go", "env", "GOROOT"])
+    if res.return_code:
+        fail("Could not detect host go version")
+    root = res.stdout.strip()
+    if not root:
+        fail("host go version failed to report it's GOROOT")
+  ctx.template("BUILD.bazel", 
+    Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
+    substitutions = {"{goroot}": root}, 
+    executable = False,
+  )
+  for entry in ["src", "pkg", "bin"]:
+    ctx.symlink(root+"/"+entry, entry)
 
-  ctx.file("BUILD.bazel", GO_SELECT_TOOLCHAIN_BUILD_FILE.format(
-      toolchain = toolchain,
-      bootstrap = bootstrap,
-  ))
+go_host_sdk_repository = repository_rule(
+    implementation = _go_host_sdk_repository_impl, 
+    attrs = {},
+    environ = [
+      "GOROOT",
+    ],
+)
 
-go_repository_select = repository_rule(
-    implementation = _go_repository_select_impl,
-    environ = ["GO_TOOLCHAIN"],
-    attrs = {
-        "go_version" : attr.string(default = "1.8.3"),
-    })

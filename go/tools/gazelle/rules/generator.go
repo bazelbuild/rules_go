@@ -329,7 +329,7 @@ var (
 
 	// longOptPrefixes are separate arguments that come before a path argument,
 	// e.g., -iquote foo/bar.
-	longOptPrefixes = []string{"-I", "-L", "-F", "-iquote", "-isystem", "-framework"}
+	longOptPrefixes = []string{"-I", "-L", "-F", "-iquote", "-isystem"}
 )
 
 // options transforms package-relative paths in cgo options into repository-

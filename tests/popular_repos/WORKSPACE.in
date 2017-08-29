@@ -2,21 +2,22 @@ local_repository(
     name = "io_bazel_rules_go",
     path = "@@RULES_DIR@@",
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_repositories", "go_repository")
-go_repositories()
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains", "go_repository")
+go_rules_dependencies()
+go_register_toolchains()
 
 go_repository(
     name = "org_golang_x_crypto",
     importpath = "golang.org/x/crypto",
-    urls = ["https://codeload.github.com/golang/crypto/zip/efac7f277b17c19894091e358c6130cb6bd51117"],
-    strip_prefix = "crypto-efac7f277b17c19894091e358c6130cb6bd51117",
+    urls = ["https://codeload.github.com/golang/crypto/zip/81e90905daefcd6fd217b62423c0908922eadb30"],
+    strip_prefix = "crypto-81e90905daefcd6fd217b62423c0908922eadb30",
     type = "zip",
 )
 
 go_repository(
     name = "org_golang_x_net",
     importpath = "golang.org/x/net",
-    commit = "5602c733f70afc6dcec6766be0d5034d4c4f14de",
+    commit = "57efc9c3d9f91fb3277f8da1cff370539c4d3dc5",
 )
 
 go_repository(

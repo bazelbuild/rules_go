@@ -6,6 +6,9 @@ Bazel 0.5.2 | Bazel HEAD
 
 ## Announcements
 
+* **August 28, 2017** Release
+[0.5.4](https://github.com/bazelbuild/rules_go/releases/tag/0.5.4) is
+now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains support.
 * **August 9, 2017** Release
 [0.5.3](https://github.com/bazelbuild/rules_go/releases/tag/0.5.3) is
 now available! 
@@ -26,7 +29,8 @@ latest tagged version, 0.5.1, still works with Bazel 0.4.5 though.
 * [Build modes](#build-modes)
 * [FAQ](#faq)
 * [Repository rules](#repository-rules)
-  * [go_repositories](#go_repositories)
+  * [go_rules_dependencies](#go_rules_dependencies)
+  * [go_register_toolchains](#go_register_toolchains)
   * [go_repository](#go_repository)
   * [new_go_repository](#new_go_repository)
 * [Build rules](#build-rules)
@@ -59,7 +63,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-**Note:** The latest version of these rules (0.5.3) require Bazel ≥ 0.5.2 to
+**Note:** The latest version of these rules (0.5.4) require Bazel ≥ 0.5.2 to
   work.
 
 The `master` branch is only guaranteed to work with the latest version of Bazel.
@@ -78,11 +82,12 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.5.3",
+        tag = "0.5.4",
     )
-    load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 
-    go_repositories()
+    go_rules_dependencies()
+    go_register_toolchains()
     ```
 
 * Add a `BUILD` file to the top of your project. Declare the name of your
@@ -249,37 +254,25 @@ imported with [`go_repository`](#go_repository), will have libraries named
 
 ## Repository rules
 
-### `go_repositories`
+### `go_rules_dependencies`
 
 ``` bzl
-go_repositories(go_version)
+go_rules_dependencies()
 ```
 
 Adds Go-related external dependencies to the WORKSPACE, including the Go
 toolchain and standard library. All the other workspace rules and build rules
 assume that this rule is placed in the WORKSPACE.
+When [nested workspaces](https://bazel.build/designs/2016/09/19/recursive-ws-parsing.html) arrive this will be redundant.
 
-<table class="table table-condensed table-bordered table-params">
-  <colgroup>
-    <col class="col-param" />
-    <col class="param-description" />
-  </colgroup>
-  <thead>
-    <tr>
-      <th colspan="2">Attributes</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>go_version</code></td>
-      <td>
-        <code>String, optional</code>
-        <p>The Go version to use. If none of the parameters are specified, the
-        most recent stable version of Go will be used.</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+### `go_register_toolchains`
+
+``` bzl
+go_register_toolchains(go_version)
+```
+
+Installs the Go toolchains. If `go_version` is specified, it sets the SDK version to use (for example, `"1.8.2"`). By default, the latest SDK will be used.
+
 
 ### `go_repository`
 

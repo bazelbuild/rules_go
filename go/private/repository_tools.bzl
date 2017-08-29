@@ -68,7 +68,7 @@ def _go_repository_tools_impl(ctx):
       fail("failed to build fetch_repo: %s" % result.stderr)
       
   # add a build file to export the tools
-  ctx.file('BUILD', _GO_REPOSITORY_TOOLS_BUILD_FILE, False)
+  ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE, False)
 
 go_repository_tools = repository_rule(
     _go_repository_tools_impl,

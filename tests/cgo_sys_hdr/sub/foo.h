@@ -1,1 +1,1 @@
-const int x = 42;
+int x = 42;

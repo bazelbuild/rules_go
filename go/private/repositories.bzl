@@ -14,11 +14,24 @@
 
 # Once nested repositories work, this file should cease to exist.
 
-load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_repository_select")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_host_sdk_repository")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
+load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', "go_register_toolchains")
 
 _sdk_repositories = {
+    # 1.9 repositories
+    "go1.9.darwin-amd64.tar.gz": "c2df361ec6c26fcf20d5569496182cb20728caa4d351bc430b2f0f1212cca3e0",
+    "go1.9.linux-386.tar.gz": "7cccff99dacf59162cd67f5b11070d667691397fd421b0a9ad287da019debc4f",
+    "go1.9.linux-amd64.tar.gz": "d70eadefce8e160638a9a6db97f7192d8463069ab33138893ad3bf31b0650a79",
+    "go1.9.linux-armv6l.tar.gz": "f52ca5933f7a8de2daf7a3172b0406353622c6a39e67dd08bbbeb84c6496f487",
+    "go1.9.windows-386.zip": "ecfe6f5be56acedc56cd9ff735f239a12a7c94f40b0ea9753bbfd17396f5e4b9",
+    "go1.9.windows-amd64.zip": "874b144b994643cff1d3f5875369d65c01c216bb23b8edddf608facc43966c8b",
+    "go1.9.freebsd-386.tar.gz": "9e415e340eaea526170b0fd59aa55939ff4f76c126193002971e8c6799e2ed3a",
+    "go1.9.freebsd-amd64.tar.gz": "ba54efb2223fb4145604dcaf8605d519467f418ab02c081d3cd0632b6b43b6e7",
+    "go1.9.linux-ppc64le.tar.gz": "10b66dae326b32a56d4c295747df564616ec46ed0079553e88e39d4f1b2ae985",
+    "go1.9.linux-arm64.tar.gz": "0958dcf454f7f26d7acc1a4ddc34220d499df845bc2051c14ff8efdf1e3c29a6",
+    "go1.9.linux-s390x.tar.gz": "e06231e4918528e2eba1d3cff9bc4310b777971e5d8985f9772c6018694a3af8",
     # 1.8.3 repositories
     "go1.8.3.darwin-amd64.tar.gz": "f20b92bc7d4ab22aa18270087c478a74463bd64a893a94264434a38a4b167c05",
     "go1.8.3.linux-386.tar.gz": "ff4895eb68fb1daaec41c540602e8bb4c1e8bb2f0e7017367171913fc9995ed2",
@@ -55,13 +68,11 @@ _sdk_repositories = {
     'go1.7.5.darwin-amd64.tar.gz': '2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca',
 }
 
-def go_repositories(
-    go_version = None,
-    go_linux = None,
-    go_darwin = None,
+
+def go_rules_dependencies(
     omit_com_github_bazelbuild_buildtools = False,
     omit_org_golang_x_tools = False):
-
+  # Add all the basic sdk repositories
   for filename, sha256 in _sdk_repositories.items():
     name = filename
     for suffix in [".tar.gz", ".zip"]:
@@ -75,6 +86,9 @@ def go_repositories(
         strip_prefix = "go",
     )
 
+  go_host_sdk_repository(
+      name = "go_host_sdk",
+  )
   # Needed for gazelle and wtool
   if not omit_com_github_bazelbuild_buildtools:
     native.http_archive(
@@ -96,5 +110,4 @@ def go_repositories(
         type = "zip",
     )
 
-  go_repository_select(name = "io_bazel_rules_go_toolchain", go_version = go_version)
   go_repository_tools(name = "io_bazel_rules_go_repository_tools")

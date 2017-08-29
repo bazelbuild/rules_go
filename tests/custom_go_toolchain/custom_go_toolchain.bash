@@ -72,7 +72,7 @@ local_repository(
     name = "io_bazel_rules_go",
     path = "$RULES_DIR",
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_repositories(go_$OS = "@local_go")
 EOF
 

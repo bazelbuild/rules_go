@@ -16,7 +16,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     _GoLibrary = "GoLibrary",
     _GoBinary = "GoBinary",
 )
-load("@io_bazel_rules_go//go/private:repositories.bzl", "go_repositories")
+load("@io_bazel_rules_go//go/private:repositories.bzl", "go_rules_dependencies", "go_register_toolchains")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load("@io_bazel_rules_go//go/private:go_prefix.bzl", "go_prefix")
 load("@io_bazel_rules_go//go/private:embed_data.bzl", "go_embed_data")
@@ -147,4 +147,13 @@ def cgo_library(name, **kwargs):
 def new_go_repository(name, **kwargs):
   print("DEPRECATED: {0} : new_go_repository is deprecated. Please migrate to go_repository soon.".format(name))
   return go_repository(name=name, **kwargs)
+
+def go_repositories(
+    go_version = None,
+    go_linux = None,
+    go_darwin = None):
+
+  print("DEPRECATED: go_repositories has been deprecated. go_rules_dependencies installs dependencies the way nested workspaces should, and go_register_toolchains adds the toolchains")
+  go_rules_dependencies()
+  go_register_toolchains(go_version=go_version)
 

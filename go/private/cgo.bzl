@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "get_go_toolchain", "dict_of", "split_srcs", "join_srcs", "pkg_dir")
+load("@io_bazel_rules_go//go/private:common.bzl", "dict_of", "split_srcs", "join_srcs", "pkg_dir")
 load("@io_bazel_rules_go//go/private:library.bzl", "go_library")
-load("@io_bazel_rules_go//go/private:binary.bzl", "c_linker_options")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 
 def _cgo_select_go_files_impl(ctx):
@@ -32,10 +31,16 @@ def _mangle(ctx, src):
     mangled_stem = ctx.attr.out_dir + "/" + src_stem.replace('/', '_')
     return mangled_stem, src_ext 
 
+def _c_filter_options(options, blacklist):
+  return [opt for opt in options
+        if not any([opt.startswith(prefix) for prefix in blacklist])]
+
 def _cgo_codegen_impl(ctx):
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  if not go_toolchain.external_linker:
+    fail("Go toolchain does not support cgo")
   linkopts = ctx.attr.linkopts[:]
-  copts = ctx.fragments.cpp.c_options + ctx.attr.copts
+  copts = go_toolchain.external_linker.c_options + ctx.attr.copts
   deps = depset([], order="topological")
   cgo_export_h = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.h")
   cgo_export_c = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.c")
@@ -43,8 +48,8 @@ def _cgo_codegen_impl(ctx):
   cgo_types = ctx.new_file(ctx.attr.out_dir + "/_cgo_gotypes.go")
   out_dir = cgo_main.dirname
 
-  cc = ctx.fragments.cpp.compiler_executable
-  args = [go_toolchain.go.path, "-cc", str(cc), "-objdir", out_dir]
+  cc = go_toolchain.external_linker.compiler_executable
+  args = [go_toolchain.tools.go.path, "-cc", str(cc), "-objdir", out_dir]
 
   c_outs = depset([cgo_export_h, cgo_export_c])
   go_outs = depset([cgo_types])
@@ -70,7 +75,7 @@ def _cgo_codegen_impl(ctx):
     c_outs += [gen_file]
     args += ["-src", gen_file.path + "=" + src.path]
 
-  inputs = ctx.files.srcs + go_toolchain.tools + go_toolchain.crosstool
+  inputs = ctx.files.srcs + go_toolchain.data.tools + go_toolchain.data.crosstool
   for d in ctx.attr.deps:
     inputs += list(d.cc.transitive_headers)
     deps += d.cc.libs
@@ -96,7 +101,7 @@ def _cgo_codegen_impl(ctx):
       outputs = list(c_outs + go_outs + [cgo_main]),
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      executable = go_toolchain.cgo,
+      executable = go_toolchain.tools.cgo,
       arguments = args,
       env = go_toolchain.env + {
           "CGO_LDFLAGS": " ".join(linkopts),
@@ -122,25 +127,23 @@ _cgo_codegen_rule = rule(
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
         "out_dir": attr.string(mandatory = True),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
-    fragments = ["cpp"],
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _cgo_import_impl(ctx):
   #TODO: move the dynpackage part into the cgo wrapper so we can stop using shell
-  go_toolchain = get_go_toolchain(ctx)
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   command = (
-      go_toolchain.go.path + " tool cgo" +
+      go_toolchain.tools.go.path + " tool cgo" +
       " -dynout " + ctx.outputs.out.path +
       " -dynimport " + ctx.file.cgo_o.path +
-      " -dynpackage $(%s %s)"  % (go_toolchain.extract_package.path,
+      " -dynpackage $(%s %s)"  % (go_toolchain.tools.extract_package.path,
                                   ctx.files.sample_go_srcs[0].path)
   )
   ctx.action(
-      inputs = (go_toolchain.tools +
-                [go_toolchain.go, go_toolchain.extract_package,
+      inputs = (go_toolchain.data.tools +
+                [go_toolchain.tools.go, go_toolchain.tools.extract_package,
                  ctx.file.cgo_o, ctx.files.sample_go_srcs[0]]),
       outputs = [ctx.outputs.out],
       command = command,
@@ -162,10 +165,8 @@ _cgo_import = rule(
         "out": attr.output(
             mandatory = True,
         ),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
-    fragments = ["cpp"],
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 """Generates symbol-import directives for cgo
@@ -178,8 +179,11 @@ Args:
 """
 
 def _cgo_object_impl(ctx):
-  go_toolchain = get_go_toolchain(ctx)
-  arguments = c_linker_options(ctx, blacklist=[
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  if not go_toolchain.external_linker:
+    fail("Go toolchain does not support cgo")
+  options = go_toolchain.external_linker.options
+  arguments = _c_filter_options(options, blacklist=[
       # never link any dependency libraries
       "-l", "-L",
       # manage flags to ld(1) by ourselves
@@ -188,21 +192,22 @@ def _cgo_object_impl(ctx):
       "-o", ctx.outputs.out.path,
       "-nostdlib",
       "-Wl,-r",
-  ] + go_toolchain.cgo_link_flags
+  ] + go_toolchain.flags.link_cgo
 
   lo = ctx.files.src[-1]
   arguments += [lo.path]
 
   ctx.action(
-      inputs = [lo] + go_toolchain.crosstool,
+      inputs = [lo] + go_toolchain.data.crosstool,
       outputs = [ctx.outputs.out],
       mnemonic = "CGoObject",
       progress_message = "Linking %s" % ctx.outputs.out.short_path,
-      executable = ctx.fragments.cpp.compiler_executable,
+      executable = go_toolchain.external_linker.compiler_executable,
       arguments = arguments,
   )
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.src.data_runfiles)
+
   return struct(
       files = depset([ctx.outputs.out]),
       cgo_obj = ctx.outputs.out,
@@ -224,10 +229,8 @@ _cgo_object = rule(
         "out": attr.output(
             mandatory = True,
         ),
-        #TODO(toolchains): Remove _toolchain attribute when real toolchains arrive
-        "_go_toolchain": attr.label(default = Label("@io_bazel_rules_go_toolchain//:go_toolchain")),
     },
-    fragments = ["cpp"],
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 
