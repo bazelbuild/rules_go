@@ -23,6 +23,9 @@ load("@io_bazel_rules_go//go/private:repositories.bzl",
     "go_rules_dependencies",
     "go_register_toolchains",
 )
+load("@io_bazel_rules_go//go/private:toolchain.bzl",
+    go_sdk = "go_sdk",
+)
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl", 
     "go_prefix",
 )

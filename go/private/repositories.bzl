@@ -14,7 +14,7 @@
 
 # Once nested repositories work, this file should cease to exist.
 
-load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk_repository", "go_host_sdk_repository")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk", "go_host_sdk")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', "go_register_toolchains")
@@ -76,14 +76,14 @@ def go_rules_dependencies():
       if name.endswith(suffix):
         name = name[:-len(suffix)]
     name = name.replace("-", "_").replace(".", "_")
-    go_sdk_repository(
+    go_sdk(
         name = name,
         url = "https://storage.googleapis.com/golang/" + filename,
         sha256 = sha256,
         strip_prefix = "go",
     )
 
-  go_host_sdk_repository(
+  go_host_sdk(
       name = "go_host_sdk",
   )
   # Needed for gazelle and wtool
