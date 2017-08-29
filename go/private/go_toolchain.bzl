@@ -26,7 +26,7 @@ def _go_toolchain_impl(ctx):
       name = ctx.label.name,
       sdk = ctx.attr.sdk,
       env = {
-          "GOROOT": ctx.attr.root.path,
+          "GOROOT": ctx.attr._root.path,
           "GOOS": ctx.attr.goos,
           "GOARCH": ctx.attr.goarch,
       },
@@ -39,10 +39,10 @@ def _go_toolchain_impl(ctx):
           pack = emit_pack,
       ),
       paths = struct(
-          root = ctx.attr.root,
+          root = ctx.attr._root,
       ),
       tools = struct(
-          go = ctx.executable.go,
+          go = ctx.executable._go,
           asm = ctx.executable._asm,
           compile = ctx.executable._compile,
           pack = ctx.executable._pack,
@@ -57,13 +57,28 @@ def _go_toolchain_impl(ctx):
           link_cgo = ctx.attr.cgo_link_flags,
       ),
       data = struct(
-          tools = ctx.files.tools,
-          stdlib = ctx.files.stdlib,
-          headers = ctx.attr.headers,
+          tools = ctx.files._tools,
+          stdlib = ctx.files._stdlib,
+          headers = ctx.attr._headers,
           crosstool = ctx.files._crosstool,
       ),
       external_linker = ctx.attr._external_linker,
   )]
+
+def _go(sdk):
+  return Label("@{}//:go".format(sdk))
+
+def _tools(sdk):
+  return Label("@{}//:tools".format(sdk))
+
+def _stdlib(sdk, goos, goarch):
+  return Label("@{}//:stdlib_{}_{}".format(sdk, goos, goarch))
+
+def _headers(sdk):
+  return Label("@{}//:headers".format(sdk))
+
+def _root(sdk):
+  return Label("@{}//:root".format(sdk))
 
 def _get_linker():
   # TODO: return None if there is no cpp fragment available
@@ -108,17 +123,14 @@ def _extract_package(bootstrap):
 go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
+        # Minimum requirements to specify a toolchain
         "sdk": attr.string(mandatory = True),
-        "root": attr.label(mandatory = True),
-        "go": attr.label(mandatory = True, allow_files = True, single_file = True, executable = True, cfg = "host"),
-        "tools": attr.label(mandatory = True, allow_files = True),
-        "stdlib": attr.label(mandatory = True, allow_files = True),
-        "headers": attr.label(mandatory = True),
-        "link_flags": attr.string_list(default = []),
-        "cgo_link_flags": attr.string_list(default = []),
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
-        "bootstrap": attr.bool(mandatory = True),
+        # Optional extras to a toolchain
+        "link_flags": attr.string_list(default = []),
+        "cgo_link_flags": attr.string_list(default = []),
+        "bootstrap": attr.bool(default = False),
         # Tools, missing from bootstrap toolchains
         "_asm": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _asm),
         "_compile": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _compile),
@@ -128,6 +140,11 @@ go_toolchain = rule(
         "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),
         "_extract_package": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _extract_package),
         # Hidden internal attributes
+        "_go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_go),
+        "_tools": attr.label(allow_files = True, default = _tools),
+        "_stdlib": attr.label(allow_files = True, default = _stdlib),
+        "_headers": attr.label(default=_headers),
+        "_root": attr.label(default=_root),
         "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
         "_external_linker": attr.label(default=_get_linker),
