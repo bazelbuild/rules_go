@@ -2,6 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
 go_test(
     name = "stamp_with_linkstamp",
+    size = "small",
     srcs = ["stamped_bin_test.go"],
     linkstamp = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
     x_defs = {
@@ -10,11 +11,11 @@ go_test(
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
-    size = "small",
 )
 
 go_test(
     name = "stamp_with_x_defs",
+    size = "small",
     srcs = ["stamped_bin_test.go"],
     x_defs = {
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.BUILD_TIMESTAMP": "{BUILD_TIMESTAMP}",
@@ -23,11 +24,11 @@ go_test(
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
-    size = "small",
 )
 
 go_test(
     name = "stamp_with_linkstamp_and_x_defs",
+    size = "small",
     srcs = ["stamped_bin_test.go"],
     linkstamp = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
     x_defs = {
@@ -36,5 +37,4 @@ go_test(
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
     deps = ["//examples/stamped_bin/stamp:go_default_library"],
-    size = "small",
 )

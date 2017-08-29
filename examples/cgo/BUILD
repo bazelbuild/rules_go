@@ -10,12 +10,12 @@ go_library(
         "export_example.go",
         "generated.go",
         "import_example.go",
+        "pure_go.go",
         "use_exported.c",
         "use_exported.h",
-        "pure_go.go",
     ],
-    cgo = True,
     cdeps = ["//examples/cgo/cc_dependency:version"],
+    cgo = True,
     clinkopts = ["-lm"],
     copts = ["-DDEFINED_IN_COPTS=1"],
     visibility = ["//visibility:public"],
@@ -32,9 +32,9 @@ go_library(
 
 go_test(
     name = "cgo_lib_test",
+    size = "small",
     srcs = ["cgo_lib_test.go"],
     library = ":go_default_library",
-    size = "small",
 )
 
 genrule(

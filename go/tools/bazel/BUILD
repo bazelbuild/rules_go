@@ -8,10 +8,10 @@ go_library(
 
 go_test(
     name = "go_default_test",
+    size = "small",
     srcs = ["bazel_test.go"],
     data = [
         "README.md",
     ],
     library = ":go_default_library",
-    size = "small",
 )

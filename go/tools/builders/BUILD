@@ -3,11 +3,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
 go_test(
     name = "filter_test",
+    size = "small",
     srcs = [
         "filter.go",
         "filter_test.go",
     ],
-    size = "small",
 )
 
 go_tool_binary(
@@ -23,8 +23,8 @@ go_tool_binary(
     name = "compile",
     srcs = [
         "compile.go",
-        "flags.go",
         "filter.go",
+        "flags.go",
     ],
     visibility = ["//visibility:public"],
 )
@@ -57,9 +57,9 @@ go_tool_binary(
 go_tool_binary(
     name = "cgo",
     srcs = [
-        "flags.go",
-        "filter.go",
         "cgo.go",
+        "filter.go",
+        "flags.go",
     ],
     visibility = ["//visibility:public"],
 )
@@ -71,4 +71,3 @@ go_tool_binary(
     ],
     visibility = ["//visibility:public"],
 )
-

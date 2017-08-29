@@ -32,28 +32,28 @@ go_binary(
 
 go_test(
     name = "unsafe_srcs_test",
+    size = "small",
     srcs = [
         "empty_test.go",
         "unsafe.go",
     ],
     gc_goopts = ["-u"],
     tags = ["manual"],
-    size = "small",
 )
 
 go_test(
     name = "unsafe_library_test",
+    size = "small",
     library = ":unsafe_srcs_lib",
     tags = ["manual"],
-    size = "small",
 )
 
 go_library(
     name = "unsafe_cgo_lib",
     srcs = ["unsafe_cgo.go"],
+    cgo = True,
     gc_goopts = ["-u"],
     tags = ["manual"],
-    cgo = True,
 )
 
 go_library(
@@ -74,11 +74,11 @@ go_binary(
 
 go_test(
     name = "unsafe_link_test",
+    size = "small",
     srcs = [
         "empty_test.go",
         "unsafe.go",
     ],
     gc_linkopts = ["-u"],
     tags = ["manual"],
-    size = "small",
 )

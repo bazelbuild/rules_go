@@ -18,14 +18,14 @@ go_library(
 
 bazel_test(
     name = "coverage",
-    command = "coverage",
-    target = "//:go_default_test",
     check = """
 if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/go_default_test/test.log"; then
   echo "error: no coverage output found in test log file" >&2
   exit 1
 fi
-    """
+    """,
+    command = "coverage",
+    target = "//:go_default_test",
 )
 
 go_binary(
@@ -41,8 +41,6 @@ go_library(
 
 bazel_test(
     name = "bin_coverage",
-    command = "coverage",
-    target = "//:bin",
     check = """
 no_tests_found=4
 if [ "$result" -ne "$no_tests_found" ]; then
@@ -51,5 +49,6 @@ if [ "$result" -ne "$no_tests_found" ]; then
 fi
 result=0
 """,
+    command = "coverage",
+    target = "//:bin",
 )
-

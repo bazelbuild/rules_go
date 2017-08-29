@@ -9,9 +9,9 @@ go_tool_binary(
 
 go_test(
     name = "extract_package_test",
+    size = "small",
     srcs = [
         "extract.go",
         "extract_test.go",
     ],
-    size = "small",
 )

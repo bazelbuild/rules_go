@@ -12,7 +12,7 @@ go_test(
 
 bazel_test(
     name = "test_filter_test",
-    command = "test",
     args = ["--test_filter=Pass"],
+    command = "test",
     target = "//:go_default_test",
 )

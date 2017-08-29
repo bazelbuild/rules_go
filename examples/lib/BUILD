@@ -17,15 +17,16 @@ go_library(
 
 go_test(
     name = "lib_test",
+    size = "small",
     srcs = [
         "lib_test.go",
     ],
     library = ":go_default_library",
-    size = "small",
 )
 
 go_test(
     name = "lib_external_test",
+    size = "small",
     srcs = [
         "lib_x_test.go",
     ],
@@ -39,5 +40,4 @@ go_test(
     deps = [
         ":go_default_library",
     ],
-    size = "small",
 )

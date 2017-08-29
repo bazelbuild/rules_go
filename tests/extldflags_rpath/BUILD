@@ -15,8 +15,8 @@ go_binary(
 
 sh_test(
     name = "extldflags_rpath_test",
+    size = "small",
     srcs = ["extldflags_rpath_test.sh"],
     args = ["$(location :extldflags_rpath)"],
     data = [":extldflags_rpath"],
-    size = "small",
 )

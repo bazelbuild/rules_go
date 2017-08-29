@@ -8,30 +8,30 @@ go_library(
         "package.go",
         "walk.go",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         "//go/tools/gazelle/config:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
-    visibility = ["//visibility:public"],
 )
 
 go_test(
     name = "go_default_test",
+    size = "small",
     srcs = [
         "fileinfo_test.go",
         "package_test.go",
     ],
     library = ":go_default_library",
-    size = "small",
 )
 
 go_test(
     name = "go_default_xtest",
+    size = "small",
     srcs = ["walk_test.go"],
     deps = [
         ":go_default_library",
         "//go/tools/gazelle/config:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
-    size = "small",
 )

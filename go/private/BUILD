@@ -8,24 +8,27 @@ filegroup(
 
 config_setting(
     name = "fastbuild",
-    values = {"compilation_mode": "fastbuild"}
+    values = {"compilation_mode": "fastbuild"},
 )
 
 config_setting(
     name = "debug",
-    values = {"compilation_mode": "dbg"}
+    values = {"compilation_mode": "dbg"},
 )
 
 config_setting(
     name = "optimized",
-    values = {"compilation_mode": "opt"}
+    values = {"compilation_mode": "opt"},
 )
 
 go_toolchain_flags(
     name = "go_toolchain_flags",
     compile_flags = select({
         "@io_bazel_rules_go//go/private:fastbuild": [],
-        "@io_bazel_rules_go//go/private:debug": ["-N", "-l"],
+        "@io_bazel_rules_go//go/private:debug": [
+            "-N",
+            "-l",
+        ],
         "@io_bazel_rules_go//go/private:optimized": [],
     }),
     visibility = ["@io_bazel_rules_go//go/toolchain:__subpackages__"],

@@ -6,8 +6,8 @@ load("@io_bazel_rules_go//go/private:single_output_test.bzl", "single_output_tes
 
 single_output_test(
     name = "binary_single_output_test",
-    dep = ":bin",
     size = "small",
+    dep = ":bin",
 )
 
 go_binary(
@@ -18,13 +18,13 @@ go_binary(
 
 single_output_test(
     name = "test_single_output_test",
-    dep = ":test",
     size = "small",
+    dep = ":test",
 )
 
 go_test(
     name = "test",
+    size = "small",
     srcs = ["test.go"],
     tags = ["manual"],
-    size = "small",
 )

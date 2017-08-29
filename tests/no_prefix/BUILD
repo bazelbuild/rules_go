@@ -16,13 +16,13 @@ go_library(
 go_test(
     name = "go_default_xtest",
     srcs = ["no_prefix_test.go"],
-    deps = [":go_default_library"],
     importpath = "github.com/bazelbuild/rules_go/tests/no_prefix_test",
+    deps = [":go_default_library"],
 )
 
 go_binary(
     name = "cmd",
     srcs = ["cmd.go"],
-    deps = [":go_default_library"],
     importpath = "github.com/bazelbuild/rules_go/tests/no_prefix/cmd",
+    deps = [":go_default_library"],
 )

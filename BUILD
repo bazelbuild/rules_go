@@ -32,24 +32,24 @@ exports_files(["README.md"])
 
 go_path(
     name = "all_srcs",
+    tags = ["manual"],
     deps = [
         "//go/tools/builders:asm",
+        "//go/tools/builders:cgo",
         "//go/tools/builders:compile",
         "//go/tools/builders:embed",
         "//go/tools/builders:generate_test_main",
         "//go/tools/builders:link",
-        "//go/tools/builders:cgo",
         "//go/tools/builders:md5sum",
-        "//go/tools/gazelle/gazelle:gazelle",
-        "//go/tools/fetch_repo:fetch_repo",
-        "//go/tools/wtool:wtool",
+        "//go/tools/fetch_repo",
+        "//go/tools/gazelle/gazelle",
+        "//go/tools/wtool",
     ],
-    tags = ["manual"],
 )
 
 go_vet_test(
     name = "vet",
-    data = [":all_srcs"]
+    data = [":all_srcs"],
 )
 
 go_info()
