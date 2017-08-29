@@ -32,12 +32,13 @@ const (
 
 var (
 	mergeableFields = map[string]bool{
-		"cgo":       true,
-		"clinkopts": true,
-		"copts":     true,
-		"deps":      true,
-		"library":   true,
-		"srcs":      true,
+		"cgo":        true,
+		"clinkopts":  true,
+		"copts":      true,
+		"deps":       true,
+		"importpath": true,
+		"library":    true,
+		"srcs":       true,
 	}
 )
 

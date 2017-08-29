@@ -38,10 +38,6 @@ type Generator interface {
 	// in this interface.
 	Generate(pkg *packages.Package) *bf.File
 
-	// GeneratePrefix generates a go_prefix rule. This should be in the
-	// top-level build file for the repository.
-	GeneratePrefix() bf.Expr
-
 	// GenerateRules generates a list of rules for targets in "pkg".
 	GenerateRules(pkg *packages.Package) []bf.Expr
 
@@ -72,16 +68,9 @@ func (g *generator) Generate(pkg *packages.Package) *bf.File {
 		Path: filepath.Join(pkg.Dir, g.c.DefaultBuildFileName()),
 	}
 	f.Stmt = append(f.Stmt, nil) // reserve space for load
-	if pkg.Rel == "" {
-		f.Stmt = append(f.Stmt, g.GeneratePrefix())
-	}
 	f.Stmt = append(f.Stmt, g.GenerateRules(pkg)...)
 	f.Stmt[0] = g.GenerateLoad(f.Stmt[1:])
 	return f
-}
-
-func (g *generator) GeneratePrefix() bf.Expr {
-	return newRule("go_prefix", []interface{}{g.c.GoPrefix}, nil)
 }
 
 func (g *generator) GenerateRules(pkg *packages.Package) []bf.Expr {
@@ -150,6 +139,9 @@ func (g *generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	name := g.l.BinaryLabel(pkg.Rel).Name
 	visibility := checkInternalVisibility(pkg.Rel, "//visibility:public")
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Binary)
+	// TODO(jayconrod): don't add importpath if it can be inherited from library.
+	// This is blocked by bazelbuild/bazel#3575.
+	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
 	if library != "" {
 		attrs = append(attrs, keyvalue{"library", ":" + library})
 	}
@@ -170,11 +162,7 @@ func (g *generator) generateLib(pkg *packages.Package) (string, bf.Expr) {
 	}
 
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Library)
-	if !pkg.IsCommand() && g.c.StructureMode == config.FlatMode {
-		// TODO(jayconrod): add importpath attributes outside of flat mode after
-		// we have verified it works correctly.
-		attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
-	}
+	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
 
 	rule := newRule("go_library", nil, attrs)
 	return name, rule
@@ -224,14 +212,19 @@ func (g *generator) filegroup(pkg *packages.Package) bf.Expr {
 
 func (g *generator) generateTest(pkg *packages.Package, library string, isXTest bool) bf.Expr {
 	target := pkg.Test
+	importpath := pkg.ImportPath(g.c.GoPrefix)
 	if isXTest {
 		target = pkg.XTest
+		importpath += "_test"
 	}
 	if !target.HasGo() {
 		return nil
 	}
 	name := g.l.TestLabel(pkg.Rel, isXTest).Name
 	attrs := g.commonAttrs(pkg.Rel, name, "", target)
+	// TODO(jayconrod): don't add importpath if it can be inherited from library.
+	// This is blocked by bazelbuild/bazel#3575.
+	attrs = append(attrs, keyvalue{"importpath", importpath})
 	if library != "" {
 		attrs = append(attrs, keyvalue{"library", ":" + library})
 	}

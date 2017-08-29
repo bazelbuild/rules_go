@@ -141,9 +141,7 @@ func TestSelectLabelsSorted(t *testing.T) {
 		{
 			path: "BUILD",
 			content: `
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
-
-go_prefix("example.com/foo")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -156,6 +154,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    importpath = "example.com/foo",
 )
 `,
 		},
@@ -183,9 +182,7 @@ package foo
 		{path: "outer/outer.go", content: "package outer"},
 		{path: "outer/inner/inner.go", content: "package inner"},
 	})
-	want := `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
-
-go_prefix("example.com/foo")
+	want := `load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -198,6 +195,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    importpath = "example.com/foo",
     visibility = ["//visibility:public"],
     deps = select({
         "@io_bazel_rules_go//go/platform:linux_amd64": [
@@ -213,7 +211,7 @@ go_library(
 		t.Fatal(err)
 	}
 
-	if err := runGazelle(dir, nil); err != nil {
+	if err := runGazelle(dir, []string{"-go_prefix", "example.com/foo"}); err != nil {
 		t.Fatal(err)
 	}
 	if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {
@@ -279,6 +277,7 @@ go_library(
         "pure.go",
     ],
     cgo = True,
+    importpath = "example.com/foo",
     visibility = ["//visibility:default"],
 )
 
@@ -300,6 +299,7 @@ go_library(
         "pure.go",
     ],
     cgo = True,
+    importpath = "example.com/foo",
     visibility = ["//visibility:default"],
 )
 `,
@@ -330,9 +330,7 @@ func TestFixUnlinkedCgoLibrary(t *testing.T) {
 		{path: "WORKSPACE"},
 		{
 			path: "BUILD",
-			content: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_prefix")
-
-go_prefix("example.com/foo")
+			content: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library")
 
 cgo_library(
     name = "cgo_default_library",
@@ -342,6 +340,7 @@ cgo_library(
 go_library(
     name = "go_default_library",
     srcs = ["pure.go"],
+    importpath = "example.com/foo",
     visibility = ["//visibility:public"],
 )
 `,
@@ -356,17 +355,16 @@ go_library(
 		t.Fatal(err)
 	}
 
-	want := `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
-
-go_prefix("example.com/foo")
+	want := `load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
     srcs = ["pure.go"],
+    importpath = "example.com/foo",
     visibility = ["//visibility:public"],
 )
 `
-	if err := runGazelle(dir, []string{"fix"}); err != nil {
+	if err := runGazelle(dir, []string{"fix", "-go_prefix", "example.com/foo"}); err != nil {
 		t.Fatal(err)
 	}
 	if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {
@@ -504,13 +502,12 @@ import _ "golang.org/x/baz"
 	checkFiles(t, dir, []fileSpec{
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
-
-go_prefix("example.com/foo")
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
     srcs = ["a.go"],
+    importpath = "example.com/foo",
     visibility = ["//visibility:public"],
     deps = ["//vendor/golang.org/x/bar:go_default_library"],
 )
@@ -522,6 +519,7 @@ go_library(
 go_library(
     name = "go_default_library",
     srcs = ["bar.go"],
+    importpath = "golang.org/x/bar",
     visibility = ["//visibility:public"],
     deps = ["//vendor/golang.org/x/baz:go_default_library"],
 )
@@ -539,7 +537,7 @@ func TestFlatExternal(t *testing.T) {
 
 gazelle(
     name = "gazelle",
-    prefix = "example.com/repo",
+    prefix = "example.com/foo",
     args = ["-experimental_flat"],
 )
 `,
@@ -590,15 +588,13 @@ import (
 	checkFiles(t, dir, []fileSpec{
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_binary", "go_library", "go_prefix", "go_test")
+			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_binary", "go_library", "go_test")
 
 gazelle(
     name = "gazelle",
     args = ["-experimental_flat"],
-    prefix = "example.com/repo",
+    prefix = "example.com/foo",
 )
-
-go_prefix("example.com/foo")
 
 go_library(
     name = "foo",
@@ -618,6 +614,7 @@ go_test(
     name = "b_test",
     srcs = ["b/b_test.go"],
     data = glob(["b/testdata/**"]),
+    importpath = "example.com/foo/b",
     library = ":b",
     rundir = "b",
 )
@@ -626,6 +623,7 @@ go_test(
     name = "b_xtest",
     srcs = ["b/b_x_test.go"],
     data = glob(["b/testdata/**"]),
+    importpath = "example.com/foo/b_test",
     rundir = "b",
     deps = [":b"],
 )
@@ -640,6 +638,7 @@ go_library(
 go_library(
     name = "c",
     srcs = ["c/c.go"],
+    importpath = "example.com/foo/c",
     visibility = ["//visibility:private"],
     deps = [
         ":b",
@@ -651,6 +650,7 @@ go_library(
 
 go_binary(
     name = "c_cmd",
+    importpath = "example.com/foo/c",
     library = ":c",
     visibility = ["//visibility:public"],
 )
@@ -707,7 +707,7 @@ import _ "github.com/jr_hacker/stuff/a/b"
 	checkFiles(t, dir, []fileSpec{
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_library", "go_prefix")
+			content: `load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_library")
 
 gazelle(
     name = "gazelle",
@@ -715,8 +715,6 @@ gazelle(
     external = "vendored",
     prefix = "example.com/foo",
 )
-
-go_prefix("example.com/foo")
 
 go_library(
     name = "foo",

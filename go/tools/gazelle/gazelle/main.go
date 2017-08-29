@@ -128,17 +128,20 @@ func (v *hierarchicalVisitor) finish() {
 		return
 	}
 
-	// We did not process a package at the repository root. We need to put
-	// a go_prefix rule there, even if there are no .go files in that directory.
-	oldFile, err := loadBuildFile(v.c, v.c.RepoRoot)
-	if err != nil && !os.IsNotExist(err) {
-		log.Print(err)
+	// We did not process a package at the repository root. We need to create
+	// a build file if none exists.
+	for _, base := range v.c.ValidBuildFileNames {
+		p := filepath.Join(v.c.RepoRoot, base)
+		if _, err := os.Stat(p); err == nil || !os.IsNotExist(err) {
+			return
+		}
 	}
-
-	pkg := &packages.Package{Dir: v.c.RepoRoot}
-	g := rules.NewGenerator(v.c, v.r, v.l, "", oldFile)
-	genFile := g.Generate(pkg)
-	v.mergeAndEmit(genFile, oldFile)
+	p := filepath.Join(v.c.RepoRoot, v.c.DefaultBuildFileName())
+	if f, err := os.Create(p); err != nil {
+		log.Print(err)
+	} else {
+		f.Close()
+	}
 }
 
 // flatVisitor generates and updates a single build file that contains rules
@@ -178,7 +181,6 @@ func (v *flatVisitor) finish() {
 	sort.Strings(packageNames)
 
 	genFile.Stmt = append(genFile.Stmt, nil) // reserve space for load
-	genFile.Stmt = append(genFile.Stmt, g.GeneratePrefix())
 	for _, name := range packageNames {
 		rs := v.rules[name]
 		genFile.Stmt = append(genFile.Stmt, rs...)

@@ -7,6 +7,7 @@ go_library(
         "foo.c",
     ],
     cgo = True,
+    importpath = "example.com/repo/allcgolib",
     visibility = ["//visibility:public"],
     deps = ["//lib:go_default_library"],
 )
@@ -14,5 +15,6 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["foo_test.go"],
+    importpath = "example.com/repo/allcgolib",
     library = ":go_default_library",
 )

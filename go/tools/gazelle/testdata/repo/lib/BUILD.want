@@ -8,6 +8,7 @@ go_library(
         "asm.h",
         "asm.s",
     ],
+    importpath = "example.com/repo/lib",
     visibility = ["//visibility:public"],
     deps = ["//lib/internal/deep:go_default_library"],
 )
@@ -15,11 +16,13 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["lib_test.go"],
+    importpath = "example.com/repo/lib",
     library = ":go_default_library",
 )
 
 go_test(
     name = "go_default_xtest",
     srcs = ["lib_external_test.go"],
+    importpath = "example.com/repo/lib_test",
     deps = [":go_default_library"],
 )

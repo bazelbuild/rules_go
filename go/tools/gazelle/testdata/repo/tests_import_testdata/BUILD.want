@@ -3,11 +3,13 @@ load("@io_bazel_rules_go//go:def.bzl", "go_test")
 go_test(
     name = "go_default_test",
     srcs = ["internal_test.go"],
+    importpath = "example.com/repo/tests_import_testdata",
     deps = ["//tests_import_testdata/testdata:go_default_library"],
 )
 
 go_test(
     name = "go_default_xtest",
     srcs = ["external_test.go"],
+    importpath = "example.com/repo/tests_import_testdata_test",
     deps = ["//tests_import_testdata/testdata:go_default_library"],
 )

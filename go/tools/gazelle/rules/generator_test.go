@@ -99,53 +99,6 @@ func TestGenerator(t *testing.T) {
 	}
 }
 
-func TestGeneratorGoPrefixLib(t *testing.T) {
-	repoRoot := filepath.Join(testdata.Dir(), "repo", "lib")
-	goPrefix := "example.com/repo/lib"
-	c := testConfig(repoRoot, goPrefix)
-	l := resolve.NewLabeler(c)
-	r := resolve.NewResolver(c, l)
-	g := rules.NewGenerator(c, r, l, "", nil)
-	pkg, _ := packageFromDir(c, repoRoot)
-	f := g.Generate(pkg)
-
-	if got, want := findGoPrefix(f), `go_prefix("example.com/repo/lib")`; got != want {
-		t.Errorf("got %q; want %q", got, want)
-	}
-}
-
-func TestGeneratorGoPrefixRoot(t *testing.T) {
-	repoRoot := filepath.Join(testdata.Dir(), "repo")
-	goPrefix := "example.com/repo"
-	c := testConfig(repoRoot, goPrefix)
-	l := resolve.NewLabeler(c)
-	r := resolve.NewResolver(c, l)
-	g := rules.NewGenerator(c, r, l, "", nil)
-	pkg := &packages.Package{Dir: repoRoot}
-	f := g.Generate(pkg)
-
-	if got, want := findGoPrefix(f), `go_prefix("example.com/repo")`; got != want {
-		t.Errorf("got %q; want %q", got, want)
-	}
-}
-
-func findGoPrefix(f *bf.File) string {
-	for _, s := range f.Stmt {
-		c, ok := s.(*bf.CallExpr)
-		if !ok {
-			continue
-		}
-		x, ok := c.X.(*bf.LiteralExpr)
-		if !ok {
-			continue
-		}
-		if x.Token == "go_prefix" {
-			return bf.FormatString(s)
-		}
-	}
-	return ""
-}
-
 func TestGeneratedFileName(t *testing.T) {
 	testGeneratedFileName(t, "BUILD")
 	testGeneratedFileName(t, "BUILD.bazel")

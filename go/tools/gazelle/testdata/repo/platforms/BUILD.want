@@ -37,6 +37,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    importpath = "example.com/repo/platforms",
     visibility = ["//visibility:public"],
     deps = [
         "//platforms/generic:go_default_library",
@@ -61,4 +62,5 @@ go_test(
         ],
         "//conditions:default": [],
     }),
+    importpath = "example.com/repo/platforms_test",
 )

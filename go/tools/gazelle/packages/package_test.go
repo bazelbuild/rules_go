@@ -67,8 +67,8 @@ func TestImportPathNoLib(t *testing.T) {
 		Name: "bar",
 		Rel:  "foo/bar",
 	}
-	if got := pkg.ImportPath("example.com/repo"); got != "" {
-		t.Errorf(`got %q; want ""`, got)
+	if got, want := pkg.ImportPath("example.com/repo"), "example.com/repo/foo/bar"; got != want {
+		t.Errorf(`got %q; want %q`, got, want)
 	}
 }
 
@@ -82,8 +82,8 @@ func TestImportPathCmd(t *testing.T) {
 			},
 		},
 	}
-	if got := pkg.ImportPath("example.com/repo"); got != "" {
-		t.Errorf(`got %q; want ""`, got)
+	if got, want := pkg.ImportPath("example.com/repo"), "example.com/repo/foo/bar"; got != want {
+		t.Errorf(`got %q; want %q`, got, want)
 	}
 }
 

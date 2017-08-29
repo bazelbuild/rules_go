@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["importer.go"],
+    importpath = "example.com/repo/lib/relativeimporter",
     visibility = ["//visibility:public"],
     deps = ["//lib/internal/deep:go_default_library"],
 )

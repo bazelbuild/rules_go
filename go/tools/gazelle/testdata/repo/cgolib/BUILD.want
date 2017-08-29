@@ -15,6 +15,7 @@ go_library(
         "-I/weird/path -Icgolib/sub",
         "-I cgolib/sub -iquote cgolib/sub",
     ],
+    importpath = "example.com/repo/cgolib",
     visibility = ["//visibility:public"],
     deps = [
         "//lib/deep:go_default_library",
@@ -25,5 +26,6 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["foo_test.go"],
+    importpath = "example.com/repo/cgolib",
     library = ":go_default_library",
 )
