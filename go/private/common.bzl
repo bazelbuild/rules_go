@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+
 DEFAULT_LIB = "go_default_library"
 VENDOR_PREFIX = "/vendor/"
 
@@ -117,6 +119,10 @@ def go_importpath(ctx):
   path = ctx.attr.importpath
   if path != "":
     return path
+  if getattr(ctx.attr, "library", None):
+     path = ctx.attr.library[GoLibrary].importpath
+     if path:
+       return path
   path = ctx.attr._go_prefix.go_prefix
   if path.endswith("/"):
     path = path[:-1]

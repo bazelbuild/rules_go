@@ -22,7 +22,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary", 
     "get_library",
 )
-load("@io_bazel_rules_go//go/private/rules:prefix.bzl",
+load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
 

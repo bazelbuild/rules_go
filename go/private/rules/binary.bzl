@@ -19,7 +19,7 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "NORMAL_MODE",
     "RACE_MODE",
 )
-load("@io_bazel_rules_go//go/private/rules:prefix.bzl",
+load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")

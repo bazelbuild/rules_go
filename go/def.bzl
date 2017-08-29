@@ -23,24 +23,24 @@ load("@io_bazel_rules_go//go/private:repositories.bzl",
     "go_rules_dependencies",
     "go_register_toolchains",
 )
-load("@io_bazel_rules_go//go/private/rules:prefix.bzl", 
+load("@io_bazel_rules_go//go/private:rules/prefix.bzl", 
     "go_prefix",
 )
-load("@io_bazel_rules_go//go/private/rules:wrappers.bzl",
+load("@io_bazel_rules_go//go/private:rules/wrappers.bzl",
     _go_library_macro = "go_library_macro",
     _go_binary_macro = "go_binary_macro",
     _go_test_macro = "go_test_macro",
 )
-load("@io_bazel_rules_go//go/private/tools:embed_data.bzl", 
+load("@io_bazel_rules_go//go/private:tools/embed_data.bzl", 
     "go_embed_data",
 )
-load("@io_bazel_rules_go//go/private/tools:gazelle.bzl", 
+load("@io_bazel_rules_go//go/private:tools/gazelle.bzl", 
     "gazelle",
 )
-load("@io_bazel_rules_go//go/private/tools:path.bzl", 
+load("@io_bazel_rules_go//go/private:tools/path.bzl", 
     _go_path = "go_path",
 )
-load("@io_bazel_rules_go//go/private/tools:vet.bzl", 
+load("@io_bazel_rules_go//go/private:tools/vet.bzl", 
     _go_vet_test = "go_vet_test",
 )
 

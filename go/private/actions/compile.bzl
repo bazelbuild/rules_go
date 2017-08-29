@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl", 
-  "RACE_MODE",
+    "RACE_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",

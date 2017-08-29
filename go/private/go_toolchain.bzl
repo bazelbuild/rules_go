@@ -14,12 +14,12 @@
 """
 Toolchain rules used by go.
 """
-load("@io_bazel_rules_go//go/private/actions:asm.bzl", "emit_asm")
-load("@io_bazel_rules_go//go/private/actions:compile.bzl", "emit_compile")
-load("@io_bazel_rules_go//go/private/actions:cover.bzl", "emit_cover")
-load("@io_bazel_rules_go//go/private/actions:library.bzl", "emit_library")
-load("@io_bazel_rules_go//go/private/actions:link.bzl", "emit_link")
-load("@io_bazel_rules_go//go/private/actions:pack.bzl", "emit_pack")
+load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
+load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile")
+load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
+load("@io_bazel_rules_go//go/private:actions/library.bzl", "emit_library")
+load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
+load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
