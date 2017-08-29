@@ -199,6 +199,10 @@ def go_importpath(ctx):
   path = ctx.attr.importpath
   if path != "":
     return path
+  if getattr(ctx.attr, "library", None):
+    path = ctx.attr.library[GoLibrary].importpath
+    if path:
+      return path
   path = ctx.attr._go_prefix.go_prefix
   if path.endswith("/"):
     path = path[:-1]
