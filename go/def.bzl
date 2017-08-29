@@ -155,5 +155,8 @@ def go_repositories(
 
   print("DEPRECATED: go_repositories has been deprecated. go_rules_dependencies installs dependencies the way nested workspaces should, and go_register_toolchains adds the toolchains")
   go_rules_dependencies()
-  go_register_toolchains(go_version=go_version)
+  if go_version is not None:
+    go_register_toolchains(go_version=go_version)
+  else:
+    go_register_toolchains()
 
