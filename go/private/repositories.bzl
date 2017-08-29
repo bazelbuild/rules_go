@@ -68,10 +68,7 @@ _sdk_repositories = {
     'go1.7.5.darwin-amd64.tar.gz': '2e2a5e0a5c316cf922cf7d59ee5724d49fc35b07a154f6c4196172adfc14b2ca',
 }
 
-
-def go_rules_dependencies(
-    omit_com_github_bazelbuild_buildtools = False,
-    omit_org_golang_x_tools = False):
+def go_rules_dependencies():
   # Add all the basic sdk repositories
   for filename, sha256 in _sdk_repositories.items():
     name = filename
@@ -90,7 +87,7 @@ def go_rules_dependencies(
       name = "go_host_sdk",
   )
   # Needed for gazelle and wtool
-  if not omit_com_github_bazelbuild_buildtools:
+  if "com_github_bazelbuild_buildtools" not in native.existing_rules():
     native.http_archive(
         name = "com_github_bazelbuild_buildtools",
         # master, as of 14 Aug 2017
@@ -101,7 +98,7 @@ def go_rules_dependencies(
     )
 
   # Needed for fetch repo
-  if not omit_org_golang_x_tools:
+  if "org_golang_x_tools" not in native.existing_rules():
     go_repository(
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
