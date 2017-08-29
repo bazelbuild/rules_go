@@ -4,7 +4,7 @@ go_test(
     name = "go_default_test",
     srcs = ["embed_test.go"],
     data = [
-        "BUILD",
+        "BUILD.bazel",
         "//:README.md",
         "@io_bazel_rules_go_repository_tools//:BUILD.bazel",
     ],
@@ -41,7 +41,7 @@ go_embed_data(
 go_embed_data(
     name = "local",
     srcs = [
-        ":BUILD",
+        ":BUILD.bazel",
         "@io_bazel_rules_go//:README.md",
     ],
     out = "embed_local.go",
@@ -59,7 +59,7 @@ go_embed_data(
 
 go_embed_data(
     name = "flat",
-    srcs = [":BUILD"],
+    srcs = [":BUILD.bazel"],
     out = "embed_flat.go",
     flatten = True,
     package = "go_embed_data",
@@ -68,7 +68,7 @@ go_embed_data(
 
 go_embed_data(
     name = "str",
-    srcs = [":BUILD"],
+    srcs = [":BUILD.bazel"],
     out = "embed_str.go",
     package = "go_embed_data",
     string = True,

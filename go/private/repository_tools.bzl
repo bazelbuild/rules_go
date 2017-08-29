@@ -74,7 +74,7 @@ go_repository_tools = repository_rule(
     _go_repository_tools_impl,
     attrs = {
         "_tools": attr.label(
-            default = Label("//go/tools:BUILD"),
+            default = Label("//go/tools:BUILD.bazel"),
             allow_files = True,
             single_file = True,
         ),
