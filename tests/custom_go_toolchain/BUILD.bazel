@@ -1,9 +1,34 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_test", "go_binary", "go_toolchain")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 go_prefix("github.com/bazelbuild/rules_go/tests/custom_go_toolchain")
 
-go_binary(
-    name = "print_version",
-    srcs = ["print_version.go"],
+go_test(
+    name = "go_default_test",
+    size = "small",
+    srcs = ["version_test.go"],
     tags = ["manual"],
 )
+
+bazel_test(
+    name = "custom_go_toolchain",
+    command = "test",
+    target = "//:go_default_test",
+    go_version = "",
+    tags = ["dev"],
+    config = "loose",
+    workspace = """
+
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk")
+go_sdk(name="my_linux_sdk", url="https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz")
+go_sdk(name="my_darwin_sdk", url="https://storage.googleapis.com/golang/go1.8.1.darwin-amd64.tar.gz")
+register_toolchains(
+    "@//:my_linux_toolchain", "@//:my_linux_toolchain-bootstrap",
+    "@//:my_darwin_toolchain", "@//:my_darwin_toolchain-bootstrap",
+)
+
+"""
+)
+
+go_toolchain(name="my_linux_toolchain", sdk="my_linux_sdk", target="linux_amd64")
+go_toolchain(name="my_darwin_toolchain", sdk="my_darwin_sdk", target="darwin_amd64")
