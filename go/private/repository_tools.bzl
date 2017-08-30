@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "env_execute")
+load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "DEFAULT_VERSION")
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
@@ -30,12 +31,17 @@ filegroup(
 
 def _go_repository_tools_impl(ctx):
   # We work this out here because you can't use a toolchain from a repository rule
+  # TODO: This is an ugly non sustainable hack, we need to kill repository tools.
+
+  version = DEFAULT_VERSION.replace(".", "_")
+  go_sdk = None
   if ctx.os.name == 'linux':
-    go_tool = ctx.path(Label("@go1_8_3_linux_amd64//:bin/go"))
+    go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_linux_amd64".format(version)
   elif ctx.os.name == 'mac os x':
-    go_tool = ctx.path(Label("@go1_8_3_darwin_amd64//:bin/go"))
+    go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_darwin_amd64".format(version)
   else:
-    fail("Unsupported operating system: " + ctx.os.name)
+      fail("Unsupported operating system: " + ctx.os.name)
+  go_tool = ctx.path(Label("@{}//:bin/go".format(go_sdk)))
 
   x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"
   x_tools_path = ctx.path('tools-' + x_tools_commit)
@@ -73,6 +79,8 @@ def _go_repository_tools_impl(ctx):
 go_repository_tools = repository_rule(
     _go_repository_tools_impl,
     attrs = {
+        "linux_sdk": attr.string(),
+        "darwin_sdk": attr.string(),
         "_tools": attr.label(
             default = Label("//go/tools:BUILD.bazel"),
             allow_files = True,
