@@ -66,23 +66,27 @@ def _generate_toolchains():
         toolchain_name = "{}_{}".format(full_name, host)
         if host != target:
           toolchain_name += "_cross_" + target
-        base = dict(
+        # Add the primary toolchain
+        toolchains.append(dict(
             name = toolchain_name,
-            impl = toolchain_name + "-impl",
             host = host,
             target = target,
-            typ = "@io_bazel_rules_go//go:toolchain",
             sdk = distribution[1:], # We have to strip off the @
             version_constraints = version_constraints,
             link_flags = [],
             cgo_link_flags = [],
-            tags = ["manual"],
-            bootstrap = False,
-        )
-        bootstrap = _bootstrap(base)
-        toolchains += [base, bootstrap]
-        toolchains += [_default(base, version.name), _default(bootstrap, version.name)]
-
+        ))
+        # TODO: remove default toolchains when default constraint values arrive
+        toolchains.append(dict(
+            name = "default-"+toolchain_name,
+            match_version = version.name,
+            host = host,
+            target = target,
+            sdk = distribution[1:], # We have to strip off the @
+            version_constraints = [],
+            link_flags = [],
+            cgo_link_flags = [],
+        ))
   # Now we go through the generated toolchains, adding exceptions, and removing invalid combinations.
   for toolchain in toolchains:
     if "darwin" in toolchain["host"]:
@@ -97,22 +101,6 @@ def _generate_toolchains():
 
   return toolchains
 
-def _bootstrap(base):
-  bootstrap = dict(base)
-  bootstrap["name"] = "bootstrap-" + base["name"]
-  bootstrap["impl"] = "bootstrap-" + base["impl"]
-  bootstrap["typ"] = "@io_bazel_rules_go//go:bootstrap_toolchain"
-  bootstrap["bootstrap"] = True
-  return bootstrap
-
-def _default(base, version):
-  default = dict(base)
-  default["name"] = "default-" + base["name"]
-  default["default"] = True
-  default["version_constraints"] = []
-  default["match_version"] = version
-  return default
-
 _toolchains = _generate_toolchains()
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
@@ -121,37 +109,24 @@ def go_register_toolchains(go_version=DEFAULT_VERSION):
   for toolchain in _toolchains:
     if "match_version" in toolchain and toolchain["match_version"] != go_version:
       continue
-    native.register_toolchains(_label_prefix + toolchain["name"])
+    name = _label_prefix + toolchain["name"]
+    native.register_toolchains(name)
+    if toolchain["host"] == toolchain["target"]:
+      name = name + "-bootstrap"
+      native.register_toolchains(name)
 
 def declare_toolchains():
   external_linker()
   # Use the final dictionaries to create all the toolchains
   for toolchain in _toolchains:
-    if "default" not in toolchain:
-      goos, _, goarch = toolchain["target"].partition("_")
-      target_constraints = [
-          "@io_bazel_rules_go//go/toolchain:" + goos,
-          "@io_bazel_rules_go//go/toolchain:" + goarch,
-      ]
-      host_goos, _, host_goarch = toolchain["host"].partition("_")
-      exec_constraints = [
-          "@io_bazel_rules_go//go/toolchain:" + host_goos,
-          "@io_bazel_rules_go//go/toolchain:" + host_goarch,
-      ]
-      go_toolchain(
-          name = toolchain["impl"],
-          sdk = toolchain["sdk"],
-          link_flags = toolchain["link_flags"],
-          cgo_link_flags = toolchain["cgo_link_flags"],
-          goos = goos,
-          goarch = goarch,
-          bootstrap = toolchain["bootstrap"],
-          tags = ["manual"],
-      )
-    native.toolchain(
+    go_toolchain(
+        # Required fields
         name = toolchain["name"],
-        toolchain_type = toolchain["typ"],
-        exec_compatible_with = exec_constraints,
-        target_compatible_with = target_constraints+toolchain["version_constraints"],
-        toolchain = _label_prefix + toolchain["impl"],
+        sdk = toolchain["sdk"],
+        host = toolchain["host"],
+        target = toolchain["target"],
+        # Optional fields
+        link_flags = toolchain["link_flags"],
+        cgo_link_flags = toolchain["cgo_link_flags"],
+        constraints = toolchain["version_constraints"],
     )

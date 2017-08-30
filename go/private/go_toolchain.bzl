@@ -120,7 +120,7 @@ def _extract_package(bootstrap):
     return None
   return Label("//go/tools/extract_package")
 
-go_toolchain = rule(
+_go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
         # Minimum requirements to specify a toolchain
@@ -150,9 +150,61 @@ go_toolchain = rule(
         "_external_linker": attr.label(default=_get_linker),
     },
 )
-"""Declares a go toolchain for use.
-This is used when porting the rules_go to a new platform.
-"""
+
+def go_toolchain(name, target, host=None, constraints=[], **kwargs):
+  """Declares a go toolchain for use.
+  This is used when porting the rules_go to a new platform.
+  """
+
+  if not host: host = target
+  goos, _, goarch = target.partition("_")
+  target_constraints = constraints + [
+    "@io_bazel_rules_go//go/toolchain:" + goos,
+    "@io_bazel_rules_go//go/toolchain:" + goarch,
+  ]
+  host_goos, _, host_goarch = host.partition("_")
+  exec_constraints = [
+      "@io_bazel_rules_go//go/toolchain:" + host_goos,
+      "@io_bazel_rules_go//go/toolchain:" + host_goarch,
+  ]
+  
+  impl_name = name + "-impl"
+  _go_toolchain(
+      name = impl_name,
+      goos = goos,
+      goarch = goarch,
+      bootstrap = False,
+      tags = ["manual"],
+      **kwargs
+  )
+  native.toolchain(
+      name = name,
+      toolchain_type = "@io_bazel_rules_go//go:toolchain",
+      exec_compatible_with = exec_constraints,
+      target_compatible_with = target_constraints,
+      toolchain = ":"+impl_name,
+  )
+
+  if host == target:
+    # If not cross, register a bootstrap toolchain
+    name = name + "-bootstrap"
+    impl_name = name + "-impl"
+    _go_toolchain(
+        name = impl_name,
+        goos = goos,
+        goarch = goarch,
+        bootstrap = True,
+        tags = ["manual"],
+        visibility = ["//visibility:public"],
+        **kwargs
+    )
+    native.toolchain(
+        name = name,
+        toolchain_type = "@io_bazel_rules_go//go:bootstrap_toolchain",
+        exec_compatible_with = exec_constraints,
+        target_compatible_with = target_constraints,
+        toolchain = ":"+impl_name,
+    )
 
 def _go_toolchain_flags(ctx):
     return struct(

@@ -31,5 +31,5 @@ go_toolchain_flags(
         ],
         "@io_bazel_rules_go//go/private:optimized": [],
     }),
-    visibility = ["@io_bazel_rules_go//go/toolchain:__subpackages__"],
+    visibility = ["//visibility:public"],
 )
