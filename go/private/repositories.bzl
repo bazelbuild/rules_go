@@ -76,35 +76,41 @@ def go_rules_dependencies():
       if name.endswith(suffix):
         name = name[:-len(suffix)]
     name = name.replace("-", "_").replace(".", "_")
-    go_sdk(
+    _maybe(go_sdk,
         name = name,
         url = "https://storage.googleapis.com/golang/" + filename,
         sha256 = sha256,
         strip_prefix = "go",
     )
 
-  go_host_sdk(
+  _maybe(go_host_sdk,
       name = "go_host_sdk",
   )
+
   # Needed for gazelle and wtool
-  if "com_github_bazelbuild_buildtools" not in native.existing_rules():
-    native.http_archive(
-        name = "com_github_bazelbuild_buildtools",
-        # master, as of 14 Aug 2017
-        url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
-        strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
-        sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
-        type = "zip",
-    )
+  _maybe(native.http_archive,
+      name = "com_github_bazelbuild_buildtools",
+      # master, as of 14 Aug 2017
+      url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
+      strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
+      sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
+      type = "zip",
+  )
 
   # Needed for fetch repo
-  if "org_golang_x_tools" not in native.existing_rules():
-    go_repository(
-        name = "org_golang_x_tools",
-        importpath = "golang.org/x/tools",
-        urls = ["https://codeload.github.com/golang/tools/zip/3d92dd60033c312e3ae7cac319c792271cf67e37"],
-        strip_prefix = "tools-3d92dd60033c312e3ae7cac319c792271cf67e37",
-        type = "zip",
-    )
+  _maybe(go_repository,
+      name = "org_golang_x_tools",
+      importpath = "golang.org/x/tools",
+      urls = ["https://codeload.github.com/golang/tools/zip/3d92dd60033c312e3ae7cac319c792271cf67e37"],
+      strip_prefix = "tools-3d92dd60033c312e3ae7cac319c792271cf67e37",
+      type = "zip",
+  )
 
-  go_repository_tools(name = "io_bazel_rules_go_repository_tools")
+  _maybe(go_repository_tools,
+      name = "io_bazel_rules_go_repository_tools",
+  )
+
+
+def _maybe(repo_rule, name, **kwargs):
+  if name not in native.existing_rules():
+    repo_rule(name=name, **kwargs)
