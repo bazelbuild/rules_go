@@ -163,7 +163,8 @@ def _go_proto_library_gen_impl(ctx):
       mnemonic="GoProtocGen",
       env = {"PATH": root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname +
              ":/bin:/usr/bin"},  # /bin/sed for linux, /usr/bin/sed for macos.
-      executable=run)
+      executable=run,
+      use_default_shell_env=True)
   return struct(_protos=protos+srcs,
                 _m_import_path=m_import_path)
 
