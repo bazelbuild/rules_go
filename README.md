@@ -165,7 +165,7 @@ By default, Gazelle assumes external dependencies are present in your
 `WORKSPACE` file, following a certain naming convention. For example, it expects
 the repository for `github.com/jane/utils` to be named
 `@com_github_jane_utils`. If you prefer to use vendoring, add
-`external=vendored` to the `gazelle` rule. See [Vendoring.md](Vendoring.md).
+`external="vendored"` to the `gazelle` rule. See [Vendoring.md](Vendoring.md).
 
 ## Build modes
 
