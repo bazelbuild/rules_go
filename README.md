@@ -11,7 +11,7 @@ Bazel 0.5.2 | Bazel HEAD
 now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains support.
 * **August 9, 2017** Release
 [0.5.3](https://github.com/bazelbuild/rules_go/releases/tag/0.5.3) is
-now available! 
+now available!
 * **July 27, 2017** Bazel 0.5.3 is now available. This includes a change which
 is incompatible with rules\_go 0.5.1 and earlier. rules\_go 0.5.2 should work.
 * **July 17, 2017** Release
@@ -77,12 +77,27 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
   following code, verbatim. This will let Bazel fetch necessary dependencies
   from this repository and a few others. You can add more external dependencies
   to this file later (see [go_repository](#go_repository) below).
+  If you're using the latest stable release you can use the following contents:
 
     ```bzl
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
         tag = "0.5.4",
+    )
+    load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+
+    go_repositories()
+    ```
+
+  If you're using rules_go at or near the HEAD of master, you can use the
+  following contents (optionally replacing the commit with something newer):
+
+    ```bzl
+    git_repository(
+        name = "io_bazel_rules_go",
+        remote = "https://github.com/bazelbuild/rules_go.git",
+        commit = "d8d73c918ed7b59a5584e0cab4f5274d2f91faab",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 
