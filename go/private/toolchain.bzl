@@ -13,26 +13,26 @@
 # limitations under the License.
 
 def _go_host_sdk_impl(ctx):
-  root = _detect_host_sdk(ctx)
-  _local_sdk(ctx, root)
-  _skd_build_file(ctx, root)
+  path = _detect_host_sdk(ctx)
+  _local_sdk(ctx, path)
+  _sdk_build_file(ctx, path)
 
 go_host_sdk = repository_rule(_go_host_sdk_impl, environ = ["GOROOT"])
 """go_host_sdk is a specialization of go_sdk just to add the GOROOT dependancy"""
 
 def _go_sdk_impl(ctx):
-  _skd_build_file(ctx, str(ctx.path(".")))
   if ctx.attr.url:
-    if ctx.attr.root:
-      fail("url and root cannot both be set on go_sdk, got {} and {}".format(ctx.attr.url, ctx.attr.root))
+    if ctx.attr.path:
+      fail("url and path cannot both be set on go_sdk, got {} and {}".format(ctx.attr.url, ctx.attr.path))
     _remote_sdk(ctx, ctx.attr.url, ctx.attr.strip_prefix, ctx.attr.sha256)
-  elif ctx.attr.root:
-    _local_sdk(ctx, ctx.attr.root)
-    _skd_build_file(ctx, ctx.attr.root)
+    _sdk_build_file(ctx, str(ctx.path(".")))
+  elif ctx.attr.path:
+    _local_sdk(ctx, ctx.attr.path)
+    _sdk_build_file(ctx, ctx.attr.path)
   else:
-    root = _detect_host_sdk(ctx)
-    _local_sdk(ctx, root)
-    _skd_build_file(ctx, root)
+    path = _detect_host_sdk(ctx)
+    _local_sdk(ctx, path)
+    _sdk_build_file(ctx, path)
     
   # Build the standard library for valid cross compile platforms
   #TODO: fix standard library cross compilation
@@ -44,10 +44,10 @@ def _go_sdk_impl(ctx):
 go_sdk = repository_rule(
     implementation = _go_sdk_impl, 
     attrs = {
-        "root" : attr.string(),
-        "url" : attr.string(),
-        "strip_prefix" : attr.string(default="go"),
-        "sha256" : attr.string(),
+        "path": attr.string(),
+        "url": attr.string(),
+        "strip_prefix": attr.string(default="go"),
+        "sha256": attr.string(),
     },
 )
 """
@@ -60,17 +60,18 @@ def _remote_sdk(ctx, url, strip_prefix, sha256):
   ctx.download_and_extract(
       url = ctx.attr.url,
       stripPrefix = ctx.attr.strip_prefix,
-      sha256 = ctx.attr.sha256)
+      sha256 = ctx.attr.sha256,
+  )
 
-def _local_sdk(ctx, root):
+def _local_sdk(ctx, path):
   for entry in ["src", "pkg", "bin"]:
-    ctx.symlink(root+"/"+entry, entry)
+    ctx.symlink(path+"/"+entry, entry)
 
-def _skd_build_file(ctx, goroot):
+def _sdk_build_file(ctx, goroot):
   ctx.template("BUILD.bazel", 
-    Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
-    substitutions = {"{goroot}": goroot},
-    executable = False,
+      Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
+      substitutions = {"{goroot}": goroot},
+      executable = False,
   )
 
 def _cross_compile_stdlib(ctx, goos, goarch):
@@ -101,9 +102,9 @@ def _detect_host_sdk(ctx):
     return ctx.os.environ["GOROOT"]
   res = ctx.execute(["go", "env", "GOROOT"])
   if res.return_code:
-      fail("Could not detect host go version")
+    fail("Could not detect host go version")
   root = res.stdout.strip()
   if not root:
-      fail("host go version failed to report it's GOROOT")
+    fail("host go version failed to report it's GOROOT")
   return root
 
