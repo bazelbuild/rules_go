@@ -20,7 +20,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_searchpath",
 )
 
-def emit_compile(ctx, go_toolchain, sources, golibs, mode, out_object, gc_goopts):
+def emit_compile(ctx, go_toolchain, sources, golibs, mode, out_lib, gc_goopts):
   """Construct the command line for compiling Go code.
 
   Args:
@@ -29,7 +29,7 @@ def emit_compile(ctx, go_toolchain, sources, golibs, mode, out_object, gc_goopts
     golibs: a depset of representing all imported libraries.
     mode: Controls the compilation setup affecting things like enabling profilers and sanitizers.
       This must be one of the values in common.bzl#compile_modes
-    out_object: the object file that should be produced
+    out_lib: the archive file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
 
@@ -48,11 +48,11 @@ def emit_compile(ctx, go_toolchain, sources, golibs, mode, out_object, gc_goopts
     inputs += [get_library(golib, mode)]
     args += ["-dep", golib.importpath]
     args += ["-I", get_searchpath(golib,mode)]
-  args += ["-o", out_object.path, "-trimpath", ".", "-I", "."]
+  args += ["-o", out_lib.path, "-trimpath", ".", "-I", "."]
   args += ["--"] + gc_goopts + go_toolchain.flags.compile + cgo_sources
   ctx.action(
       inputs = list(inputs),
-      outputs = [out_object],
+      outputs = [out_lib],
       mnemonic = "GoCompile",
       executable = go_toolchain.tools.compile,
       arguments = args,

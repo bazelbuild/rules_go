@@ -78,20 +78,36 @@ def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, library, want_covera
   lib_name = importpath + ".a"
   mode_fields = {} # These are added to the GoLibrary provider directly
   for mode in compile_modes:
-    out_lib = ctx.new_file("~{}~{}~/{}".format(mode, ctx.label.name, lib_name))
-    out_object = ctx.new_file("~{}~{}~/{}.o".format(mode, ctx.label.name, importpath))
+    out_dir = "~{}~{}~".format(mode, ctx.label.name)
+    out_lib = ctx.new_file("{}/{}".format(out_dir, lib_name))
     searchpath = out_lib.path[:-len(lib_name)]
     mode_fields[library_attr(mode)] = out_lib
     mode_fields[searchpath_attr(mode)] = searchpath
-    go_toolchain.actions.compile(ctx,
-        go_toolchain = go_toolchain,
-        sources = go_srcs,
-        golibs = direct,
-        mode = mode,
-        out_object = out_object,
-        gc_goopts = gc_goopts,
-    )
-    go_toolchain.actions.pack(ctx, go_toolchain, out_lib, [out_object] + extra_objects)
+    if len(extra_objects) == 0:
+      go_toolchain.actions.compile(ctx,
+          go_toolchain = go_toolchain,
+          sources = go_srcs,
+          golibs = direct,
+          mode = mode,
+          out_lib = out_lib,
+          gc_goopts = gc_goopts,
+      )
+    else:
+      partial_lib = ctx.new_file("{}/~partial.a".format(out_dir))
+      go_toolchain.actions.compile(ctx,
+          go_toolchain = go_toolchain,
+          sources = go_srcs,
+          golibs = direct,
+          mode = mode,
+          out_lib = partial_lib,
+          gc_goopts = gc_goopts,
+      )
+      go_toolchain.actions.pack(ctx,
+          go_toolchain = go_toolchain,
+          in_lib = partial_lib,
+          out_lib = out_lib,
+          objects = extra_objects,
+      )
 
   dylibs = []
   if cgo_object:

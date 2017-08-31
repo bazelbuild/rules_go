@@ -39,27 +39,28 @@ def _go_toolchain_impl(ctx):
           pack = emit_pack,
       ),
       paths = struct(
-        root = ctx.attr.root,
+          root = ctx.attr.root,
       ),
       tools = struct(
-        go = ctx.executable.go,
-        asm = ctx.executable._asm,
-        compile = ctx.executable._compile,
-        link = ctx.executable._link,
-        cgo = ctx.executable._cgo,
-        test_generator = ctx.executable._test_generator,
-        extract_package = ctx.executable._extract_package,
+          go = ctx.executable.go,
+          asm = ctx.executable._asm,
+          compile = ctx.executable._compile,
+          pack = ctx.executable._pack,
+          link = ctx.executable._link,
+          cgo = ctx.executable._cgo,
+          test_generator = ctx.executable._test_generator,
+          extract_package = ctx.executable._extract_package,
       ),
       flags = struct(
-        compile = ctx.attr._go_toolchain_flags.compile_flags,
-        link = ctx.attr.link_flags,
-        link_cgo = ctx.attr.cgo_link_flags,
+          compile = ctx.attr._go_toolchain_flags.compile_flags,
+          link = ctx.attr.link_flags,
+          link_cgo = ctx.attr.cgo_link_flags,
       ),
       data = struct(
-        tools = ctx.files.tools,
-        stdlib = ctx.files.stdlib,
-        headers = ctx.attr.headers,
-        crosstool = ctx.files._crosstool,
+          tools = ctx.files.tools,
+          stdlib = ctx.files.stdlib,
+          headers = ctx.attr.headers,
+          crosstool = ctx.files._crosstool,
       ),
       external_linker = ctx.attr._external_linker,
   )]
@@ -78,6 +79,11 @@ def _compile(bootstrap):
   if bootstrap:
     return None
   return Label("//go/tools/builders:compile")
+
+def _pack(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/builders:pack")
 
 def _link(bootstrap):
   if bootstrap:
@@ -116,6 +122,7 @@ go_toolchain = rule(
         # Tools, missing from bootstrap toolchains
         "_asm": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _asm),
         "_compile": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _compile),
+        "_pack": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _pack),
         "_link": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _link),
         "_cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cgo),
         "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),

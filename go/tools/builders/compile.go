@@ -79,7 +79,7 @@ func run(args []string) error {
 	for _, path := range search {
 		goargs = append(goargs, "-I", abs(path))
 	}
-	goargs = append(goargs, "-o", *output)
+	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, flags.Args()...)
 	goargs = append(goargs, sources...)
 	cmd := exec.Command(gotool, goargs...)

@@ -71,3 +71,9 @@ go_tool_binary(
     ],
     visibility = ["//visibility:public"],
 )
+
+go_tool_binary(
+    name = "pack",
+    srcs = ["pack.go"],
+    visibility = ["//visibility:public"],
+)
