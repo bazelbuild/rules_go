@@ -18,6 +18,7 @@ load("@io_bazel_rules_go//go/private:go_repository.bzl",
 load("@io_bazel_rules_go//go/private:providers.bzl",
     _GoLibrary = "GoLibrary",
     _GoBinary = "GoBinary",
+    _GoEmbed = "GoEmbed",
 )
 load("@io_bazel_rules_go//go/private:repositories.bzl",
     "go_rules_dependencies",
@@ -54,6 +55,14 @@ It provides the following fields:
 GoBinary = _GoBinary
 """
 This is the provider used to expose a go binary to other rules.
+It provides the following fields:
+  TODO: List all the provider fields here
+"""
+
+GoEmbed = _GoEmbed
+"""
+This is the provider used to provide paired source and deps to a go library.
+This should generally be the provider returned by code generators.
 It provides the following fields:
   TODO: List all the provider fields here
 """

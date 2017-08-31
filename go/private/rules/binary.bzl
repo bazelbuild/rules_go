@@ -22,17 +22,20 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary", "GoEmbed")
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  golib, _ = go_toolchain.actions.library(ctx,
+  embed = ctx.attr.embed
+  if ctx.attr.library:
+    embed = embed + [ctx.attr.library]
+  golib, _, _ = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = None,
-      library = ctx.attr.library,
+      embed = embed,
       want_coverage = False,
       importpath = go_importpath(ctx),
   )
@@ -97,6 +100,7 @@ go_binary = rule(
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
         "library": attr.label(providers = [GoLibrary]),
+        "embed": attr.label_list(providers = [GoEmbed]),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),

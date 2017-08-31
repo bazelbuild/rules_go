@@ -21,31 +21,32 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:providers.bzl", 
     "GoLibrary", 
     "CgoLibrary",
+    "GoEmbed",
     "library_attr",
     "searchpath_attr",
 )
 
-def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, library, want_coverage, importpath, golibs=[]):
+def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage, importpath, golibs=[]):
   dep_runfiles = [d.data_runfiles for d in deps]
   direct = depset(golibs)
   gc_goopts = tuple(ctx.attr.gc_goopts)
   cgo_deps = depset()
   cover_vars = ()
-  if library:
-    golib = library[GoLibrary]
-    cgolib = library[CgoLibrary]
-    srcs = golib.transformed + srcs
-    cover_vars += golib.cover_vars
-    direct += golib.direct
-    dep_runfiles += [library.data_runfiles]
-    gc_goopts += golib.gc_goopts
-    cgo_deps += golib.cgo_deps
-    if cgolib.object:
-      if cgo_object:
-        fail("go_library %s cannot have cgo_object because the package " +
-             "already has cgo_object in %s" % (ctx.label.name,
-                                               golib.name))
-      cgo_object = cgolib.object
+  for t in embed:
+    goembed = t[GoEmbed]
+    srcs = getattr(goembed, "srcs", depset()) + srcs
+    cover_vars += getattr(goembed, "cover_vars", ())
+    direct += getattr(goembed, "deps", ())
+    dep_runfiles += [t.data_runfiles]
+    gc_goopts += getattr(goembed, "gc_goopts", ())
+    cgo_deps += getattr(goembed, "cgo_deps", ())
+    if CgoLibrary in t:
+      cgolib = t[CgoLibrary]
+      if cgolib.object:
+        if cgo_object:
+          fail("go_library %s cannot have cgo_object because the package " +
+               "already has cgo_object in %s" % (ctx.label.name, cgolib.object))
+        cgo_object = cgolib.object
   source = split_srcs(srcs)
   if source.c:
     fail("c sources in non cgo rule")
@@ -111,12 +112,17 @@ def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, library, want_covera
           direct = direct, # The direct depencancies of the library
           transitive = transitive, # The transitive set of go libraries depended on
           srcs = depset(srcs), # The original sources
-          transformed = join_srcs(struct(**transformed)), # The transformed sources actually compiled
+          cover_vars = cover_vars, # The cover variables for this library
+          cgo_deps = cgo_deps, # The direct cgo dependencies of this library
+          runfiles = runfiles, # The runfiles needed for things including this library
+          **mode_fields
+      ),
+      GoEmbed(
+          srcs = join_srcs(struct(**transformed)), # The transformed sources actually compiled
+          deps = direct, # The direct depencancies of the library
+          cover_vars = cover_vars, # The cover variables for these sources
           cgo_deps = cgo_deps, # The direct cgo dependencies of this library
           gc_goopts = gc_goopts, # The options this library was compiled with
-          runfiles = runfiles, # The runfiles needed for things including this library
-          cover_vars = cover_vars, # The cover variables for this library
-          **mode_fields
       ),
       CgoLibrary(
           object = cgo_object,

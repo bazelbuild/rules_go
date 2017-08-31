@@ -19,7 +19,8 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "NORMAL_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl", 
-    "GoLibrary", 
+    "GoLibrary",
+    "GoEmbed",
     "get_library",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
@@ -32,19 +33,21 @@ def _go_library_impl(ctx):
   cgo_object = None
   if hasattr(ctx.attr, "cgo_object"):
     cgo_object = ctx.attr.cgo_object
-  golib, cgolib = go_toolchain.actions.library(ctx,
+  embed = ctx.attr.embed
+  if ctx.attr.library:
+    embed = embed + [ctx.attr.library]
+  golib, goembed, cgolib = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = cgo_object,
-      library = ctx.attr.library,
+      embed = embed,
       want_coverage = ctx.coverage_instrumented(),
       importpath = go_importpath(ctx),
   )
 
   return [
-      golib,
-      cgolib,
+      golib, goembed, cgolib,
       DefaultInfo(
           files = depset([get_library(golib, NORMAL_MODE)]),
           runfiles = golib.runfiles,
@@ -62,6 +65,7 @@ go_library = rule(
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
         "library": attr.label(providers = [GoLibrary]),
+        "embed": attr.label_list(providers = [GoEmbed]),
         "gc_goopts": attr.string_list(),
         "cgo_object": attr.label(
             providers = [
