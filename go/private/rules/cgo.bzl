@@ -113,6 +113,7 @@ def _cgo_codegen_impl(ctx):
       go_files = go_outs,
       main_c = depset([cgo_main]),
       cgo_deps = deps,
+      cgo_exports = depset([cgo_export_h])
   )
 
 _cgo_codegen_rule = rule(
@@ -211,6 +212,7 @@ def _cgo_object_impl(ctx):
       files = depset([ctx.outputs.out]),
       cgo_obj = ctx.outputs.out,
       cgo_deps = ctx.attr.cgogen.cgo_deps,
+      cgo_exports = ctx.attr.cgogen.cgo_exports,
       runfiles = runfiles,
   )
 

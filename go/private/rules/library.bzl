@@ -41,7 +41,9 @@ def _go_library_impl(ctx):
       want_coverage = ctx.coverage_instrumented(),
       importpath = go_importpath(ctx),
   )
-
+  cgo_exports = depset()
+  if cgolib.object:
+    cgo_exports += cgolib.object.cgo_exports
   return [
       golib,
       cgolib,
@@ -51,6 +53,7 @@ def _go_library_impl(ctx):
       ),
       OutputGroupInfo(
           race = depset([get_library(golib, RACE_MODE)]),
+          cgo_exports = cgo_exports,
       ),
   ]
 
