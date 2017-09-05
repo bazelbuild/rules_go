@@ -24,15 +24,15 @@ def _go_sdk_impl(ctx):
   if ctx.attr.url:
     if ctx.attr.path:
       fail("url and path cannot both be set on go_sdk, got {} and {}".format(ctx.attr.url, ctx.attr.path))
-    _remote_sdk(ctx, ctx.attr.url, ctx.attr.strip_prefix, ctx.attr.sha256)
     _sdk_build_file(ctx, str(ctx.path(".")))
+    _remote_sdk(ctx, ctx.attr.url, ctx.attr.strip_prefix, ctx.attr.sha256)
   elif ctx.attr.path:
-    _local_sdk(ctx, ctx.attr.path)
     _sdk_build_file(ctx, ctx.attr.path)
+    _local_sdk(ctx, ctx.attr.path)
   else:
     path = _detect_host_sdk(ctx)
-    _local_sdk(ctx, path)
     _sdk_build_file(ctx, path)
+    _local_sdk(ctx, path)
     
   # Build the standard library for valid cross compile platforms
   #TODO: fix standard library cross compilation
