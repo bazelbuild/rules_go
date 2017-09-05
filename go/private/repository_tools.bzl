@@ -35,13 +35,17 @@ def _go_repository_tools_impl(ctx):
 
   version = DEFAULT_VERSION.replace(".", "_")
   go_sdk = None
+  extension = ""
   if ctx.os.name == 'linux':
     go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_linux_amd64".format(version)
   elif ctx.os.name == 'mac os x':
     go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_darwin_amd64".format(version)
+  elif ctx.os.name.startswith('windows'):
+    go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_windows_amd64".format(version)
+    extension = ".exe"
   else:
       fail("Unsupported operating system: " + ctx.os.name)
-  go_tool = ctx.path(Label("@{}//:bin/go".format(go_sdk)))
+  go_tool = ctx.path(Label("@{}//:bin/go{}".format(go_sdk, extension)))
 
   x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"
   x_tools_path = ctx.path('tools-' + x_tools_commit)
@@ -63,6 +67,7 @@ def _go_repository_tools_impl(ctx):
   env = {
     'GOROOT': str(go_tool.dirname.dirname),
     'GOPATH': str(ctx.path('')),
+    'TMP': '/tmp' # TODO: quick'n'dirty hack for now
   }
 
   # build gazelle and fetch_repo
