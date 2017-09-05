@@ -26,7 +26,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "searchpath_attr",
 )
 
-def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage, importpath, importable=True, golibs=[]):
+def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage, importpath, importable=True, golibs=[], cgo_srcs=[]):
   dep_runfiles = [d.data_runfiles for d in deps]
   direct = depset(golibs)
   gc_goopts = tuple(ctx.attr.gc_goopts)
@@ -47,10 +47,14 @@ def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage
           fail("go_library %s cannot have cgo_object because the package " +
                "already has cgo_object in %s" % (ctx.label.name, cgolib.object))
         cgo_object = cgolib.object
-  source = split_srcs(srcs)
+  if cgo_srcs:
+    source = split_srcs(cgo_srcs)
+  else:
+    source = split_srcs(srcs)
+  go_srcs = source.go
   if source.c:
     fail("c sources in non cgo rule")
-  if not source.go:
+  if not go_srcs:
     fail("no go sources")
 
   if cgo_object:
@@ -71,7 +75,6 @@ def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage
     transitive += [golib]
     transitive += golib.transitive
 
-  go_srcs = source.go
   if want_coverage:
     go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, go_srcs)
     cover_vars += cvars

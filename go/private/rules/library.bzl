@@ -38,6 +38,7 @@ def _go_library_impl(ctx):
     embed = embed + [ctx.attr.library]
   golib, goembed, cgolib = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
+      cgo_srcs = ctx.files.cgo_srcs,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_object = cgo_object,
@@ -64,7 +65,8 @@ go_library = rule(
     _go_library_impl,
     attrs = {
         "data": attr.label_list(allow_files = True, cfg = "data"),
-        "srcs": attr.label_list(allow_files = go_filetype),
+        "srcs": attr.label_list(allow_files = True),
+        "cgo_srcs": attr.label_list(allow_files = go_filetype),
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
         "library": attr.label(providers = [GoLibrary]),
