@@ -17,6 +17,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -30,6 +31,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 func testCgo(src string, data []byte) (bool, string, error) {
@@ -170,6 +172,17 @@ func run(args []string) error {
 		}
 	}
 
+	// Tokenize copts. cc_library does this automatically, but cgo does not,
+	// so we need to do it here.
+	var copts []string
+	for _, arg := range flags.Args() {
+		args, err := splitQuoted(arg)
+		if err != nil {
+			return err
+		}
+		copts = append(copts, args...)
+	}
+
 	// Add the absoulute path to the c compiler to the environment
 	if abs, err := filepath.Abs(cc); err == nil {
 		cc = abs
@@ -179,7 +192,7 @@ func run(args []string) error {
 	env = append(env, fmt.Sprintf("CXX=%s", cc))
 
 	goargs := []string{"tool", "cgo", "-objdir", objdir}
-	goargs = append(goargs, flags.Args()...)
+	goargs = append(goargs, copts...)
 	goargs = append(goargs, cgoSrcs...)
 	cmd := exec.Command(gotool, goargs...)
 	cmd.Stdout = os.Stdout
@@ -189,6 +202,52 @@ func run(args []string) error {
 		return fmt.Errorf("error running cgo: %v", err)
 	}
 	return nil
+}
+
+// Copied from go/build.splitQuoted. Also in Gazelle (where tests are).
+func splitQuoted(s string) (r []string, err error) {
+	var args []string
+	arg := make([]rune, len(s))
+	escaped := false
+	quoted := false
+	quote := '\x00'
+	i := 0
+	for _, rune := range s {
+		switch {
+		case escaped:
+			escaped = false
+		case rune == '\\':
+			escaped = true
+			continue
+		case quote != '\x00':
+			if rune == quote {
+				quote = '\x00'
+				continue
+			}
+		case rune == '"' || rune == '\'':
+			quoted = true
+			quote = rune
+			continue
+		case unicode.IsSpace(rune):
+			if quoted || i > 0 {
+				quoted = false
+				args = append(args, string(arg[:i]))
+				i = 0
+			}
+			continue
+		}
+		arg[i] = rune
+		i++
+	}
+	if quoted || i > 0 {
+		args = append(args, string(arg[:i]))
+	}
+	if quote != 0 {
+		err = errors.New("unclosed quote")
+	} else if escaped {
+		err = errors.New("unfinished escaping")
+	}
+	return args, err
 }
 
 func main() {
