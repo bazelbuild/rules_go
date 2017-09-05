@@ -58,7 +58,6 @@ def _generate_toolchains():
         full_name += ".0"
     version_constraints = [":go"+".".join(semver[:index+1]) for index, _ in  enumerate(semver)]
     for host in version.hosts:
-      "{}_{}".format(name, host)
       if hasattr(version, "sdk"):
         distribution = version.sdk
       else:
@@ -134,7 +133,11 @@ def declare_toolchains():
           "@io_bazel_rules_go//go/toolchain:" + goos,
           "@io_bazel_rules_go//go/toolchain:" + goarch,
       ]
-      exec_constraints = ["@io_bazel_rules_go//go/toolchain:" + part for part in toolchain["host"].split("_")]
+      host_goos, _, host_goarch = toolchain["host"].partition("_")
+      exec_constraints = [
+          "@io_bazel_rules_go//go/toolchain:" + host_goos,
+          "@io_bazel_rules_go//go/toolchain:" + host_goarch,
+      ]
       go_toolchain(
           name = toolchain["impl"],
           sdk = toolchain["sdk"],
