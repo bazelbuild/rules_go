@@ -49,10 +49,13 @@ def _go_repository_impl(ctx):
 
     # TODO(yugui): support submodule?
     # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
+    _fetch_repo = "@io_bazel_rules_go_repository_tools//:bin/fetch_repo"
+    if ctx.os.name.startswith('windows'):
+      _fetch_repo += ".exe"
     result = env_execute(
         ctx,
         [
-            ctx.path(ctx.attr._fetch_repo),
+            ctx.path(Label(_fetch_repo)),
             '--dest', ctx.path(''),
             '--remote', ctx.attr.remote,
             '--rev', rev,
@@ -74,7 +77,10 @@ def _go_repository_impl(ctx):
         break
   if generate:
     # Build file generation is needed
-    gazelle = ctx.path(ctx.attr._gazelle)
+    _gazelle = "@io_bazel_rules_go_repository_tools//:bin/gazelle"
+    if ctx.os.name.startswith('windows'):
+      _gazelle += ".exe"
+    gazelle = ctx.path(Label(_gazelle))
     cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
             '--repo_root', ctx.path(''),
             "--build_tags", ",".join(ctx.attr.build_tags)]
@@ -109,22 +115,6 @@ go_repository = repository_rule(
         "build_file_name": attr.string(default="BUILD.bazel,BUILD"),
         "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
         "build_tags": attr.string_list(),
-
-        # Hidden attributes for tool dependencies
-        "_fetch_repo": attr.label(
-            default = Label("@io_bazel_rules_go_repository_tools//:bin/fetch_repo"),
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-        ),
-        "_gazelle": attr.label(
-            default = Label("@io_bazel_rules_go_repository_tools//:bin/gazelle"),
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-        ),
     },
 )
 
