@@ -20,12 +20,8 @@ Does not yet:
 Gets confused if local protos use 'option go_package'
 
 Usage:
-In WORKSPACE
-load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_repositories")
 
-go_proto_repositories()
-
-Then in the BUILD file where protos are
+In the BUILD file where protos are
 
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
 
@@ -322,28 +318,4 @@ def go_google_protobuf(name = _GO_GOOGLE_PROTOBUF):
 
 def go_proto_repositories(shared = 1):
   """Add this to your WORKSPACE to pull in all of the needed dependencies."""
-  go_repository(
-      name = "com_github_golang_protobuf",
-      importpath = "github.com/golang/protobuf",
-      commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
-  )
-  if shared:
-    # if using multiple *_proto_library, allows caller to skip this.
-    native.http_archive(
-        name = "com_github_google_protobuf",
-        url = "https://github.com/google/protobuf/archive/v3.4.0.tar.gz",
-        strip_prefix = "protobuf-3.4.0",
-        sha256 = "cd55ee08e64a86cf12aaadd4672961813f592c194ed0c9ad94da0ec75acf219f",
-    )
-
-  # Needed for gRPC, only loaded by bazel if used
-  go_repository(
-      name = "org_golang_x_net",
-      commit = "4971afdc2f162e82d185353533d3cf16188a9f4e",
-      importpath = "golang.org/x/net",
-  )
-  go_repository(
-      name = "org_golang_google_grpc",
-      tag = "v1.0.4",
-      importpath = "google.golang.org/grpc",
-  )
+  print("DEPRECATED: go_proto_repositories is redundant and will be removed soon")
