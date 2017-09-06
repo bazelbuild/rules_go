@@ -14,18 +14,19 @@
 
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "env_execute")
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "DEFAULT_VERSION")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "check_extension")
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "fetch_repo",
-    srcs = ["bin/fetch_repo"],
+    srcs = ["bin/fetch_repo{extension}"],
 )
 
 filegroup(
     name = "gazelle",
-    srcs = ["bin/gazelle"],
+    srcs = ["bin/gazelle{extension}"],
 )
 """
 
@@ -79,7 +80,7 @@ def _go_repository_tools_impl(ctx):
       fail("failed to build fetch_repo: %s" % result.stderr)
       
   # add a build file to export the tools
-  ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE, False)
+  ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE.format(extension=check_extension(ctx)), False)
 
 go_repository_tools = repository_rule(
     _go_repository_tools_impl,
