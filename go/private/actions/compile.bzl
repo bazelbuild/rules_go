@@ -20,7 +20,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_searchpath",
 )
 
-def emit_compile(ctx, go_toolchain, sources, golibs, mode, out_lib, gc_goopts):
+def emit_compile(ctx, go_toolchain, sources, importpath, golibs, mode, out_lib, gc_goopts):
   """Construct the command line for compiling Go code.
 
   Args:
@@ -49,7 +49,10 @@ def emit_compile(ctx, go_toolchain, sources, golibs, mode, out_lib, gc_goopts):
     args += ["-dep", golib.importpath]
     args += ["-I", get_searchpath(golib,mode)]
   args += ["-o", out_lib.path, "-trimpath", ".", "-I", "."]
-  args += ["--"] + gc_goopts + go_toolchain.flags.compile + cgo_sources
+  args += ["--"]
+  if importpath:
+    args += ["-p", importpath]
+  args += gc_goopts + go_toolchain.flags.compile + cgo_sources
   ctx.action(
       inputs = list(inputs),
       outputs = [out_lib],

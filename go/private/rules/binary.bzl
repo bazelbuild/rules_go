@@ -38,6 +38,7 @@ def _go_binary_impl(ctx):
       embed = embed,
       want_coverage = False,
       importpath = go_importpath(ctx),
+      importable = False,
   )
 
   # Default (dynamic) linking
