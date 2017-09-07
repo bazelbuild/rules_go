@@ -86,6 +86,7 @@ def _cross_compile_stdlib(ctx, goos, goarch):
       "GOROOT": str(ctx.path(".")),
       "GOOS": goos,
       "GOARCH": goarch,
+      "TMP": ctx.configuration.default_shell_env['TMPDIR'],
   }
   res = ctx.execute(
       ["bin/go"+check_extension(ctx), "install", "-v", "std"], 

@@ -68,7 +68,7 @@ def _go_repository_tools_impl(ctx):
   env = {
     'GOROOT': str(go_tool.dirname.dirname),
     'GOPATH': str(ctx.path('')),
-    'TMP': '/tmp' # TODO: quick'n'dirty hack for now
+    'TMP': ctx.os.environ['TMP'],
   }
 
   # build gazelle and fetch_repo
