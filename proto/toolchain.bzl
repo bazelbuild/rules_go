@@ -1,7 +1,5 @@
 
-def _emit_proto_compile(ctx, 
-    proto_toolchain, go_proto_toolchain, 
-    name, lib, importpath):
+def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpath):
   go_srcs = []
   outpath = None
   for proto in lib.proto.direct_sources:
@@ -24,7 +22,8 @@ def _emit_proto_compile(ctx,
       outputs = go_srcs,
       progress_message = "Generating into %s" % go_srcs[0].dirname,
       mnemonic = "GoProtocGen",
-      command = " ".join([proto_toolchain.protoc.path] + args)
+      executable = proto_toolchain.protoc,
+      arguments = args,
   )
   return go_srcs
 

@@ -12,14 +12,16 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
 
-
-def _emit_proto_library(ctx, 
-    go_toolchain, proto_toolchain, go_proto_toolchain, 
-    name, lib, importpath):
+def _go_proto_library_impl(ctx):
+  go_proto_toolchain = ctx.toolchains[ctx.attr._toolchain]
+  importpath = go_importpath(ctx)
   go_srcs = go_proto_toolchain.compile(ctx,
-    proto_toolchain, go_proto_toolchain, 
-    name, lib, importpath,
+    proto_toolchain = ctx.toolchains["@io_bazel_rules_go//proto:proto"],
+    go_proto_toolchain = go_proto_toolchain, 
+    lib = ctx.attr.proto,
+    importpath = importpath,
   )
+  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   golib, goembed, _ = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       srcs = go_srcs,
@@ -39,16 +41,6 @@ def _emit_proto_library(ctx,
           race = depset([get_library(golib, RACE_MODE)]),
       ),
   ]
-
-def _go_proto_library_impl(ctx):
-  return _emit_proto_library(ctx,
-      go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"],
-      proto_toolchain = ctx.toolchains["@io_bazel_rules_go//proto:proto"],
-      go_proto_toolchain = ctx.toolchains[ctx.attr._toolchain],
-      name = ctx.label.name,
-      lib = ctx.attr.proto,
-      importpath = go_importpath(ctx),
-  )
 
 go_proto_library = rule(
     _go_proto_library_impl,
@@ -93,3 +85,10 @@ go_grpc_library = rule(
 go_grpc_library is a rule that takes a proto_library (in the proto 
 attribute) and produces a go library that includes grpc services for it.
 """
+
+def proto_register_toolchains():
+  native.register_toolchains(
+    "@io_bazel_rules_go//proto:proto",
+    "@io_bazel_rules_go//proto:go_proto",
+    "@io_bazel_rules_go//proto:go_grpc",
+  )
