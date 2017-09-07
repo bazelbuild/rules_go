@@ -119,8 +119,8 @@ type hierarchicalVisitor struct {
 
 func (v *hierarchicalVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
 	g := rules.NewGenerator(v.c, v.r, v.l, pkg.Rel, oldFile)
-	genFile := g.Generate(pkg)
-	v.mergeAndEmit(genFile, oldFile)
+	genFile, empty := g.Generate(pkg)
+	v.mergeAndEmit(genFile, oldFile, empty)
 }
 
 func (v *hierarchicalVisitor) finish() {
@@ -149,6 +149,7 @@ func (v *hierarchicalVisitor) finish() {
 type flatVisitor struct {
 	visitorBase
 	rules       map[string][]bf.Expr
+	empty       []bf.Expr
 	oldRootFile *bf.File
 }
 
@@ -157,7 +158,9 @@ func (v *flatVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
 		v.oldRootFile = oldFile
 	}
 	g := rules.NewGenerator(v.c, v.r, v.l, "", oldFile)
-	v.rules[pkg.Rel] = g.GenerateRules(pkg)
+	rules, empty := g.GenerateRules(pkg)
+	v.rules[pkg.Rel] = rules
+	v.empty = append(v.empty, empty...)
 }
 
 func (v *flatVisitor) finish() {
@@ -192,14 +195,14 @@ func (v *flatVisitor) finish() {
 		return
 	}
 
-	v.mergeAndEmit(genFile, v.oldRootFile)
+	v.mergeAndEmit(genFile, v.oldRootFile, v.empty)
 }
 
 // mergeAndEmit merges "genFile" with "oldFile". "oldFile" may be nil if
 // no file exists. If v.shouldFix is true, deprecated usage of old rules in
 // "oldFile" will be fixed. The resulting merged file will be emitted using
 // the "v.emit" function.
-func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File) {
+func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
 	if oldFile == nil {
 		// No existing file, so no merge required.
 		rules.SortLabels(genFile)
@@ -221,7 +224,7 @@ func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File) {
 	}
 
 	// Existing file, so merge and replace the old one.
-	mergedFile := merger.MergeWithExisting(genFile, oldFile)
+	mergedFile := merger.MergeWithExisting(genFile, oldFile, empty)
 	if mergedFile == nil {
 		// Ignored file. Don't emit.
 		return
