@@ -1,4 +1,6 @@
 
+_protoc_prefix = "protoc-gen-"
+
 def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpath):
   go_srcs = []
   outpath = None
@@ -7,9 +9,12 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
     go_srcs += [out]
     if outpath == None:
         outpath = out.dirname[:-len(importpath)]
+  plugin_base_name = go_proto_toolchain.plugin.basename
+  if plugin_base_name.startswith(_protoc_prefix):
+    plugin_base_name = plugin_base_name[len(_protoc_prefix):]
   args= [
-      "--go_out=" + ",".join(go_proto_toolchain.options) + ":"+outpath,
-      "--plugin=protoc-gen-go=" + go_proto_toolchain.plugin.path,
+      "--{}_out={}:{}".format(plugin_base_name, ",".join(go_proto_toolchain.options), outpath),
+      "--plugin={}={}".format(go_proto_toolchain.plugin.basename, go_proto_toolchain.plugin.path),
       "--descriptor_set_in", ":".join(
           [s.path for s in lib.proto.transitive_descriptor_sets])
   ]
@@ -41,7 +46,7 @@ proto_toolchain = rule(
 
 def _go_proto_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
-      plugin = ctx.file._plugin,
+      plugin = ctx.file.plugin,
       deps = ctx.attr.deps,
       options = ctx.attr.options,
       compile = _emit_proto_compile,
@@ -52,6 +57,6 @@ go_proto_toolchain = rule(
     attrs = {
         "deps": attr.label_list(),
         "options": attr.string_list(),
-        "_plugin": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("@com_github_golang_protobuf//protoc-gen-go")),
+        "plugin": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=Label("@com_github_golang_protobuf//protoc-gen-go")),
     },
 )
