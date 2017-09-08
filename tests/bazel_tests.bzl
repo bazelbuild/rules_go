@@ -63,7 +63,7 @@ _bazel_test_script = rule(
     _bazel_test_script_impl,
     attrs = {
         "batch": attr.bool(default=True),
-        "command": attr.string(mandatory=True, values=["build", "test", "coverage"]),
+        "command": attr.string(mandatory=True, values=["build", "test", "coverage", "run"]),
         "args": attr.string_list(default=[]),
         "subdir": attr.string(),
         "target": attr.string(mandatory=True),
