@@ -426,6 +426,8 @@ go_library(
 	}, {
 		desc: "preserve comments",
 		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
 go_library(
     name = "go_default_library",
     srcs = [
@@ -435,12 +437,16 @@ go_library(
 )
 `,
 		current: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
 go_library(
     name = "go_default_library",
     srcs = ["a.go", "b.go"],
 )
 `,
 		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
 go_library(
     name = "go_default_library",
     srcs = [
@@ -495,7 +501,7 @@ cgo_library(
 	}, {
 		desc: "keep scalar attr",
 		previous: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -503,14 +509,14 @@ go_library(
 )
 `,
 		current: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
 )
 `,
 		expected: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -520,7 +526,7 @@ go_library(
 	}, {
 		desc: "don't delete list with keep",
 		previous: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -530,14 +536,14 @@ go_library(
 )
 `,
 		current: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
 )
 `,
 		expected: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -549,7 +555,7 @@ go_library(
 	}, {
 		desc: "keep list multiline",
 		previous: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -560,14 +566,14 @@ go_library(
 )
 `,
 		current: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
 )
 `,
 		expected: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -579,7 +585,7 @@ go_library(
 	}, {
 		desc: "keep dict list multiline",
 		previous: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -595,14 +601,14 @@ go_library(
 )
 `,
 		current: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
 )
 `,
 		expected: `
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -643,9 +649,8 @@ go_library(
 		empty: `
 go_binary(name = "old")
 `,
-		// TODO(jayconrod): fix load statement after deleting rules
 		expected: `
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",

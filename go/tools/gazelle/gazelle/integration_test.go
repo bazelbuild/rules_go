@@ -265,8 +265,7 @@ import "C"
 	}{
 		{
 			cmd: "update",
-			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
-load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_test")
+			want: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library", "go_prefix")
 
 go_prefix("example.com/foo")
 

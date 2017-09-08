@@ -21,10 +21,12 @@ import (
 	bf "github.com/bazelbuild/buildtools/build"
 )
 
+type fixTestCase struct {
+	desc, old, want string
+}
+
 func TestFixFile(t *testing.T) {
-	for _, tc := range []struct {
-		desc, old, want string
-	}{
+	for _, tc := range []fixTestCase{
 		// squashCgoLibrary tests
 		{
 			desc: "no cgo_library",
@@ -69,7 +71,7 @@ cgo_library(
     name = "cgo_default_library",
 )
 `,
-			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+			want: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -97,7 +99,7 @@ cgo_library(
 )
 # after comment
 `,
-			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+			want: `load("@io_bazel_rules_go//go:def.bzl", "cgo_library")
 
 # before comment
 go_library(
@@ -174,6 +176,15 @@ go_library(
 # after cgo_library
 `,
 		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			testFix(t, tc, FixFile)
+		})
+	}
+}
+
+func TestFixLoads(t *testing.T) {
+	for _, tc := range []fixTestCase{
 		// fixLoads tests
 		{
 			desc: "empty file",
@@ -279,14 +290,18 @@ go_library(
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			oldFile, err := bf.Parse("old", []byte(tc.old))
-			if err != nil {
-				t.Fatalf("%s: parse error: %v", tc.desc, err)
-			}
-			fixedFile := FixFile(oldFile)
-			if got := string(bf.Format(fixedFile)); got != tc.want {
-				t.Fatalf("%s: got %s; want %s", tc.desc, got, tc.want)
-			}
+			testFix(t, tc, fixLoads)
 		})
+	}
+}
+
+func testFix(t *testing.T, tc fixTestCase, fix func(*bf.File) *bf.File) {
+	oldFile, err := bf.Parse("old", []byte(tc.old))
+	if err != nil {
+		t.Fatalf("%s: parse error: %v", tc.desc, err)
+	}
+	fixedFile := fix(oldFile)
+	if got := string(bf.Format(fixedFile)); got != tc.want {
+		t.Fatalf("%s: got %s; want %s", tc.desc, got, tc.want)
 	}
 }

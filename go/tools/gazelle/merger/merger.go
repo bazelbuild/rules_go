@@ -96,7 +96,7 @@ func MergeWithExisting(genFile, oldFile *bf.File, empty []bf.Expr) *bf.File {
 		mergedFile.Stmt[i] = mergedRule
 	}
 
-	return &mergedFile
+	return fixLoads(&mergedFile)
 }
 
 // merge combines information from gen and old and returns an updated rule.
