@@ -6,14 +6,16 @@ Bazel 0.5.4 | Bazel HEAD
 
 ## Announcements
 
+* **September 12, 2017** Release
+[0.5.5](https://github.com/bazelbuild/rules_go/releases/tag/0.5.5) is now
+available. This is a bug fix release on top of 0.5.4 that removes the sha256
+from some of our dependencies, since it changed upstream.
 * **August 28, 2017** Release
 [0.5.4](https://github.com/bazelbuild/rules_go/releases/tag/0.5.4) is
 now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains support.
 * **August 9, 2017** Release
 [0.5.3](https://github.com/bazelbuild/rules_go/releases/tag/0.5.3) is
 now available!
-* **July 27, 2017** Bazel 0.5.3 is now available. This includes a change which
-is incompatible with rules\_go 0.5.1 and earlier. rules\_go 0.5.2 should work.
 
 ## Contents
 
@@ -58,7 +60,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-**Note:** The latest version of these rules (0.5.4) require Bazel ≥ 0.5.2 to
+**Note:** The latest version of these rules (0.5.5) require Bazel ≥ 0.5.2 to
   work.
 
 The `master` branch is only guaranteed to work with the latest version of Bazel.
@@ -71,10 +73,10 @@ The `master` branch is only guaranteed to work with the latest version of Bazel.
   If you're using the latest stable release you can use the following contents:
 
     ```bzl
-    git_repository(
+    http_archive(
         name = "io_bazel_rules_go",
-        remote = "https://github.com/bazelbuild/rules_go.git",
-        tag = "0.5.4",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.5.5/rules_go-0.5.5.tar.gz",
+        sha256 = "ca58b0b856dc95473b93f2228ab117913b82a6617fc0deabd107346e3981522a",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
 
