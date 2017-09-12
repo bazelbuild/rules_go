@@ -93,7 +93,6 @@ def go_rules_dependencies():
       # master, as of 14 Aug 2017
       url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
       strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
-      sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
       type = "zip",
   )
 
@@ -121,7 +120,6 @@ def go_rules_dependencies():
       name = "com_google_protobuf",
       url = "https://codeload.github.com/google/protobuf/zip/054054c1523342294d50460d652ad2c767df627f",
       strip_prefix = "protobuf-054054c1523342294d50460d652ad2c767df627f",
-      #sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
       type = "zip",
   )
 
@@ -130,7 +128,6 @@ def go_rules_dependencies():
       name = "com_github_google_protobuf",
       url = "https://github.com/google/protobuf/archive/v3.4.0.tar.gz",
       strip_prefix = "protobuf-3.4.0",
-      sha256 = "cd55ee08e64a86cf12aaadd4672961813f592c194ed0c9ad94da0ec75acf219f",
   )
 
   # GRPC dependancies
