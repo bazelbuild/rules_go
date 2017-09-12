@@ -26,7 +26,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "searchpath_attr",
 )
 
-def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage, importpath, golibs=[]):
+def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage, importpath, importable=True, golibs=[]):
   dep_runfiles = [d.data_runfiles for d in deps]
   direct = depset(golibs)
   gc_goopts = tuple(ctx.attr.gc_goopts)
@@ -77,6 +77,7 @@ def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage
     cover_vars += cvars
 
   lib_name = importpath + ".a"
+  compilepath = importpath if importable else None
   mode_fields = {} # These are added to the GoLibrary provider directly
   for mode in compile_modes:
     out_dir = "~{}~{}~".format(mode, ctx.label.name)
@@ -88,6 +89,7 @@ def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage
       go_toolchain.actions.compile(ctx,
           go_toolchain = go_toolchain,
           sources = go_srcs,
+          importpath = compilepath,
           golibs = direct,
           mode = mode,
           out_lib = out_lib,
@@ -98,6 +100,7 @@ def emit_library(ctx, go_toolchain, srcs, deps, cgo_object, embed, want_coverage
       go_toolchain.actions.compile(ctx,
           go_toolchain = go_toolchain,
           sources = go_srcs,
+          importpath = compilepath,
           golibs = direct,
           mode = mode,
           out_lib = partial_lib,

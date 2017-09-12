@@ -33,10 +33,3 @@ bindata = rule(
         "_bindata":  attr.label(allow_files=True, single_file=True, default=Label("@com_github_jteeuwen_go_bindata//go-bindata:go-bindata")),
     },
 )
-
-def bindata_repositories():
-  go_repository(
-      name = "com_github_jteeuwen_go_bindata",
-      importpath = "github.com/jteeuwen/go-bindata",
-      commit = "a0ff2567cfb70903282db057e799fd826784d41d",
-  )

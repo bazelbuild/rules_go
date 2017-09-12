@@ -2,10 +2,9 @@ syntax = "proto3";
 
 package very.useful;
 
-// TODO(pmbethe09): Figure out how to make go_package in local .proto files work.
-// option go_package = "github.com/bazelbuild/rules_go/example/proto/dep/useful_proto";
+option go_package = "github.com/bazelbuild/rules_go/examples/proto/dep";
 
-import "ptypes/duration/duration.proto";
+import "google/protobuf/duration.proto";
 
 message VeryUseful {
   string very = 1;

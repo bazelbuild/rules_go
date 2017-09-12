@@ -44,6 +44,7 @@ def _go_test_impl(ctx):
       embed = embed,
       want_coverage = False,
       importpath = go_importpath(ctx),
+      importable = False,
   )
 
   if ctx.attr.rundir:
@@ -89,6 +90,7 @@ def _go_test_impl(ctx):
       embed = [],
       want_coverage = False,
       importpath = ctx.label.name + "~testmain~",
+      importable = False,
       golibs = [golib] + covered_libs,
   )
 

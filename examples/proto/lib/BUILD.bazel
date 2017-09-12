@@ -1,12 +1,24 @@
-load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
-go_proto_library(
+proto_library(
     name = "lib_proto",
     srcs = [
         "lib.proto",
         "lib2.proto",
     ],
-    rules_go_repo_only_for_internal_use = "@",
+    deps = [
+        "//examples/proto/dep:useful_proto",
+    ],
     visibility = ["//visibility:public"],
-    deps = ["//examples/proto/dep:useful_proto"],
+)
+
+go_proto_library(
+    name = "go_default_library",
+    proto = ":lib_proto",
+    deps = [
+        "//examples/proto/dep:go_default_library",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/examples/proto/lib/lib_proto",
+    visibility = ["//visibility:public"],
 )

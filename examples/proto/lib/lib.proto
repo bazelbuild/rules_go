@@ -2,8 +2,7 @@ syntax = "proto3";
 
 package examples.lib;
 
-// TODO(pmbethe09): make this also work.
-// option go_package = "github.com/bazelbuild/rules_go/example/proto/lib_proto";
+option go_package = "github.com/bazelbuild/rules_go/examples/proto/lib/lib_proto";
 
 import "examples/proto/dep/useful.proto";
 

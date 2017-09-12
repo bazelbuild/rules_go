@@ -82,7 +82,7 @@ func TestGenerator(t *testing.T) {
 
 		pkg, oldFile := packageFromDir(c, dir)
 		g := rules.NewGenerator(c, r, l, rel, oldFile)
-		f := g.Generate(pkg)
+		f, _ := g.Generate(pkg)
 		got := string(bf.Format(f))
 
 		wantPath := filepath.Join(pkg.Dir, "BUILD.want")
@@ -99,6 +99,45 @@ func TestGenerator(t *testing.T) {
 	}
 }
 
+func TestGeneratorEmpty(t *testing.T) {
+	c := testConfig("", "example.com/repo")
+	l := resolve.NewLabeler(c)
+	r := resolve.NewResolver(c, l)
+	g := rules.NewGenerator(c, r, l, "", nil)
+
+	for _, tc := range []struct {
+		name string
+		pkg  packages.Package
+		want string
+	}{
+		{
+			name: "nothing",
+			want: `go_library(name = "go_default_library")
+
+go_binary(name = "repo")
+
+filegroup(name = "go_default_library_protos")
+
+go_test(name = "go_default_test")
+
+go_test(name = "go_default_xtest")
+`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, empty := g.GenerateRules(&tc.pkg)
+			emptyStmt := make([]bf.Expr, len(empty))
+			for i, s := range empty {
+				emptyStmt[i] = s
+			}
+			got := string(bf.Format(&bf.File{Stmt: emptyStmt}))
+			if got != tc.want {
+				t.Errorf("got '%s' ;\nwant %s", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestGeneratedFileName(t *testing.T) {
 	testGeneratedFileName(t, "BUILD")
 	testGeneratedFileName(t, "BUILD.bazel")
@@ -112,7 +151,7 @@ func testGeneratedFileName(t *testing.T, buildFileName string) {
 	r := resolve.NewResolver(c, l)
 	g := rules.NewGenerator(c, r, l, "", nil)
 	pkg := &packages.Package{}
-	f := g.Generate(pkg)
+	f, _ := g.Generate(pkg)
 	if f.Path != buildFileName {
 		t.Errorf("got %q; want %q", f.Path, buildFileName)
 	}

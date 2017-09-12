@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package gostyle;
 
+option go_package = "github.com/bazelbuild/rules_go/examples/proto/gostyle";
+
 import "google/protobuf/ano.proto";
 
 message GoStyleObject {

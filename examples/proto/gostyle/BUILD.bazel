@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 genrule(
     name = "copy",
@@ -7,12 +8,20 @@ genrule(
     cmd = "sed -e 's/ano.proto/any.proto/' $< > $@",
 )
 
+proto_library(
+    name = "gostyle",
+    srcs = [":copy"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 go_proto_library(
     name = "go_default_library",
-    srcs = ["gostyle.gen.proto"],
-    rules_go_repo_only_for_internal_use = "@",
-    visibility = ["//visibility:public"],
+    proto = ":gostyle",
     deps = [
         "@com_github_golang_protobuf//ptypes/any:go_default_library",
     ],
+    visibility = ["//visibility:public"],
 )

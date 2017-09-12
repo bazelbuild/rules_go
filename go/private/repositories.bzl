@@ -111,6 +111,53 @@ def go_rules_dependencies():
   )
 
 
+  # Proto dependancies
+  _maybe(go_repository,
+      name = "com_github_golang_protobuf",
+      importpath = "github.com/golang/protobuf",
+      commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
+  )
+  _maybe(native.http_archive,
+      name = "com_google_protobuf",
+      url = "https://codeload.github.com/google/protobuf/zip/054054c1523342294d50460d652ad2c767df627f",
+      strip_prefix = "protobuf-054054c1523342294d50460d652ad2c767df627f",
+      #sha256 = "ea23bbec9e86205b71ef647e1755ae0ec400aa76aeb5d13913d3fc3a37afbb5f",
+      type = "zip",
+  )
+
+  # Only used by deprecated go_proto_library implementation
+  _maybe(native.http_archive,
+      name = "com_github_google_protobuf",
+      url = "https://github.com/google/protobuf/archive/v3.4.0.tar.gz",
+      strip_prefix = "protobuf-3.4.0",
+      sha256 = "cd55ee08e64a86cf12aaadd4672961813f592c194ed0c9ad94da0ec75acf219f",
+  )
+
+  # GRPC dependancies
+  _maybe(go_repository,
+      name = "org_golang_x_net",
+      commit = "4971afdc2f162e82d185353533d3cf16188a9f4e",
+      importpath = "golang.org/x/net",
+  )
+  _maybe(go_repository,
+      name = "org_golang_google_grpc",
+      tag = "v1.0.4",
+      importpath = "google.golang.org/grpc",
+  )
+
+  # Needed for examples
+  _maybe(go_repository,
+      name = "com_github_golang_glog",
+      commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
+      importpath = "github.com/golang/glog",
+  )
+  _maybe(go_repository,
+      name = "com_github_jteeuwen_go_bindata",
+      importpath = "github.com/jteeuwen/go-bindata",
+      commit = "a0ff2567cfb70903282db057e799fd826784d41d",
+  )
+
+
 def _maybe(repo_rule, name, **kwargs):
   if name not in native.existing_rules():
     repo_rule(name=name, **kwargs)

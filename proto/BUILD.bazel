@@ -1,0 +1,49 @@
+load('//proto:toolchain.bzl', 'proto_toolchain', 'go_proto_toolchain')
+
+proto_toolchain(
+    name = "proto_impl",
+    visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "proto",
+    toolchain_type = "@io_bazel_rules_go//proto:proto",
+    exec_compatible_with = [],
+    target_compatible_with = [],
+    toolchain = "proto_impl",
+)
+
+go_proto_toolchain(
+    name = "go_proto_impl",
+    deps = [
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "go_proto",
+    toolchain_type = "@io_bazel_rules_go//proto:go_proto",
+    exec_compatible_with = [],
+    target_compatible_with = [],
+    toolchain = "go_proto_impl",
+)
+
+go_proto_toolchain(
+    name = "go_grpc_impl",
+    deps = [
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+    options = ["plugins=grpc"],
+    visibility = ["//visibility:public"],
+)
+
+toolchain(
+    name = "go_grpc",
+    toolchain_type = "@io_bazel_rules_go//proto:go_grpc",
+    exec_compatible_with = [],
+    target_compatible_with = [],
+    toolchain = "go_grpc_impl",
+)

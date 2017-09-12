@@ -28,34 +28,17 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 )
 
-// Generator generates Bazel build rules for Go build targets
-type Generator interface {
-	// Generate generates a syntax tree of a BUILD file for "pkg". The file
-	// contains rules for each non-empty target in "pkg". It also contains
-	// "load" statements necessary for the rule constructors. If this is the
-	// top-level package in the repository, the file will contain a
-	// "go_prefix" rule. This is a convenience method for the other methods
-	// in this interface.
-	Generate(pkg *packages.Package) *bf.File
-
-	// GenerateRules generates a list of rules for targets in "pkg".
-	GenerateRules(pkg *packages.Package) []bf.Expr
-
-	// GenerateLoad generates a load statement for the symbols referenced
-	// in "stmts". Returns nil if rules is empty.
-	GenerateLoad(stmts []bf.Expr) bf.Expr
-}
-
 // NewGenerator returns a new instance of Generator.
 // "buildRel" is a slash-separated path to the directory containing the
 // build file being generated, relative to the repository root.
 // "oldFile" is the existing build file. May be nil.
-func NewGenerator(c *config.Config, r resolve.Resolver, l resolve.Labeler, buildRel string, oldFile *bf.File) Generator {
+func NewGenerator(c *config.Config, r resolve.Resolver, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
 	shouldSetVisibility := oldFile == nil || !hasDefaultVisibility(oldFile)
-	return &generator{c: c, r: r, l: l, buildRel: buildRel, shouldSetVisibility: shouldSetVisibility}
+	return &Generator{c: c, r: r, l: l, buildRel: buildRel, shouldSetVisibility: shouldSetVisibility}
 }
 
-type generator struct {
+// Generator generates Bazel build rules for Go build targets.
+type Generator struct {
 	c                   *config.Config
 	r                   resolve.Resolver
 	l                   resolve.Labeler
@@ -63,48 +46,53 @@ type generator struct {
 	shouldSetVisibility bool
 }
 
-func (g *generator) Generate(pkg *packages.Package) *bf.File {
-	f := &bf.File{
+// Generate generates a syntax tree for a build file. This is a convenience
+// method for GenerateRules and GenerateLoad.
+func (g *Generator) Generate(pkg *packages.Package) (genFile *bf.File, empty []bf.Expr) {
+	genFile = &bf.File{
 		Path: filepath.Join(pkg.Dir, g.c.DefaultBuildFileName()),
 	}
-	f.Stmt = append(f.Stmt, nil) // reserve space for load
-	f.Stmt = append(f.Stmt, g.GenerateRules(pkg)...)
-	f.Stmt[0] = g.GenerateLoad(f.Stmt[1:])
-	return f
+	genFile.Stmt = append(genFile.Stmt, nil) // reserve space for load
+	rules, empty := g.GenerateRules(pkg)
+	genFile.Stmt = append(genFile.Stmt, rules...)
+	if load := g.GenerateLoad(genFile.Stmt[1:]); load == nil {
+		genFile.Stmt = genFile.Stmt[1:]
+	} else {
+		genFile.Stmt[0] = load
+	}
+	return genFile, empty
 }
 
-func (g *generator) GenerateRules(pkg *packages.Package) []bf.Expr {
-	var rules []bf.Expr
+// GenerateRules generates a list of rules for targets in "pkg". It also returns
+// a list of empty rules that may be deleted from an existing file.
+func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty []bf.Expr) {
+	var rs []bf.Expr
+
 	library, r := g.generateLib(pkg)
-	if r != nil {
-		rules = append(rules, r)
-	}
+	rs = append(rs,
+		r,
+		g.generateBin(pkg, library),
+		g.filegroup(pkg),
+		g.generateTest(pkg, library, false),
+		g.generateTest(pkg, "", true))
 
-	if r := g.generateBin(pkg, library); r != nil {
-		rules = append(rules, r)
+	for _, r := range rs {
+		if isEmpty(r) {
+			empty = append(empty, r)
+		} else {
+			rules = append(rules, r)
+		}
 	}
-
-	if r := g.filegroup(pkg); r != nil {
-		rules = append(rules, r)
-	}
-
-	if r := g.generateTest(pkg, library, false); r != nil {
-		rules = append(rules, r)
-	}
-
-	if r := g.generateTest(pkg, "", true); r != nil {
-		rules = append(rules, r)
-	}
-
-	return rules
+	return rules, empty
 }
 
-func (g *generator) GenerateLoad(stmts []bf.Expr) bf.Expr {
+// GenerateLoad generates a load statement for the symbols referenced
+// in "stmts". Returns nil if rules is empty.
+func (g *Generator) GenerateLoad(stmts []bf.Expr) bf.Expr {
 	loadableKinds := []string{
 		// keep sorted
 		"go_binary",
 		"go_library",
-		"go_prefix",
 		"go_test",
 	}
 
@@ -132,11 +120,11 @@ func (g *generator) GenerateLoad(stmts []bf.Expr) bf.Expr {
 	}
 }
 
-func (g *generator) generateBin(pkg *packages.Package, library string) bf.Expr {
-	if !pkg.IsCommand() || pkg.Binary.Sources.IsEmpty() && library == "" {
-		return nil
-	}
+func (g *Generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	name := g.l.BinaryLabel(pkg.Rel).Name
+	if !pkg.IsCommand() || pkg.Binary.Sources.IsEmpty() && library == "" {
+		return emptyRule("go_binary", name)
+	}
 	visibility := checkInternalVisibility(pkg.Rel, "//visibility:public")
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Binary)
 	// TODO(jayconrod): don't add importpath if it can be inherited from library.
@@ -148,11 +136,11 @@ func (g *generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	return newRule("go_binary", nil, attrs)
 }
 
-func (g *generator) generateLib(pkg *packages.Package) (string, bf.Expr) {
-	if !pkg.Library.HasGo() {
-		return "", nil
-	}
+func (g *Generator) generateLib(pkg *packages.Package) (string, *bf.CallExpr) {
 	name := g.l.LibraryLabel(pkg.Rel).Name
+	if !pkg.Library.HasGo() {
+		return "", emptyRule("go_library", name)
+	}
 	var visibility string
 	if pkg.IsCommand() {
 		// Libraries made for a go_binary should not be exposed to the public.
@@ -199,9 +187,10 @@ func checkInternalVisibility(rel, visibility string) string {
 // filegroup is a small hack for directories with pre-generated .pb.go files
 // and also source .proto files.  This creates a filegroup for the .proto in
 // addition to the usual go_library for the .pb.go files.
-func (g *generator) filegroup(pkg *packages.Package) bf.Expr {
+func (g *Generator) filegroup(pkg *packages.Package) bf.Expr {
+	name := config.DefaultProtosName
 	if !pkg.HasPbGo || len(pkg.Protos) == 0 {
-		return nil
+		return emptyRule("filegroup", name)
 	}
 	return newRule("filegroup", nil, []keyvalue{
 		{key: "name", value: config.DefaultProtosName},
@@ -210,7 +199,8 @@ func (g *generator) filegroup(pkg *packages.Package) bf.Expr {
 	})
 }
 
-func (g *generator) generateTest(pkg *packages.Package, library string, isXTest bool) bf.Expr {
+func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest bool) bf.Expr {
+	name := g.l.TestLabel(pkg.Rel, isXTest).Name
 	target := pkg.Test
 	importpath := pkg.ImportPath(g.c.GoPrefix)
 	if isXTest {
@@ -218,9 +208,8 @@ func (g *generator) generateTest(pkg *packages.Package, library string, isXTest 
 		importpath += "_test"
 	}
 	if !target.HasGo() {
-		return nil
+		return emptyRule("go_test", name)
 	}
-	name := g.l.TestLabel(pkg.Rel, isXTest).Name
 	attrs := g.commonAttrs(pkg.Rel, name, "", target)
 	// TODO(jayconrod): don't add importpath if it can be inherited from library.
 	// This is blocked by bazelbuild/bazel#3575.
@@ -238,7 +227,7 @@ func (g *generator) generateTest(pkg *packages.Package, library string, isXTest 
 	return newRule("go_test", nil, attrs)
 }
 
-func (g *generator) commonAttrs(pkgRel, name, visibility string, target packages.Target) []keyvalue {
+func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages.Target) []keyvalue {
 	attrs := []keyvalue{{"name", name}}
 	if !target.Sources.IsEmpty() {
 		attrs = append(attrs, keyvalue{"srcs", g.sources(target.Sources, pkgRel)})
@@ -265,7 +254,7 @@ func (g *generator) commonAttrs(pkgRel, name, visibility string, target packages
 // sources converts paths in "srcs" which are relative to the Go package
 // directory ("pkgRel") into relative paths to the build file
 // being generated ("g.buildRel").
-func (g *generator) sources(srcs packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
+func (g *Generator) sources(srcs packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
 	if g.buildRel == pkgRel {
 		return srcs
 	}
@@ -279,7 +268,7 @@ func (g *generator) sources(srcs packages.PlatformStrings, pkgRel string) packag
 // buildPkgRel returns the relative slash-separated path from the directory
 // containing the build file (g.buildRel) to the Go package directory (pkgRel).
 // pkgRel must start with g.buildRel.
-func (g *generator) buildPkgRel(pkgRel string) string {
+func (g *Generator) buildPkgRel(pkgRel string) string {
 	if g.buildRel == pkgRel {
 		return ""
 	}
@@ -294,7 +283,7 @@ func (g *generator) buildPkgRel(pkgRel string) string {
 }
 
 // dependencies converts import paths in "imports" into Bazel labels.
-func (g *generator) dependencies(imports packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
+func (g *Generator) dependencies(imports packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
 	resolve := func(imp string) (string, error) {
 		if strings.HasPrefix(imp, "./") || strings.HasPrefix(imp, "..") {
 			imp = path.Clean(path.Join(g.c.GoPrefix, pkgRel, imp))
@@ -329,7 +318,7 @@ var (
 // root-relative paths that Bazel can understand. For example, if a cgo file
 // in //foo declares an include flag in its copts: "-Ibar", this method
 // will transform that flag into "-Ifoo/bar".
-func (g *generator) options(opts packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
+func (g *Generator) options(opts packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
 	fixPath := func(opt string) string {
 		if strings.HasPrefix(opt, "/") {
 			return opt
@@ -373,4 +362,9 @@ func (g *generator) options(opts packages.PlatformStrings, pkgRel string) packag
 		log.Panicf("unexpected error when transforming options with pkg %q: %v", pkgRel, errs)
 	}
 	return opts
+}
+
+func isEmpty(r bf.Expr) bool {
+	c, ok := r.(*bf.CallExpr)
+	return ok && len(c.List) == 1 // name
 }

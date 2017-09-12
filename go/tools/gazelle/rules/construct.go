@@ -36,6 +36,10 @@ type globvalue struct {
 	excludes []string
 }
 
+func emptyRule(kind, name string) *bf.CallExpr {
+	return newRule(kind, nil, []keyvalue{{"name", name}})
+}
+
 func newRule(kind string, args []interface{}, kwargs []keyvalue) *bf.CallExpr {
 	sort.Sort(byAttrName(kwargs))
 
