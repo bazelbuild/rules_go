@@ -89,14 +89,14 @@ def _cross_compile_stdlib(ctx, goos, goarch):
       "TMP": ctx.configuration.default_shell_env['TMPDIR'],
   }
   res = ctx.execute(
-      ["bin/go"+check_extension(ctx), "install", "-v", "std"], 
+      ["bin/go{}".format(check_extension(ctx)), "install", "-v", "std"], 
       environment = env,
   )
   if res.return_code:
     print("failed: ", res.stderr)
     fail("go standard library cross compile %s to %s-%s failed" % (ctx.name, goos, goarch))
   res = ctx.execute(
-      ["bin/go"+check_extension(ctx), "install", "-v", "runtime/cgo"], 
+      ["bin/go{}".format(check_extension(ctx)), "install", "-v", "runtime/cgo"], 
       environment = env,
   )
   if res.return_code:
@@ -107,7 +107,7 @@ def _detect_host_sdk(ctx):
   root = "@invalid@"
   if "GOROOT" in ctx.os.environ:
     return ctx.os.environ["GOROOT"]
-  res = ctx.execute(["go"+check_extension(ctx), "env", "GOROOT"])
+  res = ctx.execute(["go{}".format(check_extension(ctx)), "env", "GOROOT"])
   if res.return_code:
     fail("Could not detect host go version")
   root = res.stdout.strip()
