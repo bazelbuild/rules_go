@@ -28,6 +28,8 @@ type Labeler interface {
 	LibraryLabel(rel string) Label
 	TestLabel(rel string, isXTest bool) Label
 	BinaryLabel(rel string) Label
+	ProtoLabel(rel, name string) Label
+	GoProtoLabel(rel, name string) Label
 }
 
 func NewLabeler(c *config.Config) Labeler {
@@ -60,6 +62,14 @@ func (l *hierarchicalLabeler) BinaryLabel(rel string) Label {
 	return Label{Pkg: rel, Name: name}
 }
 
+func (l *hierarchicalLabeler) ProtoLabel(rel, name string) Label {
+	return Label{Pkg: rel, Name: name + "_proto"}
+}
+
+func (l *hierarchicalLabeler) GoProtoLabel(rel, name string) Label {
+	return Label{Pkg: rel, Name: name + "_go_proto"}
+}
+
 type flatLabeler struct {
 	c *config.Config
 }
@@ -90,6 +100,14 @@ func (l *flatLabeler) BinaryLabel(rel string) Label {
 		return Label{Name: relBaseName(l.c, rel) + suffix}
 	}
 	return Label{Name: rel + suffix}
+}
+
+func (l *flatLabeler) ProtoLabel(rel, name string) Label {
+	return Label{Name: path.Join(rel, name) + "_proto"}
+}
+
+func (l *flatLabeler) GoProtoLabel(rel, name string) Label {
+	return Label{Name: path.Join(rel, name) + "_go_proto"}
 }
 
 func relBaseName(c *config.Config, rel string) string {

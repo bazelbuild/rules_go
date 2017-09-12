@@ -21,7 +21,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-func TestLabeler(t *testing.T) {
+func TestLabelerGo(t *testing.T) {
 	for _, tc := range []struct {
 		name, rel                             string
 		mode                                  config.StructureMode
@@ -84,6 +84,56 @@ func TestLabeler(t *testing.T) {
 			}
 			if got := l.TestLabel(tc.rel, true).String(); got != tc.wantXTest {
 				t.Errorf("for test in %s: got %q ; want %q", tc.rel, got, tc.wantXTest)
+			}
+		})
+	}
+}
+
+func TestLabelerProto(t *testing.T) {
+	for _, tc := range []struct {
+		desc, rel, name        string
+		mode                   config.StructureMode
+		wantProto, wantGoProto string
+	}{
+		{
+			desc:        "root_hierarchical",
+			rel:         "",
+			name:        "foo",
+			mode:        config.HierarchicalMode,
+			wantProto:   "//:foo_proto",
+			wantGoProto: "//:foo_go_proto",
+		}, {
+			desc:        "sub_hierarchical",
+			rel:         "sub",
+			name:        "foo",
+			mode:        config.HierarchicalMode,
+			wantProto:   "//sub:foo_proto",
+			wantGoProto: "//sub:foo_go_proto",
+		}, {
+			desc:        "root_flat",
+			rel:         "",
+			name:        "foo",
+			mode:        config.FlatMode,
+			wantProto:   "//:foo_proto",
+			wantGoProto: "//:foo_go_proto",
+		}, {
+			desc:        "sub_flat",
+			rel:         "sub",
+			name:        "foo",
+			mode:        config.FlatMode,
+			wantProto:   "//:sub/foo_proto",
+			wantGoProto: "//:sub/foo_go_proto",
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			c := &config.Config{StructureMode: tc.mode}
+			l := NewLabeler(c)
+
+			if got := l.ProtoLabel(tc.rel, tc.name).String(); got != tc.wantProto {
+				t.Errorf("for proto_library in %s: got %q ; want %q", tc.rel, got, tc.wantProto)
+			}
+			if got := l.GoProtoLabel(tc.rel, tc.name).String(); got != tc.wantGoProto {
+				t.Errorf("for go_proto_library in %s: got %q ; want %q", tc.rel, got, tc.wantGoProto)
 			}
 		})
 	}

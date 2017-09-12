@@ -40,18 +40,27 @@ type Package struct {
 	// Components in Rel are separated with slashes.
 	Rel string
 
-	Library, Binary, Test, XTest Target
+	Library, Binary, Test, XTest GoTarget
+	Proto                        ProtoTarget
 
-	Protos      []string
-	HasPbGo     bool
 	HasTestdata bool
 }
 
-// Target contains metadata about a buildable Go target in a package.
-type Target struct {
+// GoTarget contains metadata about a buildable Go target in a package.
+type GoTarget struct {
 	Sources, Imports PlatformStrings
 	COpts, CLinkOpts PlatformStrings
 	Cgo              bool
+}
+
+// ProtoTarget contains metadata about proto files in a package.
+type ProtoTarget struct {
+	Sources, Imports PlatformStrings
+	HasServices      bool
+
+	// HasPbGo indicates whether unexcluded .pb.go files are present in the
+	// same package. They will not be in this target's sources.
+	HasPbGo bool
 }
 
 // PlatformStrings contains a set of strings associated with a buildable
@@ -71,11 +80,12 @@ func (p *Package) IsCommand() bool {
 	return p.Name == "main"
 }
 
-// HasGo returns true if at least one target in the package contains a
-// .go source file. If a package does not contain Go code, Gazelle will
-// not generate rules for it.
-func (p *Package) HasGo() bool {
-	return p.Library.HasGo() || p.Binary.HasGo() || p.Test.HasGo() || p.XTest.HasGo()
+// isBuildable returns true if anything in the package is buildable.
+// This is true if the package has Go code that satisfies build constraints
+// on any platform or has proto files not in legacy mode.
+func (p *Package) isBuildable(c *config.Config) bool {
+	return p.Library.HasGo() || p.Binary.HasGo() || p.Test.HasGo() || p.XTest.HasGo() ||
+		p.Proto.HasProto() && c.ProtoMode == config.DefaultProtoMode
 }
 
 // ImportPath returns the inferred Go import path for this package. This
@@ -113,12 +123,16 @@ func (p *Package) firstGoFile() string {
 	return p.XTest.firstGoFile()
 }
 
-func (t *Target) HasGo() bool {
+func (t *GoTarget) HasGo() bool {
 	return t.Sources.HasGo()
 }
 
-func (t *Target) firstGoFile() string {
+func (t *GoTarget) firstGoFile() string {
 	return t.Sources.firstGoFile()
+}
+
+func (t *ProtoTarget) HasProto() bool {
+	return !t.Sources.IsEmpty()
 }
 
 func (ts *PlatformStrings) HasGo() bool {
@@ -165,7 +179,8 @@ func (ts *PlatformStrings) firstGoFile() string {
 func (p *Package) addFile(c *config.Config, info fileInfo, cgo bool) error {
 	switch {
 	case info.category == ignoredExt || info.category == unsupportedExt ||
-		!cgo && (info.category == cExt || info.category == csExt):
+		!cgo && (info.category == cExt || info.category == csExt) ||
+		c.ProtoMode == config.DisableProtoMode && info.category == protoExt:
 		return nil
 	case info.isXTest:
 		if info.isCgo {
@@ -178,18 +193,18 @@ func (p *Package) addFile(c *config.Config, info fileInfo, cgo bool) error {
 		}
 		p.Test.addFile(c, info)
 	case info.category == protoExt:
-		p.Protos = append(p.Protos, info.name)
+		p.Proto.addFile(c, info)
 	default:
 		p.Library.addFile(c, info)
 	}
 	if strings.HasSuffix(info.name, ".pb.go") {
-		p.HasPbGo = true
+		p.Proto.HasPbGo = true
 	}
 
 	return nil
 }
 
-func (t *Target) addFile(c *config.Config, info fileInfo) {
+func (t *GoTarget) addFile(c *config.Config, info fileInfo) {
 	if info.isCgo {
 		t.Cgo = true
 	}
@@ -209,6 +224,12 @@ func (t *Target) addFile(c *config.Config, info fileInfo) {
 			t.CLinkOpts.addTaggedOpts(name, info.clinkopts, tags)
 		}
 	}
+}
+
+func (t *ProtoTarget) addFile(c *config.Config, info fileInfo) {
+	t.Sources.addGenericStrings(info.name)
+	t.Imports.addGenericStrings(info.imports...)
+	t.HasServices = t.HasServices || info.hasServices
 }
 
 func (ps *PlatformStrings) addGenericStrings(ss ...string) {

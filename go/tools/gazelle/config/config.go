@@ -46,6 +46,10 @@ type Config struct {
 	// This is used to map imports to labels within the repository.
 	GoPrefix string
 
+	// ShouldFix determines whether Gazelle attempts to remove and replace
+	// usage of deprecated rules.
+	ShouldFix bool
+
 	// DepMode determines how imports outside of GoPrefix are resolved.
 	DepMode DependencyMode
 
@@ -54,6 +58,9 @@ type Config struct {
 
 	// StructureMode determines how build files are organized within a project.
 	StructureMode StructureMode
+
+	// ProtoMode determines how rules are generated for protos.
+	ProtoMode ProtoMode
 }
 
 var DefaultValidBuildFileNames = []string{"BUILD.bazel", "BUILD"}
@@ -166,3 +173,33 @@ const (
 	// new_http_archive.
 	FlatMode
 )
+
+// ProtoMode determines how proto rules are generated.
+type ProtoMode int
+
+const (
+	// In DefaultProtoMode, Gazelle generates proto_library and new
+	// go_proto_library or grpc_proto_library rules.
+	DefaultProtoMode ProtoMode = iota
+
+	// In DisableProtoMode, Gazelle will ignore .proto files. .pb.go files are
+	// treated as normal sources.
+	DisableProtoMode
+
+	// In LegacyProtoMode, Gazelle generates filegroups for .proto files if
+	// .pb.go files are present in the same directory.
+	LegacyProtoMode
+)
+
+func ProtoModeFromString(s string) (ProtoMode, error) {
+	switch s {
+	case "default":
+		return DefaultProtoMode, nil
+	case "disable":
+		return DisableProtoMode, nil
+	case "legacy":
+		return LegacyProtoMode, nil
+	default:
+		return 0, fmt.Errorf("unrecognized proto mode: %q", s)
+	}
+}

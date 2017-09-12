@@ -122,3 +122,63 @@ func TestResolveGoLocalError(t *testing.T) {
 		t.Errorf("r.ResolveGo(%q) = %s; want error", "..", l)
 	}
 }
+
+func TestResolveProto(t *testing.T) {
+	prefix := "example.com/repo"
+	for _, tc := range []struct {
+		desc, imp              string
+		mode                   config.StructureMode
+		wantProto, wantGoProto Label
+	}{
+		{
+			desc:        "root",
+			imp:         "foo.proto",
+			wantProto:   Label{Name: "repo_proto"},
+			wantGoProto: Label{Name: config.DefaultLibName},
+		}, {
+			desc:        "sub",
+			imp:         "foo/bar/bar.proto",
+			wantProto:   Label{Pkg: "foo/bar", Name: "bar_proto"},
+			wantGoProto: Label{Pkg: "foo/bar", Name: config.DefaultLibName},
+		}, {
+			desc:        "flat sub",
+			mode:        config.FlatMode,
+			imp:         "foo/bar/bar.proto",
+			wantProto:   Label{Name: "foo/bar/bar_proto"},
+			wantGoProto: Label{Name: "foo/bar"},
+		}, {
+			desc:        "well known",
+			imp:         "google/protobuf/any.proto",
+			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
+			wantGoProto: Label{Repo: "com_github_golang_protobuf", Pkg: "ptypes/any", Name: config.DefaultLibName},
+		}, {
+			desc:        "well known flat",
+			mode:        config.FlatMode,
+			imp:         "google/protobuf/any.proto",
+			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
+			wantGoProto: Label{Repo: "com_github_golang_protobuf", Name: "ptypes/any"},
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			c := &config.Config{GoPrefix: prefix, StructureMode: tc.mode}
+			l := NewLabeler(c)
+			r := NewResolver(c, l)
+
+			got, err := r.ResolveProto(tc.imp)
+			if err != nil {
+				t.Errorf("ResolveProto: got error %v ; want success", err)
+			}
+			if !reflect.DeepEqual(got, tc.wantProto) {
+				t.Errorf("ResolveProto: got %s ; want %s", got, tc.wantProto)
+			}
+
+			got, err = r.ResolveGoProto(tc.imp)
+			if err != nil {
+				t.Errorf("ResolveGoProto: go error %v ; want success", err)
+			}
+			if !reflect.DeepEqual(got, tc.wantGoProto) {
+				t.Errorf("ResolveGoProto: got %s ; want %s", got, tc.wantGoProto)
+			}
+		})
+	}
+}

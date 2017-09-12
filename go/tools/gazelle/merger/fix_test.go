@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	bf "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 type fixTestCase struct {
@@ -176,9 +177,54 @@ go_library(
 # after cgo_library
 `,
 		},
+		// fixLegacyProto tests
+		{
+			desc: "current proto preserved",
+			old: `load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+go_proto_library(
+    name = "foo_go_proto",
+    proto = ":foo_proto",
+)
+`,
+			want: `load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+go_proto_library(
+    name = "foo_go_proto",
+    proto = ":foo_proto",
+)
+`,
+		},
+		{
+			desc: "load and proto removed",
+			old: `load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+
+go_proto_library(
+    name = "go_default_library_protos",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:private"],
+)
+`,
+			want: "",
+		},
+		{
+			desc: "proto filegroup removed",
+			old: `filegroup(
+    name = "go_default_library_protos",
+    srcs = ["foo.proto"],
+)
+
+go_proto_library(name = "foo_proto")
+`,
+			want: `go_proto_library(name = "foo_proto")
+`,
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			testFix(t, tc, FixFile)
+			fix := func(f *bf.File) *bf.File {
+				return FixFile(&config.Config{}, f)
+			}
+			testFix(t, tc, fix)
 		})
 	}
 }

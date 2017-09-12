@@ -36,6 +36,7 @@ var (
 		"deps":       true,
 		"importpath": true,
 		"library":    true,
+		"proto":      true,
 		"srcs":       true,
 	}
 )
@@ -502,15 +503,20 @@ func name(c *bf.CallExpr) string {
 }
 
 func isEmpty(c *bf.CallExpr) bool {
-	if len(c.List) != 1 {
-		return false
+	for _, arg := range c.List {
+		kwarg, ok := arg.(*bf.BinaryExpr)
+		if !ok || kwarg.Op != "=" {
+			return false
+		}
+		key, ok := kwarg.X.(*bf.LiteralExpr)
+		if !ok {
+			return false
+		}
+		if key.Token != "name" && key.Token != "visibility" {
+			return false
+		}
 	}
-	arg, ok := c.List[0].(*bf.BinaryExpr)
-	if !ok {
-		return false
-	}
-	x, ok := arg.X.(*bf.LiteralExpr)
-	return ok && x.Token == "name"
+	return true
 }
 
 func isScalar(e bf.Expr) bool {

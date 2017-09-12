@@ -77,22 +77,20 @@ type visitor interface {
 }
 
 type visitorBase struct {
-	c         *config.Config
-	r         *resolve.Resolver
-	l         resolve.Labeler
-	shouldFix bool
-	emit      emitFunc
+	c    *config.Config
+	r    *resolve.Resolver
+	l    resolve.Labeler
+	emit emitFunc
 }
 
 func newVisitor(c *config.Config, cmd command, emit emitFunc) visitor {
 	l := resolve.NewLabeler(c)
 	r := resolve.NewResolver(c, l)
 	base := visitorBase{
-		c:         c,
-		r:         r,
-		l:         l,
-		shouldFix: cmd == fixCmd,
-		emit:      emit,
+		c:    c,
+		r:    r,
+		l:    l,
+		emit: emit,
 	}
 	if c.StructureMode == config.HierarchicalMode {
 		v := &hierarchicalVisitor{visitorBase: base}
@@ -124,7 +122,7 @@ func (v *hierarchicalVisitor) visit(c *config.Config, pkg *packages.Package, old
 		Path: filepath.Join(pkg.Dir, c.DefaultBuildFileName()),
 		Stmt: rules,
 	}
-	v.mergeAndEmit(genFile, oldFile, empty)
+	v.mergeAndEmit(c, genFile, oldFile, empty)
 }
 
 func (v *hierarchicalVisitor) finish() {
@@ -191,14 +189,14 @@ func (v *flatVisitor) finish() {
 		genFile.Stmt = append(genFile.Stmt, rs...)
 	}
 
-	v.mergeAndEmit(genFile, v.oldRootFile, v.empty)
+	v.mergeAndEmit(v.c, genFile, v.oldRootFile, v.empty)
 }
 
 // mergeAndEmit merges "genFile" with "oldFile". "oldFile" may be nil if
-// no file exists. If v.shouldFix is true, deprecated usage of old rules in
+// no file exists. If v.c.ShouldFix is true, deprecated usage of old rules in
 // "oldFile" will be fixed. The resulting merged file will be emitted using
 // the "v.emit" function.
-func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
+func (v *visitorBase) mergeAndEmit(c *config.Config, genFile, oldFile *bf.File, empty []bf.Expr) {
 	if oldFile == nil {
 		// No existing file, so no merge required.
 		rules.SortLabels(genFile)
@@ -211,10 +209,10 @@ func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
 	}
 
 	// Existing file. Fix it or see if it needs fixing before merging.
-	if v.shouldFix {
-		oldFile = merger.FixFile(oldFile)
+	if c.ShouldFix {
+		oldFile = merger.FixFile(c, oldFile)
 	} else {
-		fixedFile := merger.FixFile(oldFile)
+		fixedFile := merger.FixFile(c, oldFile)
 		if fixedFile != oldFile {
 			log.Printf("%s: warning: file contains rules whose structure is out of date. Consider running 'gazelle fix'.", oldFile.Path)
 		}
@@ -309,6 +307,7 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	fs.Var(&knownImports, "known_import", "import path for which external resolution is skipped (can specify multiple times)")
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
 	flat := fs.Bool("experimental_flat", false, "whether gazelle should generate a single, combined BUILD file.\nThis mode is experimental and may not work yet.")
+	proto := fs.String("proto", "default", "default: generates new proto rules\n\tdisable: does not touch proto rules\n\tlegacy (deprecated): generates old proto rules")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			usage(fs)
@@ -373,6 +372,8 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 		}
 	}
 
+	c.ShouldFix = cmd == fixCmd
+
 	c.DepMode, err = config.DependencyModeFromString(*external)
 	if err != nil {
 		return nil, cmd, nil, err
@@ -382,6 +383,11 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 		c.StructureMode = config.FlatMode
 	} else {
 		c.StructureMode = config.HierarchicalMode
+	}
+
+	c.ProtoMode, err = config.ProtoModeFromString(*proto)
+	if err != nil {
+		return nil, cmd, nil, err
 	}
 
 	emit, ok := modeFromName[*mode]

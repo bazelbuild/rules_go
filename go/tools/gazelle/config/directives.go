@@ -41,6 +41,7 @@ var knownTopLevelDirectives = map[string]bool{
 	"build_tags":      true,
 	"exclude":         true,
 	"ignore":          true,
+	"proto":           true,
 }
 
 // TODO(jayconrod): annotation directives will apply to an individual rule.
@@ -107,10 +108,89 @@ func ApplyDirectives(c *Config, directives []Directive) *Config {
 		case "build_file_name":
 			modified.ValidBuildFileNames = strings.Split(d.Value, ",")
 			didModify = true
+		case "proto":
+			protoMode, err := ProtoModeFromString(d.Value)
+			if err != nil {
+				log.Print(err)
+				continue
+			}
+			modified.ProtoMode = protoMode
+			didModify = true
 		}
 	}
 	if !didModify {
 		return c
 	}
+	return &modified
+}
+
+// InferProtoMode sets Config.ProtoMode, based on the contents of f.  If the
+// proto mode is already set to something other than the default, or if the mode
+// is set explicitly in directives, this function does nothing. If the legacy
+// go_proto_library.bzl is loaded, or if this is the Well Known Types
+// repository, legacy mode is used.  If go_proto_library is loaded from another
+// file or if this is the Well Known Types repository, protos are disabled.
+func InferProtoMode(c *Config, f *bf.File, directives []Directive) *Config {
+	if c.ProtoMode != DefaultProtoMode {
+		return c
+	}
+	for _, d := range directives {
+		if d.Key == "proto" {
+			return c
+		}
+	}
+	if c.GoPrefix == WellKnownTypesGoPrefix && c.ProtoMode != DisableProtoMode {
+		// Use legacy mode in this repo. We don't need proto_library or
+		// go_proto_library, since we get that from @com_google_protobuf.
+		// Legacy rules still refer to .proto files in here, which need are
+		// exposed by filegroup. go_library rules from .pb.go files will be
+		// generated, which are depended upon by the new rules.
+		modified := *c
+		modified.ProtoMode = LegacyProtoMode
+		return &modified
+	}
+	if f == nil {
+		return c
+	}
+	mode := DefaultProtoMode
+	for _, stmt := range f.Stmt {
+		c, ok := stmt.(*bf.CallExpr)
+		if !ok {
+			continue
+		}
+		if x, ok := c.X.(*bf.LiteralExpr); !ok || x.Token != "load" || len(c.List) == 0 {
+			continue
+		}
+		name, ok := c.List[0].(*bf.StringExpr)
+		if !ok {
+			continue
+		}
+		if name.Value == "@io_bazel_rules_go//proto:def.bzl" {
+			break
+		}
+		if name.Value == "@io_bazel_rules_go//proto:go_proto_library.bzl" {
+			mode = LegacyProtoMode
+			break
+		}
+		for _, arg := range c.List[1:] {
+			if sym, ok := arg.(*bf.StringExpr); ok && sym.Value == "go_proto_library" {
+				mode = DisableProtoMode
+				break
+			}
+			kwarg, ok := arg.(*bf.BinaryExpr)
+			if !ok || kwarg.Op != "=" {
+				continue
+			}
+			if key, ok := kwarg.X.(*bf.LiteralExpr); ok && key.Token == "go_proto_library" {
+				mode = DisableProtoMode
+				break
+			}
+		}
+	}
+	if mode == DefaultProtoMode || c.ProtoMode == mode || c.ShouldFix && mode == LegacyProtoMode {
+		return c
+	}
+	modified := *c
+	modified.ProtoMode = mode
 	return &modified
 }

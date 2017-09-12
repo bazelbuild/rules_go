@@ -33,8 +33,9 @@ import (
 //
 // FixLoads should be called after this, since it will fix load
 // statements that may be broken by transformations applied by this function.
-func FixFile(oldFile *bf.File) *bf.File {
-	return squashCgoLibrary(oldFile)
+func FixFile(c *config.Config, oldFile *bf.File) *bf.File {
+	fixedFile := squashCgoLibrary(oldFile)
+	return removeLegacyProto(c, fixedFile)
 }
 
 // squashCgoLibrary removes cgo_library rules with the default name and
@@ -246,6 +247,72 @@ func squashDict(x, y *bf.DictExpr) (*bf.DictExpr, error) {
 	}
 
 	return &squashed, nil
+}
+
+// removeLegacyProto removes uses of the old proto rules. It deletes loads
+// from go_proto_library.bzl. It deletes proto filegroups. It removes
+// go_proto_library attributes which are no longer recognized. New rules
+// are generated in place of the deleted rules, but attributes and comments
+// are not migrated.
+func removeLegacyProto(c *config.Config, oldFile *bf.File) *bf.File {
+	// Don't fix if the proto mode was set to something other than the default.
+	if c.ProtoMode != config.DefaultProtoMode {
+		return oldFile
+	}
+
+	// Scan for definitions to delete.
+	var deletedIndices []int
+	var protoIndices []int
+	shouldDeleteProtos := false
+	for i, stmt := range oldFile.Stmt {
+		c, ok := stmt.(*bf.CallExpr)
+		if !ok {
+			continue
+		}
+		x, ok := c.X.(*bf.LiteralExpr)
+		if !ok {
+			continue
+		}
+
+		if x.Token == "load" && len(c.List) > 0 {
+			if name, ok := c.List[0].(*bf.StringExpr); ok && name.Value == "@io_bazel_rules_go//proto:go_proto_library.bzl" {
+				deletedIndices = append(deletedIndices, i)
+				shouldDeleteProtos = true
+			}
+			continue
+		}
+		if x.Token == "filegroup" {
+			r := bf.Rule{Call: c}
+			if r.Name() == config.DefaultProtosName {
+				deletedIndices = append(deletedIndices, i)
+			}
+			continue
+		}
+		if x.Token == "go_proto_library" {
+			protoIndices = append(protoIndices, i)
+		}
+	}
+	if len(deletedIndices) == 0 {
+		return oldFile
+	}
+
+	// Rebuild the file without deleted statements. Only delete go_proto_library
+	// rules if we deleted a load.
+	if shouldDeleteProtos {
+		deletedIndices = append(deletedIndices, protoIndices...)
+		sort.Ints(deletedIndices)
+	}
+	fixedFile := *oldFile
+	fixedFile.Stmt = make([]bf.Expr, 0, len(oldFile.Stmt)-len(deletedIndices))
+	di := 0
+	for i, stmt := range oldFile.Stmt {
+		if di < len(deletedIndices) && i == deletedIndices[di] {
+			di++
+			continue
+		}
+		fixedFile.Stmt = append(fixedFile.Stmt, stmt)
+	}
+	return &fixedFile
 }
 
 // FixLoads removes loads of unused go rules and adds loads of newly used rules.

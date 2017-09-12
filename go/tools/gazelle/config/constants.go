@@ -34,4 +34,14 @@ const (
 	DefaultProtosName = "go_default_library_protos"
 	// DefaultCgoLibName is the name of the default cgo_library rule in a Go package directory.
 	DefaultCgoLibName = "cgo_default_library"
+
+	// WellKnownTypesProtoRepo is the repository containing proto_library rules
+	// for the Well Known Types.
+	WellKnownTypesProtoRepo = "com_google_protobuf"
+	// WellKnownTypesGoProtoRepo is the repository containing go_library rules
+	// for the Well Known Types.
+	WellKnownTypesGoProtoRepo = "com_github_golang_protobuf"
+	// WellKnownTypesGoPrefix is the import path for the Go repository containing
+	// pre-generated code for the Well Known Types.
+	WellKnownTypesGoPrefix = "github.com/golang/protobuf"
 )

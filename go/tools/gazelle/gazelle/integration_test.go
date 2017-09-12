@@ -745,6 +745,252 @@ go_library(
 	})
 }
 
+func TestMigrateProtoRules(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: config.DefaultValidBuildFileNames[0],
+			content: `load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "go_default_library",
+    srcs = [":go_default_library_protos"],
+)
+`,
+		}, {
+			path: "foo.proto",
+			content: `syntax = "proto3";
+
+option go_package = "example.com/repo";
+`,
+		}, {
+			path:    "foo.pb.go",
+			content: `package repo`,
+		},
+	}
+
+	for _, tc := range []struct {
+		args []string
+		want string
+	}{
+		{
+			args: []string{"update", "-go_prefix", "example.com/repo"},
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "go_default_library",
+    srcs = [":go_default_library_protos"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.pb.go"],
+    importpath = "example.com/repo",
+    visibility = ["//visibility:public"],
+)
+`,
+		}, {
+			args: []string{"fix", "-go_prefix", "example.com/repo"},
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "repo_proto",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "repo_go_proto",
+    importpath = "example.com/repo",
+    proto = ":repo_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    importpath = "example.com/repo",
+    library = ":repo_go_proto",
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	} {
+		t.Run(tc.args[0], func(t *testing.T) {
+			dir, err := createFiles(files)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.RemoveAll(dir)
+
+			if err := runGazelle(dir, tc.args); err != nil {
+				t.Fatal(err)
+			}
+
+			checkFiles(t, dir, []fileSpec{{
+				path:    config.DefaultValidBuildFileNames[0],
+				content: tc.want,
+			}})
+		})
+	}
+}
+
+func TestRemoveProtoDeletesRules(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: config.DefaultValidBuildFileNames[0],
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "repo_proto",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "repo_go_proto",
+    importpath = "example.com/repo",
+    proto = ":repo_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["extra.go"],
+    importpath = "example.com/repo",
+    library = ":repo_go_proto",
+    visibility = ["//visibility:public"],
+)
+`,
+		}, {
+			path:    "extra.go",
+			content: `package repo`,
+		},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"fix", "-go_prefix", "example.com/repo"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+
+	checkFiles(t, dir, []fileSpec{{
+		path: config.DefaultValidBuildFileNames[0],
+		content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["extra.go"],
+    importpath = "example.com/repo",
+    visibility = ["//visibility:public"],
+)
+`,
+	}})
+}
+
+func TestAddServiceConvertsToGrpc(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: config.DefaultValidBuildFileNames[0],
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "repo_proto",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "repo_go_proto",
+    importpath = "example.com/repo",
+    proto = ":repo_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    importpath = "example.com/repo",
+    library = ":repo_go_proto",
+    visibility = ["//visibility:public"],
+)
+`,
+		}, {
+			path: "foo.proto",
+			content: `syntax = "proto3";
+
+option go_package = "example.com/repo";
+
+service {}
+`,
+		},
+	}
+
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"-go_prefix", "example.com/repo"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+
+	checkFiles(t, dir, []fileSpec{{
+		path: config.DefaultValidBuildFileNames[0],
+		content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_grpc_library")
+
+proto_library(
+    name = "repo_proto",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    importpath = "example.com/repo",
+    library = ":repo_go_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_grpc_library(
+    name = "repo_go_proto",
+    importpath = "example.com/repo",
+    proto = ":repo_proto",
+    visibility = ["//visibility:public"],
+)
+`,
+	}})
+}
+
 // TODO(jayconrod): more tests
 //   run in fix mode in testdata directories to create new files
 //   run in diff mode in testdata directories to update existing files (no change)

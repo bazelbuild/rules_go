@@ -91,3 +91,65 @@ func TestApplyDirectives(t *testing.T) {
 		})
 	}
 }
+
+func TestInferProtoMode(t *testing.T) {
+	for _, tc := range []struct {
+		desc, content string
+		c             Config
+		want          ProtoMode
+	}{
+		{
+			desc: "default",
+		}, {
+			desc: "previous",
+			c:    Config{ProtoMode: LegacyProtoMode},
+			want: LegacyProtoMode,
+		}, {
+			desc: "explicit",
+			content: `# gazelle:proto default
+
+load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+`,
+			want: DefaultProtoMode,
+		}, {
+			desc:    "legacy",
+			content: `load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")`,
+			want:    LegacyProtoMode,
+		}, {
+			desc:    "disable",
+			content: `load("@com_example_repo//proto:go_proto_library.bzl", go_proto_library = "x")`,
+			want:    DisableProtoMode,
+		}, {
+			desc:    "fix legacy",
+			content: `load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")`,
+			c:       Config{ShouldFix: true},
+		}, {
+			desc:    "fix disabled",
+			content: `load("@com_example_repo//proto:go_proto_library.bzl", go_proto_library = "x")`,
+			c:       Config{ShouldFix: true},
+			want:    DisableProtoMode,
+		}, {
+			desc: "well known types",
+			c:    Config{GoPrefix: "github.com/golang/protobuf"},
+			want: LegacyProtoMode,
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			var f *bf.File
+			var directives []Directive
+			if tc.content != "" {
+				var err error
+				f, err = bf.Parse("BUILD.bazel", []byte(tc.content))
+				if err != nil {
+					t.Fatalf("error parsing build file: %v", err)
+				}
+				directives = ParseDirectives(f)
+			}
+
+			got := InferProtoMode(&tc.c, f, directives)
+			if got.ProtoMode != tc.want {
+				t.Errorf("got proto mode %v ; want %v", got.ProtoMode, tc.want)
+			}
+		})
+	}
+}
