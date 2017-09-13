@@ -14,18 +14,19 @@
 
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "env_execute")
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "DEFAULT_VERSION")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "executable_extension")
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "fetch_repo",
-    srcs = ["bin/fetch_repo"],
+    srcs = ["bin/fetch_repo{extension}"],
 )
 
 filegroup(
     name = "gazelle",
-    srcs = ["bin/gazelle"],
+    srcs = ["bin/gazelle{extension}"],
 )
 """
 
@@ -35,13 +36,17 @@ def _go_repository_tools_impl(ctx):
 
   version = DEFAULT_VERSION.replace(".", "_")
   go_sdk = None
+  extension = ""
   if ctx.os.name == 'linux':
     go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_linux_amd64".format(version)
   elif ctx.os.name == 'mac os x':
     go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_darwin_amd64".format(version)
+  elif ctx.os.name.startswith('windows'):
+    go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_windows_amd64".format(version)
+    extension = ".exe"
   else:
       fail("Unsupported operating system: " + ctx.os.name)
-  go_tool = ctx.path(Label("@{}//:bin/go".format(go_sdk)))
+  go_tool = ctx.path(Label("@{}//:bin/go{}".format(go_sdk, extension)))
 
   x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"
   x_tools_path = ctx.path('tools-' + x_tools_commit)
@@ -74,7 +79,7 @@ def _go_repository_tools_impl(ctx):
       fail("failed to build fetch_repo: %s" % result.stderr)
       
   # add a build file to export the tools
-  ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE, False)
+  ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE.format(extension=executable_extension(ctx)), False)
 
 go_repository_tools = repository_rule(
     _go_repository_tools_impl,

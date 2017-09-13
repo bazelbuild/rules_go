@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+def executable_extension(ctx):
+  extension = ""
+  if ctx.os.name.startswith('windows'):
+    extension = ".exe"
+  return extension
+
 def _go_host_sdk_impl(ctx):
   path = _detect_host_sdk(ctx)
   _local_sdk(ctx, path)
@@ -70,7 +76,7 @@ def _local_sdk(ctx, path):
 def _sdk_build_file(ctx, goroot):
   ctx.template("BUILD.bazel", 
       Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
-      substitutions = {"{goroot}": goroot},
+      substitutions = {"{goroot}": goroot, "{extension}": executable_extension(ctx)},
       executable = False,
   )
 
@@ -82,14 +88,14 @@ def _cross_compile_stdlib(ctx, goos, goarch):
       "GOARCH": goarch,
   }
   res = ctx.execute(
-      ["bin/go", "install", "-v", "std"], 
+      ["bin/go"+executable_extension(ctx), "install", "-v", "std"], 
       environment = env,
   )
   if res.return_code:
     print("failed: ", res.stderr)
     fail("go standard library cross compile %s to %s-%s failed" % (ctx.name, goos, goarch))
   res = ctx.execute(
-      ["bin/go", "install", "-v", "runtime/cgo"], 
+      ["bin/go"+executable_extension(ctx), "install", "-v", "runtime/cgo"], 
       environment = env,
   )
   if res.return_code:
@@ -100,7 +106,7 @@ def _detect_host_sdk(ctx):
   root = "@invalid@"
   if "GOROOT" in ctx.os.environ:
     return ctx.os.environ["GOROOT"]
-  res = ctx.execute(["go", "env", "GOROOT"])
+  res = ctx.execute(["go"+executable_extension(ctx), "env", "GOROOT"])
   if res.return_code:
     fail("Could not detect host go version")
   root = res.stdout.strip()
