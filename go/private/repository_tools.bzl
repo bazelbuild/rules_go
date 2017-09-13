@@ -63,6 +63,7 @@ def _go_repository_tools_impl(ctx):
   env = {
     'GOROOT': str(go_tool.dirname.dirname),
     'GOPATH': str(ctx.path('')),
+    'TMP': ctx.os.environ['TMP'],
   }
 
   # build gazelle and fetch_repo
@@ -92,4 +93,5 @@ go_repository_tools = repository_rule(
             single_file = True,
         ),
     },
+    environ = ["TMP"],
 )

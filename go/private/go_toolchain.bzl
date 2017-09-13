@@ -22,6 +22,7 @@ load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
+  tmp = ctx.attr._root.path + "/tmp"
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
       sdk = ctx.attr.sdk,
@@ -29,6 +30,7 @@ def _go_toolchain_impl(ctx):
           "GOROOT": ctx.attr._root.path,
           "GOOS": ctx.attr.goos,
           "GOARCH": ctx.attr.goarch,
+          "TMP": tmp,
       },
       actions = struct(
           asm = emit_asm,
@@ -40,6 +42,7 @@ def _go_toolchain_impl(ctx):
       ),
       paths = struct(
           root = ctx.attr._root,
+          tmp = tmp,
       ),
       tools = struct(
           go = ctx.executable._go,
