@@ -1,6 +1,12 @@
 _bazelrc = """
 startup --batch
-build --verbose_failures --sandbox_debug --test_output=errors --spawn_strategy=standalone --genrule_strategy=standalone
+
+build --verbose_failures
+build --sandbox_debug
+build --test_output=errors
+build --spawn_strategy=standalone
+build --genrule_strategy=standalone
+
 test --test_strategy=standalone
 
 build:isolate --fetch=False
