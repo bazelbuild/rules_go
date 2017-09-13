@@ -34,11 +34,15 @@ def _go_sdk_impl(ctx):
     _sdk_build_file(ctx, path)
     _local_sdk(ctx, path)
     
+  if "TMP" in ctx.os.environ:
+    tmp = ctx.os.environ["TMP"]
+    ctx.symlink(tmp, "tmp")
+  else:
+    ctx.file("tmp/ignore", content="") # make a file to force the directory to exist
+    tmp = str(ctx.path("tmp").realpath)
+  
   # Build the standard library for valid cross compile platforms
   #TODO: fix standard library cross compilation
-  tmp = ctx.os.environ['TMP']
-  ctx.symlink(tmp, "tmp")
-  
   if ctx.name.endswith("linux_amd64") and ctx.os.name == "linux":
     _cross_compile_stdlib(ctx, "windows", "amd64", tmp)
   if ctx.name.endswith("darwin_amd64") and ctx.os.name == "mac os x":
