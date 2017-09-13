@@ -6,7 +6,7 @@ Bazel 0.5.4 | Bazel HEAD
 
 ## Announcements
 
-* **September 12, 2017** Release
+* **September 13, 2017** Release
 [0.5.5](https://github.com/bazelbuild/rules_go/releases/tag/0.5.5) is now
 available. This is a bug fix release on top of 0.5.4 that removes the sha256
 from some of our dependencies, since it changed upstream.
