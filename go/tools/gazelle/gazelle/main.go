@@ -459,8 +459,12 @@ func loadGoPrefix(c *config.Config) (string, error) {
 }
 
 func isDescendingDir(dir, root string) bool {
-	if dir == root {
+	rel, err := filepath.Rel(root, dir)
+	if err != nil {
+		return false
+	}
+	if rel == "." {
 		return true
 	}
-	return strings.HasPrefix(dir, fmt.Sprintf("%s%c", root, filepath.Separator))
+	return !strings.HasPrefix(rel, "..")
 }
