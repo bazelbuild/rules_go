@@ -29,6 +29,7 @@ def _go_toolchain_impl(ctx):
           "GOROOT": ctx.attr._root.path,
           "GOOS": ctx.attr.goos,
           "GOARCH": ctx.attr.goarch,
+          "TMP": ctx.configuration.default_shell_env['TMPDIR'], # windows fix
       },
       actions = struct(
           asm = emit_asm,
