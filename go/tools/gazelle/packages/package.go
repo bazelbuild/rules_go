@@ -164,7 +164,8 @@ func (ts *PlatformStrings) firstGoFile() string {
 // be added to any target (for example, .txt files).
 func (p *Package) addFile(c *config.Config, info fileInfo, cgo bool) error {
 	switch {
-	case info.category == ignoredExt || info.category == unsupportedExt:
+	case info.category == ignoredExt || info.category == unsupportedExt ||
+		!cgo && (info.category == cExt || info.category == csExt):
 		return nil
 	case info.isXTest:
 		if info.isCgo {

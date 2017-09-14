@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"log"
 	"path"
-	"path/filepath"
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
@@ -46,23 +45,6 @@ type Generator struct {
 	shouldSetVisibility bool
 }
 
-// Generate generates a syntax tree for a build file. This is a convenience
-// method for GenerateRules and GenerateLoad.
-func (g *Generator) Generate(pkg *packages.Package) (genFile *bf.File, empty []bf.Expr) {
-	genFile = &bf.File{
-		Path: filepath.Join(pkg.Dir, g.c.DefaultBuildFileName()),
-	}
-	genFile.Stmt = append(genFile.Stmt, nil) // reserve space for load
-	rules, empty := g.GenerateRules(pkg)
-	genFile.Stmt = append(genFile.Stmt, rules...)
-	if load := g.GenerateLoad(genFile.Stmt[1:]); load == nil {
-		genFile.Stmt = genFile.Stmt[1:]
-	} else {
-		genFile.Stmt[0] = load
-	}
-	return genFile, empty
-}
-
 // GenerateRules generates a list of rules for targets in "pkg". It also returns
 // a list of empty rules that may be deleted from an existing file.
 func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty []bf.Expr) {
@@ -86,40 +68,6 @@ func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty
 	return rules, empty
 }
 
-// GenerateLoad generates a load statement for the symbols referenced
-// in "stmts". Returns nil if rules is empty.
-func (g *Generator) GenerateLoad(stmts []bf.Expr) bf.Expr {
-	loadableKinds := []string{
-		// keep sorted
-		"go_binary",
-		"go_library",
-		"go_test",
-	}
-
-	kinds := make(map[string]bool)
-	for _, s := range stmts {
-		if c, ok := s.(*bf.CallExpr); ok {
-			r := bf.Rule{c}
-			kinds[r.Kind()] = true
-		}
-	}
-	args := make([]bf.Expr, 0, len(kinds)+1)
-	args = append(args, &bf.StringExpr{Value: config.RulesGoDefBzlLabel})
-	for _, k := range loadableKinds {
-		if kinds[k] {
-			args = append(args, &bf.StringExpr{Value: k})
-		}
-	}
-	if len(args) == 1 {
-		return nil
-	}
-	return &bf.CallExpr{
-		X:            &bf.LiteralExpr{Token: "load"},
-		List:         args,
-		ForceCompact: true,
-	}
-}
-
 func (g *Generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	name := g.l.BinaryLabel(pkg.Rel).Name
 	if !pkg.IsCommand() || pkg.Binary.Sources.IsEmpty() && library == "" {
@@ -133,7 +81,7 @@ func (g *Generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	if library != "" {
 		attrs = append(attrs, keyvalue{"library", ":" + library})
 	}
-	return newRule("go_binary", nil, attrs)
+	return newRule("go_binary", attrs)
 }
 
 func (g *Generator) generateLib(pkg *packages.Package) (string, *bf.CallExpr) {
@@ -152,7 +100,7 @@ func (g *Generator) generateLib(pkg *packages.Package) (string, *bf.CallExpr) {
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Library)
 	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
 
-	rule := newRule("go_library", nil, attrs)
+	rule := newRule("go_library", attrs)
 	return name, rule
 }
 
@@ -192,7 +140,7 @@ func (g *Generator) filegroup(pkg *packages.Package) bf.Expr {
 	if !pkg.HasPbGo || len(pkg.Protos) == 0 {
 		return emptyRule("filegroup", name)
 	}
-	return newRule("filegroup", nil, []keyvalue{
+	return newRule("filegroup", []keyvalue{
 		{key: "name", value: config.DefaultProtosName},
 		{key: "srcs", value: pkg.Protos},
 		{key: "visibility", value: []string{"//visibility:public"}},
@@ -224,7 +172,7 @@ func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest 
 	if g.c.StructureMode == config.FlatMode {
 		attrs = append(attrs, keyvalue{"rundir", pkg.Rel})
 	}
-	return newRule("go_test", nil, attrs)
+	return newRule("go_test", attrs)
 }
 
 func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages.Target) []keyvalue {

@@ -3,16 +3,16 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "foo.go",
-        "pure_other.go",
         "asm_other.S",
+        "foo.go",
         "foo.h",
         "foo_other.c",
+        "pure_other.go",
     ] + select({
         "@io_bazel_rules_go//go/platform:linux_amd64": [
-            "pure_linux.go",
             "asm_linux.S",
             "foo_linux.c",
+            "pure_linux.go",
         ],
         "//conditions:default": [],
     }),
@@ -35,8 +35,8 @@ go_library(
     importpath = "example.com/repo/cgolib_with_build_tags",
     visibility = ["//visibility:public"],
     deps = [
-        "//lib/deep:go_default_library",
         "//lib:go_default_library",
+        "//lib/deep:go_default_library",
     ],
 )
 

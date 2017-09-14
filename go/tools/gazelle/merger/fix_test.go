@@ -185,7 +185,6 @@ go_library(
 
 func TestFixLoads(t *testing.T) {
 	for _, tc := range []fixTestCase{
-		// fixLoads tests
 		{
 			desc: "empty file",
 			old:  "",
@@ -290,7 +289,7 @@ go_library(
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			testFix(t, tc, fixLoads)
+			testFix(t, tc, FixLoads)
 		})
 	}
 }

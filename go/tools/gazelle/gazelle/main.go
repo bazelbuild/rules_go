@@ -119,7 +119,11 @@ type hierarchicalVisitor struct {
 
 func (v *hierarchicalVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
 	g := rules.NewGenerator(v.c, v.r, v.l, pkg.Rel, oldFile)
-	genFile, empty := g.Generate(pkg)
+	rules, empty := g.GenerateRules(pkg)
+	genFile := &bf.File{
+		Path: filepath.Join(pkg.Dir, v.c.DefaultBuildFileName()),
+		Stmt: rules,
+	}
 	v.mergeAndEmit(genFile, oldFile, empty)
 }
 
@@ -172,7 +176,6 @@ func (v *flatVisitor) finish() {
 		}
 	}
 
-	g := rules.NewGenerator(v.c, v.r, v.l, "", v.oldRootFile)
 	genFile := &bf.File{
 		Path: filepath.Join(v.c.RepoRoot, v.c.DefaultBuildFileName()),
 	}
@@ -183,16 +186,9 @@ func (v *flatVisitor) finish() {
 	}
 	sort.Strings(packageNames)
 
-	genFile.Stmt = append(genFile.Stmt, nil) // reserve space for load
 	for _, name := range packageNames {
 		rs := v.rules[name]
 		genFile.Stmt = append(genFile.Stmt, rs...)
-	}
-	genFile.Stmt[0] = g.GenerateLoad(genFile.Stmt[1:])
-
-	if len(genFile.Stmt) == 2 {
-		// No rules generated.
-		return
 	}
 
 	v.mergeAndEmit(genFile, v.oldRootFile, v.empty)
@@ -206,6 +202,7 @@ func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
 	if oldFile == nil {
 		// No existing file, so no merge required.
 		rules.SortLabels(genFile)
+		genFile = merger.FixLoads(genFile)
 		bf.Rewrite(genFile, nil) // have buildifier 'format' our rules.
 		if err := v.emit(v.c, genFile); err != nil {
 			log.Print(err)
@@ -231,6 +228,7 @@ func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
 	}
 
 	rules.SortLabels(mergedFile)
+	mergedFile = merger.FixLoads(mergedFile)
 	bf.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
 	if err := v.emit(v.c, mergedFile); err != nil {
 		log.Print(err)

@@ -321,7 +321,7 @@ func TestGenerated(t *testing.T) {
 			content: `
 genrule(
     name = "from_genrule",
-    outs = ["foo.go", "bar.go", "x.txt", "y.c", "z.s"],
+    outs = ["foo.go", "bar.go", "w.txt", "x.c", "y.s", "z.S"],
 )
 
 gen_other(
@@ -344,11 +344,55 @@ import "github.com/jr_hacker/stuff"
 			Rel:  "gen",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
-					Generic: []string{"foo.go", "bar.go", "baz.go"},
+					Generic: []string{"foo.go", "bar.go", "y.s", "baz.go"},
 				},
 				Imports: packages.PlatformStrings{
 					Generic: []string{"github.com/jr_hacker/stuff"},
 				},
+			},
+		},
+	}
+	checkFiles(t, files, "", want)
+}
+
+func TestGeneratedCgo(t *testing.T) {
+	files := []fileSpec{
+		{
+			path: "gen/BUILD",
+			content: `
+genrule(
+    name = "from_genrule",
+    outs = ["foo.go", "bar.go", "w.txt", "x.c", "y.s", "z.S"],
+)
+
+gen_other(
+    name = "from_gen_other",
+    out = "baz.go",
+)
+`,
+		},
+		{
+			path: "gen/foo.go",
+			content: `package foo
+
+import "C"
+
+import "github.com/jr_hacker/stuff"
+`,
+		},
+	}
+	want := []*packages.Package{
+		{
+			Name: "foo",
+			Rel:  "gen",
+			Library: packages.Target{
+				Sources: packages.PlatformStrings{
+					Generic: []string{"foo.go", "bar.go", "x.c", "y.s", "z.S", "baz.go"},
+				},
+				Imports: packages.PlatformStrings{
+					Generic: []string{"github.com/jr_hacker/stuff"},
+				},
+				Cgo: true,
 			},
 		},
 	}

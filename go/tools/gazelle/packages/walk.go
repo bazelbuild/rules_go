@@ -22,7 +22,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
@@ -133,11 +132,11 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		}
 
 		// Build a package from files in this directory.
-		var genGoFiles []string
+		var genFiles []string
 		if oldFile != nil {
-			genGoFiles = findGenGoFiles(oldFile, excluded)
+			genFiles = findGenFiles(oldFile, excluded)
 		}
-		pkg := buildPackage(c, path, oldFile, goFiles, genGoFiles, otherFiles, hasTestdata)
+		pkg := buildPackage(c, path, goFiles, otherFiles, genFiles, hasTestdata)
 		if pkg != nil {
 			f(pkg, oldFile)
 			hasPackage = true
@@ -156,7 +155,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 // name matches the directory base name will be returned. If there is no such
 // package or if an error occurs, an error will be logged, and nil will be
 // returned.
-func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGoFiles, otherFiles []string, hasTestdata bool) *Package {
+func buildPackage(c *config.Config, dir string, goFiles, otherFiles, genFiles []string, hasTestdata bool) *Package {
 	rel, err := filepath.Rel(c.RepoRoot, dir)
 	if err != nil {
 		log.Print(err)
@@ -206,23 +205,7 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 		return nil
 	}
 
-	// Process the generated .go files. Note that generated files may have the
-	// same names as static files. Bazel will use the generated files, but we
-	// will look at the content of static files, assuming they will be the same.
-	for _, goFile := range genGoFiles {
-		i := sort.SearchStrings(goFiles, goFile)
-		if i < len(goFiles) && goFiles[i] == goFile {
-			// Explicitly excluded or found a static file with the same name.
-			continue
-		}
-		info := fileNameInfo(dir, rel, goFile)
-		err := pkg.addFile(c, info, false)
-		if err != nil {
-			log.Print(err)
-		}
-	}
-
-	// Process the other files.
+	// Process the other static files.
 	for _, file := range otherFiles {
 		info, err := otherFileInfo(dir, rel, file)
 		if err != nil {
@@ -230,6 +213,27 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 			continue
 		}
 		err = pkg.addFile(c, info, cgo)
+		if err != nil {
+			log.Print(err)
+		}
+	}
+
+	// Process generated files. Note that generated files may have the same names
+	// as static files. Bazel will use the generated files, but we will look at
+	// the content of static files, assuming they will be the same.
+	staticFiles := make(map[string]bool)
+	for _, f := range goFiles {
+		staticFiles[f] = true
+	}
+	for _, f := range otherFiles {
+		staticFiles[f] = true
+	}
+	for _, f := range genFiles {
+		if staticFiles[f] {
+			continue
+		}
+		info := fileNameInfo(dir, rel, f)
+		err := pkg.addFile(c, info, cgo)
 		if err != nil {
 			log.Print(err)
 		}
@@ -284,7 +288,7 @@ func defaultPackageName(c *config.Config, dir string) string {
 	return name
 }
 
-func findGenGoFiles(f *bf.File, excluded map[string]bool) []string {
+func findGenFiles(f *bf.File, excluded map[string]bool) []string {
 	var strs []string
 	for _, r := range f.Rules("") {
 		for _, key := range []string{"out", "outs"} {
@@ -301,13 +305,13 @@ func findGenGoFiles(f *bf.File, excluded map[string]bool) []string {
 		}
 	}
 
-	var goFiles []string
+	var genFiles []string
 	for _, s := range strs {
-		if !excluded[s] && strings.HasSuffix(s, ".go") {
-			goFiles = append(goFiles, s)
+		if !excluded[s] {
+			genFiles = append(genFiles, s)
 		}
 	}
-	return goFiles
+	return genFiles
 }
 
 const gazelleExclude = "# gazelle:exclude " // marker in a BUILD file to exclude source files.

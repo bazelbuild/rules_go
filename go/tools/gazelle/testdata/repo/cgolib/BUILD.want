@@ -3,11 +3,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "foo.go",
-        "pure.go",
         "asm.S",
         "foo.c",
+        "foo.go",
         "foo.h",
+        "pure.go",
     ],
     cgo = True,
     clinkopts = ["-lweird"],
@@ -18,8 +18,8 @@ go_library(
     importpath = "example.com/repo/cgolib",
     visibility = ["//visibility:public"],
     deps = [
-        "//lib/deep:go_default_library",
         "//lib:go_default_library",
+        "//lib/deep:go_default_library",
     ],
 )
 

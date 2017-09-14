@@ -37,16 +37,13 @@ type globvalue struct {
 }
 
 func emptyRule(kind, name string) *bf.CallExpr {
-	return newRule(kind, nil, []keyvalue{{"name", name}})
+	return newRule(kind, []keyvalue{{"name", name}})
 }
 
-func newRule(kind string, args []interface{}, kwargs []keyvalue) *bf.CallExpr {
+func newRule(kind string, kwargs []keyvalue) *bf.CallExpr {
 	sort.Sort(byAttrName(kwargs))
 
 	var list []bf.Expr
-	for _, arg := range args {
-		list = append(list, newValue(arg))
-	}
 	for _, arg := range kwargs {
 		expr := newValue(arg.value)
 		list = append(list, &bf.BinaryExpr{

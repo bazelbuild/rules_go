@@ -23,6 +23,7 @@ import (
 
 	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
@@ -82,7 +83,10 @@ func TestGenerator(t *testing.T) {
 
 		pkg, oldFile := packageFromDir(c, dir)
 		g := rules.NewGenerator(c, r, l, rel, oldFile)
-		f, _ := g.Generate(pkg)
+		rs, _ := g.GenerateRules(pkg)
+		f := &bf.File{Stmt: rs}
+		rules.SortLabels(f)
+		f = merger.FixLoads(f)
 		got := string(bf.Format(f))
 
 		wantPath := filepath.Join(pkg.Dir, "BUILD.want")
@@ -135,24 +139,5 @@ go_test(name = "go_default_xtest")
 				t.Errorf("got '%s' ;\nwant %s", got, tc.want)
 			}
 		})
-	}
-}
-
-func TestGeneratedFileName(t *testing.T) {
-	testGeneratedFileName(t, "BUILD")
-	testGeneratedFileName(t, "BUILD.bazel")
-}
-
-func testGeneratedFileName(t *testing.T, buildFileName string) {
-	c := &config.Config{
-		ValidBuildFileNames: []string{buildFileName},
-	}
-	l := resolve.NewLabeler(c)
-	r := resolve.NewResolver(c, l)
-	g := rules.NewGenerator(c, r, l, "", nil)
-	pkg := &packages.Package{}
-	f, _ := g.Generate(pkg)
-	if f.Path != buildFileName {
-		t.Errorf("got %q; want %q", f.Path, buildFileName)
 	}
 }

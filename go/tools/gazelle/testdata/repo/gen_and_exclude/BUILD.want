@@ -3,8 +3,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
-        "static.go",
         "gen.go",
+        "static.go",
     ] + select({
         "@io_bazel_rules_go//go/platform:darwin_amd64": [
             "gen_static_darwin.go",
