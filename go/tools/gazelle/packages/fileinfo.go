@@ -178,14 +178,17 @@ func fileNameInfo(dir, rel, name string) fileInfo {
 }
 
 // goFileInfo returns information about a .go file. It will parse part of the
-// file to determine the package name and imports.
+// file to determine the package name, imports, and build constraints.
+// If the file can't be read, an error will be logged, and partial information
+// will be returned.
 // This function is intended to match go/build.Context.Import.
-func goFileInfo(c *config.Config, dir, rel, name string) (fileInfo, error) {
+func goFileInfo(c *config.Config, dir, rel, name string) fileInfo {
 	info := fileNameInfo(dir, rel, name)
 	fset := token.NewFileSet()
 	pf, err := parser.ParseFile(fset, info.path, nil, parser.ImportsOnly|parser.ParseComments)
 	if err != nil {
-		return fileInfo{}, err
+		log.Printf("%s: error reading go file: %v", info.path, err)
+		return info
 	}
 
 	info.packageName = pf.Name.Name
@@ -207,12 +210,13 @@ func goFileInfo(c *config.Config, dir, rel, name string) (fileInfo, error) {
 			quoted := spec.Path.Value
 			path, err := strconv.Unquote(quoted)
 			if err != nil {
-				return fileInfo{}, err
+				log.Printf("%s: error reading go file: %v", info.path, err)
+				continue
 			}
 
 			if path == "C" {
 				if info.isTest {
-					return fileInfo{}, fmt.Errorf("%s: use of cgo in test not supported", info.path)
+					log.Printf("%s: warning: use of cgo in test not supported", info.path)
 				}
 				info.isCgo = true
 				cg := spec.Doc
@@ -221,7 +225,7 @@ func goFileInfo(c *config.Config, dir, rel, name string) (fileInfo, error) {
 				}
 				if cg != nil {
 					if err := saveCgo(&info, cg); err != nil {
-						return fileInfo{}, err
+						log.Printf("%s: error reading go file: %v", info.path, err)
 					}
 				}
 			} else if !isStandard(c.GoPrefix, path) {
@@ -232,11 +236,12 @@ func goFileInfo(c *config.Config, dir, rel, name string) (fileInfo, error) {
 
 	tags, err := readTags(info.path)
 	if err != nil {
-		return fileInfo{}, err
+		log.Printf("%s: error reading go file: %v", info.path, err)
+		return info
 	}
 	info.tags = tags
 
-	return info, nil
+	return info
 }
 
 // saveCgo extracts CFLAGS, CPPFLAGS, CXXFLAGS, and LDFLAGS directives
@@ -457,22 +462,25 @@ func isStandard(goPrefix, importpath string) bool {
 }
 
 // otherFileInfo returns information about a non-.go file. It will parse
-// part of the file to determine build tags.
-func otherFileInfo(dir, rel, name string) (fileInfo, error) {
+// part of the file to determine build tags. If the file can't be read, an
+// error will be logged, and partial information will be returned.
+func otherFileInfo(dir, rel, name string) fileInfo {
 	info := fileNameInfo(dir, rel, name)
 	if info.category == ignoredExt {
-		return info, nil
+		return info
 	}
 	if info.category == unsupportedExt {
-		return fileInfo{}, fmt.Errorf("%s: file extension not yet supported", name)
+		log.Printf("%s: warning: file extension not yet supported", info.path)
+		return info
 	}
 
-	if tags, err := readTags(info.path); err != nil {
-		return fileInfo{}, err
-	} else {
-		info.tags = tags
+	tags, err := readTags(info.path)
+	if err != nil {
+		log.Printf("%s: error reading file: %v", info.path, err)
+		return info
 	}
-	return info, nil
+	info.tags = tags
+	return info
 }
 
 // Copied from go/build. Keep in sync as new platforms are added.

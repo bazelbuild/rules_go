@@ -169,10 +169,11 @@ func buildPackage(c *config.Config, dir string, goFiles, otherFiles, genFiles []
 	// Process the .go files first.
 	packageMap := make(map[string]*Package)
 	cgo := false
+	var goFilesWithUnknownPackage []fileInfo
 	for _, goFile := range goFiles {
-		info, err := goFileInfo(c, dir, rel, goFile)
-		if err != nil {
-			log.Print(err)
+		info := goFileInfo(c, dir, rel, goFile)
+		if info.packageName == "" {
+			goFilesWithUnknownPackage = append(goFilesWithUnknownPackage, info)
 			continue
 		}
 		if info.packageName == "documentation" {
@@ -205,13 +206,16 @@ func buildPackage(c *config.Config, dir string, goFiles, otherFiles, genFiles []
 		return nil
 	}
 
+	// Add .go files with unknown packages. This happens when there are parse
+	// or I/O errors. We should keep the file in the srcs list and let the
+	// compiler deal with the error.
+	for _, goFile := range goFilesWithUnknownPackage {
+		pkg.addFile(c, goFile, cgo)
+	}
+
 	// Process the other static files.
 	for _, file := range otherFiles {
-		info, err := otherFileInfo(dir, rel, file)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
+		info := otherFileInfo(dir, rel, file)
 		err = pkg.addFile(c, info, cgo)
 		if err != nil {
 			log.Print(err)

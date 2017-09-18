@@ -148,10 +148,7 @@ package route
 		}
 		defer os.Remove(tc.name)
 
-		got, err := goFileInfo(c, dir, rel, tc.name)
-		if err != nil {
-			t.Fatal(err)
-		}
+		got := goFileInfo(c, dir, rel, tc.name)
 
 		// Clear fields we don't care about for testing.
 		got = fileInfo{
@@ -169,52 +166,26 @@ package route
 	}
 }
 
-func TestGoFileInfoFailures(t *testing.T) {
-	c := &config.Config{}
+func TestGoFileInfoFailure(t *testing.T) {
 	dir := "."
-	rel := ""
-	for _, tc := range []struct {
-		desc, name, source, wantError string
-	}{
-		{
-			"parse error",
-			"foo.go",
-			"pakcage foo",
-			"expected 'package'",
-		},
-		{
-			"cgo error",
-			"foo.go",
-			`package foo
+	name := "foo_linux_amd64.go"
+	if err := ioutil.WriteFile(name, []byte("pakcage foo"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(name)
 
-// #cgo !
-import "C"
-`,
-			"invalid #cgo line",
-		},
-		{
-			"cgo in test",
-			"foo_test.go",
-			`package foo
-
-import "C"
-`,
-			"use of cgo in test not supported",
-		},
-	} {
-		if err := ioutil.WriteFile(tc.name, []byte(tc.source), 0600); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Remove(tc.name)
-
-		var errorText string
-		if _, err := goFileInfo(c, dir, rel, tc.name); err != nil {
-			errorText = err.Error()
-		}
-
-		if tc.wantError == "" && errorText != "" || tc.wantError != "" && !strings.Contains(errorText, tc.wantError) {
-			t.Errorf("case %q: got error %q; want error containing %q", tc.desc, errorText, tc.wantError)
-		}
+	c := &config.Config{}
+	got := goFileInfo(c, dir, "", name)
+	want := fileInfo{
+		path:     filepath.Join(dir, name),
+		name:     name,
+		ext:      ".go",
+		category: goExt,
+		goos:     "linux",
+		goarch:   "amd64",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %#v ; want %#v", got, want)
 	}
 }
 
@@ -246,50 +217,12 @@ func TestOtherFileInfo(t *testing.T) {
 		}
 		defer os.Remove(tc.name)
 
-		got, err := otherFileInfo(dir, rel, tc.name)
-		if err != nil {
-			t.Fatal(err)
-		}
+		got := otherFileInfo(dir, rel, tc.name)
 
 		// Only check that we can extract tags. Everything else is covered
 		// by other tests.
 		if !reflect.DeepEqual(got.tags, tc.wantTags) {
 			t.Errorf("case %q: got %#v; want %#v", got.tags, tc.wantTags)
-		}
-	}
-}
-
-func TestOtherFileInfoFailures(t *testing.T) {
-	dir := "."
-	rel := ""
-	for _, tc := range []struct {
-		desc, name, source, wantError string
-	}{
-		{
-			"ignored file",
-			"foo.txt",
-			"",
-			"",
-		},
-		{
-			"unsupported file",
-			"foo.m",
-			"",
-			"file extension not yet supported",
-		},
-	} {
-		if err := ioutil.WriteFile(tc.name, []byte(tc.source), 0600); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Remove(tc.name)
-
-		var errorText string
-		if _, err := otherFileInfo(dir, rel, tc.name); err != nil {
-			errorText = err.Error()
-		}
-
-		if tc.wantError == "" && errorText != "" || tc.wantError != "" && !strings.Contains(errorText, tc.wantError) {
-			t.Errorf("case %q: got error %q; want error containing %q", tc.desc, errorText, tc.wantError)
 		}
 	}
 }
@@ -609,73 +542,13 @@ import ("C")
 		}
 		defer os.Remove(path)
 
-		got, err := goFileInfo(c, dir, rel, path)
-		if err != nil {
-			t.Fatal(err)
-		}
+		got := goFileInfo(c, dir, rel, path)
 
 		// Clear fields we don't care about for testing.
 		got = fileInfo{isCgo: got.isCgo, copts: got.copts, clinkopts: got.clinkopts}
 
 		if !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("case %q: got %#v; want %#v", tc.desc, got, tc.want)
-		}
-	}
-}
-
-func TestCgoFailures(t *testing.T) {
-	c := &config.Config{}
-	dir := "."
-	rel := ""
-	for _, tc := range []struct {
-		desc, source, wantError string
-	}{
-		{
-			"bad go file",
-			"pakcage foo",
-			"expected 'package'",
-		},
-		{
-			"unknown cgo verb",
-			`package foo
-
-// #cgo FFLAGS: -O0
-import "C"
-`,
-			"invalid #cgo verb",
-		},
-		{
-			"unsupported cgo verb",
-			`package foo
-
-// #cgo pkg-config: foo
-import "C"
-`,
-			"not supported",
-		},
-		{
-			"bad cgo quoting",
-			`package foo
-
-// #cgo CFLAGS: 'foo bar'
-import "C"
-`,
-			"malformed #cgo argument",
-		},
-	} {
-		path := "TestCgoFailures.go"
-		if err := ioutil.WriteFile(path, []byte(tc.source), 0600); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Remove(path)
-
-		var errorText string
-		if _, err := goFileInfo(c, dir, rel, path); err != nil {
-			errorText = err.Error()
-		}
-
-		if tc.wantError == "" && errorText != "" || tc.wantError != "" && !strings.Contains(errorText, tc.wantError) {
-			t.Errorf("case %q: got error %q; want error containing %q", tc.desc, errorText, tc.wantError)
 		}
 	}
 }
