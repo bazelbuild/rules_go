@@ -23,12 +23,10 @@ import (
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-const (
-	gazelleIgnore = "# gazelle:ignore" // marker in a BUILD file to ignore it.
-	keep          = "# keep"           // marker in srcs or deps to tell gazelle to preserve.
-)
+const keep = "# keep" // marker in srcs or deps to tell gazelle to preserve.
 
 var (
 	mergeableFields = map[string]bool{
@@ -429,16 +427,10 @@ func mergeLoad(gen, old *bf.CallExpr, oldfile *bf.File) *bf.CallExpr {
 // shouldIgnore checks whether "gazelle:ignore" appears at the beginning of
 // a comment before or after any top-level statement in the file.
 func shouldIgnore(oldFile *bf.File) bool {
-	for _, s := range oldFile.Stmt {
-		for _, c := range s.Comment().After {
-			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return true
-			}
-		}
-		for _, c := range s.Comment().Before {
-			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return true
-			}
+	_, directives := config.ParseDirectives(oldFile, nil)
+	for _, d := range directives {
+		if d.Key == "ignore" {
+			return true
 		}
 	}
 	return false

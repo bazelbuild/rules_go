@@ -29,7 +29,7 @@ import (
 )
 
 // A WalkFunc is a callback called by Walk for each package.
-type WalkFunc func(pkg *Package, oldFile *bf.File)
+type WalkFunc func(c *config.Config, pkg *Package, oldFile *bf.File)
 
 // Walk walks through directories under "root".
 // It calls back "f" for each package. If an existing BUILD file is present
@@ -53,8 +53,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 	// data dependencies.
 	var visit func(string) bool
 	visit = func(path string) bool {
-		// Look for an existing BUILD file. Directives in this file may influence
-		// the rest of the process.
+		// Look for an existing BUILD file.
 		var oldFile *bf.File
 		haveError := false
 		for _, base := range c.ValidBuildFileNames {
@@ -83,9 +82,16 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 			}
 		}
 
-		var excluded map[string]bool
+		// Process directives in the build file.
+		excluded := make(map[string]bool)
 		if oldFile != nil {
-			excluded = findExcludedFiles(oldFile)
+			var directives []config.Directive
+			c, directives = config.ParseDirectives(oldFile, c)
+			for _, d := range directives {
+				if d.Key == "exclude" {
+					excluded[d.Value] = true
+				}
+			}
 		}
 
 		// List files and subdirectories.
@@ -138,7 +144,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		}
 		pkg := buildPackage(c, path, goFiles, otherFiles, genFiles, hasTestdata)
 		if pkg != nil {
-			f(pkg, oldFile)
+			f(c, pkg, oldFile)
 			hasPackage = true
 		}
 		return hasPackage
@@ -312,20 +318,4 @@ func findGenFiles(f *bf.File, excluded map[string]bool) []string {
 		}
 	}
 	return genFiles
-}
-
-const gazelleExclude = "# gazelle:exclude " // marker in a BUILD file to exclude source files.
-
-func findExcludedFiles(f *bf.File) map[string]bool {
-	excluded := make(map[string]bool)
-	for _, s := range f.Stmt {
-		comments := append(s.Comment().Before, s.Comment().After...)
-		for _, c := range comments {
-			if strings.HasPrefix(c.Token, gazelleExclude) {
-				f := strings.TrimSpace(c.Token[len(gazelleExclude):])
-				excluded[f] = true
-			}
-		}
-	}
-	return excluded
 }

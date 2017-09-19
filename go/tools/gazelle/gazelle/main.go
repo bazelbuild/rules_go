@@ -70,7 +70,7 @@ type visitor interface {
 	// Gazelle processes. "pkg" describes the buildable Go code. It will not
 	// be nil. "oldFile" is the existing build file in the visited directory.
 	// It may be nil if no file is present.
-	visit(pkg *packages.Package, oldFile *bf.File)
+	visit(c *config.Config, pkg *packages.Package, oldFile *bf.File)
 
 	// finish is called once after all directories have been visited.
 	finish()
@@ -117,11 +117,11 @@ type hierarchicalVisitor struct {
 	shouldProcessRoot, didProcessRoot bool
 }
 
-func (v *hierarchicalVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
-	g := rules.NewGenerator(v.c, v.r, v.l, pkg.Rel, oldFile)
+func (v *hierarchicalVisitor) visit(c *config.Config, pkg *packages.Package, oldFile *bf.File) {
+	g := rules.NewGenerator(c, v.r, v.l, pkg.Rel, oldFile)
 	rules, empty := g.GenerateRules(pkg)
 	genFile := &bf.File{
-		Path: filepath.Join(pkg.Dir, v.c.DefaultBuildFileName()),
+		Path: filepath.Join(pkg.Dir, c.DefaultBuildFileName()),
 		Stmt: rules,
 	}
 	v.mergeAndEmit(genFile, oldFile, empty)
@@ -157,11 +157,11 @@ type flatVisitor struct {
 	oldRootFile *bf.File
 }
 
-func (v *flatVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
+func (v *flatVisitor) visit(c *config.Config, pkg *packages.Package, oldFile *bf.File) {
 	if pkg.Rel == "" {
 		v.oldRootFile = oldFile
 	}
-	g := rules.NewGenerator(v.c, v.r, v.l, "", oldFile)
+	g := rules.NewGenerator(c, v.r, v.l, "", oldFile)
 	rules, empty := g.GenerateRules(pkg)
 	v.rules[pkg.Rel] = rules
 	v.empty = append(v.empty, empty...)
@@ -361,13 +361,7 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 		return nil, cmd, nil, fmt.Errorf("no valid build file names specified")
 	}
 
-	c.GenericTags = make(config.BuildTags)
-	for _, t := range strings.Split(*buildTags, ",") {
-		if strings.HasPrefix(t, "!") {
-			return nil, cmd, nil, fmt.Errorf("build tags can't be negated: %s", t)
-		}
-		c.GenericTags[t] = true
-	}
+	c.SetBuildTags(*buildTags)
 	c.Platforms = config.DefaultPlatformTags
 	c.PreprocessTags()
 

@@ -17,6 +17,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Config holds information about how Gazelle should run. This is mostly
@@ -92,9 +93,29 @@ func init() {
 	}
 }
 
+// SetBuildTags sets GenericTags by parsing as a comma separated list. An
+// error will be returned for tags that wouldn't be recognized by "go build".
+// PreprocessTags should be called after this.
+func (c *Config) SetBuildTags(tags string) error {
+	c.GenericTags = make(BuildTags)
+	if tags == "" {
+		return nil
+	}
+	for _, t := range strings.Split(tags, ",") {
+		if strings.HasPrefix(t, "!") {
+			return fmt.Errorf("build tags can't be negated: %s", t)
+		}
+		c.GenericTags[t] = true
+	}
+	return nil
+}
+
 // PreprocessTags performs some automatic processing on generic and
 // platform-specific tags before they are used to match files.
 func (c *Config) PreprocessTags() {
+	if c.GenericTags == nil {
+		c.GenericTags = make(BuildTags)
+	}
 	c.GenericTags["cgo"] = true
 	c.GenericTags["gc"] = true
 	for _, platformTags := range c.Platforms {

@@ -45,7 +45,7 @@ func testConfig(repoRoot, goPrefix string) *config.Config {
 func packageFromDir(c *config.Config, dir string) (*packages.Package, *bf.File) {
 	var pkg *packages.Package
 	var oldFile *bf.File
-	packages.Walk(c, dir, func(p *packages.Package, f *bf.File) {
+	packages.Walk(c, dir, func(_ *config.Config, p *packages.Package, f *bf.File) {
 		if p.Dir == dir {
 			pkg = p
 			oldFile = f
