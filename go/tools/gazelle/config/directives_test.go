@@ -22,44 +22,28 @@ import (
 	bf "github.com/bazelbuild/buildtools/build"
 )
 
-func TestDirectives(t *testing.T) {
+func TestParseDirectives(t *testing.T) {
 	for _, tc := range []struct {
-		desc, content  string
-		wantConfig     Config
-		wantDirectives []Directive
+		desc, content string
+		want          []Directive
 	}{
 		{
 			desc: "empty file",
 		}, {
 			desc: "locations",
-			content: `# gazelle:top
+			content: `# gazelle:ignore top
 
-#gazelle:before
+#gazelle:ignore before
 foo(
-   "foo",  # gazelle:inside
-) # gazelle:suffix
-#gazelle:after
+   "foo",  # gazelle:ignore inside
+) # gazelle:ignore suffix
+#gazelle:ignore after
 
-# gazelle: bottom`,
-			wantDirectives: []Directive{
-				{Key: "top"},
-				{Key: "before"},
-				{Key: "after"},
+# gazelle:ignore bottom`,
+			want: []Directive{
+				{"ignore", "top"},
+				{"ignore", "before"},
 			},
-		}, {
-			desc:           "empty build_tags",
-			content:        `# gazelle:build_tags`,
-			wantDirectives: []Directive{{"build_tags", ""}},
-		}, {
-			desc:           "build_tags",
-			content:        `# gazelle:build_tags  foo,bar  `,
-			wantConfig:     Config{GenericTags: BuildTags{"foo": true, "bar": true}},
-			wantDirectives: []Directive{{"build_tags", "foo,bar"}},
-		}, {
-			desc:           "build_file_name",
-			content:        `# gazelle:build_file_name foo,bar`,
-			wantConfig:     Config{ValidBuildFileNames: []string{"foo", "bar"}},
-			wantDirectives: []Directive{{"build_file_name", "foo,bar"}},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -68,15 +52,41 @@ foo(
 				t.Fatal(err)
 			}
 
+			got := ParseDirectives(f)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("got %#v ; want %#v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestApplyDirectives(t *testing.T) {
+	for _, tc := range []struct {
+		desc       string
+		directives []Directive
+		want       Config
+	}{
+		{
+			desc:       "empty build_tags",
+			directives: []Directive{{"build_tags", ""}},
+			want:       Config{},
+		}, {
+			desc:       "build_tags",
+			directives: []Directive{{"build_tags", "foo,bar"}},
+			want:       Config{GenericTags: BuildTags{"foo": true, "bar": true}},
+		}, {
+			desc:       "build_file_name",
+			directives: []Directive{{"build_file_name", "foo,bar"}},
+			want:       Config{ValidBuildFileNames: []string{"foo", "bar"}},
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
 			c := &Config{}
 			c.PreprocessTags()
-			gotConfig, gotDirectives := ParseDirectives(f, c)
-			tc.wantConfig.PreprocessTags()
-			if !reflect.DeepEqual(*gotConfig, tc.wantConfig) {
-				t.Errorf("bad configuration. got %#v ; want %#v", *gotConfig, tc.wantConfig)
-			}
-			if !reflect.DeepEqual(gotDirectives, tc.wantDirectives) {
-				t.Errorf("bad directives. got %#v ; want %#v", gotDirectives, tc.wantDirectives)
+			got := ApplyDirectives(c, tc.directives)
+			tc.want.PreprocessTags()
+			if !reflect.DeepEqual(*got, tc.want) {
+				t.Errorf("got %#v ; want %#v", *got, tc.want)
 			}
 		})
 	}

@@ -34,48 +34,83 @@ type Directive struct {
 	Key, Value string
 }
 
-// ParseDirectives scans f for Gazelle directives. Directives related to
-// the configuration will be applied to a copy of c, which is returned.
-// c may be nil, in which case changes are applied to the default configuration.
-// The full list of directives is returned in either case.
-//
-// The following configuration directives are recognized:
-//
-// * build_tags - comma-separated list of build tags that will be considered
-//   true on all platforms. Sets GenericTags.
-// * build_file_name - comma-separated list of build file names. Sets
-//   ValidBuildFileNames.
-//
-// TODO(jayconrod): support GoPrefix, and DepMode at least.
-func ParseDirectives(f *bf.File, c *Config) (*Config, []Directive) {
-	var modified Config
-	if c != nil {
-		modified = *c
+// Top-level directives apply to the whole package or build file. They must
+// appear before the first statement.
+var knownTopLevelDirectives = map[string]bool{
+	"build_file_name": true,
+	"build_tags":      true,
+	"exclude":         true,
+	"ignore":          true,
+}
+
+// TODO(jayconrod): annotation directives will apply to an individual rule.
+// They must appear in the block of comments above that rule.
+
+// ParseDirectives scans f for Gazelle directives. The full list of directives
+// is returned. Errors are reported for unrecognized directives and directives
+// out of place (after the first statement).
+func ParseDirectives(f *bf.File) []Directive {
+	var directives []Directive
+	beforeStmt := true
+	parseComment := func(com bf.Comment) {
+		match := directiveRe.FindStringSubmatch(com.Token)
+		if match == nil {
+			return
+		}
+		key, value := match[1], match[2]
+		if _, ok := knownTopLevelDirectives[key]; !ok {
+			log.Printf("%s:%d: unknown directive: %s", f.Path, com.Start.Line, com.Token)
+			return
+		}
+		if !beforeStmt {
+			log.Printf("%s:%d: top-level directive may not appear after the first statement", f.Path, com.Start.Line)
+			return
+		}
+		directives = append(directives, Directive{key, value})
 	}
 
-	var directives []Directive
 	for _, s := range f.Stmt {
-		comments := append(s.Comment().Before, s.Comment().After...)
-		for _, com := range comments {
-			match := directiveRe.FindStringSubmatch(com.Token)
-			if match == nil {
-				continue
-			}
-			d := Directive{match[1], match[2]}
-			directives = append(directives, d)
-
-			switch d.Key {
-			case "build_tags":
-				if err := modified.SetBuildTags(d.Value); err != nil {
-					log.Print(err)
-				}
-				modified.PreprocessTags()
-			case "build_file_name":
-				modified.ValidBuildFileNames = strings.Split(d.Value, ",")
-			}
+		coms := s.Comment()
+		for _, com := range coms.Before {
+			parseComment(com)
+		}
+		_, isComment := s.(*bf.CommentBlock)
+		beforeStmt = beforeStmt && isComment
+		for _, com := range coms.Suffix {
+			parseComment(com)
+		}
+		for _, com := range coms.After {
+			parseComment(com)
 		}
 	}
-	return &modified, directives
+	return directives
 }
 
 var directiveRe = regexp.MustCompile(`^#\s*gazelle:(\w+)\s*(.*?)\s*$`)
+
+// ApplyDirectives applies directives that modify the configuration to a
+// copy of c, which is returned. If there are no configuration directives,
+// c is returned unmodified.
+func ApplyDirectives(c *Config, directives []Directive) *Config {
+	modified := *c
+	didModify := false
+	for _, d := range directives {
+		switch d.Key {
+		case "build_tags":
+			if err := modified.SetBuildTags(d.Value); err != nil {
+				log.Print(err)
+				modified.GenericTags = c.GenericTags
+			} else {
+				modified.PreprocessTags()
+				didModify = true
+			}
+		case "build_file_name":
+			modified.ValidBuildFileNames = strings.Split(d.Value, ",")
+			didModify = true
+		}
+	}
+	if !didModify {
+		return c
+	}
+	return &modified
+}

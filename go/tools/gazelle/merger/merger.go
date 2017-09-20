@@ -427,7 +427,7 @@ func mergeLoad(gen, old *bf.CallExpr, oldfile *bf.File) *bf.CallExpr {
 // shouldIgnore checks whether "gazelle:ignore" appears at the beginning of
 // a comment before or after any top-level statement in the file.
 func shouldIgnore(oldFile *bf.File) bool {
-	_, directives := config.ParseDirectives(oldFile, nil)
+	directives := config.ParseDirectives(oldFile)
 	for _, d := range directives {
 		if d.Key == "ignore" {
 			return true

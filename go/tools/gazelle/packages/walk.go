@@ -85,8 +85,8 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		// Process directives in the build file.
 		excluded := make(map[string]bool)
 		if oldFile != nil {
-			var directives []config.Directive
-			c, directives = config.ParseDirectives(oldFile, c)
+			directives := config.ParseDirectives(oldFile)
+			c = config.ApplyDirectives(c, directives)
 			for _, d := range directives {
 				if d.Key == "exclude" {
 					excluded[d.Value] = true
