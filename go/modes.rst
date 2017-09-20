@@ -1,6 +1,12 @@
 Build modes
 ===========
 
+.. _Output groups: https://docs.bazel.build/versions/master/skylark/rules.html#output-groups
+.. _go_library: core.rst#go_library
+.. _go_binary: core.rst#go_binary
+.. _go_test: core.rst#go_test
+.. _filegroup: https://docs.bazel.build/versions/master/be/general.html#filegroup
+
 * `Overview`_
 * `Building static binaries`_
 * `Using the race detector`_
@@ -11,45 +17,59 @@ Overview
 There are a few modes in which the core go rules can be run, and the selection 
 mechanism depends on the nature of the variation.
 
-Features
-~~~~~~~~
 The most common selection mechanisms used on the command line are features and 
 output groups.
 
-Features are normally off, unless you select them with :code:`--features=featurename`
+Features
+~~~~~~~~
 
-Available features are:
+Features are normally off, unless you select them with :code:`--features=featurename` on the bazel
+command line. Features are generic tags that affect *all* rules, not just the ones you specify or
+even just the go ones, and any feature can be interpreted by any rule. There is also no protections 
+that two different rules will not intepret the same feature in very different ways, and no way for
+rule authors to protect against that, so it is up to the user when specifying a feature on the
+command line to know what it's affects will be on all the rules in their build.
 
-* race
+Available features from the go rules are:
+
+* go_test_
+    * race
 
 Output groups
 ~~~~~~~~~~~~~
 
-There is a default output group that is built unless you specificall select a
+`Output groups`_ are alternative sets of files produced by the build targets on the command line.
+There is a default output group that is built unless you specifically select a
 different one.
 
 If you use :code:`--output_groups=groupname` then only that output group will be 
-built, if you use :code:`--output_groups=+groupname` then that output group will
-be added to the set to be built (note the +)
+built; if you use :code:`--output_groups=+groupname` then that output group will
+be added to the set to be built (note the +).
 
-Output groups are also often used inside rules to pick a specify output mode of
-the rules. Only outputs that are actively select are built.
+Output groups may also be used by rules to select files from dependencies. 
+Only outputs that are actively selected are built.
 
-Available output groups are:
 
-* race
-* static
+Available output groups from the go rules are:
+
+* go_binary_
+    * race
+    * static
+* go_library_
+    * race
 
 Building static binaries
 ------------------------
 
-You can build binaries in static linking mode using
+| Note that static linking does not work on darwin.
+
+You can build statically linked binaries using
 
 .. code:: bash
 
     bazel build --output_groups=static //:my_binary
 
-You can depend on static binaries (e.g., for packaging) using ``filegroup``:
+You can depend on static binaries (e.g., for packaging) using filegroup_
 
 .. code:: bzl
 
