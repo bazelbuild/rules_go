@@ -407,7 +407,6 @@ func TestExcluded(t *testing.T) {
 # gazelle:exclude do.go
 
 # gazelle:exclude not.go
-x = 0
 # gazelle:exclude build.go
 
 genrule(
