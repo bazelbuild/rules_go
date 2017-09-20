@@ -543,7 +543,7 @@ func TestMalformedGoFile(t *testing.T) {
 			Name: "foo",
 			Library: packages.Target{
 				Sources: packages.PlatformStrings{
-					Generic: []string{"b.go"},
+					Generic: []string{"b.go", "a.go"},
 				},
 			},
 		},
