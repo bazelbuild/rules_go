@@ -16,6 +16,7 @@ limitations under the License.
 package merger
 
 import (
+	"fmt"
 	"log"
 	"sort"
 
@@ -252,15 +253,63 @@ func squashDict(x, y *bf.DictExpr) (*bf.DictExpr, error) {
 // This should be called after FixFile and MergeWithExisting, since symbols
 // may be introduced that aren't loaded.
 func FixLoads(oldFile *bf.File) *bf.File {
-	// Identify load statements for the Go rules, and determine which symbols
-	// are actually used.
+	// Make a list of load statements in the file. Keep track of loads of known
+	// files, since these may be changed. Keep track of known symbols loaded from
+	// unknown files; we will not add loads for these.
 	type loadInfo struct {
 		index      int
+		file       string
 		old, fixed *bf.CallExpr
 	}
 	var loads []loadInfo
-	usedKinds := make(map[string]bool)
+	otherLoadedKinds := make(map[string]bool)
 	for i, stmt := range oldFile.Stmt {
+		c, ok := stmt.(*bf.CallExpr)
+		if !ok {
+			continue
+		}
+		x, ok := c.X.(*bf.LiteralExpr)
+		if !ok || x.Token != "load" {
+			continue
+		}
+
+		if len(c.List) == 0 {
+			continue
+		}
+		label, ok := c.List[0].(*bf.StringExpr)
+		if !ok {
+			continue
+		}
+		isKnownFile := false
+		for _, f := range knownFiles {
+			if label.Value == f {
+				isKnownFile = true
+				break
+			}
+		}
+
+		if isKnownFile {
+			loads = append(loads, loadInfo{index: i, file: label.Value, old: c})
+			continue
+		}
+		for _, arg := range c.List[1:] {
+			switch sym := arg.(type) {
+			case *bf.StringExpr:
+				otherLoadedKinds[sym.Value] = true
+			case *bf.BinaryExpr:
+				if sym.Op != "=" {
+					continue
+				}
+				if x, ok := sym.X.(*bf.LiteralExpr); ok {
+					otherLoadedKinds[x.Token] = true
+				}
+			}
+		}
+	}
+
+	// Make a map of all the symbols from known files used in this file.
+	usedKinds := make(map[string]map[string]bool)
+	for _, stmt := range oldFile.Stmt {
 		c, ok := stmt.(*bf.CallExpr)
 		if !ok {
 			continue
@@ -270,35 +319,39 @@ func FixLoads(oldFile *bf.File) *bf.File {
 			continue
 		}
 
-		if x.Token == "load" {
-			if len(c.List) == 0 {
-				continue
+		kind := x.Token
+		if file, ok := knownKinds[kind]; ok && !otherLoadedKinds[kind] {
+			if usedKinds[file] == nil {
+				usedKinds[file] = make(map[string]bool)
 			}
-			if label, ok := c.List[0].(*bf.StringExpr); ok && label.Value == config.RulesGoDefBzlLabel {
-				loads = append(loads, loadInfo{index: i, old: c})
-			}
-			continue
-		}
-
-		if knownKinds[x.Token] {
-			usedKinds[x.Token] = true
+			usedKinds[file][kind] = true
 		}
 	}
 
 	// Fix the load statements.
 	changed := false
-	var newFirstLoad *bf.CallExpr
-	if len(loads) == 0 {
-		newFirstLoad = fixLoad(nil, usedKinds)
-		changed = newFirstLoad != nil
-	} else {
-		for i := 0; i < len(loads); i++ {
-			if i == 0 {
-				loads[i].fixed = fixLoad(loads[i].old, usedKinds)
-			} else {
-				loads[i].fixed = fixLoad(loads[i].old, nil)
+	var newFirstLoads []*bf.CallExpr
+	for _, f := range knownFiles {
+		first := true
+		for i, _ := range loads {
+			li := &loads[i]
+			if li.file != f {
+				continue
 			}
-			changed = changed || loads[i].fixed != loads[i].old
+			if first {
+				li.fixed = fixLoad(li.old, f, usedKinds[f])
+				first = false
+			} else {
+				li.fixed = fixLoad(li.old, f, nil)
+			}
+			changed = changed || li.fixed != li.old
+		}
+		if first {
+			load := fixLoad(nil, f, usedKinds[f])
+			if load != nil {
+				newFirstLoads = append(newFirstLoads, load)
+				changed = true
+			}
 		}
 	}
 	if !changed {
@@ -307,9 +360,9 @@ func FixLoads(oldFile *bf.File) *bf.File {
 
 	// Rebuild the file.
 	fixedFile := *oldFile
-	fixedFile.Stmt = nil
-	if newFirstLoad != nil {
-		fixedFile.Stmt = append(fixedFile.Stmt, newFirstLoad)
+	fixedFile.Stmt = make([]bf.Expr, 0, len(oldFile.Stmt)+len(newFirstLoads))
+	for _, l := range newFirstLoads {
+		fixedFile.Stmt = append(fixedFile.Stmt, l)
 	}
 	loadIndex := 0
 	for i, stmt := range oldFile.Stmt {
@@ -325,16 +378,30 @@ func FixLoads(oldFile *bf.File) *bf.File {
 	return &fixedFile
 }
 
-// knownKinds is the set of symbols that Gazelle ever generated loads for,
-// including symbols it no longer uses (e.g., cgo_library), not including
-// other symbols loaded manually (e.g., go_embed_data). This function will
-// only add or remove loads of these symbols.
-var knownKinds = map[string]bool{
-	"cgo_library": true,
-	"go_binary":   true,
-	"go_library":  true,
-	"go_prefix":   true,
-	"go_test":     true,
+// knownFiles is the set of labels for files that Gazelle loads symbols from.
+var knownFiles []string
+
+// knownKinds is a map from symbols to labels of the files they are loaded
+// from. All symbols Gazelle ever generated loads for are present, including
+// symbols it no longer uses (e.g., cgo_library). Manually loaded symbols
+// (e.g., go_embed_data) are not included.
+var knownKinds map[string]string
+
+func init() {
+	knownKinds = make(map[string]string)
+	for _, f := range []struct {
+		file  string
+		kinds []string
+	}{
+		{"go:def.bzl", []string{"cgo_library", "go_binary", "go_library", "go_prefix", "go_test"}},
+		{"proto:def.bzl", []string{"go_grpc_library", "go_proto_library"}},
+	} {
+		filename := fmt.Sprintf("@%s//%s", config.RulesGoRepoName, f.file)
+		knownFiles = append(knownFiles, filename)
+		for _, k := range f.kinds {
+			knownKinds[k] = filename
+		}
+	}
 }
 
 // fixLoad updates a load statement. load must be a load statement for
@@ -343,13 +410,13 @@ var knownKinds = map[string]bool{
 // are removed if they are not in kinds, and other symbols and arguments
 // are preserved. nil is returned if the statement should be deleted because
 // it is empty.
-func fixLoad(load *bf.CallExpr, kinds map[string]bool) *bf.CallExpr {
+func fixLoad(load *bf.CallExpr, file string, kinds map[string]bool) *bf.CallExpr {
 	var fixed bf.CallExpr
 	if load == nil {
 		fixed = bf.CallExpr{
 			X: &bf.LiteralExpr{Token: "load"},
 			List: []bf.Expr{
-				&bf.StringExpr{Value: config.RulesGoDefBzlLabel},
+				&bf.StringExpr{Value: file},
 			},
 			ForceCompact: true,
 		}
@@ -363,7 +430,7 @@ func fixLoad(load *bf.CallExpr, kinds map[string]bool) *bf.CallExpr {
 	var added, removed int
 	for _, arg := range fixed.List[1:] {
 		if s, ok := arg.(*bf.StringExpr); ok {
-			if !knownKinds[s.Value] || kinds != nil && kinds[s.Value] {
+			if knownKinds[s.Value] == "" || kinds != nil && kinds[s.Value] {
 				symbols = append(symbols, s)
 				loadedKinds[s.Value] = true
 			} else {

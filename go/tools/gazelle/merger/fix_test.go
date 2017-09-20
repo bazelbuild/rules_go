@@ -261,6 +261,26 @@ go_embed_data(
 )
 `,
 		}, {
+			desc: "proto symbols",
+			old: `go_proto_library(
+    name = "foo_proto",
+)
+
+go_grpc_library(
+    name = "bar_proto",
+)
+`,
+			want: `load("@io_bazel_rules_go//proto:def.bzl", "go_grpc_library", "go_proto_library")
+
+go_proto_library(
+    name = "foo_proto",
+)
+
+go_grpc_library(
+    name = "bar_proto",
+)
+`,
+		}, {
 			desc: "fixLoad doesn't touch other symbols or loads",
 			old: `load(
     "@io_bazel_rules_go//go:def.bzl",
@@ -284,6 +304,36 @@ load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
 
 go_library(
     name = "go_default_library",
+)
+`,
+		}, {
+			desc: "fixLoad doesn't touch loads from other files",
+			old: `load(
+    "@com_github_pubref_rules_protobuf//go:rules.bzl",
+    "go_proto_library",
+    go_grpc_library = "go_proto_library",
+)
+
+go_proto_library(
+    name = "foo_go_proto",
+)
+
+grpc_proto_library(
+    name = "bar_go_proto",
+)
+`,
+			want: `load(
+    "@com_github_pubref_rules_protobuf//go:rules.bzl",
+    "go_proto_library",
+    go_grpc_library = "go_proto_library",
+)
+
+go_proto_library(
+    name = "foo_go_proto",
+)
+
+grpc_proto_library(
+    name = "bar_go_proto",
 )
 `,
 		},

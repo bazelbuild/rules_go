@@ -19,9 +19,6 @@ const (
 	// RulesGoRepoName is the canonical name of the rules_go repository. It must
 	// match the workspace name in WORKSPACE.
 	RulesGoRepoName = "io_bazel_rules_go"
-	// RulesGoDefBzlLabel is the canonical label for def.bzl, where all
-	// Go-related rules are defined.
-	RulesGoDefBzlLabel = "@io_bazel_rules_go//go:def.bzl"
 	// DefaultLibName is the name of the default go_library rule in a Go
 	// package directory. It must be consistent to DEFAULT_LIB in go/private/common.bf.
 	DefaultLibName = "go_default_library"
