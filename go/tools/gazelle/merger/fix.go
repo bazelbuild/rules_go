@@ -16,7 +16,6 @@ limitations under the License.
 package merger
 
 import (
-	"fmt"
 	"log"
 	"sort"
 
@@ -280,15 +279,8 @@ func FixLoads(oldFile *bf.File) *bf.File {
 		if !ok {
 			continue
 		}
-		isKnownFile := false
-		for _, f := range knownFiles {
-			if label.Value == f {
-				isKnownFile = true
-				break
-			}
-		}
 
-		if isKnownFile {
+		if knownFiles[label.Value] {
 			loads = append(loads, loadInfo{index: i, file: label.Value, old: c})
 			continue
 		}
@@ -328,26 +320,28 @@ func FixLoads(oldFile *bf.File) *bf.File {
 		}
 	}
 
-	// Fix the load statements.
+	// Fix the load statements. The order is important, so we iterate over
+	// knownLoads instead of knownFiles.
 	changed := false
 	var newFirstLoads []*bf.CallExpr
-	for _, f := range knownFiles {
+	for _, l := range knownLoads {
+		file := l.file
 		first := true
 		for i, _ := range loads {
 			li := &loads[i]
-			if li.file != f {
+			if li.file != file {
 				continue
 			}
 			if first {
-				li.fixed = fixLoad(li.old, f, usedKinds[f])
+				li.fixed = fixLoad(li.old, file, usedKinds[file])
 				first = false
 			} else {
-				li.fixed = fixLoad(li.old, f, nil)
+				li.fixed = fixLoad(li.old, file, nil)
 			}
 			changed = changed || li.fixed != li.old
 		}
 		if first {
-			load := fixLoad(nil, f, usedKinds[f])
+			load := fixLoad(nil, file, usedKinds[file])
 			if load != nil {
 				newFirstLoads = append(newFirstLoads, load)
 				changed = true
@@ -378,28 +372,49 @@ func FixLoads(oldFile *bf.File) *bf.File {
 	return &fixedFile
 }
 
+// knownLoads is a list of files Gazelle will generate loads from and
+// the symbols it knows about.  All symbols Gazelle ever generated
+// loads for are present, including symbols it no longer uses (e.g.,
+// cgo_library). Manually loaded symbols (e.g., go_embed_data) are not
+// included. The order of the files here will match the order of
+// generated load statements. The symbols should be sorted
+// lexicographically.
+var knownLoads = []struct {
+	file  string
+	kinds []string
+}{
+	{
+		"@io_bazel_rules_go//go:def.bzl",
+		[]string{
+			"cgo_library",
+			"go_binary",
+			"go_library",
+			"go_prefix",
+			"go_test",
+		},
+	}, {
+		"@io_bazel_rules_go//proto:def.bzl",
+		[]string{
+			"go_grpc_library",
+			"go_proto_library",
+		},
+	},
+}
+
 // knownFiles is the set of labels for files that Gazelle loads symbols from.
-var knownFiles []string
+var knownFiles map[string]bool
 
 // knownKinds is a map from symbols to labels of the files they are loaded
-// from. All symbols Gazelle ever generated loads for are present, including
-// symbols it no longer uses (e.g., cgo_library). Manually loaded symbols
-// (e.g., go_embed_data) are not included.
+// from.
 var knownKinds map[string]string
 
 func init() {
+	knownFiles = make(map[string]bool)
 	knownKinds = make(map[string]string)
-	for _, f := range []struct {
-		file  string
-		kinds []string
-	}{
-		{"go:def.bzl", []string{"cgo_library", "go_binary", "go_library", "go_prefix", "go_test"}},
-		{"proto:def.bzl", []string{"go_grpc_library", "go_proto_library"}},
-	} {
-		filename := fmt.Sprintf("@%s//%s", config.RulesGoRepoName, f.file)
-		knownFiles = append(knownFiles, filename)
-		for _, k := range f.kinds {
-			knownKinds[k] = filename
+	for _, l := range knownLoads {
+		knownFiles[l.file] = true
+		for _, k := range l.kinds {
+			knownKinds[k] = l.file
 		}
 	}
 }
