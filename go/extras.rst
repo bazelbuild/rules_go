@@ -5,6 +5,11 @@ Extra rules
 .. _go_repository: workspace.rst#go_repository
 .. _`gazelle documentation`: tools/gazelle/README.md
 
+.. role:: param(kbd)
+.. role:: type(emphasis)
+.. role:: value(code)
+.. |mandatory| replace:: **mandatory value**
+
 This is a collection of helper rules. These are not core to building a go binary, but are supplied
 to make life a little easier.
 
@@ -27,38 +32,39 @@ See the `gazelle documentation`_ for more details.
 +----------------------------+-----------------------------+---------------------------------------+
 | **Name**                   | **Type**                    | **Default value**                     |
 +----------------------------+-----------------------------+---------------------------------------+
-| **command**                | *string*                    | ``update``                            |
+| :param:`command`           | :type:`string`              | :value:`update`                       |
 +----------------------------+-----------------------------+---------------------------------------+
 | Controls the basic mode of operation gazelle runs in.                                            |
 |                                                                                                  |
-| * ``update`` : Gazelle will create new BUILD files or update existing BUILD files if needed.     |
-| * ``fix`` : In addition to the changes made in update, Gazelle will make potentially breaking    |
-|             changes.                                                                             |
+| * :value:`update` : Gazelle will create new BUILD files or update existing BUILD files if        |
+|   needed.                                                                                        |
+| * :value:`fix` : In addition to the changes made in update, Gazelle will make potentially        |
+|   breaking changes.                                                                              |
 +----------------------------+-----------------------------+---------------------------------------+
-| **mode**                   | *string*                    | ``fix``                               |
+| :param:`mode`              | :type:`string`              | :value:`fix`                          |
 +----------------------------+-----------------------------+---------------------------------------+
 | Controls the action gazelle takes when it detects files that are out of date.                    |
 |                                                                                                  |
-| * ``print`` : prints all of the updated BUILD files.                                             |
-| * ``fix`` : rewrites all of the BUILD files in place.                                            |
-| * ``diff`` : computes the rewrite but then just does a diff.                                     |
+| * :value:`print` : prints all of the updated BUILD files.                                        |
+| * :value:`fix` : rewrites all of the BUILD files in place.                                       |
+| * :value:`diff` : computes the rewrite but then just does a diff.                                |
 +----------------------------+-----------------------------+---------------------------------------+
-| **external**               | *string*                    | ``external``                          |
+| :param:`external`          | :type:`string`              | :value:`external`                     |
 +----------------------------+-----------------------------+---------------------------------------+
 | Controls how gazelle resolves import paths to labels.                                            |
 |                                                                                                  |
-| * ``external`` : resolve external packages with go_repository_                                   |
-| * ``vendored`` : resolve external packages as packages in vendor                                 |
+| * :value:`external` - resolve external packages with go_repository_                              |
+| * :value:`vendored` - resolve external packages as packages in vendor                            |
 +----------------------------+-----------------------------+---------------------------------------+
-| **build_tags**             | *string_list*               | ``None``                              |
+| :param:`build_tags`        | :type:`string_list`         | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | A list of build tags. If not specified, Gazelle will not filter sources with build constraints.  |
 +----------------------------+-----------------------------+---------------------------------------+
-| **args**                   | *string_list*               | ``None``                              |
+| :param:`args`              | :type:`string_list`         | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | Arguments to forward to gazelle.                                                                 |
 +----------------------------+-----------------------------+---------------------------------------+
-| **prefix**      | *string*          | ``""``                                                     |
+| :param:`prefix`            | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | The prefix of the target workspace. This is path fragement fom the GOPATH to your repository if  |
 | it were checked out with the normal go tools. It is combined the workspace relative path when    |
@@ -74,39 +80,41 @@ It should be consumed in the srcs list of one of the `core go rules`_.
 +----------------------------+-----------------------------+---------------------------------------+
 | **Name**                   | **Type**                    | **Default value**                     |
 +----------------------------+-----------------------------+---------------------------------------+
-| **out**                    | *string*                    | **mandatory value**                   |
+| :param:`out`               | :type:`string`              | |mandatory|                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | File name of the .go file to generate.                                                           |
 +----------------------------+-----------------------------+---------------------------------------+
-| **package**                | *string*                    | ``""``                                |
+| :param:`package`           | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | Go package name for the generated .go file.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
-| **var**                    | *string*                    | ``"Data"``                            |
+| :param:`var`               | :type:`string`              | :value:`"Data"`                       |
 +----------------------------+-----------------------------+---------------------------------------+
 | Name of the variable that will contain the embedded data.                                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| **src**                    | *string*                    | ``""``                                |
+| :param:`src`               | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
-| A single file to embed. This cannot be used at the same time as **srcs**.                        |
-| The generated file will have a variable of type *[]byte* or *string* with the contents of this   |
-| file.                                                                                            |
+| A single file to embed. This cannot be used at the same time as :param:`srcs`.                   |
+| The generated file will have a variable of type :type:`[]byte` or :type:`string` with the        |
+| contents of this file.                                                                           |
 +----------------------------+-----------------------------+---------------------------------------+
-| **srcs**                   | *string*                    | ``None``                              |
+| :param:`srcs`              | :type:`string`              | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| A list of files to embed. This cannot be used at the same time as **src**. The generated file    |
-| will have a variable of type *map[string][]byte* or *map[string]string* with the contents of     |
-| each file. The map keys are relative paths the files from the repository root. Keys for files    |
-| in external repositories will be prefixed with ``"external/repo/"`` where "repo" is the name     |
-| of the external repository.                                                                      |
+| A list of files to embed. This cannot be used at the same time as :param:`src`.                  |
+| The generated file will have a variable of type :type:`map[string][]byte` or                     |
+| :type:`map[string]string` with the contents of each file.                                        |
+| The map keys are relative paths the files from the repository root.                              |
+| Keys for files in external repositories will be prefixed with :value:`"external/repo/"` where    |
+| "repo" is the name of the external repository.                                                   |
 +----------------------------+-----------------------------+---------------------------------------+
-| **flatten**                | *boolean*                   | ``false``                             |
+| :param:`flatten`           | :type:`boolean`             | :value:`false`                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| If ``true`` and **srcs** is used, map keys are file base names instead of relative paths.        |
+| If :value:`true` and :param:`srcs` is used, map keys are file base names instead of relative     |
+| paths.                                                                                           |
 +----------------------------+-----------------------------+---------------------------------------+
-| **string**                 | *boolean*                   | ``false``                             |
+| :param:`string`            | :type:`boolean`             | :value:`false`                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| If ``true``, the embedded data will be stored as *string* instead of *[]byte*.                   |
+| If :value:`true`, the embedded data will be stored as :type:`string` instead of :type:`[]byte`.  |
 +----------------------------+-----------------------------+---------------------------------------+
         
        
