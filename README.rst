@@ -35,7 +35,8 @@ September 13, 2017
   from some of our dependencies, since it changed upstream.
 August 28, 2017
   Release `0.5.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.4>`_ is
-  now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains support.
+  now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains 
+  support.
 August 9, 2017
   Release `0.5.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.3>`_ is
   now available!
