@@ -12,8 +12,13 @@ Core go rules
 .. _"Make variable": https://docs.bazel.build/versions/master/be/make-variables.html
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
 .. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
+.. _cc library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
+
+.. |default| replace:: :code:`default`
 .. _static: modes.rst#using-the-race-detector
+.. |static| replace:: :code:`static`
 .. _race: modes.rst#building-static-binaries
+.. |race| replace:: :code:`race`
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -23,7 +28,7 @@ Core go rules
 These are the core go rules, required for basic operation.
 The intent is that theses rules are sufficient to match the capabilities of the normal go tools.
 
-.. contents::
+.. contents:: :depth: 2
 
 -----
 
@@ -38,8 +43,8 @@ Defines and stamping
 Embedding
 ~~~~~~~~~
 
-This is used for things like internal tests, where a library is recompiled with additional
-and also code generators where the generated source will be known to have extra dependancies.
+This is used for things like internal tests, where a library is recompiled with additional sources
+and also code generators where the generated source will be known to have extra dependencies.
 
 **TODO**: More information
 
@@ -61,8 +66,8 @@ Providers
 Output groups
 ^^^^^^^^^^^^^
 
-* default *: A library with the default build options.*
-* race_ *: The library build with race detection enabled.*
+* |default| : A library with the default build options.
+* |race|_ : The library build with race detection enabled.
 
 Attributes
 ^^^^^^^^^^
@@ -91,11 +96,13 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of GoLibrary_ providers this library imports directly.                                      |
+| List of Go libraries this library imports directly.                                              |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of GoEmbed_ providers this library embeds.                                                  |
+| List of Go libraries this test library directly.                                                 |
+| These may be go_library rules or compatible rules with the GoEmbed_ provider.                    |
 | These can provide both :param:`srcs` and param:`deps` to this library.                           |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -122,17 +129,20 @@ Attributes
 | :param:`cdeps`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | The list of other libraries that the c code depends on.                                          |
-| These should be names of C++ library rules.                                                      |
+| This can be anything that would be allowed in `cc library deps`_                                 |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`copts`             | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of flags to add to the C compilation command.                                               |
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`clinkopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of flags to add to the C link command.                                                      |
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 
 Example
@@ -171,9 +181,9 @@ Providers
 Output groups
 ^^^^^^^^^^^^^
 
-* default *: A binary with the default build options.*
-* static_ *: A statically linked binary.*
-* race_ *: The binary with race detection enabled.*
+* |default| : A binary with the default build options.
+* |static|_ : A statically linked binary.
+* |race|_ : The binary with race detection enabled.
 
 Attributes
 ^^^^^^^^^^
@@ -202,12 +212,14 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of GoLibrary_ providers this binary imports directly.                                       |
+| List of Go libraries this binary imports directly.                                               |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of GoEmbed_ providers this binary embeds.                                                   |
-| These can provide both :param:`srcs` and param:`deps` to this library.                           |
+| List of Go libraries this binary embeds directly.                                                |
+| These may be go_library rules or compatible rules with the GoEmbed_ provider.                    |
+| These can provide both :param:`srcs` and param:`deps` to this binary.                            |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -243,17 +255,20 @@ Attributes
 | :param:`cdeps`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | The list of other libraries that the c code depends on.                                          |
-| These should be names of C++ library rules.                                                      |
+| This can be anything that would be allowed in `cc library deps`_                                 |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`copts`             | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of flags to add to the C compilation command.                                               |
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`clinkopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of flags to add to the C link command.                                                      |
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 
 go_test
@@ -279,7 +294,7 @@ Providers
 Output groups
 ^^^^^^^^^^^^^
 
-* default *: The test binary.*
+* |default| : The test binary.
 
 Attributes
 ^^^^^^^^^^
@@ -309,12 +324,14 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of GoLibrary_ providers this test imports directly.                                         |
+| List of Go libraries this test imports directly.                                                 |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of GoEmbed_ providers this binary embeds.                                                   |
-| These can provide both :param:`srcs` and param:`deps` to this library.                           |
+| List of Go libraries this test embeds directly.                                                  |
+| These may be go_library rules or compatible rules with the GoEmbed_ provider.                    |
+| These can provide both :param:`srcs` and param:`deps` to this test.                              |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -350,17 +367,20 @@ Attributes
 | :param:`cdeps`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | The list of other libraries that the c code depends on.                                          |
-| These should be names of C++ library rules.                                                      |
+| This can be anything that would be allowed in `cc library deps`_                                 |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`copts`             | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of flags to add to the C compilation command.                                               |
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`clinkopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of flags to add to the C link command.                                                      |
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
+| Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`rundir`            | :type:`string`              | The package path                      |
 +----------------------------+-----------------------------+---------------------------------------+
