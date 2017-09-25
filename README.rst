@@ -35,38 +35,30 @@ September 13, 2017
   from some of our dependencies, since it changed upstream.
 August 28, 2017
   Release `0.5.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.4>`_ is
-  now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains 
+  now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains
   support.
 August 9, 2017
   Release `0.5.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.3>`_ is
   now available!
 
 
+.. contents::
+
+
 Quick links
 -----------
 
-* Overview_
-* Setup_
-
-  * `Generating build files`_
-  * `Writing build files by hand`_
-  
-* API
-
-  * `Core api <go/core.rst>`_
-  * `Workspace rules <go/workspace.rst>`_
-  * `Toolchains <go/toolchains.rst>`_
-  * `Protobuf rules <proto/core.rst>`_
-  * `Extra rules <go/extras.rst>`_
-  * `Deprecated rules <go/deprecated.rst>`_
-
+* `Core api <go/core.rst>`_
+* `Workspace rules <go/workspace.rst>`_
+* `Toolchains <go/toolchains.rst>`_
+* `Protobuf rules <proto/core.rst>`_
+* `Extra rules <go/extras.rst>`_
+* `Deprecated rules <go/deprecated.rst>`_
 * `Build modes <go/modes.rst>`_
 
-* FAQ_
 
 Overview
 --------
-
 
 The rules are in the alpha stage of development. They support:
 
@@ -102,7 +94,7 @@ Setup
   If you're using the latest stable release you can use the following contents:
 
   .. code:: bzl
-  
+
     http_archive(
         name = "io_bazel_rules_go",
         url = "https://github.com/bazelbuild/rules_go/releases/download/0.5.5/rules_go-0.5.5.tar.gz",
@@ -171,9 +163,9 @@ build files automatically using gazelle_, a tool included in this repository.
   This will generate a ``BUILD.bazel`` file for each Go package in your
   repository.  You can run the same command in the future to update existing
   build files with new source files, dependencies, and options.
-  
+
 Writing build files by hand
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your project doesn't follow ``go build`` conventions or you prefer not to use
 gazelle_, you can write build files by hand.
@@ -231,7 +223,7 @@ gazelle_, you can write build files by hand.
 * For each binary, add a go_binary_ rule like the one below.
 
   .. code:: bzl
-  
+
     go_binary(
         name = "foo",
         srcs = ["main.go"],
@@ -246,30 +238,34 @@ FAQ
 ---
 
 Can I still use the ``go`` tool?
-  Yes, this setup was deliberately chosen to be compatible with ``go build``.
-  Make sure your project appears in ``GOPATH``, and it should work.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``, so
-  these will be downloaded into ``GOPATH``. You may also need to check in generated
-  files.
+Yes, this setup was deliberately chosen to be compatible with ``go build``.
+Make sure your project appears in ``GOPATH``, and it should work.
+
+Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``, so
+these will be downloaded into ``GOPATH``. You may also need to check in generated
+files.
 
 What's up with the ``go_default_library`` name?
-  This was used to keep import paths consistent in libraries that can be built
-  with ``go build`` before the ``importpath`` attribute was available.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  In order to compile and link correctly, the Go rules need to be able to
-  translate Bazel labels to Go import paths. Libraries that don't set the
-  ``importpath`` attribute explicitly have an implicit dependency on ``//:go_prefix``,
-  a special rule that specifies an import path prefix. The import path is
-  the prefix concatenated with the Bazel package and target name. For example,
-  if your prefix was ``github.com/example/project``, and your library was
-  ``//foo/bar:bar``, the Go rules would decide the import path was
-  ``github.com/example/project/foo/bar/bar``. The stutter at the end is incompatible
-  with ``go build``, so if the label name is ``go_default_library``, the import path
-  is just the prefix concatenated with the package name. So if your library is
-  ``//foo/bar:go_default_library``, the import path is
-  ``github.com/example/project/foo/bar``.
+This was used to keep import paths consistent in libraries that can be built
+with ``go build`` before the ``importpath`` attribute was available.
 
-  We are working on deprecating ``go_prefix`` and making ``importpath`` mandatory (see
-  `#721`_). When this work is   complete, the ``go_default_library`` name won't be needed. 
-  We may decide to stop using this name in the future (see `#265`_).
+In order to compile and link correctly, the Go rules need to be able to
+translate Bazel labels to Go import paths. Libraries that don't set the
+``importpath`` attribute explicitly have an implicit dependency on ``//:go_prefix``,
+a special rule that specifies an import path prefix. The import path is
+the prefix concatenated with the Bazel package and target name. For example,
+if your prefix was ``github.com/example/project``, and your library was
+``//foo/bar:bar``, the Go rules would decide the import path was
+``github.com/example/project/foo/bar/bar``. The stutter at the end is incompatible
+with ``go build``, so if the label name is ``go_default_library``, the import path
+is just the prefix concatenated with the package name. So if your library is
+``//foo/bar:go_default_library``, the import path is
+``github.com/example/project/foo/bar``.
+
+We are working on deprecating ``go_prefix`` and making ``importpath`` mandatory (see
+`#721`_). When this work is   complete, the ``go_default_library`` name won't be needed.
+We may decide to stop using this name in the future (see `#265`_).
