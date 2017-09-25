@@ -230,7 +230,6 @@ def _external_linker_impl(ctx):
         cpp.mostly_static_link_options(features, False))
   return struct(
       compiler_executable = cpp.compiler_executable,
-      ar_executable = cpp.ar_executable,
       options = options,
       c_options = cpp.c_options,
   )

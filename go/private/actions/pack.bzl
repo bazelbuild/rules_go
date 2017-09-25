@@ -27,7 +27,6 @@ def emit_pack(ctx, go_toolchain, in_lib, out_lib, objects = (), archive = None):
     
   arguments = [
       "-gotool", go_toolchain.tools.go.path,
-      "-ar", go_toolchain.external_linker.ar_executable,
       "-in", in_lib.path,
       "-out", out_lib.path,
   ]
