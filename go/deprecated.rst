@@ -7,6 +7,7 @@ Deprecated functionality
 .. _nested workspaces: https://bazel.build/designs/2016/09/19/recursive-ws-parsing.html
 .. _go_rules_dependencies: workspace.rst#go_rules_dependencies
 .. _go_register_toolchains: workspace.rst#go_register_toolchains
+.. _#721: https://github.com/bazelbuild/rules_go/issues/721
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -63,3 +64,26 @@ day be superseded by `nested workspaces`_.
     go_rules_dependencies()
     go_register_toolchains()
 
+
+go_prefix
+~~~~~~~~~
+
+This is a legacy from when the import path for a go_library_ was determined from the root
+go_prefix and the path from the workspace root. Now instead we have every single go_library_
+know it's own import path. We currently maintain this rule for backwards compatability, but we
+expect to have it removed well before 1.0. See `#721`_.
+
+This declares the common prefix of the import path which is shared by all Go libraries in the
+repository.
+A go_prefix rule must be declared in the top-level BUILD file for any repository containing
+Go rules.
+This is used by the Bazel rules during compilation to map import paths to dependencies.
+See the |go_prefix_faq|_ for more information.
+
++----------------------------+-----------------------------+---------------------------------------+
+| **Name**                   | **Type**                    | **Default value**                     |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`prefix`            | :type:`string`              | |mandatory|                           |
++----------------------------+-----------------------------+---------------------------------------+
+| Global prefix used to fully qualify all Go targets.                                              |
++----------------------------+-----------------------------+---------------------------------------+
