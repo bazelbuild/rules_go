@@ -60,7 +60,8 @@ This was done because go_register_toolchains_ is a long term api that the user m
 with or not call, whereas go_rules_dependencies_ is an API that you should always call but will one
 day be superseded by `nested workspaces`_.
 
-.. code: bzl
+.. code:: bzl
+
     go_rules_dependencies()
     go_register_toolchains()
 
