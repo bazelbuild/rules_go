@@ -17,23 +17,6 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "CgoInfo", "GoLibrary")
 
 _CgoCodegen = provider()
 
-# TODO(jayconrod): delete these rules and use output groups instead.
-def _cgo_select_go_files_impl(ctx):
-  return struct(files = ctx.attr.dep[_CgoCodegen].go_files)
-
-_cgo_select_go_files = rule(
-    _cgo_select_go_files_impl,
-    attrs = {"dep": attr.label(providers = [_CgoCodegen])},
-)
-
-def _cgo_select_main_c_impl(ctx):
-  return struct(files = ctx.attr.dep[_CgoCodegen].main_c)
-
-_cgo_select_main_c = rule(
-    _cgo_select_main_c_impl,
-    attrs = {"dep": attr.label(providers = [_CgoCodegen])},
-)
-
 def _mangle(ctx, src):
     src_stem, _, src_ext = src.path.rpartition('.')
     mangled_stem = ctx.attr.out_dir + "/" + src_stem.replace('/', '_')
@@ -125,10 +108,18 @@ def _cgo_codegen_impl(ctx):
           deps = deps,
           exports = depset([cgo_export_h]),
       ),
-      DefaultInfo(files = c_outs + source.headers, runfiles = runfiles)
+      DefaultInfo(
+          files = depset(),
+          runfiles = runfiles,
+      ),
+      OutputGroupInfo(
+          go_files = go_outs,
+          c_files = c_outs + source.headers,
+          main_c = depset([cgo_main]),
+      ),
   ]
 
-_cgo_codegen_rule = rule(
+_cgo_codegen = rule(
     _cgo_codegen_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
@@ -198,6 +189,7 @@ def _cgo_collect_info_impl(ctx):
       DefaultInfo(files = depset(), runfiles = runfiles),
       CgoInfo(
           archive = ctx.file.lib,
+          gen_go_srcs = ctx.files.gen_go_srcs,
           deps = ctx.attr.codegen[_CgoCodegen].deps,
           exports = ctx.attr.codegen[_CgoCodegen].exports,
           runfiles = runfiles,
@@ -208,6 +200,7 @@ _cgo_collect_info = rule(
     _cgo_collect_info_impl,
     attrs = {
         "codegen": attr.label(mandatory = True, providers = [_CgoCodegen]),
+        "gen_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
         "lib": attr.label(mandatory = True, allow_single_file = True, providers = ["cc"]),
     },
 )
@@ -228,7 +221,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   copts = copts + ["-I", base_dir]
 
   cgo_codegen_name = name + ".cgo_codegen"
-  _cgo_codegen_rule(
+  _cgo_codegen(
       name = cgo_codegen_name,
       srcs = srcs,
       deps = cdeps,
@@ -239,16 +232,26 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   )
 
   select_go_files = name + ".select_go_files"
-  _cgo_select_go_files(
+  native.filegroup(
       name = select_go_files,
-      dep = cgo_codegen_name,
+      srcs = [cgo_codegen_name],
+      output_group = "go_files",
+      visibility = ["//visibility:private"],
+  )
+
+  select_c_files = name + ".select_c_files"
+  native.filegroup(
+      name = select_c_files,
+      srcs = [cgo_codegen_name],
+      output_group = "c_files",
       visibility = ["//visibility:private"],
   )
 
   select_main_c = name + ".select_main_c"
-  _cgo_select_main_c(
+  native.filegroup(
       name = select_main_c,
-      dep = cgo_codegen_name,
+      srcs = [cgo_codegen_name],
+      output_group = "main_c",
       visibility = ["//visibility:private"],
   )
 
@@ -264,7 +267,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_lib_name = name + ".cgo_c_lib"
   native.cc_library(
       name = cgo_lib_name,
-      srcs = [cgo_codegen_name],
+      srcs = [select_c_files],
       deps = cdeps,
       copts = copts + platform_copts + [
           "-I", "$(BINDIR)/" + base_dir + "/" + cgo_codegen_dir,
@@ -304,15 +307,12 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   _cgo_collect_info(
       name = cgo_info_name,
       codegen = cgo_codegen_name,
+      gen_go_srcs = [
+          select_go_files,
+          cgo_import_name,
+      ],
       lib = cgo_lib_name,
       visibility = ["//visibility:private"],
   )
 
-  return struct(
-      name = name,
-      go_srcs = [
-          select_go_files,
-          cgo_import_name,
-      ],
-      cgo_info = cgo_info_name,
-  )
+  return cgo_info_name

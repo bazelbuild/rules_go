@@ -67,7 +67,10 @@ def emit_library(
   direct = depset(golibs)
   gc_goopts = tuple(ctx.attr.gc_goopts)
   cover_vars = ()
-  cgo_info_label = ctx.label if cgo_info else None
+  cgo_info_label = None
+  if cgo_info:
+    srcs = cgo_info.gen_go_srcs
+    cgo_info_label = ctx.label
   for t in embed:
     goembed = t[GoEmbed]
     srcs = getattr(goembed, "srcs", depset()) + srcs
