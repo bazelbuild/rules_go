@@ -62,7 +62,7 @@ go_library = rule(
     _go_library_impl,
     attrs = {
         "data": attr.label_list(allow_files = True, cfg = "data"),
-        "srcs": attr.label_list(allow_files = go_filetype),
+        "srcs": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
         "library": attr.label(providers = [GoLibrary]),

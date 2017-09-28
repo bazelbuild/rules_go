@@ -43,7 +43,7 @@ def emit_link(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs)
   extldflags = []
   if go_toolchain.external_linker:
     ld = go_toolchain.external_linker.compiler_executable
-    extldflags = go_toolchain.external_linker.options
+    extldflags = list(go_toolchain.external_linker.options)
   extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)]
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)

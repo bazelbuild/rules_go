@@ -44,7 +44,7 @@ def emit_library(
   Args:
     ctx: the Skylark Context.
     go_toolchain: the Go toolchain.
-    srcs: an iterable of .go source Files to be compiled.
+    srcs: an iterable of original .go source Files to be compiled.
     deps: an iterable of Targets with the GoLibrary provider. These are
         direct dependencies.
     embed: an iterable of Targets with the GoEmbed provider. Sources,
@@ -67,13 +67,16 @@ def emit_library(
   direct = depset(golibs)
   gc_goopts = tuple(ctx.attr.gc_goopts)
   cover_vars = ()
-  cgo_info_label = None
   if cgo_info:
-    srcs = cgo_info.gen_go_srcs
+    build_srcs = cgo_info.gen_go_srcs
     cgo_info_label = ctx.label
+  else:
+    build_srcs = srcs
+    cgo_info_label = None
   for t in embed:
     goembed = t[GoEmbed]
     srcs = getattr(goembed, "srcs", depset()) + srcs
+    build_srcs = getattr(goembed, "build_srcs", depset()) + build_srcs
     cover_vars += getattr(goembed, "cover_vars", ())
     direct += getattr(goembed, "deps", ())
     dep_runfiles += [t.data_runfiles]
@@ -86,10 +89,11 @@ def emit_library(
       cgo_info = embed_cgo_info
       cgo_info_label = t.label
 
-  source = split_srcs(srcs)
+  source = split_srcs(build_srcs)
+  go_srcs = source.go
   if source.c:
     fail("c sources in non cgo rule")
-  if not source.go:
+  if not go_srcs:
     fail("no go sources")
 
   if cgo_info:
@@ -110,7 +114,6 @@ def emit_library(
     transitive += [golib]
     transitive += golib.transitive
 
-  go_srcs = source.go
   if want_coverage:
     go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, go_srcs)
     cover_vars += cvars
@@ -179,7 +182,8 @@ def emit_library(
           **mode_fields
       ),
       GoEmbed(
-          srcs = join_srcs(struct(**transformed)), # The transformed sources actually compiled
+          srcs = srcs, # The original sources
+          build_srcs = join_srcs(struct(**transformed)), # The transformed sources actually compiled
           deps = direct, # The direct depencancies of the library
           cover_vars = cover_vars, # The cover variables for these sources
           cgo_info = cgo_info, # The cgo information for this library or one of its embeds.
