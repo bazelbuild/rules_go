@@ -78,7 +78,7 @@ def go_rules_dependencies():
     name = name.replace("-", "_").replace(".", "_")
     _maybe(go_sdk,
         name = name,
-        url = "https://storage.googleapis.com/golang/" + filename,
+        urls = ["https://storage.googleapis.com/golang/" + filename],
         sha256 = sha256,
         strip_prefix = "go",
     )

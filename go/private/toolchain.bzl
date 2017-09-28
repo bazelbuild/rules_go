@@ -27,11 +27,15 @@ go_host_sdk = repository_rule(_go_host_sdk_impl, environ = ["GOROOT"])
 """go_host_sdk is a specialization of go_sdk just to add the GOROOT dependancy"""
 
 def _go_sdk_impl(ctx):
+  urls = ctx.attr.urls
   if ctx.attr.url:
+    print("DEPRECATED: use urls instead of url on go_sdk, {}".format(ctx.attr.url))
+    urls = [ctx.attr.url] + urls
+  if urls:
     if ctx.attr.path:
-      fail("url and path cannot both be set on go_sdk, got {} and {}".format(ctx.attr.url, ctx.attr.path))
+      fail("url and path cannot both be set on go_sdk, got {} and {}".format(urls, ctx.attr.path))
     _sdk_build_file(ctx, str(ctx.path(".")))
-    _remote_sdk(ctx, ctx.attr.url, ctx.attr.strip_prefix, ctx.attr.sha256)
+    _remote_sdk(ctx, urls, ctx.attr.strip_prefix, ctx.attr.sha256)
   elif ctx.attr.path:
     _sdk_build_file(ctx, ctx.attr.path)
     _local_sdk(ctx, ctx.attr.path)
@@ -39,14 +43,14 @@ def _go_sdk_impl(ctx):
     path = _detect_host_sdk(ctx)
     _sdk_build_file(ctx, path)
     _local_sdk(ctx, path)
-    
+
   if "TMP" in ctx.os.environ:
     tmp = ctx.os.environ["TMP"]
     ctx.symlink(tmp, "tmp")
   else:
     ctx.file("tmp/ignore", content="") # make a file to force the directory to exist
     tmp = str(ctx.path("tmp").realpath)
-  
+
   # Build the standard library for valid cross compile platforms
   #TODO: fix standard library cross compilation
   if ctx.name.endswith("linux_amd64") and ctx.os.name == "linux":
@@ -55,10 +59,11 @@ def _go_sdk_impl(ctx):
     _cross_compile_stdlib(ctx, "linux", "amd64", tmp)
 
 go_sdk = repository_rule(
-    implementation = _go_sdk_impl, 
+    implementation = _go_sdk_impl,
     attrs = {
         "path": attr.string(),
         "url": attr.string(),
+        "urls": attr.string_list(),
         "strip_prefix": attr.string(default="go"),
         "sha256": attr.string(),
     },
@@ -66,14 +71,14 @@ go_sdk = repository_rule(
 """
     go_sdk is a rule for adding a new go SDK to the available set.
     This does not make the sdk available for use directly, it needs to be exposed through a toolchain.
-    If you do not specify url or path, then it will attempt to detect the installed version of go.
+    If you do not specify urls or path, then it will attempt to detect the installed version of go.
 """
 
-def _remote_sdk(ctx, url, strip_prefix, sha256):
+def _remote_sdk(ctx, urls, strip_prefix, sha256):
   ctx.download_and_extract(
-      url = ctx.attr.url,
-      stripPrefix = ctx.attr.strip_prefix,
-      sha256 = ctx.attr.sha256,
+      url = urls,
+      stripPrefix = strip_prefix,
+      sha256 = sha256,
   )
 
 def _local_sdk(ctx, path):
@@ -81,7 +86,7 @@ def _local_sdk(ctx, path):
     ctx.symlink(path+"/"+entry, entry)
 
 def _sdk_build_file(ctx, goroot):
-  ctx.template("BUILD.bazel", 
+  ctx.template("BUILD.bazel",
       Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
       substitutions = {"{goroot}": goroot, "{extension}": executable_extension(ctx)},
       executable = False,
@@ -96,14 +101,14 @@ def _cross_compile_stdlib(ctx, goos, goarch, tmp):
       "TMP": tmp,
   }
   res = ctx.execute(
-      ["bin/go"+executable_extension(ctx), "install", "-v", "std"], 
+      ["bin/go"+executable_extension(ctx), "install", "-v", "std"],
       environment = env,
   )
   if res.return_code:
     print("failed: ", res.stderr)
     fail("go standard library cross compile %s to %s-%s failed" % (ctx.name, goos, goarch))
   res = ctx.execute(
-      ["bin/go"+executable_extension(ctx), "install", "-v", "runtime/cgo"], 
+      ["bin/go"+executable_extension(ctx), "install", "-v", "runtime/cgo"],
       environment = env,
   )
   if res.return_code:
