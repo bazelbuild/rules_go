@@ -78,7 +78,7 @@ type visitor interface {
 
 type visitorBase struct {
 	c         *config.Config
-	r         resolve.Resolver
+	r         *resolve.Resolver
 	l         resolve.Labeler
 	shouldFix bool
 	emit      emitFunc

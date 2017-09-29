@@ -31,7 +31,7 @@ import (
 // "buildRel" is a slash-separated path to the directory containing the
 // build file being generated, relative to the repository root.
 // "oldFile" is the existing build file. May be nil.
-func NewGenerator(c *config.Config, r resolve.Resolver, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
+func NewGenerator(c *config.Config, r *resolve.Resolver, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
 	shouldSetVisibility := oldFile == nil || !hasDefaultVisibility(oldFile)
 	return &Generator{c: c, r: r, l: l, buildRel: buildRel, shouldSetVisibility: shouldSetVisibility}
 }
@@ -39,7 +39,7 @@ func NewGenerator(c *config.Config, r resolve.Resolver, l resolve.Labeler, build
 // Generator generates Bazel build rules for Go build targets.
 type Generator struct {
 	c                   *config.Config
-	r                   resolve.Resolver
+	r                   *resolve.Resolver
 	l                   resolve.Labeler
 	buildRel            string
 	shouldSetVisibility bool
@@ -233,10 +233,7 @@ func (g *Generator) buildPkgRel(pkgRel string) string {
 // dependencies converts import paths in "imports" into Bazel labels.
 func (g *Generator) dependencies(imports packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
 	resolve := func(imp string) (string, error) {
-		if strings.HasPrefix(imp, "./") || strings.HasPrefix(imp, "..") {
-			imp = path.Clean(path.Join(g.c.GoPrefix, pkgRel, imp))
-		}
-		label, err := g.r.Resolve(imp)
+		label, err := g.r.ResolveGo(imp, pkgRel)
 		if err != nil {
 			return "", fmt.Errorf("in dir %q, could not resolve import path %q: %v", pkgRel, imp, err)
 		}

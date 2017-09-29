@@ -41,7 +41,7 @@ type externalResolver struct {
 	cache map[string]repoRootCacheEntry
 }
 
-var _ Resolver = (*externalResolver)(nil)
+var _ nonlocalResolver = (*externalResolver)(nil)
 
 func newExternalResolver(l Labeler, extraKnownImports []string) *externalResolver {
 	cache := make(map[string]repoRootCacheEntry)
@@ -69,7 +69,7 @@ func newExternalResolver(l Labeler, extraKnownImports []string) *externalResolve
 // external repository. It also assumes that the external repository follows the
 // recommended reverse-DNS form of workspace name as described in
 // http://bazel.io/docs/be/functions.html#workspace.
-func (r *externalResolver) Resolve(importpath string) (Label, error) {
+func (r *externalResolver) resolve(importpath string) (Label, error) {
 	prefix, err := r.lookupPrefix(importpath)
 	if err != nil {
 		return Label{}, err

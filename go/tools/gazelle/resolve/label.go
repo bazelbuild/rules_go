@@ -15,17 +15,29 @@ limitations under the License.
 
 package resolve
 
-// vendoredResolver resolves external packages as packages in vendor/.
-type vendoredResolver struct {
-	l Labeler
+import (
+	"fmt"
+	"path"
+)
+
+// A Label represents a label of a build target in Bazel.
+type Label struct {
+	Repo, Pkg, Name string
+	Relative        bool
 }
 
-var _ nonlocalResolver = (*vendoredResolver)(nil)
+func (l Label) String() string {
+	if l.Relative {
+		return fmt.Sprintf(":%s", l.Name)
+	}
 
-func newVendoredResolver(l Labeler) *vendoredResolver {
-	return &vendoredResolver{l}
-}
+	var repo string
+	if l.Repo != "" {
+		repo = fmt.Sprintf("@%s", l.Repo)
+	}
 
-func (v *vendoredResolver) resolve(importpath string) (Label, error) {
-	return v.l.LibraryLabel("vendor/" + importpath), nil
+	if path.Base(l.Pkg) == l.Name {
+		return fmt.Sprintf("%s//%s", repo, l.Pkg)
+	}
+	return fmt.Sprintf("%s//%s:%s", repo, l.Pkg, l.Name)
 }

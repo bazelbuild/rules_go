@@ -23,37 +23,26 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-// A Resolver resolves a Go importpath into a label in Bazel.
-type Resolver interface {
-	// Resolve resolves a Go importpath "importpath" into a Label. "importpath"
-	// must not be relative. The returned Label will never be relative.
-	Resolve(importpath string) (Label, error)
+// Resolver resolves import strings in source files (import paths in Go,
+// import statements in protos) into Bazel labels.
+// TODO(#859): imports are currently resolved by guessing a label based
+// on the name. We should be smarter about this and build a table mapping
+// import paths to labels that we can use to cross-reference.
+type Resolver struct {
+	goPrefix string
+	external nonlocalResolver
+	l        Labeler
 }
 
-// A Label represents a label of a build target in Bazel.
-type Label struct {
-	Repo, Pkg, Name string
-	Relative        bool
+// nonlocalResolver resolves import paths outside of the current repository's
+// prefix. Once we have smarter import path resolution, this shouldn't
+// be necessary, and we can remove this abstraction.
+type nonlocalResolver interface {
+	resolve(imp string) (Label, error)
 }
 
-func (l Label) String() string {
-	if l.Relative {
-		return fmt.Sprintf(":%s", l.Name)
-	}
-
-	var repo string
-	if l.Repo != "" {
-		repo = fmt.Sprintf("@%s", l.Repo)
-	}
-
-	if path.Base(l.Pkg) == l.Name {
-		return fmt.Sprintf("%s//%s", repo, l.Pkg)
-	}
-	return fmt.Sprintf("%s//%s:%s", repo, l.Pkg, l.Name)
-}
-
-func NewResolver(c *config.Config, l Labeler) Resolver {
-	var e Resolver
+func NewResolver(c *config.Config, l Labeler) *Resolver {
+	var e nonlocalResolver
 	switch c.DepMode {
 	case config.ExternalMode:
 		e = newExternalResolver(l, c.KnownImports)
@@ -61,21 +50,32 @@ func NewResolver(c *config.Config, l Labeler) Resolver {
 		e = newVendoredResolver(l)
 	}
 
-	return &unifiedResolver{
+	return &Resolver{
 		goPrefix: c.GoPrefix,
-		local:    &structuredResolver{l: l, goPrefix: c.GoPrefix},
 		external: e,
+		l:        l,
 	}
 }
 
-type unifiedResolver struct {
-	goPrefix        string
-	local, external Resolver
-}
-
-func (r *unifiedResolver) Resolve(importpath string) (Label, error) {
-	if importpath != r.goPrefix && !strings.HasPrefix(importpath, r.goPrefix+"/") {
-		return r.external.Resolve(importpath)
+// ResolveGo resolves an import path from a Go source file to a label.
+// pkgRel is the path to the Go package relative to the repository root; it
+// is used to resolve relative imports.
+func (r *Resolver) ResolveGo(imp, pkgRel string) (Label, error) {
+	if imp == "." || imp == ".." ||
+		strings.HasPrefix(imp, "./") || strings.HasPrefix(imp, "../") {
+		cleanRel := path.Clean(path.Join(pkgRel, imp))
+		if strings.HasPrefix(cleanRel, "..") {
+			return Label{}, fmt.Errorf("relative import path %q from %q points outside of repository", imp, pkgRel)
+		}
+		imp = path.Join(r.goPrefix, cleanRel)
 	}
-	return r.local.Resolve(importpath)
+
+	if imp != r.goPrefix && !strings.HasPrefix(imp, r.goPrefix+"/") {
+		return r.external.resolve(imp)
+	}
+
+	if imp == r.goPrefix {
+		return r.l.LibraryLabel(""), nil
+	}
+	return r.l.LibraryLabel(strings.TrimPrefix(imp, r.goPrefix+"/")), nil
 }
