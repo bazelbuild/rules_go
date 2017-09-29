@@ -12,24 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", 
+load("@io_bazel_rules_go//go/private:common.bzl",
     "dict_of",
     "split_srcs",
     "join_srcs",
     "compile_modes",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl", 
+load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
-    "GoLibrary", 
+    "GoLibrary",
     "GoEmbed",
     "library_attr",
     "searchpath_attr",
 )
 
-def emit_library(
-    ctx,
-    go_toolchain,
-    importpath,
+def emit_library(ctx, go_toolchain,
+    importpath = "",
     srcs = (),
     deps = (),
     cgo_info = None,
@@ -59,7 +57,7 @@ def emit_library(
         other libraries.
     golibs: an iterable of GoLibrary objects. Used to pass in
         synthetic dependencies.
-       
+
   Returns:
     A tuple of GoLibrary and GoEmbed.
   """

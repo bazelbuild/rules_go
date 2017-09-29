@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", 
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "NORMAL_MODE",
     "RACE_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
@@ -20,7 +21,13 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_searchpath",
 )
 
-def emit_compile(ctx, go_toolchain, sources, importpath, golibs, mode, out_lib, gc_goopts):
+def emit_compile(ctx, go_toolchain,
+    sources = None,
+    importpath = "",
+    golibs = [],
+    mode = NORMAL_MODE,
+    out_lib = None,
+    gc_goopts = []):
   """Construct the command line for compiling Go code.
 
   Args:
@@ -32,6 +39,9 @@ def emit_compile(ctx, go_toolchain, sources, importpath, golibs, mode, out_lib, 
     out_lib: the archive file that should be produced
     gc_goopts: additional flags to pass to the compiler.
   """
+
+  if sources == None: fail("sources is a required parameter")
+  if out_lib == None: fail("out_lib is a required parameter")
 
   # Add in any mode specific behaviours
   if mode == RACE_MODE:

@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def emit_cover(ctx, go_toolchain, sources):
+def emit_cover(ctx, go_toolchain,
+               sources = []):
   """Construct the command line for test coverage instrument.
 
   Args:
@@ -29,8 +30,8 @@ def emit_cover(ctx, go_toolchain, sources):
   cover_vars = []
 
   for src in sources:
-    if (not src.basename.endswith(".go") or 
-        src.basename.endswith("_test.go") or 
+    if (not src.basename.endswith(".go") or
+        src.basename.endswith("_test.go") or
         src.basename.endswith(".cover.go")):
       outputs += [src]
       continue

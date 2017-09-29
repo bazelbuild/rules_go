@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def emit_pack(ctx, go_toolchain, in_lib, out_lib, objects = (), archive = None):
+def emit_pack(ctx, go_toolchain,
+    in_lib = None,
+    out_lib = None,
+    objects = (),
+    archive = None):
   """Construct the command line for packing objects together.
 
   Args:
@@ -23,8 +27,11 @@ def emit_pack(ctx, go_toolchain, in_lib, out_lib, objects = (), archive = None):
     archive: an optional archive file to be concatenated with the output
         archive file.
   """
+  if in_lib == None: fail("in_lib is a required parameter")
+  if out_lib == None: fail("out_lib is a required parameter")
+
   inputs = [in_lib] + go_toolchain.data.tools
-    
+
   arguments = [
       "-gotool", go_toolchain.tools.go.path,
       "-in", in_lib.path,

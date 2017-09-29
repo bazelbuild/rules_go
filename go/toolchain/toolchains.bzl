@@ -40,7 +40,7 @@ def _generate_toolchains():
           hosts = ["darwin_amd64", "linux_amd64"],
       ),
   ]
-  
+
   # The set of allowed cross compilations
   cross_targets = {
       "linux_amd64": ["windows_amd64"],

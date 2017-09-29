@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
+    "NORMAL_MODE",
     "RACE_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
@@ -20,7 +21,12 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_searchpath",
 )
 
-def emit_link(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs):
+def emit_link(ctx, go_toolchain,
+    library = None,
+    mode = NORMAL_MODE,
+    executable = None,
+    gc_linkopts = [],
+    x_defs = {}):
   """Adds an action to link the supplied library in the given mode, producing the executable.
   Args:
     ctx: The skylark Context.
@@ -31,6 +37,9 @@ def emit_link(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs)
     gc_linkopts: basic link options, these may be adjusted by the mode.
     x_defs: link defines, including build stamping ones
   """
+
+  if library == None: fail("library is a required parameter")
+  if executable == None: fail("executable is a required parameter")
 
   # Add in any mode specific behaviours
   if mode == RACE_MODE:
@@ -73,7 +82,7 @@ def emit_link(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs)
       link_opts += ["-X", "%s=%s" % (k, v)]
 
   link_opts += go_toolchain.flags.link
-  if ld: 
+  if ld:
     link_opts += [
         "-extld", ld,
         "-extldflags", " ".join(extldflags),

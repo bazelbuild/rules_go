@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def emit_asm(ctx, go_toolchain, source, hdrs, out_obj):
+def emit_asm(ctx, go_toolchain,
+    source = None,
+    hdrs = [],
+    out_obj = None):
   """Construct the command line for compiling Go Assembly code.
   Constructs a symlink tree to accomodate for workspace name.
   Args:
@@ -21,6 +24,8 @@ def emit_asm(ctx, go_toolchain, source, hdrs, out_obj):
     hdrs: list of .h files that may be included
     out_obj: the artifact (configured target?) that should be produced
   """
+  if source == None: fail("source is a required parameter")
+  if out_obj == None: fail("out_obj is a required parameter")
   includes = depset()
   includes += [f.dirname for f in hdrs]
   includes += [f.dirname for f in go_toolchain.data.headers.cc.transitive_headers]
