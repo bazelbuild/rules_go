@@ -29,9 +29,9 @@ import (
 // on the name. We should be smarter about this and build a table mapping
 // import paths to labels that we can use to cross-reference.
 type Resolver struct {
-	goPrefix string
-	external nonlocalResolver
+	c        *config.Config
 	l        Labeler
+	external nonlocalResolver
 }
 
 // nonlocalResolver resolves import paths outside of the current repository's
@@ -51,9 +51,9 @@ func NewResolver(c *config.Config, l Labeler) *Resolver {
 	}
 
 	return &Resolver{
-		goPrefix: c.GoPrefix,
-		external: e,
+		c:        c,
 		l:        l,
+		external: e,
 	}
 }
 
@@ -67,15 +67,15 @@ func (r *Resolver) ResolveGo(imp, pkgRel string) (Label, error) {
 		if strings.HasPrefix(cleanRel, "..") {
 			return Label{}, fmt.Errorf("relative import path %q from %q points outside of repository", imp, pkgRel)
 		}
-		imp = path.Join(r.goPrefix, cleanRel)
+		imp = path.Join(r.c.GoPrefix, cleanRel)
 	}
 
-	if imp != r.goPrefix && !strings.HasPrefix(imp, r.goPrefix+"/") {
+	if imp != r.c.GoPrefix && !strings.HasPrefix(imp, r.c.GoPrefix+"/") {
 		return r.external.resolve(imp)
 	}
 
-	if imp == r.goPrefix {
+	if imp == r.c.GoPrefix {
 		return r.l.LibraryLabel(""), nil
 	}
-	return r.l.LibraryLabel(strings.TrimPrefix(imp, r.goPrefix+"/")), nil
+	return r.l.LibraryLabel(strings.TrimPrefix(imp, r.c.GoPrefix+"/")), nil
 }
