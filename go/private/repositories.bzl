@@ -69,6 +69,8 @@ _sdk_repositories = {
 }
 
 def go_rules_dependencies():
+  """See /go/workspace.rst#go-rules-dependencies for full documentation."""
+
   # Add all the basic sdk repositories
   for filename, sha256 in _sdk_repositories.items():
     name = filename

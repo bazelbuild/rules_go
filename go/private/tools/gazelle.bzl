@@ -64,6 +64,7 @@ _gazelle_script = rule(
 )
 
 def gazelle(name, **kwargs):
+  """See go/extras.rst#gazelle for full documentation."""
   script_name = name+"_script"
   _gazelle_script(
       name = script_name,

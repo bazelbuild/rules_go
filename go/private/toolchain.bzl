@@ -68,11 +68,7 @@ go_sdk = repository_rule(
         "sha256": attr.string(),
     },
 )
-"""
-    go_sdk is a rule for adding a new go SDK to the available set.
-    This does not make the sdk available for use directly, it needs to be exposed through a toolchain.
-    If you do not specify urls or path, then it will attempt to detect the installed version of go.
-"""
+"""See /go/toolchains.rst#go-sdk for full documentation."""
 
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
   ctx.download_and_extract(

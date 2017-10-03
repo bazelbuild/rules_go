@@ -105,6 +105,8 @@ _toolchains = _generate_toolchains()
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
 def go_register_toolchains(go_version=DEFAULT_VERSION):
+  """See /go/toolchains.rst#go-register-toolchains for full documentation."""
+
   # Use the final dictionaries to register all the toolchains
   for toolchain in _toolchains:
     if "match_version" in toolchain and toolchain["match_version"] != go_version:

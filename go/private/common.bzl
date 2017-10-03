@@ -17,6 +17,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 DEFAULT_LIB = "go_default_library"
 VENDOR_PREFIX = "/vendor/"
 
+# Modes are documented in go/modes.rst#compilation-modes
 NORMAL_MODE = "normal"
 RACE_MODE = "race"
 

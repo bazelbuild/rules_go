@@ -27,16 +27,7 @@ def emit_link(ctx, go_toolchain,
     executable = None,
     gc_linkopts = [],
     x_defs = {}):
-  """Adds an action to link the supplied library in the given mode, producing the executable.
-  Args:
-    ctx: The skylark Context.
-    library: The library to link.
-    mode: Controls the linking setup affecting things like enabling profilers and sanitizers.
-      This must be one of the values in common.bzl#compile_modes
-    executable: The binary to produce.
-    gc_linkopts: basic link options, these may be adjusted by the mode.
-    x_defs: link defines, including build stamping ones
-  """
+  """See go/toolchains.rst#link for full documentation."""
 
   if library == None: fail("library is a required parameter")
   if executable == None: fail("executable is a required parameter")

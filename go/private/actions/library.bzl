@@ -35,32 +35,7 @@ def emit_library(ctx, go_toolchain,
     want_coverage = False,
     importable = True,
     golibs=()):
-  """emit_library emits actions to compile Go code into an .a file. It
-  supports embedding, cgo dependencies, coverage, and assembling and packing
-  .s files.
-
-  Args:
-    ctx: the Skylark Context.
-    go_toolchain: the Go toolchain.
-    srcs: an iterable of original .go source Files to be compiled.
-    deps: an iterable of Targets with the GoLibrary provider. These are
-        direct dependencies.
-    embed: an iterable of Targets with the GoEmbed provider. Sources,
-        dependencies, and other information from these dependencies are combined
-        with the library being compiled. Used to build internal test packages.
-    cgo_info: an optional CgoInfo provider for this library. There may be at
-        most one of these among the library and its embeds.
-    want_coverage: a bool indicating whether sources should be instrumented
-        for coverage.
-    importpath: a string indicating the import path of the package.
-    importable: a bool indicating whether the package can be imported by
-        other libraries.
-    golibs: an iterable of GoLibrary objects. Used to pass in
-        synthetic dependencies.
-
-  Returns:
-    A tuple of GoLibrary and GoEmbed.
-  """
+  """See go/toolchains.rst#library for full documentation."""
   dep_runfiles = [d.data_runfiles for d in deps]
   direct = depset(golibs)
   gc_goopts = tuple(ctx.attr.gc_goopts)

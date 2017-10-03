@@ -13,21 +13,28 @@
 # limitations under the License.
 
 GoLibrary = provider()
+"""See go/providers.rst#GoLibrary for full documentation."""
+
 GoBinary = provider()
+"""See go/providers.rst#GoBinary for full documentation."""
+
 GoPath = provider()
+
 GoEmbed = provider()
+"""See go/providers.rst#GoEmbed for full documentation."""
+
 CgoInfo = provider()
 
 def library_attr(mode):
   """Returns the attribute name for the library of the given mode.
-  
+
   mode must be one of the common.bzl#compile_modes
   """
   return mode+"_library"
 
 def get_library(golib, mode):
   """Returns the compiled library for the given mode
-  
+
   golib must be a GoLibrary
   mode must be one of the common.bzl#compile_modes
   """
@@ -35,14 +42,14 @@ def get_library(golib, mode):
 
 def searchpath_attr(mode):
   """Returns the search path for the given mode
-  
+
   mode must be one of the common.bzl#compile_modes
   """
   return mode+"_searchpath"
 
 def get_searchpath(golib, mode):
   """Returns the search path for the given mode
-  
+
   golib must be a GoLibrary
   mode must be one of the common.bzl#compile_modes
   """

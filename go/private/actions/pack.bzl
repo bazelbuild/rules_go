@@ -17,16 +17,8 @@ def emit_pack(ctx, go_toolchain,
     out_lib = None,
     objects = (),
     archive = None):
-  """Construct the command line for packing objects together.
+  """See go/toolchains.rst#pack for full documentation."""
 
-  Args:
-    ctx: The skylark Context.
-    in_lib: the archive that should be copied and appended to.
-    out_lib: the archive that should be produced
-    objects: an iterable of object files to be added to the output archive file.
-    archive: an optional archive file to be concatenated with the output
-        archive file.
-  """
   if in_lib == None: fail("in_lib is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 

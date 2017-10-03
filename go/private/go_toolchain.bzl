@@ -155,9 +155,7 @@ _go_toolchain = rule(
 )
 
 def go_toolchain(name, target, host=None, constraints=[], **kwargs):
-  """Declares a go toolchain for use.
-  This is used when porting the rules_go to a new platform.
-  """
+  """See go/toolchains.rst#go-toolchain for full documentation."""
 
   if not host: host = target
   goos, _, goarch = target.partition("_")
@@ -170,7 +168,7 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
       "@io_bazel_rules_go//go/toolchain:" + host_goos,
       "@io_bazel_rules_go//go/toolchain:" + host_goarch,
   ]
-  
+
   impl_name = name + "-impl"
   _go_toolchain(
       name = impl_name,

@@ -148,3 +148,4 @@ go_test = rule(
     test = True,
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+"""See go/core.rst#go_test for full documentation."""

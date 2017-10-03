@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", 
+load("@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
     "go_importpath",
     "RACE_MODE",
     "NORMAL_MODE",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl", 
+load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
     "GoLibrary",
     "GoEmbed",
@@ -73,3 +73,4 @@ go_library = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+"""See go/core.rst#go_library for full documentation."""

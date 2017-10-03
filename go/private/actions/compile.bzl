@@ -28,17 +28,7 @@ def emit_compile(ctx, go_toolchain,
     mode = NORMAL_MODE,
     out_lib = None,
     gc_goopts = []):
-  """Construct the command line for compiling Go code.
-
-  Args:
-    ctx: The skylark Context.
-    sources: an iterable of source code artifacts (or CTs? or labels?)
-    golibs: a depset of representing all imported libraries.
-    mode: Controls the compilation setup affecting things like enabling profilers and sanitizers.
-      This must be one of the values in common.bzl#compile_modes
-    out_lib: the archive file that should be produced
-    gc_goopts: additional flags to pass to the compiler.
-  """
+  """See go/toolchains.rst#compile for full documentation."""
 
   if sources == None: fail("sources is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")

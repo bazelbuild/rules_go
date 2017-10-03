@@ -38,7 +38,7 @@ def _go_repository_impl(ctx):
       rev = ctx.attr.tag
     else:
       fail("neither commit or tag is specified", "commit")
-    
+
     # Using fetch repo
     if ctx.attr.vcs and not ctx.attr.remote:
       fail("if vcs is specified, remote must also be")
@@ -115,6 +115,7 @@ go_repository = repository_rule(
         "build_tags": attr.string_list(),
     },
 )
+"""See go/workspace.rst#go-repository for full documentation."""
 
 def env_execute(ctx, arguments, environment = None, **kwargs):
   """env_execute prepends "env -i" to "arguments" before passing it to

@@ -18,6 +18,7 @@ load("@io_bazel_rules_go//go/private:rules/test.bzl", "go_test")
 load("@io_bazel_rules_go//go/private:rules/cgo.bzl", "setup_cgo_library")
 
 def go_library_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
+  """See go/core.rst#go_library for full documentation."""
   cgo_info = None
   if cgo:
     cgo_info = setup_cgo_library(
@@ -35,6 +36,7 @@ def go_library_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[
   )
 
 def go_binary_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
+  """See go/core.rst#go_binary for full documentation."""
   cgo_info = None
   if cgo:
     cgo_info = setup_cgo_library(
@@ -52,6 +54,7 @@ def go_binary_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[]
   )
 
 def go_test_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
+  """See go/core.rst#go_test for full documentation."""
   cgo_info = None
   if cgo:
     cgo_info = setup_cgo_library(

@@ -117,6 +117,7 @@ go_binary = rule(
     executable = True,
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+"""See go/core.rst#go_binary for full documentation."""
 
 def gc_linkopts(ctx):
   gc_linkopts = [ctx.expand_make_variables("gc_linkopts", f, {})
