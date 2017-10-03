@@ -6,18 +6,17 @@ Build modes
 .. _go_binary: core.rst#go_binary
 .. _go_test: core.rst#go_test
 .. _filegroup: https://docs.bazel.build/versions/master/be/general.html#filegroup
+.. _toolchain: toolchains.rst#the-toolchain-object
 
-* `Overview`_
-* `Building static binaries`_
-* `Using the race detector`_
+.. contents:: :depth: 2
 
 Overview
 --------
 
-There are a few modes in which the core go rules can be run, and the selection 
+There are a few modes in which the core go rules can be run, and the selection
 mechanism depends on the nature of the variation.
 
-The most common selection mechanisms used on the command line are features and 
+The most common selection mechanisms used on the command line are features and
 output groups.
 
 Features
@@ -25,7 +24,7 @@ Features
 
 Features are normally off, unless you select them with :code:`--features=featurename` on the bazel
 command line. Features are generic tags that affect *all* rules, not just the ones you specify or
-even just the go ones, and any feature can be interpreted by any rule. There is also no protections 
+even just the go ones, and any feature can be interpreted by any rule. There is also no protections
 that two different rules will not intepret the same feature in very different ways, and no way for
 rule authors to protect against that, so it is up to the user when specifying a feature on the
 command line to know what it's affects will be on all the rules in their build.
@@ -42,11 +41,11 @@ Output groups
 There is a default output group that is built unless you specifically select a
 different one.
 
-If you use :code:`--output_groups=groupname` then only that output group will be 
+If you use :code:`--output_groups=groupname` then only that output group will be
 built; if you use :code:`--output_groups=+groupname` then that output group will
 be added to the set to be built (note the +).
 
-Output groups may also be used by rules to select files from dependencies. 
+Output groups may also be used by rules to select files from dependencies.
 Only outputs that are actively selected are built.
 
 
@@ -57,6 +56,22 @@ Available output groups from the go rules are:
     * static
 * go_library_
     * race
+
+
+Compilation Modes
+~~~~~~~~~~~~~~~~~
+
+The set of compile modes is declared in common.bzl#compile_modes, in the form
+
+.. code:: bzl
+
+    NORMAL_MODE = "normal" # Build with the default options
+    RACE_MODE = "race" # Compile with the race detector enabled
+
+These are the values you can use in mode parameters to some of the action generating functions
+of the Go toolchain_ object. These modes are automatically passed to the compile actions when
+you use one of the mechanisms in this document to control the compilation.
+
 
 Building static binaries
 ------------------------

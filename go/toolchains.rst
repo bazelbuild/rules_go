@@ -2,23 +2,24 @@ Go toolchains
 =============
 
 .. _core: core.bzl
-.. _forked version of go: `Using a custom sdk`_
-.. _control the version: `Forcing the go version`_
-.. _installed sdk: `Using the installed go sdk`_
-.. _go website: https://golang.org/
+.. _forked version of Go: `Using a custom sdk`_
+.. _control the version: `Forcing the Go version`_
+.. _installed sdk: `Using the installed Go sdk`_
+.. _Go website: https://golang.org/
 .. _binary distribution: https://golang.org/dl/
 .. _cross compiling: crosscompile.rst
 .. _register: Registration_
 .. _register_toolchains: https://docs.bazel.build/versions/master/skylark/lib/globals.html#register_toolchains
-.. _modes: modes.rst
+.. _compilation modes: modes.rst#compilation-modes
+.. _go assembly: https://golang.org/doc/asm
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
 .. role:: value(code)
 .. |mandatory| replace:: **mandatory value**
 
-The go toolchain is at the heart of the go rules, and is the mechanism used to
-customize the behavior of the core_ go rules.
+The Go toolchain is at the heart of the Go rules, and is the mechanism used to
+customize the behavior of the core_ Go rules.
 
 .. contents:: :depth: 2
 
@@ -27,24 +28,24 @@ customize the behavior of the core_ go rules.
 Design
 ------
 
-The go toolchain consists of two main layers, `the sdk`_ and `the toolchain`_.
+The Go toolchain consists of two main layers, `the sdk`_ and `the toolchain`_.
 
 The SDK
 ~~~~~~~
 
-At the bottom is the go sdk. This is the same thing you would get if you go to the main
-`go website`_ and download a `binary distribution`_.
+At the bottom is the Go SDK. This is the same thing you would get if you go to the main
+`Go website`_ and download a `binary distribution`_.
 
 The go_sdk_ rule is responsible for downloading these, and adding just enough of a build file
 to expose the contents to Bazel. It currently also builds the cross compiled standard libraries
 for specific combinations, although we hope to make that an on demand step in the future.
 
-SDK's are specific to the host they are running on, and the version of go they want to use,
-but not the target they compile for. The go SDK is naturally `cross compiling`_.
+SDKs are specific to the host they are running on and the version of Go they want to use
+but not the target they compile for. The Go SDK is naturally `cross compiling`_.
 
-The go rules already adds a go_sdk_ rule for all the host and go version pairs that are shipped
-on the main go language website, so there should be no need to declare one of these unless you
-need a `forked version of go`_, however you may want to `control the version`_ or use the
+The Go rules already adds a go_sdk_ rule for all the host and Go version pairs that are shipped
+on the main Go language website, so there should be no need to declare one of these unless you
+need a `forked version of Go`_\, however you may want to `control the version`_ or use the
 `installed sdk`_.
 
 The toolchain
@@ -54,15 +55,15 @@ Declaration
 ^^^^^^^^^^^
 
 Toolchains are declared using the go_toolchain_ macro. This actually registers two Bazel
-toolchains, the main go toolchain, and a special bootstrap toolchain. The bootstrap toolchain
+toolchains, the main Go toolchain, and a special bootstrap toolchain. The bootstrap toolchain
 is needed because the full toolchain includes tools that are compiled on demand and written in
 go, so we need a special cut down version of the toolchain to build those tools.
 
 Toolchains are pre-declared for all the known combinations of host, target and sdk, and the names
 are a predictable
-go\ **version**\ _\ **host**
+"<**version**>_<**host**>"
 for host toolchains and
-go\ **version**\ _\ **host**\ _cross\_\ **target**
+"<**version**>_<**host**>_cross\_<**target**>"
 for cross compilation toolchains. So for instance if the rules_go repository is loaded with
 it's default name, the following toolchain labels (along with many others) will be available
 
@@ -79,13 +80,14 @@ Registration
 
 Normally you would just call go_register_toolchains_ from your WORKSPACE to register all the
 pre-declared toolchains, and allow normal selection logic to pick the right one.
-It is fine to add more toolchains to the set available if you like, and because the normal
-toolchain matching mechaism prefers the first declared match you can also override individual
-toolchains by having another one with the same constraints that you register *before* calling
-the go_register_toolchains_.
+
+It is fine to add more toolchains to the available set if you like. Because the normal
+toolchain matching mechanism prefers the first declared match, you can also override individual
+toolchains by declaring and registering toolchains with the same constraints *before* calling
+go_register_toolchains_.
 
 If you wish to have more control over the toolchains you can instead just make direct
-calls to register_toolchains_ with only the toolchains you wish to install, you can see an
+calls to register_toolchains_ with only the toolchains you wish to install. You can see an
 example of this in `limiting the available toolchains`_.
 It is important to note that you **must** also register the boostrap toolchain for any other
 toolchain that you register, otherwise the tools for that toolchain cannot be built.
@@ -93,7 +95,7 @@ toolchain that you register, otherwise the tools for that toolchain cannot be bu
 Use
 ^^^
 
-If you are writing a new rule that wants to use the go toolchain, you need to do a couple of things.
+If you are writing a new rule that wants to use the Go toolchain, you need to do a couple of things.
 First, you have to declare that you want to consume the toolchain on the rule declaration.
 
 .. code:: bzl
@@ -122,6 +124,8 @@ Normal usage
 ~~~~~~~~~~~~
 
 This is an example of normal usage for the other examples to be compared against.
+This will download and use the latest Go SDK that was available when the version of rules_go
+you're using was released.
 
 WORKSPACE
 ^^^^^^^^^
@@ -134,10 +138,10 @@ WORKSPACE
     go_register_toolchains()
 
 
-Forcing the go version
+Forcing the Go version
 ~~~~~~~~~~~~~~~~~~~~~~
 
-You can select the version of the go SDK to use by specifying it when you call
+You can select the version of the Go SDK to use by specifying it when you call
 go_register_toolchains_ but you must use a value that matches a known toolchain.
 
 WORKSPACE
@@ -151,7 +155,7 @@ WORKSPACE
     go_register_toolchains(go_version="1.7.5")
 
 
-Using the installed go sdk
+Using the installed Go SDK
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The "host" version is a special toolchain that breaks the hermetic seal to use the host installed
@@ -191,7 +195,7 @@ WORKSPACE
     go_register_toolchains()
 
 
-Build.bazel
+BUILD.bazel
 ^^^^^^^^^^^
 
 .. code:: bzl
@@ -214,8 +218,8 @@ WORKSPACE
 
     go_rules_dependencies()
     register_toolchains(
-        "@io_bazel_rules_go//go/toolchain:1.8.0_darwin_amd64",
-        "@io_bazel_rules_go//go/toolchain:1.8.0_darwin_amd64-bootstrap",
+        "@io_bazel_rules_go//go/toolchain:1.8.3_darwin_amd64",
+        "@io_bazel_rules_go//go/toolchain:1.8.3_darwin_amd64-bootstrap",
     )
 
 API
@@ -233,7 +237,7 @@ SDK will be used.
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`go_version`            | :type:`string`              | :value:`"1.9"`                    |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This specifies the go version to select.                                                         |
+| This specifies the Go version to select.                                                         |
 | It will match the version specification of the toochain which for normal sdk toolchains is       |
 | also the string part of the `binary distribution`_ you want to use.                              |
 | You can also use it to select the "host" sdk toolchain, or a custom toolchain with a             |
@@ -243,7 +247,7 @@ SDK will be used.
 go_sdk
 ~~~~~~
 
-This prepares a go SDK for use in toolchains.
+This prepares a Go SDK for use in toolchains.
 
 If neither :param:`path` or :param:`urls` is set then go_sdk will attempt to detect the installed
 host SDK, first by checking the GO_ROOT and then by searching the PATH.
@@ -259,14 +263,14 @@ use this feature directly.
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`path`                  | :type:`string`              | :value:`""`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The local path to a pre-installed go SDK.                                                        |
+| The local path to a pre-installed Go SDK.                                                        |
 |                                                                                                  |
 | If :param:`path` is set :param:`urls` must be left empty.                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`urls`                  | :type:`string_list`         | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| A list of mirror urls to the binary distribution of a go SDK.                                    |
-| You should generally also set the sha256 parameter when using :param:`urls`.                     |
+| A list of mirror urls to the binary distribution of a Go SDK.                                    |
+| You should generally also set the :param:`sha256` parameter when using :param:`urls`.            |
 |                                                                                                  |
 | If :param:`urls` is set :param:`path` must be left empty.                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -326,7 +330,7 @@ toolchain of type :value:`"@io_bazel_rules_go//go:bootstrap_toolchain"`.
 | :param:`link_flags`            | :type:`string_list`         | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The link flags are directly exposed on the toolchain.                                            |
-| They can be used to specify target specific flags that go linking actions should apply when      |
+| They can be used to specify target specific flags that Go linking actions should apply when      |
 | using this toolchain.                                                                            |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`cgo_link_flags`        | :type:`string_list`         | :value:`[]`                       |
@@ -339,9 +343,22 @@ toolchain of type :value:`"@io_bazel_rules_go//go:bootstrap_toolchain"`.
 The toolchain object
 ~~~~~~~~~~~~~~~~~~~~
 
-When you get a go toolchain from a context (see use_) it exposes a number of fields.
+When you get a Go toolchain from a context (see use_) it exposes a number of fields, of those
+the stable public interface is
 
-The public interface is the actions member.
+* go_toolchain
+
+  * actions
+
+    * asm_
+    * compile_
+    * cover_
+    * library_
+    * link_
+    * pack_
+
+
+The only stable public interface is the actions member.
 This holds a collection of functions for generating the standard actions the toolchain knows
 about, compiling and linking for instance.
 All the other members are there to provide information to those action functions, and the api of
@@ -351,14 +368,6 @@ All action functions take the ctx and the go_toolchain as the only positional ar
 other arguments even if mandator must be specified by name, to allow us to re-order and
 deprecate individual parameters over time.
 
-Inside the actions member are the following action emitting functions:
-
-* asm_
-* compile_
-* cover_
-* library_
-* link_
-* pack_
 
 asm
 ~~~
@@ -375,15 +384,16 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The current rule context, used to generate the actions.                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the go toolchain`    | |mandatory|                       |
+| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same go toolchain object you got this function from.                            |
+| This must be the same Go toolchain object you got this function from.                            |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`source`                | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | A source code artifact to assemble.                                                              |
+| This must be a ``.s`` file that contains code in the platform neutral `go assembly`_ language.   |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`hdrs`                  | :type:`list<File>`          | :value:`[]`                       |
+| :param:`hdrs`                  | :type:`File iterable`       | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The list of .h files that may be included by the source.                                         |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -407,27 +417,30 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The current rule context, used to generate the actions.                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the go toolchain`    | |mandatory|                       |
+| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same go toolchain object you got this function from.                            |
+| This must be the same Go toolchain object you got this function from.                            |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`sources`               | :type:`list<File>`          | |mandatory|                       |
+| :param:`sources`               | :type:`File iterable`       | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | An iterable of source code artifacts.                                                            |
+| These Must be pure .go files, no assembly or cgo is allowed.                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`importpath`            | :type:`string`              | :value:`""`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The import path this package represents. This is passed to the -p flag.                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`golibs`                | :type:`list<GoLibrary>`     | :value:`[]`                       |
+| :param:`golibs`                | :type:`GoLibrary iterable`  | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of all imported libraries.                                                           |
+| An iterable of all directly imported libraries.                                                  |
+| The action will verify that all directly imported libraries were supplied, not allowing          |
+| transitive dependencies to satisfy imports. It will not check that all supplied libraries were   |
+| used though.                                                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`mode`                  | :type:`string`              | :value:`NORMAL_MODE`              |
 +--------------------------------+-----------------------------+-----------------------------------+
 | Controls the compilation setup affecting things like enabling profilers and sanitizers.          |
-| This must be one of the values in common.bzl#compile_modes.                                      |
-| See modes_ for more information.                                                                 |
+| See `compilation modes`_ for more information about the allowed values.                          |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`out_lib`               | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -442,10 +455,12 @@ It does not return anything.
 cover
 ~~~~~
 
-The compile function adds an action that runs ``go tool cover`` on a set of source files
+The cover function adds an action that runs ``go tool cover`` on a set of source files
 to produce copies with cover instrumentation.
 
-Returns a tupe of the covered source list and the cover vars.
+Returns a tuple of the covered source list and the cover vars.
+
+Note that this removes most comments, including cgo comments.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -454,13 +469,15 @@ Returns a tupe of the covered source list and the cover vars.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The current rule context, used to generate the actions.                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the go toolchain`    | |mandatory|                       |
+| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same go toolchain object you got this function from.                            |
+| This must be the same Go toolchain object you got this function from.                            |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`sources`               | :type:`list<File>`          | :value:`[]`                       |
+| :param:`sources`               | :type:`File iterable`       | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | An iterable of Go source files.                                                                  |
+| These Must be pure .go files that are ready to be passed to compile_, no assembly or cgo is      |
+| allowed.                                                                                         |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 library
@@ -469,7 +486,7 @@ library
 This emits actions to compile Go code into an archive.
 It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
 
-It returns a tuple of GoLibrary and GoEmbed.
+It returns a tuple of GoLibrary_ and GoEmbed_.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -478,24 +495,24 @@ It returns a tuple of GoLibrary and GoEmbed.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The current rule context, used to generate the actions.                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the go toolchain`    | |mandatory|                       |
+| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same go toolchain object you got this function from.                            |
+| This must be the same Go toolchain object you got this function from.                            |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`srcs`                  | :type:`list<File>`          | :value:`[]`                       |
+| :param:`srcs`                  | :type:`File iterable`       | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of go source Files to be compiled.                                                   |
+| An iterable of Go source Files to be compiled.                                                   |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`deps`                  | :type:`list<GoLibrary>`     | :value:`[]`                       |
+| :param:`deps`                  | :type:`GoLibrary iterable`  | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The list of direct dependancies of this package.                                                 |
+| The list of direct dependencies of this package.                                                 |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`cgo_info`              | :type:`CgoInfo`             | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | An optional CgoInfo provider for this library.                                                   |
 | There may be at most one of these among the library and its embeds.                              |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`embed`                 | :type:`list<GoEmbed>`       | :value:`[]`                       |
+| :param:`embed`                 | :type:`GoEmbed iterable`    | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | Sources, dependencies, and other information from these are combined with the package            |
 | being compiled.                                                                                  |
@@ -513,9 +530,9 @@ It returns a tuple of GoLibrary and GoEmbed.
 +--------------------------------+-----------------------------+-----------------------------------+
 | A bool indicating whether the package can be imported by other libraries.                        |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`golibs`                | :type:`list<GoLibrary>`     | :value:`[]`                       |
+| :param:`golibs`                | :type:`GoLibrary iterable`  | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of GoLibrary objects.                                                                |
+| An iterable of GoLibrary_ objects.                                                               |
 | Used to pass in synthetic dependencies.                                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
 
@@ -534,9 +551,9 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The current rule context, used to generate the actions.                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the go toolchain`    | |mandatory|                       |
+| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same go toolchain object you got this function from.                            |
+| This must be the same Go toolchain object you got this function from.                            |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`library`               | :type:`GoLibrary`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -545,8 +562,7 @@ It does not return anything.
 | :param:`mode`                  | :type:`string`              | :value:`NORMAL_MODE`              |
 +--------------------------------+-----------------------------+-----------------------------------+
 | Controls the compilation setup affecting things like enabling profilers and sanitizers.          |
-| This must be one of the values in common.bzl#compile_modes.                                      |
-| See modes_ for more information.                                                                 |
+| See `compilation modes`_ for more information about the allowed values.                          |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`executable`            | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -554,7 +570,7 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`gc_linkopts`           | :type:`string_list`         | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| Basic link options, these may be adjusted by the mode.                                           |
+| Basic link options, these may be adjusted by the :param:`mode`.                                  |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`x_defs`                | :type:`map`                 | :value:`{}`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -576,19 +592,26 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The current rule context, used to generate the actions.                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the go toolchain`    | |mandatory|                       |
+| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same go toolchain object you got this function from.                            |
+| This must be the same Go toolchain object you got this function from.                            |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`in_lib`                | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The archive that should be copied and appended to.                                               |
+| This must always be an archive in the common ar form (like that produced by the go compiler).    |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`out_lib`               | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The archive that should be produced.                                                             |
+| This will always be an archive in the common ar form (like that produced by the go compiler).    |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`objects`               | :type:`list<File>`          | |mandatory|                       |
+| :param:`objects`               | :type:`File iterable`       | :value:`()`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | An iterable of object files to be added to the output archive file.                              |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`archive`               | :type:`File`                | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| An additional archive whose objects will be appended to the output.                              |
+| This can be an ar file in either common form or either the bsd or sysv variations.               |
 +--------------------------------+-----------------------------+-----------------------------------+

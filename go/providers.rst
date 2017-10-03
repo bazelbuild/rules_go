@@ -28,7 +28,7 @@ and then asking for a provider of a specific type.
 Design
 ------
 
-The go providers are designed primarily for the efficiency of the go rules, the information they
+The Go providers are designed primarily for the efficiency of the Go rules, the information they
 share is mostly there because it is required for the core rules to work.
 
 All the providers are designed to hold only immutable data. This is partly because its a cleaner
@@ -60,7 +60,7 @@ binaries or tests.
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`transitive`            | :type:`depset(GoLibrary)`                                       |
 +--------------------------------+-----------------------------------------------------------------+
-| The full transitive set of go libraries depended on.                                             |
+| The full transitive set of Go libraries depended on.                                             |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`srcs`                  | :type:`depset(File)`                                            |
 +--------------------------------+-----------------------------------------------------------------+
@@ -100,8 +100,8 @@ binaries or tests.
 GoEmbed
 ~~~~~~~
 
-GoEmbed is a provider designed to be used as the output of anything that provides go code, and an
-input to anything that compiles go code.
+GoEmbed is a provider designed to be used as the output of anything that provides Go code, and an
+input to anything that compiles Go code.
 It combines the source with dependencies that source will require.
 
 There are two main uses for this.
@@ -155,7 +155,7 @@ There are two main uses for this.
 GoBinary
 ~~~~~~~~
 
-This is the provider returned by anything that links an executable go binary. This includes both
+This is the provider returned by anything that links an executable Go binary. This includes both
 the go_binary_ rule and the go_test_ rule.
 
 +--------------------------------+-----------------------------------------------------------------+
