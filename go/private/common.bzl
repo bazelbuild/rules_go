@@ -20,8 +20,10 @@ VENDOR_PREFIX = "/vendor/"
 # Modes are documented in go/modes.rst#compilation-modes
 NORMAL_MODE = "normal"
 RACE_MODE = "race"
+STATIC_MODE = "static"
 
 compile_modes = (NORMAL_MODE, RACE_MODE)
+link_modes =  (NORMAL_MODE, RACE_MODE, STATIC_MODE)
 
 go_exts = [
     ".go",

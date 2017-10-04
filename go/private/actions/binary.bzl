@@ -13,9 +13,10 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "compile_modes",
+    "link_modes",
     "NORMAL_MODE",
     "RACE_MODE",
+    "STATIC_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoBinary",
@@ -29,7 +30,8 @@ def emit_binary(ctx, go_toolchain,
     cgo_info = None,
     embed = (),
     gc_linkopts = (),
-    x_defs = {}):
+    x_defs = {},
+    default = None):
   """See go/toolchains.rst#binary for full documentation."""
 
   if name == "": fail("name is a required parameter")
@@ -44,12 +46,26 @@ def emit_binary(ctx, go_toolchain,
       importable = False,
   )
 
-  # Default (dynamic) linking
-  race_executable = ctx.new_file(name + ".race")
-  for mode in compile_modes:
-    executable = ctx.outputs.executable
-    if mode == RACE_MODE:
-      executable = race_executable
+  executables = {}
+  extension = "" # TODO: .exe on windows
+
+  if default:
+    executables["default"] = default
+
+  for mode in link_modes:
+    executable = ctx.new_file(name + "." + mode + extension)
+    executables[mode] = executable
+
+  for mode, executable in executables.items():
+    if mode == "default":
+        # work out what the default mode should be
+        if "race" in ctx.features:
+            mode = RACE_MODE
+        elif "static" in ctx.features:
+            mode = STATIC_MODE
+        else:
+            mode = NORMAL_MODE
+
     go_toolchain.actions.link(
         ctx,
         go_toolchain = go_toolchain,
@@ -60,27 +76,7 @@ def emit_binary(ctx, go_toolchain,
         x_defs=x_defs,
     )
 
-  # Static linking (in the 'static' output group)
-  static_linkopts = [
-      "-linkmode", "external",
-      "-extldflags", "-static",
-  ]
-  static_executable = ctx.new_file(name + ".static")
-  go_toolchain.actions.link(
-      ctx,
-      go_toolchain = go_toolchain,
-      library=golib,
-      mode=NORMAL_MODE,
-      executable=static_executable,
-      gc_linkopts=gc_linkopts + static_linkopts,
-      x_defs=x_defs,
-  )
-
   return [
       golib,
-      GoBinary(
-          executable = ctx.outputs.executable,
-          static = static_executable,
-          race = race_executable,
-      ),
+      GoBinary(**executables),
   ]

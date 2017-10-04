@@ -15,6 +15,7 @@
 load("@io_bazel_rules_go//go/private:common.bzl",
     "NORMAL_MODE",
     "RACE_MODE",
+    "STATIC_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",
@@ -32,9 +33,6 @@ def emit_link(ctx, go_toolchain,
   if library == None: fail("library is a required parameter")
   if executable == None: fail("executable is a required parameter")
 
-  # Add in any mode specific behaviours
-  if mode == RACE_MODE:
-    gc_linkopts += ["-race"]
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
@@ -48,12 +46,21 @@ def emit_link(ctx, go_toolchain,
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
+  libmode = mode
+  # Add in any mode specific behaviours
+  if mode == RACE_MODE:
+    gc_linkopts += ["-race"]
+  elif mode == STATIC_MODE:
+    libmode = NORMAL_MODE
+    gc_linkopts = gc_linkopts + ["-linkmode", "external"]
+    extldflags.append("-static")
+
   link_opts = ["-L", "."]
   libs = depset()
   cgo_deps = depset()
   for golib in depset([library]) + library.transitive:
-    libs += [get_library(golib, mode)]
-    link_opts += ["-L", get_searchpath(golib, mode)]
+    libs += [get_library(golib, libmode)]
+    link_opts += ["-L", get_searchpath(golib, libmode)]
     cgo_deps += golib.cgo_deps
 
   for d in cgo_deps:
@@ -84,7 +91,7 @@ def emit_link(ctx, go_toolchain,
         "-extld", ld,
         "-extldflags", " ".join(extldflags),
     ]
-  link_opts += [get_library(golib, mode).path]
+  link_opts += [get_library(golib, libmode).path]
   link_args = [go_toolchain.tools.go.path]
   # Stamping support
   stamp_inputs = []

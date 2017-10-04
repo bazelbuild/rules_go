@@ -31,6 +31,10 @@ command line to know what it's affects will be on all the rules in their build.
 
 Available features from the go rules are:
 
+* go_binary_
+    * race
+    * static
+
 * go_test_
     * race
 
@@ -52,6 +56,7 @@ Only outputs that are actively selected are built.
 Available output groups from the go rules are:
 
 * go_binary_
+    * normal
     * race
     * static
 * go_library_
@@ -67,10 +72,11 @@ The set of compile modes is declared in common.bzl#compile_modes, in the form
 
     NORMAL_MODE = "normal" # Build with the default options
     RACE_MODE = "race" # Compile with the race detector enabled
+    STATIC_MODE = "static" # Link in static mode
 
 These are the values you can use in mode parameters to some of the action generating functions
-of the Go toolchain_ object. These modes are automatically passed to the compile actions when
-you use one of the mechanisms in this document to control the compilation.
+of the Go toolchain_ object. These modes are automatically passed to the compile and link actions
+when you use one of the mechanisms in this document to control the compilation.
 
 
 Building static binaries
@@ -78,11 +84,17 @@ Building static binaries
 
 | Note that static linking does not work on darwin.
 
-You can build statically linked binaries using
+You can switch the default binaries to statically linked binaries using
 
 .. code:: bash
 
-    bazel build --output_groups=static //:my_binary
+    bazel build --features=static //:my_binary
+
+You can build both normal and statically linked binaries using
+
+.. code:: bash
+
+    bazel build --output_groups=+static //:my_binary
 
 You can depend on static binaries (e.g., for packaging) using filegroup_
 
@@ -102,20 +114,16 @@ You can depend on static binaries (e.g., for packaging) using filegroup_
 Using the race detector
 -----------------------
 
-You can run tests with the race detector enabled using
+You can switch the default binaries to race detectin mode, and thus also switch the mode of tests
+by tests using
 
 .. code::
 
     bazel test --features=race //...
 
-You can build binaries with the race detector enabled using
+
+You can build both normal and race binaries using
 
 .. code::
 
-    bazel build --output_groups=race //...
-
-The difference is necessary because the rules for binaries can produce both
-race and non-race versions, but tools used during the build should always be
-built in the non-race configuration. ``--output_groups`` is needed to select
-the configuration of the final binary only. For tests, only one executable
-can be tested, and ``--features`` is needed to select the race configuration.
+    bazel build --output_groups=+race //...

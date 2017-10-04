@@ -46,14 +46,16 @@ def _go_binary_impl(ctx):
       embed = embed,
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
+      default = ctx.outputs.executable,
   )
   return [
       golib, gobinary,
       DefaultInfo(
-          files = depset([gobinary.executable]),
+          files = depset([gobinary.default]),
           runfiles = golib.runfiles,
       ),
       OutputGroupInfo(
+          normal = depset([gobinary.normal]),
           static = depset([gobinary.static]),
           race = depset([gobinary.race]),
       ),
