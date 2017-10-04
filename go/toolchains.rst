@@ -351,6 +351,7 @@ the stable public interface is
   * actions
 
     * asm_
+    * binary_
     * compile_
     * cover_
     * library_
@@ -401,6 +402,63 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The output object file that should be built by the generated action.                             |
 +--------------------------------+-----------------------------+-----------------------------------+
+
+
+binary
+~~~~~~
+
+This emits actions to compile and link Go code into a binary.
+It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
+
+It returns a tuple of GoLibrary_ and GoBinary_.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The current rule context, used to generate the actions.                                          |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This must be the same Go toolchain object you got this function from.                            |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`name`                  | :type:`string`              | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The base name of the generated binaries.                                                         |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`srcs`                  | :type:`File iterable`       | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| An iterable of Go source Files to be compiled.                                                   |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`deps`                  | :type:`GoLibrary iterable`  | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The list of direct dependencies of this package.                                                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`cgo_info`              | :type:`CgoInfo`             | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| An optional CgoInfo provider for this library.                                                   |
+| There may be at most one of these among the library and its embeds.                              |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`embed`                 | :type:`GoEmbed iterable`    | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Sources, dependencies, and other information from these are combined with the package            |
+| being compiled.                                                                                  |
+| Used to build internal test packages.                                                            |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`importpath`            | :type:`string`              | :value:`""`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The import path this package represents.                                                         |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`gc_linkopts`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Basic link options.                                                                              |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`x_defs`                | :type:`map`                 | :value:`{}`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Link defines, including build stamping ones.                                                     |
++--------------------------------+-----------------------------+-----------------------------------+
+
 
 compile
 ~~~~~~~
@@ -479,6 +537,7 @@ Note that this removes most comments, including cgo comments.
 | These Must be pure .go files that are ready to be passed to compile_, no assembly or cgo is      |
 | allowed.                                                                                         |
 +--------------------------------+-----------------------------+-----------------------------------+
+
 
 library
 ~~~~~~~

@@ -15,6 +15,7 @@
 Toolchain rules used by go.
 """
 load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
+load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
 load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile")
 load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
 load("@io_bazel_rules_go//go/private:actions/library.bzl", "emit_library")
@@ -34,6 +35,7 @@ def _go_toolchain_impl(ctx):
       },
       actions = struct(
           asm = emit_asm,
+          binary = emit_binary,
           compile = emit_compile,
           cover = emit_cover,
           library = emit_library,
