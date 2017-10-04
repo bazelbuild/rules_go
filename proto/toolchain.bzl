@@ -5,7 +5,7 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
   go_srcs = []
   outpath = None
   for proto in lib.proto.direct_sources:
-    out = ctx.new_file(importpath + "/"+ proto.basename[:-len(".proto")] + ".pb.go")
+    out = ctx.new_file(ctx.label.name + "/" + importpath + "/" + proto.basename[:-len(".proto")] + ".pb.go")
     go_srcs += [out]
     if outpath == None:
         outpath = out.dirname[:-len(importpath)]
@@ -21,8 +21,8 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
   args += [proto.short_path for proto in lib.proto.direct_sources]
   ctx.action(
       inputs = [
-          proto_toolchain.protoc, 
-          go_proto_toolchain.plugin, 
+          proto_toolchain.protoc,
+          go_proto_toolchain.plugin,
       ] + lib.proto.transitive_descriptor_sets.to_list(),
       outputs = go_srcs,
       progress_message = "Generating into %s" % go_srcs[0].dirname,
