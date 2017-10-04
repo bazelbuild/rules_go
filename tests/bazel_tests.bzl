@@ -91,7 +91,7 @@ _bazel_test_script = rule(
 def bazel_test(name, command = None, args=None, subdir = None, target = None, go_version = None, tags=[], externals=[], workspace="", prepare="", check="", config=None):
   script_name = name+"_script"
   externals = externals + [
-      "@io_bazel_rules_go//:README.md",
+      "@io_bazel_rules_go//:AUTHORS",
       "@local_config_cc//:cc_wrapper",
   ]
   if go_version:
@@ -138,7 +138,7 @@ def _md5_sum_impl(ctx):
 
 md5_sum = rule(
     _md5_sum_impl,
-    attrs = { 
+    attrs = {
       "srcs": attr.label_list(allow_files=True),
       "_md5sum":  attr.label(allow_files=True, single_file=True, default=Label("@io_bazel_rules_go//go/tools/builders:md5sum")),
     },
@@ -189,7 +189,7 @@ def _execroot_impl(ctx):
   )
 
 execroot = rule(
-    _execroot_impl, 
+    _execroot_impl,
     attrs = {
         "path": attr.string(mandatory = True),
         "bazel": attr.string(mandatory = True),
