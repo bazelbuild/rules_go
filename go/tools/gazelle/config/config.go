@@ -178,16 +178,16 @@ const (
 type ProtoMode int
 
 const (
-	// In DefaultProtoMode, Gazelle generates proto_library and new
-	// go_proto_library or grpc_proto_library rules.
+	// DefaultProtoMode generates proto_library and new grpc_proto_library rules.
+	// .pb.go files are excluded when there is a .proto file with a similar name.
 	DefaultProtoMode ProtoMode = iota
 
-	// In DisableProtoMode, Gazelle will ignore .proto files. .pb.go files are
-	// treated as normal sources.
+	// DisableProtoMode ignores .proto files. .pb.go files are treated
+	// as normal sources.
 	DisableProtoMode
 
-	// In LegacyProtoMode, Gazelle generates filegroups for .proto files if
-	// .pb.go files are present in the same directory.
+	// LegacyProtoMode generates filegroups for .proto files if .pb.go files
+	// are present in the same directory.
 	LegacyProtoMode
 )
 

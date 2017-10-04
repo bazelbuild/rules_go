@@ -34,8 +34,11 @@ type fileInfo struct {
 	// "_test" suffix if it was present. It is empty for non-Go files.
 	packageName string
 
-	// importPath is the canonical import path for the package this file
-	// belongs to. Will be empty file files that don't specify this.
+	// importPath is the canonical import path for this file's package.
+	// This may be read from a package comment (in Go) or a go_package
+	// option (in proto). This field is empty for files that don't specify
+	// an import path.
+	// TODO(#874): extract from Go files
 	importPath string
 
 	// category is the type of file, based on extension.

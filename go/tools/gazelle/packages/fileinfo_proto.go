@@ -24,6 +24,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
@@ -79,10 +80,7 @@ func protoFileInfo(c *config.Config, dir, rel, name string) fileInfo {
 	if info.packageName == "" {
 		stem := strings.TrimSuffix(name, ".proto")
 		fs := strings.FieldsFunc(stem, func(r rune) bool {
-			return !('A' <= r && r <= 'Z' ||
-				'a' <= r && r <= 'z' ||
-				'0' <= r && r <= '9' ||
-				r == '_')
+			return !(unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_')
 		})
 		info.packageName = strings.Join(fs, "_")
 	}
@@ -90,6 +88,7 @@ func protoFileInfo(c *config.Config, dir, rel, name string) fileInfo {
 	return info
 }
 
+// Based on https://developers.google.com/protocol-buffers/docs/reference/proto3-spec
 func buildProtoRegexp() *regexp.Regexp {
 	hexEscape := `\\[xX][0-9a-fA-f]{2}`
 	octEscape := `\\[0-7]{3}`

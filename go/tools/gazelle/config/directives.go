@@ -126,10 +126,10 @@ func ApplyDirectives(c *Config, directives []Directive) *Config {
 
 // InferProtoMode sets Config.ProtoMode, based on the contents of f.  If the
 // proto mode is already set to something other than the default, or if the mode
-// is set explicitly in directives, this function does nothing. If the legacy
-// go_proto_library.bzl is loaded, or if this is the Well Known Types
-// repository, legacy mode is used.  If go_proto_library is loaded from another
-// file or if this is the Well Known Types repository, protos are disabled.
+// is set explicitly in directives, this function does not change it. If the
+// legacy go_proto_library.bzl is loaded, or if this is the Well Known Types
+// repository, legacy mode is used. If go_proto_library is loaded from another
+// file, proto rule generation is disabled.
 func InferProtoMode(c *Config, f *bf.File, directives []Directive) *Config {
 	if c.ProtoMode != DefaultProtoMode {
 		return c
@@ -139,7 +139,7 @@ func InferProtoMode(c *Config, f *bf.File, directives []Directive) *Config {
 			return c
 		}
 	}
-	if c.GoPrefix == WellKnownTypesGoPrefix && c.ProtoMode != DisableProtoMode {
+	if c.GoPrefix == WellKnownTypesGoPrefix {
 		// Use legacy mode in this repo. We don't need proto_library or
 		// go_proto_library, since we get that from @com_google_protobuf.
 		// Legacy rules still refer to .proto files in here, which need are

@@ -70,13 +70,18 @@ func checkFiles(t *testing.T, dir string, files []fileSpec) {
 				t.Errorf("not a directory: %s", f.path)
 			}
 		} else {
+			want := f.content
+			if len(want) > 0 && want[0] == '\n' {
+				// Strip leading newline, added for readability.
+				want = want[1:]
+			}
 			gotBytes, err := ioutil.ReadFile(filepath.Join(dir, f.path))
 			if err != nil {
 				t.Errorf("could not read %s: %v", f.path, err)
 				continue
 			}
 			got := string(gotBytes)
-			if got != f.content {
+			if got != want {
 				t.Errorf("%s: got %s ; want %s", f.path, got, f.content)
 			}
 		}
@@ -750,7 +755,8 @@ func TestMigrateProtoRules(t *testing.T) {
 		{path: "WORKSPACE"},
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+			content: `
+load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
 
 filegroup(
     name = "go_default_library_protos",
@@ -781,7 +787,8 @@ option go_package = "example.com/repo";
 	}{
 		{
 			args: []string{"update", "-go_prefix", "example.com/repo"},
-			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+			want: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
 
 filegroup(
@@ -804,7 +811,8 @@ go_library(
 `,
 		}, {
 			args: []string{"fix", "-go_prefix", "example.com/repo"},
-			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+			want: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 proto_library(
@@ -853,7 +861,8 @@ func TestRemoveProtoDeletesRules(t *testing.T) {
 		{path: "WORKSPACE"},
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+			content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 filegroup(
@@ -901,7 +910,8 @@ go_library(
 
 	checkFiles(t, dir, []fileSpec{{
 		path: config.DefaultValidBuildFileNames[0],
-		content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+		content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -918,7 +928,8 @@ func TestAddServiceConvertsToGrpc(t *testing.T) {
 		{path: "WORKSPACE"},
 		{
 			path: config.DefaultValidBuildFileNames[0],
-			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+			content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 proto_library(
@@ -965,7 +976,8 @@ service {}
 
 	checkFiles(t, dir, []fileSpec{{
 		path: config.DefaultValidBuildFileNames[0],
-		content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+		content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//proto:def.bzl", "go_grpc_library")
 
 proto_library(
