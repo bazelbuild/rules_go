@@ -70,6 +70,7 @@ go_library = rule(
         "gc_goopts": attr.string_list(),
         "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

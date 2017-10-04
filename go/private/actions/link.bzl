@@ -72,7 +72,13 @@ def emit_link(ctx, go_toolchain,
     else:
       link_opts += ["-X", "%s=%s" % (k, v)]
 
-  link_opts += go_toolchain.flags.link
+  link_opts.extend(go_toolchain.flags.link)
+  if ctx.attr._go_toolchain_flags.strip == "always":
+    link_opts.extend(["-w"])
+  elif (ctx.attr._go_toolchain_flags.strip == "sometimes" and
+       ctx.attr._go_toolchain_flags.compilation_mode != "debug"):
+    link_opts.extend(["-w"])
+
   if ld:
     link_opts += [
         "-extld", ld,

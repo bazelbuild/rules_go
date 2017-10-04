@@ -143,6 +143,7 @@ go_test = rule(
         "x_defs": attr.string_dict(),
         "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     executable = True,
     test = True,

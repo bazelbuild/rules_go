@@ -52,7 +52,11 @@ def emit_compile(ctx, go_toolchain,
   args += ["--"]
   if importpath:
     args += ["-p", importpath]
-  args += gc_goopts + go_toolchain.flags.compile + cgo_sources
+  args.extend(gc_goopts)
+  args.extend(go_toolchain.flags.compile)
+  if ctx.attr._go_toolchain_flags.compilation_mode == "debug":
+    args.extend(["-N", "-l"])
+  args.extend(cgo_sources)
   ctx.action(
       inputs = list(inputs),
       outputs = [out_lib],

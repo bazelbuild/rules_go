@@ -1,9 +1,9 @@
-load("@io_bazel_rules_go//go/private:common.bzl", 
+load("@io_bazel_rules_go//go/private:common.bzl",
     "go_importpath",
     "RACE_MODE",
     "NORMAL_MODE",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl", 
+load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",
     "GoLibrary",
     "GoEmbed",
@@ -17,7 +17,7 @@ def _go_proto_library_impl(ctx):
   importpath = go_importpath(ctx)
   go_srcs = go_proto_toolchain.compile(ctx,
     proto_toolchain = ctx.toolchains["@io_bazel_rules_go//proto:proto"],
-    go_proto_toolchain = go_proto_toolchain, 
+    go_proto_toolchain = go_proto_toolchain,
     lib = ctx.attr.proto,
     importpath = importpath,
   )
@@ -50,6 +50,7 @@ go_proto_library = rule(
         "embed": attr.label_list(providers = [GoEmbed]),
         "gc_goopts": attr.string_list(),
         "_go_prefix": attr.label(default = go_prefix_default),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
         "_toolchain": attr.string(default = "@io_bazel_rules_go//proto:go_proto"),
     },
     toolchains = [
@@ -59,7 +60,7 @@ go_proto_library = rule(
     ],
 )
 """
-go_proto_library is a rule that takes a proto_library (in the proto 
+go_proto_library is a rule that takes a proto_library (in the proto
 attribute) and produces a go library for it.
 """
 
@@ -73,6 +74,7 @@ go_grpc_library = rule(
         "gc_goopts": attr.string_list(),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_toolchain": attr.string(default = "@io_bazel_rules_go//proto:go_grpc"),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = [
         "@io_bazel_rules_go//go:toolchain",
@@ -81,7 +83,7 @@ go_grpc_library = rule(
     ],
 )
 """
-go_grpc_library is a rule that takes a proto_library (in the proto 
+go_grpc_library is a rule that takes a proto_library (in the proto
 attribute) and produces a go library that includes grpc services for it.
 """
 

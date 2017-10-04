@@ -55,7 +55,7 @@ def _go_toolchain_impl(ctx):
           extract_package = ctx.executable._extract_package,
       ),
       flags = struct(
-          compile = ctx.attr._go_toolchain_flags.compile_flags,
+          compile = (),
           link = ctx.attr.link_flags,
           link_cgo = ctx.attr.cgo_link_flags,
       ),
@@ -149,7 +149,6 @@ _go_toolchain = rule(
         "_headers": attr.label(default=_headers),
         "_root": attr.label(default=_root),
         "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
         "_external_linker": attr.label(default=_get_linker),
     },
 )
@@ -209,13 +208,15 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
 
 def _go_toolchain_flags(ctx):
     return struct(
-        compile_flags = ctx.attr.compile_flags,
+        compilation_mode = ctx.attr.compilation_mode,
+        strip = ctx.attr.strip,
     )
 
 go_toolchain_flags = rule(
     _go_toolchain_flags,
     attrs = {
-        "compile_flags": attr.string_list(mandatory=True),
+        "compilation_mode": attr.string(mandatory=True),
+        "strip": attr.string(mandatory=True),
     },
 )
 
