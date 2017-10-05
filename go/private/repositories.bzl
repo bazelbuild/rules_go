@@ -20,6 +20,18 @@ load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', "go_register_toolchains")
 
 _sdk_repositories = {
+    # 1.9.1 repositories
+    "go1.9.1.darwin-amd64.tar.gz": "59bc6deee2969dddc4490b684b15f63058177f5c7e27134c060288b7d76faab0",
+    "go1.9.1.linux-386.tar.gz": "2cea1ce9325cb40839601b566bc02b11c92b2942c21110b1b254c7e72e5581e7",
+    "go1.9.1.linux-amd64.tar.gz": "07d81c6b6b4c2dcf1b5ef7c27aaebd3691cdb40548500941f92b221147c5d9c7",
+    "go1.9.1.linux-armv6l.tar.gz": "65a0495a50c7c240a6487b1170939586332f6c8f3526abdbb9140935b3cff14c",
+    "go1.9.1.windows-386.zip": "ea9c79c9e6214c9a78a107ef5a7bff775a281bffe8c2d50afa66d2d33998078a",
+    "go1.9.1.windows-amd64.zip": "8dc72a3881388e4e560c2e45f6be59860b623ad418e7da94e80fee012221cc81",
+    "go1.9.1.freebsd-386.tar.gz": "0da7ad96606a8ceea85652eb20816077769d51de9219d85b9b224a3390070c50",
+    "go1.9.1.freebsd-amd64.tar.gz": "c4eeacbb94821c5f252897a4d49c78293eaa97b29652d789dce9e79bc6aa6163",
+    "go1.9.1.linux-arm64.tar.gz": "d31ecae36efea5197af271ccce86ccc2baf10d2e04f20d0fb75556ecf0614dad",
+    "go1.9.1.linux-ppc64le.tar.gz": "de57b6439ce9d4dd8b528599317a35fa1e09d6aa93b0a80e3945018658d963b8",
+    "go1.9.1.linux-s390x.tar.gz": "9adf03574549db82a72e0d721ef2178ec5e51d1ce4f309b271a2bca4dcf206f6",
     # 1.9 repositories
     "go1.9.darwin-amd64.tar.gz": "c2df361ec6c26fcf20d5569496182cb20728caa4d351bc430b2f0f1212cca3e0",
     "go1.9.linux-386.tar.gz": "7cccff99dacf59162cd67f5b11070d667691397fd421b0a9ad287da019debc4f",
@@ -32,6 +44,17 @@ _sdk_repositories = {
     "go1.9.linux-ppc64le.tar.gz": "10b66dae326b32a56d4c295747df564616ec46ed0079553e88e39d4f1b2ae985",
     "go1.9.linux-arm64.tar.gz": "0958dcf454f7f26d7acc1a4ddc34220d499df845bc2051c14ff8efdf1e3c29a6",
     "go1.9.linux-s390x.tar.gz": "e06231e4918528e2eba1d3cff9bc4310b777971e5d8985f9772c6018694a3af8",
+    # 1.8.4 repositories
+    "go1.8.4.darwin-amd64.tar.gz": "cf803053aec24425d7be986af6dff0051bb48527bcdfa5b9ffeb4d40701ab54e",
+    "go1.8.4.linux-386.tar.gz": "00354388d5f7d21b69c62361e73250d2633124e8599386f704f6dd676a2f82ac",
+    "go1.8.4.linux-amd64.tar.gz": "0ef737a0aff9742af0f63ac13c97ce36f0bbc8b67385169e41e395f34170944f",
+    "go1.8.4.linux-armv6l.tar.gz": "76329898bb9f2be0f86b07f05a6336818cb12f3a416ab3061aa0d5f2ea5c6ff0",
+    "go1.8.4.windows-386.zip": "c0f949174332e5b9d4f025c84338bbec1c94b436f249c20aade04a024537f0be",
+    "go1.8.4.windows-amd64.zip": "2ddfea037fd5e2eeb0cb854c095f6e44aaec27e8bbf76dca9a11a88e3a49bbf7",
+    "go1.8.4.freebsd-386.tar.gz": "4764920bc94cc9723e7a9a65ae7764922e0ab6148e1cf206bbf37062997fdf4c",
+    "go1.8.4.freebsd-amd64.tar.gz": "21dd9899b91f4aaeeb85c7bb7db6cd4b44be089b2a7397ea8f9f2e3397a0b5c6",
+    "go1.8.4.linux-ppc64le.tar.gz": "0f043568d65fd8121af6b35a39f4f20d292a03372b6531e80b743ee0689eb717",
+    "go1.8.4.linux-s390x.tar.gz": "aa998b7ac8882c549f7017d2e9722a3102cb9e6b92010baf5153a6dcf98205b1",
     # 1.8.3 repositories
     "go1.8.3.darwin-amd64.tar.gz": "f20b92bc7d4ab22aa18270087c478a74463bd64a893a94264434a38a4b167c05",
     "go1.8.3.linux-386.tar.gz": "ff4895eb68fb1daaec41c540602e8bb4c1e8bb2f0e7017367171913fc9995ed2",
