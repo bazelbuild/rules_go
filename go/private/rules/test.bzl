@@ -42,6 +42,8 @@ def _go_test_impl(ctx):
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
   cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
+
+  # first build the test library
   golib, _ = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
@@ -52,6 +54,7 @@ def _go_test_impl(ctx):
       importable = False,
   )
 
+  # now generate the main function
   if ctx.attr.rundir:
     if ctx.attr.rundir.startswith("/"):
       run_dir = ctx.attr.rundir
@@ -87,42 +90,34 @@ def _go_test_impl(ctx):
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 
-  main_lib, _ = go_toolchain.actions.library(ctx,
-      go_toolchain = go_toolchain,
+  # Now compile the test binary itself
+  main_lib, main_binary = go_toolchain.actions.binary(ctx, go_toolchain,
+      name = ctx.label.name,
       srcs = [main_go],
       importpath = ctx.label.name + "~testmain~",
-      importable = False,
+      gc_linkopts = gc_linkopts(ctx),
       golibs = [golib] + covered_libs,
+      default=ctx.outputs.executable,
+      x_defs=ctx.attr.x_defs,
   )
-
-  mode = NORMAL_MODE
-  linkopts = gc_linkopts(ctx)
-  if "race" in ctx.features:
-    mode = RACE_MODE
-
-  go_toolchain.actions.link(
-      ctx,
-      go_toolchain = go_toolchain,
-      library=main_lib,
-      mode=mode,
-      executable=ctx.outputs.executable,
-      gc_linkopts=linkopts,
-      x_defs=ctx.attr.x_defs)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
   # without code changes.
-  runfiles = ctx.runfiles(files = [ctx.outputs.executable])
+  runfiles = ctx.runfiles(files = [main_binary.default])
   runfiles = runfiles.merge(golib.runfiles)
   return [
-      GoBinary(
-          executable = ctx.outputs.executable,
-      ),
+      main_binary,
       DefaultInfo(
-          files = depset([ctx.outputs.executable]),
+          files = depset([main_binary.default]),
           runfiles = runfiles,
       ),
-  ]
+      OutputGroupInfo(
+          normal = depset([main_binary.normal]),
+          static = depset([main_binary.static]),
+          race = depset([main_binary.race]),
+      ),
+]
 
 go_test = rule(
     _go_test_impl,

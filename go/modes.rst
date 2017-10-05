@@ -37,6 +37,7 @@ Available features from the go rules are:
 
 * go_test_
     * race
+    * static
 
 Output groups
 ~~~~~~~~~~~~~
@@ -59,8 +60,14 @@ Available output groups from the go rules are:
     * normal
     * race
     * static
+
 * go_library_
     * race
+
+* go_test_
+    * normal
+    * race
+    * static
 
 
 Compilation Modes

@@ -27,6 +27,7 @@ def emit_binary(ctx, go_toolchain,
     importpath = "",
     srcs = (),
     deps = (),
+    golibs = (),
     cgo_info = None,
     embed = (),
     gc_linkopts = (),
@@ -44,6 +45,7 @@ def emit_binary(ctx, go_toolchain,
       embed = embed,
       importpath = importpath,
       importable = False,
+      golibs = golibs,
   )
 
   executables = {}
