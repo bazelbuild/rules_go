@@ -29,6 +29,10 @@ Travis   Jenkins
 Announcements
 -------------
 
+October 9, 2017
+  Release `0.6.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.6.0>`_
+  is now available. Bazel 0.5.4 or later is now required. The WORKSPACE
+  boilerplate has also changed (see Setup_).
 September 13, 2017
   Release `0.5.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.5>`_ is now
   available. This is a bug fix release on top of 0.5.4 that removes the sha256
@@ -37,9 +41,6 @@ August 28, 2017
   Release `0.5.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.4>`_ is
   now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains
   support.
-August 9, 2017
-  Release `0.5.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.3>`_ is
-  now available!
 
 
 .. contents::
@@ -79,7 +80,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-:Note: The latest version of these rules (0.5.5) require Bazel ≥ 0.5.2 to
+:Note: The latest version of these rules (0.6.0) require Bazel ≥ 0.5.4 to
   work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
@@ -88,34 +89,34 @@ The ``master`` branch is only guaranteed to work with the latest version of Baze
 Setup
 -----
 
-* Create a file at the top of your repository named `WORKSPACE`, and add one
-  of the following snippets, verbatim. This will let Bazel fetch necessary
+* Create a file at the top of your repository named `WORKSPACE` and add one
+  of the snippets below, verbatim. This will let Bazel fetch necessary
   dependencies from this repository and a few others.
-  If you're using the latest stable release you can use the following contents:
+
+  If you want to use the latest stable release, add the following:
 
   .. code:: bzl
 
     http_archive(
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.5.5/rules_go-0.5.5.tar.gz",
-        sha256 = "ca58b0b856dc95473b93f2228ab117913b82a6617fc0deabd107346e3981522a",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.6.0/rules_go-0.6.0.tar.gz",
+        sha256 = "ba6feabc94a5d205013e70792accb6cce989169476668fbaf98ea9b342e13b59",
     )
-    load("@io_bazel_rules_go//go:def.bzl", "go_repositories")
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    go_rules_dependencies()
+    go_register_toolchains()
 
-    go_repositories()
-
-  If you're using rules_go at or near the HEAD of master, you can use the
-  following contents (optionally replacing the commit with something newer):
+  If you want to use a specific commit (for example, something close to
+  ``master``), add the following instead:
 
   .. code:: bzl
 
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
-        commit = "d8d73c918ed7b59a5584e0cab4f5274d2f91faab",
+        commit = "a390e7f7eac912f6e67dc54acf67aa974d05f9c3",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
-
     go_rules_dependencies()
     go_register_toolchains()
 
