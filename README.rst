@@ -105,6 +105,9 @@ Setup
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains()
+    # The following are only needed if you have proto files in your repository.
+    load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
+    proto_register_toolchains()
 
   If you want to use a specific commit (for example, something close to
   ``master``), add the following instead:
@@ -119,6 +122,9 @@ Setup
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains()
+    # The following are only needed if you have proto files in your repository.
+    load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
+    proto_register_toolchains()
 
   You can add more external dependencies to this file later (see go_repository_).
 
