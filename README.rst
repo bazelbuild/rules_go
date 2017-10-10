@@ -15,8 +15,9 @@ Go rules for Bazel_
 .. _go_binary: go/core.rst#go_binary
 .. _go_test: go/core.rst#go_test
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
-.. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#265: https://github.com/bazelbuild/rules_go/issues/265
+.. _#721: https://github.com/bazelbuild/rules_go/issues/721
+.. _#889: https://github.com/bazelbuild/rules_go/issues/889
 
 .. ;; And now we continue with the actual content
 
@@ -29,6 +30,8 @@ Travis   Jenkins
 Announcements
 -------------
 
+October 10, 2017
+  We have bumped the minimum Bazel version to 0.6.0 due to `#889`_.
 October 9, 2017
   Release `0.6.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.6.0>`_
   is now available. Bazel 0.5.4 or later is now required. The WORKSPACE
@@ -80,7 +83,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-:Note: The latest version of these rules (0.6.0) require Bazel ≥ 0.5.4 to
+:Note: The latest version of these rules (0.6.0) require Bazel ≥ 0.6.0 to
   work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.

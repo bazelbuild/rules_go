@@ -8,8 +8,8 @@ package_group(
 )
 
 go_library(
-    name = "foo",
+    name = "go_default_library",
     srcs = ["foo.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/visibility",
     visibility = [":vis"],
-    importpath = "github.com/bazelbuild/rules_go/test/foo",
 )
