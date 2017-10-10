@@ -81,7 +81,8 @@ def _go_repository_impl(ctx):
     gazelle = ctx.path(Label(_gazelle))
     cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
             '--repo_root', ctx.path(''),
-            "--build_tags", ",".join(ctx.attr.build_tags)]
+            "--build_tags", ",".join(ctx.attr.build_tags),
+            "--proto", ctx.attr.build_file_proto_mode]
     if ctx.attr.build_file_name:
         cmds += ["--build_file_name", ctx.attr.build_file_name]
     cmds += [ctx.path('')]
@@ -113,6 +114,7 @@ go_repository = repository_rule(
         "build_file_name": attr.string(default="BUILD.bazel,BUILD"),
         "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
         "build_tags": attr.string_list(),
+        "build_file_proto_mode": attr.string(default="default", values=["default", "disable", "legacy"]),
     },
 )
 """See go/workspace.rst#go-repository for full documentation."""
