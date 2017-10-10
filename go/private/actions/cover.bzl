@@ -12,25 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def emit_cover(ctx, go_toolchain, sources):
-  """Construct the command line for test coverage instrument.
-
-  Args:
-    ctx: The skylark Context.
-    out_object: the object file for the library being compiled. Used to name
-      cover files.
-    sources: an iterable of Go source files.
-
-  Returns:
-    A list of Go source code files which might be coverage instrumented.
-  """
+def emit_cover(ctx, go_toolchain,
+               sources = []):
+  """See go/toolchains.rst#cover for full documentation."""
   outputs = []
   # TODO(linuxerwang): make the mode configurable.
   cover_vars = []
 
   for src in sources:
-    if (not src.basename.endswith(".go") or 
-        src.basename.endswith("_test.go") or 
+    if (not src.basename.endswith(".go") or
+        src.basename.endswith("_test.go") or
         src.basename.endswith(".cover.go")):
       outputs += [src]
       continue

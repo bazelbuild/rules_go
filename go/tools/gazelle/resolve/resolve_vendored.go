@@ -20,12 +20,12 @@ type vendoredResolver struct {
 	l Labeler
 }
 
-var _ Resolver = (*vendoredResolver)(nil)
+var _ nonlocalResolver = (*vendoredResolver)(nil)
 
 func newVendoredResolver(l Labeler) *vendoredResolver {
 	return &vendoredResolver{l}
 }
 
-func (v *vendoredResolver) Resolve(importpath string) (Label, error) {
+func (v *vendoredResolver) resolve(importpath string) (Label, error) {
 	return v.l.LibraryLabel("vendor/" + importpath), nil
 }

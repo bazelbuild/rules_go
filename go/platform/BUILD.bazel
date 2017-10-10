@@ -24,6 +24,6 @@ config_setting(
 config_setting(
     name = "windows_amd64",
     values = {
-        "cpu": "x64_windows_msvc",
+        "cpu": "x64_windows",
     },
 )

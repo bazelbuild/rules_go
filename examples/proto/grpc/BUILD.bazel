@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-load("@io_bazel_rules_go//proto:def.bzl", "go_grpc_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library", "go_grpc_library")
 
 proto_library(
     name = "my_svc_proto",
@@ -8,6 +8,17 @@ proto_library(
         "//examples/proto/lib:lib_proto",
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:empty_proto",
+    ],
+)
+
+go_proto_library(
+    name = "not_grpc",
+    proto = ":my_svc_proto",
+    importpath = "github.com/bazelbuild/rules_go/examples/proto/grpc/my_svc_proto",
+    deps = [
+        "//examples/proto/lib:go_default_library",
+        "@com_github_golang_protobuf//ptypes/any:go_default_library",
+        "@com_github_golang_protobuf//ptypes/empty:go_default_library",
     ],
 )
 

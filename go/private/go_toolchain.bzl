@@ -15,6 +15,7 @@
 Toolchain rules used by go.
 """
 load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
+load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
 load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile")
 load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
 load("@io_bazel_rules_go//go/private:actions/library.bzl", "emit_library")
@@ -22,6 +23,7 @@ load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
+  tmp = ctx.attr._root.path + "/tmp"
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
       sdk = ctx.attr.sdk,
@@ -29,9 +31,11 @@ def _go_toolchain_impl(ctx):
           "GOROOT": ctx.attr._root.path,
           "GOOS": ctx.attr.goos,
           "GOARCH": ctx.attr.goarch,
+          "TMP": tmp,
       },
       actions = struct(
           asm = emit_asm,
+          binary = emit_binary,
           compile = emit_compile,
           cover = emit_cover,
           library = emit_library,
@@ -40,6 +44,7 @@ def _go_toolchain_impl(ctx):
       ),
       paths = struct(
           root = ctx.attr._root,
+          tmp = tmp,
       ),
       tools = struct(
           go = ctx.executable._go,
@@ -52,7 +57,7 @@ def _go_toolchain_impl(ctx):
           extract_package = ctx.executable._extract_package,
       ),
       flags = struct(
-          compile = ctx.attr._go_toolchain_flags.compile_flags,
+          compile = (),
           link = ctx.attr.link_flags,
           link_cgo = ctx.attr.cgo_link_flags,
       ),
@@ -146,15 +151,12 @@ _go_toolchain = rule(
         "_headers": attr.label(default=_headers),
         "_root": attr.label(default=_root),
         "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
         "_external_linker": attr.label(default=_get_linker),
     },
 )
 
 def go_toolchain(name, target, host=None, constraints=[], **kwargs):
-  """Declares a go toolchain for use.
-  This is used when porting the rules_go to a new platform.
-  """
+  """See go/toolchains.rst#go-toolchain for full documentation."""
 
   if not host: host = target
   goos, _, goarch = target.partition("_")
@@ -167,7 +169,7 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
       "@io_bazel_rules_go//go/toolchain:" + host_goos,
       "@io_bazel_rules_go//go/toolchain:" + host_goarch,
   ]
-  
+
   impl_name = name + "-impl"
   _go_toolchain(
       name = impl_name,
@@ -208,13 +210,15 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
 
 def _go_toolchain_flags(ctx):
     return struct(
-        compile_flags = ctx.attr.compile_flags,
+        compilation_mode = ctx.attr.compilation_mode,
+        strip = ctx.attr.strip,
     )
 
 go_toolchain_flags = rule(
     _go_toolchain_flags,
     attrs = {
-        "compile_flags": attr.string_list(mandatory=True),
+        "compilation_mode": attr.string(mandatory=True),
+        "strip": attr.string(mandatory=True),
     },
 )
 

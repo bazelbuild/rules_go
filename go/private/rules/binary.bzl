@@ -22,7 +22,12 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary", "GoEmbed")
+load("@io_bazel_rules_go//go/private:providers.bzl",
+    "CgoInfo",
+    "GoLibrary",
+    "GoBinary",
+    "GoEmbed",
+)
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
@@ -30,63 +35,29 @@ def _go_binary_impl(ctx):
   embed = ctx.attr.embed
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
-  golib, _, _ = go_toolchain.actions.library(ctx,
-      go_toolchain = go_toolchain,
+
+  cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
+  golib, gobinary = go_toolchain.actions.binary(ctx, go_toolchain,
+      name = ctx.label.name,
+      importpath = go_importpath(ctx),
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
-      cgo_object = None,
+      cgo_info = cgo_info,
       embed = embed,
-      want_coverage = False,
-      importpath = go_importpath(ctx),
-      importable = False,
+      gc_linkopts = gc_linkopts(ctx),
+      x_defs = ctx.attr.x_defs,
+      default = ctx.outputs.executable,
   )
-
-  # Default (dynamic) linking
-  race_executable = ctx.new_file(ctx.attr.name + ".race")
-  for mode in compile_modes:
-    executable = ctx.outputs.executable
-    if mode == RACE_MODE:
-      executable = race_executable
-    go_toolchain.actions.link(
-        ctx,
-        go_toolchain = go_toolchain,
-        library=golib,
-        mode=mode,
-        executable=executable,
-        gc_linkopts=gc_linkopts(ctx),
-        x_defs=ctx.attr.x_defs,
-    )
-
-  # Static linking (in the 'static' output group)
-  static_linkopts = [
-      "-linkmode", "external",
-      "-extldflags", "-static",
-  ]
-  static_executable = ctx.new_file(ctx.attr.name + ".static")
-  go_toolchain.actions.link(
-      ctx,
-      go_toolchain = go_toolchain,
-      library=golib,
-      mode=NORMAL_MODE,
-      executable=static_executable,
-      gc_linkopts=gc_linkopts(ctx) + static_linkopts,
-      x_defs=ctx.attr.x_defs,
-  )
-
   return [
-      golib,
-      GoBinary(
-          executable = ctx.outputs.executable,
-          static = static_executable,
-          race = race_executable,
-      ),
+      golib, gobinary,
       DefaultInfo(
-          files = depset([ctx.outputs.executable]),
+          files = depset([gobinary.default]),
           runfiles = golib.runfiles,
       ),
       OutputGroupInfo(
-          static = depset([static_executable]),
-          race = depset([race_executable]),
+          normal = depset([gobinary.normal]),
+          static = depset([gobinary.static]),
+          race = depset([gobinary.race]),
       ),
   ]
 
@@ -106,11 +77,14 @@ go_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
+        "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     executable = True,
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+"""See go/core.rst#go_binary for full documentation."""
 
 def gc_linkopts(ctx):
   gc_linkopts = [ctx.expand_make_variables("gc_linkopts", f, {})

@@ -18,58 +18,55 @@ load("@io_bazel_rules_go//go/private:rules/test.bzl", "go_test")
 load("@io_bazel_rules_go//go/private:rules/cgo.bzl", "setup_cgo_library")
 
 def go_library_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
-  cgo_object = None
+  """See go/core.rst#go_library for full documentation."""
+  cgo_info = None
   if cgo:
-    cgogen = setup_cgo_library(
+    cgo_info = setup_cgo_library(
         name = name,
         srcs = srcs,
         cdeps = cdeps,
         copts = copts,
         clinkopts = clinkopts,
     )
-    srcs = cgogen.go_srcs
-    cgo_object = cgogen.cgo_object
   go_library(
       name = name,
       srcs = srcs,
-      cgo_object = cgo_object,
+      cgo_info = cgo_info,
       **kwargs
   )
 
 def go_binary_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
-  cgo_object = None
+  """See go/core.rst#go_binary for full documentation."""
+  cgo_info = None
   if cgo:
-    cgogen = setup_cgo_library(
+    cgo_info = setup_cgo_library(
         name = name,
         srcs = srcs,
         cdeps = cdeps,
         copts = copts,
         clinkopts = clinkopts,
     )
-    srcs = cgogen.go_srcs
-    cgo_object = cgogen.cgo_object
   return go_binary(
       name = name,
       srcs = srcs,
-      cgo_object = cgo_object,
+      cgo_info = cgo_info,
       **kwargs
   )
 
 def go_test_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
-  cgo_object = None
+  """See go/core.rst#go_test for full documentation."""
+  cgo_info = None
   if cgo:
-    cgogen = setup_cgo_library(
+    cgo_info = setup_cgo_library(
         name = name,
         srcs = srcs,
         cdeps = cdeps,
         copts = copts,
         clinkopts = clinkopts,
     )
-    srcs = cgogen.go_srcs
-    cgo_object = cgogen.cgo_object
   return go_test(
       name = name,
       srcs = srcs,
-      cgo_object = cgo_object,
+      cgo_info = cgo_info,
       **kwargs
   )

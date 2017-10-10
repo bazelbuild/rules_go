@@ -24,7 +24,12 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "gc_linkopts")
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoBinary", "GoEmbed")
+load("@io_bazel_rules_go//go/private:providers.bzl",
+    "CgoInfo",
+    "GoLibrary",
+    "GoBinary",
+    "GoEmbed",
+)
 
 def _go_test_impl(ctx):
   """go_test_impl implements go testing.
@@ -36,17 +41,20 @@ def _go_test_impl(ctx):
   embed = ctx.attr.embed
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
-  golib, _, _ = go_toolchain.actions.library(ctx,
+  cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
+
+  # first build the test library
+  golib, _ = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
-      cgo_object = None,
+      cgo_info = cgo_info,
       embed = embed,
-      want_coverage = False,
       importpath = go_importpath(ctx),
       importable = False,
   )
 
+  # now generate the main function
   if ctx.attr.rundir:
     if ctx.attr.rundir.startswith("/"):
       run_dir = ctx.attr.rundir
@@ -82,46 +90,34 @@ def _go_test_impl(ctx):
       env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
   )
 
-  main_lib, _, _ = go_toolchain.actions.library(ctx,
-      go_toolchain = go_toolchain,
+  # Now compile the test binary itself
+  main_lib, main_binary = go_toolchain.actions.binary(ctx, go_toolchain,
+      name = ctx.label.name,
       srcs = [main_go],
-      deps = [],
-      cgo_object = None,
-      embed = [],
-      want_coverage = False,
       importpath = ctx.label.name + "~testmain~",
-      importable = False,
+      gc_linkopts = gc_linkopts(ctx),
       golibs = [golib] + covered_libs,
+      default=ctx.outputs.executable,
+      x_defs=ctx.attr.x_defs,
   )
-
-  mode = NORMAL_MODE
-  linkopts = gc_linkopts(ctx)
-  if "race" in ctx.features:
-    mode = RACE_MODE
-
-  go_toolchain.actions.link(
-      ctx,
-      go_toolchain = go_toolchain,
-      library=main_lib,
-      mode=mode,
-      executable=ctx.outputs.executable,
-      gc_linkopts=linkopts,
-      x_defs=ctx.attr.x_defs)
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
   # without code changes.
-  runfiles = ctx.runfiles(files = [ctx.outputs.executable])
+  runfiles = ctx.runfiles(files = [main_binary.default])
   runfiles = runfiles.merge(golib.runfiles)
   return [
-      GoBinary(
-          executable = ctx.outputs.executable,
-      ),
+      main_binary,
       DefaultInfo(
-          files = depset([ctx.outputs.executable]),
+          files = depset([main_binary.default]),
           runfiles = runfiles,
       ),
-  ]
+      OutputGroupInfo(
+          normal = depset([main_binary.normal]),
+          static = depset([main_binary.static]),
+          race = depset([main_binary.race]),
+      ),
+]
 
 go_test = rule(
     _go_test_impl,
@@ -140,9 +136,12 @@ go_test = rule(
         "linkstamp": attr.string(),
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
+        "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     executable = True,
     test = True,
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+"""See go/core.rst#go_test for full documentation."""

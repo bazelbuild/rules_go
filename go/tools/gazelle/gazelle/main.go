@@ -70,29 +70,27 @@ type visitor interface {
 	// Gazelle processes. "pkg" describes the buildable Go code. It will not
 	// be nil. "oldFile" is the existing build file in the visited directory.
 	// It may be nil if no file is present.
-	visit(pkg *packages.Package, oldFile *bf.File)
+	visit(c *config.Config, pkg *packages.Package, oldFile *bf.File)
 
 	// finish is called once after all directories have been visited.
 	finish()
 }
 
 type visitorBase struct {
-	c         *config.Config
-	r         resolve.Resolver
-	l         resolve.Labeler
-	shouldFix bool
-	emit      emitFunc
+	c    *config.Config
+	r    *resolve.Resolver
+	l    resolve.Labeler
+	emit emitFunc
 }
 
 func newVisitor(c *config.Config, cmd command, emit emitFunc) visitor {
 	l := resolve.NewLabeler(c)
 	r := resolve.NewResolver(c, l)
 	base := visitorBase{
-		c:         c,
-		r:         r,
-		l:         l,
-		shouldFix: cmd == fixCmd,
-		emit:      emit,
+		c:    c,
+		r:    r,
+		l:    l,
+		emit: emit,
 	}
 	if c.StructureMode == config.HierarchicalMode {
 		v := &hierarchicalVisitor{visitorBase: base}
@@ -117,10 +115,14 @@ type hierarchicalVisitor struct {
 	shouldProcessRoot, didProcessRoot bool
 }
 
-func (v *hierarchicalVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
-	g := rules.NewGenerator(v.c, v.r, v.l, pkg.Rel, oldFile)
-	genFile, empty := g.Generate(pkg)
-	v.mergeAndEmit(genFile, oldFile, empty)
+func (v *hierarchicalVisitor) visit(c *config.Config, pkg *packages.Package, oldFile *bf.File) {
+	g := rules.NewGenerator(c, v.r, v.l, pkg.Rel, oldFile)
+	rules, empty := g.GenerateRules(pkg)
+	genFile := &bf.File{
+		Path: filepath.Join(pkg.Dir, c.DefaultBuildFileName()),
+		Stmt: rules,
+	}
+	v.mergeAndEmit(c, genFile, oldFile, empty)
 }
 
 func (v *hierarchicalVisitor) finish() {
@@ -153,11 +155,11 @@ type flatVisitor struct {
 	oldRootFile *bf.File
 }
 
-func (v *flatVisitor) visit(pkg *packages.Package, oldFile *bf.File) {
+func (v *flatVisitor) visit(c *config.Config, pkg *packages.Package, oldFile *bf.File) {
 	if pkg.Rel == "" {
 		v.oldRootFile = oldFile
 	}
-	g := rules.NewGenerator(v.c, v.r, v.l, "", oldFile)
+	g := rules.NewGenerator(c, v.r, v.l, "", oldFile)
 	rules, empty := g.GenerateRules(pkg)
 	v.rules[pkg.Rel] = rules
 	v.empty = append(v.empty, empty...)
@@ -172,7 +174,6 @@ func (v *flatVisitor) finish() {
 		}
 	}
 
-	g := rules.NewGenerator(v.c, v.r, v.l, "", v.oldRootFile)
 	genFile := &bf.File{
 		Path: filepath.Join(v.c.RepoRoot, v.c.DefaultBuildFileName()),
 	}
@@ -183,29 +184,23 @@ func (v *flatVisitor) finish() {
 	}
 	sort.Strings(packageNames)
 
-	genFile.Stmt = append(genFile.Stmt, nil) // reserve space for load
 	for _, name := range packageNames {
 		rs := v.rules[name]
 		genFile.Stmt = append(genFile.Stmt, rs...)
 	}
-	genFile.Stmt[0] = g.GenerateLoad(genFile.Stmt[1:])
 
-	if len(genFile.Stmt) == 2 {
-		// No rules generated.
-		return
-	}
-
-	v.mergeAndEmit(genFile, v.oldRootFile, v.empty)
+	v.mergeAndEmit(v.c, genFile, v.oldRootFile, v.empty)
 }
 
 // mergeAndEmit merges "genFile" with "oldFile". "oldFile" may be nil if
-// no file exists. If v.shouldFix is true, deprecated usage of old rules in
+// no file exists. If v.c.ShouldFix is true, deprecated usage of old rules in
 // "oldFile" will be fixed. The resulting merged file will be emitted using
 // the "v.emit" function.
-func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
+func (v *visitorBase) mergeAndEmit(c *config.Config, genFile, oldFile *bf.File, empty []bf.Expr) {
 	if oldFile == nil {
 		// No existing file, so no merge required.
 		rules.SortLabels(genFile)
+		genFile = merger.FixLoads(genFile)
 		bf.Rewrite(genFile, nil) // have buildifier 'format' our rules.
 		if err := v.emit(v.c, genFile); err != nil {
 			log.Print(err)
@@ -214,10 +209,10 @@ func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
 	}
 
 	// Existing file. Fix it or see if it needs fixing before merging.
-	if v.shouldFix {
-		oldFile = merger.FixFile(oldFile)
+	if c.ShouldFix {
+		oldFile = merger.FixFile(c, oldFile)
 	} else {
-		fixedFile := merger.FixFile(oldFile)
+		fixedFile := merger.FixFile(c, oldFile)
 		if fixedFile != oldFile {
 			log.Printf("%s: warning: file contains rules whose structure is out of date. Consider running 'gazelle fix'.", oldFile.Path)
 		}
@@ -231,6 +226,7 @@ func (v *visitorBase) mergeAndEmit(genFile, oldFile *bf.File, empty []bf.Expr) {
 	}
 
 	rules.SortLabels(mergedFile)
+	mergedFile = merger.FixLoads(mergedFile)
 	bf.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
 	if err := v.emit(v.c, mergedFile); err != nil {
 		log.Print(err)
@@ -311,6 +307,7 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	fs.Var(&knownImports, "known_import", "import path for which external resolution is skipped (can specify multiple times)")
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
 	flat := fs.Bool("experimental_flat", false, "whether gazelle should generate a single, combined BUILD file.\nThis mode is experimental and may not work yet.")
+	proto := fs.String("proto", "default", "default: generates new proto rules\n\tdisable: does not touch proto rules\n\tlegacy (deprecated): generates old proto rules")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			usage(fs)
@@ -363,13 +360,7 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 		return nil, cmd, nil, fmt.Errorf("no valid build file names specified")
 	}
 
-	c.GenericTags = make(config.BuildTags)
-	for _, t := range strings.Split(*buildTags, ",") {
-		if strings.HasPrefix(t, "!") {
-			return nil, cmd, nil, fmt.Errorf("build tags can't be negated: %s", t)
-		}
-		c.GenericTags[t] = true
-	}
+	c.SetBuildTags(*buildTags)
 	c.Platforms = config.DefaultPlatformTags
 	c.PreprocessTags()
 
@@ -381,6 +372,8 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 		}
 	}
 
+	c.ShouldFix = cmd == fixCmd
+
 	c.DepMode, err = config.DependencyModeFromString(*external)
 	if err != nil {
 		return nil, cmd, nil, err
@@ -390,6 +383,11 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 		c.StructureMode = config.FlatMode
 	} else {
 		c.StructureMode = config.HierarchicalMode
+	}
+
+	c.ProtoMode, err = config.ProtoModeFromString(*proto)
+	if err != nil {
+		return nil, cmd, nil, err
 	}
 
 	emit, ok := modeFromName[*mode]
@@ -459,8 +457,12 @@ func loadGoPrefix(c *config.Config) (string, error) {
 }
 
 func isDescendingDir(dir, root string) bool {
-	if dir == root {
+	rel, err := filepath.Rel(root, dir)
+	if err != nil {
+		return false
+	}
+	if rel == "." {
 		return true
 	}
-	return strings.HasPrefix(dir, fmt.Sprintf("%s%c", root, filepath.Separator))
+	return !strings.HasPrefix(rel, "..")
 }

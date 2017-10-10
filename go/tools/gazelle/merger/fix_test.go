@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	bf "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 type fixTestCase struct {
@@ -176,16 +177,60 @@ go_library(
 # after cgo_library
 `,
 		},
+		// fixLegacyProto tests
+		{
+			desc: "current proto preserved",
+			old: `load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+go_proto_library(
+    name = "foo_go_proto",
+    proto = ":foo_proto",
+)
+`,
+			want: `load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+go_proto_library(
+    name = "foo_go_proto",
+    proto = ":foo_proto",
+)
+`,
+		},
+		{
+			desc: "load and proto removed",
+			old: `load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+
+go_proto_library(
+    name = "go_default_library_protos",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:private"],
+)
+`,
+			want: "",
+		},
+		{
+			desc: "proto filegroup removed",
+			old: `filegroup(
+    name = "go_default_library_protos",
+    srcs = ["foo.proto"],
+)
+
+go_proto_library(name = "foo_proto")
+`,
+			want: `go_proto_library(name = "foo_proto")
+`,
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			testFix(t, tc, FixFile)
+			fix := func(f *bf.File) *bf.File {
+				return FixFile(&config.Config{}, f)
+			}
+			testFix(t, tc, fix)
 		})
 	}
 }
 
 func TestFixLoads(t *testing.T) {
 	for _, tc := range []fixTestCase{
-		// fixLoads tests
 		{
 			desc: "empty file",
 			old:  "",
@@ -262,6 +307,26 @@ go_embed_data(
 )
 `,
 		}, {
+			desc: "proto symbols",
+			old: `go_proto_library(
+    name = "foo_proto",
+)
+
+go_grpc_library(
+    name = "bar_proto",
+)
+`,
+			want: `load("@io_bazel_rules_go//proto:def.bzl", "go_grpc_library", "go_proto_library")
+
+go_proto_library(
+    name = "foo_proto",
+)
+
+go_grpc_library(
+    name = "bar_proto",
+)
+`,
+		}, {
 			desc: "fixLoad doesn't touch other symbols or loads",
 			old: `load(
     "@io_bazel_rules_go//go:def.bzl",
@@ -287,10 +352,40 @@ go_library(
     name = "go_default_library",
 )
 `,
+		}, {
+			desc: "fixLoad doesn't touch loads from other files",
+			old: `load(
+    "@com_github_pubref_rules_protobuf//go:rules.bzl",
+    "go_proto_library",
+    go_grpc_library = "go_proto_library",
+)
+
+go_proto_library(
+    name = "foo_go_proto",
+)
+
+grpc_proto_library(
+    name = "bar_go_proto",
+)
+`,
+			want: `load(
+    "@com_github_pubref_rules_protobuf//go:rules.bzl",
+    "go_proto_library",
+    go_grpc_library = "go_proto_library",
+)
+
+go_proto_library(
+    name = "foo_go_proto",
+)
+
+grpc_proto_library(
+    name = "bar_go_proto",
+)
+`,
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			testFix(t, tc, fixLoads)
+			testFix(t, tc, FixLoads)
 		})
 	}
 }

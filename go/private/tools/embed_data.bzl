@@ -70,24 +70,4 @@ go_embed_data = rule(
         ),
     },
 )
-"""go_embed_data generates a .go file that contains data from a file or a
-list of files.
-
-go_embed_data has the following attributes:
-    out: File name of the .go file to generate.
-    package: Go package name for the generated .go file.
-    var: Name of the variable that will contain the embedded data.
-    src: A single file to embed. This cannot be used at the same time as srcs.
-        The generated file will have a variable of type []byte or string with
-        the contents of this file.
-    srcs: A list of files to embed. This cannot be used at the same time as
-        src. The generated file will have a variable of type map[string][]byte
-        or map[string]string with the contents of each file. The map keys are
-        relative paths the files from the repository root. Keys for files in
-        external repositories will be prefixed with "external/repo/" where
-        "repo" is the name of the external repository.
-    flatten: If true and srcs is used, map keys are file base names instead
-        of relative paths.
-    string: If true, the embedded data will be stored as string instead
-        of []byte.
-"""
+"""See go/extras.rst#go_embed_data for full documentation."""

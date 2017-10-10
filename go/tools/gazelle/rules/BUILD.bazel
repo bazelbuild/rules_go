@@ -26,6 +26,7 @@ go_test(
     deps = [
         ":go_default_library",
         "//go/tools/gazelle/config:go_default_library",
+        "//go/tools/gazelle/merger:go_default_library",
         "//go/tools/gazelle/packages:go_default_library",
         "//go/tools/gazelle/resolve:go_default_library",
         "//go/tools/gazelle/testdata:go_default_library",

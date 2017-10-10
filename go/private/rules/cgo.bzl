@@ -13,17 +13,9 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl", "dict_of", "split_srcs", "join_srcs", "pkg_dir")
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+load("@io_bazel_rules_go//go/private:providers.bzl", "CgoInfo", "GoLibrary")
 
-def _cgo_select_go_files_impl(ctx):
-  return struct(files = ctx.attr.dep.go_files)
-
-_cgo_select_go_files = rule(_cgo_select_go_files_impl, attrs = {"dep": attr.label()})
-
-def _cgo_select_main_c_impl(ctx):
-  return struct(files = ctx.attr.dep.main_c)
-
-_cgo_select_main_c = rule(_cgo_select_main_c_impl, attrs = {"dep": attr.label()})
+_CgoCodegen = provider()
 
 def _mangle(ctx, src):
     src_stem, _, src_ext = src.path.rpartition('.')
@@ -75,9 +67,11 @@ def _cgo_codegen_impl(ctx):
     args += ["-src", gen_file.path + "=" + src.path]
 
   inputs = ctx.files.srcs + go_toolchain.data.tools + go_toolchain.data.crosstool
+  runfiles = ctx.runfiles(collect_data = True)
   for d in ctx.attr.deps:
     inputs += list(d.cc.transitive_headers)
     deps += d.cc.libs
+    runfiles = runfiles.merge(d.data_runfiles)
     copts += ['-D' + define for define in d.cc.defines]
     for inc in d.cc.include_directories:
       copts += ['-I', inc]
@@ -107,16 +101,25 @@ def _cgo_codegen_impl(ctx):
       },
   )
   
-  return struct(
-      label = ctx.label,
-      files = c_outs + source.headers,
-      go_files = go_outs,
-      main_c = depset([cgo_main]),
-      cgo_deps = deps,
-      cgo_exports = depset([cgo_export_h])
-  )
+  return [
+      _CgoCodegen(
+          go_files = go_outs,
+          main_c = depset([cgo_main]),
+          deps = deps,
+          exports = depset([cgo_export_h]),
+      ),
+      DefaultInfo(
+          files = depset(),
+          runfiles = runfiles,
+      ),
+      OutputGroupInfo(
+          go_files = go_outs,
+          c_files = c_outs + source.headers,
+          main_c = depset([cgo_main]),
+      ),
+  ]
 
-_cgo_codegen_rule = rule(
+_cgo_codegen = rule(
     _cgo_codegen_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
@@ -168,7 +171,6 @@ _cgo_import = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
 """Generates symbol-import directives for cgo
 
 Args:
@@ -178,70 +180,32 @@ Args:
   out: Destination of the generated codes.
 """
 
-def _cgo_object_impl(ctx):
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  if not go_toolchain.external_linker:
-    fail("Go toolchain does not support cgo")
-  options = go_toolchain.external_linker.options
-  arguments = _c_filter_options(options, blacklist=[
-      # never link any dependency libraries
-      "-l", "-L",
-      # manage flags to ld(1) by ourselves
-      "-Wl,"])
-  arguments += [
-      "-o", ctx.outputs.out.path,
-      "-nostdlib",
-      "-Wl,-r",
-  ] + go_toolchain.flags.link_cgo
-
-  lo = ctx.files.src[-1]
-  arguments += [lo.path]
-
-  ctx.action(
-      inputs = [lo] + go_toolchain.data.crosstool,
-      outputs = [ctx.outputs.out],
-      mnemonic = "CGoObject",
-      progress_message = "Linking %s" % ctx.outputs.out.short_path,
-      executable = go_toolchain.external_linker.compiler_executable,
-      arguments = arguments,
-  )
+def _cgo_collect_info_impl(ctx):
+  codegen = ctx.attr.codegen[_CgoCodegen]
   runfiles = ctx.runfiles(collect_data = True)
-  runfiles = runfiles.merge(ctx.attr.src.data_runfiles)
+  runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
+  
+  return [
+      DefaultInfo(files = depset(), runfiles = runfiles),
+      CgoInfo(
+          archive = ctx.file.lib,
+          gen_go_srcs = ctx.files.gen_go_srcs,
+          deps = ctx.attr.codegen[_CgoCodegen].deps,
+          exports = ctx.attr.codegen[_CgoCodegen].exports,
+          runfiles = runfiles,
+      ),
+  ]
 
-  return struct(
-      files = depset([ctx.outputs.out]),
-      cgo_obj = ctx.outputs.out,
-      cgo_deps = ctx.attr.cgogen.cgo_deps,
-      cgo_exports = ctx.attr.cgogen.cgo_exports,
-      runfiles = runfiles,
-  )
-
-_cgo_object = rule(
-    _cgo_object_impl,
+_cgo_collect_info = rule(
+    _cgo_collect_info_impl,
     attrs = {
-        "src": attr.label(
-            mandatory = True,
-            providers = ["cc"],
-        ),
-        "cgogen": attr.label(
-            mandatory = True,
-            providers = ["cgo_deps"],
-        ),
-        "out": attr.output(
-            mandatory = True,
-        ),
+        "codegen": attr.label(mandatory = True, providers = [_CgoCodegen]),
+        "gen_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
+        "lib": attr.label(mandatory = True, allow_single_file = True, providers = ["cc"]),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
-
-"""Generates _all.o to be archived together with Go objects.
-
-Args:
-  src: source static library which contains objects
-  cgogen: _cgo_codegen rule which knows the dependency cc_library() rules
-    to be linked together with src when we generate the final go binary.
-"""
+"""No-op rule that collects information from _cgo_codegen and cc_library
+info a CgoInfo provider for easy consumption."""
 
 def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_codegen_dir = name + ".cgo.dir"
@@ -257,7 +221,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   copts = copts + ["-I", base_dir]
 
   cgo_codegen_name = name + ".cgo_codegen"
-  _cgo_codegen_rule(
+  _cgo_codegen(
       name = cgo_codegen_name,
       srcs = srcs,
       deps = cdeps,
@@ -268,16 +232,26 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   )
 
   select_go_files = name + ".select_go_files"
-  _cgo_select_go_files(
+  native.filegroup(
       name = select_go_files,
-      dep = cgo_codegen_name,
+      srcs = [cgo_codegen_name],
+      output_group = "go_files",
+      visibility = ["//visibility:private"],
+  )
+
+  select_c_files = name + ".select_c_files"
+  native.filegroup(
+      name = select_c_files,
+      srcs = [cgo_codegen_name],
+      output_group = "c_files",
       visibility = ["//visibility:private"],
   )
 
   select_main_c = name + ".select_main_c"
-  _cgo_select_main_c(
+  native.filegroup(
       name = select_main_c,
-      dep = cgo_codegen_name,
+      srcs = [cgo_codegen_name],
+      output_group = "main_c",
       visibility = ["//visibility:private"],
   )
 
@@ -293,7 +267,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_lib_name = name + ".cgo_c_lib"
   native.cc_library(
       name = cgo_lib_name,
-      srcs = [cgo_codegen_name],
+      srcs = [select_c_files],
       deps = cdeps,
       copts = copts + platform_copts + [
           "-I", "$(BINDIR)/" + base_dir + "/" + cgo_codegen_dir,
@@ -302,9 +276,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       ],
       linkopts = clinkopts + platform_linkopts,
       linkstatic = 1,
-      # _cgo_.o and _all.o keep all objects in this archive.
-      # But it should not be very annoying in the final binary target
-      # because _cgo_object rule does not propagate alwayslink=1
+      # _cgo_.o needs all symbols because _cgo_import needs to see them.
       alwayslink = 1,
       visibility = ["//visibility:private"],
   )
@@ -331,22 +303,16 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       visibility = ["//visibility:private"],
   )
 
-  # Link the library into a relocatable .o file that can be linked into the
-  # final binary.
-  all_o_name = name + "._all.o"
-  _cgo_object(
-      name = all_o_name,
-      src = cgo_lib_name,
-      out = cgo_codegen_dir + "/_all.o",
-      cgogen = cgo_codegen_name,
-      visibility = ["//visibility:private"],
-  )
-
-  return struct(
-      name = name,
-      go_srcs = [
+  cgo_info_name = name + ".cgo_info"
+  _cgo_collect_info(
+      name = cgo_info_name,
+      codegen = cgo_codegen_name,
+      gen_go_srcs = [
           select_go_files,
           cgo_import_name,
       ],
-      cgo_object = all_o_name,
+      lib = cgo_lib_name,
+      visibility = ["//visibility:private"],
   )
+
+  return cgo_info_name

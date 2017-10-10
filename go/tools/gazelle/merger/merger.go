@@ -23,12 +23,10 @@ import (
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-const (
-	gazelleIgnore = "# gazelle:ignore" // marker in a BUILD file to ignore it.
-	keep          = "# keep"           // marker in srcs or deps to tell gazelle to preserve.
-)
+const keep = "# keep" // marker in srcs or deps to tell gazelle to preserve.
 
 var (
 	mergeableFields = map[string]bool{
@@ -38,6 +36,7 @@ var (
 		"deps":       true,
 		"importpath": true,
 		"library":    true,
+		"proto":      true,
 		"srcs":       true,
 	}
 )
@@ -96,7 +95,7 @@ func MergeWithExisting(genFile, oldFile *bf.File, empty []bf.Expr) *bf.File {
 		mergedFile.Stmt[i] = mergedRule
 	}
 
-	return fixLoads(&mergedFile)
+	return &mergedFile
 }
 
 // merge combines information from gen and old and returns an updated rule.
@@ -429,16 +428,10 @@ func mergeLoad(gen, old *bf.CallExpr, oldfile *bf.File) *bf.CallExpr {
 // shouldIgnore checks whether "gazelle:ignore" appears at the beginning of
 // a comment before or after any top-level statement in the file.
 func shouldIgnore(oldFile *bf.File) bool {
-	for _, s := range oldFile.Stmt {
-		for _, c := range s.Comment().After {
-			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return true
-			}
-		}
-		for _, c := range s.Comment().Before {
-			if strings.HasPrefix(c.Token, gazelleIgnore) {
-				return true
-			}
+	directives := config.ParseDirectives(oldFile)
+	for _, d := range directives {
+		if d.Key == "ignore" {
+			return true
 		}
 	}
 	return false
@@ -510,15 +503,20 @@ func name(c *bf.CallExpr) string {
 }
 
 func isEmpty(c *bf.CallExpr) bool {
-	if len(c.List) != 1 {
-		return false
+	for _, arg := range c.List {
+		kwarg, ok := arg.(*bf.BinaryExpr)
+		if !ok || kwarg.Op != "=" {
+			return false
+		}
+		key, ok := kwarg.X.(*bf.LiteralExpr)
+		if !ok {
+			return false
+		}
+		if key.Token != "name" && key.Token != "visibility" {
+			return false
+		}
 	}
-	arg, ok := c.List[0].(*bf.BinaryExpr)
-	if !ok {
-		return false
-	}
-	x, ok := arg.X.(*bf.LiteralExpr)
-	return ok && x.Token == "name"
+	return true
 }
 
 func isScalar(e bf.Expr) bool {

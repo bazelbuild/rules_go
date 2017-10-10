@@ -23,6 +23,7 @@ import (
 
 	bf "github.com/bazelbuild/buildtools/build"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/merger"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
@@ -44,7 +45,7 @@ func testConfig(repoRoot, goPrefix string) *config.Config {
 func packageFromDir(c *config.Config, dir string) (*packages.Package, *bf.File) {
 	var pkg *packages.Package
 	var oldFile *bf.File
-	packages.Walk(c, dir, func(p *packages.Package, f *bf.File) {
+	packages.Walk(c, dir, func(_ *config.Config, p *packages.Package, f *bf.File) {
 		if p.Dir == dir {
 			pkg = p
 			oldFile = f
@@ -82,7 +83,10 @@ func TestGenerator(t *testing.T) {
 
 		pkg, oldFile := packageFromDir(c, dir)
 		g := rules.NewGenerator(c, r, l, rel, oldFile)
-		f, _ := g.Generate(pkg)
+		rs, _ := g.GenerateRules(pkg)
+		f := &bf.File{Stmt: rs}
+		rules.SortLabels(f)
+		f = merger.FixLoads(f)
 		got := string(bf.Format(f))
 
 		wantPath := filepath.Join(pkg.Dir, "BUILD.want")
@@ -105,54 +109,48 @@ func TestGeneratorEmpty(t *testing.T) {
 	r := resolve.NewResolver(c, l)
 	g := rules.NewGenerator(c, r, l, "", nil)
 
-	for _, tc := range []struct {
-		name string
-		pkg  packages.Package
-		want string
-	}{
-		{
-			name: "nothing",
-			want: `go_library(name = "go_default_library")
+	pkg := packages.Package{Name: "foo"}
+	want := `filegroup(name = "go_default_library_protos")
+
+proto_library(name = "foo_proto")
+
+go_proto_library(name = "foo_go_proto")
+
+go_grpc_library(name = "foo_go_proto")
+
+go_library(name = "go_default_library")
 
 go_binary(name = "repo")
-
-filegroup(name = "go_default_library_protos")
 
 go_test(name = "go_default_test")
 
 go_test(name = "go_default_xtest")
-`,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			_, empty := g.GenerateRules(&tc.pkg)
-			emptyStmt := make([]bf.Expr, len(empty))
-			for i, s := range empty {
-				emptyStmt[i] = s
-			}
-			got := string(bf.Format(&bf.File{Stmt: emptyStmt}))
-			if got != tc.want {
-				t.Errorf("got '%s' ;\nwant %s", got, tc.want)
-			}
-		})
+`
+	_, empty := g.GenerateRules(&pkg)
+	emptyStmt := make([]bf.Expr, len(empty))
+	for i, s := range empty {
+		emptyStmt[i] = s
+	}
+	got := string(bf.Format(&bf.File{Stmt: emptyStmt}))
+	if got != want {
+		t.Errorf("got '%s' ;\nwant %s", got, want)
 	}
 }
 
-func TestGeneratedFileName(t *testing.T) {
-	testGeneratedFileName(t, "BUILD")
-	testGeneratedFileName(t, "BUILD.bazel")
-}
-
-func testGeneratedFileName(t *testing.T, buildFileName string) {
-	c := &config.Config{
-		ValidBuildFileNames: []string{buildFileName},
-	}
+func TestGeneratorEmptyLegacyProto(t *testing.T) {
+	c := testConfig("", "example.com/repo")
+	c.ProtoMode = config.LegacyProtoMode
 	l := resolve.NewLabeler(c)
 	r := resolve.NewResolver(c, l)
 	g := rules.NewGenerator(c, r, l, "", nil)
-	pkg := &packages.Package{}
-	f, _ := g.Generate(pkg)
-	if f.Path != buildFileName {
-		t.Errorf("got %q; want %q", f.Path, buildFileName)
+
+	pkg := packages.Package{Name: "foo"}
+	_, empty := g.GenerateRules(&pkg)
+	for _, e := range empty {
+		rule := bf.Rule{Call: e.(*bf.CallExpr)}
+		kind := rule.Kind()
+		if kind == "proto_library" || kind == "go_proto_library" || kind == "go_grpc_library" {
+			t.Errorf("deleted rule %s ; should not delete in legacy proto mode", kind)
+		}
 	}
 }

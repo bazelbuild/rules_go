@@ -49,7 +49,7 @@ func TestImportPath(t *testing.T) {
 			pkg := Package{
 				Name: path.Base(tc.rel),
 				Rel:  tc.rel,
-				Library: Target{
+				Library: GoTarget{
 					Sources: PlatformStrings{
 						Generic: []string{"a.go"},
 					},
@@ -76,7 +76,7 @@ func TestImportPathCmd(t *testing.T) {
 	pkg := Package{
 		Name: "main",
 		Rel:  "foo/bar",
-		Library: Target{
+		Library: GoTarget{
 			Sources: PlatformStrings{
 				Generic: []string{"main.go"},
 			},

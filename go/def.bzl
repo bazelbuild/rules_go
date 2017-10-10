@@ -30,7 +30,7 @@ load("@io_bazel_rules_go//go/private:toolchain.bzl",
 load("@io_bazel_rules_go//go/private:go_toolchain.bzl",
     go_toolchain = "go_toolchain",
 )
-load("@io_bazel_rules_go//go/private:rules/prefix.bzl", 
+load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix",
 )
 load("@io_bazel_rules_go//go/private:rules/wrappers.bzl",
@@ -38,114 +38,36 @@ load("@io_bazel_rules_go//go/private:rules/wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_test_macro = "go_test_macro",
 )
-load("@io_bazel_rules_go//go/private:tools/embed_data.bzl", 
+load("@io_bazel_rules_go//go/private:tools/embed_data.bzl",
     "go_embed_data",
 )
-load("@io_bazel_rules_go//go/private:tools/gazelle.bzl", 
+load("@io_bazel_rules_go//go/private:tools/gazelle.bzl",
     "gazelle",
 )
-load("@io_bazel_rules_go//go/private:tools/path.bzl", 
+load("@io_bazel_rules_go//go/private:tools/path.bzl",
     _go_path = "go_path",
 )
-load("@io_bazel_rules_go//go/private:tools/vet.bzl", 
+load("@io_bazel_rules_go//go/private:tools/vet.bzl",
     _go_vet_test = "go_vet_test",
 )
 
 GoLibrary = _GoLibrary
-"""
-This is the provider used to expose a go library to other rules.
-It provides the following fields:
-  TODO: List all the provider fields here
-"""
+"""See go/providers.rst#GoLibrary for full documentation."""
 
 GoBinary = _GoBinary
-"""
-This is the provider used to expose a go binary to other rules.
-It provides the following fields:
-  TODO: List all the provider fields here
-"""
+"""See go/providers.rst#GoBinary for full documentation."""
 
 GoEmbed = _GoEmbed
-"""
-This is the provider used to provide paired source and deps to a go library.
-This should generally be the provider returned by code generators.
-It provides the following fields:
-  TODO: List all the provider fields here
-"""
+"""See go/providers.rst#GoEmbed for full documentation."""
 
 go_library = _go_library_macro
-"""
-    go_library is a macro for building go libraries.
-    It returns the GoLibrary providers,
-    and accepts the following attributes:
-        "importpath": attr.string(),
-        # inputs
-        "srcs": attr.label_list(),
-        "deps": attr.label_list(),
-        "data": attr.label_list(allow_files = True, cfg = "data"),
-        # compile options
-        "gc_goopts": attr.string_list(), # Options for the go compiler if using gc
-        "gccgo_goopts": attr.string_list(), # Options for the go compiler if using gcc
-        # cgo options
-        "cgo": attr.bool(),
-        "cdeps": attr.label_list(), # TODO: Would be nicer to be able to filter deps instead
-        "copts": attr.string_list(), # Options for the the c compiler
-        "clinkopts": attr.string_list(), # Options for the linker
-"""
+"""See go/core.rst#go_library for full documentation."""
 
 go_binary = _go_binary_macro
-"""
-    go_library is a macro for building go executables.
-    It returns the GoLibrary and GoBinary providers,
-    and accepts the following attributes:
-        "importpath": attr.string(),
-        # inputs
-        "srcs": attr.label_list(),
-        "deps": attr.label_list(),
-        "data": attr.label_list(allow_files = True, cfg = "data"),
-        # compile options
-        "gc_goopts": attr.string_list(), # Options for the go compiler if using gc
-        "gccgo_goopts": attr.string_list(), # Options for the go compiler if using gcc
-        # link options
-        "gc_linkopts": attr.string_list(), # Options for the go linker if using gc
-        "gccgo_linkopts": attr.string_list(), # Options for the go linker if using gcc
-        "stamp": attr.int(),
-        "linkstamp": attr.string(),
-        "x_defs": attr.string_dict(),
-        # cgo options
-        "cgo": attr.bool(),
-        "cdeps": attr.label_list(), # TODO: Would be nicer to be able to filter deps instead
-        "copts": attr.string_list(), # Options for the the c compiler
-        "clinkopts": attr.string_list(), # Options for the linker
-"""
+"""See go/core.rst#go_binary for full documentation."""
 
 go_test = _go_test_macro
-"""
-    go_test is a macro for building go executable tests.
-    It returns the GoLibrary and GoBinary providers,
-    and accepts the following attributes:
-        "importpath": attr.string(),
-        "defines_main": attr.bool(),
-        # inputs
-        "srcs": attr.label_list(),
-        "deps": attr.label_list(),
-        "data": attr.label_list(allow_files = True, cfg = "data"),
-        "library": attr.label(),
-        # compile options
-        "gc_goopts": attr.string_list(), # Options for the go compiler if using gc
-        "gccgo_goopts": attr.string_list(), # Options for the go compiler if using gcc
-        # link options
-        "gc_linkopts": attr.string_list(), # Options for the go linker if using gc
-        "gccgo_linkopts": attr.string_list(), # Options for the go linker if using gcc
-        "stamp": attr.int(),
-        "linkstamp": attr.string(),
-        "x_defs": attr.string_dict(),
-        # cgo options
-        "cgo": attr.bool(),
-        "cdeps": attr.label_list(), # TODO: Would be nicer to be able to filter deps instead
-        "copts": attr.string_list(), # Options for the the c compiler
-        "clinkopts": attr.string_list(), # Options for the linker
-"""
+"""See go/core.rst#go_test for full documentation."""
 
 go_path = _go_path
 """
@@ -157,7 +79,7 @@ go_path = _go_path
 
 go_vet_test = _go_vet_test
 """
-    go_vet_test 
+    go_vet_test
 """
 
 

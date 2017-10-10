@@ -21,15 +21,34 @@ config_setting(
     values = {"compilation_mode": "opt"},
 )
 
+config_setting(
+    name = "strip-always",
+    values = {"strip": "always"},
+)
+
+config_setting(
+    name = "strip-sometimes",
+    values = {"strip": "sometimes"},
+)
+
+config_setting(
+    name = "strip-never",
+    values = {"strip": "never"},
+)
+
 go_toolchain_flags(
     name = "go_toolchain_flags",
-    compile_flags = select({
-        "@io_bazel_rules_go//go/private:fastbuild": [],
-        "@io_bazel_rules_go//go/private:debug": [
-            "-N",
-            "-l",
-        ],
-        "@io_bazel_rules_go//go/private:optimized": [],
+    compilation_mode = select({
+        "@io_bazel_rules_go//go/private:fastbuild": "fastbuild",
+        "@io_bazel_rules_go//go/private:debug": "debug",
+        "@io_bazel_rules_go//go/private:optimized": "optimized",
+    }),
+    strip = select({
+        "@io_bazel_rules_go//go/private:strip-always": "always",
+        "@io_bazel_rules_go//go/private:strip-sometimes": "sometimes",
+        "@io_bazel_rules_go//go/private:strip-never": "never",
     }),
     visibility = ["//visibility:public"],
 )
+
+

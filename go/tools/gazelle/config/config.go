@@ -17,6 +17,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Config holds information about how Gazelle should run. This is mostly
@@ -45,6 +46,10 @@ type Config struct {
 	// This is used to map imports to labels within the repository.
 	GoPrefix string
 
+	// ShouldFix determines whether Gazelle attempts to remove and replace
+	// usage of deprecated rules.
+	ShouldFix bool
+
 	// DepMode determines how imports outside of GoPrefix are resolved.
 	DepMode DependencyMode
 
@@ -53,6 +58,9 @@ type Config struct {
 
 	// StructureMode determines how build files are organized within a project.
 	StructureMode StructureMode
+
+	// ProtoMode determines how rules are generated for protos.
+	ProtoMode ProtoMode
 }
 
 var DefaultValidBuildFileNames = []string{"BUILD.bazel", "BUILD"}
@@ -92,9 +100,29 @@ func init() {
 	}
 }
 
+// SetBuildTags sets GenericTags by parsing as a comma separated list. An
+// error will be returned for tags that wouldn't be recognized by "go build".
+// PreprocessTags should be called after this.
+func (c *Config) SetBuildTags(tags string) error {
+	c.GenericTags = make(BuildTags)
+	if tags == "" {
+		return nil
+	}
+	for _, t := range strings.Split(tags, ",") {
+		if strings.HasPrefix(t, "!") {
+			return fmt.Errorf("build tags can't be negated: %s", t)
+		}
+		c.GenericTags[t] = true
+	}
+	return nil
+}
+
 // PreprocessTags performs some automatic processing on generic and
 // platform-specific tags before they are used to match files.
 func (c *Config) PreprocessTags() {
+	if c.GenericTags == nil {
+		c.GenericTags = make(BuildTags)
+	}
 	c.GenericTags["cgo"] = true
 	c.GenericTags["gc"] = true
 	for _, platformTags := range c.Platforms {
@@ -145,3 +173,33 @@ const (
 	// new_http_archive.
 	FlatMode
 )
+
+// ProtoMode determines how proto rules are generated.
+type ProtoMode int
+
+const (
+	// DefaultProtoMode generates proto_library and new grpc_proto_library rules.
+	// .pb.go files are excluded when there is a .proto file with a similar name.
+	DefaultProtoMode ProtoMode = iota
+
+	// DisableProtoMode ignores .proto files. .pb.go files are treated
+	// as normal sources.
+	DisableProtoMode
+
+	// LegacyProtoMode generates filegroups for .proto files if .pb.go files
+	// are present in the same directory.
+	LegacyProtoMode
+)
+
+func ProtoModeFromString(s string) (ProtoMode, error) {
+	switch s {
+	case "default":
+		return DefaultProtoMode, nil
+	case "disable":
+		return DisableProtoMode, nil
+	case "legacy":
+		return LegacyProtoMode, nil
+	default:
+		return 0, fmt.Errorf("unrecognized proto mode: %q", s)
+	}
+}

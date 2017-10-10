@@ -12,22 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def emit_pack(ctx, go_toolchain, in_lib, out_lib, objects):
-  """Construct the command line for packing objects together.
+def emit_pack(ctx, go_toolchain,
+    in_lib = None,
+    out_lib = None,
+    objects = (),
+    archive = None):
+  """See go/toolchains.rst#pack for full documentation."""
 
-  Args:
-    ctx: The skylark Context.
-    in_lib: the archive that should be copied and appended to.
-    out_lib: the archive that should be produced
-    objects: an iterable of object files to be added to the output archive file.
-  """
+  if in_lib == None: fail("in_lib is a required parameter")
+  if out_lib == None: fail("out_lib is a required parameter")
+
+  inputs = [in_lib] + go_toolchain.data.tools
+
   arguments = [
-      go_toolchain.tools.go.path,
-      in_lib.path,
-      out_lib.path,
-  ] + [obj.path for obj in objects]
+      "-gotool", go_toolchain.tools.go.path,
+      "-in", in_lib.path,
+      "-out", out_lib.path,
+  ]
+  inputs.extend(objects)
+  for obj in objects:
+    arguments.extend(["-obj", obj.path])
+
+  if archive:
+    inputs.append(archive)
+    arguments.extend(["-arc", archive.path])
+
   ctx.action(
-      inputs = [in_lib] + objects + go_toolchain.data.tools,
+      inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoPack",
       executable = go_toolchain.tools.pack,

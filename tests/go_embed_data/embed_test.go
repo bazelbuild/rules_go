@@ -10,10 +10,10 @@ import (
 
 func TestMain(m *testing.M) {
 	// This test must run from the workspace root since it accesses files using
-	// relative paths. We look at parent directories until we find README.md,
+	// relative paths. We look at parent directories until we find AUTHORS,
 	// then change to that directory.
 	for {
-		if _, err := os.Stat("README.md"); err == nil {
+		if _, err := os.Stat("AUTHORS"); err == nil {
 			break
 		}
 		if err := os.Chdir(".."); err != nil {
@@ -35,7 +35,7 @@ func TestEmpty(t *testing.T) {
 }
 
 func TestSingle(t *testing.T) {
-	checkFile(t, "README.md", single)
+	checkFile(t, "AUTHORS", single)
 }
 
 func TestLocal(t *testing.T) {

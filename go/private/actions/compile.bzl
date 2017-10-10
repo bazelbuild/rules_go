@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", 
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "NORMAL_MODE",
     "RACE_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
@@ -20,18 +21,17 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_searchpath",
 )
 
-def emit_compile(ctx, go_toolchain, sources, importpath, golibs, mode, out_lib, gc_goopts):
-  """Construct the command line for compiling Go code.
+def emit_compile(ctx, go_toolchain,
+    sources = None,
+    importpath = "",
+    golibs = [],
+    mode = NORMAL_MODE,
+    out_lib = None,
+    gc_goopts = []):
+  """See go/toolchains.rst#compile for full documentation."""
 
-  Args:
-    ctx: The skylark Context.
-    sources: an iterable of source code artifacts (or CTs? or labels?)
-    golibs: a depset of representing all imported libraries.
-    mode: Controls the compilation setup affecting things like enabling profilers and sanitizers.
-      This must be one of the values in common.bzl#compile_modes
-    out_lib: the archive file that should be produced
-    gc_goopts: additional flags to pass to the compiler.
-  """
+  if sources == None: fail("sources is a required parameter")
+  if out_lib == None: fail("out_lib is a required parameter")
 
   # Add in any mode specific behaviours
   if mode == RACE_MODE:
@@ -52,7 +52,11 @@ def emit_compile(ctx, go_toolchain, sources, importpath, golibs, mode, out_lib, 
   args += ["--"]
   if importpath:
     args += ["-p", importpath]
-  args += gc_goopts + go_toolchain.flags.compile + cgo_sources
+  args.extend(gc_goopts)
+  args.extend(go_toolchain.flags.compile)
+  if ctx.attr._go_toolchain_flags.compilation_mode == "debug":
+    args.extend(["-N", "-l"])
+  args.extend(cgo_sources)
   ctx.action(
       inputs = list(inputs),
       outputs = [out_lib],

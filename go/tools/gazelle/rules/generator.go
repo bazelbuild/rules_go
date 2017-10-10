@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"log"
 	"path"
-	"path/filepath"
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
@@ -32,7 +31,7 @@ import (
 // "buildRel" is a slash-separated path to the directory containing the
 // build file being generated, relative to the repository root.
 // "oldFile" is the existing build file. May be nil.
-func NewGenerator(c *config.Config, r resolve.Resolver, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
+func NewGenerator(c *config.Config, r *resolve.Resolver, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
 	shouldSetVisibility := oldFile == nil || !hasDefaultVisibility(oldFile)
 	return &Generator{c: c, r: r, l: l, buildRel: buildRel, shouldSetVisibility: shouldSetVisibility}
 }
@@ -40,27 +39,10 @@ func NewGenerator(c *config.Config, r resolve.Resolver, l resolve.Labeler, build
 // Generator generates Bazel build rules for Go build targets.
 type Generator struct {
 	c                   *config.Config
-	r                   resolve.Resolver
+	r                   *resolve.Resolver
 	l                   resolve.Labeler
 	buildRel            string
 	shouldSetVisibility bool
-}
-
-// Generate generates a syntax tree for a build file. This is a convenience
-// method for GenerateRules and GenerateLoad.
-func (g *Generator) Generate(pkg *packages.Package) (genFile *bf.File, empty []bf.Expr) {
-	genFile = &bf.File{
-		Path: filepath.Join(pkg.Dir, g.c.DefaultBuildFileName()),
-	}
-	genFile.Stmt = append(genFile.Stmt, nil) // reserve space for load
-	rules, empty := g.GenerateRules(pkg)
-	genFile.Stmt = append(genFile.Stmt, rules...)
-	if load := g.GenerateLoad(genFile.Stmt[1:]); load == nil {
-		genFile.Stmt = genFile.Stmt[1:]
-	} else {
-		genFile.Stmt[0] = load
-	}
-	return genFile, empty
 }
 
 // GenerateRules generates a list of rules for targets in "pkg". It also returns
@@ -68,12 +50,15 @@ func (g *Generator) Generate(pkg *packages.Package) (genFile *bf.File, empty []b
 func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty []bf.Expr) {
 	var rs []bf.Expr
 
-	library, r := g.generateLib(pkg)
+	protoLibName, protoRules := g.generateProto(pkg)
+	rs = append(rs, protoRules...)
+
+	libName, libRule := g.generateLib(pkg, protoLibName)
+	rs = append(rs, libRule)
+
 	rs = append(rs,
-		r,
-		g.generateBin(pkg, library),
-		g.filegroup(pkg),
-		g.generateTest(pkg, library, false),
+		g.generateBin(pkg, libName),
+		g.generateTest(pkg, libName, false),
 		g.generateTest(pkg, "", true))
 
 	for _, r := range rs {
@@ -86,38 +71,78 @@ func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty
 	return rules, empty
 }
 
-// GenerateLoad generates a load statement for the symbols referenced
-// in "stmts". Returns nil if rules is empty.
-func (g *Generator) GenerateLoad(stmts []bf.Expr) bf.Expr {
-	loadableKinds := []string{
-		// keep sorted
-		"go_binary",
-		"go_library",
-		"go_test",
+func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
+	if g.c.ProtoMode == config.DisableProtoMode {
+		// Don't create or delete proto rules in this mode. Any existing rules
+		// are likely hand-written.
+		return "", nil
 	}
 
-	kinds := make(map[string]bool)
-	for _, s := range stmts {
-		if c, ok := s.(*bf.CallExpr); ok {
-			r := bf.Rule{c}
-			kinds[r.Kind()] = true
+	filegroupName := config.DefaultProtosName
+	protoName := g.l.ProtoLabel(pkg.Rel, pkg.Name).Name
+	goProtoName := g.l.GoProtoLabel(pkg.Rel, pkg.Name).Name
+
+	if g.c.ProtoMode == config.LegacyProtoMode {
+		if !pkg.Proto.HasProto() {
+			return "", []bf.Expr{emptyRule("filegroup", filegroupName)}
+		}
+		return "", []bf.Expr{
+			newRule("filegroup", []keyvalue{
+				{key: "name", value: filegroupName},
+				{key: "srcs", value: g.sources(pkg.Proto.Sources, pkg.Rel)},
+				{key: "visibility", value: []string{"//visibility:public"}},
+			}),
 		}
 	}
-	args := make([]bf.Expr, 0, len(kinds)+1)
-	args = append(args, &bf.StringExpr{Value: config.RulesGoDefBzlLabel})
-	for _, k := range loadableKinds {
-		if kinds[k] {
-			args = append(args, &bf.StringExpr{Value: k})
+
+	if !pkg.Proto.HasProto() {
+		return "", []bf.Expr{
+			emptyRule("filegroup", filegroupName),
+			emptyRule("proto_library", protoName),
+			emptyRule("go_proto_library", goProtoName),
+			emptyRule("go_grpc_library", goProtoName),
 		}
 	}
-	if len(args) == 1 {
-		return nil
+
+	var rules []bf.Expr
+	visibility := []string{checkInternalVisibility(pkg.Rel, "//visibility:public")}
+	protoAttrs := []keyvalue{
+		{"name", protoName},
+		{"srcs", g.sources(pkg.Proto.Sources, pkg.Rel)},
+		{"visibility", visibility},
 	}
-	return &bf.CallExpr{
-		X:            &bf.LiteralExpr{Token: "load"},
-		List:         args,
-		ForceCompact: true,
+	if !pkg.Proto.Imports.IsEmpty() {
+		protoAttrs = append(protoAttrs,
+			keyvalue{"deps", g.dependencies(pkg.Proto.Imports, g.r.ResolveProto)})
 	}
+	rules = append(rules, newRule("proto_library", protoAttrs))
+
+	goProtoAttrs := []keyvalue{
+		{"name", goProtoName},
+		{"proto", ":" + protoName},
+		{"importpath", pkg.ImportPath(g.c.GoPrefix)},
+		{"visibility", visibility},
+	}
+	if !pkg.Proto.Imports.IsEmpty() {
+		goProtoAttrs = append(goProtoAttrs,
+			keyvalue{"deps", g.dependencies(pkg.Proto.Imports, g.r.ResolveGoProto)})
+	}
+
+	// If a developer adds or removes services from existing protos, this
+	// will create a new rule and delete the old one, along with any custom
+	// attributes (assuming no keep comments). We can't currently merge
+	// rules unless both kind and name match.
+	if pkg.Proto.HasServices {
+		rules = append(rules,
+			newRule("go_grpc_library", goProtoAttrs),
+			emptyRule("go_proto_library", goProtoName))
+	} else {
+		rules = append(rules,
+			newRule("go_proto_library", goProtoAttrs),
+			emptyRule("go_grpc_library", goProtoName))
+	}
+
+	return goProtoName, rules
 }
 
 func (g *Generator) generateBin(pkg *packages.Package, library string) bf.Expr {
@@ -133,12 +158,12 @@ func (g *Generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	if library != "" {
 		attrs = append(attrs, keyvalue{"library", ":" + library})
 	}
-	return newRule("go_binary", nil, attrs)
+	return newRule("go_binary", attrs)
 }
 
-func (g *Generator) generateLib(pkg *packages.Package) (string, *bf.CallExpr) {
+func (g *Generator) generateLib(pkg *packages.Package, goProtoName string) (string, *bf.CallExpr) {
 	name := g.l.LibraryLabel(pkg.Rel).Name
-	if !pkg.Library.HasGo() {
+	if !pkg.Library.HasGo() && goProtoName == "" {
 		return "", emptyRule("go_library", name)
 	}
 	var visibility string
@@ -151,8 +176,11 @@ func (g *Generator) generateLib(pkg *packages.Package) (string, *bf.CallExpr) {
 
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Library)
 	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
+	if goProtoName != "" {
+		attrs = append(attrs, keyvalue{"library", ":" + goProtoName})
+	}
 
-	rule := newRule("go_library", nil, attrs)
+	rule := newRule("go_library", attrs)
 	return name, rule
 }
 
@@ -184,21 +212,6 @@ func checkInternalVisibility(rel, visibility string) string {
 	return visibility
 }
 
-// filegroup is a small hack for directories with pre-generated .pb.go files
-// and also source .proto files.  This creates a filegroup for the .proto in
-// addition to the usual go_library for the .pb.go files.
-func (g *Generator) filegroup(pkg *packages.Package) bf.Expr {
-	name := config.DefaultProtosName
-	if !pkg.HasPbGo || len(pkg.Protos) == 0 {
-		return emptyRule("filegroup", name)
-	}
-	return newRule("filegroup", nil, []keyvalue{
-		{key: "name", value: config.DefaultProtosName},
-		{key: "srcs", value: pkg.Protos},
-		{key: "visibility", value: []string{"//visibility:public"}},
-	})
-}
-
 func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest bool) bf.Expr {
 	name := g.l.TestLabel(pkg.Rel, isXTest).Name
 	target := pkg.Test
@@ -224,10 +237,10 @@ func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest 
 	if g.c.StructureMode == config.FlatMode {
 		attrs = append(attrs, keyvalue{"rundir", pkg.Rel})
 	}
-	return newRule("go_test", nil, attrs)
+	return newRule("go_test", attrs)
 }
 
-func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages.Target) []keyvalue {
+func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages.GoTarget) []keyvalue {
 	attrs := []keyvalue{{"name", name}}
 	if !target.Sources.IsEmpty() {
 		attrs = append(attrs, keyvalue{"srcs", g.sources(target.Sources, pkgRel)})
@@ -245,8 +258,10 @@ func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages
 		attrs = append(attrs, keyvalue{"visibility", []string{visibility}})
 	}
 	if !target.Imports.IsEmpty() {
-		deps := g.dependencies(target.Imports, pkgRel)
-		attrs = append(attrs, keyvalue{"deps", deps})
+		resolveFunc := func(imp string) (resolve.Label, error) {
+			return g.r.ResolveGo(imp, pkgRel)
+		}
+		attrs = append(attrs, keyvalue{"deps", g.dependencies(target.Imports, resolveFunc)})
 	}
 	return attrs
 }
@@ -282,21 +297,20 @@ func (g *Generator) buildPkgRel(pkgRel string) string {
 	return rel
 }
 
+type resolveFunc func(imp string) (resolve.Label, error)
+
 // dependencies converts import paths in "imports" into Bazel labels.
-func (g *Generator) dependencies(imports packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
-	resolve := func(imp string) (string, error) {
-		if strings.HasPrefix(imp, "./") || strings.HasPrefix(imp, "..") {
-			imp = path.Clean(path.Join(g.c.GoPrefix, pkgRel, imp))
-		}
-		label, err := g.r.Resolve(imp)
+func (g *Generator) dependencies(imports packages.PlatformStrings, resolve resolveFunc) packages.PlatformStrings {
+	resolveToString := func(imp string) (string, error) {
+		label, err := resolve(imp)
 		if err != nil {
-			return "", fmt.Errorf("in dir %q, could not resolve import path %q: %v", pkgRel, imp, err)
+			return "", err
 		}
 		label.Relative = label.Repo == "" && label.Pkg == g.buildRel
 		return label.String(), nil
 	}
 
-	deps, errors := imports.Map(resolve)
+	deps, errors := imports.Map(resolveToString)
 	for _, err := range errors {
 		log.Print(err)
 	}

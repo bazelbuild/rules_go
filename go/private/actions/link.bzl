@@ -13,28 +13,26 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
+    "NORMAL_MODE",
     "RACE_MODE",
+    "STATIC_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",
     "get_searchpath",
 )
 
-def emit_link(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs):
-  """Adds an action to link the supplied library in the given mode, producing the executable.
-  Args:
-    ctx: The skylark Context.
-    library: The library to link.
-    mode: Controls the linking setup affecting things like enabling profilers and sanitizers.
-      This must be one of the values in common.bzl#compile_modes
-    executable: The binary to produce.
-    gc_linkopts: basic link options, these may be adjusted by the mode.
-    x_defs: link defines, including build stamping ones
-  """
+def emit_link(ctx, go_toolchain,
+    library = None,
+    mode = NORMAL_MODE,
+    executable = None,
+    gc_linkopts = [],
+    x_defs = {}):
+  """See go/toolchains.rst#link for full documentation."""
 
-  # Add in any mode specific behaviours
-  if mode == RACE_MODE:
-    gc_linkopts += ["-race"]
+  if library == None: fail("library is a required parameter")
+  if executable == None: fail("executable is a required parameter")
+
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
@@ -43,17 +41,26 @@ def emit_link(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs)
   extldflags = []
   if go_toolchain.external_linker:
     ld = go_toolchain.external_linker.compiler_executable
-    extldflags = go_toolchain.external_linker.options
+    extldflags = list(go_toolchain.external_linker.options)
   extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)]
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
+
+  libmode = mode
+  # Add in any mode specific behaviours
+  if mode == RACE_MODE:
+    gc_linkopts += ["-race"]
+  elif mode == STATIC_MODE:
+    libmode = NORMAL_MODE
+    gc_linkopts = gc_linkopts + ["-linkmode", "external"]
+    extldflags.append("-static")
 
   link_opts = ["-L", "."]
   libs = depset()
   cgo_deps = depset()
   for golib in depset([library]) + library.transitive:
-    libs += [get_library(golib, mode)]
-    link_opts += ["-L", get_searchpath(golib, mode)]
+    libs += [get_library(golib, libmode)]
+    link_opts += ["-L", get_searchpath(golib, libmode)]
     cgo_deps += golib.cgo_deps
 
   for d in cgo_deps:
@@ -72,13 +79,19 @@ def emit_link(ctx, go_toolchain, library, mode, executable, gc_linkopts, x_defs)
     else:
       link_opts += ["-X", "%s=%s" % (k, v)]
 
-  link_opts += go_toolchain.flags.link
-  if ld: 
+  link_opts.extend(go_toolchain.flags.link)
+  if ctx.attr._go_toolchain_flags.strip == "always":
+    link_opts.extend(["-w"])
+  elif (ctx.attr._go_toolchain_flags.strip == "sometimes" and
+       ctx.attr._go_toolchain_flags.compilation_mode != "debug"):
+    link_opts.extend(["-w"])
+
+  if ld:
     link_opts += [
         "-extld", ld,
         "-extldflags", " ".join(extldflags),
     ]
-  link_opts += [get_library(golib, mode).path]
+  link_opts += [get_library(golib, libmode).path]
   link_args = [go_toolchain.tools.go.path]
   # Stamping support
   stamp_inputs = []

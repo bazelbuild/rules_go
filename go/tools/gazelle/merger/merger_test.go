@@ -114,7 +114,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 		previous: `
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 # gazelle:ignore`,
-		ignore: true,
+		ignore: false,
 	}, {
 		desc: "merge dicts",
 		previous: `
@@ -708,6 +708,7 @@ func TestMergeWithExisting(t *testing.T) {
 			if mergedFile != nil && tc.ignore {
 				t.Fatalf("%s: got file; want nil", tc.desc)
 			}
+			mergedFile = FixLoads(mergedFile)
 
 			want := tc.expected
 			if len(want) > 0 && want[0] == '\n' {

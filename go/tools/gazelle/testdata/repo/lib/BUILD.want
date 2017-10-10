@@ -3,10 +3,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "doc.go",
-        "lib.go",
         "asm.h",
         "asm.s",
+        "doc.go",
+        "lib.go",
     ],
     importpath = "example.com/repo/lib",
     visibility = ["//visibility:public"],

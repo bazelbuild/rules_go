@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "executable_extension")
+
 def _go_repository_impl(ctx):
   if ctx.attr.urls:
     # explicit source url
@@ -36,7 +38,7 @@ def _go_repository_impl(ctx):
       rev = ctx.attr.tag
     else:
       fail("neither commit or tag is specified", "commit")
-    
+
     # Using fetch repo
     if ctx.attr.vcs and not ctx.attr.remote:
       fail("if vcs is specified, remote must also be")
@@ -49,9 +51,7 @@ def _go_repository_impl(ctx):
 
     # TODO(yugui): support submodule?
     # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
-    _fetch_repo = "@io_bazel_rules_go_repository_tools//:bin/fetch_repo"
-    if ctx.os.name.startswith('windows'):
-      _fetch_repo += ".exe"
+    _fetch_repo = "@io_bazel_rules_go_repository_tools//:bin/fetch_repo{}".format(executable_extension(ctx))
     result = env_execute(
         ctx,
         [
@@ -77,9 +77,7 @@ def _go_repository_impl(ctx):
         break
   if generate:
     # Build file generation is needed
-    _gazelle = "@io_bazel_rules_go_repository_tools//:bin/gazelle"
-    if ctx.os.name.startswith('windows'):
-      _gazelle += ".exe"
+    _gazelle = "@io_bazel_rules_go_repository_tools//:bin/gazelle{}".format(executable_extension(ctx))
     gazelle = ctx.path(Label(_gazelle))
     cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
             '--repo_root', ctx.path(''),
@@ -117,6 +115,7 @@ go_repository = repository_rule(
         "build_tags": attr.string_list(),
     },
 )
+"""See go/workspace.rst#go-repository for full documentation."""
 
 def env_execute(ctx, arguments, environment = None, **kwargs):
   """env_execute prepends "env -i" to "arguments" before passing it to

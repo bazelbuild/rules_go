@@ -9,7 +9,7 @@ go_root(
 
 filegroup(
   name = "go",
-  srcs = [ "bin/go" ],
+  srcs = [ "bin/go{extension}" ],
 )
 
 filegroup(

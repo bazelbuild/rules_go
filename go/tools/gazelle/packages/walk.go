@@ -22,7 +22,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
@@ -30,7 +29,7 @@ import (
 )
 
 // A WalkFunc is a callback called by Walk for each package.
-type WalkFunc func(pkg *Package, oldFile *bf.File)
+type WalkFunc func(c *config.Config, pkg *Package, oldFile *bf.File)
 
 // Walk walks through directories under "root".
 // It calls back "f" for each package. If an existing BUILD file is present
@@ -54,8 +53,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 	// data dependencies.
 	var visit func(string) bool
 	visit = func(path string) bool {
-		// Look for an existing BUILD file. Directives in this file may influence
-		// the rest of the process.
+		// Look for an existing BUILD file.
 		var oldFile *bf.File
 		haveError := false
 		for _, base := range c.ValidBuildFileNames {
@@ -84,9 +82,19 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 			}
 		}
 
-		var excluded map[string]bool
+		// Process directives in the build file.
+		var directives []config.Directive
 		if oldFile != nil {
-			excluded = findExcludedFiles(oldFile)
+			directives = config.ParseDirectives(oldFile)
+			c = config.ApplyDirectives(c, directives)
+		}
+		c = config.InferProtoMode(c, oldFile, directives)
+
+		excluded := make(map[string]bool)
+		for _, d := range directives {
+			if d.Key == "exclude" {
+				excluded[d.Value] = true
+			}
 		}
 
 		// List files and subdirectories.
@@ -95,21 +103,25 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 			log.Print(err)
 			return false
 		}
+		if c.ProtoMode == config.DefaultProtoMode {
+			excludePbGoFiles(files, excluded)
+		}
 
-		var goFiles, otherFiles, subdirs []string
+		var pkgFiles, otherFiles, subdirs []string
 		for _, f := range files {
 			base := f.Name()
 			switch {
 			case base == "" || base[0] == '.' || base[0] == '_' ||
-				excluded != nil && excluded[base] ||
+				excluded[base] ||
 				base == "vendor" && f.IsDir() && c.DepMode != config.VendorMode:
 				continue
 
 			case f.IsDir():
 				subdirs = append(subdirs, base)
 
-			case strings.HasSuffix(base, ".go"):
-				goFiles = append(goFiles, base)
+			case strings.HasSuffix(base, ".go") ||
+				(c.ProtoMode != config.DisableProtoMode && strings.HasSuffix(base, ".proto")):
+				pkgFiles = append(pkgFiles, base)
 
 			default:
 				otherFiles = append(otherFiles, base)
@@ -133,13 +145,13 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		}
 
 		// Build a package from files in this directory.
-		var genGoFiles []string
+		var genFiles []string
 		if oldFile != nil {
-			genGoFiles = findGenGoFiles(oldFile, excluded)
+			genFiles = findGenFiles(oldFile, excluded)
 		}
-		pkg := buildPackage(c, path, oldFile, goFiles, genGoFiles, otherFiles, hasTestdata)
+		pkg := buildPackage(c, path, pkgFiles, otherFiles, genFiles, hasTestdata)
 		if pkg != nil {
-			f(pkg, oldFile)
+			f(c, pkg, oldFile)
 			hasPackage = true
 		}
 		return hasPackage
@@ -156,7 +168,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 // name matches the directory base name will be returned. If there is no such
 // package or if an error occurs, an error will be logged, and nil will be
 // returned.
-func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGoFiles, otherFiles []string, hasTestdata bool) *Package {
+func buildPackage(c *config.Config, dir string, pkgFiles, otherFiles, genFiles []string, hasTestdata bool) *Package {
 	rel, err := filepath.Rel(c.RepoRoot, dir)
 	if err != nil {
 		log.Print(err)
@@ -167,13 +179,22 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 		rel = ""
 	}
 
-	// Process the .go files first.
+	// Process .go and .proto files first, since these determine the package name.
 	packageMap := make(map[string]*Package)
 	cgo := false
-	for _, goFile := range goFiles {
-		info, err := goFileInfo(c, dir, rel, goFile)
-		if err != nil {
-			log.Print(err)
+	var pkgFilesWithUnknownPackage []fileInfo
+	for _, f := range pkgFiles {
+		var info fileInfo
+		switch path.Ext(f) {
+		case ".go":
+			info = goFileInfo(c, dir, rel, f)
+		case ".proto":
+			info = protoFileInfo(c, dir, rel, f)
+		default:
+			log.Panicf("file cannot determine package name: %s", f)
+		}
+		if info.packageName == "" {
+			pkgFilesWithUnknownPackage = append(pkgFilesWithUnknownPackage, info)
 			continue
 		}
 		if info.packageName == "documentation" {
@@ -206,30 +227,38 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 		return nil
 	}
 
-	// Process the generated .go files. Note that generated files may have the
-	// same names as static files. Bazel will use the generated files, but we
-	// will look at the content of static files, assuming they will be the same.
-	for _, goFile := range genGoFiles {
-		i := sort.SearchStrings(goFiles, goFile)
-		if i < len(goFiles) && goFiles[i] == goFile {
-			// Explicitly excluded or found a static file with the same name.
-			continue
-		}
-		info := fileNameInfo(dir, rel, goFile)
-		err := pkg.addFile(c, info, false)
+	// Add files with unknown packages. This happens when there are parse
+	// or I/O errors. We should keep the file in the srcs list and let the
+	// compiler deal with the error.
+	for _, info := range pkgFilesWithUnknownPackage {
+		pkg.addFile(c, info, cgo)
+	}
+
+	// Process the other static files.
+	for _, file := range otherFiles {
+		info := otherFileInfo(dir, rel, file)
+		err = pkg.addFile(c, info, cgo)
 		if err != nil {
 			log.Print(err)
 		}
 	}
 
-	// Process the other files.
-	for _, file := range otherFiles {
-		info, err := otherFileInfo(dir, rel, file)
-		if err != nil {
-			log.Print(err)
+	// Process generated files. Note that generated files may have the same names
+	// as static files. Bazel will use the generated files, but we will look at
+	// the content of static files, assuming they will be the same.
+	staticFiles := make(map[string]bool)
+	for _, f := range pkgFiles {
+		staticFiles[f] = true
+	}
+	for _, f := range otherFiles {
+		staticFiles[f] = true
+	}
+	for _, f := range genFiles {
+		if staticFiles[f] {
 			continue
 		}
-		err = pkg.addFile(c, info, cgo)
+		info := fileNameInfo(dir, rel, f)
+		err := pkg.addFile(c, info, cgo)
 		if err != nil {
 			log.Print(err)
 		}
@@ -239,29 +268,29 @@ func buildPackage(c *config.Config, dir string, oldFile *bf.File, goFiles, genGo
 }
 
 func selectPackage(c *config.Config, dir string, packageMap map[string]*Package) (*Package, error) {
-	packagesWithGo := make(map[string]*Package)
+	buildablePackages := make(map[string]*Package)
 	for name, pkg := range packageMap {
-		if pkg.HasGo() {
-			packagesWithGo[name] = pkg
+		if pkg.isBuildable(c) {
+			buildablePackages[name] = pkg
 		}
 	}
 
-	if len(packagesWithGo) == 0 {
+	if len(buildablePackages) == 0 {
 		return nil, &build.NoGoError{Dir: dir}
 	}
 
-	if len(packagesWithGo) == 1 {
-		for _, pkg := range packagesWithGo {
+	if len(buildablePackages) == 1 {
+		for _, pkg := range buildablePackages {
 			return pkg, nil
 		}
 	}
 
-	if pkg, ok := packagesWithGo[defaultPackageName(c, dir)]; ok {
+	if pkg, ok := buildablePackages[defaultPackageName(c, dir)]; ok {
 		return pkg, nil
 	}
 
 	err := &build.MultiplePackageError{Dir: dir}
-	for name, pkg := range packagesWithGo {
+	for name, pkg := range buildablePackages {
 		// Add the first file for each package for the error message.
 		// Error() method expects these lists to be the same length. File
 		// lists must be non-empty. These lists are only created by
@@ -284,7 +313,7 @@ func defaultPackageName(c *config.Config, dir string) string {
 	return name
 }
 
-func findGenGoFiles(f *bf.File, excluded map[string]bool) []string {
+func findGenFiles(f *bf.File, excluded map[string]bool) []string {
 	var strs []string
 	for _, r := range f.Rules("") {
 		for _, key := range []string{"out", "outs"} {
@@ -301,27 +330,23 @@ func findGenGoFiles(f *bf.File, excluded map[string]bool) []string {
 		}
 	}
 
-	var goFiles []string
+	var genFiles []string
 	for _, s := range strs {
-		if !excluded[s] && strings.HasSuffix(s, ".go") {
-			goFiles = append(goFiles, s)
+		if !excluded[s] {
+			genFiles = append(genFiles, s)
 		}
 	}
-	return goFiles
+	return genFiles
 }
 
-const gazelleExclude = "# gazelle:exclude " // marker in a BUILD file to exclude source files.
-
-func findExcludedFiles(f *bf.File) map[string]bool {
-	excluded := make(map[string]bool)
-	for _, s := range f.Stmt {
-		comments := append(s.Comment().Before, s.Comment().After...)
-		for _, c := range comments {
-			if strings.HasPrefix(c.Token, gazelleExclude) {
-				f := strings.TrimSpace(c.Token[len(gazelleExclude):])
-				excluded[f] = true
-			}
+func excludePbGoFiles(files []os.FileInfo, excluded map[string]bool) {
+	for _, f := range files {
+		name := f.Name()
+		if excluded[name] {
+			continue
+		}
+		if strings.HasSuffix(name, ".proto") {
+			excluded[name[:len(name)-len(".proto")]+".pb.go"] = true
 		}
 	}
-	return excluded
 }

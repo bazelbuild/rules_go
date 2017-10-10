@@ -29,6 +29,7 @@ def _go_tool_binary_impl(ctx):
       mnemonic = "GoBuildTool",
       env = {
           "GOROOT": toolchain.paths.root.path,
+          "TMP": toolchain.paths.tmp,
       },
   )
   return [
