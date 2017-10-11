@@ -26,6 +26,30 @@ def _c_filter_options(options, blacklist):
   return [opt for opt in options
         if not any([opt.startswith(prefix) for prefix in blacklist])]
 
+def _select_archive(files):
+  """Selects a single archive from a list of files produced by a
+  static cc_library.
+
+  In some configurations, cc_library can produce multiple files, and the
+  order isn't guaranteed, so we can't simply pick the first one.
+  """
+  # list of file extensions in descending order or preference.
+  exts = [".pic.lo", ".lo", ".a"]
+  best_ext_index = len(exts) + 1
+  best_file = None
+  for f in files:
+    ext_index = len(exts)
+    for i, ext in enumerate(exts):
+      if f.path.endswith(ext):
+        ext_index = i
+        break
+    if ext_index < best_ext_index:
+      best_ext_index = ext_index
+      best_file = f
+  if best_file == None:
+    fail("cc_library did not produce any files")
+  return best_file
+
 def _cgo_codegen_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   if not go_toolchain.external_linker:
@@ -188,7 +212,7 @@ def _cgo_collect_info_impl(ctx):
   return [
       DefaultInfo(files = depset(), runfiles = runfiles),
       CgoInfo(
-          archive = ctx.file.lib,
+          archive = _select_archive(ctx.files.lib),
           gen_go_srcs = ctx.files.gen_go_srcs,
           deps = ctx.attr.codegen[_CgoCodegen].deps,
           exports = ctx.attr.codegen[_CgoCodegen].exports,
@@ -201,7 +225,7 @@ _cgo_collect_info = rule(
     attrs = {
         "codegen": attr.label(mandatory = True, providers = [_CgoCodegen]),
         "gen_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
-        "lib": attr.label(mandatory = True, allow_single_file = True, providers = ["cc"]),
+        "lib": attr.label(mandatory = True, providers = ["cc"]),
     },
 )
 """No-op rule that collects information from _cgo_codegen and cc_library
