@@ -24,6 +24,7 @@ GoEmbed = provider()
 """See go/providers.rst#GoEmbed for full documentation."""
 
 CgoInfo = provider()
+GoStdLib = provider()
 
 def library_attr(mode):
   """Returns the attribute name for the library of the given mode.

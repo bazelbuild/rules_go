@@ -13,7 +13,12 @@
 # limitations under the License.
 
 def action_with_go_env(ctx, go_toolchain, env=None, **kwargs):
-  fullenv = dict(go_toolchain.env)
+  fullenv = {
+      "GOROOT": go_toolchain.stdlib.root.path,
+      "GOOS": go_toolchain.stdlib.goos,
+      "GOARCH": go_toolchain.stdlib.goarch,
+      "TMP": go_toolchain.paths.tmp,
+  }
   if env:
     fullenv.update(env)
   ctx.action(env=fullenv, **kwargs)

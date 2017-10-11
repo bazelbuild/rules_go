@@ -35,7 +35,7 @@ export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
       go=go_toolchain.tools.go.path,
-      goroot=go_toolchain.paths.root.path,
+      goroot=go_toolchain.stdlib.root.path,
       gopath=":".join(['$(pwd)/{})'.format(entry) for entry in gopath]),
       packages=" ".join(packages),
   ))
