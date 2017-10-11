@@ -41,6 +41,10 @@ targets=(
   @org_golang_x_text//...
   @org_golang_x_tools//...
   @com_github_mattn_go_sqlite3//...
+
+  # We don't need to build all of GRPC; just the components where we would
+  # otherwise generate a protobuf rule
+  @org_golang_google_grpc//grpclb/grpc_lb_v1/messages:go_default_library
 )
 
 excludes=(

@@ -39,6 +39,18 @@ go_repository(
 )
 
 go_repository(
+    name = "org_golang_google_grpc",
+    importpath = "google.golang.org/grpc",
+    commit = "3f10311ccf076b6b7cba28273df3290d42e60982",
+
+    # GRPC has already-generated protobuf definitions, and we don't currently
+    # register any protobuf toolchains in this WORKSPACE.  As such, the build
+    # should fail if we try to generate protobuf rules, but succeed if we
+    # disable generation.
+    build_file_proto_mode = "disable",
+)
+
+go_repository(
     name = "com_github_mattn_go_sqlite3",
     importpath = "github.com/mattn/go-sqlite3",
     commit = "83772a7051f5e30d8e59746a9e43dfa706b72f3b",
