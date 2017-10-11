@@ -158,13 +158,24 @@ def go_rules_dependencies():
   # GRPC dependancies
   _maybe(go_repository,
       name = "org_golang_x_net",
-      commit = "4971afdc2f162e82d185353533d3cf16188a9f4e",
+      commit = "a04bdaca5b32abe1c069418fb7088ae607de5bd0",  # master as of 2017-10-10
       importpath = "golang.org/x/net",
   )
   _maybe(go_repository,
+      name = "org_golang_x_text",
+      commit = "ab5ac5f9a8deb4855a60fab02bc61a4ec770bd49",  # v0.1.0, latest as of 2017-10-10
+      importpath = "golang.org/x/text",
+  )
+  _maybe(go_repository,
       name = "org_golang_google_grpc",
-      tag = "v1.0.4",
+      commit = "f92cdcd7dcdc69e81b2d7b338479a19a8723cfa3",  # v1.6.0, latest as of 2017-10-10
       importpath = "google.golang.org/grpc",
+      build_file_proto_mode = "disable",  # use existing generated code
+  )
+  _maybe(go_repository,
+      name = "org_golang_google_genproto",
+      commit = "f676e0f3ac6395ff1a529ae59a6670878a8371a6",  # master on 2017-10-10
+      importpath = "google.golang.org/genproto",
   )
 
   # Needed for examples

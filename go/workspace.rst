@@ -3,8 +3,10 @@ Go workspace rules
 
 .. _github.com/google/protobuf: https://github.com/google/protobuf/
 .. _github.com/golang/protobuf: https://github.com/golang/protobuf/
+.. _google.golang.org/genproto: https://github.com/google/go-genproto
 .. _google.golang.org/grpc: https://github.com/grpc/grpc-go
 .. _golang.org/x/net: https://github.com/golang/net/
+.. _golang.org/x/text: https://github.com/golang/text/
 .. _golang.org/x/tools: https://github.com/golang/tools/
 .. _go_library: core.rst#go_library
 .. _toolchains: toolchains.rst
@@ -67,8 +69,10 @@ likely to want to know about and override, but it is by no means a complete list
 
 * :value:`com_google_protobuf` : An http_archive for `github.com/google/protobuf`_
 * :value:`com_github_golang_protobuf` : A go_repository for `github.com/golang/protobuf`_
+* :value:`org_golang_google_genproto` : A go_repository for `google.golang.org/genproto`_
 * :value:`org_golang_google_grpc` : A go_repository for `google.golang.org/grpc`_
 * :value:`org_golang_x_net` : A go_repository for `golang.org/x/net`_
+* :value:`org_golang_x_text` : A go_repository for `golang.org/x/text`_
 * :value:`org_golang_x_tools` : A go_repository for `golang.org/x/tools`_
 
 
