@@ -47,8 +47,8 @@ we hope to make that an on demand step in the future.
 SDKs are specific to the host they are running on and the version of Go they want to use
 but not the target they compile for. The Go SDK is naturally `cross compiling`_.
 
-If you don't do anything special, the go rules will already add a go_sdk for you, defaulting to the
-most recent official version for your host.
+If you don't do anything special, the Go rules will download the most recent official SDK for
+your host.
 If you need a `forked version of Go`_\, want to `control the version`_ or just use the
 `installed sdk`_ then it is easy to do, you just need to make sure you have bound the go_sdk
 repository before you call go_register_toolchains_.
@@ -300,7 +300,7 @@ go_host_sdk
 
 This detects the host Go SDK for use in toolchains.
 
-It first checks the GO_ROOT and then searches the PATH. You can achive the same result by setting
+It first checks the GOROOT and then searches the PATH. You can achive the same result by setting
 the version to "host" when registering toolchains to select the `installed sdk`_ so it should
 never be neccesary to use this feature directly.
 

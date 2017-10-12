@@ -28,13 +28,13 @@ go_host_sdk = repository_rule(_go_host_sdk_impl, environ = ["GOROOT"])
 
 def _go_download_sdk_impl(ctx):
   if ctx.os.name == 'linux':
-      host = "linux_amd64"
+    host = "linux_amd64"
   elif ctx.os.name == 'mac os x':
-      host = "darwin_amd64"
+    host = "darwin_amd64"
   elif ctx.os.name.startswith('windows'):
-      host = "windows_amd64"
+    host = "windows_amd64"
   else:
-      fail("Unsupported operating system: " + ctx.os.name)
+    fail("Unsupported operating system: " + ctx.os.name)
   sdks = ctx.attr.sdks
   if host not in sdks: fail("Unsupported host {}".format(host))
   filename, sha256 = ctx.attr.sdks[host]

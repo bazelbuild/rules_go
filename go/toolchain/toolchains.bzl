@@ -4,7 +4,7 @@ load('//go/private:go_toolchain.bzl', 'external_linker')
 
 DEFAULT_VERSION = "1.9.1"
 
-HOSTS = (
+HOST_TARGETS = (
     ("darwin_amd64",  ["linux_amd64",]),
     ("linux_386",     []),
     ("linux_amd64",   ["windows_amd64",]),
@@ -98,7 +98,7 @@ SDK_REPOSITORIES = {
 def _generate_toolchains():
   # Use all the above information to generate all the possible toolchains we might support
   toolchains = []
-  for host, cross in HOSTS:
+  for host, cross in HOST_TARGETS:
     for target in [host] + cross:
       toolchain_name = "go_{}".format(host)
       if host != target:
