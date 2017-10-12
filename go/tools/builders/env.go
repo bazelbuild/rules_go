@@ -18,6 +18,8 @@ import (
 	"flag"
 	"fmt"
 	"go/build"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -26,18 +28,19 @@ type GoEnv struct {
 	// Go is the path to the go executable.
 	Go string
 	// Verbose debugging print control
-	Verbose bool
-	root    string
-	cgo     bool
-	goos    string
-	goarch  string
-	tags    string
+	Verbose  bool
+	rootFile string
+	rootPath string
+	cgo      bool
+	goos     string
+	goarch   string
+	tags     string
 }
 
 func envFlags(flags *flag.FlagSet) *GoEnv {
 	env := &GoEnv{}
 	flags.StringVar(&env.Go, "go", "", "The path to the go tool.")
-	flags.StringVar(&env.root, "root", "", "The go root to use.")
+	flags.StringVar(&env.rootFile, "root_file", "", "The go root file to use.")
 	flags.BoolVar(&env.cgo, "cgo", false, "The value for CGO_ENABLED.")
 	flags.StringVar(&env.goos, "goos", "", "The value for GOOS.")
 	flags.StringVar(&env.goarch, "goarch", "", "The value for GOARCH.")
@@ -46,13 +49,28 @@ func envFlags(flags *flag.FlagSet) *GoEnv {
 	return env
 }
 
+func (env *GoEnv) absRoot() string {
+	if env.rootPath == "" {
+		env.rootPath = env.rootFile
+		if abs, err := filepath.Abs(env.rootPath); err == nil {
+			env.rootPath = abs
+		}
+		if s, err := os.Stat(env.rootPath); err == nil {
+			if !s.IsDir() {
+				env.rootPath = filepath.Dir(env.rootPath)
+			}
+		}
+	}
+	return env.rootPath
+}
+
 func (env *GoEnv) Env() []string {
 	cgoEnabled := "0"
 	if env.cgo {
 		cgoEnabled = "1"
 	}
 	return []string{
-		fmt.Sprintf("GOROOT=%s", env.root),
+		fmt.Sprintf("GOROOT=%s", env.absRoot()),
 		fmt.Sprintf("TMP=%s", "/tmp"), // TODO: may need to be different on windows
 		fmt.Sprintf("GOOS=%s", env.goos),
 		fmt.Sprintf("GOARCH=%s", env.goarch),
@@ -62,7 +80,7 @@ func (env *GoEnv) Env() []string {
 
 func (env *GoEnv) BuildContext() build.Context {
 	bctx := build.Default
-	bctx.GOROOT = env.root
+	bctx.GOROOT = env.absRoot()
 	bctx.GOOS = env.goos
 	bctx.GOARCH = env.goarch
 	bctx.CgoEnabled = env.cgo

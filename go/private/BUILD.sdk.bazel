@@ -1,11 +1,10 @@
-load("@io_bazel_rules_go//go/private:rules/root.bzl", "go_root")
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
 
 package(default_visibility = [ "//visibility:public" ])
 
-go_root(
-  name = "root",
-  path = "{goroot}",
+filegroup(
+  name = "root_file",
+  srcs = ["ROOT"],
 )
 
 filegroup(

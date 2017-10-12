@@ -30,12 +30,10 @@ Please do not rely on it for production use, but feel free to use it and file is
     gopath += [entry.gopath]
     packages += [package.dir for package in entry.packages]
   ctx.file_action(output=script_file, executable=True, content="""
-export GOROOT="{goroot}"
 export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
       go=go_toolchain.tools.go.path,
-      goroot=go_toolchain.stdlib.root.path,
       gopath=":".join(['$(pwd)/{})'.format(entry) for entry in gopath]),
       packages=" ".join(packages),
   ))

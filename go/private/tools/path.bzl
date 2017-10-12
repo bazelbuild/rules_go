@@ -74,18 +74,12 @@ and
       dir = outdir,
       files = package_files,
     )]
-  envscript = ctx.new_file("{}/setenv.sh".format(ctx.label.name))
-  gopath, _, _ = envscript.short_path.rpartition("/")
-  ctx.file_action(envscript, content="""
-export GOROOT="{goroot}"
-export GOPATH="$(pwd)/{gopath}")
-""".format(
-      goroot=go_toolchain.stdlib.root.path,
-      gopath = gopath,
-  ))
+  tag = ctx.new_file("{}/setenv.sh".format(ctx.label.name))
+  gopath, _, _ = tag.short_path.rpartition("/")
+  ctx.file_action(tag, content="")
   return [
       DefaultInfo(
-          files = outputs + [envscript],
+          files = outputs + [tag],
       ),
       GoPath(
         gopath = gopath,

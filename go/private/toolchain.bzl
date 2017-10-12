@@ -136,10 +136,10 @@ def _local_sdk(ctx, path):
     ctx.symlink(path+"/"+entry, entry)
 
 def _sdk_build_file(ctx):
-  goroot = str(ctx.path("."))
+  ctx.file("ROOT")
   ctx.template("BUILD.bazel",
       Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
-      substitutions = {"{goroot}": goroot, "{extension}": executable_extension(ctx)},
+      substitutions = {"{extension}": executable_extension(ctx)},
       executable = False,
   )
 

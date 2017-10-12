@@ -128,7 +128,6 @@ _go_toolchain = rule(
         "_tools": attr.label(allow_files = True, default = "@go_sdk//:tools"),
         "_stdlib": attr.label(allow_files = True, default = _stdlib),
         "_headers": attr.label(default="@go_sdk//:headers"),
-        "_root": attr.label(default="@go_sdk//:root"),
         "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
         "_package_list": attr.label(allow_files = True, single_file = True, default="@go_sdk//:packages.txt"),
         "_external_linker": attr.label(default=_get_linker),

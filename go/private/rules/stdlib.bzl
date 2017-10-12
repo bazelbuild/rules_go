@@ -22,7 +22,7 @@ def _stdlib_impl(ctx):
           files = depset(ctx.files.libs),
       ),
       GoStdLib(
-          root = ctx.attr._root,
+          root_file = ctx.file._root_file,
           goos = ctx.attr.goos,
           goarch = ctx.attr.goarch,
           libs = ctx.files.libs,
@@ -37,6 +37,6 @@ stdlib = rule(
         "goarch": attr.string(mandatory = True),
         "cgo": attr.bool(mandatory = True),
         "libs": attr.label_list(allow_files = True),
-        "_root": attr.label(default="@go_sdk//:root"),
+        "_root_file": attr.label(allow_files = True, single_file = True, default="@go_sdk//:root_file"),
     },
 )

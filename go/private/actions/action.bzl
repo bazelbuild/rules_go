@@ -17,16 +17,21 @@ def action_with_go_env(ctx, go_toolchain, executable = None, command=None, argum
     fail("You cannot run action_with_go_env with a 'command', only an 'executable'")
   args = [
       "-go", go_toolchain.tools.go.path,
-      "-root", go_toolchain.stdlib.root.path,
+      "-root_file", go_toolchain.stdlib.root_file.path,
       "-goos", go_toolchain.stdlib.goos,
       "-goarch", go_toolchain.stdlib.goarch,
       "-cgo=" + ("1" if go_toolchain.stdlib.cgo else "0"),
   ] + arguments
   ctx.action(
-      inputs = depset(inputs) + go_toolchain.data.tools,
+      inputs = depset(inputs) + go_toolchain.data.tools + [go_toolchain.stdlib.root_file] + go_toolchain.stdlib.libs,
       executable = executable,
       arguments = args,
       **kwargs)
 
-def bootstrap_action(ctx, go_toolchain, **kwargs):
-  ctx.action(executable = go_toolchain.tools.go, env={"GOROOT": go_toolchain.stdlib.root.path}, **kwargs)
+def bootstrap_action(ctx, go_toolchain, inputs, outputs, mnemonic, arguments):
+  ctx.actions.run_shell(
+    inputs = inputs + go_toolchain.data.tools + go_toolchain.stdlib.libs,
+    outputs = outputs,
+    mnemonic = mnemonic,
+    command = "export GOROOT=$(pwd)/{} && {} {}".format(go_toolchain.stdlib.root_file.dirname, go_toolchain.tools.go.path, " ".join(arguments)),
+  )
