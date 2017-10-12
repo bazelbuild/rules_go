@@ -119,6 +119,31 @@ def emit_link(ctx, go_toolchain,
       env = go_toolchain.env,
   )
 
+def bootstrap_link(ctx, go_toolchain,
+    library = None,
+    mode = NORMAL_MODE,
+    executable = None,
+    gc_linkopts = [],
+    x_defs = {}):
+  """See go/toolchains.rst#link for full documentation."""
+
+  if library == None: fail("library is a required parameter")
+  if executable == None: fail("executable is a required parameter")
+
+  if x_defs:  fail("link does not accept x_defs in bootstrap mode")
+
+  lib = get_library(library, NORMAL_MODE)
+  inputs = depset([go_toolchain.tools.go]) + [lib]
+  args = ["tool", "link", "-o", executable.path] + list(gc_linkopts) + [lib.path]
+  ctx.action(
+      inputs = list(inputs),
+      outputs = [executable],
+      mnemonic = "GoCompile",
+      executable = go_toolchain.tools.go,
+      arguments = args,
+      env = go_toolchain.env,
+  )
+
 def _extract_extldflags(gc_linkopts, extldflags):
   """Extracts -extldflags from gc_linkopts and combines them into a single list.
 

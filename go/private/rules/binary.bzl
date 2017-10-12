@@ -31,7 +31,10 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
+    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  else:
+    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
   embed = ctx.attr.embed
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
@@ -85,6 +88,42 @@ go_binary = rule(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """See go/core.rst#go_binary for full documentation."""
+
+go_tool_binary = rule(
+    _go_binary_impl,
+    attrs = {
+        "data": attr.label_list(
+            allow_files = True,
+            cfg = "data",
+        ),
+        "srcs": attr.label_list(allow_files = go_filetype),
+        "deps": attr.label_list(providers = [GoLibrary]),
+        "importpath": attr.string(),
+        "library": attr.label(providers = [GoLibrary]),
+        "embed": attr.label_list(providers = [GoEmbed]),
+        "gc_goopts": attr.string_list(),
+        "gc_linkopts": attr.string_list(),
+        "linkstamp": attr.string(),
+        "x_defs": attr.string_dict(),
+        "cgo_info": attr.label(providers = [CgoInfo]),
+        "_go_prefix": attr.label(default = go_prefix_default),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+    },
+    executable = True,
+    toolchains = ["@io_bazel_rules_go//go:bootstrap_toolchain"],
+)
+"""
+This is used instead of `go_binary` for tools that are executed inside
+actions emitted by the go rules. This avoids a bootstrapping problem. This
+is very limited and only supports sources in the main package with no
+dependencies outside the standard library.
+
+See go/core.rst#go_binary for full documentation.
+
+TODO: This can merge with go_binary when toolchains become optional
+We add a bootstrap parameter that defaults to false, set it to true on "tool" binaries
+and it can pick the boostrap toolchain when it sees it.
+"""
 
 def gc_linkopts(ctx):
   gc_linkopts = [ctx.expand_make_variables("gc_linkopts", f, {})

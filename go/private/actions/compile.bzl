@@ -65,3 +65,28 @@ def emit_compile(ctx, go_toolchain,
       arguments = args,
       env = go_toolchain.env,
   )
+
+
+def bootstrap_compile(ctx, go_toolchain,
+    sources = None,
+    importpath = "",
+    golibs = [],
+    mode = NORMAL_MODE,
+    out_lib = None,
+    gc_goopts = []):
+  """See go/toolchains.rst#compile for full documentation."""
+
+  if sources == None: fail("sources is a required parameter")
+  if out_lib == None: fail("out_lib is a required parameter")
+  if golibs:  fail("compile does not accept deps in bootstrap mode")
+
+  inputs = depset([go_toolchain.tools.go]) + sources
+  args = ["tool", "compile", "-o", out_lib.path] + list(gc_goopts) + [s.path for s in sources]
+  ctx.action(
+      inputs = list(inputs),
+      outputs = [out_lib],
+      mnemonic = "GoCompile",
+      executable = go_toolchain.tools.go,
+      arguments = args,
+      env = go_toolchain.env,
+  )

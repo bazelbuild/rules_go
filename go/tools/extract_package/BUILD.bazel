@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go/private:tools/go_tool_binary.bzl", "go_tool_binary")
+load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
 load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
 go_tool_binary(

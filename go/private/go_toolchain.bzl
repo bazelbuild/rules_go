@@ -16,10 +16,10 @@ Toolchain rules used by go.
 """
 load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
 load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
-load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile")
+load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile", "bootstrap_compile")
 load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
 load("@io_bazel_rules_go//go/private:actions/library.bzl", "emit_library")
-load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
+load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link", "bootstrap_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
@@ -35,10 +35,10 @@ def _go_toolchain_impl(ctx):
       actions = struct(
           asm = emit_asm,
           binary = emit_binary,
-          compile = emit_compile,
+          compile = emit_compile if ctx.executable._compile else bootstrap_compile,
           cover = emit_cover,
           library = emit_library,
-          link = emit_link,
+          link = emit_link if ctx.executable._link else bootstrap_link,
           pack = emit_pack,
       ),
       paths = struct(
