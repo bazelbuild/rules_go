@@ -244,7 +244,7 @@ Gazelle supports several directives, written as comments in build files.
   it is a directory, Gazelle will not recurse into it. This directive may be
   repeated to exclude multiple files, one per line.
 * `# keep`: may be written before a rule to prevent the rule from being updated
-  or before a source file, dependency, or flag to prevent it from being removed.
+  or after a source file, dependency, or flag to prevent it from being removed.
 
 #### Example:
 
