@@ -19,9 +19,15 @@ bazel_test(
     config = "loose",
     workspace = """
 
-load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_sdk")
-go_sdk(name="my_linux_sdk", url="https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz")
-go_sdk(name="my_darwin_sdk", url="https://storage.googleapis.com/golang/go1.8.1.darwin-amd64.tar.gz")
+load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_download_sdk")
+
+go_download_sdk(
+    name = "go_sdk",
+    sdks = {
+        "linux_amd64":       ("go1.8.1.linux-amd64.tar.gz", "a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994"),
+        "darwin_amd64":      ("go1.8.1.darwin-amd64.tar.gz", "25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd"),
+    },
+)
 register_toolchains(
     "@//:my_linux_toolchain", "@//:my_linux_toolchain-bootstrap",
     "@//:my_darwin_toolchain", "@//:my_darwin_toolchain-bootstrap",
@@ -30,5 +36,5 @@ register_toolchains(
 """
 )
 
-go_toolchain(name="my_linux_toolchain", sdk="my_linux_sdk", target="linux_amd64")
-go_toolchain(name="my_darwin_toolchain", sdk="my_darwin_sdk", target="darwin_amd64")
+go_toolchain(name="my_linux_toolchain", target="linux_amd64")
+go_toolchain(name="my_darwin_toolchain", target="darwin_amd64")

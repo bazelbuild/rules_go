@@ -32,10 +32,11 @@ def _bazel_test_script_impl(ctx):
     root = ext.label.workspace_root
     _,_,ws = root.rpartition("/")
     workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
-  workspace_content += 'local_repository(name = "{0}", path = "{1}")\n'.format(go_toolchain.sdk, go_toolchain.paths.root.path)
   # finalise the workspace file
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")\n'
+  workspace_content += 'load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_local_sdk")\n'
   if ctx.attr.go_version == CURRENT_VERSION:
+    args += ['--override_repository=go_sdk={0}'.format(go_toolchain.paths.root.path)]
     workspace_content += 'go_register_toolchains()\n'
   elif ctx.attr.go_version:
     workspace_content += 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
@@ -94,12 +95,6 @@ def bazel_test(name, command = None, args=None, subdir = None, target = None, go
       "@io_bazel_rules_go//:AUTHORS",
       "@local_config_cc//:cc_wrapper",
   ]
-  if go_version:
-    sdk_name = go_version.replace("-", "_").replace(".", "_")
-    externals.extend([
-      "@go{}_linux_amd64//:go".format(sdk_name),
-      "@go{}_darwin_amd64//:go".format(sdk_name),
-    ])
 
   _bazel_test_script(
       name = script_name,

@@ -15,6 +15,7 @@ bazel_test(
     args = ["--test_filter=Pass"],
     command = "test",
     go_version = "1.7.5",
+    config = "loose",
     tags = ["dev"],
     target = "//:go_default_test",
 )

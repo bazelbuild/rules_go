@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "env_execute")
-load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "DEFAULT_VERSION")
 load("@io_bazel_rules_go//go/private:toolchain.bzl", "executable_extension")
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
@@ -34,19 +33,10 @@ def _go_repository_tools_impl(ctx):
   # We work this out here because you can't use a toolchain from a repository rule
   # TODO: This is an ugly non sustainable hack, we need to kill repository tools.
 
-  version = DEFAULT_VERSION.replace(".", "_")
-  go_sdk = None
   extension = ""
-  if ctx.os.name == 'linux':
-    go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_linux_amd64".format(version)
-  elif ctx.os.name == 'mac os x':
-    go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_darwin_amd64".format(version)
-  elif ctx.os.name.startswith('windows'):
-    go_sdk = ctx.attr.linux_sdk if ctx.attr.linux_sdk else "go{}_windows_amd64".format(version)
+  if ctx.os.name.startswith('windows'):
     extension = ".exe"
-  else:
-      fail("Unsupported operating system: " + ctx.os.name)
-  go_tool = ctx.path(Label("@{}//:bin/go{}".format(go_sdk, extension)))
+  go_tool = ctx.path(Label("@go_sdk//:bin/go{}".format(extension)))
 
   x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"
   x_tools_path = ctx.path('tools-' + x_tools_commit)
@@ -84,7 +74,7 @@ def _go_repository_tools_impl(ctx):
   result = env_execute(ctx, [go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'], environment = env)
   if result.return_code:
       fail("failed to build fetch_repo: %s" % result.stderr)
-      
+
   # add a build file to export the tools
   ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE.format(extension=executable_extension(ctx)), False)
 

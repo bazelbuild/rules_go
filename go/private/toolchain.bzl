@@ -20,11 +20,46 @@ def executable_extension(ctx):
 
 def _go_host_sdk_impl(ctx):
   path = _detect_host_sdk(ctx)
-  _local_sdk(ctx, path)
   _sdk_build_file(ctx, path)
+  _local_sdk(ctx, path)
+  _prepare(ctx)
 
 go_host_sdk = repository_rule(_go_host_sdk_impl, environ = ["GOROOT"])
-"""go_host_sdk is a specialization of go_sdk just to add the GOROOT dependancy"""
+
+def _go_download_sdk_impl(ctx):
+  if ctx.os.name == 'linux':
+      host = "linux_amd64"
+  elif ctx.os.name == 'mac os x':
+      host = "darwin_amd64"
+  elif ctx.os.name.startswith('windows'):
+      host = "windows_amd64"
+  else:
+      fail("Unsupported operating system: " + ctx.os.name)
+  sdks = ctx.attr.sdks
+  if host not in sdks: fail("Unsupported host {}".format(host))
+  filename, sha256 = ctx.attr.sdks[host]
+  _sdk_build_file(ctx, str(ctx.path(".")))
+  _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
+  _prepare(ctx)
+
+go_download_sdk = repository_rule(_go_download_sdk_impl,
+    attrs = {
+        "sdks": attr.string_list_dict(),
+        "urls": attr.string_list(default=["https://storage.googleapis.com/golang/{}"]),
+        "strip_prefix": attr.string(default="go"),
+    },
+)
+
+def _go_local_sdk_impl(ctx):
+  _sdk_build_file(ctx, ctx.attr.path)
+  _local_sdk(ctx, ctx.attr.path)
+  _prepare(ctx)
+
+go_local_sdk = repository_rule(_go_local_sdk_impl,
+    attrs = {
+        "path": attr.string(),
+    },
+)
 
 def _go_sdk_impl(ctx):
   urls = ctx.attr.urls
@@ -37,20 +72,24 @@ def _go_sdk_impl(ctx):
     _sdk_build_file(ctx, str(ctx.path(".")))
     _remote_sdk(ctx, urls, ctx.attr.strip_prefix, ctx.attr.sha256)
   elif ctx.attr.path:
+    print("DEPRECATED: go_sdk with a path, please use go_local_sdk")
     _sdk_build_file(ctx, ctx.attr.path)
     _local_sdk(ctx, ctx.attr.path)
   else:
+    print("DEPRECATED: go_sdk without path or urls, please use go_host_sdk")
     path = _detect_host_sdk(ctx)
     _sdk_build_file(ctx, path)
     _local_sdk(ctx, path)
+  _prepare(ctx)
 
+
+def _prepare(ctx):
   if "TMP" in ctx.os.environ:
     tmp = ctx.os.environ["TMP"]
     ctx.symlink(tmp, "tmp")
   else:
     ctx.file("tmp/ignore", content="") # make a file to force the directory to exist
     tmp = str(ctx.path("tmp").realpath)
-
   # Build the standard library for valid cross compile platforms
   #TODO: fix standard library cross compilation
   if ctx.name.endswith("linux_amd64") and ctx.os.name == "linux":

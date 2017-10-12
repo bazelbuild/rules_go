@@ -36,17 +36,22 @@ The SDK
 At the bottom is the Go SDK. This is the same thing you would get if you go to the main
 `Go website`_ and download a `binary distribution`_.
 
-The go_sdk_ rule is responsible for downloading these, and adding just enough of a build file
-to expose the contents to Bazel. It currently also builds the cross compiled standard libraries
-for specific combinations, although we hope to make that an on demand step in the future.
+This is always bound to ``@go_sdk`` and can be referred to directly if needed, but in general
+you should always access it through the toolchain.
+
+The go_download_sdk_, go_host_sdk_ and go_local_sdk_ family of rules are responsible for downloading
+these, and adding just enough of a build file to expose the contents to Bazel.
+It currently also builds the cross compiled standard libraries for specific combinations, although
+we hope to make that an on demand step in the future.
 
 SDKs are specific to the host they are running on and the version of Go they want to use
 but not the target they compile for. The Go SDK is naturally `cross compiling`_.
 
-The Go rules already adds a go_sdk_ rule for all the host and Go version pairs that are shipped
-on the main Go language website, so there should be no need to declare one of these unless you
-need a `forked version of Go`_\, however you may want to `control the version`_ or use the
-`installed sdk`_.
+If you don't do anything special, the go rules will already add a go_sdk for you, defaulting to the
+most recent official version for your host.
+If you need a `forked version of Go`_\, want to `control the version`_ or just use the
+`installed sdk`_ then it is easy to do, you just need to make sure you have bound the go_sdk
+repository before you call go_register_toolchains_.
 
 The toolchain
 ~~~~~~~~~~~~~
@@ -59,19 +64,19 @@ toolchains, the main Go toolchain, and a special bootstrap toolchain. The bootst
 is needed because the full toolchain includes tools that are compiled on demand and written in
 go, so we need a special cut down version of the toolchain to build those tools.
 
-Toolchains are pre-declared for all the known combinations of host, target and sdk, and the names
+Toolchains are pre-declared for all the known combinations of host and target, and the names
 are a predictable
-"<**version**>_<**host**>"
+"<**host**>"
 for host toolchains and
-"<**version**>_<**host**>_cross\_<**target**>"
+"<**host**>_cross\_<**target**>"
 for cross compilation toolchains. So for instance if the rules_go repository is loaded with
 it's default name, the following toolchain labels (along with many others) will be available
 
 .. code::
 
-  @io_bazel_rules_go//go/toolchain:1.9.0_linux_amd64
-  @io_bazel_rules_go//go/toolchain:1.9.0_linux_amd64-bootstrap
-  @io_bazel_rules_go//go/toolchain:1.9.0_linux_amd64_cross_windows_amd64
+  @io_bazel_rules_go//go/toolchain:linux_amd64
+  @io_bazel_rules_go//go/toolchain:linux_amd64-bootstrap
+  @io_bazel_rules_go//go/toolchain:linux_amd64_cross_windows_amd64
 
 The toolchains are not usable until you register_ them.
 
@@ -235,7 +240,7 @@ SDK will be used.
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_version`            | :type:`string`              | :value:`"1.9"`                    |
+| :param:`go_version`            | :type:`string`              | :value:`"1.9.1"`                  |
 +--------------------------------+-----------------------------+-----------------------------------+
 | This specifies the Go version to select.                                                         |
 | It will match the version specification of the toochain which for normal sdk toolchains is       |
@@ -244,47 +249,88 @@ SDK will be used.
 | specialized version string.                                                                      |
 +--------------------------------+-----------------------------+-----------------------------------+
 
-go_sdk
-~~~~~~
+go_download_sdk
+~~~~~~~~~~~~~~~
 
-This prepares a Go SDK for use in toolchains.
-
-If neither :param:`path` or :param:`urls` is set then go_sdk will attempt to detect the installed
-host SDK, first by checking the GO_ROOT and then by searching the PATH.
-The `installed sdk`_ toolchain is already available though, so it should never be neccesary to
-use this feature directly.
+This downloads a Go SDK for use in toolchains.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`name`                  | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| A unique name for this sdk.                                                                      |
+| A unique name for this sdk. This should almost always be :value:`go_sdk` if you want the SDK     |
+| to be used by toolchains.                                                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`path`                  | :type:`string`              | :value:`""`                       |
+| :param:`urls`                  | :type:`string_list`         | :value:`official distributions`   |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The local path to a pre-installed Go SDK.                                                        |
-|                                                                                                  |
-| If :param:`path` is set :param:`urls` must be left empty.                                        |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`urls`                  | :type:`string_list`         | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A list of mirror urls to the binary distribution of a Go SDK.                                    |
-| You should generally also set the :param:`sha256` parameter when using :param:`urls`.            |
-|                                                                                                  |
-| If :param:`urls` is set :param:`path` must be left empty.                                        |
+| A list of mirror urls to the binary distribution of a Go SDK. These must contain the `{}`        |
+| used to substitute the sdk filename being fetched (using `.format`.                              |
+| It defaults to the official repository :value:`"https://storage.googleapis.com/golang/{}"`.      |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`strip_prefix`          | :type:`string`              | :value:`"go"`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | A directory prefix to strip from the extracted files.                                            |
-|                                                                                                  |
-| This is only used if :param:`urls` is set, it has no effect on :param:`path`.                    |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`sha256`                | :type:`string`              | :value:`""`                       |
+| :param:`sdks`                  | :type:`string_list_dict`    | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The expected SHA-256 hash of the file downloaded.                                                |
+| This consists of a set of mappings from the host platform tuple to a list of filename and        |
+| sha256 for that file. The filename is combined the :param:`urls` to produce the final download   |
+| urls to use.                                                                                     |
 |                                                                                                  |
-| This is only used if :param:`urls` is set, it has no effect on :param:`path`.                    |
+| As an example:                                                                                   |
+|                                                                                                  |
+| .. code:: bzl                                                                                    |
+|                                                                                                  |
+|     go_download_sdk(                                                                             |
+|         name = "go_sdk",                                                                         |
+|         sdks = {                                                                                 |
+|             "linux_amd64":   ("go1.8.1.linux-amd64.tar.gz",                                      |
+|                 "a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994"),             |
+|             "darwin_amd64":      ("go1.8.1.darwin-amd64.tar.gz",                                 |
+|                 "25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd"),             |
+|         },                                                                                       |
+|     )                                                                                            |
+|                                                                                                  |
++--------------------------------+-----------------------------+-----------------------------------+
+
+
+go_host_sdk
+~~~~~~~~~~~
+
+This detects the host Go SDK for use in toolchains.
+
+It first checks the GO_ROOT and then searches the PATH. You can achive the same result by setting
+the version to "host" when registering toolchains to select the `installed sdk`_ so it should
+never be neccesary to use this feature directly.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`name`                  | :type:`string`              | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| A unique name for this sdk. This should almost always be :value:`go_sdk` if you want the SDK     |
+| to be used by toolchains.                                                                        |
++--------------------------------+-----------------------------+-----------------------------------+
+
+
+go_local_sdk
+~~~~~~~~~~~~
+
+This prepares a local path to use as the Go SDK in toolchains.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`name`                  | :type:`string`              | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| A unique name for this sdk. This should almost always be :value:`go_sdk` if you want the SDK     |
+| to be used by toolchains.                                                                        |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`path`                  | :type:`string`              | :value:`""`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The local path to a pre-installed Go SDK. The path must contain the go binary, the tools it      |
+| invokes and the standard library sources.                                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 

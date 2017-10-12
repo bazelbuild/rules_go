@@ -25,7 +25,10 @@ load("@io_bazel_rules_go//go/private:repositories.bzl",
     "go_register_toolchains",
 )
 load("@io_bazel_rules_go//go/private:toolchain.bzl",
-    go_sdk = "go_sdk",
+    go_host_sdk = "go_host_sdk",
+    go_download_sdk = "go_download_sdk",
+    go_local_sdk = "go_local_sdk",
+    go_sdk = "go_sdk", # DEPRECATED
 )
 load("@io_bazel_rules_go//go/private:go_toolchain.bzl",
     go_toolchain = "go_toolchain",

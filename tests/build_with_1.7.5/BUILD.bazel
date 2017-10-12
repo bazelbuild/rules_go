@@ -19,6 +19,7 @@ bazel_test(
     command = "test",
     target = "//:go_default_test",
     go_version = "1.7.5",
+    config = "loose",
     tags = ["dev"],
     externals = [
         "@com_github_bazelbuild_buildtools//differ:go_default_library",

@@ -26,7 +26,6 @@ def _go_toolchain_impl(ctx):
   tmp = ctx.attr._root.path + "/tmp"
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
-      sdk = ctx.attr.sdk,
       env = {
           "GOROOT": ctx.attr._root.path,
           "GOOS": ctx.attr.goos,
@@ -70,20 +69,8 @@ def _go_toolchain_impl(ctx):
       external_linker = ctx.attr._external_linker,
   )]
 
-def _go(sdk):
-  return Label("@{}//:go".format(sdk))
-
-def _tools(sdk):
-  return Label("@{}//:tools".format(sdk))
-
-def _stdlib(sdk, goos, goarch):
-  return Label("@{}//:stdlib_{}_{}".format(sdk, goos, goarch))
-
-def _headers(sdk):
-  return Label("@{}//:headers".format(sdk))
-
-def _root(sdk):
-  return Label("@{}//:root".format(sdk))
+def _stdlib(goos, goarch):
+  return Label("@go_sdk//:stdlib_{}_{}".format(goos, goarch))
 
 def _get_linker():
   # TODO: return None if there is no cpp fragment available
@@ -129,7 +116,6 @@ _go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
         # Minimum requirements to specify a toolchain
-        "sdk": attr.string(mandatory = True),
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
         # Optional extras to a toolchain
@@ -145,11 +131,11 @@ _go_toolchain = rule(
         "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),
         "_extract_package": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _extract_package),
         # Hidden internal attributes
-        "_go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default=_go),
-        "_tools": attr.label(allow_files = True, default = _tools),
+        "_go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default="@go_sdk//:go"),
+        "_tools": attr.label(allow_files = True, default = "@go_sdk//:tools"),
         "_stdlib": attr.label(allow_files = True, default = _stdlib),
-        "_headers": attr.label(default=_headers),
-        "_root": attr.label(default=_root),
+        "_headers": attr.label(default="@go_sdk//:headers"),
+        "_root": attr.label(default="@go_sdk//:root"),
         "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
         "_external_linker": attr.label(default=_get_linker),
     },
