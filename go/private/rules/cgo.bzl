@@ -35,20 +35,11 @@ def _select_archive(files):
   """
   # list of file extensions in descending order or preference.
   exts = [".pic.lo", ".lo", ".a"]
-  best_ext_index = len(exts) + 1
-  best_file = None
-  for f in files:
-    ext_index = len(exts)
-    for i, ext in enumerate(exts):
-      if f.path.endswith(ext):
-        ext_index = i
-        break
-    if ext_index < best_ext_index:
-      best_ext_index = ext_index
-      best_file = f
-  if best_file == None:
-    fail("cc_library did not produce any files")
-  return best_file
+  for ext in exts:
+    for f in files:
+      if f.basename.endswith(ext):
+        return f
+  fail("cc_library did not produce any files")
 
 def _cgo_codegen_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
