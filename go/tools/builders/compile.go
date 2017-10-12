@@ -39,29 +39,24 @@ func abs(path string) string {
 }
 
 func run(args []string) error {
-	sources := multiFlag{}
+	unfiltered := multiFlag{}
 	deps := multiFlag{}
 	search := multiFlag{}
 	flags := flag.NewFlagSet("compile", flag.ContinueOnError)
-	flags.Var(&sources, "src", "A source file to be filtered and compiled")
+	goenv := envFlags(flags)
+	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&deps, "dep", "Import path of a direct dependency")
 	flags.Var(&search, "I", "Search paths of a direct dependency")
 	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
 	output := flags.String("o", "", "The output object file to write")
 	// process the args
-	if len(args) < 2 {
-		flags.Usage()
-		return fmt.Errorf("The go tool must be specified")
-	}
-	gotool := args[0]
-	if err := flags.Parse(args[1:]); err != nil {
+	if err := flags.Parse(args); err != nil {
 		return err
 	}
 
 	// apply build constraints to the source list
-	bctx := build.Default
-	bctx.CgoEnabled = true
-	sources, err := filterFiles(bctx, sources)
+	bctx := goenv.BuildContext()
+	sources, err := filterFiles(bctx, unfiltered)
 	if err != nil {
 		return err
 	}
@@ -82,9 +77,12 @@ func run(args []string) error {
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, flags.Args()...)
 	goargs = append(goargs, sources...)
-	cmd := exec.Command(gotool, goargs...)
+	env := os.Environ()
+	env = append(env, goenv.Env()...)
+	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = env
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running compiler: %v", err)
 	}

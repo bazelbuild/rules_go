@@ -42,10 +42,10 @@ def emit_compile(ctx, go_toolchain,
     gc_goopts = gc_goopts + ("-race",)
 
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-  inputs = depset([go_toolchain.tools.go]) + sources
+  inputs = sources
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
-  args = [go_toolchain.tools.go.path]
+  args = []
   for src in go_sources:
     args += ["-src", src]
   for golib in golibs:
@@ -83,12 +83,10 @@ def bootstrap_compile(ctx, go_toolchain,
   if out_lib == None: fail("out_lib is a required parameter")
   if golibs:  fail("compile does not accept deps in bootstrap mode")
 
-  inputs = depset([go_toolchain.tools.go]) + sources
   args = ["tool", "compile", "-o", out_lib.path] + list(gc_goopts) + [s.path for s in sources]
   bootstrap_action(ctx, go_toolchain,
-      inputs = list(inputs),
+      inputs = sources,
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      executable = go_toolchain.tools.go,
       arguments = args,
   )

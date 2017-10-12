@@ -58,7 +58,7 @@ def _cgo_codegen_impl(ctx):
   out_dir = cgo_main.dirname
 
   cc = go_toolchain.external_linker.compiler_executable
-  args = [go_toolchain.tools.go.path, "-cc", str(cc), "-objdir", out_dir]
+  args = ["-cc", str(cc), "-objdir", out_dir]
 
   c_outs = depset([cgo_export_h, cgo_export_c])
   go_outs = depset([cgo_types])
@@ -84,7 +84,7 @@ def _cgo_codegen_impl(ctx):
     c_outs += [gen_file]
     args += ["-src", gen_file.path + "=" + src.path]
 
-  inputs = ctx.files.srcs + go_toolchain.data.tools + go_toolchain.data.crosstool
+  inputs = ctx.files.srcs + go_toolchain.data.crosstool
   runfiles = ctx.runfiles(collect_data = True)
   for d in ctx.attr.deps:
     inputs += list(d.cc.transitive_headers)
@@ -155,15 +155,13 @@ _cgo_codegen = rule(
 def _cgo_import_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   args = [
-      go_toolchain.tools.go.path,
       "-dynout", ctx.outputs.out.path,
       "-dynimport", ctx.file.cgo_o.path,
       "-src", ctx.files.sample_go_srcs[0].path,
   ]
 
   action_with_go_env(ctx, go_toolchain,
-      inputs = go_toolchain.data.tools + [
-          go_toolchain.tools.go,
+      inputs = [
           ctx.file.cgo_o,
           ctx.files.sample_go_srcs[0],
       ],

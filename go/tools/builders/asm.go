@@ -17,8 +17,8 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"go/build"
 	"log"
 	"os"
 	"os/exec"
@@ -26,14 +26,22 @@ import (
 
 func run(args []string) error {
 	// process the args
-	if len(args) < 3 || args[2] != "--" {
-		return fmt.Errorf("Usage: asm gotool source.s -- <extra options>")
+	if len(args) < 2 {
+		return fmt.Errorf("Usage: asm -go gotool source.s -- <extra options>")
 	}
-	gotool := args[0]
-	source := args[1]
+	flags := flag.NewFlagSet("asm", flag.ExitOnError)
+	goenv := envFlags(flags)
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	if len(flags.Args()) < 1 {
+		return fmt.Errorf("Missing source file to asm")
+	}
+	source := flags.Args()[0]
+	remains := flags.Args()[1:]
+
 	// filter our input file list
-	bctx := build.Default
-	bctx.CgoEnabled = true
+	bctx := goenv.BuildContext()
 	matched, err := matchFile(bctx, source)
 	if err != nil {
 		return err
@@ -42,11 +50,14 @@ func run(args []string) error {
 		source = os.DevNull
 	}
 	goargs := []string{"tool", "asm"}
-	goargs = append(goargs, args[3:]...)
+	goargs = append(goargs, remains...)
 	goargs = append(goargs, source)
-	cmd := exec.Command(gotool, goargs...)
+	env := os.Environ()
+	env = append(env, goenv.Env()...)
+	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = env
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running assembler: %v", err)
 	}

@@ -96,7 +96,7 @@ def emit_link(ctx, go_toolchain,
         "-extldflags", " ".join(extldflags),
     ]
   link_opts += [get_library(golib, libmode).path]
-  link_args = [go_toolchain.tools.go.path]
+  link_args = []
   # Stamping support
   stamp_inputs = []
   if stamp_x_defs or ctx.attr.linkstamp:
@@ -115,7 +115,7 @@ def emit_link(ctx, go_toolchain,
 
   action_with_go_env(ctx, go_toolchain,
       inputs = list(libs + cgo_deps +
-                go_toolchain.data.tools + go_toolchain.data.crosstool + stamp_inputs),
+                go_toolchain.data.crosstool + stamp_inputs),
       outputs = [executable],
       mnemonic = "GoLink",
       executable = go_toolchain.tools.link,
@@ -136,13 +136,12 @@ def bootstrap_link(ctx, go_toolchain,
   if x_defs:  fail("link does not accept x_defs in bootstrap mode")
 
   lib = get_library(library, NORMAL_MODE)
-  inputs = depset([go_toolchain.tools.go]) + [lib]
+  inputs = depset([lib])
   args = ["tool", "link", "-o", executable.path] + list(gc_linkopts) + [lib.path]
   bootstrap_action(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [executable],
       mnemonic = "GoCompile",
-      executable = go_toolchain.tools.go,
       arguments = args,
   )
 

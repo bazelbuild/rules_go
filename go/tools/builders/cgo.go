@@ -21,7 +21,6 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
-	"go/build"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
@@ -69,18 +68,14 @@ func run(args []string) error {
 	dynout := ""
 	dynimport := ""
 	flags := flag.NewFlagSet("cgo", flag.ContinueOnError)
+	goenv := envFlags(flags)
 	flags.Var(&sources, "src", "A source file to be filtered and compiled")
 	flags.StringVar(&cc, "cc", "", "Sets the c compiler to use")
 	flags.StringVar(&objdir, "objdir", "", "The output directory")
 	flags.StringVar(&dynout, "dynout", "", "The output directory")
 	flags.StringVar(&dynimport, "dynimport", "", "The output directory")
 	// process the args
-	if len(args) < 2 {
-		flags.Usage()
-		return fmt.Errorf("The go tool must be specified")
-	}
-	gotool := args[0]
-	if err := flags.Parse(args[1:]); err != nil {
+	if err := flags.Parse(args); err != nil {
 		return err
 	}
 
@@ -95,7 +90,7 @@ func run(args []string) error {
 			"-dynimport", dynimport,
 			"-dynpackage", dynpackage,
 		}
-		cmd := exec.Command(gotool, goargs...)
+		cmd := exec.Command(goenv.Go, goargs...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
@@ -106,8 +101,7 @@ func run(args []string) error {
 
 	// apply build constraints to the source list
 	// also pick out the cgo sources
-	bctx := build.Default
-	bctx.CgoEnabled = true
+	bctx := goenv.BuildContext()
 	cgoSrcs := []string{}
 	pkgName := ""
 	for _, s := range sources {
@@ -183,6 +177,9 @@ func run(args []string) error {
 		}
 	}
 	if pkgName == "" {
+		fmt.Fprintf(os.Stderr, "\n\n")
+		fmt.Fprintf(os.Stderr, "Remains: %v\n", flags.Args())
+		fmt.Fprintf(os.Stderr, "Source: %v\n", sources)
 		return fmt.Errorf("no buildable Go source files found")
 	}
 
@@ -212,13 +209,14 @@ func run(args []string) error {
 		cc = abs
 	}
 	env := os.Environ()
+	env = append(env, goenv.Env()...)
 	env = append(env, fmt.Sprintf("CC=%s", cc))
 	env = append(env, fmt.Sprintf("CXX=%s", cc))
 
 	goargs := []string{"tool", "cgo", "-objdir", objdir}
 	goargs = append(goargs, copts...)
 	goargs = append(goargs, cgoSrcs...)
-	cmd := exec.Command(gotool, goargs...)
+	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = env

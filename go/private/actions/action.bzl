@@ -12,16 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def action_with_go_env(ctx, go_toolchain, env=None, **kwargs):
-  fullenv = {
-      "GOROOT": go_toolchain.stdlib.root.path,
-      "GOOS": go_toolchain.stdlib.goos,
-      "GOARCH": go_toolchain.stdlib.goarch,
-      "TMP": go_toolchain.paths.tmp,
-  }
-  if env:
-    fullenv.update(env)
-  ctx.action(env=fullenv, **kwargs)
+def action_with_go_env(ctx, go_toolchain, executable = None, command=None, arguments = [], inputs = [], **kwargs):
+  if command:
+    fail("You cannot run action_with_go_env with a 'command', only an 'executable'")
+  args = [
+      "-go", go_toolchain.tools.go.path,
+      "-root", go_toolchain.stdlib.root.path,
+      "-goos", go_toolchain.stdlib.goos,
+      "-goarch", go_toolchain.stdlib.goarch,
+      "-cgo=" + ("1" if go_toolchain.stdlib.cgo else "0"),
+      "-tmp", go_toolchain.paths.tmp,
+  ] + arguments
+  ctx.action(
+      inputs = depset(inputs) + go_toolchain.data.tools,
+      executable = executable,
+      arguments = args,
+      **kwargs)
 
 def bootstrap_action(ctx, go_toolchain, **kwargs):
-  ctx.action(env={"GOROOT": go_toolchain.stdlib.root.path}, **kwargs)
+  ctx.action(executable = go_toolchain.tools.go, env={"GOROOT": go_toolchain.stdlib.root.path}, **kwargs)

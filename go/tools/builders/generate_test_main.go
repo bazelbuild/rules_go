@@ -21,7 +21,6 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
-	"go/build"
 	"go/parser"
 	"go/token"
 	"log"
@@ -176,10 +175,10 @@ func run(args []string) error {
 	// Prepare our flags
 	cover := multiFlag{}
 	flags := flag.NewFlagSet("generate_test_main", flag.ExitOnError)
+	goenv := envFlags(flags)
 	pkg := flags.String("package", "", "package from which to import test methods.")
 	runDir := flags.String("rundir", ".", "Path to directory where tests should run.")
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
-	tags := flags.String("tags", "", "Only pass through files that match these tags.")
 	flags.Var(&cover, "cover", "Information about a coverage variable")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -188,9 +187,7 @@ func run(args []string) error {
 		return fmt.Errorf("must set --package.")
 	}
 	// filter our input file list
-	bctx := build.Default
-	bctx.CgoEnabled = true
-	bctx.BuildTags = strings.Split(*tags, ",")
+	bctx := goenv.BuildContext()
 	filenames, err := filterFiles(bctx, flags.Args())
 	if err != nil {
 		return err

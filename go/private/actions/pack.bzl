@@ -26,10 +26,9 @@ def emit_pack(ctx, go_toolchain,
   if in_lib == None: fail("in_lib is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
-  inputs = [in_lib] + go_toolchain.data.tools
+  inputs = [in_lib]
 
   arguments = [
-      "-gotool", go_toolchain.tools.go.path,
       "-in", in_lib.path,
       "-out", out_lib.path,
   ]

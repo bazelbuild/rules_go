@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"go/build"
 	"io/ioutil"
 	"log"
 	"os"
@@ -31,15 +30,8 @@ import (
 
 func run(args []string) error {
 	// process the args
-	if len(args) < 2 {
-		return fmt.Errorf("Usage: link gotool [link args] -- <go link args>")
-	}
-	gotool := args[0]
-	args = args[1:]
 	linkargs := []string{}
 	goopts := []string{}
-	bctx := build.Default
-	bctx.CgoEnabled = true
 	for i, s := range args {
 		if s == "--" {
 			goopts = args[i+1:]
@@ -52,6 +44,7 @@ func run(args []string) error {
 	stamps := multiFlag{}
 	linkstamps := multiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
+	goenv := envFlags(flags)
 	flags.Var(&xdefs, "X", "A link xdef that may need stamping.")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
 	flags.Var(&linkstamps, "linkstamp", "A package that requires link stamping.")
@@ -101,9 +94,12 @@ func run(args []string) error {
 
 	// add in the unprocess pass through options
 	goargs = append(goargs, goopts...)
-	cmd := exec.Command(gotool, goargs...)
+	env := os.Environ()
+	env = append(env, goenv.Env()...)
+	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = env
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running linker: %v", err)
 	}

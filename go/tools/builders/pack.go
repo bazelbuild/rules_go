@@ -38,7 +38,7 @@ import (
 
 func run(args []string) error {
 	flags := flag.NewFlagSet("pack", flag.ContinueOnError)
-	gotool := flags.String("gotool", "", "Path to the go tool")
+	goenv := envFlags(flags)
 	inArchive := flags.String("in", "", "Path to input archive")
 	outArchive := flags.String("out", "", "Path to output archive")
 	objects := multiFlag{}
@@ -60,7 +60,7 @@ func run(args []string) error {
 		objects = append(objects, archiveObjects...)
 	}
 
-	return appendFiles(*gotool, *outArchive, objects)
+	return appendFiles(goenv.Go, *outArchive, objects)
 }
 
 func main() {

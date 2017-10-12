@@ -27,8 +27,8 @@ def emit_asm(ctx, go_toolchain,
   includes = depset()
   includes += [f.dirname for f in hdrs]
   includes += [f.dirname for f in go_toolchain.data.headers.cc.transitive_headers]
-  inputs = hdrs + list(go_toolchain.data.headers.cc.transitive_headers) + go_toolchain.data.tools + [source]
-  asm_args = [go_toolchain.tools.go.path, source.path, "--", "-o", out_obj.path]
+  inputs = hdrs + list(go_toolchain.data.headers.cc.transitive_headers) + [source]
+  asm_args = [source.path, "-o", out_obj.path]
   for inc in includes:
     asm_args += ["-I", inc]
   action_with_go_env(ctx, go_toolchain,

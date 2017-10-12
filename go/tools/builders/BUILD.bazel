@@ -23,6 +23,7 @@ go_tool_binary(
     name = "asm",
     srcs = [
         "asm.go",
+        "env.go",
         "filter.go",
     ],
     visibility = ["//visibility:public"],
@@ -32,6 +33,7 @@ go_tool_binary(
     name = "compile",
     srcs = [
         "compile.go",
+        "env.go",
         "filter.go",
         "flags.go",
     ],
@@ -42,6 +44,7 @@ go_tool_binary(
     name = "cover",
     srcs = [
         "cover.go",
+        "env.go",
     ],
     visibility = ["//visibility:public"],
 )
@@ -55,6 +58,7 @@ go_tool_binary(
 go_tool_binary(
     name = "generate_test_main",
     srcs = [
+        "env.go",
         "filter.go",
         "flags.go",
         "generate_test_main.go",
@@ -65,6 +69,7 @@ go_tool_binary(
 go_tool_binary(
     name = "link",
     srcs = [
+        "env.go",
         "flags.go",
         "link.go",
     ],
@@ -75,6 +80,7 @@ go_tool_binary(
     name = "cgo",
     srcs = [
         "cgo.go",
+        "env.go",
         "extract.go",
         "filter.go",
         "flags.go",
@@ -93,6 +99,7 @@ go_tool_binary(
 go_tool_binary(
     name = "pack",
     srcs = [
+        "env.go",
         "flags.go",
         "pack.go",
     ],

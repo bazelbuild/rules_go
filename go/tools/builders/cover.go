@@ -25,16 +25,16 @@ import (
 )
 
 func run(args []string) error {
-	gotool := args[0]
-	args = args[1:]
 	flags := flag.NewFlagSet("cover", flag.ExitOnError)
+	goenv := envFlags(flags)
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	goargs := []string{"tool", "cover"}
 	goargs = append(goargs, flags.Args()...)
 	env := os.Environ()
-	cmd := exec.Command(gotool, goargs...)
+	env = append(env, goenv.Env()...)
+	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = env
