@@ -146,7 +146,7 @@ func TestResolveGoEmptyPrefix(t *testing.T) {
 func TestResolveProto(t *testing.T) {
 	prefix := "example.com/repo"
 	for _, tc := range []struct {
-		desc, imp              string
+		desc, imp, pkgRel      string
 		mode                   config.StructureMode
 		wantProto, wantGoProto Label
 	}{
@@ -161,11 +161,30 @@ func TestResolveProto(t *testing.T) {
 			wantProto:   Label{Pkg: "foo/bar", Name: "bar_proto"},
 			wantGoProto: Label{Pkg: "foo/bar", Name: config.DefaultLibName},
 		}, {
+			desc:        "vendor",
+			imp:         "foo/bar/bar.proto",
+			pkgRel:      "vendor",
+			wantProto:   Label{Pkg: "vendor/foo/bar", Name: "bar_proto"},
+			wantGoProto: Label{Pkg: "vendor/foo/bar", Name: config.DefaultLibName},
+		}, {
+			desc:        "vendor sub",
+			imp:         "foo/bar/bar.proto",
+			pkgRel:      "vendor/baz",
+			wantProto:   Label{Pkg: "vendor/foo/bar", Name: "bar_proto"},
+			wantGoProto: Label{Pkg: "vendor/foo/bar", Name: config.DefaultLibName},
+		}, {
 			desc:        "flat sub",
 			mode:        config.FlatMode,
 			imp:         "foo/bar/bar.proto",
 			wantProto:   Label{Name: "foo/bar/bar_proto"},
 			wantGoProto: Label{Name: "foo/bar"},
+		}, {
+			desc:        "flat vendor",
+			mode:        config.FlatMode,
+			imp:         "foo/bar/bar.proto",
+			pkgRel:      "vendor",
+			wantProto:   Label{Name: "vendor/foo/bar/bar_proto"},
+			wantGoProto: Label{Name: "vendor/foo/bar"},
 		}, {
 			desc:        "well known",
 			imp:         "google/protobuf/any.proto",
@@ -177,6 +196,12 @@ func TestResolveProto(t *testing.T) {
 			imp:         "google/protobuf/any.proto",
 			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
 			wantGoProto: Label{Repo: "com_github_golang_protobuf", Name: "ptypes/any"},
+		}, {
+			desc:        "well known vendor",
+			imp:         "google/protobuf/any.proto",
+			pkgRel:      "vendor",
+			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
+			wantGoProto: Label{Repo: "com_github_golang_protobuf", Pkg: "ptypes/any", Name: config.DefaultLibName},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
@@ -184,7 +209,7 @@ func TestResolveProto(t *testing.T) {
 			l := NewLabeler(c)
 			r := NewResolver(c, l)
 
-			got, err := r.ResolveProto(tc.imp)
+			got, err := r.ResolveProto(tc.imp, tc.pkgRel)
 			if err != nil {
 				t.Errorf("ResolveProto: got error %v ; want success", err)
 			}
@@ -192,7 +217,7 @@ func TestResolveProto(t *testing.T) {
 				t.Errorf("ResolveProto: got %s ; want %s", got, tc.wantProto)
 			}
 
-			got, err = r.ResolveGoProto(tc.imp)
+			got, err = r.ResolveGoProto(tc.imp, tc.pkgRel)
 			if err != nil {
 				t.Errorf("ResolveGoProto: go error %v ; want success", err)
 			}
