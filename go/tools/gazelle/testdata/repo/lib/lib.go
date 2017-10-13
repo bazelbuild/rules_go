@@ -16,6 +16,10 @@ limitations under the License.
 package lib
 
 import (
+	// Gazelle should not generate dependencies for standard packages.
+	_ "archive/tar"
+	_ "bufio"
+
 	"example.com/repo/lib/internal/deep"
 
 	// Gazelle should not abort when it finds import paths that don't exist.

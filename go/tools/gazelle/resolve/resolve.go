@@ -17,6 +17,7 @@ package resolve
 
 import (
 	"fmt"
+	"go/build"
 	"path"
 	"strings"
 
@@ -61,23 +62,24 @@ func NewResolver(c *config.Config, l Labeler) *Resolver {
 // pkgRel is the path to the Go package relative to the repository root; it
 // is used to resolve relative imports.
 func (r *Resolver) ResolveGo(imp, pkgRel string) (Label, error) {
-	if imp == "." || imp == ".." ||
-		strings.HasPrefix(imp, "./") || strings.HasPrefix(imp, "../") {
+	if build.IsLocalImport(imp) {
 		cleanRel := path.Clean(path.Join(pkgRel, imp))
-		if strings.HasPrefix(cleanRel, "..") {
+		if build.IsLocalImport(cleanRel) {
 			return Label{}, fmt.Errorf("relative import path %q from %q points outside of repository", imp, pkgRel)
 		}
 		imp = path.Join(r.c.GoPrefix, cleanRel)
 	}
 
-	if imp != r.c.GoPrefix && !strings.HasPrefix(imp, r.c.GoPrefix+"/") {
+	switch {
+	case IsStandard(imp):
+		return Label{}, fmt.Errorf("import path %q is in the standard library", imp)
+	case imp == r.c.GoPrefix:
+		return r.l.LibraryLabel(""), nil
+	case r.c.GoPrefix == "" || strings.HasPrefix(imp, r.c.GoPrefix+"/"):
+		return r.l.LibraryLabel(strings.TrimPrefix(imp, r.c.GoPrefix+"/")), nil
+	default:
 		return r.external.resolve(imp)
 	}
-
-	if imp == r.c.GoPrefix {
-		return r.l.LibraryLabel(""), nil
-	}
-	return r.l.LibraryLabel(strings.TrimPrefix(imp, r.c.GoPrefix+"/")), nil
 }
 
 const (
@@ -138,6 +140,11 @@ func (r *Resolver) ResolveGoProto(imp string) (Label, error) {
 		rel = ""
 	}
 	return r.l.LibraryLabel(rel), nil
+}
+
+// IsStandard returns whether a package is in the standard library.
+func IsStandard(imp string) bool {
+	return stdPackages[imp]
 }
 
 func isWellKnown(imp string) bool {

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:common.bzl", "env_execute")
 load("@io_bazel_rules_go//go/private:toolchain.bzl", "executable_extension")
 
 def _go_repository_impl(ctx):
@@ -120,17 +121,3 @@ go_repository = repository_rule(
     },
 )
 """See go/workspace.rst#go-repository for full documentation."""
-
-def env_execute(ctx, arguments, environment = None, **kwargs):
-  """env_execute prepends "env -i" to "arguments" before passing it to
-  ctx.execute.
-
-  Variables that aren't explicitly mentioned in "environment"
-  are removed from the environment. This should be preferred to "ctx.execute"
-  in most situations.
-  """
-  env_args = ["env", "-i"]
-  if environment:
-    for k, v in environment.items():
-      env_args += ["%s=%s" % (k, v)]
-  return ctx.execute(env_args + arguments, **kwargs)

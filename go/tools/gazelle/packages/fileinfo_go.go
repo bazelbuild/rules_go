@@ -83,9 +83,9 @@ func goFileInfo(c *config.Config, dir, rel, name string) fileInfo {
 						log.Printf("%s: error reading go file: %v", info.path, err)
 					}
 				}
-			} else if !isStandard(c.GoPrefix, path) {
-				info.imports = append(info.imports, path)
+				continue
 			}
+			info.imports = append(info.imports, path)
 		}
 	}
 

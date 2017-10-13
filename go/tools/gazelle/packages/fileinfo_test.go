@@ -301,31 +301,6 @@ func TestJoinOptions(t *testing.T) {
 	}
 }
 
-func TestIsStandard(t *testing.T) {
-	for _, tc := range []struct {
-		goPrefix, importpath string
-		want                 bool
-	}{
-		{"", "fmt", true},
-		{"", "encoding/json", true},
-		{"", "foo/bar", true},
-		{"", "foo.com/bar", false},
-		{"foo", "fmt", true},
-		{"foo", "encoding/json", true},
-		{"foo", "foo", true},
-		{"foo", "foo/bar", false},
-		{"foo", "foo.com/bar", false},
-		{"foo.com/bar", "fmt", true},
-		{"foo.com/bar", "encoding/json", true},
-		{"foo.com/bar", "foo/bar", true},
-		{"foo.com/bar", "foo.com/bar", false},
-	} {
-		if got := isStandard(tc.goPrefix, tc.importpath); got != tc.want {
-			t.Errorf("for prefix %q, importpath %q: got %#v; want %#v", tc.goPrefix, tc.importpath, got, tc.want)
-		}
-	}
-}
-
 func TestReadTags(t *testing.T) {
 	for _, tc := range []struct {
 		desc, source string

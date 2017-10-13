@@ -111,9 +111,9 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		{"srcs", g.sources(pkg.Proto.Sources, pkg.Rel)},
 		{"visibility", visibility},
 	}
-	if !pkg.Proto.Imports.IsEmpty() {
-		protoAttrs = append(protoAttrs,
-			keyvalue{"deps", g.dependencies(pkg.Proto.Imports, g.r.ResolveProto)})
+	protoDeps := g.dependencies(pkg.Proto.Imports, g.r.ResolveProto)
+	if !protoDeps.IsEmpty() {
+		protoAttrs = append(protoAttrs, keyvalue{"deps", protoDeps})
 	}
 	rules = append(rules, newRule("proto_library", protoAttrs))
 
@@ -123,9 +123,9 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		{"importpath", pkg.ImportPath(g.c.GoPrefix)},
 		{"visibility", visibility},
 	}
-	if !pkg.Proto.Imports.IsEmpty() {
-		goProtoAttrs = append(goProtoAttrs,
-			keyvalue{"deps", g.dependencies(pkg.Proto.Imports, g.r.ResolveGoProto)})
+	goProtoDeps := g.dependencies(pkg.Proto.Imports, g.r.ResolveGoProto)
+	if !goProtoDeps.IsEmpty() {
+		goProtoAttrs = append(goProtoAttrs, keyvalue{"deps", goProtoDeps})
 	}
 
 	// If a developer adds or removes services from existing protos, this
@@ -257,11 +257,15 @@ func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages
 	if g.shouldSetVisibility && visibility != "" {
 		attrs = append(attrs, keyvalue{"visibility", []string{visibility}})
 	}
-	if !target.Imports.IsEmpty() {
-		resolveFunc := func(imp string) (resolve.Label, error) {
-			return g.r.ResolveGo(imp, pkgRel)
+	resolveFunc := func(imp string) (resolve.Label, error) {
+		if resolve.IsStandard(imp) {
+			return resolve.Label{}, packages.Skip
 		}
-		attrs = append(attrs, keyvalue{"deps", g.dependencies(target.Imports, resolveFunc)})
+		return g.r.ResolveGo(imp, pkgRel)
+	}
+	deps := g.dependencies(target.Imports, resolveFunc)
+	if !deps.IsEmpty() {
+		attrs = append(attrs, keyvalue{"deps", deps})
 	}
 	return attrs
 }

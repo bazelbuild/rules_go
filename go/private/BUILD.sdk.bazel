@@ -102,3 +102,4 @@ filegroup(
   ]),
 )
 
+exports_files(["packages.txt"])

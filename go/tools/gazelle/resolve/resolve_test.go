@@ -109,6 +109,7 @@ func TestResolveGoLocalError(t *testing.T) {
 	r := NewResolver(c, l)
 
 	for _, importpath := range []string{
+		"fmt",
 		"example.com/another",
 		"example.com/another/sub",
 		"example.com/repo_suffix",
@@ -120,6 +121,25 @@ func TestResolveGoLocalError(t *testing.T) {
 
 	if l, err := r.ResolveGo("..", ""); err == nil {
 		t.Errorf("r.ResolveGo(%q) = %s; want error", "..", l)
+	}
+}
+
+func TestResolveGoEmptyPrefix(t *testing.T) {
+	c := &config.Config{}
+	l := NewLabeler(c)
+	r := NewResolver(c, l)
+
+	imp := "foo"
+	want := Label{Pkg: "foo", Name: config.DefaultLibName}
+	if got, err := r.ResolveGo(imp, ""); err != nil {
+		t.Errorf("r.ResolveGo(%q) failed with %v; want success", imp, err)
+	} else if !reflect.DeepEqual(got, want) {
+		t.Errorf("r.ResolveGo(%q) = %s; want %s", imp, got, want)
+	}
+
+	imp = "fmt"
+	if _, err := r.ResolveGo(imp, ""); err == nil {
+		t.Errorf("r.ResolveGo(%q) succeeded; want failure")
 	}
 }
 

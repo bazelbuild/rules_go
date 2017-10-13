@@ -1003,6 +1003,52 @@ go_grpc_library(
 	}})
 }
 
+func TestEmptyGoPrefix(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path:    "foo/foo.go",
+			content: "package foo",
+		}, {
+			path: "bar/bar.go",
+			content: `
+package bar
+
+import (
+	_ "fmt"
+	_ "foo"
+)
+`,
+		},
+	}
+
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"-go_prefix", ""}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+
+	checkFiles(t, dir, []fileSpec{{
+		path: filepath.Join("bar", config.DefaultValidBuildFileNames[0]),
+		content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bar.go"],
+    importpath = "bar",
+    visibility = ["//visibility:public"],
+    deps = ["//foo:go_default_library"],
+)
+`,
+	}})
+}
+
 // TODO(jayconrod): more tests
 //   run in fix mode in testdata directories to create new files
 //   run in diff mode in testdata directories to update existing files (no change)

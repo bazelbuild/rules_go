@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"path"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -132,15 +133,19 @@ func TestCleanPlatformStrings(t *testing.T) {
 
 func TestMapPlatformStrings(t *testing.T) {
 	f := func(s string) (string, error) {
-		if len(s) > 0 && s[0] == 'e' {
+		switch {
+		case strings.HasPrefix(s, "e"):
 			return "", fmt.Errorf("invalid string: %s", s)
+		case strings.HasPrefix(s, "s"):
+			return "", Skip
+		default:
+			return s + "x", nil
 		}
-		return s + "x", nil
 	}
 	ps := PlatformStrings{
-		Generic: []string{"a", "e1"},
+		Generic: []string{"a", "e1", "s1"},
 		Platform: map[string][]string{
-			"linux": []string{"b", "e2"},
+			"linux": []string{"b", "e2", "s2"},
 		},
 	}
 	got, gotErrors := ps.Map(f)

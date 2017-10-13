@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:common.bzl", "env_execute")
+
 def executable_extension(ctx):
   extension = ""
   if ctx.os.name.startswith('windows'):
@@ -90,12 +92,25 @@ def _prepare(ctx):
   else:
     ctx.file("tmp/ignore", content="") # make a file to force the directory to exist
     tmp = str(ctx.path("tmp").realpath)
+
   # Build the standard library for valid cross compile platforms
   #TODO: fix standard library cross compilation
   if ctx.name.endswith("linux_amd64") and ctx.os.name == "linux":
     _cross_compile_stdlib(ctx, "windows", "amd64", tmp)
   if ctx.name.endswith("darwin_amd64") and ctx.os.name == "mac os x":
     _cross_compile_stdlib(ctx, "linux", "amd64", tmp)
+
+  # Create a text file with a list of standard packages.
+  # OPT: just list directories under src instead of running "go list". No
+  # need to read all source files. We need a portable way to run code though.
+  result = env_execute(ctx,
+     arguments = ["bin/go", "list", "..."],
+     environment = {"GOROOT": str(ctx.path("."))},
+  )
+  if result.return_code != 0:
+    print(result.stderr)
+    fail("failed to list standard packages")
+  ctx.file("packages.txt", result.stdout)
 
 go_sdk = repository_rule(
     implementation = _go_sdk_impl,

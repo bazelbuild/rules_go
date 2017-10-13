@@ -89,7 +89,7 @@ import (
 			},
 		},
 		{
-			"standard imports not included",
+			"standard imports included",
 			"foo.go",
 			`package foo
 
@@ -97,6 +97,7 @@ import "fmt"
 `,
 			fileInfo{
 				packageName: "foo",
+				imports:     []string{"fmt"},
 			},
 		},
 		{

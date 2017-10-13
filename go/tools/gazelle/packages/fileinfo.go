@@ -214,12 +214,6 @@ func escapeOption(opt string) string {
 	).Replace(opt)
 }
 
-// isStandard determines if importpath points a Go standard package.
-func isStandard(goPrefix, importpath string) bool {
-	seg := strings.SplitN(importpath, "/", 2)[0]
-	return !strings.Contains(seg, ".") && !strings.HasPrefix(importpath, goPrefix+"/")
-}
-
 // otherFileInfo returns information about a non-.go file. It will parse
 // part of the file to determine build tags. If the file can't be read, an
 // error will be logged, and partial information will be returned.

@@ -16,6 +16,7 @@ limitations under the License.
 package packages
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"sort"
@@ -331,14 +332,19 @@ func uniq(ss []string) []string {
 	return result
 }
 
-// Map applies a function that processes individual strings to the strings in
-// "ps" and returns a new PlatformStrings with the results.
+var Skip = errors.New("Skip")
+
+// Map applies a function f to the individual strings in ps. Map returns a
+// new PlatformStrings with the results and a slice of errors that f returned.
+// When f returns the error Skip, neither the result nor the error are recorded.
 func (ps *PlatformStrings) Map(f func(string) (string, error)) (PlatformStrings, []error) {
 	result := PlatformStrings{Generic: make([]string, 0, len(ps.Generic))}
 	var errors []error
 	for _, s := range ps.Generic {
 		if r, err := f(s); err != nil {
-			errors = append(errors, err)
+			if err != Skip {
+				errors = append(errors, err)
+			}
 		} else {
 			result.Generic = append(result.Generic, r)
 		}
@@ -350,7 +356,9 @@ func (ps *PlatformStrings) Map(f func(string) (string, error)) (PlatformStrings,
 			result.Platform[n] = make([]string, 0, len(ss))
 			for _, s := range ss {
 				if r, err := f(s); err != nil {
-					errors = append(errors, err)
+					if err != Skip {
+						errors = append(errors, err)
+					}
 				} else {
 					result.Platform[n] = append(result.Platform[n], r)
 				}

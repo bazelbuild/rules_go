@@ -21,6 +21,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"go/build"
 	"io/ioutil"
 	"log"
 	"os"
@@ -302,7 +303,8 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	buildFileName := fs.String("build_file_name", "BUILD.bazel,BUILD", "comma-separated list of valid build file names.\nThe first element of the list is the name of output build files to generate.")
 	buildTags := fs.String("build_tags", "", "comma-separated list of build tags. If not specified, Gazelle will not\n\tfilter sources with build constraints.")
 	external := fs.String("external", "external", "external: resolve external packages with go_repository\n\tvendored: resolve external packages as packages in vendor/")
-	goPrefix := fs.String("go_prefix", "", "go_prefix of the target workspace")
+	var goPrefix explicitFlag
+	fs.Var(&goPrefix, "go_prefix", "prefix of import paths in the current workspace")
 	repoRoot := fs.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
 	fs.Var(&knownImports, "known_import", "import path for which external resolution is skipped (can specify multiple times)")
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
@@ -364,12 +366,17 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	c.Platforms = config.DefaultPlatformTags
 	c.PreprocessTags()
 
-	c.GoPrefix = *goPrefix
-	if c.GoPrefix == "" {
+	if goPrefix.set {
+		c.GoPrefix = goPrefix.value
+	} else {
 		c.GoPrefix, err = loadGoPrefix(&c)
 		if err != nil {
-			return nil, cmd, nil, fmt.Errorf("-go_prefix not set and not root BUILD file found")
+			return nil, cmd, nil, fmt.Errorf("-go_prefix not set")
 		}
+		// TODO(jayconrod): read prefix directives when they are supported.
+	}
+	if strings.HasPrefix(c.GoPrefix, "/") || build.IsLocalImport(c.GoPrefix) {
+		return nil, cmd, nil, fmt.Errorf("invalid go_prefix: %q", c.GoPrefix)
 	}
 
 	c.ShouldFix = cmd == fixCmd
@@ -398,6 +405,24 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	c.KnownImports = append(c.KnownImports, knownImports...)
 
 	return &c, cmd, emit, err
+}
+
+type explicitFlag struct {
+	set   bool
+	value string
+}
+
+func (f *explicitFlag) Set(value string) error {
+	f.set = true
+	f.value = value
+	return nil
+}
+
+func (f *explicitFlag) String() string {
+	if f == nil {
+		return ""
+	}
+	return f.value
 }
 
 func loadBuildFile(c *config.Config, dir string) (*bf.File, error) {
