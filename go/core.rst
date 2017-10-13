@@ -3,7 +3,7 @@ Core go rules
 
 .. _test_filter: https://bazel.build/versions/master/docs/bazel-user-manual.html#flag--test_filter
 .. _test_arg: https://bazel.build/versions/master/docs/bazel-user-manual.html#flag--test_arg
-.. _gazelle: tools/gazelle/README.md
+.. _gazelle: tools/gazelle/README.rst
 .. _build constraints: http://golang.org/pkg/go/build/
 .. _GoLibrary: providers.rst#GoLibrary
 .. _GoEmbed: providers.rst#GoEmbed

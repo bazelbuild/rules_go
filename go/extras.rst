@@ -3,7 +3,7 @@ Extra rules
 
 .. _`core go rules`: core.rst
 .. _go_repository: workspace.rst#go_repository
-.. _`gazelle documentation`: tools/gazelle/README.md
+.. _`gazelle documentation`: tools/gazelle/README.rst
 
 .. role:: param(kbd)
 .. role:: type(emphasis)

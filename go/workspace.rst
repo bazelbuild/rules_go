@@ -16,7 +16,7 @@ Go workspace rules
 .. _new_go_repository: deprecated.rst#new_go_repository
 .. _go_repositories: deprecated.rst#go_repositories
 .. _normal go logic: https://golang.org/cmd/go/#hdr-Remote_import_paths
-.. _gazelle: tools/gazelle/README.md
+.. _gazelle: tools/gazelle/README.rst
 .. _http_archive: https://docs.bazel.build/versions/master/be/workspace.html#http_archive
 .. _git_repository: https://docs.bazel.build/versions/master/be/workspace.html#git_repository
 .. _nested workspaces: https://bazel.build/designs/2016/09/19/recursive-ws-parsing.html
