@@ -7,7 +7,7 @@ Go rules for Bazel_
   :target: https://travis-ci.org/bazelbuild/rules_go
 .. |jenkins| image:: http://ci.bazel.io/buildStatus/icon?job=PR/rules_go
   :target: http://ci.bazel.io/view/Bazel%20bootstrap%20and%20maintenance/job/PR/job/rules_go/
-.. _gazelle: go/tools/gazelle/README.md
+.. _gazelle: go/tools/gazelle/README.rst
 .. _vendoring: Vendoring.md
 .. _protocol buffers: proto/core.rst
 .. _go_repository: go/workspace.rst#go_repository
