@@ -18,7 +18,7 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
       "--descriptor_set_in", ":".join(
           [s.path for s in lib.proto.transitive_descriptor_sets])
   ]
-  args += [proto.short_path for proto in lib.proto.direct_sources]
+  args += [proto_path(proto) for proto in lib.proto.direct_sources]
   ctx.action(
       inputs = [
           proto_toolchain.protoc,
@@ -29,8 +29,19 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
       mnemonic = "GoProtocGen",
       executable = proto_toolchain.protoc,
       arguments = args,
+      #command = "tree",
   )
   return go_srcs
+
+def proto_path(proto):
+  path = proto.path
+  root = proto.root.path
+  ws = proto.owner.workspace_root
+  if path.startswith(root): path = path[len(root):]
+  if path.startswith("/"): path = path[1:]
+  if path.startswith(ws): path = path[len(ws):]
+  if path.startswith("/"): path = path[1:]
+  return path
 
 def _proto_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
