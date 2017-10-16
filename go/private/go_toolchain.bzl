@@ -55,7 +55,6 @@ def _go_toolchain_impl(ctx):
           link = ctx.executable._link,
           cgo = ctx.executable._cgo,
           test_generator = ctx.executable._test_generator,
-          extract_package = ctx.executable._extract_package,
       ),
       flags = struct(
           compile = (),
@@ -109,11 +108,6 @@ def _test_generator(bootstrap):
     return None
   return Label("//go/tools/builders:generate_test_main")
 
-def _extract_package(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/extract_package")
-
 _go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
@@ -131,7 +125,6 @@ _go_toolchain = rule(
         "_link": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _link),
         "_cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cgo),
         "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),
-        "_extract_package": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _extract_package),
         # Hidden internal attributes
         "_go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default="@go_sdk//:go"),
         "_tools": attr.label(allow_files = True, default = "@go_sdk//:tools"),

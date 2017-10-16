@@ -66,10 +66,14 @@ func run(args []string) error {
 	sources := multiFlag{}
 	cc := ""
 	objdir := ""
+	dynout := ""
+	dynimport := ""
 	flags := flag.NewFlagSet("cgo", flag.ContinueOnError)
 	flags.Var(&sources, "src", "A source file to be filtered and compiled")
 	flags.StringVar(&cc, "cc", "", "Sets the c compiler to use")
 	flags.StringVar(&objdir, "objdir", "", "The output directory")
+	flags.StringVar(&dynout, "dynout", "", "The output directory")
+	flags.StringVar(&dynimport, "dynimport", "", "The output directory")
 	// process the args
 	if len(args) < 2 {
 		flags.Usage()
@@ -78,6 +82,26 @@ func run(args []string) error {
 	gotool := args[0]
 	if err := flags.Parse(args[1:]); err != nil {
 		return err
+	}
+
+	if len(dynout) > 0 {
+		dynpackage, err := extractPackage(sources[0])
+		if err != nil {
+			return err
+		}
+		goargs := []string{
+			"tool", "cgo",
+			"-dynout", dynout,
+			"-dynimport", dynimport,
+			"-dynpackage", dynpackage,
+		}
+		cmd := exec.Command(gotool, goargs...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("error running cgo: %v", err)
+		}
+		return nil
 	}
 
 	// apply build constraints to the source list

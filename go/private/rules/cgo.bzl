@@ -150,21 +150,23 @@ _cgo_codegen = rule(
 )
 
 def _cgo_import_impl(ctx):
-  #TODO: move the dynpackage part into the cgo wrapper so we can stop using shell
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  command = (
-      go_toolchain.tools.go.path + " tool cgo" +
-      " -dynout " + ctx.outputs.out.path +
-      " -dynimport " + ctx.file.cgo_o.path +
-      " -dynpackage $(%s %s)"  % (go_toolchain.tools.extract_package.path,
-                                  ctx.files.sample_go_srcs[0].path)
-  )
+  args = [
+      go_toolchain.tools.go.path,
+      "-dynout", ctx.outputs.out.path,
+      "-dynimport", ctx.file.cgo_o.path,
+      "-src", ctx.files.sample_go_srcs[0].path,
+  ]
+
   go_toolchain.actions.env(ctx, go_toolchain,
-      inputs = (go_toolchain.data.tools +
-                [go_toolchain.tools.go, go_toolchain.tools.extract_package,
-                 ctx.file.cgo_o, ctx.files.sample_go_srcs[0]]),
+      inputs = go_toolchain.data.tools + [
+          go_toolchain.tools.go,
+          ctx.file.cgo_o,
+          ctx.files.sample_go_srcs[0],
+      ],
       outputs = [ctx.outputs.out],
-      command = command,
+      executable = go_toolchain.tools.cgo,
+      arguments = args,
       mnemonic = "CGoImportGen",
   )
   return struct(
