@@ -623,6 +623,55 @@ go_library(
 )
 `,
 	}, {
+		desc: "keep prevents delete",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# keep
+go_library(
+    name = "go_default_library",
+    srcs = ["lib.go"],
+)
+`,
+		empty: `
+go_library(name = "go_default_library")
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# keep
+go_library(
+    name = "go_default_library",
+    srcs = ["lib.go"],
+)
+`,
+	}, {
+		desc: "keep prevents merge",
+		previous: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# keep
+go_library(
+    name = "go_default_library",
+    srcs = ["old.go"],
+)
+`,
+		current: `
+go_library(
+    name = "go_default_library",
+    srcs = ["new.go"],
+)
+`,
+		expected: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+# keep
+go_library(
+    name = "go_default_library",
+    srcs = ["old.go"],
+)
+`,
+	}, {
 		desc: "delete empty rule",
 		previous: `
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")

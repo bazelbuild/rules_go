@@ -26,7 +26,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-const keep = "# keep" // marker in srcs or deps to tell gazelle to preserve.
+const keep = "keep" // marker in srcs or deps to tell gazelle to preserve.
 
 var (
 	mergeableFields = map[string]bool{
@@ -85,14 +85,7 @@ func MergeWithExisting(genFile, oldFile *bf.File, empty []bf.Expr) *bf.File {
 			mergedFile.Stmt = append(mergedFile.Stmt, genRule)
 			continue
 		}
-
-		var mergedRule bf.Expr
-		if kind(oldRule) == "load" {
-			mergedRule = mergeLoad(genRule, oldRule, oldFile)
-		} else {
-			mergedRule = mergeRule(genRule, oldRule)
-		}
-		mergedFile.Stmt[i] = mergedRule
+		mergedFile.Stmt[i] = mergeRule(genRule, oldRule)
 	}
 
 	return &mergedFile
@@ -102,6 +95,10 @@ func MergeWithExisting(genFile, oldFile *bf.File, empty []bf.Expr) *bf.File {
 // Both rules must be non-nil and must have the same kind and same name.
 // If nil is returned, the rule should be deleted.
 func mergeRule(gen, old *bf.CallExpr) bf.Expr {
+	if old != nil && shouldKeep(old) {
+		return old
+	}
+
 	genRule := bf.Rule{Call: gen}
 	oldRule := bf.Rule{Call: old}
 	merged := *old
@@ -400,31 +397,6 @@ func dictEntryKeyValue(e bf.Expr) (string, *bf.ListExpr, error) {
 	return k.Value, v, nil
 }
 
-func mergeLoad(gen, old *bf.CallExpr, oldfile *bf.File) *bf.CallExpr {
-	vals := make(map[string]bf.Expr)
-	for _, v := range gen.List[1:] {
-		vals[stringValue(v)] = v
-	}
-	for _, v := range old.List[1:] {
-		rule := stringValue(v)
-		if _, ok := vals[rule]; !ok && ruleUsed(rule, oldfile) {
-			vals[rule] = v
-		}
-	}
-	keys := make([]string, 0, len(vals))
-	for k := range vals {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	merged := *old
-	merged.List = old.List[:1]
-	for _, k := range keys {
-		merged.List = append(merged.List, vals[k])
-	}
-	return &merged
-}
-
 // shouldIgnore checks whether "gazelle:ignore" appears at the beginning of
 // a comment before or after any top-level statement in the file.
 func shouldIgnore(oldFile *bf.File) bool {
@@ -438,14 +410,17 @@ func shouldIgnore(oldFile *bf.File) bool {
 }
 
 // shouldKeep returns whether an expression from the original file should be
-// preserved. This is true if it has a trailing comment that starts with "keep".
+// preserved. This is true if it has a prefix or end-of-line comment "keep".
+// Note that bf.Rewrite recognizes "keep sorted" comments which are different,
+// so we don't recognize comments that only start with "keep".
 func shouldKeep(e bf.Expr) bool {
-	c := e.Comment()
-	return len(c.Suffix) > 0 && strings.HasPrefix(c.Suffix[0].Token, keep)
-}
-
-func ruleUsed(rule string, oldfile *bf.File) bool {
-	return len(oldfile.Rules(rule)) != 0
+	for _, c := range append(e.Comment().Before, e.Comment().Suffix...) {
+		text := strings.TrimSpace(strings.TrimPrefix(c.Token, "#"))
+		if text == keep {
+			return true
+		}
+	}
+	return false
 }
 
 // match looks for the matching CallExpr in stmts using X and name
