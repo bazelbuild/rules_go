@@ -18,7 +18,8 @@ repository during the build as part of the go_repository_ rule.
 *Gazelle is under active development. Its interface and the rules it generates
 may change.*
 
-.. contents:: :depth: 2
+.. contents:: **Contents** 
+  :depth: 2
 
 Setup
 -----
@@ -100,7 +101,8 @@ is specified, ``update`` is assumed.
 |                 | will remove deprecated usage of the Go rules, analogous    |
 |                 | to ``go fix``. For example, ``cgo_library`` will be        |
 |                 | consolidated with ``go_library``. This may delete rules,   |
-|                 | so it's not turned on by default.                          |
+|                 | so it's not turned on by default. See                      |
+|                 | `Fix command transformations`_ for details.                |
 +=================+============================================================+
 
 Gazelle accepts a list Go of package directories to process. If no directories
@@ -148,13 +150,6 @@ Gazelle accepts the following flags:
 | This prefix is used to determine whether an import path refers to a library  |
 | in the current repository or an external dependency.                         |
 +------------------------------------------+-----------------------------------+
-| :flag:`-repo_root dir`                   |                                   |
-+------------------------------------------+-----------------------------------+
-| The root directory of the repository. Gazelle normally infers this to be the |
-| directory containing the WORKSPACE file.                                     |
-|                                                                              |
-| Gazelle will not process packages outside this directory.                    |
-+------------------------------------------+-----------------------------------+
 | :flag:`-known_import example.com`        |                                   |
 +------------------------------------------+-----------------------------------+
 | Skips import path resolution for a known domain. May be repeated.            |
@@ -172,6 +167,18 @@ Gazelle accepts the following flags:
 | In ``fix`` mode, Gazelle writes generated and merged files to disk. In       |
 | ``print`` mode, it prints them to stdout. In ``diff`` mode, it prints a      |
 | unified diff.                                                                |
++------------------------------------------+-----------------------------------+
+| :flag:`-proto default|legacy|disable`    | :value:`default`                  |
++------------------------------------------+-----------------------------------+
+| Determines how Gazelle should generate rules for .proto files. See details   |
+| in `Directives`_ below.                                                      |
++------------------------------------------+-----------------------------------+
+| :flag:`-repo_root dir`                   |                                   |
++------------------------------------------+-----------------------------------+
+| The root directory of the repository. Gazelle normally infers this to be the |
+| directory containing the WORKSPACE file.                                     |
+|                                                                              |
+| Gazelle will not process packages outside this directory.                    |
 +------------------------------------------+-----------------------------------+
 
 Bazel rule
@@ -211,6 +218,20 @@ Gazelle supports several directives, written as comments in build files.
   directory. If it is a source file, Gazelle won't include it in any rules. If
   it is a directory, Gazelle will not recurse into it. This directive may be
   repeated to exclude multiple files, one per line.
+* ``# gazelle:proto <mode>``: Tells Gazelle how to generate rules for .proto
+  files. Applies to the current directory and subdirectories. Valid values for
+  ``mode`` are:
+  * ``default``: ``proto_library``, ``go_proto_library``, ``go_grpc_library``,
+    and ``go_library`` rules are generated using
+    ``@io_bazel_rules_go//proto:def.bzl``. This is the default mode.
+  * ``legacy``: ``filegroup`` rules are generated for use by
+    ``@io_bazel_rules_go//proto:go_proto_library.bzl``. ``go_proto_library``
+    rules must be written by hand. Gazelle will run in this mode automatically
+    if ``go_proto_library.bzl`` is loaded to avoid disrupting existing
+    projects, but this can be overridden with a directive.
+  * ``disable``: .proto files are ignored. Gazelle will run in this mode
+    automatically if ``go_proto_library`` is loaded from any other source,
+    but this can be overridden with a directive.
 * ``# keep``: may be written before a rule to prevent the rule from being
   updated or after a source file, dependency, or flag to prevent it from being
   removed.
@@ -241,3 +262,72 @@ know what imports to resolve, so you may need to add dependencies manually with
           "@com_github_example_gen//:go_default_library",  # keep
       ],
   )
+
+Fix command transformations
+---------------------------
+
+When Gazelle is invoked with the ``fix`` command, in addition to updating
+source files and dependencies of existing rules, Gazelle will remove deprecated
+usage of the Go rules, analogous to ``go fix``. The following transformations
+are performed.
+
+**Squash cgo libraries**: Gazelle will remove `cgo_library` rules named
+``cgo_default_library`` and merge their attributes with a ``go_library`` rule
+in the same package named ``go_default_library``. If no such ``go_library``
+rule exists, a new one will be created. Other ``cgo_library`` rules will not
+be removed.
+
+.. code:: bzl
+  # BEFORE
+  go_library(
+      name = "go_default_library",
+      srcs = ["pure.go"],
+      library = ":cgo_default_library",
+  )
+
+  cgo_library(
+      name = "cgo_default_library",
+      srcs = ["cgo.go"],
+  )
+
+  # AFTER
+  go_library(
+      name = "go_default_library",
+      srcs = [
+          "cgo.go",
+          "pure.go",
+      ],
+      cgo = True,
+  )
+
+**Remove legacy protos**: Gazelle will remove usage of ``go_proto_library``
+rules loaded from ``@io_bazel_rules_go//proto:go_proto_library.bzl`` and
+``filegroup`` rules named ``go_default_library_protos``. Newly generated
+proto rules will take their place. Since ``filegroup`` isn't needed anymore
+and ``go_proto_library`` has different attributes and was always written by
+hand, Gazelle will not attempt to merge anything from these rules with the
+newly generated rules.
+
+This transformation is only applied in the default proto mode. Since Gazelle
+will run in legacy proto mode if ``go_proto_library.bzl`` is loaded, this
+transformation is not usually applied. You can set the proto mode explicitly
+using the directive ``# gazelle:proto default``.
+
+.. code:: bzl
+  # BEFORE
+  # gazelle:proto default
+  load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_proto_library")
+
+  go_proto_library(
+      name = "go_default_library",
+      srcs = [":go_default_library_protos"],
+  )
+
+  filegroup(
+      name = "go_default_library_protos",
+      srcs = ["foo.proto"],
+  )
+
+  # AFTER
+  # The above rules are deleted. New proto_library, go_proto_library, and
+  # go_library rules will be generated automatically.
