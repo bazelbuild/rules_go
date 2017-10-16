@@ -67,13 +67,14 @@ def _go_repository_tools_impl(ctx):
     'TMP': tmp,
   }
 
-  # build gazelle and fetch_repo
-  result = env_execute(ctx, [go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle'], environment = env)
-  if result.return_code:
-      fail("failed to build gazelle: %s" % result.stderr)
-  result = env_execute(ctx, [go_tool, "install", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'], environment = env)
-  if result.return_code:
-      fail("failed to build fetch_repo: %s" % result.stderr)
+  # build all the repository tools
+  for tool, importpath in (
+      ("gazelle", 'github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle'),
+      ("fetch_repo", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'),
+  ):
+    result = env_execute(ctx, [go_tool, "install", importpath], environment = env)
+    if result.return_code:
+        fail("failed to build {}: {}".format(tool, result.stderr))
 
   # add a build file to export the tools
   ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE.format(extension=executable_extension(ctx)), False)
