@@ -36,7 +36,7 @@ def _bazel_test_script_impl(ctx):
   workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")\n'
   workspace_content += 'load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_local_sdk")\n'
   if ctx.attr.go_version == CURRENT_VERSION:
-    args += ['--override_repository=go_sdk={0}'.format(go_toolchain.paths.root.path)]
+    args += ['--override_repository=go_sdk={0}'.format(go_toolchain.stdlib.root.path)]
     workspace_content += 'go_register_toolchains()\n'
   elif ctx.attr.go_version:
     workspace_content += 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)

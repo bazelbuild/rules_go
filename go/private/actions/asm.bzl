@@ -27,11 +27,10 @@ def emit_asm(ctx, go_toolchain,
   asm_args = [go_toolchain.tools.go.path, source.path, "--", "-o", out_obj.path]
   for inc in includes:
     asm_args += ["-I", inc]
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
       executable = go_toolchain.tools.asm,
       arguments = asm_args,
-      env = go_toolchain.env,
   )

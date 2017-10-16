@@ -1,6 +1,10 @@
 def _go_info_script_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  script_content = '\n'.join(['export {}="{}"'.format(key,go_toolchain.env[key]) for key in go_toolchain.env] + [
+  script_content = '\n'.join([
+    'export GOROOT="{}"'.format(go_toolchain.stdlib.root.path),
+    'export GOOS="{}"'.format(go_toolchain.stdlib.goos),
+    'export GOARCH="{}"'.format(go_toolchain.stdlib.goarch),
+    'export TMP="{}"'.format(go_toolchain.paths.tmp),
     go_toolchain.tools.go.path + " version",
     go_toolchain.tools.go.path + " env",
   ])

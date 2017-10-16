@@ -10,6 +10,15 @@ go_test(
     ],
 )
 
+go_test(
+    name = "extract_test",
+    size = "small",
+    srcs = [
+        "extract.go",
+        "extract_test.go",
+    ],
+)
+
 go_tool_binary(
     name = "asm",
     srcs = [
@@ -58,6 +67,7 @@ go_tool_binary(
     name = "cgo",
     srcs = [
         "cgo.go",
+        "extract.go",
         "filter.go",
         "flags.go",
     ],

@@ -30,13 +30,12 @@ def emit_cover(ctx, go_toolchain,
     cover_vars += ["{}={}".format(cover_var,src.short_path)]
     out = ctx.new_file(cover_var + '.cover.go')
     outputs += [out]
-    ctx.action(
+    go_toolchain.actions.env(ctx, go_toolchain,
         inputs = [src] + go_toolchain.data.tools,
         outputs = [out],
         mnemonic = "GoCover",
         executable = go_toolchain.tools.go,
         arguments = ["tool", "cover", "--mode=set", "-var=%s" % cover_var, "-o", out.path, src.path],
-        env = go_toolchain.env,
     )
 
   return outputs, tuple(cover_vars)

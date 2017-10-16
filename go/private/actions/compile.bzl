@@ -57,13 +57,12 @@ def emit_compile(ctx, go_toolchain,
   if ctx.attr._go_toolchain_flags.compilation_mode == "debug":
     args.extend(["-N", "-l"])
   args.extend(cgo_sources)
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",
       executable = go_toolchain.tools.compile,
       arguments = args,
-      env = go_toolchain.env,
   )
 
 
@@ -82,11 +81,10 @@ def bootstrap_compile(ctx, go_toolchain,
 
   inputs = depset([go_toolchain.tools.go]) + sources
   args = ["tool", "compile", "-o", out_lib.path] + list(gc_goopts) + [s.path for s in sources]
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",
       executable = go_toolchain.tools.go,
       arguments = args,
-      env = go_toolchain.env,
   )

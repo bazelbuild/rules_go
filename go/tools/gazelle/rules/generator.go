@@ -111,7 +111,10 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		{"srcs", g.sources(pkg.Proto.Sources, pkg.Rel)},
 		{"visibility", visibility},
 	}
-	protoDeps := g.dependencies(pkg.Proto.Imports, g.r.ResolveProto)
+	resolveProto := func(imp string) (resolve.Label, error) {
+		return g.r.ResolveProto(imp, pkg.Rel)
+	}
+	protoDeps := g.dependencies(pkg.Proto.Imports, resolveProto)
 	if !protoDeps.IsEmpty() {
 		protoAttrs = append(protoAttrs, keyvalue{"deps", protoDeps})
 	}
@@ -123,7 +126,10 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		{"importpath", pkg.ImportPath(g.c.GoPrefix)},
 		{"visibility", visibility},
 	}
-	goProtoDeps := g.dependencies(pkg.Proto.Imports, g.r.ResolveGoProto)
+	resolveGoProto := func(imp string) (resolve.Label, error) {
+		return g.r.ResolveGoProto(imp, pkg.Rel)
+	}
+	goProtoDeps := g.dependencies(pkg.Proto.Imports, resolveGoProto)
 	if !goProtoDeps.IsEmpty() {
 		goProtoAttrs = append(goProtoAttrs, keyvalue{"deps", goProtoDeps})
 	}

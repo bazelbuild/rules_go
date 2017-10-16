@@ -14,6 +14,7 @@ Go rules for Bazel_
 .. _go_library: go/core.rst#go_library
 .. _go_binary: go/core.rst#go_binary
 .. _go_test: go/core.rst#go_test
+.. _bazel-go-discuss: https://groups.google.com/forum/#!forum/bazel-go-discuss
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
 .. _#265: https://github.com/bazelbuild/rules_go/issues/265
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
@@ -30,6 +31,9 @@ Travis   Jenkins
 Announcements
 -------------
 
+October 16, 2017
+  We have a new mailing list: `bazel-go-discuss`_. All questions about building
+  Go with Bazel and using Gazelle are welcome.
 October 10, 2017
   We have bumped the minimum Bazel version to 0.6.0 due to `#889`_.
 October 9, 2017
@@ -40,10 +44,6 @@ September 13, 2017
   Release `0.5.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.5>`_ is now
   available. This is a bug fix release on top of 0.5.4 that removes the sha256
   from some of our dependencies, since it changed upstream.
-August 28, 2017
-  Release `0.5.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.5.4>`_ is
-  now available!  This will be the last stable tag before requiring Bazel 0.5.4 and toolchains
-  support.
 
 
 .. contents::
@@ -52,6 +52,7 @@ August 28, 2017
 Quick links
 -----------
 
+* Mailing list: `bazel-go-discuss`_
 * `Core api <go/core.rst>`_
 * `Workspace rules <go/workspace.rst>`_
 * `Toolchains <go/toolchains.rst>`_

@@ -89,7 +89,7 @@ const (
 
 // ResolveProto resolves an import statement in a .proto file to a label
 // for a proto_library rule.
-func (r *Resolver) ResolveProto(imp string) (Label, error) {
+func (r *Resolver) ResolveProto(imp, pkgRel string) (Label, error) {
 	if !strings.HasSuffix(imp, ".proto") {
 		return Label{}, fmt.Errorf("can't import non-proto: %q", imp)
 	}
@@ -103,8 +103,12 @@ func (r *Resolver) ResolveProto(imp string) (Label, error) {
 
 	// Temporary hack: guess the label based on the proto file name. We assume
 	// all proto files in a directory belong to the same package, and the
-	// package name matches the directory base name.
+	// package name matches the directory base name. We also assume that protos
+	// in the vendor directory must refer to something else in vendor.
 	// TODO(#859): use dependency table to resolve once it exists.
+	if pkgRel == "vendor" || strings.HasPrefix(pkgRel, "vendor/") {
+		imp = path.Join("vendor", imp)
+	}
 	rel := path.Dir(imp)
 	if rel == "." {
 		rel = ""
@@ -115,7 +119,7 @@ func (r *Resolver) ResolveProto(imp string) (Label, error) {
 
 // ResolveGoProto resolves an import statement in a .proto file to a
 // label for a go_library rule that embeds the corresponding go_proto_library.
-func (r *Resolver) ResolveGoProto(imp string) (Label, error) {
+func (r *Resolver) ResolveGoProto(imp, pkgRel string) (Label, error) {
 	if !strings.HasSuffix(imp, ".proto") {
 		return Label{}, fmt.Errorf("can't import non-proto: %q", imp)
 	}
@@ -133,8 +137,12 @@ func (r *Resolver) ResolveGoProto(imp string) (Label, error) {
 
 	// Temporary hack: guess the label based on the proto file name. We assume
 	// all proto files in a directory belong to the same package, and the
-	// package name matches the directory base name.
+	// package name matches the directory base name. We also assume that protos
+	// in the vendor directory must refer to something else in vendor.
 	// TODO(#859): use dependency table to resolve once it exists.
+	if pkgRel == "vendor" || strings.HasPrefix(pkgRel, "vendor/") {
+		imp = path.Join("vendor", imp)
+	}
 	rel := path.Dir(imp)
 	if rel == "." {
 		rel = ""

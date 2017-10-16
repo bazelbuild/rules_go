@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go/private:rules/root.bzl", "go_root")
+load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
 
 package(default_visibility = [ "//visibility:public" ])
 
@@ -17,89 +18,45 @@ filegroup(
   srcs = [":go"] + glob(["pkg/tool/**"]),
 )
 
+filegroup(
+    name = "srcs",
+    srcs = glob(["src/**"]),
+)
+
 cc_library(
   name = "headers",
   hdrs = glob(["pkg/include/*.h"]),
 )
 
-filegroup(
-  name = "stdlib_darwin_amd64",
-  srcs = glob([
-    "src/**",
-    "pkg/darwin_amd64/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_linux_386",
-  srcs = glob([
-    "src/**",
-    "pkg/linux_386/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_linux_amd64",
-  srcs = glob([
-    "src/**",
-    "pkg/linux_amd64/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_linux_armv6l",
-  srcs = glob([
-    "src/**",
-    "pkg/linux_armv6l/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_windows_386",
-  srcs = glob([
-    "src/**",
-    "pkg/windows_386/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_windows_amd64",
-  srcs = glob([
-    "src/**",
-    "pkg/windows_amd64/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_freebsd_386",
-  srcs = glob([
-    "src/**",
-    "pkg/freebsd_386/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_freebsd_amd64",
-  srcs = glob([
-    "src/**",
-    "pkg/freebsd_amd64/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_linux_ppc64le",
-  srcs = glob([
-    "src/**",
-    "pkg/linux_ppc64le/**",
-  ]),
-)
-
-filegroup(
-  name = "stdlib_linux_s390x",
-  srcs = glob([
-    "src/**",
-    "pkg/linux_s390x/**",
-  ]),
-)
-
 exports_files(["packages.txt"])
+
+[
+  (
+    stdlib(
+        name = "stdlib_{}_{}".format(goos, goarch),
+        goos = goos,
+        goarch = goarch,
+        libs = glob(["pkg/{}_{}/**".format(goos, goarch)]),
+        cgo = True,
+    ),
+    stdlib(
+        name = "stdlib_{}_{}_pure".format(goos, goarch),
+        goos = goos,
+        goarch = goarch,
+        libs = glob(["pkg/{}_{}/**".format(goos, goarch)]),
+        cgo = False,
+    ),
+  )
+  for goos, goarch in [
+      ("darwin", "amd64"),
+      ("linux", "386"),
+      ("linux", "amd64"),
+      ("linux", "armv6l"),
+      ("windows", "386"),
+      ("windows", "amd64"),
+      ("freebsd", "386"),
+      ("freebsd", "amd64"),
+      ("linux", "ppc64le"),
+      ("linux", "s390x"),
+  ]
+]

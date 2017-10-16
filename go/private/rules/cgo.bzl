@@ -20,7 +20,7 @@ _CgoCodegen = provider()
 def _mangle(ctx, src):
     src_stem, _, src_ext = src.path.rpartition('.')
     mangled_stem = ctx.attr.out_dir + "/" + src_stem.replace('/', '_')
-    return mangled_stem, src_ext 
+    return mangled_stem, src_ext
 
 def _c_filter_options(options, blacklist):
   return [opt for opt in options
@@ -104,18 +104,18 @@ def _cgo_codegen_impl(ctx):
   # The first -- below is to stop the cgo from processing args, the
   # second is an actual arg to forward to the underlying go tool
   args += ["--", "--"] + copts
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = inputs,
       outputs = list(c_outs + go_outs + [cgo_main]),
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go_toolchain.tools.cgo,
       arguments = args,
-      env = go_toolchain.env + {
+      env = {
           "CGO_LDFLAGS": " ".join(linkopts),
       },
   )
-  
+
   return [
       _CgoCodegen(
           go_files = go_outs,
@@ -150,23 +150,24 @@ _cgo_codegen = rule(
 )
 
 def _cgo_import_impl(ctx):
-  #TODO: move the dynpackage part into the cgo wrapper so we can stop using shell
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  command = (
-      go_toolchain.tools.go.path + " tool cgo" +
-      " -dynout " + ctx.outputs.out.path +
-      " -dynimport " + ctx.file.cgo_o.path +
-      " -dynpackage $(%s %s)"  % (go_toolchain.tools.extract_package.path,
-                                  ctx.files.sample_go_srcs[0].path)
-  )
-  ctx.action(
-      inputs = (go_toolchain.data.tools +
-                [go_toolchain.tools.go, go_toolchain.tools.extract_package,
-                 ctx.file.cgo_o, ctx.files.sample_go_srcs[0]]),
+  args = [
+      go_toolchain.tools.go.path,
+      "-dynout", ctx.outputs.out.path,
+      "-dynimport", ctx.file.cgo_o.path,
+      "-src", ctx.files.sample_go_srcs[0].path,
+  ]
+
+  go_toolchain.actions.env(ctx, go_toolchain,
+      inputs = go_toolchain.data.tools + [
+          go_toolchain.tools.go,
+          ctx.file.cgo_o,
+          ctx.files.sample_go_srcs[0],
+      ],
       outputs = [ctx.outputs.out],
-      command = command,
+      executable = go_toolchain.tools.cgo,
+      arguments = args,
       mnemonic = "CGoImportGen",
-      env = go_toolchain.env,
   )
   return struct(
       files = depset([ctx.outputs.out]),
@@ -199,7 +200,7 @@ def _cgo_collect_info_impl(ctx):
   codegen = ctx.attr.codegen[_CgoCodegen]
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
-  
+
   return [
       DefaultInfo(files = depset(), runfiles = runfiles),
       CgoInfo(
@@ -227,7 +228,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
 
   # Apply build constraints to source files (both Go and C) but not to header
   # files. Separate filtered Go and C sources.
-  
+
   # Run cgo on the filtered Go files. This will split them into pure Go files
   # and pure C files, plus a few other glue files.
   base_dir = pkg_dir(
