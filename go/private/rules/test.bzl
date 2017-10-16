@@ -81,13 +81,15 @@ def _go_test_impl(ctx):
       for var in g.cover_vars:
         arguments += ["-cover", "{}={}".format(var, g.importpath)]
 
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
       executable = go_toolchain.tools.test_generator,
       arguments = arguments + [src.path for src in go_srcs],
-      env = dict(go_toolchain.env, RUNDIR=ctx.label.package)
+      env = {
+          "RUNDIR" : ctx.label.package,
+      },
   )
 
   # Now compile the test binary itself

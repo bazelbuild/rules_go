@@ -109,14 +109,13 @@ def emit_link(ctx, go_toolchain,
 
   link_args += ["--"] + link_opts
 
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = list(libs + cgo_deps +
                 go_toolchain.data.tools + go_toolchain.data.crosstool + stamp_inputs),
       outputs = [executable],
       mnemonic = "GoLink",
       executable = go_toolchain.tools.link,
       arguments = link_args,
-      env = go_toolchain.env,
   )
 
 def bootstrap_link(ctx, go_toolchain,
@@ -135,13 +134,12 @@ def bootstrap_link(ctx, go_toolchain,
   lib = get_library(library, NORMAL_MODE)
   inputs = depset([go_toolchain.tools.go]) + [lib]
   args = ["tool", "link", "-o", executable.path] + list(gc_linkopts) + [lib.path]
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [executable],
       mnemonic = "GoCompile",
       executable = go_toolchain.tools.go,
       arguments = args,
-      env = go_toolchain.env,
   )
 
 def _extract_extldflags(gc_linkopts, extldflags):

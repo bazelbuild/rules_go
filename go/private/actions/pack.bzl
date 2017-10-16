@@ -37,11 +37,10 @@ def emit_pack(ctx, go_toolchain,
     inputs.append(archive)
     arguments.extend(["-arc", archive.path])
 
-  ctx.action(
+  go_toolchain.actions.env(ctx, go_toolchain,
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoPack",
       executable = go_toolchain.tools.pack,
       arguments = arguments,
-      env = go_toolchain.env,
   )
