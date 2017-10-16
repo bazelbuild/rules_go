@@ -49,6 +49,7 @@ def _go_toolchain_impl(ctx):
           link = ctx.executable._link,
           cgo = ctx.executable._cgo,
           test_generator = ctx.executable._test_generator,
+          cover = ctx.executable._cover,
       ),
       flags = struct(
           compile = (),
@@ -102,6 +103,11 @@ def _test_generator(bootstrap):
     return None
   return Label("//go/tools/builders:generate_test_main")
 
+def _cover(bootstrap):
+  if bootstrap:
+    return None
+  return Label("//go/tools/builders:cover")
+
 _go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
@@ -119,6 +125,7 @@ _go_toolchain = rule(
         "_link": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _link),
         "_cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cgo),
         "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),
+        "_cover": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cover),
         # Hidden internal attributes
         "_go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default="@go_sdk//:go"),
         "_tools": attr.label(allow_files = True, default = "@go_sdk//:tools"),

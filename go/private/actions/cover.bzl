@@ -38,8 +38,8 @@ def emit_cover(ctx, go_toolchain,
         inputs = [src] + go_toolchain.data.tools,
         outputs = [out],
         mnemonic = "GoCover",
-        executable = go_toolchain.tools.go,
-        arguments = ["tool", "cover", "--mode=set", "-var=%s" % cover_var, "-o", out.path, src.path],
+        executable = go_toolchain.tools.cover,
+        arguments = [go_toolchain.tools.go.path, "--", "--mode=set", "-var=%s" % cover_var, "-o", out.path, src.path],
     )
 
   return outputs, tuple(cover_vars)

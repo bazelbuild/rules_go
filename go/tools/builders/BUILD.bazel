@@ -39,6 +39,14 @@ go_tool_binary(
 )
 
 go_tool_binary(
+    name = "cover",
+    srcs = [
+        "cover.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_binary(
     name = "embed",
     srcs = ["embed.go"],
     visibility = ["//visibility:public"],
