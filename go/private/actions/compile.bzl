@@ -20,6 +20,10 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",
     "get_searchpath",
 )
+load("@io_bazel_rules_go//go/private:actions/action.bzl",
+    "action_with_go_env",
+    "bootstrap_action",
+)
 
 def emit_compile(ctx, go_toolchain,
     sources = None,
@@ -57,7 +61,7 @@ def emit_compile(ctx, go_toolchain,
   if ctx.attr._go_toolchain_flags.compilation_mode == "debug":
     args.extend(["-N", "-l"])
   args.extend(cgo_sources)
-  go_toolchain.actions.env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",
@@ -81,7 +85,7 @@ def bootstrap_compile(ctx, go_toolchain,
 
   inputs = depset([go_toolchain.tools.go]) + sources
   args = ["tool", "compile", "-o", out_lib.path] + list(gc_goopts) + [s.path for s in sources]
-  go_toolchain.actions.env(ctx, go_toolchain,
+  bootstrap_action(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",

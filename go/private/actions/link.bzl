@@ -21,6 +21,10 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",
     "get_searchpath",
 )
+load("@io_bazel_rules_go//go/private:actions/action.bzl",
+    "action_with_go_env",
+    "bootstrap_action",
+)
 
 def emit_link(ctx, go_toolchain,
     library = None,
@@ -109,7 +113,7 @@ def emit_link(ctx, go_toolchain,
 
   link_args += ["--"] + link_opts
 
-  go_toolchain.actions.env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain,
       inputs = list(libs + cgo_deps +
                 go_toolchain.data.tools + go_toolchain.data.crosstool + stamp_inputs),
       outputs = [executable],
@@ -134,7 +138,7 @@ def bootstrap_link(ctx, go_toolchain,
   lib = get_library(library, NORMAL_MODE)
   inputs = depset([go_toolchain.tools.go]) + [lib]
   args = ["tool", "link", "-o", executable.path] + list(gc_linkopts) + [lib.path]
-  go_toolchain.actions.env(ctx, go_toolchain,
+  bootstrap_action(ctx, go_toolchain,
       inputs = list(inputs),
       outputs = [executable],
       mnemonic = "GoCompile",

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:actions/action.bzl",
+    "action_with_go_env",
+)
+
 def emit_cover(ctx, go_toolchain,
                sources = []):
   """See go/toolchains.rst#cover for full documentation."""
@@ -30,7 +34,7 @@ def emit_cover(ctx, go_toolchain,
     cover_vars += ["{}={}".format(cover_var,src.short_path)]
     out = ctx.new_file(cover_var + '.cover.go')
     outputs += [out]
-    go_toolchain.actions.env(ctx, go_toolchain,
+    action_with_go_env(ctx, go_toolchain,
         inputs = [src] + go_toolchain.data.tools,
         outputs = [out],
         mnemonic = "GoCover",

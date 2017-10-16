@@ -22,3 +22,6 @@ def action_with_go_env(ctx, go_toolchain, env=None, **kwargs):
   if env:
     fullenv.update(env)
   ctx.action(env=fullenv, **kwargs)
+
+def bootstrap_action(ctx, go_toolchain, **kwargs):
+  ctx.action(env={"GOROOT": go_toolchain.stdlib.root.path}, **kwargs)

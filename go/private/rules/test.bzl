@@ -30,6 +30,9 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoBinary",
     "GoEmbed",
 )
+load("@io_bazel_rules_go//go/private:actions/action.bzl",
+    "action_with_go_env",
+)
 
 def _go_test_impl(ctx):
   """go_test_impl implements go testing.
@@ -81,7 +84,7 @@ def _go_test_impl(ctx):
       for var in g.cover_vars:
         arguments += ["-cover", "{}={}".format(var, g.importpath)]
 
-  go_toolchain.actions.env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain,
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",

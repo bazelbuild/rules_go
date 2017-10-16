@@ -14,6 +14,9 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "dict_of", "split_srcs", "join_srcs", "pkg_dir")
 load("@io_bazel_rules_go//go/private:providers.bzl", "CgoInfo", "GoLibrary")
+load("@io_bazel_rules_go//go/private:actions/action.bzl",
+    "action_with_go_env",
+)
 
 _CgoCodegen = provider()
 
@@ -104,7 +107,7 @@ def _cgo_codegen_impl(ctx):
   # The first -- below is to stop the cgo from processing args, the
   # second is an actual arg to forward to the underlying go tool
   args += ["--", "--"] + copts
-  go_toolchain.actions.env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain,
       inputs = inputs,
       outputs = list(c_outs + go_outs + [cgo_main]),
       mnemonic = "CGoCodeGen",
@@ -158,7 +161,7 @@ def _cgo_import_impl(ctx):
       "-src", ctx.files.sample_go_srcs[0].path,
   ]
 
-  go_toolchain.actions.env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain,
       inputs = go_toolchain.data.tools + [
           go_toolchain.tools.go,
           ctx.file.cgo_o,
