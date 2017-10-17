@@ -78,6 +78,8 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+	env := os.Environ()
+	env = append(env, goenv.Env()...)
 
 	if len(dynout) > 0 {
 		dynpackage, err := extractPackage(sources[0])
@@ -93,6 +95,7 @@ func run(args []string) error {
 		cmd := exec.Command(goenv.Go, goargs...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
+		cmd.Env = env
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("error running cgo: %v", err)
 		}
@@ -205,8 +208,6 @@ func run(args []string) error {
 	if abs, err := filepath.Abs(cc); err == nil {
 		cc = abs
 	}
-	env := os.Environ()
-	env = append(env, goenv.Env()...)
 	env = append(env, fmt.Sprintf("CC=%s", cc))
 	env = append(env, fmt.Sprintf("CXX=%s", cc))
 
