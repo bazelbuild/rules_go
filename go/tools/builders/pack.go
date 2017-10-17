@@ -60,7 +60,7 @@ func run(args []string) error {
 		objects = append(objects, archiveObjects...)
 	}
 
-	return appendFiles(goenv.Go, *outArchive, objects)
+	return appendFiles(goenv, *outArchive, objects)
 }
 
 func main() {
@@ -258,8 +258,9 @@ func isObjectFile(name string) bool {
 	return strings.HasSuffix(name, ".o")
 }
 
-func appendFiles(gotool, archive string, files []string) error {
+func appendFiles(goenv *GoEnv, archive string, files []string) error {
 	args := append([]string{"tool", "pack", "r", archive}, files...)
-	cmd := exec.Command(gotool, args...)
+	cmd := exec.Command(goenv.Go, args...)
+	cmd.Env = goenv.Env()
 	return cmd.Run()
 }
