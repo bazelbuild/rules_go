@@ -22,7 +22,7 @@ def executable_extension(ctx):
 
 def _go_host_sdk_impl(ctx):
   path = _detect_host_sdk(ctx)
-  _sdk_build_file(ctx, path)
+  _sdk_build_file(ctx)
   _local_sdk(ctx, path)
   _prepare(ctx)
 
@@ -40,7 +40,7 @@ def _go_download_sdk_impl(ctx):
   sdks = ctx.attr.sdks
   if host not in sdks: fail("Unsupported host {}".format(host))
   filename, sha256 = ctx.attr.sdks[host]
-  _sdk_build_file(ctx, str(ctx.path(".")))
+  _sdk_build_file(ctx)
   _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
   _prepare(ctx)
 
@@ -53,7 +53,7 @@ go_download_sdk = repository_rule(_go_download_sdk_impl,
 )
 
 def _go_local_sdk_impl(ctx):
-  _sdk_build_file(ctx, ctx.attr.path)
+  _sdk_build_file(ctx)
   _local_sdk(ctx, ctx.attr.path)
   _prepare(ctx)
 
@@ -71,16 +71,16 @@ def _go_sdk_impl(ctx):
   if urls:
     if ctx.attr.path:
       fail("url and path cannot both be set on go_sdk, got {} and {}".format(urls, ctx.attr.path))
-    _sdk_build_file(ctx, str(ctx.path(".")))
+    _sdk_build_file(ctx)
     _remote_sdk(ctx, urls, ctx.attr.strip_prefix, ctx.attr.sha256)
   elif ctx.attr.path:
     print("DEPRECATED: go_sdk with a path, please use go_local_sdk")
-    _sdk_build_file(ctx, ctx.attr.path)
+    _sdk_build_file(ctx)
     _local_sdk(ctx, ctx.attr.path)
   else:
     print("DEPRECATED: go_sdk without path or urls, please use go_host_sdk")
     path = _detect_host_sdk(ctx)
-    _sdk_build_file(ctx, path)
+    _sdk_build_file(ctx)
     _local_sdk(ctx, path)
   _prepare(ctx)
 
@@ -135,7 +135,8 @@ def _local_sdk(ctx, path):
   for entry in ["src", "pkg", "bin"]:
     ctx.symlink(path+"/"+entry, entry)
 
-def _sdk_build_file(ctx, goroot):
+def _sdk_build_file(ctx):
+  goroot = str(ctx.path("."))
   ctx.template("BUILD.bazel",
       Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
       substitutions = {"{goroot}": goroot, "{extension}": executable_extension(ctx)},
