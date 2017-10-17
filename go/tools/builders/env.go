@@ -21,7 +21,7 @@ import (
 	"strings"
 )
 
-// GoEnv hold the go environment as specified on the command line.
+// GoEnv holds the go environment as specified on the command line.
 type GoEnv struct {
 	// Go is the path to the go executable.
 	Go string

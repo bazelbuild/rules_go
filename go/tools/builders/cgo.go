@@ -177,9 +177,6 @@ func run(args []string) error {
 		}
 	}
 	if pkgName == "" {
-		fmt.Fprintf(os.Stderr, "\n\n")
-		fmt.Fprintf(os.Stderr, "Remains: %v\n", flags.Args())
-		fmt.Fprintf(os.Stderr, "Source: %v\n", sources)
 		return fmt.Errorf("no buildable Go source files found")
 	}
 
