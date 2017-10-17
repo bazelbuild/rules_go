@@ -221,6 +221,7 @@ Gazelle supports several directives, written as comments in build files.
 * ``# gazelle:proto <mode>``: Tells Gazelle how to generate rules for .proto
   files. Applies to the current directory and subdirectories. Valid values for
   ``mode`` are:
+
   * ``default``: ``proto_library``, ``go_proto_library``, ``go_grpc_library``,
     and ``go_library`` rules are generated using
     ``@io_bazel_rules_go//proto:def.bzl``. This is the default mode.
