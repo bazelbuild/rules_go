@@ -21,7 +21,6 @@ def action_with_go_env(ctx, go_toolchain, executable = None, command=None, argum
       "-goos", go_toolchain.stdlib.goos,
       "-goarch", go_toolchain.stdlib.goarch,
       "-cgo=" + ("1" if go_toolchain.stdlib.cgo else "0"),
-      "-tmp", go_toolchain.paths.tmp,
   ] + arguments
   ctx.action(
       inputs = depset(inputs) + go_toolchain.data.tools,

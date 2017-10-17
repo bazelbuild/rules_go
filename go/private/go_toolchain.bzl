@@ -25,7 +25,6 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoStdLib")
 
 
 def _go_toolchain_impl(ctx):
-  tmp = ctx.attr._root.path + "/tmp"
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
       stdlib = ctx.attr._stdlib[GoStdLib],
@@ -37,9 +36,6 @@ def _go_toolchain_impl(ctx):
           library = emit_library,
           link = emit_link if ctx.executable._link else bootstrap_link,
           pack = emit_pack,
-      ),
-      paths = struct(
-          tmp = tmp,
       ),
       tools = struct(
           go = ctx.executable._go,

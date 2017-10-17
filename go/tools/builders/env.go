@@ -28,7 +28,6 @@ type GoEnv struct {
 	// Verbose debugging print control
 	Verbose bool
 	root    string
-	tmp     string
 	cgo     bool
 	goos    string
 	goarch  string
@@ -39,7 +38,6 @@ func envFlags(flags *flag.FlagSet) *GoEnv {
 	env := &GoEnv{}
 	flags.StringVar(&env.Go, "go", "", "The path to the go tool.")
 	flags.StringVar(&env.root, "root", "", "The go root to use.")
-	flags.StringVar(&env.tmp, "tmp", "", "The temp directory to use.")
 	flags.BoolVar(&env.cgo, "cgo", false, "The value for CGO_ENABLED.")
 	flags.StringVar(&env.goos, "goos", "", "The value for GOOS.")
 	flags.StringVar(&env.goarch, "goarch", "", "The value for GOARCH.")
@@ -55,7 +53,7 @@ func (env *GoEnv) Env() []string {
 	}
 	return []string{
 		fmt.Sprintf("GOROOT=%s", env.root),
-		fmt.Sprintf("TMP=%s", env.tmp),
+		fmt.Sprintf("TMP=%s", "/tmp"), // TODO: may need to be different on windows
 		fmt.Sprintf("GOOS=%s", env.goos),
 		fmt.Sprintf("GOARCH=%s", env.goarch),
 		fmt.Sprintf("CGO_ENABLED=%s", cgoEnabled),
