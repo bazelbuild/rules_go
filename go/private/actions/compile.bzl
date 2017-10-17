@@ -42,10 +42,10 @@ def emit_compile(ctx, go_toolchain,
     gc_goopts = gc_goopts + ("-race",)
 
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-  inputs = sources
+  inputs = sources + [go_toolchain.data.package_list]
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
-  args = []
+  args = ["-package_list", go_toolchain.data.package_list.path]
   for src in go_sources:
     args += ["-src", src]
   for golib in golibs:

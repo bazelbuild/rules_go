@@ -22,6 +22,7 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -49,6 +50,7 @@ func run(args []string) error {
 	flags.Var(&search, "I", "Search paths of a direct dependency")
 	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
 	output := flags.String("o", "", "The output object file to write")
+	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	// process the args
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -65,7 +67,7 @@ func run(args []string) error {
 	}
 
 	// Check that the filtered sources don't import anything outside of deps.
-	if err := checkDirectDeps(bctx, sources, deps); err != nil {
+	if err := checkDirectDeps(bctx, sources, deps, *packageList); err != nil {
 		return err
 	}
 
@@ -95,7 +97,19 @@ func main() {
 	}
 }
 
-func checkDirectDeps(bctx build.Context, sources, deps []string) error {
+func checkDirectDeps(bctx build.Context, sources, deps []string, packageList string) error {
+	packagesTxt, err := ioutil.ReadFile(packageList)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stdlib := map[string]bool{}
+	for _, line := range strings.Split(string(packagesTxt), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			stdlib[line] = true
+		}
+	}
+
 	depSet := make(map[string]bool)
 	for _, d := range deps {
 		depSet[d] = true
@@ -115,7 +129,7 @@ func checkDirectDeps(bctx build.Context, sources, deps []string) error {
 				// Should never happen, but let the compiler deal with it.
 				continue
 			}
-			if path == "C" || isStandard(bctx, path) || isRelative(path) {
+			if path == "C" || stdlib[path] || isRelative(path) {
 				// Standard paths don't need to be listed as dependencies (for now).
 				// Relative paths aren't supported yet. We don't emit errors here, but
 				// they will certainly break something else.
@@ -142,12 +156,6 @@ func (e depsError) Error() string {
 		errorStrings[i] = err.Error()
 	}
 	return "missing strict dependencies:\n\t" + strings.Join(errorStrings, "\n\t")
-}
-
-func isStandard(bctx build.Context, path string) bool {
-	rootPath := filepath.Join(bctx.GOROOT, "src", filepath.FromSlash(path))
-	st, err := os.Stat(rootPath)
-	return err == nil && st.IsDir()
 }
 
 func isRelative(path string) bool {

@@ -61,6 +61,7 @@ def _go_toolchain_impl(ctx):
           stdlib = ctx.files._stdlib,
           headers = ctx.attr._headers,
           crosstool = ctx.files._crosstool,
+          package_list = ctx.file._package_list,
       ),
       external_linker = ctx.attr._external_linker,
   )]
@@ -133,6 +134,7 @@ _go_toolchain = rule(
         "_headers": attr.label(default="@go_sdk//:headers"),
         "_root": attr.label(default="@go_sdk//:root"),
         "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
+        "_package_list": attr.label(allow_files = True, single_file = True, default="@go_sdk//:packages.txt"),
         "_external_linker": attr.label(default=_get_linker),
     },
 )
