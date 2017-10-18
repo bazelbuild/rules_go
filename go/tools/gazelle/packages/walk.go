@@ -111,8 +111,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		for _, f := range files {
 			base := f.Name()
 			switch {
-			case base == "" || base[0] == '.' || base[0] == '_' ||
-				excluded[base] ||
+			case base == "" || base[0] == '.' || excluded[base] ||
 				base == "vendor" && f.IsDir() && c.DepMode != config.VendorMode:
 				continue
 
