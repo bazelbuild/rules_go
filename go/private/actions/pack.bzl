@@ -26,6 +26,8 @@ def emit_pack(ctx, go_toolchain,
   if in_lib == None: fail("in_lib is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
+
   inputs = [in_lib]
 
   arguments = [
@@ -40,7 +42,7 @@ def emit_pack(ctx, go_toolchain,
     inputs.append(archive)
     arguments.extend(["-arc", archive.path])
 
-  action_with_go_env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain, stdlib,
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoPack",

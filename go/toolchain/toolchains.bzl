@@ -1,6 +1,5 @@
 load('//go/private:go_toolchain.bzl', 'go_toolchain')
 load('//go/private:toolchain.bzl', 'go_download_sdk', 'go_host_sdk')
-load('//go/private:go_toolchain.bzl', 'external_linker')
 
 DEFAULT_VERSION = "1.9.1"
 
@@ -151,7 +150,6 @@ def go_register_toolchains(go_version=DEFAULT_VERSION):
       native.register_toolchains(name)
 
 def declare_toolchains():
-  external_linker()
   # Use the final dictionaries to create all the toolchains
   for toolchain in _toolchains:
     go_toolchain(

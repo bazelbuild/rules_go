@@ -41,6 +41,7 @@ def _go_test_impl(ctx):
   test into a binary."""
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
   embed = ctx.attr.embed
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
@@ -84,7 +85,7 @@ def _go_test_impl(ctx):
       for var in g.cover_vars:
         arguments += ["-cover", "{}={}".format(var, g.importpath)]
 
-  action_with_go_env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain, stdlib,
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",

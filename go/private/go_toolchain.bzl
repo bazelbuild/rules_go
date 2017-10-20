@@ -23,11 +23,26 @@ load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link", "bootstrap_
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoStdLib")
 
+def _get_stdlib(ctx, go_toolchain):
+  if "pure" in ctx.features and "race" in ctx.features:
+      return go_toolchain.stdlib.pure_race
+  elif "pure" in ctx.features:
+      return go_toolchain.stdlib.pure
+  elif "race" in ctx.features:
+      return go_toolchain.stdlib.cgo_race
+  else:
+      return go_toolchain.stdlib.cgo
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
-      stdlib = ctx.attr._stdlib[GoStdLib],
+      stdlib = struct(
+        cgo = ctx.attr._stdlib_cgo[GoStdLib],
+        pure = ctx.attr._stdlib_pure[GoStdLib],
+        cgo_race = ctx.attr._stdlib_cgo_race[GoStdLib],
+        pure_race = ctx.attr._stdlib_pure_race[GoStdLib],
+        get = _get_stdlib,
+      ),
       actions = struct(
           asm = emit_asm,
           binary = emit_binary,
@@ -38,7 +53,6 @@ def _go_toolchain_impl(ctx):
           pack = emit_pack,
       ),
       tools = struct(
-          go = ctx.executable._go,
           asm = ctx.executable._asm,
           compile = ctx.executable._compile,
           pack = ctx.executable._pack,
@@ -53,22 +67,22 @@ def _go_toolchain_impl(ctx):
           link_cgo = ctx.attr.cgo_link_flags,
       ),
       data = struct(
-          tools = ctx.files._tools,
-          stdlib = ctx.files._stdlib,
-          headers = ctx.attr._headers,
           crosstool = ctx.files._crosstool,
           package_list = ctx.file._package_list,
       ),
-      external_linker = ctx.attr._external_linker,
   )]
 
-def _stdlib(goos, goarch):
-  return Label("@go_sdk//:stdlib_{}_{}".format(goos, goarch))
+def _stdlib_cgo(goos, goarch):
+  return Label("@go_stdlib_{}_{}_cgo".format(goos, goarch))
 
-def _get_linker():
-  # TODO: return None if there is no cpp fragment available
-  # This is not possible right now, we need a new bazel feature
-  return Label("//go/toolchain:external_linker")
+def _stdlib_pure(goos, goarch):
+  return Label("@go_stdlib_{}_{}_pure".format(goos, goarch))
+
+def _stdlib_cgo_race(goos, goarch):
+  return Label("@go_stdlib_{}_{}_cgo_race".format(goos, goarch))
+
+def _stdlib_pure_race(goos, goarch):
+  return Label("@go_stdlib_{}_{}_pure_race".format(goos, goarch))
 
 def _asm(bootstrap):
   if bootstrap:
@@ -124,13 +138,12 @@ _go_toolchain = rule(
         "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),
         "_cover": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cover),
         # Hidden internal attributes
-        "_go": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default="@go_sdk//:go"),
-        "_tools": attr.label(allow_files = True, default = "@go_sdk//:tools"),
-        "_stdlib": attr.label(allow_files = True, default = _stdlib),
-        "_headers": attr.label(default="@go_sdk//:headers"),
+        "_stdlib_cgo": attr.label(allow_files = True, default = _stdlib_cgo),
+        "_stdlib_pure": attr.label(allow_files = True, default = _stdlib_pure),
+        "_stdlib_cgo_race": attr.label(allow_files = True, default = _stdlib_cgo_race),
+        "_stdlib_pure_race": attr.label(allow_files = True, default = _stdlib_pure_race),
         "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
         "_package_list": attr.label(allow_files = True, single_file = True, default="@go_sdk//:packages.txt"),
-        "_external_linker": attr.label(default=_get_linker),
     },
 )
 
@@ -201,25 +214,3 @@ go_toolchain_flags = rule(
         "strip": attr.string(mandatory=True),
     },
 )
-
-def _external_linker_impl(ctx):
-  cpp = ctx.fragments.cpp
-  features = ctx.features
-  options = (cpp.compiler_options(features) +
-        cpp.unfiltered_compiler_options(features) +
-        cpp.link_options +
-        cpp.mostly_static_link_options(features, False))
-  return struct(
-      compiler_executable = cpp.compiler_executable,
-      options = options,
-      c_options = cpp.c_options,
-  )
-
-_external_linker = rule(
-    _external_linker_impl,
-    attrs = {},
-    fragments = ["cpp"],
-)
-
-def external_linker():
-    _external_linker(name="external_linker")

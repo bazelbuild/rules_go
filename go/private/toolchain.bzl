@@ -93,13 +93,6 @@ def _prepare(ctx):
     ctx.file("tmp/ignore", content="") # make a file to force the directory to exist
     tmp = str(ctx.path("tmp").realpath)
 
-  # Build the standard library for valid cross compile platforms
-  #TODO: fix standard library cross compilation
-  if ctx.name.endswith("linux_amd64") and ctx.os.name == "linux":
-    _cross_compile_stdlib(ctx, "windows", "amd64", tmp)
-  if ctx.name.endswith("darwin_amd64") and ctx.os.name == "mac os x":
-    _cross_compile_stdlib(ctx, "linux", "amd64", tmp)
-
   # Create a text file with a list of standard packages.
   # OPT: just list directories under src instead of running "go list". No
   # need to read all source files. We need a portable way to run code though.
@@ -142,29 +135,6 @@ def _sdk_build_file(ctx):
       substitutions = {"{extension}": executable_extension(ctx)},
       executable = False,
   )
-
-def _cross_compile_stdlib(ctx, goos, goarch, tmp):
-  env = {
-      "CGO_ENABLED": "0",
-      "GOROOT": str(ctx.path(".")),
-      "GOOS": goos,
-      "GOARCH": goarch,
-      "TMP": tmp,
-  }
-  res = ctx.execute(
-      ["bin/go"+executable_extension(ctx), "install", "-v", "std"],
-      environment = env,
-  )
-  if res.return_code:
-    print("failed: ", res.stderr)
-    fail("go standard library cross compile %s to %s-%s failed" % (ctx.name, goos, goarch))
-  res = ctx.execute(
-      ["bin/go"+executable_extension(ctx), "install", "-v", "runtime/cgo"],
-      environment = env,
-  )
-  if res.return_code:
-    print("failed: ", res.stderr)
-    fail("go runtime cgo cross compile %s to %s-%s failed" % (ctx.name, goos, goarch))
 
 def _detect_host_sdk(ctx):
   root = "@invalid@"

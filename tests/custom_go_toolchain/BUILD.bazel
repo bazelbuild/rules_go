@@ -20,6 +20,7 @@ bazel_test(
     workspace = """
 
 load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_download_sdk")
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies")
 
 go_download_sdk(
     name = "go_sdk",
@@ -32,6 +33,8 @@ register_toolchains(
     "@//:my_linux_toolchain", "@//:my_linux_toolchain-bootstrap",
     "@//:my_darwin_toolchain", "@//:my_darwin_toolchain-bootstrap",
 )
+
+go_rules_dependencies()
 
 """,
     build = """

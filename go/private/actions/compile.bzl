@@ -37,6 +37,8 @@ def emit_compile(ctx, go_toolchain,
   if sources == None: fail("sources is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
+
   # Add in any mode specific behaviours
   if mode == RACE_MODE:
     gc_goopts = gc_goopts + ("-race",)
@@ -61,7 +63,7 @@ def emit_compile(ctx, go_toolchain,
   if ctx.attr._go_toolchain_flags.compilation_mode == "debug":
     args.extend(["-N", "-l"])
   args.extend(cgo_sources)
-  action_with_go_env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain, stdlib,
       inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",

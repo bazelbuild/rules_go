@@ -37,15 +37,16 @@ def emit_link(ctx, go_toolchain,
   if library == None: fail("library is a required parameter")
   if executable == None: fail("executable is a required parameter")
 
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
   ld = None
   extldflags = []
-  if go_toolchain.external_linker:
-    ld = go_toolchain.external_linker.compiler_executable
-    extldflags = list(go_toolchain.external_linker.options)
+  if stdlib.cgo_tools:
+    ld = stdlib.cgo_tools.compiler_executable
+    extldflags = list(stdlib.cgo_tools.options)
   extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)]
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
@@ -113,7 +114,7 @@ def emit_link(ctx, go_toolchain,
 
   link_args += ["--"] + link_opts
 
-  action_with_go_env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain, stdlib,
       inputs = list(libs + cgo_deps +
                 go_toolchain.data.crosstool + stamp_inputs),
       outputs = [executable],

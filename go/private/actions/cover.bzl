@@ -19,6 +19,8 @@ load("@io_bazel_rules_go//go/private:actions/action.bzl",
 def emit_cover(ctx, go_toolchain,
                sources = []):
   """See go/toolchains.rst#cover for full documentation."""
+
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
   outputs = []
   # TODO(linuxerwang): make the mode configurable.
   cover_vars = []
@@ -34,7 +36,7 @@ def emit_cover(ctx, go_toolchain,
     cover_vars += ["{}={}".format(cover_var,src.short_path)]
     out = ctx.new_file(cover_var + '.cover.go')
     outputs += [out]
-    action_with_go_env(ctx, go_toolchain,
+    action_with_go_env(ctx, go_toolchain, stdlib,
         inputs = [src],
         outputs = [out],
         mnemonic = "GoCover",

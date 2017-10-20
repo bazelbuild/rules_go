@@ -18,8 +18,9 @@ load("@io_bazel_rules_go//go/private:actions/action.bzl",
 
 def _go_info_script_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
   out = ctx.actions.declare_file(ctx.label.name+".bash")
-  action_with_go_env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain, stdlib,
       inputs = [],
       outputs = [out],
       mnemonic = "GoInfo",

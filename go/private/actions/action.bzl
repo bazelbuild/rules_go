@@ -12,26 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def action_with_go_env(ctx, go_toolchain, executable = None, command=None, arguments = [], inputs = [], **kwargs):
+def action_with_go_env(ctx, go_toolchain, stdlib, executable = None, command=None, arguments = [], inputs = [], **kwargs):
   if command:
     fail("You cannot run action_with_go_env with a 'command', only an 'executable'")
   args = [
-      "-go", go_toolchain.tools.go.path,
-      "-root_file", go_toolchain.stdlib.root_file.path,
-      "-goos", go_toolchain.stdlib.goos,
-      "-goarch", go_toolchain.stdlib.goarch,
-      "-cgo=" + ("1" if go_toolchain.stdlib.cgo else "0"),
+      "-go", stdlib.go.path,
+      "-root_file", stdlib.root_file.path,
+      "-goos", stdlib.goos,
+      "-goarch", stdlib.goarch,
+      "-cgo=" + ("1" if stdlib.cgo else "0"),
   ] + arguments
   ctx.action(
-      inputs = depset(inputs) + go_toolchain.data.tools + [go_toolchain.stdlib.root_file] + go_toolchain.stdlib.libs,
+      inputs = depset(inputs) + stdlib.files,
       executable = executable,
       arguments = args,
       **kwargs)
 
 def bootstrap_action(ctx, go_toolchain, inputs, outputs, mnemonic, arguments):
+  stdlib = go_toolchain.stdlib.cgo
   ctx.actions.run_shell(
-    inputs = inputs + go_toolchain.data.tools + go_toolchain.stdlib.libs,
+    inputs = inputs + stdlib.files,
     outputs = outputs,
     mnemonic = mnemonic,
-    command = "export GOROOT=$(pwd)/{} && {} {}".format(go_toolchain.stdlib.root_file.dirname, go_toolchain.tools.go.path, " ".join(arguments)),
+    command = "export GOROOT=$(pwd)/{} && {} {}".format(stdlib.root_file.dirname, stdlib.go.path, " ".join(arguments)),
   )

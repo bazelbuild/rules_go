@@ -3,59 +3,20 @@ load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
 package(default_visibility = [ "//visibility:public" ])
 
 filegroup(
-  name = "root_file",
-  srcs = ["ROOT"],
+  name = "host_sdk",
+  srcs = glob([
+    "bin/go*",
+    "src/**",
+    "pkg/**",
+  ]),
 )
 
 filegroup(
-  name = "go",
-  srcs = [ "bin/go{extension}" ],
-)
-
-filegroup(
-  name = "tools",
-  srcs = [":go"] + glob(["pkg/tool/**"]),
-)
-
-filegroup(
-    name = "srcs",
-    srcs = glob(["src/**"]),
-)
-
-cc_library(
-  name = "headers",
-  hdrs = glob(["pkg/include/*.h"]),
+  name = "host_tools",
+  srcs = select({
+    "@io_bazel_rules_go//go/platform:darwin_amd64": ["@local_config_cc//:cc_wrapper"],
+    "//conditions:default": None,
+  }),
 )
 
 exports_files(["packages.txt"])
-
-[
-  (
-    stdlib(
-        name = "stdlib_{}_{}".format(goos, goarch),
-        goos = goos,
-        goarch = goarch,
-        libs = glob(["pkg/{}_{}/**".format(goos, goarch)]),
-        cgo = True,
-    ),
-    stdlib(
-        name = "stdlib_{}_{}_pure".format(goos, goarch),
-        goos = goos,
-        goarch = goarch,
-        libs = glob(["pkg/{}_{}/**".format(goos, goarch)]),
-        cgo = False,
-    ),
-  )
-  for goos, goarch in [
-      ("darwin", "amd64"),
-      ("linux", "386"),
-      ("linux", "amd64"),
-      ("linux", "armv6l"),
-      ("windows", "386"),
-      ("windows", "amd64"),
-      ("freebsd", "386"),
-      ("freebsd", "amd64"),
-      ("linux", "ppc64le"),
-      ("linux", "s390x"),
-  ]
-]

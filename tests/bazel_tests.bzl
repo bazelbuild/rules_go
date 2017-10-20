@@ -10,7 +10,7 @@ build --genrule_strategy=standalone
 
 test --test_strategy=standalone
 
-build:isolate --fetch=False
+build:isolate --
 build:fetch --fetch=True
 """
 
@@ -137,7 +137,7 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
       "@local_config_cc//:cc_wrapper",
   ]
   if go_version == None or go_version == CURRENT_VERSION:
-      externals.append("@go_sdk//:root_file")
+      externals.append("@go_sdk//:packages.txt")
 
   _bazel_test_script(
       name = script_name,

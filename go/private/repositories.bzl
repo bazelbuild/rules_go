@@ -16,6 +16,7 @@
 
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
+load('@io_bazel_rules_go//go/private:rules/stdlib.bzl', "STDLIB_GOOS_GOARCH", "go_stdlib")
 load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', "go_register_toolchains")
 
 def go_rules_dependencies():
@@ -39,10 +40,39 @@ def go_rules_dependencies():
       type = "zip",
   )
 
+  for goos, goarch in STDLIB_GOOS_GOARCH:
+    _maybe(go_stdlib,
+        name = "go_stdlib_{}_{}_cgo".format(goos, goarch),
+        goos = goos,
+        goarch = goarch,
+        race = False,
+        cgo = True,
+    )
+    _maybe(go_stdlib,
+        name = "go_stdlib_{}_{}_pure".format(goos, goarch),
+        goos = goos,
+        goarch = goarch,
+        race = False,
+        cgo = False,
+    )
+    _maybe(go_stdlib,
+        name = "go_stdlib_{}_{}_cgo_race".format(goos, goarch),
+        goos = goos,
+        goarch = goarch,
+        race = True,
+        cgo = True,
+    )
+    _maybe(go_stdlib,
+        name = "go_stdlib_{}_{}_pure_race".format(goos, goarch),
+        goos = goos,
+        goarch = goarch,
+        race = True,
+        cgo = False,
+    )
+
   _maybe(go_repository_tools,
       name = "io_bazel_rules_go_repository_tools",
   )
-
 
   # Proto dependancies
   _maybe(go_repository,

@@ -24,14 +24,14 @@ def emit_asm(ctx, go_toolchain,
 
   if source == None: fail("source is a required parameter")
   if out_obj == None: fail("out_obj is a required parameter")
-  includes = depset()
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
+  includes = depset([stdlib.root_file.dirname + "/pkg/include"])
   includes += [f.dirname for f in hdrs]
-  includes += [f.dirname for f in go_toolchain.data.headers.cc.transitive_headers]
-  inputs = hdrs + list(go_toolchain.data.headers.cc.transitive_headers) + [source]
+  inputs = hdrs + stdlib.files + [source]
   asm_args = [source.path, "-o", out_obj.path]
   for inc in includes:
     asm_args += ["-I", inc]
-  action_with_go_env(ctx, go_toolchain,
+  action_with_go_env(ctx, go_toolchain, stdlib,
       inputs = list(inputs),
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
