@@ -147,7 +147,8 @@ func TestResolveProto(t *testing.T) {
 	prefix := "example.com/repo"
 	for _, tc := range []struct {
 		desc, imp, pkgRel      string
-		mode                   config.StructureMode
+		structureMode          config.StructureMode
+		depMode                config.DependencyMode
 		wantProto, wantGoProto Label
 	}{
 		{
@@ -162,50 +163,61 @@ func TestResolveProto(t *testing.T) {
 			wantGoProto: Label{Pkg: "foo/bar", Name: config.DefaultLibName},
 		}, {
 			desc:        "vendor",
+			depMode:     config.VendorMode,
 			imp:         "foo/bar/bar.proto",
 			pkgRel:      "vendor",
-			wantProto:   Label{Pkg: "vendor/foo/bar", Name: "bar_proto"},
+			wantProto:   Label{Pkg: "foo/bar", Name: "bar_proto"},
 			wantGoProto: Label{Pkg: "vendor/foo/bar", Name: config.DefaultLibName},
 		}, {
-			desc:        "vendor sub",
-			imp:         "foo/bar/bar.proto",
-			pkgRel:      "vendor/baz",
-			wantProto:   Label{Pkg: "vendor/foo/bar", Name: "bar_proto"},
-			wantGoProto: Label{Pkg: "vendor/foo/bar", Name: config.DefaultLibName},
+			desc:          "flat sub",
+			structureMode: config.FlatMode,
+			imp:           "foo/bar/bar.proto",
+			wantProto:     Label{Name: "foo/bar/bar_proto"},
+			wantGoProto:   Label{Name: "foo/bar"},
 		}, {
-			desc:        "flat sub",
-			mode:        config.FlatMode,
-			imp:         "foo/bar/bar.proto",
-			wantProto:   Label{Name: "foo/bar/bar_proto"},
-			wantGoProto: Label{Name: "foo/bar"},
-		}, {
-			desc:        "flat vendor",
-			mode:        config.FlatMode,
-			imp:         "foo/bar/bar.proto",
-			pkgRel:      "vendor",
-			wantProto:   Label{Name: "vendor/foo/bar/bar_proto"},
-			wantGoProto: Label{Name: "vendor/foo/bar"},
+			desc:          "flat vendor",
+			structureMode: config.FlatMode,
+			depMode:       config.VendorMode,
+			imp:           "foo/bar/bar.proto",
+			pkgRel:        "vendor",
+			wantProto:     Label{Name: "foo/bar/bar_proto"},
+			wantGoProto:   Label{Name: "vendor/foo/bar"},
 		}, {
 			desc:        "well known",
 			imp:         "google/protobuf/any.proto",
 			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
 			wantGoProto: Label{Repo: "com_github_golang_protobuf", Pkg: "ptypes/any", Name: config.DefaultLibName},
 		}, {
-			desc:        "well known flat",
-			mode:        config.FlatMode,
-			imp:         "google/protobuf/any.proto",
-			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
-			wantGoProto: Label{Repo: "com_github_golang_protobuf", Name: "ptypes/any"},
+			desc:          "well known flat",
+			structureMode: config.FlatMode,
+			imp:           "google/protobuf/any.proto",
+			wantProto:     Label{Repo: "com_google_protobuf", Name: "any_proto"},
+			wantGoProto:   Label{Repo: "com_github_golang_protobuf", Name: "ptypes/any"},
 		}, {
 			desc:        "well known vendor",
+			depMode:     config.VendorMode,
 			imp:         "google/protobuf/any.proto",
-			pkgRel:      "vendor",
 			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
-			wantGoProto: Label{Repo: "com_github_golang_protobuf", Pkg: "ptypes/any", Name: config.DefaultLibName},
+			wantGoProto: Label{Pkg: "vendor/github.com/golang/protobuf/ptypes/any", Name: config.DefaultLibName},
+		}, {
+			desc:        "descriptor",
+			imp:         "google/protobuf/descriptor.proto",
+			wantProto:   Label{Repo: "com_google_protobuf", Name: "descriptor_proto"},
+			wantGoProto: Label{Repo: "com_github_golang_protobuf", Pkg: "protoc-gen-go/descriptor", Name: config.DefaultLibName},
+		}, {
+			desc:        "descriptor vendor",
+			depMode:     config.VendorMode,
+			imp:         "google/protobuf/descriptor.proto",
+			wantProto:   Label{Repo: "com_google_protobuf", Name: "descriptor_proto"},
+			wantGoProto: Label{Pkg: "vendor/github.com/golang/protobuf/protoc-gen-go/descriptor", Name: config.DefaultLibName},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			c := &config.Config{GoPrefix: prefix, StructureMode: tc.mode}
+			c := &config.Config{
+				GoPrefix:      prefix,
+				DepMode:       tc.depMode,
+				StructureMode: tc.structureMode,
+			}
 			l := NewLabeler(c)
 			r := NewResolver(c, l)
 

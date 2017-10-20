@@ -18,6 +18,7 @@ package resolve
 import (
 	"fmt"
 	"go/build"
+	"log"
 	"path"
 	"strings"
 
@@ -85,6 +86,7 @@ func (r *Resolver) ResolveGo(imp, pkgRel string) (Label, error) {
 const (
 	wellKnownPrefix     = "google/protobuf/"
 	wellKnownGoProtoPkg = "ptypes"
+	descriptorPkg       = "protoc-gen-go/descriptor"
 )
 
 // ResolveProto resolves an import statement in a .proto file to a label
@@ -101,14 +103,6 @@ func (r *Resolver) ResolveProto(imp, pkgRel string) (Label, error) {
 		return Label{Repo: config.WellKnownTypesProtoRepo, Name: name}, nil
 	}
 
-	// Temporary hack: guess the label based on the proto file name. We assume
-	// all proto files in a directory belong to the same package, and the
-	// package name matches the directory base name. We also assume that protos
-	// in the vendor directory must refer to something else in vendor.
-	// TODO(#859): use dependency table to resolve once it exists.
-	if pkgRel == "vendor" || strings.HasPrefix(pkgRel, "vendor/") {
-		imp = path.Join("vendor", imp)
-	}
 	rel := path.Dir(imp)
 	if rel == "." {
 		rel = ""
@@ -127,12 +121,38 @@ func (r *Resolver) ResolveGoProto(imp, pkgRel string) (Label, error) {
 
 	if isWellKnown(imp) {
 		// Well Known Type
-		pkg := path.Join(wellKnownGoProtoPkg, path.Base(imp))
-		label := r.l.LibraryLabel(pkg)
-		if r.c.GoPrefix != config.WellKnownTypesGoPrefix {
-			label.Repo = config.WellKnownTypesGoProtoRepo
+		base := path.Base(imp)
+		if base == "descriptor" {
+			switch r.c.DepMode {
+			case config.ExternalMode:
+				label := r.l.LibraryLabel(descriptorPkg)
+				if r.c.GoPrefix != config.WellKnownTypesGoPrefix {
+					label.Repo = config.WellKnownTypesGoProtoRepo
+				}
+				return label, nil
+			case config.VendorMode:
+				pkg := path.Join("vendor", config.WellKnownTypesGoPrefix, descriptorPkg)
+				label := r.l.LibraryLabel(pkg)
+				return label, nil
+			default:
+				log.Panicf("unknown external mode: %v", r.c.DepMode)
+			}
 		}
-		return label, nil
+
+		switch r.c.DepMode {
+		case config.ExternalMode:
+			pkg := path.Join(wellKnownGoProtoPkg, base)
+			label := r.l.LibraryLabel(pkg)
+			if r.c.GoPrefix != config.WellKnownTypesGoPrefix {
+				label.Repo = config.WellKnownTypesGoProtoRepo
+			}
+			return label, nil
+		case config.VendorMode:
+			pkg := path.Join("vendor", config.WellKnownTypesGoPrefix, wellKnownGoProtoPkg, base)
+			return r.l.LibraryLabel(pkg), nil
+		default:
+			log.Panicf("unknown external mode: %v", r.c.DepMode)
+		}
 	}
 
 	// Temporary hack: guess the label based on the proto file name. We assume
