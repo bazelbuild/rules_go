@@ -3,5 +3,5 @@ load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 bazel_test(
     name = "info",
     command = "run",
-    target = "@io_bazel_rules_go//:go_info",
+    targets = ["@io_bazel_rules_go//:go_info"],
 )

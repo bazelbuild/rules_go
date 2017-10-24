@@ -14,5 +14,5 @@ bazel_test(
     name = "test_filter_test",
     args = ["--test_filter=Pass"],
     command = "test",
-    target = "//:go_default_test",
+    targets = ["//:go_default_test"],
 )

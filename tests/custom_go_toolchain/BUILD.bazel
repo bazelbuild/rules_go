@@ -13,10 +13,10 @@ go_test(
 bazel_test(
     name = "custom_go_toolchain",
     command = "test",
-    target = "//:go_default_test",
+    targets = ["//:go_default_test"],
     go_version = "",
     tags = ["dev"],
-    config = "loose",
+    config = "fetch",
     workspace = """
 
 load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_download_sdk")

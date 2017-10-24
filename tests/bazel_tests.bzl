@@ -10,6 +10,7 @@ build --genrule_strategy=standalone
 test --test_strategy=standalone
 
 build:isolate --fetch=False
+build:fetch --fetch=True
 """
 
 CURRENT_VERSION = "current"
@@ -44,7 +45,7 @@ def _bazel_test_script_impl(ctx):
   workspace_file = ctx.new_file(subdir + "WORKSPACE")
   ctx.file_action(output=workspace_file, content=workspace_content)
   # finalise the script
-  args += ctx.attr.args + [ctx.attr.target]
+  args += ctx.attr.args + ctx.attr.targets
   script_content += 'BASE=$(pwd)\n'
   script_content += 'cd {0}\n'.format(ctx.label.package)
   script_content += 'PACKAGE=$(pwd)\n'
@@ -76,7 +77,7 @@ _bazel_test_script = rule(
         "command": attr.string(mandatory=True, values=["build", "test", "coverage", "run"]),
         "args": attr.string_list(default=[]),
         "subdir": attr.string(),
-        "target": attr.string(mandatory=True),
+        "targets": attr.string_list(mandatory=True),
         "externals": attr.label_list(allow_files=True),
         "go_version": attr.string(default=CURRENT_VERSION),
         "workspace": attr.string(),
@@ -88,7 +89,7 @@ _bazel_test_script = rule(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def bazel_test(name, command = None, args=None, subdir = None, target = None, go_version = None, tags=[], externals=[], workspace="", prepare="", check="", config=None):
+def bazel_test(name, command = None, args=None, subdir = None, targets = None, go_version = None, tags=[], externals=[], workspace="", prepare="", check="", config=None):
   script_name = name+"_script"
   externals = externals + [
       "@io_bazel_rules_go//:AUTHORS",
@@ -102,7 +103,7 @@ def bazel_test(name, command = None, args=None, subdir = None, target = None, go
       command = command,
       args = args,
       subdir = subdir,
-      target = target,
+      targets = targets,
       externals = externals,
       go_version = go_version,
       workspace = workspace,
