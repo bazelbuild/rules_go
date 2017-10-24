@@ -17,5 +17,5 @@ bazel_test(
     go_version = "1.7.5",
     config = "fetch",
     tags = ["dev"],
-    targets = ["//:go_default_test"],
+    targets = [":go_default_test"],
 )

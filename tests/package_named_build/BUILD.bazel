@@ -12,7 +12,7 @@ cd $PACKAGE/remote
 $BASE/go/tools/gazelle/gazelle/gazelle --go_prefix remote --mode fix --repo_root $PACKAGE/remote
 """,
     subdir = "local",
-    targets = ["//:go_default_test"],
+    targets = [":go_default_test"],
     workspace = """
 local_repository(
     name = "remote",

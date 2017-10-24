@@ -13,7 +13,7 @@ go_test(
 bazel_test(
     name = "custom_go_toolchain",
     command = "test",
-    targets = ["//:go_default_test"],
+    targets = [":go_default_test"],
     go_version = "",
     tags = ["dev"],
     config = "fetch",

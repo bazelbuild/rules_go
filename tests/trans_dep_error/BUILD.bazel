@@ -12,7 +12,7 @@ else
 fi
 """,
     command = "build",
-    targets = ["//:go_default_library"],
+    targets = [":go_default_library"],
 )
 
 go_prefix("github.com/bazelbuild/rules_go/tests/trans_dep_error")

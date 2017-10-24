@@ -24,5 +24,5 @@ go_library(
 bazel_test(
     name = "cgo_library_root_dir",
     command = "test",
-    targets = ["//:go_default_test"],
+    targets = [":go_default_test"],
 )
