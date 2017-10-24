@@ -1,9 +1,9 @@
-package local
+package build_test
 
 import (
 	"testing"
 
-	"remote/build"
+	"github.com/bazelbuild/rules_go/tests/package_named_build/build"
 )
 
 func TestBuildValue(t *testing.T) {
