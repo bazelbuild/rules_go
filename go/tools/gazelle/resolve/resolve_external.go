@@ -50,6 +50,7 @@ func newExternalResolver(l Labeler, extraKnownImports []string) *externalResolve
 		{prefix: "google.golang.org", missing: 1},
 		{prefix: "cloud.google.com", missing: 1},
 		{prefix: "github.com", missing: 2},
+		{prefix: "gopkg.in", missing: 1},
 	} {
 		cache[e.prefix] = e
 	}

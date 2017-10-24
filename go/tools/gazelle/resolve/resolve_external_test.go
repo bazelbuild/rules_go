@@ -38,6 +38,7 @@ func TestSpecialCases(t *testing.T) {
 		{in: "github.com/foo", wantError: true},
 		{in: "github.com/foo/bar", want: "github.com/foo/bar"},
 		{in: "github.com/foo/bar/baz", want: "github.com/foo/bar"},
+		{in: "gopkg.in/yaml.v2", want: "gopkg.in/yaml.v2"},
 		{in: "unsupported.org/x/net/context", wantError: true},
 		{
 			in:         "private.com/my/repo/package/path",
