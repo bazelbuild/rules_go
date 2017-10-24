@@ -1,6 +1,6 @@
-_bazelrc = """
-startup --batch
+load("@io_bazel_rules_go//go/private:go_repository.bzl", "env_execute")
 
+_bazelrc = """
 build --verbose_failures
 build --sandbox_debug
 build --test_output=errors
@@ -13,83 +13,118 @@ build:isolate --fetch=False
 build:fetch --fetch=True
 """
 
+_basic_workspace = """
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
+go_rules_dependencies()
+proto_register_toolchains()
+"""
+
+_bazel_test_script_content = """
+echo running in {work_dir}
+unset TEST_TMPDIR
+RULES_GO_OUTPUT={output}
+
+mkdir -p {work_dir}
+mkdir -p {cache_dir}
+cp -f {workspace} {work_dir}/WORKSPACE
+cp -f {build} {work_dir}/BUILD.bazel
+cd {work_dir}
+
+{bazel} --bazelrc {bazelrc} --nomaster_blazerc {command}  --experimental_repository_cache={cache_dir} --config {config} {args} {target}
+result=$?
+
+{check}
+
+exit $result
+"""
+
+_env_build = """
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test_settings")
+bazel_test_settings(
+  name = "settings",
+  bazel = "{bazel}",
+  exec_root = "{exec_root}",
+  scratch_dir = "{scratch_dir}",
+  visibility = ["//visibility:public"],
+)
+filegroup(
+  name = "bazelrc",
+  srcs = ["test.bazelrc"],
+  visibility = ["//visibility:public"],
+)
+"""
+
 CURRENT_VERSION = "current"
 
 def _bazel_test_script_impl(ctx):
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  script_content = ''
-  workspace_content = ''
-  subdir = ""
-  if ctx.attr.subdir:
-    subdir = ctx.attr.subdir + "/"
-  # Build the bazel startup args
-  bazelrc = ctx.new_file(subdir + ".bazelrc")
-  args = ["--bazelrc={0}".format(bazelrc.basename), "--nomaster_blazerc"]
-  # Add the command and any command specific args
-  args += [ctx.attr.command]
-  if ctx.attr.config:
-    args += ["--config", ctx.attr.config]
+  script_file = ctx.actions.declare_file(ctx.label.name+".bash")
+
+  if ctx.attr.go_version == CURRENT_VERSION:
+    register = 'go_register_toolchains()\n'
+  elif ctx.attr.go_version != None:
+    register = 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
+
+  workspace_content = 'workspace(name = "bazel_test")\n\n'
   for ext in ctx.attr.externals:
     root = ext.label.workspace_root
-    _,_,ws = root.rpartition("/")
-    workspace_content += 'local_repository(name = "{0}", path = "{1}/{2}")\n'.format(ws, ctx.attr._execroot.path, root)
-  # finalise the workspace file
-  workspace_content += 'load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")\n'
-  workspace_content += 'load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_local_sdk")\n'
-  if ctx.attr.go_version == CURRENT_VERSION:
-    workspace_content += 'go_register_toolchains()\n'
-  elif ctx.attr.go_version:
-    workspace_content += 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
+    _,_,name = ext.label.workspace_root.rpartition("/")
+    workspace_content += 'local_repository(name="{name}", path="{exec_root}/{root}")\n'.format(
+      name = name,
+      root = root,
+      exec_root = ctx.attr._settings.exec_root,
+    )
   if ctx.attr.workspace:
     workspace_content += ctx.attr.workspace
-  workspace_file = ctx.new_file(subdir + "WORKSPACE")
-  ctx.file_action(output=workspace_file, content=workspace_content)
-  # finalise the script
-  args += ctx.attr.args + ctx.attr.targets
-  script_content += 'BASE=$(pwd)\n'
-  script_content += 'cd {0}\n'.format(ctx.label.package)
-  script_content += 'PACKAGE=$(pwd)\n'
-  if ctx.attr.subdir:
-    script_content += 'cd {0}\n'.format(ctx.attr.subdir)
-    script_content += 'cp BUILD.in BUILD.bazel\n'
-  script_content += 'WORKSPACE=$(pwd)\n'
-  if ctx.attr.prepare:
-    script_content += ctx.attr.prepare
-  script_content += 'cd $WORKSPACE\n'
-  script_content += 'echo {0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
-  script_content += '{0} {1}\n'.format(ctx.attr._execroot.bazel, " ".join(args))
-  script_content += 'result=$?\n'
-  if ctx.attr.check:
-    script_content += ctx.attr.check
-  script_content += "exit $result\n"
-  script_file = ctx.new_file(ctx.label.name+".bash")
-  ctx.file_action(output=script_file, executable=True, content=script_content)
-  # finalise the bazel options
-  ctx.file_action(output=bazelrc, content=_bazelrc)
+  else:
+    workspace_content += _basic_workspace.format()
+    workspace_content += register
+
+  workspace_file = ctx.actions.declare_file("WORKSPACE.in")
+  ctx.actions.write(workspace_file, workspace_content)
+  build_file = ctx.actions.declare_file("BUILD.in")
+  ctx.actions.write(build_file, ctx.attr.build)
+
+  targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
+  output = "external/" + ctx.workspace_name + "/" + ctx.label.package
+  ctx.file_action(output=script_file, executable=True, content=_bazel_test_script_content.format(
+    bazelrc = ctx.attr._settings.exec_root+"/"+ctx.file._bazelrc.path,
+    config = ctx.attr.config,
+    command = ctx.attr.command,
+    args = " ".join(ctx.attr.args),
+    target = " ".join(targets),
+    check = ctx.attr.check,
+    workspace = workspace_file.short_path,
+    build = build_file.short_path,
+    output = output,
+    bazel = ctx.attr._settings.bazel,
+    work_dir = ctx.attr._settings.scratch_dir + "/" + ctx.attr.config,
+    cache_dir = ctx.attr._settings.scratch_dir + "/cache",
+  ))
   return struct(
     files = depset([script_file]),
-    runfiles = ctx.runfiles([workspace_file, bazelrc])
+    runfiles = ctx.runfiles([workspace_file, build_file])
   )
+
 
 _bazel_test_script = rule(
     _bazel_test_script_impl,
     attrs = {
         "command": attr.string(mandatory=True, values=["build", "test", "coverage", "run"]),
         "args": attr.string_list(default=[]),
-        "subdir": attr.string(),
         "targets": attr.string_list(mandatory=True),
         "externals": attr.label_list(allow_files=True),
         "go_version": attr.string(default=CURRENT_VERSION),
         "workspace": attr.string(),
-        "prepare": attr.string(),
+        "build": attr.string(),
         "check": attr.string(),
         "config": attr.string(default="isolate"),
-        "_execroot": attr.label(default = Label("@test_environment//:execroot")),
+        "_bazelrc": attr.label(allow_files=True, single_file=True, default="@bazel_test//:bazelrc"),
+        "_settings": attr.label(default = Label("@bazel_test//:settings")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def bazel_test(name, command = None, args=None, subdir = None, targets = None, go_version = None, tags=[], externals=[], workspace="", prepare="", check="", config=None):
+def bazel_test(name, command = None, args=None, targets = None, go_version = None, tags=[], externals=[], workspace="", build="", check="", config=None):
   script_name = name+"_script"
   externals = externals + [
       "@io_bazel_rules_go//:AUTHORS",
@@ -102,12 +137,11 @@ def bazel_test(name, command = None, args=None, subdir = None, targets = None, g
       name = script_name,
       command = command,
       args = args,
-      subdir = subdir,
       targets = targets,
       externals = externals,
       go_version = go_version,
       workspace = workspace,
-      prepare = prepare,
+      build = build,
       check = check,
       config = config,
   )
@@ -115,9 +149,10 @@ def bazel_test(name, command = None, args=None, subdir = None, targets = None, g
       name = name,
       size = "large",
       timeout = "moderate",
-      srcs = [script_name],
-      tags = ["local", "bazel"] + tags,
-      data = native.glob(["**/*"]) + externals + [
+      srcs = [":" + script_name],
+      tags = ["local", "bazel", "exclusive"] + tags,
+      data = [
+          "@bazel_test//:bazelrc",
           "//tests:rules_go_deps",
           "//go/tools/gazelle/gazelle",
       ],
@@ -142,7 +177,7 @@ md5_sum = rule(
 )
 
 def _test_environment_impl(ctx):
-  execroot, _, ws = str(ctx.path(".")).rpartition("/external/")
+  # Find bazel
   bazel = ""
   if "BAZEL" in ctx.os.environ:
     bazel = ctx.os.environ["BAZEL"]
@@ -151,20 +186,24 @@ def _test_environment_impl(ctx):
     bazel = home + "/.bazel/{0}/bin/bazel".format(ctx.os.environ["BAZEL_VERSION"])
   if bazel == "" or not ctx.path(bazel).exists:
     bazel = ctx.which("bazel")
-  if ctx.name != ws:
-    fail("workspace did not match, expected:", ctx.name, "got:", ws)
-  ctx.file("WORKSPACE", """
-workspace(name = "%s")
-""" % ctx.name)
-  ctx.file("BUILD.bazel", """
-load("@io_bazel_rules_go//tests:bazel_tests.bzl", "execroot")
-execroot(
-    name = "execroot",
-    path = "{0}",
-    bazel = "{1}",
-    visibility = ["//visibility:public"],
-)
-""".format(execroot, bazel))
+
+  # Get a temporary directory to use as our scratch workspace
+  result = env_execute(ctx, ["mktemp", "-d"])
+  if result.return_code:
+        fail("failed to create temporary directory for bazel tests: {}".format(result.stderr))
+  scratch_dir = result.stdout.strip()
+
+  # Work out where we are running so we can find externals
+  exec_root, _, _ = str(ctx.path(".")).rpartition("/external/")
+
+  # build the basic environment
+  ctx.file("WORKSPACE", 'workspace(name = "{}")'.format(ctx.name))
+  ctx.file("BUILD.bazel", _env_build.format(
+    bazel = bazel,
+    exec_root = exec_root,
+    scratch_dir = scratch_dir,
+  ))
+  ctx.file("test.bazelrc", content=_bazelrc)
 
 _test_environment = repository_rule(
     implementation = _test_environment_impl,
@@ -176,19 +215,21 @@ _test_environment = repository_rule(
     ],
 )
 
-def test_environment():
-  _test_environment(name="test_environment")
-
-def _execroot_impl(ctx):
+def bazel_test_settings_impl(ctx):
   return struct(
-    path = ctx.attr.path,
     bazel = ctx.attr.bazel,
+    exec_root = ctx.attr.exec_root,
+    scratch_dir = ctx.attr.scratch_dir,
   )
 
-execroot = rule(
-    _execroot_impl,
+bazel_test_settings = rule(
+    bazel_test_settings_impl,
     attrs = {
-        "path": attr.string(mandatory = True),
         "bazel": attr.string(mandatory = True),
+        "exec_root": attr.string(mandatory = True),
+        "scratch_dir": attr.string(mandatory = True),
     },
 )
+
+def test_environment():
+  _test_environment(name="bazel_test")

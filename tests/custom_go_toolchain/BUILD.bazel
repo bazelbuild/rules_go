@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_test", "go_binary", "go_toolchain")
+load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_test", "go_binary")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 go_prefix("github.com/bazelbuild/rules_go/tests/custom_go_toolchain")
@@ -33,8 +33,11 @@ register_toolchains(
     "@//:my_darwin_toolchain", "@//:my_darwin_toolchain-bootstrap",
 )
 
-"""
-)
-
+""",
+    build = """
+load("@io_bazel_rules_go//go:def.bzl", "go_toolchain")
 go_toolchain(name="my_linux_toolchain", target="linux_amd64")
 go_toolchain(name="my_darwin_toolchain", target="darwin_amd64")
+""",
+)
+
