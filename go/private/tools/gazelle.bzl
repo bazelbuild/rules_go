@@ -21,7 +21,7 @@ $BASE/{gazelle} {args} $@
 
 def _gazelle_script_impl(ctx):
   prefix = ctx.attr.prefix if ctx.attr.prefix else ctx.attr._go_prefix.go_prefix
-  args = [ctx.attr.command] + ctx.attr.args
+  args = [ctx.attr.command]
   args += [
       "-repo_root", "$WORKSPACE",
       "-go_prefix", prefix,
@@ -30,6 +30,7 @@ def _gazelle_script_impl(ctx):
   ]
   if ctx.attr.build_tags:
     args += ["-build_tags", ",".join(ctx.attr.build_tags)]
+  args += ctx.attr.args
   script_content = _script_content.format(gazelle=ctx.file._gazelle.short_path, args=" ".join(args))
   script_file = ctx.new_file(ctx.label.name+".bash")
   ctx.file_action(output=script_file, executable=True, content=script_content)
