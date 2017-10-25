@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "env_execute")
 
+# _bazelrc is the bazel.rc file that sets the default options for tests
 _bazelrc = """
 build --verbose_failures
 build --sandbox_debug
@@ -13,6 +14,8 @@ build:isolate --fetch=False
 build:fetch --fetch=True
 """
 
+# _basic_workspace is the content appended to all test workspace files
+# it contains the calls required to make the go rules work
 _basic_workspace = """
 load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
@@ -20,7 +23,8 @@ go_rules_dependencies()
 proto_register_toolchains()
 """
 
-_bazel_test_script_content = """
+# _bazel_test_script_template is hte template for the bazel invocation script
+_bazel_test_script_template = """
 echo running in {work_dir}
 unset TEST_TMPDIR
 RULES_GO_OUTPUT={output}
@@ -39,7 +43,8 @@ result=$?
 exit $result
 """
 
-_env_build = """
+# _env_build_template is the template for the bazel test environment repository build file
+_env_build_template = """
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test_settings")
 bazel_test_settings(
   name = "settings",
@@ -70,9 +75,9 @@ def _bazel_test_script_impl(ctx):
     root = ext.label.workspace_root
     _,_,name = ext.label.workspace_root.rpartition("/")
     workspace_content += 'local_repository(name="{name}", path="{exec_root}/{root}")\n'.format(
-      name = name,
-      root = root,
-      exec_root = ctx.attr._settings.exec_root,
+        name = name,
+        root = root,
+        exec_root = ctx.attr._settings.exec_root,
     )
   if ctx.attr.workspace:
     workspace_content += ctx.attr.workspace
@@ -87,23 +92,24 @@ def _bazel_test_script_impl(ctx):
 
   targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
   output = "external/" + ctx.workspace_name + "/" + ctx.label.package
-  ctx.file_action(output=script_file, executable=True, content=_bazel_test_script_content.format(
-    bazelrc = ctx.attr._settings.exec_root+"/"+ctx.file._bazelrc.path,
-    config = ctx.attr.config,
-    command = ctx.attr.command,
-    args = " ".join(ctx.attr.args),
-    target = " ".join(targets),
-    check = ctx.attr.check,
-    workspace = workspace_file.short_path,
-    build = build_file.short_path,
-    output = output,
-    bazel = ctx.attr._settings.bazel,
-    work_dir = ctx.attr._settings.scratch_dir + "/" + ctx.attr.config,
-    cache_dir = ctx.attr._settings.scratch_dir + "/cache",
-  ))
+  script_content = _bazel_test_script_template.format(
+      bazelrc = ctx.attr._settings.exec_root+"/"+ctx.file._bazelrc.path,
+      config = ctx.attr.config,
+      command = ctx.attr.command,
+      args = " ".join(ctx.attr.args),
+      target = " ".join(targets),
+      check = ctx.attr.check,
+      workspace = workspace_file.short_path,
+      build = build_file.short_path,
+      output = output,
+      bazel = ctx.attr._settings.bazel,
+      work_dir = ctx.attr._settings.scratch_dir + "/" + ctx.attr.config,
+      cache_dir = ctx.attr._settings.scratch_dir + "/cache",
+  )
+  ctx.file_action(output=script_file, executable=True, content=script_content)
   return struct(
-    files = depset([script_file]),
-    runfiles = ctx.runfiles([workspace_file, build_file])
+      files = depset([script_file]),
+      runfiles = ctx.runfiles([workspace_file, build_file])
   )
 
 
@@ -161,18 +167,18 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
 def _md5_sum_impl(ctx):
   out = ctx.new_file(ctx.label.name+".md5")
   ctx.action(
-    inputs = ctx.files.srcs,
-    outputs = [out],
-    executable = ctx.file._md5sum,
-    arguments = ["-output", out.path] + [src.path for src in ctx.files.srcs],
+      inputs = ctx.files.srcs,
+      outputs = [out],
+      executable = ctx.file._md5sum,
+      arguments = ["-output", out.path] + [src.path for src in ctx.files.srcs],
   )
   return struct(files=depset([out]))
 
 md5_sum = rule(
     _md5_sum_impl,
     attrs = {
-      "srcs": attr.label_list(allow_files=True),
-      "_md5sum":  attr.label(allow_files=True, single_file=True, default=Label("@io_bazel_rules_go//go/tools/builders:md5sum")),
+        "srcs": attr.label_list(allow_files=True),
+        "_md5sum":  attr.label(allow_files=True, single_file=True, default=Label("@io_bazel_rules_go//go/tools/builders:md5sum")),
     },
 )
 
@@ -190,7 +196,7 @@ def _test_environment_impl(ctx):
   # Get a temporary directory to use as our scratch workspace
   result = env_execute(ctx, ["mktemp", "-d"])
   if result.return_code:
-        fail("failed to create temporary directory for bazel tests: {}".format(result.stderr))
+    fail("failed to create temporary directory for bazel tests: {}".format(result.stderr))
   scratch_dir = result.stdout.strip()
 
   # Work out where we are running so we can find externals
@@ -198,10 +204,10 @@ def _test_environment_impl(ctx):
 
   # build the basic environment
   ctx.file("WORKSPACE", 'workspace(name = "{}")'.format(ctx.name))
-  ctx.file("BUILD.bazel", _env_build.format(
-    bazel = bazel,
-    exec_root = exec_root,
-    scratch_dir = scratch_dir,
+  ctx.file("BUILD.bazel", _env_build_template.format(
+      bazel = bazel,
+      exec_root = exec_root,
+      scratch_dir = scratch_dir,
   ))
   ctx.file("test.bazelrc", content=_bazelrc)
 
@@ -209,21 +215,21 @@ _test_environment = repository_rule(
     implementation = _test_environment_impl,
     attrs = {},
     environ = [
-      "BAZEL",
-      "BAZEL_VERSION",
-      "HOME",
+        "BAZEL",
+        "BAZEL_VERSION",
+        "HOME",
     ],
 )
 
-def bazel_test_settings_impl(ctx):
+def _bazel_test_settings_impl(ctx):
   return struct(
-    bazel = ctx.attr.bazel,
-    exec_root = ctx.attr.exec_root,
-    scratch_dir = ctx.attr.scratch_dir,
+      bazel = ctx.attr.bazel,
+      exec_root = ctx.attr.exec_root,
+      scratch_dir = ctx.attr.scratch_dir,
   )
 
 bazel_test_settings = rule(
-    bazel_test_settings_impl,
+    _bazel_test_settings_impl,
     attrs = {
         "bazel": attr.string(mandatory = True),
         "exec_root": attr.string(mandatory = True),
