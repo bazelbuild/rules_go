@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl",
+load("@io_bazel_rules_go//go/private:mode.bzl",
     "NORMAL_MODE",
-    "RACE_MODE",
-    "STATIC_MODE",
+    "LINKMODE_NORMAL",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",
@@ -37,7 +36,7 @@ def emit_link(ctx, go_toolchain,
   if library == None: fail("library is a required parameter")
   if executable == None: fail("executable is a required parameter")
 
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
@@ -51,21 +50,23 @@ def emit_link(ctx, go_toolchain,
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
-  libmode = mode
   # Add in any mode specific behaviours
-  if mode == RACE_MODE:
+  if mode.race:
     gc_linkopts += ["-race"]
-  elif mode == STATIC_MODE:
-    libmode = NORMAL_MODE
+  if mode.msan:
+    gc_linkopts += ["-msan"]
+  if mode.static:
     gc_linkopts = gc_linkopts + ["-linkmode", "external"]
     extldflags.append("-static")
+  if mode.link != LINKMODE_NORMAL:
+    fail("Link mode {} is not yet supported".format(mode.link))
 
   link_opts = ["-L", "."]
   libs = depset()
   cgo_deps = depset()
   for golib in depset([library]) + library.transitive:
-    libs += [get_library(golib, libmode)]
-    link_opts += ["-L", get_searchpath(golib, libmode)]
+    libs += [get_library(golib, mode)]
+    link_opts += ["-L", get_searchpath(golib, mode)]
     cgo_deps += golib.cgo_deps
 
   for d in cgo_deps:
@@ -96,7 +97,7 @@ def emit_link(ctx, go_toolchain,
         "-extld", ld,
         "-extldflags", " ".join(extldflags),
     ]
-  link_opts += [get_library(golib, libmode).path]
+  link_opts += [get_library(golib, mode).path]
   link_args = []
   # Stamping support
   stamp_inputs = []
@@ -114,7 +115,7 @@ def emit_link(ctx, go_toolchain,
 
   link_args += ["--"] + link_opts
 
-  action_with_go_env(ctx, go_toolchain, stdlib,
+  action_with_go_env(ctx, go_toolchain, mode,
       inputs = list(libs + cgo_deps +
                 go_toolchain.data.crosstool + stamp_inputs),
       outputs = [executable],

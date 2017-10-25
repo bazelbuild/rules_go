@@ -109,7 +109,6 @@ def _stdlib_impl(ctx):
           goarch = ctx.attr.goarch,
           libs = [pkg],
           headers = [pkg],
-          cgo = ctx.attr.cgo,
           files = files,
           cgo_tools = struct(
               compiler_executable = cpp.compiler_executable,

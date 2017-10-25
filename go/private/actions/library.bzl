@@ -16,7 +16,10 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "dict_of",
     "split_srcs",
     "join_srcs",
-    "compile_modes",
+)
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "common_modes",
+    "mode_string",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
@@ -94,8 +97,8 @@ def emit_library(ctx, go_toolchain,
   lib_name = importpath + ".a"
   compilepath = importpath if importable else None
   mode_fields = {} # These are added to the GoLibrary provider directly
-  for mode in compile_modes:
-    out_dir = "~{}~{}~".format(mode, ctx.label.name)
+  for mode in common_modes:
+    out_dir = "~{}~{}~".format(mode_string(mode), ctx.label.name)
     out_lib = ctx.new_file("{}/{}".format(out_dir, lib_name))
     searchpath = out_lib.path[:-len(lib_name)]
     mode_fields[library_attr(mode)] = out_lib

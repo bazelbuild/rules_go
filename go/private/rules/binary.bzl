@@ -13,11 +13,8 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "compile_modes",
     "go_filetype",
     "go_importpath",
-    "NORMAL_MODE",
-    "RACE_MODE",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",

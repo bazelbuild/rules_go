@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
+)
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "action_with_go_env",
 )
 
 def _go_info_script_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
+  mode = get_mode(ctx)
   out = ctx.actions.declare_file(ctx.label.name+".bash")
-  action_with_go_env(ctx, go_toolchain, stdlib,
+  action_with_go_env(ctx, go_toolchain, mode,
       inputs = [],
       outputs = [out],
       mnemonic = "GoInfo",

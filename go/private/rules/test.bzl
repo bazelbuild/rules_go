@@ -17,8 +17,9 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "go_importpath",
     "split_srcs",
     "pkg_dir",
-    "NORMAL_MODE",
-    "RACE_MODE",
+)
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
@@ -41,7 +42,7 @@ def _go_test_impl(ctx):
   test into a binary."""
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
+  mode = get_mode(ctx)
   embed = ctx.attr.embed
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
@@ -85,7 +86,7 @@ def _go_test_impl(ctx):
       for var in g.cover_vars:
         arguments += ["-cover", "{}={}".format(var, g.importpath)]
 
-  action_with_go_env(ctx, go_toolchain, stdlib,
+  action_with_go_env(ctx, go_toolchain, mode,
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",

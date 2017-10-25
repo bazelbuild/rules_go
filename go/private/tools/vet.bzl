@@ -14,13 +14,18 @@
 
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoPath")
 
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
+)
+
 def _go_vet_generate_impl(ctx):
   print("""
 EXPERIMENTAL: the go_vet_test rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
+  mode = get_mode(ctx)
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   script_file = ctx.new_file(ctx.label.name+".bash")
   gopath = []
   files = ctx.files.data + stdlib.files

@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl",
+load("@io_bazel_rules_go//go/private:mode.bzl",
     "NORMAL_MODE",
-    "RACE_MODE",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "get_library",
@@ -37,11 +36,11 @@ def emit_compile(ctx, go_toolchain,
   if sources == None: fail("sources is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain)
-
   # Add in any mode specific behaviours
-  if mode == RACE_MODE:
+  if mode.race:
     gc_goopts = gc_goopts + ("-race",)
+  if mode.msan:
+    gc_goopts = gc_goopts + ("-msan",)
 
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   inputs = sources + [go_toolchain.data.package_list]
@@ -63,7 +62,7 @@ def emit_compile(ctx, go_toolchain,
   if ctx.attr._go_toolchain_flags.compilation_mode == "debug":
     args.extend(["-N", "-l"])
   args.extend(cgo_sources)
-  action_with_go_env(ctx, go_toolchain, stdlib,
+  action_with_go_env(ctx, go_toolchain, mode,
       inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",

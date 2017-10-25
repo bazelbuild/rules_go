@@ -15,6 +15,8 @@
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
     "go_importpath",
+)
+load("@io_bazel_rules_go//go/private:mode.bzl",
     "RACE_MODE",
     "NORMAL_MODE",
 )

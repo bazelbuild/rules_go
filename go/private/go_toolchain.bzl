@@ -23,12 +23,12 @@ load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link", "bootstrap_
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoStdLib")
 
-def _get_stdlib(ctx, go_toolchain):
-  if "pure" in ctx.features and "race" in ctx.features:
+def _get_stdlib(ctx, go_toolchain, mode):
+  if mode.race and mode.pure:
     return go_toolchain.stdlib.pure_race
-  elif "pure" in ctx.features:
+  elif mode.pure:
     return go_toolchain.stdlib.pure
-  elif "race" in ctx.features:
+  elif mode.race:
     return go_toolchain.stdlib.cgo_race
   else:
     return go_toolchain.stdlib.cgo

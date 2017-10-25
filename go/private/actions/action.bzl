@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def action_with_go_env(ctx, go_toolchain, stdlib, executable = None, command=None, arguments = [], inputs = [], **kwargs):
+def action_with_go_env(ctx, go_toolchain, mode, executable = None, command=None, arguments = [], inputs = [], **kwargs):
   if command:
     fail("You cannot run action_with_go_env with a 'command', only an 'executable'")
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   args = [
       "-go", stdlib.go.path,
       "-root_file", stdlib.root_file.path,
       "-goos", stdlib.goos,
       "-goarch", stdlib.goarch,
-      "-cgo=" + ("1" if stdlib.cgo else "0"),
+      "-cgo=" + ("0" if mode.pure else "1"),
   ] + arguments
   ctx.action(
       inputs = depset(inputs) + stdlib.files,

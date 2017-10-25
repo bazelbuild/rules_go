@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
+
 GoLibrary = provider()
 """See go/providers.rst#GoLibrary for full documentation."""
 
@@ -29,30 +31,30 @@ GoStdLib = provider()
 def library_attr(mode):
   """Returns the attribute name for the library of the given mode.
 
-  mode must be one of the common.bzl#compile_modes
+  mode must a struct returned by common.bzl#mode
   """
-  return mode+"_library"
+  return mode_string(mode)+"_library"
 
 def get_library(golib, mode):
   """Returns the compiled library for the given mode
 
   golib must be a GoLibrary
-  mode must be one of the common.bzl#compile_modes
+  mode must a struct returned by common.bzl#mode
   """
   return getattr(golib, library_attr(mode))
 
 def searchpath_attr(mode):
   """Returns the search path for the given mode
 
-  mode must be one of the common.bzl#compile_modes
+  mode must a struct returned by common.bzl#mode
   """
-  return mode+"_searchpath"
+  return mode_string(mode)+"_searchpath"
 
 def get_searchpath(golib, mode):
   """Returns the search path for the given mode
 
   golib must be a GoLibrary
-  mode must be one of the common.bzl#compile_modes
+  mode must a struct returned by common.bzl#mode
   """
   return getattr(golib, searchpath_attr(mode))
 

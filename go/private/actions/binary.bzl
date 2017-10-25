@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl",
-    "link_modes",
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "mode_string",
+    "common_modes",
     "NORMAL_MODE",
     "RACE_MODE",
     "STATIC_MODE",
@@ -51,29 +52,34 @@ def emit_binary(ctx, go_toolchain,
   executables = {}
   extension = "" # TODO: .exe on windows
 
-  if default:
-    executables["default"] = default
-
-  for mode in link_modes:
-    executable = ctx.new_file(name + "." + mode + extension)
-    executables[mode] = executable
-
-  for mode, executable in executables.items():
-    if mode == "default":
-        # work out what the default mode should be
-        if "race" in ctx.features:
-            mode = RACE_MODE
-        elif "static" in ctx.features:
-            mode = STATIC_MODE
-        else:
-            mode = NORMAL_MODE
-
+  for mode in common_modes:
+    executable = ctx.new_file(name + "." + mode_string(mode) + extension)
+    executables[mode_string(mode)] = executable
     go_toolchain.actions.link(
         ctx,
         go_toolchain = go_toolchain,
         library=golib,
         mode=mode,
         executable=executable,
+        gc_linkopts=gc_linkopts,
+        x_defs=x_defs,
+    )
+
+  if default:
+    executables["default"] = default
+    # work out what the default mode should be
+    if "race" in ctx.features:
+        mode = RACE_MODE
+    elif "static" in ctx.features:
+        mode = STATIC_MODE
+    else:
+        mode = NORMAL_MODE
+    go_toolchain.actions.link(
+        ctx,
+        go_toolchain = go_toolchain,
+        library=golib,
+        mode=mode,
+        executable=default,
         gc_linkopts=gc_linkopts,
         x_defs=x_defs,
     )
