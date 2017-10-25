@@ -25,23 +25,23 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoStdLib")
 
 def _get_stdlib(ctx, go_toolchain):
   if "pure" in ctx.features and "race" in ctx.features:
-      return go_toolchain.stdlib.pure_race
+    return go_toolchain.stdlib.pure_race
   elif "pure" in ctx.features:
-      return go_toolchain.stdlib.pure
+    return go_toolchain.stdlib.pure
   elif "race" in ctx.features:
-      return go_toolchain.stdlib.cgo_race
+    return go_toolchain.stdlib.cgo_race
   else:
-      return go_toolchain.stdlib.cgo
+    return go_toolchain.stdlib.cgo
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
       stdlib = struct(
-        cgo = ctx.attr._stdlib_cgo[GoStdLib],
-        pure = ctx.attr._stdlib_pure[GoStdLib],
-        cgo_race = ctx.attr._stdlib_cgo_race[GoStdLib],
-        pure_race = ctx.attr._stdlib_pure_race[GoStdLib],
-        get = _get_stdlib,
+          cgo = ctx.attr._stdlib_cgo[GoStdLib],
+          pure = ctx.attr._stdlib_pure[GoStdLib],
+          cgo_race = ctx.attr._stdlib_cgo_race[GoStdLib],
+          pure_race = ctx.attr._stdlib_pure_race[GoStdLib],
+          get = _get_stdlib,
       ),
       actions = struct(
           asm = emit_asm,

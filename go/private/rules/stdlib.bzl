@@ -59,9 +59,9 @@ def _stdlib_impl(ctx):
   cpp = ctx.fragments.cpp
   features = ctx.features
   options = (cpp.compiler_options(features) +
-        cpp.unfiltered_compiler_options(features) +
-        cpp.link_options +
-        cpp.mostly_static_link_options(features, False))
+      cpp.unfiltered_compiler_options(features) +
+      cpp.link_options +
+      cpp.mostly_static_link_options(features, False))
   linker_path, _ = cpp.ld_executable.rsplit("/", 1)
   ctx.actions.write(root_file, "")
   cc_path = cpp.compiler_executable
@@ -72,8 +72,8 @@ def _stdlib_impl(ctx):
       "GOOS": ctx.attr.goos,
       "GOARCH": ctx.attr.goarch,
       "CGO_ENABLED": "1" if ctx.attr.cgo else "0",
-  	  "CC": cc_path,
-  	  "CXX": cc_path,
+      "CC": cc_path,
+      "CXX": cc_path,
       "COMPILER_PATH": linker_path
   }
   inputs = ctx.files._host_sdk + [root_file]
