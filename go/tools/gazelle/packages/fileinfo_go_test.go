@@ -357,7 +357,7 @@ import "C"
 		t.Fatal(err)
 	}
 	c := &config.Config{RepoRoot: repo}
-	got := buildPackage(c, sub, []string{"sub.go"}, nil, nil, false)
+	got := buildPackage(c, sub, "sub", []string{"sub.go"}, nil, nil, false)
 	want := &Package{
 		Name: "sub",
 		Dir:  sub,

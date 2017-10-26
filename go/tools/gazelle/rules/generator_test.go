@@ -32,6 +32,7 @@ import (
 func testConfig(repoRoot, goPrefix string) *config.Config {
 	c := &config.Config{
 		RepoRoot:              repoRoot,
+		Dirs:                  []string{repoRoot},
 		GoPrefix:              goPrefix,
 		GenericTags:           config.BuildTags{},
 		ValidBuildFileNames:   []string{"BUILD.old"},
@@ -44,8 +45,8 @@ func testConfig(repoRoot, goPrefix string) *config.Config {
 func packageFromDir(c *config.Config, dir string) (*packages.Package, *bf.File) {
 	var pkg *packages.Package
 	var oldFile *bf.File
-	packages.Walk(c, dir, func(_ *config.Config, p *packages.Package, f *bf.File) {
-		if p.Dir == dir {
+	packages.Walk(c, dir, func(rel string, _ *config.Config, p *packages.Package, f *bf.File, _ bool) {
+		if p != nil && p.Dir == dir {
 			pkg = p
 			oldFile = f
 		}

@@ -28,36 +28,78 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-// A WalkFunc is a callback called by Walk for each package.
-type WalkFunc func(c *config.Config, pkg *Package, oldFile *bf.File)
+// A WalkFunc is a callback called by Walk in each visited directory.
+//
+// rel is the relative slash-separated path to the directory from the
+// repository root. Will be "" for the repository root directory itself.
+//
+// c is the configuration for the current directory. This may have been
+// modified by directives in the directory's build file.
+//
+// pkg contains information about how to build source code in the directory.
+// Will be nil for directories that don't contain buildable code, directories
+// that Gazelle was not asked update, and directories where Walk
+// encountered errors.
+//
+// oldFile is the existing build file in the directory. Will be nil if there
+// was no file.
+//
+// isUpdateDir is true for directories that Gazelle was asked to update.
+type WalkFunc func(rel string, c *config.Config, pkg *Package, oldFile *bf.File, isUpdateDir bool)
 
-// Walk walks through directories under "root".
-// It calls back "f" for each package. If an existing BUILD file is present
-// in the directory, it will be parsed and passed to "f" as well.
+// Walk traverses a directory tree. In each directory, Walk parses existing
+// build files. In directories that Gazelle was asked to update (c.Dirs), Walk
+// also parses source files and infers build information.
 //
-// Walk is similar to "golang.org/x/tools/go/buildutil".ForEachPackage, but
-// it does not assume the standard Go tree because Bazel rules_go uses
-// go_prefix instead of the standard tree.
+// c is the base configuration for the repository. c may be copied and modified
+// by directives found in build files.
 //
-// If a directory contains no buildable Go code, "f" is not called. If a
-// directory contains one package with any name, "f" will be called with that
-// package. If a directory contains multiple packages and one of the package
-// names matches the directory name, "f" will be called on that package and the
-// other packages will be silently ignored. If none of the package names match
-// the directory name, or if some other error occurs, an error will be logged,
-// and "f" will not be called.
-func Walk(c *config.Config, dir string, f WalkFunc) {
+// root is an absolute file path to the directory to traverse.
+//
+// f is a function that will be called for each visited directory.
+func Walk(c *config.Config, root string, f WalkFunc) {
+	// Determine relative paths for the directories to be updated.
+	var updateRels []string
+	for _, dir := range c.Dirs {
+		rel, err := filepath.Rel(c.RepoRoot, dir)
+		if err != nil {
+			// This should have been verified when c was built.
+			log.Panicf("%s: not a subdirectory of repository root %q", dir, c.RepoRoot)
+		}
+		rel = filepath.ToSlash(rel)
+		if rel == "." || rel == "/" {
+			rel = ""
+		}
+		updateRels = append(updateRels, rel)
+	}
+	rootRel, err := filepath.Rel(c.RepoRoot, root)
+	if err != nil {
+		log.Panicf("%s: not a subdirectory of repository root %q", root, c.RepoRoot)
+	}
+	if rootRel == "." || rootRel == "/" {
+		rootRel = ""
+	}
+
 	// visit walks the directory tree in post-order. It returns whether the
-	// the directory it was called on or any subdirectory contains a Bazel
-	// package. This affects whether "testdata" directories are considered
+	// given directory or any subdirectory contained a build file or buildable
+	// source code. This affects whether "testdata" directories are considered
 	// data dependencies.
-	var visit func(string) bool
-	visit = func(path string) bool {
+	var visit func(string, string, bool) bool
+	visit = func(dir, rel string, isUpdateDir bool) bool {
+		// Check if this directory should be updated.
+		if !isUpdateDir {
+			for _, updateRel := range updateRels {
+				if updateRel == "" || rel == updateRel || strings.HasPrefix(rel, updateRel+"/") {
+					isUpdateDir = true
+				}
+			}
+		}
+
 		// Look for an existing BUILD file.
 		var oldFile *bf.File
 		haveError := false
 		for _, base := range c.ValidBuildFileNames {
-			oldPath := filepath.Join(path, base)
+			oldPath := filepath.Join(dir, base)
 			st, err := os.Stat(oldPath)
 			if os.IsNotExist(err) || err == nil && st.IsDir() {
 				continue
@@ -70,7 +112,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 			}
 			if oldFile != nil {
 				log.Printf("in directory %s, multiple Bazel files are present: %s, %s",
-					path, filepath.Base(oldFile.Path), base)
+					dir, filepath.Base(oldFile.Path), base)
 				haveError = true
 				continue
 			}
@@ -98,7 +140,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		}
 
 		// List files and subdirectories.
-		files, err := ioutil.ReadDir(path)
+		files, err := ioutil.ReadDir(dir)
 		if err != nil {
 			log.Print(err)
 			return false
@@ -113,7 +155,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 			switch {
 			case base == "" || base[0] == '.' || base[0] == '_' ||
 				excluded[base] ||
-				base == "vendor" && f.IsDir() && c.DepMode != config.VendorMode:
+				base == "vendor" && f.IsDir() && c.DepMode == config.ExternalMode:
 				continue
 
 			case f.IsDir():
@@ -132,7 +174,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		hasTestdata := false
 		subdirHasPackage := false
 		for _, sub := range subdirs {
-			hasPackage := visit(filepath.Join(path, sub))
+			hasPackage := visit(filepath.Join(dir, sub), path.Join(rel, sub), isUpdateDir)
 			if sub == "testdata" && !hasPackage {
 				hasTestdata = true
 			}
@@ -140,7 +182,8 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		}
 
 		hasPackage := subdirHasPackage || oldFile != nil
-		if haveError {
+		if haveError || !isUpdateDir {
+			f(rel, c, nil, oldFile, isUpdateDir)
 			return hasPackage
 		}
 
@@ -149,15 +192,12 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 		if oldFile != nil {
 			genFiles = findGenFiles(oldFile, excluded)
 		}
-		pkg := buildPackage(c, path, pkgFiles, otherFiles, genFiles, hasTestdata)
-		if pkg != nil {
-			f(c, pkg, oldFile)
-			hasPackage = true
-		}
-		return hasPackage
+		pkg := buildPackage(c, dir, rel, pkgFiles, otherFiles, genFiles, hasTestdata)
+		f(rel, c, pkg, oldFile, isUpdateDir)
+		return hasPackage || pkg != nil
 	}
 
-	visit(dir)
+	visit(root, rootRel, false)
 }
 
 // buildPackage reads source files in a given directory and returns a Package
@@ -168,17 +208,7 @@ func Walk(c *config.Config, dir string, f WalkFunc) {
 // name matches the directory base name will be returned. If there is no such
 // package or if an error occurs, an error will be logged, and nil will be
 // returned.
-func buildPackage(c *config.Config, dir string, pkgFiles, otherFiles, genFiles []string, hasTestdata bool) *Package {
-	rel, err := filepath.Rel(c.RepoRoot, dir)
-	if err != nil {
-		log.Print(err)
-		return nil
-	}
-	rel = filepath.ToSlash(rel)
-	if rel == "." {
-		rel = ""
-	}
-
+func buildPackage(c *config.Config, dir, rel string, pkgFiles, otherFiles, genFiles []string, hasTestdata bool) *Package {
 	// Process .go and .proto files first, since these determine the package name.
 	packageMap := make(map[string]*Package)
 	cgo := false
@@ -212,8 +242,7 @@ func buildPackage(c *config.Config, dir string, pkgFiles, otherFiles, genFiles [
 				HasTestdata: hasTestdata,
 			}
 		}
-		err = packageMap[info.packageName].addFile(c, info, false)
-		if err != nil {
+		if err := packageMap[info.packageName].addFile(c, info, false); err != nil {
 			log.Print(err)
 		}
 	}

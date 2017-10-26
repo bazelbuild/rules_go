@@ -47,7 +47,13 @@ func checkFiles(t *testing.T, files []fileSpec, goPrefix string, want []*package
 		p.Dir = filepath.Join(dir, filepath.FromSlash(p.Rel))
 	}
 
-	got := walkPackages(dir, goPrefix, dir)
+	c := &config.Config{
+		RepoRoot:            dir,
+		GoPrefix:            goPrefix,
+		Dirs:                []string{dir},
+		ValidBuildFileNames: config.DefaultValidBuildFileNames,
+	}
+	got := walkPackages(c)
 	checkPackages(t, got, want)
 }
 
@@ -74,15 +80,12 @@ func createFiles(files []fileSpec) (string, error) {
 	return dir, nil
 }
 
-func walkPackages(repoRoot, goPrefix, dir string) []*packages.Package {
-	c := &config.Config{
-		RepoRoot:            repoRoot,
-		GoPrefix:            goPrefix,
-		ValidBuildFileNames: config.DefaultValidBuildFileNames,
-	}
+func walkPackages(c *config.Config) []*packages.Package {
 	var pkgs []*packages.Package
-	packages.Walk(c, dir, func(_ *config.Config, pkg *packages.Package, _ *bf.File) {
-		pkgs = append(pkgs, pkg)
+	packages.Walk(c, c.RepoRoot, func(_ string, _ *config.Config, pkg *packages.Package, _ *bf.File, _ bool) {
+		if pkg != nil {
+			pkgs = append(pkgs, pkg)
+		}
 	})
 	return pkgs
 }
@@ -214,7 +217,12 @@ func TestMultiplePackagesWithoutDefault(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	got := walkPackages(dir, "", dir)
+	c := &config.Config{
+		RepoRoot:            dir,
+		Dirs:                []string{dir},
+		ValidBuildFileNames: config.DefaultValidBuildFileNames,
+	}
+	got := walkPackages(c)
 	if len(got) > 0 {
 		t.Errorf("got %v; want empty slice", got)
 	}
@@ -270,7 +278,12 @@ func TestRootWithoutPrefix(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	got := walkPackages(dir, "", dir)
+	c := &config.Config{
+		RepoRoot:            dir,
+		Dirs:                []string{dir},
+		ValidBuildFileNames: config.DefaultValidBuildFileNames,
+	}
+	got := walkPackages(c)
 	if len(got) > 0 {
 		t.Errorf("got %v; want empty slice", got)
 	}
@@ -645,15 +658,12 @@ func TestVendor(t *testing.T) {
 
 			c := &config.Config{
 				RepoRoot:            dir,
+				Dirs:                []string{dir},
 				GoPrefix:            "",
 				ValidBuildFileNames: config.DefaultValidBuildFileNames,
 				DepMode:             tc.mode,
 			}
-			var got []*packages.Package
-			packages.Walk(c, dir, func(_ *config.Config, pkg *packages.Package, _ *bf.File) {
-				got = append(got, pkg)
-			})
-
+			got := walkPackages(c)
 			checkPackages(t, got, tc.want)
 		})
 	}

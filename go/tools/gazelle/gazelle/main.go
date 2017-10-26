@@ -71,7 +71,7 @@ type visitor interface {
 	// Gazelle processes. "pkg" describes the buildable Go code. It will not
 	// be nil. "oldFile" is the existing build file in the visited directory.
 	// It may be nil if no file is present.
-	visit(c *config.Config, pkg *packages.Package, oldFile *bf.File)
+	visit(rel string, c *config.Config, pkg *packages.Package, oldFile *bf.File, isUpdateDir bool)
 
 	// finish is called once after all directories have been visited.
 	finish()
@@ -116,7 +116,10 @@ type hierarchicalVisitor struct {
 	shouldProcessRoot, didProcessRoot bool
 }
 
-func (v *hierarchicalVisitor) visit(c *config.Config, pkg *packages.Package, oldFile *bf.File) {
+func (v *hierarchicalVisitor) visit(_ string, c *config.Config, pkg *packages.Package, oldFile *bf.File, _ bool) {
+	if pkg == nil {
+		return
+	}
 	g := rules.NewGenerator(c, v.r, v.l, pkg.Rel, oldFile)
 	rules, empty := g.GenerateRules(pkg)
 	genFile := &bf.File{
@@ -156,7 +159,10 @@ type flatVisitor struct {
 	oldRootFile *bf.File
 }
 
-func (v *flatVisitor) visit(c *config.Config, pkg *packages.Package, oldFile *bf.File) {
+func (v *flatVisitor) visit(_ string, c *config.Config, pkg *packages.Package, oldFile *bf.File, _ bool) {
+	if pkg == nil {
+		return
+	}
 	if pkg.Rel == "" {
 		v.oldRootFile = oldFile
 	}
