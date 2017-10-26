@@ -456,7 +456,7 @@ binary
 This emits actions to compile and link Go code into a binary.
 It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
 
-It returns a tuple of GoLibrary_ and GoBinary_.
+It returns GoLibrary_.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -472,6 +472,10 @@ It returns a tuple of GoLibrary_ and GoBinary_.
 | :param:`name`                  | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The base name of the generated binaries.                                                         |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`executable`            | :type:`File`                | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The binary to produce.                                                                           |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`srcs`                  | :type:`File iterable`       | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+

@@ -19,10 +19,12 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
+load("@io_bazel_rules_go//go/private:actions/archive.bzl",
+    "go_archive_aspect",
+)
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
     "GoLibrary",
-    "GoBinary",
     "GoEmbed",
 )
 
@@ -37,7 +39,8 @@ def _go_binary_impl(ctx):
     embed = embed + [ctx.attr.library]
 
   cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
-  golib, gobinary = go_toolchain.actions.binary(ctx, go_toolchain,
+  executable = ctx.outputs.executable
+  golib = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       importpath = go_importpath(ctx),
       srcs = ctx.files.srcs,
@@ -46,18 +49,13 @@ def _go_binary_impl(ctx):
       embed = embed,
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
-      default = ctx.outputs.executable,
+      executable = executable,
   )
   return [
-      golib, gobinary,
+      golib,
       DefaultInfo(
-          files = depset([gobinary.default]),
+          files = depset([executable]),
           runfiles = golib.runfiles,
-      ),
-      OutputGroupInfo(
-          normal = depset([gobinary.normal]),
-          static = depset([gobinary.static]),
-          race = depset([gobinary.race]),
       ),
   ]
 
@@ -69,10 +67,12 @@ go_binary = rule(
             cfg = "data",
         ),
         "srcs": attr.label_list(allow_files = go_filetype),
-        "deps": attr.label_list(providers = [GoLibrary]),
+        "deps": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
         "importpath": attr.string(),
-        "library": attr.label(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoEmbed]),
+        "library": attr.label(providers = [GoLibrary], aspects = [go_archive_aspect]),
+        "embed": attr.label_list(providers = [GoEmbed], aspects = [go_archive_aspect]),
+        "pure": attr.string(values=["on", "off", "auto"], default="auto"),
+        "static": attr.string(values=["on", "off", "auto"], default="auto"),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),

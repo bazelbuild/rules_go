@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "NORMAL_MODE",
-)
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "action_with_go_env",
 )
 
 def emit_cover(ctx, go_toolchain,
                sources = [],
-               mode = NORMAL_MODE):
+               mode = None):
   """See go/toolchains.rst#cover for full documentation."""
+
+  if mode == None: fail("mode is a required parameter")
 
   outputs = []
   # TODO(linuxerwang): make the mode configurable.

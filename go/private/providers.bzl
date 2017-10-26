@@ -17,9 +17,6 @@ load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
 GoLibrary = provider()
 """See go/providers.rst#GoLibrary for full documentation."""
 
-GoBinary = provider()
-"""See go/providers.rst#GoBinary for full documentation."""
-
 GoPath = provider()
 
 GoEmbed = provider()
@@ -30,20 +27,3 @@ GoArchive = provider()
 
 CgoInfo = provider()
 GoStdLib = provider()
-
-def get_library(golib, mode):
-  """Returns the compiled library for the given mode
-
-  golib must be a GoLibrary
-  mode must a struct returned by common.bzl#mode
-  """
-  return getattr(golib, mode_string(mode)).lib
-
-def get_searchpath(golib, mode):
-  """Returns the search path for the given mode
-
-  golib must be a GoLibrary
-  mode must a struct returned by common.bzl#mode
-  """
-  return getattr(golib, mode_string(mode)).searchpath
-

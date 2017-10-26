@@ -1,17 +1,15 @@
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_importpath",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "RACE_MODE",
-    "NORMAL_MODE",
-)
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "get_library",
     "GoLibrary",
     "GoEmbed",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
+)
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
 )
 
 def _go_proto_library_impl(ctx):
@@ -24,22 +22,22 @@ def _go_proto_library_impl(ctx):
     importpath = importpath,
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  golib, goembed = go_toolchain.actions.library(ctx,
+  mode = get_mode(ctx)
+  golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
+      mode = mode,
       srcs = go_srcs,
       deps = ctx.attr.deps + go_proto_toolchain.deps,
       embed = ctx.attr.embed,
       want_coverage = ctx.coverage_instrumented(),
       importpath = importpath,
+      importable = True,
   )
   return [
-      golib, goembed,
+      golib, goembed, goarchive,
       DefaultInfo(
-          files = depset([get_library(golib, NORMAL_MODE)]),
+          files = depset([]), #TODO:go_archive.lib]),
           runfiles = golib.runfiles,
-      ),
-      OutputGroupInfo(
-          race = depset([get_library(golib, RACE_MODE)]),
       ),
   ]
 

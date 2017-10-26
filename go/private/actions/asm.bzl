@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "NORMAL_MODE",
-)
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "action_with_go_env",
 )
@@ -23,11 +20,13 @@ def emit_asm(ctx, go_toolchain,
     source = None,
     hdrs = [],
     out_obj = None,
-    mode = NORMAL_MODE):
+    mode = None):
   """See go/toolchains.rst#asm for full documentation."""
 
   if source == None: fail("source is a required parameter")
   if out_obj == None: fail("out_obj is a required parameter")
+  if mode == None: fail("mode is a required parameter")
+
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   includes = depset([stdlib.root_file.dirname + "/pkg/include"])
   includes += [f.dirname for f in hdrs]

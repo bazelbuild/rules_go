@@ -37,6 +37,7 @@ def _get_stdlib(ctx, go_toolchain, mode):
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
+      cross_compile = ctx.attr.cross_compile,
       stdlib = struct(
           cgo = ctx.attr._stdlib_cgo[GoStdLib],
           pure = ctx.attr._stdlib_pure[GoStdLib],
@@ -127,6 +128,7 @@ _go_toolchain = rule(
         # Minimum requirements to specify a toolchain
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
+        "cross_compile": attr.bool(default = False),
         # Optional extras to a toolchain
         "link_flags": attr.string_list(default = []),
         "cgo_link_flags": attr.string_list(default = []),
@@ -153,6 +155,7 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
   """See go/toolchains.rst#go-toolchain for full documentation."""
 
   if not host: host = target
+  cross = host != target
   goos, _, goarch = target.partition("_")
   target_constraints = constraints + [
     "@io_bazel_rules_go//go/toolchain:" + goos,
@@ -169,6 +172,7 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
       name = impl_name,
       goos = goos,
       goarch = goarch,
+      cross_compile = cross,
       bootstrap = False,
       tags = ["manual"],
       visibility = ["//visibility:public"],
@@ -182,7 +186,7 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
       toolchain = ":"+impl_name,
   )
 
-  if host == target:
+  if not cross:
     # If not cross, register a bootstrap toolchain
     name = name + "-bootstrap"
     impl_name = name + "-impl"

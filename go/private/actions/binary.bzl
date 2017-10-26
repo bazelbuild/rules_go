@@ -14,14 +14,7 @@
 
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
-    "common_modes",
     "get_mode",
-    "NORMAL_MODE",
-    "RACE_MODE",
-    "STATIC_MODE",
-)
-load("@io_bazel_rules_go//go/private:providers.bzl",
-    "GoBinary",
 )
 
 def emit_binary(ctx, go_toolchain,
@@ -33,13 +26,16 @@ def emit_binary(ctx, go_toolchain,
     embed = (),
     gc_linkopts = (),
     x_defs = {},
-    default = None):
+    executable = None,
+    wrap = None):
   """See go/toolchains.rst#binary for full documentation."""
 
   if name == "": fail("name is a required parameter")
 
-  golib, _ = go_toolchain.actions.library(ctx,
+  mode = get_mode(ctx)
+  golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
+      mode = mode,
       srcs = srcs,
       deps = deps,
       cgo_info = cgo_info,
@@ -48,36 +44,13 @@ def emit_binary(ctx, go_toolchain,
       importable = False,
   )
 
-  executables = {}
-  extension = "" # TODO: .exe on windows
+  go_toolchain.actions.link(ctx,
+      go_toolchain = go_toolchain,
+      archive=goarchive,
+      mode=mode,
+      executable=executable,
+      gc_linkopts=gc_linkopts,
+      x_defs=x_defs,
+  )
 
-  for mode in common_modes:
-    executable = ctx.new_file(name + "." + mode_string(mode) + extension)
-    executables[mode_string(mode)] = executable
-    go_toolchain.actions.link(
-        ctx,
-        go_toolchain = go_toolchain,
-        library=golib,
-        mode=mode,
-        executable=executable,
-        gc_linkopts=gc_linkopts,
-        x_defs=x_defs,
-    )
-
-  if default:
-    executables["default"] = default
-    mode = get_mode(ctx)
-    go_toolchain.actions.link(
-        ctx,
-        go_toolchain = go_toolchain,
-        library=golib,
-        mode=mode,
-        executable=default,
-        gc_linkopts=gc_linkopts,
-        x_defs=x_defs,
-    )
-
-  return [
-      golib,
-      GoBinary(**executables),
-  ]
+  return golib

@@ -28,11 +28,13 @@ load("@io_bazel_rules_go//go/private:rules/binary.bzl", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
     "GoLibrary",
-    "GoBinary",
     "GoEmbed",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "action_with_go_env",
+)
+load("@io_bazel_rules_go//go/private:actions/archive.bzl",
+    "go_archive_aspect",
 )
 
 def _go_test_impl(ctx):
@@ -84,31 +86,26 @@ def _go_test_impl(ctx):
   )
 
   # Now compile the test binary itself
-  main_lib, main_binary = go_toolchain.actions.binary(ctx, go_toolchain,
+  executable = ctx.outputs.executable
+  main_lib = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       srcs = [main_go],
       deps = [ctx.attr.library],
       importpath = ctx.label.name + "~testmain~",
       gc_linkopts = gc_linkopts(ctx),
-      default=ctx.outputs.executable,
+      executable = executable,
       x_defs=ctx.attr.x_defs,
   )
 
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
   # without code changes.
-  runfiles = ctx.runfiles(collect_data = True, files = [main_binary.default])
+  runfiles = ctx.runfiles(collect_data = True, files = [executable])
   runfiles = runfiles.merge(golib.runfiles)
   return [
-      main_binary,
       DefaultInfo(
-          files = depset([main_binary.default]),
+          files = depset([executable]),
           runfiles = runfiles,
-      ),
-      OutputGroupInfo(
-          normal = depset([main_binary.normal]),
-          static = depset([main_binary.static]),
-          race = depset([main_binary.race]),
       ),
 ]
 
@@ -120,10 +117,10 @@ go_test = rule(
             cfg = "data",
         ),
         "srcs": attr.label_list(allow_files = go_filetype),
-        "deps": attr.label_list(providers = [GoLibrary]),
+        "deps": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
         "importpath": attr.string(),
-        "library": attr.label(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoEmbed]),
+        "library": attr.label(providers = [GoLibrary], aspects = [go_archive_aspect]),
+        "embed": attr.label_list(providers = [GoEmbed], aspects = [go_archive_aspect]),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),

@@ -13,18 +13,15 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "go_filetype",
     "go_importpath",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
-    "RACE_MODE",
-    "NORMAL_MODE",
+    "get_mode",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
     "GoLibrary",
     "GoEmbed",
-    "get_library",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
@@ -37,25 +34,27 @@ def _go_library_impl(ctx):
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
   cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
-  golib, goembed = go_toolchain.actions.library(ctx,
+  mode = get_mode(ctx)
+  golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
+      mode = mode,
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_info = cgo_info,
       embed = embed,
       want_coverage = ctx.coverage_instrumented(),
       importpath = go_importpath(ctx),
+      importable = True,
   )
   cgo_exports = ctx.attr.cgo_info[CgoInfo].exports if ctx.attr.cgo_info else depset()
 
   return [
-      golib, goembed,
+      golib, goembed, goarchive,
       DefaultInfo(
-          files = depset([get_library(golib, NORMAL_MODE)]),
+          files = depset([goarchive.file]),
           runfiles = golib.runfiles,
       ),
       OutputGroupInfo(
-          race = depset([get_library(golib, RACE_MODE)]),
           cgo_exports = cgo_exports,
       ),
   ]

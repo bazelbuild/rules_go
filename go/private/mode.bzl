@@ -19,28 +19,6 @@ LINKMODE_SHARED = "shared"
 LINKMODE_PIE = "pie"
 LINKMODE_PLUGIN = "plugin"
 
-def mode(base=None, static=None, race=None, msan=None, pure=None, link=None):
-  if static == None: static = base.static
-  if race == None: race = base.race
-  if msan == None: msan = base.msan
-  if pure == None: pure = base.pure
-  if link == None: link = base.link
-  return struct(
-      static = static,
-      race = race,
-      msan = msan,
-      pure = pure,
-      link = link,
-  )
-
-DEFAULT_MODE = mode(
-    static = False,
-    race = False,
-    msan = False,
-    pure = False,
-    link = LINKMODE_NORMAL,
-)
-
 def mode_string(mode):
   result = []
   if mode.static:
@@ -51,24 +29,61 @@ def mode_string(mode):
     result.append("msan")
   if mode.pure:
     result.append("pure")
+  if mode.debug:
+    result.append("debug")
+  if mode.strip:
+    result.append("stripped")
   if not result or not mode.link == LINKMODE_NORMAL:
     result.append(mode.link)
   return "_".join(result)
 
-NORMAL_MODE = DEFAULT_MODE
-RACE_MODE = mode(base = DEFAULT_MODE, race=True)
-STATIC_MODE = mode(base = DEFAULT_MODE, static=True)
-
-common_modes = (NORMAL_MODE, RACE_MODE, STATIC_MODE)
+def _ternary_mode(values):
+  for v in values:
+    if v == None: continue
+    if type(v) == "bool": return v
+    if type(v) != "string": fail("Invalid value type {}".format(type(v)))
+    v = v.lower()
+    if v in ["true", "on", "yes"]: return True
+    if v in ["false", "off", "no"]: return False
+    if v in ["auto"]: continue
+    fail("Invalid value {}".format(v))
 
 def get_mode(ctx):
-  #TODO: allow ctx.attr to override the feature driven defaults
+
+  force_pure = None
+  if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
+    if ctx.toolchains["@io_bazel_rules_go//go:toolchain"].cross_compile:
+      # We always have to user the pure stdlib in cross compilation mode
+      force_pure = True
+
   #TODO: allow link mode selection
-  return mode(
-      base=DEFAULT_MODE,
-      static = True if "static" in ctx.features else False,
-      race = True if "race" in ctx.features else False,
-      msan = True if "msan" in ctx.features else False,
-      pure = True if "pure" in ctx.features else False,
+  features = ctx.features if ctx != None else []
+  toolchain_flags = getattr(ctx.attr, "_go_toolchain_flags", None)
+  debug = False
+  strip = True
+  if toolchain_flags:
+    debug = toolchain_flags.compilation_mode == "debug"
+    if toolchain_flags.strip == "always":
+      strip = True
+    elif toolchain_flags.strip == "sometimes":
+      strip = not debug
+  return struct(
+      static = _ternary_mode([
+          getattr(ctx.attr, "static", None),
+          "static" in features,
+      ]),
+      race = _ternary_mode([
+          "race" in features,
+      ]),
+      msan = _ternary_mode([
+          "msan" in features,
+      ]),
+      pure = _ternary_mode([
+          getattr(ctx.attr, "pure", None),
+          force_pure,
+          "pure" in features,
+      ]),
       link = LINKMODE_NORMAL,
+      debug = debug,
+      strip = strip,
   )
