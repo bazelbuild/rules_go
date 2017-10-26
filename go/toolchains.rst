@@ -240,7 +240,7 @@ SDK will be used.
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_version`            | :type:`string`              | :value:`"1.9.1"`                  |
+| :param:`go_version`            | :type:`string`              | :value:`"1.9.2"`                  |
 +--------------------------------+-----------------------------+-----------------------------------+
 | This specifies the Go version to select.                                                         |
 | It will match the version specification of the toochain which for normal sdk toolchains is       |
