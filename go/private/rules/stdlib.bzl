@@ -44,10 +44,11 @@ stdlib(
 
 def _stdlib_impl(ctx):
   go = ctx.actions.declare_file("bin/go") # TODO: .exe
+  gofmt = ctx.actions.declare_file("bin/gofmt") # TODO: .exe
   src = ctx.actions.declare_directory("src")
   pkg = ctx.actions.declare_directory("pkg")
   root_file = ctx.actions.declare_file("ROOT")
-  files = [root_file, go, src, pkg]
+  files = [root_file, go, gofmt, src, pkg]
   goroot = root_file.path[:-(len(root_file.basename)+1)]
   sdk = ""
   for f in ctx.files._host_sdk:
@@ -85,12 +86,13 @@ def _stdlib_impl(ctx):
 
   ctx.actions.run_shell(
       inputs = inputs,
-      outputs = [go, src, pkg],
+      outputs = [go, gofmt, src, pkg],
       command = " && ".join([
           "export " + " ".join(["{}={}".format(key, value) for key, value in env.items()]),
           "mkdir -p {}".format(src.path),
           "mkdir -p {}".format(pkg.path),
           "cp {}/bin/{} {}".format(sdk, go.basename, go.path),
+          "cp {}/bin/{} {}".format(sdk, gofmt.basename, gofmt.path),
           "cp -rf {}/src/* {}/".format(sdk, src.path),
           "cp -rf {}/pkg/tool {}/".format(sdk, pkg.path),
           "cp -rf {}/pkg/include {}/".format(sdk, pkg.path),
@@ -100,10 +102,11 @@ def _stdlib_impl(ctx):
   )
   return [
       DefaultInfo(
-          files = depset([root_file, go, src, pkg]),
+          files = depset([root_file, go, gofmt, src, pkg]),
       ),
       GoStdLib(
           go = go,
+          gofmt = gofmt,
           root_file = root_file,
           goos = ctx.attr.goos,
           goarch = ctx.attr.goarch,
