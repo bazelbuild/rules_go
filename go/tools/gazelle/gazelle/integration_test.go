@@ -391,15 +391,32 @@ go_library(
 	}
 }
 
+// TestMultipleDirectories checks that all directories in a repository are
+// indexed but only directories listed on the command line are updated.
 func TestMultipleDirectories(t *testing.T) {
 	files := []fileSpec{
 		{path: "WORKSPACE"},
 		{
+			path: "a/BUILD.bazel",
+			content: `# This file shouldn't be modified.
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["a.go"],
+    importpath = "example.com/foo/x",
+)
+`,
+		}, {
 			path:    "a/a.go",
 			content: "package a",
 		}, {
-			path:    "b/b.go",
-			content: "package b",
+			path: "b/b.go",
+			content: `
+package b
+
+import _ "example.com/foo/x"
+`,
 		},
 	}
 	dir, err := createFiles(files)
@@ -408,16 +425,27 @@ func TestMultipleDirectories(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	args := []string{"-go_prefix", "example.com/foo", "a", "b"}
+	args := []string{"-go_prefix", "example.com/foo", "b"}
 	if err := runGazelle(dir, args); err != nil {
 		t.Fatal(err)
 	}
-	for _, d := range []string{"a", "b"} {
-		path := filepath.Join(dir, d, config.DefaultValidBuildFileNames[0])
-		if _, err := os.Stat(path); err != nil {
-			t.Errorf("directory %s not visited: %v", d, err)
-		}
-	}
+
+	checkFiles(t, dir, []fileSpec{
+		files[1], // should not change
+		{
+			path: "b/BUILD.bazel",
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["b.go"],
+    importpath = "example.com/foo/b",
+    visibility = ["//visibility:public"],
+    deps = ["//a:go_default_library"],
+)
+`,
+		},
+	})
 }
 
 func TestErrorOutsideWorkspace(t *testing.T) {
@@ -843,6 +871,134 @@ go_library(
 )
 `,
 	}})
+}
+
+// TestResolveKeptImportpath checks that Gazelle can resolve dependencies
+// against a library with a '# keep' comment on its importpath attribute
+// when the importpath doesn't match what Gazelle would infer.
+func TestResolveKeptImportpath(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: "foo/foo.go",
+			content: `
+package foo
+
+import _ "example.com/alt/baz"
+`,
+		}, {
+			path: "bar/BUILD.bazel",
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bar.go"],
+    importpath = "example.com/alt/baz",  # keep
+    visibility = ["//visibility:public"],
+)
+`,
+		}, {
+			path:    "bar/bar.go",
+			content: "package bar",
+		},
+	}
+
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"-go_prefix", "example.com/repo"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+
+	checkFiles(t, dir, []fileSpec{
+		{
+			path: "foo/BUILD.bazel",
+			content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+    importpath = "example.com/repo/foo",
+    visibility = ["//visibility:public"],
+    deps = ["//bar:go_default_library"],
+)
+`,
+		}, {
+			path: "bar/BUILD.bazel",
+			content: `load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bar.go"],
+    importpath = "example.com/alt/baz",  # keep
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	})
+}
+
+// TestResolveVendorSubdirectory checks that Gazelle can resolve libraries
+// in a vendor directory which is not at the repository root.
+func TestResolveVendorSubdirectory(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path:    "sub/vendor/example.com/foo/foo.go",
+			content: "package foo",
+		}, {
+			path: "sub/bar/bar.go",
+			content: `
+package bar
+
+import _ "example.com/foo"
+`,
+		},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"-go_prefix", "example.com/repo"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+
+	checkFiles(t, dir, []fileSpec{
+		{
+			path: "sub/vendor/example.com/foo/BUILD.bazel",
+			content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+    importpath = "example.com/foo",
+    visibility = ["//visibility:public"],
+)
+`,
+		}, {
+			path: "sub/bar/BUILD.bazel",
+			content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bar.go"],
+    importpath = "example.com/repo/sub/bar",
+    visibility = ["//visibility:public"],
+    deps = ["//sub/vendor/example.com/foo:go_default_library"],
+)
+`,
+		},
+	})
 }
 
 // TODO(jayconrod): more tests

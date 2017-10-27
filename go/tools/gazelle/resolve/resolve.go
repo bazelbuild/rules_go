@@ -28,12 +28,10 @@ import (
 
 // Resolver resolves import strings in source files (import paths in Go,
 // import statements in protos) into Bazel labels.
-// TODO(#859): imports are currently resolved by guessing a label based
-// on the name. We should be smarter about this and build a table mapping
-// import paths to labels that we can use to cross-reference.
 type Resolver struct {
 	c        *config.Config
 	l        *Labeler
+	ix       *RuleIndex
 	external nonlocalResolver
 }
 
@@ -44,7 +42,7 @@ type nonlocalResolver interface {
 	resolve(imp string) (Label, error)
 }
 
-func NewResolver(c *config.Config, l *Labeler) *Resolver {
+func NewResolver(c *config.Config, l *Labeler, ix *RuleIndex) *Resolver {
 	var e nonlocalResolver
 	switch c.DepMode {
 	case config.ExternalMode:
@@ -56,6 +54,7 @@ func NewResolver(c *config.Config, l *Labeler) *Resolver {
 	return &Resolver{
 		c:        c,
 		l:        l,
+		ix:       ix,
 		external: e,
 	}
 }
@@ -216,16 +215,26 @@ func (r *Resolver) resolveGo(imp, pkgRel string) (Label, error) {
 		imp = path.Join(r.c.GoPrefix, cleanRel)
 	}
 
-	switch {
-	case IsStandard(imp):
+	if IsStandard(imp) {
 		return Label{}, standardImportError{imp}
-	case imp == r.c.GoPrefix:
-		return r.l.LibraryLabel(""), nil
-	case r.c.GoPrefix == "" || strings.HasPrefix(imp, r.c.GoPrefix+"/"):
-		return r.l.LibraryLabel(strings.TrimPrefix(imp, r.c.GoPrefix+"/")), nil
-	default:
-		return r.external.resolve(imp)
 	}
+
+	if label, err := r.ix.findLabelByImport(importSpec{config.GoLang, imp}, config.GoLang, pkgRel); err != nil {
+		if _, ok := err.(ruleNotFoundError); !ok {
+			return NoLabel, err
+		}
+	} else {
+		return label, nil
+	}
+
+	if imp == r.c.GoPrefix {
+		return r.l.LibraryLabel(""), nil
+	}
+	if r.c.GoPrefix == "" || strings.HasPrefix(imp, r.c.GoPrefix+"/") {
+		return r.l.LibraryLabel(strings.TrimPrefix(imp, r.c.GoPrefix+"/")), nil
+	}
+
+	return r.external.resolve(imp)
 }
 
 const (
@@ -240,12 +249,17 @@ func (r *Resolver) resolveProto(imp, pkgRel string) (Label, error) {
 	if !strings.HasSuffix(imp, ".proto") {
 		return Label{}, fmt.Errorf("can't import non-proto: %q", imp)
 	}
-	imp = imp[:len(imp)-len(".proto")]
-
 	if isWellKnown(imp) {
-		// Well Known Type
-		name := path.Base(imp) + "_proto"
+		name := path.Base(imp[:len(imp)-len(".proto")]) + "_proto"
 		return Label{Repo: config.WellKnownTypesProtoRepo, Name: name}, nil
+	}
+
+	if label, err := r.ix.findLabelByImport(importSpec{config.ProtoLang, imp}, config.ProtoLang, pkgRel); err != nil {
+		if _, ok := err.(ruleNotFoundError); !ok {
+			return NoLabel, err
+		}
+	} else {
+		return label, nil
 	}
 
 	rel := path.Dir(imp)
@@ -262,11 +276,11 @@ func (r *Resolver) resolveGoProto(imp, pkgRel string) (Label, error) {
 	if !strings.HasSuffix(imp, ".proto") {
 		return Label{}, fmt.Errorf("can't import non-proto: %q", imp)
 	}
-	imp = imp[:len(imp)-len(".proto")]
+	stem := imp[:len(imp)-len(".proto")]
 
-	if isWellKnown(imp) {
+	if isWellKnown(stem) {
 		// Well Known Type
-		base := path.Base(imp)
+		base := path.Base(stem)
 		if base == "descriptor" {
 			switch r.c.DepMode {
 			case config.ExternalMode:
@@ -300,17 +314,24 @@ func (r *Resolver) resolveGoProto(imp, pkgRel string) (Label, error) {
 		}
 	}
 
-	// Temporary hack: guess the label based on the proto file name. We assume
+	if label, err := r.ix.findLabelByImport(importSpec{config.ProtoLang, imp}, config.GoLang, pkgRel); err != nil {
+		if _, ok := err.(ruleNotFoundError); !ok {
+			return NoLabel, err
+		}
+	} else {
+		return label, err
+	}
+
+	// As a fallback, guess the label based on the proto file name. We assume
 	// all proto files in a directory belong to the same package, and the
 	// package name matches the directory base name. We also assume that protos
 	// in the vendor directory must refer to something else in vendor.
-	// TODO(#859): use dependency table to resolve once it exists.
-	if pkgRel == "vendor" || strings.HasPrefix(pkgRel, "vendor/") {
-		imp = path.Join("vendor", imp)
-	}
 	rel := path.Dir(imp)
 	if rel == "." {
 		rel = ""
+	}
+	if pkgRel == "vendor" || strings.HasPrefix(pkgRel, "vendor/") {
+		rel = path.Join("vendor", rel)
 	}
 	return r.l.LibraryLabel(rel), nil
 }
