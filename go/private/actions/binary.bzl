@@ -15,6 +15,7 @@
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
     "common_modes",
+    "get_mode",
     "NORMAL_MODE",
     "RACE_MODE",
     "STATIC_MODE",
@@ -67,13 +68,7 @@ def emit_binary(ctx, go_toolchain,
 
   if default:
     executables["default"] = default
-    # work out what the default mode should be
-    if "race" in ctx.features:
-        mode = RACE_MODE
-    elif "static" in ctx.features:
-        mode = STATIC_MODE
-    else:
-        mode = NORMAL_MODE
+    mode = get_mode(ctx)
     go_toolchain.actions.link(
         ctx,
         go_toolchain = go_toolchain,
