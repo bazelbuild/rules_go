@@ -9,6 +9,11 @@ go_library(
         "foo.h",
         "pure.go",
     ],
+    _gazelle_imports = [
+        "example.com/repo/lib",
+        "example.com/repo/lib/deep",
+        "fmt",
+    ],
     cgo = True,
     clinkopts = ["-lweird"],
     copts = [
@@ -17,15 +22,12 @@ go_library(
     ],
     importpath = "example.com/repo/cgolib",
     visibility = ["//visibility:public"],
-    deps = [
-        "//lib:go_default_library",
-        "//lib/deep:go_default_library",
-    ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["foo_test.go"],
+    _gazelle_imports = ["testing"],
     embed = [":go_default_library"],
     importpath = "example.com/repo/cgolib",
 )

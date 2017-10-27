@@ -31,15 +31,14 @@ import (
 // "buildRel" is a slash-separated path to the directory containing the
 // build file being generated, relative to the repository root.
 // "oldFile" is the existing build file. May be nil.
-func NewGenerator(c *config.Config, r *resolve.Resolver, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
+func NewGenerator(c *config.Config, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
 	shouldSetVisibility := oldFile == nil || !hasDefaultVisibility(oldFile)
-	return &Generator{c: c, r: r, l: l, buildRel: buildRel, shouldSetVisibility: shouldSetVisibility}
+	return &Generator{c: c, l: l, buildRel: buildRel, shouldSetVisibility: shouldSetVisibility}
 }
 
 // Generator generates Bazel build rules for Go build targets.
 type Generator struct {
 	c                   *config.Config
-	r                   *resolve.Resolver
 	l                   resolve.Labeler
 	buildRel            string
 	shouldSetVisibility bool
@@ -111,12 +110,10 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		{"srcs", g.sources(pkg.Proto.Sources, pkg.Rel)},
 		{"visibility", visibility},
 	}
-	resolveProto := func(imp string) (resolve.Label, error) {
-		return g.r.ResolveProto(imp, pkg.Rel)
-	}
-	protoDeps := g.dependencies(pkg.Proto.Imports, resolveProto)
-	if !protoDeps.IsEmpty() {
-		protoAttrs = append(protoAttrs, keyvalue{"deps", protoDeps})
+	imports := pkg.Proto.Imports
+	imports.Clean()
+	if !imports.IsEmpty() {
+		protoAttrs = append(protoAttrs, keyvalue{config.GazelleImportsKey, imports})
 	}
 	rules = append(rules, newRule("proto_library", protoAttrs))
 
@@ -126,12 +123,8 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		{"importpath", pkg.ImportPath(g.c.GoPrefix)},
 		{"visibility", visibility},
 	}
-	resolveGoProto := func(imp string) (resolve.Label, error) {
-		return g.r.ResolveGoProto(imp, pkg.Rel)
-	}
-	goProtoDeps := g.dependencies(pkg.Proto.Imports, resolveGoProto)
-	if !goProtoDeps.IsEmpty() {
-		goProtoAttrs = append(goProtoAttrs, keyvalue{"deps", goProtoDeps})
+	if !imports.IsEmpty() {
+		goProtoAttrs = append(goProtoAttrs, keyvalue{config.GazelleImportsKey, imports})
 	}
 
 	// If a developer adds or removes services from existing protos, this
@@ -263,15 +256,10 @@ func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages
 	if g.shouldSetVisibility && visibility != "" {
 		attrs = append(attrs, keyvalue{"visibility", []string{visibility}})
 	}
-	resolveFunc := func(imp string) (resolve.Label, error) {
-		if resolve.IsStandard(imp) {
-			return resolve.Label{}, packages.Skip
-		}
-		return g.r.ResolveGo(imp, pkgRel)
-	}
-	deps := g.dependencies(target.Imports, resolveFunc)
-	if !deps.IsEmpty() {
-		attrs = append(attrs, keyvalue{"deps", deps})
+	imports := target.Imports
+	imports.Clean()
+	if !imports.IsEmpty() {
+		attrs = append(attrs, keyvalue{config.GazelleImportsKey, imports})
 	}
 	return attrs
 }
@@ -305,27 +293,6 @@ func (g *Generator) buildPkgRel(pkgRel string) string {
 		log.Panicf("relative path to go package %s must start with relative path to Bazel package %s", pkgRel, g.buildRel)
 	}
 	return rel
-}
-
-type resolveFunc func(imp string) (resolve.Label, error)
-
-// dependencies converts import paths in "imports" into Bazel labels.
-func (g *Generator) dependencies(imports packages.PlatformStrings, resolve resolveFunc) packages.PlatformStrings {
-	resolveToString := func(imp string) (string, error) {
-		label, err := resolve(imp)
-		if err != nil {
-			return "", err
-		}
-		label.Relative = label.Repo == "" && label.Pkg == g.buildRel
-		return label.String(), nil
-	}
-
-	deps, errors := imports.Map(resolveToString)
-	for _, err := range errors {
-		log.Print(err)
-	}
-	deps.Clean()
-	return deps
 }
 
 var (

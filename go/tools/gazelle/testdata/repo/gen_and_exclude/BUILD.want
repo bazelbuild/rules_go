@@ -14,12 +14,12 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    importpath = "example.com/repo/gen_and_exclude",
-    visibility = ["//visibility:public"],
-    deps = select({
+    _gazelle_imports = select({
         "@io_bazel_rules_go//go/platform:darwin": [
-            "@com_github_jr_hacker_darwin//:go_default_library",
+            "github.com/jr_hacker/darwin",
         ],
         "//conditions:default": [],
     }),
+    importpath = "example.com/repo/gen_and_exclude",
+    visibility = ["//visibility:public"],
 )

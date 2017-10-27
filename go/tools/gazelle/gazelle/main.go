@@ -61,9 +61,15 @@ var commandFromName = map[string]command{
 // visitRecord stores information about about a directory visited with
 // packages.Walk.
 type visitRecord struct {
-	// rel is the slash-separated path to the directory, relative to the
-	// repository root. "" for the repository root itself.
-	rel string
+	// pkgRel is the slash-separated path to the visited directory, relative to
+	// the repository root. "" for the repository root itself.
+	pkgRel string
+
+	// buildRel is the slash-separated path to the directory containing the
+	// relevant build file for the directory being visited, relative to the
+	// repository root. "" for the repository root itself. This may differ
+	// from pkgRel in flat mode.
+	buildRel string
 
 	// rules is a list of generated Go rules.
 	rules []bf.Expr
@@ -75,18 +81,15 @@ type visitRecord struct {
 	oldFile *bf.File
 }
 
-type byRel []visitRecord
+type byPkgRel []visitRecord
 
-var _ sort.Interface = byRel(nil)
-
-func (vs byRel) Len() int           { return len(vs) }
-func (vs byRel) Less(i, j int) bool { return vs[i].rel < vs[j].rel }
-func (vs byRel) Swap(i, j int)      { vs[i], vs[j] = vs[j], vs[i] }
+func (vs byPkgRel) Len() int           { return len(vs) }
+func (vs byPkgRel) Less(i, j int) bool { return vs[i].pkgRel < vs[j].pkgRel }
+func (vs byPkgRel) Swap(i, j int)      { vs[i], vs[j] = vs[j], vs[i] }
 
 func run(c *config.Config, cmd command, emit emitFunc) {
 	shouldFix := c.ShouldFix
 	l := resolve.NewLabeler(c)
-	r := resolve.NewResolver(c, l)
 
 	var visits []visitRecord
 
@@ -118,34 +121,41 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 				} else {
 					buildRel = rel
 				}
-				g := rules.NewGenerator(c, r, l, buildRel, oldFile)
+				g := rules.NewGenerator(c, l, buildRel, oldFile)
 				rules, empty := g.GenerateRules(pkg)
 				visits = append(visits, visitRecord{
-					rel:     rel,
-					rules:   rules,
-					empty:   empty,
-					oldFile: oldFile,
+					pkgRel:   rel,
+					buildRel: buildRel,
+					rules:    rules,
+					empty:    empty,
+					oldFile:  oldFile,
 				})
 			}
 		})
 
 		// TODO: resolve dependencies using the index.
+		resolver := resolve.NewResolver(c, l)
+		for _, v := range visits {
+			for _, r := range v.rules {
+				resolver.ResolveRule(r, v.pkgRel, v.buildRel)
+			}
+		}
 
 		// Merge old files and generated files. Emit merged files.
 		switch c.StructureMode {
 		case config.HierarchicalMode:
 			for _, v := range visits {
 				genFile := &bf.File{
-					Path: filepath.Join(c.RepoRoot, filepath.FromSlash(v.rel), c.DefaultBuildFileName()),
+					Path: filepath.Join(c.RepoRoot, filepath.FromSlash(v.pkgRel), c.DefaultBuildFileName()),
 					Stmt: v.rules,
 				}
 				mergeAndEmit(c, genFile, v.oldFile, v.empty, emit)
 			}
 
 		case config.FlatMode:
-			sort.Stable(byRel(visits))
+			sort.Stable(byPkgRel(visits))
 			var oldFile *bf.File
-			if len(visits) > 0 && visits[0].rel == "" {
+			if len(visits) > 0 && visits[0].pkgRel == "" {
 				oldFile = visits[0].oldFile
 			}
 

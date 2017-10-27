@@ -29,6 +29,17 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    _gazelle_imports = [
+        "example.com/repo/platforms/generic",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "example.com/repo/platforms/darwin",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "example.com/repo/platforms/linux",
+        ],
+        "//conditions:default": [],
+    }),
     cgo = True,
     copts = [
         "-DGENERIC",
@@ -40,17 +51,6 @@ go_library(
     }),
     importpath = "example.com/repo/platforms",
     visibility = ["//visibility:public"],
-    deps = [
-        "//platforms/generic:go_default_library",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "//platforms/darwin:go_default_library",
-        ],
-        "@io_bazel_rules_go//go/platform:linux": [
-            "//platforms/linux:go_default_library",
-        ],
-        "//conditions:default": [],
-    }),
 )
 
 go_test(

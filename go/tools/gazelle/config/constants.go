@@ -44,4 +44,8 @@ const (
 	// WellKnownTypesGoPrefix is the import path for the Go repository containing
 	// pre-generated code for the Well Known Types.
 	WellKnownTypesGoPrefix = "github.com/golang/protobuf"
+
+	// GazelleImportsKey is an internal attribute that lists imported packages
+	// on generated rules. It is replaced with "deps" during import resolution.
+	GazelleImportsKey = "_gazelle_imports"
 )

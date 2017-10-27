@@ -3,9 +3,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    _gazelle_imports = [
+        "example.com/repo/lib",
+        "fmt",
+    ],
     importpath = "example.com/repo/bin_with_tests",
     visibility = ["//visibility:private"],
-    deps = ["//lib:go_default_library"],
 )
 
 go_binary(
@@ -18,6 +21,7 @@ go_binary(
 go_test(
     name = "go_default_test",
     srcs = ["bin_test.go"],
+    _gazelle_imports = ["testing"],
     embed = [":go_default_library"],
     importpath = "example.com/repo/bin_with_tests",
 )

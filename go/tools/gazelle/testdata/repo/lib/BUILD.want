@@ -8,14 +8,20 @@ go_library(
         "doc.go",
         "lib.go",
     ],
+    _gazelle_imports = [
+        "archive/tar",
+        "bufio",
+        "example.com/repo/lib/internal/deep",
+        "lib.invalid/does/not/exist",
+    ],
     importpath = "example.com/repo/lib",
     visibility = ["//visibility:public"],
-    deps = ["//lib/internal/deep:go_default_library"],
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["lib_test.go"],
+    _gazelle_imports = ["testing"],
     embed = [":go_default_library"],
     importpath = "example.com/repo/lib",
 )
@@ -23,6 +29,9 @@ go_test(
 go_test(
     name = "go_default_xtest",
     srcs = ["lib_external_test.go"],
+    _gazelle_imports = [
+        "example.com/repo/lib",
+        "testing",
+    ],
     importpath = "example.com/repo/lib_test",
-    deps = [":go_default_library"],
 )
