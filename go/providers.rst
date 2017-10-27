@@ -79,21 +79,13 @@ binaries or tests.
 +--------------------------------+-----------------------------------------------------------------+
 | The files needed to run anything that includes this library.                                     |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`normal_library`        | :type:`File`                                                    |
+| :param:`normal`                | :type:`GoArchive`                                               |
 +--------------------------------+-----------------------------------------------------------------+
-| The archive file representing the library compiled with the default options.                     |
+| The GoArchive provider representing the library compiled with the default options.               |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`normal_searchpath`     | :type:`string`                                                  |
+| :param:`race`                  | :type:`GoArchive`                                               |
 +--------------------------------+-----------------------------------------------------------------+
-| The search path entry under which the :param:`normal_library` would be found.                    |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`race_library`          | :type:`File`                                                    |
-+--------------------------------+-----------------------------------------------------------------+
-| The archive file representing the library compiled with the race detector enabled.               |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`race_searchpath`       | :type:`string`                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| The search path entry under which the :param:`race_library` would be found.                      |
+| The GoArchive provider representing the library compiled with the race detector enabled.         |
 +--------------------------------+-----------------------------------------------------------------+
 
 
@@ -149,6 +141,29 @@ There are two main uses for this.
 +--------------------------------+-----------------------------------------------------------------+
 | Go compilation options that should be used when compiling these sources.                         |
 | In general these will be used for *all* sources of any library this provider is embedded into.   |
++--------------------------------+-----------------------------------------------------------------+
+
+
+GoArchive
+~~~~~~~~~
+
+GoArchive is a provider that exposes a compiled library.
+
++--------------------------------+-----------------------------------------------------------------+
+| **Name**                       | **Type**                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`lib`                   | :type:`compiled archive file`                                   |
++--------------------------------+-----------------------------------------------------------------+
+| The archive file representing the library compiled in a specific :param:`mode` ready for linking |
+| into binaries.                                                                                   |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`searchpath`            | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The search path entry under which the :param:`lib` would be found.                               |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`mode`                  | :type:`Mode`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| The mode the library was compiled in.                                                            |
 +--------------------------------+-----------------------------------------------------------------+
 
 

@@ -25,8 +25,6 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
     "GoLibrary",
     "GoEmbed",
-    "library_attr",
-    "searchpath_attr",
 )
 
 def emit_library(ctx, go_toolchain,
@@ -75,13 +73,6 @@ def emit_library(ctx, go_toolchain,
   if cgo_info:
     dep_runfiles += [cgo_info.runfiles]
 
-  extra_objects = []
-  for src in source.asm:
-    obj = ctx.new_file(src, "%s.dir/%s.o" % (ctx.label.name, src.basename[:-2]))
-    go_toolchain.actions.asm(ctx, go_toolchain, src, source.headers, obj)
-    extra_objects += [obj]
-  archive = cgo_info.archive if cgo_info else None
-
   for dep in deps:
     direct += [dep[GoLibrary]]
 
@@ -94,43 +85,22 @@ def emit_library(ctx, go_toolchain,
     go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, go_srcs)
     cover_vars += cvars
 
-  lib_name = importpath + ".a"
-  compilepath = importpath if importable else None
+  transformed = dict_of(source)
+  transformed["go"] = go_srcs
+
+  build_srcs = join_srcs(struct(**transformed))
   mode_fields = {} # These are added to the GoLibrary provider directly
   for mode in common_modes:
-    out_dir = "~{}~{}~".format(mode_string(mode), ctx.label.name)
-    out_lib = ctx.new_file("{}/{}".format(out_dir, lib_name))
-    searchpath = out_lib.path[:-len(lib_name)]
-    mode_fields[library_attr(mode)] = out_lib
-    mode_fields[searchpath_attr(mode)] = searchpath
-    if len(extra_objects) == 0 and archive == None:
-      go_toolchain.actions.compile(ctx,
-          go_toolchain = go_toolchain,
-          sources = go_srcs,
-          importpath = compilepath,
-          golibs = direct,
-          mode = mode,
-          out_lib = out_lib,
-          gc_goopts = gc_goopts,
-      )
-    else:
-      partial_lib = ctx.new_file("{}/~partial.a".format(out_dir))
-      go_toolchain.actions.compile(ctx,
-          go_toolchain = go_toolchain,
-          sources = go_srcs,
-          importpath = compilepath,
-          golibs = direct,
-          mode = mode,
-          out_lib = partial_lib,
-          gc_goopts = gc_goopts,
-      )
-      go_toolchain.actions.pack(ctx,
-          go_toolchain = go_toolchain,
-          in_lib = partial_lib,
-          out_lib = out_lib,
-          objects = extra_objects,
-          archive = archive,
-      )
+    mode_fields[mode_string(mode)] = go_toolchain.actions.archive(ctx,
+        go_toolchain = go_toolchain,
+        importpath = importpath,
+        srcs = build_srcs,
+        direct = direct,
+        cgo_info =cgo_info,
+        importable = importable,
+        mode = mode,
+        gc_goopts = gc_goopts,
+    )
 
   dylibs = []
   cgo_deps = depset()
@@ -141,9 +111,6 @@ def emit_library(ctx, go_toolchain,
   runfiles = ctx.runfiles(files = dylibs, collect_data = True)
   for d in dep_runfiles:
     runfiles = runfiles.merge(d)
-
-  transformed = dict_of(source)
-  transformed["go"] = go_srcs
 
   return [
       GoLibrary(
@@ -159,7 +126,7 @@ def emit_library(ctx, go_toolchain,
       ),
       GoEmbed(
           srcs = srcs, # The original sources
-          build_srcs = join_srcs(struct(**transformed)), # The transformed sources actually compiled
+          build_srcs = build_srcs, # The transformed sources actually compiled
           deps = direct, # The direct depencancies of the library
           cover_vars = cover_vars, # The cover variables for these sources
           cgo_info = cgo_info, # The cgo information for this library or one of its embeds.
