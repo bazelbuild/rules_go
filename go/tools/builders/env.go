@@ -71,6 +71,7 @@ func (env *GoEnv) Env() []string {
 	}
 	return []string{
 		fmt.Sprintf("GOROOT=%s", env.absRoot()),
+		"GOROOT_FINAL=GOROOT",
 		fmt.Sprintf("TMP=%s", "/tmp"), // TODO: may need to be different on windows
 		fmt.Sprintf("GOOS=%s", env.goos),
 		fmt.Sprintf("GOARCH=%s", env.goarch),
