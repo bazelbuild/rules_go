@@ -43,21 +43,7 @@ def _go_test_impl(ctx):
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx)
-  embed = ctx.attr.embed
-  if ctx.attr.library:
-    embed = embed + [ctx.attr.library]
-  cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
-
-  # first build the test library
-  golib, _ = go_toolchain.actions.library(ctx,
-      go_toolchain = go_toolchain,
-      srcs = ctx.files.srcs,
-      deps = ctx.attr.deps,
-      cgo_info = cgo_info,
-      embed = embed,
-      importpath = go_importpath(ctx),
-      importable = False,
-  )
+  golib = ctx.attr.library[GoLibrary]
 
   # now generate the main function
   if ctx.attr.rundir:
@@ -101,9 +87,9 @@ def _go_test_impl(ctx):
   main_lib, main_binary = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       srcs = [main_go],
+      deps = [ctx.attr.library],
       importpath = ctx.label.name + "~testmain~",
       gc_linkopts = gc_linkopts(ctx),
-      golibs = [golib] + covered_libs,
       default=ctx.outputs.executable,
       x_defs=ctx.attr.x_defs,
   )
@@ -111,7 +97,7 @@ def _go_test_impl(ctx):
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
   # without code changes.
-  runfiles = ctx.runfiles(files = [main_binary.default])
+  runfiles = ctx.runfiles(collect_data = True, files = [main_binary.default])
   runfiles = runfiles.merge(golib.runfiles)
   return [
       main_binary,

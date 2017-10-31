@@ -34,11 +34,10 @@ def emit_library(ctx, go_toolchain,
     cgo_info = None,
     embed = (),
     want_coverage = False,
-    importable = True,
-    golibs=()):
+    importable = True):
   """See go/toolchains.rst#library for full documentation."""
   dep_runfiles = [d.data_runfiles for d in deps]
-  direct = depset(golibs)
+  direct = depset()
   gc_goopts = tuple(ctx.attr.gc_goopts)
   cover_vars = ()
   if cgo_info:

@@ -504,11 +504,6 @@ It returns a tuple of GoLibrary_ and GoBinary_.
 +--------------------------------+-----------------------------+-----------------------------------+
 | Link defines, including build stamping ones.                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`golibs`                | :type:`GoLibrary iterable`  | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of GoLibrary_ objects.                                                               |
-| Used to pass in synthetic dependencies.                                                          |
-+--------------------------------+-----------------------------+-----------------------------------+
 
 
 compile
@@ -639,11 +634,6 @@ It returns a tuple of GoLibrary_ and GoEmbed_.
 | :param:`importable`            | :type:`boolean`             | :value:`True`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | A bool indicating whether the package can be imported by other libraries.                        |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`golibs`                | :type:`GoLibrary iterable`  | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of GoLibrary_ objects.                                                               |
-| Used to pass in synthetic dependencies.                                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
