@@ -27,16 +27,15 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/rules"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/testdata"
 )
 
 func testConfig(repoRoot, goPrefix string) *config.Config {
 	c := &config.Config{
-		RepoRoot:            repoRoot,
-		GoPrefix:            goPrefix,
-		GenericTags:         config.BuildTags{},
-		Platforms:           config.DefaultPlatformTags,
-		ValidBuildFileNames: []string{"BUILD.old"},
+		RepoRoot:              repoRoot,
+		GoPrefix:              goPrefix,
+		GenericTags:           config.BuildTags{},
+		ValidBuildFileNames:   []string{"BUILD.old"},
+		ExperimentalPlatforms: true,
 	}
 	c.PreprocessTags()
 	return c
@@ -55,7 +54,7 @@ func packageFromDir(c *config.Config, dir string) (*packages.Package, *bf.File) 
 }
 
 func TestGenerator(t *testing.T) {
-	repoRoot := filepath.Join(testdata.Dir(), "repo")
+	repoRoot := filepath.FromSlash("../testdata/repo")
 	goPrefix := "example.com/repo"
 	c := testConfig(repoRoot, goPrefix)
 	l := resolve.NewLabeler(c)

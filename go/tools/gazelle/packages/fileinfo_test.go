@@ -20,8 +20,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 func TestOtherFileInfo(t *testing.T) {
@@ -29,7 +30,7 @@ func TestOtherFileInfo(t *testing.T) {
 	rel := ""
 	for _, tc := range []struct {
 		desc, name, source string
-		wantTags           []string
+		wantTags           []tagLine
 	}{
 		{
 			"empty file",
@@ -44,21 +45,23 @@ func TestOtherFileInfo(t *testing.T) {
 // +build baz,!ignore
 
 `,
-			[]string{"foo bar", "baz,!ignore"},
+			[]tagLine{{{"foo"}, {"bar"}}, {{"baz", "!ignore"}}},
 		},
 	} {
-		if err := ioutil.WriteFile(tc.name, []byte(tc.source), 0600); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Remove(tc.name)
+		t.Run(tc.desc, func(t *testing.T) {
+			if err := ioutil.WriteFile(tc.name, []byte(tc.source), 0600); err != nil {
+				t.Fatal(err)
+			}
+			defer os.Remove(tc.name)
 
-		got := otherFileInfo(dir, rel, tc.name)
+			got := otherFileInfo(dir, rel, tc.name)
 
-		// Only check that we can extract tags. Everything else is covered
-		// by other tests.
-		if !reflect.DeepEqual(got.tags, tc.wantTags) {
-			t.Errorf("case %q: got %#v; want %#v", got.tags, tc.wantTags)
-		}
+			// Only check that we can extract tags. Everything else is covered
+			// by other tests.
+			if !reflect.DeepEqual(got.tags, tc.wantTags) {
+				t.Errorf("got %#v; want %#v", got.tags, tc.wantTags)
+			}
+		})
 	}
 }
 
@@ -304,7 +307,7 @@ func TestJoinOptions(t *testing.T) {
 func TestReadTags(t *testing.T) {
 	for _, tc := range []struct {
 		desc, source string
-		want         []string
+		want         []tagLine
 	}{
 		{
 			"empty file",
@@ -324,12 +327,12 @@ func TestReadTags(t *testing.T) {
 package main
 
 `,
-			[]string{"foo"},
+			[]tagLine{{{"foo"}}},
 		},
 		{
 			"single comment",
 			"// +build foo\n\n",
-			[]string{"foo"},
+			[]tagLine{{{"foo"}}},
 		},
 		{
 			"multiple comments",
@@ -337,7 +340,7 @@ package main
 // +build bar
 
 package main`,
-			[]string{"foo", "bar"},
+			[]tagLine{{{"foo"}}, {{"bar"}}},
 		},
 		{
 			"multiple comments with blank",
@@ -346,12 +349,12 @@ package main`,
 // +build bar
 
 package main`,
-			[]string{"foo", "bar"},
+			[]tagLine{{{"foo"}}, {{"bar"}}},
 		},
 		{
 			"comment with space",
 			"  //   +build   foo   bar  \n\n",
-			[]string{"foo bar"},
+			[]tagLine{{{"foo"}, {"bar"}}},
 		},
 		{
 			"slash star comment",
@@ -381,197 +384,185 @@ package main`,
 }
 
 func TestCheckConstraints(t *testing.T) {
+	dir, err := ioutil.TempDir(os.Getenv("TEST_TEMPDIR"), "TestCheckConstraints")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
 	for _, tc := range []struct {
-		desc string
-		fi   fileInfo
-		tags string
-		want bool
+		desc                        string
+		genericTags                 map[string]bool
+		os, arch, filename, content string
+		want                        bool
 	}{
 		{
-			"unconstrained",
-			fileInfo{},
-			"",
-			true,
-		},
-		{
-			"goos satisfied",
-			fileInfo{goos: "linux"},
-			"linux",
-			true,
-		},
-		{
-			"goos unsatisfied",
-			fileInfo{goos: "linux"},
-			"darwin",
-			false,
-		},
-		{
-			"goarch satisfied",
-			fileInfo{goarch: "amd64"},
-			"amd64",
-			true,
-		},
-		{
-			"goarch unsatisfied",
-			fileInfo{goarch: "amd64"},
-			"arm",
-			false,
-		},
-		{
-			"goos goarch satisfied",
-			fileInfo{goos: "linux", goarch: "amd64"},
-			"linux,amd64",
-			true,
-		},
-		{
-			"goos goarch unsatisfied",
-			fileInfo{goos: "linux", goarch: "amd64"},
-			"darwin,amd64",
-			false,
-		},
-		{
-			"tags all satisfied",
-			fileInfo{tags: []string{"foo", "bar"}},
-			"foo,bar",
-			true,
-		},
-		{
-			"tags some unsatisfied",
-			fileInfo{tags: []string{"foo", "bar"}},
-			"foo",
-			false,
-		},
-		{
-			"goos unsatisfied tags satisfied",
-			fileInfo{goos: "linux", tags: []string{"foo"}},
-			"darwin,foo",
-			false,
+			desc: "unconstrained",
+			want: true,
+		}, {
+			desc:     "goos satisfied",
+			filename: "foo_linux.go",
+			os:       "linux",
+			want:     true,
+		}, {
+			desc:     "goos unsatisfied",
+			filename: "foo_linux.go",
+			os:       "darwin",
+			want:     false,
+		}, {
+			desc:     "goarch satisfied",
+			filename: "foo_amd64.go",
+			arch:     "amd64",
+			want:     true,
+		}, {
+			desc:     "goarch unsatisfied",
+			filename: "foo_amd64.go",
+			arch:     "arm",
+			want:     false,
+		}, {
+			desc:     "goos goarch satisfied",
+			filename: "foo_linux_amd64.go",
+			os:       "linux",
+			arch:     "amd64",
+			want:     true,
+		}, {
+			desc:     "goos goarch unsatisfied",
+			filename: "foo_linux_amd64.go",
+			os:       "darwin",
+			arch:     "amd64",
+			want:     false,
+		}, {
+			desc:     "goos unsatisfied tags satisfied",
+			filename: "foo_linux.go",
+			content:  "// +build foo\n\npackage foo",
+			want:     false,
+		}, {
+			desc:    "tags all satisfied",
+			content: "// +build cgo,gc\n\npackage foo",
+			want:    true,
+		}, {
+			desc:    "tags some satisfied",
+			content: "// +build cgo,foo\n\npackage foo",
+			want:    false,
+		}, {
+			desc:    "tag unsatisfied negated",
+			content: "// +build !foo\n\npackage foo",
+			want:    true,
+		}, {
+			desc:    "tag satisfied negated",
+			content: "// +build !cgo\n\npackage foo",
+			want:    false,
+		}, {
+			desc:    "tag double negative",
+			content: "// +build !!cgo\n\npackage foo",
+			want:    false,
+		}, {
+			desc:        "tag group and satisfied",
+			genericTags: map[string]bool{"foo": true, "bar": true},
+			content:     "// +build foo,bar\n\npackage foo",
+			want:        true,
+		}, {
+			desc:        "tag group and unsatisfied",
+			genericTags: map[string]bool{"foo": true},
+			content:     "// +build foo,bar\n\npackage foo",
+			want:        false,
+		}, {
+			desc:        "tag line or satisfied",
+			genericTags: map[string]bool{"foo": true},
+			content:     "// +build foo bar\n\npackage foo",
+			want:        true,
+		}, {
+			desc:        "tag line or unsatisfied",
+			genericTags: map[string]bool{"foo": true},
+			content:     "// +build !foo bar\n\npackage foo",
+			want:        false,
+		}, {
+			desc:        "tag lines and satisfied",
+			genericTags: map[string]bool{"foo": true, "bar": true},
+			content: `
+// +build foo
+// +build bar
+
+package foo`,
+			want: true,
+		}, {
+			desc:        "tag lines and unsatisfied",
+			genericTags: map[string]bool{"foo": true},
+			content: `
+// +build foo
+// +build bar
+
+package foo`,
+			want: false,
+		}, {
+			desc:        "cgo tags satisfied",
+			os:          "linux",
+			genericTags: map[string]bool{"foo": true},
+			content: `
+// +build foo
+
+package foo
+
+/*
+#cgo linux CFLAGS: -Ilinux
+*/
+import "C"
+`,
+			want: true,
+		}, {
+			desc: "cgo tags unsatisfied",
+			os:   "linux",
+			content: `
+package foo
+
+/*
+#cgo !linux CFLAGS: -Inotlinux
+*/
+import "C"
+`,
+			want: false,
+		}, {
+			desc:    "release tags",
+			content: "// +build go1.7,go1.8,go1.9,go1.91,go2.0\n\npackage foo",
+			want:    true,
+		}, {
+			desc:    "release tag negated",
+			content: "// +build !go1.8\n\npackage foo",
+			want:    true,
 		},
 	} {
-		if got := tc.fi.checkConstraints(parseTags(tc.tags)); got != tc.want {
-			t.Errorf("case %q: got %#v; want %#v", tc.desc, got, tc.want)
-		}
-	}
-}
+		t.Run(tc.desc, func(t *testing.T) {
+			genericTags := tc.genericTags
+			if genericTags == nil {
+				genericTags = map[string]bool{"cgo": true, "gc": true}
+			}
+			c := &config.Config{
+				GenericTags:           genericTags,
+				ExperimentalPlatforms: true,
+			}
+			filename := tc.filename
+			if filename == "" {
+				filename = tc.desc + ".go"
+			}
+			content := []byte(tc.content)
+			if len(content) == 0 {
+				content = []byte(`package foo`)
+			}
 
-func TestCheckTags(t *testing.T) {
-	for _, tc := range []struct {
-		desc, line, tags string
-		want             bool
-	}{
-		{
-			"empty tags",
-			"",
-			"",
-			false,
-		},
-		{
-			"ignored",
-			"ignore",
-			"",
-			false,
-		},
-		{
-			"single satisfied",
-			"foo",
-			"foo",
-			true,
-		},
-		{
-			"single unsatisfied",
-			"foo",
-			"bar",
-			false,
-		},
-		{
-			"NOT satisfied",
-			"!foo",
-			"",
-			true,
-		},
-		{
-			"NOT unsatisfied",
-			"!foo",
-			"foo",
-			false,
-		},
-		{
-			"double negative fails",
-			"yes !!yes yes",
-			"yes",
-			false,
-		},
-		{
-			"AND satisfied",
-			"foo,bar",
-			"foo,bar",
-			true,
-		},
-		{
-			"AND NOT satisfied",
-			"foo,!bar",
-			"foo",
-			true,
-		},
-		{
-			"AND unsatisfied",
-			"foo,bar",
-			"foo",
-			false,
-		},
-		{
-			"AND NOT unsatisfied",
-			"foo,!bar",
-			"foo,bar",
-			false,
-		},
-		{
-			"OR satisfied",
-			"foo bar",
-			"foo",
-			true,
-		},
-		{
-			"OR NOT satisfied",
-			"foo !bar",
-			"",
-			true,
-		},
-		{
-			"OR unsatisfied",
-			"foo bar",
-			"",
-			false,
-		},
-		{
-			"OR NOT unsatisfied",
-			"foo !bar",
-			"bar",
-			false,
-		},
-		{
-			"release tags",
-			"go1.7,go1.8,go1.9,go1.91,go2.0",
-			"",
-			true,
-		},
-		{
-			"release tag negated",
-			"!go1.8",
-			"",
-			true,
-		},
-	} {
-		if got := checkTags(tc.line, parseTags(tc.tags)); got != tc.want {
-			t.Errorf("case %q: got %#v; want %#v", tc.desc, got, tc.want)
-		}
-	}
-}
+			path := filepath.Join(dir, filename)
+			if err := ioutil.WriteFile(path, []byte(content), 0666); err != nil {
+				t.Fatal(err)
+			}
 
-func parseTags(tags string) map[string]bool {
-	tagMap := make(map[string]bool)
-	for _, t := range strings.Split(tags, ",") {
-		tagMap[t] = true
+			fi := goFileInfo(&config.Config{}, dir, "", filename)
+			var cgoTags tagLine
+			if len(fi.copts) > 0 {
+				cgoTags = fi.copts[0].tags
+			}
+
+			got := checkConstraints(c, tc.os, tc.arch, fi.goos, fi.goarch, fi.tags, cgoTags)
+			if got != tc.want {
+				t.Errorf("got %v ; want %v", got, tc.want)
+			}
+		})
 	}
-	return tagMap
 }

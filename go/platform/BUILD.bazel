@@ -4,8 +4,9 @@ package(default_visibility = ["//visibility:public"])
 # These can be used in calls to select to choose platform-specific sources
 # and dependencies.
 #
-# Eventually, we hope to be able to use platform or constraint_value instead,
-# but Bazel doesn't support this yet.
+# TODO: use constraint_values instead of cpu. constraint_values will be
+# supported in Bazel 0.8, so we can switch when that's the minimum
+# supported version.
 
 config_setting(
     name = "darwin_amd64",
@@ -27,3 +28,18 @@ config_setting(
         "cpu": "x64_windows",
     },
 )
+
+# Unsupported platforms
+# These are placeholders for platforms that rules_go is not capable of
+# targeting yet. Gazelle may generate rules that mention these.
+load(":list.bzl", "GOARCH", "GOOS", "GOOS_GOARCH")
+
+GOOS_GOARCH_NAMES = ["{}_{}".format(os, arch) for os, arch in GOOS_GOARCH]
+SUPPORTED_PLATFORM_NAMES = [
+    "darwin_amd64",
+    "linux_amd64",
+    "windows_amd64",
+]
+UNSUPPORTED_PLATFORM_NAMES = [name for name in GOOS.keys() + GOARCH.keys() + GOOS_GOARCH_NAMES 
+                              if name not in SUPPORTED_PLATFORM_NAMES]
+[config_setting(name = name, values = {"cpu": "_do_not_match_"}) for name in UNSUPPORTED_PLATFORM_NAMES]

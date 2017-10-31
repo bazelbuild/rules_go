@@ -29,7 +29,7 @@ go_test(
         "//go/tools/gazelle/merger:go_default_library",
         "//go/tools/gazelle/packages:go_default_library",
         "//go/tools/gazelle/resolve:go_default_library",
-        "//go/tools/gazelle/testdata:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
+    data = ["//go/tools/gazelle:testdata"],
 )

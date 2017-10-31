@@ -123,7 +123,7 @@ package foo
 `,
 			fileInfo{
 				packageName: "foo",
-				tags:        []string{"linux darwin", "!ignore"},
+				tags:        []tagLine{{{"linux"}, {"darwin"}}, {{"!ignore"}}},
 			},
 		},
 		{
@@ -139,7 +139,7 @@ package route
 `,
 			fileInfo{
 				packageName: "route",
-				tags:        []string{"darwin dragonfly freebsd netbsd openbsd"},
+				tags:        []tagLine{{{"darwin"}, {"dragonfly"}, {"freebsd"}, {"netbsd"}, {"openbsd"}}},
 			},
 		},
 	} {
@@ -246,7 +246,10 @@ import "C"
 			fileInfo{
 				isCgo: true,
 				copts: []taggedOpts{
-					{tags: "foo bar,!baz", opts: []string{"-O0"}},
+					{
+						tags: tagLine{{"foo"}, {"bar", "!baz"}},
+						opts: []string{"-O0"},
+					},
 				},
 			},
 		},

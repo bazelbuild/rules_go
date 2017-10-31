@@ -6,6 +6,7 @@ go_library(
         "config.go",
         "constants.go",
         "directives.go",
+        "platform.go",
     ],
     deps = ["@com_github_bazelbuild_buildtools//build:go_default_library"],
     visibility = ["//visibility:public"],

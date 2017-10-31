@@ -8,23 +8,24 @@ go_library(
         "generic.go",
         "release.go",
     ] + select({
-        "@io_bazel_rules_go//go/platform:darwin_amd64": [
-            "suffix_amd64.go",
+        "@io_bazel_rules_go//go/platform:darwin": [
             "suffix_darwin.go",
-            "tag_a.go",
             "tag_d.go",
         ],
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
             "cgo_linux.c",
             "cgo_linux.go",
-            "suffix_amd64.go",
             "suffix_linux.go",
-            "tag_a.go",
             "tag_l.go",
         ],
-        "@io_bazel_rules_go//go/platform:windows_amd64": [
+        "//conditions:default": [],
+    }) + select({
+        "@io_bazel_rules_go//go/platform:amd64": [
             "suffix_amd64.go",
             "tag_a.go",
+        ],
+        "@io_bazel_rules_go//go/platform:arm": [
+            "suffix_arm.go",
         ],
         "//conditions:default": [],
     }),
@@ -32,7 +33,7 @@ go_library(
     copts = [
         "-DGENERIC",
     ] + select({
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
             "-DLINUX",
         ],
         "//conditions:default": [],
@@ -42,10 +43,10 @@ go_library(
     deps = [
         "//platforms/generic:go_default_library",
     ] + select({
-        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+        "@io_bazel_rules_go//go/platform:darwin": [
             "//platforms/darwin:go_default_library",
         ],
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
             "//platforms/linux:go_default_library",
         ],
         "//conditions:default": [],
@@ -57,7 +58,7 @@ go_test(
     srcs = [
         "generic_test.go",
     ] + select({
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
             "suffix_linux_test.go",
         ],
         "//conditions:default": [],

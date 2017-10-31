@@ -71,9 +71,16 @@ type PlatformStrings struct {
 	// Generic is a list of strings not specific to any platform.
 	Generic []string
 
-	// Platform is a map of lists of platform-specific strings. The map is keyed
-	// by the name of the platform.
-	Platform map[string][]string
+	// OS is a map from OS name (anything in config.KnownOSs) to
+	// OS-specific strings.
+	OS map[string][]string
+
+	// Arch is a map from architecture name (anything in config.KnownArchs) to
+	// architecture-specific strings.
+	Arch map[string][]string
+
+	// Platform is a map from platforms to OS and architecture-specific strings.
+	Platform map[config.Platform][]string
 }
 
 // IsCommand returns true if the package name is "main".
@@ -136,29 +143,35 @@ func (t *ProtoTarget) HasProto() bool {
 	return !t.Sources.IsEmpty()
 }
 
-func (ts *PlatformStrings) HasGo() bool {
-	return ts.firstGoFile() != ""
+func (ps *PlatformStrings) HasGo() bool {
+	return ps.firstGoFile() != ""
 }
 
-func (ts *PlatformStrings) IsEmpty() bool {
-	if len(ts.Generic) > 0 {
-		return false
-	}
-	for _, s := range ts.Platform {
-		if len(s) > 0 {
-			return false
-		}
-	}
-	return true
+func (ps *PlatformStrings) IsEmpty() bool {
+	return len(ps.Generic) == 0 && len(ps.OS) == 0 && len(ps.Arch) == 0 && len(ps.Platform) == 0
 }
 
-func (ts *PlatformStrings) firstGoFile() string {
-	for _, f := range ts.Generic {
+func (ps *PlatformStrings) firstGoFile() string {
+	for _, f := range ps.Generic {
 		if strings.HasSuffix(f, ".go") {
 			return f
 		}
 	}
-	for _, fs := range ts.Platform {
+	for _, fs := range ps.OS {
+		for _, f := range fs {
+			if strings.HasSuffix(f, ".go") {
+				return f
+			}
+		}
+	}
+	for _, fs := range ps.Arch {
+		for _, f := range fs {
+			if strings.HasSuffix(f, ".go") {
+				return f
+			}
+		}
+	}
+	for _, fs := range ps.Platform {
 		for _, f := range fs {
 			if strings.HasSuffix(f, ".go") {
 				return f
@@ -209,107 +222,203 @@ func (t *GoTarget) addFile(c *config.Config, info fileInfo) {
 	if info.isCgo {
 		t.Cgo = true
 	}
-	if !info.hasConstraints() || info.checkConstraints(c.GenericTags) {
-		t.Sources.addGenericStrings(info.name)
-		t.Imports.addGenericStrings(info.imports...)
-		t.COpts.addGenericOpts(c.Platforms, info.copts)
-		t.CLinkOpts.addGenericOpts(c.Platforms, info.clinkopts)
-		return
-	}
-
-	for name, tags := range c.Platforms {
-		if info.checkConstraints(tags) {
-			t.Sources.addPlatformStrings(name, info.name)
-			t.Imports.addPlatformStrings(name, info.imports...)
-			t.COpts.addTaggedOpts(name, info.copts, tags)
-			t.CLinkOpts.addTaggedOpts(name, info.clinkopts, tags)
+	add := getPlatformStringsAddFunction(c, info, nil)
+	add(&t.Sources, info.name)
+	add(&t.Imports, info.imports...)
+	for _, copts := range info.copts {
+		optAdd := add
+		if len(copts.tags) > 0 {
+			optAdd = getPlatformStringsAddFunction(c, info, copts.tags)
 		}
+		optAdd(&t.COpts, copts.opts...)
+		optAdd(&t.COpts, optSeparator)
+	}
+	for _, clinkopts := range info.clinkopts {
+		optAdd := add
+		if len(clinkopts.tags) > 0 {
+			optAdd = getPlatformStringsAddFunction(c, info, clinkopts.tags)
+		}
+		optAdd(&t.CLinkOpts, clinkopts.opts...)
+		optAdd(&t.CLinkOpts, optSeparator)
 	}
 }
 
 func (t *ProtoTarget) addFile(c *config.Config, info fileInfo) {
-	t.Sources.addGenericStrings(info.name)
-	t.Imports.addGenericStrings(info.imports...)
+	add := getPlatformStringsAddFunction(c, info, nil)
+	add(&t.Sources, info.name)
+	add(&t.Imports, info.imports...)
 	t.HasServices = t.HasServices || info.hasServices
 }
 
-func (ps *PlatformStrings) addGenericStrings(ss ...string) {
-	ps.Generic = append(ps.Generic, ss...)
+func (ps *PlatformStrings) addStrings(c *config.Config, info fileInfo, cgoTags tagLine, ss ...string) {
+	add := getPlatformStringsAddFunction(c, info, cgoTags)
+	add(ps, ss...)
 }
 
-func (ps *PlatformStrings) addGenericOpts(platforms config.PlatformTags, opts []taggedOpts) {
-	for _, t := range opts {
-		if t.tags == "" {
-			ps.Generic = append(ps.Generic, t.opts...)
-			ps.Generic = append(ps.Generic, optSeparator)
-			continue
+// getPlatformStringsAddFunction returns a function used to add strings to
+// a PlatformStrings object under the same set of constraints. This is a
+// performance optimization to avoid evaluating constraints repeatedly.
+func getPlatformStringsAddFunction(c *config.Config, info fileInfo, cgoTags tagLine) func(ps *PlatformStrings, ss ...string) {
+	if checkConstraints(c, "", "", info.goos, info.goarch, info.tags, cgoTags) {
+		return func(ps *PlatformStrings, ss ...string) {
+			ps.Generic = append(ps.Generic, ss...)
 		}
+	}
 
-		for name, tags := range platforms {
-			if checkTags(t.tags, tags) {
-				if ps.Platform == nil {
-					ps.Platform = make(map[string][]string)
-				}
-				ps.Platform[name] = append(ps.Platform[name], t.opts...)
-				ps.Platform[name] = append(ps.Platform[name], optSeparator)
+	if !c.ExperimentalPlatforms {
+		var platformMatch []config.Platform
+		for _, platform := range config.DefaultPlatforms {
+			if checkConstraints(c, platform.OS, platform.Arch, info.goos, info.goarch, info.tags, cgoTags) {
+				platformMatch = append(platformMatch, platform)
 			}
 		}
-	}
-}
-
-func (ps *PlatformStrings) addPlatformStrings(name string, ss ...string) {
-	if ps.Platform == nil {
-		ps.Platform = make(map[string][]string)
-	}
-	ps.Platform[name] = append(ps.Platform[name], ss...)
-}
-
-func (ps *PlatformStrings) addTaggedOpts(name string, opts []taggedOpts, tags map[string]bool) {
-	for _, t := range opts {
-		if t.tags == "" || checkTags(t.tags, tags) {
+		if len(platformMatch) == 0 {
+			return func(_ *PlatformStrings, _ ...string) {}
+		}
+		return func(ps *PlatformStrings, ss ...string) {
 			if ps.Platform == nil {
-				ps.Platform = make(map[string][]string)
+				ps.Platform = make(map[config.Platform][]string)
 			}
-			ps.Platform[name] = append(ps.Platform[name], t.opts...)
-			ps.Platform[name] = append(ps.Platform[name], optSeparator)
+			for _, platform := range platformMatch {
+				ps.Platform[platform] = append(ps.Platform[platform], ss...)
+			}
 		}
 	}
+
+	var osMatch []string
+	for _, os := range config.KnownOSs {
+		if checkConstraints(c, os, "", info.goos, info.goarch, info.tags, cgoTags) {
+			osMatch = append(osMatch, os)
+		}
+	}
+	if len(osMatch) > 0 {
+		return func(ps *PlatformStrings, ss ...string) {
+			if ps.OS == nil {
+				ps.OS = make(map[string][]string)
+			}
+			for _, os := range osMatch {
+				ps.OS[os] = append(ps.OS[os], ss...)
+			}
+		}
+	}
+
+	var archMatch []string
+	for _, arch := range config.KnownArchs {
+		if checkConstraints(c, "", arch, info.goos, info.goarch, info.tags, cgoTags) {
+			archMatch = append(archMatch, arch)
+		}
+	}
+	if len(archMatch) > 0 {
+		return func(ps *PlatformStrings, ss ...string) {
+			if ps.Arch == nil {
+				ps.Arch = make(map[string][]string)
+			}
+			for _, arch := range archMatch {
+				ps.Arch[arch] = append(ps.Arch[arch], ss...)
+			}
+		}
+	}
+
+	var platformMatch []config.Platform
+	for _, platform := range config.KnownPlatforms {
+		if checkConstraints(c, platform.OS, platform.Arch, info.goos, info.goarch, info.tags, cgoTags) {
+			platformMatch = append(platformMatch, platform)
+		}
+	}
+	if len(platformMatch) > 0 {
+		return func(ps *PlatformStrings, ss ...string) {
+			if ps.Platform == nil {
+				ps.Platform = make(map[config.Platform][]string)
+			}
+			for _, platform := range platformMatch {
+				ps.Platform[platform] = append(ps.Platform[platform], ss...)
+			}
+		}
+	}
+
+	return func(_ *PlatformStrings, _ ...string) {}
 }
 
 // Clean sorts and de-duplicates PlatformStrings. It also removes any
 // strings from platform-specific lists that also appear in the generic list.
 // This is useful for imports.
 func (ps *PlatformStrings) Clean() {
+	genSet := make(map[string]bool)
+	osArchSet := make(map[string]map[string]bool)
+
 	sort.Strings(ps.Generic)
 	ps.Generic = uniq(ps.Generic)
-
-	genSet := make(map[string]bool)
 	for _, s := range ps.Generic {
 		genSet[s] = true
 	}
 
-	if ps.Platform == nil {
-		return
+	if ps.OS != nil {
+		for os, ss := range ps.OS {
+			ss = remove(ss, genSet)
+			if len(ss) == 0 {
+				delete(ps.OS, os)
+				continue
+			}
+			sort.Strings(ss)
+			ss = uniq(ss)
+			ps.OS[os] = ss
+			osArchSet[os] = make(map[string]bool)
+			for _, s := range ss {
+				osArchSet[os][s] = true
+			}
+		}
+		if len(ps.OS) == 0 {
+			ps.OS = nil
+		}
 	}
 
-	for n, ss := range ps.Platform {
-		ss = remove(ss, genSet)
-		if len(ss) == 0 {
-			delete(ps.Platform, n)
-			continue
+	if ps.Arch != nil {
+		for arch, ss := range ps.Arch {
+			ss = remove(ss, genSet)
+			if len(ss) == 0 {
+				delete(ps.Arch, arch)
+				continue
+			}
+			sort.Strings(ss)
+			ss = uniq(ss)
+			ps.Arch[arch] = ss
+			osArchSet[arch] = make(map[string]bool)
+			for _, s := range ss {
+				osArchSet[arch][s] = true
+			}
 		}
-		sort.Strings(ss)
-		ps.Platform[n] = uniq(ss)
+		if len(ps.Arch) == 0 {
+			ps.Arch = nil
+		}
 	}
-	if len(ps.Platform) == 0 {
-		ps.Platform = nil
+
+	if ps.Platform != nil {
+		for platform, ss := range ps.Platform {
+			ss = remove(ss, genSet)
+			if osSet, ok := osArchSet[platform.OS]; ok {
+				ss = remove(ss, osSet)
+			}
+			if archSet, ok := osArchSet[platform.Arch]; ok {
+				ss = remove(ss, archSet)
+			}
+			if len(ss) == 0 {
+				delete(ps.Platform, platform)
+				continue
+			}
+			sort.Strings(ss)
+			ss = uniq(ss)
+			ps.Platform[platform] = ss
+		}
+		if len(ps.Platform) == 0 {
+			ps.Platform = nil
+		}
 	}
 }
 
-func remove(ss []string, remove map[string]bool) []string {
+func remove(ss []string, removeSet map[string]bool) []string {
 	var r, w int
 	for r, w = 0, 0; r < len(ss); r++ {
-		if !remove[ss[r]] {
+		if !removeSet[ss[r]] {
 			ss[w] = ss[r]
 			w++
 		}
@@ -338,57 +447,118 @@ var Skip = errors.New("Skip")
 // new PlatformStrings with the results and a slice of errors that f returned.
 // When f returns the error Skip, neither the result nor the error are recorded.
 func (ps *PlatformStrings) Map(f func(string) (string, error)) (PlatformStrings, []error) {
-	result := PlatformStrings{Generic: make([]string, 0, len(ps.Generic))}
 	var errors []error
-	for _, s := range ps.Generic {
-		if r, err := f(s); err != nil {
-			if err != Skip {
-				errors = append(errors, err)
-			}
-		} else {
-			result.Generic = append(result.Generic, r)
-		}
-	}
 
-	if ps.Platform != nil {
-		result.Platform = make(map[string][]string)
-		for n, ss := range ps.Platform {
-			result.Platform[n] = make([]string, 0, len(ss))
-			for _, s := range ss {
-				if r, err := f(s); err != nil {
-					if err != Skip {
-						errors = append(errors, err)
-					}
-				} else {
-					result.Platform[n] = append(result.Platform[n], r)
+	mapSlice := func(ss []string) []string {
+		rs := make([]string, 0, len(ss))
+		for _, s := range ss {
+			if r, err := f(s); err != nil {
+				if err != Skip {
+					errors = append(errors, err)
 				}
+			} else {
+				rs = append(rs, r)
 			}
 		}
+		return rs
 	}
 
+	mapStringMap := func(m map[string][]string) map[string][]string {
+		if m == nil {
+			return nil
+		}
+		rm := make(map[string][]string)
+		for k, ss := range m {
+			ss = mapSlice(ss)
+			if len(ss) > 0 {
+				rm[k] = ss
+			}
+		}
+		if len(rm) == 0 {
+			return nil
+		}
+		return rm
+	}
+
+	mapPlatformMap := func(m map[config.Platform][]string) map[config.Platform][]string {
+		if m == nil {
+			return nil
+		}
+		rm := make(map[config.Platform][]string)
+		for k, ss := range m {
+			ss = mapSlice(ss)
+			if len(ss) > 0 {
+				rm[k] = ss
+			}
+		}
+		if len(rm) == 0 {
+			return nil
+		}
+		return rm
+	}
+
+	result := PlatformStrings{
+		Generic:  mapSlice(ps.Generic),
+		OS:       mapStringMap(ps.OS),
+		Arch:     mapStringMap(ps.Arch),
+		Platform: mapPlatformMap(ps.Platform),
+	}
 	return result, errors
 }
 
 // MapSlice applies a function that processes slices of strings to the strings
 // in "ps" and returns a new PlatformStrings with the results.
 func (ps *PlatformStrings) MapSlice(f func([]string) ([]string, error)) (PlatformStrings, []error) {
-	var result PlatformStrings
 	var errors []error
-	if r, err := f(ps.Generic); err != nil {
-		errors = append(errors, err)
-	} else {
-		result.Generic = r
-	}
-	if ps.Platform != nil {
-		result.Platform = make(map[string][]string)
-		for n, ss := range ps.Platform {
-			if r, err := f(ss); err != nil {
-				errors = append(errors, err)
-			} else {
-				result.Platform[n] = r
-			}
+
+	mapSlice := func(ss []string) []string {
+		rs, err := f(ss)
+		if err != nil {
+			errors = append(errors, err)
+			return nil
 		}
+		return rs
 	}
 
+	mapStringMap := func(m map[string][]string) map[string][]string {
+		if m == nil {
+			return nil
+		}
+		rm := make(map[string][]string)
+		for k, ss := range m {
+			ss = mapSlice(ss)
+			if len(ss) > 0 {
+				rm[k] = ss
+			}
+		}
+		if len(rm) == 0 {
+			return nil
+		}
+		return rm
+	}
+
+	mapPlatformMap := func(m map[config.Platform][]string) map[config.Platform][]string {
+		if m == nil {
+			return nil
+		}
+		rm := make(map[config.Platform][]string)
+		for k, ss := range m {
+			ss = mapSlice(ss)
+			if len(ss) > 0 {
+				rm[k] = ss
+			}
+		}
+		if len(rm) == 0 {
+			return nil
+		}
+		return rm
+	}
+
+	result := PlatformStrings{
+		Generic:  mapSlice(ps.Generic),
+		OS:       mapStringMap(ps.OS),
+		Arch:     mapStringMap(ps.Arch),
+		Platform: mapPlatformMap(ps.Platform),
+	}
 	return result, errors
 }

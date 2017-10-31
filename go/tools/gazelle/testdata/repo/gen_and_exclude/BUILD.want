@@ -6,10 +6,10 @@ go_library(
         "gen.go",
         "static.go",
     ] + select({
-        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+        "@io_bazel_rules_go//go/platform:darwin": [
             "gen_static_darwin.go",
         ],
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
             "gen_linux.go",
         ],
         "//conditions:default": [],
@@ -17,7 +17,7 @@ go_library(
     importpath = "example.com/repo/gen_and_exclude",
     visibility = ["//visibility:public"],
     deps = select({
-        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+        "@io_bazel_rules_go//go/platform:darwin": [
             "@com_github_jr_hacker_darwin//:go_default_library",
         ],
         "//conditions:default": [],

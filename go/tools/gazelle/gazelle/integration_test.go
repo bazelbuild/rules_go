@@ -151,7 +151,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = select({
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
 						# top comment
 						"foo.go",  # side comment
 						# bar comment
@@ -192,7 +192,7 @@ package foo
 go_library(
     name = "go_default_library",
     srcs = select({
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
             # top comment
             # bar comment
             "bar.go",
@@ -203,7 +203,7 @@ go_library(
     importpath = "example.com/foo",
     visibility = ["//visibility:public"],
     deps = select({
-        "@io_bazel_rules_go//go/platform:linux_amd64": [
+        "@io_bazel_rules_go//go/platform:linux": [
             "//outer:go_default_library",
             "//outer/inner:go_default_library",
             "@com_github_jr_hacker_tools//:go_default_library",
@@ -216,7 +216,7 @@ go_library(
 		t.Fatal(err)
 	}
 
-	if err := runGazelle(dir, []string{"-go_prefix", "example.com/foo"}); err != nil {
+	if err := runGazelle(dir, []string{"-go_prefix", "example.com/foo", "-experimental_platforms"}); err != nil {
 		t.Fatal(err)
 	}
 	if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {

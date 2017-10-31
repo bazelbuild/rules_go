@@ -129,7 +129,7 @@ func saveCgo(info *fileInfo, cg *ast.CommentGroup) error {
 			return fmt.Errorf("%s: invalid #cgo line: %s", info.path, orig)
 		}
 		verb := f[len(f)-1]
-		tags := strings.Join(f[:len(f)-1], " ")
+		tags := parseTagsInGroups(f[:len(f)-1])
 
 		// Parse options.
 		opts, err := splitQuoted(optstr)

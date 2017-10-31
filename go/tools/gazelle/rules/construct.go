@@ -23,6 +23,7 @@ import (
 
 	bf "github.com/bazelbuild/buildtools/build"
 	bt "github.com/bazelbuild/buildtools/tables"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/packages"
 )
 
@@ -93,7 +94,8 @@ func newValue(val interface{}) bf.Expr {
 		sort.Sort(byString(rkeys))
 		args := make([]bf.Expr, len(rkeys))
 		for i, rk := range rkeys {
-			k := &bf.StringExpr{Value: rk.String()}
+			label := fmt.Sprintf("@%s//go/platform:%s", config.RulesGoRepoName, mapKeyString(rk))
+			k := &bf.StringExpr{Value: label}
 			v := newValue(rv.MapIndex(rk).Interface())
 			if l, ok := v.(*bf.ListExpr); ok {
 				l.ForceMultiLine = true
@@ -128,25 +130,50 @@ func newValue(val interface{}) bf.Expr {
 			}
 
 		case packages.PlatformStrings:
-			gen := newValue(val.Generic)
-			if len(val.Platform) == 0 {
-				return gen
+			var pieces []bf.Expr
+			if len(val.Generic) > 0 {
+				pieces = append(pieces, newValue(val.Generic))
 			}
-
-			sel := newValue(val.Platform)
-			if len(val.Generic) == 0 {
-				return sel
+			if len(val.OS) > 0 {
+				pieces = append(pieces, newValue(val.OS))
 			}
-
-			if genList, ok := gen.(*bf.ListExpr); ok {
-				genList.ForceMultiLine = true
+			if len(val.Arch) > 0 {
+				pieces = append(pieces, newValue(val.Arch))
 			}
-			return &bf.BinaryExpr{X: gen, Op: "+", Y: sel}
+			if len(val.Platform) > 0 {
+				pieces = append(pieces, newValue(val.Platform))
+			}
+			if len(pieces) == 0 {
+				return &bf.ListExpr{}
+			} else if len(pieces) == 1 {
+				return pieces[0]
+			} else {
+				e := pieces[0]
+				if list, ok := e.(*bf.ListExpr); ok {
+					list.ForceMultiLine = true
+				}
+				for _, piece := range pieces[1:] {
+					e = &bf.BinaryExpr{X: e, Y: piece, Op: "+"}
+				}
+				return e
+			}
 		}
 	}
 
 	log.Panicf("type not supported: %T", val)
 	return nil
+}
+
+func mapKeyString(k reflect.Value) string {
+	switch s := k.Interface().(type) {
+	case string:
+		return s
+	case config.Platform:
+		return s.String()
+	default:
+		log.Panicf("unexpected map key: %v", k)
+		return ""
+	}
 }
 
 type byAttrName []keyvalue
@@ -177,7 +204,7 @@ func (s byString) Len() int {
 }
 
 func (s byString) Less(i, j int) bool {
-	return s[i].String() < s[j].String()
+	return mapKeyString(s[i]) < mapKeyString(s[j])
 }
 
 func (s byString) Swap(i, j int) {

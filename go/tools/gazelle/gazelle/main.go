@@ -310,6 +310,7 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
 	flat := fs.Bool("experimental_flat", false, "whether gazelle should generate a single, combined BUILD file.\nThis mode is experimental and may not work yet.")
 	proto := fs.String("proto", "default", "default: generates new proto rules\n\tdisable: does not touch proto rules\n\tlegacy (deprecated): generates old proto rules")
+	experimentalPlatforms := fs.Bool("experimental_platforms", false, "generates separate select expressions for OS and arch-specific srcs and deps (won't work until Bazel 0.8)")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			usage(fs)
@@ -363,7 +364,6 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	}
 
 	c.SetBuildTags(*buildTags)
-	c.Platforms = config.DefaultPlatformTags
 	c.PreprocessTags()
 
 	if goPrefix.set {
@@ -403,6 +403,8 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	}
 
 	c.KnownImports = append(c.KnownImports, knownImports...)
+
+	c.ExperimentalPlatforms = *experimentalPlatforms
 
 	return &c, cmd, emit, err
 }

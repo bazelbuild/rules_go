@@ -22,6 +22,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 // fileInfo holds information used to decide how to build a file. This
@@ -65,7 +67,7 @@ type fileInfo struct {
 
 	// tags is a list of build tag lines. Each entry is the trimmed text of
 	// a line after a "+build" prefix.
-	tags []string
+	tags []tagLine
 
 	// copts and clinkopts contain flags that are part of CFLAGS, CPPFLAGS,
 	// CXXFLAGS, and LDFLAGS directives in cgo comments.
@@ -75,11 +77,82 @@ type fileInfo struct {
 	hasServices bool
 }
 
+// tagLine represents the space-separated disjunction of build tag groups
+// in a line comment.
+type tagLine []tagGroup
+
+// check returns true if at least one of the tag groups is satisfied.
+func (l tagLine) check(c *config.Config, os, arch string) bool {
+	if len(l) == 0 {
+		return false
+	}
+	for _, g := range l {
+		if g.check(c, os, arch) {
+			return true
+		}
+	}
+	return false
+}
+
+// tagGroup represents a comma-separated conjuction of build tags.
+type tagGroup []string
+
+// check returns true if all of the tags are true. Tags that start with
+// "!" are negated (but "!!") is not allowed. Go release tags (e.g., "go1.8")
+// are ignored. If the group contains an os or arch tag, but the os or arch
+// parameters are empty, check returns false even if the tag is negated.
+func (g tagGroup) check(c *config.Config, os, arch string) bool {
+	for _, t := range g {
+		if strings.HasPrefix(t, "!!") { // bad syntax, reject always
+			return false
+		}
+		not := strings.HasPrefix(t, "!")
+		if not {
+			t = t[1:]
+		}
+		if isReleaseTag(t) {
+			// Release tags are treated as "unknown" and are considered true,
+			// whether or not they are negated.
+			continue
+		}
+		var osSet, archSet map[string]bool
+		if !c.ExperimentalPlatforms {
+			osSet = config.DefaultOSSet
+			archSet = config.DefaultArchSet
+		} else {
+			osSet = config.KnownOSSet
+			archSet = config.KnownArchSet
+		}
+
+		var match bool
+		if _, ok := osSet[t]; ok {
+			if os == "" {
+				return false
+			}
+			match = os == t
+		} else if _, ok := archSet[t]; ok {
+			if arch == "" {
+				return false
+			}
+			match = arch == t
+		} else {
+			match = c.GenericTags[t]
+		}
+		if not {
+			match = !match
+		}
+		if !match {
+			return false
+		}
+	}
+	return true
+}
+
 // taggedOpts a list of compile or link options which should only be applied
 // if the given set of build tags are satisfied. These options have already
 // been tokenized using the same algorithm that "go build" uses.
 type taggedOpts struct {
-	tags string
+	tags tagLine
 	opts []string
 }
 
@@ -252,12 +325,12 @@ func init() {
 	}
 }
 
-// readTags reads and extracts build tags from the block of comments and
-// newlines and blank lines at the start of a file which is separated from the
-// rest of the file by a blank line. Each string in the returned slice is
-// the trimmed text of a line after a "+build" prefix.
+// readTags reads and extracts build tags from the block of comments
+// and blank lines at the start of a file which is separated from the
+// rest of the file by a blank line. Each string in the returned slice
+// is the trimmed text of a line after a "+build" prefix.
 // Based on go/build.Context.shouldBuild.
-func readTags(path string) ([]string, error) {
+func readTags(path string) ([]tagLine, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -287,74 +360,50 @@ func readTags(path string) ([]string, error) {
 	lines = lines[:end]
 
 	// Pass 2: Process each line in the run.
-	var buildComments []string
+	var tagLines []tagLine
 	for _, line := range lines {
 		fields := strings.Fields(line)
 		if len(fields) > 0 && fields[0] == "+build" {
-			buildComments = append(buildComments, strings.Join(fields[1:], " "))
+			tagLines = append(tagLines, parseTagsInGroups(fields[1:]))
 		}
 	}
-	return buildComments, nil
+	return tagLines, nil
 }
 
-// hasConstraints returns true if a file has goos, goarch filename suffixes
-// or build tags.
-func (fi *fileInfo) hasConstraints() bool {
-	return fi.goos != "" || fi.goarch != "" || len(fi.tags) > 0
+func parseTagsInGroups(groups []string) tagLine {
+	var l tagLine
+	for _, g := range groups {
+		l = append(l, tagGroup(strings.Split(g, ",")))
+	}
+	return l
 }
 
-// checkConstraints determines whether a file should be built on a platform
-// with the given tags. It returns true for files without constraints.
-func (fi *fileInfo) checkConstraints(tags map[string]bool) bool {
-	// TODO: linux should match on android.
-	if fi.goos != "" {
-		if _, ok := tags[fi.goos]; !ok {
+// checkConstraints determines whether build constraints are satisfied on
+// a given platform.
+//
+// The first few arguments describe the platform. genericTags is the set
+// of build tags that are true on all platforms. os and arch are the platform
+// GOOS and GOARCH strings. If os or arch is empty, checkConstraints will
+// return false in the presence of OS and architecture constraints, even
+// if they are negated.
+//
+// The remaining arguments describe the file being tested. All of these may
+// be empty or nil. osSuffix and archSuffix are filename suffixes. fileTags
+// is a list tags from +build comments found near the top of the file. cgoTags
+// is an extra set of tags in a #cgo directive.
+func checkConstraints(c *config.Config, os, arch, osSuffix, archSuffix string, fileTags []tagLine, cgoTags tagLine) bool {
+	if osSuffix != "" && osSuffix != os || archSuffix != "" && archSuffix != arch {
+		return false
+	}
+	for _, l := range fileTags {
+		if !l.check(c, os, arch) {
 			return false
 		}
 	}
-	if fi.goarch != "" {
-		if _, ok := tags[fi.goarch]; !ok {
-			return false
-		}
-	}
-
-	for _, line := range fi.tags {
-		if !checkTags(line, tags) {
-			return false
-		}
+	if len(cgoTags) > 0 && !cgoTags.check(c, os, arch) {
+		return false
 	}
 	return true
-}
-
-// checkTags determines whether the build tags on a given line are satisfied.
-// The line should be a whitespace-separated list of groups of comma-separated
-// tags. The constraints are satisfied for the line if any of the groups are
-// satisfied. A group is satisfied if all of the tags in it are true. A tag can
-// be negated with a "!" prefix, but double negatation ("!!") is not allowed.
-func checkTags(line string, tags map[string]bool) bool {
-	// TODO: linux should match on android.
-	lineOk := false
-	for _, group := range strings.Fields(line) {
-		groupOk := true
-		for _, tag := range strings.Split(group, ",") {
-			if strings.HasPrefix(tag, "!!") { // bad syntax, reject always
-				return false
-			}
-			not := strings.HasPrefix(tag, "!")
-			if not {
-				tag = tag[1:]
-			}
-			if isReleaseTag(tag) {
-				// Release tags are treated as "unknown" and are considered true,
-				// whether or not they are negated.
-				continue
-			}
-			_, ok := tags[tag]
-			groupOk = groupOk && (not != ok)
-		}
-		lineOk = lineOk || groupOk
-	}
-	return lineOk
 }
 
 // isReleaseTag returns whether the tag matches the pattern "go[0-9]\.[0-9]+".

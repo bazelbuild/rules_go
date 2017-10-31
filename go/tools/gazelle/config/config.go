@@ -38,9 +38,10 @@ type Config struct {
 	// It should not be nil.
 	GenericTags BuildTags
 
-	// Platforms contains a set of build constraints for each platform. Each set
-	// should include GenericTags. It should not be nil.
-	Platforms PlatformTags
+	// ExperimentalPlatforms determines whether Gazelle generates separate OS-
+	// and arch-specific select expressions for platform-specific strings.
+	// TODO(jayconrod): remove after Bazel 0.8. This will become the only mode.
+	ExperimentalPlatforms bool
 
 	// GoPrefix is the portion of the import path for the root of this repository.
 	// This is used to map imports to labels within the repository.
@@ -81,25 +82,6 @@ func (c *Config) DefaultBuildFileName() string {
 // BuildTags is a set of build constraints.
 type BuildTags map[string]bool
 
-// PlatformTags is a map from config_setting labels (for example,
-// "@io_bazel_rules_go//go/platform:linux_amd64") to a sets of build tags
-// that are true on each platform (for example, "linux,amd64").
-type PlatformTags map[string]BuildTags
-
-// DefaultPlatformTags is the default set of platforms that Gazelle
-// will generate files for. These are the platforms that both Go and Bazel
-// support.
-var DefaultPlatformTags PlatformTags
-
-func init() {
-	DefaultPlatformTags = make(PlatformTags)
-	arch := "amd64"
-	for _, os := range []string{"darwin", "linux", "windows"} {
-		label := fmt.Sprintf("@%s//go/platform:%s_%s", RulesGoRepoName, os, arch)
-		DefaultPlatformTags[label] = BuildTags{arch: true, os: true}
-	}
-}
-
 // SetBuildTags sets GenericTags by parsing as a comma separated list. An
 // error will be returned for tags that wouldn't be recognized by "go build".
 // PreprocessTags should be called after this.
@@ -117,19 +99,14 @@ func (c *Config) SetBuildTags(tags string) error {
 	return nil
 }
 
-// PreprocessTags performs some automatic processing on generic and
-// platform-specific tags before they are used to match files.
+// PreprocessTags adds some tags which are on by default before they are
+// used to match files.
 func (c *Config) PreprocessTags() {
 	if c.GenericTags == nil {
 		c.GenericTags = make(BuildTags)
 	}
 	c.GenericTags["cgo"] = true
 	c.GenericTags["gc"] = true
-	for _, platformTags := range c.Platforms {
-		for t, _ := range c.GenericTags {
-			platformTags[t] = true
-		}
-	}
 }
 
 // DependencyMode determines how imports of packages outside of the prefix

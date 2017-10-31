@@ -21,6 +21,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
 func TestImportPath(t *testing.T) {
@@ -88,6 +90,51 @@ func TestImportPathCmd(t *testing.T) {
 	}
 }
 
+func TestAddPlatformStrings(t *testing.T) {
+	c := &config.Config{ExperimentalPlatforms: true}
+	for _, tc := range []struct {
+		desc, filename string
+		want           PlatformStrings
+	}{
+		{
+			desc:     "generic",
+			filename: "foo.go",
+			want: PlatformStrings{
+				Generic: []string{"foo.go"},
+			},
+		}, {
+			desc:     "os",
+			filename: "foo_linux.go",
+			want: PlatformStrings{
+				OS: map[string][]string{"linux": []string{"foo_linux.go"}},
+			},
+		}, {
+			desc:     "arch",
+			filename: "foo_amd64.go",
+			want: PlatformStrings{
+				Arch: map[string][]string{"amd64": []string{"foo_amd64.go"}},
+			},
+		}, {
+			desc:     "os and arch",
+			filename: "foo_linux_amd64.go",
+			want: PlatformStrings{
+				Platform: map[config.Platform][]string{
+					config.Platform{OS: "linux", Arch: "amd64"}: []string{"foo_linux_amd64.go"},
+				},
+			},
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			fi := fileNameInfo("", "", tc.filename)
+			var got PlatformStrings
+			got.addStrings(c, fi, nil, tc.filename)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("got %#v ; want %#v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestCleanPlatformStrings(t *testing.T) {
 	for _, tc := range []struct {
 		desc     string
@@ -95,32 +142,50 @@ func TestCleanPlatformStrings(t *testing.T) {
 	}{
 		{
 			desc: "empty",
-		},
-		{
+		}, {
 			desc: "sort and uniq",
 			ps: PlatformStrings{
 				Generic: []string{"b", "a", "b"},
-				Platform: map[string][]string{
+				OS: map[string][]string{
 					"linux": []string{"d", "c", "d"},
 				},
 			},
 			want: PlatformStrings{
 				Generic: []string{"a", "b"},
-				Platform: map[string][]string{
+				OS: map[string][]string{
 					"linux": []string{"c", "d"},
 				},
 			},
-		},
-		{
-			desc: "remove generic string from platform",
+		}, {
+			desc: "remove generic string from os",
 			ps: PlatformStrings{
 				Generic: []string{"a"},
-				Platform: map[string][]string{
+				OS: map[string][]string{
 					"linux": []string{"a"},
 				},
 			},
 			want: PlatformStrings{
 				Generic: []string{"a"},
+			},
+		}, {
+			desc: "remove generic os and awrch strings from platform",
+			ps: PlatformStrings{
+				Generic: []string{"a"},
+				OS:      map[string][]string{"linux": []string{"b"}},
+				Arch:    map[string][]string{"amd64": []string{"c"}},
+				Platform: map[config.Platform][]string{
+					config.Platform{OS: "linux", Arch: "arm"}:    []string{"a", "b", "c", "d"},
+					config.Platform{OS: "darwin", Arch: "amd64"}: []string{"a", "b", "c", "d"},
+				},
+			},
+			want: PlatformStrings{
+				Generic: []string{"a"},
+				OS:      map[string][]string{"linux": []string{"b"}},
+				Arch:    map[string][]string{"amd64": []string{"c"}},
+				Platform: map[config.Platform][]string{
+					config.Platform{OS: "linux", Arch: "arm"}:    []string{"c", "d"},
+					config.Platform{OS: "darwin", Arch: "amd64"}: []string{"b", "d"},
+				},
 			},
 		},
 	} {
@@ -144,7 +209,7 @@ func TestMapPlatformStrings(t *testing.T) {
 	}
 	ps := PlatformStrings{
 		Generic: []string{"a", "e1", "s1"},
-		Platform: map[string][]string{
+		OS: map[string][]string{
 			"linux": []string{"b", "e2", "s2"},
 		},
 	}
@@ -152,7 +217,7 @@ func TestMapPlatformStrings(t *testing.T) {
 
 	want := PlatformStrings{
 		Generic: []string{"ax"},
-		Platform: map[string][]string{
+		OS: map[string][]string{
 			"linux": []string{"bx"},
 		},
 	}

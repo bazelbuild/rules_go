@@ -37,7 +37,6 @@ func defaultConfig(dir string) *config.Config {
 		Dirs:                []string{dir},
 		RepoRoot:            dir,
 		GenericTags:         config.BuildTags{},
-		Platforms:           config.DefaultPlatformTags,
 		ValidBuildFileNames: config.DefaultValidBuildFileNames,
 	}
 	c.PreprocessTags()
