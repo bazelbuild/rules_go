@@ -56,21 +56,25 @@ def go_binary_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[]
 def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed=[], gc_goopts=[], cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
   """See go/core.rst#go_test for full documentation."""
   library_name = name + "~library~"
-  go_library(
+  go_library_macro(
       name = library_name,
       visibility = ["//visibility:private"],
-      srcs=srcs,
-      deps=deps,
-      importpath=importpath,
-      library=library,
-      embed=embed,
-      gc_goopts=gc_goopts,
-      testonly=True,
-      tags = ["manual"]
+      srcs = srcs,
+      deps = deps,
+      importpath = importpath,
+      library = library,
+      embed = embed,
+      gc_goopts = gc_goopts,
+      testonly = True,
+      tags = ["manual"],
+      cgo = False, 
+      cdeps = cdeps,
+      copts = copts,
+      clinkopts = clinkopts,
   )
   return go_test(
       name = name,
       library = library_name,
-      gc_goopts=gc_goopts,
+      gc_goopts = gc_goopts,
       **kwargs
   )
