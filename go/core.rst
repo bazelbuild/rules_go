@@ -7,17 +7,15 @@ Core go rules
 .. _build constraints: http://golang.org/pkg/go/build/
 .. _GoLibrary: providers.rst#GoLibrary
 .. _GoEmbed: providers.rst#GoEmbed
+.. _GoArchive: providers.rst#GoArchive
 .. _cgo: http://golang.org/cmd/cgo/
 .. _"Make variable": https://docs.bazel.build/versions/master/be/make-variables.html
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
 .. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
 .. _cc library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
-
-.. |default| replace:: :code:`default`
-.. _static: modes.rst#using-the-race-detector
-.. |static| replace:: :code:`static`
-.. _race: modes.rst#building-static-binaries
-.. |race| replace:: :code:`race`
+.. _pure: modes.rst#pure
+.. _static: modes.rst#static
+.. _mode attributes: modes.rst#mode-attributes
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -61,12 +59,7 @@ Providers
 
 * GoLibrary_
 * GoEmbed_
-
-Output groups
-^^^^^^^^^^^^^
-
-* |default| : A library with the default build options.
-* |race|_ : The library build with race detection enabled.
+* GoArchive_
 
 Attributes
 ^^^^^^^^^^
@@ -176,13 +169,6 @@ Providers
 * GoLibrary_
 * GoEmbed_
 
-Output groups
-^^^^^^^^^^^^^
-
-* |default| : A binary with the default build options.
-* |static|_ : A statically linked binary.
-* |race|_ : The binary with race detection enabled.
-
 Attributes
 ^^^^^^^^^^
 
@@ -226,6 +212,14 @@ Attributes
 | appear in the *.runfiles area of this rule, if it has one. This may include data files needed    |
 | by the binary, or other programs needed by it. See `data dependencies`_ for more information     |
 | about how to depend on and use data files.                                                       |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`pure`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to link in pure_ mode.               |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`static`            | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to link in static_ mode.             |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`gc_goopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -283,11 +277,6 @@ equivalent of ``go test ./...`` from ``go_prefix`` in a ``GOPATH`` tree), run
 
 You can run specific tests by passing the `--test_filter=pattern <test_filter_>`_ argument to Bazel.
 You can pass arguments to tests by passing `--test_arg=arg <test_arg_>`_ arguments to Bazel.
-
-Output groups
-^^^^^^^^^^^^^
-
-* |default| : The test binary.
 
 Attributes
 ^^^^^^^^^^
