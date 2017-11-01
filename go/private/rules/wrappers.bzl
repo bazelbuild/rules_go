@@ -75,6 +75,7 @@ def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed
   return go_test(
       name = name,
       library = library_name,
+      importpath = importpath,
       gc_goopts = gc_goopts,
       **kwargs
   )
