@@ -282,3 +282,29 @@ is just the prefix concatenated with the package name. So if your library is
 We are working on deprecating ``go_prefix`` and making ``importpath`` mandatory (see
 `#721`_). When this work is   complete, the ``go_default_library`` name won't be needed.
 We may decide to stop using this name in the future (see `#265`_).
+
+How do I access testdata?
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Bazel executes tests in a sandbox, which means tests don't automatically have
+access to files. You must include test files using the ``data`` attribute.
+For example, if you want to include everything in the ``testdata`` directory:
+
+.. code:: bzl
+
+  go_test(
+      name = "go_default_test",
+      srcs = ["foo_test.go"],
+      data = glob(["testdata/**"]),
+      importpath = "github.com/example/project/foo",
+  )
+
+By default, tests are run in the directory of the build file that defined them.
+Note that this follows the Go testing convention, not the Bazel convention
+followed by other languages, which run in the repository root. This means
+that you can access test files using relative paths. You can change the test
+directory using the ``rundir`` attribute. See go_test_.
+
+Gazelle will automatically add a ``data`` attribute like the one above if you
+have a ``testdata`` directory *unless* it contains buildable .go files or
+build files, in which case, ``testdata`` is treated as a normal package.
