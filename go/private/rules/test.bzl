@@ -57,7 +57,7 @@ def _go_test_impl(ctx):
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
   go_srcs = list(split_srcs(golib.srcs).go)
-  main_go = ctx.new_file(ctx.label.name + "_main_test.go")
+  main_go = ctx.actions.declare_file(ctx.label.name + "_main_test.go")
   arguments = [
       '--package',
       golib.importpath,

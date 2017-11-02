@@ -26,7 +26,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx)
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  script_file = ctx.new_file(ctx.label.name+".bash")
+  script_file = ctx.actions.declare_file(ctx.label.name+".bash")
   gopath = []
   files = ctx.files.data + stdlib.files
   gopath = []
@@ -35,7 +35,7 @@ Please do not rely on it for production use, but feel free to use it and file is
     entry = data[GoPath]
     gopath += [entry.gopath]
     packages += [package.dir for package in entry.packages]
-  ctx.file_action(output=script_file, executable=True, content="""
+  ctx.actions.write(output=script_file, is_executable=True, content="""
 export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(

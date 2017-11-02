@@ -106,7 +106,7 @@ def _bazel_test_script_impl(ctx):
       work_dir = ctx.attr._settings.scratch_dir + "/" + ctx.attr.config,
       cache_dir = ctx.attr._settings.scratch_dir + "/cache",
   )
-  ctx.file_action(output=script_file, executable=True, content=script_content)
+  ctx.actions.write(output=script_file, is_executable=True, content=script_content)
   return struct(
       files = depset([script_file]),
       runfiles = ctx.runfiles([workspace_file, build_file])
@@ -165,8 +165,8 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
   )
 
 def _md5_sum_impl(ctx):
-  out = ctx.new_file(ctx.label.name+".md5")
-  ctx.action(
+  out = ctx.actions.declare_file(ctx.label.name+".md5")
+  ctx.actions.run(
       inputs = ctx.files.srcs,
       outputs = [out],
       executable = ctx.file._md5sum,

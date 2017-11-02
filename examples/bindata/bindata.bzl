@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 
 def _bindata_impl(ctx):
-  out = ctx.new_file(ctx.label.name + ".go")
+  out = ctx.actions.declare_file(ctx.label.name + ".go")
   arguments = [
       "-o", out.path,
       "-pkg", ctx.attr.package,
@@ -11,7 +11,7 @@ def _bindata_impl(ctx):
     arguments += ["-nocompress"]
   if not ctx.attr.metadata:
     arguments += ["-nometadata"]
-  ctx.action(
+  ctx.actions.run(
     inputs = ctx.files.srcs,
     outputs = [out],
     executable = ctx.file._bindata,

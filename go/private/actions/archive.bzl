@@ -78,12 +78,12 @@ def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=
   lib_name = golib.importpath + ".a"
   compilepath = golib.importpath if importable else None
   out_dir = "~{}~{}~".format(mode_string(mode), ctx.label.name)
-  out_lib = ctx.new_file("{}/{}".format(out_dir, lib_name))
+  out_lib = ctx.actions.declare_file("{}/{}".format(out_dir, lib_name))
   searchpath = out_lib.path[:-len(lib_name)]
 
   extra_objects = []
   for src in source.asm:
-    obj = ctx.new_file(src, "{}/{}.o".format(out_dir, src.basename[:-2]))
+    obj = ctx.actions.declare_file("{}/{}.o".format(out_dir, src.basename[:-2]))
     go_toolchain.actions.asm(ctx, go_toolchain, mode=mode, source=src, hdrs=source.headers, out_obj=obj)
     extra_objects += [obj]
   archive = goembed.cgo_info.archive if goembed.cgo_info else None
@@ -106,7 +106,7 @@ def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=
         gc_goopts = goembed.gc_goopts,
     )
   else:
-    partial_lib = ctx.new_file("{}/~partial.a".format(out_dir))
+    partial_lib = ctx.actions.declare_file("{}/~partial.a".format(out_dir))
     go_toolchain.actions.compile(ctx,
         go_toolchain = go_toolchain,
         sources = source.go,
