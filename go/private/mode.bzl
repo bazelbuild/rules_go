@@ -37,19 +37,19 @@ def mode_string(mode):
     result.append(mode.link)
   return "_".join(result)
 
-def _ternary_mode(values):
+def _ternary(*values):
   for v in values:
     if v == None: continue
     if type(v) == "bool": return v
     if type(v) != "string": fail("Invalid value type {}".format(type(v)))
     v = v.lower()
-    if v in ["true", "on", "yes"]: return True
-    if v in ["false", "off", "no"]: return False
-    if v in ["auto"]: continue
+    if v == "on": return True
+    if v == "off": return False
+    if v == "auto": continue
     fail("Invalid value {}".format(v))
+  fail("_ternary failed to produce a final result from {}".format(values))
 
 def get_mode(ctx):
-
   force_pure = None
   if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
     if ctx.toolchains["@io_bazel_rules_go//go:toolchain"].cross_compile:
@@ -68,21 +68,21 @@ def get_mode(ctx):
     elif toolchain_flags.strip == "sometimes":
       strip = not debug
   return struct(
-      static = _ternary_mode([
+      static = _ternary(
           getattr(ctx.attr, "static", None),
           "static" in features,
-      ]),
-      race = _ternary_mode([
+      ),
+      race = _ternary(
           "race" in features,
-      ]),
-      msan = _ternary_mode([
+      ),
+      msan = _ternary(
           "msan" in features,
-      ]),
-      pure = _ternary_mode([
+      ),
+      pure = _ternary(
           getattr(ctx.attr, "pure", None),
           force_pure,
           "pure" in features,
-      ]),
+      ),
       link = LINKMODE_NORMAL,
       debug = debug,
       strip = strip,

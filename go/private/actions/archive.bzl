@@ -39,8 +39,11 @@ def _go_archive_aspect_impl(target, ctx):
   if goarchive.mode == mode:
     return [GoAspectArchive(archive = goarchive)]
 
-  direct = [get_archive(dep) for dep in ctx.rule.attr.deps]
-  direct.extend([get_archive(dep) for dep in ctx.rule.attr.embed])
+  direct = []
+  for dep in ctx.rule.attr.deps:
+    direct.extend(get_archive(dep).direct)
+  for dep in ctx.rule.attr.embed:
+    direct.extend(get_archive(dep).direct)
   if ctx.rule.attr.library: direct.append(get_archive(ctx.rule.attr.library))
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
