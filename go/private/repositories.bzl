@@ -16,8 +16,9 @@
 
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
-load('@io_bazel_rules_go//go/private:rules/stdlib.bzl', "STDLIB_GOOS_GOARCH", "go_stdlib")
+load('@io_bazel_rules_go//go/private:rules/stdlib.bzl', "go_stdlib")
 load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', "go_register_toolchains")
+load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 
 def go_rules_dependencies():
   """See /go/workspace.rst#go-rules-dependencies for full documentation."""
@@ -40,7 +41,7 @@ def go_rules_dependencies():
       type = "zip",
   )
 
-  for goos, goarch in STDLIB_GOOS_GOARCH:
+  for goos, goarch in GOOS_GOARCH:
     _maybe(go_stdlib,
         name = "go_stdlib_{}_{}_cgo".format(goos, goarch),
         goos = goos,

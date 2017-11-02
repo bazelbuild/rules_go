@@ -1,17 +1,8 @@
 load('//go/private:go_toolchain.bzl', 'go_toolchain')
 load('//go/private:toolchain.bzl', 'go_download_sdk', 'go_host_sdk')
+load("//go/platform:list.bzl", "GOOS_GOARCH")
 
 DEFAULT_VERSION = "1.9.2"
-
-HOST_TARGETS = (
-    ("darwin_amd64",  ["linux_amd64",]),
-    ("linux_386",     []),
-    ("linux_amd64",   ["windows_amd64",]),
-    ("windows_386",   []),
-    ("windows_amd64", []),
-    ("freebsd_386",   []),
-    ("freebsd_amd64", []),
-)
 
 SDK_REPOSITORIES = {
     "1.9.2": {
@@ -110,8 +101,10 @@ SDK_REPOSITORIES = {
 def _generate_toolchains():
   # Use all the above information to generate all the possible toolchains we might support
   toolchains = []
-  for host, cross in HOST_TARGETS:
-    for target in [host] + cross:
+  for host_goos, host_goarch in GOOS_GOARCH:
+    host = "{}_{}".format(host_goos, host_goarch)
+    for target_goos, target_goarch in GOOS_GOARCH:
+      target = "{}_{}".format(target_goos, target_goarch)
       toolchain_name = "go_{}".format(host)
       if host != target:
         toolchain_name += "_cross_" + target

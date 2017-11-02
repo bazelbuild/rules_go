@@ -16,19 +16,6 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoStdLib",
 )
 
-STDLIB_GOOS_GOARCH = [
-    ("darwin", "amd64"),
-    ("linux", "386"),
-    ("linux", "amd64"),
-    ("linux", "armv6l"),
-    ("windows", "386"),
-    ("windows", "amd64"),
-    ("freebsd", "386"),
-    ("freebsd", "amd64"),
-    ("linux", "ppc64le"),
-    ("linux", "s390x"),
-]
-
 _STDLIB_BUILD = """
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
 
