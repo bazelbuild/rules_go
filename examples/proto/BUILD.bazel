@@ -15,6 +15,7 @@ go_test(
     size = "small",
     srcs = ["proto_test.go"],
     deps = [
+        "//examples/proto/embed:go_default_library",
         "//examples/proto/lib:go_default_library",
     ],
 )

@@ -18,6 +18,7 @@ package proto
 import (
 	"testing"
 
+	embed "github.com/bazelbuild/rules_go/examples/proto/embed"
 	lib_proto "github.com/bazelbuild/rules_go/examples/proto/lib/lib_proto"
 )
 
@@ -25,6 +26,12 @@ func TestProto(t *testing.T) {
 	p := lib_proto.LibObject{AreYouSure: 20}
 	sure := p.GetAreYouSure()
 	if sure != 20 {
-		t.Errorf("got %d, want 20", p.GetAreYouSure())
+		t.Errorf("got %d, want 20", sure)
+	}
+}
+
+func TestEmbed(t *testing.T) {
+	if embed.OtherThing().A != 42 {
+		t.Errorf("Unable to call method from embedded go files")
 	}
 }
