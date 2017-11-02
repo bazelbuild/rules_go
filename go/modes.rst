@@ -21,29 +21,21 @@ The `command line`_ sets defaults that affect all rules, but explicit settings o
 a rule always override the command line. Not all build modes can be controlled
 in both places.
 
-The mode structure
-~~~~~~~~~~~~~~~~~~
-
-The build mode structure is handed to all low level go build action. It has the
-following fields that control the bevhaviour of those actions:
-
-* static_
-* race_
-* msan_
-* pure_
-* link_
-* debug_
-* strip_
 
 Command line
 ~~~~~~~~~~~~
 
 On the command line, there are a few mechanisms that influence the build mode.
 
---features             Controls race_, static_, msan_ and pure_, see features_
---cpu                  Controls GOOS_ GOARCH_, also forces pure_ for cross compilation
---compilation_mode     Controls debug_ and strip_
---strip                Controls strip_
++---------------------+------------------------------------------------------------------+
+| --features          | Controls race_, static_, msan_ and pure_, see features_          |
++---------------------+------------------------------------------------------------------+
+| --cpu               | Controls GOOS_ GOARCH_, also forces pure_ for cross compilation  |
++---------------------+------------------------------------------------------------------+
+| --compilation_mode  | Controls debug_ and strip_                                       |
++---------------------+------------------------------------------------------------------+
+| --strip             |  Controls strip_                                                 |
++---------------------+------------------------------------------------------------------+
 
 
 Features
@@ -74,14 +66,28 @@ but are shared between leaves building in the same mode.
 Currently only static_ and pure_ can be specified as attributes.
 Both of these can take one of the values "on", "off" or "auto", and "auto" is the default.
 
-on
-  Forces the feature to be turned on for this binary.
-off
-  This forces the feature to be turned off for the binary even if it is enabled on
-  the command line.
-auto
-  The default, it means obey whatever the command line suggests.
++--------------+-------------------------------------------------------------------------+
+| on           | Forces the feature to be turned on for this binary.                     |
++--------------+-------------------------------------------------------------------------+
+| off          | This forces the feature to be turned off for the binary even if it is   |
+|              | enabled on the command line.                                            |
++--------------+-------------------------------------------------------------------------+
+| auto         | The default, it means obey whatever the command line suggests.          |
++--------------+-------------------------------------------------------------------------+
 
+The mode structure
+~~~~~~~~~~~~~~~~~~
+
+The build mode structure is handed to all low level go build action. It has the
+following fields that control the bevhaviour of those actions:
+
+* static_
+* race_
+* msan_
+* pure_
+* link_
+* debug_
+* strip_
 
 Build modes
 -----------
@@ -119,16 +125,17 @@ link
 
 Controls the linking mode, must be one of
 
-normal
-    This is the default, builds executables.
-shared
-    Links to a shared go library.
-c-shared
-    Links to a shared c library.
-pie
-    Links a position independent executables
-plugin
-    Links to a go plugin.
++--------------+------------------------------------------------------------------+
+| normal       | This is the default, builds executables.                         |
++--------------+------------------------------------------------------------------+
+| shared       | Links to a shared go library.                                    |
++--------------+------------------------------------------------------------------+
+| c-shared     | Links to a shared c library.                                     |
++--------------+------------------------------------------------------------------+
+| pie          | Links a position independent executables                         |
++--------------+------------------------------------------------------------------+
+| plugin       | Links to a go plugin.                                            |
++--------------+------------------------------------------------------------------+
 
 debug
 ~~~~~

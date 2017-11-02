@@ -216,10 +216,12 @@ Attributes
 | :param:`pure`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to link in pure_ mode.               |
+| It should be one of :value:`on`, :value:`off` or :value:`auto`.
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`static`            | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to link in static_ mode.             |
+| It should be one of :value:`on`, :value:`off` or :value:`auto`.
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`gc_goopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
