@@ -115,7 +115,7 @@ def _bazel_test_script_impl(ctx):
   ctx.actions.write(output=script_file, is_executable=True, content=script_content)
   return struct(
       files = depset([script_file]),
-      runfiles = ctx.runfiles([workspace_file, build_file])
+      runfiles = ctx.runfiles([workspace_file, build_file], collect_data=True)
   )
 
 
@@ -131,6 +131,7 @@ _bazel_test_script = rule(
         "build": attr.string(),
         "check": attr.string(),
         "config": attr.string(default="isolate"),
+        "data": attr.label_list(allow_files = True, cfg = "data"),
         "_bazelrc": attr.label(allow_files=True, single_file=True, default="@bazel_test//:bazelrc"),
         "_settings": attr.label(default = Label("@bazel_test//:settings")),
         "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
@@ -142,7 +143,7 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
   script_name = name+"_script"
   externals = externals + [
       "@io_bazel_rules_go//:AUTHORS",
-      "@local_config_cc//:cc_wrapper",
+      "@local_config_cc//:toolchain",
   ]
   if go_version == None or go_version == CURRENT_VERSION:
       externals.append("@go_sdk//:packages.txt")

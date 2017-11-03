@@ -91,7 +91,7 @@ def _prepare(ctx):
   # OPT: just list directories under src instead of running "go list". No
   # need to read all source files. We need a portable way to run code though.
   result = env_execute(ctx,
-     arguments = ["bin/go", "list", "..."],
+     arguments = ["bin/go"+executable_extension(ctx), "list", "..."],
      environment = {"GOROOT": str(ctx.path("."))},
   )
   if result.return_code != 0:

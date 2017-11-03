@@ -15,6 +15,9 @@
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoStdLib",
 )
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "paths",
+)
 
 _STDLIB_BUILD = """
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
@@ -63,12 +66,10 @@ def _stdlib_impl(ctx):
       continue
     else:
       cleaned_linker_options.append(s)
-  compiler_options_string = "\"" + " ".join(cleaned_compiler_options) + "\""
-  linker_options_string= "\"" + " ".join(cleaned_linker_options) + "\""
   linker_path, _ = cpp.ld_executable.rsplit("/", 1)
   ctx.actions.write(root_file, "")
   cc_path = cpp.compiler_executable
-  if not cpp.compiler_executable.startswith("/"):
+  if not paths.is_absolute(cc_path):
     cc_path = "$(pwd)/" + cc_path
   env = {
       "GOROOT": "$(pwd)/{}".format(goroot),
@@ -78,8 +79,8 @@ def _stdlib_impl(ctx):
       "CC": cc_path,
       "CXX": cc_path,
       "COMPILER_PATH": linker_path,
-      "CGO_CPPFLAGS": compiler_options_string,
-      "CGO_LDFLAGS": linker_options_string,
+      "CGO_CPPFLAGS": " ".join(cleaned_compiler_options),
+      "CGO_LDFLAGS": " ".join(cleaned_linker_options),
   }
   inputs = ctx.files._host_sdk + [root_file]
   inputs.extend(ctx.files._host_tools)
@@ -93,7 +94,7 @@ def _stdlib_impl(ctx):
       outputs = [go, src, pkg],
       mnemonic = "GoStdlib",
       command = " && ".join([
-          "export " + " ".join(["{}={}".format(key, value) for key, value in env.items()]),
+          "export " + " ".join(['{}="{}"'.format(key, value) for key, value in env.items()]),
           "mkdir -p {}".format(src.path),
           "mkdir -p {}".format(pkg.path),
           "cp {}/bin/{} {}".format(sdk, go.basename, go.path),

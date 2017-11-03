@@ -103,14 +103,16 @@ def env_execute(ctx, arguments, environment = {}, **kwargs):
   are removed from the environment. This should be preferred to "ctx.execut"e
   in most situations.
   """
-  env_args = ["env", "-i"]
-  environment = dict(environment)
-  for var in ["TMP", "TMPDIR"]:
-    if var in ctx.os.environ and not var in environment:
-      environment[var] = ctx.os.environ[var]
-  for k, v in environment.items():
-    env_args.append("%s=%s" % (k, v))
-  return ctx.execute(env_args + arguments, **kwargs)
+  if not ctx.os.name.startswith('windows'):
+    env_args = ["env", "-i"]
+    environment = dict(environment)
+    for var in ["TMP", "TMPDIR"]:
+      if var in ctx.os.environ and not var in environment:
+        environment[var] = ctx.os.environ[var]
+    for k, v in environment.items():
+      env_args.append("%s=%s" % (k, v))
+    arguments = env_args + arguments
+  return ctx.execute(arguments, **kwargs)
 
 def to_set(v):
   if type(v) == "depset":

@@ -57,18 +57,19 @@ def _go_repository_impl(ctx):
     # TODO(yugui): support submodule?
     # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
     _fetch_repo = "@io_bazel_rules_go_repository_tools//:bin/fetch_repo{}".format(executable_extension(ctx))
-    result = env_execute(
-        ctx,
-        [
-            ctx.path(Label(_fetch_repo)),
-            '--dest', ctx.path(''),
-            '--remote', ctx.attr.remote,
-            '--rev', rev,
-            '--vcs', ctx.attr.vcs,
-            '--importpath', ctx.attr.importpath,
-        ],
-        environment = fetch_repo_env,
-    )
+    args = [
+        ctx.path(Label(_fetch_repo)), 
+        '--dest', ctx.path(''),
+    ]
+    if ctx.attr.remote:
+        args.extend(['--remote', ctx.attr.remote])
+    if rev:
+        args.extend(['--rev', rev])
+    if ctx.attr.vcs:
+        args.extend(['--vcs', ctx.attr.vcs])
+    if ctx.attr.importpath:
+        args.extend(['--importpath', ctx.attr.importpath])
+    result = env_execute(ctx, args, environment = fetch_repo_env)
     if result.return_code:
       fail("failed to fetch %s: %s" % (ctx.name, result.stderr))
 
