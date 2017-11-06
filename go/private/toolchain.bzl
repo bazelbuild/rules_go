@@ -132,7 +132,6 @@ def _sdk_build_file(ctx):
   ctx.file("ROOT")
   ctx.template("BUILD.bazel",
       Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
-      substitutions = {"{extension}": executable_extension(ctx)},
       executable = False,
   )
 

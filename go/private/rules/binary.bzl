@@ -36,20 +36,19 @@ def _go_binary_impl(ctx):
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
   gosource = collect_src(ctx)
-  executable = ctx.outputs.executable
-  golib, goarchive = go_toolchain.actions.binary(ctx, go_toolchain,
+  golib, goarchive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       importpath = go_importpath(ctx),
       source = gosource,
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
-      executable = executable,
   )
   return [
       golib, gosource, goarchive,
       DefaultInfo(
           files = depset([executable]),
           runfiles = goarchive.runfiles,
+          executable = executable,
       ),
   ]
 

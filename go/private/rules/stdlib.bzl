@@ -30,19 +30,19 @@ stdlib(
 """
 
 def _stdlib_impl(ctx):
-  go = ctx.actions.declare_file("bin/go") # TODO: .exe
   src = ctx.actions.declare_directory("src")
   pkg = ctx.actions.declare_directory("pkg")
   root_file = ctx.actions.declare_file("ROOT")
-  files = [root_file, go, pkg]
   goroot = root_file.path[:-(len(root_file.basename)+1)]
   sdk = ""
   for f in ctx.files._host_sdk:
-    prefix, found, _  = f.path.partition("bin/go")
+    prefix, found, extension  = f.path.partition("bin/go")
     if found:
       sdk = prefix
   if not sdk:
     fail("Could not find go executable in go_sdk")
+  go = ctx.actions.declare_file("bin/go" + extension)
+  files = [root_file, go, pkg]
   cpp = ctx.fragments.cpp
   features = ctx.features
   options = (cpp.compiler_options(features) +
