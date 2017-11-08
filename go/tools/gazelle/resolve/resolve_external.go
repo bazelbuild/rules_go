@@ -18,6 +18,7 @@ package resolve
 import (
 	"fmt"
 	"path"
+	"regexp"
 	"strings"
 
 	"golang.org/x/tools/go/vcs"
@@ -50,7 +51,6 @@ func newExternalResolver(l Labeler, extraKnownImports []string) *externalResolve
 		{prefix: "google.golang.org", missing: 1},
 		{prefix: "cloud.google.com", missing: 1},
 		{prefix: "github.com", missing: 2},
-		{prefix: "gopkg.in", missing: 1},
 	} {
 		cache[e.prefix] = e
 	}
@@ -86,6 +86,8 @@ func (r *externalResolver) resolve(importpath string) (Label, error) {
 	return label, nil
 }
 
+var gopkginPattern = regexp.MustCompile("^(gopkg.in/(?:[^/]+/)?[^/]+\\.v\\d+)(?:/|$)")
+
 // lookupPrefix determines the prefix of "importpath" that corresponds to
 // the root of the repository. Results are cached.
 func (r *externalResolver) lookupPrefix(importpath string) (string, error) {
@@ -115,6 +117,12 @@ func (r *externalResolver) lookupPrefix(importpath string) (string, error) {
 			break
 		}
 		subpaths = append(subpaths, prefix)
+	}
+
+	// gopkg.in is special, and might have either one or two levels of
+	// missing paths. See http://labix.org/gopkg.in for URL patterns.
+	if match := gopkginPattern.FindStringSubmatch(importpath); len(match) > 0 {
+		return match[1], nil
 	}
 
 	// Look up the import path using vcs.
