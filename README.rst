@@ -82,6 +82,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 * test sharding
+* building on Windows
 
 :Note: The latest version of these rules (0.7.0) require Bazel ≥ 0.6.0 to
   work.
