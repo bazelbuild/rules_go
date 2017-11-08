@@ -34,14 +34,14 @@ def get_archive(dep):
   return dep[GoArchive]
 
 def _go_archive_aspect_impl(target, ctx):
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.rule.attr._go_toolchain_flags)
   goarchive = target[GoArchive]
   if goarchive.mode == mode:
     return [GoAspectArchive(archive = goarchive)]
 
   direct = []
   for dep in ctx.rule.attr.deps:
-    direct.extend(get_archive(dep).direct)
+    direct.append(get_archive(dep))
   for dep in ctx.rule.attr.embed:
     direct.extend(get_archive(dep).direct)
   if ctx.rule.attr.library: direct.append(get_archive(ctx.rule.attr.library))

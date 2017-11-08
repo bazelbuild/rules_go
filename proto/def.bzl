@@ -22,7 +22,7 @@ def _go_proto_library_impl(ctx):
     importpath = importpath,
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,

@@ -49,7 +49,7 @@ def _ternary(*values):
     fail("Invalid value {}".format(v))
   fail("_ternary failed to produce a final result from {}".format(values))
 
-def get_mode(ctx):
+def get_mode(ctx, toolchain_flags):
   force_pure = None
   if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
     if ctx.toolchains["@io_bazel_rules_go//go:toolchain"].cross_compile:
@@ -57,8 +57,6 @@ def get_mode(ctx):
       force_pure = True
 
   #TODO: allow link mode selection
-  features = ctx.features if ctx != None else []
-  toolchain_flags = getattr(ctx.attr, "_go_toolchain_flags", None)
   debug = False
   strip = True
   if toolchain_flags:
@@ -70,18 +68,18 @@ def get_mode(ctx):
   return struct(
       static = _ternary(
           getattr(ctx.attr, "static", None),
-          "static" in features,
+          "static" in ctx.features,
       ),
       race = _ternary(
-          "race" in features,
+          "race" in ctx.features,
       ),
       msan = _ternary(
-          "msan" in features,
+          "msan" in ctx.features,
       ),
       pure = _ternary(
           getattr(ctx.attr, "pure", None),
           force_pure,
-          "pure" in features,
+          "pure" in ctx.features,
       ),
       link = LINKMODE_NORMAL,
       debug = debug,

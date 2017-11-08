@@ -57,7 +57,7 @@ def _select_archive(files):
 
 def _cgo_codegen_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   if not stdlib.cgo_tools:
     fail("Go toolchain does not support cgo")
@@ -161,13 +161,14 @@ _cgo_codegen = rule(
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
         "out_dir": attr.string(mandatory = True),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _cgo_import_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   args = [
       "-dynout", ctx.outputs.out.path,
       "-dynimport", ctx.file.cgo_o.path,
@@ -199,6 +200,7 @@ _cgo_import = rule(
         "out": attr.output(
             mandatory = True,
         ),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

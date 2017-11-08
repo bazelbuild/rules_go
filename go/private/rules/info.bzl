@@ -21,7 +21,7 @@ load("@io_bazel_rules_go//go/private:actions/action.bzl",
 
 def _go_info_script_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   out = ctx.actions.declare_file(ctx.label.name+".bash")
   action_with_go_env(ctx, go_toolchain, mode,
       inputs = [],
@@ -39,12 +39,13 @@ def _go_info_script_impl(ctx):
 _go_info_script = rule(
     _go_info_script_impl,
     attrs = {
-      "_go_info": attr.label(
-          allow_files = True,
-          single_file = True,
-          executable = True,
-          cfg = "host",
-          default="@io_bazel_rules_go//go/tools/builders:info")
+        "_go_info": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default="@io_bazel_rules_go//go/tools/builders:info"),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

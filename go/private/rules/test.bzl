@@ -44,7 +44,7 @@ def _go_test_impl(ctx):
   test into a binary."""
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   golib = ctx.attr.library[GoLibrary]
 
   # now generate the main function
