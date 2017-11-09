@@ -290,6 +290,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   # into binaries that depend on this cgo_library. It will also be used
   # in _cgo_.o.
   platform_copts = select({
+      "@io_bazel_rules_go//go/platform:darwin_amd64": [],
       "@io_bazel_rules_go//go/platform:windows_amd64": ["-mthreads"],
       "//conditions:default": ["-pthread"],
   })
