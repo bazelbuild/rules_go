@@ -45,7 +45,7 @@ def _go_embed_data_impl(ctx):
     args += ["-string"]
   args += [f.path for f in srcs]
 
-  ctx.action(
+  ctx.actions.run(
       outputs = [ctx.outputs.out],
       inputs = srcs,
       executable = ctx.executable._embed,

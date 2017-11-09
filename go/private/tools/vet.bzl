@@ -24,9 +24,9 @@ EXPERIMENTAL: the go_vet_test rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  script_file = ctx.new_file(ctx.label.name+".bash")
+  script_file = ctx.actions.declare_file(ctx.label.name+".bash")
   gopath = []
   files = ctx.files.data + stdlib.files
   gopath = []
@@ -35,7 +35,7 @@ Please do not rely on it for production use, but feel free to use it and file is
     entry = data[GoPath]
     gopath += [entry.gopath]
     packages += [package.dir for package in entry.packages]
-  ctx.file_action(output=script_file, executable=True, content="""
+  ctx.actions.write(output=script_file, is_executable=True, content="""
 export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
@@ -52,6 +52,7 @@ _go_vet_generate = rule(
     _go_vet_generate_impl,
     attrs = {
         "data": attr.label_list(providers=[GoPath], cfg = "data"),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

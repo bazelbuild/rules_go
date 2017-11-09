@@ -55,13 +55,13 @@ and
         # If we see the same path twice, it's a fatal error
         fail("Duplicate path {}".format(outpath))
       seen_paths[outpath] = True
-      out = ctx.new_file(outpath)
+      out = ctx.actions.declare_file(outpath)
       package_files += [out]
       outputs += [out]
       if ctx.attr.mode == "copy":
-        ctx.template_action(template=src, output=out, substitutions={})
+        ctx.actions.expand_template(template=src, output=out, substitutions={})
       elif ctx.attr.mode == "link":
-        ctx.action(
+        ctx.actions.run_shell(
             command='ln -s $(readlink "$1") "$2"',
             arguments=[src.path, out.path],
             inputs=[src],
@@ -74,9 +74,9 @@ and
       dir = outdir,
       files = package_files,
     )]
-  tag = ctx.new_file("{}/setenv.sh".format(ctx.label.name))
+  tag = ctx.actions.declare_file("{}/setenv.sh".format(ctx.label.name))
   gopath, _, _ = tag.short_path.rpartition("/")
-  ctx.file_action(tag, content="")
+  ctx.actions.write(tag, content="")
   return [
       DefaultInfo(
           files = outputs + [tag],

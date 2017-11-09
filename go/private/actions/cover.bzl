@@ -36,7 +36,7 @@ def emit_cover(ctx, go_toolchain,
 
     cover_var = "Cover_" + src.basename[:-3].replace("-", "_").replace(".", "_")
     cover_vars += ["{}={}".format(cover_var,src.short_path)]
-    out = ctx.new_file(cover_var + '.cover.go')
+    out = ctx.actions.declare_file(cover_var + '.cover.go')
     outputs += [out]
     action_with_go_env(ctx, go_toolchain, mode,
         inputs = [src],

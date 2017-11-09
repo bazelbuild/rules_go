@@ -13,10 +13,10 @@
 # limitations under the License.
 
 def _impl(ctx):
-  ctx.file_action(
+  ctx.actions.write(
       output = ctx.outputs.executable,
       content = "",
-      executable = True,
+      is_executable = True,
   )
 
 single_output_test = rule(

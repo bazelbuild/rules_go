@@ -34,7 +34,7 @@ def _go_library_impl(ctx):
   if ctx.attr.library:
     embed = embed + [ctx.attr.library]
   cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,

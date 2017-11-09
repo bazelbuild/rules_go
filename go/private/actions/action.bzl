@@ -23,7 +23,7 @@ def action_with_go_env(ctx, go_toolchain, mode, executable = None, command=None,
       "-goarch", stdlib.goarch,
       "-cgo=" + ("0" if mode.pure else "1"),
   ] + arguments
-  ctx.action(
+  ctx.actions.run(
       inputs = depset(inputs) + stdlib.files,
       executable = executable,
       arguments = args,
