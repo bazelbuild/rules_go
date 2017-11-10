@@ -44,7 +44,8 @@ def _go_archive_aspect_impl(target, ctx):
     direct.append(get_archive(dep))
   for dep in ctx.rule.attr.embed:
     direct.extend(get_archive(dep).direct)
-  if ctx.rule.attr.library: direct.append(get_archive(ctx.rule.attr.library))
+  if ctx.rule.attr.library: 
+    direct.append(get_archive(ctx.rule.attr.library))
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   goarchive = go_toolchain.actions.archive(ctx,
@@ -63,6 +64,8 @@ go_archive_aspect = aspect(
     attrs = {
         "pure": attr.string(values=["on", "off", "auto"], default="auto"),
         "static": attr.string(values=["on", "off", "auto"], default="auto"),
+        "msan": attr.string(values=["on", "off", "auto"], default="auto"),
+        "race": attr.string(values=["on", "off", "auto"], default="auto"),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

@@ -14,15 +14,23 @@ go_binary(
 )
 
 go_test(
-    name = "go_default_test",
+    name = "race_auto_test",
     size = "small",
     srcs = ["race_test.go"],
-    library = ":go_default_library",
+    embed = [":go_default_library"],
+)
+
+go_test(
+    name = "race_on_test",
+    size = "small",
+    srcs = ["race_test.go"],
+    embed = [":go_default_library"],
     tags = ["manual"],
+    race = "on",
 )
 
 bazel_test(
-    name = "race",
+    name = "race_feature",
     args = ["--features=race"],
     check = """
 if [ "$result" -eq 0 ]; then
@@ -33,5 +41,19 @@ else
 fi
 """,
     command = "test",
-    targets = [":go_default_test"],
+    targets = [":race_auto_test"],
+)
+
+bazel_test(
+    name = "race_on",
+    check = """
+if [ "$result" -eq 0 ]; then
+  echo "error: test succeeded unexpectedly" >&2
+  result=1
+else
+  result=0
+fi
+""",
+    command = "test",
+    targets = [":race_on_test"],
 )

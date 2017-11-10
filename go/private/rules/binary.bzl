@@ -73,6 +73,8 @@ go_binary = rule(
         "embed": attr.label_list(providers = [GoEmbed], aspects = [go_archive_aspect]),
         "pure": attr.string(values=["on", "off", "auto"], default="auto"),
         "static": attr.string(values=["on", "off", "auto"], default="auto"),
+        "race": attr.string(values=["on", "off", "auto"], default="auto"),
+        "msan": attr.string(values=["on", "off", "auto"], default="auto"),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),

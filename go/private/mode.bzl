@@ -71,9 +71,11 @@ def get_mode(ctx, toolchain_flags):
           "static" in ctx.features,
       ),
       race = _ternary(
+          getattr(ctx.attr, "race", None),
           "race" in ctx.features,
       ),
       msan = _ternary(
+          getattr(ctx.attr, "msan", None),
           "msan" in ctx.features,
       ),
       pure = _ternary(
