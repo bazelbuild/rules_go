@@ -190,9 +190,18 @@ once gazelle_ fully supports flat build files.
 | * :value:`"on"` : always run gazelle, even if build files are already present.                   |
 | * :value:`"auto"` : run gazelle only if there is no root build file.                             |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`build_tags`            | :type:`string_list`         | :value:``                         |
+| :param:`build_tags`            | :type:`string_list`         | :value:`""`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The set of tags to pass to gazelle when generating build files.                                  |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`build_file_proto_mode` | :type:`string`              | :value:`default`                  |
++--------------------------------+-----------------------------+-----------------------------------+
+| How Gazelle should generate proto rules.                                                         |
+|                                                                                                  |
+| * :value:`"default"` : generate ``proto_library`` and ``go_proto_library`` rules, ignore         |
+|   .pb.go files.                                                                                  |
+| * :value:`"disable"` : ignore .proto files. Treat .pb.go files as normal sources.                |
+| * :value:`"legacy"` : generate ``filegroup`` rules for .proto files.                             |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 Example
