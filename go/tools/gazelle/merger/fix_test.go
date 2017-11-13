@@ -177,7 +177,7 @@ go_library(
 # after cgo_library
 `,
 		},
-		// fixLegacyProto tests
+		// removeLegacyProto tests
 		{
 			desc: "current proto preserved",
 			old: `load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
@@ -219,10 +219,41 @@ go_proto_library(name = "foo_proto")
 			want: `go_proto_library(name = "foo_proto")
 `,
 		},
+		// migrateLibraryEmbed tests
+		{
+			desc: "library migrated to embed",
+			old: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["foo_test.go"],
+    library = ":go_default_library",
+)
+`,
+			want: `load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["foo.go"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["foo_test.go"],
+    embed = [":go_default_library"],
+)
+`,
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			fix := func(f *bf.File) *bf.File {
-				return FixFile(&config.Config{}, f)
+				c := &config.Config{}
+				return FixFile(c, FixFileMinor(c, f))
 			}
 			testFix(t, tc, fix)
 		})

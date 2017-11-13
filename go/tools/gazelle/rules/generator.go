@@ -162,7 +162,7 @@ func (g *Generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	// This is blocked by bazelbuild/bazel#3575.
 	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
 	if library != "" {
-		attrs = append(attrs, keyvalue{"library", ":" + library})
+		attrs = append(attrs, keyvalue{"embed", []string{":" + library}})
 	}
 	return newRule("go_binary", attrs)
 }
@@ -183,7 +183,7 @@ func (g *Generator) generateLib(pkg *packages.Package, goProtoName string) (stri
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Library)
 	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
 	if goProtoName != "" {
-		attrs = append(attrs, keyvalue{"library", ":" + goProtoName})
+		attrs = append(attrs, keyvalue{"embed", []string{":" + goProtoName}})
 	}
 
 	rule := newRule("go_library", attrs)
@@ -234,7 +234,7 @@ func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest 
 	// This is blocked by bazelbuild/bazel#3575.
 	attrs = append(attrs, keyvalue{"importpath", importpath})
 	if library != "" {
-		attrs = append(attrs, keyvalue{"library", ":" + library})
+		attrs = append(attrs, keyvalue{"embed", []string{":" + library}})
 	}
 	if pkg.HasTestdata {
 		glob := globvalue{patterns: []string{path.Join(g.buildPkgRel(pkg.Rel), "testdata/**")}}

@@ -10,7 +10,7 @@ go_library(
 
 go_binary(
     name = "bin",
+    embed = [":go_default_library"],
     importpath = "example.com/repo/bin",
-    library = ":go_default_library",
     visibility = ["//visibility:public"],
 )

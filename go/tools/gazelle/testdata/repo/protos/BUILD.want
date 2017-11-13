@@ -25,7 +25,7 @@ go_proto_library(
 go_library(
     name = "go_default_library",
     srcs = ["extra.go"],
+    embed = [":protos_go_proto"],
     importpath = "example.com/repo/protos",
-    library = ":protos_go_proto",
     visibility = ["//visibility:public"],
 )

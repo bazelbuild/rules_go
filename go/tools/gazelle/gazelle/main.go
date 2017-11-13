@@ -210,6 +210,7 @@ func (v *visitorBase) mergeAndEmit(c *config.Config, genFile, oldFile *bf.File, 
 	}
 
 	// Existing file. Fix it or see if it needs fixing before merging.
+	oldFile = merger.FixFileMinor(c, oldFile)
 	if c.ShouldFix {
 		oldFile = merger.FixFile(c, oldFile)
 	} else {

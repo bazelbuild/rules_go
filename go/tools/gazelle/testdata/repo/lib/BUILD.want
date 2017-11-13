@@ -16,8 +16,8 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["lib_test.go"],
+    embed = [":go_default_library"],
     importpath = "example.com/repo/lib",
-    library = ":go_default_library",
 )
 
 go_test(

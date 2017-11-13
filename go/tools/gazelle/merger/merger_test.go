@@ -52,7 +52,7 @@ go_test(
         "parse_test.go",
     ],
     data = glob(["testdata/*"]),
-    library = ":go_default_library",
+    embed = [":go_default_library"],
 )
 `,
 		current: `
@@ -74,7 +74,7 @@ go_test(
         "parse_test.go",
         "print_test.go",
     ],
-    library = ":go_default_library",
+    embed = [":go_default_library"],
 )
 `,
 		expected: `
@@ -99,7 +99,7 @@ go_test(
         "print_test.go",
     ],
     data = glob(["testdata/*"]),
-    library = ":go_default_library",
+    embed = [":go_default_library"],
 )
 `},
 	{
@@ -520,7 +520,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    library = ":lib",  # keep
+    embed = [":lib"],  # keep
 )
 `,
 		current: `
@@ -535,7 +535,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    library = ":lib",  # keep
+    embed = [":lib"],  # keep
 )
 `,
 	}, {
@@ -699,7 +699,7 @@ go_library(
 go_binary(
     name = "old",
     srcs = ["bin.go"],
-    library = ":go_default_library",
+    embed = [":go_default_library"],
 )
 `,
 		current: `

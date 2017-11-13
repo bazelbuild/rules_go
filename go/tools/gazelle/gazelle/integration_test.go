@@ -618,8 +618,8 @@ go_test(
     name = "b_test",
     srcs = ["b/b_test.go"],
     data = glob(["b/testdata/**"]),
+    embed = [":b"],
     importpath = "example.com/foo/b",
-    library = ":b",
     rundir = "b",
 )
 
@@ -654,8 +654,8 @@ go_library(
 
 go_binary(
     name = "c_cmd",
+    embed = [":c"],
     importpath = "example.com/foo/c",
-    library = ":c",
     visibility = ["//visibility:public"],
 )
 `,
@@ -830,8 +830,8 @@ go_proto_library(
 
 go_library(
     name = "go_default_library",
+    embed = [":repo_go_proto"],
     importpath = "example.com/repo",
-    library = ":repo_go_proto",
     visibility = ["//visibility:public"],
 )
 `,
@@ -887,8 +887,8 @@ go_proto_library(
 go_library(
     name = "go_default_library",
     srcs = ["extra.go"],
+    embed = [":repo_go_proto"],
     importpath = "example.com/repo",
-    library = ":repo_go_proto",
     visibility = ["//visibility:public"],
 )
 `,
@@ -947,8 +947,8 @@ go_proto_library(
 
 go_library(
     name = "go_default_library",
+    embed = [":repo_go_proto"],
     importpath = "example.com/repo",
-    library = ":repo_go_proto",
     visibility = ["//visibility:public"],
 )
 `,
@@ -988,8 +988,8 @@ proto_library(
 
 go_library(
     name = "go_default_library",
+    embed = [":repo_go_proto"],
     importpath = "example.com/repo",
-    library = ":repo_go_proto",
     visibility = ["//visibility:public"],
 )
 

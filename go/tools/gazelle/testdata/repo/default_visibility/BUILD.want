@@ -8,13 +8,13 @@ go_library(
 
 go_binary(
     name = "default_visibility",
+    embed = [":go_default_library"],
     importpath = "example.com/repo/default_visibility",
-    library = ":go_default_library",
 )
 
 go_test(
     name = "go_default_test",
     srcs = ["a_test.go"],
+    embed = [":go_default_library"],
     importpath = "example.com/repo/default_visibility",
-    library = ":go_default_library",
 )

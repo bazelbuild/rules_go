@@ -34,8 +34,8 @@ var (
 		"clinkopts":  true,
 		"copts":      true,
 		"deps":       true,
+		"embed":      true,
 		"importpath": true,
-		"library":    true,
 		"proto":      true,
 		"srcs":       true,
 	}
