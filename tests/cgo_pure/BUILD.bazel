@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "cgo_pure",
+    srcs = [
+        "cgo.c",
+        "cgo.go",
+        "common.go",
+        "pure.go",
+    ],
+    cgo = True,
+)
+
+go_test(
+    name = "cgo_test",
+    size = "small",
+    srcs = ["cgo_pure_test.go"],
+    deps = [":cgo_pure"],
+    x_defs = {
+        "github.com/bazelbuild/rules_go/tests/cgo_pure.Expect": "2",
+    },
+)
+
+go_test(
+    name = "pure_test",
+    size = "small",
+    srcs = ["cgo_pure_test.go"],
+    deps = [":cgo_pure"],
+    pure = "on",
+    x_defs = {
+        "github.com/bazelbuild/rules_go/tests/cgo_pure.Expect": "1",
+    },
+    tags = ["manual"], #TODO: remove this once it passes, see #1009
+)
