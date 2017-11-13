@@ -57,17 +57,17 @@ def _select_archive(files):
 
 def _cgo_codegen_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   if not stdlib.cgo_tools:
     fail("Go toolchain does not support cgo")
   linkopts = ctx.attr.linkopts[:]
   copts = stdlib.cgo_tools.c_options + ctx.attr.copts
   deps = depset([], order="topological")
-  cgo_export_h = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.h")
-  cgo_export_c = ctx.new_file(ctx.attr.out_dir + "/_cgo_export.c")
-  cgo_main = ctx.new_file(ctx.attr.out_dir + "/_cgo_main.c")
-  cgo_types = ctx.new_file(ctx.attr.out_dir + "/_cgo_gotypes.go")
+  cgo_export_h = ctx.actions.declare_file(ctx.attr.out_dir + "/_cgo_export.h")
+  cgo_export_c = ctx.actions.declare_file(ctx.attr.out_dir + "/_cgo_export.c")
+  cgo_main = ctx.actions.declare_file(ctx.attr.out_dir + "/_cgo_main.c")
+  cgo_types = ctx.actions.declare_file(ctx.attr.out_dir + "/_cgo_gotypes.go")
   out_dir = cgo_main.dirname
 
   cc = stdlib.cgo_tools.compiler_executable
@@ -81,19 +81,19 @@ def _cgo_codegen_impl(ctx):
       copts += ['-iquote', src.dirname]
   for src in source.go:
     mangled_stem, src_ext = _mangle(ctx, src)
-    gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
-    gen_c_file = ctx.new_file(mangled_stem + ".cgo2.c")
+    gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
+    gen_c_file = ctx.actions.declare_file(mangled_stem + ".cgo2.c")
     go_outs += [gen_file]
     c_outs += [gen_c_file]
     args += ["-src", gen_file.path + "=" + src.path]
   for src in source.asm:
     mangled_stem, src_ext = _mangle(ctx, src)
-    gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+    gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
     go_outs += [gen_file]
     args += ["-src", gen_file.path + "=" + src.path]
   for src in source.c:
     mangled_stem, src_ext = _mangle(ctx, src)
-    gen_file = ctx.new_file(mangled_stem + ".cgo1."+src_ext)
+    gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
     c_outs += [gen_file]
     args += ["-src", gen_file.path + "=" + src.path]
 
@@ -161,13 +161,14 @@ _cgo_codegen = rule(
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
         "out_dir": attr.string(mandatory = True),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _cgo_import_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   args = [
       "-dynout", ctx.outputs.out.path,
       "-dynimport", ctx.file.cgo_o.path,
@@ -199,6 +200,7 @@ _cgo_import = rule(
         "out": attr.output(
             mandatory = True,
         ),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
