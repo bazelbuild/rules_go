@@ -13,6 +13,11 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+load("//go/private:skylib/lib/dicts.bzl", "dicts")
+load("//go/private:skylib/lib/paths.bzl", "paths")
+load("//go/private:skylib/lib/sets.bzl", "sets")
+load("//go/private:skylib/lib/shell.bzl", "shell")
+load("//go/private:skylib/lib/structs.bzl", "structs")
 
 DEFAULT_LIB = "go_default_library"
 VENDOR_PREFIX = "/vendor/"
@@ -64,16 +69,6 @@ def pkg_dir(workspace_root, package_name):
   if package_name:
     return package_name
   return "."
-
-def dict_of(st):
-  """Converts struct objects into dictionaries."""
-  data = dict()
-  for key in dir(st):
-    value = getattr(st, key, None)
-    if value != None: # skip methods
-      data[key] = value
-  return data
-
 
 def split_srcs(srcs):
   go = depset()

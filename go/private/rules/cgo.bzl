@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "dict_of",
     "split_srcs",
     "join_srcs",
     "pkg_dir"

@@ -13,9 +13,9 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "dict_of",
     "split_srcs",
     "join_srcs",
+    "structs",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
@@ -87,7 +87,7 @@ def emit_library(ctx, go_toolchain,
     go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, sources=go_srcs, mode=mode)
     cover_vars += cvars
 
-  transformed = dict_of(source)
+  transformed = structs.to_dict(source)
   transformed["go"] = go_srcs
 
   build_srcs = join_srcs(struct(**transformed))
