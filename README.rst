@@ -19,6 +19,9 @@ Go rules for Bazel_
 .. _#265: https://github.com/bazelbuild/rules_go/issues/265
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
+.. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
+.. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
+.. _Travis configuration file: .travis.yml
 
 .. ;; And now we continue with the actual content
 
@@ -307,3 +310,50 @@ directory using the ``rundir`` attribute. See go_test_.
 Gazelle will automatically add a ``data`` attribute like the one above if you
 have a ``testdata`` directory *unless* it contains buildable .go files or
 build files, in which case, ``testdata`` is treated as a normal package.
+
+How do I run Bazel on Travis CI?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+References:
+
+* `Running Bazel Tests on Travis CI`_ by Kevin Burke
+* `korfuri/bazel-travis Use Bazel with Travis CI`_
+* Our own `Travis configuration file`_
+
+In order to run Bazel tests on Travis CI, you'll need to install Bazel in the
+``before_install`` script. See our configuration file linked above.
+
+You'll want to run Bazel with a number of flags to prevent it from consuming
+a huge amount of memory in the test environment.
+
+* ``--batch``: Don't start the Bazel server.
+* ``--host_jvm_args=-Xmx500m --host_jvm_args=-Xms500m``: Set the maximum and
+  initial JVM heap size. Keeping the same means the JVM won't spend time
+  growing the heap. The choice of heap size is somewhat arbitrary; other
+  configuration files recommend limits as high as 2500m. Higher values mean
+  a faster build, but higher risk of OOM kill.
+* ``--bazelrc=.test-bazelrc``: Use a Bazel configuration file specific to
+  Travis CI. You can put most of the remaining options in here.
+* ``build --spawn_strategy=standalone --genrule_strategy=standalone``: Disable
+  sandboxing for the build. Sandboxing may fail inside of Travis's containers
+  because the ``mount`` system call is not permitted.
+* ``test --test_strategy=standalone``: Disable sandboxing for tests as well.
+* ``--local_resources=1536,1.5,0.5``: Set Bazel limits on available RAM in MB,
+  available cores for compute, and available cores for I/O. Higher values
+  mean a faster build, but higher contention and risk of OOM kill.
+* ``--noshow_progress``: Suppress progress messages in output for cleaner logs.
+* ``--verbose_failures``: Get more detailed failure messages.
+* ``--test_output=errors``: Show test stderr in the Travis log. Normally,
+  test output is written log files which Travis does not save or report.
+
+Downloads on Travis are relatively slow (the network is heavily
+contended), so you'll want to minimize the amount of network I/O in
+your build. Downloading Bazel and a Go SDK is a huge part of that. To
+avoid downloading a Go SDK, you may request a container with a
+preinstalled version of Go in your ``.travis.yml`` file, then call
+``go_rules_dependencies(go_version = "host")`` in a Travis-specific
+``WORKSPACE`` file.
+
+You may be tempted to put Bazel's cache in your Travis cache. Although this
+can speed up your build significantly, Travis stores its cache on Amazon, and
+it takes a very long time to transfer. Clean builds seem faster in practice.
