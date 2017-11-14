@@ -149,6 +149,7 @@ def _cgo_codegen_impl(ctx):
       ),
       OutputGroupInfo(
           go_files = to_set(go_outs),
+          input_go_files = to_set(source.go),
           c_files = sets.union(c_outs, source.headers),
           main_c = to_set([cgo_main]),
       ),
@@ -220,26 +221,42 @@ Args:
   out: Destination of the generated codes.
 """
 
+def _pure(ctx, mode):
+    return mode.pure
+
+def _not_pure(ctx, mode):
+    return not mode.pure
+
 def _cgo_collect_info_impl(ctx):
   codegen = ctx.attr.codegen[_CgoCodegen]
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
   return [
       DefaultInfo(files = depset(), runfiles = runfiles),
-      sources.new(
-          srcs = ctx.files.gen_go_srcs,
-          runfiles = runfiles,
-          cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
-          cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
-          cgo_archive = _select_archive(ctx.files.lib),
-          want_coverage = ctx.coverage_instrumented(), #TODO: not all sources?
-      ),
+      sources.merge([
+          sources.new(
+              srcs = ctx.files.gen_go_srcs,
+              runfiles = runfiles,
+              cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
+              cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
+              cgo_archive = _select_archive(ctx.files.lib),
+              want_coverage = ctx.coverage_instrumented(), #TODO: not all sources?
+              exclude = _pure,
+          ),
+          sources.new(
+              srcs = ctx.files.input_go_srcs,
+              runfiles = runfiles,
+              want_coverage = ctx.coverage_instrumented(), #TODO: not all sources?
+              exclude = _not_pure,
+          ),
+      ]),
   ]
 
 _cgo_collect_info = rule(
     _cgo_collect_info_impl,
     attrs = {
         "codegen": attr.label(mandatory = True, providers = [_CgoCodegen]),
+        "input_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
         "gen_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
         "lib": attr.label(mandatory = True, providers = ["cc"]),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
@@ -277,6 +294,14 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       name = select_go_files,
       srcs = [cgo_codegen_name],
       output_group = "go_files",
+      visibility = ["//visibility:private"],
+  )
+
+  select_input_go_files = name + ".select_input_go_files"
+  native.filegroup(
+      name = select_input_go_files,
+      srcs = [cgo_codegen_name],
+      output_group = "input_go_files",
       visibility = ["//visibility:private"],
   )
 
@@ -349,6 +374,9 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   _cgo_collect_info(
       name = cgo_embed_name,
       codegen = cgo_codegen_name,
+      input_go_srcs = [
+          select_input_go_files,
+      ],
       gen_go_srcs = [
           select_go_files,
           cgo_import_name,

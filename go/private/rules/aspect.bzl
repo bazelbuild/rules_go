@@ -79,10 +79,10 @@ go_archive_aspect = aspect(
     _go_archive_aspect_impl,
     attr_aspects = ["deps", "embed"],
     attrs = {
-        "pure": attr.string(values=["on", "off", "auto"], default="auto"),
-        "static": attr.string(values=["on", "off", "auto"], default="auto"),
-        "msan": attr.string(values=["on", "off", "auto"], default="auto"),
-        "race": attr.string(values=["on", "off", "auto"], default="auto"),
+        "pure": attr.string(values=["on", "off", "auto"]),
+        "static": attr.string(values=["on", "off", "auto"]),
+        "msan": attr.string(values=["on", "off", "auto"]),
+        "race": attr.string(values=["on", "off", "auto"]),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

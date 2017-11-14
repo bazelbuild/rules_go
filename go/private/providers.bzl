@@ -39,7 +39,7 @@ def _merge_runfiles(a, b):
   if not b: return a
   return a.merge(b)
 
-def _source_build_entry(srcs = [], deps = [], gc_goopts=[], runfiles=None, cgo_deps=[], cgo_exports=[], cgo_archive=None, want_coverage = False, source = None):
+def _source_build_entry(srcs = [], deps = [], gc_goopts=[], runfiles=None, cgo_deps=[], cgo_exports=[], cgo_archive=None, want_coverage = False, source = None, exclude = None):
   """Creates a new GoSource from a collection of values and an optional GoSourceList to merge in."""
   for e in (source.entries if source else []):
     srcs = srcs + e.srcs
@@ -62,6 +62,7 @@ def _source_build_entry(srcs = [], deps = [], gc_goopts=[], runfiles=None, cgo_d
       cgo_exports = cgo_exports,
       cgo_archive = cgo_archive,
       want_coverage = want_coverage,
+      exclude = exclude,
   )
 
 def _source_new(**kwargs):
@@ -79,9 +80,13 @@ def _source_flatten(ctx, source):
   """Flattens a GoSourceList to a single GoSource ready for use."""
   return _source_build_entry(source = source)
 
+def _source_filter(ctx, source, mode):
+  return GoSourceList(entries = [s for s in source.entries if not (s.exclude and s.exclude(ctx, mode))])
+
 sources = struct(
   new = _source_new,
   merge = _source_merge,
   flatten = _source_flatten,
+  filter = _source_filter,
 )
 """sources holds the functions for manipulating GoSourceList providers."""

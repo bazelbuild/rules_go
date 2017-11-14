@@ -35,6 +35,7 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, source=None, imp
   if source == None: fail("source is a required parameter")
   if mode == None: fail("mode is a required parameter")
 
+  source = sources.filter(ctx, source, mode)
 
   cover_vars = []
   if ctx.configuration.coverage_enabled:

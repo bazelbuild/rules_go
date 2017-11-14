@@ -30,5 +30,4 @@ go_test(
     x_defs = {
         "github.com/bazelbuild/rules_go/tests/cgo_pure.Expect": "1",
     },
-    tags = ["manual"], #TODO: remove this once it passes, see #1009
 )
