@@ -57,7 +57,7 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-  go_srcs = list(split_srcs(golib.srcs).go)
+  go_srcs = split_srcs(golib.srcs).go
   main_go = ctx.actions.declare_file(ctx.label.name + "_main_test.go")
   arguments = ctx.actions.args()
   add_go_env(arguments, stdlib, mode)
@@ -70,10 +70,8 @@ def _go_test_impl(ctx):
       main_go,
   ])
   cover_vars = []
-  covered_libs = []
   for g in depset([golib]) + golib.transitive: #TODO: this is an ugly list to walk
     if g.cover_vars:
-      covered_libs += [g]
       for var in g.cover_vars:
         arguments.add(["-cover", "{}={}".format(var, g.importpath)])
   arguments.add(go_srcs)

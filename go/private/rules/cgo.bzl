@@ -15,7 +15,9 @@
 load("@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
     "join_srcs",
-    "pkg_dir"
+    "pkg_dir",
+    "sets",
+    "to_set",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
@@ -74,49 +76,49 @@ def _cgo_codegen_impl(ctx):
   add_go_env(args, stdlib, mode)
   args.add(["-cc", str(cc), "-objdir", out_dir])
 
-  c_outs = depset([cgo_export_h, cgo_export_c])
-  go_outs = depset([cgo_types])
+  c_outs = [cgo_export_h, cgo_export_c]
+  go_outs = [cgo_types]
 
   source = split_srcs(ctx.files.srcs)
   for src in source.headers:
-      copts += ['-iquote', src.dirname]
+      copts.extend(['-iquote', src.dirname])
   for src in source.go:
     mangled_stem, src_ext = _mangle(ctx, src)
     gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
     gen_c_file = ctx.actions.declare_file(mangled_stem + ".cgo2.c")
-    go_outs += [gen_file]
-    c_outs += [gen_c_file]
+    go_outs.append(gen_file)
+    c_outs.append(gen_c_file)
     args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.asm:
     mangled_stem, src_ext = _mangle(ctx, src)
     gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
-    go_outs += [gen_file]
+    go_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.c:
     mangled_stem, src_ext = _mangle(ctx, src)
     gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
-    c_outs += [gen_file]
+    c_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
 
-  inputs = ctx.files.srcs + go_toolchain.data.crosstool + stdlib.files
+  inputs = sets.union(ctx.files.srcs, go_toolchain.data.crosstool, stdlib.files)
   runfiles = ctx.runfiles(collect_data = True)
   for d in ctx.attr.deps:
-    inputs += list(d.cc.transitive_headers)
-    deps += d.cc.libs
+    inputs = sets.union(inputs, d.cc.transitive_headers)
+    deps = sets.union(deps, d.cc.libs)
     runfiles = runfiles.merge(d.data_runfiles)
-    copts += ['-D' + define for define in d.cc.defines]
+    copts.extend(['-D' + define for define in d.cc.defines])
     for inc in d.cc.include_directories:
-      copts += ['-I', inc]
+      copts.extend(['-I', inc])
     for inc in d.cc.quote_include_directories:
-      copts += ['-iquote', inc]
+      copts.extend(['-iquote', inc])
     for inc in d.cc.system_include_directories:
-      copts += ['-isystem', inc]
+      copts.extend(['-isystem', inc])
     for lib in d.cc.libs:
       if lib.basename.startswith('lib') and lib.basename.endswith('.so'):
-        linkopts += ['-L', lib.dirname, '-l', lib.basename[3:-3]]
+        linkopts.extend(['-L', lib.dirname, '-l', lib.basename[3:-3]])
       else:
-        linkopts += [lib.path]
-    linkopts += d.cc.link_flags
+        linkopts.append(lib.path)
+    linkopts.extend(d.cc.link_flags)
 
   # The first -- below is to stop the cgo from processing args, the
   # second is an actual arg to forward to the underlying go tool
@@ -124,7 +126,7 @@ def _cgo_codegen_impl(ctx):
   args.add(copts)
   ctx.actions.run(
       inputs = inputs,
-      outputs = list(c_outs + go_outs + [cgo_main]),
+      outputs = c_outs + go_outs + [cgo_main],
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go_toolchain.tools.cgo,
@@ -136,19 +138,19 @@ def _cgo_codegen_impl(ctx):
 
   return [
       _CgoCodegen(
-          go_files = go_outs,
-          main_c = depset([cgo_main]),
+          go_files = to_set(go_outs),
+          main_c = to_set([cgo_main]),
           deps = deps,
-          exports = depset([cgo_export_h]),
+          exports = to_set([cgo_export_h]),
       ),
       DefaultInfo(
           files = depset(),
           runfiles = runfiles,
       ),
       OutputGroupInfo(
-          go_files = go_outs,
-          c_files = c_outs + source.headers,
-          main_c = depset([cgo_main]),
+          go_files = to_set(go_outs),
+          c_files = sets.union(c_outs, source.headers),
+          main_c = to_set([cgo_main]),
       ),
   ]
 

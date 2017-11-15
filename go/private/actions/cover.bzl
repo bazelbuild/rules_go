@@ -33,13 +33,13 @@ def emit_cover(ctx, go_toolchain,
     if (not src.basename.endswith(".go") or
         src.basename.endswith("_test.go") or
         src.basename.endswith(".cover.go")):
-      outputs += [src]
+      outputs.append(src)
       continue
 
     cover_var = "Cover_" + src.basename[:-3].replace("-", "_").replace(".", "_")
-    cover_vars += ["{}={}".format(cover_var,src.short_path)]
+    cover_vars.append("{}={}".format(cover_var,src.short_path))
     out = ctx.actions.declare_file(cover_var + '.cover.go')
-    outputs += [out]
+    outputs.append(out)
     args = ctx.actions.args()
     add_go_env(args, stdlib, mode)
     args.add(["--", "--mode=set", "-var=%s" % cover_var, "-o", out, src])
@@ -51,4 +51,4 @@ def emit_cover(ctx, go_toolchain,
         arguments = [args],
     )
 
-  return outputs, tuple(cover_vars)
+  return outputs, cover_vars

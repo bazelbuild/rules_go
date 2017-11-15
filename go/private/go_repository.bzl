@@ -86,8 +86,8 @@ def _go_repository_impl(ctx):
             "--external", ctx.attr.build_external,
             "--proto", ctx.attr.build_file_proto_mode]
     if ctx.attr.build_file_name:
-        cmds += ["--build_file_name", ctx.attr.build_file_name]
-    cmds += [ctx.path('')]
+        cmds.extend(["--build_file_name", ctx.attr.build_file_name])
+    cmds.append(ctx.path(''))
     result = env_execute(ctx, cmds)
     if result.return_code:
       fail("failed to generate BUILD files for %s: %s" % (

@@ -15,6 +15,10 @@
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "add_go_env",
 )
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "to_set",
+    "sets",
+)
 
 def emit_asm(ctx, go_toolchain,
     source = None,
@@ -28,8 +32,8 @@ def emit_asm(ctx, go_toolchain,
   if mode == None: fail("mode is a required parameter")
 
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  includes = depset([stdlib.root_file.dirname + "/pkg/include"])
-  includes += [f.dirname for f in hdrs]
+  includes = to_set([stdlib.root_file.dirname + "/pkg/include"])
+  includes = sets.union(includes, [f.dirname for f in hdrs])
   inputs = hdrs + stdlib.files + [source]
 
   asm_args = ctx.actions.args()
@@ -37,7 +41,7 @@ def emit_asm(ctx, go_toolchain,
   asm_args.add([source.path, "-o", out_obj])
   asm_args.add(includes, before_each="-I")
   ctx.actions.run(
-      inputs = list(inputs),
+      inputs = inputs,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
       executable = go_toolchain.tools.asm,

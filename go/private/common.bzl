@@ -71,26 +71,26 @@ def pkg_dir(workspace_root, package_name):
   return "."
 
 def split_srcs(srcs):
-  go = depset()
-  headers = depset()
-  asm = depset()
-  c = depset()
+  go = []
+  headers = []
+  asm = []
+  c = []
   for src in srcs:
     if any([src.basename.endswith(ext) for ext in go_exts]):
-      go += [src]
+      go.append(src)
     elif any([src.basename.endswith(ext) for ext in hdr_exts]):
-      headers += [src]
+      headers.append(src)
     elif any([src.basename.endswith(ext) for ext in asm_exts]):
-      asm += [src]
+      asm.append(src)
     elif any([src.basename.endswith(ext) for ext in c_exts]):
-      c += [src]
+      c.append(src)
     else:
       fail("Unknown source type {0}".format(src.basename))
   return struct(
-      go = go,
-      headers = headers,
-      asm = asm,
-      c = c,
+      go = to_set(go),
+      headers = to_set(headers),
+      asm = to_set(asm),
+      c = to_set(c),
   )
 
 def join_srcs(source):
@@ -137,5 +137,10 @@ def env_execute(ctx, arguments, environment = None, **kwargs):
   env_args = ["env", "-i"]
   if environment:
     for k, v in environment.items():
-      env_args += ["%s=%s" % (k, v)]
+      env_args.append("%s=%s" % (k, v))
   return ctx.execute(env_args + arguments, **kwargs)
+
+def to_set(v):
+  if type(v) == "depset":
+    fail("Do not pass a depset to to_depset")
+  return depset(v)

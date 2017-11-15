@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "sets",
+    "to_set",
+)
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_NORMAL",
 )
@@ -41,37 +45,38 @@ def emit_link(ctx, go_toolchain,
   extldflags = []
   if stdlib.cgo_tools:
     ld = stdlib.cgo_tools.compiler_executable
-    extldflags = list(stdlib.cgo_tools.options)
-  extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)]
+    extldflags.extend(stdlib.cgo_tools.options)
+  extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)])
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   # Add in any mode specific behaviours
   if mode.race:
-    gc_linkopts += ["-race"]
+    gc_linkopts.append("-race")
   if mode.msan:
-    gc_linkopts += ["-msan"]
+    gc_linkopts.append("-msan")
   if mode.static:
-    gc_linkopts = gc_linkopts + ["-linkmode", "external"]
+    gc_linkopts.extend(["-linkmode", "external"])
     extldflags.append("-static")
   if mode.link != LINKMODE_NORMAL:
     fail("Link mode {} is not yet supported".format(mode.link))
 
-  libs = depset([archive.file])
+  libs = to_set([archive.file])
   link_opts = ["-L", "."]
   cgo_deps = depset()
   for a in archive.transitive:
-    libs += [a.file]
-    link_opts += ["-L", a.searchpath]
+    libs = sets.union(libs, [a.file])
+    link_opts.extend(["-L", a.searchpath])
     if a.embed.cgo_info:
-      cgo_deps += a.embed.cgo_info.deps
+      cgo_deps = sets.union(cgo_deps, a.embed.cgo_info.deps)
 
   for d in cgo_deps:
     if d.basename.endswith('.so'):
       short_dir = d.dirname[len(d.root.path):]
-      extldflags += ["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir]
+      extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir])
 
-  link_opts += ["-o", executable.path] + gc_linkopts
+  link_opts.extend(["-o", executable.path])
+  link_opts.extend(gc_linkopts)
 
   # Process x_defs, either adding them directly to linker options, or
   # saving them to process through stamping support.
@@ -80,18 +85,18 @@ def emit_link(ctx, go_toolchain,
     if v.startswith("{") and v.endswith("}"):
       stamp_x_defs[k] = v[1:-1]
     else:
-      link_opts += ["-X", "%s=%s" % (k, v)]
+      link_opts.extend(["-X", "%s=%s" % (k, v)])
 
   link_opts.extend(go_toolchain.flags.link)
   if mode.strip:
     link_opts.extend(["-w"])
 
   if ld:
-    link_opts += [
+    link_opts.extend([
         "-extld", ld,
         "-extldflags", " ".join(extldflags),
-    ]
-  link_opts += [archive.file.path]
+    ])
+  link_opts.append(archive.file.path)
   link_args = ctx.actions.args()
   add_go_env(link_args, stdlib, mode)
   # Stamping support
@@ -111,8 +116,8 @@ def emit_link(ctx, go_toolchain,
   link_args.add(link_opts)
 
   ctx.actions.run(
-      inputs = list(libs + cgo_deps +
-                go_toolchain.data.crosstool + stamp_inputs + stdlib.files),
+      inputs = sets.union(libs, cgo_deps,
+                go_toolchain.data.crosstool, stamp_inputs, stdlib.files),
       outputs = [executable],
       mnemonic = "GoLink",
       executable = go_toolchain.tools.link,
@@ -134,9 +139,11 @@ def bootstrap_link(ctx, go_toolchain,
   if x_defs:  fail("link does not accept x_defs in bootstrap mode")
 
   inputs = depset([archive.file])
-  args = ["tool", "link", "-o", executable.path] + list(gc_linkopts) + [archive.file.path]
+  args = ["tool", "link", "-o", executable.path]
+  args.extend(gc_linkopts)
+  args.append(archive.file.path)
   bootstrap_action(ctx, go_toolchain,
-      inputs = list(inputs),
+      inputs = inputs,
       outputs = [executable],
       mnemonic = "GoCompile",
       arguments = args,
@@ -159,10 +166,10 @@ def _extract_extldflags(gc_linkopts, extldflags):
   for opt in gc_linkopts:
     if is_extldflags:
       is_extldflags = False
-      extldflags += [opt]
+      extldflags.append(opt)
     elif opt == "-extldflags":
       is_extldflags = True
     else:
-      filtered_gc_linkopts += [opt]
+      filtered_gc_linkopts.append(opt)
   return filtered_gc_linkopts, extldflags
 

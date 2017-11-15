@@ -1,3 +1,21 @@
+# Copyright 2014 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "sets",
+)
+
 _protoc_prefix = "protoc-gen-"
 
 def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpath):
@@ -5,7 +23,7 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
   outpath = None
   for proto in lib.proto.direct_sources:
     out = ctx.actions.declare_file(ctx.label.name + "/" + importpath + "/" + proto.basename[:-len(".proto")] + go_proto_toolchain.suffix)
-    go_srcs += [out]
+    go_srcs.append(out)
     if outpath == None:
         outpath = out.dirname[:-len(importpath)]
   plugin_base_name = go_proto_toolchain.plugin.basename
@@ -20,10 +38,10 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
   ])
   args.add(lib.proto.direct_sources, map_fn=_all_proto_paths)
   ctx.actions.run(
-      inputs = [
+      inputs = sets.union([
           proto_toolchain.protoc,
           go_proto_toolchain.plugin,
-      ] + lib.proto.transitive_descriptor_sets.to_list(),
+      ], lib.proto.transitive_descriptor_sets),
       outputs = go_srcs,
       progress_message = "Generating into %s" % go_srcs[0].dirname,
       mnemonic = "GoProtocGen",

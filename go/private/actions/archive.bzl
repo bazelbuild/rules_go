@@ -14,6 +14,8 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
+    "to_set",
+    "sets",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
@@ -88,13 +90,13 @@ def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=
   for src in source.asm:
     obj = ctx.actions.declare_file("{}/{}.o".format(out_dir, src.basename[:-2]))
     go_toolchain.actions.asm(ctx, go_toolchain, mode=mode, source=src, hdrs=source.headers, out_obj=obj)
-    extra_objects += [obj]
+    extra_objects.append(obj)
   archive = goembed.cgo_info.archive if goembed.cgo_info else None
 
   transitive = direct
   for a in direct:
     if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.library.label, mode_string(a.mode), mode_string(mode)))
-    transitive += a.transitive
+    transitive = sets.union(transitive, a.transitive)
 
   if len(extra_objects) == 0 and archive == None:
     go_toolchain.actions.compile(ctx,
