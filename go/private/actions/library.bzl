@@ -110,7 +110,7 @@ def emit_library(ctx, go_toolchain,
       runfiles = runfiles, # The runfiles needed for things including this library
   )
   goembed = GoEmbed(
-      srcs = srcs, # The original sources
+      srcs = depset(srcs), # The original sources
       build_srcs = build_srcs, # The transformed sources actually compiled
       deps = direct, # The direct depencancies of the library
       cover_vars = cover_vars, # The cover variables for these sources

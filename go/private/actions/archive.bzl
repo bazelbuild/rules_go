@@ -42,10 +42,10 @@ def _go_archive_aspect_impl(target, ctx):
   direct = []
   for dep in ctx.rule.attr.deps:
     direct.append(get_archive(dep))
-  for dep in ctx.rule.attr.embed:
-    direct.extend(get_archive(dep).direct)
+  for embed in ctx.rule.attr.embed:
+    direct.extend(get_archive(embed).direct)
   if ctx.rule.attr.library: 
-    direct.append(get_archive(ctx.rule.attr.library))
+    direct.extend(get_archive(ctx.rule.attr.library).direct)
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   goarchive = go_toolchain.actions.archive(ctx,
@@ -53,7 +53,7 @@ def _go_archive_aspect_impl(target, ctx):
       mode = mode,
       golib = target[GoLibrary],
       goembed = target[GoEmbed],
-      direct = direct,
+      direct = depset(direct),
       importable = True,
   )
   return [GoAspectArchive(archive = goarchive)]
@@ -91,12 +91,9 @@ def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=
     extra_objects += [obj]
   archive = goembed.cgo_info.archive if goembed.cgo_info else None
 
-  transitive = depset()
   for a in direct:
-    transitive += [a]
-    transitive += a.transitive
-  for a in transitive:
     if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.library.label, mode_string(a.mode), mode_string(mode)))
+  transitive = depset(direct = list(direct), transitive = [d.transitive for d in direct])
 
   if len(extra_objects) == 0 and archive == None:
     go_toolchain.actions.compile(ctx,
