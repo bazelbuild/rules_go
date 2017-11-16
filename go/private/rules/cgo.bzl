@@ -25,7 +25,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "action_with_go_env",
+    "add_go_env",
 )
 
 _CgoCodegen = provider()
@@ -70,7 +70,9 @@ def _cgo_codegen_impl(ctx):
   out_dir = cgo_main.dirname
 
   cc = stdlib.cgo_tools.compiler_executable
-  args = ["-cc", str(cc), "-objdir", out_dir]
+  args = ctx.actions.args()
+  add_go_env(args, stdlib, mode)
+  args.add(["-cc", str(cc), "-objdir", out_dir])
 
   c_outs = depset([cgo_export_h, cgo_export_c])
   go_outs = depset([cgo_types])
@@ -84,19 +86,19 @@ def _cgo_codegen_impl(ctx):
     gen_c_file = ctx.actions.declare_file(mangled_stem + ".cgo2.c")
     go_outs += [gen_file]
     c_outs += [gen_c_file]
-    args += ["-src", gen_file.path + "=" + src.path]
+    args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.asm:
     mangled_stem, src_ext = _mangle(ctx, src)
     gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
     go_outs += [gen_file]
-    args += ["-src", gen_file.path + "=" + src.path]
+    args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.c:
     mangled_stem, src_ext = _mangle(ctx, src)
     gen_file = ctx.actions.declare_file(mangled_stem + ".cgo1."+src_ext)
     c_outs += [gen_file]
-    args += ["-src", gen_file.path + "=" + src.path]
+    args.add(["-src", gen_file.path + "=" + src.path])
 
-  inputs = ctx.files.srcs + go_toolchain.data.crosstool
+  inputs = ctx.files.srcs + go_toolchain.data.crosstool + stdlib.files
   runfiles = ctx.runfiles(collect_data = True)
   for d in ctx.attr.deps:
     inputs += list(d.cc.transitive_headers)
@@ -118,14 +120,15 @@ def _cgo_codegen_impl(ctx):
 
   # The first -- below is to stop the cgo from processing args, the
   # second is an actual arg to forward to the underlying go tool
-  args += ["--", "--"] + copts
-  action_with_go_env(ctx, go_toolchain, mode,
+  args.add(["--", "--"])
+  args.add(copts)
+  ctx.actions.run(
       inputs = inputs,
       outputs = list(c_outs + go_outs + [cgo_main]),
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go_toolchain.tools.cgo,
-      arguments = args,
+      arguments = [args],
       env = {
           "CGO_LDFLAGS": " ".join(linkopts),
       },
@@ -168,20 +171,23 @@ _cgo_codegen = rule(
 def _cgo_import_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  args = [
-      "-dynout", ctx.outputs.out.path,
-      "-dynimport", ctx.file.cgo_o.path,
-      "-src", ctx.files.sample_go_srcs[0].path,
-  ]
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
+  args = ctx.actions.args()
+  add_go_env(args, stdlib, mode)
+  args.add([
+      "-dynout", ctx.outputs.out,
+      "-dynimport", ctx.file.cgo_o,
+      "-src", ctx.files.sample_go_srcs[0],
+  ])
 
-  action_with_go_env(ctx, go_toolchain, mode,
+  ctx.actions.run(
       inputs = [
           ctx.file.cgo_o,
           ctx.files.sample_go_srcs[0],
-      ],
+      ] + stdlib.files,
       outputs = [ctx.outputs.out],
       executable = go_toolchain.tools.cgo,
-      arguments = args,
+      arguments = [args],
       mnemonic = "CGoImportGen",
   )
   return struct(

@@ -12,22 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def action_with_go_env(ctx, go_toolchain, mode, executable = None, command=None, arguments = [], inputs = [], **kwargs):
-  if command:
-    fail("You cannot run action_with_go_env with a 'command', only an 'executable'")
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  args = [
-      "-go", stdlib.go.path,
-      "-root_file", stdlib.root_file.path,
+
+def add_go_env(args, stdlib, mode):
+  args.add([
+      "-go", stdlib.go,
+      "-root_file", stdlib.root_file,
       "-goos", stdlib.goos,
       "-goarch", stdlib.goarch,
       "-cgo=" + ("0" if mode.pure else "1"),
-  ] + arguments
-  ctx.actions.run(
-      inputs = depset(inputs) + stdlib.files,
-      executable = executable,
-      arguments = args,
-      **kwargs)
+  ])
 
 def bootstrap_action(ctx, go_toolchain, inputs, outputs, mnemonic, arguments):
   stdlib = go_toolchain.stdlib.cgo

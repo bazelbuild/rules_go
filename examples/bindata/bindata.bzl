@@ -2,20 +2,22 @@ load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 
 def _bindata_impl(ctx):
   out = ctx.actions.declare_file(ctx.label.name + ".go")
-  arguments = [
+  arguments = ctx.actions.args()
+  arguments.add([
       "-o", out.path,
       "-pkg", ctx.attr.package,
       "-prefix", ctx.label.package,
-  ]
+  ])
   if not ctx.attr.compress:
-    arguments += ["-nocompress"]
+    arguments.add("-nocompress")
   if not ctx.attr.metadata:
-    arguments += ["-nometadata"]
+    arguments.add("-nometadata")
+  arguments.add(ctx.files.srcs)
   ctx.actions.run(
     inputs = ctx.files.srcs,
     outputs = [out],
     executable = ctx.file._bindata,
-    arguments = arguments + [src.path for src in ctx.files.srcs],
+    arguments = [arguments],
   )
   return [
     DefaultInfo(

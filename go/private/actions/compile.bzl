@@ -13,9 +13,15 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "action_with_go_env",
+    "add_go_env",
     "bootstrap_action",
 )
+
+def _importpath(l):
+  return [v.library.importpath for v in l]
+
+def _searchpath(l):
+  return [v.searchpath for v in l]
 
 def emit_compile(ctx, go_toolchain,
     sources = None,
@@ -40,30 +46,35 @@ def emit_compile(ctx, go_toolchain,
   inputs = sources + [go_toolchain.data.package_list]
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
-  args = ["-package_list", go_toolchain.data.package_list.path]
-  for src in go_sources:
-    args += ["-src", src]
+
   for archive in archives:
     inputs += [archive.file]
-    args += ["-dep", archive.library.importpath]
-    args += ["-I", archive.searchpath]
-  args += ["-o", out_lib.path, "-trimpath", ".", "-I", "."]
-  args += ["--"]
+
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
+  inputs += stdlib.files
+
+  args = ctx.actions.args()
+  add_go_env(args, stdlib, mode)
+  args.add(["-package_list", go_toolchain.data.package_list])
+  args.add(go_sources, before_each="-src")
+  args.add(archives, before_each="-dep", map_fn=_importpath)
+  args.add(archives, before_each="-I", map_fn=_searchpath)
+  args.add(["-o", out_lib, "-trimpath", ".", "-I", "."])
+  args.add(["--"])
   if importpath:
-    args += ["-p", importpath]
-  args.extend(gc_goopts)
-  args.extend(go_toolchain.flags.compile)
+    args.add(["-p", importpath])
+  args.add(gc_goopts)
+  args.add(go_toolchain.flags.compile)
   if mode.debug:
-    args.extend(["-N", "-l"])
-  args.extend(cgo_sources)
-  action_with_go_env(ctx, go_toolchain, mode,
+    args.add(["-N", "-l"])
+  args.add(cgo_sources)
+  ctx.actions.run(
       inputs = list(inputs),
       outputs = [out_lib],
       mnemonic = "GoCompile",
       executable = go_toolchain.tools.compile,
-      arguments = args,
+      arguments = [args],
   )
-
 
 def bootstrap_compile(ctx, go_toolchain,
     sources = None,

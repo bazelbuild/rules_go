@@ -18,12 +18,12 @@ def _go_embed_data_impl(ctx):
   if ctx.attr.src and ctx.attr.flatten:
     fail("%s: src and flatten attributes cannot both be specified" % ctx.label)
 
+  args = ctx.actions.args()
   if ctx.attr.src:
     srcs = [ctx.file.src]
-    args = []
   else:
     srcs = ctx.files.srcs
-    args = ["-multi"]
+    args.add("-multi")
 
   if ctx.attr.package:
     package = ctx.attr.package
@@ -32,24 +32,24 @@ def _go_embed_data_impl(ctx):
     if package == "":
       fail("%s: must provide package attribute for go_embed_data rules in the repository root directory" % ctx.label)
 
-  args += [
+  args.add([
     "-workspace", ctx.workspace_name,
     "-label", str(ctx.label),
-    "-out", ctx.outputs.out.path,
+    "-out", ctx.outputs.out,
     "-package", package,
     "-var", ctx.attr.var,
-  ]
+  ])
   if ctx.attr.flatten:
-    args += ["-flatten"]
+    args.add("-flatten")
   if ctx.attr.string:
-    args += ["-string"]
-  args += [f.path for f in srcs]
+    args.add("-string")
+  args.add(srcs)
 
   ctx.actions.run(
       outputs = [ctx.outputs.out],
       inputs = srcs,
       executable = ctx.executable._embed,
-      arguments = args,
+      arguments = [args],
       mnemonic = "GoEmbedData",
   )
 

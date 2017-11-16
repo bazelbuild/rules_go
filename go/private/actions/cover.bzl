@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "action_with_go_env",
+    "add_go_env",
 )
 
 def emit_cover(ctx, go_toolchain,
@@ -22,6 +22,8 @@ def emit_cover(ctx, go_toolchain,
   """See go/toolchains.rst#cover for full documentation."""
 
   if mode == None: fail("mode is a required parameter")
+
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
 
   outputs = []
   # TODO(linuxerwang): make the mode configurable.
@@ -38,12 +40,15 @@ def emit_cover(ctx, go_toolchain,
     cover_vars += ["{}={}".format(cover_var,src.short_path)]
     out = ctx.actions.declare_file(cover_var + '.cover.go')
     outputs += [out]
-    action_with_go_env(ctx, go_toolchain, mode,
+    args = ctx.actions.args()
+    add_go_env(args, stdlib, mode)
+    args.add(["--", "--mode=set", "-var=%s" % cover_var, "-o", out, src])
+    ctx.actions.run(
         inputs = [src],
         outputs = [out],
         mnemonic = "GoCover",
         executable = go_toolchain.tools.cover,
-        arguments = ["--", "--mode=set", "-var=%s" % cover_var, "-o", out.path, src.path],
+        arguments = [args],
     )
 
   return outputs, tuple(cover_vars)

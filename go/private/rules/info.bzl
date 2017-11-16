@@ -16,19 +16,23 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "action_with_go_env",
+    "add_go_env",
 )
 
 def _go_info_script_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   out = ctx.actions.declare_file(ctx.label.name+".bash")
-  action_with_go_env(ctx, go_toolchain, mode,
+  args = ctx.actions.args()
+  add_go_env(args, stdlib, mode)
+  args.add(["-script", "-out", out])
+  ctx.actions.run(
       inputs = [],
       outputs = [out],
       mnemonic = "GoInfo",
       executable = ctx.executable._go_info,
-      arguments = ["-script", "-out", out.path],
+      arguments = [args],
   )
   return [
       DefaultInfo(

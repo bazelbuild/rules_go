@@ -166,11 +166,14 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
 
 def _md5_sum_impl(ctx):
   out = ctx.actions.declare_file(ctx.label.name+".md5")
+  arguments = ctx.actions.args()
+  arguments.add(["-output", out.path])
+  arguments.add(ctx.files.srcs)
   ctx.actions.run(
       inputs = ctx.files.srcs,
       outputs = [out],
       executable = ctx.file._md5sum,
-      arguments = ["-output", out.path] + [src.path for src in ctx.files.srcs],
+      arguments = [arguments],
   )
   return struct(files=depset([out]))
 

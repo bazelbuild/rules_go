@@ -11,13 +11,14 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
   plugin_base_name = go_proto_toolchain.plugin.basename
   if plugin_base_name.startswith(_protoc_prefix):
     plugin_base_name = plugin_base_name[len(_protoc_prefix):]
-  args= [
+  args = ctx.actions.args()
+  args.add([
       "--{}_out={}:{}".format(plugin_base_name, ",".join(go_proto_toolchain.options), outpath),
       "--plugin={}={}".format(go_proto_toolchain.plugin.basename, go_proto_toolchain.plugin.path),
       "--descriptor_set_in", ":".join(
           [s.path for s in lib.proto.transitive_descriptor_sets])
-  ]
-  args += [_proto_path(proto) for proto in lib.proto.direct_sources]
+  ])
+  args.add(lib.proto.direct_sources, map_fn=_all_proto_paths)
   ctx.actions.run(
       inputs = [
           proto_toolchain.protoc,
@@ -27,9 +28,12 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
       progress_message = "Generating into %s" % go_srcs[0].dirname,
       mnemonic = "GoProtocGen",
       executable = proto_toolchain.protoc,
-      arguments = args,
+      arguments = [args],
   )
   return go_srcs
+
+def _all_proto_paths(protos):
+  return [_proto_path(proto) for proto in protos]
 
 def _proto_path(proto):
   """

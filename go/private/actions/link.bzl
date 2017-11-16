@@ -16,7 +16,7 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_NORMAL",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "action_with_go_env",
+    "add_go_env",
     "bootstrap_action",
 )
 
@@ -92,30 +92,31 @@ def emit_link(ctx, go_toolchain,
         "-extldflags", " ".join(extldflags),
     ]
   link_opts += [archive.file.path]
-  link_args = []
+  link_args = ctx.actions.args()
+  add_go_env(link_args, stdlib, mode)
   # Stamping support
   stamp_inputs = []
   if stamp_x_defs or ctx.attr.linkstamp:
     stamp_inputs = [ctx.info_file, ctx.version_file]
-    for f in stamp_inputs:
-      link_args += ["-stamp", f.path]
+    link_args.add(stamp_inputs, before_each="-stamp")
     for k,v in stamp_x_defs.items():
-      link_args += ["-X", "%s=%s" % (k, v)]
+      link_args.add(["-X", "%s=%s" % (k, v)])
     # linkstamp option support: read workspace status files,
     # converting "KEY value" lines to "-X $linkstamp.KEY=value" arguments
     # to the go linker.
     if ctx.attr.linkstamp:
-      link_args += ["-linkstamp", ctx.attr.linkstamp]
+      link_args.add(["-linkstamp", ctx.attr.linkstamp])
 
-  link_args += ["--"] + link_opts
+  link_args.add("--")
+  link_args.add(link_opts)
 
-  action_with_go_env(ctx, go_toolchain, mode,
+  ctx.actions.run(
       inputs = list(libs + cgo_deps +
-                go_toolchain.data.crosstool + stamp_inputs),
+                go_toolchain.data.crosstool + stamp_inputs + stdlib.files),
       outputs = [executable],
       mnemonic = "GoLink",
       executable = go_toolchain.tools.link,
-      arguments = link_args,
+      arguments = [link_args],
   )
 
 def bootstrap_link(ctx, go_toolchain,

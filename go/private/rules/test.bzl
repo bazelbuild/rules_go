@@ -31,7 +31,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoEmbed",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "action_with_go_env",
+    "add_go_env",
 )
 load("@io_bazel_rules_go//go/private:actions/archive.bzl",
     "go_archive_aspect",
@@ -45,6 +45,7 @@ def _go_test_impl(ctx):
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   golib = ctx.attr.library[GoLibrary]
 
   # now generate the main function
@@ -58,28 +59,30 @@ def _go_test_impl(ctx):
 
   go_srcs = list(split_srcs(golib.srcs).go)
   main_go = ctx.actions.declare_file(ctx.label.name + "_main_test.go")
-  arguments = [
+  arguments = ctx.actions.args()
+  add_go_env(arguments, stdlib, mode)
+  arguments.add([
       '--package',
       golib.importpath,
       '--rundir',
       run_dir,
       '--output',
-      main_go.path,
-  ]
+      main_go,
+  ])
   cover_vars = []
   covered_libs = []
-  for g in depset([golib]) + golib.transitive:
+  for g in depset([golib]) + golib.transitive: #TODO: this is an ugly list to walk
     if g.cover_vars:
       covered_libs += [g]
       for var in g.cover_vars:
-        arguments += ["-cover", "{}={}".format(var, g.importpath)]
-
-  action_with_go_env(ctx, go_toolchain, mode,
+        arguments.add(["-cover", "{}={}".format(var, g.importpath)])
+  arguments.add(go_srcs)
+  ctx.actions.run(
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
       executable = go_toolchain.tools.test_generator,
-      arguments = arguments + [src.path for src in go_srcs],
+      arguments = [arguments],
       env = {
           "RUNDIR" : ctx.label.package,
       },

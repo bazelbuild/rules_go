@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "action_with_go_env",
+    "add_go_env",
 )
 
 def emit_asm(ctx, go_toolchain,
@@ -31,13 +31,15 @@ def emit_asm(ctx, go_toolchain,
   includes = depset([stdlib.root_file.dirname + "/pkg/include"])
   includes += [f.dirname for f in hdrs]
   inputs = hdrs + stdlib.files + [source]
-  asm_args = [source.path, "-o", out_obj.path]
-  for inc in includes:
-    asm_args += ["-I", inc]
-  action_with_go_env(ctx, go_toolchain, mode,
+
+  asm_args = ctx.actions.args()
+  add_go_env(asm_args, stdlib, mode)
+  asm_args.add([source.path, "-o", out_obj])
+  asm_args.add(includes, before_each="-I")
+  ctx.actions.run(
       inputs = list(inputs),
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
       executable = go_toolchain.tools.asm,
-      arguments = asm_args,
+      arguments = [asm_args],
   )
