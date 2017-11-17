@@ -123,7 +123,6 @@ go_test = rule(
         "deps": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
         "importpath": attr.string(),
         "library": attr.label(providers = [GoLibrary], aspects = [go_archive_aspect]),
-        "embed": attr.label_list(providers = [GoEmbed], aspects = [go_archive_aspect]),
         "pure": attr.string(values=["on", "off", "auto"], default="auto"),
         "static": attr.string(values=["on", "off", "auto"], default="auto"),
         "race": attr.string(values=["on", "off", "auto"], default="auto"),

@@ -35,8 +35,6 @@ def _go_binary_impl(ctx):
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
   embed = ctx.attr.embed
-  if ctx.attr.library:
-    embed = embed + [ctx.attr.library]
 
   cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
   executable = ctx.outputs.executable
@@ -69,7 +67,6 @@ go_binary = rule(
         "srcs": attr.label_list(allow_files = go_filetype),
         "deps": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
         "importpath": attr.string(),
-        "library": attr.label(providers = [GoLibrary], aspects = [go_archive_aspect]),
         "embed": attr.label_list(providers = [GoEmbed], aspects = [go_archive_aspect]),
         "pure": attr.string(values=["on", "off", "auto"], default="auto"),
         "static": attr.string(values=["on", "off", "auto"], default="auto"),
@@ -98,7 +95,6 @@ go_tool_binary = rule(
         "srcs": attr.label_list(allow_files = go_filetype),
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
-        "library": attr.label(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoEmbed]),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),

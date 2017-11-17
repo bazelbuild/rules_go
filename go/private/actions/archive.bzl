@@ -44,8 +44,6 @@ def _go_archive_aspect_impl(target, ctx):
     direct.append(get_archive(dep))
   for embed in ctx.rule.attr.embed:
     direct.extend(get_archive(embed).direct)
-  if ctx.rule.attr.library: 
-    direct.extend(get_archive(ctx.rule.attr.library).direct)
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   goarchive = go_toolchain.actions.archive(ctx,
@@ -60,7 +58,7 @@ def _go_archive_aspect_impl(target, ctx):
 
 go_archive_aspect = aspect(
     _go_archive_aspect_impl,
-    attr_aspects = ["deps", "embed", "library"],
+    attr_aspects = ["deps", "embed"],
     attrs = {
         "pure": attr.string(values=["on", "off", "auto"], default="auto"),
         "static": attr.string(values=["on", "off", "auto"], default="auto"),

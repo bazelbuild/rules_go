@@ -17,8 +17,12 @@ load("@io_bazel_rules_go//go/private:rules/library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:rules/test.bzl", "go_test")
 load("@io_bazel_rules_go//go/private:rules/cgo.bzl", "setup_cgo_library")
 
-def go_library_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
+def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], library=None, **kwargs):
   """See go/core.rst#go_library for full documentation."""
+  if library:
+    #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
+    embed = embed + [library]
+
   cgo_info = None
   if cgo:
     cgo_info = setup_cgo_library(
@@ -31,12 +35,17 @@ def go_library_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[
   go_library(
       name = name,
       srcs = srcs,
+      embed = embed,
       cgo_info = cgo_info,
       **kwargs
   )
 
-def go_binary_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
+def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], library=None, **kwargs):
   """See go/core.rst#go_binary for full documentation."""
+  if library:
+    #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
+    embed = embed + [library]
+
   cgo_info = None
   if cgo:
     cgo_info = setup_cgo_library(
@@ -49,12 +58,17 @@ def go_binary_macro(name, srcs=None, cgo=False, cdeps=[], copts=[], clinkopts=[]
   return go_binary(
       name = name,
       srcs = srcs,
+      embed = embed,
       cgo_info = cgo_info,
       **kwargs
   )
 
 def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed=[], gc_goopts=[], cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
   """See go/core.rst#go_test for full documentation."""
+  if library:
+    #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
+    embed = embed + [library]
+
   library_name = name + "~library~"
   go_library_macro(
       name = library_name,
@@ -62,7 +76,6 @@ def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed
       srcs = srcs,
       deps = deps,
       importpath = importpath,
-      library = library,
       embed = embed,
       gc_goopts = gc_goopts,
       testonly = True,
