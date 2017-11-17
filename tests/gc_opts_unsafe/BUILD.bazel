@@ -9,7 +9,7 @@ go_library(
 
 go_library(
     name = "unsafe_library_lib",
-    library = ":unsafe_srcs_lib",
+    embed = [":unsafe_srcs_lib"],
     tags = ["manual"],
 )
 
@@ -26,7 +26,7 @@ go_binary(
 go_binary(
     name = "unsafe_library_bin",
     srcs = ["empty_main.go"],
-    library = ":unsafe_srcs_lib",
+    embed = [":unsafe_srcs_lib"],
     tags = ["manual"],
 )
 
@@ -44,7 +44,7 @@ go_test(
 go_test(
     name = "unsafe_library_test",
     size = "small",
-    library = ":unsafe_srcs_lib",
+    embed = [":unsafe_srcs_lib"],
     tags = ["manual"],
 )
 
@@ -58,7 +58,7 @@ go_library(
 
 go_library(
     name = "unsafe_cgo_client_lib",
-    library = ":unsafe_cgo_lib",
+    embed = [":unsafe_cgo_lib"],
     tags = ["manual"],
 )
 

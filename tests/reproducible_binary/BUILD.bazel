@@ -10,7 +10,7 @@ go_library(
 go_binary(
     name = "reproducible_binary",
     importpath = "github.com/bazelbuild/rules_go/tests/reproducible_binary",
-    library = ":go_default_library",
+    embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
 
