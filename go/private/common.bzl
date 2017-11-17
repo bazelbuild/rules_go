@@ -142,5 +142,5 @@ def env_execute(ctx, arguments, environment = None, **kwargs):
 
 def to_set(v):
   if type(v) == "depset":
-    fail("Do not pass a depset to to_depset")
+    fail("Do not pass a depset to to_set")
   return depset(v)

@@ -100,11 +100,11 @@ def _cgo_codegen_impl(ctx):
     c_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
 
-  inputs = sets.union(ctx.files.srcs, go_toolchain.data.crosstool, stdlib.files)
+  inputs = sets.union(ctx.files.srcs, go_toolchain.data.crosstool, stdlib.files,
+                      *[d.cc.transitive_headers for d in ctx.attr.deps])
+  deps = sets.union(deps, *[d.cc.libs for d in ctx.attr.deps])
   runfiles = ctx.runfiles(collect_data = True)
   for d in ctx.attr.deps:
-    inputs = sets.union(inputs, d.cc.transitive_headers)
-    deps = sets.union(deps, d.cc.libs)
     runfiles = runfiles.merge(d.data_runfiles)
     copts.extend(['-D' + define for define in d.cc.defines])
     for inc in d.cc.include_directories:

@@ -48,13 +48,15 @@ def emit_library(ctx, go_toolchain,
   else:
     build_srcs = srcs
     cgo_info_label = None
+
+  direct = sets.union(direct, *[t[GoEmbed].deps for t in embed])
+  direct_archives = sets.union(direct_archives, *[get_archive(t).direct for t in embed])
+
   for t in embed:
     goembed = t[GoEmbed]
-    direct_archives = sets.union(direct_archives, get_archive(t).direct)
     srcs = goembed.srcs + srcs
     build_srcs = goembed.build_srcs + build_srcs
     cover_vars.extend(goembed.cover_vars)
-    direct = sets.union(direct, goembed.deps)
     dep_runfiles.append(t.data_runfiles)
     gc_goopts.extend(getattr(goembed, "gc_goopts", []))
     embed_cgo_info = getattr(goembed, "cgo_info", None)
@@ -75,13 +77,9 @@ def emit_library(ctx, go_toolchain,
   if cgo_info:
     dep_runfiles.append(cgo_info.runfiles)
 
-  for dep in deps:
-    direct = sets.union(direct, [dep[GoLibrary]])
-    direct_archives = sets.union(direct_archives, [get_archive(dep)])
-
-  transitive = direct
-  for golib in direct:
-    transitive = sets.union(transitive, golib.transitive)
+  direct = sets.union(direct, [dep[GoLibrary] for dep in deps])
+  direct_archives = sets.union(direct_archives, [get_archive(dep) for dep in deps])
+  transitive = sets.union(direct, *[golib.transitive for golib in direct])
 
   if want_coverage:
     go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, sources=go_srcs, mode=mode)

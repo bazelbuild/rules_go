@@ -64,11 +64,11 @@ def emit_link(ctx, go_toolchain,
   libs = to_set([archive.file])
   link_opts = ["-L", "."]
   cgo_deps = depset()
+
+  libs = sets.union(libs, [a.file for a in archive.transitive])
+  cgo_deps = sets.union(cgo_deps, *[a.embed.cgo_info.deps for a in archive.transitive if a.embed.cgo_info])
   for a in archive.transitive:
-    libs = sets.union(libs, [a.file])
     link_opts.extend(["-L", a.searchpath])
-    if a.embed.cgo_info:
-      cgo_deps = sets.union(cgo_deps, a.embed.cgo_info.deps)
 
   for d in cgo_deps:
     if d.basename.endswith('.so'):

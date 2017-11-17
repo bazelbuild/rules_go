@@ -93,10 +93,10 @@ def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=
     extra_objects.append(obj)
   archive = goembed.cgo_info.archive if goembed.cgo_info else None
 
-  transitive = direct
   for a in direct:
     if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.library.label, mode_string(a.mode), mode_string(mode)))
-    transitive = sets.union(transitive, a.transitive)
+
+  transitive = sets.union(direct, *[a.transitive for a in direct])
 
   if len(extra_objects) == 0 and archive == None:
     go_toolchain.actions.compile(ctx,
