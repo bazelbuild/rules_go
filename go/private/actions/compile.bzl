@@ -41,9 +41,9 @@ def emit_compile(ctx, go_toolchain,
 
   # Add in any mode specific behaviours
   if mode.race:
-    gc_goopts = gc_goopts + ("-race",)
+    gc_goopts = gc_goopts + ["-race"]
   if mode.msan:
-    gc_goopts = gc_goopts + ("-msan",)
+    gc_goopts = gc_goopts + ["-msan"]
 
   gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   inputs = sets.union(sources, [go_toolchain.data.package_list])

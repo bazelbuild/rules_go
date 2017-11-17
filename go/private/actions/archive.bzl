@@ -55,7 +55,7 @@ def _go_archive_aspect_impl(target, ctx):
       mode = mode,
       golib = target[GoLibrary],
       goembed = target[GoEmbed],
-      direct = depset(direct),
+      direct = direct,
       importable = True,
   )
   return [GoAspectArchive(archive = goarchive)]
