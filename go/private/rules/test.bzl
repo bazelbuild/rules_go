@@ -26,7 +26,6 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 )
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "CgoInfo",
     "GoLibrary",
     "GoEmbed",
 )
@@ -128,7 +127,6 @@ go_test = rule(
         "linkstamp": attr.string(),
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
-        "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },

@@ -19,7 +19,6 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "CgoInfo",
     "GoLibrary",
     "GoEmbed",
 )
@@ -30,7 +29,6 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 def _go_library_impl(ctx):
   """Implements the go_library() rule."""
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
@@ -38,23 +36,22 @@ def _go_library_impl(ctx):
       embed = [t[GoEmbed] for t in ctx.attr.embed] + [GoEmbed(
           srcs = ctx.files.srcs,
           deps = ctx.attr.deps,
-          cgo_info = cgo_info,
           gc_goopts = ctx.attr.gc_goopts,
+          runfiles = ctx.runfiles(collect_data = True),
       )],
       want_coverage = ctx.coverage_instrumented(),
       importpath = go_importpath(ctx),
       importable = True,
   )
-  cgo_exports = ctx.attr.cgo_info[CgoInfo].exports if ctx.attr.cgo_info else depset()
 
   return [
       golib, goembed, goarchive,
       DefaultInfo(
           files = depset([goarchive.data.file]),
-          runfiles = golib.runfiles,
+          runfiles = goarchive.runfiles,
       ),
       OutputGroupInfo(
-          cgo_exports = cgo_exports,
+          cgo_exports = goembed.cgo_exports,
       ),
   ]
 
@@ -67,7 +64,6 @@ go_library = rule(
         "importpath": attr.string(),
         "embed": attr.label_list(providers = [GoEmbed]),
         "gc_goopts": attr.string_list(),
-        "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },

@@ -23,7 +23,6 @@ load("@io_bazel_rules_go//go/private:actions/archive.bzl",
     "go_archive_aspect",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "CgoInfo",
     "GoLibrary",
     "GoEmbed",
 )
@@ -35,14 +34,12 @@ def _go_binary_impl(ctx):
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
 
-  cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
   executable = ctx.outputs.executable
   golib = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       importpath = go_importpath(ctx),
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
-      cgo_info = cgo_info,
       embed = [t[GoEmbed] for t in ctx.attr.embed],
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
@@ -75,7 +72,6 @@ go_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
@@ -99,7 +95,6 @@ go_tool_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        "cgo_info": attr.label(providers = [CgoInfo]),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },

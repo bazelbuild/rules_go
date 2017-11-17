@@ -38,6 +38,8 @@ def get_archive(dep):
 
 def _go_archive_aspect_impl(target, ctx):
   mode = get_mode(ctx, ctx.rule.attr._go_toolchain_flags)
+  if GoArchive not in target:
+    return []
   goarchive = target[GoArchive]
   if goarchive.mode == mode:
     return [GoAspectArchive(archive = goarchive)]
@@ -91,8 +93,8 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, goembed=None, di
     obj = ctx.actions.declare_file("{}/{}.o".format(out_dir, src.basename[:-2]))
     go_toolchain.actions.asm(ctx, go_toolchain, mode=mode, source=src, hdrs=source.headers, out_obj=obj)
     extra_objects.append(obj)
-  archive = goembed.cgo_info.archive if goembed.cgo_info else None
-  cgo_deps = goembed.cgo_info.deps if goembed.cgo_info else []
+  archive = getattr(goembed, "cgo_archive", None)
+  cgo_deps = getattr(goembed, "cgo_deps", [])
 
   for a in direct:
     if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.name, mode_string(a.mode), mode_string(mode)))

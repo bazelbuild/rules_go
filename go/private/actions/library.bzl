@@ -20,7 +20,6 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "to_set",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "CgoInfo",
     "GoLibrary",
     "GoPackage",
     "GoEmbed",
@@ -36,40 +35,51 @@ def emit_library(ctx, go_toolchain,
     want_coverage = False,
     importable = True):
   """See go/toolchains.rst#library for full documentation."""
+
   srcs = []
   build_srcs = []
-  direct = []
+  deps = []
   cover_vars = []
-  dep_runfiles = []
   gc_goopts = []
-  cgo_info = None
+  runfiles = ctx.runfiles()
+  cgo_deps = []
+  cgo_exports = []
+  cgo_archive = None
 
-  for goembed in embed:
-    srcs.extend(goembed.srcs)
-    direct.extend(goembed.deps)
-    gc_goopts.extend(getattr(goembed, "gc_goopts", []))
-    embed_cgo_info = getattr(goembed, "cgo_info", None)
-    embed_build_srcs = getattr(goembed, "build_srcs", None)
-    cover_vars.extend(getattr(goembed, "cover_vars", []))
-    if embed_cgo_info:
-      if cgo_info:
-        fail("multiple libraries with cgo embedded")
-      build_srcs.extend(embed_cgo_info.gen_go_srcs)
-      cgo_info = embed_cgo_info
-    elif embed_build_srcs:
+  for e in embed:
+    embed_srcs = getattr(e, "srcs", [])
+    srcs.extend(embed_srcs)
+    embed_build_srcs = getattr(e, "build_srcs", None)
+    if embed_build_srcs:
       build_srcs.extend(embed_build_srcs)
     else:
-      build_srcs.extend(goembed.srcs)
-  
+      build_srcs.extend(embed_srcs)
+    deps.extend(getattr(e, "deps", []))
+    gc_goopts.extend(getattr(e, "gc_goopts", []))
+    cover_vars.extend(getattr(e, "cover_vars", []))
+    runfiles = runfiles.merge(getattr(e, "runfiles", None))
+    cgo_deps.extend(getattr(e, "cgo_deps", []))
+    cgo_exports.extend(getattr(e, "cgo_exports", []))
+    embed_cgo_archive = getattr(e, "cgo_archive", None)
+    if embed_cgo_archive:
+      if cgo_archive:
+        fail("multiple libraries with cgo_archive embedded")
+      cgo_archive = embed_cgo_archive
+
+  libs = []
+  direct = []
+  for dep in deps:
+    lib = dep[GoLibrary]
+    libs.append(lib)
+    direct.append(get_archive(dep))
+    runfiles = runfiles.merge(lib.runfiles)
+    
   source = split_srcs(build_srcs)
   go_srcs = source.go
   if source.c:
     fail("c sources in non cgo rule")
   if not go_srcs:
     fail("no go sources")
-
-  if cgo_info:
-    dep_runfiles.append(cgo_info.runfiles)
 
   if want_coverage:
     go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, sources=go_srcs, mode=mode)
@@ -80,14 +90,6 @@ def emit_library(ctx, go_toolchain,
 
   build_srcs = join_srcs(struct(**transformed))
 
-  dylibs = []
-  if cgo_info:
-    dylibs.extend([d for d in cgo_info.deps if d.path.endswith(".so")])
-
-  runfiles = ctx.runfiles(files = dylibs, collect_data = True)
-  for d in dep_runfiles:
-    runfiles = runfiles.merge(d)
-  
   package = GoPackage(
       name = str(ctx.label),
       importpath = importpath, # The import path for this library
@@ -95,16 +97,19 @@ def emit_library(ctx, go_toolchain,
   )
   golib = GoLibrary(
       package = package,
-      transitive = sets.union([package], *[l[GoLibrary].transitive for l in direct]),
+      transitive = sets.union([package], *[l.transitive for l in libs]),
       runfiles = runfiles, # The runfiles needed for things including this library
   )
   goembed = GoEmbed(
-      srcs = srcs, # The original sources
-      build_srcs = build_srcs, # The transformed sources actually compiled
-      deps = direct, # The direct depencancies of the library
-      cover_vars = cover_vars, # The cover variables for these sources
-      cgo_info = cgo_info, # The cgo information for this library or one of its embeds.
-      gc_goopts = gc_goopts, # The options this library was compiled with
+      srcs = srcs,
+      build_srcs = build_srcs,
+      deps = deps,
+      cover_vars = cover_vars,
+      gc_goopts = gc_goopts,
+      runfiles = runfiles,
+      cgo_deps = cgo_deps,
+      cgo_exports = cgo_exports,
+      cgo_archive = cgo_archive,
   )
   goarchive = go_toolchain.actions.archive(ctx,
       go_toolchain = go_toolchain,
@@ -112,7 +117,7 @@ def emit_library(ctx, go_toolchain,
       importpath = importpath,
       goembed = goembed,
       importable = importable,
-      direct = [get_archive(dep) for dep in direct],
+      direct = [get_archive(dep) for dep in deps],
       runfiles = runfiles,
   )
 

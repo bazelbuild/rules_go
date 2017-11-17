@@ -23,20 +23,20 @@ def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], c
     #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
 
-  cgo_info = None
   if cgo:
-    cgo_info = setup_cgo_library(
+    cgo_embed = setup_cgo_library(
         name = name,
         srcs = srcs,
         cdeps = cdeps,
         copts = copts,
         clinkopts = clinkopts,
     )
+    embed = embed + [cgo_embed]
+    srcs = []
   go_library(
       name = name,
       srcs = srcs,
       embed = embed,
-      cgo_info = cgo_info,
       **kwargs
   )
 
@@ -46,20 +46,20 @@ def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], cl
     #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
 
-  cgo_info = None
   if cgo:
-    cgo_info = setup_cgo_library(
+    cgo_embed = setup_cgo_library(
         name = name,
         srcs = srcs,
         cdeps = cdeps,
         copts = copts,
         clinkopts = clinkopts,
     )
-  return go_binary(
+    embed = embed + [cgo_embed]
+    srcs = []
+  go_binary(
       name = name,
       srcs = srcs,
       embed = embed,
-      cgo_info = cgo_info,
       **kwargs
   )
 
@@ -80,12 +80,12 @@ def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed
       gc_goopts = gc_goopts,
       testonly = True,
       tags = ["manual"],
-      cgo = False, 
+      cgo = False,
       cdeps = cdeps,
       copts = copts,
       clinkopts = clinkopts,
   )
-  return go_test(
+  go_test(
       name = name,
       library = library_name,
       importpath = importpath,

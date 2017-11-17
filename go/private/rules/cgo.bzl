@@ -23,8 +23,8 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "CgoInfo",
     "GoLibrary",
+    "GoEmbed",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "add_go_env",
@@ -140,8 +140,8 @@ def _cgo_codegen_impl(ctx):
       _CgoCodegen(
           go_files = to_set(go_outs),
           main_c = to_set([cgo_main]),
-          deps = deps,
-          exports = to_set([cgo_export_h]),
+          deps = deps.to_list(),
+          exports = [cgo_export_h],
       ),
       DefaultInfo(
           files = depset(),
@@ -224,15 +224,18 @@ def _cgo_collect_info_impl(ctx):
   codegen = ctx.attr.codegen[_CgoCodegen]
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
-
   return [
       DefaultInfo(files = depset(), runfiles = runfiles),
-      CgoInfo(
-          archive = _select_archive(ctx.files.lib),
-          gen_go_srcs = ctx.files.gen_go_srcs,
-          deps = ctx.attr.codegen[_CgoCodegen].deps,
-          exports = ctx.attr.codegen[_CgoCodegen].exports,
+      GoEmbed(
+          srcs = ctx.files.gen_go_srcs,
+          build_srcs = ctx.files.gen_go_srcs,
+          deps = [],
+          cover_vars = [],
+          gc_goopts = [],
           runfiles = runfiles,
+          cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
+          cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
+          cgo_archive = _select_archive(ctx.files.lib),
       ),
   ]
 
@@ -242,10 +245,11 @@ _cgo_collect_info = rule(
         "codegen": attr.label(mandatory = True, providers = [_CgoCodegen]),
         "gen_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
         "lib": attr.label(mandatory = True, providers = ["cc"]),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
 )
 """No-op rule that collects information from _cgo_codegen and cc_library
-info a CgoInfo provider for easy consumption."""
+info into a GoEmbed provider for easy consumption."""
 
 def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_codegen_dir = name + ".cgo.dir"
@@ -344,9 +348,9 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       visibility = ["//visibility:private"],
   )
 
-  cgo_info_name = name + ".cgo_info"
+  cgo_embed_name = name + ".cgo_embed"
   _cgo_collect_info(
-      name = cgo_info_name,
+      name = cgo_embed_name,
       codegen = cgo_codegen_name,
       gen_go_srcs = [
           select_go_files,
@@ -356,4 +360,4 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       visibility = ["//visibility:private"],
   )
 
-  return cgo_info_name
+  return cgo_embed_name

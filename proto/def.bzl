@@ -30,6 +30,7 @@ def _go_proto_library_impl(ctx):
           srcs = go_srcs,
           deps = ctx.attr.deps + go_proto_toolchain.deps,
           gc_goopts = ctx.attr.gc_goopts,
+          runfiles = ctx.runfiles(collect_data = True),
       )],
       want_coverage = ctx.coverage_instrumented(),
       importpath = importpath,

@@ -29,5 +29,4 @@ GoArchive = provider()
 
 GoArchiveData = provider()
 
-CgoInfo = provider()
 GoStdLib = provider()
