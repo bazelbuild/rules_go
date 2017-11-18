@@ -19,7 +19,7 @@ load("@io_bazel_rules_go//go/private:actions/action.bzl",
 def emit_pack(ctx, go_toolchain,
     in_lib = None,
     out_lib = None,
-    objects = (),
+    objects = [],
     archive = None,
     mode = None):
   """See go/toolchains.rst#pack for full documentation."""

@@ -17,6 +17,7 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "join_srcs",
     "structs",
     "sets",
+    "to_set",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "CgoInfo",
@@ -31,44 +32,35 @@ load("@io_bazel_rules_go//go/private:actions/archive.bzl",
 def emit_library(ctx, go_toolchain,
     mode = None,
     importpath = "",
-    srcs = (),
-    deps = (),
-    cgo_info = None,
-    embed = (),
+    embed = [],
     want_coverage = False,
     importable = True):
   """See go/toolchains.rst#library for full documentation."""
-  dep_runfiles = [d.data_runfiles for d in deps]
+  srcs = []
+  build_srcs = []
   direct = []
-  direct_archives = []
-  gc_goopts = [] + ctx.attr.gc_goopts
   cover_vars = []
-  if cgo_info:
-    build_srcs = cgo_info.gen_go_srcs
-    cgo_info_label = ctx.label
-  else:
-    build_srcs = srcs
-    cgo_info_label = None
+  dep_runfiles = []
+  gc_goopts = []
+  cgo_info = None
 
-  for t in embed:
-    direct.extend(t[GoEmbed].deps)
-    direct_archives.extend(get_archive(t).direct)
-
-  for t in embed:
-    goembed = t[GoEmbed]
-    srcs = goembed.srcs + srcs
-    build_srcs = goembed.build_srcs + build_srcs
-    cover_vars.extend(goembed.cover_vars)
-    dep_runfiles.append(t.data_runfiles)
+  for goembed in embed:
+    srcs.extend(goembed.srcs)
+    direct.extend(goembed.deps)
     gc_goopts.extend(getattr(goembed, "gc_goopts", []))
     embed_cgo_info = getattr(goembed, "cgo_info", None)
+    embed_build_srcs = getattr(goembed, "build_srcs", None)
+    cover_vars.extend(getattr(goembed, "cover_vars", []))
     if embed_cgo_info:
       if cgo_info:
-        fail("at most one embedded library may have cgo, but " +
-             "both %s and %s have cgo" % (cgo_info_label, t.label))
+        fail("multiple libraries with cgo embedded")
+      build_srcs.extend(embed_cgo_info.gen_go_srcs)
       cgo_info = embed_cgo_info
-      cgo_info_label = t.label
-
+    elif embed_build_srcs:
+      build_srcs.extend(embed_build_srcs)
+    else:
+      build_srcs.extend(goembed.srcs)
+  
   source = split_srcs(build_srcs)
   go_srcs = source.go
   if source.c:
@@ -78,10 +70,6 @@ def emit_library(ctx, go_toolchain,
 
   if cgo_info:
     dep_runfiles.append(cgo_info.runfiles)
-
-  for dep in deps:
-    direct.append(dep[GoLibrary])
-    direct_archives.append(get_archive(dep))
 
   if want_coverage:
     go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, sources=go_srcs, mode=mode)
@@ -107,7 +95,7 @@ def emit_library(ctx, go_toolchain,
   )
   golib = GoLibrary(
       package = package,
-      transitive = sets.union([package], *[l.transitive for l in direct]),
+      transitive = sets.union([package], *[l[GoLibrary].transitive for l in direct]),
       runfiles = runfiles, # The runfiles needed for things including this library
   )
   goembed = GoEmbed(
@@ -124,7 +112,7 @@ def emit_library(ctx, go_toolchain,
       importpath = importpath,
       goembed = goembed,
       importable = importable,
-      direct = direct_archives,
+      direct = [get_archive(dep) for dep in direct],
       runfiles = runfiles,
   )
 

@@ -87,14 +87,14 @@ def split_srcs(srcs):
     else:
       fail("Unknown source type {0}".format(src.basename))
   return struct(
-      go = to_set(go),
-      headers = to_set(headers),
-      asm = to_set(asm),
-      c = to_set(c),
+      go = go,
+      headers = headers,
+      asm = asm,
+      c = c,
   )
 
 def join_srcs(source):
-  return depset() + source.go + source.headers + source.asm + source.c
+  return source.go + source.headers + source.asm + source.c
 
 
 def go_importpath(ctx):

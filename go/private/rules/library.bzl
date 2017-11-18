@@ -30,16 +30,16 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 def _go_library_impl(ctx):
   """Implements the go_library() rule."""
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  embed = ctx.attr.embed
   cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
-      srcs = ctx.files.srcs,
-      deps = ctx.attr.deps,
-      cgo_info = cgo_info,
-      embed = embed,
+      embed = [GoEmbed(
+          srcs = ctx.files.srcs,
+          deps = ctx.attr.deps,
+          cgo_info = cgo_info,
+      )] + [t[GoEmbed] for t in ctx.attr.embed],
       want_coverage = ctx.coverage_instrumented(),
       importpath = go_importpath(ctx),
       importable = True,

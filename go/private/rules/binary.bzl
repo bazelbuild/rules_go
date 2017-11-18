@@ -34,7 +34,6 @@ def _go_binary_impl(ctx):
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
-  embed = ctx.attr.embed
 
   cgo_info = ctx.attr.cgo_info[CgoInfo] if ctx.attr.cgo_info else None
   executable = ctx.outputs.executable
@@ -44,7 +43,7 @@ def _go_binary_impl(ctx):
       srcs = ctx.files.srcs,
       deps = ctx.attr.deps,
       cgo_info = cgo_info,
-      embed = embed,
+      embed = [t[GoEmbed] for t in ctx.attr.embed],
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
       executable = executable,
