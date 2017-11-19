@@ -17,6 +17,8 @@ load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
 GoLibrary = provider()
 """See go/providers.rst#GoLibrary for full documentation."""
 
+GoPackage = provider()
+
 GoPath = provider()
 
 GoEmbed = provider()
@@ -24,6 +26,8 @@ GoEmbed = provider()
 
 GoArchive = provider()
 """See go/providers.rst#GoArchive for full documentation."""
+
+GoArchiveData = provider()
 
 CgoInfo = provider()
 GoStdLib = provider()

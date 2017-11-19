@@ -35,6 +35,7 @@ load("@io_bazel_rules_go//go/private:actions/action.bzl",
 )
 load("@io_bazel_rules_go//go/private:actions/archive.bzl",
     "go_archive_aspect",
+    "get_archive",
 )
 
 def _go_test_impl(ctx):
@@ -46,7 +47,7 @@ def _go_test_impl(ctx):
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  golib = ctx.attr.library[GoLibrary]
+  archive = get_archive(ctx.attr.library)
 
   # now generate the main function
   if ctx.attr.rundir:
@@ -57,23 +58,20 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-  go_srcs = split_srcs(golib.srcs).go
+  go_srcs = split_srcs(archive.embed.srcs).go
   main_go = ctx.actions.declare_file(ctx.label.name + "_main_test.go")
   arguments = ctx.actions.args()
   add_go_env(arguments, stdlib, mode)
   arguments.add([
       '--package',
-      golib.importpath,
+      archive.data.importpath,
       '--rundir',
       run_dir,
       '--output',
       main_go,
   ])
-  cover_vars = []
-  for g in depset([golib]) + golib.transitive: #TODO: this is an ugly list to walk
-    if g.cover_vars:
-      for var in g.cover_vars:
-        arguments.add(["-cover", "{}={}".format(var, g.importpath)])
+  for var in archive.cover_vars:
+    arguments.add(["-cover", var])
   arguments.add(go_srcs)
   ctx.actions.run(
       inputs = go_srcs,
@@ -102,7 +100,7 @@ def _go_test_impl(ctx):
   # holding the data files, so open-source go tests continue to work
   # without code changes.
   runfiles = ctx.runfiles(collect_data = True, files = [executable])
-  runfiles = runfiles.merge(golib.runfiles)
+  runfiles = runfiles.merge(archive.runfiles)
   return [
       DefaultInfo(
           files = depset([executable]),

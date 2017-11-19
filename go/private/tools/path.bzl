@@ -23,9 +23,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   # First gather all the library rules
   golibs = depset()
   for dep in ctx.attr.deps:
-    golib = dep[GoLibrary]
-    golibs += [golib]
-    golibs += golib.transitive
+    golibs += dep[GoLibrary].transitive
 
   # Now scan them for sources
   seen_libs = {}
@@ -42,7 +40,7 @@ Found {} in
   {}
 and
   {}
-""".format(golib.importpath, golib.label, seen_libs[golib.importpath].label))
+""".format(golib.importpath, golib.name, seen_libs[golib.importpath].name))
       # for now we don't fail if we see duplicate packages
       # the most common case is the same source from two different workspaces
       continue

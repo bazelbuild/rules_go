@@ -49,7 +49,7 @@ def _go_library_impl(ctx):
   return [
       golib, goembed, goarchive,
       DefaultInfo(
-          files = depset([goarchive.file]),
+          files = depset([goarchive.data.file]),
           runfiles = golib.runfiles,
       ),
       OutputGroupInfo(

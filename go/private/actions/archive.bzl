@@ -25,6 +25,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
     "GoEmbed",
     "GoArchive",
+    "GoArchiveData",
 )
 
 
@@ -51,10 +52,11 @@ def _go_archive_aspect_impl(target, ctx):
   goarchive = go_toolchain.actions.archive(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
-      golib = target[GoLibrary],
+      importpath = target[GoLibrary].package.importpath,
       goembed = target[GoEmbed],
       direct = direct,
       importable = True,
+      runfiles = target[GoLibrary].runfiles,
   )
   return [GoAspectArchive(archive = goarchive)]
 
@@ -70,16 +72,16 @@ go_archive_aspect = aspect(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=None, importable=True):
+def emit_archive(ctx, go_toolchain, mode=None, importpath=None, goembed=None, direct=None, importable=True, runfiles=None):
   """See go/toolchains.rst#archive for full documentation."""
 
-  if golib == None: fail("golib is a required parameter")
+  if not importpath: fail("golib is a required parameter")
   if goembed == None: fail("goembed is a required parameter")
   if mode == None: fail("mode is a required parameter")
 
   source = split_srcs(goembed.build_srcs)
-  lib_name = golib.importpath + ".a"
-  compilepath = golib.importpath if importable else None
+  lib_name = importpath + ".a"
+  compilepath = importpath if importable else None
   out_dir = "~{}~{}~".format(mode_string(mode), ctx.label.name)
   out_lib = ctx.actions.declare_file("{}/{}".format(out_dir, lib_name))
   searchpath = out_lib.path[:-len(lib_name)]
@@ -90,11 +92,12 @@ def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=
     go_toolchain.actions.asm(ctx, go_toolchain, mode=mode, source=src, hdrs=source.headers, out_obj=obj)
     extra_objects.append(obj)
   archive = goembed.cgo_info.archive if goembed.cgo_info else None
+  cgo_deps = goembed.cgo_info.deps if goembed.cgo_info else []
 
   for a in direct:
     if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.library.label, mode_string(a.mode), mode_string(mode)))
 
-  transitive = sets.union(direct, *[a.transitive for a in direct])
+  cover_vars = ["{}={}".format(var, importpath) for var in goembed.cover_vars]
 
   if len(extra_objects) == 0 and archive == None:
     go_toolchain.actions.compile(ctx,
@@ -125,12 +128,19 @@ def emit_archive(ctx, go_toolchain, mode=None, golib=None, goembed=None, direct=
         objects = extra_objects,
         archive = archive,
     )
+  data = GoArchiveData(
+      file = out_lib,
+      importpath = importpath,
+      searchpath = searchpath,
+  )
   return GoArchive(
       mode = mode,
-      file = out_lib,
-      searchpath = searchpath,
-      library = golib,
+      data = data,
       embed = goembed,
       direct = direct,
-      transitive = transitive,
+      searchpaths = sets.union([searchpath], *[a.searchpaths for a in direct]),
+      libs = sets.union([out_lib], *[a.libs for a in direct]),
+      cgo_deps = sets.union(cgo_deps, *[a.cgo_deps for a in direct]),
+      cover_vars = sets.union(cover_vars, *[a.cover_vars for a in direct]),
+      runfiles = runfiles,
   )

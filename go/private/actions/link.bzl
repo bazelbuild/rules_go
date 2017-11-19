@@ -61,16 +61,12 @@ def emit_link(ctx, go_toolchain,
   if mode.link != LINKMODE_NORMAL:
     fail("Link mode {} is not yet supported".format(mode.link))
 
-  libs = to_set([archive.file])
   link_opts = ["-L", "."]
-  cgo_deps = depset()
 
-  libs = sets.union(libs, [a.file for a in archive.transitive])
-  cgo_deps = sets.union(cgo_deps, *[a.embed.cgo_info.deps for a in archive.transitive if a.embed.cgo_info])
-  for a in archive.transitive:
-    link_opts.extend(["-L", a.searchpath])
+  for p in archive.searchpaths: #TODO delay this depset expansion:
+    link_opts.extend(["-L", p])
 
-  for d in cgo_deps:
+  for d in archive.cgo_deps:
     if d.basename.endswith('.so'):
       short_dir = d.dirname[len(d.root.path):]
       extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir])
@@ -96,7 +92,7 @@ def emit_link(ctx, go_toolchain,
         "-extld", ld,
         "-extldflags", " ".join(extldflags),
     ])
-  link_opts.append(archive.file.path)
+  link_opts.append(archive.data.file.path)
   link_args = ctx.actions.args()
   add_go_env(link_args, stdlib, mode)
   # Stamping support
@@ -116,7 +112,7 @@ def emit_link(ctx, go_toolchain,
   link_args.add(link_opts)
 
   ctx.actions.run(
-      inputs = sets.union(libs, cgo_deps,
+      inputs = sets.union(archive.libs, archive.cgo_deps,
                 go_toolchain.data.crosstool, stamp_inputs, stdlib.files),
       outputs = [executable],
       mnemonic = "GoLink",
@@ -138,10 +134,10 @@ def bootstrap_link(ctx, go_toolchain,
 
   if x_defs:  fail("link does not accept x_defs in bootstrap mode")
 
-  inputs = depset([archive.file])
+  inputs = depset([archive.data.file])
   args = ["tool", "link", "-o", executable.path]
   args.extend(gc_linkopts)
-  args.append(archive.file.path)
+  args.append(archive.data.file.path)
   bootstrap_action(ctx, go_toolchain,
       inputs = inputs,
       outputs = [executable],

@@ -21,10 +21,10 @@ load("@io_bazel_rules_go//go/private:actions/action.bzl",
 )
 
 def _importpath(l):
-  return [v.library.importpath for v in l]
+  return [v.data.importpath for v in l]
 
 def _searchpath(l):
-  return [v.searchpath for v in l]
+  return [v.data.searchpath for v in l]
 
 def emit_compile(ctx, go_toolchain,
     sources = None,
@@ -50,7 +50,7 @@ def emit_compile(ctx, go_toolchain,
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
 
-  inputs = sets.union(inputs, [archive.file for archive in archives])
+  inputs = sets.union(inputs, [archive.data.file for archive in archives])
 
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   inputs = sets.union(inputs, stdlib.files)
