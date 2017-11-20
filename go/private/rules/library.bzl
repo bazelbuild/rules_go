@@ -39,6 +39,7 @@ def _go_library_impl(ctx):
           srcs = ctx.files.srcs,
           deps = ctx.attr.deps,
           cgo_info = cgo_info,
+          gc_goopts = ctx.attr.gc_goopts,
       )],
       want_coverage = ctx.coverage_instrumented(),
       importpath = go_importpath(ctx),

@@ -29,6 +29,7 @@ def _go_proto_library_impl(ctx):
       embed = [t[GoEmbed] for t in ctx.attr.embed] + [GoEmbed(
           srcs = go_srcs,
           deps = ctx.attr.deps + go_proto_toolchain.deps,
+          gc_goopts = ctx.attr.gc_goopts,
       )],
       want_coverage = ctx.coverage_instrumented(),
       importpath = importpath,
