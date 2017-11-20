@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 go_library(
     name = "unsafe_srcs_lib",
@@ -82,3 +83,35 @@ go_test(
     gc_linkopts = ["-u"],
     tags = ["manual"],
 )
+
+
+[
+    bazel_test(
+        name = "check_" + test,
+        check = """
+if [ "$result" -eq 0 ]; then
+  echo "error: build succeeded unexpectedly" >&2
+  result=1
+else
+  result=0
+fi
+if ! grep -q "{0}" bazel-output.txt; then
+  echo "error: build failed for incorrect reason, expected {0}" >&2
+  result=1
+fi
+""".format(message),
+        command = "test",
+        targets = [":" + test],
+    )
+for test, message in [
+  ("unsafe_srcs_lib", "cannot import package unsafe"),
+  ("unsafe_library_lib", "cannot import package unsafe"),
+  ("unsafe_srcs_bin", "cannot import package unsafe"),
+  ("unsafe_library_bin", "cannot import package unsafe"),
+  ("unsafe_srcs_test", "cannot import package unsafe"),
+  ("unsafe_library_test", "cannot import package unsafe"),
+  ("unsafe_cgo_lib", "cannot import package unsafe"),
+  ("unsafe_cgo_client_lib", "cannot import package unsafe"),
+  ("unsafe_link_bin", "load of unsafe package"),
+  ("unsafe_link_test", "load of unsafe package"),
+]]

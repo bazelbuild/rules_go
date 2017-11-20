@@ -13,7 +13,6 @@ cd $(dirname "$0")
 prefix=">>>>>>"
 
 tests=(
-  gc_opts_unsafe/gc_opts_unsafe.bash
   popular_repos/popular_repos.bash
   test_chdir/test_chdir.bash
 )

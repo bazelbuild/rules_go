@@ -35,7 +35,7 @@ cp -f {workspace} {work_dir}/WORKSPACE
 cp -f {build} {work_dir}/BUILD.bazel
 cd {work_dir}
 
-{bazel} --bazelrc {bazelrc} --nomaster_blazerc {command}  --experimental_repository_cache={cache_dir} --config {config} {args} {target}
+{bazel} --bazelrc {bazelrc} --nomaster_blazerc {command}  --experimental_repository_cache={cache_dir} --config {config} {args} {target} >& bazel-output.txt
 result=$?
 
 {check}
