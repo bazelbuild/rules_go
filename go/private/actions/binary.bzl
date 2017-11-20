@@ -39,11 +39,11 @@ def emit_binary(ctx, go_toolchain,
   golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
-      embed = [GoEmbed(
+      embed = embed + [GoEmbed(
           srcs = srcs,
           deps = deps,
           cgo_info = cgo_info,
-      )] + embed,
+      )],
       importpath = importpath,
       importable = False,
   )

@@ -35,11 +35,11 @@ def _go_library_impl(ctx):
   golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
-      embed = [GoEmbed(
+      embed = [t[GoEmbed] for t in ctx.attr.embed] + [GoEmbed(
           srcs = ctx.files.srcs,
           deps = ctx.attr.deps,
           cgo_info = cgo_info,
-      )] + [t[GoEmbed] for t in ctx.attr.embed],
+      )],
       want_coverage = ctx.coverage_instrumented(),
       importpath = go_importpath(ctx),
       importable = True,
