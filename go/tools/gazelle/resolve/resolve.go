@@ -131,6 +131,7 @@ func mapExprStrings(e bf.Expr, f func(string) string) bf.Expr {
 
 	case *bf.DictExpr:
 		var cases []bf.Expr
+		isEmpty := true
 		for _, kv := range expr.List {
 			keyval, ok := kv.(*bf.KeyValueExpr)
 			if !ok {
@@ -139,9 +140,12 @@ func mapExprStrings(e bf.Expr, f func(string) string) bf.Expr {
 			value := mapExprStrings(keyval.Value, f)
 			if value != nil {
 				cases = append(cases, &bf.KeyValueExpr{Key: keyval.Key, Value: value})
+				if key, ok := keyval.Key.(*bf.StringExpr); !ok || key.Value != "//conditions:default" {
+					isEmpty = false
+				}
 			}
 		}
-		if len(cases) == 0 {
+		if isEmpty {
 			return nil
 		}
 		return &bf.DictExpr{List: cases}
