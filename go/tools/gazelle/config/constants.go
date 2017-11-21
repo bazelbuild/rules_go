@@ -49,3 +49,28 @@ const (
 	// on generated rules. It is replaced with "deps" during import resolution.
 	GazelleImportsKey = "_gazelle_imports"
 )
+
+// Language is the name of a programming langauge that Gazelle knows about.
+// This is used to specify import paths.
+type Language int
+
+const (
+	GoLang Language = iota
+	ProtoLang
+)
+
+func (l Language) String() string {
+	switch l {
+	case GoLang:
+		return "go"
+	case ProtoLang:
+		return "proto"
+	default:
+		return "unknown"
+	}
+}
+
+const (
+	PublicVisibility  = "//visibility:public"
+	PrivateVisibility = "//visibility:private"
+)
