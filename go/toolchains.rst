@@ -490,7 +490,7 @@ It returns GoLibrary_.
 | An optional CgoInfo provider for this library.                                                   |
 | There may be at most one of these among the library and its embeds.                              |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`embed`                 | :type:`GoEmbed iterable`    | :value:`[]`                       |
+| :param:`embed`                 | :type:`GoSources iterable`    | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | Sources, dependencies, and other information from these are combined with the package            |
 | being compiled.                                                                                  |
@@ -595,7 +595,7 @@ library
 This emits actions to compile Go code into an archive.
 It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
 
-It returns a tuple of GoLibrary_ and GoEmbed_.
+It returns a tuple of GoLibrary_ and GoSources_.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -621,7 +621,7 @@ It returns a tuple of GoLibrary_ and GoEmbed_.
 | An optional CgoInfo provider for this library.                                                   |
 | There may be at most one of these among the library and its embeds.                              |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`embed`                 | :type:`GoEmbed iterable`    | :value:`[]`                       |
+| :param:`embed`                 | :type:`GoSources iterable`    | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | Sources, dependencies, and other information from these are combined with the package            |
 | being compiled.                                                                                  |

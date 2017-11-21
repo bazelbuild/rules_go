@@ -24,7 +24,7 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "GoEmbed",
+    "sources",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "add_go_env",
@@ -226,12 +226,8 @@ def _cgo_collect_info_impl(ctx):
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
   return [
       DefaultInfo(files = depset(), runfiles = runfiles),
-      GoEmbed(
+      sources.new(
           srcs = ctx.files.gen_go_srcs,
-          build_srcs = ctx.files.gen_go_srcs,
-          deps = [],
-          cover_vars = [],
-          gc_goopts = [],
           runfiles = runfiles,
           cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
           cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
@@ -249,7 +245,7 @@ _cgo_collect_info = rule(
     },
 )
 """No-op rule that collects information from _cgo_codegen and cc_library
-info into a GoEmbed provider for easy consumption."""
+info into a GoSources provider for easy consumption."""
 
 def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_codegen_dir = name + ".cgo.dir"

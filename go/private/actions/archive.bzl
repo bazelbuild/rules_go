@@ -23,9 +23,10 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "GoEmbed",
+    "GoSources",
     "GoArchive",
     "GoArchiveData",
+    "sources",
 )
 
 
@@ -44,21 +45,13 @@ def _go_archive_aspect_impl(target, ctx):
   if goarchive.mode == mode:
     return [GoAspectArchive(archive = goarchive)]
 
-  direct = []
-  for dep in ctx.rule.attr.deps:
-    direct.append(get_archive(dep))
-  for embed in ctx.rule.attr.embed:
-    direct.extend(get_archive(embed).direct)
-
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   goarchive = go_toolchain.actions.archive(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
       importpath = target[GoLibrary].package.importpath,
-      goembed = target[GoEmbed],
-      direct = direct,
+      source = target[GoSources],
       importable = True,
-      runfiles = target[GoLibrary].runfiles,
   )
   return [GoAspectArchive(archive = goarchive)]
 
@@ -74,14 +67,15 @@ go_archive_aspect = aspect(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def emit_archive(ctx, go_toolchain, mode=None, importpath=None, goembed=None, direct=None, importable=True, runfiles=None):
+def emit_archive(ctx, go_toolchain, mode=None, importpath=None, source=None, importable=True):
   """See go/toolchains.rst#archive for full documentation."""
 
   if not importpath: fail("golib is a required parameter")
-  if goembed == None: fail("goembed is a required parameter")
+  if source == None: fail("source is a required parameter")
   if mode == None: fail("mode is a required parameter")
 
-  source = split_srcs(goembed.build_srcs)
+  flat = sources.flatten(ctx, source)
+  split = split_srcs(flat.build_srcs)
   lib_name = importpath + ".a"
   compilepath = importpath if importable else None
   out_dir = "~{}~{}~".format(mode_string(mode), ctx.label.name)
@@ -89,38 +83,39 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, goembed=None, di
   searchpath = out_lib.path[:-len(lib_name)]
 
   extra_objects = []
-  for src in source.asm:
+  for src in split.asm:
     obj = ctx.actions.declare_file("{}/{}.o".format(out_dir, src.basename[:-2]))
-    go_toolchain.actions.asm(ctx, go_toolchain, mode=mode, source=src, hdrs=source.headers, out_obj=obj)
+    go_toolchain.actions.asm(ctx, go_toolchain, mode=mode, source=src, hdrs=split.headers, out_obj=obj)
     extra_objects.append(obj)
-  archive = getattr(goembed, "cgo_archive", None)
-  cgo_deps = getattr(goembed, "cgo_deps", [])
 
+  direct = [get_archive(dep) for dep in flat.deps]
+  runfiles = flat.runfiles
   for a in direct:
+    runfiles = runfiles.merge(a.runfiles)
     if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.data.importpath, mode_string(a.mode), mode_string(mode)))
 
-  cover_vars = ["{}={}".format(var, importpath) for var in goembed.cover_vars]
+  cover_vars = ["{}={}".format(var, importpath) for var in flat.cover_vars]
 
-  if len(extra_objects) == 0 and archive == None:
+  if len(extra_objects) == 0 and flat.cgo_archive == None:
     go_toolchain.actions.compile(ctx,
         go_toolchain = go_toolchain,
-        sources = source.go,
+        sources = split.go,
         importpath = compilepath,
         archives = direct,
         mode = mode,
         out_lib = out_lib,
-        gc_goopts = goembed.gc_goopts,
+        gc_goopts = flat.gc_goopts,
     )
   else:
     partial_lib = ctx.actions.declare_file("{}/~partial.a".format(out_dir))
     go_toolchain.actions.compile(ctx,
         go_toolchain = go_toolchain,
-        sources = source.go,
+        sources = split.go,
         importpath = compilepath,
         archives = direct,
         mode = mode,
         out_lib = partial_lib,
-        gc_goopts = goembed.gc_goopts,
+        gc_goopts = flat.gc_goopts,
     )
     go_toolchain.actions.pack(ctx,
         go_toolchain = go_toolchain,
@@ -128,7 +123,7 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, goembed=None, di
         in_lib = partial_lib,
         out_lib = out_lib,
         objects = extra_objects,
-        archive = archive,
+        archive = flat.cgo_archive,
     )
   data = GoArchiveData(
       file = out_lib,
@@ -138,11 +133,12 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, goembed=None, di
   return GoArchive(
       mode = mode,
       data = data,
-      embed = goembed,
+      go_srcs = split.go,
       direct = direct,
       searchpaths = sets.union([searchpath], *[a.searchpaths for a in direct]),
       libs = sets.union([out_lib], *[a.libs for a in direct]),
-      cgo_deps = sets.union(cgo_deps, *[a.cgo_deps for a in direct]),
+      cgo_deps = sets.union(flat.cgo_deps, *[a.cgo_deps for a in direct]),
+      cgo_exports = sets.union(flat.cgo_exports, *[a.cgo_exports for a in direct]),
       cover_vars = sets.union(cover_vars, *[a.cover_vars for a in direct]),
       runfiles = runfiles,
   )

@@ -81,17 +81,17 @@ binaries or tests.
 +--------------------------------+-----------------------------------------------------------------+
 
 
-GoEmbed
+GoSources
 ~~~~~~~
 
-GoEmbed is a provider designed to be used as the output of anything that provides Go code, and an
+GoSources is a provider designed to be used as the output of anything that provides Go code, and an
 input to anything that compiles Go code.
 It combines the source with dependencies that source will require.
 
 There are two main uses for this.
 
 #. Recompiling a library with additional sources.
-   go_library_ returns a GoEmbed provider with the transformed sources and deps that it was
+   go_library_ returns a GoSources provider with the transformed sources and deps that it was
    consuming.
    go_test_ uses this to recompile the library with additional test files, to build the test
    version of the library. You can use the same feature to recompile a proto library with
@@ -102,9 +102,22 @@ There are two main uses for this.
    flatbuffers compiler to generate the serialization functions, you might hit the issue that
    the only thing that knows you depend on ``github.com/google/flatbuffers/go`` is the generated
    code.
-   You can instead have the generator return a GoEmbed provider instead of just the generated
+   You can instead have the generator return a GoSources provider instead of just the generated
    files, allowing you to tie the generated files to the additional dependencies they add to
    any package trying to compile them.
+
++--------------------------------+-----------------------------------------------------------------+
+| **Name**                       | **Type**                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`entries`               | :type:`list of GoSource`                                        |
++--------------------------------+-----------------------------------------------------------------+
+| The full list of GoSource_ entries that this source set is composed of.                          |
++--------------------------------+-----------------------------------------------------------------+
+
+GoSource
+~~~~~~~
+
+GoSource represents a single entry in a GoSources source provider.
 
 +--------------------------------+-----------------------------------------------------------------+
 | **Name**                       | **Type**                                                        |
@@ -121,18 +134,30 @@ There are two main uses for this.
 +--------------------------------+-----------------------------------------------------------------+
 | The direct dependencies needed by the :param:`srcs`.                                             |
 +--------------------------------+-----------------------------------------------------------------+
+| :param:`gc_goopts`             | :type:`tuple(string)`                                           |
++--------------------------------+-----------------------------------------------------------------+
+| Go compilation options that should be used when compiling these sources.                         |
+| In general these will be used for *all* sources of any library this provider is embedded into.   |
++--------------------------------+-----------------------------------------------------------------+
 | :param:`cover_vars`            | :type:`string`                                                  |
 +--------------------------------+-----------------------------------------------------------------+
 | The cover variables used in these sources.                                                       |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`runfiles`              | :type:`Runfiles`                                                |
++--------------------------------+-----------------------------------------------------------------+
+| The set of files needed by code in these sources at runtime.                                     |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`cgo_deps`              | :type:`depset(cc_library)`                                      |
 +--------------------------------+-----------------------------------------------------------------+
 | The direct cgo dependencies of this library.                                                     |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`gc_goopts`             | :type:`tuple(string)`                                           |
+| :param:`cgo_exports`           | :type:`depset(File)`                                            |
 +--------------------------------+-----------------------------------------------------------------+
-| Go compilation options that should be used when compiling these sources.                         |
-| In general these will be used for *all* sources of any library this provider is embedded into.   |
+| The exposed cc headers for these sources.                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`cgo_archive`           | :type:`File`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| The cgo archive to merge into a go archive for these sources.                                    |
 +--------------------------------+-----------------------------------------------------------------+
 
 

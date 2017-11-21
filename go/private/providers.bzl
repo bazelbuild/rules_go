@@ -21,8 +21,11 @@ GoPackage = provider()
 
 GoPath = provider()
 
-GoEmbed = provider()
-"""See go/providers.rst#GoEmbed for full documentation."""
+GoSource = provider()
+"""See go/providers.rst#GoSource for full documentation."""
+
+GoSources = provider()
+"""See go/providers.rst#GoSources for full documentation."""
 
 GoArchive = provider()
 """See go/providers.rst#GoArchive for full documentation."""
@@ -30,3 +33,60 @@ GoArchive = provider()
 GoArchiveData = provider()
 
 GoStdLib = provider()
+
+def _merge_runfiles(a, b):
+  if not a: return b
+  if not b: return a
+  return a.merge(b)
+
+def _source_build_entry(srcs = [], build_srcs = [], deps = [], gc_goopts=[], cover_vars=[], runfiles=None, cgo_deps=[], cgo_exports=[], cgo_archive=None, source = None):
+  """Creates a new GoSource from a collection of values and an optional GoSources to merge in."""
+  if not build_srcs:
+    build_srcs = srcs
+  for e in (source.entries if source else []):
+    srcs = srcs + e.srcs
+    build_srcs = build_srcs + e.build_srcs
+    deps = deps + e.deps
+    gc_goopts = gc_goopts + e.gc_goopts
+    cover_vars = cover_vars + e.cover_vars
+    runfiles = _merge_runfiles(runfiles, e.runfiles)
+    cgo_deps = cgo_deps + e.cgo_deps
+    cgo_exports = cgo_exports + e.cgo_exports
+    if e.cgo_archive:
+      if cgo_archive:
+        fail("multiple libraries with cgo_archive embedded")
+      cgo_archive = e.cgo_archive
+
+  return GoSource(
+      srcs = srcs,
+      build_srcs = build_srcs,
+      deps = deps,
+      gc_goopts = gc_goopts,
+      cover_vars = cover_vars,
+      runfiles = runfiles,
+      cgo_deps = cgo_deps,
+      cgo_exports = cgo_exports,
+      cgo_archive = cgo_archive,
+  )
+
+def _source_new(**kwargs):
+  """Creates a new GoSources from a collection of values."""
+  return GoSources(entries = [_source_build_entry(**kwargs)])
+
+def _source_merge(source):
+  """Merges the entries of multiple GoSources providers to a single GoSources."""
+  entries = []
+  for e in source:
+    entries.extend(e.entries)
+  return GoSources(entries = entries)
+
+def _source_flatten(ctx, source):
+  """Flattens a GoSources to a single GoSource ready for use."""
+  return _source_build_entry(source = source)
+
+sources = struct(
+  new = _source_new,
+  merge = _source_merge,
+  flatten = _source_flatten,
+)
+"""sources holds the functions for manipulating GoSources providers."""

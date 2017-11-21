@@ -22,7 +22,9 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
     "GoPackage",
-    "GoEmbed",
+    "GoSources",
+    "GoSource",
+    "sources",
 )
 load("@io_bazel_rules_go//go/private:actions/archive.bzl",
     "get_archive",
@@ -31,94 +33,48 @@ load("@io_bazel_rules_go//go/private:actions/archive.bzl",
 def emit_library(ctx, go_toolchain,
     mode = None,
     importpath = "",
-    embed = [],
+    source = None,
     want_coverage = False,
     importable = True):
   """See go/toolchains.rst#library for full documentation."""
 
-  srcs = []
-  build_srcs = []
-  deps = []
-  cover_vars = []
-  gc_goopts = []
-  runfiles = ctx.runfiles()
-  cgo_deps = []
-  cgo_exports = []
-  cgo_archive = None
-
-  for e in embed:
-    embed_srcs = getattr(e, "srcs", [])
-    srcs.extend(embed_srcs)
-    embed_build_srcs = getattr(e, "build_srcs", None)
-    if embed_build_srcs:
-      build_srcs.extend(embed_build_srcs)
-    else:
-      build_srcs.extend(embed_srcs)
-    deps.extend(getattr(e, "deps", []))
-    gc_goopts.extend(getattr(e, "gc_goopts", []))
-    cover_vars.extend(getattr(e, "cover_vars", []))
-    runfiles = runfiles.merge(getattr(e, "runfiles", None))
-    cgo_deps.extend(getattr(e, "cgo_deps", []))
-    cgo_exports.extend(getattr(e, "cgo_exports", []))
-    embed_cgo_archive = getattr(e, "cgo_archive", None)
-    if embed_cgo_archive:
-      if cgo_archive:
-        fail("multiple libraries with cgo_archive embedded")
-      cgo_archive = embed_cgo_archive
-
-  libs = []
-  direct = []
-  for dep in deps:
-    lib = dep[GoLibrary]
-    libs.append(lib)
-    direct.append(get_archive(dep))
-    runfiles = runfiles.merge(lib.runfiles)
-    
-  source = split_srcs(build_srcs)
-  go_srcs = source.go
-  if source.c:
-    fail("c sources in non cgo rule")
-  if not go_srcs:
-    fail("no go sources")
+  flat = sources.flatten(ctx, source)
+  split = split_srcs(flat.build_srcs)
+  go_srcs = split.go
+  if split.c:
+    fail("c sources in non cgo rule in " + str(ctx.label) + " got " + str(split.c))
+  if not split.go:
+    fail("no go sources in " + str(ctx.label) + " got " + str(flat.build_srcs))
+  transformed = structs.to_dict(split)
 
   if want_coverage:
-    go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, sources=go_srcs, mode=mode)
-    cover_vars.extend(cvars)
+    go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, sources=split.go, mode=mode)
+    transformed["go"] = go_srcs
+    flat.cover_vars.extend(cvars)
 
-  transformed = structs.to_dict(source)
-  transformed["go"] = go_srcs
 
-  build_srcs = join_srcs(struct(**transformed))
+  # This is a temporary hack, cover is about to move
+  temp = structs.to_dict(flat)
+  temp["build_srcs"] = join_srcs(struct(**transformed))
+  flat = GoSource(**temp)
+  source = GoSources(entries=[flat])
 
   package = GoPackage(
       name = str(ctx.label),
       importpath = importpath, # The import path for this library
-      srcs = depset(srcs), # The original sources
+      srcs = depset(flat.srcs), # The original sources
   )
   golib = GoLibrary(
       package = package,
-      transitive = sets.union([package], *[l.transitive for l in libs]),
-      runfiles = runfiles, # The runfiles needed for things including this library
-  )
-  goembed = GoEmbed(
-      srcs = srcs,
-      build_srcs = build_srcs,
-      deps = deps,
-      cover_vars = cover_vars,
-      gc_goopts = gc_goopts,
-      runfiles = runfiles,
-      cgo_deps = cgo_deps,
-      cgo_exports = cgo_exports,
-      cgo_archive = cgo_archive,
+      transitive = sets.union([package], *[dep[GoLibrary].transitive for dep in flat.deps]),
+      runfiles = flat.runfiles, # The runfiles needed for things including this library
   )
   goarchive = go_toolchain.actions.archive(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
       importpath = importpath,
-      goembed = goembed,
+      source = source,
       importable = importable,
-      direct = [get_archive(dep) for dep in deps],
-      runfiles = runfiles,
   )
 
-  return [golib, goembed, goarchive]
+  return [golib, source, goarchive]

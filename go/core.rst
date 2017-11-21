@@ -6,7 +6,7 @@ Core go rules
 .. _gazelle: tools/gazelle/README.rst
 .. _build constraints: http://golang.org/pkg/go/build/
 .. _GoLibrary: providers.rst#GoLibrary
-.. _GoEmbed: providers.rst#GoEmbed
+.. _GoSources: providers.rst#GoSources
 .. _GoArchive: providers.rst#GoArchive
 .. _cgo: http://golang.org/cmd/cgo/
 .. _"Make variable": https://docs.bazel.build/versions/master/be/make-variables.html
@@ -58,7 +58,7 @@ Providers
 ^^^^^^^^^
 
 * GoLibrary_
-* GoEmbed_
+* GoSources_
 * GoArchive_
 
 Attributes
@@ -94,7 +94,7 @@ Attributes
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test library directly.                                                 |
-| These may be go_library rules or compatible rules with the GoEmbed_ provider.                    |
+| These may be go_library rules or compatible rules with the GoSources_ provider.                    |
 | These can provide both :param:`srcs` and param:`deps` to this library.                           |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -167,7 +167,7 @@ Providers
 ^^^^^^^^^
 
 * GoLibrary_
-* GoEmbed_
+* GoSources_
 
 Attributes
 ^^^^^^^^^^
@@ -202,7 +202,7 @@ Attributes
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this binary embeds directly.                                                |
-| These may be go_library rules or compatible rules with the GoEmbed_ provider.                    |
+| These may be go_library rules or compatible rules with the GoSources_ provider.                    |
 | These can provide both :param:`srcs` and param:`deps` to this binary.                            |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -314,7 +314,7 @@ Attributes
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test embeds directly.                                                  |
-| These may be go_library rules or compatible rules with the GoEmbed_ provider.                    |
+| These may be go_library rules or compatible rules with the GoSources_ provider.                    |
 | These can provide both :param:`srcs` and param:`deps` to this test.                              |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+

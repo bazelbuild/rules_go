@@ -50,7 +50,7 @@ def _go_embed_data_impl(ctx):
       inputs = srcs,
       executable = ctx.executable._embed,
       arguments = [args],
-      mnemonic = "GoEmbedData",
+      mnemonic = "GoSourcesData",
   )
 
 go_embed_data = rule(

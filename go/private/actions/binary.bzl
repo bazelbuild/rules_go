@@ -16,16 +16,11 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
     "get_mode",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl",
-    "GoEmbed",
-)
 
 def emit_binary(ctx, go_toolchain,
     name="",
     importpath = "",
-    srcs = [],
-    deps = [],
-    embed = [],
+    source = None,
     gc_linkopts = [],
     x_defs = {},
     executable = None,
@@ -38,12 +33,7 @@ def emit_binary(ctx, go_toolchain,
   golib, goembed, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
-      embed = embed + [GoEmbed(
-          srcs = srcs,
-          deps = deps,
-          gc_goopts = ctx.attr.gc_goopts,
-          runfiles = ctx.runfiles(collect_data = True),
-      )],
+      source = source,
       importpath = importpath,
       importable = False,
   )
@@ -57,4 +47,4 @@ def emit_binary(ctx, go_toolchain,
       x_defs=x_defs,
   )
 
-  return golib
+  return golib, goembed, goarchive

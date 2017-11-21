@@ -17,7 +17,7 @@ load("@io_bazel_rules_go//go/private:go_repository.bzl",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     _GoLibrary = "GoLibrary",
-    _GoEmbed = "GoEmbed",
+    _GoSources = "GoSources",
 )
 load("@io_bazel_rules_go//go/private:repositories.bzl",
     "go_rules_dependencies",
@@ -56,8 +56,8 @@ load("@io_bazel_rules_go//go/private:tools/vet.bzl",
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""
 
-GoEmbed = _GoEmbed
-"""See go/providers.rst#GoEmbed for full documentation."""
+GoSources = _GoSources
+"""See go/providers.rst#GoSources for full documentation."""
 
 go_library = _go_library_macro
 """See go/core.rst#go_library for full documentation."""
