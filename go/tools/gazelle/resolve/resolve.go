@@ -90,7 +90,9 @@ func (r *Resolver) ResolveRule(e bf.Expr, pkgRel, buildRel string) {
 	deps := mapExprStrings(imports.Y, func(imp string) string {
 		label, err := resolve(imp, pkgRel)
 		if err != nil {
-			log.Print(err)
+			if _, ok := err.(standardImportError); !ok {
+				log.Print(err)
+			}
 			return ""
 		}
 		label.Relative = label.Repo == "" && label.Pkg == buildRel
@@ -102,6 +104,14 @@ func (r *Resolver) ResolveRule(e bf.Expr, pkgRel, buildRel string) {
 		imports.X.(*bf.LiteralExpr).Token = "deps"
 		imports.Y = deps
 	}
+}
+
+type standardImportError struct {
+	imp string
+}
+
+func (e standardImportError) Error() string {
+	return fmt.Sprintf("import path %q is in the standard library", e.imp)
 }
 
 // mapExprStrings applies a function f to the strings in e and returns a new
@@ -192,7 +202,7 @@ func (r *Resolver) resolveGo(imp, pkgRel string) (Label, error) {
 
 	switch {
 	case IsStandard(imp):
-		return Label{}, fmt.Errorf("import path %q is in the standard library", imp)
+		return Label{}, standardImportError{imp}
 	case imp == r.c.GoPrefix:
 		return r.l.LibraryLabel(""), nil
 	case r.c.GoPrefix == "" || strings.HasPrefix(imp, r.c.GoPrefix+"/"):
