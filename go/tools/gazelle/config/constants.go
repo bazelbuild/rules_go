@@ -55,7 +55,10 @@ const (
 type Language int
 
 const (
+	// GoLang marks Go targets.
 	GoLang Language = iota
+
+	// ProtoLang marks protocol buffer targets.
 	ProtoLang
 )
 
@@ -69,8 +72,3 @@ func (l Language) String() string {
 		return "unknown"
 	}
 }
-
-const (
-	PublicVisibility  = "//visibility:public"
-	PrivateVisibility = "//visibility:private"
-)

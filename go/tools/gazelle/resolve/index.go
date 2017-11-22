@@ -36,13 +36,13 @@ type RuleIndex struct {
 
 // ruleRecord contains information about a rule relevant to import indexing.
 type ruleRecord struct {
-	call       *bf.CallExpr
+	rule       bf.Rule
 	label      Label
 	lang       config.Language
 	importedAs []importSpec
-	visibility visibilitySpec
 	generated  bool
 	replaced   bool
+	embedded   bool
 }
 
 // importSpec describes a package to be imported. Language is specified, since
@@ -51,12 +51,6 @@ type importSpec struct {
 	lang config.Language
 	imp  string
 }
-
-// visibilitySpec describes the visibility of a rule. Gazelle only attempts
-// to address common cases here: we handle "//visibility:public",
-// "//visibility:private", and "//path/to/pkg:__subpackages__" (which is
-// represented here as a relative path, e.g., "path/to/pkg".
-type visibilitySpec []string
 
 func NewRuleIndex() *RuleIndex {
 	return &RuleIndex{
@@ -72,29 +66,31 @@ func (ix *RuleIndex) AddRulesFromFile(c *config.Config, oldFile *bf.File) {
 		log.Panicf("file not in repo: %s", oldFile.Path)
 	}
 	buildRel = path.Dir(filepath.ToSlash(buildRel))
-	defaultVisibility := findDefaultVisibility(oldFile, buildRel)
+	if buildRel == "." || buildRel == "/" {
+		buildRel = ""
+	}
+
 	for _, stmt := range oldFile.Stmt {
 		if call, ok := stmt.(*bf.CallExpr); ok {
-			ix.addRule(call, c.GoPrefix, buildRel, defaultVisibility, false)
+			ix.addRule(call, c.GoPrefix, buildRel, false)
 		}
 	}
 }
 
 // AddGeneratedRules adds newly generated rules to the index. These may
 // replace existing rules with the same label.
-func (ix *RuleIndex) AddGeneratedRules(c *config.Config, buildRel string, oldFile *bf.File, rules []bf.Expr) {
-	defaultVisibility := findDefaultVisibility(oldFile, buildRel)
+func (ix *RuleIndex) AddGeneratedRules(c *config.Config, buildRel string, rules []bf.Expr) {
 	for _, stmt := range rules {
 		if call, ok := stmt.(*bf.CallExpr); ok {
-			ix.addRule(call, c.GoPrefix, buildRel, defaultVisibility, true)
+			ix.addRule(call, c.GoPrefix, buildRel, true)
 		}
 	}
 }
 
-func (ix *RuleIndex) addRule(call *bf.CallExpr, goPrefix, buildRel string, defaultVisibility []string, generated bool) {
+func (ix *RuleIndex) addRule(call *bf.CallExpr, goPrefix, buildRel string, generated bool) {
 	rule := bf.Rule{Call: call}
 	record := &ruleRecord{
-		call:      call,
+		rule:      rule,
 		label:     Label{Pkg: buildRel, Name: rule.Name()},
 		generated: generated,
 	}
@@ -115,18 +111,15 @@ func (ix *RuleIndex) addRule(call *bf.CallExpr, goPrefix, buildRel string, defau
 	}
 
 	kind := rule.Kind()
-	switch kind {
-	case "go_library":
+	switch {
+	case isGoLibrary(kind):
 		record.lang = config.GoLang
-		record.importedAs = []importSpec{{lang: config.GoLang, imp: getGoImportPath(rule, goPrefix, buildRel)}}
+		if imp := rule.AttrString("importpath"); imp != "" {
+			record.importedAs = []importSpec{{lang: config.GoLang, imp: imp}}
+		}
+		// Additional proto imports may be added in Finish.
 
-	case "go_proto_library", "go_grpc_library":
-		record.lang = config.GoLang
-		// importedAs is set in Finish, since we need to dereference the "proto"
-		// attribute to find the sources. These rules are not automatically
-		// importable from Go.
-
-	case "proto_library":
+	case kind == "proto_library":
 		record.lang = config.ProtoLang
 		for _, s := range findSources(rule, buildRel, ".proto") {
 			record.importedAs = append(record.importedAs, importSpec{lang: config.ProtoLang, imp: s})
@@ -136,39 +129,91 @@ func (ix *RuleIndex) addRule(call *bf.CallExpr, goPrefix, buildRel string, defau
 		return
 	}
 
-	visExpr := rule.Attr("visibility")
-	if visExpr != nil {
-		record.visibility = parseVisibility(visExpr, buildRel)
-	} else {
-		record.visibility = defaultVisibility
-	}
-
 	ix.rules = append(ix.rules, record)
 	ix.labelMap[record.label] = record
 }
 
 // Finish constructs the import index and performs any other necessary indexing
 // actions after all rules have been added. This step is necessary because
-// some rules that are added may later be replaced (existing rules may be
-// replaced by generated rules). Also, for proto rules, we need to be able
-// to dereference a label to find the sources.
+// a rule may be indexed differently based on what rules are added later.
 //
 // This function must be called after all AddRulesFromFile and AddGeneratedRules
 // calls but before any findRuleByImport calls.
 func (ix *RuleIndex) Finish() {
-	ix.importMap = make(map[importSpec][]*ruleRecord)
+	ix.removeReplacedRules()
+	ix.skipGoEmbds()
+	ix.buildImportIndex()
+}
+
+// removeReplacedRules removes rules from existing files that were replaced
+// by generated rules.
+func (ix *RuleIndex) removeReplacedRules() {
 	oldRules := ix.rules
 	ix.rules = nil
 	for _, r := range oldRules {
-		if r.replaced {
+		if !r.replaced {
+			ix.rules = append(ix.rules, r)
+		}
+	}
+}
+
+// skipGoEmbeds sets the embedded flag on Go library rules that are imported
+// by other Go library rules with the same import path. Note that embedded
+// rules may still be imported with non-Go imports. For example, a
+// go_proto_library may be imported with either a Go import path or a proto
+// path. If the library is embedded, only the proto path will be indexed.
+func (ix *RuleIndex) skipGoEmbds() {
+	for _, r := range ix.rules {
+		if !isGoLibrary(r.rule.Kind()) {
 			continue
 		}
-		rule := bf.Rule{Call: r.call}
-		kind := rule.Kind()
-		if kind == "go_proto_library" || kind == "go_grpc_library" {
-			r.importedAs = findGoProtoSources(ix, r)
+		importpath := r.rule.AttrString("importpath")
+
+		var embedLabels []Label
+		if embedList, ok := r.rule.Attr("embed").(*bf.ListExpr); ok {
+			for _, embedElem := range embedList.List {
+				embedStr, ok := embedElem.(*bf.StringExpr)
+				if !ok {
+					continue
+				}
+				embedLabel, err := ParseLabel(embedStr.Value)
+				if err != nil {
+					continue
+				}
+				embedLabels = append(embedLabels, embedLabel)
+			}
+		}
+		if libraryStr, ok := r.rule.Attr("library").(*bf.StringExpr); ok {
+			if libraryLabel, err := ParseLabel(libraryStr.Value); err == nil {
+				embedLabels = append(embedLabels, libraryLabel)
+			}
+		}
+
+		for _, l := range embedLabels {
+			embed, ok := ix.findRuleByLabel(l, r.label.Pkg)
+			if !ok {
+				continue
+			}
+			if embed.rule.AttrString("importpath") != importpath {
+				continue
+			}
+			embed.embedded = true
+		}
+	}
+}
+
+// buildImportIndex constructs the map used by findRuleByImport.
+func (ix *RuleIndex) buildImportIndex() {
+	ix.importMap = make(map[importSpec][]*ruleRecord)
+	for _, r := range ix.rules {
+		if isGoProtoLibrary(r.rule.Kind()) {
+			protoImports := findGoProtoSources(ix, r)
+			r.importedAs = append(r.importedAs, protoImports...)
 		}
 		for _, imp := range r.importedAs {
+			if imp.lang == config.GoLang && r.embedded {
+				continue
+			}
 			ix.importMap[imp] = append(ix.importMap[imp], r)
 		}
 	}
@@ -180,16 +225,13 @@ type ruleNotFoundError struct {
 }
 
 func (e ruleNotFoundError) Error() string {
-	return fmt.Sprintf("no rule found for %q visible from %s", e.imp, e.fromRel)
+	return fmt.Sprintf("no rule found for import %q, needed in package %q", e.imp, e.fromRel)
 }
 
-func (ix *RuleIndex) findRuleByLabel(label Label, fromRel string) (*ruleRecord, error) {
+func (ix *RuleIndex) findRuleByLabel(label Label, fromRel string) (*ruleRecord, bool) {
 	label = label.Abs("", fromRel)
 	r, ok := ix.labelMap[label]
-	if !ok {
-		return nil, ruleNotFoundError{label.String(), fromRel}
-	}
-	return r, nil
+	return r, ok
 }
 
 // findRuleByImport attempts to resolve an import string to a rule record.
@@ -201,37 +243,77 @@ func (ix *RuleIndex) findRuleByLabel(label Label, fromRel string) (*ruleRecord, 
 //
 // Any number of rules may provide the same import. If no rules provide
 // the import, ruleNotFoundError is returned. If multiple rules provide the
-// import, this function will attempt to choose one based on visibility.
-// An error is returned if the import is still ambiguous.
-//
-// Note that a rule may be returned even if visibility restrictions will be
-// be violated. Bazel will give a descriptive error message when a build
-// is attempted.
+// import, this function will attempt to choose one based on Go vendoring logic.
+// In ambiguous cases, an error is returned.
 func (ix *RuleIndex) findRuleByImport(imp importSpec, lang config.Language, fromRel string) (*ruleRecord, error) {
 	matches := ix.importMap[imp]
-	var bestMatches []*ruleRecord
-	bestMatchesAreVisible := false
+	var bestMatch *ruleRecord
+	var bestMatchIsVendored bool
+	var bestMatchVendorRoot string
+	var matchError error
 	for _, m := range matches {
 		if m.lang != lang {
 			continue
 		}
-		visible := isVisibleFrom(m.visibility, m.label.Pkg, fromRel)
-		if bestMatchesAreVisible && !visible {
-			continue
+
+		switch imp.lang {
+		case config.GoLang:
+			// Apply vendoring logic for Go libraries. A library in a vendor directory
+			// is only visible in the parent tree. Vendored libraries supercede
+			// non-vendored libraries, and libraries closer to fromRel supercede
+			// those further up the tree.
+			isVendored := false
+			vendorRoot := ""
+			if m.label.Repo == "" {
+				parts := strings.Split(m.label.Pkg, "/")
+				for i, part := range parts {
+					if part == "vendor" {
+						isVendored = true
+						vendorRoot = strings.Join(parts[:i], "/")
+						break
+					}
+				}
+			}
+			if isVendored && fromRel != vendorRoot && !strings.HasPrefix(fromRel, vendorRoot+"/") {
+				// vendor directory not visible
+				continue
+			}
+			if bestMatch == nil || isVendored && (!bestMatchIsVendored || len(vendorRoot) > len(bestMatchVendorRoot)) {
+				// Current match is better
+				bestMatch = m
+				bestMatchIsVendored = isVendored
+				bestMatchVendorRoot = vendorRoot
+				matchError = nil
+			} else if !isVendored && (bestMatchIsVendored || len(vendorRoot) < len(bestMatchVendorRoot)) {
+				// Current match is worse
+			} else {
+				// Match is ambiguous
+				matchError = fmt.Errorf("multiple rules (%s and %s) may be imported with %q", bestMatch.label, m.label, imp.imp)
+			}
+
+		default:
+			if bestMatch == nil {
+				bestMatch = m
+			} else {
+				matchError = fmt.Errorf("multiple rules (%s and %s) may be imported with %q", bestMatch.label, m.label, imp.imp)
+			}
 		}
-		if !bestMatchesAreVisible && visible {
-			bestMatchesAreVisible = true
-			bestMatches = nil
-		}
-		bestMatches = append(bestMatches, m)
 	}
-	if len(bestMatches) == 0 {
+	if matchError != nil {
+		return nil, matchError
+	}
+	if bestMatch == nil {
 		return nil, ruleNotFoundError{imp.imp, fromRel}
 	}
-	if len(bestMatches) >= 2 {
-		return nil, fmt.Errorf("multiple rules (%s and %s) may be imported with %q", bestMatches[0].label, bestMatches[1].label, imp.imp)
+
+	if imp.lang == config.ProtoLang && lang == config.GoLang {
+		importpath := bestMatch.rule.AttrString("importpath")
+		if betterMatch, err := ix.findRuleByImport(importSpec{config.GoLang, importpath}, config.GoLang, fromRel); err != nil {
+			return betterMatch, nil
+		}
 	}
-	return bestMatches[0], nil
+
+	return bestMatch, nil
 }
 
 func (ix *RuleIndex) findLabelByImport(imp importSpec, lang config.Language, fromRel string) (Label, error) {
@@ -242,36 +324,17 @@ func (ix *RuleIndex) findLabelByImport(imp importSpec, lang config.Language, fro
 	return r.label, nil
 }
 
-func getGoImportPath(r bf.Rule, goPrefix, buildRel string) string {
-	// TODO(#597): account for subdirectory where goPrefix was set, when we
-	// support multiple prefixes.
-	imp := r.AttrString("importpath")
-	if imp != "" {
-		return imp
-	}
-	imp = path.Join(goPrefix, buildRel)
-	if name := r.Name(); name != config.DefaultLibName {
-		imp = path.Join(imp, name)
-	}
-	return imp
-}
-
 func findGoProtoSources(ix *RuleIndex, r *ruleRecord) []importSpec {
-	rule := bf.Rule{Call: r.call}
-	protoExpr, ok := rule.Attr("proto").(*bf.StringExpr)
+	protoLabel, err := ParseLabel(r.rule.AttrString("proto"))
+	if err != nil {
+		return nil
+	}
+	proto, ok := ix.findRuleByLabel(protoLabel, r.label.Pkg)
 	if !ok {
 		return nil
 	}
-	protoLabel, err := ParseLabel(protoExpr.Value)
-	if err != nil {
-		return nil
-	}
-	protoRule, err := ix.findRuleByLabel(protoLabel, r.label.Pkg)
-	if err != nil {
-		return nil
-	}
 	var importedAs []importSpec
-	for _, source := range findSources(bf.Rule{Call: protoRule.call}, protoRule.label.Pkg, ".proto") {
+	for _, source := range findSources(proto.rule, proto.label.Pkg, ".proto") {
 		importedAs = append(importedAs, importSpec{lang: config.ProtoLang, imp: source})
 	}
 	return importedAs
@@ -298,61 +361,10 @@ func findSources(r bf.Rule, buildRel, ext string) []string {
 	return srcs
 }
 
-func findDefaultVisibility(oldFile *bf.File, buildRel string) visibilitySpec {
-	if oldFile == nil {
-		return visibilitySpec{config.PrivateVisibility}
-	}
-	for _, stmt := range oldFile.Stmt {
-		call, ok := stmt.(*bf.CallExpr)
-		if !ok {
-			continue
-		}
-		rule := bf.Rule{Call: call}
-		if rule.Kind() == "package" {
-			return parseVisibility(rule.Attr("default_visibility"), buildRel)
-		}
-	}
-	return visibilitySpec{config.PrivateVisibility}
+func isGoLibrary(kind string) bool {
+	return kind == "go_library" || isGoProtoLibrary(kind)
 }
 
-func parseVisibility(visExpr bf.Expr, buildRel string) visibilitySpec {
-	visList, ok := visExpr.(*bf.ListExpr)
-	if !ok {
-		return visibilitySpec{config.PrivateVisibility}
-	}
-	var visibility visibilitySpec
-	for _, elemExpr := range visList.List {
-		elemStr, ok := elemExpr.(*bf.StringExpr)
-		if !ok {
-			continue
-		}
-		if elemStr.Value == config.PublicVisibility || elemStr.Value == config.PrivateVisibility {
-			visibility = append(visibility, elemStr.Value)
-			continue
-		}
-		label, err := ParseLabel(elemStr.Value)
-		if err != nil {
-			continue
-		}
-		label = label.Abs("", buildRel)
-		if label.Repo != "" || label.Name != "__subpackages__" {
-			continue
-		}
-		visibility = append(visibility, label.Pkg)
-	}
-	return visibility
-}
-
-func isVisibleFrom(visibility visibilitySpec, defRel, useRel string) bool {
-	for _, vis := range visibility {
-		switch vis {
-		case config.PublicVisibility:
-			return true
-		case config.PrivateVisibility:
-			return defRel == useRel
-		default:
-			return useRel == vis || strings.HasPrefix(useRel, vis+"/")
-		}
-	}
-	return false
+func isGoProtoLibrary(kind string) bool {
+	return kind == "go_proto_library" || kind == "go_grpc_library"
 }
