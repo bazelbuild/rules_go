@@ -50,13 +50,12 @@ def _ternary(*values):
   fail("_ternary failed to produce a final result from {}".format(values))
 
 def get_mode(ctx, toolchain_flags):
-  force_pure = None
   if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
 
-  # We always have to user the pure stdlib in cross compilation mode
+  # We always have to use the pure stdlib in cross compilation mode
   force_pure = go_toolchain.cross_compile
 
   #TODO: allow link mode selection
