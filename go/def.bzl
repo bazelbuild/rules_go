@@ -52,6 +52,9 @@ load("@io_bazel_rules_go//go/private:tools/path.bzl",
 load("@io_bazel_rules_go//go/private:tools/vet.bzl",
     _go_vet_test = "go_vet_test",
 )
+load("@io_bazel_rules_go//go/private:tools/gofmt.bzl",
+    _go_fmt_test = "go_fmt_test",
+)
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""
@@ -79,6 +82,11 @@ go_path = _go_path
 go_vet_test = _go_vet_test
 """
     go_vet_test
+"""
+
+go_fmt_test = _go_fmt_test
+"""
+    go_fmt_test
 """
 
 
