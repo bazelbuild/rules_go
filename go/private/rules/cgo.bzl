@@ -245,7 +245,7 @@ _cgo_collect_info = rule(
     },
 )
 """No-op rule that collects information from _cgo_codegen and cc_library
-info into a GoSources provider for easy consumption."""
+info into a GoSourceList provider for easy consumption."""
 
 def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_codegen_dir = name + ".cgo.dir"

@@ -21,15 +21,18 @@
 # info provider.
 
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "GoSources",
+    "GoSourceList",
     "sources",
+)
+load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
+    "get_source_list",
 )
 
 
 def _go_sources_impl(ctx):
   """Implements the go_sources() rule."""
   return [
-      sources.merge([s[GoSources] for s in ctx.attr.embed] + [sources.new(
+      sources.merge([get_source_list(s) for s in ctx.attr.embed] + [sources.new(
           srcs = ctx.files.srcs,
           deps = ctx.attr.deps,
           gc_goopts = ctx.attr.gc_goopts,
@@ -43,7 +46,7 @@ go_sources = rule(
         "data": attr.label_list(allow_files = True, cfg = "data"),
         "srcs": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoSources]),
+        "embed": attr.label_list(providers = [GoSourceList]),
         "gc_goopts": attr.string_list(),
     },
 )

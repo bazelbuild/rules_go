@@ -27,13 +27,12 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "GoSources",
     "sources",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "add_go_env",
 )
-load("@io_bazel_rules_go//go/private:actions/archive.bzl",
+load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
     "get_archive",
 )

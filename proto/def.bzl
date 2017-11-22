@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "GoSources",
+    "GoSourceList",
     "sources",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
@@ -11,6 +11,9 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
+)
+load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
+    "get_source_list",
 )
 
 def _go_proto_library_impl(ctx):
@@ -24,10 +27,10 @@ def _go_proto_library_impl(ctx):
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  golib, goembed, goarchive = go_toolchain.actions.library(ctx,
+  golib, gosource, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
-      source = sources.merge([s[GoSources] for s in ctx.attr.embed] + [sources.new(
+      source = sources.merge([get_source_list(s) for s in ctx.attr.embed] + [sources.new(
           srcs = go_srcs,
           deps = ctx.attr.deps + go_proto_toolchain.deps,
           gc_goopts = ctx.attr.gc_goopts,
@@ -38,7 +41,7 @@ def _go_proto_library_impl(ctx):
       importable = True,
   )
   return [
-      golib, goembed, goarchive,
+      golib, gosource, goarchive,
       DefaultInfo(
           files = depset([]), #TODO:go_archive.lib]),
           runfiles = golib.runfiles,
@@ -51,7 +54,7 @@ go_proto_library = rule(
         "proto": attr.label(mandatory=True, providers=["proto"]),
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
-        "embed": attr.label_list(providers = [GoSources]),
+        "embed": attr.label_list(providers = [GoSourceList]),
         "gc_goopts": attr.string_list(),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
@@ -74,7 +77,7 @@ go_grpc_library = rule(
         "proto": attr.label(mandatory=True, providers=["proto"]),
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
-        "embed": attr.label_list(providers = [GoSources]),
+        "embed": attr.label_list(providers = [GoSourceList]),
         "gc_goopts": attr.string_list(),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_toolchain": attr.string(default = "@io_bazel_rules_go//proto:go_grpc"),

@@ -24,8 +24,8 @@ GoPath = provider()
 GoSource = provider()
 """See go/providers.rst#GoSource for full documentation."""
 
-GoSources = provider()
-"""See go/providers.rst#GoSources for full documentation."""
+GoSourceList = provider()
+"""See go/providers.rst#GoSourceList for full documentation."""
 
 GoArchive = provider()
 """See go/providers.rst#GoArchive for full documentation."""
@@ -40,7 +40,7 @@ def _merge_runfiles(a, b):
   return a.merge(b)
 
 def _source_build_entry(srcs = [], build_srcs = [], deps = [], gc_goopts=[], cover_vars=[], runfiles=None, cgo_deps=[], cgo_exports=[], cgo_archive=None, source = None):
-  """Creates a new GoSource from a collection of values and an optional GoSources to merge in."""
+  """Creates a new GoSource from a collection of values and an optional GoSourceList to merge in."""
   if not build_srcs:
     build_srcs = srcs
   for e in (source.entries if source else []):
@@ -70,18 +70,18 @@ def _source_build_entry(srcs = [], build_srcs = [], deps = [], gc_goopts=[], cov
   )
 
 def _source_new(**kwargs):
-  """Creates a new GoSources from a collection of values."""
-  return GoSources(entries = [_source_build_entry(**kwargs)])
+  """Creates a new GoSourceList from a collection of values."""
+  return GoSourceList(entries = [_source_build_entry(**kwargs)])
 
 def _source_merge(source):
-  """Merges the entries of multiple GoSources providers to a single GoSources."""
+  """Merges the entries of multiple GoSourceList providers to a single GoSourceList."""
   entries = []
   for e in source:
     entries.extend(e.entries)
-  return GoSources(entries = entries)
+  return GoSourceList(entries = entries)
 
 def _source_flatten(ctx, source):
-  """Flattens a GoSources to a single GoSource ready for use."""
+  """Flattens a GoSourceList to a single GoSource ready for use."""
   return _source_build_entry(source = source)
 
 sources = struct(
@@ -89,4 +89,4 @@ sources = struct(
   merge = _source_merge,
   flatten = _source_flatten,
 )
-"""sources holds the functions for manipulating GoSources providers."""
+"""sources holds the functions for manipulating GoSourceList providers."""

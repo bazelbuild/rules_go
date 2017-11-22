@@ -14,57 +14,18 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
-    "to_set",
     "sets",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
     "mode_string",
 )
+load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
+    "get_archive",
+)
 load("@io_bazel_rules_go//go/private:providers.bzl",
-    "GoLibrary",
-    "GoSources",
     "GoArchive",
     "GoArchiveData",
     "sources",
-)
-
-
-GoAspectArchive = provider()
-
-def get_archive(dep):
-  if GoAspectArchive in dep:
-    return dep[GoAspectArchive].archive
-  return dep[GoArchive]
-
-def _go_archive_aspect_impl(target, ctx):
-  mode = get_mode(ctx, ctx.rule.attr._go_toolchain_flags)
-  if GoArchive not in target:
-    return []
-  goarchive = target[GoArchive]
-  if goarchive.mode == mode:
-    return [GoAspectArchive(archive = goarchive)]
-
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  goarchive = go_toolchain.actions.archive(ctx,
-      go_toolchain = go_toolchain,
-      mode = mode,
-      importpath = target[GoLibrary].package.importpath,
-      source = target[GoSources],
-      importable = True,
-  )
-  return [GoAspectArchive(archive = goarchive)]
-
-go_archive_aspect = aspect(
-    _go_archive_aspect_impl,
-    attr_aspects = ["deps", "embed"],
-    attrs = {
-        "pure": attr.string(values=["on", "off", "auto"], default="auto"),
-        "static": attr.string(values=["on", "off", "auto"], default="auto"),
-        "msan": attr.string(values=["on", "off", "auto"], default="auto"),
-        "race": attr.string(values=["on", "off", "auto"], default="auto"),
-    },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def emit_archive(ctx, go_toolchain, mode=None, importpath=None, source=None, importable=True):

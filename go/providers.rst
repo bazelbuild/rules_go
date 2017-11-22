@@ -81,17 +81,17 @@ binaries or tests.
 +--------------------------------+-----------------------------------------------------------------+
 
 
-GoSources
+GoSourceList
 ~~~~~~~
 
-GoSources is a provider designed to be used as the output of anything that provides Go code, and an
+GoSourceList is a provider designed to be used as the output of anything that provides Go code, and an
 input to anything that compiles Go code.
 It combines the source with dependencies that source will require.
 
 There are two main uses for this.
 
 #. Recompiling a library with additional sources.
-   go_library_ returns a GoSources provider with the transformed sources and deps that it was
+   go_library_ returns a GoSourceList provider with the transformed sources and deps that it was
    consuming.
    go_test_ uses this to recompile the library with additional test files, to build the test
    version of the library. You can use the same feature to recompile a proto library with
@@ -102,7 +102,7 @@ There are two main uses for this.
    flatbuffers compiler to generate the serialization functions, you might hit the issue that
    the only thing that knows you depend on ``github.com/google/flatbuffers/go`` is the generated
    code.
-   You can instead have the generator return a GoSources provider instead of just the generated
+   You can instead have the generator return a GoSourceList provider instead of just the generated
    files, allowing you to tie the generated files to the additional dependencies they add to
    any package trying to compile them.
 
@@ -117,7 +117,7 @@ There are two main uses for this.
 GoSource
 ~~~~~~~
 
-GoSource represents a single entry in a GoSources source provider.
+GoSource represents a single entry in a GoSourceList source provider.
 
 +--------------------------------+-----------------------------------------------------------------+
 | **Name**                       | **Type**                                                        |

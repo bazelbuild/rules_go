@@ -21,12 +21,19 @@ go_test(
 )
 
 go_test(
-    name = "race_on_test",
+    name = "race_on_tester",
     size = "small",
     srcs = ["race_test.go"],
     embed = [":go_default_library"],
     tags = ["manual"],
     race = "on",
+)
+
+sh_test(
+    name = "race_on_test",
+    size = "small",
+    srcs = ["race_on_test.sh"],
+    data = [":race_on_tester"],
 )
 
 bazel_test(
@@ -42,18 +49,4 @@ fi
 """,
     command = "test",
     targets = [":race_auto_test"],
-)
-
-bazel_test(
-    name = "race_on",
-    check = """
-if [ "$result" -eq 0 ]; then
-  echo "error: test succeeded unexpectedly" >&2
-  result=1
-else
-  result=0
-fi
-""",
-    command = "test",
-    targets = [":race_on_test"],
 )

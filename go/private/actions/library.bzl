@@ -22,11 +22,11 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
     "GoPackage",
-    "GoSources",
+    "GoSourceList",
     "GoSource",
     "sources",
 )
-load("@io_bazel_rules_go//go/private:actions/archive.bzl",
+load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "get_archive",
 )
 
@@ -57,7 +57,7 @@ def emit_library(ctx, go_toolchain,
   temp = structs.to_dict(flat)
   temp["build_srcs"] = join_srcs(struct(**transformed))
   flat = GoSource(**temp)
-  source = GoSources(entries=[flat])
+  source = GoSourceList(entries=[flat])
 
   package = GoPackage(
       name = str(ctx.label),
