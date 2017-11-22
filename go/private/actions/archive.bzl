@@ -97,7 +97,7 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, goembed=None, di
   cgo_deps = getattr(goembed, "cgo_deps", [])
 
   for a in direct:
-    if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.name, mode_string(a.mode), mode_string(mode)))
+    if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.data.importpath, mode_string(a.mode), mode_string(mode)))
 
   cover_vars = ["{}={}".format(var, importpath) for var in goembed.cover_vars]
 

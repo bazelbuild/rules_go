@@ -57,14 +57,15 @@ def get_mode(ctx, toolchain_flags):
       force_pure = True
 
   #TODO: allow link mode selection
-  debug = False
-  strip = True
+  debug = ctx.var["COMPILATION_MODE"] == "debug"
+  strip_mode = "sometimes"
   if toolchain_flags:
-    debug = toolchain_flags.compilation_mode == "debug"
-    if toolchain_flags.strip == "always":
-      strip = True
-    elif toolchain_flags.strip == "sometimes":
-      strip = not debug
+    strip_mode = toolchain_flags.strip
+  strip = True
+  if strip_mode == "always":
+    strip = True
+  elif strip_mode == "sometimes":
+    strip = not debug
   return struct(
       static = _ternary(
           getattr(ctx.attr, "static", None),

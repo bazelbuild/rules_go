@@ -209,14 +209,12 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
 
 def _go_toolchain_flags(ctx):
     return struct(
-        compilation_mode = ctx.attr.compilation_mode,
         strip = ctx.attr.strip,
     )
 
 go_toolchain_flags = rule(
     _go_toolchain_flags,
     attrs = {
-        "compilation_mode": attr.string(mandatory=True),
         "strip": attr.string(mandatory=True),
     },
 )
