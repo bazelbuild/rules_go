@@ -49,6 +49,10 @@ def _go_repository_impl(ctx):
     }
     if "SSH_AUTH_SOCK" in ctx.os.environ:
       fetch_repo_env["SSH_AUTH_SOCK"] = ctx.os.environ["SSH_AUTH_SOCK"]
+    if "HTTP_PROXY" in ctx.os.environ:
+      fetch_repo_env["HTTP_PROXY"] = ctx.os.environ["HTTP_PROXY"]
+    if "HTTPS_PROXY" in ctx.os.environ:
+      fetch_repo_env["HTTPS_PROXY"] = ctx.os.environ["HTTPS_PROXY"]
 
     # TODO(yugui): support submodule?
     # c.f. https://www.bazel.io/versions/master/docs/be/workspace.html#git_repository.init_submodules
