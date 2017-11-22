@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary", "go_source")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 go_library(
@@ -13,18 +13,22 @@ go_binary(
     deps = [":go_default_library"],
 )
 
-go_test(
-    name = "race_auto_test",
-    size = "small",
+go_source(
+    name = "race_test",
     srcs = ["race_test.go"],
     embed = [":go_default_library"],
 )
 
 go_test(
+    name = "race_auto_test",
+    size = "small",
+    embed = [":race_test"],
+)
+
+go_test(
     name = "race_on_tester",
     size = "small",
-    srcs = ["race_test.go"],
-    embed = [":go_default_library"],
+    embed = [":race_test"],
     tags = ["manual"],
     race = "on",
 )

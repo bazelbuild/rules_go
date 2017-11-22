@@ -21,34 +21,26 @@
 # info provider.
 
 load("@io_bazel_rules_go//go/private:providers.bzl",
+    "GoLibrary",
     "GoSourceList",
-    "sources",
 )
 load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
-    "get_source_list",
+    "collect_src",
 )
 
+def _go_source_impl(ctx):
+  """Implements the go_source() rule."""
+  return [collect_src(ctx)]
 
-def _go_sources_impl(ctx):
-  """Implements the go_sources() rule."""
-  return [
-      sources.merge([get_source_list(s) for s in ctx.attr.embed] + [sources.new(
-          srcs = ctx.files.srcs,
-          deps = ctx.attr.deps,
-          gc_goopts = ctx.attr.gc_goopts,
-          runfiles = ctx.runfiles(collect_data = True),
-          want_coverage = ctx.coverage_instrumented(),
-      )])
-  ]
-
-go_sources = rule(
-    _go_sources_impl,
+go_source = rule(
+    _go_source_impl,
     attrs = {
         "data": attr.label_list(allow_files = True, cfg = "data"),
         "srcs": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoSourceList]),
         "gc_goopts": attr.string_list(),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
 )
-"""See go/core.rst#go_sources for full documentation."""
+"""See go/core.rst#go_source for full documentation."""

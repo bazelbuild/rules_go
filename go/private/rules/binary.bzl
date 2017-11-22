@@ -21,7 +21,7 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 )
 load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
-    "get_source_list",
+    "collect_src",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
@@ -35,13 +35,7 @@ def _go_binary_impl(ctx):
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
-  gosource = sources.merge([get_source_list(s) for s in ctx.attr.embed] + [sources.new(
-      srcs = ctx.files.srcs,
-      deps = ctx.attr.deps,
-      gc_goopts = ctx.attr.gc_goopts,
-      runfiles = ctx.runfiles(collect_data = True),
-      want_coverage = ctx.coverage_instrumented(),
-  )])
+  gosource = collect_src(ctx)
   executable = ctx.outputs.executable
   golib, goarchive = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,

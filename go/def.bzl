@@ -40,6 +40,9 @@ load("@io_bazel_rules_go//go/private:rules/wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_test_macro = "go_test_macro",
 )
+load("@io_bazel_rules_go//go/private:rules/source.bzl",
+    _go_source = "go_source",
+)
 load("@io_bazel_rules_go//go/private:tools/embed_data.bzl",
     "go_embed_data",
 )
@@ -66,6 +69,9 @@ go_binary = _go_binary_macro
 """See go/core.rst#go_binary for full documentation."""
 
 go_test = _go_test_macro
+"""See go/core.rst#go_test for full documentation."""
+
+go_source = _go_source
 """See go/core.rst#go_test for full documentation."""
 
 go_path = _go_path
