@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "declare_file",
+)
+
 _script_content = """
 BASE=$(pwd)
 WORKSPACE=$(dirname $(readlink WORKSPACE))
@@ -32,7 +36,7 @@ def _gazelle_script_impl(ctx):
     args += ["-build_tags", ",".join(ctx.attr.build_tags)]
   args += ctx.attr.args
   script_content = _script_content.format(gazelle=ctx.file._gazelle.short_path, args=" ".join(args))
-  script_file = ctx.actions.declare_file(ctx.label.name+".bash")
+  script_file = declare_file(ctx, ext=".bash")
   ctx.actions.write(output=script_file, is_executable=True, content=script_content)
   return struct(
     files = depset([script_file]),

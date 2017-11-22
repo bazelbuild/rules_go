@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "declare_file",
+)
+load("@io_bazel_rules_go//go/private:providers.bzl",
+    "sources",
+)
+
 def _go_embed_data_impl(ctx):
   if ctx.attr.src and ctx.attr.srcs:
     fail("%s: src and srcs attributes cannot both be specified" % ctx.label)
@@ -32,10 +39,11 @@ def _go_embed_data_impl(ctx):
     if package == "":
       fail("%s: must provide package attribute for go_embed_data rules in the repository root directory" % ctx.label)
 
+  out = declare_file(ctx, ext=".go")
   args.add([
     "-workspace", ctx.workspace_name,
     "-label", str(ctx.label),
-    "-out", ctx.outputs.out,
+    "-out", out,
     "-package", package,
     "-var", ctx.attr.var,
   ])
@@ -46,17 +54,20 @@ def _go_embed_data_impl(ctx):
   args.add(srcs)
 
   ctx.actions.run(
-      outputs = [ctx.outputs.out],
+      outputs = [out],
       inputs = srcs,
       executable = ctx.executable._embed,
       arguments = [args],
       mnemonic = "GoSourcesData",
   )
+  return [
+      DefaultInfo(files = depset([out])),
+      sources.new(srcs = [out], want_coverage = False),
+  ]
 
 go_embed_data = rule(
     implementation = _go_embed_data_impl,
     attrs = {
-        "out": attr.output(mandatory = True),
         "package": attr.string(),
         "var": attr.string(default = "Data"),
         "src": attr.label(allow_single_file = True),

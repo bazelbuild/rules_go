@@ -14,18 +14,17 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = [
-        "embed_empty.go",
-        "embed_ext.go",
-        "embed_flat.go",
-        "embed_local.go",
-        "embed_single.go",
-        "embed_str.go",
+        ":empty",
+        ":ext",
+        ":flat",
+        ":local",
+        ":single",
+        ":str",
     ],
 )
 
 go_embed_data(
     name = "empty",
-    out = "embed_empty.go",
     package = "go_embed_data",
     var = "empty",
 )
@@ -33,7 +32,6 @@ go_embed_data(
 go_embed_data(
     name = "single",
     src = "//:AUTHORS",
-    out = "embed_single.go",
     package = "go_embed_data",
     var = "single",
 )
@@ -44,7 +42,6 @@ go_embed_data(
         ":BUILD.bazel",
         "@io_bazel_rules_go//:AUTHORS",
     ],
-    out = "embed_local.go",
     package = "go_embed_data",
     var = "local",
 )
@@ -52,7 +49,6 @@ go_embed_data(
 go_embed_data(
     name = "ext",
     srcs = ["@io_bazel_rules_go_repository_tools//:BUILD.bazel"],
-    out = "embed_ext.go",
     package = "go_embed_data",
     var = "ext",
 )
@@ -60,7 +56,6 @@ go_embed_data(
 go_embed_data(
     name = "flat",
     srcs = [":BUILD.bazel"],
-    out = "embed_flat.go",
     flatten = True,
     package = "go_embed_data",
     var = "flat",
@@ -69,7 +64,6 @@ go_embed_data(
 go_embed_data(
     name = "str",
     srcs = [":BUILD.bazel"],
-    out = "embed_str.go",
     package = "go_embed_data",
     string = True,
     var = "str",

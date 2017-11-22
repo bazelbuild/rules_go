@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
+    "declare_file",
     "sets",
 )
 
@@ -22,7 +23,7 @@ def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpat
   go_srcs = []
   outpath = None
   for proto in lib.proto.direct_sources:
-    out = ctx.actions.declare_file(ctx.label.name + "/" + importpath + "/" + proto.basename[:-len(".proto")] + go_proto_toolchain.suffix)
+    out = declare_file(ctx, path=importpath+"/"+proto.basename[:-len(".proto")], ext=go_proto_toolchain.suffix)
     go_srcs.append(out)
     if outpath == None:
         outpath = out.dirname[:-len(importpath)]

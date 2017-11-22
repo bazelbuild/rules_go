@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
+    "declare_file",
     "split_srcs",
     "sets",
 )
@@ -45,13 +46,12 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, source=None, imp
   split = split_srcs(flat.srcs)
   lib_name = importpath + ".a"
   compilepath = importpath if importable else None
-  out_dir = "~{}~{}~".format(mode_string(mode), ctx.label.name)
-  out_lib = ctx.actions.declare_file("{}/{}".format(out_dir, lib_name))
+  out_lib = declare_file(ctx, path=lib_name, mode=mode)
   searchpath = out_lib.path[:-len(lib_name)]
 
   extra_objects = []
   for src in split.asm:
-    obj = ctx.actions.declare_file("{}/{}.o".format(out_dir, src.basename[:-2]))
+    obj = declare_file(ctx, path=src.basename[:-2], ext=".o", mode=mode)
     go_toolchain.actions.asm(ctx, go_toolchain, mode=mode, source=src, hdrs=split.headers, out_obj=obj)
     extra_objects.append(obj)
 
@@ -72,7 +72,7 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, source=None, imp
         gc_goopts = flat.gc_goopts,
     )
   else:
-    partial_lib = ctx.actions.declare_file("{}/~partial.a".format(out_dir))
+    partial_lib = declare_file(ctx, path="partial", ext=".a", mode=mode)
     go_toolchain.actions.compile(ctx,
         go_toolchain = go_toolchain,
         sources = split.go,
