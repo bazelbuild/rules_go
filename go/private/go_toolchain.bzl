@@ -38,6 +38,8 @@ def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
       cross_compile = ctx.attr.cross_compile,
+      goos = ctx.attr.goos,
+      goarch = ctx.attr.goarch,
       stdlib = struct(
           cgo = ctx.attr._stdlib_cgo[GoStdLib],
           pure = ctx.attr._stdlib_pure[GoStdLib],

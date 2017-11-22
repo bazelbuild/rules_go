@@ -20,7 +20,7 @@ LINKMODE_PIE = "pie"
 LINKMODE_PLUGIN = "plugin"
 
 def mode_string(mode):
-  result = []
+  result = [mode.goos, mode.goarch]
   if mode.static:
     result.append("static")
   if mode.race:
@@ -52,9 +52,12 @@ def _ternary(*values):
 def get_mode(ctx, toolchain_flags):
   force_pure = None
   if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
-    if ctx.toolchains["@io_bazel_rules_go//go:toolchain"].cross_compile:
-      # We always have to user the pure stdlib in cross compilation mode
-      force_pure = True
+    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  else:
+    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
+
+  # We always have to user the pure stdlib in cross compilation mode
+  force_pure = go_toolchain.cross_compile
 
   #TODO: allow link mode selection
   debug = ctx.var["COMPILATION_MODE"] == "debug"
@@ -87,4 +90,6 @@ def get_mode(ctx, toolchain_flags):
       link = LINKMODE_NORMAL,
       debug = debug,
       strip = strip,
+      goos = go_toolchain.goos,
+      goarch = go_toolchain.goarch,
   )
