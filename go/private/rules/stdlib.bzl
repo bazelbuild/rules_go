@@ -34,7 +34,7 @@ def _stdlib_impl(ctx):
   src = ctx.actions.declare_directory("src")
   pkg = ctx.actions.declare_directory("pkg")
   root_file = ctx.actions.declare_file("ROOT")
-  files = [root_file, go, src, pkg]
+  files = [root_file, go, pkg]
   goroot = root_file.path[:-(len(root_file.basename)+1)]
   sdk = ""
   for f in ctx.files._host_sdk:
