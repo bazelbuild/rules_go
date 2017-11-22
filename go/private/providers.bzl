@@ -39,16 +39,12 @@ def _merge_runfiles(a, b):
   if not b: return a
   return a.merge(b)
 
-def _source_build_entry(srcs = [], build_srcs = [], deps = [], gc_goopts=[], cover_vars=[], runfiles=None, cgo_deps=[], cgo_exports=[], cgo_archive=None, source = None):
+def _source_build_entry(srcs = [], deps = [], gc_goopts=[], runfiles=None, cgo_deps=[], cgo_exports=[], cgo_archive=None, want_coverage = False, source = None):
   """Creates a new GoSource from a collection of values and an optional GoSourceList to merge in."""
-  if not build_srcs:
-    build_srcs = srcs
   for e in (source.entries if source else []):
     srcs = srcs + e.srcs
-    build_srcs = build_srcs + e.build_srcs
     deps = deps + e.deps
     gc_goopts = gc_goopts + e.gc_goopts
-    cover_vars = cover_vars + e.cover_vars
     runfiles = _merge_runfiles(runfiles, e.runfiles)
     cgo_deps = cgo_deps + e.cgo_deps
     cgo_exports = cgo_exports + e.cgo_exports
@@ -59,14 +55,13 @@ def _source_build_entry(srcs = [], build_srcs = [], deps = [], gc_goopts=[], cov
 
   return GoSource(
       srcs = srcs,
-      build_srcs = build_srcs,
       deps = deps,
       gc_goopts = gc_goopts,
-      cover_vars = cover_vars,
       runfiles = runfiles,
       cgo_deps = cgo_deps,
       cgo_exports = cgo_exports,
       cgo_archive = cgo_archive,
+      want_coverage = want_coverage,
   )
 
 def _source_new(**kwargs):

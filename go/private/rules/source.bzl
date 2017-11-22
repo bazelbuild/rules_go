@@ -37,6 +37,7 @@ def _go_sources_impl(ctx):
           deps = ctx.attr.deps,
           gc_goopts = ctx.attr.gc_goopts,
           runfiles = ctx.runfiles(collect_data = True),
+          want_coverage = ctx.coverage_instrumented(),
       )])
   ]
 

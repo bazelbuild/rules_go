@@ -232,6 +232,7 @@ def _cgo_collect_info_impl(ctx):
           cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
           cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
           cgo_archive = _select_archive(ctx.files.lib),
+          want_coverage = ctx.coverage_instrumented(), #TODO: not all sources?
       ),
   ]
 

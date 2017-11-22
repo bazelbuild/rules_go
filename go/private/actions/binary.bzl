@@ -30,7 +30,7 @@ def emit_binary(ctx, go_toolchain,
   if name == "": fail("name is a required parameter")
 
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  golib, gosource, goarchive = go_toolchain.actions.library(ctx,
+  golib, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,
       source = source,
@@ -47,4 +47,4 @@ def emit_binary(ctx, go_toolchain,
       x_defs=x_defs,
   )
 
-  return golib, gosource, goarchive
+  return golib, goarchive

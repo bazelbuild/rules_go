@@ -126,10 +126,6 @@ GoSource represents a single entry in a GoSourceList source provider.
 +--------------------------------+-----------------------------------------------------------------+
 | The original sources for this library before transformations like cgo and coverage.              |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`build_srcs`            | :type:`depset(File)`                                            |
-+--------------------------------+-----------------------------------------------------------------+
-| The sources that are actually compiled after transformations like cgo and coverage.              |
-+--------------------------------+-----------------------------------------------------------------+
 | :param:`deps`                  | :type:`depset(GoLibrary)`                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | The direct dependencies needed by the :param:`srcs`.                                             |

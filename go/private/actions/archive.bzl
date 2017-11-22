@@ -35,8 +35,13 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, source=None, imp
   if source == None: fail("source is a required parameter")
   if mode == None: fail("mode is a required parameter")
 
+
+  cover_vars = []
+  if ctx.configuration.coverage_enabled:
+    source, cover_vars = go_toolchain.actions.cover(ctx, go_toolchain, source=source, mode=mode, importpath=importpath)
+
   flat = sources.flatten(ctx, source)
-  split = split_srcs(flat.build_srcs)
+  split = split_srcs(flat.srcs)
   lib_name = importpath + ".a"
   compilepath = importpath if importable else None
   out_dir = "~{}~{}~".format(mode_string(mode), ctx.label.name)
@@ -54,8 +59,6 @@ def emit_archive(ctx, go_toolchain, mode=None, importpath=None, source=None, imp
   for a in direct:
     runfiles = runfiles.merge(a.runfiles)
     if a.mode != mode: fail("Archive mode does not match {} is {} expected {}".format(a.data.importpath, mode_string(a.mode), mode_string(mode)))
-
-  cover_vars = ["{}={}".format(var, importpath) for var in flat.cover_vars]
 
   if len(extra_objects) == 0 and flat.cgo_archive == None:
     go_toolchain.actions.compile(ctx,

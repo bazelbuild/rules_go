@@ -35,17 +35,18 @@ def _go_binary_impl(ctx):
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
-
+  gosource = sources.merge([get_source_list(s) for s in ctx.attr.embed] + [sources.new(
+      srcs = ctx.files.srcs,
+      deps = ctx.attr.deps,
+      gc_goopts = ctx.attr.gc_goopts,
+      runfiles = ctx.runfiles(collect_data = True),
+      want_coverage = ctx.coverage_instrumented(),
+  )])
   executable = ctx.outputs.executable
-  golib, gosource, goarchive = go_toolchain.actions.binary(ctx, go_toolchain,
+  golib, goarchive = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       importpath = go_importpath(ctx),
-      source = sources.merge([get_source_list(s) for s in ctx.attr.embed] + [sources.new(
-          srcs = ctx.files.srcs,
-          deps = ctx.attr.deps,
-          gc_goopts = ctx.attr.gc_goopts,
-          runfiles = ctx.runfiles(collect_data = True),
-      )]),
+      source = gosource,
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
       executable = executable,

@@ -34,40 +34,22 @@ def emit_library(ctx, go_toolchain,
     mode = None,
     importpath = "",
     source = None,
-    want_coverage = False,
     importable = True):
   """See go/toolchains.rst#library for full documentation."""
 
-  flat = sources.flatten(ctx, source)
-  split = split_srcs(flat.build_srcs)
-  go_srcs = split.go
-  if split.c:
-    fail("c sources in non cgo rule in " + str(ctx.label) + " got " + str(split.c))
-  if not split.go:
-    fail("no go sources in " + str(ctx.label) + " got " + str(flat.build_srcs))
-  transformed = structs.to_dict(split)
-
-  if want_coverage:
-    go_srcs, cvars = go_toolchain.actions.cover(ctx, go_toolchain, sources=split.go, mode=mode)
-    transformed["go"] = go_srcs
-    flat.cover_vars.extend(cvars)
-
-
-  # This is a temporary hack, cover is about to move
-  temp = structs.to_dict(flat)
-  temp["build_srcs"] = join_srcs(struct(**transformed))
-  flat = GoSource(**temp)
-  source = GoSourceList(entries=[flat])
-
+  transitive = []
+  srcs = []
+  for s in source.entries:
+    srcs.extend(s.srcs)
+    transitive.extend([dep[GoLibrary].transitive for dep in s.deps])
   package = GoPackage(
       name = str(ctx.label),
       importpath = importpath, # The import path for this library
-      srcs = depset(flat.srcs), # The original sources
+      srcs = sets.union(srcs), # The original unfiltered sources
   )
   golib = GoLibrary(
       package = package,
-      transitive = sets.union([package], *[dep[GoLibrary].transitive for dep in flat.deps]),
-      runfiles = flat.runfiles, # The runfiles needed for things including this library
+      transitive = sets.union([package], *transitive),
   )
   goarchive = go_toolchain.actions.archive(ctx,
       go_toolchain = go_toolchain,
@@ -77,4 +59,4 @@ def emit_library(ctx, go_toolchain,
       importable = importable,
   )
 
-  return [golib, source, goarchive]
+  return [golib, goarchive]

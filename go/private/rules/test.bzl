@@ -84,12 +84,13 @@ def _go_test_impl(ctx):
 
   # Now compile the test binary itself
   executable = ctx.outputs.executable
-  _, _, goarchive = go_toolchain.actions.binary(ctx, go_toolchain,
+  _, goarchive = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       source = sources.new(
           srcs = [main_go],
           deps = [ctx.attr.library],
           runfiles = ctx.runfiles(collect_data = True),
+          want_coverage = False,
       ),
       importpath = ctx.label.name + "~testmain~",
       gc_linkopts = gc_linkopts(ctx),
