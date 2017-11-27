@@ -17,78 +17,12 @@ package packages
 
 import (
 	"fmt"
-	"path"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
-
-func TestImportPath(t *testing.T) {
-	prefix := "example.com/repo"
-	for _, tc := range []struct {
-		name, rel, prefix, want string
-	}{
-		{
-			name: "simple_vendor",
-			rel:  "vendor/foo/bar",
-			want: "foo/bar",
-		}, {
-			name: "empty_vendor",
-			rel:  "vendor",
-			want: "",
-		}, {
-			name: "multi_vendor",
-			rel:  "vendor/foo/vendor/bar",
-			want: "bar",
-		}, {
-			name: "prefix",
-			rel:  "foo/bar",
-			want: "example.com/repo/foo/bar",
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			pkg := Package{
-				Name: path.Base(tc.rel),
-				Rel:  tc.rel,
-				Library: GoTarget{
-					Sources: PlatformStrings{
-						Generic: []string{"a.go"},
-					},
-				},
-			}
-			if got := pkg.ImportPath(prefix); got != tc.want {
-				t.Errorf("%s: got %q ; want %q", tc.name, got, tc.want)
-			}
-		})
-	}
-}
-
-func TestImportPathNoLib(t *testing.T) {
-	pkg := Package{
-		Name: "bar",
-		Rel:  "foo/bar",
-	}
-	if got, want := pkg.ImportPath("example.com/repo"), "example.com/repo/foo/bar"; got != want {
-		t.Errorf(`got %q; want %q`, got, want)
-	}
-}
-
-func TestImportPathCmd(t *testing.T) {
-	pkg := Package{
-		Name: "main",
-		Rel:  "foo/bar",
-		Library: GoTarget{
-			Sources: PlatformStrings{
-				Generic: []string{"main.go"},
-			},
-		},
-	}
-	if got, want := pkg.ImportPath("example.com/repo"), "example.com/repo/foo/bar"; got != want {
-		t.Errorf(`got %q; want %q`, got, want)
-	}
-}
 
 func TestAddPlatformStrings(t *testing.T) {
 	c := &config.Config{}

@@ -17,6 +17,7 @@ package config
 
 import (
 	"fmt"
+	"go/build"
 	"strings"
 )
 
@@ -41,6 +42,10 @@ type Config struct {
 	// GoPrefix is the portion of the import path for the root of this repository.
 	// This is used to map imports to labels within the repository.
 	GoPrefix string
+
+	// GoPrefixRel is the slash-separated path to the directory where GoPrefix
+	// was set, relative to the repository root. "" for the repository root.
+	GoPrefixRel string
 
 	// ShouldFix determines whether Gazelle attempts to remove and replace
 	// usage of deprecated rules.
@@ -98,6 +103,16 @@ func (c *Config) PreprocessTags() {
 		c.GenericTags = make(BuildTags)
 	}
 	c.GenericTags["gc"] = true
+}
+
+// CheckPrefix checks that a string may be used as a prefix. We forbid local
+// (relative) imports and those beginning with "/". We allow the empty string,
+// but generated rules must not have an empty importpath.
+func CheckPrefix(prefix string) error {
+	if strings.HasPrefix(prefix, "/") || build.IsLocalImport(prefix) {
+		return fmt.Errorf("invalid prefix: %q", prefix)
+	}
+	return nil
 }
 
 // DependencyMode determines how imports of packages outside of the prefix

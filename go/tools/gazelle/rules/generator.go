@@ -43,7 +43,11 @@ type Generator struct {
 
 // GenerateRules generates a list of rules for targets in "pkg". It also returns
 // a list of empty rules that may be deleted from an existing file.
-func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty []bf.Expr) {
+func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty []bf.Expr, err error) {
+	if imp := pkg.ImportPath(g.c); imp == "" {
+		return nil, nil, fmt.Errorf("in directory %q, prefix is empty, so importpath would be empty for rules. Set a prefix with a '# gazelle:prefix' comment or with -go_prefix on the command line.", pkg.Rel)
+	}
+
 	var rs []bf.Expr
 
 	protoLibName, protoRules := g.generateProto(pkg)
@@ -64,7 +68,8 @@ func (g *Generator) GenerateRules(pkg *packages.Package) (rules []bf.Expr, empty
 			rules = append(rules, r)
 		}
 	}
-	return rules, empty
+
+	return rules, empty, nil
 }
 
 func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
@@ -117,7 +122,7 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 	goProtoAttrs := []keyvalue{
 		{"name", goProtoName},
 		{"proto", ":" + protoName},
-		{"importpath", pkg.ImportPath(g.c.GoPrefix)},
+		{"importpath", pkg.ImportPath(g.c)},
 		{"visibility", visibility},
 	}
 	if !imports.IsEmpty() {
@@ -150,7 +155,7 @@ func (g *Generator) generateBin(pkg *packages.Package, library string) bf.Expr {
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Binary)
 	// TODO(jayconrod): don't add importpath if it can be inherited from library.
 	// This is blocked by bazelbuild/bazel#3575.
-	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
+	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c)})
 	if library != "" {
 		attrs = append(attrs, keyvalue{"embed", []string{":" + library}})
 	}
@@ -171,7 +176,7 @@ func (g *Generator) generateLib(pkg *packages.Package, goProtoName string) (stri
 	}
 
 	attrs := g.commonAttrs(pkg.Rel, name, visibility, pkg.Library)
-	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c.GoPrefix)})
+	attrs = append(attrs, keyvalue{"importpath", pkg.ImportPath(g.c)})
 	if goProtoName != "" {
 		attrs = append(attrs, keyvalue{"embed", []string{":" + goProtoName}})
 	}
@@ -211,7 +216,7 @@ func checkInternalVisibility(rel, visibility string) string {
 func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest bool) bf.Expr {
 	name := g.l.TestLabel(pkg.Rel, isXTest).Name
 	target := pkg.Test
-	importpath := pkg.ImportPath(g.c.GoPrefix)
+	importpath := pkg.ImportPath(g.c)
 	if isXTest {
 		target = pkg.XTest
 		importpath += "_test"

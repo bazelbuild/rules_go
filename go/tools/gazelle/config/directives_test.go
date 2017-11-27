@@ -64,6 +64,7 @@ func TestApplyDirectives(t *testing.T) {
 	for _, tc := range []struct {
 		desc       string
 		directives []Directive
+		rel        string
 		want       Config
 	}{
 		{
@@ -78,12 +79,17 @@ func TestApplyDirectives(t *testing.T) {
 			desc:       "build_file_name",
 			directives: []Directive{{"build_file_name", "foo,bar"}},
 			want:       Config{ValidBuildFileNames: []string{"foo", "bar"}},
+		}, {
+			desc:       "prefix",
+			directives: []Directive{{"prefix", "example.com/repo"}},
+			rel:        "sub",
+			want:       Config{GoPrefix: "example.com/repo", GoPrefixRel: "sub"},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			c := &Config{}
 			c.PreprocessTags()
-			got := ApplyDirectives(c, tc.directives)
+			got := ApplyDirectives(c, tc.directives, tc.rel)
 			tc.want.PreprocessTags()
 			if !reflect.DeepEqual(*got, tc.want) {
 				t.Errorf("got %#v ; want %#v", *got, tc.want)

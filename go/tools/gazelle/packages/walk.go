@@ -84,8 +84,8 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 	// given directory or any subdirectory contained a build file or buildable
 	// source code. This affects whether "testdata" directories are considered
 	// data dependencies.
-	var visit func(string, string, bool, []string) bool
-	visit = func(dir, rel string, isUpdateDir bool, excluded []string) bool {
+	var visit func(*config.Config, string, string, bool, []string) bool
+	visit = func(c *config.Config, dir, rel string, isUpdateDir bool, excluded []string) bool {
 		// Check if this directory should be updated.
 		if !isUpdateDir {
 			for _, updateRel := range updateRels {
@@ -124,11 +124,18 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 			}
 		}
 
-		// Process directives in the build file.
+		// Process directives in the build file. If this is a vendor directory,
+		// set an empty prefix.
+		if path.Base(rel) == "vendor" {
+			cCopy := *c
+			cCopy.GoPrefix = ""
+			cCopy.GoPrefixRel = rel
+			c = &cCopy
+		}
 		var directives []config.Directive
 		if oldFile != nil {
 			directives = config.ParseDirectives(oldFile)
-			c = config.ApplyDirectives(c, directives)
+			c = config.ApplyDirectives(c, directives, rel)
 		}
 		c = config.InferProtoMode(c, oldFile, directives)
 
@@ -172,7 +179,7 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 		subdirHasPackage := false
 		for _, sub := range subdirs {
 			subdirExcluded := excludedForSubdir(excluded, sub)
-			hasPackage := visit(filepath.Join(dir, sub), path.Join(rel, sub), isUpdateDir, subdirExcluded)
+			hasPackage := visit(c, filepath.Join(dir, sub), path.Join(rel, sub), isUpdateDir, subdirExcluded)
 			if sub == "testdata" && !hasPackage {
 				hasTestdata = true
 			}
@@ -195,7 +202,7 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 		return hasPackage || pkg != nil
 	}
 
-	visit(root, rootRel, false, nil)
+	visit(c, root, rootRel, false, nil)
 }
 
 // buildPackage reads source files in a given directory and returns a Package

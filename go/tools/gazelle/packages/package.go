@@ -96,24 +96,16 @@ func (p *Package) isBuildable(c *config.Config) bool {
 		p.Proto.HasProto() && c.ProtoMode == config.DefaultProtoMode
 }
 
-// ImportPath returns the inferred Go import path for this package. This
-// is determined as follows:
-//
-// * If "vendor" is a component in p.Rel, everything after the last "vendor"
-//   component is returned.
-// * Otherwise, prefix joined with Rel is returned.
-//
+// ImportPath returns the inferred Go import path for this package.
 // TODO(jayconrod): extract canonical import paths from comments on
 // package statements.
-func (p *Package) ImportPath(prefix string) string {
-	components := strings.Split(p.Rel, "/")
-	for i := len(components) - 1; i >= 0; i-- {
-		if components[i] == "vendor" {
-			return path.Join(components[i+1:]...)
-		}
+func (p *Package) ImportPath(c *config.Config) string {
+	if p.Rel == c.GoPrefixRel {
+		return c.GoPrefix
+	} else {
+		fromPrefixRel := strings.TrimPrefix(p.Rel, c.GoPrefixRel+"/")
+		return path.Join(c.GoPrefix, fromPrefixRel)
 	}
-
-	return path.Join(prefix, p.Rel)
 }
 
 // firstGoFile returns the name of a .go file if the package contains at least

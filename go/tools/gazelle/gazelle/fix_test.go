@@ -36,6 +36,7 @@ func defaultConfig(dir string) *config.Config {
 	c := &config.Config{
 		Dirs:                []string{dir},
 		RepoRoot:            dir,
+		GoPrefix:            "example.com/repo",
 		GenericTags:         config.BuildTags{},
 		ValidBuildFileNames: config.DefaultValidBuildFileNames,
 	}

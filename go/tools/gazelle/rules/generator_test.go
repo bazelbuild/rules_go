@@ -81,7 +81,10 @@ func TestGenerator(t *testing.T) {
 
 		pkg, oldFile := packageFromDir(c, dir)
 		g := rules.NewGenerator(c, l, oldFile)
-		rs, _ := g.GenerateRules(pkg)
+		rs, _, err := g.GenerateRules(pkg)
+		if err != nil {
+			t.Fatal(err)
+		}
 		f := &bf.File{Stmt: rs}
 		rules.SortLabels(f)
 		f = merger.FixLoads(f)
@@ -123,7 +126,10 @@ go_test(name = "go_default_test")
 
 go_test(name = "go_default_xtest")
 `
-	_, empty := g.GenerateRules(&pkg)
+	_, empty, err := g.GenerateRules(&pkg)
+	if err != nil {
+		t.Fatal(err)
+	}
 	emptyStmt := make([]bf.Expr, len(empty))
 	for i, s := range empty {
 		emptyStmt[i] = s
@@ -141,12 +147,36 @@ func TestGeneratorEmptyLegacyProto(t *testing.T) {
 	g := rules.NewGenerator(c, l, nil)
 
 	pkg := packages.Package{Name: "foo"}
-	_, empty := g.GenerateRules(&pkg)
+	_, empty, err := g.GenerateRules(&pkg)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, e := range empty {
 		rule := bf.Rule{Call: e.(*bf.CallExpr)}
 		kind := rule.Kind()
 		if kind == "proto_library" || kind == "go_proto_library" || kind == "go_grpc_library" {
 			t.Errorf("deleted rule %s ; should not delete in legacy proto mode", kind)
 		}
+	}
+}
+
+func TestErrorWhenImportPathEmpty(t *testing.T) {
+	repoRoot := filepath.FromSlash("../testdata/repo/lib")
+	c := testConfig(repoRoot, "")
+
+	var pkg *packages.Package
+	var oldFile *bf.File
+	packages.Walk(c, repoRoot, func(rel string, _ *config.Config, p *packages.Package, f *bf.File, _ bool) {
+		if rel == "" {
+			pkg = p
+			oldFile = f
+		}
+	})
+
+	l := resolve.NewLabeler(c)
+	g := rules.NewGenerator(c, l, oldFile)
+	_, _, err := g.GenerateRules(pkg)
+	if err == nil {
+		t.Error("got success ; want error")
 	}
 }

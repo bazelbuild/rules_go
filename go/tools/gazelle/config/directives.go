@@ -40,6 +40,7 @@ var knownTopLevelDirectives = map[string]bool{
 	"build_file_name": true,
 	"build_tags":      true,
 	"exclude":         true,
+	"prefix":          true,
 	"ignore":          true,
 	"proto":           true,
 }
@@ -89,10 +90,10 @@ func ParseDirectives(f *bf.File) []Directive {
 
 var directiveRe = regexp.MustCompile(`^#\s*gazelle:(\w+)\s*(.*?)\s*$`)
 
-// ApplyDirectives applies directives that modify the configuration to a
-// copy of c, which is returned. If there are no configuration directives,
-// c is returned unmodified.
-func ApplyDirectives(c *Config, directives []Directive) *Config {
+// ApplyDirectives applies directives that modify the configuration to a copy of
+// c, which is returned. If there are no configuration directives, c is returned
+// unmodified.
+func ApplyDirectives(c *Config, directives []Directive, rel string) *Config {
 	modified := *c
 	didModify := false
 	for _, d := range directives {
@@ -107,6 +108,14 @@ func ApplyDirectives(c *Config, directives []Directive) *Config {
 			}
 		case "build_file_name":
 			modified.ValidBuildFileNames = strings.Split(d.Value, ",")
+			didModify = true
+		case "prefix":
+			if err := CheckPrefix(d.Value); err != nil {
+				log.Print(err)
+				continue
+			}
+			modified.GoPrefix = d.Value
+			modified.GoPrefixRel = rel
 			didModify = true
 		case "proto":
 			protoMode, err := ProtoModeFromString(d.Value)
