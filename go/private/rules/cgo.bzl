@@ -150,7 +150,7 @@ def _cgo_codegen_impl(ctx):
       ),
       OutputGroupInfo(
           go_files = to_set(go_outs),
-          input_go_files = to_set(source.go),
+          input_go_files = to_set(source.go + source.asm),
           c_files = sets.union(c_outs, source.headers),
           main_c = to_set([cgo_main]),
       ),
