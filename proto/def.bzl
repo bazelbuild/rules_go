@@ -27,7 +27,10 @@ def _go_proto_library_impl(ctx):
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  gosource = collect_src(ctx, srcs = go_srcs)
+  gosource = collect_src(
+      ctx, srcs = go_srcs,
+      deps=ctx.attr.deps + go_proto_toolchain.deps,
+  )
   golib, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,

@@ -42,15 +42,17 @@ def get_source_list(dep):
   return dep[GoSourceList]
 
 
-def collect_src(ctx, aspect=False, srcs = None, want_coverage = None):
+def collect_src(ctx, aspect=False, srcs = None, deps=None, want_coverage = None):
   rule = ctx.rule if aspect else ctx
   if srcs == None:
     srcs = rule.files.srcs
+  if deps == None:
+    deps = rule.attr.deps
   if want_coverage == None:
     want_coverage = ctx.coverage_instrumented() and not rule.label.name.endswith("~library~")
   return sources.merge([get_source_list(s) for s in rule.attr.embed] + [sources.new(
       srcs = srcs,
-      deps = rule.attr.deps,
+      deps = deps,
       gc_goopts = rule.attr.gc_goopts,
       runfiles = ctx.runfiles(collect_data = True),
       want_coverage = want_coverage,
