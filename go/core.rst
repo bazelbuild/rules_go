@@ -95,7 +95,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test library directly.                                                 |
 | These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
-| These can provide both :param:`srcs` and param:`deps` to this library.                           |
+| These can provide both :param:`srcs` and :param:`deps` to this library.                          |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -203,7 +203,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this binary embeds directly.                                                |
 | These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
-| These can provide both :param:`srcs` and param:`deps` to this binary.                            |
+| These can provide both :param:`srcs` and :param:`deps` to this binary.                           |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -315,7 +315,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test embeds directly.                                                  |
 | These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
-| These can provide both :param:`srcs` and param:`deps` to this test.                              |
+| These can provide both :param:`srcs` and :param:`deps` to this test.                             |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -431,7 +431,7 @@ It references the library(s) being tested with :param:`deps`.
 go_source
 ~~~~~~~~~
 
-This declares a set of source files and related dependancies that can be embedded into on of the
+This declares a set of source files and related dependencies that can be embedded into one of the
 other rules.
 This is used as a way of easily declaring a common set of sources re-used in multiple rules.
 
@@ -465,7 +465,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | List of sources to directly embed in this list.                                                  |
 | These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
-| These can provide both :param:`srcs` and param:`deps` to this library.                           |
+| These can provide both :param:`srcs` and :param:`deps` to this library.                          |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
