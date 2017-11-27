@@ -23,6 +23,13 @@ config_setting(
 )
 
 config_setting(
+    name = "linux_s390x",
+    values = {
+        "cpu": "s390x",
+    },
+)
+
+config_setting(
     name = "windows_amd64",
     values = {
         "cpu": "x64_windows",
@@ -39,6 +46,7 @@ SUPPORTED_PLATFORM_NAMES = [
     "darwin_amd64",
     "linux_amd64",
     "windows_amd64",
+    "linux_s390x"
 ]
 UNSUPPORTED_PLATFORM_NAMES = [name for name in GOOS.keys() + GOARCH.keys() + GOOS_GOARCH_NAMES 
                               if name not in SUPPORTED_PLATFORM_NAMES]

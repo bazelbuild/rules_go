@@ -63,6 +63,7 @@ var KnownPlatforms = []Platform{
 	{"linux", "mipsle"},
 	{"linux", "mips64"},
 	{"linux", "mips64le"},
+        {"linux", "s390x"},
 	{"netbsd", "386"},
 	{"netbsd", "amd64"},
 	{"netbsd", "arm"},
@@ -116,6 +117,7 @@ var (
 		{"darwin", "amd64"},
 		{"linux", "amd64"},
 		{"windows", "amd64"},
+                {"linux", "s390x"},
 	}
 
 	DefaultOSSet = map[string]bool{
@@ -126,5 +128,6 @@ var (
 
 	DefaultArchSet = map[string]bool{
 		"amd64": true,
+                "s390x": true,
 	}
 )
