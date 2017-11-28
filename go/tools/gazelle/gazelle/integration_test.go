@@ -216,7 +216,7 @@ go_library(
 		t.Fatal(err)
 	}
 
-	if err := runGazelle(dir, []string{"-go_prefix", "example.com/foo", "-experimental_platforms"}); err != nil {
+	if err := runGazelle(dir, []string{"-go_prefix", "example.com/foo"}); err != nil {
 		t.Fatal(err)
 	}
 	if got, err := ioutil.ReadFile(filepath.Join(dir, "BUILD")); err != nil {

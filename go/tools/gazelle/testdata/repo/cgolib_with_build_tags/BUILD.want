@@ -31,6 +31,11 @@ go_library(
             "foo_linux.c",
             "pure_linux.go",
         ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "asm_other.S",
+            "foo_other.c",
+            "pure_other.go",
+        ],
         "@io_bazel_rules_go//go/platform:netbsd": [
             "asm_other.S",
             "foo_other.c",
@@ -75,6 +80,9 @@ go_library(
             "example.com/repo/lib/deep",
         ],
         "@io_bazel_rules_go//go/platform:linux": [
+            "example.com/repo/lib/deep",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
             "example.com/repo/lib/deep",
         ],
         "@io_bazel_rules_go//go/platform:netbsd": [

@@ -31,12 +31,11 @@ import (
 
 func testConfig(repoRoot, goPrefix string) *config.Config {
 	c := &config.Config{
-		RepoRoot:              repoRoot,
-		Dirs:                  []string{repoRoot},
-		GoPrefix:              goPrefix,
-		GenericTags:           config.BuildTags{},
-		ValidBuildFileNames:   []string{"BUILD.old"},
-		ExperimentalPlatforms: true,
+		RepoRoot:            repoRoot,
+		Dirs:                []string{repoRoot},
+		GoPrefix:            goPrefix,
+		GenericTags:         config.BuildTags{},
+		ValidBuildFileNames: []string{"BUILD.old"},
 	}
 	c.PreprocessTags()
 	return c

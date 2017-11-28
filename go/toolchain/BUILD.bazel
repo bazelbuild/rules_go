@@ -1,5 +1,7 @@
-load(":toolchains.bzl", "declare_toolchains")
-load("@io_bazel_rules_go//go/platform:list.bzl", "declare_constraints")
+load(":toolchains.bzl",
+    "declare_constraints",
+    "declare_toolchains",
+)
 
 package(default_visibility = ["//visibility:public"])
 

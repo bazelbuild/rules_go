@@ -44,7 +44,10 @@ func (p Platform) String() string {
 // will generate multi-platform build files using these tags. rules_go and
 // Bazel may not actually support all of these.
 var KnownPlatforms = []Platform{
+	{"android", "386"},
+	{"android", "amd64"},
 	{"android", "arm"},
+	{"android", "arm64"},
 	{"darwin", "386"},
 	{"darwin", "amd64"},
 	{"darwin", "arm"},
@@ -57,12 +60,16 @@ var KnownPlatforms = []Platform{
 	{"linux", "amd64"},
 	{"linux", "arm"},
 	{"linux", "arm64"},
-	{"linux", "ppc64"},
-	{"linux", "ppc64le"},
 	{"linux", "mips"},
-	{"linux", "mipsle"},
 	{"linux", "mips64"},
 	{"linux", "mips64le"},
+	{"linux", "mipsle"},
+	{"linux", "ppc64"},
+	{"linux", "ppc64le"},
+	{"linux", "s390x"},
+	{"nacl", "386"},
+	{"nacl", "amd64p32"},
+	{"nacl", "arm"},
 	{"netbsd", "386"},
 	{"netbsd", "amd64"},
 	{"netbsd", "arm"},
@@ -71,6 +78,7 @@ var KnownPlatforms = []Platform{
 	{"openbsd", "arm"},
 	{"plan9", "386"},
 	{"plan9", "amd64"},
+	{"plan9", "arm"},
 	{"solaris", "amd64"},
 	{"windows", "386"},
 	{"windows", "amd64"},
@@ -108,23 +116,3 @@ func init() {
 	sort.Strings(KnownOSs)
 	sort.Strings(KnownArchs)
 }
-
-// TODO(jayconrod): remove these after Bazel 0.8 is released and the
-// ExperimentalPlatforms flag is removed from Config.
-var (
-	DefaultPlatforms = []Platform{
-		{"darwin", "amd64"},
-		{"linux", "amd64"},
-		{"windows", "amd64"},
-	}
-
-	DefaultOSSet = map[string]bool{
-		"darwin":  true,
-		"linux":   true,
-		"windows": true,
-	}
-
-	DefaultArchSet = map[string]bool{
-		"amd64": true,
-	}
-)

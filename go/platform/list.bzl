@@ -13,16 +13,16 @@
 # limitations under the License.
 
 GOOS = {
+    "android": None,
     "darwin": "@bazel_tools//platforms:osx",
     "dragonfly": None,
-    "linux": "@bazel_tools//platforms:linux",
-    "android": None,
-    "solaris": None,
     "freebsd": "@bazel_tools//platforms:freebsd",
+    "linux": "@bazel_tools//platforms:linux",
     "nacl": None,
     "netbsd": None,
     "openbsd": None,
     "plan9": None,
+    "solaris": None,
     "windows": "@bazel_tools//platforms:windows",
 }
 
@@ -33,15 +33,19 @@ GOARCH = {
     "arm": "@bazel_tools//platforms:arm",
     "arm64": None,
     "mips": None,
-    "mipsle": None,
     "mips64": None,
     "mips64le": None,
+    "mipsle": None,
     "ppc64": "@bazel_tools//platforms:ppc",
     "ppc64le": None,
     "s390x": None,
 }
 
 GOOS_GOARCH = (
+    ("android", "386"),
+    ("android", "amd64"),
+    ("android", "arm"),
+    ("android", "arm64"),
     ("darwin", "386"),
     ("darwin", "amd64"),
     ("darwin", "arm"),
@@ -54,17 +58,13 @@ GOOS_GOARCH = (
     ("linux", "amd64"),
     ("linux", "arm"),
     ("linux", "arm64"),
-    ("linux", "ppc64"),
-    ("linux", "ppc64le"),
     ("linux", "mips"),
-    ("linux", "mipsle"),
     ("linux", "mips64"),
     ("linux", "mips64le"),
+    ("linux", "mipsle"),
+    ("linux", "ppc64"),
+    ("linux", "ppc64le"),
     ("linux", "s390x"),
-    ("android", "386"),
-    ("android", "amd64"),
-    ("android", "arm"),
-    ("android", "arm64"),
     ("nacl", "386"),
     ("nacl", "amd64p32"),
     ("nacl", "arm"),
@@ -82,34 +82,22 @@ GOOS_GOARCH = (
     ("windows", "amd64"),
 )
 
-def declare_constraints():
-  for goos, constraint in GOOS.items():
-    if constraint:
-      native.alias(
-          name = goos,
-          actual = constraint,
-      )
-    else:
-      native.constraint_value(
-          name = goos,
-          constraint_setting = "@bazel_tools//platforms:os",
-      )
-  for goarch, constraint in GOARCH.items():
-    if constraint:
-      native.alias(
-          name = goarch,
-          actual = constraint,
-      )
-    else:
-      native.constraint_value(
-          name = goarch,
-          constraint_setting = "@bazel_tools//platforms:cpu",
-      )
+def declare_config_settings():
+  for goos in GOOS:
+    native.config_setting(
+        name = goos,
+        constraint_values = ["//go/toolchain:" + goos],
+    )
+  for goarch in GOARCH:
+    native.config_setting(
+        name = goarch,
+        constraint_values = ["//go/toolchain:" + goarch],
+    )
   for goos, goarch in GOOS_GOARCH:
-      native.platform(
+    native.config_setting(
         name = goos + "_" + goarch,
         constraint_values = [
-            ":" + goos,
-            ":" + goarch,
+            "//go/toolchain:" + goos,
+            "//go/toolchain:" + goarch,
         ],
-      )
+    )

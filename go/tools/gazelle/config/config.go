@@ -38,11 +38,6 @@ type Config struct {
 	// It should not be nil.
 	GenericTags BuildTags
 
-	// ExperimentalPlatforms determines whether Gazelle generates separate OS-
-	// and arch-specific select expressions for platform-specific strings.
-	// TODO(jayconrod): remove after Bazel 0.8. This will become the only mode.
-	ExperimentalPlatforms bool
-
 	// GoPrefix is the portion of the import path for the root of this repository.
 	// This is used to map imports to labels within the repository.
 	GoPrefix string
