@@ -1,4 +1,4 @@
-package sub
+package test_chdir
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestLocal(t *testing.T) {
-	_, err := os.Stat("local.txt")
+	_, err := os.Stat("data.txt")
 	if err != nil {
 		t.Errorf("could not stat local.txt: %v", err)
 	}

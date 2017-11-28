@@ -14,7 +14,6 @@ prefix=">>>>>>"
 
 tests=(
   popular_repos/popular_repos.bash
-  test_chdir/test_chdir.bash
 )
 
 passing_tests=()
