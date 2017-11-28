@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "cgo.c",
         "cgo.go",
+        "cgo_no_tag.go",
         "common.go",
         "pure.go",
     ],

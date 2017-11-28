@@ -42,7 +42,7 @@ func run(args []string) error {
 
 	// filter our input file list
 	bctx := goenv.BuildContext()
-	matched, err := matchFile(bctx, source)
+	matched, _, _, err := matchFile(bctx, source, false)
 	if err != nil {
 		return err
 	}
