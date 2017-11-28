@@ -124,7 +124,9 @@ func mapExprStrings(e bf.Expr, f func(string) string) bf.Expr {
 		if s == "" {
 			return nil
 		}
-		return &bf.StringExpr{Value: s}
+		ret := *expr
+		ret.Value = s
+		return &ret
 
 	case *bf.ListExpr:
 		var list []bf.Expr
@@ -137,7 +139,9 @@ func mapExprStrings(e bf.Expr, f func(string) string) bf.Expr {
 		if len(list) == 0 && len(expr.List) > 0 {
 			return nil
 		}
-		return &bf.ListExpr{List: list}
+		ret := *expr
+		ret.List = list
+		return &ret
 
 	case *bf.DictExpr:
 		var cases []bf.Expr
@@ -158,7 +162,9 @@ func mapExprStrings(e bf.Expr, f func(string) string) bf.Expr {
 		if isEmpty {
 			return nil
 		}
-		return &bf.DictExpr{List: cases}
+		ret := *expr
+		ret.List = cases
+		return &ret
 
 	case *bf.CallExpr:
 		if x, ok := expr.X.(*bf.LiteralExpr); !ok || x.Token != "select" || len(expr.List) != 1 {
