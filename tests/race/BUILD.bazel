@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary", "go_source")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+load(":generate_test.bzl", "generate_script")
 
 go_library(
     name = "go_default_library",
@@ -33,10 +34,16 @@ go_test(
     race = "on",
 )
 
+generate_script(
+    name = "race_on_test_script",
+    binary = ":race_on_tester",
+    testonly = True,
+)
+
 sh_test(
     name = "race_on_test",
     size = "small",
-    srcs = ["race_on_test.sh"],
+    srcs = [":race_on_test_script"],
     data = [":race_on_tester"],
 )
 
