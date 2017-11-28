@@ -105,7 +105,6 @@ func (c *Config) PreprocessTags() {
 	if c.GenericTags == nil {
 		c.GenericTags = make(BuildTags)
 	}
-	c.GenericTags["cgo"] = true
 	c.GenericTags["gc"] = true
 }
 

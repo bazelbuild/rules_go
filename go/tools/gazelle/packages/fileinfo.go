@@ -110,7 +110,7 @@ func (g tagGroup) check(c *config.Config, os, arch string) bool {
 		if not {
 			t = t[1:]
 		}
-		if isReleaseTag(t) {
+		if isIgnoredTag(t) {
 			// Release tags are treated as "unknown" and are considered true,
 			// whether or not they are negated.
 			continue
@@ -406,8 +406,14 @@ func checkConstraints(c *config.Config, os, arch, osSuffix, archSuffix string, f
 	return true
 }
 
-// isReleaseTag returns whether the tag matches the pattern "go[0-9]\.[0-9]+".
-func isReleaseTag(tag string) bool {
+// isIgnoredTag returns whether the tag is "cgo" or is a release tag.
+// Release tags match the pattern "go[0-9]\.[0-9]+".
+// Gazelle won't consider whether an ignored tag is satisfied when evaluating
+// build constraints for a file.
+func isIgnoredTag(tag string) bool {
+	if tag == "cgo" {
+		return true
+	}
 	if len(tag) < 5 || !strings.HasPrefix(tag, "go") {
 		return false
 	}

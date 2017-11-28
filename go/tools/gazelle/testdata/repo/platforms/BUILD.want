@@ -6,6 +6,7 @@ go_library(
         "cgo_generic.c",
         "cgo_generic.go",
         "generic.go",
+        "no_cgo.go",
         "release.go",
     ] + select({
         "@io_bazel_rules_go//go/platform:darwin": [
