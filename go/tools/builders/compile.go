@@ -63,7 +63,7 @@ func run(args []string) error {
 		return err
 	}
 	if len(sources) <= 0 {
-		return fmt.Errorf("no unfiltered sources to compile")
+		return ioutil.WriteFile(*output, []byte(""), 0644)
 	}
 
 	// Check that the filtered sources don't import anything outside of deps.
