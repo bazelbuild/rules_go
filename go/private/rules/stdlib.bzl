@@ -73,6 +73,7 @@ def _stdlib_impl(ctx):
   ctx.actions.run_shell(
       inputs = inputs,
       outputs = [go, src, pkg],
+      mnemonic = "GoStdlib",
       command = " && ".join([
           "export " + " ".join(["{}={}".format(key, value) for key, value in env.items()]),
           "mkdir -p {}".format(src.path),

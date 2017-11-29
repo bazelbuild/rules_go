@@ -3,6 +3,7 @@ package(
 )
 
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load(":generate_test.bzl", "generate_script")
 
 go_binary(
     name = "example_command",
@@ -12,9 +13,14 @@ go_binary(
     ],
 )
 
+generate_script(
+    name = "example_command_script",
+    binary = ":example_command",
+)
+
 sh_test(
     name = "example_command_test",
     size = "small",
-    srcs = ["example_command_test.sh"],
+    srcs = [":example_command_script"],
     data = [":example_command"],
 )

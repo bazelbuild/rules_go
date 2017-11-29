@@ -17,6 +17,7 @@ def _bindata_impl(ctx):
   ctx.actions.run(
     inputs = ctx.files.srcs,
     outputs = [out],
+    mnemonic = "GoBindata",
     executable = ctx.file._bindata,
     arguments = [arguments],
   )

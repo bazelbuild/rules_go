@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
+	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 )
 
 type fileSpec struct {
@@ -58,6 +59,16 @@ func createFiles(files []fileSpec) (string, error) {
 		}
 	}
 	return dir, nil
+}
+
+// skipIfWorkspaceVisible skips the test if the WORKSPACE file for the
+// repository is visible. This happens in newer Bazel versions when tests
+// are run without sandboxing, since temp directories may be inside the
+// exec root.
+func skipIfWorkspaceVisible(t *testing.T, dir string) {
+	if parent, err := wspace.Find(dir); err == nil {
+		t.Skipf("WORKSPACE visible in parent %q of tmp %q", parent, dir)
+	}
 }
 
 func checkFiles(t *testing.T, dir string, files []fileSpec) {
@@ -112,6 +123,8 @@ func TestNoRepoRootOrWorkspace(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer os.RemoveAll(dir)
+	skipIfWorkspaceVisible(t, dir)
 	want := "-repo_root not specified"
 	if err := runGazelle(dir, nil); err == nil {
 		t.Fatalf("got success; want %q", want)
@@ -417,6 +430,7 @@ func TestErrorOutsideWorkspace(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(dir)
+	skipIfWorkspaceVisible(t, dir)
 
 	cases := []struct {
 		name, dir, want string

@@ -173,6 +173,7 @@ def _md5_sum_impl(ctx):
   ctx.actions.run(
       inputs = ctx.files.srcs,
       outputs = [out],
+      mnemonic = "GoMd5sum",
       executable = ctx.file._md5sum,
       arguments = [arguments],
   )

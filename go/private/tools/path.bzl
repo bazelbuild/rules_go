@@ -71,6 +71,7 @@ Found {} in
         ctx.actions.run_shell(
             command='ln -s $(readlink "$1") "$2"',
             arguments=[src.path, out.path],
+            mnemonic = "GoLn",
             inputs=[src],
             outputs=[out],
         )

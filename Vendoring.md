@@ -26,13 +26,13 @@ repos.
 
 The other option for using external libraries is to import them in your
 `WORKSPACE` file. You can use
-the [`go_repository`](README.md#go_repository) rule to import
+the [`go_repository`](go/workspace.rst#go_repository) rule to import
 repositories that conform to the normal Go directory conventions. This is
 similar to `new_git_repository`, but it automatically generates `BUILD` files
 for you using [gazelle](go/tools/gazelle/README.rst).
 
-You can use [`go_repository`](README.md#go_repository) if the project you're
-importing already has `BUILD` files. This is like `git_repository` but it
+You can use [`go_repository`](go/workspace.rst#go_repository) if the project
+you're importing already has `BUILD` files. This is like `git_repository` but it
 recognizes importpath redirection.
 
 If you prefer to write your own `BUILD` files for dependencies, you can still

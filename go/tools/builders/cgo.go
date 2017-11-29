@@ -20,46 +20,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"unicode"
 )
-
-func testCgo(src string, data []byte) (bool, string, error) {
-	fset := token.NewFileSet()
-	parsed, err := parser.ParseFile(fset, src, data, parser.ImportsOnly)
-	if err != nil {
-		return false, "", err
-	}
-	for _, decl := range parsed.Decls {
-		d, ok := decl.(*ast.GenDecl)
-		if !ok {
-			continue
-		}
-		for _, dspec := range d.Specs {
-			spec, ok := dspec.(*ast.ImportSpec)
-			if !ok {
-				continue
-			}
-			imp, err := strconv.Unquote(spec.Path.Value)
-			if err != nil {
-				log.Panicf("%s: invalid string `%s`", src, spec.Path.Value)
-			}
-			if imp == "C" {
-				return true, parsed.Name.String(), nil
-			}
-		}
-	}
-	return false, parsed.Name.String(), nil
-}
 
 func run(args []string) error {
 	sources := multiFlag{}
@@ -105,6 +73,7 @@ func run(args []string) error {
 	// apply build constraints to the source list
 	// also pick out the cgo sources
 	bctx := goenv.BuildContext()
+	bctx.CgoEnabled = true
 	cgoSrcs := []string{}
 	pkgName := ""
 	for _, s := range sources {
@@ -119,7 +88,7 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
-		match, err := matchFile(bctx, in)
+		match, isCgo, pkg, err := matchFile(bctx, in, true)
 		if err != nil {
 			return err
 		}
@@ -142,15 +111,11 @@ func run(args []string) error {
 
 		// Go source, must produce both c and go outputs
 		cOut := strings.TrimSuffix(out, ".cgo1.go") + ".cgo2.c"
-		isCgo, pkg, err := testCgo(in, data)
-		if err != nil {
-			return err
-		}
-		if pkg == "" {
-			return fmt.Errorf("%s: error: could not parse package name", in)
-		}
 
 		if !match {
+			if pkg == "" {
+				return fmt.Errorf("%s: error: could not parse package name", in)
+			}
 			// filtered file, fake both the go and the c
 			if err := ioutil.WriteFile(out, []byte("package "+pkg), 0644); err != nil {
 				return err
