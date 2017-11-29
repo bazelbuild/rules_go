@@ -106,6 +106,9 @@ excludes=(
   # icmp requires adjusting kernel options.
   -@org_golang_x_net//icmp:go_default_xtest
 
+  # nettest depends on temp files for unix sockets, which Bazel 0.8 breaks.
+  -@org_golang_x_net//nettest:go_default_test
+
   # fiximports requires working GOROOT, not present in CI.
   -@org_golang_x_tools//cmd/fiximports:go_default_test
 
