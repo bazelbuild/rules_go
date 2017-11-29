@@ -40,10 +40,12 @@ def emit_asm(ctx, go_toolchain,
   add_go_env(asm_args, stdlib, mode)
   asm_args.add([source.path, "-o", out_obj])
   asm_args.add(includes, before_each="-I")
+  asm_args.add(['-trimpath', '/proc/self/cwd'])
   ctx.actions.run(
       inputs = inputs,
       outputs = [out_obj],
       mnemonic = "GoAsmCompile",
       executable = go_toolchain.tools.asm,
       arguments = [asm_args],
+      env = {"PWD": "/proc/self/cwd"},
   )
