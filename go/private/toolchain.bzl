@@ -29,12 +29,16 @@ def _go_host_sdk_impl(ctx):
 go_host_sdk = repository_rule(_go_host_sdk_impl, environ = ["GOROOT"])
 
 def _go_download_sdk_impl(ctx):
-  arch =  ctx.execute(["bash","-c","""uname -p"""])
   if ctx.os.name == 'linux':
-    if 's390x' in arch.stdout:
-      host = "linux_s390x"
-    elif 'x86' in arch.stdout:
+    res = ctx.execute(['uname', '-p'])
+    if res.return_code != 0:
       host = "linux_amd64"
+    elif 's390x' in res.stdout:
+      host = "linux_s390x"
+    elif 'x86_64' in res.stdout:
+      host = "linux_amd64"
+    else:
+      fail("Unsupported architecture: " + res.stdout)
   elif ctx.os.name == 'mac os x':
     host = "darwin_amd64"
   elif ctx.os.name.startswith('windows'):
