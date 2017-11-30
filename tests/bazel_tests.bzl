@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "env_execute")
+load("@io_bazel_rules_go//go/private:common.bzl", "declare_file")
 
 # _bazelrc is the bazel.rc file that sets the default options for tests
 _bazelrc = """
@@ -63,7 +64,7 @@ filegroup(
 CURRENT_VERSION = "current"
 
 def _bazel_test_script_impl(ctx):
-  script_file = ctx.actions.declare_file(ctx.label.name+".bash")
+  script_file = declare_file(ctx, ext=".bash")
 
   if ctx.attr.go_version == CURRENT_VERSION:
     register = 'go_register_toolchains()\n'
@@ -85,9 +86,9 @@ def _bazel_test_script_impl(ctx):
     workspace_content += _basic_workspace.format()
     workspace_content += register
 
-  workspace_file = ctx.actions.declare_file("WORKSPACE.in")
+  workspace_file = declare_file(ctx, path="WORKSPACE.in")
   ctx.actions.write(workspace_file, workspace_content)
-  build_file = ctx.actions.declare_file("BUILD.in")
+  build_file = declare_file(ctx, path="BUILD.in")
   ctx.actions.write(build_file, ctx.attr.build)
 
   targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
@@ -165,13 +166,14 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
   )
 
 def _md5_sum_impl(ctx):
-  out = ctx.actions.declare_file(ctx.label.name+".md5")
+  out = declare_file(ctx, ext=".md5")
   arguments = ctx.actions.args()
   arguments.add(["-output", out.path])
   arguments.add(ctx.files.srcs)
   ctx.actions.run(
       inputs = ctx.files.srcs,
       outputs = [out],
+      mnemonic = "GoMd5sum",
       executable = ctx.file._md5sum,
       arguments = [arguments],
   )

@@ -26,7 +26,7 @@ def go_rules_dependencies():
   # Needed for gazelle and wtool
   _maybe(native.http_archive,
       name = "com_github_bazelbuild_buildtools",
-      # master, as of 14 Aug 2017
+      # master, as of 2017-08-14
       url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
       strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
       type = "zip",
@@ -35,9 +35,10 @@ def go_rules_dependencies():
   # Needed for fetch repo
   _maybe(go_repository,
       name = "org_golang_x_tools",
+      # release-branch.go1.9, as of 2017-08-25
       importpath = "golang.org/x/tools",
-      urls = ["https://codeload.github.com/golang/tools/zip/3d92dd60033c312e3ae7cac319c792271cf67e37"],
-      strip_prefix = "tools-3d92dd60033c312e3ae7cac319c792271cf67e37",
+      urls = ["https://codeload.github.com/golang/tools/zip/5d2fd3ccab986d52112bf301d47a819783339d0e"],
+      strip_prefix = "tools-5d2fd3ccab986d52112bf301d47a819783339d0e",
       type = "zip",
   )
 
@@ -79,12 +80,13 @@ def go_rules_dependencies():
   _maybe(go_repository,
       name = "com_github_golang_protobuf",
       importpath = "github.com/golang/protobuf",
-      commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
+      commit = "1e59b77b52bf8e4b449a57e6f79f21226d571845",  # master, as of 2017-11-24
   )
   _maybe(native.http_archive,
       name = "com_google_protobuf",
-      url = "https://codeload.github.com/google/protobuf/zip/054054c1523342294d50460d652ad2c767df627f",
-      strip_prefix = "protobuf-054054c1523342294d50460d652ad2c767df627f",
+      # v3.5.0, latest as of 2017-11-24
+      url = "https://codeload.github.com/google/protobuf/zip/2761122b810fe8861004ae785cc3ab39f384d342",
+      strip_prefix = "protobuf-2761122b810fe8861004ae785cc3ab39f384d342",
       type = "zip",
   )
 

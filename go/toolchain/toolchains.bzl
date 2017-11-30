@@ -1,6 +1,15 @@
-load('//go/private:go_toolchain.bzl', 'go_toolchain')
-load('//go/private:toolchain.bzl', 'go_download_sdk', 'go_host_sdk')
-load("//go/platform:list.bzl", "GOOS_GOARCH")
+load("//go/private:go_toolchain.bzl",
+    "go_toolchain",
+)
+load("//go/private:toolchain.bzl",
+    "go_download_sdk",
+    "go_host_sdk",
+)
+load("//go/platform:list.bzl",
+    "GOARCH",
+    "GOOS",
+    "GOOS_GOARCH",
+)
 
 DEFAULT_VERSION = "1.9.2"
 
@@ -150,6 +159,38 @@ def go_register_toolchains(go_version=DEFAULT_VERSION):
     if toolchain["host"] == toolchain["target"]:
       name = name + "-bootstrap"
       native.register_toolchains(name)
+
+def declare_constraints():
+  for goos, constraint in GOOS.items():
+    if constraint:
+      native.alias(
+          name = goos,
+          actual = constraint,
+      )
+    else:
+      native.constraint_value(
+          name = goos,
+          constraint_setting = "@bazel_tools//platforms:os",
+      )
+  for goarch, constraint in GOARCH.items():
+    if constraint:
+      native.alias(
+          name = goarch,
+          actual = constraint,
+      )
+    else:
+      native.constraint_value(
+          name = goarch,
+          constraint_setting = "@bazel_tools//platforms:cpu",
+      )
+  for goos, goarch in GOOS_GOARCH:
+    native.platform(
+        name = goos + "_" + goarch,
+        constraint_values = [
+            ":" + goos,
+            ":" + goarch,
+        ],
+    )
 
 def declare_toolchains():
   # Use the final dictionaries to create all the toolchains

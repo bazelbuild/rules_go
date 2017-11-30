@@ -41,9 +41,30 @@ def get_source_list(dep):
     return dep[GoAspectProviders].source
   return dep[GoSourceList]
 
+
+def collect_src(ctx, aspect=False, srcs = None, deps=None, want_coverage = None):
+  rule = ctx.rule if aspect else ctx
+  if srcs == None:
+    srcs = rule.files.srcs
+  if deps == None:
+    deps = rule.attr.deps
+  if want_coverage == None:
+    want_coverage = ctx.coverage_instrumented() and not rule.label.name.endswith("~library~")
+  return sources.merge([get_source_list(s) for s in rule.attr.embed] + [sources.new(
+      srcs = srcs,
+      deps = deps,
+      gc_goopts = rule.attr.gc_goopts,
+      runfiles = ctx.runfiles(collect_data = True),
+      want_coverage = want_coverage,
+  )])
+
 def _go_archive_aspect_impl(target, ctx):
   mode = get_mode(ctx, ctx.rule.attr._go_toolchain_flags)
   if GoArchive not in target:
+    if GoSourceList in target and hasattr(ctx.rule.attr, "embed"):
+      return [GoAspectProviders(
+        source = collect_src(ctx, aspect=True),
+      )]
     return []
   goarchive = target[GoArchive]
   if goarchive.mode == mode:
@@ -52,12 +73,7 @@ def _go_archive_aspect_impl(target, ctx):
         archive = goarchive,
     )]
 
-  source = sources.merge([get_source_list(s) for s in ctx.rule.attr.embed] + [sources.new(
-      srcs = ctx.rule.files.srcs,
-      deps = ctx.rule.attr.deps,
-      gc_goopts = ctx.rule.attr.gc_goopts,
-      runfiles = ctx.runfiles(collect_data = True),
-  )])
+  source = collect_src(ctx, aspect=True)
   for dep in ctx.rule.attr.deps:
     a = get_archive(dep)
     if a.mode != mode: fail("In aspect on {} found {} is {} expected {}".format(ctx.label, a.data.importpath, mode_string(a.mode), mode_string(mode)))

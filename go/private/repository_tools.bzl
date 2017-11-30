@@ -33,9 +33,7 @@ def _go_repository_tools_impl(ctx):
   # We work this out here because you can't use a toolchain from a repository rule
   # TODO: This is an ugly non sustainable hack, we need to kill repository tools.
 
-  extension = ""
-  if ctx.os.name.startswith('windows'):
-    extension = ".exe"
+  extension = executable_extension(ctx)
   go_tool = ctx.path(Label("@go_sdk//:bin/go{}".format(extension)))
 
   x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"

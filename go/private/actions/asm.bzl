@@ -38,8 +38,9 @@ def emit_asm(ctx, go_toolchain,
 
   asm_args = ctx.actions.args()
   add_go_env(asm_args, stdlib, mode)
-  asm_args.add([source.path, "-o", out_obj])
+  asm_args.add(["-o", out_obj, "-trimpath", "."])
   asm_args.add(includes, before_each="-I")
+  asm_args.add(source.path)
   ctx.actions.run(
       inputs = inputs,
       outputs = [out_obj],

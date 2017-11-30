@@ -1,7 +1,8 @@
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
+load("@io_bazel_rules_go//go/private:common.bzl", "declare_file")
 
 def _bindata_impl(ctx):
-  out = ctx.actions.declare_file(ctx.label.name + ".go")
+  out = declare_file(ctx, ext=".go")
   arguments = ctx.actions.args()
   arguments.add([
       "-o", out.path,
@@ -16,6 +17,7 @@ def _bindata_impl(ctx):
   ctx.actions.run(
     inputs = ctx.files.srcs,
     outputs = [out],
+    mnemonic = "GoBindata",
     executable = ctx.file._bindata,
     arguments = [arguments],
   )

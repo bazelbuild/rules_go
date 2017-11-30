@@ -17,6 +17,7 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "go_importpath",
     "split_srcs",
     "pkg_dir",
+    "declare_file",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
@@ -57,7 +58,7 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-  main_go = ctx.actions.declare_file(ctx.label.name + "_main_test.go")
+  main_go = declare_file(ctx, "testmain.go")
   arguments = ctx.actions.args()
   add_go_env(arguments, stdlib, mode)
   arguments.add([
@@ -83,8 +84,7 @@ def _go_test_impl(ctx):
   )
 
   # Now compile the test binary itself
-  executable = ctx.outputs.executable
-  _, goarchive = go_toolchain.actions.binary(ctx, go_toolchain,
+  _, goarchive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
       source = sources.new(
           srcs = [main_go],
@@ -94,7 +94,6 @@ def _go_test_impl(ctx):
       ),
       importpath = ctx.label.name + "~testmain~",
       gc_linkopts = gc_linkopts(ctx),
-      executable = executable,
       x_defs=ctx.attr.x_defs,
   )
 
@@ -106,6 +105,7 @@ def _go_test_impl(ctx):
       DefaultInfo(
           files = depset([executable]),
           runfiles = runfiles,
+          executable = executable,
       ),
 ]
 

@@ -34,19 +34,15 @@ Travis   Jenkins
 Announcements
 -------------
 
+November 27, 2017
+  Release `0.7.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.7.1>`_
+  is now available.
 November 3, 2017
   Release `0.7.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.7.0>`_
   is now available.
 October 16, 2017
   We have a new mailing list: `bazel-go-discuss`_. All questions about building
   Go with Bazel and using Gazelle are welcome.
-October 10, 2017
-  We have bumped the minimum Bazel version to 0.6.0 due to `#889`_.
-October 9, 2017
-  Release `0.6.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.6.0>`_
-  is now available. Bazel 0.5.4 or later is now required. The WORKSPACE
-  boilerplate has also changed (see Setup_).
-
 
 .. contents::
 
@@ -86,8 +82,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-:Note: The latest version of these rules (0.7.0) require Bazel ≥ 0.6.0 to
-  work.
+:Note: The latest version of these rules (0.7.1) requires Bazel ≥ 0.7.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -105,8 +100,8 @@ Setup
 
     http_archive(
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.7.0/rules_go-0.7.0.tar.gz",
-        sha256 = "91fca9cf860a1476abdc185a5f675b641b60d3acf0596679a27b580af60bf19c",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.7.1/rules_go-0.7.1.tar.gz",
+        sha256 = "341d5eacef704415386974bc82a1783a8b7ffbff2ab6ba02375e1ca20d9b031c",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()

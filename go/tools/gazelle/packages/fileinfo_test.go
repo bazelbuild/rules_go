@@ -436,24 +436,27 @@ func TestCheckConstraints(t *testing.T) {
 			content:  "// +build foo\n\npackage foo",
 			want:     false,
 		}, {
-			desc:    "tags all satisfied",
-			content: "// +build cgo,gc\n\npackage foo",
-			want:    true,
+			desc:        "tags all satisfied",
+			genericTags: map[string]bool{"a": true, "b": true},
+			content:     "// +build a,b\n\npackage foo",
+			want:        true,
 		}, {
-			desc:    "tags some satisfied",
-			content: "// +build cgo,foo\n\npackage foo",
-			want:    false,
+			desc:        "tags some satisfied",
+			genericTags: map[string]bool{"a": true},
+			content:     "// +build a,b\n\npackage foo",
+			want:        false,
 		}, {
 			desc:    "tag unsatisfied negated",
-			content: "// +build !foo\n\npackage foo",
+			content: "// +build !a\n\npackage foo",
 			want:    true,
 		}, {
-			desc:    "tag satisfied negated",
-			content: "// +build !cgo\n\npackage foo",
-			want:    false,
+			desc:        "tag satisfied negated",
+			genericTags: map[string]bool{"a": true},
+			content:     "// +build !a\n\npackage foo",
+			want:        false,
 		}, {
 			desc:    "tag double negative",
-			content: "// +build !!cgo\n\npackage foo",
+			content: "// +build !!a\n\npackage foo",
 			want:    false,
 		}, {
 			desc:        "tag group and satisfied",
@@ -528,16 +531,23 @@ import "C"
 			desc:    "release tag negated",
 			content: "// +build !go1.8\n\npackage foo",
 			want:    true,
+		}, {
+			desc:    "cgo tag",
+			content: "// +build cgo",
+			want:    true,
+		}, {
+			desc:    "cgo tag negated",
+			content: "// +build !cgo",
+			want:    true,
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			genericTags := tc.genericTags
 			if genericTags == nil {
-				genericTags = map[string]bool{"cgo": true, "gc": true}
+				genericTags = map[string]bool{"gc": true}
 			}
 			c := &config.Config{
-				GenericTags:           genericTags,
-				ExperimentalPlatforms: true,
+				GenericTags: genericTags,
 			}
 			filename := tc.filename
 			if filename == "" {

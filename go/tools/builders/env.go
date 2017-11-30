@@ -37,6 +37,14 @@ type GoEnv struct {
 	tags     string
 }
 
+func abs(path string) string {
+	if abs, err := filepath.Abs(path); err != nil {
+		return path
+	} else {
+		return abs
+	}
+}
+
 func envFlags(flags *flag.FlagSet) *GoEnv {
 	env := &GoEnv{}
 	flags.StringVar(&env.Go, "go", "", "The path to the go tool.")
@@ -51,10 +59,7 @@ func envFlags(flags *flag.FlagSet) *GoEnv {
 
 func (env *GoEnv) absRoot() string {
 	if env.rootPath == "" {
-		env.rootPath = env.rootFile
-		if abs, err := filepath.Abs(env.rootPath); err == nil {
-			env.rootPath = abs
-		}
+		env.rootPath = abs(env.rootFile)
 		if s, err := os.Stat(env.rootPath); err == nil {
 			if !s.IsDir() {
 				env.rootPath = filepath.Dir(env.rootPath)

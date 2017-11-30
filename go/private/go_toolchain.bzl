@@ -34,6 +34,11 @@ def _get_stdlib(ctx, go_toolchain, mode):
   else:
     return go_toolchain.stdlib.cgo
 
+def _goos_to_extension(goos):
+  if goos == "windows":
+    return ".exe"
+  return ""
+
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
@@ -74,6 +79,7 @@ def _go_toolchain_impl(ctx):
       data = struct(
           crosstool = ctx.files._crosstool,
           package_list = ctx.file._package_list,
+          extension = _goos_to_extension(ctx.attr.goos),
       ),
   )]
 

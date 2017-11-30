@@ -16,6 +16,9 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
     "get_mode",
 )
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "declare_file",
+)
 
 def emit_binary(ctx, go_toolchain,
     name="",
@@ -23,7 +26,6 @@ def emit_binary(ctx, go_toolchain,
     source = None,
     gc_linkopts = [],
     x_defs = {},
-    executable = None,
     wrap = None):
   """See go/toolchains.rst#binary for full documentation."""
 
@@ -37,7 +39,7 @@ def emit_binary(ctx, go_toolchain,
       importpath = importpath,
       importable = False,
   )
-
+  executable = declare_file(ctx, ext=go_toolchain.data.extension, mode=mode)
   go_toolchain.actions.link(ctx,
       go_toolchain = go_toolchain,
       archive=goarchive,
@@ -47,4 +49,4 @@ def emit_binary(ctx, go_toolchain,
       x_defs=x_defs,
   )
 
-  return golib, goarchive
+  return golib, goarchive, executable

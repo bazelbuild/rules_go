@@ -17,6 +17,9 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoPath")
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
 )
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "declare_file",
+)
 
 def _go_vet_generate_impl(ctx):
   print("""
@@ -26,7 +29,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  script_file = ctx.actions.declare_file(ctx.label.name+".bash")
+  script_file = declare_file(ctx, ext=".bash")
   gopath = []
   files = ctx.files.data + stdlib.files
   gopath = []

@@ -13,7 +13,7 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
 )
 load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
-    "get_source_list",
+    "collect_src",
 )
 
 def _go_proto_library_impl(ctx):
@@ -27,13 +27,10 @@ def _go_proto_library_impl(ctx):
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  gosource = sources.merge([get_source_list(s) for s in ctx.attr.embed] + [sources.new(
-      srcs = go_srcs,
-      deps = ctx.attr.deps + go_proto_toolchain.deps,
-      gc_goopts = ctx.attr.gc_goopts,
-      runfiles = ctx.runfiles(collect_data = True),
-      want_coverage = False,
-  )])
+  gosource = collect_src(
+      ctx, srcs = go_srcs,
+      deps=ctx.attr.deps + go_proto_toolchain.deps,
+  )
   golib, goarchive = go_toolchain.actions.library(ctx,
       go_toolchain = go_toolchain,
       mode = mode,

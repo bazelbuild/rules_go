@@ -22,42 +22,6 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/gazelle/config"
 )
 
-func TestLabelString(t *testing.T) {
-	for _, spec := range []struct {
-		l    Label
-		want string
-	}{
-		{
-			l:    Label{Name: "foo"},
-			want: "//:foo",
-		},
-		{
-			l:    Label{Pkg: "foo/bar", Name: "baz"},
-			want: "//foo/bar:baz",
-		},
-		{
-			l:    Label{Pkg: "foo/bar", Name: "bar"},
-			want: "//foo/bar",
-		},
-		{
-			l:    Label{Repo: "com_example_repo", Pkg: "foo/bar", Name: "baz"},
-			want: "@com_example_repo//foo/bar:baz",
-		},
-		{
-			l:    Label{Repo: "com_example_repo", Pkg: "foo/bar", Name: "bar"},
-			want: "@com_example_repo//foo/bar",
-		},
-		{
-			l:    Label{Relative: true, Name: "foo"},
-			want: ":foo",
-		},
-	} {
-		if got, want := spec.l.String(), spec.want; got != want {
-			t.Errorf("%#v.String() = %q; want %q", spec.l, got, want)
-		}
-	}
-}
-
 func TestResolveGoLocal(t *testing.T) {
 	for _, spec := range []struct {
 		mode       config.StructureMode

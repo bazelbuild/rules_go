@@ -110,27 +110,18 @@ func (g tagGroup) check(c *config.Config, os, arch string) bool {
 		if not {
 			t = t[1:]
 		}
-		if isReleaseTag(t) {
+		if isIgnoredTag(t) {
 			// Release tags are treated as "unknown" and are considered true,
 			// whether or not they are negated.
 			continue
 		}
-		var osSet, archSet map[string]bool
-		if !c.ExperimentalPlatforms {
-			osSet = config.DefaultOSSet
-			archSet = config.DefaultArchSet
-		} else {
-			osSet = config.KnownOSSet
-			archSet = config.KnownArchSet
-		}
-
 		var match bool
-		if _, ok := osSet[t]; ok {
+		if _, ok := config.KnownOSSet[t]; ok {
 			if os == "" {
 				return false
 			}
 			match = os == t
-		} else if _, ok := archSet[t]; ok {
+		} else if _, ok := config.KnownArchSet[t]; ok {
 			if arch == "" {
 				return false
 			}
@@ -228,12 +219,12 @@ func fileNameInfo(dir, rel, name string) fileInfo {
 		l = l[:len(l)-1]
 	}
 	switch {
-	case len(l) >= 3 && knownOS[l[len(l)-2]] && knownArch[l[len(l)-1]]:
+	case len(l) >= 3 && config.KnownOSSet[l[len(l)-2]] && config.KnownArchSet[l[len(l)-1]]:
 		goos = l[len(l)-2]
 		goarch = l[len(l)-1]
-	case len(l) >= 2 && knownOS[l[len(l)-1]]:
+	case len(l) >= 2 && config.KnownOSSet[l[len(l)-1]]:
 		goos = l[len(l)-1]
-	case len(l) >= 2 && knownArch[l[len(l)-1]]:
+	case len(l) >= 2 && config.KnownArchSet[l[len(l)-1]]:
 		goarch = l[len(l)-1]
 	}
 
@@ -309,22 +300,6 @@ func otherFileInfo(dir, rel, name string) fileInfo {
 	return info
 }
 
-// Copied from go/build. Keep in sync as new platforms are added.
-const goosList = "android darwin dragonfly freebsd linux nacl netbsd openbsd plan9 solaris windows zos "
-const goarchList = "386 amd64 amd64p32 arm armbe arm64 arm64be ppc64 ppc64le mips mipsle mips64 mips64le mips64p32 mips64p32le ppc s390 s390x sparc sparc64 "
-
-var knownOS = make(map[string]bool)
-var knownArch = make(map[string]bool)
-
-func init() {
-	for _, v := range strings.Fields(goosList) {
-		knownOS[v] = true
-	}
-	for _, v := range strings.Fields(goarchList) {
-		knownArch[v] = true
-	}
-}
-
 // readTags reads and extracts build tags from the block of comments
 // and blank lines at the start of a file which is separated from the
 // rest of the file by a blank line. Each string in the returned slice
@@ -378,6 +353,37 @@ func parseTagsInGroups(groups []string) tagLine {
 	return l
 }
 
+func isOSArchSpecific(info fileInfo, cgoTags tagLine) (osSpecific, archSpecific bool) {
+	if info.goos != "" {
+		osSpecific = true
+	}
+	if info.goarch != "" {
+		archSpecific = true
+	}
+	lines := info.tags
+	if len(cgoTags) > 0 {
+		lines = append(lines, cgoTags)
+	}
+	for _, line := range lines {
+		for _, group := range line {
+			for _, tag := range group {
+				if strings.HasPrefix(tag, "!") {
+					tag = tag[1:]
+				}
+				_, osOk := config.KnownOSSet[tag]
+				if osOk {
+					osSpecific = true
+				}
+				_, archOk := config.KnownArchSet[tag]
+				if archOk {
+					archSpecific = true
+				}
+			}
+		}
+	}
+	return osSpecific, archSpecific
+}
+
 // checkConstraints determines whether build constraints are satisfied on
 // a given platform.
 //
@@ -406,8 +412,14 @@ func checkConstraints(c *config.Config, os, arch, osSuffix, archSuffix string, f
 	return true
 }
 
-// isReleaseTag returns whether the tag matches the pattern "go[0-9]\.[0-9]+".
-func isReleaseTag(tag string) bool {
+// isIgnoredTag returns whether the tag is "cgo" or is a release tag.
+// Release tags match the pattern "go[0-9]\.[0-9]+".
+// Gazelle won't consider whether an ignored tag is satisfied when evaluating
+// build constraints for a file.
+func isIgnoredTag(tag string) bool {
+	if tag == "cgo" {
+		return true
+	}
 	if len(tag) < 5 || !strings.HasPrefix(tag, "go") {
 		return false
 	}

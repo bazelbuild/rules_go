@@ -20,6 +20,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoSourceList",
 )
 load("@io_bazel_rules_go//go/private:common.bzl",
+    "declare_file",
     "structs",
 )
 
@@ -48,7 +49,7 @@ def emit_cover(ctx, go_toolchain,
         continue
       cover_var = "Cover_" + src.basename[:-3].replace("-", "_").replace(".", "_")
       cover_vars.append("{}={}={}".format(cover_var, src.short_path, importpath))
-      out = ctx.actions.declare_file(cover_var + '.cover.go')
+      out = declare_file(ctx, path=cover_var, ext='.cover.go')
       outputs.append(out)
       args = ctx.actions.args()
       add_go_env(args, stdlib, mode)

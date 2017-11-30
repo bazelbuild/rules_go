@@ -18,12 +18,83 @@ package resolve
 import (
 	"fmt"
 	"path"
+	"regexp"
+	"strings"
 )
 
 // A Label represents a label of a build target in Bazel.
 type Label struct {
 	Repo, Pkg, Name string
 	Relative        bool
+}
+
+// NoLabel is the nil value of Label. It is not a valid label and may be
+// returned when an error occurs.
+var NoLabel = Label{}
+
+var (
+	labelRepoRegexp = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`)
+	labelPkgRegexp  = regexp.MustCompile(`^[A-Za-z0-9/.-]*$`)
+	labelNameRegexp = regexp.MustCompile(`^[A-Za-z0-9_/.+=,@~-]*$`)
+)
+
+// ParseLabel reads a label from a string.
+// See https://docs.bazel.build/versions/master/build-ref.html#lexi.
+func ParseLabel(s string) (Label, error) {
+	origStr := s
+
+	relative := true
+	var repo string
+	if strings.HasPrefix(s, "@") {
+		relative = false
+		endRepo := strings.Index(s, "//")
+		if endRepo < 0 {
+			return NoLabel, fmt.Errorf("label parse error: repository does not end with '//': %q", origStr)
+		}
+		repo = s[len("@"):endRepo]
+		if !labelRepoRegexp.MatchString(repo) {
+			return NoLabel, fmt.Errorf("label parse error: repository has invalid characters: %q", origStr)
+		}
+		s = s[endRepo:]
+	}
+
+	var pkg string
+	if strings.HasPrefix(s, "//") {
+		relative = false
+		endPkg := strings.Index(s, ":")
+		if endPkg < 0 {
+			pkg = s[len("//"):]
+			s = ""
+		} else {
+			pkg = s[len("//"):endPkg]
+			s = s[endPkg:]
+		}
+		if !labelPkgRegexp.MatchString(pkg) {
+			return NoLabel, fmt.Errorf("label parse error: package has invalid characters: %q", origStr)
+		}
+	}
+
+	if s == ":" {
+		return NoLabel, fmt.Errorf("label parse error: empty name: %q", origStr)
+	}
+	name := strings.TrimPrefix(s, ":")
+	if !labelNameRegexp.MatchString(name) {
+		return NoLabel, fmt.Errorf("label parse error: name has invalid characters: %q", origStr)
+	}
+
+	if pkg == "" && name == "" {
+		return NoLabel, fmt.Errorf("label parse error: empty package and name: %q", origStr)
+	}
+	if name == "" {
+		name = pkg
+	}
+
+	return Label{
+		Repo:     repo,
+		Pkg:      pkg,
+		Name:     name,
+		Relative: relative,
+	}, nil
 }
 
 func (l Label) String() string {
@@ -40,4 +111,11 @@ func (l Label) String() string {
 		return fmt.Sprintf("%s//%s", repo, l.Pkg)
 	}
 	return fmt.Sprintf("%s//%s:%s", repo, l.Pkg, l.Name)
+}
+
+func (l Label) Abs(repo, pkg string) Label {
+	if !l.Relative {
+		return l
+	}
+	return Label{Repo: repo, Pkg: pkg, Name: l.Name}
 }

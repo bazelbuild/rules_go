@@ -24,7 +24,7 @@ This rule should only occur once in the top level build file.
 Running
 
 .. code::
-  
+
   bazel run //:gazelle
 
 will cause gazelle to run with the supplied options in the source tree at the root.
@@ -89,10 +89,6 @@ It should be consumed in the srcs list of one of the `core go rules`_.
 +----------------------------+-----------------------------+---------------------------------------+
 | A unique name for this rule.                                                                     |
 +----------------------------+-----------------------------+---------------------------------------+
-| :param:`out`               | :type:`string`              | |mandatory|                           |
-+----------------------------+-----------------------------+---------------------------------------+
-| File name of the .go file to generate.                                                           |
-+----------------------------+-----------------------------+---------------------------------------+
 | :param:`package`           | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | Go package name for the generated .go file.                                                      |
@@ -125,5 +121,5 @@ It should be consumed in the srcs list of one of the `core go rules`_.
 +----------------------------+-----------------------------+---------------------------------------+
 | If :value:`true`, the embedded data will be stored as :type:`string` instead of :type:`[]byte`.  |
 +----------------------------+-----------------------------+---------------------------------------+
-        
-       
+
+

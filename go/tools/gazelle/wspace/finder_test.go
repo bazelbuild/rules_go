@@ -29,6 +29,10 @@ func TestFind(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmp)
+	if parent, err := Find(tmp); err == nil {
+		t.Skipf("WORKSPACE visible in parent %q of tmp %q", parent, tmp)
+	}
+
 	if err := os.MkdirAll(filepath.Join(tmp, "base", "sub"), 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +43,6 @@ func TestFind(t *testing.T) {
 	tmpBase := filepath.Join(tmp, "base")
 
 	for _, tc := range []testCase{
-		{tmp, ""},
 		{tmpBase, tmpBase},
 		{filepath.Join(tmpBase, "sub"), tmpBase}} {
 

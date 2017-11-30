@@ -13,6 +13,16 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
+load("@io_bazel_rules_go//go/private:common.bzl", "declare_file")
+
+
+def _tag(ctx, path, outputs):
+  """this generates a existance tag file for dependancies, and returns the path to the tag file"""
+  tag = declare_file(ctx, path=path+".tag")
+  path, _, _ = tag.short_path.rpartition("/")
+  ctx.actions.write(tag, content="")
+  outputs.append(tag)
+  return path
 
 def _go_path_impl(ctx):
   print("""
@@ -28,7 +38,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   # Now scan them for sources
   seen_libs = {}
   seen_paths = {}
-  outputs = depset()
+  outputs = []
   packages = []
   for golib in golibs:
     if golib.importpath in seen_libs:
@@ -38,7 +48,6 @@ Please do not rely on it for production use, but feel free to use it and file is
       print("""Duplicate package
 Found {} in
   {}
-and
   {}
 """.format(golib.importpath, golib.name, seen_libs[golib.importpath].name))
       # for now we don't fail if we see duplicate packages
@@ -46,14 +55,14 @@ and
       continue
     seen_libs[golib.importpath] = golib
     package_files = []
-    outdir = "{}/src/{}".format(ctx.label.name, golib.importpath)
+    prefix = "src/" + golib.importpath + "/"
     for src in golib.srcs:
-      outpath = "{}/{}".format(outdir, src.basename)
+      outpath = prefix + src.basename
       if outpath in seen_paths:
         # If we see the same path twice, it's a fatal error
         fail("Duplicate path {}".format(outpath))
       seen_paths[outpath] = True
-      out = ctx.actions.declare_file(outpath)
+      out = declare_file(ctx, path=outpath)
       package_files += [out]
       outputs += [out]
       if ctx.attr.mode == "copy":
@@ -62,6 +71,7 @@ and
         ctx.actions.run_shell(
             command='ln -s $(readlink "$1") "$2"',
             arguments=[src.path, out.path],
+            mnemonic = "GoLn",
             inputs=[src],
             outputs=[out],
         )
@@ -69,15 +79,13 @@ and
         fail("Invalid go path mode '{}'".format(ctx.attr.mode))
     packages += [struct(
       golib = golib,
-      dir = outdir,
+      dir = _tag(ctx, prefix, outputs),
       files = package_files,
     )]
-  tag = ctx.actions.declare_file("{}/setenv.sh".format(ctx.label.name))
-  gopath, _, _ = tag.short_path.rpartition("/")
-  ctx.actions.write(tag, content="")
+  gopath = _tag(ctx, "", outputs)
   return [
       DefaultInfo(
-          files = outputs + [tag],
+          files = depset(outputs),
       ),
       GoPath(
         gopath = gopath,

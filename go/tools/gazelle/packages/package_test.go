@@ -91,9 +91,10 @@ func TestImportPathCmd(t *testing.T) {
 }
 
 func TestAddPlatformStrings(t *testing.T) {
-	c := &config.Config{ExperimentalPlatforms: true}
+	c := &config.Config{}
 	for _, tc := range []struct {
 		desc, filename string
+		tags           []tagLine
 		want           PlatformStrings
 	}{
 		{
@@ -122,10 +123,20 @@ func TestAddPlatformStrings(t *testing.T) {
 					config.Platform{OS: "linux", Arch: "amd64"}: []string{"foo_linux_amd64.go"},
 				},
 			},
+		}, {
+			desc:     "os not arch",
+			filename: "foo.go",
+			tags:     []tagLine{{{"solaris", "!arm"}}},
+			want: PlatformStrings{
+				Platform: map[config.Platform][]string{
+					config.Platform{OS: "solaris", Arch: "amd64"}: []string{"foo.go"},
+				},
+			},
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			fi := fileNameInfo("", "", tc.filename)
+			fi.tags = tc.tags
 			var got PlatformStrings
 			got.addStrings(c, fi, nil, tc.filename)
 			if !reflect.DeepEqual(got, tc.want) {

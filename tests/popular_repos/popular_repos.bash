@@ -106,6 +106,9 @@ excludes=(
   # icmp requires adjusting kernel options.
   -@org_golang_x_net//icmp:go_default_xtest
 
+  # nettest depends on temp files for unix sockets, which Bazel 0.8 breaks.
+  -@org_golang_x_net//nettest:go_default_test
+
   # fiximports requires working GOROOT, not present in CI.
   -@org_golang_x_tools//cmd/fiximports:go_default_test
 
@@ -127,14 +130,18 @@ case $(uname) in
     excludes+=(
       # route only supports BSD variants.
       -@org_golang_x_net//route:all
-      # windows only supports windows.
+      # other operating systems
+      -@org_golang_x_net//lif/...
+      -@org_golang_x_sys//plan9/...
       -@org_golang_x_sys//windows/...
     )
     ;;
 
   Darwin)
     excludes+=(
-      # windows only supports windows.
+      # other operating systems
+      -@org_golang_x_net//lif/...
+      -@org_golang_x_sys//plan9/...
       -@org_golang_x_sys//windows/...
     )
     ;;

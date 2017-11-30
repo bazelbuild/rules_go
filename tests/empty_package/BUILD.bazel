@@ -1,0 +1,45 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "cgo",
+    srcs = [
+        "cgo.c",
+        "cgo.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/tests/empty_package/cgo",
+    cgo = True,
+)
+
+go_library(
+    name = "mixed",
+    srcs = [
+        "mixed_cgo.go",
+        "mixed_pure.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/tests/empty_package/mixed",
+    deps = [":cgo"],
+)
+
+go_test(
+    name = "empty_package_cgo",
+    size = "small",
+    srcs = ["empty_package_test.go"],
+    deps = [":mixed"],
+    pure = "off",
+    importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
+    x_defs = {
+        "github.com/bazelbuild/rules_go/tests/empty_package_test.Expect": "2",
+    },
+)
+
+go_test(
+    name = "empty_package_pure",
+    size = "small",
+    srcs = ["empty_package_test.go"],
+    deps = [":mixed"],
+    pure = "on",
+    importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
+    x_defs = {
+        "github.com/bazelbuild/rules_go/tests/empty_package_test.Expect": "1",
+    },
+)

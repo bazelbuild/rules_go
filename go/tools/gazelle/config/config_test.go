@@ -22,13 +22,13 @@ func TestPreprocessTags(t *testing.T) {
 		GenericTags: map[string]bool{"a": true, "b": true},
 	}
 	c.PreprocessTags()
-	expectedTags := []string{"a", "b", "cgo", "gc"}
+	expectedTags := []string{"a", "b", "gc"}
 	for _, tag := range expectedTags {
 		if !c.GenericTags[tag] {
 			t.Errorf("tag %q not set", tag)
 		}
 	}
-	unexpectedTags := []string{"x", "go1.8", "go1.7"}
+	unexpectedTags := []string{"x", "cgo", "go1.8", "go1.7"}
 	for _, tag := range unexpectedTags {
 		if c.GenericTags[tag] {
 			t.Errorf("tag %q unexpectedly set")

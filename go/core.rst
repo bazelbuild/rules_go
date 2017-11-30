@@ -95,7 +95,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test library directly.                                                 |
 | These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
-| These can provide both :param:`srcs` and param:`deps` to this library.                           |
+| These can provide both :param:`srcs` and :param:`deps` to this library.                          |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -203,7 +203,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this binary embeds directly.                                                |
 | These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
-| These can provide both :param:`srcs` and param:`deps` to this binary.                            |
+| These can provide both :param:`srcs` and :param:`deps` to this binary.                           |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -315,7 +315,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test embeds directly.                                                  |
 | These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
-| These can provide both :param:`srcs` and param:`deps` to this test.                              |
+| These can provide both :param:`srcs` and :param:`deps` to this test.                             |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
@@ -427,3 +427,57 @@ It references the library(s) being tested with :param:`deps`.
       srcs = ["lib_x_test.go"],
       deps = [":go_default_library"],
   )
+
+go_source
+~~~~~~~~~
+
+This declares a set of source files and related dependencies that can be embedded into one of the
+other rules.
+This is used as a way of easily declaring a common set of sources re-used in multiple rules.
+
+Providers
+^^^^^^^^^
+
+* GoSourceList_
+
+Attributes
+^^^^^^^^^^
+
++----------------------------+-----------------------------+---------------------------------------+
+| **Name**                   | **Type**                    | **Default value**                     |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`name`              | :type:`string`              | |mandatory|                           |
++----------------------------+-----------------------------+---------------------------------------+
+| A unique name for this rule.                                                                     |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`srcs`              | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| The list of Go source files that are compiled to create the package.                             |
+| The following file types are permitted: :value:`.go, .c, .s, .S .h`.                             |
+| The files may contain Go-style `build constraints`_.                                             |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`deps`              | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| List of Go libraries this source list imports directly.                                          |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`embed`             | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| List of sources to directly embed in this list.                                                  |
+| These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
+| These can provide both :param:`srcs` and :param:`deps` to this library.                          |
+| See Embedding_ for more information about how and when to use this.                              |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`data`              | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| The list of files needed by this rule at runtime. Targets named in the data attribute will       |
+| appear in the *.runfiles area of this rule, if it has one. This may include data files needed    |
+| by the binary, or other programs needed by it. See `data dependencies`_ for more information     |
+| about how to depend on and use data files.                                                       |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`gc_goopts`         | :type:`string_list`         | :value:`[]`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| List of flags to add to the Go compilation command when using the gc compiler.                   |
+| Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
++----------------------------+-----------------------------+---------------------------------------+
+

@@ -25,12 +25,12 @@ import (
 )
 
 func run(args []string) error {
-	// process the args
-	if len(args) < 2 {
-		return fmt.Errorf("Usage: asm -go gotool source.s -- <extra options>")
-	}
+	search := multiFlag{}
 	flags := flag.NewFlagSet("asm", flag.ExitOnError)
 	goenv := envFlags(flags)
+	flags.Var(&search, "I", "Search paths of a direct dependency")
+	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
+	output := flags.String("o", "", "The output object file to write")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func run(args []string) error {
 
 	// filter our input file list
 	bctx := goenv.BuildContext()
-	matched, err := matchFile(bctx, source)
+	matched, _, _, err := matchFile(bctx, source, false)
 	if err != nil {
 		return err
 	}
@@ -50,6 +50,10 @@ func run(args []string) error {
 		source = os.DevNull
 	}
 	goargs := []string{"tool", "asm"}
+	goargs = append(goargs, "-trimpath", abs(*trimpath), "-o", *output)
+	for _, path := range search {
+		goargs = append(goargs, "-I", abs(path))
+	}
 	goargs = append(goargs, remains...)
 	goargs = append(goargs, source)
 	env := os.Environ()
