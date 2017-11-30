@@ -86,13 +86,6 @@ def _go_sdk_impl(ctx):
 
 
 def _prepare(ctx):
-  if "TMP" in ctx.os.environ:
-    tmp = ctx.os.environ["TMP"]
-    ctx.symlink(tmp, "tmp")
-  else:
-    ctx.file("tmp/ignore", content="") # make a file to force the directory to exist
-    tmp = str(ctx.path("tmp").realpath)
-
   # Create a text file with a list of standard packages.
   # OPT: just list directories under src instead of running "go list". No
   # need to read all source files. We need a portable way to run code though.

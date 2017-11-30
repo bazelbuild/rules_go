@@ -123,7 +123,7 @@ def go_importpath(ctx):
     path = path[1:]
   return path
 
-def env_execute(ctx, arguments, environment = None, **kwargs):
+def env_execute(ctx, arguments, environment = {}, **kwargs):
   """env_executes a command in a repository context. It prepends "env -i"
   to "arguments" before calling "ctx.execute".
 
@@ -132,9 +132,12 @@ def env_execute(ctx, arguments, environment = None, **kwargs):
   in most situations.
   """
   env_args = ["env", "-i"]
-  if environment:
-    for k, v in environment.items():
-      env_args.append("%s=%s" % (k, v))
+  environment = dict(environment)
+  for var in ["TMP", "TMPDIR"]:
+    if var in ctx.os.environ and not var in environment:
+      environment[var] = ctx.os.environ[var]
+  for k, v in environment.items():
+    env_args.append("%s=%s" % (k, v))
   return ctx.execute(env_args + arguments, **kwargs)
 
 def to_set(v):
