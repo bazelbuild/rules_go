@@ -98,7 +98,10 @@ def _prepare(ctx):
   # need to read all source files. We need a portable way to run code though.
   result = env_execute(ctx,
      arguments = ["bin/go", "list", "..."],
-     environment = {"GOROOT": str(ctx.path("."))},
+     environment = {
+      "TMP": tmp,
+      "GOROOT": str(ctx.path("."))
+     },
   )
   if result.return_code != 0:
     print(result.stderr)
