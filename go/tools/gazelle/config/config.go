@@ -52,9 +52,6 @@ type Config struct {
 	// KnownImports is a list of imports to add to the external resolver cache.
 	KnownImports []string
 
-	// StructureMode determines how build files are organized within a project.
-	StructureMode StructureMode
-
 	// ProtoMode determines how rules are generated for protos.
 	ProtoMode ProtoMode
 }
@@ -130,20 +127,6 @@ func DependencyModeFromString(s string) (DependencyMode, error) {
 		return 0, fmt.Errorf("unrecognized dependency mode: %q", s)
 	}
 }
-
-// StructureMode determines how build files are organized within a project.
-type StructureMode int
-
-const (
-	// In HierarchicalMode, one build file is generated per directory. This is
-	// the default mode.
-	HierarchicalMode StructureMode = iota
-
-	// In FlatMode, one build file is generated for the entire repository.
-	// FlatMode build files can be used with new_git_repository or
-	// new_http_archive.
-	FlatMode
-)
 
 // ProtoMode determines how proto rules are generated.
 type ProtoMode int

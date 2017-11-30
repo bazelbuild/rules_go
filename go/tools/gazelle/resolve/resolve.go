@@ -33,7 +33,7 @@ import (
 // import paths to labels that we can use to cross-reference.
 type Resolver struct {
 	c        *config.Config
-	l        Labeler
+	l        *Labeler
 	external nonlocalResolver
 }
 
@@ -44,7 +44,7 @@ type nonlocalResolver interface {
 	resolve(imp string) (Label, error)
 }
 
-func NewResolver(c *config.Config, l Labeler) *Resolver {
+func NewResolver(c *config.Config, l *Labeler) *Resolver {
 	var e nonlocalResolver
 	switch c.DepMode {
 	case config.ExternalMode:
@@ -63,7 +63,7 @@ func NewResolver(c *config.Config, l Labeler) *Resolver {
 // ResolveRule modifies a generated rule e by replacing the import paths in the
 // "_gazelle_imports" attribute with labels in a "deps" attribute. This may
 // may safely called on expressions that aren't Go rules (nothing will happen).
-func (r *Resolver) ResolveRule(e bf.Expr, pkgRel, buildRel string) {
+func (r *Resolver) ResolveRule(e bf.Expr, pkgRel string) {
 	call, ok := e.(*bf.CallExpr)
 	if !ok {
 		return
@@ -95,7 +95,7 @@ func (r *Resolver) ResolveRule(e bf.Expr, pkgRel, buildRel string) {
 			}
 			return ""
 		}
-		label.Relative = label.Repo == "" && label.Pkg == buildRel
+		label.Relative = label.Repo == "" && label.Pkg == pkgRel
 		return label.String()
 	})
 	if deps == nil {

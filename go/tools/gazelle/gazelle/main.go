@@ -26,7 +26,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	bf "github.com/bazelbuild/buildtools/build"
@@ -64,12 +63,6 @@ type visitRecord struct {
 	// pkgRel is the slash-separated path to the visited directory, relative to
 	// the repository root. "" for the repository root itself.
 	pkgRel string
-
-	// buildRel is the slash-separated path to the directory containing the
-	// relevant build file for the directory being visited, relative to the
-	// repository root. "" for the repository root itself. This may differ
-	// from pkgRel in flat mode.
-	buildRel string
 
 	// rules is a list of generated Go rules.
 	rules []bf.Expr
@@ -115,20 +108,13 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 
 			// Generate rules.
 			if pkg != nil {
-				var buildRel string
-				if c.StructureMode == config.FlatMode {
-					buildRel = ""
-				} else {
-					buildRel = rel
-				}
-				g := rules.NewGenerator(c, l, buildRel, oldFile)
+				g := rules.NewGenerator(c, l, oldFile)
 				rules, empty := g.GenerateRules(pkg)
 				visits = append(visits, visitRecord{
-					pkgRel:   rel,
-					buildRel: buildRel,
-					rules:    rules,
-					empty:    empty,
-					oldFile:  oldFile,
+					pkgRel:  rel,
+					rules:   rules,
+					empty:   empty,
+					oldFile: oldFile,
 				})
 			}
 		})
@@ -137,38 +123,17 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 		resolver := resolve.NewResolver(c, l)
 		for _, v := range visits {
 			for _, r := range v.rules {
-				resolver.ResolveRule(r, v.pkgRel, v.buildRel)
+				resolver.ResolveRule(r, v.pkgRel)
 			}
 		}
 
 		// Merge old files and generated files. Emit merged files.
-		switch c.StructureMode {
-		case config.HierarchicalMode:
-			for _, v := range visits {
-				genFile := &bf.File{
-					Path: filepath.Join(c.RepoRoot, filepath.FromSlash(v.pkgRel), c.DefaultBuildFileName()),
-					Stmt: v.rules,
-				}
-				mergeAndEmit(c, genFile, v.oldFile, v.empty, emit)
+		for _, v := range visits {
+			genFile := &bf.File{
+				Path: filepath.Join(c.RepoRoot, filepath.FromSlash(v.pkgRel), c.DefaultBuildFileName()),
+				Stmt: v.rules,
 			}
-
-		case config.FlatMode:
-			sort.Stable(byPkgRel(visits))
-			var oldFile *bf.File
-			if len(visits) > 0 && visits[0].pkgRel == "" {
-				oldFile = visits[0].oldFile
-			}
-
-			genFile := &bf.File{Path: filepath.Join(c.RepoRoot, c.DefaultBuildFileName())}
-			var empty []bf.Expr
-			for _, v := range visits {
-				genFile.Stmt = append(genFile.Stmt, v.rules...)
-				empty = append(empty, v.empty...)
-			}
-			mergeAndEmit(c, genFile, oldFile, empty, emit)
-
-		default:
-			log.Panicf("unsupported structure mode: %v", c.StructureMode)
+			mergeAndEmit(c, genFile, v.oldFile, v.empty, emit)
 		}
 	}
 }
@@ -289,7 +254,6 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	repoRoot := fs.String("repo_root", "", "path to a directory which corresponds to go_prefix, otherwise gazelle searches for it.")
 	fs.Var(&knownImports, "known_import", "import path for which external resolution is skipped (can specify multiple times)")
 	mode := fs.String("mode", "fix", "print: prints all of the updated BUILD files\n\tfix: rewrites all of the BUILD files in place\n\tdiff: computes the rewrite but then just does a diff")
-	flat := fs.Bool("experimental_flat", false, "whether gazelle should generate a single, combined BUILD file.\nThis mode is experimental and may not work yet.")
 	proto := fs.String("proto", "default", "default: generates new proto rules\n\tdisable: does not touch proto rules\n\tlegacy (deprecated): generates old proto rules")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -364,12 +328,6 @@ func newConfiguration(args []string) (*config.Config, command, emitFunc, error) 
 	c.DepMode, err = config.DependencyModeFromString(*external)
 	if err != nil {
 		return nil, cmd, nil, err
-	}
-
-	if *flat {
-		c.StructureMode = config.FlatMode
-	} else {
-		c.StructureMode = config.HierarchicalMode
 	}
 
 	c.ProtoMode, err = config.ProtoModeFromString(*proto)

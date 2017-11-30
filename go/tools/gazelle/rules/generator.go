@@ -28,19 +28,16 @@ import (
 )
 
 // NewGenerator returns a new instance of Generator.
-// "buildRel" is a slash-separated path to the directory containing the
-// build file being generated, relative to the repository root.
 // "oldFile" is the existing build file. May be nil.
-func NewGenerator(c *config.Config, l resolve.Labeler, buildRel string, oldFile *bf.File) *Generator {
+func NewGenerator(c *config.Config, l *resolve.Labeler, oldFile *bf.File) *Generator {
 	shouldSetVisibility := oldFile == nil || !hasDefaultVisibility(oldFile)
-	return &Generator{c: c, l: l, buildRel: buildRel, shouldSetVisibility: shouldSetVisibility}
+	return &Generator{c: c, l: l, shouldSetVisibility: shouldSetVisibility}
 }
 
 // Generator generates Bazel build rules for Go build targets.
 type Generator struct {
 	c                   *config.Config
-	l                   resolve.Labeler
-	buildRel            string
+	l                   *resolve.Labeler
 	shouldSetVisibility bool
 }
 
@@ -88,7 +85,7 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		return "", []bf.Expr{
 			newRule("filegroup", []keyvalue{
 				{key: "name", value: filegroupName},
-				{key: "srcs", value: g.sources(pkg.Proto.Sources, pkg.Rel)},
+				{key: "srcs", value: pkg.Proto.Sources},
 				{key: "visibility", value: []string{"//visibility:public"}},
 			}),
 		}
@@ -107,7 +104,7 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 	visibility := []string{checkInternalVisibility(pkg.Rel, "//visibility:public")}
 	protoAttrs := []keyvalue{
 		{"name", protoName},
-		{"srcs", g.sources(pkg.Proto.Sources, pkg.Rel)},
+		{"srcs", pkg.Proto.Sources},
 		{"visibility", visibility},
 	}
 	imports := pkg.Proto.Imports
@@ -230,11 +227,8 @@ func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest 
 		attrs = append(attrs, keyvalue{"embed", []string{":" + library}})
 	}
 	if pkg.HasTestdata {
-		glob := globvalue{patterns: []string{path.Join(g.buildPkgRel(pkg.Rel), "testdata/**")}}
+		glob := globvalue{patterns: []string{"testdata/**"}}
 		attrs = append(attrs, keyvalue{"data", glob})
-	}
-	if g.c.StructureMode == config.FlatMode {
-		attrs = append(attrs, keyvalue{"rundir", pkg.Rel})
 	}
 	return newRule("go_test", attrs)
 }
@@ -242,7 +236,7 @@ func (g *Generator) generateTest(pkg *packages.Package, library string, isXTest 
 func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages.GoTarget) []keyvalue {
 	attrs := []keyvalue{{"name", name}}
 	if !target.Sources.IsEmpty() {
-		attrs = append(attrs, keyvalue{"srcs", g.sources(target.Sources, pkgRel)})
+		attrs = append(attrs, keyvalue{"srcs", target.Sources})
 	}
 	if target.Cgo {
 		attrs = append(attrs, keyvalue{"cgo", true})
@@ -262,37 +256,6 @@ func (g *Generator) commonAttrs(pkgRel, name, visibility string, target packages
 		attrs = append(attrs, keyvalue{config.GazelleImportsKey, imports})
 	}
 	return attrs
-}
-
-// sources converts paths in "srcs" which are relative to the Go package
-// directory ("pkgRel") into relative paths to the build file
-// being generated ("g.buildRel").
-func (g *Generator) sources(srcs packages.PlatformStrings, pkgRel string) packages.PlatformStrings {
-	if g.buildRel == pkgRel {
-		return srcs
-	}
-	rel := g.buildPkgRel(pkgRel)
-	srcs, _ = srcs.Map(func(s string) (string, error) {
-		return path.Join(rel, s), nil
-	})
-	return srcs
-}
-
-// buildPkgRel returns the relative slash-separated path from the directory
-// containing the build file (g.buildRel) to the Go package directory (pkgRel).
-// pkgRel must start with g.buildRel.
-func (g *Generator) buildPkgRel(pkgRel string) string {
-	if g.buildRel == pkgRel {
-		return ""
-	}
-	if g.buildRel == "" {
-		return pkgRel
-	}
-	rel := strings.TrimPrefix(pkgRel, g.buildRel+"/")
-	if rel == pkgRel {
-		log.Panicf("relative path to go package %s must start with relative path to Bazel package %s", pkgRel, g.buildRel)
-	}
-	return rel
 }
 
 var (

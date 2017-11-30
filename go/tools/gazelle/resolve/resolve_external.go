@@ -31,7 +31,7 @@ import (
 // guidelines in http://bazel.io/docs/be/functions.html#workspace. The remaining
 // portion of the import path is treated as the package name.
 type externalResolver struct {
-	l Labeler
+	l *Labeler
 
 	// repoRootForImportPath is vcs.RepoRootForImportPath by default. It may
 	// be overridden by tests.
@@ -44,7 +44,7 @@ type externalResolver struct {
 
 var _ nonlocalResolver = (*externalResolver)(nil)
 
-func newExternalResolver(l Labeler, extraKnownImports []string) *externalResolver {
+func newExternalResolver(l *Labeler, extraKnownImports []string) *externalResolver {
 	cache := make(map[string]repoRootCacheEntry)
 	for _, e := range []repoRootCacheEntry{
 		{prefix: "golang.org/x", missing: 1},

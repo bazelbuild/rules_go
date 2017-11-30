@@ -24,7 +24,6 @@ import (
 
 func TestResolveGoLocal(t *testing.T) {
 	for _, spec := range []struct {
-		mode       config.StructureMode
 		importpath string
 		pkgRel     string
 		want       Label
@@ -53,7 +52,7 @@ func TestResolveGoLocal(t *testing.T) {
 			want:       Label{Pkg: "y", Name: config.DefaultLibName},
 		},
 	} {
-		c := &config.Config{GoPrefix: "example.com/repo", StructureMode: spec.mode}
+		c := &config.Config{GoPrefix: "example.com/repo"}
 		l := NewLabeler(c)
 		r := NewResolver(c, l)
 		label, err := r.resolveGo(spec.importpath, spec.pkgRel)
@@ -111,7 +110,6 @@ func TestResolveProto(t *testing.T) {
 	prefix := "example.com/repo"
 	for _, tc := range []struct {
 		desc, imp, pkgRel      string
-		structureMode          config.StructureMode
 		depMode                config.DependencyMode
 		wantProto, wantGoProto Label
 	}{
@@ -133,30 +131,10 @@ func TestResolveProto(t *testing.T) {
 			wantProto:   Label{Pkg: "foo/bar", Name: "bar_proto"},
 			wantGoProto: Label{Pkg: "vendor/foo/bar", Name: config.DefaultLibName},
 		}, {
-			desc:          "flat sub",
-			structureMode: config.FlatMode,
-			imp:           "foo/bar/bar.proto",
-			wantProto:     Label{Name: "foo/bar/bar_proto"},
-			wantGoProto:   Label{Name: "foo/bar"},
-		}, {
-			desc:          "flat vendor",
-			structureMode: config.FlatMode,
-			depMode:       config.VendorMode,
-			imp:           "foo/bar/bar.proto",
-			pkgRel:        "vendor",
-			wantProto:     Label{Name: "foo/bar/bar_proto"},
-			wantGoProto:   Label{Name: "vendor/foo/bar"},
-		}, {
 			desc:        "well known",
 			imp:         "google/protobuf/any.proto",
 			wantProto:   Label{Repo: "com_google_protobuf", Name: "any_proto"},
 			wantGoProto: Label{Repo: "com_github_golang_protobuf", Pkg: "ptypes/any", Name: config.DefaultLibName},
-		}, {
-			desc:          "well known flat",
-			structureMode: config.FlatMode,
-			imp:           "google/protobuf/any.proto",
-			wantProto:     Label{Repo: "com_google_protobuf", Name: "any_proto"},
-			wantGoProto:   Label{Repo: "com_github_golang_protobuf", Name: "ptypes/any"},
 		}, {
 			desc:        "well known vendor",
 			depMode:     config.VendorMode,
@@ -178,9 +156,8 @@ func TestResolveProto(t *testing.T) {
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			c := &config.Config{
-				GoPrefix:      prefix,
-				DepMode:       tc.depMode,
-				StructureMode: tc.structureMode,
+				GoPrefix: prefix,
+				DepMode:  tc.depMode,
 			}
 			l := NewLabeler(c)
 			r := NewResolver(c, l)

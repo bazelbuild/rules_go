@@ -80,7 +80,7 @@ func TestGenerator(t *testing.T) {
 		}
 
 		pkg, oldFile := packageFromDir(c, dir)
-		g := rules.NewGenerator(c, l, rel, oldFile)
+		g := rules.NewGenerator(c, l, oldFile)
 		rs, _ := g.GenerateRules(pkg)
 		f := &bf.File{Stmt: rs}
 		rules.SortLabels(f)
@@ -104,7 +104,7 @@ func TestGenerator(t *testing.T) {
 func TestGeneratorEmpty(t *testing.T) {
 	c := testConfig("", "example.com/repo")
 	l := resolve.NewLabeler(c)
-	g := rules.NewGenerator(c, l, "", nil)
+	g := rules.NewGenerator(c, l, nil)
 
 	pkg := packages.Package{Name: "foo"}
 	want := `filegroup(name = "go_default_library_protos")
@@ -138,7 +138,7 @@ func TestGeneratorEmptyLegacyProto(t *testing.T) {
 	c := testConfig("", "example.com/repo")
 	c.ProtoMode = config.LegacyProtoMode
 	l := resolve.NewLabeler(c)
-	g := rules.NewGenerator(c, l, "", nil)
+	g := rules.NewGenerator(c, l, nil)
 
 	pkg := packages.Package{Name: "foo"}
 	_, empty := g.GenerateRules(&pkg)

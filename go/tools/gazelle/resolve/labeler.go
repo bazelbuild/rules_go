@@ -24,30 +24,19 @@ import (
 
 // Labeler generates Bazel labels for rules, based on their locations
 // within the repository.
-type Labeler interface {
-	LibraryLabel(rel string) Label
-	TestLabel(rel string, isXTest bool) Label
-	BinaryLabel(rel string) Label
-	ProtoLabel(rel, name string) Label
-	GoProtoLabel(rel, name string) Label
-}
-
-func NewLabeler(c *config.Config) Labeler {
-	if c.StructureMode == config.FlatMode {
-		return &flatLabeler{c}
-	}
-	return &hierarchicalLabeler{c}
-}
-
-type hierarchicalLabeler struct {
+type Labeler struct {
 	c *config.Config
 }
 
-func (l *hierarchicalLabeler) LibraryLabel(rel string) Label {
+func NewLabeler(c *config.Config) *Labeler {
+	return &Labeler{c}
+}
+
+func (l *Labeler) LibraryLabel(rel string) Label {
 	return Label{Pkg: rel, Name: config.DefaultLibName}
 }
 
-func (l *hierarchicalLabeler) TestLabel(rel string, isXTest bool) Label {
+func (l *Labeler) TestLabel(rel string, isXTest bool) Label {
 	var name string
 	if isXTest {
 		name = config.DefaultXTestName
@@ -57,57 +46,17 @@ func (l *hierarchicalLabeler) TestLabel(rel string, isXTest bool) Label {
 	return Label{Pkg: rel, Name: name}
 }
 
-func (l *hierarchicalLabeler) BinaryLabel(rel string) Label {
+func (l *Labeler) BinaryLabel(rel string) Label {
 	name := relBaseName(l.c, rel)
 	return Label{Pkg: rel, Name: name}
 }
 
-func (l *hierarchicalLabeler) ProtoLabel(rel, name string) Label {
+func (l *Labeler) ProtoLabel(rel, name string) Label {
 	return Label{Pkg: rel, Name: name + "_proto"}
 }
 
-func (l *hierarchicalLabeler) GoProtoLabel(rel, name string) Label {
+func (l *Labeler) GoProtoLabel(rel, name string) Label {
 	return Label{Pkg: rel, Name: name + "_go_proto"}
-}
-
-type flatLabeler struct {
-	c *config.Config
-}
-
-func (l *flatLabeler) LibraryLabel(rel string) Label {
-	if rel == "" {
-		return Label{Name: relBaseName(l.c, rel)}
-	}
-	return Label{Name: rel}
-}
-
-func (l *flatLabeler) TestLabel(rel string, isXTest bool) Label {
-	var suffix string
-	if isXTest {
-		suffix = "_xtest"
-	} else {
-		suffix = "_test"
-	}
-	if rel == "" {
-		return Label{Name: relBaseName(l.c, rel) + suffix}
-	}
-	return Label{Name: rel + suffix}
-}
-
-func (l *flatLabeler) BinaryLabel(rel string) Label {
-	suffix := "_cmd"
-	if rel == "" {
-		return Label{Name: relBaseName(l.c, rel) + suffix}
-	}
-	return Label{Name: rel + suffix}
-}
-
-func (l *flatLabeler) ProtoLabel(rel, name string) Label {
-	return Label{Name: path.Join(rel, name) + "_proto"}
-}
-
-func (l *flatLabeler) GoProtoLabel(rel, name string) Label {
-	return Label{Name: path.Join(rel, name) + "_go_proto"}
 }
 
 func relBaseName(c *config.Config, rel string) string {

@@ -24,13 +24,11 @@ import (
 func TestLabelerGo(t *testing.T) {
 	for _, tc := range []struct {
 		name, rel                             string
-		mode                                  config.StructureMode
 		wantLib, wantBin, wantTest, wantXTest string
 	}{
 		{
 			name:      "root_hierarchical",
 			rel:       "",
-			mode:      config.HierarchicalMode,
 			wantLib:   "//:go_default_library",
 			wantBin:   "//:root",
 			wantTest:  "//:go_default_test",
@@ -38,39 +36,14 @@ func TestLabelerGo(t *testing.T) {
 		}, {
 			name:      "sub_hierarchical",
 			rel:       "sub",
-			mode:      config.HierarchicalMode,
 			wantLib:   "//sub:go_default_library",
 			wantBin:   "//sub",
 			wantTest:  "//sub:go_default_test",
 			wantXTest: "//sub:go_default_xtest",
-		}, {
-			name:      "root_flat",
-			rel:       "",
-			mode:      config.FlatMode,
-			wantLib:   "//:root",
-			wantBin:   "//:root_cmd",
-			wantTest:  "//:root_test",
-			wantXTest: "//:root_xtest",
-		}, {
-			name:      "sub_flat",
-			rel:       "sub",
-			mode:      config.FlatMode,
-			wantLib:   "//:sub",
-			wantBin:   "//:sub_cmd",
-			wantTest:  "//:sub_test",
-			wantXTest: "//:sub_xtest",
-		}, {
-			name:      "deep_flat",
-			rel:       "sub/deep",
-			mode:      config.FlatMode,
-			wantLib:   "//:sub/deep",
-			wantBin:   "//:sub/deep_cmd",
-			wantTest:  "//:sub/deep_test",
-			wantXTest: "//:sub/deep_xtest",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c := &config.Config{StructureMode: tc.mode}
+			c := &config.Config{}
 			l := NewLabeler(c)
 
 			if got := l.LibraryLabel(tc.rel).String(); got != tc.wantLib {
@@ -92,41 +65,24 @@ func TestLabelerGo(t *testing.T) {
 func TestLabelerProto(t *testing.T) {
 	for _, tc := range []struct {
 		desc, rel, name        string
-		mode                   config.StructureMode
 		wantProto, wantGoProto string
 	}{
 		{
 			desc:        "root_hierarchical",
 			rel:         "",
 			name:        "foo",
-			mode:        config.HierarchicalMode,
 			wantProto:   "//:foo_proto",
 			wantGoProto: "//:foo_go_proto",
 		}, {
 			desc:        "sub_hierarchical",
 			rel:         "sub",
 			name:        "foo",
-			mode:        config.HierarchicalMode,
 			wantProto:   "//sub:foo_proto",
 			wantGoProto: "//sub:foo_go_proto",
-		}, {
-			desc:        "root_flat",
-			rel:         "",
-			name:        "foo",
-			mode:        config.FlatMode,
-			wantProto:   "//:foo_proto",
-			wantGoProto: "//:foo_go_proto",
-		}, {
-			desc:        "sub_flat",
-			rel:         "sub",
-			name:        "foo",
-			mode:        config.FlatMode,
-			wantProto:   "//:sub/foo_proto",
-			wantGoProto: "//:sub/foo_go_proto",
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			c := &config.Config{StructureMode: tc.mode}
+			c := &config.Config{}
 			l := NewLabeler(c)
 
 			if got := l.ProtoLabel(tc.rel, tc.name).String(); got != tc.wantProto {
