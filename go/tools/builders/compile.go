@@ -26,18 +26,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 )
-
-func abs(path string) string {
-	if abs, err := filepath.Abs(path); err != nil {
-		return path
-	} else {
-		return abs
-	}
-}
 
 func run(args []string) error {
 	unfiltered := multiFlag{}

@@ -25,6 +25,7 @@ go_tool_binary(
         "asm.go",
         "env.go",
         "filter.go",
+        "flags.go",
     ],
     visibility = ["//visibility:public"],
 )
