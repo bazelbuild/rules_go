@@ -16,37 +16,42 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "declare_file",
     "sets",
 )
+load("@io_bazel_rules_go//go/private:providers.bzl",
+    "GoLibrary",
+)
+
+GoProtoCompiler = provider()
 
 _protoc_prefix = "protoc-gen-"
 
-def _emit_proto_compile(ctx, proto_toolchain, go_proto_toolchain, lib, importpath):
+def go_proto_compile(ctx, compiler, lib, importpath):
   go_srcs = []
   outpath = None
   for proto in lib.proto.direct_sources:
-    out = declare_file(ctx, path=importpath+"/"+proto.basename[:-len(".proto")], ext=go_proto_toolchain.suffix)
+    out = declare_file(ctx, path=importpath+"/"+proto.basename[:-len(".proto")], ext=compiler.suffix)
     go_srcs.append(out)
     if outpath == None:
         outpath = out.dirname[:-len(importpath)]
-  plugin_base_name = go_proto_toolchain.plugin.basename
+  plugin_base_name = compiler.plugin.basename
   if plugin_base_name.startswith(_protoc_prefix):
     plugin_base_name = plugin_base_name[len(_protoc_prefix):]
   args = ctx.actions.args()
   args.add([
-      "--{}_out={}:{}".format(plugin_base_name, ",".join(go_proto_toolchain.options), outpath),
-      "--plugin={}={}".format(go_proto_toolchain.plugin.basename, go_proto_toolchain.plugin.path),
+      "--{}_out={}:{}".format(plugin_base_name, ",".join(compiler.options), outpath),
+      "--plugin={}={}".format(compiler.plugin.basename, compiler.plugin.path),
       "--descriptor_set_in", ":".join(
           [s.path for s in lib.proto.transitive_descriptor_sets])
   ])
   args.add(lib.proto.direct_sources, map_fn=_all_proto_paths)
   ctx.actions.run(
       inputs = sets.union([
-          proto_toolchain.protoc,
-          go_proto_toolchain.plugin,
+          compiler.protoc,
+          compiler.plugin,
       ], lib.proto.transitive_descriptor_sets),
       outputs = go_srcs,
       progress_message = "Generating into %s" % go_srcs[0].dirname,
       mnemonic = "GoProtocGen",
-      executable = proto_toolchain.protoc,
+      executable = compiler.protoc,
       arguments = [args],
   )
   return go_srcs
@@ -68,37 +73,21 @@ def _proto_path(proto):
   if path.startswith("/"): path = path[1:]
   return path
 
-def _proto_toolchain_impl(ctx):
-  return [platform_common.ToolchainInfo(
-      protoc = ctx.file._protoc,
-  )]
 
-proto_toolchain = rule(
-    _proto_toolchain_impl,
-    attrs = {
-        "_protoc": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = Label("@com_github_google_protobuf//:protoc"),
-        ),
-    },
-)
-
-def _go_proto_toolchain_impl(ctx):
-  return [platform_common.ToolchainInfo(
-      plugin = ctx.file.plugin,
+def _go_proto_compiler_impl(ctx):
+  return [GoProtoCompiler(
       deps = ctx.attr.deps,
+      compile = go_proto_compile,
       options = ctx.attr.options,
       suffix = ctx.attr.suffix,
-      compile = _emit_proto_compile,
+      protoc = ctx.file._protoc,
+      plugin = ctx.file.plugin,
   )]
 
-go_proto_toolchain = rule(
-    _go_proto_toolchain_impl,
+go_proto_compiler = rule(
+    _go_proto_compiler_impl,
     attrs = {
-        "deps": attr.label_list(),
+        "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
         "plugin": attr.label(
@@ -108,5 +97,12 @@ go_proto_toolchain = rule(
             cfg = "host",
             default = Label("@com_github_golang_protobuf//protoc-gen-go"),
         ),
-    },
+        "_protoc": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = Label("@com_github_google_protobuf//:protoc"),
+        ),
+    }
 )

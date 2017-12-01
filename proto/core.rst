@@ -23,12 +23,3 @@ go_proto_library
 
 **TODO**: More information
 
-go_grpc_library
-~~~~~~~~~~~~~~~
-
-**TODO**: More information
-
-proto_register_toolchains
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**TODO**: More information
