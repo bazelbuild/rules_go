@@ -60,13 +60,15 @@ func NewResolver(c *config.Config, l *Labeler) *Resolver {
 	}
 }
 
-// ResolveRule modifies a generated rule e by replacing the import paths in the
-// "_gazelle_imports" attribute with labels in a "deps" attribute. This may
-// may safely called on expressions that aren't Go rules (nothing will happen).
-func (r *Resolver) ResolveRule(e bf.Expr, pkgRel string) {
+// ResolveRule copies and modifies a generated rule e by replacing the import
+// paths in the "_gazelle_imports" attribute with labels in a "deps"
+// attribute. This may be safely called on expressions that aren't Go rules
+// (the original expression will be returned). Any existing "deps" attribute
+// is deleted, so it may be necessary to merge the result.
+func (r *Resolver) ResolveRule(e bf.Expr, pkgRel string) bf.Expr {
 	call, ok := e.(*bf.CallExpr)
 	if !ok {
-		return
+		return e
 	}
 	rule := bf.Rule{Call: call}
 
@@ -79,15 +81,17 @@ func (r *Resolver) ResolveRule(e bf.Expr, pkgRel string) {
 	case "go_proto_library", "go_grpc_library":
 		resolve = r.resolveGoProto
 	default:
-		return
+		return e
 	}
 
-	imports := rule.AttrDefn(config.GazelleImportsKey)
-	if imports == nil {
-		return
-	}
+	resolved := *call
+	resolved.List = append([]bf.Expr{}, call.List...)
+	rule.Call = &resolved
 
-	deps := mapExprStrings(imports.Y, func(imp string) string {
+	imports := rule.Attr(config.GazelleImportsKey)
+	rule.DelAttr(config.GazelleImportsKey)
+	rule.DelAttr("deps")
+	deps := mapExprStrings(imports, func(imp string) string {
 		label, err := resolve(imp, pkgRel)
 		if err != nil {
 			if _, ok := err.(standardImportError); !ok {
@@ -98,12 +102,11 @@ func (r *Resolver) ResolveRule(e bf.Expr, pkgRel string) {
 		label.Relative = label.Repo == "" && label.Pkg == pkgRel
 		return label.String()
 	})
-	if deps == nil {
-		rule.DelAttr(config.GazelleImportsKey)
-	} else {
-		imports.X.(*bf.LiteralExpr).Token = "deps"
-		imports.Y = deps
+	if deps != nil {
+		rule.SetAttr("deps", deps)
 	}
+
+	return &resolved
 }
 
 type standardImportError struct {
@@ -118,6 +121,9 @@ func (e standardImportError) Error() string {
 // expression with the results. Scalar strings, lists, dicts, selects, and
 // concatenations are supported.
 func mapExprStrings(e bf.Expr, f func(string) string) bf.Expr {
+	if e == nil {
+		return nil
+	}
 	switch expr := e.(type) {
 	case *bf.StringExpr:
 		s := f(expr.Value)

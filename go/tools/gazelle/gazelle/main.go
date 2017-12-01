@@ -70,8 +70,8 @@ type visitRecord struct {
 	// empty is a list of empty Go rules that may be deleted.
 	empty []bf.Expr
 
-	// oldFile is an existing build file in the directory. May be nil.
-	oldFile *bf.File
+	// file is the build file being processed.
+	file *bf.File
 }
 
 type byPkgRel []visitRecord
@@ -89,15 +89,16 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 	// Visit directories to modify.
 	// TODO: visit all directories in the repository in order to index rules.
 	for _, dir := range c.Dirs {
-		packages.Walk(c, dir, func(rel string, c *config.Config, pkg *packages.Package, oldFile *bf.File, isUpdateDir bool) {
+		packages.Walk(c, dir, func(rel string, c *config.Config, pkg *packages.Package, file *bf.File, isUpdateDir bool) {
 			// Fix existing files.
-			if oldFile != nil {
+			if file != nil {
+				file = merger.FixFileMinor(c, file)
 				if shouldFix {
-					oldFile = merger.FixFile(c, oldFile)
+					file = merger.FixFile(c, file)
 				} else {
-					fixedFile := merger.FixFile(c, oldFile)
-					if fixedFile != oldFile {
-						log.Printf("%s: warning: file contains rules whose structure is out of date. Consider running 'gazelle fix'.", oldFile.Path)
+					fixedFile := merger.FixFile(c, file)
+					if fixedFile != file {
+						log.Printf("%s: warning: file contains rules whose structure is out of date. Consider running 'gazelle fix'.", file.Path)
 					}
 				}
 			}
@@ -108,76 +109,39 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 
 			// Generate rules.
 			if pkg != nil {
-				g := rules.NewGenerator(c, l, oldFile)
+				g := rules.NewGenerator(c, l, file)
 				rules, empty := g.GenerateRules(pkg)
+				file, rules = merger.MergeFile(rules, empty, file, merger.MergeableGeneratedAttrs)
+				if file.Path == "" {
+					file.Path = filepath.Join(c.RepoRoot, filepath.FromSlash(rel), c.DefaultBuildFileName())
+				}
 				visits = append(visits, visitRecord{
-					pkgRel:  rel,
-					rules:   rules,
-					empty:   empty,
-					oldFile: oldFile,
+					pkgRel: rel,
+					rules:  rules,
+					file:   file,
 				})
 			}
 		})
-
-		// TODO: resolve dependencies using the index.
-		resolver := resolve.NewResolver(c, l)
-		for _, v := range visits {
-			for _, r := range v.rules {
-				resolver.ResolveRule(r, v.pkgRel)
-			}
-		}
-
-		// Merge old files and generated files. Emit merged files.
-		for _, v := range visits {
-			genFile := &bf.File{
-				Path: filepath.Join(c.RepoRoot, filepath.FromSlash(v.pkgRel), c.DefaultBuildFileName()),
-				Stmt: v.rules,
-			}
-			mergeAndEmit(c, genFile, v.oldFile, v.empty, emit)
-		}
 	}
-}
 
-// mergeAndEmit merges "genFile" with "oldFile". "oldFile" may be nil if
-// no file exists. If v.c.ShouldFix is true, deprecated usage of old rules in
-// "oldFile" will be fixed. The resulting merged file will be emitted using
-// the "v.emit" function.
-func mergeAndEmit(c *config.Config, genFile, oldFile *bf.File, empty []bf.Expr, emit emitFunc) {
-	if oldFile == nil {
-		// No existing file, so no merge required.
-		rules.SortLabels(genFile)
-		genFile = merger.FixLoads(genFile)
-		bf.Rewrite(genFile, nil) // have buildifier 'format' our rules.
-		if err := emit(c, genFile); err != nil {
+	// Resolve dependencies.
+	// TODO: resolve dependencies using the index.
+	resolver := resolve.NewResolver(c, l)
+	for i := range visits {
+		for j := range visits[i].rules {
+			visits[i].rules[j] = resolver.ResolveRule(visits[i].rules[j], visits[i].pkgRel)
+		}
+		visits[i].file, _ = merger.MergeFile(visits[i].rules, nil, visits[i].file, merger.MergeableResolvedAttrs)
+	}
+
+	// Emit merged files.
+	for _, v := range visits {
+		rules.SortLabels(v.file)
+		v.file = merger.FixLoads(v.file)
+		bf.Rewrite(v.file, nil) // have buildifier 'format' our rules.
+		if err := emit(c, v.file); err != nil {
 			log.Print(err)
 		}
-		return
-	}
-
-	// Existing file. Fix it or see if it needs fixing before merging.
-	oldFile = merger.FixFileMinor(c, oldFile)
-	if c.ShouldFix {
-		oldFile = merger.FixFile(c, oldFile)
-	} else {
-		fixedFile := merger.FixFile(c, oldFile)
-		if fixedFile != oldFile {
-			log.Printf("%s: warning: file contains rules whose structure is out of date. Consider running 'gazelle fix'.", oldFile.Path)
-		}
-	}
-
-	// Existing file, so merge and replace the old one.
-	mergedFile := merger.MergeWithExisting(genFile, oldFile, empty)
-	if mergedFile == nil {
-		// Ignored file. Don't emit.
-		return
-	}
-
-	rules.SortLabels(mergedFile)
-	mergedFile = merger.FixLoads(mergedFile)
-	bf.Rewrite(mergedFile, nil) // have buildifier 'format' our rules.
-	if err := emit(c, mergedFile); err != nil {
-		log.Print(err)
-		return
 	}
 }
 

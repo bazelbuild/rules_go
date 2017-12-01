@@ -385,7 +385,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["foo.go"],
-    deps = ["deleted"],
+    embed = ["deleted"],
 )
 `,
 		current: `
@@ -747,7 +747,7 @@ go_library(
 	},
 }
 
-func TestMergeWithExisting(t *testing.T) {
+func TestMergeFile(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			genFile, err := bf.Parse("current", []byte(tc.current))
@@ -762,7 +762,7 @@ func TestMergeWithExisting(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: %v", tc.desc, err)
 			}
-			mergedFile := MergeWithExisting(genFile, oldFile, emptyFile.Stmt)
+			mergedFile, _ := MergeFile(genFile.Stmt, emptyFile.Stmt, oldFile, MergeableGeneratedAttrs)
 			if mergedFile == nil {
 				if !tc.ignore {
 					t.Errorf("%s: got nil; want file", tc.desc)
@@ -783,14 +783,5 @@ func TestMergeWithExisting(t *testing.T) {
 				t.Fatalf("%s: got %s; want %s", tc.desc, got, want)
 			}
 		})
-	}
-}
-
-func TestMergeWithExistingDifferentName(t *testing.T) {
-	oldFile := &bf.File{Path: "BUILD"}
-	genFile := &bf.File{Path: "BUILD.bazel"}
-	mergedFile := MergeWithExisting(genFile, oldFile, nil)
-	if got, want := mergedFile.Path, oldFile.Path; got != want {
-		t.Errorf("got %q; want %q", got, want)
 	}
 }
