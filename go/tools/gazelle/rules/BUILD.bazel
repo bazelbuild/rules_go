@@ -23,6 +23,7 @@ go_test(
     name = "go_default_xtest",
     size = "small",
     srcs = ["generator_test.go"],
+    data = ["//go/tools/gazelle:testdata"],
     deps = [
         ":go_default_library",
         "//go/tools/gazelle/config:go_default_library",
@@ -31,5 +32,4 @@ go_test(
         "//go/tools/gazelle/resolve:go_default_library",
         "@com_github_bazelbuild_buildtools//build:go_default_library",
     ],
-    data = ["//go/tools/gazelle:testdata"],
 )

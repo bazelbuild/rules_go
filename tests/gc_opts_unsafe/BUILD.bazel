@@ -84,7 +84,6 @@ go_test(
     tags = ["manual"],
 )
 
-
 [
     bazel_test(
         name = "check_" + test,
@@ -103,15 +102,16 @@ fi
         command = "test",
         targets = [":" + test],
     )
-for test, message in [
-  ("unsafe_srcs_lib", "cannot import package unsafe"),
-  ("unsafe_library_lib", "cannot import package unsafe"),
-  ("unsafe_srcs_bin", "cannot import package unsafe"),
-  ("unsafe_library_bin", "cannot import package unsafe"),
-  ("unsafe_srcs_test", "cannot import package unsafe"),
-  ("unsafe_library_test", "cannot import package unsafe"),
-  ("unsafe_cgo_lib", "cannot import package unsafe"),
-  ("unsafe_cgo_client_lib", "cannot import package unsafe"),
-  ("unsafe_link_bin", "load of unsafe package"),
-  ("unsafe_link_test", "load of unsafe package"),
-]]
+    for test, message in [
+        ("unsafe_srcs_lib", "cannot import package unsafe"),
+        ("unsafe_library_lib", "cannot import package unsafe"),
+        ("unsafe_srcs_bin", "cannot import package unsafe"),
+        ("unsafe_library_bin", "cannot import package unsafe"),
+        ("unsafe_srcs_test", "cannot import package unsafe"),
+        ("unsafe_library_test", "cannot import package unsafe"),
+        ("unsafe_cgo_lib", "cannot import package unsafe"),
+        ("unsafe_cgo_client_lib", "cannot import package unsafe"),
+        ("unsafe_link_bin", "load of unsafe package"),
+        ("unsafe_link_test", "load of unsafe package"),
+    ]
+]

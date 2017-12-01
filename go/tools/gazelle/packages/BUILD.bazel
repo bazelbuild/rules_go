@@ -21,9 +21,9 @@ go_test(
     name = "go_default_test",
     size = "small",
     srcs = [
-        "fileinfo_test.go",
         "fileinfo_go_test.go",
         "fileinfo_proto_test.go",
+        "fileinfo_test.go",
         "package_test.go",
     ],
     embed = [":go_default_library"],

@@ -12,11 +12,16 @@ go_test(
 
 bazel_test(
     name = "custom_go_toolchain",
+    build = """
+load("@io_bazel_rules_go//go:def.bzl", "go_toolchain")
+go_toolchain(name="my_linux_toolchain", target="linux_amd64")
+go_toolchain(name="my_darwin_toolchain", target="darwin_amd64")
+""",
     command = "test",
-    targets = [":go_default_test"],
+    config = "fetch",
     go_version = "",
     tags = ["dev"],
-    config = "fetch",
+    targets = [":go_default_test"],
     workspace = """
 
 load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_download_sdk")
@@ -37,10 +42,4 @@ register_toolchains(
 go_rules_dependencies()
 
 """,
-    build = """
-load("@io_bazel_rules_go//go:def.bzl", "go_toolchain")
-go_toolchain(name="my_linux_toolchain", target="linux_amd64")
-go_toolchain(name="my_darwin_toolchain", target="darwin_amd64")
-""",
 )
-

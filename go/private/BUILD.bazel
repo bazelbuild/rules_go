@@ -30,5 +30,3 @@ go_toolchain_flags(
     }),
     visibility = ["//visibility:public"],
 )
-
-

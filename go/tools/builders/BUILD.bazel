@@ -70,8 +70,8 @@ go_tool_binary(
 go_tool_binary(
     name = "info",
     srcs = [
-        "info.go",
         "env.go",
+        "info.go",
     ],
     visibility = ["//visibility:public"],
 )

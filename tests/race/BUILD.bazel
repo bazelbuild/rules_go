@@ -30,14 +30,14 @@ go_test(
     name = "race_on_tester",
     size = "small",
     embed = [":race_test"],
-    tags = ["manual"],
     race = "on",
+    tags = ["manual"],
 )
 
 generate_script(
     name = "race_on_test_script",
-    binary = ":race_on_tester",
     testonly = True,
+    binary = ":race_on_tester",
 )
 
 sh_test(

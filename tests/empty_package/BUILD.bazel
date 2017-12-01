@@ -6,8 +6,8 @@ go_library(
         "cgo.c",
         "cgo.go",
     ],
-    importpath = "github.com/bazelbuild/rules_go/tests/empty_package/cgo",
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/empty_package/cgo",
 )
 
 go_library(
@@ -24,22 +24,22 @@ go_test(
     name = "empty_package_cgo",
     size = "small",
     srcs = ["empty_package_test.go"],
-    deps = [":mixed"],
-    pure = "off",
     importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
+    pure = "off",
     x_defs = {
         "github.com/bazelbuild/rules_go/tests/empty_package_test.Expect": "2",
     },
+    deps = [":mixed"],
 )
 
 go_test(
     name = "empty_package_pure",
     size = "small",
     srcs = ["empty_package_test.go"],
-    deps = [":mixed"],
-    pure = "on",
     importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
+    pure = "on",
     x_defs = {
         "github.com/bazelbuild/rules_go/tests/empty_package_test.Expect": "1",
     },
+    deps = [":mixed"],
 )

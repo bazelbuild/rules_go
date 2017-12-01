@@ -4,7 +4,11 @@ load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 bazel_test(
     name = "no_prefix",
     command = "build",
-    targets = [":go_default_library", ":go_default_xtest", ":cmd"],
+    targets = [
+        ":go_default_library",
+        ":go_default_xtest",
+        ":cmd",
+    ],
 )
 
 go_library(

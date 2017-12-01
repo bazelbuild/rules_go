@@ -1,7 +1,7 @@
 # This file declares a config_setting for each platform supported by the
 # Go SDK. These rules follow a goos_goarch naming convention, for example,
 # //go/platform:linux_amd64
-#   
+#
 # These can be used in select expressions to choose platform-specifc
 # sources and dependencies.
 

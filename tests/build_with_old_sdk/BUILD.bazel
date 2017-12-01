@@ -17,12 +17,12 @@ go_test(
 bazel_test(
     name = "build_with_old_sdk",
     command = "test",
-    targets = [":go_default_test"],
-    go_version = "1.8.5",
     config = "fetch",
-    tags = ["dev"],
     externals = [
         "@com_github_bazelbuild_buildtools//differ:go_default_library",
         "@org_golang_x_tools//go/vcs:go_default_library",
     ],
+    go_version = "1.8.5",
+    tags = ["dev"],
+    targets = [":go_default_test"],
 )

@@ -9,8 +9,8 @@ go_library(
 
 go_binary(
     name = "reproducible_binary",
-    importpath = "github.com/bazelbuild/rules_go/tests/reproducible_binary",
     embed = [":go_default_library"],
+    importpath = "github.com/bazelbuild/rules_go/tests/reproducible_binary",
     visibility = ["//visibility:public"],
 )
 
@@ -21,5 +21,5 @@ go_test(
     args = ["$(location :reproducible_binary)"],
     data = [":reproducible_binary"],
     importpath = "github.com/bazelbuild/rules_go/tests/reproducible_binary",
-    rundir = ".", # run in repo root instead of test dir
+    rundir = ".",  # run in repo root instead of test dir
 )

@@ -16,19 +16,19 @@ go_test(
     name = "cgo_test",
     size = "small",
     srcs = ["cgo_pure_test.go"],
-    deps = [":cgo_pure"],
     x_defs = {
         "github.com/bazelbuild/rules_go/tests/cgo_pure.Expect": "2",
     },
+    deps = [":cgo_pure"],
 )
 
 go_test(
     name = "pure_test",
     size = "small",
     srcs = ["cgo_pure_test.go"],
-    deps = [":cgo_pure"],
     pure = "on",
     x_defs = {
         "github.com/bazelbuild/rules_go/tests/cgo_pure.Expect": "1",
     },
+    deps = [":cgo_pure"],
 )
