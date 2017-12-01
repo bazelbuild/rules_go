@@ -36,22 +36,28 @@ def go_proto_compile(ctx, compiler, lib, importpath):
   if plugin_base_name.startswith(_protoc_prefix):
     plugin_base_name = plugin_base_name[len(_protoc_prefix):]
   args = ctx.actions.args()
+  args.add(["-protoc", compiler.protoc.path])
+  options = compiler.options + ["import_path="+"goats"]
   args.add([
+      "--importpath", importpath,
       "--{}_out={}:{}".format(plugin_base_name, ",".join(compiler.options), outpath),
       "--plugin={}={}".format(compiler.plugin.basename, compiler.plugin.path),
       "--descriptor_set_in", ":".join(
           [s.path for s in lib.proto.transitive_descriptor_sets])
   ])
+  for out in go_srcs:
+      args.add(["--expected", out])
   args.add(lib.proto.direct_sources, map_fn=_all_proto_paths)
   ctx.actions.run(
       inputs = sets.union([
+          compiler.go_protoc,
           compiler.protoc,
           compiler.plugin,
       ], lib.proto.transitive_descriptor_sets),
       outputs = go_srcs,
       progress_message = "Generating into %s" % go_srcs[0].dirname,
       mnemonic = "GoProtocGen",
-      executable = compiler.protoc,
+      executable = compiler.go_protoc,
       arguments = [args],
   )
   return go_srcs
@@ -80,6 +86,7 @@ def _go_proto_compiler_impl(ctx):
       compile = go_proto_compile,
       options = ctx.attr.options,
       suffix = ctx.attr.suffix,
+      go_protoc = ctx.file._go_protoc,
       protoc = ctx.file._protoc,
       plugin = ctx.file.plugin,
   )]
@@ -96,6 +103,13 @@ go_proto_compiler = rule(
             executable = True,
             cfg = "host",
             default = Label("@com_github_golang_protobuf//protoc-gen-go"),
+        ),
+        "_go_protoc":  attr.label(
+            allow_files=True,
+            single_file=True,
+            executable = True,
+            cfg = "host",
+            default=Label("@io_bazel_rules_go//go/tools/builders:go-protoc"),
         ),
         "_protoc": attr.label(
             allow_files = True,

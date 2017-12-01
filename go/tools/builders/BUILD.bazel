@@ -115,3 +115,12 @@ go_tool_binary(
     ],
     visibility = ["//visibility:public"],
 )
+
+go_tool_binary(
+    name = "go-protoc",
+    srcs = [
+        "flags.go",
+        "protoc.go",
+    ],
+    visibility = ["//visibility:public"],
+)
