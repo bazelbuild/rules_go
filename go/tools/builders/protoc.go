@@ -18,6 +18,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -27,21 +28,32 @@ import (
 
 func run(args []string) error {
 	// process the args
+	options := multiFlag{}
+	descriptors := multiFlag{}
 	expected := multiFlag{}
+	imports := multiFlag{}
 	flags := flag.NewFlagSet("protoc", flag.ExitOnError)
 	protoc := flags.String("protoc", "", "The path to the real protoc.")
-	descriptor_set_in := flags.String("descriptor_set_in", "", "The descriptor set to read.")
-	go_out := flags.String("go_out", "", "The go plugin options.")
+	outPath := flags.String("out_path", "", "The base output path to write to.")
 	plugin := flags.String("plugin", "", "The go plugin to use.")
 	importpath := flags.String("importpath", "", "The importpath for the generated sources.")
+	flags.Var(&options, "option", "The plugin options.")
+	flags.Var(&descriptors, "descriptor_set", "The descriptor set to read.")
 	flags.Var(&expected, "expected", "The expected output files.")
+	flags.Var(&imports, "import", "Map a proto file to an import path.")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+	plugin_base := filepath.Base(*plugin)
+	plugin_name := strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-")
+	options = append(options, fmt.Sprintf("import_path=%v", *importpath))
+	for _, m := range imports {
+		options = append(options, fmt.Sprintf("M%v", m))
+	}
 	protoc_args := []string{
-		"--go_out", *go_out,
-		"--plugin", *plugin,
-		"--descriptor_set_in", *descriptor_set_in,
+		fmt.Sprintf("--%v_out=%v:%v", plugin_name, strings.Join(options, ","), *outPath),
+		"--plugin", fmt.Sprintf("%v=%v", plugin_base, *plugin),
+		"--descriptor_set_in", strings.Join(descriptors, ":"),
 	}
 	protoc_args = append(protoc_args, flags.Args()...)
 	cmd := exec.Command(*protoc, protoc_args...)
@@ -57,22 +69,41 @@ func run(args []string) error {
 		}
 	}
 	if len(notFound) > 0 {
+		missing := []string{}
 		unexpected := []string{}
 		filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
 			if strings.HasSuffix(path, ".pb.go") {
 				wasExpected := false
+				matches := []string{}
+				base := filepath.Base(path)
 				for _, s := range expected {
 					if s == path {
 						wasExpected = true
 					}
+					if base == filepath.Base(s) {
+						matches = append(matches, s)
+					}
 				}
 				if !wasExpected {
-					unexpected = append(unexpected, path)
+					if len(matches) != 1 {
+						unexpected = append(unexpected, path)
+					} else {
+						// Unambiguous mapping to expected output, so copy it
+						data, err := ioutil.ReadFile(path)
+						if err != nil {
+							return err
+						}
+						if err := ioutil.WriteFile(matches[0], data, 0644); err != nil {
+							return err
+						}
+					}
 				}
 			}
 			return nil
 		})
-		return fmt.Errorf("protoc failed to make all outputs\nGot      %v\nExpected %v\nCheck that the go_package option is %q.", unexpected, notFound, *importpath)
+		if len(missing) > 0 {
+			return fmt.Errorf("protoc failed to make all outputs\nGot      %v\nExpected %v\nCheck that the go_package option is %q.", unexpected, missing, *importpath)
+		}
 	}
 	return nil
 }

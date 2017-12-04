@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package very.useful;
 
-option go_package = "github.com/bazelbuild/rules_go/examples/proto/dep";
-
 import "google/protobuf/duration.proto";
 
 message VeryUseful {
