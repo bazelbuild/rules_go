@@ -44,11 +44,9 @@ func run(args []string) error {
 		"--descriptor_set_in", *descriptor_set_in,
 	}
 	protoc_args = append(protoc_args, flags.Args()...)
-	env := os.Environ()
 	cmd := exec.Command(*protoc, protoc_args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = env
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running protoc: %v", err)
 	}
@@ -74,7 +72,7 @@ func run(args []string) error {
 			}
 			return nil
 		})
-		return fmt.Errorf("protoc failed to make all outputs\nGot      %v\nExpected %v\nCheck the go package stanza is %v", unexpected, notFound, *importpath)
+		return fmt.Errorf("protoc failed to make all outputs\nGot      %v\nExpected %v\nCheck that the go_package option is %q.", unexpected, notFound, *importpath)
 	}
 	return nil
 }

@@ -37,7 +37,6 @@ def go_proto_compile(ctx, compiler, lib, importpath):
     plugin_base_name = plugin_base_name[len(_protoc_prefix):]
   args = ctx.actions.args()
   args.add(["-protoc", compiler.protoc.path])
-  options = compiler.options + ["import_path="+"goats"]
   args.add([
       "--importpath", importpath,
       "--{}_out={}:{}".format(plugin_base_name, ",".join(compiler.options), outpath),
