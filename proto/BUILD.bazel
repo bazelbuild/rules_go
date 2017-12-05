@@ -1,4 +1,5 @@
 load("//proto:compiler.bzl", "go_proto_compiler")
+load("//proto:gogo.bzl", "gogo_special_proto")
 
 WELL_KNOWN_PROTOS = [
     "any",
@@ -9,12 +10,16 @@ WELL_KNOWN_PROTOS = [
     "wrappers",
 ]
 
+GOLANG_PTYPES = [
+    "@com_github_golang_protobuf//ptypes/{}:go_default_library".format(lib) for lib in WELL_KNOWN_PROTOS
+]
+
 go_proto_compiler(
     name = "go_proto",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_golang_protobuf//proto:go_default_library",
-    ] + ["@com_github_golang_protobuf//ptypes/{}:go_default_library".format(lib) for lib in WELL_KNOWN_PROTOS],
+    ] + GOLANG_PTYPES,
 )
 
 go_proto_compiler(
@@ -25,7 +30,7 @@ go_proto_compiler(
         "@com_github_golang_protobuf//proto:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_x_net//context:go_default_library",
-    ] + ["@com_github_golang_protobuf//ptypes/{}:go_default_library".format(lib) for lib in WELL_KNOWN_PROTOS],
+    ] + GOLANG_PTYPES,
 )
 
 go_proto_compiler(
@@ -39,3 +44,45 @@ go_proto_compiler(
     ],
 )
 
+GOGO_VARIANTS = [
+    "combo",
+    "gofast",
+    "gogo",
+    "gogofast",
+    "gogofaster",
+    "gogoslick",
+    "gogotypes",
+    "gostring",
+]
+
+GOGO_WELL_KNOWN_TYPE_REMAPS = [
+    "Mgoogle/protobuf/{}.proto=github.com/gogo/protobuf/types".format(t) for t in WELL_KNOWN_PROTOS
+]
+
+[go_proto_compiler(
+    name = variant+"_proto",
+    plugin = "@com_github_gogo_protobuf//protoc-gen-"+variant,
+    visibility = ["//visibility:public"],
+    options = GOGO_WELL_KNOWN_TYPE_REMAPS,
+    deps = [
+        "@com_github_gogo_protobuf//gogoproto:go_default_library",
+        "@com_github_gogo_protobuf//proto:go_default_library",
+        "@com_github_gogo_protobuf//sortkeys:go_default_library",
+        "@com_github_gogo_protobuf//types:go_default_library",
+    ] + GOLANG_PTYPES,
+) for variant in GOGO_VARIANTS]
+
+[go_proto_compiler(
+    name = variant+"_grpc",
+    plugin = "@com_github_gogo_protobuf//protoc-gen-"+variant,
+    options = ["plugins=grpc"] + GOGO_WELL_KNOWN_TYPE_REMAPS,
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_gogo_protobuf//gogoproto:go_default_library",
+        "@com_github_gogo_protobuf//proto:go_default_library",
+        "@com_github_gogo_protobuf//sortkeys:go_default_library",
+        "@com_github_gogo_protobuf//types:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ] + GOLANG_PTYPES,
+) for variant in GOGO_VARIANTS]
