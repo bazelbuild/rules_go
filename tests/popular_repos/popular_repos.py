@@ -156,6 +156,10 @@ COPYRIGHT_HEADER = """
 BZL_HEADER = COPYRIGHT_HEADER + """
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 
+def _maybe(repo_rule, name, **kwargs):
+  if name not in native.existing_rules():
+    repo_rule(name=name, **kwargs)
+
 def popular_repos():
 """
 
@@ -165,7 +169,7 @@ def popular_repos_bzl():
   with open("popular_repos.bzl", "w") as f:
     f.write(BZL_HEADER)
     for repo in POPULAR_REPOS:
-      f.write("  go_repository(\n")
+      f.write("  _maybe(\n    go_repository,\n")
       for k in ["name", "importpath", "commit", "strip_prefix", "type", "build_file_proto_mode"]:
         if k in repo: f.write('    {}="{}",\n'.format(k, repo[k]))
       for k in ["urls"]:
