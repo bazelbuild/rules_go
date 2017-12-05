@@ -16,6 +16,8 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -25,6 +27,16 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+type FileInfo struct {
+	Base       string    // The basename of the path
+	Path       string    // The full path to the final file
+	Expected   bool      // Whether the file is expected by the rules
+	Created    bool      // Whether the file was created by protoc
+	From       *FileInfo // The actual file protoc produced if not Path
+	Unique     bool      // True if this base name is unique in expected results
+	Ambiguious bool      // True if there were more than one possible outputs that matched this file
+}
 
 func run(args []string) error {
 	// process the args
@@ -44,15 +56,15 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-	plugin_base := filepath.Base(*plugin)
-	plugin_name := strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-")
+	pluginBase := filepath.Base(*plugin)
+	pluginName := strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-")
 	options = append(options, fmt.Sprintf("import_path=%v", *importpath))
 	for _, m := range imports {
 		options = append(options, fmt.Sprintf("M%v", m))
 	}
 	protoc_args := []string{
-		fmt.Sprintf("--%v_out=%v:%v", plugin_name, strings.Join(options, ","), *outPath),
-		"--plugin", fmt.Sprintf("%v=%v", plugin_base, *plugin),
+		fmt.Sprintf("--%v_out=%v:%v", pluginName, strings.Join(options, ","), *outPath),
+		"--plugin", fmt.Sprintf("%v=%v", pluginBase, *plugin),
 		"--descriptor_set_in", strings.Join(descriptors, ":"),
 	}
 	protoc_args = append(protoc_args, flags.Args()...)
@@ -62,47 +74,77 @@ func run(args []string) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running protoc: %v", err)
 	}
-	notFound := []string{}
-	for _, src := range expected {
-		if _, err := os.Stat(src); os.IsNotExist(err) {
-			notFound = append(notFound, src)
+	// Build our file map, and test for existance
+	files := map[string]*FileInfo{}
+	byBase := map[string]*FileInfo{}
+	for _, path := range expected {
+		info := &FileInfo{
+			Path:     path,
+			Base:     filepath.Base(path),
+			Expected: true,
+			Unique:   true,
+		}
+		files[info.Path] = info
+		if byBase[info.Base] != nil {
+			info.Unique = false
+			byBase[info.Base].Unique = false
+		} else {
+			byBase[info.Base] = info
 		}
 	}
-	if len(notFound) > 0 {
-		missing := []string{}
-		unexpected := []string{}
-		filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
-			if strings.HasSuffix(path, ".pb.go") {
-				wasExpected := false
-				matches := []string{}
-				base := filepath.Base(path)
-				for _, s := range expected {
-					if s == path {
-						wasExpected = true
-					}
-					if base == filepath.Base(s) {
-						matches = append(matches, s)
-					}
-				}
-				if !wasExpected {
-					if len(matches) != 1 {
-						unexpected = append(unexpected, path)
-					} else {
-						// Unambiguous mapping to expected output, so copy it
-						data, err := ioutil.ReadFile(path)
-						if err != nil {
-							return err
-						}
-						if err := ioutil.WriteFile(matches[0], data, 0644); err != nil {
-							return err
-						}
-					}
-				}
-			}
+	// Walk the generated files
+	filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
+		if !strings.HasSuffix(path, ".pb.go") {
 			return nil
-		})
-		if len(missing) > 0 {
-			return fmt.Errorf("protoc failed to make all outputs\nGot      %v\nExpected %v\nCheck that the go_package option is %q.", unexpected, missing, *importpath)
+		}
+		info := files[path]
+		if info != nil {
+			info.Created = true
+			return nil
+		}
+		info = &FileInfo{
+			Path:    path,
+			Base:    filepath.Base(path),
+			Created: true,
+		}
+		files[path] = info
+		copyTo := byBase[info.Base]
+		switch {
+		case copyTo == nil:
+			// Unwanted output
+		case !copyTo.Unique:
+			// not unique, no copy allowed
+		case info.From != nil:
+			copyTo.Ambiguious = true
+			info.Ambiguious = true
+		default:
+			copyTo.From = info
+			copyTo.Created = true
+			info.Expected = true
+		}
+		return nil
+	})
+	buf := &bytes.Buffer{}
+	for _, f := range files {
+		switch {
+		case f.Expected && !f.Created:
+			fmt.Fprintf(buf, "Failed to create %v.\n", f.Path)
+		case f.Expected && f.Ambiguious:
+			fmt.Fprintf(buf, "Ambiguious output %v.\n", f.Path)
+		case f.From != nil:
+			data, err := ioutil.ReadFile(f.From.Path)
+			if err != nil {
+				return err
+			}
+			if err := ioutil.WriteFile(f.Path, data, 0644); err != nil {
+				return err
+			}
+		case !f.Expected:
+			fmt.Fprintf(buf, "Unexpected output %v.\n", f.Path)
+		}
+		if buf.Len() > 0 {
+			fmt.Fprintf(buf, "Check that the go_package option is %q.", *importpath)
+			return errors.New(buf.String())
 		}
 	}
 	return nil

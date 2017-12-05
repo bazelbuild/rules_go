@@ -22,15 +22,15 @@ load("@io_bazel_rules_go//proto:compiler.bzl",
 GoProtoImports = provider()
 
 def get_imports(attr):
-    imports = []
-    if hasattr(attr, "proto"):
-        imports.append(["{}={}".format(src.path, attr.importpath) for src in attr.proto.proto.direct_sources])
-    imports.extend([dep[GoProtoImports].imports for dep in attr.deps])
-    imports.extend([dep[GoProtoImports].imports for dep in attr.embed])
-    return sets.union(*imports)
+  imports = []
+  if hasattr(attr, "proto"):
+    imports.append(["{}={}".format(src.path, attr.importpath) for src in attr.proto.proto.direct_sources])
+  imports.extend([dep[GoProtoImports].imports for dep in attr.deps])
+  imports.extend([dep[GoProtoImports].imports for dep in attr.embed])
+  return sets.union(*imports)
 
 def _go_proto_aspect_impl(target, ctx):
-    return [GoProtoImports(imports = get_imports(ctx.rule.attr))]
+  return [GoProtoImports(imports = get_imports(ctx.rule.attr))]
 
 _go_proto_aspect = aspect(
     _go_proto_aspect_impl,
@@ -89,8 +89,8 @@ attribute) and produces a go library for it.
 """
 
 def go_grpc_library(**kwargs):
-    # TODO: Deprecate once gazelle generates just go_proto_library
-    go_proto_library(compiler="@io_bazel_rules_go//proto:go_grpc", **kwargs)
+  # TODO: Deprecate once gazelle generates just go_proto_library
+  go_proto_library(compiler="@io_bazel_rules_go//proto:go_grpc", **kwargs)
 
 def proto_register_toolchains():
   print("You no longer need to call proto_register_toolchains(), it does nothing")

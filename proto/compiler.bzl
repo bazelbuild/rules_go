@@ -32,7 +32,7 @@ def go_proto_compile(ctx, compiler, proto, imports, importpath):
         outpath = out.dirname[:-len(importpath)]
   args = ctx.actions.args()
   args.add([
-      "-protoc", compiler.protoc,
+      "--protoc", compiler.protoc,
       "--importpath", importpath,
       "--out_path", outpath,
       "--plugin", compiler.plugin,
