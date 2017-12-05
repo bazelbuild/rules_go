@@ -18,3 +18,15 @@ go_proto_compiler(
         "@org_golang_x_net//context:go_default_library",
     ],
 )
+
+go_proto_compiler(
+    name = "go_proto_validate",
+    plugin = "@com_github_mwitkow_go_proto_validators//protoc-gen-govalidators",
+    visibility = ["//visibility:public"],
+    suffix = ".validator.pb.go",
+    valid_archive = False,
+    deps = [
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+)
+

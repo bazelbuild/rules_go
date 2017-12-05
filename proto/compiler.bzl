@@ -87,6 +87,7 @@ def _go_proto_compiler_impl(ctx):
           go_protoc = ctx.file._go_protoc,
           protoc = ctx.file._protoc,
           plugin = ctx.file.plugin,
+          valid_archive = ctx.attr.valid_archive,
       ),
       library, source,
   ]
@@ -97,6 +98,7 @@ go_proto_compiler = rule(
         "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
+        "valid_archive": attr.bool(default=True),
         "plugin": attr.label(
             allow_files = True,
             single_file = True,

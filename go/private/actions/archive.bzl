@@ -47,7 +47,7 @@ def emit_archive(go, source=None):
   runfiles = source.runfiles
   for a in direct:
     runfiles = runfiles.merge(a.runfiles)
-    if a.source.mode != go.mode: fail("Archive mode does not match {} is {} expected {}".format(a.data.source.library.label, mode_string(a.source.mode), mode_string(go.mode)))
+    if a.source.mode != go.mode: fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
 
   if len(extra_objects) == 0 and source.cgo_archive == None:
     go.compile(go,

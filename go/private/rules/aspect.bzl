@@ -61,7 +61,7 @@ def _go_archive_aspect_impl(target, ctx):
 
 go_archive_aspect = aspect(
     _go_archive_aspect_impl,
-    attr_aspects = ["deps", "embed", "compiler"],
+    attr_aspects = ["deps", "embed", "compiler", "compilers"],
     attrs = {
         "pure": attr.string(values=["on", "off", "auto"]),
         "static": attr.string(values=["on", "off", "auto"]),

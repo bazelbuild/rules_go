@@ -94,7 +94,7 @@ func run(args []string) error {
 	}
 	// Walk the generated files
 	filepath.Walk(*outPath, func(path string, f os.FileInfo, err error) error {
-		if !strings.HasSuffix(path, ".pb.go") {
+		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
 		info := files[path]

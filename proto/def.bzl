@@ -45,23 +45,39 @@ _go_proto_aspect = aspect(
 )
 
 def _proto_library_to_source(go, attr, source, merge):
-  merge(source, attr.compiler)
+  if attr.compiler:
+    merge(source, attr.compiler)
+    return
+  for compiler in attr.compilers:
+    merge(source, compiler)
 
 def _go_proto_library_impl(ctx):
   go = go_context(ctx)
-  compiler = ctx.attr.compiler[GoProtoCompiler]
   importpath = go._inferredpath #TODO: Drop this as soon as the attribute is mandatory
-  go_srcs = compiler.compile(go,
-    compiler = compiler,
-    proto = ctx.attr.proto.proto,
-    imports = get_imports(ctx.attr),
-    importpath = importpath,
-  )
+  if ctx.attr.compiler:
+    #TODO: print("DEPRECATED: compiler attribute on {}, use compilers instead".format(ctx.label))
+    compilers = [ctx.attr.compiler]
+  else:
+    compilers = ctx.attr.compilers
+  go_srcs = []
+  valid_archive = False
+  for c in compilers:
+    compiler = c[GoProtoCompiler]
+    if compiler.valid_archive:
+      valid_archive = True
+    go_srcs.extend(compiler.compile(go,
+      compiler = compiler,
+      proto = ctx.attr.proto.proto,
+      imports = get_imports(ctx.attr),
+      importpath = importpath,
+    ))
   library = go.new_library(go,
       resolver=_proto_library_to_source,
       srcs=go_srcs,
   )
   source = go.library_to_source(go, ctx.attr, library, False)
+  if not valid_archive:
+    return [library, source]
   archive = go.archive(go, source)
   return [
       library, source, archive,
@@ -79,7 +95,8 @@ go_proto_library = rule(
         "importpath": attr.string(),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
-        "compiler": attr.label(providers = [GoProtoCompiler], default = "@io_bazel_rules_go//proto:go_proto"),
+        "compiler": attr.label(providers = [GoProtoCompiler]),
+        "compilers": attr.label_list(providers = [GoProtoCompiler], default = ["@io_bazel_rules_go//proto:go_proto"]),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
@@ -94,7 +111,7 @@ attribute) and produces a go library for it.
 
 def go_grpc_library(**kwargs):
   # TODO: Deprecate once gazelle generates just go_proto_library
-  go_proto_library(compiler="@io_bazel_rules_go//proto:go_grpc", **kwargs)
+  go_proto_library(compilers=["@io_bazel_rules_go//proto:go_grpc"], **kwargs)
 
 def proto_register_toolchains():
   print("You no longer need to call proto_register_toolchains(), it does nothing")

@@ -101,6 +101,20 @@ def go_rules_dependencies():
       strip_prefix = "protobuf-2761122b810fe8861004ae785cc3ab39f384d342",
       type = "zip",
   )
+  _maybe(go_repository,
+      name = "com_github_mwitkow_go_proto_validators",
+      importpath = "github.com/mwitkow/go-proto-validators",
+      commit = "a55ca57f374a8846924b030f534d8b8211508cf0",  # master, as of 2017-11-24
+      build_file_proto_mode="disable",
+  )
+  _maybe(go_repository,
+      name = "com_github_gogo_protobuf",
+      importpath = "github.com/gogo/protobuf",
+      urls = ["https://codeload.github.com/ianthehat/protobuf/zip/41168f6614b7bb144818ec8967b8c702705df564"],
+      strip_prefix = "protobuf-41168f6614b7bb144818ec8967b8c702705df564",
+      type = "zip",
+      build_file_proto_mode="disable",
+  )
 
   # Only used by deprecated go_proto_library implementation
   _maybe(native.http_archive,
