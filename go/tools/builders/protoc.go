@@ -28,14 +28,14 @@ import (
 	"strings"
 )
 
-type FileInfo struct {
-	Base       string    // The basename of the path
-	Path       string    // The full path to the final file
-	Expected   bool      // Whether the file is expected by the rules
-	Created    bool      // Whether the file was created by protoc
-	From       *FileInfo // The actual file protoc produced if not Path
-	Unique     bool      // True if this base name is unique in expected results
-	Ambiguious bool      // True if there were more than one possible outputs that matched this file
+type genFileInfo struct {
+	base       string       // The basename of the path
+	path       string       // The full path to the final file
+	expected   bool         // Whether the file is expected by the rules
+	created    bool         // Whether the file was created by protoc
+	from       *genFileInfo // The actual file protoc produced if not Path
+	unique     bool         // True if this base name is unique in expected results
+	ambiguious bool         // True if there were more than one possible outputs that matched this file
 }
 
 func run(args []string) error {
@@ -75,21 +75,21 @@ func run(args []string) error {
 		return fmt.Errorf("error running protoc: %v", err)
 	}
 	// Build our file map, and test for existance
-	files := map[string]*FileInfo{}
-	byBase := map[string]*FileInfo{}
+	files := map[string]*genFileInfo{}
+	byBase := map[string]*genFileInfo{}
 	for _, path := range expected {
-		info := &FileInfo{
-			Path:     path,
-			Base:     filepath.Base(path),
-			Expected: true,
-			Unique:   true,
+		info := &genFileInfo{
+			path:     path,
+			base:     filepath.Base(path),
+			expected: true,
+			unique:   true,
 		}
-		files[info.Path] = info
-		if byBase[info.Base] != nil {
-			info.Unique = false
-			byBase[info.Base].Unique = false
+		files[info.path] = info
+		if byBase[info.base] != nil {
+			info.unique = false
+			byBase[info.base].unique = false
 		} else {
-			byBase[info.Base] = info
+			byBase[info.base] = info
 		}
 	}
 	// Walk the generated files
@@ -99,48 +99,48 @@ func run(args []string) error {
 		}
 		info := files[path]
 		if info != nil {
-			info.Created = true
+			info.created = true
 			return nil
 		}
-		info = &FileInfo{
-			Path:    path,
-			Base:    filepath.Base(path),
-			Created: true,
+		info = &genFileInfo{
+			path:    path,
+			base:    filepath.Base(path),
+			created: true,
 		}
 		files[path] = info
-		copyTo := byBase[info.Base]
+		copyTo := byBase[info.base]
 		switch {
 		case copyTo == nil:
 			// Unwanted output
-		case !copyTo.Unique:
+		case !copyTo.unique:
 			// not unique, no copy allowed
-		case info.From != nil:
-			copyTo.Ambiguious = true
-			info.Ambiguious = true
+		case info.from != nil:
+			copyTo.ambiguious = true
+			info.ambiguious = true
 		default:
-			copyTo.From = info
-			copyTo.Created = true
-			info.Expected = true
+			copyTo.from = info
+			copyTo.created = true
+			info.expected = true
 		}
 		return nil
 	})
 	buf := &bytes.Buffer{}
 	for _, f := range files {
 		switch {
-		case f.Expected && !f.Created:
-			fmt.Fprintf(buf, "Failed to create %v.\n", f.Path)
-		case f.Expected && f.Ambiguious:
-			fmt.Fprintf(buf, "Ambiguious output %v.\n", f.Path)
-		case f.From != nil:
-			data, err := ioutil.ReadFile(f.From.Path)
+		case f.expected && !f.created:
+			fmt.Fprintf(buf, "Failed to create %v.\n", f.path)
+		case f.expected && f.ambiguious:
+			fmt.Fprintf(buf, "Ambiguious output %v.\n", f.path)
+		case f.from != nil:
+			data, err := ioutil.ReadFile(f.from.path)
 			if err != nil {
 				return err
 			}
-			if err := ioutil.WriteFile(f.Path, data, 0644); err != nil {
+			if err := ioutil.WriteFile(f.path, data, 0644); err != nil {
 				return err
 			}
-		case !f.Expected:
-			fmt.Fprintf(buf, "Unexpected output %v.\n", f.Path)
+		case !f.expected:
+			fmt.Fprintf(buf, "Unexpected output %v.\n", f.path)
 		}
 		if buf.Len() > 0 {
 			fmt.Fprintf(buf, "Check that the go_package option is %q.", *importpath)
