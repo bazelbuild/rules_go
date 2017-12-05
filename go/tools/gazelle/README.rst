@@ -213,11 +213,12 @@ Gazelle supports several directives, written as comments in build files.
 
 * ``# gazelle:ignore``: may be written at the top level of any build file.
   Gazelle will not update files with this comment.
-* ``# gazelle:exclude file-or-directory``: may be written at the top level of
-  any build file. Gazelle will ignore the named file in the build file's
-  directory. If it is a source file, Gazelle won't include it in any rules. If
-  it is a directory, Gazelle will not recurse into it. This directive may be
-  repeated to exclude multiple files, one per line.
+* ``# gazelle:exclude path``: may be written at the top level of
+  any build file. If the path refers to a source file, Gazelle won't include
+  it in any rules. If the path refers to a directory, Gazelle won't recurse
+  into it. The path may refer to something in a subdirectory, for example,
+  a testdata directory somewhere in a vendor tree. This directive may be
+  repeated to exclude multiple paths, one per line.
 * ``# gazelle:proto <mode>``: Tells Gazelle how to generate rules for .proto
   files. Applies to the current directory and subdirectories. Valid values for
   ``mode`` are:

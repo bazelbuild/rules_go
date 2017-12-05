@@ -454,11 +454,13 @@ import "github.com/jr_hacker/stuff"
 func TestExcluded(t *testing.T) {
 	files := []fileSpec{
 		{
+			path:    "BUILD",
+			content: "# gazelle:exclude exclude/do.go",
+		}, {
 			path: "exclude/BUILD",
 			content: `
-# gazelle:exclude do.go
-
 # gazelle:exclude not.go
+
 # gazelle:exclude build.go
 
 genrule(

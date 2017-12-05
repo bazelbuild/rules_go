@@ -84,8 +84,8 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 	// given directory or any subdirectory contained a build file or buildable
 	// source code. This affects whether "testdata" directories are considered
 	// data dependencies.
-	var visit func(string, string, bool) bool
-	visit = func(dir, rel string, isUpdateDir bool) bool {
+	var visit func(string, string, bool, []string) bool
+	visit = func(dir, rel string, isUpdateDir bool, excluded []string) bool {
 		// Check if this directory should be updated.
 		if !isUpdateDir {
 			for _, updateRel := range updateRels {
@@ -132,10 +132,9 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 		}
 		c = config.InferProtoMode(c, oldFile, directives)
 
-		excluded := make(map[string]bool)
 		for _, d := range directives {
 			if d.Key == "exclude" {
-				excluded[d.Value] = true
+				excluded = append(excluded, d.Value)
 			}
 		}
 
@@ -146,7 +145,7 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 			return false
 		}
 		if c.ProtoMode == config.DefaultProtoMode {
-			excludePbGoFiles(files, excluded)
+			excluded = append(excluded, findPbGoFiles(files, excluded)...)
 		}
 
 		var pkgFiles, otherFiles, subdirs []string
@@ -154,7 +153,7 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 			base := f.Name()
 			switch {
 			case base == "" || base[0] == '.' || base[0] == '_' ||
-				excluded[base] ||
+				isExcluded(excluded, base) ||
 				base == "vendor" && f.IsDir() && c.DepMode == config.ExternalMode:
 				continue
 
@@ -174,7 +173,8 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 		hasTestdata := false
 		subdirHasPackage := false
 		for _, sub := range subdirs {
-			hasPackage := visit(filepath.Join(dir, sub), path.Join(rel, sub), isUpdateDir)
+			subdirExcluded := excludedForSubdir(excluded, sub)
+			hasPackage := visit(filepath.Join(dir, sub), path.Join(rel, sub), isUpdateDir, subdirExcluded)
 			if sub == "testdata" && !hasPackage {
 				hasTestdata = true
 			}
@@ -197,7 +197,7 @@ func Walk(c *config.Config, root string, f WalkFunc) {
 		return hasPackage || pkg != nil
 	}
 
-	visit(root, rootRel, false)
+	visit(root, rootRel, false, nil)
 }
 
 // buildPackage reads source files in a given directory and returns a Package
@@ -342,7 +342,7 @@ func defaultPackageName(c *config.Config, dir string) string {
 	return name
 }
 
-func findGenFiles(f *bf.File, excluded map[string]bool) []string {
+func findGenFiles(f *bf.File, excluded []string) []string {
 	var strs []string
 	for _, r := range f.Rules("") {
 		for _, key := range []string{"out", "outs"} {
@@ -361,21 +361,41 @@ func findGenFiles(f *bf.File, excluded map[string]bool) []string {
 
 	var genFiles []string
 	for _, s := range strs {
-		if !excluded[s] {
+		if !isExcluded(excluded, s) {
 			genFiles = append(genFiles, s)
 		}
 	}
 	return genFiles
 }
 
-func excludePbGoFiles(files []os.FileInfo, excluded map[string]bool) {
+func findPbGoFiles(files []os.FileInfo, excluded []string) []string {
+	var pbGoFiles []string
 	for _, f := range files {
 		name := f.Name()
-		if excluded[name] {
-			continue
-		}
-		if strings.HasSuffix(name, ".proto") {
-			excluded[name[:len(name)-len(".proto")]+".pb.go"] = true
+		if strings.HasSuffix(name, ".proto") && !isExcluded(excluded, name) {
+			pbGoFiles = append(pbGoFiles, name[:len(name)-len(".proto")]+".pb.go")
 		}
 	}
+	return pbGoFiles
+}
+
+func isExcluded(excluded []string, base string) bool {
+	for _, e := range excluded {
+		if base == e {
+			return true
+		}
+	}
+	return false
+}
+
+func excludedForSubdir(excluded []string, subdir string) []string {
+	var filtered []string
+	for _, e := range excluded {
+		i := strings.IndexByte(e, '/')
+		if i < 0 || i == len(e)-1 || e[:i] != subdir {
+			continue
+		}
+		filtered = append(filtered, e[i+1:])
+	}
+	return filtered
 }
