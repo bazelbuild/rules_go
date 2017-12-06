@@ -43,6 +43,8 @@ foo(
 			want: []Directive{
 				{"ignore", "top"},
 				{"ignore", "before"},
+				{"ignore", "after"},
+				{"ignore", "bottom"},
 			},
 		},
 	} {

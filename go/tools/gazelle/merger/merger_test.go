@@ -129,7 +129,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 		previous: `
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 # gazelle:ignore`,
-		ignore: false,
+		ignore: true,
 	}, {
 		desc: "merge dicts",
 		previous: `

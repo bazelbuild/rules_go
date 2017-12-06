@@ -53,7 +53,6 @@ var knownTopLevelDirectives = map[string]bool{
 // out of place (after the first statement).
 func ParseDirectives(f *bf.File) []Directive {
 	var directives []Directive
-	beforeStmt := true
 	parseComment := func(com bf.Comment) {
 		match := directiveRe.FindStringSubmatch(com.Token)
 		if match == nil {
@@ -64,21 +63,12 @@ func ParseDirectives(f *bf.File) []Directive {
 			log.Printf("%s:%d: unknown directive: %s", f.Path, com.Start.Line, com.Token)
 			return
 		}
-		if !beforeStmt {
-			log.Printf("%s:%d: top-level directive may not appear after the first statement", f.Path, com.Start.Line)
-			return
-		}
 		directives = append(directives, Directive{key, value})
 	}
 
 	for _, s := range f.Stmt {
 		coms := s.Comment()
 		for _, com := range coms.Before {
-			parseComment(com)
-		}
-		_, isComment := s.(*bf.CommentBlock)
-		beforeStmt = beforeStmt && isComment
-		for _, com := range coms.Suffix {
 			parseComment(com)
 		}
 		for _, com := range coms.After {
