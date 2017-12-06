@@ -83,15 +83,15 @@ func (vs byPkgRel) Swap(i, j int)      { vs[i], vs[j] = vs[j], vs[i] }
 func run(c *config.Config, cmd command, emit emitFunc) {
 	shouldFix := c.ShouldFix
 	l := resolve.NewLabeler(c)
+	ruleIndex := resolve.NewRuleIndex()
 
 	var visits []visitRecord
 
-	// Visit directories to modify.
-	// TODO: visit all directories in the repository in order to index rules.
-	for _, dir := range c.Dirs {
-		packages.Walk(c, dir, func(rel string, c *config.Config, pkg *packages.Package, file *bf.File, isUpdateDir bool) {
-			// Fix existing files.
-			if file != nil {
+	// Visit all directories in the repository.
+	packages.Walk(c, c.RepoRoot, func(rel string, c *config.Config, pkg *packages.Package, file *bf.File, isUpdateDir bool) {
+		if file != nil {
+			// Fix files in update directories.
+			if isUpdateDir {
 				file = merger.FixFileMinor(c, file)
 				if shouldFix {
 					file = merger.FixFile(c, file)
@@ -103,30 +103,38 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 				}
 			}
 
-			// TODO: Index rules in existing files.
-			// TODO: delete rules in directories where pkg == nil (no buildable
-			// Go code).
+			// Index existing rules.
+			ruleIndex.AddRulesFromFile(c, file)
+		}
 
-			// Generate rules.
-			if pkg != nil {
-				g := rules.NewGenerator(c, l, file)
-				rules, empty := g.GenerateRules(pkg)
-				file, rules = merger.MergeFile(rules, empty, file, merger.MergeableGeneratedAttrs)
-				if file.Path == "" {
-					file.Path = filepath.Join(c.RepoRoot, filepath.FromSlash(rel), c.DefaultBuildFileName())
-				}
-				visits = append(visits, visitRecord{
-					pkgRel: rel,
-					rules:  rules,
-					file:   file,
-				})
+		// TODO(#939): delete rules in directories where pkg == nil (no buildable
+		// Go code).
+		if !isUpdateDir {
+			return
+		}
+
+		// Generate rules.
+		if pkg != nil {
+			g := rules.NewGenerator(c, l, file)
+			rules, empty := g.GenerateRules(pkg)
+			file, rules = merger.MergeFile(rules, empty, file, merger.MergeableGeneratedAttrs)
+			if file.Path == "" {
+				file.Path = filepath.Join(c.RepoRoot, filepath.FromSlash(rel), c.DefaultBuildFileName())
 			}
-		})
-	}
+			ruleIndex.AddGeneratedRules(c, rel, rules)
+			visits = append(visits, visitRecord{
+				pkgRel: rel,
+				rules:  rules,
+				file:   file,
+			})
+		}
+	})
+
+	// Finish building the index for dependency resolution.
+	ruleIndex.Finish()
 
 	// Resolve dependencies.
-	// TODO: resolve dependencies using the index.
-	resolver := resolve.NewResolver(c, l)
+	resolver := resolve.NewResolver(c, l, ruleIndex)
 	for i := range visits {
 		for j := range visits[i].rules {
 			visits[i].rules[j] = resolver.ResolveRule(visits[i].rules[j], visits[i].pkgRel)

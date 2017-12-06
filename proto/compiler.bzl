@@ -22,37 +22,32 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
 
 GoProtoCompiler = provider()
 
-_protoc_prefix = "protoc-gen-"
-
-def go_proto_compile(ctx, compiler, lib, importpath):
+def go_proto_compile(ctx, compiler, proto, imports, importpath):
   go_srcs = []
   outpath = None
-  for proto in lib.proto.direct_sources:
-    out = declare_file(ctx, path=importpath+"/"+proto.basename[:-len(".proto")], ext=compiler.suffix)
+  for src in proto.direct_sources:
+    out = declare_file(ctx, path=importpath+"/"+src.basename[:-len(".proto")], ext=compiler.suffix)
     go_srcs.append(out)
     if outpath == None:
         outpath = out.dirname[:-len(importpath)]
-  plugin_base_name = compiler.plugin.basename
-  if plugin_base_name.startswith(_protoc_prefix):
-    plugin_base_name = plugin_base_name[len(_protoc_prefix):]
   args = ctx.actions.args()
-  args.add(["-protoc", compiler.protoc.path])
   args.add([
+      "--protoc", compiler.protoc,
       "--importpath", importpath,
-      "--{}_out={}:{}".format(plugin_base_name, ",".join(compiler.options), outpath),
-      "--plugin={}={}".format(compiler.plugin.basename, compiler.plugin.path),
-      "--descriptor_set_in", ":".join(
-          [s.path for s in lib.proto.transitive_descriptor_sets])
+      "--out_path", outpath,
+      "--plugin", compiler.plugin,
   ])
-  for out in go_srcs:
-      args.add(["--expected", out])
-  args.add(lib.proto.direct_sources, map_fn=_all_proto_paths)
+  args.add(compiler.options, before_each = "--option")
+  args.add(proto.transitive_descriptor_sets, before_each = "--descriptor_set")
+  args.add(go_srcs, before_each = "--expected")
+  args.add(imports, before_each = "--import")
+  args.add(proto.direct_sources, map_fn=_all_proto_paths)
   ctx.actions.run(
       inputs = sets.union([
           compiler.go_protoc,
           compiler.protoc,
           compiler.plugin,
-      ], lib.proto.transitive_descriptor_sets),
+      ], proto.transitive_descriptor_sets),
       outputs = go_srcs,
       progress_message = "Generating into %s" % go_srcs[0].dirname,
       mnemonic = "GoProtocGen",
