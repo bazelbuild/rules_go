@@ -56,6 +56,10 @@ load("@io_bazel_rules_go//go/private:tools/vet.bzl",
     _go_vet_test = "go_vet_test",
 )
 
+# Current version or next version to be tagged. Gazelle and other tools may
+# check this to determine compatibility.
+RULES_GO_VERSION = "0.8.0"
+
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""
 
