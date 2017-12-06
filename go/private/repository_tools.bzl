@@ -38,8 +38,9 @@ def _go_repository_tools_impl(ctx):
 
   x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"
   x_tools_path = ctx.path('tools-' + x_tools_commit)
-  buildtools_path = ctx.path(ctx.attr._buildtools).dirname
   go_tools_path = ctx.path(ctx.attr._tools).dirname
+  buildtools_path = ctx.path(ctx.attr._buildtools).dirname
+  gazelle_path = ctx.path(ctx.attr._gazelle).dirname
 
   # We have to download this directly because the normal version is based on go_repository
   # and thus requires the gazelle we build in here to generate it's BUILD files
@@ -51,8 +52,9 @@ def _go_repository_tools_impl(ctx):
 
   # Build something that looks like a normal GOPATH so go install will work
   ctx.symlink(x_tools_path, "src/golang.org/x/tools")
-  ctx.symlink(buildtools_path, "src/github.com/bazelbuild/buildtools")
   ctx.symlink(go_tools_path, "src/github.com/bazelbuild/rules_go/go/tools")
+  ctx.symlink(buildtools_path, "src/github.com/bazelbuild/buildtools")
+  ctx.symlink(gazelle_path, "src/github.com/bazelbuild/bazel-gazelle")
   env = {
     'GOROOT': str(go_tool.dirname.dirname),
     'GOPATH': str(ctx.path('')),
@@ -60,7 +62,7 @@ def _go_repository_tools_impl(ctx):
 
   # build all the repository tools
   for tool, importpath in (
-      ("gazelle", 'github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle'),
+      ("gazelle", 'github.com/bazelbuild/bazel-gazelle/cmd/gazelle'),
       ("fetch_repo", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'),
   ):
     result = env_execute(ctx, [go_tool, "install", importpath], environment = env)
@@ -73,17 +75,17 @@ def _go_repository_tools_impl(ctx):
 go_repository_tools = repository_rule(
     _go_repository_tools_impl,
     attrs = {
-        "linux_sdk": attr.string(),
-        "darwin_sdk": attr.string(),
         "_tools": attr.label(
             default = Label("//go/tools:BUILD.bazel"),
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
+        ),
+        "_gazelle": attr.label(
+            default = Label("@bazel_gazelle//:WORKSPACE"),
+            allow_single_file = True,
         ),
         "_buildtools": attr.label(
             default = Label("@com_github_bazelbuild_buildtools//:WORKSPACE"),
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
         ),
     },
     environ = ["TMP"],

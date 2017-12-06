@@ -159,9 +159,9 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
       srcs = [":" + script_name],
       tags = ["local", "bazel", "exclusive"] + tags,
       data = [
+          "@bazel_gazelle//cmd/gazelle",
           "@bazel_test//:bazelrc",
           "//tests:rules_go_deps",
-          "//go/tools/gazelle/gazelle",
       ],
   )
 

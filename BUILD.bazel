@@ -25,6 +25,7 @@ lines_sorted_test(
 
 gazelle(
     name = "gazelle",
+    prefix = "github.com/bazelbuild/rules_go",
 )
 
 # This could be any file, used as an anchor point for the directory in tests
@@ -42,7 +43,6 @@ go_path(
         "//go/tools/builders:link",
         "//go/tools/builders:md5sum",
         "//go/tools/fetch_repo",
-        "//go/tools/gazelle/gazelle",
         "//go/tools/wtool",
     ],
 )

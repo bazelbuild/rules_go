@@ -29,7 +29,7 @@ The other option for using external libraries is to import them in your
 the [`go_repository`](go/workspace.rst#go_repository) rule to import
 repositories that conform to the normal Go directory conventions. This is
 similar to `new_git_repository`, but it automatically generates `BUILD` files
-for you using [gazelle](go/tools/gazelle/README.rst).
+for you using [gazelle](https://github.com/bazelbuild/bazel-gazelle).
 
 You can use [`go_repository`](go/workspace.rst#go_repository) if the project
 you're importing already has `BUILD` files. This is like `git_repository` but it

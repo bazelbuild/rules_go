@@ -1,3 +1,11 @@
+Announcements
+=============
+
+December 14, 2017
+  Gazelle has moved to a new repository, 
+  `github.com/bazelbuild/bazel-gazelle <https://github.com/bazelbuild/bazel-gazelle>`_.
+  This subtree will be removed soon.
+
 Gazelle build file generator
 ============================
 

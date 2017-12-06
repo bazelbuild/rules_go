@@ -26,9 +26,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bazelbuild/bazel-gazelle/resolve"
+	"github.com/bazelbuild/bazel-gazelle/wspace"
 	bf "github.com/bazelbuild/buildtools/build"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/resolve"
-	"github.com/bazelbuild/rules_go/go/tools/gazelle/wspace"
 	"golang.org/x/tools/go/vcs"
 )
 

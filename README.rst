@@ -7,7 +7,7 @@ Go rules for Bazel_
   :target: https://travis-ci.org/bazelbuild/rules_go
 .. |jenkins| image:: http://ci.bazel.io/buildStatus/icon?job=PR/rules_go
   :target: http://ci.bazel.io/view/Bazel%20bootstrap%20and%20maintenance/job/PR/job/rules_go/
-.. _gazelle: go/tools/gazelle/README.rst
+.. _gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _vendoring: Vendoring.md
 .. _protocol buffers: proto/core.rst
 .. _go_repository: go/workspace.rst#go_repository
@@ -34,6 +34,10 @@ Travis   Jenkins
 Announcements
 -------------
 
+December 14, 2017
+  Gazelle has moved to a new repository,
+  `github.com/bazelbuild/bazel-gazelle <https://github.com/bazelbuild/bazel-gazelle>`_.
+  Please try it out and let us know what you think.
 December 13, 2017
   Release `0.8.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.8.1>`_
   is now available.
@@ -90,7 +94,7 @@ The ``master`` branch is only guaranteed to work with the latest version of Baze
 Setup
 -----
 
-* Create a file at the top of your repository named `WORKSPACE` and add one
+* Create a file at the top of your repository named WORKSPACE and add one
   of the snippets below, verbatim. This will let Bazel fetch necessary
   dependencies from this repository and a few others.
 
@@ -145,24 +149,34 @@ Generating build files
 ~~~~~~~~~~~~~~~~~~~~~~
 
 If your project can be built with ``go build``, you can generate and update your
-build files automatically using gazelle_, a tool included in this repository.
+build files automatically using gazelle_.
 
-* Add the code below to the ``BUILD.bazel`` file in your repository's
-  root directory. Replace the ``prefix`` string with the prefix you chose for
-  your project earlier.
+* Add the code below to your WORKSPACE file *after* ``io_bazel_rules_go`` and
+  its dependencies are loaded.
 
-  .. code:: bzl
+.. code:: bzl
 
-    load("@io_bazel_rules_go//go:def.bzl", "gazelle")
-
-    gazelle(
-        name = "gazelle",
-        prefix = "github.com/example/project",
+    http_archive(
+        name = "bazel_gazelle",
+        url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.8/bazel-gazelle-0.8.tar.gz",
+        sha256 = "e3dadf036c769d1f40603b86ae1f0f90d11837116022d9b06e4cd88cae786676",
     )
+    load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+    gazelle_dependencies()
+    
+* Add the code below to the BUILD or BUILD.bazel file in the root directory
+  of your repository. Replace the string in ``prefix`` with the prefix you
+  chose for your project earlier.
 
-* If your project uses vendoring, add ``external = "vendored",`` below the
-  ``prefix`` line.
+.. code:: bzl
 
+  load("@bazel_gazelle//:def.bzl", "gazelle")
+
+  gazelle(
+      name = "gazelle",
+      prefix = "github.com/example/project",
+  )
+    
 * After adding the ``gazelle`` rule, run the command below:
 
   ::

@@ -24,6 +24,8 @@ $BASE/{gazelle} {args} $@
 """
 
 def _gazelle_script_impl(ctx):
+  # TODO(jayconrod): add a fix to Gazelle to replace invocations of this rule
+  # with the new one in @bazel_gazelle. Once in place, fail here.
   prefix = ctx.attr.prefix if ctx.attr.prefix else ctx.attr._go_prefix.go_prefix
   args = [ctx.attr.command]
   args += [
@@ -58,7 +60,7 @@ _gazelle_script = rule(
         "args": attr.string_list(),
         "prefix": attr.string(),
         "_gazelle": attr.label(
-            default = Label("@io_bazel_rules_go//go/tools/gazelle/gazelle:gazelle"),
+            default = Label("@bazel_gazelle//cmd/gazelle"),
             allow_files = True,
             single_file = True,
             executable = True,
