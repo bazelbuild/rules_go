@@ -56,7 +56,7 @@ def get_mode(ctx, toolchain_flags):
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
 
   # We always have to use the pure stdlib in cross compilation mode
-  force_pure = go_toolchain.cross_compile
+  force_pure = "on" if go_toolchain.cross_compile else "auto"
 
   #TODO: allow link mode selection
   debug = ctx.var["COMPILATION_MODE"] == "debug"
