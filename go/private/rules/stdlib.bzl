@@ -95,6 +95,8 @@ def _stdlib_impl(ctx):
           root_file = root_file,
           goos = ctx.attr.goos,
           goarch = ctx.attr.goarch,
+          race = ctx.attr.race,
+          pure = not ctx.attr.cgo,
           libs = [pkg],
           headers = [pkg],
           files = files,

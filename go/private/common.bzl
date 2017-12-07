@@ -145,13 +145,13 @@ def to_set(v):
     fail("Do not pass a depset to to_set")
   return depset(v)
 
-def declare_file(ctx, path="", ext="", mode=None):
-  name = ""
+def declare_file(ctx, path="", ext="", mode=None, name = ""):
+  filename = ""
   if mode:
-    name += mode_string(mode) + "/"
-  name += ctx.label.name
+    filename += mode_string(mode) + "/"
+  filename += name if name else ctx.label.name
   if path:
-    name += "~/" + path
+    filename += "~/" + path
   if ext:
-    name += ext
-  return ctx.actions.declare_file(name)
+    filename += ext
+  return ctx.actions.declare_file(filename)

@@ -95,7 +95,7 @@ def bootstrap_compile(ctx, go_toolchain,
   args = ["tool", "compile", "-o", out_lib.path]
   args.extend(gc_goopts)
   args.extend([s.path for s in sources])
-  bootstrap_action(ctx, go_toolchain,
+  bootstrap_action(ctx, go_toolchain, mode,
       inputs = sources,
       outputs = [out_lib],
       mnemonic = "GoCompile",

@@ -28,6 +28,10 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoArchiveData",
     "sources",
 )
+load("@io_bazel_rules_go//go/platform:list.bzl",
+    "GOOS",
+    "GOARCH",
+)
 
 GoAspectProviders = provider()
 
@@ -99,6 +103,8 @@ go_archive_aspect = aspect(
         "static": attr.string(values=["on", "off", "auto"]),
         "msan": attr.string(values=["on", "off", "auto"]),
         "race": attr.string(values=["on", "off", "auto"]),
+        "goos": attr.string(values=GOOS.keys() + ["auto"], default="auto"),
+        "goarch": attr.string(values=GOARCH.keys() + ["auto"], default="auto"),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

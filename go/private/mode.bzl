@@ -59,6 +59,23 @@ def get_mode(ctx, toolchain_flags):
   force_pure = go_toolchain.cross_compile
 
   #TODO: allow link mode selection
+  static = _ternary(
+      getattr(ctx.attr, "static", None),
+      "static" in ctx.features,
+  )
+  race = _ternary(
+      getattr(ctx.attr, "race", None),
+      "race" in ctx.features,
+  )
+  msan = _ternary(
+      getattr(ctx.attr, "msan", None),
+      "msan" in ctx.features,
+  )
+  pure = _ternary(
+      getattr(ctx.attr, "pure", None),
+      force_pure,
+      "pure" in ctx.features,
+  )
   debug = ctx.var["COMPILATION_MODE"] == "debug"
   strip_mode = "sometimes"
   if toolchain_flags:
@@ -68,27 +85,25 @@ def get_mode(ctx, toolchain_flags):
     strip = True
   elif strip_mode == "sometimes":
     strip = not debug
+  goos = getattr(ctx.attr, "goos", None)
+  if goos == None or goos == "auto":
+    goos = go_toolchain.default_goos
+  elif not pure:
+    fail("If goos is set, pure must be true")
+  goarch = getattr(ctx.attr, "goarch", None)
+  if goarch == None or goarch == "auto":
+    goarch = go_toolchain.default_goarch
+  elif not pure:
+    fail("If goarch is set, pure must be true")
+
   return struct(
-      static = _ternary(
-          getattr(ctx.attr, "static", None),
-          "static" in ctx.features,
-      ),
-      race = _ternary(
-          getattr(ctx.attr, "race", None),
-          "race" in ctx.features,
-      ),
-      msan = _ternary(
-          getattr(ctx.attr, "msan", None),
-          "msan" in ctx.features,
-      ),
-      pure = _ternary(
-          getattr(ctx.attr, "pure", None),
-          force_pure,
-          "pure" in ctx.features,
-      ),
+      static = static,
+      race = race,
+      msan = msan,
+      pure = pure,
       link = LINKMODE_NORMAL,
       debug = debug,
       strip = strip,
-      goos = go_toolchain.goos,
-      goarch = go_toolchain.goarch,
+      goos = goos,
+      goarch = goarch,
   )

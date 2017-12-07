@@ -28,6 +28,10 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoSourceList",
     "sources",
 )
+load("@io_bazel_rules_go//go/platform:list.bzl",
+    "GOOS",
+    "GOARCH",
+)
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
@@ -36,8 +40,11 @@ def _go_binary_impl(ctx):
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
   gosource = collect_src(ctx)
+  name = ctx.attr.basename
+  if not name:
+    name = ctx.label.name
   golib, goarchive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
-      name = ctx.label.name,
+      name = name,
       importpath = go_importpath(ctx),
       source = gosource,
       gc_linkopts = gc_linkopts(ctx),
@@ -55,6 +62,7 @@ def _go_binary_impl(ctx):
 go_binary = rule(
     _go_binary_impl,
     attrs = {
+        "basename": attr.string(),
         "data": attr.label_list(
             allow_files = True,
             cfg = "data",
@@ -67,6 +75,8 @@ go_binary = rule(
         "static": attr.string(values=["on", "off", "auto"], default="auto"),
         "race": attr.string(values=["on", "off", "auto"], default="auto"),
         "msan": attr.string(values=["on", "off", "auto"], default="auto"),
+        "goos": attr.string(values=GOOS.keys() + ["auto"], default="auto"),
+        "goarch": attr.string(values=GOARCH.keys() + ["auto"], default="auto"),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
@@ -82,6 +92,7 @@ go_binary = rule(
 go_tool_binary = rule(
     _go_binary_impl,
     attrs = {
+        "basename": attr.string(),
         "data": attr.label_list(
             allow_files = True,
             cfg = "data",

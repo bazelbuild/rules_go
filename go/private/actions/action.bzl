@@ -22,8 +22,8 @@ def add_go_env(args, stdlib, mode):
       "-cgo=" + ("0" if mode.pure else "1"),
   ])
 
-def bootstrap_action(ctx, go_toolchain, inputs, outputs, mnemonic, arguments):
-  stdlib = go_toolchain.stdlib.cgo
+def bootstrap_action(ctx, go_toolchain, mode, inputs, outputs, mnemonic, arguments):
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   ctx.actions.run_shell(
     inputs = inputs + stdlib.files,
     outputs = outputs,

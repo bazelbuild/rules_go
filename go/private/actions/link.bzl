@@ -138,7 +138,7 @@ def bootstrap_link(ctx, go_toolchain,
   args = ["tool", "link", "-o", executable.path]
   args.extend(gc_linkopts)
   args.append(archive.data.file.path)
-  bootstrap_action(ctx, go_toolchain,
+  bootstrap_action(ctx, go_toolchain, mode,
       inputs = inputs,
       outputs = [executable],
       mnemonic = "GoCompile",

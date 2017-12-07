@@ -39,7 +39,7 @@ def emit_binary(ctx, go_toolchain,
       importpath = importpath,
       importable = False,
   )
-  executable = declare_file(ctx, ext=go_toolchain.data.extension, mode=mode)
+  executable = declare_file(ctx, name=name, ext=go_toolchain.data.extension, mode=mode)
   go_toolchain.actions.link(ctx,
       go_toolchain = go_toolchain,
       archive=goarchive,
