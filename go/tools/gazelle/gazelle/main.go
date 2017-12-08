@@ -118,6 +118,9 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 			g := rules.NewGenerator(c, l, file)
 			rules, empty := g.GenerateRules(pkg)
 			file, rules = merger.MergeFile(rules, empty, file, merger.MergeableGeneratedAttrs)
+			if file == nil {
+				return
+			}
 			if file.Path == "" {
 				file.Path = filepath.Join(c.RepoRoot, filepath.FromSlash(rel), c.DefaultBuildFileName())
 			}
