@@ -14,13 +14,9 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
-    "go_importpath",
     "split_srcs",
     "pkg_dir",
     "declare_file",
-)
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
@@ -28,15 +24,25 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "sources",
+)
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
+    "get_archive",
+    "new_go_library",
+    "library_to_source",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "add_go_env",
 )
 load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
-    "get_archive",
 )
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
+)
+
+def _testmain_library_to_source(ctx, attr, source):
+  source["srcs"] = source["srcs"] + source["library"].testmain_srcs
+  source["deps"] = source["deps"] + [attr.library]
 
 def _go_test_impl(ctx):
   """go_test_impl implements go testing.
@@ -46,8 +52,8 @@ def _go_test_impl(ctx):
 
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   archive = get_archive(ctx.attr.library)
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, archive.source.mode)
 
   # now generate the main function
   if ctx.attr.rundir:
@@ -60,10 +66,10 @@ def _go_test_impl(ctx):
 
   main_go = declare_file(ctx, "testmain.go")
   arguments = ctx.actions.args()
-  add_go_env(arguments, stdlib, mode)
+  add_go_env(arguments, stdlib, archive.source.mode)
   arguments.add([
       '--package',
-      archive.data.importpath,
+      archive.source.library.importpath,
       '--rundir',
       run_dir,
       '--output',
@@ -71,9 +77,10 @@ def _go_test_impl(ctx):
   ])
   for var in archive.cover_vars:
     arguments.add(["-cover", var])
-  arguments.add(archive.go_srcs)
+  go_srcs = split_srcs(archive.source.srcs).go
+  arguments.add(go_srcs)
   ctx.actions.run(
-      inputs = archive.go_srcs,
+      inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
       executable = go_toolchain.tools.test_generator,
@@ -84,15 +91,12 @@ def _go_test_impl(ctx):
   )
 
   # Now compile the test binary itself
-  _, goarchive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
+  test_library = new_go_library(ctx, _testmain_library_to_source, testmain_srcs=[main_go], importable=False)
+  #TODO:    importpath = ctx.label.name + "~testmain~",
+  test_source = library_to_source(ctx, ctx.attr, test_library, mode)
+  test_archive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
-      source = sources.new(
-          srcs = [main_go],
-          deps = [ctx.attr.library],
-          runfiles = ctx.runfiles(collect_data = True),
-          want_coverage = False,
-      ),
-      importpath = ctx.label.name + "~testmain~",
+      source = test_source,
       gc_linkopts = gc_linkopts(ctx),
       x_defs=ctx.attr.x_defs,
   )
@@ -100,7 +104,9 @@ def _go_test_impl(ctx):
   # TODO(bazel-team): the Go tests should do a chdir to the directory
   # holding the data files, so open-source go tests continue to work
   # without code changes.
-  runfiles = goarchive.runfiles.merge(ctx.runfiles(files = [executable]))
+  runfiles = ctx.runfiles(files = [executable])
+  runfiles = runfiles.merge(archive.runfiles)
+  runfiles = runfiles.merge(test_archive.runfiles)
   return [
       DefaultInfo(
           files = depset([executable]),

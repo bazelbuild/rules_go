@@ -26,7 +26,6 @@ load("@io_bazel_rules_go//go/private:actions/action.bzl",
 
 def emit_link(ctx, go_toolchain,
     archive = None,
-    mode = None,
     executable = None,
     gc_linkopts = [],
     x_defs = {}):
@@ -34,9 +33,8 @@ def emit_link(ctx, go_toolchain,
 
   if archive == None: fail("archive is a required parameter")
   if executable == None: fail("executable is a required parameter")
-  if mode == None: fail("mode is a required parameter")
 
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
+  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, archive.source.mode)
 
   config_strip = len(ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
@@ -51,15 +49,15 @@ def emit_link(ctx, go_toolchain,
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   # Add in any mode specific behaviours
-  if mode.race:
+  if archive.source.mode.race:
     gc_linkopts.append("-race")
-  if mode.msan:
+  if archive.source.mode.msan:
     gc_linkopts.append("-msan")
-  if mode.static:
+  if archive.source.mode.static:
     gc_linkopts.extend(["-linkmode", "external"])
     extldflags.append("-static")
-  if mode.link != LINKMODE_NORMAL:
-    fail("Link mode {} is not yet supported".format(mode.link))
+  if archive.source.mode.link != LINKMODE_NORMAL:
+    fail("Link mode {} is not yet supported".format(archive.source.mode.link))
 
   link_opts = ["-L", "."]
 
@@ -84,7 +82,7 @@ def emit_link(ctx, go_toolchain,
       link_opts.extend(["-X", "%s=%s" % (k, v)])
 
   link_opts.extend(go_toolchain.flags.link)
-  if mode.strip:
+  if archive.source.mode.strip:
     link_opts.extend(["-w"])
 
   if ld:
@@ -94,7 +92,7 @@ def emit_link(ctx, go_toolchain,
     ])
   link_opts.append(archive.data.file.path)
   link_args = ctx.actions.args()
-  add_go_env(link_args, stdlib, mode)
+  add_go_env(link_args, stdlib, archive.source.mode)
   # Stamping support
   stamp_inputs = []
   if stamp_x_defs or ctx.attr.linkstamp:
@@ -122,7 +120,6 @@ def emit_link(ctx, go_toolchain,
 
 def bootstrap_link(ctx, go_toolchain,
     archive = None,
-    mode = None,
     executable = None,
     gc_linkopts = [],
     x_defs = {}):
@@ -130,7 +127,6 @@ def bootstrap_link(ctx, go_toolchain,
 
   if archive == None: fail("archive is a required parameter")
   if executable == None: fail("executable is a required parameter")
-  if mode == None: fail("mode is a required parameter")
 
   if x_defs:  fail("link does not accept x_defs in bootstrap mode")
 
@@ -138,7 +134,7 @@ def bootstrap_link(ctx, go_toolchain,
   args = ["tool", "link", "-o", executable.path]
   args.extend(gc_linkopts)
   args.append(archive.data.file.path)
-  bootstrap_action(ctx, go_toolchain, mode,
+  bootstrap_action(ctx, go_toolchain, archive.source.mode,
       inputs = inputs,
       outputs = [executable],
       mnemonic = "GoCompile",

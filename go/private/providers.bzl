@@ -15,78 +15,35 @@
 load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
 
 GoLibrary = provider()
-"""See go/providers.rst#GoLibrary for full documentation."""
-
-GoPackage = provider()
-
-GoPath = provider()
+"""
+A represenatation of the inputs to a go package.
+This is a configuration independant provider.
+You must call resolve with a mode to produce a GoSource.
+See go/providers.rst#GoLibrary for full documentation.
+"""
 
 GoSource = provider()
-"""See go/providers.rst#GoSource for full documentation."""
-
-GoSourceList = provider()
-"""See go/providers.rst#GoSourceList for full documentation."""
-
-GoArchive = provider()
-"""See go/providers.rst#GoArchive for full documentation."""
+"""
+The filtered inputs and dependancies needed to build a GoArchive
+This is a configuration specific provider.
+It has no transitive information.
+See go/providers.rst#GoSource for full documentation.
+"""
 
 GoArchiveData = provider()
+"""
+This compiled form of a package used in transitive dependancies.
+This is a configuration specific provider.
+See go/providers.rst#GoArchiveData for full documentation.
+"""
 
+GoArchive = provider()
+"""
+The compiled form of a GoLibrary, with everything needed to link it into a binary.
+This is a configuration specific provider.
+See go/providers.rst#GoArchive for full documentation.
+"""
+
+GoAspectProviders = provider()
+GoPath = provider()
 GoStdLib = provider()
-
-def _merge_runfiles(a, b):
-  if not a: return b
-  if not b: return a
-  return a.merge(b)
-
-def _source_build_entry(srcs = [], deps = [], gc_goopts=[], runfiles=None, cgo_deps=[], cgo_exports=[], cgo_archive=None, want_coverage = False, source = None, exclude = None):
-  """Creates a new GoSource from a collection of values and an optional GoSourceList to merge in."""
-  for e in (source.entries if source else []):
-    srcs = srcs + e.srcs
-    deps = deps + e.deps
-    gc_goopts = gc_goopts + e.gc_goopts
-    runfiles = _merge_runfiles(runfiles, e.runfiles)
-    cgo_deps = cgo_deps + e.cgo_deps
-    cgo_exports = cgo_exports + e.cgo_exports
-    if e.cgo_archive:
-      if cgo_archive:
-        fail("multiple libraries with cgo_archive embedded")
-      cgo_archive = e.cgo_archive
-
-  return GoSource(
-      srcs = srcs,
-      deps = deps,
-      gc_goopts = gc_goopts,
-      runfiles = runfiles,
-      cgo_deps = cgo_deps,
-      cgo_exports = cgo_exports,
-      cgo_archive = cgo_archive,
-      want_coverage = want_coverage,
-      exclude = exclude,
-  )
-
-def _source_new(**kwargs):
-  """Creates a new GoSourceList from a collection of values."""
-  return GoSourceList(entries = [_source_build_entry(**kwargs)])
-
-def _source_merge(source):
-  """Merges the entries of multiple GoSourceList providers to a single GoSourceList."""
-  entries = []
-  for e in source:
-    entries.extend(e.entries)
-  return GoSourceList(entries = entries)
-
-def _source_flatten(ctx, source):
-  """Flattens a GoSourceList to a single GoSource ready for use."""
-  return _source_build_entry(source = source)
-
-def _source_filter(ctx, source, mode):
-  return GoSourceList(entries = [s for s in source.entries if not (s.exclude and s.exclude(ctx, mode))])
-
-sources = struct(
-  new = _source_new,
-  merge = _source_merge,
-  flatten = _source_flatten,
-  filter = _source_filter,
-)
-"""sources holds the functions for manipulating GoSourceList providers."""

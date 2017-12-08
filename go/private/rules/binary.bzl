@@ -14,23 +14,26 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
-    "go_importpath",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
 load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
-    "collect_src",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "GoSourceList",
-    "sources",
+)
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
+    "new_go_library",
+    "library_to_source",
 )
 load("@io_bazel_rules_go//go/platform:list.bzl",
     "GOOS",
     "GOARCH",
+)
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
 )
 
 def _go_binary_impl(ctx):
@@ -39,22 +42,23 @@ def _go_binary_impl(ctx):
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
   else:
     go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
-  gosource = collect_src(ctx)
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  library = new_go_library(ctx, importable=False)
+  source = library_to_source(ctx, ctx.attr, library, mode)
   name = ctx.attr.basename
   if not name:
     name = ctx.label.name
-  golib, goarchive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
+  archive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
       name = name,
-      importpath = go_importpath(ctx),
-      source = gosource,
+      source = source,
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
   )
   return [
-      golib, gosource, goarchive,
+      library, source, archive,
       DefaultInfo(
           files = depset([executable]),
-          runfiles = goarchive.runfiles,
+          runfiles = archive.runfiles,
           executable = executable,
       ),
   ]
@@ -70,7 +74,7 @@ go_binary = rule(
         "srcs": attr.label_list(allow_files = go_filetype),
         "deps": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
         "importpath": attr.string(),
-        "embed": attr.label_list(providers = [GoSourceList], aspects = [go_archive_aspect]),
+        "embed": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
         "pure": attr.string(values=["on", "off", "auto"], default="auto"),
         "static": attr.string(values=["on", "off", "auto"], default="auto"),
         "race": attr.string(values=["on", "off", "auto"], default="auto"),
@@ -100,7 +104,7 @@ go_tool_binary = rule(
         "srcs": attr.label_list(allow_files = go_filetype),
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
-        "embed": attr.label_list(providers = [GoSourceList]),
+        "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),

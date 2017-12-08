@@ -107,10 +107,11 @@ def go_importpath(ctx):
   Returns:
     Go importpath of the library
   """
-  path = ctx.attr.importpath
+  path = getattr(ctx.attr, "importpath", None)
   if path != "":
     return path
-  path = ctx.attr._go_prefix.go_prefix
+  prefix = getattr(ctx.attr, "_go_prefix", None)
+  path = prefix.go_prefix if prefix else ""
   if path.endswith("/"):
     path = path[:-1]
   if ctx.label.package:

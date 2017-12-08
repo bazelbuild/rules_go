@@ -51,7 +51,6 @@ def emit_compile(ctx, go_toolchain,
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
 
   inputs = sets.union(inputs, [archive.data.file for archive in archives])
-
   stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
   inputs = sets.union(inputs, stdlib.files)
 

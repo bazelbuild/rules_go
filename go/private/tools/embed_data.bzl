@@ -15,9 +15,16 @@
 load("@io_bazel_rules_go//go/private:common.bzl",
     "declare_file",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl",
-    "sources",
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
+    "new_go_library",
+    "library_to_source",
 )
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
+)
+
+def _embed_library_to_source(ctx, attr, source):
+  source["srcs"] = [source["library"].embed_go_src] + source["srcs"]
 
 def _go_embed_data_impl(ctx):
   if ctx.attr.src and ctx.attr.srcs:
@@ -53,6 +60,10 @@ def _go_embed_data_impl(ctx):
     args.add("-string")
   args.add(srcs)
 
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  library = new_go_library(ctx)
+  source = library_to_source(ctx, ctx.attr, library, mode)
+
   ctx.actions.run(
       outputs = [out],
       inputs = srcs,
@@ -62,7 +73,7 @@ def _go_embed_data_impl(ctx):
   )
   return [
       DefaultInfo(files = depset([out])),
-      sources.new(srcs = [out], want_coverage = False),
+      library, source,
   ]
 
 go_embed_data = rule(
@@ -79,6 +90,8 @@ go_embed_data = rule(
             executable = True,
             cfg = "host",
         ),
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """See go/extras.rst#go_embed_data for full documentation."""

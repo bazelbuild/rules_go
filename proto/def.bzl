@@ -1,22 +1,38 @@
+# Copyright 2017 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_importpath",
     "sets",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "GoSourceList",
+)
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
+    "new_go_library",
+    "library_to_source",
+    "get_source",
+    "merge_embed",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
-load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
-    "collect_src",
-)
 load("@io_bazel_rules_go//proto:compiler.bzl",
     "GoProtoCompiler",
+)
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
 )
 
 GoProtoImports = provider()
@@ -37,7 +53,13 @@ _go_proto_aspect = aspect(
     attr_aspects = ["deps", "embed"],
 )
 
+def _proto_library_to_source(ctx, attr, source):
+  compiler = attr.compiler[GoProtoCompiler]
+  source["srcs"] = source["library"].proto_go_srcs + source["srcs"]
+  merge_embed(source, attr.compiler)
+
 def _go_proto_library_impl(ctx):
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
   compiler = ctx.attr.compiler[GoProtoCompiler]
   importpath = go_importpath(ctx)
   go_srcs = compiler.compile(ctx,
@@ -47,23 +69,15 @@ def _go_proto_library_impl(ctx):
     importpath = importpath,
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  gosource = collect_src(
-      ctx, srcs = go_srcs,
-      deps = ctx.attr.deps + compiler.deps,
-  )
-  golib, goarchive = go_toolchain.actions.library(ctx,
-      go_toolchain = go_toolchain,
-      mode = mode,
-      source = gosource,
-      importpath = importpath,
-      importable = True,
-  )
+  library = new_go_library(ctx, _proto_library_to_source, proto_go_srcs=go_srcs)
+  source = library_to_source(ctx, ctx.attr, library, mode)
+  archive = go_toolchain.actions.archive(ctx, go_toolchain, source)
+
   return [
-      golib, gosource, goarchive,
+      library, source, archive,
       DefaultInfo(
-          files = depset([goarchive.data.file]),
-          runfiles = goarchive.runfiles,
+          files = depset([archive.data.file]),
+          runfiles = archive.runfiles,
       ),
   ]
 
@@ -73,7 +87,7 @@ go_proto_library = rule(
         "proto": attr.label(mandatory=True, providers=["proto"]),
         "deps": attr.label_list(providers = [GoLibrary], aspects = [_go_proto_aspect]),
         "importpath": attr.string(),
-        "embed": attr.label_list(providers = [GoSourceList]),
+        "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "compiler": attr.label(providers = [GoProtoCompiler], default = "@io_bazel_rules_go//proto:go_proto"),
         "_go_prefix": attr.label(default = go_prefix_default),

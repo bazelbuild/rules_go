@@ -25,10 +25,13 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "sources",
 )
 load("@io_bazel_rules_go//go/private:actions/action.bzl",
     "add_go_env",
+)
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
+    "new_go_library",
+    "library_to_source",
 )
 
 _CgoCodegen = provider()
@@ -224,29 +227,36 @@ def _pure(ctx, mode):
 def _not_pure(ctx, mode):
     return not mode.pure
 
+def _cgo_library_to_source(ctx, attr, source):
+  library = source["library"]
+  if source["mode"].pure:
+    source["srcs"] = library.input_go_srcs + source["srcs"]
+    return
+  source["srcs"] = library.gen_go_srcs + source["srcs"]
+  source["cgo_deps"] = source["cgo_deps"] + library.cgo_deps
+  source["cgo_exports"] = source["cgo_exports"] + library.cgo_exports
+  source["cgo_archive"] = library.cgo_archive
+  source["runfiles"] = source["runfiles"].merge(attr.codegen.data_runfiles)
+
+
 def _cgo_collect_info_impl(ctx):
   codegen = ctx.attr.codegen[_CgoCodegen]
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
+
+  library = new_go_library(ctx, _cgo_library_to_source,
+      input_go_srcs = ctx.files.input_go_srcs,
+      gen_go_srcs = ctx.files.gen_go_srcs,
+      cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
+      cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
+      cgo_archive = _select_archive(ctx.files.lib),
+  )
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  source = library_to_source(ctx, ctx.attr, library, mode)
+
   return [
+      source, library,
       DefaultInfo(files = depset(), runfiles = runfiles),
-      sources.merge([
-          sources.new(
-              srcs = ctx.files.gen_go_srcs,
-              runfiles = runfiles,
-              cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
-              cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
-              cgo_archive = _select_archive(ctx.files.lib),
-              want_coverage = ctx.coverage_instrumented(), #TODO: not all sources?
-              exclude = _pure,
-          ),
-          sources.new(
-              srcs = ctx.files.input_go_srcs,
-              runfiles = runfiles,
-              want_coverage = ctx.coverage_instrumented(), #TODO: not all sources?
-              exclude = _not_pure,
-          ),
-      ]),
   ]
 
 _cgo_collect_info = rule(
@@ -258,6 +268,7 @@ _cgo_collect_info = rule(
         "lib": attr.label(mandatory = True, providers = ["cc"]),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """No-op rule that collects information from _cgo_codegen and cc_library
 info into a GoSourceList provider for easy consumption."""

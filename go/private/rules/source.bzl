@@ -22,15 +22,21 @@
 
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-    "GoSourceList",
 )
-load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
-    "collect_src",
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
+    "new_go_library",
+    "library_to_source",
+)
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
 )
 
 def _go_source_impl(ctx):
   """Implements the go_source() rule."""
-  return [collect_src(ctx)]
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  library = new_go_library(ctx)
+  source = library_to_source(ctx, ctx.attr, library, mode)
+  return [library, source]
 
 go_source = rule(
     _go_source_impl,
@@ -38,9 +44,10 @@ go_source = rule(
         "data": attr.label_list(allow_files = True, cfg = "data"),
         "srcs": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoSourceList]),
+        "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """See go/core.rst#go_source for full documentation."""

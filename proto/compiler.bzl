@@ -19,6 +19,14 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
+    "new_go_library",
+    "library_to_source",
+)
+
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "get_mode",
+)
 
 GoProtoCompiler = provider()
 
@@ -75,15 +83,21 @@ def _proto_path(proto):
 
 
 def _go_proto_compiler_impl(ctx):
-  return [GoProtoCompiler(
-      deps = ctx.attr.deps,
-      compile = go_proto_compile,
-      options = ctx.attr.options,
-      suffix = ctx.attr.suffix,
-      go_protoc = ctx.file._go_protoc,
-      protoc = ctx.file._protoc,
-      plugin = ctx.file.plugin,
-  )]
+  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  library = new_go_library(ctx)
+  source = library_to_source(ctx, ctx.attr, library, mode)
+  return [
+      GoProtoCompiler(
+          deps = ctx.attr.deps,
+          compile = go_proto_compile,
+          options = ctx.attr.options,
+          suffix = ctx.attr.suffix,
+          go_protoc = ctx.file._go_protoc,
+          protoc = ctx.file._protoc,
+          plugin = ctx.file.plugin,
+      ),
+      library, source,
+  ]
 
 go_proto_compiler = rule(
     _go_proto_compiler_impl,
@@ -112,5 +126,9 @@ go_proto_compiler = rule(
             cfg = "host",
             default = Label("@com_github_google_protobuf//:protoc"),
         ),
-    }
+        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+    },
+    toolchains = [
+        "@io_bazel_rules_go//go:toolchain",
+    ],
 )

@@ -43,55 +43,15 @@ API
 GoLibrary
 ~~~~~~~~~
 
-This is the provider exposed by the go_library_ rule, or anything that wants to behave like one.
-It provides all the information requried to use the library as a dependency, for other libraries,
-binaries or tests.
-
-+--------------------------------+-----------------------------------------------------------------+
-| **Name**                       | **Type**                                                        |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`importpath`            | :type:`string`                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| The import path for this library.                                                                |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`direct`                | :type:`depset(GoLibrary)`                                       |
-+--------------------------------+-----------------------------------------------------------------+
-| The direct depencancies of the library.                                                          |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`transitive`            | :type:`depset(GoLibrary)`                                       |
-+--------------------------------+-----------------------------------------------------------------+
-| The full transitive set of Go libraries depended on.                                             |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`srcs`                  | :type:`depset(File)`                                            |
-+--------------------------------+-----------------------------------------------------------------+
-| The original sources used to build the library.                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`cover_vars`            | :type:`tuple(String)`                                           |
-+--------------------------------+-----------------------------------------------------------------+
-| The cover variables added to this library.                                                       |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`cgo_deps`              | :type:`depset(cc_library)`                                      |
-+--------------------------------+-----------------------------------------------------------------+
-| The direct cgo dependencies of this library.                                                     |
-| This has the same constraints as things that can appear in the deps of a cc_library_.            |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`runfiles`              | runfiles_                                                       |
-+--------------------------------+-----------------------------------------------------------------+
-| The files needed to run anything that includes this library.                                     |
-+--------------------------------+-----------------------------------------------------------------+
-
-
-GoSourceList
-~~~~~~~
-
-GoSourceList is a provider designed to be used as the output of anything that provides Go code, and an
-input to anything that compiles Go code.
-It combines the source with dependencies that source will require.
-
-There are two main uses for this.
+GoLibrary is the provider exposed by the go_library_ rule, or anything that wants to behave like one.
+In general you should build these using the new_go_library helper function.
+It provides all the information requried as inputs to building an archive.
+It can also be used to just provide sources and deps (for use in the embed attribute). There are
+two main uses for this.
+This is a non build mode specific provider.
 
 #. Recompiling a library with additional sources.
-   go_library_ returns a GoSourceList provider with the transformed sources and deps that it was
+   go_library_ returns a GoLibrary provider with the original sources and deps that it was
    consuming.
    go_test_ uses this to recompile the library with additional test files, to build the test
    version of the library. You can use the same feature to recompile a proto library with
@@ -102,52 +62,76 @@ There are two main uses for this.
    flatbuffers compiler to generate the serialization functions, you might hit the issue that
    the only thing that knows you depend on ``github.com/google/flatbuffers/go`` is the generated
    code.
-   You can instead have the generator return a GoSourceList provider instead of just the generated
+   You can instead have the generator return a GoLibrary provider instead of just the generated
    files, allowing you to tie the generated files to the additional dependencies they add to
    any package trying to compile them.
 
+
 +--------------------------------+-----------------------------------------------------------------+
 | **Name**                       | **Type**                                                        |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`entries`               | :type:`list of GoSource`                                        |
+| :param:`name`                  | :type:`The package name for the sources.`                       |
 +--------------------------------+-----------------------------------------------------------------+
-| The full list of GoSource_ entries that this source set is composed of.                          |
+| The direct depencancies of the library.                                                          |
 +--------------------------------+-----------------------------------------------------------------+
+| :param:`label`                 | :type:`The label of the rule that generated the library.`       |
++--------------------------------+-----------------------------------------------------------------+
+| The direct depencancies of the library.                                                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`importpath`            | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The import path for this library. May be None for things that cannot be imported.                |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`exportpath`            | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The source path for this library. May be None for things that should not be exported to a        |
+| GOPATH.                                                                                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`resolve`               | :type:`function`                                                |
++--------------------------------+-----------------------------------------------------------------+
+| The function that can be called to resolve this library to a mode specific GoSource.             |
++--------------------------------+-----------------------------------------------------------------+
+
 
 GoSource
-~~~~~~~
+~~~~~~~~
 
-GoSource represents a single entry in a GoSourceList source provider.
+GoSource represents a GoLibrary after mode specific processing, ready to build a GoArchive.
+In general, only rules_go should need to build or handle these.
 
 +--------------------------------+-----------------------------------------------------------------+
 | **Name**                       | **Type**                                                        |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`srcs`                  | :type:`depset(File)`                                            |
+| :param:`library`               | :type:`GoLibrary`                                               |
 +--------------------------------+-----------------------------------------------------------------+
-| The original sources for this library before transformations like cgo and coverage.              |
+| The go library that this GoSource was generated from.                                            |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`deps`                  | :type:`depset(GoLibrary)`                                       |
+| :param:`srcs`                  | :type:`list of File`                                            |
++--------------------------------+-----------------------------------------------------------------+
+| The sources to compile into the archive.                                                         |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`cover`                 | :type:`list of File`                                            |
++--------------------------------+-----------------------------------------------------------------+
+| The set of sources that should have coverage applied.                                            |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`deps`                  | :type:`list of GoLibrary`                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | The direct dependencies needed by the :param:`srcs`.                                             |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`gc_goopts`             | :type:`tuple(string)`                                           |
+| :param:`gc_goopts`             | :type:`list of string`                                          |
 +--------------------------------+-----------------------------------------------------------------+
 | Go compilation options that should be used when compiling these sources.                         |
 | In general these will be used for *all* sources of any library this provider is embedded into.   |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`cover_vars`            | :type:`string`                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| The cover variables used in these sources.                                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`runfiles`              | :type:`Runfiles`                                                |
 +--------------------------------+-----------------------------------------------------------------+
 | The set of files needed by code in these sources at runtime.                                     |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`cgo_deps`              | :type:`depset(cc_library)`                                      |
+| :param:`cgo_deps`              | :type:`list of cc_library`                                      |
 +--------------------------------+-----------------------------------------------------------------+
 | The direct cgo dependencies of this library.                                                     |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`cgo_exports`           | :type:`depset(File)`                                            |
+| :param:`cgo_exports`           | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
 | The exposed cc headers for these sources.                                                        |
 +--------------------------------+-----------------------------------------------------------------+
@@ -157,24 +141,93 @@ GoSource represents a single entry in a GoSourceList source provider.
 +--------------------------------+-----------------------------------------------------------------+
 
 
-GoArchive
-~~~~~~~~~
+GoArchiveData
+~~~~~~~~~~~~~
 
-GoArchive is a provider that exposes a compiled library.
+GoArchiveData represents the compiled form of a package.
 
 +--------------------------------+-----------------------------------------------------------------+
 | **Name**                       | **Type**                                                        |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`lib`                   | :type:`compiled archive file`                                   |
+| :param:`name`                  | :type:`The package name for the sources.`                       |
++--------------------------------+-----------------------------------------------------------------+
+| The direct depencancies of the library.                                                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`label`                 | :type:`The label of the rule that generated the library.`       |
++--------------------------------+-----------------------------------------------------------------+
+| The direct depencancies of the library.                                                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`importpath`            | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The import path for this library. May be None for things that cannot be imported.                |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`exportpath`            | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The source path for this library. May be None for things that should not be exported to a        |
+| GOPATH.                                                                                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`file`                  | :type:`compiled archive file`                                   |
 +--------------------------------+-----------------------------------------------------------------+
 | The archive file representing the library compiled in a specific :param:`mode` ready for linking |
 | into binaries.                                                                                   |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`srcs`                  | :type:`list of File`                                            |
++--------------------------------+-----------------------------------------------------------------+
+| The sources compiled into the archive.                                                           |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`searchpath`            | :type:`string`                                                  |
 +--------------------------------+-----------------------------------------------------------------+
 | The search path entry under which the :param:`lib` would be found.                               |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`mode`                  | :type:`Mode`                                                    |
+
+GoArchive
+~~~~~~~~~
+
+GoArchive is a provider that exposes a compiled library along with it's full transitive
+dependancies.
+This is used when compiling and linking dependant libraries or binaries.
+
 +--------------------------------+-----------------------------------------------------------------+
-| The mode the library was compiled in.                                                            |
+| **Name**                       | **Type**                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`source`                | :type:`GoSource`                                                |
++--------------------------------+-----------------------------------------------------------------+
+| The source provider this GoArchive was compiled from.                                            |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`data`                  | :type:`GoArchiveData`                                           |
++--------------------------------+-----------------------------------------------------------------+
+| The non transitive data for this archive.                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`direct`                | :type:`depset of GoLibrary`                                     |
++--------------------------------+-----------------------------------------------------------------+
+| The direct depencancies of the library.                                                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`searchpaths`           | :type:`depset of string`                                        |
++--------------------------------+-----------------------------------------------------------------+
+| The transitive set of search paths needed to link with this archive.                             |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`libs`                  | :type:`depset of File`                                          |
++--------------------------------+-----------------------------------------------------------------+
+| The transitive set of libraries needed to link with this archive.                                |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`transitive`            | :type:`depset(GoLibrary)`                                       |
++--------------------------------+-----------------------------------------------------------------+
+| The full transitive set of GoArchiveData's  depended on, including this one.                     |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`cgo_deps`              | :type:`depset(cc_library)`                                      |
++--------------------------------+-----------------------------------------------------------------+
+| The direct cgo dependencies of this library.                                                     |
+| This has the same constraints as things that can appear in the deps of a cc_library_.            |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`cgo_exports`           | :type:`depset of GoSource`                                      |
++--------------------------------+-----------------------------------------------------------------+
+| The the transitive set of c headers needed to reference exports of this archive.                 |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`cover_vars`            | :type:`list of string`                                          |
++--------------------------------+-----------------------------------------------------------------+
+| The cover variables added to this library.                                                       |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`runfiles`              | runfiles_                                                       |
++--------------------------------+-----------------------------------------------------------------+
+| The files needed to run anything that includes this library.                                     |
 +--------------------------------+-----------------------------------------------------------------+

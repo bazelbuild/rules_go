@@ -14,6 +14,19 @@ go_library(
 go_test(
     name = "proto_test",
     size = "small",
+    pure = "off",
+    srcs = ["proto_test.go"],
+    importpath = "github.com/bazelbuild/rules_go/examples/proto",
+    deps = [
+        "//examples/proto/embed:go_default_library",
+        "//examples/proto/lib:lib_go_proto",
+    ],
+)
+
+go_test(
+    name = "proto_pure_test",
+    size = "small",
+    pure = "on",
     srcs = ["proto_test.go"],
     importpath = "github.com/bazelbuild/rules_go/examples/proto",
     deps = [

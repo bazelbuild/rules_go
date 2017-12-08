@@ -14,6 +14,7 @@
 
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
 load("@io_bazel_rules_go//go/private:common.bzl", "declare_file")
+load("@io_bazel_rules_go//go/private:rules/helpers.bzl", "get_archive")
 
 
 def _tag(ctx, path, outputs):
@@ -30,10 +31,11 @@ EXPERIMENTAL: the go_path rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  #TODO: non specific mode?
   # First gather all the library rules
   golibs = depset()
   for dep in ctx.attr.deps:
-    golibs += dep[GoLibrary].transitive
+    golibs += get_archive(dep).transitive
 
   # Now scan them for sources
   seen_libs = {}
@@ -41,7 +43,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   outputs = []
   packages = []
   for golib in golibs:
-    if golib.importpath in seen_libs:
+    if golib.exportpath in seen_libs:
       # We found two different library rules that map to the same import path
       # This is legal in bazel, but we can't build a valid go path for it.
       # TODO: we might be able to ignore this if the content is identical
@@ -49,13 +51,13 @@ Please do not rely on it for production use, but feel free to use it and file is
 Found {} in
   {}
   {}
-""".format(golib.importpath, golib.name, seen_libs[golib.importpath].name))
+""".format(golib.exportpath, golib.label, seen_libs[golib.exportpath].label))
       # for now we don't fail if we see duplicate packages
       # the most common case is the same source from two different workspaces
       continue
-    seen_libs[golib.importpath] = golib
+    seen_libs[golib.exportpath] = golib
     package_files = []
-    prefix = "src/" + golib.importpath + "/"
+    prefix = "src/" + golib.exportpath + "/"
     for src in golib.srcs:
       outpath = prefix + src.basename
       if outpath in seen_paths:
