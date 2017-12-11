@@ -51,13 +51,19 @@ def _stdlib_impl(ctx):
       cpp.unfiltered_compiler_options(features) +
       cpp.link_options +
       linker_options)
+  cleaned_compiler_options = []
+  for s in compiler_options:
+    if s == "-fcolor-diagnostics" or s == "-Wall":
+      continue
+    else:
+      cleaned_compiler_options.append(s)
   cleaned_linker_options = []
   for s in linker_options:
     if s == "-Wl,--gc-sections":
       continue
     else:
       cleaned_linker_options.append(s)
-  compiler_options_string = "\"" + " ".join(compiler_options) + "\""
+  compiler_options_string = "\"" + " ".join(cleaned_compiler_options) + "\""
   linker_options_string= "\"" + " ".join(cleaned_linker_options) + "\""
   linker_path, _ = cpp.ld_executable.rsplit("/", 1)
   ctx.actions.write(root_file, "")
