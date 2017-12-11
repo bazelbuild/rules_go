@@ -1,14 +1,21 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "default_visibility_proto",
+    srcs = ["foo.proto"],
+)
+
+go_proto_library(
+    name = "default_visibility_go_proto",
+    importpath = "example.com/repo/default_visibility",
+    proto = ":default_visibility_proto",
+)
 
 go_library(
     name = "go_default_library",
     srcs = ["lib.go"],
-    importpath = "example.com/repo/default_visibility",
-)
-
-go_binary(
-    name = "default_visibility",
-    embed = [":go_default_library"],
+    embed = [":default_visibility_go_proto"],
     importpath = "example.com/repo/default_visibility",
 )
 

@@ -87,13 +87,14 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		if !pkg.Proto.HasProto() {
 			return "", []bf.Expr{emptyRule("filegroup", filegroupName)}
 		}
-		return "", []bf.Expr{
-			newRule("filegroup", []keyvalue{
-				{key: "name", value: filegroupName},
-				{key: "srcs", value: pkg.Proto.Sources},
-				{key: "visibility", value: []string{"//visibility:public"}},
-			}),
+		attrs := []keyvalue{
+			{key: "name", value: filegroupName},
+			{key: "srcs", value: pkg.Proto.Sources},
 		}
+		if g.shouldSetVisibility {
+			attrs = append(attrs, keyvalue{"visibility", []string{checkInternalVisibility(pkg.Rel, "//visibility:public")}})
+		}
+		return "", []bf.Expr{newRule("filegroup", attrs)}
 	}
 
 	if !pkg.Proto.HasProto() {
@@ -110,7 +111,9 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 	protoAttrs := []keyvalue{
 		{"name", protoName},
 		{"srcs", pkg.Proto.Sources},
-		{"visibility", visibility},
+	}
+	if g.shouldSetVisibility {
+		protoAttrs = append(protoAttrs, keyvalue{"visibility", visibility})
 	}
 	imports := pkg.Proto.Imports
 	imports.Clean()
@@ -123,7 +126,9 @@ func (g *Generator) generateProto(pkg *packages.Package) (string, []bf.Expr) {
 		{"name", goProtoName},
 		{"proto", ":" + protoName},
 		{"importpath", pkg.ImportPath(g.c)},
-		{"visibility", visibility},
+	}
+	if g.shouldSetVisibility {
+		goProtoAttrs = append(goProtoAttrs, keyvalue{"visibility", visibility})
 	}
 	if !imports.IsEmpty() {
 		goProtoAttrs = append(goProtoAttrs, keyvalue{config.GazelleImportsKey, imports})
