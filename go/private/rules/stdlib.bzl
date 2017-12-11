@@ -15,6 +15,7 @@
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoStdLib",
 )
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 
 _STDLIB_BUILD = """
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
@@ -44,15 +45,16 @@ def _stdlib_impl(ctx):
   go = ctx.actions.declare_file("bin/go" + extension)
   files = [root_file, go, pkg]
   cpp = ctx.fragments.cpp
+  cpp_toolchain = find_cpp_toolchain(ctx)
   features = ctx.features
   options = (cpp.compiler_options(features) +
       cpp.unfiltered_compiler_options(features) +
       cpp.link_options +
       cpp.mostly_static_link_options(features, False))
-  linker_path, _ = cpp.ld_executable.rsplit("/", 1)
+  linker_path, _ = cpp_toolchain.ld_executable.rsplit("/", 1)
   ctx.actions.write(root_file, "")
-  cc_path = cpp.compiler_executable
-  if not cpp.compiler_executable.startswith("/"):
+  cc_path = cpp_toolchain.compiler_executable
+  if not cpp_toolchain.compiler_executable.startswith("/"):
     cc_path = "$(pwd)/" + cc_path
   env = {
       "GOROOT": "$(pwd)/{}".format(goroot),
@@ -118,6 +120,7 @@ stdlib = rule(
         "cgo": attr.bool(mandatory = True),
         "_host_sdk": attr.label(allow_files = True, default="@go_sdk//:host_sdk"),
         "_host_tools": attr.label(allow_files = True, cfg="host", default="@go_sdk//:host_tools"),
+        "_cc_toolchain": attr.label(default=Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
     fragments = ["cpp"],
 )
