@@ -45,10 +45,20 @@ def _stdlib_impl(ctx):
   files = [root_file, go, pkg]
   cpp = ctx.fragments.cpp
   features = ctx.features
-  options = (cpp.compiler_options(features) +
+  compiler_options = cpp.compiler_options(features)
+  linker_options = cpp.mostly_static_link_options(features, False)
+  options = (compiler_options +
       cpp.unfiltered_compiler_options(features) +
       cpp.link_options +
-      cpp.mostly_static_link_options(features, False))
+      linker_options)
+  cleaned_linker_options = []
+  for s in linker_options:
+    if s == "-Wl,--gc-sections":
+      continue
+    else:
+      cleaned_linker_options.append(s)
+  compiler_options_string = "\"" + " ".join(compiler_options) + "\""
+  linker_options_string= "\"" + " ".join(cleaned_linker_options) + "\""
   linker_path, _ = cpp.ld_executable.rsplit("/", 1)
   ctx.actions.write(root_file, "")
   cc_path = cpp.compiler_executable
@@ -61,7 +71,9 @@ def _stdlib_impl(ctx):
       "CGO_ENABLED": "1" if ctx.attr.cgo else "0",
       "CC": cc_path,
       "CXX": cc_path,
-      "COMPILER_PATH": linker_path
+      "COMPILER_PATH": linker_path,
+      "CGO_CPPFLAGS": compiler_options_string,
+      "CGO_LDFLAGS": linker_options_string,
   }
   inputs = ctx.files._host_sdk + [root_file]
   inputs.extend(ctx.files._host_tools)
