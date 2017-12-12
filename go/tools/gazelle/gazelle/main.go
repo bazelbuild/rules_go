@@ -131,6 +131,7 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 			visits = append(visits, visitRecord{
 				pkgRel: rel,
 				rules:  rules,
+				empty:  empty,
 				file:   file,
 			})
 		}
@@ -145,7 +146,7 @@ func run(c *config.Config, cmd command, emit emitFunc) {
 		for j := range visits[i].rules {
 			visits[i].rules[j] = resolver.ResolveRule(visits[i].rules[j], visits[i].pkgRel)
 		}
-		visits[i].file, _ = merger.MergeFile(visits[i].rules, nil, visits[i].file, merger.MergeableResolvedAttrs)
+		visits[i].file, _ = merger.MergeFile(visits[i].rules, visits[i].empty, visits[i].file, merger.MergeableResolvedAttrs)
 	}
 
 	// Emit merged files.

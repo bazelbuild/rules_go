@@ -1001,6 +1001,82 @@ go_library(
 	})
 }
 
+// TestDeleteProtoWithDeps checks that Gazelle will delete proto rules with
+// dependencies after the proto sources are removed.
+func TestDeleteProtoWithDeps(t *testing.T) {
+	files := []fileSpec{
+		{path: "WORKSPACE"},
+		{
+			path: "foo/BUILD.bazel",
+			content: `
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["extra.go"],
+    embed = [":scratch_go_proto"],
+    importpath = "example.com/repo/foo",
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "foo_proto",
+    srcs = ["foo.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["//foo/bar:bar_proto"],
+)
+
+go_proto_library(
+    name = "foo_go_proto",
+    importpath = "example.com/repo/foo",
+    proto = ":foo_proto",
+    visibility = ["//visibility:public"],
+    deps = ["//foo/bar:go_default_library"],
+)
+`,
+		}, {
+			path:    "foo/extra.go",
+			content: "package foo",
+		}, {
+			path: "foo/bar/bar.proto",
+			content: `
+syntax = "proto3";
+
+option go_package = "example.com/repo/foo/bar";
+
+message Bar {};
+`,
+		},
+	}
+	dir, err := createFiles(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	args := []string{"-go_prefix", "example.com/repo"}
+	if err := runGazelle(dir, args); err != nil {
+		t.Fatal(err)
+	}
+
+	checkFiles(t, dir, []fileSpec{
+		{
+			path: "foo/BUILD.bazel",
+			content: `
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["extra.go"],
+    importpath = "example.com/repo/foo",
+    visibility = ["//visibility:public"],
+)
+`,
+		},
+	})
+}
+
 // TODO(jayconrod): more tests
 //   run in fix mode in testdata directories to create new files
 //   run in diff mode in testdata directories to update existing files (no change)
