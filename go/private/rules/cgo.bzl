@@ -12,26 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "declare_file",
     "split_srcs",
     "join_srcs",
     "pkg_dir",
     "sets",
     "to_set",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-)
-load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "add_go_env",
-)
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "new_go_library",
-    "library_to_source",
 )
 
 _CgoCodegen = provider()
@@ -61,23 +53,20 @@ def _select_archive(files):
   fail("cc_library did not produce any files")
 
 def _cgo_codegen_impl(ctx):
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  if not stdlib.cgo_tools:
+  go = go_context(ctx)
+  if not go.stdlib.cgo_tools:
     fail("Go toolchain does not support cgo")
   linkopts = ctx.attr.linkopts[:]
-  copts = stdlib.cgo_tools.c_options + ctx.attr.copts
+  copts = go.stdlib.cgo_tools.c_options + ctx.attr.copts
   deps = depset([], order="topological")
-  cgo_export_h = declare_file(ctx, path="_cgo_export.h")
-  cgo_export_c = declare_file(ctx, path="_cgo_export.c")
-  cgo_main = declare_file(ctx, path="_cgo_main.c")
-  cgo_types = declare_file(ctx, path="_cgo_gotypes.go")
+  cgo_export_h = go.declare_file(go, path="_cgo_export.h")
+  cgo_export_c = go.declare_file(go, path="_cgo_export.c")
+  cgo_main = go.declare_file(go, path="_cgo_main.c")
+  cgo_types = go.declare_file(go, path="_cgo_gotypes.go")
   out_dir = cgo_main.dirname
 
-  cc = stdlib.cgo_tools.compiler_executable
-  args = ctx.actions.args()
-  add_go_env(args, stdlib, mode)
+  cc = go.stdlib.cgo_tools.compiler_executable
+  args = go.args(go)
   args.add(["-cc", str(cc), "-objdir", out_dir])
 
   c_outs = [cgo_export_h, cgo_export_c]
@@ -88,23 +77,23 @@ def _cgo_codegen_impl(ctx):
       copts.extend(['-iquote', src.dirname])
   for src in source.go:
     mangled_stem, src_ext = _mangle(src)
-    gen_file = declare_file(ctx, path=mangled_stem + ".cgo1."+src_ext)
-    gen_c_file = declare_file(ctx, path=mangled_stem + ".cgo2.c")
+    gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
+    gen_c_file = go.declare_file(go, path=mangled_stem + ".cgo2.c")
     go_outs.append(gen_file)
     c_outs.append(gen_c_file)
     args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.asm:
     mangled_stem, src_ext = _mangle(src)
-    gen_file = declare_file(ctx, path=mangled_stem + ".cgo1."+src_ext)
+    gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     go_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.c:
     mangled_stem, src_ext = _mangle(src)
-    gen_file = declare_file(ctx, path=mangled_stem + ".cgo1."+src_ext)
+    gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     c_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
 
-  inputs = sets.union(ctx.files.srcs, go_toolchain.data.crosstool, stdlib.files,
+  inputs = sets.union(ctx.files.srcs, go.crosstool, go.stdlib.files,
                       *[d.cc.transitive_headers for d in ctx.attr.deps])
   deps = sets.union(deps, *[d.cc.libs for d in ctx.attr.deps])
   runfiles = ctx.runfiles(collect_data = True)
@@ -133,7 +122,7 @@ def _cgo_codegen_impl(ctx):
       outputs = c_outs + go_outs + [cgo_main],
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      executable = go_toolchain.tools.cgo,
+      executable = go.toolchain.tools.cgo,
       arguments = [args],
       env = {
           "CGO_LDFLAGS": " ".join(linkopts),
@@ -169,18 +158,15 @@ _cgo_codegen = rule(
         ),
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _cgo_import_impl(ctx):
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  out = declare_file(ctx, ext=".go")
-  args = ctx.actions.args()
-  add_go_env(args, stdlib, mode)
+  go = go_context(ctx)
+  out = go.declare_file(go, ext=".go")
+  args = go.args(go)
   args.add([
       "-dynout", out,
       "-dynimport", ctx.file.cgo_o,
@@ -190,9 +176,9 @@ def _cgo_import_impl(ctx):
       inputs = [
           ctx.file.cgo_o,
           ctx.files.sample_go_srcs[0],
-      ] + stdlib.files,
+      ] + go.stdlib.files,
       outputs = [out],
-      executable = go_toolchain.tools.cgo,
+      executable = go.toolchain.tools.cgo,
       arguments = [args],
       mnemonic = "CGoImportGen",
   )
@@ -208,7 +194,7 @@ _cgo_import = rule(
             single_file = True,
         ),
         "sample_go_srcs": attr.label_list(allow_files = True),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
@@ -227,7 +213,7 @@ def _pure(ctx, mode):
 def _not_pure(ctx, mode):
     return not mode.pure
 
-def _cgo_library_to_source(ctx, attr, source):
+def _cgo_library_to_source(ctx, attr, source, merge):
   library = source["library"]
   if source["mode"].pure:
     source["srcs"] = library.input_go_srcs + source["srcs"]
@@ -240,11 +226,12 @@ def _cgo_library_to_source(ctx, attr, source):
 
 
 def _cgo_collect_info_impl(ctx):
+  go = go_context(ctx)
   codegen = ctx.attr.codegen[_CgoCodegen]
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
 
-  library = new_go_library(ctx,
+  library = go.new_library(go,
       resolver=_cgo_library_to_source,
       input_go_srcs = ctx.files.input_go_srcs,
       gen_go_srcs = ctx.files.gen_go_srcs,
@@ -252,8 +239,7 @@ def _cgo_collect_info_impl(ctx):
       cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
       cgo_archive = _select_archive(ctx.files.lib),
   )
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  source = library_to_source(ctx, ctx.attr, library, mode)
+  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
 
   return [
       source, library,
@@ -267,7 +253,7 @@ _cgo_collect_info = rule(
         "input_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
         "gen_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
         "lib": attr.label(mandatory = True, providers = ["cc"]),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

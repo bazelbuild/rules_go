@@ -15,10 +15,6 @@
 load("@io_bazel_rules_go//go/private:common.bzl",
     "sets",
 )
-load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "add_go_env",
-    "bootstrap_action",
-)
 
 def _importpath(l):
   return [v.data.importpath for v in l]
@@ -26,37 +22,35 @@ def _importpath(l):
 def _searchpath(l):
   return [v.data.searchpath for v in l]
 
-def emit_compile(ctx, go_toolchain,
+def emit_compile(go,
     sources = None,
     importpath = "",
     archives = [],
-    mode = None,
     out_lib = None,
     gc_goopts = []):
   """See go/toolchains.rst#compile for full documentation."""
 
   if sources == None: fail("sources is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
-  if mode == None: fail("mode is a required parameter")
 
   # Add in any mode specific behaviours
-  if mode.race:
+  if go.mode.race:
     gc_goopts = gc_goopts + ["-race"]
-  if mode.msan:
+  if go.mode.msan:
     gc_goopts = gc_goopts + ["-msan"]
 
-  gc_goopts = [ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-  inputs = sets.union(sources, [go_toolchain.data.package_list])
+  #TODO: Check if we really need this expand make variables in here
+  #TODO: If we really do then it needs to be moved all the way back out to the rule
+  gc_goopts = [go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
+  inputs = sets.union(sources, [go.package_list])
   go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
   cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
 
   inputs = sets.union(inputs, [archive.data.file for archive in archives])
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  inputs = sets.union(inputs, stdlib.files)
+  inputs = sets.union(inputs, go.stdlib.files)
 
-  args = ctx.actions.args()
-  add_go_env(args, stdlib, mode)
-  args.add(["-package_list", go_toolchain.data.package_list])
+  args = go.args(go)
+  args.add(["-package_list", go.package_list])
   args.add(go_sources, before_each="-src")
   args.add(archives, before_each="-dep", map_fn=_importpath)
   args.add(archives, before_each="-I", map_fn=_searchpath)
@@ -65,23 +59,22 @@ def emit_compile(ctx, go_toolchain,
   if importpath:
     args.add(["-p", importpath])
   args.add(gc_goopts)
-  args.add(go_toolchain.flags.compile)
-  if mode.debug:
+  args.add(go.toolchain.flags.compile)
+  if go.mode.debug:
     args.add(["-N", "-l"])
   args.add(cgo_sources)
-  ctx.actions.run(
+  go.actions.run(
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      executable = go_toolchain.tools.compile,
+      executable = go.toolchain.tools.compile,
       arguments = [args],
   )
 
-def bootstrap_compile(ctx, go_toolchain,
+def bootstrap_compile(go,
     sources = None,
     importpath = "",
     archives = [],
-    mode = None,
     out_lib = None,
     gc_goopts = []):
   """See go/toolchains.rst#compile for full documentation."""
@@ -89,14 +82,13 @@ def bootstrap_compile(ctx, go_toolchain,
   if sources == None: fail("sources is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
   if archives:  fail("compile does not accept deps in bootstrap mode")
-  if mode == None: fail("mode is a required parameter")
 
   args = ["tool", "compile", "-o", out_lib.path]
   args.extend(gc_goopts)
   args.extend([s.path for s in sources])
-  bootstrap_action(ctx, go_toolchain, mode,
-      inputs = sources,
+  go.actions.run_shell(
+      inputs = sources + go.stdlib.files,
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      arguments = args,
+      command = "export GOROOT=$(pwd)/{} && {} {}".format(go.stdlib.root_file.dirname, go.stdlib.go.path, " ".join(args)),
   )

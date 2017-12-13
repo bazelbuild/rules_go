@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    go_context = "go_context",
+)
 load("@io_bazel_rules_go//go/private:go_repository.bzl",
     "go_repository",
 )
@@ -22,7 +25,7 @@ load("@io_bazel_rules_go//go/private:repositories.bzl",
     "go_rules_dependencies",
     "go_register_toolchains",
 )
-load("@io_bazel_rules_go//go/private:toolchain.bzl",
+load("@io_bazel_rules_go//go/private:sdk.bzl",
     go_host_sdk = "go_host_sdk",
     go_download_sdk = "go_download_sdk",
     go_local_sdk = "go_local_sdk",
@@ -42,7 +45,7 @@ load("@io_bazel_rules_go//go/private:rules/wrappers.bzl",
 load("@io_bazel_rules_go//go/private:rules/source.bzl",
     _go_source = "go_source",
 )
-load("@io_bazel_rules_go//go/private:tools/embed_data.bzl",
+load("@io_bazel_rules_go//extras:embed_data.bzl",
     "go_embed_data",
 )
 load("@io_bazel_rules_go//go/private:tools/gazelle.bzl",

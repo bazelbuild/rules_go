@@ -2,6 +2,17 @@ load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_prefix", "go_path", "go_ve
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_google_protobuf")
+load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
+
+go_context_data(
+    name = "go_context_data",
+    strip = select({
+        "@io_bazel_rules_go//go/private:strip-always": "always",
+        "@io_bazel_rules_go//go/private:strip-sometimes": "sometimes",
+        "@io_bazel_rules_go//go/private:strip-never": "never",
+    }),
+    visibility = ["//visibility:public"],
+)
 
 # gazelle:prefix github.com/bazelbuild/rules_go
 

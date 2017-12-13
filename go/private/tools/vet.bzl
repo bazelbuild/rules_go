@@ -12,26 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoPath")
-
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
-load("@io_bazel_rules_go//go/private:common.bzl",
-    "declare_file",
-)
 
 def _go_vet_generate_impl(ctx):
   print("""
 EXPERIMENTAL: the go_vet_test rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  script_file = declare_file(ctx, ext=".bash")
+  go = go_context(ctx)
+  script_file = go.declare_file(go, ext=".bash")
   gopath = []
-  files = ctx.files.data + stdlib.files
+  files = ctx.files.data + go.stdlib.files
   gopath = []
   packages = []
   for data in ctx.attr.data:
@@ -42,7 +36,7 @@ Please do not rely on it for production use, but feel free to use it and file is
 export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
-      go=stdlib.go.short_path,
+      go=go.stdlib.go.short_path,
       gopath=":".join(['$(pwd)/{})'.format(entry) for entry in gopath]),
       packages=" ".join(packages),
   ))
@@ -55,7 +49,7 @@ _go_vet_generate = rule(
     _go_vet_generate_impl,
     attrs = {
         "data": attr.label_list(providers=[GoPath], cfg = "data"),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

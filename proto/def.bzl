@@ -12,27 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl",
-    "go_importpath",
-    "sets",
-)
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load("@io_bazel_rules_go//go:def.bzl",
+    "go_context",
     "GoLibrary",
 )
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "new_go_library",
-    "library_to_source",
-    "get_source",
-    "merge_embed",
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "sets",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
 load("@io_bazel_rules_go//proto:compiler.bzl",
     "GoProtoCompiler",
-)
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
 )
 
 GoProtoImports = provider()
@@ -53,28 +44,25 @@ _go_proto_aspect = aspect(
     attr_aspects = ["deps", "embed"],
 )
 
-def _proto_library_to_source(ctx, attr, source):
-  compiler = attr.compiler[GoProtoCompiler]
-  merge_embed(source, attr.compiler)
+def _proto_library_to_source(go, attr, source, merge):
+  merge(source, attr.compiler)
 
 def _go_proto_library_impl(ctx):
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  go = go_context(ctx)
   compiler = ctx.attr.compiler[GoProtoCompiler]
-  importpath = go_importpath(ctx)
-  go_srcs = compiler.compile(ctx,
+  importpath = go._inferredpath #TODO: Drop this as soon as the attribute is mandatory
+  go_srcs = compiler.compile(go,
     compiler = compiler,
     proto = ctx.attr.proto.proto,
     imports = get_imports(ctx.attr),
     importpath = importpath,
   )
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  library = new_go_library(ctx,
+  library = go.new_library(go,
       resolver=_proto_library_to_source,
       srcs=go_srcs,
   )
-  source = library_to_source(ctx, ctx.attr, library, mode)
-  archive = go_toolchain.actions.archive(ctx, go_toolchain, source)
-
+  source = go.library_to_source(go, ctx.attr, library, False)
+  archive = go.archive(go, source)
   return [
       library, source, archive,
       DefaultInfo(
@@ -93,7 +81,7 @@ go_proto_library = rule(
         "gc_goopts": attr.string_list(),
         "compiler": attr.label(providers = [GoProtoCompiler], default = "@io_bazel_rules_go//proto:go_proto"),
         "_go_prefix": attr.label(default = go_prefix_default),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = [
         "@io_bazel_rules_go//go:toolchain",

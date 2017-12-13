@@ -20,22 +20,18 @@
 # depend on a globally unique target that has a "go_prefix" transitive
 # info provider.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-)
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "new_go_library",
-    "library_to_source",
-)
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
 )
 
 def _go_source_impl(ctx):
   """Implements the go_source() rule."""
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  library = new_go_library(ctx)
-  source = library_to_source(ctx, ctx.attr, library, mode)
+  go = go_context(ctx)
+  library = go.new_library(go)
+  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
   return [library, source]
 
 go_source = rule(
@@ -46,7 +42,7 @@ go_source = rule(
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

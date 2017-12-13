@@ -12,27 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "add_go_env",
-)
-
-def emit_pack(ctx, go_toolchain,
+def emit_pack(go,
     in_lib = None,
     out_lib = None,
     objects = [],
-    archive = None,
-    mode = None):
+    archive = None):
   """See go/toolchains.rst#pack for full documentation."""
 
   if in_lib == None: fail("in_lib is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
-  if mode == None: fail("mode is a required parameter")
 
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  inputs = [in_lib] + stdlib.files
+  inputs = [in_lib] + go.stdlib.files
 
-  arguments = ctx.actions.args()
-  add_go_env(arguments, stdlib, mode)
+  arguments = go.args(go)
   arguments.add([
       "-in", in_lib,
       "-out", out_lib,
@@ -44,10 +36,10 @@ def emit_pack(ctx, go_toolchain,
     inputs.append(archive)
     arguments.add(["-arc", archive])
 
-  ctx.actions.run(
+  go.actions.run(
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoPack",
-      executable = go_toolchain.tools.pack,
+      executable = go.toolchain.tools.pack,
       arguments = [arguments],
   )

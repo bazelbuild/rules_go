@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl", "env_execute")
-load("@io_bazel_rules_go//go/private:toolchain.bzl", "executable_extension")
+load("@io_bazel_rules_go//go/private:context.bzl", "executable_extension")
 
 def _go_repository_impl(ctx):
   if ctx.attr.urls:

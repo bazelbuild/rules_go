@@ -1,5 +1,3 @@
-load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "go_toolchain_flags")
-
 filegroup(
     name = "all_rules",
     srcs = glob(["**/*.bzl"]),
@@ -21,12 +19,3 @@ config_setting(
     values = {"strip": "never"},
 )
 
-go_toolchain_flags(
-    name = "go_toolchain_flags",
-    strip = select({
-        "@io_bazel_rules_go//go/private:strip-always": "always",
-        "@io_bazel_rules_go//go/private:strip-sometimes": "sometimes",
-        "@io_bazel_rules_go//go/private:strip-never": "never",
-    }),
-    visibility = ["//visibility:public"],
-)

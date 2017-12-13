@@ -20,9 +20,6 @@ load("//go/private:skylib/lib/shell.bzl", "shell")
 load("//go/private:skylib/lib/structs.bzl", "structs")
 load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
 
-DEFAULT_LIB = "go_default_library"
-VENDOR_PREFIX = "/vendor/"
-
 go_exts = [
     ".go",
 ]
@@ -98,32 +95,6 @@ def join_srcs(source):
   return source.go + source.headers + source.asm + source.c
 
 
-def go_importpath(ctx):
-  """Returns the expected importpath of the go_library being built.
-
-  Args:
-    ctx: The skylark Context
-
-  Returns:
-    Go importpath of the library
-  """
-  path = getattr(ctx.attr, "importpath", None)
-  if path != "":
-    return path
-  prefix = getattr(ctx.attr, "_go_prefix", None)
-  path = prefix.go_prefix if prefix else ""
-  if path.endswith("/"):
-    path = path[:-1]
-  if ctx.label.package:
-    path += "/" + ctx.label.package
-  if ctx.label.name != DEFAULT_LIB and not path.endswith(ctx.label.name):
-    path += "/" + ctx.label.name
-  if path.rfind(VENDOR_PREFIX) != -1:
-    path = path[len(VENDOR_PREFIX) + path.rfind(VENDOR_PREFIX):]
-  if path[0] == "/":
-    path = path[1:]
-  return path
-
 def env_execute(ctx, arguments, environment = {}, **kwargs):
   """env_executes a command in a repository context. It prepends "env -i"
   to "arguments" before calling "ctx.execute".
@@ -146,13 +117,3 @@ def to_set(v):
     fail("Do not pass a depset to to_set")
   return depset(v)
 
-def declare_file(ctx, path="", ext="", mode=None, name = ""):
-  filename = ""
-  if mode:
-    filename += mode_string(mode) + "/"
-  filename += name if name else ctx.label.name
-  if path:
-    filename += "~/" + path
-  if ext:
-    filename += ext
-  return ctx.actions.declare_file(filename)

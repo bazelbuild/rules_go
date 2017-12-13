@@ -1,7 +1,7 @@
 load("//go/private:go_toolchain.bzl",
     "go_toolchain",
 )
-load("//go/private:toolchain.bzl",
+load("//go/private:sdk.bzl",
     "go_download_sdk",
     "go_host_sdk",
 )

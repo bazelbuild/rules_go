@@ -12,33 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl",
-    "declare_file",
-    "sets",
-)
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load("@io_bazel_rules_go//go:def.bzl",
+    "go_context",
     "GoLibrary",
 )
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "new_go_library",
-    "library_to_source",
-)
-
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
+load("@io_bazel_rules_go//go/private:common.bzl", # TODO: @skylib?
+    "sets",
 )
 
 GoProtoCompiler = provider()
 
-def go_proto_compile(ctx, compiler, proto, imports, importpath):
+def go_proto_compile(go, compiler, proto, imports, importpath):
   go_srcs = []
   outpath = None
   for src in proto.direct_sources:
-    out = declare_file(ctx, path=importpath+"/"+src.basename[:-len(".proto")], ext=compiler.suffix)
+    out = go.declare_file(go, path=importpath+"/"+src.basename[:-len(".proto")], ext=compiler.suffix)
     go_srcs.append(out)
     if outpath == None:
         outpath = out.dirname[:-len(importpath)]
-  args = ctx.actions.args()
+  args = go.actions.args()
   args.add([
       "--protoc", compiler.protoc,
       "--importpath", importpath,
@@ -50,7 +42,7 @@ def go_proto_compile(ctx, compiler, proto, imports, importpath):
   args.add(go_srcs, before_each = "--expected")
   args.add(imports, before_each = "--import")
   args.add(proto.direct_sources, map_fn=_all_proto_paths)
-  ctx.actions.run(
+  go.actions.run(
       inputs = sets.union([
           compiler.go_protoc,
           compiler.protoc,
@@ -83,9 +75,9 @@ def _proto_path(proto):
 
 
 def _go_proto_compiler_impl(ctx):
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  library = new_go_library(ctx)
-  source = library_to_source(ctx, ctx.attr, library, mode)
+  go = go_context(ctx)
+  library = go.new_library(go)
+  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
   return [
       GoProtoCompiler(
           deps = ctx.attr.deps,
@@ -126,7 +118,7 @@ go_proto_compiler = rule(
             cfg = "host",
             default = Label("@com_github_google_protobuf//:protoc"),
         ),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = [
         "@io_bazel_rules_go//go:toolchain",

@@ -24,7 +24,7 @@ go_toolchain(name="my_darwin_toolchain", target="darwin_amd64")
     targets = [":go_default_test"],
     workspace = """
 
-load("@io_bazel_rules_go//go/private:toolchain.bzl", "go_download_sdk")
+load("@io_bazel_rules_go//go:def.bzl", "go_download_sdk")
 load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies")
 
 go_download_sdk(

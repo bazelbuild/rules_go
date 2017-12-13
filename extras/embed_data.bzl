@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl",
-    "declare_file",
-)
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "new_go_library",
-    "library_to_source",
-)
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
+load("@io_bazel_rules_go//go/private:context.bzl", #TODO: This ought to be def
+    "go_context",
 )
 
 def _go_embed_data_impl(ctx):
+  go = go_context(ctx)
   if ctx.attr.src and ctx.attr.srcs:
     fail("%s: src and srcs attributes cannot both be specified" % ctx.label)
   if ctx.attr.src and ctx.attr.flatten:
@@ -43,7 +37,7 @@ def _go_embed_data_impl(ctx):
     if package == "":
       fail("%s: must provide package attribute for go_embed_data rules in the repository root directory" % ctx.label)
 
-  out = declare_file(ctx, ext=".go")
+  out = go.declare_file(go, ext=".go")
   args.add([
     "-workspace", ctx.workspace_name,
     "-label", str(ctx.label),
@@ -57,9 +51,8 @@ def _go_embed_data_impl(ctx):
     args.add("-string")
   args.add(srcs)
 
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  library = new_go_library(ctx, srcs=srcs)
-  source = library_to_source(ctx, ctx.attr, library, mode)
+  library = go.new_library(go, srcs=srcs)
+  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
 
   ctx.actions.run(
       outputs = [out],
@@ -87,7 +80,7 @@ go_embed_data = rule(
             executable = True,
             cfg = "host",
         ),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

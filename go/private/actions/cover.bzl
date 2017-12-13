@@ -12,25 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "add_go_env",
-)
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoSource",
 )
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "declare_file",
     "structs",
 )
 
-def emit_cover(ctx, go_toolchain, source):
+def emit_cover(go, source):
   """See go/toolchains.rst#cover for full documentation."""
 
   if source == None: fail("source is a required parameter")
   if not source.cover:
     return source, []
-
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, source.mode)
 
   covered = []
   cover_vars = []
@@ -40,16 +34,15 @@ def emit_cover(ctx, go_toolchain, source):
       continue
     cover_var = "Cover_" + src.basename[:-3].replace("-", "_").replace(".", "_")
     cover_vars.append("{}={}={}".format(cover_var, src.short_path, source.library.importpath))
-    out = declare_file(ctx, path=cover_var, ext='.cover.go')
+    out = go.declare_file(go, path=cover_var, ext='.cover.go')
     covered.append(out)
-    args = ctx.actions.args()
-    add_go_env(args, stdlib, source.mode)
+    args = go.args(go)
     args.add(["--", "--mode=set", "-var=%s" % cover_var, "-o", out, src])
-    ctx.actions.run(
-        inputs = [src] + stdlib.files,
+    go.actions.run(
+        inputs = [src] + go.stdlib.files,
         outputs = [out],
         mnemonic = "GoCover",
-        executable = go_toolchain.tools.cover,
+        executable = go.toolchain.tools.cover,
         arguments = [args],
     )
   members = structs.to_dict(source)

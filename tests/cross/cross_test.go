@@ -41,7 +41,7 @@ var checks = []check{
 		"executable",
 		"x86-64",
 	}},
-	{"windows_amd64_pure_stripped/cross", []string{
+	{"windows_amd64_pure_stripped/cross.exe", []string{
 		"PE32+",
 		"Windows",
 		"executable",

@@ -49,13 +49,8 @@ def _ternary(*values):
     fail("Invalid value {}".format(v))
   fail("_ternary failed to produce a final result from {}".format(values))
 
-def get_mode(ctx, toolchain_flags):
-  if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
-    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  else:
-    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
-
-  # We always have to use the pure stdlib in cross compilation mode
+def get_mode(ctx, go_toolchain, go_context_data):
+  # We always have to  use the pure stdlib in cross compilation mode
   force_pure = "on" if go_toolchain.cross_compile else "auto"
   force_race = "off" if go_toolchain.bootstrap else "auto"
 
@@ -83,8 +78,8 @@ def get_mode(ctx, toolchain_flags):
     race = False
   debug = ctx.var["COMPILATION_MODE"] == "debug"
   strip_mode = "sometimes"
-  if toolchain_flags:
-    strip_mode = toolchain_flags.strip
+  if go_context_data:
+    strip_mode = go_context_data.strip
   strip = True
   if strip_mode == "always":
     strip = True

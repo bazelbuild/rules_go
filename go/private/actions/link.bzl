@@ -19,31 +19,29 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_NORMAL",
 )
-load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "add_go_env",
-    "bootstrap_action",
-)
 
-def emit_link(ctx, go_toolchain,
+def emit_link(go,
     archive = None,
     executable = None,
     gc_linkopts = [],
-    x_defs = {}):
+    x_defs = {},
+    linkstamp=None,
+    version_file=None,
+    info_file=None):
   """See go/toolchains.rst#link for full documentation."""
 
   if archive == None: fail("archive is a required parameter")
   if executable == None: fail("executable is a required parameter")
 
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, archive.source.mode)
-
-  config_strip = len(ctx.configuration.bin_dir.path) + 1
+  #TODO: There has to be a better way to work out the rpath
+  config_strip = len(go._ctx.configuration.bin_dir.path) + 1
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
   ld = None
   extldflags = []
-  if stdlib.cgo_tools:
-    ld = stdlib.cgo_tools.compiler_executable
-    extldflags.extend(stdlib.cgo_tools.options)
+  if go.stdlib.cgo_tools:
+    ld = go.stdlib.cgo_tools.compiler_executable
+    extldflags.extend(go.stdlib.cgo_tools.options)
   extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)])
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
@@ -81,7 +79,7 @@ def emit_link(ctx, go_toolchain,
     else:
       link_opts.extend(["-X", "%s=%s" % (k, v)])
 
-  link_opts.extend(go_toolchain.flags.link)
+  link_opts.extend(go.toolchain.flags.link)
   if archive.source.mode.strip:
     link_opts.extend(["-w"])
 
@@ -91,38 +89,40 @@ def emit_link(ctx, go_toolchain,
         "-extldflags", " ".join(extldflags),
     ])
   link_opts.append(archive.data.file.path)
-  link_args = ctx.actions.args()
-  add_go_env(link_args, stdlib, archive.source.mode)
+  link_args = go.args(go)
   # Stamping support
   stamp_inputs = []
-  if stamp_x_defs or ctx.attr.linkstamp:
-    stamp_inputs = [ctx.info_file, ctx.version_file]
+  if stamp_x_defs or linkstamp:
+    stamp_inputs = [info_file, version_file]
     link_args.add(stamp_inputs, before_each="-stamp")
     for k,v in stamp_x_defs.items():
       link_args.add(["-X", "%s=%s" % (k, v)])
     # linkstamp option support: read workspace status files,
     # converting "KEY value" lines to "-X $linkstamp.KEY=value" arguments
     # to the go linker.
-    if ctx.attr.linkstamp:
-      link_args.add(["-linkstamp", ctx.attr.linkstamp])
+    if linkstamp:
+      link_args.add(["-linkstamp", linkstamp])
 
   link_args.add("--")
   link_args.add(link_opts)
 
-  ctx.actions.run(
+  go.actions.run(
       inputs = sets.union(archive.libs, archive.cgo_deps,
-                go_toolchain.data.crosstool, stamp_inputs, stdlib.files),
+                go.crosstool, stamp_inputs, go.stdlib.files),
       outputs = [executable],
       mnemonic = "GoLink",
-      executable = go_toolchain.tools.link,
+      executable = go.toolchain.tools.link,
       arguments = [link_args],
   )
 
-def bootstrap_link(ctx, go_toolchain,
+def bootstrap_link(go,
     archive = None,
     executable = None,
     gc_linkopts = [],
-    x_defs = {}):
+    x_defs = {},
+    linkstamp=None,
+    version_file=None,
+    info_file=None):
   """See go/toolchains.rst#link for full documentation."""
 
   if archive == None: fail("archive is a required parameter")
@@ -134,11 +134,11 @@ def bootstrap_link(ctx, go_toolchain,
   args = ["tool", "link", "-o", executable.path]
   args.extend(gc_linkopts)
   args.append(archive.data.file.path)
-  bootstrap_action(ctx, go_toolchain, archive.source.mode,
-      inputs = inputs,
+  go.actions.run_shell(
+      inputs = inputs + go.stdlib.files,
       outputs = [executable],
-      mnemonic = "GoCompile",
-      arguments = args,
+      mnemonic = "GoLink",
+      command = "export GOROOT=$(pwd)/{} && {} {}".format(go.stdlib.root_file.dirname, go.stdlib.go.path, " ".join(args)),
   )
 
 def _extract_extldflags(gc_linkopts, extldflags):

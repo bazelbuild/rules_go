@@ -13,12 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl", "env_execute")
-
-def executable_extension(ctx):
-  extension = ""
-  if ctx.os.name.startswith('windows'):
-    extension = ".exe"
-  return extension
+load("@io_bazel_rules_go//go/private:context.bzl", "executable_extension")
 
 def _go_host_sdk_impl(ctx):
   path = _detect_host_sdk(ctx)

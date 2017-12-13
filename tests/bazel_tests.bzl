@@ -1,5 +1,9 @@
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "env_execute")
-load("@io_bazel_rules_go//go/private:common.bzl", "declare_file")
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
+load("@io_bazel_rules_go//go/private:go_repository.bzl",
+    "env_execute"
+)
 
 # _bazelrc is the bazel.rc file that sets the default options for tests
 _bazelrc = """
@@ -64,7 +68,8 @@ filegroup(
 CURRENT_VERSION = "current"
 
 def _bazel_test_script_impl(ctx):
-  script_file = declare_file(ctx, ext=".bash")
+  go = go_context(ctx)
+  script_file = go.declare_file(go, ext=".bash")
 
   if ctx.attr.go_version == CURRENT_VERSION:
     register = 'go_register_toolchains()\n'
@@ -86,9 +91,9 @@ def _bazel_test_script_impl(ctx):
     workspace_content += _basic_workspace.format()
     workspace_content += register
 
-  workspace_file = declare_file(ctx, path="WORKSPACE.in")
+  workspace_file = go.declare_file(go, path="WORKSPACE.in")
   ctx.actions.write(workspace_file, workspace_content)
-  build_file = declare_file(ctx, path="BUILD.in")
+  build_file = go.declare_file(go, path="BUILD.in")
   ctx.actions.write(build_file, ctx.attr.build)
 
   targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
@@ -128,7 +133,9 @@ _bazel_test_script = rule(
         "config": attr.string(default="isolate"),
         "_bazelrc": attr.label(allow_files=True, single_file=True, default="@bazel_test//:bazelrc"),
         "_settings": attr.label(default = Label("@bazel_test//:settings")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def bazel_test(name, command = None, args=None, targets = None, go_version = None, tags=[], externals=[], workspace="", build="", check="", config=None):
@@ -166,7 +173,8 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
   )
 
 def _md5_sum_impl(ctx):
-  out = declare_file(ctx, ext=".md5")
+  go = go_context(ctx)
+  out = go.declare_file(go, ext=".md5")
   arguments = ctx.actions.args()
   arguments.add(["-output", out.path])
   arguments.add(ctx.files.srcs)
@@ -184,7 +192,9 @@ md5_sum = rule(
     attrs = {
         "srcs": attr.label_list(allow_files=True),
         "_md5sum":  attr.label(allow_files=True, single_file=True, default=Label("@io_bazel_rules_go//go/tools/builders:md5sum")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _test_environment_impl(ctx):

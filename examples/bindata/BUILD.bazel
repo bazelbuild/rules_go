@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-load("@io_bazel_rules_go//examples/bindata:bindata.bzl", "bindata")
+load("@io_bazel_rules_go//extras:bindata.bzl", "bindata")
 
 bindata(
     name = "data",

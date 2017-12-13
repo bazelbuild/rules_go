@@ -21,24 +21,7 @@ load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile", "boot
 load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
 load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link", "bootstrap_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoStdLib")
-load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
-load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
 
-def _get_stdlib(ctx, go_toolchain, mode):
-  for stdlib in go_toolchain.stdlib.all:
-    stdlib = stdlib[GoStdLib]
-    if (stdlib.goos == mode.goos and
-        stdlib.goarch == mode.goarch and
-        stdlib.race == mode.race and
-        stdlib.pure == mode.pure):
-      return stdlib
-  fail("No matching standard library for "+mode_string(mode))
-
-def _goos_to_extension(goos):
-  if goos == "windows":
-    return ".exe"
-  return ""
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
@@ -47,10 +30,6 @@ def _go_toolchain_impl(ctx):
       bootstrap = ctx.attr.bootstrap,
       default_goos = ctx.attr.goos,
       default_goarch = ctx.attr.goarch,
-      stdlib = struct(
-          all = ctx.attr._stdlib_all,
-          get = _get_stdlib,
-      ),
       actions = struct(
           archive = emit_archive,
           asm = emit_asm,
@@ -74,23 +53,7 @@ def _go_toolchain_impl(ctx):
           link = ctx.attr.link_flags,
           link_cgo = ctx.attr.cgo_link_flags,
       ),
-      data = struct(
-          crosstool = ctx.files._crosstool,
-          package_list = ctx.file._package_list,
-          extension = _goos_to_extension(ctx.attr.goos),
-      ),
   )]
-
-def _stdlib_all():
-  stdlibs = []
-  for goos, goarch in GOOS_GOARCH:
-    stdlibs.extend([
-      Label("@go_stdlib_{}_{}_cgo".format(goos, goarch)),
-      Label("@go_stdlib_{}_{}_pure".format(goos, goarch)),
-      Label("@go_stdlib_{}_{}_cgo_race".format(goos, goarch)),
-      Label("@go_stdlib_{}_{}_pure_race".format(goos, goarch)),
-    ])
-  return stdlibs
 
 def _asm(bootstrap):
   if bootstrap:
@@ -146,10 +109,6 @@ _go_toolchain = rule(
         "_cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cgo),
         "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),
         "_cover": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cover),
-        # Hidden internal attributes
-        "_stdlib_all": attr.label_list(default = _stdlib_all()),
-        "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
-        "_package_list": attr.label(allow_files = True, single_file = True, default="@go_sdk//:packages.txt"),
     },
 )
 
@@ -208,15 +167,3 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
         target_compatible_with = target_constraints,
         toolchain = ":"+impl_name,
     )
-
-def _go_toolchain_flags(ctx):
-    return struct(
-        strip = ctx.attr.strip,
-    )
-
-go_toolchain_flags = rule(
-    _go_toolchain_flags,
-    attrs = {
-        "strip": attr.string(mandatory=True),
-    },
-)

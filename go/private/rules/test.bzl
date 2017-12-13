@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
     "split_srcs",
     "pkg_dir",
-    "declare_file",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
@@ -24,23 +26,13 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "gc_linkopts")
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-)
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
     "get_archive",
-    "new_go_library",
-    "library_to_source",
-)
-load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "add_go_env",
 )
 load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
 
-def _testmain_library_to_source(ctx, attr, source):
+def _testmain_library_to_source(ctx, attr, source, merge):
   source["deps"] = source["deps"] + [attr.library]
 
 def _go_test_impl(ctx):
@@ -49,10 +41,8 @@ def _go_test_impl(ctx):
   It emits an action to run the test generator, and then compiles the
   test into a binary."""
 
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
+  go = go_context(ctx)
   archive = get_archive(ctx.attr.library)
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, archive.source.mode)
 
   # now generate the main function
   if ctx.attr.rundir:
@@ -63,9 +53,8 @@ def _go_test_impl(ctx):
   else:
     run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-  main_go = declare_file(ctx, "testmain.go")
-  arguments = ctx.actions.args()
-  add_go_env(arguments, stdlib, archive.source.mode)
+  main_go = go.declare_file(go, "testmain.go")
+  arguments = go.args(go)
   arguments.add([
       '--package',
       archive.source.library.importpath,
@@ -82,7 +71,7 @@ def _go_test_impl(ctx):
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
-      executable = go_toolchain.tools.test_generator,
+      executable = go.toolchain.tools.test_generator,
       arguments = [arguments],
       env = {
           "RUNDIR" : ctx.label.package,
@@ -90,17 +79,20 @@ def _go_test_impl(ctx):
   )
 
   # Now compile the test binary itself
-  test_library = new_go_library(ctx,
+  test_library = go.new_library(go,
       resolver=_testmain_library_to_source,
       srcs=[main_go],
       importable=False,
   )
-  test_source = library_to_source(ctx, ctx.attr, test_library, mode)
-  test_archive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
+  test_source = go.library_to_source(go, ctx.attr, test_library, False)
+  test_archive, executable = go.binary(go,
       name = ctx.label.name,
       source = test_source,
       gc_linkopts = gc_linkopts(ctx),
       x_defs=ctx.attr.x_defs,
+      linkstamp=ctx.attr.linkstamp,
+      version_file=ctx.version_file,
+      info_file=ctx.info_file,
   )
 
   runfiles = ctx.runfiles(files = [executable])
@@ -135,7 +127,7 @@ go_test = rule(
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
         "_go_prefix": attr.label(default = go_prefix_default),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     executable = True,
     test = True,

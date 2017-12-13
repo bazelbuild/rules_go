@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
 load("@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
     "to_set",
     "sets",
-)
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "library_to_source",
-    "new_aspect_provider",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
@@ -29,21 +28,19 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoArchive",
     "GoArchiveData",
     "GoSource",
+    "new_aspect_provider",
 )
 load("@io_bazel_rules_go//go/platform:list.bzl",
     "GOOS",
     "GOARCH",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
 
 
 def _go_archive_aspect_impl(target, ctx):
-  mode = get_mode(ctx, ctx.rule.attr._go_toolchain_flags)
+  go = go_context(ctx, ctx.rule.attr)
   source = target[GoSource] if GoSource in target else None
   archive = target[GoArchive] if GoArchive in target else None
-  if source and source.mode == mode:
+  if source and source.mode == go.mode:
     # The base layer already built the right mode for us
     return [new_aspect_provider(
       source = source,
@@ -54,12 +51,9 @@ def _go_archive_aspect_impl(target, ctx):
     return []
   # We have a library and we need to compile it in a new mode
   library = target[GoLibrary]
-  source = library_to_source(ctx, ctx.rule.attr, library, mode)
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  archive = go_toolchain.actions.archive(ctx,
-      go_toolchain = go_toolchain,
-      source = source,
-  )
+  source = go.library_to_source(go, ctx.rule.attr, library, ctx.coverage_instrumented())
+  if archive:
+    archive = go.archive(go, source = source)
   return [new_aspect_provider(
     source = source,
     archive = archive,

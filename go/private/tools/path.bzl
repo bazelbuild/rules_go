@@ -12,16 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
-load("@io_bazel_rules_go//go/private:common.bzl", "declare_file")
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl", "get_archive")
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
+load("@io_bazel_rules_go//go/private:providers.bzl",
+    "GoLibrary",
+    "GoPath",
+    "get_archive",
+)
 
-
-def _tag(ctx, path, outputs):
+def _tag(go, path, outputs):
   """this generates a existance tag file for dependencies, and returns the path to the tag file"""
-  tag = declare_file(ctx, path=path+".tag")
+  tag = go.declare_file(go, path=path+".tag")
   path, _, _ = tag.short_path.rpartition("/")
-  ctx.actions.write(tag, content="")
+  go.actions.write(tag, content="")
   outputs.append(tag)
   return path
 
@@ -30,7 +34,7 @@ def _go_path_impl(ctx):
 EXPERIMENTAL: the go_path rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+  go = go_context(ctx)
   #TODO: non specific mode?
   # First gather all the library rules
   golibs = depset()
@@ -64,7 +68,7 @@ Found {} in
         # If we see the same path twice, it's a fatal error
         fail("Duplicate path {}".format(outpath))
       seen_paths[outpath] = True
-      out = declare_file(ctx, path=outpath)
+      out = go.declare_file(go, path=outpath)
       package_files += [out]
       outputs += [out]
       if ctx.attr.mode == "copy":
@@ -81,10 +85,10 @@ Found {} in
         fail("Invalid go path mode '{}'".format(ctx.attr.mode))
     packages += [struct(
       golib = golib,
-      dir = _tag(ctx, prefix, outputs),
+      dir = _tag(go, prefix, outputs),
       files = package_files,
     )]
-  gopath = _tag(ctx, "", outputs)
+  gopath = _tag(go, "", outputs)
   return [
       DefaultInfo(
           files = depset(outputs),
@@ -101,6 +105,7 @@ go_path = rule(
     attrs = {
         "deps": attr.label_list(providers=[GoLibrary]),
         "mode": attr.string(default="copy", values=["link", "copy"]),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

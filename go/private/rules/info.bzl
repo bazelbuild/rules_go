@@ -12,23 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
-load("@io_bazel_rules_go//go/private:actions/action.bzl",
-    "add_go_env",
-)
-load("@io_bazel_rules_go//go/private:common.bzl",
-    "declare_file",
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
 )
 
 def _go_info_script_impl(ctx):
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  stdlib = go_toolchain.stdlib.get(ctx, go_toolchain, mode)
-  out = declare_file(ctx, ext=".bash")
-  args = ctx.actions.args()
-  add_go_env(args, stdlib, mode)
+  go = go_context(ctx)
+  out = go.declare_file(go, ext=".bash")
+  args = go.args(go)
   args.add(["-script", "-out", out])
   ctx.actions.run(
       inputs = [],
@@ -52,7 +43,7 @@ _go_info_script = rule(
             executable = True,
             cfg = "host",
             default="@io_bazel_rules_go//go/tools/builders:info"),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

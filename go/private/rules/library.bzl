@@ -12,27 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-)
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "new_go_library",
-    "library_to_source",
 )
 load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
 
 def _go_library_impl(ctx):
   """Implements the go_library() rule."""
-  go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  library = new_go_library(ctx)
-  source = library_to_source(ctx, ctx.attr, library, mode)
-  archive = go_toolchain.actions.archive(ctx, go_toolchain, source)
+  go = go_context(ctx)
+  library = go.new_library(go)
+  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+  archive = go.archive(go, source)
 
   return [
       library, source, archive,
@@ -54,7 +49,7 @@ go_library = rule(
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "_go_prefix": attr.label(default = go_prefix_default),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

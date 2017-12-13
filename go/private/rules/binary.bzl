@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go/private:context.bzl",
+    "go_context",
+)
 load("@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
 )
@@ -24,35 +27,27 @@ load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
-load("@io_bazel_rules_go//go/private:rules/helpers.bzl",
-    "new_go_library",
-    "library_to_source",
-)
 load("@io_bazel_rules_go//go/platform:list.bzl",
     "GOOS",
     "GOARCH",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
-    "get_mode",
-)
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
-  if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
-    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  else:
-    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
-  mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  library = new_go_library(ctx, importable=False)
-  source = library_to_source(ctx, ctx.attr, library, mode)
+  go = go_context(ctx)
+  library = go.new_library(go, importable=False)
+  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
   name = ctx.attr.basename
   if not name:
     name = ctx.label.name
-  archive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
+  archive, executable = go.binary(go,
       name = name,
       source = source,
       gc_linkopts = gc_linkopts(ctx),
       x_defs = ctx.attr.x_defs,
+      linkstamp=ctx.attr.linkstamp,
+      version_file=ctx.version_file,
+      info_file=ctx.info_file,
   )
   return [
       library, source, archive,
@@ -86,7 +81,7 @@ go_binary = rule(
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "_go_prefix": attr.label(default = go_prefix_default),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     executable = True,
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
@@ -110,7 +105,7 @@ go_tool_binary = rule(
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "_go_prefix": attr.label(default = go_prefix_default),
-        "_go_toolchain_flags": attr.label(default=Label("@io_bazel_rules_go//go/private:go_toolchain_flags")),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     executable = True,
     toolchains = ["@io_bazel_rules_go//go:bootstrap_toolchain"],
