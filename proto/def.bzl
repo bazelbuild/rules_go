@@ -68,7 +68,10 @@ def _go_proto_library_impl(ctx):
     importpath = importpath,
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  library = new_go_library(ctx, _proto_library_to_source, srcs=go_srcs)
+  library = new_go_library(ctx,
+      resolver=_proto_library_to_source,
+      srcs=go_srcs,
+  )
   source = library_to_source(ctx, ctx.attr, library, mode)
   archive = go_toolchain.actions.archive(ctx, go_toolchain, source)
 

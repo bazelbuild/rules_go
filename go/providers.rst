@@ -184,7 +184,7 @@ GoArchive
 ~~~~~~~~~
 
 GoArchive is a provider that exposes a compiled library along with it's full transitive
-dependancies.
+dependencies.
 This is used when compiling and linking dependant libraries or binaries.
 
 +--------------------------------+-----------------------------------------------------------------+

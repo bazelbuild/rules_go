@@ -92,7 +92,7 @@ following fields that control the bevhaviour of those actions:
 Build modes
 -----------
 
-The following is a description of the build modes. Not all build modes are truly independant, but
+The following is a description of the build modes. Not all build modes are truly independent, but
 most combinations are valid.
 
 static

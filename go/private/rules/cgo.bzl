@@ -244,7 +244,8 @@ def _cgo_collect_info_impl(ctx):
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
 
-  library = new_go_library(ctx, _cgo_library_to_source,
+  library = new_go_library(ctx,
+      resolver=_cgo_library_to_source,
       input_go_srcs = ctx.files.input_go_srcs,
       gen_go_srcs = ctx.files.gen_go_srcs,
       cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,

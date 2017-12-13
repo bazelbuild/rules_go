@@ -90,8 +90,11 @@ def _go_test_impl(ctx):
   )
 
   # Now compile the test binary itself
-  test_library = new_go_library(ctx, _testmain_library_to_source, srcs=[main_go], importable=False)
-  #TODO:    importpath = ctx.label.name + "~testmain~",
+  test_library = new_go_library(ctx,
+      resolver=_testmain_library_to_source,
+      srcs=[main_go],
+      importable=False,
+  )
   test_source = library_to_source(ctx, ctx.attr, test_library, mode)
   test_archive, executable = go_toolchain.actions.binary(ctx, go_toolchain,
       name = ctx.label.name,
@@ -100,9 +103,6 @@ def _go_test_impl(ctx):
       x_defs=ctx.attr.x_defs,
   )
 
-  # TODO(bazel-team): the Go tests should do a chdir to the directory
-  # holding the data files, so open-source go tests continue to work
-  # without code changes.
   runfiles = ctx.runfiles(files = [executable])
   runfiles = runfiles.merge(archive.runfiles)
   runfiles = runfiles.merge(test_archive.runfiles)

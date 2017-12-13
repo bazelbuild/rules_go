@@ -18,7 +18,7 @@ load("@io_bazel_rules_go//go/private:rules/helpers.bzl", "get_archive")
 
 
 def _tag(ctx, path, outputs):
-  """this generates a existance tag file for dependancies, and returns the path to the tag file"""
+  """this generates a existance tag file for dependencies, and returns the path to the tag file"""
   tag = declare_file(ctx, path=path+".tag")
   path, _, _ = tag.short_path.rpartition("/")
   ctx.actions.write(tag, content="")
