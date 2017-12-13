@@ -55,7 +55,6 @@ _go_proto_aspect = aspect(
 
 def _proto_library_to_source(ctx, attr, source):
   compiler = attr.compiler[GoProtoCompiler]
-  source["srcs"] = source["library"].proto_go_srcs + source["srcs"]
   merge_embed(source, attr.compiler)
 
 def _go_proto_library_impl(ctx):
@@ -69,7 +68,7 @@ def _go_proto_library_impl(ctx):
     importpath = importpath,
   )
   go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  library = new_go_library(ctx, _proto_library_to_source, proto_go_srcs=go_srcs)
+  library = new_go_library(ctx, _proto_library_to_source, srcs=go_srcs)
   source = library_to_source(ctx, ctx.attr, library, mode)
   archive = go_toolchain.actions.archive(ctx, go_toolchain, source)
 

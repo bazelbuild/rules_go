@@ -41,7 +41,6 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
 )
 
 def _testmain_library_to_source(ctx, attr, source):
-  source["srcs"] = source["srcs"] + source["library"].testmain_srcs
   source["deps"] = source["deps"] + [attr.library]
 
 def _go_test_impl(ctx):
@@ -91,7 +90,7 @@ def _go_test_impl(ctx):
   )
 
   # Now compile the test binary itself
-  test_library = new_go_library(ctx, _testmain_library_to_source, testmain_srcs=[main_go], importable=False)
+  test_library = new_go_library(ctx, _testmain_library_to_source, srcs=[main_go], importable=False)
   #TODO:    importpath = ctx.label.name + "~testmain~",
   test_source = library_to_source(ctx, ctx.attr, test_library, mode)
   test_archive, executable = go_toolchain.actions.binary(ctx, go_toolchain,

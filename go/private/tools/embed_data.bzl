@@ -23,9 +23,6 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
 )
 
-def _embed_library_to_source(ctx, attr, source):
-  source["srcs"] = [source["library"].embed_go_src] + source["srcs"]
-
 def _go_embed_data_impl(ctx):
   if ctx.attr.src and ctx.attr.srcs:
     fail("%s: src and srcs attributes cannot both be specified" % ctx.label)
@@ -61,7 +58,7 @@ def _go_embed_data_impl(ctx):
   args.add(srcs)
 
   mode = get_mode(ctx, ctx.attr._go_toolchain_flags)
-  library = new_go_library(ctx)
+  library = new_go_library(ctx, srcs=srcs)
   source = library_to_source(ctx, ctx.attr, library, mode)
 
   ctx.actions.run(

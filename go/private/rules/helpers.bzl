@@ -65,10 +65,12 @@ def merge_embed(source, embed):
     source["cgo_archive"] = s.cgo_archive
 
 def library_to_source(ctx, attr, library, mode):
+  attr_srcs = [f for t in getattr(attr, "srcs", []) for f in t.files]
+  generated_srcs = getattr(library, "srcs", [])
   source = {
       "library" : library,
       "mode" : mode,
-      "srcs" : [f for t in getattr(attr, "srcs", []) for f in t.files],
+      "srcs" : generated_srcs + attr_srcs,
       "cover" : [],
       "deps" : getattr(attr, "deps", []),
       "gc_goopts" : getattr(attr, "gc_goopts", []),
@@ -78,7 +80,7 @@ def library_to_source(ctx, attr, library, mode):
       "cgo_exports" : [],
   }
   if ctx.coverage_instrumented() and not attr.testonly:
-    source["cover"] = source["srcs"]
+    source["cover"] = attr_srcs
   for e in getattr(attr, "embed", []):
     merge_embed(source, e)
   if library.resolve:
