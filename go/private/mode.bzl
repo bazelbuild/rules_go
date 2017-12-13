@@ -57,6 +57,7 @@ def get_mode(ctx, toolchain_flags):
 
   # We always have to use the pure stdlib in cross compilation mode
   force_pure = "on" if go_toolchain.cross_compile else "auto"
+  force_race = "off" if go_toolchain.bootstrap else "auto"
 
   #TODO: allow link mode selection
   static = _ternary(
@@ -65,6 +66,7 @@ def get_mode(ctx, toolchain_flags):
   )
   race = _ternary(
       getattr(ctx.attr, "race", None),
+      force_race,
       "race" in ctx.features,
   )
   msan = _ternary(
@@ -76,6 +78,9 @@ def get_mode(ctx, toolchain_flags):
       force_pure,
       "pure" in ctx.features,
   )
+  if race and pure:
+    # You are not allowed to compile in race mode with pure enabled
+    race = False
   debug = ctx.var["COMPILATION_MODE"] == "debug"
   strip_mode = "sometimes"
   if toolchain_flags:

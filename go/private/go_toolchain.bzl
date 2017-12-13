@@ -45,6 +45,7 @@ def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
       cross_compile = ctx.attr.cross_compile,
+      bootstrap = ctx.attr.bootstrap,
       default_goos = ctx.attr.goos,
       default_goarch = ctx.attr.goarch,
       stdlib = struct(
