@@ -3,6 +3,9 @@ load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_google_protobuf")
 
+# gazelle:prefix github.com/bazelbuild/rules_go
+
+# TODO(jayconrod): remove when nothing depends on this.
 go_prefix("github.com/bazelbuild/rules_go")
 
 go_google_protobuf()
@@ -25,7 +28,6 @@ lines_sorted_test(
 
 gazelle(
     name = "gazelle",
-    prefix = "github.com/bazelbuild/rules_go",
 )
 
 # This could be any file, used as an anchor point for the directory in tests
