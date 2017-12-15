@@ -141,6 +141,18 @@ def go_rules_dependencies():
       commit = "a0ff2567cfb70903282db057e799fd826784d41d",
   )
 
+  _maybe(go_repository,
+      name = "com_github_pelletier_go_buffruneio",
+      importpath = "github.com/pelletier/go-buffruneio",
+      commit = "c37440a7cf42ac63b919c752ca73a85067e05992",
+  )
+
+  _maybe(go_repository,
+      name = "com_github_pelletier_go_toml",
+      importpath = "github.com/pelletier/go-toml",
+      commit = "5ccdfb18c776b740aecaf085c4d9a2779199c279",
+  )
+
 
 def _maybe(repo_rule, name, **kwargs):
   if name not in native.existing_rules():

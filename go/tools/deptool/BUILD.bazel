@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/deptool",
+    visibility = ["//visibility:private"],
+    deps = ["@com_github_pelletier_go_toml//:go_default_library"],
+)
+
+go_binary(
+    name = "deptool",
+    embed = [":go_default_library"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/deptool",
+    visibility = ["//visibility:public"],
+)
