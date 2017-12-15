@@ -19,6 +19,7 @@ Go rules for Bazel_
 .. _#265: https://github.com/bazelbuild/rules_go/issues/265
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
+.. _reproducible_binary: tests/reproducible_binary/BUILD.bazel
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _Travis configuration file: .travis.yml
@@ -319,6 +320,38 @@ directory using the ``rundir`` attribute. See go_test_.
 Gazelle will automatically add a ``data`` attribute like the one above if you
 have a ``testdata`` directory *unless* it contains buildable .go files or
 build files, in which case, ``testdata`` is treated as a normal package.
+
+How do I access ``go_binary`` executables from ``go_test``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The location where ``go_binary`` writes its executable file is not stable across
+rules_go versions and should not be depended upon. The parent directory includes
+some configuration data in its name. This prevents Bazel's cache from being
+poisoned when the same binary is built in different configurations. The binary
+basename may also be platform-dependent: on Windows, we add an .exe extension.
+
+To depend on an executable in a ``go_test`` rule, reference the executable
+in the ``data`` attribute (to make it visible), then expand the location
+in ``args``. The real location will be passed to the test on the command line.
+For example:
+
+.. code:: bzl
+
+  go_binary(
+      name = "cmd",
+      srcs = ["cmd.go"],
+      importpath = "example.com/cmd",
+  )
+
+  go_test(
+      name = "cmd_test",
+      srcs = ["cmd_test.go"],
+      args = ["$(location :cmd)"],
+      data = [":cmd"],
+      importpath = "example.com/test",
+  )
+
+See `reproducible_binary`_ for a complete example.
 
 How do I run Bazel on Travis CI?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
