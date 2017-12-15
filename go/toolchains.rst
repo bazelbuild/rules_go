@@ -12,6 +12,9 @@ Go toolchains
 .. _register_toolchains: https://docs.bazel.build/versions/master/skylark/lib/globals.html#register_toolchains
 .. _compilation modes: modes.rst#compilation-modes
 .. _go assembly: https://golang.org/doc/asm
+.. _GoLibrary: providers.rst#GoLibrary
+.. _GoSource: providers.rst#GoSource
+.. _GoArchive: providers.rst#GoArchive
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -28,7 +31,7 @@ customize the behavior of the core_ Go rules.
 Design
 ------
 
-The Go toolchain consists of two main layers, `the sdk`_ and `the toolchain`_.
+The Go toolchain consists of three main layers, `the sdk`_ and `the toolchain`_ and `the context`_.
 
 The SDK
 ~~~~~~~
@@ -55,6 +58,9 @@ repository before you call go_register_toolchains_.
 
 The toolchain
 ~~~~~~~~~~~~~
+
+This a wrapper over the sdk that provides enough extras to match, target and work on a specific
+platforms. It should be considered an opaqute type, you only ever use it through `the context`_.
 
 Declaration
 ^^^^^^^^^^^
@@ -97,6 +103,13 @@ example of this in `limiting the available toolchains`_.
 It is important to note that you **must** also register the boostrap toolchain for any other
 toolchain that you register, otherwise the tools for that toolchain cannot be built.
 
+
+
+The context
+~~~~~~~~~~~
+
+This is the type you use if you are writing custom rules that need
+
 Use
 ^^^
 
@@ -109,6 +122,7 @@ First, you have to declare that you want to consume the toolchain on the rule de
       _my_rule_impl,
       attrs = {
           ...
+          "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
       },
       toolchains = ["@io_bazel_rules_go//go:toolchain"],
   )
@@ -226,6 +240,7 @@ WORKSPACE
         "@io_bazel_rules_go//go/toolchain:1.8.3_darwin_amd64",
         "@io_bazel_rules_go//go/toolchain:1.8.3_darwin_amd64-bootstrap",
     )
+
 
 API
 ---
@@ -386,54 +401,139 @@ toolchain of type :value:`"@io_bazel_rules_go//go:bootstrap_toolchain"`.
 | should apply when using this toolchain.                                                          |
 +--------------------------------+-----------------------------+-----------------------------------+
 
-The toolchain object
-~~~~~~~~~~~~~~~~~~~~
+go_context
+~~~~~~~~~~
 
-When you get a Go toolchain from a context (see use_) it exposes a number of fields, of those
-the stable public interface is
+This collects the information needed to form and return a :type:`GoContext` from a rule ctx.
+It uses the attrbutes and the toolchains.
+It can only be used in the implementation of a rule that has the go toolchain attached and
+the go context data as an attribute.
 
-* go_toolchain
+.. code:: bzl
 
-  * actions
+  my_rule = rule(
+      _my_rule_impl,
+      attrs = {
+          ...
+          "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+      },
+      toolchains = ["@io_bazel_rules_go//go:toolchain"],
+  )
 
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`ctx`                   | :type:`ctx`                 | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The Bazel ctx object for the current rule.                                                       |
++--------------------------------+-----------------------------+-----------------------------------+
+
+The context object
+~~~~~~~~~~~~~~~~~~
+
+GoContext is never returned by a rule, instead you build one using go_context(ctx) in the top of
+any custom skylark rule that wants to interact with the go rules.
+It provides all the information needed to create go actions, and create or interact with the other
+go providers.
+
+When you get a GoContext from a context (see use_) it exposes a number of fields and methods.
+
+All methods take the GoContext as the only positional argument, all other arguments even if
+mandatory must be specified by name, to allow us to re-order and deprecate individual parameters
+over time.
+
+
+Methods
+*******
+
+  * Action generators
+    * archive_
     * asm_
     * binary_
     * compile_
     * cover_
-    * library_
     * link_
     * pack_
+  * Helpers
+    * args_
+    * declare_file_
+    * library_to_source_
+    * new_library_
 
 
-The only stable public interface is the actions member.
-This holds a collection of functions for generating the standard actions the toolchain knows
-about, compiling and linking for instance.
-All the other members are there to provide information to those action functions, and the api of
-any other part is subject to arbritary breaking changes at any time.
+Fields
+******
 
-All action functions take the ctx and the go_toolchain as the only positional arguments, all
-other arguments even if mandator must be specified by name, to allow us to re-order and
-deprecate individual parameters over time.
++--------------------------------+-----------------------------------------------------------------+
+| **Name**                       | **Type**                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`toolchain`             | :type:`GoToolchain`                                             |
++--------------------------------+-----------------------------------------------------------------+
+| The underlying toolchain. This should be considered an opaque type subject to change.            |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`mode`                  | :type:`Mode`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| Controls the compilation setup affecting things like enabling profilers and sanitizers.          |
+| See `compilation modes`_ for more information about the allowed values.                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`stdlib`                | :type:`GoStdlib`                                                |
++--------------------------------+-----------------------------------------------------------------+
+| The standard library and tools to use in this build mode.                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`actions`               | :type:`ctx.actions`                                             |
++--------------------------------+-----------------------------------------------------------------+
+| The actions structure from the Bazel context, which has all the methods for building new         |
+| bazel actions.                                                                                   |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`exe_extension`         | :type:`String`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The suffix to use for all executables in this build mode. Mostly used when generating the output |
+| filenames of binary rules.                                                                       |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`crosstool`             | :type:`list of File`                                            |
++--------------------------------+-----------------------------------------------------------------+
+| The files you need to add to the inputs of an action in order to use the cc toolchain.           |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`package_list`          | :type:`File`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| A file that contains the package list of the standard library.                                   |
++--------------------------------+-----------------------------------------------------------------+
+
+
+archive
+~~~~~~~
+
+This emits actions to compile Go code into an archive.
+It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
+
+It returns a GoArchive_.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This must be the same GoContext object you got this function from.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`source`                | :type:`GoSource`            | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The GoSource_ that should be compiled into an archive.                                           |
++--------------------------------+-----------------------------+-----------------------------------+
 
 
 asm
 ~~~
 
 The asm function adds an action that runs ``go tool asm`` on a source file
-to produce an object.
-
-It does not return anything.
+to produce an object, and returns the File of that object.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The current rule context, used to generate the actions.                                          |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same Go toolchain object you got this function from.                            |
+| This must be the same GoContext object you got this function from.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`source`                | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -443,10 +543,6 @@ It does not return anything.
 | :param:`hdrs`                  | :type:`File iterable`       | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The list of .h files that may be included by the source.                                         |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`out_obj`               | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The output object file that should be built by the generated action.                             |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -461,44 +557,17 @@ It returns GoLibrary_.
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The current rule context, used to generate the actions.                                          |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same Go toolchain object you got this function from.                            |
+| This must be the same GoContext object you got this function from.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`name`                  | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The base name of the generated binaries.                                                         |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`executable`            | :type:`File`                | |mandatory|                       |
+| :param:`source`                | :type:`GoSource`            | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The binary to produce.                                                                           |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`srcs`                  | :type:`File iterable`       | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of Go source Files to be compiled.                                                   |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`deps`                  | :type:`GoLibrary iterable`  | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The list of direct dependencies of this package.                                                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`cgo_info`              | :type:`CgoInfo`             | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An optional CgoInfo provider for this library.                                                   |
-| There may be at most one of these among the library and its embeds.                              |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`embed`                 | :type:`GoSourceList list`   | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Sources, dependencies, and other information from these are combined with the package            |
-| being compiled.                                                                                  |
-| Used to build internal test packages.                                                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`importpath`            | :type:`string`              | :value:`""`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The import path this package represents.                                                         |
+| The GoSource_ that should be compiled and linked.                                                |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`gc_linkopts`           | :type:`string_list`         | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -521,13 +590,9 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The current rule context, used to generate the actions.                                          |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same Go toolchain object you got this function from.                            |
+| This must be the same GoContext object you got this function from.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`sources`               | :type:`File iterable`       | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -538,17 +603,12 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The import path this package represents. This is passed to the -p flag.                          |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`golibs`                | :type:`GoLibrary iterable`  | :value:`[]`                       |
+| :param:`archives`              | :type:`GoArchive iterable`  | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | An iterable of all directly imported libraries.                                                  |
 | The action will verify that all directly imported libraries were supplied, not allowing          |
 | transitive dependencies to satisfy imports. It will not check that all supplied libraries were   |
 | used though.                                                                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`mode`                  | :type:`string`              | :value:`NORMAL_MODE`              |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Controls the compilation setup affecting things like enabling profilers and sanitizers.          |
-| See `compilation modes`_ for more information about the allowed values.                          |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`out_lib`               | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -566,78 +626,22 @@ cover
 The cover function adds an action that runs ``go tool cover`` on a set of source files
 to produce copies with cover instrumentation.
 
-Returns a tuple of the covered source list and the cover vars.
+Returns a tuple of a covered GoSource with the required source files processed for cover and
+the cover vars that were added.
 
 Note that this removes most comments, including cgo comments.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The current rule context, used to generate the actions.                                          |
+| This must be the same GoContext object you got this function from.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
+| :param:`source`                | :type:`GoSource`            | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same Go toolchain object you got this function from.                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`sources`               | :type:`File iterable`       | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of Go source files.                                                                  |
-| These Must be pure .go files that are ready to be passed to compile_, no assembly or cgo is      |
-| allowed.                                                                                         |
-+--------------------------------+-----------------------------+-----------------------------------+
-
-
-library
-~~~~~~~
-
-This emits actions to compile Go code into an archive.
-It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
-
-It returns a tuple of GoLibrary_ and GoSourceList_.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The current rule context, used to generate the actions.                                          |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same Go toolchain object you got this function from.                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`srcs`                  | :type:`File iterable`       | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of Go source Files to be compiled.                                                   |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`deps`                  | :type:`GoLibrary iterable`  | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The list of direct dependencies of this package.                                                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`cgo_info`              | :type:`CgoInfo`             | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An optional CgoInfo provider for this library.                                                   |
-| There may be at most one of these among the library and its embeds.                              |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`embed`                 | :type:`GoSourceList list`   | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Sources, dependencies, and other information from these are combined with the package            |
-| being compiled.                                                                                  |
-| Used to build internal test packages.                                                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`want_coverage`         | :type:`boolean`             | :value:`False`                    |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A bool indicating whether sources should be instrumented for coverage.                           |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`importpath`            | :type:`string`              | :value:`""`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The import path this package represents.                                                         |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`importable`            | :type:`boolean`             | :value:`True`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A bool indicating whether the package can be imported by other libraries.                        |
+| The source object to process. Any source files in the object that have been marked as needing    |
+| coverage will be processed and substiuted in the returned GoSource.                              |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -651,22 +655,13 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The current rule context, used to generate the actions.                                          |
+| This must be the same GoContext object you got this function from.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same Go toolchain object you got this function from.                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`library`               | :type:`GoLibrary`           | |mandatory|                       |
+| :param:`archive`               | :type:`GoArchive`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The library to link.                                                                             |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`mode`                  | :type:`string`              | :value:`NORMAL_MODE`              |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Controls the compilation setup affecting things like enabling profilers and sanitizers.          |
-| See `compilation modes`_ for more information about the allowed values.                          |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`executable`            | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -692,13 +687,9 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`ctx`                   | :type:`string`              | |mandatory|                       |
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The current rule context, used to generate the actions.                                          |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_toolchain`          | :type:`the Go toolchain`    | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same Go toolchain object you got this function from.                            |
+| This must be the same GoContext object you got this function from.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`in_lib`                | :type:`File`                | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -718,4 +709,108 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | An additional archive whose objects will be appended to the output.                              |
 | This can be an ar file in either common form or either the bsd or sysv variations.               |
++--------------------------------+-----------------------------+-----------------------------------+
+
+
+
+args
+~~~~
+
+This creates a new args object, using the ctx.args method, and the populates it with the standard
+arguments used by all the go toolchain builders.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This must be the same GoContext object you got this function from.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+
+declare_file
+~~~~~~~~~~~~
+
+This is the equivalent of ctx.actions.declare_file except it uses the current build mode to make
+the filename unique between configurations.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This must be the same GoContext object you got this function from.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`path`                  | :type:`string`              | :value:`""`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| A path for this file, including the basename of the file.                                        |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`ext`                   | :type:`string`              | :value:`""`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The extension to use for the file.                                                               |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`name`                  | :type:`string`              | :value:`""`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| A name to use for this file. If path is not present, this becomes a prefix to the path.          |
+| If this is not set, the current rule name is used in it's place.                                 |
++--------------------------------+-----------------------------+-----------------------------------+
+
+library_to_source
+~~~~~~~~~~~~~~~~~
+
+This is used to build a GoSource object for a given GoLibrary in the current build mode.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This must be the same GoContext object you got this function from.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`attr`                  | :type:`ctx.attr`            | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The attributes of the rule being processed, in a normal rule implementation this would be        |
+| ctx.attr.                                                                                        |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`library`               | :type:`GoLibrary`           | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| The GoLibrary_ that you want to build a GoSource_ object for in the current build mode.          |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`coverage_instrumented` | :type:`bool`                | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This controls whether cover is enabled for this specific library in this mode.                   |
+| This should generally be the value of ctx.coverage_instrumented()                                |
++--------------------------------+-----------------------------+-----------------------------------+
+
+new_library
+~~~~~~~~~~~
+
+This creates a new GoLibrary.
+You can add extra fields to the go library by providing extra named parameters to this function,
+they will be visible to the resolver when it is invoked.
+
++--------------------------------+-----------------------------+-----------------------------------+
+| **Name**                       | **Type**                    | **Default value**                 |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This must be the same GoContext object you got this function from.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`resolver`              | :type:`function`            | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| This is the function that gets invoked when converting from a GoLibrary to a GoSource.           |
+| See resolver_ for a                                                                              |
+| The function's signature must be                                                                 |
+|                                                                                                  |
+| .. code:: bzl                                                                                    |
+|                                                                                                  |
+|     def _testmain_library_to_source(go, attr, source, merge)                                     |
+|                                                                                                  |
+| attr is the attributes of the rule being processed                                               |
+| source is the dictionary of GoSource fields being generated                                      |
+| merge is a helper you can call to merge                                                          |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`importable`            | :type:`bool`                | |mandatory|                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| This controls whether the GoLibrary_ is supposed to be importable. This is generally only false  |
+| for the "main" libraries that are built just before linking.                                     |
 +--------------------------------+-----------------------------+-----------------------------------+

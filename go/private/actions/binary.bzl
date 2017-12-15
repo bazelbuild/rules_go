@@ -17,7 +17,6 @@ def emit_binary(go,
     source = None,
     gc_linkopts = [],
     x_defs = {},
-    wrap = None,
     linkstamp=None,
     version_file=None,
     info_file=None):

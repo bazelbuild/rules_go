@@ -63,7 +63,7 @@ The entire transitive set of libraries that a leaf depends on are built in the m
 the binary rule. The compiled libraries are distinct and multiple modes can be built in a single pass,
 but are shared between leaves building in the same mode.
 
-Currently only static_ and pure_ can be specified as attributes.
+Currently only static_, pure_, goos_ and goarch_ can be specified as attributes.
 Both of these can take one of the values "on", "off" or "auto", and "auto" is the default.
 
 +--------------+-------------------------------------------------------------------------+
@@ -88,6 +88,8 @@ following fields that control the bevhaviour of those actions:
 * link_
 * debug_
 * strip_
+* goos_
+* goarch_
 
 Build modes
 -----------
@@ -148,6 +150,16 @@ strip
 
 Causes debugging information to be stripped from the binaries.
 
+goos
+~~~~
+
+This controls which operating system to target.
+
+goarch
+~~~~~~
+
+This controls which architecture to target.
+
 Using build modes
 -----------------
 
@@ -204,3 +216,15 @@ the mode of tests by using
 .. code::
 
     bazel test --features=race //...
+
+but in general it is strongly recommended instead to turn it on for specific tests.
+
+.. code::
+
+    go_test(
+        name = "go_default_test",
+        srcs = ["lib_test.go"],
+        embed = [":go_default_library"],
+        race = "on",
+  )
+

@@ -32,7 +32,7 @@ load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
 )
 
-def _testmain_library_to_source(ctx, attr, source, merge):
+def _testmain_library_to_source(go, attr, source, merge):
   source["deps"] = source["deps"] + [attr.library]
 
 def _go_test_impl(ctx):

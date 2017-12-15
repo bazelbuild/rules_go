@@ -6,7 +6,7 @@ Core go rules
 .. _gazelle: tools/gazelle/README.rst
 .. _build constraints: http://golang.org/pkg/go/build/
 .. _GoLibrary: providers.rst#GoLibrary
-.. _GoSourceList: providers.rst#GoSourceList
+.. _GoSource: providers.rst#GoSource
 .. _GoArchive: providers.rst#GoArchive
 .. _cgo: http://golang.org/cmd/cgo/
 .. _"Make variable": https://docs.bazel.build/versions/master/be/make-variables.html
@@ -15,6 +15,8 @@ Core go rules
 .. _cc library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
 .. _pure: modes.rst#pure
 .. _static: modes.rst#static
+.. _goos: modes.rst#goos
+.. _goarch: modes.rst#goarch
 .. _mode attributes: modes.rst#mode-attributes
 
 .. role:: param(kbd)
@@ -58,7 +60,7 @@ Providers
 ^^^^^^^^^
 
 * GoLibrary_
-* GoSourceList_
+* GoSource_
 * GoArchive_
 
 Attributes
@@ -94,7 +96,7 @@ Attributes
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test library directly.                                                 |
-| These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
 | These can provide both :param:`srcs` and :param:`deps` to this library.                          |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -167,7 +169,8 @@ Providers
 ^^^^^^^^^
 
 * GoLibrary_
-* GoSourceList_
+* GoSource_
+* GoArchive_
 
 Attributes
 ^^^^^^^^^^
@@ -202,7 +205,7 @@ Attributes
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this binary embeds directly.                                                |
-| These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
 | These can provide both :param:`srcs` and :param:`deps` to this binary.                           |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -222,6 +225,26 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to link in static_ mode.             |
 | It should be one of :value:`on`, :value:`off` or :value:`auto`.                                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`goos`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls which goos_ to compile and link for.         |
+|                                                                                                  |
+| If set to anything other than :value:`auto` this overrideds the default as set by the current    |
+| target platform, and allows for single builds to make binaries for multiple architectures.       |
+|                                                                                                  |
+| Because this has no control over the cc toolchain, it does not work for cgo, so if this          |
+| attribute is set then :param:`pure` must be set to :value:`on`.                                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`goarch`            | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls which goarch_ to compile and link for.       |
+|                                                                                                  |
+| If set to anything other than :value:`auto` this overrideds the default as set by the current    |
+| target platform, and allows for single builds to make binaries for multiple architectures.       |
+|                                                                                                  |
+| Because this has no control over the cc toolchain, it does not work for cgo, so if this          |
+| attribute is set then :param:`pure` must be set to :value:`on`.                                  |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`gc_goopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -314,7 +337,7 @@ Attributes
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this test embeds directly.                                                  |
-| These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
 | These can provide both :param:`srcs` and :param:`deps` to this test.                             |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -438,7 +461,8 @@ This is used as a way of easily declaring a common set of sources re-used in mul
 Providers
 ^^^^^^^^^
 
-* GoSourceList_
+* GoLibrary_
+* GoSource_
 
 Attributes
 ^^^^^^^^^^
@@ -464,7 +488,7 @@ Attributes
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of sources to directly embed in this list.                                                  |
-| These may be go_library rules or compatible rules with the GoSourceList_ provider.               |
+| These may be go_library rules or compatible rules with the GoSource_ provider.                   |
 | These can provide both :param:`srcs` and :param:`deps` to this library.                          |
 | See Embedding_ for more information about how and when to use this.                              |
 +----------------------------+-----------------------------+---------------------------------------+

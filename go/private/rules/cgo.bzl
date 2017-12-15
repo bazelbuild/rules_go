@@ -213,7 +213,7 @@ def _pure(ctx, mode):
 def _not_pure(ctx, mode):
     return not mode.pure
 
-def _cgo_library_to_source(ctx, attr, source, merge):
+def _cgo_library_to_source(go, attr, source, merge):
   library = source["library"]
   if source["mode"].pure:
     source["srcs"] = library.input_go_srcs + source["srcs"]
