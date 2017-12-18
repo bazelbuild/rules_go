@@ -28,20 +28,10 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
 )
 load("@io_bazel_rules_go//go/private:common.bzl",
     "structs",
+    "goos_to_extension",
 )
 
 GoContext = provider()
-
-def executable_extension(ctx):
-  extension = ""
-  if ctx.os.name.startswith('windows'):
-    extension = ".exe"
-  return extension
-
-def _goos_to_extension(goos):
-  if goos == "windows":
-    return ".exe"
-  return ""
 
 def _declare_file(go, path="", ext="", name = ""):
   filename = mode_string(go.mode) + "/"
@@ -164,7 +154,7 @@ def go_context(ctx, attr=None):
       mode = mode,
       stdlib = stdlib,
       actions = ctx.actions,
-      exe_extension = _goos_to_extension(mode.goos),
+      exe_extension = goos_to_extension(mode.goos),
       crosstool = context_data.crosstool,
       package_list = context_data.package_list,
       # Action generators

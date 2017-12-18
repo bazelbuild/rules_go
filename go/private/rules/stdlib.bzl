@@ -17,6 +17,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
 )
 load("@io_bazel_rules_go//go/private:common.bzl",
     "paths",
+    "goos_to_extension",
 )
 
 _STDLIB_BUILD = """
@@ -39,12 +40,13 @@ def _stdlib_impl(ctx):
   goroot = root_file.path[:-(len(root_file.basename)+1)]
   sdk = ""
   for f in ctx.files._host_sdk:
-    prefix, found, extension  = f.path.partition("bin/go")
+    prefix, found, _  = f.path.partition("bin/go")
     if found:
       sdk = prefix
+      break
   if not sdk:
     fail("Could not find go executable in go_sdk")
-  go = ctx.actions.declare_file("bin/go" + extension)
+  go = ctx.actions.declare_file("bin/go" + goos_to_extension(ctx.attr.goos))
   files = [root_file, go, pkg]
   cpp = ctx.fragments.cpp
   features = ctx.features
