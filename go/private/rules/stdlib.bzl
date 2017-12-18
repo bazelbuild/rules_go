@@ -29,6 +29,12 @@ stdlib(
 )
 """
 
+def _absolute_path(ctx, p):
+  if p and not p.startswith("/") and p[1:].startswith(":"):
+    # Windows-style paths (C:\...)
+    p = p[2:]
+  return p.startswith("/") or p.startswith("\\")
+
 def _stdlib_impl(ctx):
   src = ctx.actions.declare_directory("src")
   pkg = ctx.actions.declare_directory("pkg")
@@ -68,7 +74,7 @@ def _stdlib_impl(ctx):
   linker_path, _ = cpp.ld_executable.rsplit("/", 1)
   ctx.actions.write(root_file, "")
   cc_path = cpp.compiler_executable
-  if not cpp.compiler_executable.startswith("/"):
+  if not _absolute_path(ctx, cc_path):
     cc_path = "$(pwd)/" + cc_path
   env = {
       "GOROOT": "$(pwd)/{}".format(goroot),
@@ -88,12 +94,17 @@ def _stdlib_impl(ctx):
     install_args.append("-race")
   install_args = " ".join(install_args)
 
+  run_env = dict(ctx.configuration.default_shell_env)
+  for key, value in env.items():
+    run_env[key] = value
+
   ctx.actions.run_shell(
       inputs = inputs,
       outputs = [go, src, pkg],
       mnemonic = "GoStdlib",
+      env = run_env,
       command = " && ".join([
-          "export " + " ".join(["{}={}".format(key, value) for key, value in env.items()]),
+          "export GOROOT=$(pwd)/{}".format(run_env["GOROOT"]),
           "mkdir -p {}".format(src.path),
           "mkdir -p {}".format(pkg.path),
           "cp {}/bin/{} {}".format(sdk, go.basename, go.path),
