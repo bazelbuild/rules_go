@@ -119,6 +119,8 @@ def to_set(v):
     fail("Do not pass a depset to to_set")
   return depset(v)
 
+MINIMUM_BAZEL_VERSION = "0.8.0"
+
 # _parse_bazel_version and check_version copied from
 # github.com/tensorflow/tensorflow/blob/cfd0d3f2aa24b3078d2e79ad0a212c7c53916de9/tensorflow/workspace.bzl
 

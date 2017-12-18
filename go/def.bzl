@@ -57,8 +57,6 @@ load("@io_bazel_rules_go//go/private:tools/path.bzl",
 load("@io_bazel_rules_go//go/private:tools/vet.bzl",
     _go_vet_test = "go_vet_test",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
-    _check_version = "check_version")
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
@@ -118,6 +116,3 @@ def go_repositories(
   else:
     go_register_toolchains()
 
-_MINIMUM_BAZEL_VERSION = "0.8.0"
-
-_check_version(_MINIMUM_BAZEL_VERSION)
