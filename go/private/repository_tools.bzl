@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository", "env_execute")
-load("@io_bazel_rules_go//go/private:context.bzl", "executable_extension")
+load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
+load("@io_bazel_rules_go//go/private:common.bzl", "env_execute", "executable_extension")
 
 _GO_REPOSITORY_TOOLS_BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])

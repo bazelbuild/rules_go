@@ -2,9 +2,10 @@ Go toolchains
 =============
 
 .. _core: core.bzl
-.. _forked version of Go: `Using a custom sdk`_
+.. _forked version of Go: `Registering a custom SDK`_
 .. _control the version: `Forcing the Go version`_
 .. _installed sdk: `Using the installed Go sdk`_
+.. _go sdk rules: `The SDK`_
 .. _Go website: https://golang.org/
 .. _binary distribution: https://golang.org/dl/
 .. _cross compiling: crosscompile.rst
@@ -203,9 +204,9 @@ WORKSPACE
 
 .. code:: bzl
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains", "go_sdk")
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains", "go_download_sdk")
 
-    go_sdk(name="my_linux_sdk", url="https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz")
+    go_download_sdk(name="my_linux_sdk", url="https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz")
     register_toolchains(
         "@//:my_linux_toolchain", "@//:my_linux_toolchain-bootstrap",
     )
@@ -380,7 +381,7 @@ toolchain of type :value:`"@io_bazel_rules_go//go:bootstrap_toolchain"`.
 | :param:`sdk`                   | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | This is the name of the SDK to use for this toolchain.                                           |
-| The SDK must have been registered using go_sdk_.                                                 |
+| The SDK must have been registered using one of the `go sdk rules`_.                              |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`constraints`           | :type:`label_list`          | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -445,7 +446,7 @@ over time.
 
 
 Methods
-*******
+^^^^^^^
 
   * Action generators
     * archive_
@@ -463,7 +464,7 @@ Methods
 
 
 Fields
-******
+^^^^^^
 
 +--------------------------------+-----------------------------------------------------------------+
 | **Name**                       | **Type**                                                        |
@@ -798,7 +799,6 @@ they will be visible to the resolver when it is invoked.
 | :param:`resolver`              | :type:`function`            | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | This is the function that gets invoked when converting from a GoLibrary to a GoSource.           |
-| See resolver_ for a                                                                              |
 | The function's signature must be                                                                 |
 |                                                                                                  |
 | .. code:: bzl                                                                                    |

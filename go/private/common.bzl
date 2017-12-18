@@ -119,6 +119,17 @@ def to_set(v):
     fail("Do not pass a depset to to_set")
   return depset(v)
 
+def executable_extension(ctx):
+  extension = ""
+  if ctx.os.name.startswith('windows'):
+    extension = ".exe"
+  return extension
+
+def goos_to_extension(goos):
+  if goos == "windows":
+    return ".exe"
+  return ""
+
 MINIMUM_BAZEL_VERSION = "0.8.0"
 
 # _parse_bazel_version and check_version copied from

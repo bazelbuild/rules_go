@@ -32,19 +32,29 @@ stdlib(
 )
 """
 
+def _get_go_binary(files):
+  for f in files:
+    parent = paths.dirname(f.path)
+    sdk = paths.dirname(parent)
+    parent = paths.basename(parent)
+    if parent != "bin":
+      continue
+    basename = paths.basename(f.path)
+    name, ext = paths.split_extension(basename)
+    if name != "go":
+      continue
+    return sdk, paths.join(parent, basename)
+  fail("Could not find go executable in go_sdk")
+
+
+
 def _stdlib_impl(ctx):
   src = ctx.actions.declare_directory("src")
   pkg = ctx.actions.declare_directory("pkg")
   root_file = ctx.actions.declare_file("ROOT")
   goroot = root_file.path[:-(len(root_file.basename)+1)]
-  sdk = ""
-  for f in ctx.files._host_sdk:
-    prefix, found, extension  = f.path.partition("bin/go")
-    if found:
-      sdk = prefix
-  if not sdk:
-    fail("Could not find go executable in go_sdk")
-  go = ctx.actions.declare_file("bin/go" + extension)
+  sdk, binary = _get_go_binary(ctx.files._host_sdk)
+  go = ctx.actions.declare_file(binary)
   files = [root_file, go, pkg]
   cpp = ctx.fragments.cpp
   features = ctx.features

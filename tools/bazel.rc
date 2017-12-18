@@ -1,0 +1,11 @@
+# This file contains options passed to Bazel when running tests
+# on continuous integration services.
+# Run with: bazel test --config=ci
+
+common:ci --color=no
+build:ci --verbose_failures
+build:ci --sandbox_debug
+build:ci --spawn_strategy=standalone
+build:ci --genrule_strategy=standalone
+test:ci --test_strategy=standalone
+test:ci --test_output=errors
