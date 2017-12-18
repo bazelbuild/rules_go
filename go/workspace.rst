@@ -11,7 +11,6 @@ Go workspace rules
 .. _go_library: core.rst#go_library
 .. _toolchains: toolchains.rst
 .. _go_register_toolchains: toolchains.rst#go_register_toolchains
-.. _go_sdk: toolchains.rst#go_sdk
 .. _go_toolchain: toolchains.rst#go_toolchain
 .. _new_go_repository: deprecated.rst#new_go_repository
 .. _go_repositories: deprecated.rst#go_repositories
