@@ -16,6 +16,7 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -25,19 +26,31 @@ import (
 )
 
 func diffFile(c *config.Config, file *bf.File) error {
+	var oldContents []byte
+	oldIn, err := os.Open(file.Path)
+	if err == nil {
+		oldContents, err = ioutil.ReadAll(oldIn)
+		if err != nil {
+			oldContents = nil
+		}
+		oldIn.Close()
+	}
+	newContents := bf.Format(file)
+	if bytes.Equal(oldContents, newContents) {
+		return nil
+	}
 	f, err := ioutil.TempFile("", c.DefaultBuildFileName())
 	if err != nil {
 		return err
 	}
 	defer os.Remove(f.Name())
-	defer f.Close()
-	if _, err := f.Write(bf.Format(file)); err != nil {
+	if _, err := f.Write(newContents); err != nil {
+		f.Close()
 		return err
 	}
-	if err := f.Sync(); err != nil {
+	if err := f.Close(); err != nil {
 		return err
 	}
-
 	cmd := exec.Command("diff", "-u", "--new-file", file.Path, f.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
