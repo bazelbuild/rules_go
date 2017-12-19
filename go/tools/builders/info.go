@@ -43,9 +43,7 @@ func invoke(goenv *GoEnv, out *os.File, args []string) error {
 
 func run(args []string) error {
 	filename := ""
-	script := false
 	flags := flag.NewFlagSet("info", flag.ExitOnError)
-	flags.BoolVar(&script, "script", script, "Write in script mode")
 	flags.StringVar(&filename, "out", filename, "The file to write the report to")
 	goenv := envFlags(flags)
 	if err := flags.Parse(args); err != nil {
@@ -60,17 +58,11 @@ func run(args []string) error {
 		}
 		defer f.Close()
 	}
-	if script {
-		fmt.Fprintln(f, "cat << "+endOfHereDoc)
-	}
 	if err := invoke(goenv, f, []string{"version"}); err != nil {
 		return err
 	}
 	if err := invoke(goenv, f, []string{"env"}); err != nil {
 		return err
-	}
-	if script {
-		fmt.Fprintln(f, endOfHereDoc)
 	}
 	return nil
 }

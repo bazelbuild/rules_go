@@ -16,45 +16,34 @@ load("@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
 
-def _go_info_script_impl(ctx):
+def _go_info_impl(ctx):
   go = go_context(ctx)
-  out = go.declare_file(go, ext=".bash")
+  report = go.declare_file(go, "go_info_report")
   args = go.args(go)
-  args.add(["-script", "-out", out])
-  ctx.actions.run(
-      inputs = [],
-      outputs = [out],
+  args.add(["-out", report])
+  go.actions.run(
+      inputs = go.stdlib.files,
+      outputs = [report],
       mnemonic = "GoInfo",
       executable = ctx.executable._go_info,
       arguments = [args],
   )
-  return [
-      DefaultInfo(
-          files = depset([out]),
-      ),
-  ]
+  return [DefaultInfo(
+      files=depset([report]),
+      runfiles=ctx.runfiles([report]),
+  )]
 
-_go_info_script = rule(
-    _go_info_script_impl,
+_go_info = rule(
+    _go_info_impl,
     attrs = {
-        "_go_info": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default="@io_bazel_rules_go//go/tools/builders:info"),
+        "_go_info": attr.label(single_file = True, executable=True, cfg="host", default="@io_bazel_rules_go//go/tools/builders:info"),
         "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def go_info():
-  _go_info_script(
-      name = "go_info_script",
-      tags = ["manual"],
-  )
-  native.sh_binary(
+  _go_info(
       name = "go_info",
-      srcs = ["go_info_script"],
-      tags = ["manual"],
+      visibility = ["//visibility:public"],
   )

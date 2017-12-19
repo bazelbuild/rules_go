@@ -1,7 +1,8 @@
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
-bazel_test(
+sh_test(
     name = "info",
-    command = "run",
-    targets = ["@io_bazel_rules_go//:go_info"],
+    srcs = ["info_test.sh"],
+    data = ["@io_bazel_rules_go//:go_info"],
+    args = ["$(location @io_bazel_rules_go//:go_info)"],
 )
