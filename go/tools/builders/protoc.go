@@ -140,7 +140,7 @@ func run(args []string) error {
 				return err
 			}
 		case !f.expected:
-			fmt.Fprintf(buf, "Unexpected output %v.\n", f.path)
+			//fmt.Fprintf(buf, "Unexpected output %v.\n", f.path)
 		}
 		if buf.Len() > 0 {
 			fmt.Fprintf(buf, "Check that the go_package option is %q.", *importpath)
