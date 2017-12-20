@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoPath")
@@ -48,8 +49,11 @@ export GOPATH="{gopath}"
 _go_vet_generate = rule(
     _go_vet_generate_impl,
     attrs = {
-        "data": attr.label_list(providers=[GoPath], cfg = "data"),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "data": attr.label_list(
+            providers = [GoPath],
+            cfg = "data",
+        ),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

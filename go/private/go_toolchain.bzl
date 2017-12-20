@@ -14,6 +14,7 @@
 """
 Toolchain rules used by go.
 """
+
 load("@io_bazel_rules_go//go/private:actions/archive.bzl", "emit_archive")
 load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
 load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
@@ -21,7 +22,6 @@ load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile", "boot
 load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
 load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link", "bootstrap_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
-
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
@@ -102,13 +102,55 @@ _go_toolchain = rule(
         "cgo_link_flags": attr.string_list(default = []),
         "bootstrap": attr.bool(default = False),
         # Tools, missing from bootstrap toolchains
-        "_asm": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _asm),
-        "_compile": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _compile),
-        "_pack": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _pack),
-        "_link": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _link),
-        "_cgo": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cgo),
-        "_test_generator": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _test_generator),
-        "_cover": attr.label(allow_files = True, single_file = True, executable = True, cfg = "host", default = _cover),
+        "_asm": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = _asm,
+        ),
+        "_compile": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = _compile,
+        ),
+        "_pack": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = _pack,
+        ),
+        "_link": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = _link,
+        ),
+        "_cgo": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = _cgo,
+        ),
+        "_test_generator": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = _test_generator,
+        ),
+        "_cover": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = _cover,
+        ),
     },
 )
 

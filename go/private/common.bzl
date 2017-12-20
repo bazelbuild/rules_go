@@ -51,6 +51,7 @@ c_exts = [
 ]
 
 go_filetype = FileType(go_exts + asm_exts)
+
 cc_hdr_filetype = FileType(hdr_exts)
 
 # Extensions of files we can build with the Go compiler or with cc_library.
@@ -93,7 +94,6 @@ def split_srcs(srcs):
 
 def join_srcs(source):
   return source.go + source.headers + source.asm + source.c
-
 
 def env_execute(ctx, arguments, environment = {}, **kwargs):
   """env_executes a command in a repository context. It prepends "env -i"

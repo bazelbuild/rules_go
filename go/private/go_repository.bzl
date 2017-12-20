@@ -97,9 +97,7 @@ def _go_repository_impl(ctx):
       fail("failed to generate BUILD files for %s: %s" % (
           ctx.attr.importpath, result.stderr))
 
-
 go_repository = repository_rule(
-    implementation = _go_repository_impl,
     attrs = {
         # Fundamental attributes of a go repository
         "importpath": attr.string(mandatory = True),
@@ -107,7 +105,16 @@ go_repository = repository_rule(
         "tag": attr.string(),
 
         # Attributes for a repository that cannot be inferred from the import path
-        "vcs": attr.string(default="", values=["", "git", "hg", "svn", "bzr"]),
+        "vcs": attr.string(
+            default = "",
+            values = [
+                "",
+                "git",
+                "hg",
+                "svn",
+                "bzr",
+            ],
+        ),
         "remote": attr.string(),
 
         # Attributes for a repository that comes from a source blob not a vcs
@@ -117,11 +124,33 @@ go_repository = repository_rule(
         "sha256": attr.string(),
 
         # Attributes for a repository that needs automatic build file generation
-        "build_external": attr.string(default="external", values=["external", "vendored"]),
-        "build_file_name": attr.string(default="BUILD.bazel,BUILD"),
-        "build_file_generation": attr.string(default="auto", values=["on", "auto", "off"]),
+        "build_external": attr.string(
+            default = "external",
+            values = [
+                "external",
+                "vendored",
+            ],
+        ),
+        "build_file_name": attr.string(default = "BUILD.bazel,BUILD"),
+        "build_file_generation": attr.string(
+            default = "auto",
+            values = [
+                "on",
+                "auto",
+                "off",
+            ],
+        ),
         "build_tags": attr.string_list(),
-        "build_file_proto_mode": attr.string(default="default", values=["default", "disable", "legacy"]),
+        "build_file_proto_mode": attr.string(
+            default = "default",
+            values = [
+                "default",
+                "disable",
+                "legacy",
+            ],
+        ),
     },
+    implementation = _go_repository_impl,
 )
+
 """See go/workspace.rst#go-repository for full documentation."""

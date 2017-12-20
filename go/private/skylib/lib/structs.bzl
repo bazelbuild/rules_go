@@ -14,7 +14,6 @@
 
 """Skylib module containing functions that operate on structs."""
 
-
 def _to_dict(s):
   """Converts a `struct` to a `dict`.
 
@@ -30,7 +29,6 @@ def _to_dict(s):
   attributes.remove("to_proto")
   return {key: getattr(s, key) for key in attributes}
 
-
 structs = struct(
-    to_dict=_to_dict,
+    to_dict = _to_dict,
 )

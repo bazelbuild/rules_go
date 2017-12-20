@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
     "join_srcs",
     "pkg_dir",
     "sets",
     "to_set",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
 
@@ -158,7 +161,7 @@ _cgo_codegen = rule(
         ),
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
@@ -194,10 +197,11 @@ _cgo_import = rule(
             single_file = True,
         ),
         "sample_go_srcs": attr.label_list(allow_files = True),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+
 """Generates symbol-import directives for cgo
 
 Args:
@@ -224,7 +228,6 @@ def _cgo_library_to_source(go, attr, source, merge):
   source["cgo_archive"] = library.cgo_archive
   source["runfiles"] = source["runfiles"].merge(attr.codegen.data_runfiles)
 
-
 def _cgo_collect_info_impl(ctx):
   go = go_context(ctx)
   codegen = ctx.attr.codegen[_CgoCodegen]
@@ -249,14 +252,27 @@ def _cgo_collect_info_impl(ctx):
 _cgo_collect_info = rule(
     _cgo_collect_info_impl,
     attrs = {
-        "codegen": attr.label(mandatory = True, providers = [_CgoCodegen]),
-        "input_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
-        "gen_go_srcs": attr.label_list(mandatory = True, allow_files = [".go"]),
-        "lib": attr.label(mandatory = True, providers = ["cc"]),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "codegen": attr.label(
+            mandatory = True,
+            providers = [_CgoCodegen],
+        ),
+        "input_go_srcs": attr.label_list(
+            mandatory = True,
+            allow_files = [".go"],
+        ),
+        "gen_go_srcs": attr.label_list(
+            mandatory = True,
+            allow_files = [".go"],
+        ),
+        "lib": attr.label(
+            mandatory = True,
+            providers = ["cc"],
+        ),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+
 """No-op rule that collects information from _cgo_codegen and cc_library
 info into a GoSourceList provider for easy consumption."""
 

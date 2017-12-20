@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
     "sets",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
+load(
+    "@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
     "GoArchive",
     "GoArchiveData",
     "get_archive",

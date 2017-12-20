@@ -20,12 +20,13 @@ def _impl(ctx):
   )
 
 single_output_test = rule(
-    implementation = _impl,
     attrs = {
         "dep": attr.label(allow_single_file = True),
     },
     test = True,
+    implementation = _impl,
 )
+
 """Checks that a dependency produces a single output file.
 
 This test works by setting `allow_single_file = True` on the `dep` attribute.

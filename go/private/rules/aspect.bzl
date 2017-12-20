@@ -12,29 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
     "to_set",
     "sets",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
+load(
+    "@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
     "GoArchive",
     "GoArchiveData",
     "GoSource",
     "new_aspect_provider",
 )
-load("@io_bazel_rules_go//go/platform:list.bzl",
+load(
+    "@io_bazel_rules_go//go/platform:list.bzl",
     "GOOS",
     "GOARCH",
 )
-
 
 def _go_archive_aspect_impl(target, ctx):
   go = go_context(ctx, ctx.rule.attr)
@@ -61,14 +65,41 @@ def _go_archive_aspect_impl(target, ctx):
 
 go_archive_aspect = aspect(
     _go_archive_aspect_impl,
-    attr_aspects = ["deps", "embed", "compiler", "compilers"],
+    attr_aspects = [
+        "deps",
+        "embed",
+        "compiler",
+        "compilers",
+    ],
     attrs = {
-        "pure": attr.string(values=["on", "off", "auto"]),
-        "static": attr.string(values=["on", "off", "auto"]),
-        "msan": attr.string(values=["on", "off", "auto"]),
-        "race": attr.string(values=["on", "off", "auto"]),
-        "goos": attr.string(values=GOOS.keys() + ["auto"], default="auto"),
-        "goarch": attr.string(values=GOARCH.keys() + ["auto"], default="auto"),
+        "pure": attr.string(values = [
+            "on",
+            "off",
+            "auto",
+        ]),
+        "static": attr.string(values = [
+            "on",
+            "off",
+            "auto",
+        ]),
+        "msan": attr.string(values = [
+            "on",
+            "off",
+            "auto",
+        ]),
+        "race": attr.string(values = [
+            "on",
+            "off",
+            "auto",
+        ]),
+        "goos": attr.string(
+            values = GOOS.keys() + ["auto"],
+            default = "auto",
+        ),
+        "goarch": attr.string(
+            values = GOARCH.keys() + ["auto"],
+            default = "auto",
+        ),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

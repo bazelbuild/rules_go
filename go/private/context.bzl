@@ -12,21 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
     "GoSource",
     "GoAspectProviders",
     "GoStdLib",
     "get_source",
 )
-load("@io_bazel_rules_go//go/platform:list.bzl",
+load(
+    "@io_bazel_rules_go//go/platform:list.bzl",
     "GOOS_GOARCH",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
+load(
+    "@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
     "mode_string",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "structs",
     "goos_to_extension",
 )
@@ -100,7 +104,6 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     library.resolve(go, attr, source, _merge_embed)
   return GoSource(**source)
 
-
 def _infer_importpath(ctx):
   DEFAULT_LIB = "go_default_library"
   VENDOR_PREFIX = "/vendor/"
@@ -120,7 +123,6 @@ def _infer_importpath(ctx):
   if path[0] == "/":
     path = path[1:]
   return path
-
 
 def go_context(ctx, attr=None):
   if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
@@ -199,10 +201,14 @@ def _go_context_data(ctx):
 go_context_data = rule(
     _go_context_data,
     attrs = {
-        "strip": attr.string(mandatory=True),
+        "strip": attr.string(mandatory = True),
         # Hidden internal attributes
         "_stdlib_all": attr.label_list(default = _stdlib_all()),
-        "_crosstool": attr.label(default=Label("//tools/defaults:crosstool")),
-        "_package_list": attr.label(allow_files = True, single_file = True, default="@go_sdk//:packages.txt"),
+        "_crosstool": attr.label(default = Label("//tools/defaults:crosstool")),
+        "_package_list": attr.label(
+            allow_files = True,
+            single_file = True,
+            default = "@go_sdk//:packages.txt",
+        ),
     },
 )

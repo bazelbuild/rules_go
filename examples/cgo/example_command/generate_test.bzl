@@ -7,10 +7,12 @@ def _generate_script_impl(ctx):
       files = depset([script_file]),
   )
 
-
 generate_script = rule(
     _generate_script_impl,
     attrs = {
-        "binary": attr.label(allow_files=True, single_file=True),
+        "binary": attr.label(
+            allow_files = True,
+            single_file = True,
+        ),
     },
 )

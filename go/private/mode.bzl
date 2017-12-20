@@ -15,8 +15,11 @@
 # Modes are documented in go/modes.rst#compilation-modes
 
 LINKMODE_NORMAL = "normal"
+
 LINKMODE_SHARED = "shared"
+
 LINKMODE_PIE = "pie"
+
 LINKMODE_PLUGIN = "plugin"
 
 def mode_string(mode):

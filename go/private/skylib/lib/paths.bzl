@@ -19,7 +19,6 @@ path separators (forward slash, "/"); they do not handle Windows-style paths
 with backslash separators or drive letters.
 """
 
-
 def _basename(p):
   """Returns the basename (i.e., the file portion) of a path.
 
@@ -34,7 +33,6 @@ def _basename(p):
     The basename of the path, which includes the extension.
   """
   return p.rpartition("/")[-1]
-
 
 def _dirname(p):
   """Returns the dirname of a path.
@@ -56,7 +54,6 @@ def _dirname(p):
     # os.path.dirname does.
     return prefix.rstrip("/")
 
-
 def _is_absolute(path):
   """Returns `True` if `path` is an absolute path.
 
@@ -66,7 +63,6 @@ def _is_absolute(path):
     `True` if `path` is an absolute path.
   """
   return path.startswith("/") or path[1] == ":"
-
 
 def _join(path, *others):
   """Joins one or more path components intelligently.
@@ -96,7 +92,6 @@ def _join(path, *others):
       result += "/" + p
 
   return result
-
 
 def _normalize(path):
   """Normalizes a path, eliminating double slashes and other redundant segments.
@@ -153,7 +148,6 @@ def _normalize(path):
 
   return path or "."
 
-
 def _relativize(path, start):
   """Returns the portion of `path` that is relative to `start`.
 
@@ -191,7 +185,6 @@ def _relativize(path, start):
   result_segments = segments[-length:]
   return "/".join(result_segments)
 
-
 def _replace_extension(p, new_extension):
   """Replaces the extension of the file at the end of a path.
 
@@ -205,7 +198,6 @@ def _replace_extension(p, new_extension):
     The path with the extension replaced (or added, if it did not have one).
   """
   return _split_extension(p)[0] + new_extension
-
 
 def _split_extension(p):
   """Splits the path `p` into a tuple containing the root and extension.
@@ -232,14 +224,13 @@ def _split_extension(p):
   dot_distance_from_end = len(b) - last_dot_in_basename
   return (p[:-dot_distance_from_end], p[-dot_distance_from_end:])
 
-
 paths = struct(
-    basename=_basename,
-    dirname=_dirname,
-    is_absolute=_is_absolute,
-    join=_join,
-    normalize=_normalize,
-    relativize=_relativize,
-    replace_extension=_replace_extension,
-    split_extension=_split_extension,
+    basename = _basename,
+    dirname = _dirname,
+    is_absolute = _is_absolute,
+    join = _join,
+    normalize = _normalize,
+    relativize = _relativize,
+    replace_extension = _replace_extension,
+    split_extension = _split_extension,
 )

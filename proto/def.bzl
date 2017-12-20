@@ -12,17 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl",
+load(
+    "@io_bazel_rules_go//go:def.bzl",
     "go_context",
     "GoLibrary",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "sets",
 )
-load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
+load(
+    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//proto:compiler.bzl",
+load(
+    "@io_bazel_rules_go//proto:compiler.bzl",
     "GoProtoCompiler",
 )
 
@@ -41,7 +45,10 @@ def _go_proto_aspect_impl(target, ctx):
 
 _go_proto_aspect = aspect(
     _go_proto_aspect_impl,
-    attr_aspects = ["deps", "embed"],
+    attr_aspects = [
+        "deps",
+        "embed",
+    ],
 )
 
 def _proto_library_to_source(go, attr, source, merge):
@@ -90,20 +97,30 @@ def _go_proto_library_impl(ctx):
 go_proto_library = rule(
     _go_proto_library_impl,
     attrs = {
-        "proto": attr.label(mandatory=True, providers=["proto"]),
-        "deps": attr.label_list(providers = [GoLibrary], aspects = [_go_proto_aspect]),
+        "proto": attr.label(
+            mandatory = True,
+            providers = ["proto"],
+        ),
+        "deps": attr.label_list(
+            providers = [GoLibrary],
+            aspects = [_go_proto_aspect],
+        ),
         "importpath": attr.string(),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "compiler": attr.label(providers = [GoProtoCompiler]),
-        "compilers": attr.label_list(providers = [GoProtoCompiler], default = ["@io_bazel_rules_go//proto:go_proto"]),
+        "compilers": attr.label_list(
+            providers = [GoProtoCompiler],
+            default = ["@io_bazel_rules_go//proto:go_proto"],
+        ),
         "_go_prefix": attr.label(default = go_prefix_default),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = [
         "@io_bazel_rules_go//go:toolchain",
     ],
 )
+
 """
 go_proto_library is a rule that takes a proto_library (in the proto
 attribute) and produces a go library for it.

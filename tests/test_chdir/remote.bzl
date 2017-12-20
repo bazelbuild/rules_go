@@ -6,8 +6,8 @@ def _test_chdir_remote_impl(ctx):
     ctx.template("sub/" + f, input)
 
 _test_chdir_remote = repository_rule(
-    implementation = _test_chdir_remote_impl,
     attrs = {},
+    implementation = _test_chdir_remote_impl,
 )
 
 def test_chdir_remote():

@@ -1,8 +1,10 @@
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
-load("@io_bazel_rules_go//go/private:go_repository.bzl",
-    "env_execute"
+load(
+    "@io_bazel_rules_go//go/private:go_repository.bzl",
+    "env_execute",
 )
 
 # _bazelrc is the bazel.rc file that sets the default options for tests
@@ -118,23 +120,37 @@ def _bazel_test_script_impl(ctx):
       runfiles = ctx.runfiles([workspace_file, build_file], collect_data=True)
   )
 
-
 _bazel_test_script = rule(
     _bazel_test_script_impl,
     attrs = {
-        "command": attr.string(mandatory=True, values=["build", "test", "coverage", "run"]),
-        "args": attr.string_list(default=[]),
-        "targets": attr.string_list(mandatory=True),
-        "externals": attr.label_list(allow_files=True),
-        "go_version": attr.string(default=CURRENT_VERSION),
+        "command": attr.string(
+            mandatory = True,
+            values = [
+                "build",
+                "test",
+                "coverage",
+                "run",
+            ],
+        ),
+        "args": attr.string_list(default = []),
+        "targets": attr.string_list(mandatory = True),
+        "externals": attr.label_list(allow_files = True),
+        "go_version": attr.string(default = CURRENT_VERSION),
         "workspace": attr.string(),
         "build": attr.string(),
         "check": attr.string(),
-        "config": attr.string(default="isolate"),
-        "data": attr.label_list(allow_files = True, cfg = "data"),
-        "_bazelrc": attr.label(allow_files=True, single_file=True, default="@bazel_test//:bazelrc"),
+        "config": attr.string(default = "isolate"),
+        "data": attr.label_list(
+            allow_files = True,
+            cfg = "data",
+        ),
+        "_bazelrc": attr.label(
+            allow_files = True,
+            single_file = True,
+            default = "@bazel_test//:bazelrc",
+        ),
         "_settings": attr.label(default = Label("@bazel_test//:settings")),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
@@ -191,9 +207,13 @@ def _md5_sum_impl(ctx):
 md5_sum = rule(
     _md5_sum_impl,
     attrs = {
-        "srcs": attr.label_list(allow_files=True),
-        "_md5sum":  attr.label(allow_files=True, single_file=True, default=Label("@io_bazel_rules_go//go/tools/builders:md5sum")),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "srcs": attr.label_list(allow_files = True),
+        "_md5sum": attr.label(
+            allow_files = True,
+            single_file = True,
+            default = Label("@io_bazel_rules_go//go/tools/builders:md5sum"),
+        ),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
@@ -228,13 +248,13 @@ def _test_environment_impl(ctx):
   ctx.file("test.bazelrc", content=_bazelrc)
 
 _test_environment = repository_rule(
-    implementation = _test_environment_impl,
     attrs = {},
     environ = [
         "BAZEL",
         "BAZEL_VERSION",
         "HOME",
     ],
+    implementation = _test_environment_impl,
 )
 
 def _bazel_test_settings_impl(ctx):

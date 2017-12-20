@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
     "GoStdLib",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "paths",
 )
 
@@ -45,8 +47,6 @@ def _get_go_binary(files):
       continue
     return sdk, paths.join(parent, basename)
   fail("Could not find go executable in go_sdk")
-
-
 
 def _stdlib_impl(ctx):
   src = ctx.actions.declare_directory("src")
@@ -145,8 +145,15 @@ stdlib = rule(
         "goarch": attr.string(mandatory = True),
         "race": attr.bool(mandatory = True),
         "cgo": attr.bool(mandatory = True),
-        "_host_sdk": attr.label(allow_files = True, default="@go_sdk//:host_sdk"),
-        "_host_tools": attr.label(allow_files = True, cfg="host", default="@go_sdk//:host_tools"),
+        "_host_sdk": attr.label(
+            allow_files = True,
+            default = "@go_sdk//:host_sdk",
+        ),
+        "_host_tools": attr.label(
+            allow_files = True,
+            cfg = "host",
+            default = "@go_sdk//:host_tools",
+        ),
     },
     fragments = ["cpp"],
 )
@@ -161,12 +168,13 @@ def _go_stdlib_impl(ctx):
     ))
 
 go_stdlib = repository_rule(
-    implementation = _go_stdlib_impl,
     attrs = {
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
         "race": attr.bool(mandatory = True),
         "cgo": attr.bool(mandatory = True),
     },
+    implementation = _go_stdlib_impl,
 )
+
 """See /go/toolchains.rst#go-sdk for full documentation."""

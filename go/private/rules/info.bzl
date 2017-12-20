@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
 
@@ -36,8 +37,13 @@ def _go_info_impl(ctx):
 _go_info = rule(
     _go_info_impl,
     attrs = {
-        "_go_info": attr.label(single_file = True, executable=True, cfg="host", default="@io_bazel_rules_go//go/tools/builders:info"),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_info": attr.label(
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = "@io_bazel_rules_go//go/tools/builders:info",
+        ),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

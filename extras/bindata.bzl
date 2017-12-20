@@ -30,12 +30,19 @@ def _bindata_impl(ctx):
 bindata = rule(
     _bindata_impl,
     attrs = {
-        "srcs": attr.label_list(allow_files = True, cfg = "data"),
-        "package": attr.string(mandatory=True),
-        "compress": attr.bool(default=True),
-        "metadata": attr.bool(default=False),
-        "_bindata":  attr.label(allow_files=True, single_file=True, default=Label("@com_github_jteeuwen_go_bindata//go-bindata:go-bindata")),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "srcs": attr.label_list(
+            allow_files = True,
+            cfg = "data",
+        ),
+        "package": attr.string(mandatory = True),
+        "compress": attr.bool(default = True),
+        "metadata": attr.bool(default = False),
+        "_bindata": attr.label(
+            allow_files = True,
+            single_file = True,
+            default = Label("@com_github_jteeuwen_go_bindata//go-bindata:go-bindata"),
+        ),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

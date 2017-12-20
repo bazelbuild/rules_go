@@ -12,49 +12,62 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     go_context = "go_context",
 )
-load("@io_bazel_rules_go//go/private:go_repository.bzl",
+load(
+    "@io_bazel_rules_go//go/private:go_repository.bzl",
     "go_repository",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
     _GoLibrary = "GoLibrary",
 )
-load("@io_bazel_rules_go//go/private:repositories.bzl",
+load(
+    "@io_bazel_rules_go//go/private:repositories.bzl",
     "go_rules_dependencies",
     "go_register_toolchains",
 )
-load("@io_bazel_rules_go//go/private:sdk.bzl",
-    go_host_sdk = "go_host_sdk",
+load(
+    "@io_bazel_rules_go//go/private:sdk.bzl",
     go_download_sdk = "go_download_sdk",
+    go_host_sdk = "go_host_sdk",
     go_local_sdk = "go_local_sdk",
-    go_sdk = "go_sdk", # DEPRECATED
+    go_sdk = "go_sdk",  # DEPRECATED
 )
-load("@io_bazel_rules_go//go/private:go_toolchain.bzl",
+load(
+    "@io_bazel_rules_go//go/private:go_toolchain.bzl",
     go_toolchain = "go_toolchain",
 )
-load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
+load(
+    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix",
 )
-load("@io_bazel_rules_go//go/private:rules/wrappers.bzl",
-    _go_library_macro = "go_library_macro",
+load(
+    "@io_bazel_rules_go//go/private:rules/wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
+    _go_library_macro = "go_library_macro",
     _go_test_macro = "go_test_macro",
 )
-load("@io_bazel_rules_go//go/private:rules/source.bzl",
+load(
+    "@io_bazel_rules_go//go/private:rules/source.bzl",
     _go_source = "go_source",
 )
-load("@io_bazel_rules_go//extras:embed_data.bzl",
+load(
+    "@io_bazel_rules_go//extras:embed_data.bzl",
     "go_embed_data",
 )
-load("@io_bazel_rules_go//go/private:tools/gazelle.bzl",
+load(
+    "@io_bazel_rules_go//go/private:tools/gazelle.bzl",
     "gazelle",
 )
-load("@io_bazel_rules_go//go/private:tools/path.bzl",
+load(
+    "@io_bazel_rules_go//go/private:tools/path.bzl",
     _go_path = "go_path",
 )
-load("@io_bazel_rules_go//go/private:tools/vet.bzl",
+load(
+    "@io_bazel_rules_go//go/private:tools/vet.bzl",
     _go_vet_test = "go_vet_test",
 )
 
@@ -63,21 +76,27 @@ load("@io_bazel_rules_go//go/private:tools/vet.bzl",
 RULES_GO_VERSION = "0.8.1"
 
 GoLibrary = _GoLibrary
+
 """See go/providers.rst#GoLibrary for full documentation."""
 
 go_library = _go_library_macro
+
 """See go/core.rst#go_library for full documentation."""
 
 go_binary = _go_binary_macro
+
 """See go/core.rst#go_binary for full documentation."""
 
 go_test = _go_test_macro
+
 """See go/core.rst#go_test for full documentation."""
 
 go_source = _go_source
+
 """See go/core.rst#go_test for full documentation."""
 
 go_path = _go_path
+
 """
     go_path is a rule for creating `go build` compatible file layouts from a set of Bazel.
     targets.
@@ -86,10 +105,10 @@ go_path = _go_path
 """
 
 go_vet_test = _go_vet_test
+
 """
     go_vet_test
 """
-
 
 # Compatability shims
 def cgo_genrule(name, tags=[], **kwargs):
@@ -115,4 +134,3 @@ def go_repositories(
     go_register_toolchains(go_version=go_version)
   else:
     go_register_toolchains()
-
