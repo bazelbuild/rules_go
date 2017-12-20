@@ -210,10 +210,13 @@ def _test_environment_impl(ctx):
     bazel = ctx.which("bazel")
 
   # Get a temporary directory to use as our scratch workspace
-  result = env_execute(ctx, ["mktemp", "-d"])
-  if result.return_code:
-    fail("failed to create temporary directory for bazel tests: {}".format(result.stderr))
-  scratch_dir = result.stdout.strip()
+  if ctx.os.name.startswith('windows'):
+    scratch_dir = ctx.os.environ["TMP"].replace("\\","/") + "/bazel_go_test"
+  else:
+    result = env_execute(ctx, ["mktemp", "-d"])
+    if result.return_code:
+      fail("failed to create temporary directory for bazel tests: {}".format(result.stderr))
+    scratch_dir = result.stdout.strip()
 
   # Work out where we are running so we can find externals
   exec_root, _, _ = str(ctx.path(".")).rpartition("/external/")

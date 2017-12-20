@@ -81,11 +81,15 @@ def _stdlib_impl(ctx):
   cc_path = cpp.compiler_executable
   if not paths.is_absolute(cc_path):
     cc_path = "$(pwd)/" + cc_path
+  cgo = ctx.attr.cgo
+  # TODO: This is a temporary work around for bazel not using a gcc that can compile the stdlib on windows
+  if ctx.attr.goos == "windows":
+    cgo = False
   env = {
       "GOROOT": "$(pwd)/{}".format(goroot),
       "GOOS": ctx.attr.goos,
       "GOARCH": ctx.attr.goarch,
-      "CGO_ENABLED": "1" if ctx.attr.cgo else "0",
+      "CGO_ENABLED": "1" if cgo else "0",
       "CC": cc_path,
       "CXX": cc_path,
       "COMPILER_PATH": linker_path,
@@ -104,6 +108,7 @@ def _stdlib_impl(ctx):
       outputs = [go, src, pkg],
       mnemonic = "GoStdlib",
       command = " && ".join([
+          "export PATH=${PATH};${COMPILER_PATH}",
           "export " + " ".join(['{}="{}"'.format(key, value) for key, value in env.items()]),
           "mkdir -p {}".format(src.path),
           "mkdir -p {}".format(pkg.path),
@@ -113,7 +118,7 @@ def _stdlib_impl(ctx):
           "cp -rf {}/pkg/include {}/".format(sdk, pkg.path),
           "{} install {} std".format(go.path, install_args),
           "{} install {} runtime/cgo".format(go.path, install_args),
-      ])
+         ])
   )
   return [
       DefaultInfo(
