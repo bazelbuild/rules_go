@@ -68,7 +68,9 @@ _gazelle_script = rule(
             cfg = "host"
         ),
         "_go_prefix": attr.label(default = _go_prefix_default),
-    }
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+    },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def gazelle(name, **kwargs):
