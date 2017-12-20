@@ -37,7 +37,10 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
       "--out_path", outpath,
       "--plugin", compiler.plugin,
   ])
-  args.add(compiler.options, before_each = "--option")
+  options = compiler.options
+  if compiler.import_path_option:
+    options = options + ["import_path={}".format(importpath)]
+  args.add(options, before_each = "--option")
   args.add(proto.transitive_descriptor_sets, before_each = "--descriptor_set")
   args.add(go_srcs, before_each = "--expected")
   args.add(imports, before_each = "--import")
@@ -88,6 +91,7 @@ def _go_proto_compiler_impl(ctx):
           protoc = ctx.file._protoc,
           plugin = ctx.file.plugin,
           valid_archive = ctx.attr.valid_archive,
+          import_path_option = ctx.attr.import_path_option,
       ),
       library, source,
   ]
@@ -99,6 +103,7 @@ go_proto_compiler = rule(
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
         "valid_archive": attr.bool(default=True),
+        "import_path_option": attr.bool(default=True),
         "plugin": attr.label(
             allow_files = True,
             single_file = True,

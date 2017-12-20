@@ -58,7 +58,6 @@ func run(args []string) error {
 	}
 	pluginBase := filepath.Base(*plugin)
 	pluginName := strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-")
-	options = append(options, fmt.Sprintf("import_path=%v", *importpath))
 	for _, m := range imports {
 		options = append(options, fmt.Sprintf("M%v", m))
 	}
