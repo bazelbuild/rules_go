@@ -1,11 +1,20 @@
 load("//proto:compiler.bzl", "go_proto_compiler")
 
+WELL_KNOWN_PROTOS = [
+    "any",
+    "duration",
+    "empty",
+    "struct",
+    "timestamp",
+    "wrappers",
+]
+
 go_proto_compiler(
     name = "go_proto",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_golang_protobuf//proto:go_default_library",
-    ],
+    ] + ["@com_github_golang_protobuf//ptypes/{}:go_default_library".format(lib) for lib in WELL_KNOWN_PROTOS],
 )
 
 go_proto_compiler(
@@ -16,7 +25,7 @@ go_proto_compiler(
         "@com_github_golang_protobuf//proto:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_x_net//context:go_default_library",
-    ],
+    ] + ["@com_github_golang_protobuf//ptypes/{}:go_default_library".format(lib) for lib in WELL_KNOWN_PROTOS],
 )
 
 go_proto_compiler(

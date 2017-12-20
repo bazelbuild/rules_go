@@ -16,9 +16,6 @@ go_proto_library(
         "@io_bazel_rules_go//proto:go_proto",
         "@io_bazel_rules_go//proto:go_proto_validate",
     ],
-    deps = [
-        "@com_github_golang_protobuf//ptypes/any:go_default_library",
-    ],
 )
 
 go_library(

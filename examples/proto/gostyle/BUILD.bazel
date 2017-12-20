@@ -22,7 +22,4 @@ go_proto_library(
     importpath = "github.com/bazelbuild/rules_go/examples/proto/gostyle",
     proto = ":gostyle_proto",
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//ptypes/any:go_default_library",
-    ],
 )

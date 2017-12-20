@@ -15,7 +15,4 @@ go_proto_library(
     importpath = "github.com/bazelbuild/rules_go/examples/proto/dep",
     proto = ":useful_proto",
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//ptypes/duration:go_default_library",
-    ],
 )

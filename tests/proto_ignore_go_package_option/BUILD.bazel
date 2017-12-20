@@ -21,9 +21,6 @@ go_proto_library(
     name = "a_go_proto",
     importpath = "github.com/bazelbuild/rules_go/test/proto_ignore_go_package_option/a",
     proto = ":a_proto",
-    deps = [
-        "@com_github_golang_protobuf//ptypes/struct:go_default_library",
-    ],
 )
 
 go_proto_library(
@@ -32,6 +29,5 @@ go_proto_library(
     proto = ":b_proto",
     deps = [
         ":a_go_proto",
-        "@com_github_golang_protobuf//ptypes/any:go_default_library",
     ],
 )
