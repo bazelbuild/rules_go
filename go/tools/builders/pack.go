@@ -260,7 +260,11 @@ func isObjectFile(name string) bool {
 
 func appendFiles(goenv *GoEnv, archive string, files []string) error {
 	args := append([]string{"tool", "pack", "r", archive}, files...)
+	env := os.Environ()
+	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, args...)
-	cmd.Env = goenv.Env()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = env
 	return cmd.Run()
 }

@@ -49,6 +49,7 @@ def _new_args(go):
       "-root_file", go.stdlib.root_file,
       "-goos", go.mode.goos,
       "-goarch", go.mode.goarch,
+      "-compiler_path", "" if go.mode.pure else go.compiler_path,
       "-cgo=" + ("0" if go.mode.pure else "1"),
   ])
   return args
@@ -148,6 +149,10 @@ def go_context(ctx, attr=None):
   if not stdlib:
     fail("No matching standard library for "+mode_string(mode))
 
+  compiler_path = ""
+  if ctx.var.get("LD") and ctx.var.get("LD").rfind("/") > 0:
+    compiler_path, _ = ctx.var.get("LD").rsplit("/", 1)
+
   return GoContext(
       # Fields
       toolchain = toolchain,
@@ -157,6 +162,7 @@ def go_context(ctx, attr=None):
       exe_extension = goos_to_extension(mode.goos),
       crosstool = context_data.crosstool,
       package_list = context_data.package_list,
+      compiler_path = compiler_path,
       # Action generators
       archive = toolchain.actions.archive,
       asm = toolchain.actions.asm,
