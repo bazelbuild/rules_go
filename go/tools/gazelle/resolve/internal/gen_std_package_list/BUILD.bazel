@@ -1,7 +1,0 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
-
-go_binary(
-    name = "gen_std_package_list",
-    srcs = ["gen_std_package_list.go"],
-    visibility = ["//go/tools/gazelle/resolve:__subpackages__"],
-)

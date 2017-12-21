@@ -1,3 +1,0 @@
-// +build !cgo
-
-package platforms
