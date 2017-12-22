@@ -3,6 +3,7 @@
 # Run with: bazel test --config=ci
 
 build --all_incompatible_changes
+build:ci --all_incompatible_changes=false
 
 common:ci --color=no
 build:ci --verbose_failures
