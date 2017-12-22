@@ -275,7 +275,7 @@ func simpleName(name string, names map[string]bool) string {
 		stem = name[:i]
 		ext = name[i:]
 	}
-	for n := 0; n < 10000; n++ {
+	for n := 0; n < len(names); n++ {
 		ns := strconv.Itoa(n)
 		stemLen := 15 - len(ext) - len(ns)
 		if stemLen > len(stem) {
