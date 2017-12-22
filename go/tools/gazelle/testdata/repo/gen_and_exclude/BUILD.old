@@ -1,0 +1,13 @@
+# gazelle:exclude gen_excluded.go
+# gazelle:exclude static_excluded.go
+
+genrule(
+    name = "gen_srcs",
+    outs = [
+        "gen.go",
+        "gen_static_darwin.go",
+        "gen_static_ignore.go",
+        "gen_linux.go",
+        "gen_excluded.go",
+    ],
+)

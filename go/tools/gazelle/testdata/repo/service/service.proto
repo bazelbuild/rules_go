@@ -1,0 +1,8 @@
+syntax = "proto2";
+
+option go_package = "example.com/repo/service";
+
+import "google/protobuf/any.proto";
+import "service/sub/sub.proto";
+
+service {}
