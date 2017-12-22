@@ -35,6 +35,9 @@ load("@io_bazel_rules_go//go/platform:list.bzl",
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
   go = go_context(ctx)
+  if ctx.attr.linkstamp:
+    print("DEPRECATED: linkstamp, please use x_def for all stamping now {}".format(ctx.attr.linkstamp))
+
   library = go.new_library(go, importable=False)
   source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
   name = ctx.attr.basename
@@ -44,7 +47,6 @@ def _go_binary_impl(ctx):
       name = name,
       source = source,
       gc_linkopts = gc_linkopts(ctx),
-      x_defs = ctx.attr.x_defs,
       linkstamp=ctx.attr.linkstamp,
       version_file=ctx.version_file,
       info_file=ctx.info_file,

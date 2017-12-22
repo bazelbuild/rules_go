@@ -4,4 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = ["stamp.go"],
     visibility = ["//visibility:public"],
+    x_defs = {
+        "XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
+    },
 )

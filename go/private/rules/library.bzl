@@ -48,6 +48,7 @@ go_library = rule(
         "importpath": attr.string(),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
+        "x_defs": attr.string_dict(),
         "_go_prefix": attr.label(default = go_prefix_default),
         "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },

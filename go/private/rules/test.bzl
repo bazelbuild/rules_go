@@ -43,6 +43,8 @@ def _go_test_impl(ctx):
 
   go = go_context(ctx)
   archive = get_archive(ctx.attr.library)
+  if ctx.attr.linkstamp:
+    print("DEPRECATED: linkstamp, please use x_def for all stamping now {}".format(ctx.attr.linkstamp))
 
   # now generate the main function
   if ctx.attr.rundir:
@@ -88,7 +90,6 @@ def _go_test_impl(ctx):
       name = ctx.label.name,
       source = test_source,
       gc_linkopts = gc_linkopts(ctx),
-      x_defs=ctx.attr.x_defs,
       linkstamp=ctx.attr.linkstamp,
       version_file=ctx.version_file,
       info_file=ctx.info_file,

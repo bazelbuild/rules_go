@@ -24,7 +24,6 @@ def emit_link(go,
     archive = None,
     executable = None,
     gc_linkopts = [],
-    x_defs = {},
     linkstamp=None,
     version_file=None,
     info_file=None):
@@ -70,7 +69,7 @@ def emit_link(go,
   # Process x_defs, either adding them directly to linker options, or
   # saving them to process through stamping support.
   stamp_x_defs = False
-  for k, v in x_defs.items():
+  for k, v in archive.x_defs.items():
     if v.startswith("{") and v.endswith("}"):
       args.add(["-Xstamp", "%s=%s" % (k, v[1:-1])])
       stamp_x_defs = True
@@ -116,7 +115,6 @@ def bootstrap_link(go,
     archive = None,
     executable = None,
     gc_linkopts = [],
-    x_defs = {},
     linkstamp=None,
     version_file=None,
     info_file=None):
@@ -124,8 +122,6 @@ def bootstrap_link(go,
 
   if archive == None: fail("archive is a required parameter")
   if executable == None: fail("executable is a required parameter")
-
-  if x_defs:  fail("link does not accept x_defs in bootstrap mode")
 
   inputs = depset([archive.data.file])
   args = ["tool", "link", "-o", executable.path]

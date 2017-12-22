@@ -70,6 +70,7 @@ def _merge_embed(source, embed):
   source["srcs"] = s.srcs + source["srcs"]
   source["cover"] = source["cover"] + s.cover
   source["deps"] = source["deps"] + s.deps
+  source["x_defs"].update(s.x_defs)
   source["gc_goopts"] = source["gc_goopts"] + s.gc_goopts
   source["runfiles"] = source["runfiles"].merge(s.runfiles)
   source["cgo_deps"] = source["cgo_deps"] + s.cgo_deps
@@ -88,6 +89,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
       "mode" : go.mode,
       "srcs" : generated_srcs + attr_srcs,
       "cover" : [],
+      "x_defs" : {},
       "deps" : getattr(attr, "deps", []),
       "gc_goopts" : getattr(attr, "gc_goopts", []),
       "runfiles" : go._ctx.runfiles(collect_data = True),
@@ -99,6 +101,12 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     source["cover"] = attr_srcs
   for e in getattr(attr, "embed", []):
     _merge_embed(source, e)
+  x_defs = source["x_defs"]
+  for k,v in getattr(attr, "x_defs", {}).items():
+    if "." not in k:
+      k = "{}.{}".format(library.importpath, k)
+    x_defs[k] = v
+  source["x_defs"] = x_defs
   if library.resolve:
     library.resolve(go, attr, source, _merge_embed)
   return GoSource(**source)

@@ -82,6 +82,9 @@ def emit_archive(go, source=None):
       srcs = as_tuple(source.srcs),
       searchpath = searchpath,
   )
+  x_defs = dict(source.x_defs)
+  for a in direct:
+    x_defs.update(a.x_defs)
   return GoArchive(
       source = source,
       data = data,
@@ -89,6 +92,7 @@ def emit_archive(go, source=None):
       searchpaths = sets.union([searchpath], *[a.searchpaths for a in direct]),
       libs = sets.union([out_lib], *[a.libs for a in direct]),
       transitive = sets.union([data], *[a.transitive for a in direct]),
+      x_defs = x_defs,
       cgo_deps = sets.union(source.cgo_deps, *[a.cgo_deps for a in direct]),
       cgo_exports = sets.union(source.cgo_exports, *[a.cgo_exports for a in direct]),
       cover_vars = sets.union(cover_vars, *[a.cover_vars for a in direct]),

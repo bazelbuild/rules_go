@@ -19,7 +19,6 @@ go_test(
     srcs = ["stamped_bin_test.go"],
     x_defs = {
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.BUILD_TIMESTAMP": "{BUILD_TIMESTAMP}",
-        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
@@ -32,7 +31,6 @@ go_test(
     srcs = ["stamped_bin_test.go"],
     linkstamp = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
     x_defs = {
-        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
     },
