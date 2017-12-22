@@ -17,7 +17,6 @@ load("@io_bazel_rules_go//go/private:context.bzl",
 )
 load("@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
-    "to_set",
     "sets",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",

@@ -20,7 +20,9 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "join_srcs",
     "pkg_dir",
     "sets",
-    "to_set",
+    "as_set",
+    "as_list",
+    "as_iterable",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
@@ -106,7 +108,7 @@ def _cgo_codegen_impl(ctx):
       copts.extend(['-iquote', inc])
     for inc in d.cc.system_include_directories:
       copts.extend(['-isystem', inc])
-    for lib in d.cc.libs:
+    for lib in as_iterable(d.cc.libs):
       if lib.basename.startswith('lib') and lib.basename.endswith('.so'):
         linkopts.extend(['-L', lib.dirname, '-l', lib.basename[3:-3]])
       else:
@@ -131,9 +133,9 @@ def _cgo_codegen_impl(ctx):
 
   return [
       _CgoCodegen(
-          go_files = to_set(go_outs),
-          main_c = to_set([cgo_main]),
-          deps = deps.to_list(),
+          go_files = as_set(go_outs),
+          main_c = as_set([cgo_main]),
+          deps = as_list(deps),
           exports = [cgo_export_h],
       ),
       DefaultInfo(
@@ -141,10 +143,10 @@ def _cgo_codegen_impl(ctx):
           runfiles = runfiles,
       ),
       OutputGroupInfo(
-          go_files = to_set(go_outs),
-          input_go_files = to_set(source.go + source.asm),
+          go_files = as_set(go_outs),
+          input_go_files = sets.union(source.go, source.asm),
           c_files = sets.union(c_outs, source.headers),
-          main_c = to_set([cgo_main]),
+          main_c = as_set([cgo_main]),
       ),
   ]
 

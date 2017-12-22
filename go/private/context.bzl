@@ -29,6 +29,7 @@ load("@io_bazel_rules_go//go/private:mode.bzl",
 load("@io_bazel_rules_go//go/private:common.bzl",
     "structs",
     "goos_to_extension",
+    "as_iterable",
 )
 
 GoContext = provider()
@@ -79,7 +80,8 @@ def _merge_embed(source, embed):
     source["cgo_archive"] = s.cgo_archive
 
 def _library_to_source(go, attr, library, coverage_instrumented):
-  attr_srcs = [f for t in getattr(attr, "srcs", []) for f in t.files]
+  #TODO: stop collapsing a depset in this line...
+  attr_srcs = [f for t in getattr(attr, "srcs", []) for f in as_iterable(t.files)]
   generated_srcs = getattr(library, "srcs", [])
   source = {
       "library" : library,

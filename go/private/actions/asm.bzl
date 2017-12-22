@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go/private:common.bzl",
-    "to_set",
     "sets",
 )
 
@@ -25,8 +24,9 @@ def emit_asm(go,
   if source == None: fail("source is a required parameter")
 
   out_obj = go.declare_file(go, path=source.basename[:-2], ext=".o")
-  includes = to_set([go.stdlib.root_file.dirname + "/pkg/include"])
-  includes = sets.union(includes, [f.dirname for f in hdrs])
+  includes = sets.union(
+      [go.stdlib.root_file.dirname + "/pkg/include"],
+      [f.dirname for f in hdrs])
   inputs = hdrs + go.stdlib.files + [source]
 
   asm_args = go.args(go)

@@ -15,6 +15,7 @@
 load("@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
     "sets",
+    "as_tuple",
 )
 load("@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
@@ -78,7 +79,7 @@ def emit_archive(go, source=None):
       importpath = source.library.importpath,
       exportpath = source.library.exportpath,
       file = out_lib,
-      srcs = tuple(source.srcs),
+      srcs = as_tuple(source.srcs),
       searchpath = searchpath,
   )
   return GoArchive(

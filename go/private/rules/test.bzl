@@ -63,8 +63,7 @@ def _go_test_impl(ctx):
       '--output',
       main_go,
   ])
-  for var in archive.cover_vars:
-    arguments.add(["-cover", var])
+  arguments.add(archive.cover_vars, before_each="-cover")
   go_srcs = split_srcs(archive.source.srcs).go
   arguments.add(go_srcs)
   ctx.actions.run(

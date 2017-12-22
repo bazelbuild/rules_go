@@ -73,7 +73,7 @@ def split_srcs(srcs):
   headers = []
   asm = []
   c = []
-  for src in srcs:
+  for src in as_iterable(srcs):
     if any([src.basename.endswith(ext) for ext in go_exts]):
       go.append(src)
     elif any([src.basename.endswith(ext) for ext in hdr_exts]):
@@ -114,11 +114,6 @@ def env_execute(ctx, arguments, environment = {}, **kwargs):
     env_args.append("%s=%s" % (k, v))
   arguments = env_args + arguments
   return ctx.execute(arguments, **kwargs)
-
-def to_set(v):
-  if type(v) == "depset":
-    fail("Do not pass a depset to to_set")
-  return depset(v)
 
 def executable_extension(ctx):
   extension = ""
@@ -164,3 +159,40 @@ def check_version(bazel_version):
     if minimum_bazel_version > current_bazel_version:
       fail("\nCurrent Bazel version is {}, expected at least {}\n".format(
           native.bazel_version, bazel_version))
+
+def as_list(v):
+  if type(v) == "list":
+    return v
+  if type(v) == "tuple":
+    return list(v)
+  if type(v) == "depset":
+    return v.to_list()
+  fail("as_list failed on {}".format(v))
+
+def as_iterable(v):
+  if type(v) == "list":
+    return v
+  if type(v) == "tuple":
+    return v
+  if type(v) == "depset":
+    return v.to_list()
+  fail("as_iterator failed on {}".format(v))
+
+def as_tuple(v):
+  if type(v) == "tuple":
+    return v
+  if type(v) == "list":
+    return tuple(v)
+  if type(v) == "depset":
+    return tuple(v.to_list())
+  fail("as_tuple failed on {}".format(v))
+
+def as_set(v):
+  if type(v) == "depset":
+    return v
+  if type(v) == "list":
+    return depset(v)
+  if type(v) == "tuple":
+    return depset(v)
+  fail("as_tuple failed on {}".format(v))
+

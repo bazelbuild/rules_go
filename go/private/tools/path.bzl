@@ -20,6 +20,9 @@ load("@io_bazel_rules_go//go/private:providers.bzl",
     "GoPath",
     "get_archive",
 )
+load("@io_bazel_rules_go//go/private:common.bzl",
+    "as_iterable",
+)
 
 def _tag(go, path, outputs):
   """this generates a existance tag file for dependencies, and returns the path to the tag file"""
@@ -46,7 +49,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   seen_paths = {}
   outputs = []
   packages = []
-  for golib in golibs:
+  for golib in as_iterable(golibs):
     if golib.exportpath in seen_libs:
       # We found two different library rules that map to the same import path
       # This is legal in bazel, but we can't build a valid go path for it.
