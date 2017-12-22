@@ -106,7 +106,7 @@ def _stdlib_impl(ctx):
       mnemonic = "GoStdlib",
       command = " && ".join([
           "export " + " ".join(['{}="{}"'.format(key, value) for key, value in env.items()]),
-          "export PATH=$PATH:$(cd $COMPILER_PATH && pwd)",
+          "export PATH=$PATH:$(cd \"$COMPILER_PATH\" && pwd)",
           "mkdir -p {}".format(src.path),
           "mkdir -p {}".format(pkg.path),
           "cp {}/bin/{} {}".format(sdk, go.basename, go.path),
