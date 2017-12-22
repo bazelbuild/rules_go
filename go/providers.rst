@@ -114,6 +114,10 @@ In general, only rules_go should need to build or handle these.
 +--------------------------------+-----------------------------------------------------------------+
 | The set of sources that should have coverage applied.                                            |
 +--------------------------------+-----------------------------------------------------------------+
+| :param:`x_defs`                | :type:`string_dict`                                             |
++--------------------------------+-----------------------------------------------------------------+
+| Map of defines to add to the go link command.                                                    |
++--------------------------------+-----------------------------------------------------------------+
 | :param:`deps`                  | :type:`list of GoLibrary`                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | The direct dependencies needed by the :param:`srcs`.                                             |
@@ -213,6 +217,10 @@ This is used when compiling and linking dependant libraries or binaries.
 | :param:`transitive`            | :type:`depset(GoLibrary)`                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | The full transitive set of GoArchiveData's  depended on, including this one.                     |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`x_defs`                | :type:`string_dict`                                             |
++--------------------------------+-----------------------------------------------------------------+
+| The full transitive set of defines to add to the go link command.                                |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`cgo_deps`              | :type:`depset(cc_library)`                                      |
 +--------------------------------+-----------------------------------------------------------------+

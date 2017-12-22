@@ -37,7 +37,22 @@ Design
 Defines and stamping
 ~~~~~~~~~~~~~~~~~~~~
 
-**TODO**: More information
+In order to make it possible to provide build time information to go code without data files, we
+support the concept of stamping.
+
+Stamping asks the linker to substitute the inital value of a global string variable with
+a new value. It only happens at link time, not compile, so it happens at the level of a go binary
+not a package. This means that changing a value results only in re-linking, not re-compilation
+and thus does not cause cascading changes.
+
+You specify the values to substitute in the x_defs parameter to any of the go rules.
+This is a map of string to string, where the key is the name of the variable to substitute and the
+value is the value to use.
+If the key is not a fully qualified name, then the current package is used.
+These mappings are collected up across the entire transitive dependancies of a binary, and then
+applied, which means you can set a define on a library, and it will be applied in any binary that
+links in that library. You can also override a the value of any libraries stamping from the x_defs
+of the binary if needed.
 
 Embedding
 ~~~~~~~~~
@@ -87,6 +102,11 @@ Attributes
 | Only :value:`.go` files are permitted, unless the cgo attribute is set, in which case the        |
 | following file types are permitted: :value:`.go, .c, .s, .S .h`.                                 |
 | The files may contain Go-style `build constraints`_.                                             |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`x_defs`            | :type:`string_dict`         | :value:`{}`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| Map of defines to add to the go link command.                                                    |
+| See `Defines and stamping`_ for examples of how to use these.                                    |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
