@@ -49,6 +49,7 @@ func run(args []string) error {
 	outPath := flags.String("out_path", "", "The base output path to write to.")
 	plugin := flags.String("plugin", "", "The go plugin to use.")
 	importpath := flags.String("importpath", "", "The importpath for the generated sources.")
+	compilerPath:= flags.String("compiler_path", "", "The value for PATH.")
 	flags.Var(&options, "option", "The plugin options.")
 	flags.Var(&descriptors, "descriptor_set", "The descriptor set to read.")
 	flags.Var(&expected, "expected", "The expected output files.")
@@ -57,17 +58,19 @@ func run(args []string) error {
 		return err
 	}
 	pluginBase := filepath.Base(*plugin)
-	pluginName := strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-")
+	pluginName := strings.TrimSuffix(
+		strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-"), ".exe")
 	for _, m := range imports {
 		options = append(options, fmt.Sprintf("M%v", m))
 	}
 	protoc_args := []string{
 		fmt.Sprintf("--%v_out=%v:%v", pluginName, strings.Join(options, ","), *outPath),
-		"--plugin", fmt.Sprintf("%v=%v", pluginBase, *plugin),
-		"--descriptor_set_in", strings.Join(descriptors, ":"),
+		"--plugin", fmt.Sprintf("%v=%v", strings.TrimSuffix(pluginBase, ".exe"), *plugin),
+		"--descriptor_set_in", strings.Join(descriptors, string(os.PathListSeparator)),
 	}
 	protoc_args = append(protoc_args, flags.Args()...)
 	cmd := exec.Command(*protoc, protoc_args...)
+	cmd.Env = append(os.Environ(), fmt.Sprintf("PATH=%s", *compilerPath))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
