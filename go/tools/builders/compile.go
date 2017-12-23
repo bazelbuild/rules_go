@@ -67,7 +67,7 @@ func run(args []string) error {
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, flags.Args()...)
 	for _, f := range files {
-		goargs = append(goargs, f.Filename)
+		goargs = append(goargs, f.filename)
 	}
 	env := os.Environ()
 	env = append(env, goenv.Env()...)
@@ -107,7 +107,7 @@ func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, pac
 
 	var errs depsError
 	for _, f := range files {
-		for _, path := range f.Imports {
+		for _, path := range f.imports {
 			if path == "C" || stdlib[path] || isRelative(path) {
 				// Standard paths don't need to be listed as dependencies (for now).
 				// Relative paths aren't supported yet. We don't emit errors here, but
@@ -115,7 +115,7 @@ func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, pac
 				continue
 			}
 			if !depSet[path] {
-				errs = append(errs, fmt.Errorf("%s: import of %s, which is not a direct dependency", f.Filename, path))
+				errs = append(errs, fmt.Errorf("%s: import of %s, which is not a direct dependency", f.filename, path))
 			}
 		}
 	}

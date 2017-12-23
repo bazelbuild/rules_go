@@ -26,11 +26,11 @@ import (
 )
 
 type goMetadata struct {
-	Filename string
-	Matched  bool
-	IsCgo    bool
-	Package  string
-	Imports  []string
+	filename string
+	matched  bool
+	isCgo    bool
+	pkg      string
+	imports  []string
 }
 
 // readFiles collects metadata for a list of files.
@@ -39,7 +39,7 @@ func readFiles(bctx build.Context, inputs []string) ([]*goMetadata, error) {
 	for _, input := range inputs {
 		if m, err := readGoMetadata(bctx, input, true); err != nil {
 			return nil, err
-		} else if m.Matched {
+		} else if m.matched {
 			outputs = append(outputs, m)
 		}
 	}
@@ -53,18 +53,18 @@ func filterFiles(bctx build.Context, inputs []string) ([]string, error) {
 	for _, input := range inputs {
 		if m, err := readGoMetadata(bctx, input, false); err != nil {
 			return nil, err
-		} else if m.Matched {
+		} else if m.matched {
 			outputs = append(outputs, input)
 		}
 	}
 	return outputs, nil
 }
 
-// Match applies build constraints to an input file and returns whether
+// readGoMetadata applies build constraints to an input file and returns whether
 // it should be compiled.
 func readGoMetadata(bctx build.Context, input string, needPackage bool) (*goMetadata, error) {
 	m := &goMetadata{
-		Filename: input,
+		filename: input,
 	}
 	dir, base := filepath.Split(input)
 	// First check tag filtering
@@ -72,7 +72,7 @@ func readGoMetadata(bctx build.Context, input string, needPackage bool) (*goMeta
 	if err != nil {
 		return m, err
 	}
-	m.Matched = match
+	m.matched = match
 	// if we don't need the package, and we are cgo, no need to parse the file
 	if !needPackage && bctx.CgoEnabled {
 		return m, nil
@@ -88,7 +88,7 @@ func readGoMetadata(bctx build.Context, input string, needPackage bool) (*goMeta
 	if err != nil {
 		return m, err
 	}
-	m.Package = parsed.Name.String()
+	m.pkg = parsed.Name.String()
 
 	for _, decl := range parsed.Decls {
 		d, ok := decl.(*ast.GenDecl)
@@ -105,20 +105,20 @@ func readGoMetadata(bctx build.Context, input string, needPackage bool) (*goMeta
 				log.Panicf("%s: invalid string `%s`", input, spec.Path.Value)
 			}
 			if imp == "C" {
-				m.IsCgo = true
+				m.isCgo = true
 				break
 			}
 		}
 	}
 	// matched if cgo is enabled or the file is not cgo
-	m.Matched = match && (bctx.CgoEnabled || !m.IsCgo)
+	m.matched = match && (bctx.CgoEnabled || !m.isCgo)
 
 	for _, i := range parsed.Imports {
 		path, err := strconv.Unquote(i.Path.Value)
 		if err != nil {
 			return m, err
 		}
-		m.Imports = append(m.Imports, path)
+		m.imports = append(m.imports, path)
 	}
 
 	return m, nil

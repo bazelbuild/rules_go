@@ -46,7 +46,7 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	if !metadata.Matched {
+	if !metadata.matched {
 		source = os.DevNull
 	}
 	goargs := []string{"tool", "asm"}

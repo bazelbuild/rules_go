@@ -95,7 +95,7 @@ func run(args []string) error {
 		// if this is not a go file, it cannot be cgo, so just check the filter
 		if !strings.HasSuffix(in, ".go") {
 			// Not a go file, just filter, assume C or C-like
-			if metadata.Matched {
+			if metadata.matched {
 				// not filtered, copy over
 				if err := ioutil.WriteFile(out, data, 0644); err != nil {
 					return err
@@ -112,12 +112,12 @@ func run(args []string) error {
 		// Go source, must produce both c and go outputs
 		cOut := strings.TrimSuffix(out, ".cgo1.go") + ".cgo2.c"
 
-		if !metadata.Matched {
-			if metadata.Package == "" {
+		if !metadata.matched {
+			if metadata.pkg == "" {
 				return fmt.Errorf("%s: error: could not parse package name", in)
 			}
 			// filtered file, fake both the go and the c
-			if err := ioutil.WriteFile(out, []byte("package "+metadata.Package), 0644); err != nil {
+			if err := ioutil.WriteFile(out, []byte("package "+metadata.pkg), 0644); err != nil {
 				return err
 			}
 			if err := ioutil.WriteFile(cOut, []byte(""), 0644); err != nil {
@@ -126,12 +126,12 @@ func run(args []string) error {
 			continue
 		}
 
-		if pkgName != "" && metadata.Package != pkgName {
-			return fmt.Errorf("multiple packages found: %s and %s", pkgName, metadata.Package)
+		if pkgName != "" && metadata.pkg != pkgName {
+			return fmt.Errorf("multiple packages found: %s and %s", pkgName, metadata.pkg)
 		}
-		pkgName = metadata.Package
+		pkgName = metadata.pkg
 
-		if metadata.IsCgo {
+		if metadata.isCgo {
 			// add to cgo file list
 			cgoSrcs = append(cgoSrcs, in)
 		} else {
