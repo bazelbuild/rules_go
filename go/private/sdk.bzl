@@ -27,9 +27,10 @@ def _go_download_sdk_impl(ctx):
     host = "linux_amd64"
     res = ctx.execute(['uname', '-p'])
     if res.return_code == 0:
-      if res.stdout == 's390x':
+      uname = res.stdout.strip()
+      if uname == 's390x':
         host = "linux_s390x"
-      elif res.stdout == 'ppc64le':
+      elif uname == 'ppc64le':
         host = "linux_ppc64le"
     # Default to amd64 when uname doesn't return a known value.
   elif ctx.os.name == 'mac os x':
