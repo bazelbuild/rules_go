@@ -149,6 +149,42 @@ def go_rules_dependencies():
       commit = "f676e0f3ac6395ff1a529ae59a6670878a8371a6",  # master on 2017-10-10
       importpath = "google.golang.org/genproto",
   )
+  _maybe(native.http_file,
+    name = "com_github_go_swagger_linux_386",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_linux_386"],
+    sha256 = "f26aa27f995ff65ae074a39441316802a0d700386ac2e1f6cc2ae7836f091d68",
+    executable = True,
+  )
+  _maybe(native.http_file,
+    name = "com_github_go_swagger_linux_amd64",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_linux_amd64"],
+    sha256 = "2304d84a4eb06433ef49fd82dc12acc9babc85b36db9fb6f404841f68bc13823",
+    executable = True,
+  )
+  _maybe(native.http_file,
+    name = "com_github_go_swagger_darwin_386",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_darwin_386"],
+    sha256 = "0d8295c7fbd545210116cd17a399e281fe18c91b0228af26e78118f2b7b40244",
+    executable = True,
+  )
+  _maybe(native.http_file,
+    name = "com_github_go_swagger_darwin_amd64",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_darwin_amd64"],
+    sha256 = "16f6c4298fbe978aec4eab5dc928e58e0c407ff99a1d9cde1527f891ca780db7",
+    executable = True,
+  )
+  _maybe(native.http_file,
+    name = "com_github_go_swagger_win_386",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_windows_386.exe"],
+    sha256 = "2e05f5f3a2ab7369d3ad68faddb59b9ba312304b3a60d2f711b241c16964ba8f",
+    executable = True,
+  )
+  _maybe(native.http_file,
+    name = "com_github_go_swagger_win_amd64",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_windows_amd64.exe"],
+    sha256 = "c678d51206e1b2b86773054ccc52a7af8ee546431a6077a7c288930dc3eb5bc8",
+    executable = True,
+  )
 
   # Needed for examples
   _maybe(go_repository,

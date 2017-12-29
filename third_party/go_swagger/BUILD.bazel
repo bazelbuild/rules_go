@@ -1,0 +1,16 @@
+
+licenses(["notice"])
+
+filegroup(
+    name = "go_swagger",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:linux_386": ["@com_github_go_swagger_linux_386//file"],
+        "@io_bazel_rules_go//go/platform:linux_amd64": ["@com_github_go_swagger_linux_amd64//file"],
+        "@io_bazel_rules_go//go/platform:darwin_386": ["@com_github_go_swagger_darwin_386//file"],
+        "@io_bazel_rules_go//go/platform:darwin_amd64": ["@com_github_go_swagger_darwin_amd64//file"],
+        "@io_bazel_rules_go//go/platform:windows_386": ["@com_github_go_swagger_win_386//file"],
+        "@io_bazel_rules_go//go/platform:windows_amd64": ["@com_github_go_swagger_win_amd64//file"],
+    },
+    no_match_error = "Could not select go-swagger platform"),
+    visibility = ["//visibility:public"],
+)
