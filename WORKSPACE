@@ -12,5 +12,5 @@ test_environment()
 load("@io_bazel_rules_go//tests/legacy/test_chdir:remote.bzl", "test_chdir_remote")
 test_chdir_remote()
 
-load("@io_bazel_rules_go//tests/legacy/popular_repos:popular_repos.bzl", "popular_repos")
+load("@io_bazel_rules_go//tests/integration/popular_repos:popular_repos.bzl", "popular_repos")
 popular_repos()

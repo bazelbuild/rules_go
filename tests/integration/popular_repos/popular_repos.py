@@ -151,9 +151,10 @@ COPYRIGHT_HEADER = """
 ##############################
 # Generated file, do not edit!
 ##############################
-"""
+""".strip()
 
 BZL_HEADER = COPYRIGHT_HEADER + """
+
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 
 def _maybe(repo_rule, name, **kwargs):
@@ -164,6 +165,19 @@ def popular_repos():
 """
 
 BUILD_HEADER = COPYRIGHT_HEADER
+
+DOCUMENTATION_HEADER = """
+Popular repository tests
+========================
+
+These tests are designed to check that gazelle and rules_go together can cope
+with a list of popluar repositories people depend on.
+
+It helps catch changes that might break a large number of users.
+
+.. contents::
+
+""".lstrip()
 
 def popular_repos_bzl():
   with open("popular_repos.bzl", "w") as f:
@@ -189,19 +203,35 @@ def build_bazel():
       invalid_excludes = [t for t in excludes if not t in tests]
       if invalid_excludes:
         exit("Invalid excludes found: {}".format(invalid_excludes))
-      f.write('test_suite(\n')
+      f.write('\ntest_suite(\n')
       f.write('    name = "{}",\n'.format(name))
       f.write('    tests = [\n')
-      for test in tests:
+      actual = []
+      for test in sorted(tests, key=lambda test: test.replace(":", "!")):
         if test in excludes or not test: continue
         f.write('        "{}",\n'.format(test))
+        actual.append(test)
       f.write('    ],\n')
       #TODO: add in the platform "select" tests
-      f.write(')\n\n')
+      f.write(')\n')
+      repo["actual"] = actual
+
+def readme_rst():
+  with open("README.rst", "w") as f:
+    f.write(DOCUMENTATION_HEADER)
+    for repo in POPULAR_REPOS:
+      name = repo["name"]
+      f.write("{}\n{}\n\n".format(name, "_"*len(name)))
+      f.write("This runs tests from the repository `{0} <https://{0}>`_\n\n".format(repo["importpath"]))
+      for test in repo["actual"]:
+          f.write("* {}\n".format(test))
+      f.write("\n\n")
+
 
 def main():
   popular_repos_bzl()
   build_bazel()
+  readme_rst()
 
 if __name__ == "__main__":
     main()
