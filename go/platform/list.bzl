@@ -36,8 +36,8 @@ GOARCH = {
     "mips64": None,
     "mips64le": None,
     "mipsle": None,
-    "ppc64": "@bazel_tools//platforms:ppc",
-    "ppc64le": None,
+    "ppc64": None,
+    "ppc64le": "@bazel_tools//platforms:ppc",
     "s390x": "@bazel_tools//platforms:s390x",
 }
 
