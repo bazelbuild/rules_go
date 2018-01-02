@@ -32,7 +32,12 @@ def _go_source_impl(ctx):
   go = go_context(ctx)
   library = go.new_library(go)
   source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
-  return [library, source]
+  return [
+      library, source,
+      DefaultInfo(
+          files = depset(source.srcs),
+      ),
+  ]
 
 go_source = rule(
     _go_source_impl,
