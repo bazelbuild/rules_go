@@ -126,14 +126,6 @@ Setup
     go_rules_dependencies()
     go_register_toolchains()
 
-  If you plan to use the proto rules (``go_proto_library`` and
-  ``go_grpc_library``), add the following to WORKSPACE.
-
-  .. code:: bzl
-
-    load("@io_bazel_rules_go//proto:def.bzl", "proto_register_toolchains")
-    proto_register_toolchains()
-
   You can add more external dependencies to this file later (see go_repository_).
 
 * Add a file named ``BUILD.bazel`` in the root directory of your
