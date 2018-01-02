@@ -93,7 +93,7 @@ go_proto_library = rule(
         "proto": attr.label(mandatory=True, providers=["proto"]),
         "deps": attr.label_list(providers = [GoLibrary], aspects = [_go_proto_aspect]),
         "importpath": attr.string(),
-        "embed": attr.label_list(providers = [GoLibrary]),
+        "embed": attr.label_list(providers = [GoLibrary], aspects = [_go_proto_aspect]),
         "gc_goopts": attr.string_list(),
         "compiler": attr.label(providers = [GoProtoCompiler]),
         "compilers": attr.label_list(providers = [GoProtoCompiler], default = ["@io_bazel_rules_go//proto:go_proto"]),
