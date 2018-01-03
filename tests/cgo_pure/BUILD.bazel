@@ -6,7 +6,6 @@ go_library(
         "cgo.c",
         "cgo.go",
         "cgo_no_tag.go",
-        "common.go",
         "pure.go",
     ],
     cgo = True,
@@ -17,7 +16,7 @@ go_test(
     size = "small",
     srcs = ["cgo_pure_test.go"],
     x_defs = {
-        "github.com/bazelbuild/rules_go/tests/cgo_pure.Expect": "2",
+        "Expect": "2",
     },
     deps = [":cgo_pure"],
 )
@@ -28,7 +27,7 @@ go_test(
     srcs = ["cgo_pure_test.go"],
     pure = "on",
     x_defs = {
-        "github.com/bazelbuild/rules_go/tests/cgo_pure.Expect": "1",
+        "Expect": "1",
     },
     deps = [":cgo_pure"],
 )
