@@ -11,4 +11,5 @@ go_library(
     name = "go_default_library",
     srcs = ["pure.go"],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_filtered",
 )

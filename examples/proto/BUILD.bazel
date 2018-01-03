@@ -15,7 +15,6 @@ go_test(
     name = "proto_test",
     size = "small",
     srcs = ["proto_test.go"],
-    importpath = "github.com/bazelbuild/rules_go/examples/proto",
     pure = "off",
     deps = [
         "//examples/proto/embed:go_default_library",
@@ -27,7 +26,6 @@ go_test(
     name = "proto_pure_test",
     size = "small",
     srcs = ["proto_test.go"],
-    importpath = "github.com/bazelbuild/rules_go/examples/proto",
     pure = "on",
     deps = [
         "//examples/proto/embed:go_default_library",

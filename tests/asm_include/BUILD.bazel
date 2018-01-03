@@ -25,6 +25,7 @@ go_library(
         ":darwin_amd64": LIB_AMD64_SRCS,
         "//conditions:default": LIB_OTHER_SRCS,
     }),
+    importpath = "github.com/bazelbuild/rules_go/tests/asm_include",
 )
 
 go_test(

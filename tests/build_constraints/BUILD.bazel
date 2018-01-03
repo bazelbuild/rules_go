@@ -27,6 +27,7 @@ go_library(
         ":c_srcs_group",
     ],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/build_constraints",
 )
 
 filegroup(

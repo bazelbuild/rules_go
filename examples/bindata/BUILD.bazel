@@ -9,6 +9,7 @@ bindata(
 
 go_library(
     name = "go_default_library",
+    importpath = "github.com/bazelbuild/rules_go/examples/bindata",
     srcs = [":data"],
 )
 

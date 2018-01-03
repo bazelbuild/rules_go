@@ -8,6 +8,7 @@ go_library(
         "generator.go",
         "sort_labels.go",
     ],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/gazelle/rules",
     visibility = ["//visibility:public"],
     deps = [
         "//go/tools/gazelle/config:go_default_library",

@@ -18,6 +18,7 @@ go_library(
         "foo.c",
     ],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_library_root_dir",
     tags = ["manual"],
 )
 

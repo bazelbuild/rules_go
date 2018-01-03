@@ -8,4 +8,5 @@ go_library(
         "doc.go",
         "thought.go",
     ],
+    importpath = "github.com/bazelbuild/rules_go/examples/lib/deep",
 )

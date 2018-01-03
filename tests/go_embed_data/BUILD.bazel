@@ -21,6 +21,7 @@ go_library(
         ":single",
         ":str",
     ],
+    importpath = "github.com/bazelbuild/rules_go/tests/go_embed_data",
 )
 
 go_embed_data(

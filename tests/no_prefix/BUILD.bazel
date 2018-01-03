@@ -20,7 +20,6 @@ go_library(
 go_test(
     name = "go_default_xtest",
     srcs = ["no_prefix_test.go"],
-    importpath = "github.com/bazelbuild/rules_go/tests/no_prefix_test",
     deps = [":go_default_library"],
 )
 

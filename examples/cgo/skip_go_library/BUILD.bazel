@@ -9,4 +9,5 @@ go_library(
         "types.go",
     ],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/examples/cgo/skip_go_library",
 )

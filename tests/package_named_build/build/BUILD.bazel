@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = ["build.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/package_named_build/build",
 )
 
 go_test(

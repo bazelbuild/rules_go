@@ -18,4 +18,5 @@ go_library(
         "foo/foo.go",
     ],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_multi_dir",
 )

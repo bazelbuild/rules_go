@@ -21,4 +21,5 @@ go_library(
         "baz_linux_test.go",
         "baz_unknown_test.go",
     ],
+    importpath = "github.com/bazelbuild/rules_go/tests/test_build_constraints",
 )

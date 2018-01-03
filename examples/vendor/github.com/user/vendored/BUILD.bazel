@@ -9,4 +9,5 @@ go_library(
     srcs = [
         "vendored.go",
     ],
+    importpath = "github.com/user/vendored",
 )

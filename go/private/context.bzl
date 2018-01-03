@@ -121,14 +121,30 @@ def _infer_importpath(ctx):
   VENDOR_PREFIX = "/vendor/"
   # Check if import path was explicitly set
   path = getattr(ctx.attr, "importpath", "")
+  # are we in forced infer mode?
+  if path == "~auto~":
+    path = ""
   if path != "":
     return path, EXPLICIT_PATH
   # See if we can collect importpath from embeded libraries
   # This is the path that fixes tests as well
   for embed in getattr(ctx.attr, "embed", []):
-    if GoLibrary in embed:
-      if embed[GoLibrary].pathtype == EXPLICIT_PATH:
-        return embed[GoLibrary].importpath, EXPLICIT_PATH
+    if GoLibrary not in embed:
+      continue
+    if embed[GoLibrary].pathtype == EXPLICIT_PATH:
+      return embed[GoLibrary].importpath, EXPLICIT_PATH
+  # If we are a test, and we have a dep in the same package, presume
+  # we should be named the same with an _test suffix
+  if ctx.label.name.endswith("_test~library~"):
+    for dep in getattr(ctx.attr, "deps", []):
+      if GoLibrary not in dep:
+        continue
+      lib = dep[GoLibrary]
+      if lib.label.workspace_root != ctx.label.workspace_root:
+        continue
+      if lib.label.package != ctx.label.package:
+        continue
+      return lib.importpath + "_test", INFERRED_PATH
   # TODO: stop using the prefix
   prefix = getattr(ctx.attr, "_go_prefix", None)
   path = prefix.go_prefix if prefix else ""

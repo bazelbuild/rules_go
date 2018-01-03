@@ -24,6 +24,7 @@ go_library(
         "cgo_data.txt",
         "go_data.txt",
     ],
+    importpath = "github.com/bazelbuild/rules_go/tests/transitive_data",
 )
 
 cc_library(

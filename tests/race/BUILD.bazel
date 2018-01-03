@@ -5,6 +5,7 @@ load(":generate_test.bzl", "generate_script")
 go_library(
     name = "go_default_library",
     srcs = ["race.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/race",
     deps = ["//tests/race/racy:go_default_library"],
 )
 

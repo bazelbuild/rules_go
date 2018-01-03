@@ -14,6 +14,7 @@ go_library(
         "use_exported.c",
         "use_exported.h",
     ],
+    importpath = "github.com/bazelbuild/rules_go/examples/cgo",
     cdeps = ["//examples/cgo/cc_dependency:version"],
     cgo = True,
     clinkopts = ["-lm"],
@@ -31,6 +32,7 @@ go_library(
     cgo = True,
     clinkopts = ["-lm"],
     visibility = ["//visibility:private"],
+    importpath = "github.com/bazelbuild/rules_go/examples/cgo/sub",
 )
 
 go_test(

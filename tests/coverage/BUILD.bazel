@@ -14,6 +14,7 @@ go_test(
 go_library(
     name = "go_default_library",
     srcs = ["lib.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/coverage",
 )
 
 bazel_test(
@@ -37,6 +38,7 @@ go_binary(
 go_library(
     name = "bin_lib",
     srcs = ["bin_lib.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/coverage",
 )
 
 bazel_test(

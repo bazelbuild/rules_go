@@ -17,7 +17,7 @@ load("@io_bazel_rules_go//go/private:rules/library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:rules/test.bzl", "go_test")
 load("@io_bazel_rules_go//go/private:rules/cgo.bzl", "setup_cgo_library")
 
-def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], library=None, **kwargs):
+def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], importpath="", library=None, **kwargs):
   """See go/core.rst#go_library for full documentation."""
   if library:
     #TODO: print("\nDEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
@@ -37,16 +37,19 @@ def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], c
       name = name,
       srcs = srcs,
       embed = embed,
+      importpath = importpath,
       **kwargs
   )
 
+#TODO(#1207): Remove importpath
 def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], library=None, importpath="", **kwargs):
   """See go/core.rst#go_binary for full documentation."""
   if library:
     #TODO: print("\nDEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
-  #if importpath:
-  #  print("\nDEPRECATED: {}//{}:{} : the importpath attribute on go_binary is deprecated.".format(native.repository_name(), native.package_name(), name))
+  #TODO: Turn on the deprecation warning when gazelle stops adding these
+  #if importpath and native.repository_name() == "@":
+  #  print("\nDEPRECATED: //{}:{} : the importpath attribute on go_binary is deprecated.".format(native.package_name(), name))
 
   if cgo:
     cgo_embed = setup_cgo_library(
@@ -65,13 +68,18 @@ def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], cl
       **kwargs
   )
 
-def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed=[], gc_goopts=[], cgo=False, cdeps=[], copts=[], clinkopts=[], x_defs={}, **kwargs):
+#TODO(#1207): Remove importpath
+def go_test_macro(name, srcs=None, deps=None, importpath=None, library=None, embed=[], gc_goopts=[], cgo=False, cdeps=[], copts=[], clinkopts=[], x_defs={}, **kwargs):
   """See go/core.rst#go_test for full documentation."""
   if library:
     #TODO: print("\nDEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
-  #TODO: if importpath:
-  #  print("\nDEPRECATED: {}//{}:{} : the importpath attribute on go_test is deprecated.".format(native.repository_name(), native.package_name(), name))
+  if not importpath:
+    importpath = "~auto~"
+  #TODO: Turn on the deprecation warning when gazelle stops adding these
+  #elif native.repository_name() == "@":
+  #  print("\nDEPRECATED: //{}:{} : the importpath attribute on go_test is deprecated.".format(native.package_name(), name))
+
 
   library_name = name + "~library~"
   go_library_macro(

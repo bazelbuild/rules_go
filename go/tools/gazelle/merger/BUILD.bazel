@@ -6,6 +6,7 @@ go_library(
         "fix.go",
         "merger.go",
     ],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/gazelle/merger",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_bazelbuild_buildtools//build:go_default_library",

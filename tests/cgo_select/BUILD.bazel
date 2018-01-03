@@ -25,6 +25,7 @@ go_library(
         ],
     }),
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_select",
 )
 
 cc_library(

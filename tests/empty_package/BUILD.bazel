@@ -24,7 +24,6 @@ go_test(
     name = "empty_package_cgo",
     size = "small",
     srcs = ["empty_package_test.go"],
-    importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
     pure = "off",
     x_defs = {
         "Expect": "2",
@@ -36,7 +35,6 @@ go_test(
     name = "empty_package_pure",
     size = "small",
     srcs = ["empty_package_test.go"],
-    importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
     pure = "on",
     x_defs = {
         "Expect": "1",

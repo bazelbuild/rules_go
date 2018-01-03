@@ -6,12 +6,14 @@ go_library(
     srcs = ["unsafe.go"],
     gc_goopts = ["-u"],
     tags = ["manual"],
+    importpath = "github.com/bazelbuild/rules_go/tests/gc_opts_unsafe",
 )
 
 go_library(
     name = "unsafe_library_lib",
     embed = [":unsafe_srcs_lib"],
     tags = ["manual"],
+    importpath = "github.com/bazelbuild/rules_go/tests/gc_opts_unsafe",
 )
 
 go_binary(
@@ -55,12 +57,14 @@ go_library(
     cgo = True,
     gc_goopts = ["-u"],
     tags = ["manual"],
+    importpath = "github.com/bazelbuild/rules_go/tests/gc_opts_unsafe",
 )
 
 go_library(
     name = "unsafe_cgo_client_lib",
     embed = [":unsafe_cgo_lib"],
     tags = ["manual"],
+    importpath = "github.com/bazelbuild/rules_go/tests/gc_opts_unsafe",
 )
 
 go_binary(

@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 bazel_test(
@@ -15,11 +15,10 @@ fi
     targets = [":go_default_library"],
 )
 
-go_prefix("github.com/bazelbuild/rules_go/tests/trans_dep_error")
-
 go_library(
     name = "go_default_library",
     srcs = ["lib.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/trans_dep_error",
     tags = ["manual"],
     deps = [":a"],
 )
@@ -28,9 +27,11 @@ go_library(
     name = "a",
     srcs = ["a.go"],
     deps = [":b"],
+    importpath = "github.com/bazelbuild/rules_go/tests/trans_dep_error/a",
 )
 
 go_library(
     name = "b",
     srcs = ["b.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/trans_dep_error/b",
 )

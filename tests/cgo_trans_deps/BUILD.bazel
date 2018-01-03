@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = ["cgo_lib.go"],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_trans_deps",
     deps = ["//tests/cgo_trans_deps/dep:go_default_library"],
 )
 

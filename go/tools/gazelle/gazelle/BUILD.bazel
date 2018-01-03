@@ -9,6 +9,7 @@ go_library(
         "main.go",
         "print.go",
     ],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/gazelle/gazelle",
     deps = [
         "//go/tools/gazelle/config:go_default_library",
         "//go/tools/gazelle/merger:go_default_library",

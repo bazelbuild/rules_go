@@ -9,6 +9,7 @@ go_library(
         "pure.go",
     ],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_pure",
 )
 
 go_test(

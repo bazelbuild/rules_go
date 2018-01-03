@@ -12,6 +12,7 @@ go_library(
         "lib.go",
         "sub.s",
     ],
+    importpath = "github.com/bazelbuild/rules_go/examples/lib",
     deps = ["//examples/lib/deep:go_default_library"],
 )
 

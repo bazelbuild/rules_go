@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = ["cgo_pthread_flag.go"],
     cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_pthread_flag",
 )
 
 go_test(

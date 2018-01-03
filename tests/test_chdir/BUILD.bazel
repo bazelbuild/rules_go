@@ -5,7 +5,6 @@ go_test(
     size = "small",
     srcs = ["data_test.go"],
     data = ["data.txt"],
-    importpath = "test_chdir/sub",
 )
 
 test_suite(
