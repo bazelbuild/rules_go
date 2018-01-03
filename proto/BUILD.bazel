@@ -11,7 +11,8 @@ WELL_KNOWN_PROTOS = [
 ]
 
 GOLANG_PTYPES = [
-    "@com_github_golang_protobuf//ptypes/{}:go_default_library".format(lib) for lib in WELL_KNOWN_PROTOS
+    "@com_github_golang_protobuf//ptypes/{}:go_default_library".format(lib)
+    for lib in WELL_KNOWN_PROTOS
 ]
 
 go_proto_compiler(
@@ -36,9 +37,9 @@ go_proto_compiler(
 go_proto_compiler(
     name = "go_proto_validate",
     plugin = "@com_github_mwitkow_go_proto_validators//protoc-gen-govalidators",
-    visibility = ["//visibility:public"],
     suffix = ".validator.pb.go",
     valid_archive = False,
+    visibility = ["//visibility:public"],
     deps = [
         "@com_github_golang_protobuf//proto:go_default_library",
     ],
@@ -56,14 +57,15 @@ GOGO_VARIANTS = [
 ]
 
 GOGO_WELL_KNOWN_TYPE_REMAPS = [
-    "Mgoogle/protobuf/{}.proto=github.com/gogo/protobuf/types".format(t) for t in WELL_KNOWN_PROTOS
+    "Mgoogle/protobuf/{}.proto=github.com/gogo/protobuf/types".format(t)
+    for t in WELL_KNOWN_PROTOS
 ]
 
 [go_proto_compiler(
-    name = variant+"_proto",
-    plugin = "@com_github_gogo_protobuf//protoc-gen-"+variant,
-    visibility = ["//visibility:public"],
+    name = variant + "_proto",
     options = GOGO_WELL_KNOWN_TYPE_REMAPS,
+    plugin = "@com_github_gogo_protobuf//protoc-gen-" + variant,
+    visibility = ["//visibility:public"],
     deps = [
         "@com_github_gogo_protobuf//gogoproto:go_default_library",
         "@com_github_gogo_protobuf//proto:go_default_library",
@@ -73,9 +75,9 @@ GOGO_WELL_KNOWN_TYPE_REMAPS = [
 ) for variant in GOGO_VARIANTS]
 
 [go_proto_compiler(
-    name = variant+"_grpc",
-    plugin = "@com_github_gogo_protobuf//protoc-gen-"+variant,
+    name = variant + "_grpc",
     options = ["plugins=grpc"] + GOGO_WELL_KNOWN_TYPE_REMAPS,
+    plugin = "@com_github_gogo_protobuf//protoc-gen-" + variant,
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_gogo_protobuf//gogoproto:go_default_library",

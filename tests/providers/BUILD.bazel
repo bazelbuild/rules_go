@@ -1,4 +1,3 @@
-
 load("//go:def.bzl", "go_source")
 load("//tests/providers:test.bzl", "test_source")
 

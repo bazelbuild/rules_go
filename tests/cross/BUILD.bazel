@@ -7,28 +7,28 @@ go_source(
 
 go_binary(
     name = "windows",
-    embed = [":cross"],
     basename = "cross",
-    goos = "windows",
+    embed = [":cross"],
     goarch = "amd64",
+    goos = "windows",
     pure = "on",
 )
 
 go_binary(
     name = "linux",
-    embed = [":cross"],
     basename = "cross",
-    goos = "linux",
+    embed = [":cross"],
     goarch = "amd64",
+    goos = "linux",
     pure = "on",
 )
 
 go_binary(
     name = "darwin",
-    embed = [":cross"],
     basename = "cross",
-    goos = "darwin",
+    embed = [":cross"],
     goarch = "amd64",
+    goos = "darwin",
     pure = "on",
 )
 
@@ -37,8 +37,8 @@ go_test(
     size = "small",
     srcs = ["cross_test.go"],
     data = [
-      ":linux",
-      ":darwin",
-      ":windows",
+        ":darwin",
+        ":linux",
+        ":windows",
     ],
 )
