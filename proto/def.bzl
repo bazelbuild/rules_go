@@ -61,7 +61,6 @@ def _proto_library_to_source(go, attr, source, merge):
 
 def _go_proto_library_impl(ctx):
   go = go_context(ctx)
-  importpath = go._inferredpath #TODO: Drop this as soon as the attribute is mandatory
   if ctx.attr.compiler:
     #TODO: print("DEPRECATED: compiler attribute on {}, use compilers instead".format(ctx.label))
     compilers = [ctx.attr.compiler]
@@ -77,7 +76,7 @@ def _go_proto_library_impl(ctx):
       compiler = compiler,
       proto = ctx.attr.proto.proto,
       imports = get_imports(ctx.attr),
-      importpath = importpath,
+      importpath = go.importpath,
     ))
   library = go.new_library(go,
       resolver=_proto_library_to_source,

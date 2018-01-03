@@ -34,6 +34,10 @@ load("@io_bazel_rules_go//go/private:common.bzl",
 
 GoContext = provider()
 
+EXPLICIT_PATH = "explicit"
+INFERRED_PATH = "inferred"
+EXPORT_PATH = "export"
+
 def _declare_file(go, path="", ext="", name = ""):
   filename = mode_string(go.mode) + "/"
   filename += name if name else go._ctx.label.name
@@ -59,8 +63,8 @@ def _new_library(go, resolver=None, importable=True, **kwargs):
   return GoLibrary(
       name = go._ctx.label.name,
       label = go._ctx.label,
-      importpath = go._inferredpath if importable else None, # The canonical import path for this library
-      exportpath = go._inferredpath, # The export source path for this library
+      importpath = go.importpath,
+      pathtype = go.pathtype if importable else EXPORT_PATH,
       resolve = resolver,
       **kwargs
   )
@@ -115,11 +119,21 @@ def _library_to_source(go, attr, library, coverage_instrumented):
 def _infer_importpath(ctx):
   DEFAULT_LIB = "go_default_library"
   VENDOR_PREFIX = "/vendor/"
-  path = getattr(ctx.attr, "importpath", None)
+  # Check if import path was explicitly set
+  path = getattr(ctx.attr, "importpath", "")
   if path != "":
-    return path
+    return path, EXPLICIT_PATH
+  # See if we can collect importpath from embeded libraries
+  # This is the path that fixes tests as well
+  for embed in getattr(ctx.attr, "embed", []):
+    if GoLibrary in embed:
+      if embed[GoLibrary].pathtype == EXPLICIT_PATH:
+        return embed[GoLibrary].importpath, EXPLICIT_PATH
+  # TODO: stop using the prefix
   prefix = getattr(ctx.attr, "_go_prefix", None)
   path = prefix.go_prefix if prefix else ""
+  # Guess an import path based on the directory structure
+  # This should only really be relied on for binaries
   if path.endswith("/"):
     path = path[:-1]
   if ctx.label.package:
@@ -128,9 +142,9 @@ def _infer_importpath(ctx):
     path += "/" + ctx.label.name
   if path.rfind(VENDOR_PREFIX) != -1:
     path = path[len(VENDOR_PREFIX) + path.rfind(VENDOR_PREFIX):]
-  if path[0] == "/":
+  if path.startswith("/"):
     path = path[1:]
-  return path
+  return path, INFERRED_PATH
 
 
 def go_context(ctx, attr=None):
@@ -163,6 +177,7 @@ def go_context(ctx, attr=None):
   if ctx.var.get("LD") and ctx.var.get("LD").rfind("/") > 0:
     compiler_path, _ = ctx.var.get("LD").rsplit("/", 1)
 
+  importpath, pathtype = _infer_importpath(ctx)
   return GoContext(
       # Fields
       toolchain = toolchain,
@@ -173,6 +188,8 @@ def go_context(ctx, attr=None):
       crosstool = context_data.crosstool,
       package_list = context_data.package_list,
       compiler_path = compiler_path,
+      importpath = importpath,
+      pathtype = pathtype,
       # Action generators
       archive = toolchain.actions.archive,
       asm = toolchain.actions.asm,
@@ -190,7 +207,6 @@ def go_context(ctx, attr=None):
 
       # Private
       _ctx = ctx, # TODO: All uses of this should be removed
-      _inferredpath = _infer_importpath(ctx), # TODO: remove when go_prefix goes away
   )
 
 def _stdlib_all():

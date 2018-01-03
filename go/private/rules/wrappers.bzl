@@ -20,7 +20,7 @@ load("@io_bazel_rules_go//go/private:rules/cgo.bzl", "setup_cgo_library")
 def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], library=None, **kwargs):
   """See go/core.rst#go_library for full documentation."""
   if library:
-    #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
+    #TODO: print("\nDEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
 
   if cgo:
@@ -40,11 +40,13 @@ def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], c
       **kwargs
   )
 
-def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], library=None, **kwargs):
+def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], library=None, importpath="", **kwargs):
   """See go/core.rst#go_binary for full documentation."""
   if library:
-    #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
+    #TODO: print("\nDEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
+  #if importpath:
+  #  print("\nDEPRECATED: {}//{}:{} : the importpath attribute on go_binary is deprecated.".format(native.repository_name(), native.package_name(), name))
 
   if cgo:
     cgo_embed = setup_cgo_library(
@@ -66,8 +68,10 @@ def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], cl
 def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed=[], gc_goopts=[], cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
   """See go/core.rst#go_test for full documentation."""
   if library:
-    #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
+    #TODO: print("\nDEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
+  #TODO: if importpath:
+  #  print("\nDEPRECATED: {}//{}:{} : the importpath attribute on go_test is deprecated.".format(native.repository_name(), native.package_name(), name))
 
   library_name = name + "~library~"
   go_library_macro(
@@ -88,7 +92,6 @@ def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed
   go_test(
       name = name,
       library = library_name,
-      importpath = importpath,
       gc_goopts = gc_goopts,
       **kwargs
   )

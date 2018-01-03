@@ -50,7 +50,10 @@ Please do not rely on it for production use, but feel free to use it and file is
   outputs = []
   packages = []
   for golib in as_iterable(golibs):
-    if golib.exportpath in seen_libs:
+    if not golib.importpath:
+      print("Missing importpath on {}".format(golib.label))
+      continue
+    if golib.importpath in seen_libs:
       # We found two different library rules that map to the same import path
       # This is legal in bazel, but we can't build a valid go path for it.
       # TODO: we might be able to ignore this if the content is identical
@@ -58,13 +61,13 @@ Please do not rely on it for production use, but feel free to use it and file is
 Found {} in
   {}
   {}
-""".format(golib.exportpath, golib.label, seen_libs[golib.exportpath].label))
+""".format(golib.importpath, golib.label, seen_libs[golib.importpath].label))
       # for now we don't fail if we see duplicate packages
       # the most common case is the same source from two different workspaces
       continue
-    seen_libs[golib.exportpath] = golib
+    seen_libs[golib.importpath] = golib
     package_files = []
-    prefix = "src/" + golib.exportpath + "/"
+    prefix = "src/" + golib.importpath + "/"
     for src in golib.srcs:
       outpath = prefix + src.basename
       if outpath in seen_paths:
