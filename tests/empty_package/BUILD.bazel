@@ -27,7 +27,7 @@ go_test(
     importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
     pure = "off",
     x_defs = {
-        "github.com/bazelbuild/rules_go/tests/empty_package_test.Expect": "2",
+        "Expect": "2",
     },
     deps = [":mixed"],
 )
@@ -39,7 +39,7 @@ go_test(
     importpath = "github.com/bazelbuild/rules_go/tests/empty_package_test",
     pure = "on",
     x_defs = {
-        "github.com/bazelbuild/rules_go/tests/empty_package_test.Expect": "1",
+        "Expect": "1",
     },
     deps = [":mixed"],
 )

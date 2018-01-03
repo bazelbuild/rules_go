@@ -63,7 +63,7 @@ def go_binary_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], cl
       **kwargs
   )
 
-def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed=[], gc_goopts=[], cgo=False, cdeps=[], copts=[], clinkopts=[], **kwargs):
+def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed=[], gc_goopts=[], cgo=False, cdeps=[], copts=[], clinkopts=[], x_defs={}, **kwargs):
   """See go/core.rst#go_test for full documentation."""
   if library:
     #TODO: print("DEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
@@ -84,6 +84,7 @@ def go_test_macro(name, srcs=None, deps=None, importpath="", library=None, embed
       cdeps = cdeps,
       copts = copts,
       clinkopts = clinkopts,
+      x_defs = x_defs,
   )
   go_test(
       name = name,
