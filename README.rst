@@ -38,8 +38,8 @@ Announcements
 -------------
 
 January 2, 2017
-  The old Gazelle subtree (//go/tools/gazelle) will be removed soon. See 
-  `#1199`_ for details. Please migrate to 
+  The old Gazelle subtree (//go/tools/gazelle) will be removed soon. See
+  `#1199`_ for details. Please migrate to
   `github.com/bazelbuild/bazel-gazelle`_.
 December 14, 2017
   Gazelle has moved to a new repository,
@@ -159,7 +159,7 @@ build files automatically using gazelle_.
     )
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
     gazelle_dependencies()
-    
+
 * Add the code below to the BUILD or BUILD.bazel file in the root directory
   of your repository. Replace the string in ``prefix`` with the prefix you
   chose for your project earlier.
@@ -172,7 +172,7 @@ build files automatically using gazelle_.
       name = "gazelle",
       prefix = "github.com/example/project",
   )
-    
+
 * After adding the ``gazelle`` rule, run the command below:
 
   ::
@@ -229,7 +229,7 @@ gazelle_, you can write build files by hand.
         name = "go_default_test",
         srcs = ["foo_test.go"],
         importpath = "github.com/example/project/foo",
-        library = ":go_default_library",
+        embed = [":go_default_library"],
     )
 
     # External test
