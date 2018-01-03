@@ -15,7 +15,7 @@ go_library(
         "use_exported.h",
     ],
     importpath = "github.com/bazelbuild/rules_go/examples/cgo",
-    cdeps = ["//examples/cgo/cc_dependency:version"],
+    cdeps = ["//tests/legacy/examples/cgo/cc_dependency:version"],
     cgo = True,
     clinkopts = ["-lm"],
     copts = ["-DDEFINED_IN_COPTS=1"],

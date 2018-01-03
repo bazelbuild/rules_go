@@ -13,7 +13,7 @@ go_library(
         "sub.s",
     ],
     importpath = "github.com/bazelbuild/rules_go/examples/lib",
-    deps = ["//examples/lib/deep:go_default_library"],
+    deps = ["//tests/legacy/examples/lib/deep:go_default_library"],
 )
 
 go_test(

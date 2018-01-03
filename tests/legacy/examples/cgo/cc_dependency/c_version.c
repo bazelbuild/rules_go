@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "examples/cgo/cc_dependency/c_version.h"
+#include "tests/legacy/examples/cgo/cc_dependency/c_version.h"
 
 void PrintCVersion() {
 #ifdef __STDC__

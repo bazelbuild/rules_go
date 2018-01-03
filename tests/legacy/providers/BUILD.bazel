@@ -1,5 +1,5 @@
 load("//go:def.bzl", "go_source")
-load("//tests/providers:test.bzl", "test_source")
+load("//tests/legacy/providers:test.bzl", "test_source")
 
 go_source(
     name = "srcs",

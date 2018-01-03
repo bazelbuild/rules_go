@@ -9,8 +9,8 @@ go_register_toolchains()
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "test_environment")
 test_environment()
 
-load("@io_bazel_rules_go//tests/test_chdir:remote.bzl", "test_chdir_remote")
+load("@io_bazel_rules_go//tests/legacy/test_chdir:remote.bzl", "test_chdir_remote")
 test_chdir_remote()
 
-load("@io_bazel_rules_go//tests/popular_repos:popular_repos.bzl", "popular_repos")
+load("@io_bazel_rules_go//tests/legacy/popular_repos:popular_repos.bzl", "popular_repos")
 popular_repos()

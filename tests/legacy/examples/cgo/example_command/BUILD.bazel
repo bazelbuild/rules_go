@@ -9,7 +9,7 @@ go_binary(
     name = "example_command",
     srcs = ["main.go"],
     deps = [
-        "//examples/cgo:go_default_library",
+        "//tests/legacy/examples/cgo:go_default_library",
     ],
 )
 

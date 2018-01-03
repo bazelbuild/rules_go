@@ -6,7 +6,7 @@ go_library(
     name = "go_default_library",
     srcs = ["race.go"],
     importpath = "github.com/bazelbuild/rules_go/tests/race",
-    deps = ["//tests/race/racy:go_default_library"],
+    deps = ["//tests/legacy/race/racy:go_default_library"],
 )
 
 go_binary(

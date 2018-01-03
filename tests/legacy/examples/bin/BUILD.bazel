@@ -11,7 +11,7 @@ go_binary(
         "main.buildTime": "2016/05/19 09:10am",
     },
     deps = [
-        "//examples/lib:go_default_library",
-        "//examples/vendor/github.com/user/vendored:go_default_library",
+        "//tests/legacy/examples/lib:go_default_library",
+        "//tests/legacy/examples/vendor/github.com/user/vendored:go_default_library",
     ],
 )

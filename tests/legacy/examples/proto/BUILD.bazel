@@ -6,8 +6,8 @@ go_library(
     importpath = "github.com/bazelbuild/rules_go/examples/proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//examples/proto/gostyle:gostyle_go_proto",
-        "//examples/proto/lib:lib_go_proto",
+        "//tests/legacy/examples/proto/gostyle:gostyle_go_proto",
+        "//tests/legacy/examples/proto/lib:lib_go_proto",
     ],
 )
 
@@ -17,8 +17,8 @@ go_test(
     srcs = ["proto_test.go"],
     pure = "off",
     deps = [
-        "//examples/proto/embed:go_default_library",
-        "//examples/proto/lib:lib_go_proto",
+        "//tests/legacy/examples/proto/embed:go_default_library",
+        "//tests/legacy/examples/proto/lib:lib_go_proto",
     ],
 )
 
@@ -28,7 +28,7 @@ go_test(
     srcs = ["proto_test.go"],
     pure = "on",
     deps = [
-        "//examples/proto/embed:go_default_library",
-        "//examples/proto/lib:lib_go_proto",
+        "//tests/legacy/examples/proto/embed:go_default_library",
+        "//tests/legacy/examples/proto/lib:lib_go_proto",
     ],
 )

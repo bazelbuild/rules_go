@@ -1,7 +1,7 @@
 #include <dlfcn.h>
 #include <iostream>
 
-#include "examples/cgo/cc_dependency/version.h"
+#include "tests/legacy/examples/cgo/cc_dependency/version.h"
 
 // TODO(yugui) Support Darwin too once Bazel allows it.
 //
@@ -12,7 +12,7 @@
 // only one -Wl,-rpath. So the binary fails to resolve the shared libraries
 // at runtime.
 #ifndef __APPLE_CC__
-# include "examples/cgo/cc_dependency/c_version.h"
+# include "tests/legacy/examples/cgo/cc_dependency/c_version.h"
 #endif
 
 extern "C" void PrintCXXVersion() {

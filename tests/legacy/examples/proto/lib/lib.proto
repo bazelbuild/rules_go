@@ -4,7 +4,7 @@ package examples.lib;
 
 option go_package = "github.com/bazelbuild/rules_go/examples/proto/lib/lib_proto";
 
-import "examples/proto/dep/useful.proto";
+import "tests/legacy/examples/proto/dep/useful.proto";
 
 message LibObject {
   very.useful.VeryUseful very_useful = 1;
