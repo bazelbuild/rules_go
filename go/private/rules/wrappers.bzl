@@ -16,6 +16,7 @@ load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_binary")
 load("@io_bazel_rules_go//go/private:rules/library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:rules/test.bzl", "go_test")
 load("@io_bazel_rules_go//go/private:rules/cgo.bzl", "setup_cgo_library")
+load("@io_bazel_rules_go//go/private:common.bzl", "auto_importpath", "test_library_suffix")
 
 def go_library_macro(name, srcs=None, embed=[], cgo=False, cdeps=[], copts=[], clinkopts=[], importpath="", library=None, **kwargs):
   """See go/core.rst#go_library for full documentation."""
@@ -75,13 +76,13 @@ def go_test_macro(name, srcs=None, deps=None, importpath=None, library=None, emb
     #TODO: print("\nDEPRECATED: {}//{}:{} : the library attribute is deprecated. Please migrate to embed.".format(native.repository_name(), native.package_name(), name))
     embed = embed + [library]
   if not importpath:
-    importpath = "~auto~"
+    importpath = auto_importpath
   #TODO: Turn on the deprecation warning when gazelle stops adding these
   #elif native.repository_name() == "@":
   #  print("\nDEPRECATED: //{}:{} : the importpath attribute on go_test is deprecated.".format(native.package_name(), name))
 
 
-  library_name = name + "~library~"
+  library_name = name + test_library_suffix
   go_library_macro(
       name = library_name,
       visibility = ["//visibility:private"],

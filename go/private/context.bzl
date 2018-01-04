@@ -30,6 +30,8 @@ load("@io_bazel_rules_go//go/private:common.bzl",
     "structs",
     "goos_to_extension",
     "as_iterable",
+    "auto_importpath",
+    "test_library_suffix",
 )
 
 GoContext = provider()
@@ -122,7 +124,7 @@ def _infer_importpath(ctx):
   # Check if import path was explicitly set
   path = getattr(ctx.attr, "importpath", "")
   # are we in forced infer mode?
-  if path == "~auto~":
+  if path == auto_importpath:
     path = ""
   if path != "":
     return path, EXPLICIT_PATH
@@ -135,7 +137,7 @@ def _infer_importpath(ctx):
       return embed[GoLibrary].importpath, EXPLICIT_PATH
   # If we are a test, and we have a dep in the same package, presume
   # we should be named the same with an _test suffix
-  if ctx.label.name.endswith("_test~library~"):
+  if ctx.label.name.endswith("_test" + test_library_suffix):
     for dep in getattr(ctx.attr, "deps", []):
       if GoLibrary not in dep:
         continue

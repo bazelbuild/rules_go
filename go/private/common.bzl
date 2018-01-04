@@ -53,6 +53,9 @@ c_exts = [
 go_filetype = FileType(go_exts + asm_exts)
 cc_hdr_filetype = FileType(hdr_exts)
 
+auto_importpath = "~auto~"
+test_library_suffix = "~library~"
+
 # Extensions of files we can build with the Go compiler or with cc_library.
 # This is a subset of the extensions recognized by go/build.
 cgo_filetype = FileType(go_exts + asm_exts + c_exts)
