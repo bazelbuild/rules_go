@@ -18,7 +18,7 @@ go_path(
 
 swagger_spec(
     name = "srcs_spec",
-    mainpath = "main",
+    mainpath = "tests/swagger/main",
     paths = [
         ":boring_srcs",
     ],
