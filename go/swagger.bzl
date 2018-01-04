@@ -35,7 +35,7 @@ export GOPATH="{gopath}"
 
     return struct(
         files = depset([script_file, ctx.outputs.out]),
-        runfiles = ctx.runfiles(files, collect_data = True),
+        runfiles = ctx.runfiles([ctx.outputs.out], collect_data = True),
     )
 
 
