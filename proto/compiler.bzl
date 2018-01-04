@@ -60,9 +60,9 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
   return go_srcs
 
 def _all_proto_paths(protos):
-  return [_proto_path(proto) for proto in protos]
+  return [proto_path(proto) for proto in protos]
 
-def _proto_path(proto):
+def proto_path(proto):
   """
   The proto path is not really a file path
   It's the path to the proto that was seen when the descriptor file was generated.

@@ -24,22 +24,15 @@ load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
 )
 load("@io_bazel_rules_go//proto:compiler.bzl",
     "GoProtoCompiler",
+    "proto_path",
 )
 
 GoProtoImports = provider()
 
-def _trim_external_path(src):
-  path = src.path
-  if src.owner and src.owner.workspace_root:
-    prefix = src.owner.workspace_root+"/"
-    if path.startswith(prefix):
-      path = path[len(prefix):]
-  return path
-
 def get_imports(attr):
   imports = []
   if hasattr(attr, "proto"):
-    imports.append(["{}={}".format(_trim_external_path(src), attr.importpath) for src in attr.proto.proto.direct_sources])
+    imports.append(["{}={}".format(proto_path(src), attr.importpath) for src in attr.proto.proto.direct_sources])
   imports.extend([dep[GoProtoImports].imports for dep in attr.deps])
   imports.extend([dep[GoProtoImports].imports for dep in attr.embed])
   return sets.union(*imports)
