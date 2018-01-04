@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2017 The Bazel Authors. All rights reserved.
+# Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""
+This script should be run without any arguments to update the tests
+documentation cross linking.
+
+It updates sections bounded by
+.. Child list start
+.. Child list end
+
+With links to all the child documentation, picking the text for each item
+from the firts non blank line of the README.rst for that folder.
+"""
 
 import os
 
