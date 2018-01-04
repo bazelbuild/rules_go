@@ -9,11 +9,11 @@ def _swagger_spec_impl(ctx):
     declare_file = go.declare_file
     script_file = declare_file(go, ext=".bash")
 
-    gopath = []
+    gopath = {}
     files = ctx.files.paths
     for path in ctx.attr.paths:
         entry = path[_GoPath]
-        gopath += [entry.gopath]
+        gopath[entry.gopath] = None
     
     ctx.actions.write(output = script_file, is_executable = True, content="""
 export GOPATH="{gopath}"
@@ -21,7 +21,7 @@ export GOPATH="{gopath}"
 """.format(
       swagger = ctx.file._swagger.path,
       mainpath = ctx.attr.mainpath,
-      gopath = ":".join(['$(pwd)/{}'.format(entry) for entry in gopath]),
+      gopath = ":".join(['$(pwd)/{}/{}'.format(ctx.bin_dir.path, entry) for entry in gopath.keys()]),
       out = ctx.outputs.out.path,
 ))
 
