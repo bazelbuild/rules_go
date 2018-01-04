@@ -150,6 +150,18 @@ def go_rules_dependencies():
       importpath = "google.golang.org/genproto",
   )
   _maybe(native.http_file,
+    name = "com_github_go_swagger_arm",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_linux_arm"],
+    sha256 = "b3ed01907b6cb479ed74c56ba5057d96f696920005018dc521388dde188ee091",
+    executable = True,
+  )
+  _maybe(native.http_file,
+    name = "com_github_go_swagger_arm64",
+    urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_linux_arm64"],
+    sha256 = "0b837418bfd98268070cd5145d842e9816f1773ad351b727952b916cccf01d46",
+    executable = True,
+  )
+  _maybe(native.http_file,
     name = "com_github_go_swagger_linux_386",
     urls = ["https://github.com/go-swagger/go-swagger/releases/download/0.13.0/swagger_linux_386"],
     sha256 = "f26aa27f995ff65ae074a39441316802a0d700386ac2e1f6cc2ae7836f091d68",
