@@ -388,7 +388,7 @@ contended), so you'll want to minimize the amount of network I/O in
 your build. Downloading Bazel and a Go SDK is a huge part of that. To
 avoid downloading a Go SDK, you may request a container with a
 preinstalled version of Go in your ``.travis.yml`` file, then call
-``go_rules_dependencies(go_version = "host")`` in a Travis-specific
+``go_register_toolchains(go_version = "host")`` in a Travis-specific
 ``WORKSPACE`` file.
 
 You may be tempted to put Bazel's cache in your Travis cache. Although this
