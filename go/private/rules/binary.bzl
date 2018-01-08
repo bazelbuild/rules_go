@@ -41,6 +41,11 @@ load(
     "GOOS",
     "GOARCH",
 )
+load(
+    "@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_NORMAL",
+    "LINKMODES",
+)
 
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
@@ -131,6 +136,7 @@ go_binary = go_rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
+        "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
     },
     executable = True,
 )
@@ -152,6 +158,7 @@ go_tool_binary = go_rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
+        "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
     },
     executable = True,
 )

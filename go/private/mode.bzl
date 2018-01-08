@@ -22,6 +22,8 @@ LINKMODE_PIE = "pie"
 
 LINKMODE_PLUGIN = "plugin"
 
+LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN]
+
 def mode_string(mode):
   result = [mode.goos, mode.goarch]
   if mode.static:
@@ -57,7 +59,6 @@ def get_mode(ctx, go_toolchain, go_context_data):
   force_pure = "on" if go_toolchain.cross_compile else "auto"
   force_race = "off" if go_toolchain.bootstrap else "auto"
 
-  #TODO: allow link mode selection
   static = _ternary(
       getattr(ctx.attr, "static", None),
       "static" in ctx.features,
@@ -76,6 +77,7 @@ def get_mode(ctx, go_toolchain, go_context_data):
       force_pure,
       "pure" in ctx.features,
   )
+  linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
   if race and pure:
     # You are not allowed to compile in race mode with pure enabled
     race = False
@@ -100,7 +102,7 @@ def get_mode(ctx, go_toolchain, go_context_data):
       race = race,
       msan = msan,
       pure = pure,
-      link = LINKMODE_NORMAL,
+      link = linkmode,
       debug = debug,
       strip = strip,
       goos = goos,

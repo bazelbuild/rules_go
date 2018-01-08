@@ -44,6 +44,10 @@ load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     "go_rule",
 )
+load(
+    "@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_NORMAL",
+)
 
 def _testmain_library_to_source(go, attr, source, merge):
   source["deps"] = source["deps"] + [attr.library]
@@ -182,6 +186,7 @@ go_test = go_rule(
         "linkstamp": attr.string(),
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
+        "linkmode": attr.string(default=LINKMODE_NORMAL),
     },
     executable = True,
     test = True,

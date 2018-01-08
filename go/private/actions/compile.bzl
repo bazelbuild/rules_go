@@ -16,6 +16,9 @@ load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "sets",
 )
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_PLUGIN",
+)
 
 def _importpath(l):
   return [v.data.importpath for v in l]
@@ -67,6 +70,8 @@ def emit_compile(go,
   args.add(go.toolchain.flags.compile)
   if go.mode.debug:
     args.add(["-N", "-l"])
+  if go.mode.link in [LINKMODE_PLUGIN]:
+    args.add(["-dynlink"])
   args.add(cgo_sources)
   go.actions.run(
       inputs = inputs,
