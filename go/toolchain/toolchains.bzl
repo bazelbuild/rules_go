@@ -14,6 +14,19 @@ load("//go/platform:list.bzl",
 DEFAULT_VERSION = "1.9.2"
 
 SDK_REPOSITORIES = {
+    "1.10beta1": {
+        "darwin_amd64":      ("go1.10beta1.darwin-amd64.tar.gz", "8c2a4743359f4b14bcfaf27f12567e3cbfafc809ed5825a2238c0ba45db3a8b4"),
+        "freebsd_386":       ("go1.10beta1.freebsd-386.tar.gz", "0a40ed7d64674a96b2c2182921a1816d392eb1e924e9aeef7d698c85119eac20"),
+        "freebsd_amd64":     ("go1.10beta1.freebsd-amd64.tar.gz", "4cacffbbbec9f2daf1c9629808adb3356c48c215c54ab9b85ebce351ae549e51"),
+        "linux_386":         ("go1.10beta1.linux-386.tar.gz", "e0f30e18384e3beae8ce16cc6d095d899e29fb786c57297650acb7727fb3090e"),
+        "linux_amd64":       ("go1.10beta1.linux-amd64.tar.gz", "ec7a10b5bf147a8e06cf64e27384ff3c6d065c74ebd8fdd31f572714f74a1055"),
+        "linux_arm64":       ("go1.10beta1.linux-arm64.tar.gz", "3a80555b3c4beecfb9af88c718f8676101ada74dea84f4aa1ade29d2d78554e0"),
+        "linux_armv6l":      ("go1.10beta1.linux-armv6l.tar.gz", "32daa257a930ef85ca74bca107d477b3484f0b5ef7cc48086110916368d9c584"),
+        "linux_ppc64le":     ("go1.10beta1.linux-ppc64le.tar.gz", "b4c7404771b380212277fecc3b9a4f99f9978d024a45d3644c495a469df31ed8"),
+        "linux_s390x":       ("go1.10beta1.linux-s390x.tar.gz", "bc3c66ab980e782ce52165a3a1572484353904c1b884dbbb87a662776280489d"),
+        "windows_386":       ("go1.10beta1.windows-386.zip", "466b3ecca2fb2c951f48d4d64460eefc2c7ecde5505f7669fc492c6b6dccc13e"),
+        "windows_amd64":     ("go1.10beta1.windows-amd64.zip", "ff2789b7baf33f87111d30bac81ac1ae19dcc16bdd75553f9b5aceda14733a40"),
+    },
     "1.9.2": {
         "darwin_amd64":      ("go1.9.2.darwin-amd64.tar.gz", "73fd5840d55f5566d8db6c0ffdd187577e8ebe650c783f68bd27cbf95bde6743"),
         "linux_386":         ("go1.9.2.linux-386.tar.gz", "574b2c4b1a248e58ef7d1f825beda15429610a2316d9cbd3096d8d3fa8c0bc1a"),
