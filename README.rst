@@ -15,6 +15,8 @@ Go rules for Bazel_
 .. _go_library: go/core.rst#go_library
 .. _go_binary: go/core.rst#go_binary
 .. _go_test: go/core.rst#go_test
+.. _go_download_sdk: go/toolchains.rst#go_download_sdk
+.. _go_register_toolchains: go/toolchains.rst#go_register_toolchains
 .. _bazel-go-discuss: https://groups.google.com/forum/#!forum/bazel-go-discuss
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
 .. _#265: https://github.com/bazelbuild/rules_go/issues/265
@@ -394,3 +396,35 @@ preinstalled version of Go in your ``.travis.yml`` file, then call
 You may be tempted to put Bazel's cache in your Travis cache. Although this
 can speed up your build significantly, Travis stores its cache on Amazon, and
 it takes a very long time to transfer. Clean builds seem faster in practice.
+
+How do I test a beta version of the Go SDK?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+rules_go only supports official releases of the Go SDK. However, we do have
+an easy way for developers to try out beta releases.
+
+In your WORKSPACE file, add a call `go_download_sdk`_ like the one below. This
+must be named ``go_sdk``, and it must come *before* the call to
+`go_register_toolchains`_.
+
+.. code:: bzl
+
+  load("@io_bazel_rules_go//go:def.bzl",
+      "go_download_sdk",
+      "go_register_toolchains",
+      "go_rules_dependencies",
+  )
+
+  go_rules_dependencies()
+
+  go_download_sdk(
+      name = "go_sdk",
+      sdks = {
+          "darwin_amd64": ("go1.10beta1.darwin-amd64.tar.gz", "8c2a4743359f4b14bcfaf27f12567e3cbfafc809ed5825a2238c0ba45db3a8b4"),
+          "linux_amd64":  ("go1.10beta1.linux-amd64.tar.gz", "ec7a10b5bf147a8e06cf64e27384ff3c6d065c74ebd8fdd31f572714f74a1055"),
+      },
+  )
+
+  go_register_toolchains()
+
+  
