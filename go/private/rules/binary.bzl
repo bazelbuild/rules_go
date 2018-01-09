@@ -12,22 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
 )
-load("@io_bazel_rules_go//go/private:rules/prefix.bzl",
+load(
+    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//go/private:rules/aspect.bzl",
+load(
+    "@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
 )
-load("@io_bazel_rules_go//go/private:providers.bzl",
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
-load("@io_bazel_rules_go//go/platform:list.bzl",
+load(
+    "@io_bazel_rules_go//go/platform:list.bzl",
     "GOOS",
     "GOARCH",
 )
@@ -69,19 +75,59 @@ go_binary = rule(
             cfg = "data",
         ),
         "srcs": attr.label_list(allow_files = go_filetype),
-        "deps": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
-        "embed": attr.label_list(providers = [GoLibrary], aspects = [go_archive_aspect]),
-        "pure": attr.string(values=["on", "off", "auto"], default="auto"),
-        "static": attr.string(values=["on", "off", "auto"], default="auto"),
-        "race": attr.string(values=["on", "off", "auto"], default="auto"),
-        "msan": attr.string(values=["on", "off", "auto"], default="auto"),
-        "goos": attr.string(values=GOOS.keys() + ["auto"], default="auto"),
-        "goarch": attr.string(values=GOARCH.keys() + ["auto"], default="auto"),
+        "deps": attr.label_list(
+            providers = [GoLibrary],
+            aspects = [go_archive_aspect],
+        ),
+        "embed": attr.label_list(
+            providers = [GoLibrary],
+            aspects = [go_archive_aspect],
+        ),
+        "pure": attr.string(
+            values = [
+                "on",
+                "off",
+                "auto",
+            ],
+            default = "auto",
+        ),
+        "static": attr.string(
+            values = [
+                "on",
+                "off",
+                "auto",
+            ],
+            default = "auto",
+        ),
+        "race": attr.string(
+            values = [
+                "on",
+                "off",
+                "auto",
+            ],
+            default = "auto",
+        ),
+        "msan": attr.string(
+            values = [
+                "on",
+                "off",
+                "auto",
+            ],
+            default = "auto",
+        ),
+        "goos": attr.string(
+            values = GOOS.keys() + ["auto"],
+            default = "auto",
+        ),
+        "goarch": attr.string(
+            values = GOARCH.keys() + ["auto"],
+            default = "auto",
+        ),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     executable = True,
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
@@ -103,7 +149,7 @@ go_tool_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     executable = True,
     toolchains = ["@io_bazel_rules_go//go:bootstrap_toolchain"],

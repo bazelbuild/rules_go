@@ -15,7 +15,6 @@
 load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
 
 GoLibrary = provider()
-
 """
 A represenatation of the inputs to a go package.
 This is a configuration independent provider.
@@ -24,7 +23,6 @@ See go/providers.rst#GoLibrary for full documentation.
 """
 
 GoSource = provider()
-
 """
 The filtered inputs and dependencies needed to build a GoArchive
 This is a configuration specific provider.
@@ -33,7 +31,6 @@ See go/providers.rst#GoSource for full documentation.
 """
 
 GoArchiveData = provider()
-
 """
 This compiled form of a package used in transitive dependencies.
 This is a configuration specific provider.
@@ -41,7 +38,6 @@ See go/providers.rst#GoArchiveData for full documentation.
 """
 
 GoArchive = provider()
-
 """
 The compiled form of a GoLibrary, with everything needed to link it into a binary.
 This is a configuration specific provider.

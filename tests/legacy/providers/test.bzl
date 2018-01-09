@@ -1,4 +1,3 @@
-
 load("//go:def.bzl", "GoLibrary")
 
 def _test_impl(ctx):
@@ -7,6 +6,9 @@ def _test_impl(ctx):
 test_source = rule(
     implementation = _test_impl,
     attrs = {
-        "srcs": attr.label(mandatory = True, providers = [GoLibrary]),
+        "srcs": attr.label(
+            mandatory = True,
+            providers = [GoLibrary],
+        ),
     },
 )

@@ -14,6 +14,7 @@
 
 """Skylib module containing shell utility functions."""
 
+
 def _array_literal(iterable):
   """Creates a string from a sequence that can be used as a shell array.
 
@@ -33,6 +34,7 @@ def _array_literal(iterable):
   """
   return "(" + " ".join([_quote(str(i)) for i in iterable]) + ")"
 
+
 def _quote(s):
   """Quotes the given string for use in a shell command.
 
@@ -46,7 +48,8 @@ def _quote(s):
   """
   return "'" + s.replace("'", "'\\''") + "'"
 
+
 shell = struct(
-    array_literal = _array_literal,
-    quote = _quote,
+    array_literal=_array_literal,
+    quote=_quote,
 )

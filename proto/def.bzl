@@ -120,7 +120,6 @@ go_proto_library = rule(
         "@io_bazel_rules_go//go:toolchain",
     ],
 )
-
 """
 go_proto_library is a rule that takes a proto_library (in the proto
 attribute) and produces a go library for it.

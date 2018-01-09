@@ -56,5 +56,4 @@ go_source = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
 """See go/core.rst#go_source for full documentation."""

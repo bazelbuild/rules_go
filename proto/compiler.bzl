@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl",
+load(
+    "@io_bazel_rules_go//go:def.bzl",
     "go_context",
     "GoLibrary",
 )
-load("@io_bazel_rules_go//go/private:common.bzl", # TODO: @skylib?
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",  # TODO: @skylib?
     "sets",
 )
 
@@ -77,7 +79,6 @@ def proto_path(proto):
   if path.startswith("/"): path = path[1:]
   return path
 
-
 def _go_proto_compiler_impl(ctx):
   go = go_context(ctx)
   library = go.new_library(go)
@@ -103,8 +104,8 @@ go_proto_compiler = rule(
         "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
-        "valid_archive": attr.bool(default=True),
-        "import_path_option": attr.bool(default=True),
+        "valid_archive": attr.bool(default = True),
+        "import_path_option": attr.bool(default = True),
         "plugin": attr.label(
             allow_files = True,
             single_file = True,
@@ -112,12 +113,12 @@ go_proto_compiler = rule(
             cfg = "host",
             default = Label("@com_github_golang_protobuf//protoc-gen-go"),
         ),
-        "_go_protoc":  attr.label(
-            allow_files=True,
-            single_file=True,
+        "_go_protoc": attr.label(
+            allow_files = True,
+            single_file = True,
             executable = True,
             cfg = "host",
-            default=Label("@io_bazel_rules_go//go/tools/builders:go-protoc"),
+            default = Label("@io_bazel_rules_go//go/tools/builders:go-protoc"),
         ),
         "_protoc": attr.label(
             allow_files = True,
@@ -126,7 +127,7 @@ go_proto_compiler = rule(
             cfg = "host",
             default = Label("@com_github_google_protobuf//:protoc"),
         ),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = [
         "@io_bazel_rules_go//go:toolchain",

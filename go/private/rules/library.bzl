@@ -60,5 +60,4 @@ go_library = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
 """See go/core.rst#go_library for full documentation."""

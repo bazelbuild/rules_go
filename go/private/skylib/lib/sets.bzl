@@ -26,6 +26,7 @@ duplicate elements are ignored). Functions that return new sets always return
 them as the `set` type, regardless of the types of the inputs.
 """
 
+
 def _precondition_only_sets_or_lists(*args):
   """Verifies that all arguments are either sets or lists.
 
@@ -40,6 +41,7 @@ def _precondition_only_sets_or_lists(*args):
       fail("Expected arguments to be depset or list, but found type %s: %r" %
            (t, a))
 
+
 def _is_equal(a, b):
   """Returns whether two sets are equal.
 
@@ -51,6 +53,7 @@ def _is_equal(a, b):
   """
   _precondition_only_sets_or_lists(a, b)
   return sorted(depset(a)) == sorted(depset(b))
+
 
 def _is_subset(a, b):
   """Returns whether `a` is a subset of `b`.
@@ -67,6 +70,7 @@ def _is_subset(a, b):
     if e not in b:
       return False
   return True
+
 
 def _disjoint(a, b):
   """Returns whether two sets are disjoint.
@@ -86,6 +90,7 @@ def _disjoint(a, b):
       return False
   return True
 
+
 def _intersection(a, b):
   """Returns the intersection of two sets.
 
@@ -98,6 +103,7 @@ def _intersection(a, b):
   """
   _precondition_only_sets_or_lists(a, b)
   return depset([e for e in a if e in b])
+
 
 def _union(*args):
   """Returns the union of several sets.
@@ -114,6 +120,7 @@ def _union(*args):
     r += a
   return r
 
+
 def _difference(a, b):
   """Returns the elements in `a` that are not in `b`.
 
@@ -126,6 +133,7 @@ def _difference(a, b):
   """
   _precondition_only_sets_or_lists(a, b)
   return depset([e for e in a if e not in b])
+
 
 sets = struct(
     difference = _difference,

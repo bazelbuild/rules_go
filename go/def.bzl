@@ -76,27 +76,21 @@ load(
 RULES_GO_VERSION = "0.9.0"
 
 GoLibrary = _GoLibrary
-
 """See go/providers.rst#GoLibrary for full documentation."""
 
 go_library = _go_library_macro
-
 """See go/core.rst#go_library for full documentation."""
 
 go_binary = _go_binary_macro
-
 """See go/core.rst#go_binary for full documentation."""
 
 go_test = _go_test_macro
-
 """See go/core.rst#go_test for full documentation."""
 
 go_source = _go_source
-
 """See go/core.rst#go_test for full documentation."""
 
 go_path = _go_path
-
 """
     go_path is a rule for creating `go build` compatible file layouts from a set of Bazel.
     targets.
@@ -105,7 +99,6 @@ go_path = _go_path
 """
 
 go_vet_test = _go_vet_test
-
 """
     go_vet_test
 """

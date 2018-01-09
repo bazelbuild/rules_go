@@ -105,6 +105,7 @@ def _prepare(ctx):
   ctx.file("packages.txt", result.stdout)
 
 go_sdk = repository_rule(
+    implementation = _go_sdk_impl,
     attrs = {
         "path": attr.string(),
         "url": attr.string(),
@@ -112,9 +113,7 @@ go_sdk = repository_rule(
         "strip_prefix": attr.string(default = "go"),
         "sha256": attr.string(),
     },
-    implementation = _go_sdk_impl,
 )
-
 """See /go/toolchains.rst#go-sdk for full documentation."""
 
 def _remote_sdk(ctx, urls, strip_prefix, sha256):

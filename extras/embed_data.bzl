@@ -68,6 +68,7 @@ def _go_embed_data_impl(ctx):
   ]
 
 go_embed_data = rule(
+    implementation = _go_embed_data_impl,
     attrs = {
         "package": attr.string(),
         "var": attr.string(default = "Data"),
@@ -83,7 +84,5 @@ go_embed_data = rule(
         "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
-    implementation = _go_embed_data_impl,
 )
-
 """See go/extras.rst#go_embed_data for full documentation."""

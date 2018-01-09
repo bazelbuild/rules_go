@@ -22,7 +22,8 @@ load(
     "GoPath",
     "get_archive",
 )
-load("@io_bazel_rules_go//go/private:common.bzl",
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
     "as_iterable",
 )
 

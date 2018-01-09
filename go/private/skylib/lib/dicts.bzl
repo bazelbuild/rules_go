@@ -14,6 +14,7 @@
 
 """Skylib module containing functions that operate on dictionaries."""
 
+
 def _add(*dictionaries):
   """Returns a new `dict` that has all the entries of the given dictionaries.
 
@@ -35,6 +36,7 @@ def _add(*dictionaries):
     result.update(d)
   return result
 
+
 dicts = struct(
-    add = _add,
+    add=_add,
 )

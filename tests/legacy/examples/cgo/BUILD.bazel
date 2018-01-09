@@ -14,11 +14,11 @@ go_library(
         "use_exported.c",
         "use_exported.h",
     ],
-    importpath = "github.com/bazelbuild/rules_go/examples/cgo",
     cdeps = ["//tests/legacy/examples/cgo/cc_dependency:version"],
     cgo = True,
     clinkopts = ["-lm"],
     copts = ["-DDEFINED_IN_COPTS=1"],
+    importpath = "github.com/bazelbuild/rules_go/examples/cgo",
     visibility = ["//visibility:public"],
     deps = [":sub"],
 )
@@ -31,8 +31,8 @@ go_library(
     srcs = ["sub/floor.go"],
     cgo = True,
     clinkopts = ["-lm"],
-    visibility = ["//visibility:private"],
     importpath = "github.com/bazelbuild/rules_go/examples/cgo/sub",
+    visibility = ["//visibility:private"],
 )
 
 go_test(

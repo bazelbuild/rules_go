@@ -251,13 +251,13 @@ def _test_environment_impl(ctx):
   ctx.file("test.bazelrc", content=_bazelrc)
 
 _test_environment = repository_rule(
+    implementation = _test_environment_impl,
     attrs = {},
     environ = [
         "BAZEL",
         "BAZEL_VERSION",
         "HOME",
     ],
-    implementation = _test_environment_impl,
 )
 
 def _bazel_test_settings_impl(ctx):

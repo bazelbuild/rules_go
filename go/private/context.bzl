@@ -41,7 +41,9 @@ load(
 GoContext = provider()
 
 EXPLICIT_PATH = "explicit"
+
 INFERRED_PATH = "inferred"
+
 EXPORT_PATH = "export"
 
 def _declare_file(go, path="", ext="", name = ""):

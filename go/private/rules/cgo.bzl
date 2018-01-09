@@ -203,7 +203,6 @@ _cgo_import = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
 """Generates symbol-import directives for cgo
 
 Args:
@@ -274,7 +273,6 @@ _cgo_collect_info = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
 """No-op rule that collects information from _cgo_codegen and cc_library
 info into a GoSourceList provider for easy consumption."""
 

@@ -170,13 +170,12 @@ def _go_stdlib_impl(ctx):
     ))
 
 go_stdlib = repository_rule(
+    implementation = _go_stdlib_impl,
     attrs = {
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
         "race": attr.bool(mandatory = True),
         "cgo": attr.bool(mandatory = True),
     },
-    implementation = _go_stdlib_impl,
 )
-
 """See /go/toolchains.rst#go-sdk for full documentation."""

@@ -98,6 +98,7 @@ def _go_repository_impl(ctx):
           ctx.attr.importpath, result.stderr))
 
 go_repository = repository_rule(
+    implementation = _go_repository_impl,
     attrs = {
         # Fundamental attributes of a go repository
         "importpath": attr.string(mandatory = True),
@@ -150,7 +151,5 @@ go_repository = repository_rule(
             ],
         ),
     },
-    implementation = _go_repository_impl,
 )
-
 """See go/workspace.rst#go-repository for full documentation."""
