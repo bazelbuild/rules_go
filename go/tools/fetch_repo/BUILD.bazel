@@ -9,6 +9,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/fetch_repo",
     visibility = ["//visibility:private"],
     deps = ["@org_golang_x_tools//go/vcs:go_default_library"],
 )

@@ -15,7 +15,7 @@
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "sets",
-    "to_set",
+    "as_iterable",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
@@ -26,7 +26,6 @@ def emit_link(go,
     archive = None,
     executable = None,
     gc_linkopts = [],
-    x_defs = {},
     linkstamp=None,
     version_file=None,
     info_file=None):
@@ -59,54 +58,51 @@ def emit_link(go,
   if archive.source.mode.link != LINKMODE_NORMAL:
     fail("Link mode {} is not yet supported".format(archive.source.mode.link))
 
-  link_opts = ["-L", "."]
+  args = go.args(go)
+  args.add(["-L", "."])
 
-  for p in archive.searchpaths: #TODO delay this depset expansion:
-    link_opts.extend(["-L", p])
+  args.add(archive.searchpaths, before_each="-L")
 
-  for d in archive.cgo_deps:
+  for d in as_iterable(archive.cgo_deps):
     if d.basename.endswith('.so'):
       short_dir = d.dirname[len(d.root.path):]
       extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir])
 
-  link_opts.extend(["-o", executable.path])
-  link_opts.extend(gc_linkopts)
-
   # Process x_defs, either adding them directly to linker options, or
   # saving them to process through stamping support.
-  stamp_x_defs = {}
-  for k, v in x_defs.items():
+  stamp_x_defs = False
+  for k, v in archive.x_defs.items():
     if v.startswith("{") and v.endswith("}"):
-      stamp_x_defs[k] = v[1:-1]
+      args.add(["-Xstamp", "%s=%s" % (k, v[1:-1])])
+      stamp_x_defs = True
     else:
-      link_opts.extend(["-X", "%s=%s" % (k, v)])
+      args.add(["-Xdef", "%s=%s" % (k, v)])
 
-  link_opts.extend(go.toolchain.flags.link)
-  if archive.source.mode.strip:
-    link_opts.extend(["-w"])
-
-  if ld:
-    link_opts.extend([
-        "-extld", ld,
-        "-extldflags", " ".join(extldflags),
-    ])
-  link_opts.append(archive.data.file.path)
-  link_args = go.args(go)
   # Stamping support
   stamp_inputs = []
   if stamp_x_defs or linkstamp:
     stamp_inputs = [info_file, version_file]
-    link_args.add(stamp_inputs, before_each="-stamp")
-    for k,v in stamp_x_defs.items():
-      link_args.add(["-X", "%s=%s" % (k, v)])
+    args.add(stamp_inputs, before_each="-stamp")
     # linkstamp option support: read workspace status files,
     # converting "KEY value" lines to "-X $linkstamp.KEY=value" arguments
     # to the go linker.
     if linkstamp:
-      link_args.add(["-linkstamp", linkstamp])
+      args.add(["-linkstamp", linkstamp])
 
-  link_args.add("--")
-  link_args.add(link_opts)
+  args.add(["--"])
+  args.add(["-o", executable])
+  args.add(gc_linkopts)
+  args.add(go.toolchain.flags.link)
+  if archive.source.mode.strip:
+    args.add(["-w"])
+
+  if ld:
+    args.add([
+        "-extld", ld,
+        "-extldflags", " ".join(extldflags),
+    ])
+
+  args.add(archive.data.file)
 
   go.actions.run(
       inputs = sets.union(archive.libs, archive.cgo_deps,
@@ -114,14 +110,13 @@ def emit_link(go,
       outputs = [executable],
       mnemonic = "GoLink",
       executable = go.toolchain.tools.link,
-      arguments = [link_args],
+      arguments = [args],
   )
 
 def bootstrap_link(go,
     archive = None,
     executable = None,
     gc_linkopts = [],
-    x_defs = {},
     linkstamp=None,
     version_file=None,
     info_file=None):
@@ -129,8 +124,6 @@ def bootstrap_link(go,
 
   if archive == None: fail("archive is a required parameter")
   if executable == None: fail("executable is a required parameter")
-
-  if x_defs:  fail("link does not accept x_defs in bootstrap mode")
 
   inputs = depset([archive.data.file])
   args = ["tool", "link", "-o", executable.path]

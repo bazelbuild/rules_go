@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_test(
+    name = "go_default_test",
+    size = "small",
+    srcs = [
+        # Filtered by filename suffix
+        "foo_linux_test.go",
+        # Filtered by tag
+        "foo_unknown_test.go",
+        "bar_unknown_test.go",
+    ],
+    embed = [":go_default_library"],
+)
+
+# Contains more test cases. Checks that build constraints are applied to
+# sources found through the library attribute.
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "baz_linux_test.go",
+        "baz_unknown_test.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/tests/test_build_constraints",
+)

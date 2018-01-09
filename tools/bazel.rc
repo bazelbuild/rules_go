@@ -2,6 +2,8 @@
 # on continuous integration services.
 # Run with: bazel test --config=ci
 
+build:check --all_incompatible_changes
+
 common:ci --color=no
 build:ci --verbose_failures
 build:ci --sandbox_debug

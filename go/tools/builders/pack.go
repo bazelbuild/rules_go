@@ -108,6 +108,7 @@ func extractFiles(archive string) (files []string, err error) {
 	}
 
 	var nameData []byte
+	names := make(map[string]bool)
 	for {
 		name, size, err := readMetadata(r, &nameData)
 		if err == io.EOF {
@@ -122,6 +123,8 @@ func extractFiles(archive string) (files []string, err error) {
 			}
 			continue
 		}
+		name = simpleName(name, names)
+		names[name] = true
 		if err := extractFile(r, name, size); err != nil {
 			return nil, err
 		}
@@ -258,9 +261,41 @@ func isObjectFile(name string) bool {
 	return strings.HasSuffix(name, ".o")
 }
 
+// simpleName returns a file name which is at most 15 characters
+// and doesn't conflict with other names. If it is not possible to choose
+// such a name, simpleName will truncate the given name to 15 characters
+func simpleName(name string, names map[string]bool) string {
+	if len(name) < 16 && !names[name] {
+		return name
+	}
+	var stem, ext string
+	if i := strings.LastIndexByte(name, '.'); i < 0 || len(name)-i >= 10 {
+		stem = name
+	} else {
+		stem = name[:i]
+		ext = name[i:]
+	}
+	for n := 0; n < len(names); n++ {
+		ns := strconv.Itoa(n)
+		stemLen := 15 - len(ext) - len(ns)
+		if stemLen > len(stem) {
+			stemLen = len(stem)
+		}
+		candidate := stem[:stemLen] + ns + ext
+		if !names[candidate] {
+			return candidate
+		}
+	}
+	return name[:15]
+}
+
 func appendFiles(goenv *GoEnv, archive string, files []string) error {
 	args := append([]string{"tool", "pack", "r", archive}, files...)
+	env := os.Environ()
+	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, args...)
-	cmd.Env = goenv.Env()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = env
 	return cmd.Run()
 }

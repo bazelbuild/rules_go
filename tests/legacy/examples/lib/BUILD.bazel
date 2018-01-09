@@ -1,0 +1,44 @@
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "add.s",
+        "asm.go",
+        "lib.go",
+        "sub.s",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/examples/lib",
+    deps = ["//tests/legacy/examples/lib/deep:go_default_library"],
+)
+
+go_test(
+    name = "lib_test",
+    size = "small",
+    srcs = [
+        "lib_test.go",
+    ],
+    embed = [":go_default_library"],
+)
+
+go_test(
+    name = "lib_external_test",
+    size = "small",
+    srcs = [
+        "lib_x_test.go",
+    ],
+    args = [
+        "-lib_test.buildtime",
+        "'05/19/2016 10:30am'",
+    ],
+    x_defs = {
+        "github.com/bazelbuild/rules_go/examples/lib.buildTime": "05/19/2016 10:30am",
+    },
+    deps = [
+        ":go_default_library",
+    ],
+)

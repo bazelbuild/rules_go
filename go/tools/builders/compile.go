@@ -20,13 +20,10 @@ import (
 	"flag"
 	"fmt"
 	"go/build"
-	"go/parser"
-	"go/token"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 )
 
@@ -49,16 +46,16 @@ func run(args []string) error {
 
 	// apply build constraints to the source list
 	bctx := goenv.BuildContext()
-	sources, err := filterFiles(bctx, unfiltered)
+	files, err := readFiles(bctx, unfiltered)
 	if err != nil {
 		return err
 	}
-	if len(sources) <= 0 {
+	if len(files) <= 0 {
 		return ioutil.WriteFile(*output, []byte(""), 0644)
 	}
 
 	// Check that the filtered sources don't import anything outside of deps.
-	if err := checkDirectDeps(bctx, sources, deps, *packageList); err != nil {
+	if err := checkDirectDeps(bctx, files, deps, *packageList); err != nil {
 		return err
 	}
 
@@ -69,7 +66,9 @@ func run(args []string) error {
 	}
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, flags.Args()...)
-	goargs = append(goargs, sources...)
+	for _, f := range files {
+		goargs = append(goargs, f.filename)
+	}
 	env := os.Environ()
 	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, goargs...)
@@ -88,7 +87,7 @@ func main() {
 	}
 }
 
-func checkDirectDeps(bctx build.Context, sources, deps []string, packageList string) error {
+func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, packageList string) error {
 	packagesTxt, err := ioutil.ReadFile(packageList)
 	if err != nil {
 		log.Fatal(err)
@@ -107,19 +106,8 @@ func checkDirectDeps(bctx build.Context, sources, deps []string, packageList str
 	}
 
 	var errs depsError
-	fs := token.NewFileSet()
-	for _, s := range sources {
-		f, err := parser.ParseFile(fs, s, nil, parser.ImportsOnly)
-		if err != nil {
-			// Let the compiler report parse errors.
-			continue
-		}
-		for _, i := range f.Imports {
-			path, err := strconv.Unquote(i.Path.Value)
-			if err != nil {
-				// Should never happen, but let the compiler deal with it.
-				continue
-			}
+	for _, f := range files {
+		for _, path := range f.imports {
 			if path == "C" || stdlib[path] || isRelative(path) {
 				// Standard paths don't need to be listed as dependencies (for now).
 				// Relative paths aren't supported yet. We don't emit errors here, but
@@ -127,7 +115,7 @@ func checkDirectDeps(bctx build.Context, sources, deps []string, packageList str
 				continue
 			}
 			if !depSet[path] {
-				errs = append(errs, fmt.Errorf("%s: import of %s, which is not a direct dependency", s, path))
+				errs = append(errs, fmt.Errorf("%s: import of %s, which is not a direct dependency", f.filename, path))
 			}
 		}
 	}

@@ -18,4 +18,3 @@ config_setting(
     name = "strip-never",
     values = {"strip": "never"},
 )
-

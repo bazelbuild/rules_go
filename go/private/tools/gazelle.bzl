@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(
-    "@io_bazel_rules_go//go/private:context.bzl",
+load("@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
 
@@ -55,28 +54,9 @@ def _go_prefix_default(prefix):
 _gazelle_script = rule(
     _gazelle_script_impl,
     attrs = {
-        "command": attr.string(
-            values = [
-                "update",
-                "fix",
-            ],
-            default = "update",
-        ),
-        "mode": attr.string(
-            values = [
-                "print",
-                "fix",
-                "diff",
-            ],
-            default = "fix",
-        ),
-        "external": attr.string(
-            values = [
-                "external",
-                "vendored",
-            ],
-            default = "external",
-        ),
+        "command": attr.string(values=["update", "fix"], default="update"),
+        "mode": attr.string(values=["print", "fix", "diff"], default="fix"),
+        "external": attr.string(values=["external", "vendored"], default="external"),
         "build_tags": attr.string_list(),
         "args": attr.string_list(),
         "prefix": attr.string(),
@@ -85,10 +65,12 @@ _gazelle_script = rule(
             allow_files = True,
             single_file = True,
             executable = True,
-            cfg = "host",
+            cfg = "host"
         ),
         "_go_prefix": attr.label(default = _go_prefix_default),
+        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def gazelle(name, **kwargs):

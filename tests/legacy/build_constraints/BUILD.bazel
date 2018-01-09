@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_test(
+    name = "go_default_test",
+    size = "small",
+    srcs = ["build_constraints_test.go"],
+    embed = [":go_default_library"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        # Check suffixes are filtered.
+        "suffix_linux.go",
+        "suffix_unknown.go",
+        # Check that tags are observed.
+        "tag_l.go",
+        "tag_unknown.go",
+        # Check that constraints apply to assembly files.
+        "asm_linux.s",
+        "asm_unknown.s",
+        # Check that constraints apply to cgo files.
+        "cgo_linux.go",
+        "cgo_unknown.go",
+        "cgo_linux.c",
+        "cgo_unknown.c",
+        ":c_srcs_group",
+    ],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/build_constraints",
+)
+
+filegroup(
+    name = "c_srcs_group",
+    srcs = [
+        "cgo_group_linux.c",
+        "cgo_group_unknown.c",
+    ],
+)

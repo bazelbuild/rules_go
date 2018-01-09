@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_test(
+    name = "go_default_test",
+    size = "small",
+    srcs = ["data_test.go"],
+    data = ["data.txt"],
+)
+
+test_suite(
+    name = "remote_test",
+    tests = ["@test_chdir_remote//sub:go_default_test"],
+)

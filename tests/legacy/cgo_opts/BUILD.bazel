@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["cgo_opts.go"],
+    cgo = True,
+    copts = ["-DFOO=1 -DBAR=2 -g -O2"],
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_opts",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["cgo_opts_test.go"],
+    embed = [":go_default_library"],
+)

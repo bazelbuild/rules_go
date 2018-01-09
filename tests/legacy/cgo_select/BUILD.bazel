@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            "cgo_darwin.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            "cgo_linux.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            "cgo_windows.go",
+        ],
+    }),
+    cdeps = select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            ":darwin_lib",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_amd64": [
+            ":linux_lib",
+        ],
+        "@io_bazel_rules_go//go/platform:windows_amd64": [
+            ":windows_lib",
+        ],
+    }),
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_select",
+)
+
+cc_library(
+    name = "darwin_lib",
+    srcs = ["darwin.c"],
+)
+
+cc_library(
+    name = "linux_lib",
+    srcs = ["linux.c"],
+)
+
+cc_library(
+    name = "windows_lib",
+    srcs = ["windows.c"],
+)
+
+go_test(
+    name = "go_default_test",
+    size = "small",
+    srcs = ["cgo_select_test.go"],
+    embed = [":go_default_library"],
+)

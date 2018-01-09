@@ -19,7 +19,6 @@ load(
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "split_srcs",
-    "to_set",
     "sets",
 )
 load(

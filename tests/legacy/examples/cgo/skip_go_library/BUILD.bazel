@@ -1,0 +1,13 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cgo_foo.go",
+        "types.go",
+    ],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/examples/cgo/skip_go_library",
+)

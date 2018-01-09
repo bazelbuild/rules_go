@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package examples.lib;
+
+option go_package = "github.com/bazelbuild/rules_go/examples/proto/lib/lib_proto";
+
+import "tests/legacy/examples/proto/dep/useful.proto";
+import "tests/legacy/examples/proto/lib/lib.proto";
+
+message LibObject2 {
+  very.useful.VeryUseful very_useful = 1;
+  int32 are_you_sure = 2;
+  LibObject lib_object = 4;
+}

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package examples.svc;
+
+option go_package = "github.com/bazelbuild/rules_go/examples/proto/grpc/my_svc_proto";
+
+import "tests/legacy/examples/proto/lib/lib.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+
+message GetRequest {
+  examples.lib.LibObject obj = 1;
+}
+
+service MyService {
+  rpc Get(GetRequest) returns (google.protobuf.Empty);
+  rpc Put(google.protobuf.Any) returns (examples.lib.LibObject);
+}

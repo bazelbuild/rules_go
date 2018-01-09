@@ -1,0 +1,22 @@
+load("//go:def.bzl", "go_source")
+load("//tests/legacy/providers:test.bzl", "test_source")
+
+go_source(
+    name = "srcs",
+    srcs = [
+        "test.go",
+    ],
+)
+
+test_source(
+    name = "foo",
+    srcs = ":srcs",
+)
+
+sh_test(
+    name = "source_test",
+    srcs = ["test.sh"],
+    data = [
+        ":foo",
+    ],
+)

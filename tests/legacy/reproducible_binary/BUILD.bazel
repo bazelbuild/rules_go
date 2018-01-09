@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["hello.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/reproducible_binary",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "reproducible_binary",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+# keep
+go_test(
+    name = "go_default_test",
+    srcs = ["reproducible_binary_test.go"],
+    args = ["$(location :reproducible_binary)"],
+    data = [":reproducible_binary"],
+    rundir = ".",  # run in repo root instead of test dir
+)

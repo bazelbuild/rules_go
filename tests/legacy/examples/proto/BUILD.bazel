@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gs.go"],
+    importpath = "github.com/bazelbuild/rules_go/examples/proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tests/legacy/examples/proto/gostyle:gostyle_go_proto",
+        "//tests/legacy/examples/proto/lib:lib_go_proto",
+    ],
+)
+
+go_test(
+    name = "proto_test",
+    size = "small",
+    srcs = ["proto_test.go"],
+    pure = "off",
+    deps = [
+        "//tests/legacy/examples/proto/embed:go_default_library",
+        "//tests/legacy/examples/proto/lib:lib_go_proto",
+    ],
+)
+
+go_test(
+    name = "proto_pure_test",
+    size = "small",
+    srcs = ["proto_test.go"],
+    pure = "on",
+    deps = [
+        "//tests/legacy/examples/proto/embed:go_default_library",
+        "//tests/legacy/examples/proto/lib:lib_go_proto",
+    ],
+)

@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//extras:bindata.bzl", "bindata")
+
+bindata(
+    name = "data",
+    srcs = glob(["data/*"]),
+    package = "bindata",
+)
+
+go_library(
+    name = "go_default_library",
+    importpath = "github.com/bazelbuild/rules_go/examples/bindata",
+    srcs = [":data"],
+)
+
+go_test(
+    name = "go_default_test",
+    size = "small",
+    srcs = ["bindata_test.go"],
+    embed = [":go_default_library"],
+)

@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "cgo_pure",
+    srcs = [
+        "cgo.c",
+        "cgo.go",
+        "cgo_no_tag.go",
+        "pure.go",
+    ],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo_pure",
+)
+
+go_test(
+    name = "cgo_test",
+    size = "small",
+    srcs = ["cgo_pure_test.go"],
+    x_defs = {
+        "Expect": "2",
+    },
+    deps = [":cgo_pure"],
+)
+
+go_test(
+    name = "pure_test",
+    size = "small",
+    srcs = ["cgo_pure_test.go"],
+    pure = "on",
+    x_defs = {
+        "Expect": "1",
+    },
+    deps = [":cgo_pure"],
+)

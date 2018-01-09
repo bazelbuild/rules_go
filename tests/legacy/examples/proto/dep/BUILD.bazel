@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "useful_proto",
+    srcs = ["useful.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+    ],
+)
+
+go_proto_library(
+    name = "useful_go_proto",
+    importpath = "github.com/bazelbuild/rules_go/examples/proto/dep",
+    proto = ":useful_proto",
+    visibility = ["//visibility:public"],
+)

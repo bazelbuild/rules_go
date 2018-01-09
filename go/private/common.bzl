@@ -54,6 +54,9 @@ go_filetype = FileType(go_exts + asm_exts)
 
 cc_hdr_filetype = FileType(hdr_exts)
 
+auto_importpath = "~auto~"
+test_library_suffix = "~library~"
+
 # Extensions of files we can build with the Go compiler or with cc_library.
 # This is a subset of the extensions recognized by go/build.
 cgo_filetype = FileType(go_exts + asm_exts + c_exts)
@@ -74,7 +77,7 @@ def split_srcs(srcs):
   headers = []
   asm = []
   c = []
-  for src in srcs:
+  for src in as_iterable(srcs):
     if any([src.basename.endswith(ext) for ext in go_exts]):
       go.append(src)
     elif any([src.basename.endswith(ext) for ext in hdr_exts]):
@@ -103,21 +106,17 @@ def env_execute(ctx, arguments, environment = {}, **kwargs):
   are removed from the environment. This should be preferred to "ctx.execut"e
   in most situations.
   """
-  if not ctx.os.name.startswith('windows'):
-    env_args = ["env", "-i"]
-    environment = dict(environment)
-    for var in ["TMP", "TMPDIR"]:
-      if var in ctx.os.environ and not var in environment:
-        environment[var] = ctx.os.environ[var]
-    for k, v in environment.items():
-      env_args.append("%s=%s" % (k, v))
-    arguments = env_args + arguments
+  if ctx.os.name.startswith('windows'):
+    return ctx.execute(arguments, environment=environment, **kwargs)
+  env_args = ["env", "-i"]
+  environment = dict(environment)
+  for var in ["TMP", "TMPDIR"]:
+    if var in ctx.os.environ and not var in environment:
+      environment[var] = ctx.os.environ[var]
+  for k, v in environment.items():
+    env_args.append("%s=%s" % (k, v))
+  arguments = env_args + arguments
   return ctx.execute(arguments, **kwargs)
-
-def to_set(v):
-  if type(v) == "depset":
-    fail("Do not pass a depset to to_set")
-  return depset(v)
 
 def executable_extension(ctx):
   extension = ""
@@ -163,3 +162,40 @@ def check_version(bazel_version):
     if minimum_bazel_version > current_bazel_version:
       fail("\nCurrent Bazel version is {}, expected at least {}\n".format(
           native.bazel_version, bazel_version))
+
+def as_list(v):
+  if type(v) == "list":
+    return v
+  if type(v) == "tuple":
+    return list(v)
+  if type(v) == "depset":
+    return v.to_list()
+  fail("as_list failed on {}".format(v))
+
+def as_iterable(v):
+  if type(v) == "list":
+    return v
+  if type(v) == "tuple":
+    return v
+  if type(v) == "depset":
+    return v.to_list()
+  fail("as_iterator failed on {}".format(v))
+
+def as_tuple(v):
+  if type(v) == "tuple":
+    return v
+  if type(v) == "list":
+    return tuple(v)
+  if type(v) == "depset":
+    return tuple(v.to_list())
+  fail("as_tuple failed on {}".format(v))
+
+def as_set(v):
+  if type(v) == "depset":
+    return v
+  if type(v) == "list":
+    return depset(v)
+  if type(v) == "tuple":
+    return depset(v)
+  fail("as_tuple failed on {}".format(v))
+

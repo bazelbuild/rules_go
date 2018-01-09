@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package gogo;
+
+import "google/protobuf/duration.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/bazelbuild/rules_go/examples/proto/gogo";
+option (gogoproto.gostring_all) = true;
+
+message Value {
+  int32 item = 1;
+  google.protobuf.Duration timing = 3;
+}

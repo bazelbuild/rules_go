@@ -42,11 +42,11 @@ func run(args []string) error {
 
 	// filter our input file list
 	bctx := goenv.BuildContext()
-	matched, _, _, err := matchFile(bctx, source, false)
+	metadata, err := readGoMetadata(bctx, source, false)
 	if err != nil {
 		return err
 	}
-	if !matched {
+	if !metadata.matched {
 		source = os.DevNull
 	}
 	goargs := []string{"tool", "asm"}

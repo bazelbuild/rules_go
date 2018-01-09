@@ -11,6 +11,7 @@ go_library(
         "resolve_vendored.go",
         "std_package_list.go",
     ],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/gazelle/resolve",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_bazelbuild_buildtools//build:go_default_library",

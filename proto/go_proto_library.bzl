@@ -250,6 +250,7 @@ def go_proto_library(name, srcs = None, deps = None,
                                          internal tests to work.
     **kwargs: any other args which are passed through to the underlying go_library
   """
+  print("DEPRECATED: proto:go_proto_library.bzl#go_proto_library is no longer supported, please use proto:def.bzl#go_proto_library")
   if not name:
     fail("name is required", "name")
   if not srcs:

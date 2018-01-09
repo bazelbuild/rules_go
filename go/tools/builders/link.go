@@ -40,12 +40,16 @@ func run(args []string) error {
 		linkargs = append(linkargs, s)
 	}
 	// process the flags for this link wrapper
+	xstamps := multiFlag{}
 	xdefs := multiFlag{}
 	stamps := multiFlag{}
 	linkstamps := multiFlag{}
+	libPaths := multiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
-	flags.Var(&xdefs, "X", "A link xdef that may need stamping.")
+	flags.Var(&xstamps, "Xstamp", "A link xdef that may need stamping.")
+	flags.Var(&xdefs, "Xdef", "A link xdef that may need stamping.")
+	flags.Var(&libPaths, "L", "A library search path.")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
 	flags.Var(&linkstamps, "linkstamp", "A package that requires link stamping.")
 	if err := flags.Parse(args); err != nil {
@@ -75,7 +79,13 @@ func run(args []string) error {
 		}
 	}
 	// generate any additional link options we need
+	for _, l := range libPaths {
+		goargs = append(goargs, "-L", l)
+	}
 	for _, xdef := range xdefs {
+		goargs = append(goargs, "-X", xdef)
+	}
+	for _, xdef := range xstamps {
 		split := strings.SplitN(xdef, "=", 2)
 		if len(split) != 2 {
 			continue

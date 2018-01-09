@@ -1,0 +1,26 @@
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load(":generate_test.bzl", "generate_script")
+
+go_binary(
+    name = "example_command",
+    srcs = ["main.go"],
+    deps = [
+        "//tests/legacy/examples/cgo:go_default_library",
+    ],
+)
+
+generate_script(
+    name = "example_command_script",
+    binary = ":example_command",
+)
+
+sh_test(
+    name = "example_command_test",
+    size = "small",
+    srcs = [":example_command_script"],
+    data = [":example_command"],
+)
