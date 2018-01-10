@@ -28,6 +28,10 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
 
 def _go_source_impl(ctx):
   """Implements the go_source() rule."""
@@ -41,7 +45,7 @@ def _go_source_impl(ctx):
       ),
   ]
 
-go_source = rule(
+go_source = go_rule(
     _go_source_impl,
     attrs = {
         "data": attr.label_list(
@@ -52,8 +56,6 @@ go_source = rule(
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """See go/core.rst#go_source for full documentation."""

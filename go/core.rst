@@ -525,3 +525,9 @@ Attributes
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
 +----------------------------+-----------------------------+---------------------------------------+
 
+go_rule
+~~~~~~~
+
+This is a wrapper around the normal rule function.
+It modifies the attrs and toolchains attributes to make sure everything needed to build a go_context
+is present.

@@ -24,6 +24,10 @@ load(
     "@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
 
 def _go_library_impl(ctx):
   """Implements the go_library() rule."""
@@ -42,7 +46,7 @@ def _go_library_impl(ctx):
       ),
   ]
 
-go_library = rule(
+go_library = go_rule(
     _go_library_impl,
     attrs = {
         "data": attr.label_list(
@@ -57,8 +61,6 @@ go_library = rule(
         "gc_goopts": attr.string_list(),
         "x_defs": attr.string_dict(),
         "_go_prefix": attr.label(default = go_prefix_default),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """See go/core.rst#go_library for full documentation."""

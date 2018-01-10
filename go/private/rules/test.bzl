@@ -26,7 +26,10 @@ load(
     "@io_bazel_rules_go//go/private:rules/prefix.bzl",
     "go_prefix_default",
 )
-load("@io_bazel_rules_go//go/private:rules/binary.bzl", "gc_linkopts")
+load(
+    "@io_bazel_rules_go//go/private:rules/binary.bzl",
+    "gc_linkopts",
+)
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
@@ -35,6 +38,10 @@ load(
 load(
     "@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
+)
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
 )
 
 def _testmain_library_to_source(go, attr, source, merge):
@@ -111,7 +118,7 @@ def _go_test_impl(ctx):
       ),
 ]
 
-go_test = rule(
+go_test = go_rule(
     _go_test_impl,
     attrs = {
         "data": attr.label_list(
@@ -164,10 +171,8 @@ go_test = rule(
         "linkstamp": attr.string(),
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     executable = True,
     test = True,
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """See go/core.rst#go_test for full documentation."""

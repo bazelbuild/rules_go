@@ -26,6 +26,10 @@ load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "as_iterable",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
 
 def _tag(go, path, outputs):
   """this generates a existance tag file for dependencies, and returns the path to the tag file"""
@@ -109,7 +113,7 @@ Found {} in
       )
   ]
 
-go_path = rule(
+go_path = go_rule(
     _go_path_impl,
     attrs = {
         "deps": attr.label_list(providers = [GoLibrary]),
@@ -120,7 +124,5 @@ go_path = rule(
                 "copy",
             ],
         ),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

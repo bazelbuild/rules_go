@@ -30,6 +30,10 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
 
 _CgoCodegen = provider()
 
@@ -153,7 +157,7 @@ def _cgo_codegen_impl(ctx):
       ),
   ]
 
-_cgo_codegen = rule(
+_cgo_codegen = go_rule(
     _cgo_codegen_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
@@ -163,9 +167,7 @@ _cgo_codegen = rule(
         ),
         "copts": attr.string_list(),
         "linkopts": attr.string_list(),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _cgo_import_impl(ctx):
@@ -191,7 +193,7 @@ def _cgo_import_impl(ctx):
       files = depset([out]),
   )
 
-_cgo_import = rule(
+_cgo_import = go_rule(
     _cgo_import_impl,
     attrs = {
         "cgo_o": attr.label(
@@ -199,9 +201,7 @@ _cgo_import = rule(
             single_file = True,
         ),
         "sample_go_srcs": attr.label_list(allow_files = True),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """Generates symbol-import directives for cgo
 
@@ -250,7 +250,7 @@ def _cgo_collect_info_impl(ctx):
       DefaultInfo(files = depset(), runfiles = runfiles),
   ]
 
-_cgo_collect_info = rule(
+_cgo_collect_info = go_rule(
     _cgo_collect_info_impl,
     attrs = {
         "codegen": attr.label(
@@ -269,9 +269,7 @@ _cgo_collect_info = rule(
             mandatory = True,
             providers = ["cc"],
         ),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """No-op rule that collects information from _cgo_codegen and cc_library
 info into a GoSourceList provider for easy consumption."""

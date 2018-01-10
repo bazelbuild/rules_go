@@ -16,6 +16,10 @@ load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
 
 _script_content = """
 BASE=$(pwd)
@@ -52,7 +56,7 @@ def _go_prefix_default(prefix):
           if prefix
           else Label("//:go_prefix", relative_to_caller_repository = True))
 
-_gazelle_script = rule(
+_gazelle_script = go_rule(
     _gazelle_script_impl,
     attrs = {
         "command": attr.string(
@@ -88,9 +92,7 @@ _gazelle_script = rule(
             cfg = "host",
         ),
         "_go_prefix": attr.label(default = _go_prefix_default),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def gazelle(name, **kwargs):

@@ -19,6 +19,10 @@ load(
 load("@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
 
 _STDLIB_BUILD = """
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
@@ -64,21 +68,20 @@ def _stdlib_impl(ctx):
       ),
   ]
 
-stdlib = rule(
+stdlib = go_rule(
     _stdlib_impl,
+    bootstrap = True,
     attrs = {
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
         "race": attr.bool(mandatory = True),
         "pure": attr.bool(mandatory = True),
-        "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_bootstrap_context_data")),
         "_stdlib_builder": attr.label(
             executable = True,
             cfg = "host",
             default = Label("@io_bazel_rules_go//go/tools/builders:stdlib"),
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:bootstrap_toolchain"],
 )
 
 def _go_stdlib_impl(ctx):

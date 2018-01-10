@@ -21,6 +21,10 @@ load(
     "@io_bazel_rules_go//go/private:common.bzl",  # TODO: @skylib?
     "sets",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
 
 GoProtoCompiler = provider()
 
@@ -98,7 +102,7 @@ def _go_proto_compiler_impl(ctx):
       library, source,
   ]
 
-go_proto_compiler = rule(
+go_proto_compiler = go_rule(
     _go_proto_compiler_impl,
     attrs = {
         "deps": attr.label_list(providers = [GoLibrary]),
@@ -127,9 +131,5 @@ go_proto_compiler = rule(
             cfg = "host",
             default = Label("@com_github_google_protobuf//:protoc"),
         ),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
-    toolchains = [
-        "@io_bazel_rules_go//go:toolchain",
-    ],
 )

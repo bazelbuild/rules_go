@@ -116,16 +116,16 @@ Use
 
 If you are writing a new rule that wants to use the Go toolchain, you need to do a couple of things.
 First, you have to declare that you want to consume the toolchain on the rule declaration.
+The easiest way to do this is to use the go_rule wrapper, which adds in the toolchain and some
+hidden attributes that it consumes.
 
 .. code:: bzl
 
-  my_rule = rule(
+  my_rule = go_rule(
       _my_rule_impl,
       attrs = {
           ...
-          "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
       },
-      toolchains = ["@io_bazel_rules_go//go:toolchain"],
   )
 
 And then in the rule body, you need to get the toolchain itself and use it's action generators.
@@ -408,15 +408,14 @@ go_context
 This collects the information needed to form and return a :type:`GoContext` from a rule ctx.
 It uses the attrbutes and the toolchains.
 It can only be used in the implementation of a rule that has the go toolchain attached and
-the go context data as an attribute.
+the go context data as an attribute. To do this declare the rule using the go_rule wrapper.
 
 .. code:: bzl
 
-  my_rule = rule(
+  my_rule = go_rule(
       _my_rule_impl,
       attrs = {
           ...
-          "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_context_data")),
       },
       toolchains = ["@io_bazel_rules_go//go:toolchain"],
   )

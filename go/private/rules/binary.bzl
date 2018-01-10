@@ -29,6 +29,10 @@ load(
     "go_archive_aspect",
 )
 load(
+    "@io_bazel_rules_go//go/private:rules/rule.bzl",
+    "go_rule",
+)
+load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
 )
@@ -66,7 +70,7 @@ def _go_binary_impl(ctx):
       ),
   ]
 
-go_binary = rule(
+go_binary = go_rule(
     _go_binary_impl,
     attrs = {
         "basename": attr.string(),
@@ -127,15 +131,14 @@ go_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
     },
     executable = True,
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 """See go/core.rst#go_binary for full documentation."""
 
-go_tool_binary = rule(
+go_tool_binary = go_rule(
     _go_binary_impl,
+    bootstrap = True,
     attrs = {
         "basename": attr.string(),
         "data": attr.label_list(
@@ -149,10 +152,8 @@ go_tool_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_bootstrap_context_data")),
     },
     executable = True,
-    toolchains = ["@io_bazel_rules_go//go:bootstrap_toolchain"],
 )
 """
 This is used instead of `go_binary` for tools that are executed inside
