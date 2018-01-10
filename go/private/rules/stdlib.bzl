@@ -84,6 +84,7 @@ def _stdlib_impl(ctx):
   cgo = ctx.attr.cgo
   env = {
       "GOROOT": "$(pwd)/{}".format(goroot),
+      "GOROOT_FINAL": "GOROOT",
       "GOOS": ctx.attr.goos,
       "GOARCH": ctx.attr.goarch,
       "CGO_ENABLED": "1" if cgo else "0",
@@ -113,8 +114,8 @@ def _stdlib_impl(ctx):
           "cp -rf {}/src/* {}/".format(sdk, src.path),
           "cp -rf {}/pkg/tool {}/".format(sdk, pkg.path),
           "cp -rf {}/pkg/include {}/".format(sdk, pkg.path),
-          "{} install {} std".format(go.path, install_args),
-          "{} install {} runtime/cgo".format(go.path, install_args),
+          "{} install -asmflags \"-trimpath $(pwd)\" {} std".format(go.path, install_args),
+          "{} install -asmflags \"-trimpath $(pwd)\" {} runtime/cgo".format(go.path, install_args),
          ])
   )
   return [
