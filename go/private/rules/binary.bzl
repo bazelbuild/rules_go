@@ -149,7 +149,7 @@ go_tool_binary = rule(
         "gc_linkopts": attr.string_list(),
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
-        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_context_data")),
+        "_go_context_data": attr.label(default = Label("@io_bazel_rules_go//:go_bootstrap_context_data")),
     },
     executable = True,
     toolchains = ["@io_bazel_rules_go//go:bootstrap_toolchain"],

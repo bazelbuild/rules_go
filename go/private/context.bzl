@@ -31,6 +31,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
+    "paths",
     "structs",
     "goos_to_extension",
     "as_iterable",
@@ -58,7 +59,7 @@ def _declare_file(go, path="", ext="", name = ""):
 def _new_args(go):
   args = go.actions.args()
   args.add([
-      "-go", go.stdlib.go,
+      "-go", go.go,
       "-root_file", go.stdlib.root_file,
       "-goos", go.mode.goos,
       "-goarch", go.mode.goarch,
@@ -169,6 +170,20 @@ def _infer_importpath(ctx):
     path = path[1:]
   return path, INFERRED_PATH
 
+def _get_go_binary(context_data):
+  for f in context_data.host_sdk:
+    parent = paths.dirname(f.path)
+    sdk = paths.dirname(parent)
+    parent = paths.basename(parent)
+    if parent != "bin":
+      continue
+    basename = paths.basename(f.path)
+    name, ext = paths.split_extension(basename)
+    if name != "go":
+      continue
+    return sdk, f
+  fail("Could not find go executable in go_sdk")
+
 def go_context(ctx, attr=None):
   if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
     toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
@@ -182,6 +197,7 @@ def go_context(ctx, attr=None):
 
   context_data = attr._go_context_data
   mode = get_mode(ctx, toolchain, context_data)
+  root, binary = _get_go_binary(context_data)
 
   stdlib = None
   for check in [s[GoStdLib] for s in context_data.stdlib_all]:
@@ -192,7 +208,7 @@ def go_context(ctx, attr=None):
       if stdlib:
         fail("Multiple matching standard library for "+mode_string(mode))
       stdlib = check
-  if not stdlib:
+  if not stdlib and context_data.stdlib_all:
     fail("No matching standard library for "+mode_string(mode))
 
   compiler_path = ""
@@ -204,7 +220,11 @@ def go_context(ctx, attr=None):
       # Fields
       toolchain = toolchain,
       mode = mode,
+      root = root,
+      go = binary,
       stdlib = stdlib,
+      host_sdk = context_data.host_sdk,
+      host_tools = context_data.host_tools,
       actions = ctx.actions,
       exe_extension = goos_to_extension(mode.goos),
       crosstool = context_data.crosstool,
@@ -245,22 +265,33 @@ def _stdlib_all():
 def _go_context_data(ctx):
     return struct(
         strip = ctx.attr.strip,
-        stdlib_all = ctx.attr._stdlib_all,
+        stdlib_all = ctx.attr.stdlib_all,
         crosstool = ctx.files._crosstool,
         package_list = ctx.file._package_list,
+        host_sdk = ctx.files._host_sdk,
+        host_tools = ctx.files._host_tools,
     )
 
 go_context_data = rule(
     _go_context_data,
     attrs = {
         "strip": attr.string(mandatory = True),
+        "stdlib_all": attr.label_list(default = _stdlib_all()),
         # Hidden internal attributes
-        "_stdlib_all": attr.label_list(default = _stdlib_all()),
         "_crosstool": attr.label(default = Label("//tools/defaults:crosstool")),
         "_package_list": attr.label(
             allow_files = True,
             single_file = True,
             default = "@go_sdk//:packages.txt",
+        ),
+        "_host_sdk": attr.label(
+            allow_files = True,
+            default="@go_sdk//:host_sdk",
+        ),
+        "_host_tools": attr.label(
+            allow_files = True,
+            cfg="host",
+            default="@go_sdk//:host_tools",
         ),
     },
 )

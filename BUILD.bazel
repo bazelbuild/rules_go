@@ -5,6 +5,17 @@ load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_google_protobuf")
 load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
 
 go_context_data(
+    name = "go_bootstrap_context_data",
+    strip = select({
+        "@io_bazel_rules_go//go/private:strip-always": "always",
+        "@io_bazel_rules_go//go/private:strip-sometimes": "sometimes",
+        "@io_bazel_rules_go//go/private:strip-never": "never",
+    }),
+    stdlib_all = [],
+    visibility = ["//visibility:public"],
+)
+
+go_context_data(
     name = "go_context_data",
     strip = select({
         "@io_bazel_rules_go//go/private:strip-always": "always",

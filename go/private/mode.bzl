@@ -91,13 +91,9 @@ def get_mode(ctx, go_toolchain, go_context_data):
   goos = getattr(ctx.attr, "goos", None)
   if goos == None or goos == "auto":
     goos = go_toolchain.default_goos
-  elif not pure:
-    fail("If goos is set, pure must be true")
   goarch = getattr(ctx.attr, "goarch", None)
   if goarch == None or goarch == "auto":
     goarch = go_toolchain.default_goarch
-  elif not pure:
-    fail("If goarch is set, pure must be true")
 
   return struct(
       static = static,

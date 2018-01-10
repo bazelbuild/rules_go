@@ -37,7 +37,7 @@ Please do not rely on it for production use, but feel free to use it and file is
 export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
-      go=go.stdlib.go.short_path,
+      go=go.go.short_path,
       gopath=":".join(['$(pwd)/{})'.format(entry) for entry in gopath]),
       packages=" ".join(packages),
   ))
