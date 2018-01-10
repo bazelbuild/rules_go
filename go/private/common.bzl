@@ -132,21 +132,20 @@ def goos_to_extension(goos):
 
 MINIMUM_BAZEL_VERSION = "0.8.0"
 
-# _parse_bazel_version and check_version copied from
+# _parse_bazel_version and check_version originally copied from
 # github.com/tensorflow/tensorflow/blob/cfd0d3f2aa24b3078d2e79ad0a212c7c53916de9/tensorflow/workspace.bzl
 
 # Parse the bazel version string from `native.bazel_version`.
+# For example, "0.10.0-rc1 0123abc"
 def _parse_bazel_version(bazel_version):
-  # Remove commit from version.
-  version = bazel_version.split(" ", 1)[0]
-  # Split into (release, date) parts and only return the release
-  # as a tuple of integers.
-  parts = version.split("-", 1)
-  # Turn "release" into a tuple of strings
-  version_tuple = ()
-  for number in parts[0].split("."):
-    version_tuple += (str(number),)
-  return version_tuple
+  # Find the first character that is not a digit or '.' and break there.
+  for i in range(len(bazel_version)):
+    c = bazel_version[i]
+    if not (c.isdigit() or c == "."):
+      bazel_version = bazel_version[:i]
+      break
+  # Split on '.' and convert the pieces to integers.
+  return tuple([int(n) for n in bazel_version.split(".")])
 
 # Check that a specific bazel version is being used.
 def check_version(bazel_version):
