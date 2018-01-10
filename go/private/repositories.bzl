@@ -17,8 +17,8 @@
 load("@io_bazel_rules_go//go/private:common.bzl", "check_version", "MINIMUM_BAZEL_VERSION")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
-load('@io_bazel_rules_go//go/private:rules/stdlib.bzl', "go_stdlib")
-load('@io_bazel_rules_go//go/toolchain:toolchains.bzl', "go_register_toolchains")
+load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "go_stdlib")
+load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
 
@@ -118,6 +118,12 @@ def go_rules_dependencies():
   )
   _maybe(gogo_special_proto,
       name = "gogo_special_proto",
+  )
+  _maybe(go_repository,
+      name = "com_github_grpc_ecosystem_grpc_gateway",
+      importpath = "github.com/grpc-ecosystem/grpc-gateway",
+      tag = "v1.3.1",  # lastest as of 2018-01-10
+      build_file_proto_mode="disable",
   )
 
   # Only used by deprecated go_proto_library implementation
