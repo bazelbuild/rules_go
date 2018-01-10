@@ -18,11 +18,14 @@ load(
 )
 
 def go_rule(implementation, attrs={}, toolchains=[], bootstrap=False, **kwargs):
+  attrs["_go_context_data"] = attr.label(default = Label("@io_bazel_rules_go//:go_context_data"))
+  aspects = []
+  if all([k in attrs for k in ["pure", "static", "msan", "race"]]):
+    aspects.append(go_archive_aspect)
   if not bootstrap:
-    attrs["_go_context_data"] = attr.label(default = Label("@io_bazel_rules_go//:go_context_data"))
+    attrs["_stdlib"] = attr.label(default = Label("@io_bazel_rules_go//:stdlib"), aspects = aspects)
     toolchains = toolchains + ["@io_bazel_rules_go//go:toolchain"]
   else:
-    attrs["_go_context_data"] = attr.label(default = Label("@io_bazel_rules_go//:go_bootstrap_context_data"))
     toolchains = toolchains + ["@io_bazel_rules_go//go:bootstrap_toolchain"]
 
   return rule(

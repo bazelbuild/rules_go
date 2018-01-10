@@ -71,6 +71,7 @@ go_archive_aspect = aspect(
         "embed",
         "compiler",
         "compilers",
+        "_stdlib",
     ],
     attrs = {
         "pure": attr.string(values = [

@@ -16,7 +16,8 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoStdLib",
 )
-load("@io_bazel_rules_go//go/private:context.bzl",
+load(
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
 load(
@@ -24,58 +25,40 @@ load(
     "go_rule",
 )
 
-_STDLIB_BUILD = """
-load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
-
-stdlib(
-    name = "{name}",
-    goos = "{goos}",
-    goarch = "{goarch}",
-    race = {race},
-    pure = {pure},
-    visibility = ["//visibility:public"],
-)
-"""
-
-def _stdlib_impl(ctx):
-  go = go_context(ctx)
-  pkg = ctx.actions.declare_directory("pkg")
-  root_file = ctx.actions.declare_file("ROOT")
+def _stdlib_library_to_source(go, attr, source, merge):
+  pkg = go.declare_directory(go, "pkg")
+  root_file = go.declare_file(go, "ROOT")
   files = [root_file, go.go, pkg]
   args = go.args(go)
   args.add(["-out", root_file.dirname])
-  if ctx.attr.race:
+  if go.mode.race:
     args.add("-race")
-  ctx.actions.write(root_file, "")
+  go.actions.write(root_file, "")
   go.actions.run(
       inputs = go.sdk_files + go.sdk_tools + [go.package_list, root_file],
       outputs = [pkg],
       mnemonic = "GoStdlib",
-      executable = ctx.executable._stdlib_builder,
+      executable = attr._stdlib_builder.files.to_list()[0],
       arguments = [args],
   )
+  source["stdlib"] = GoStdLib(
+      root_file = root_file,
+      mode = go.mode,
+      libs = [pkg],
+      headers = [pkg],
+      files = files,
+  )
 
-  return [
-      DefaultInfo(
-          files = depset(files),
-      ),
-      GoStdLib(
-          root_file = root_file,
-          mode = go.mode,
-          libs = [pkg],
-          headers = [pkg],
-          files = files,
-      ),
-  ]
+def _stdlib_impl(ctx):
+  go = go_context(ctx)
+  library = go.new_library(go, resolver = _stdlib_library_to_source)
+  source = go.library_to_source(go, ctx.attr, library, False)
+  return [source, library]
 
 stdlib = go_rule(
     _stdlib_impl,
     bootstrap = True,
     attrs = {
-        "goos": attr.string(mandatory = True),
-        "goarch": attr.string(mandatory = True),
-        "race": attr.bool(mandatory = True),
-        "pure": attr.bool(mandatory = True),
         "_stdlib_builder": attr.label(
             executable = True,
             cfg = "host",
@@ -83,23 +66,3 @@ stdlib = go_rule(
         ),
     },
 )
-
-def _go_stdlib_impl(ctx):
-    ctx.file("BUILD.bazel", _STDLIB_BUILD.format(
-        name = ctx.name,
-        goos = ctx.attr.goos,
-        goarch = ctx.attr.goarch,
-        race = ctx.attr.race,
-        pure = ctx.attr.pure,
-    ))
-
-go_stdlib = repository_rule(
-    implementation = _go_stdlib_impl,
-    attrs = {
-        "goos": attr.string(mandatory = True),
-        "goarch": attr.string(mandatory = True),
-        "race": attr.bool(mandatory = True),
-        "pure": attr.bool(mandatory = True),
-    },
-)
-"""See /go/toolchains.rst#go-sdk for full documentation."""

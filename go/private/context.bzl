@@ -45,14 +45,20 @@ INFERRED_PATH = "inferred"
 
 EXPORT_PATH = "export"
 
-def _declare_file(go, path="", ext="", name = ""):
-  filename = mode_string(go.mode) + "/"
-  filename += name if name else go._ctx.label.name
+def _declare_child(go, path, ext, name):
+  childname = mode_string(go.mode) + "/"
+  childname += name if name else go._ctx.label.name
   if path:
-    filename += "~/" + path
+    childname += "~/" + path
   if ext:
-    filename += ext
-  return go.actions.declare_file(filename)
+    childname += ext
+  return childname
+
+def _declare_file(go, path="", ext="", name = ""):
+  return go.actions.declare_file(_declare_child(go, path, ext, name))
+
+def _declare_directory(go, path="", ext="", name = ""):
+  return go.actions.declare_directory(_declare_child(go, path, ext, name))
 
 def _new_args(go):
   args = go.actions.args()
@@ -195,20 +201,9 @@ def go_context(ctx, attr=None):
   mode = get_mode(ctx, toolchain, context_data)
   root, binary = _get_go_binary(context_data)
 
-  stdlib = None
-  for check in [s[GoStdLib] for s in context_data.stdlib_all]:
-    if (check.mode.goos == mode.goos and
-        check.mode.goarch == mode.goarch and
-        check.mode.race == mode.race and
-        check.mode.pure == mode.pure):
-      if stdlib:
-        fail("Multiple matching standard library for {}: {} and {}".format(
-          mode_string(mode),
-          check.root_file.dirname,
-          stdlib.root_file.dirname))
-      stdlib = check
-  if not stdlib and context_data.stdlib_all:
-    fail("No matching standard library for "+mode_string(mode))
+  stdlib = getattr(attr, "_stdlib", None)
+  if stdlib:
+    stdlib = get_source(stdlib).stdlib
 
   importpath, pathtype = _infer_importpath(ctx)
   return GoContext(
@@ -241,20 +236,11 @@ def go_context(ctx, attr=None):
       new_library = _new_library,
       library_to_source = _library_to_source,
       declare_file = _declare_file,
+      declare_directory = _declare_directory,
 
       # Private
       _ctx = ctx, # TODO: All uses of this should be removed
   )
-
-def _stdlib_all():
-  stdlibs = []
-  for goos, goarch in GOOS_GOARCH:
-    stdlibs.extend([
-      Label("@go_stdlib_{}_{}_cgo".format(goos, goarch)),
-      Label("@go_stdlib_{}_{}_pure".format(goos, goarch)),
-      Label("@go_stdlib_{}_{}_cgo_race".format(goos, goarch)),
-    ])
-  return stdlibs
 
 def _go_context_data(ctx):
   cpp = ctx.fragments.cpp
@@ -275,7 +261,6 @@ def _go_context_data(ctx):
   compiler_path, _ = cpp.ld_executable.rsplit("/", 1)
   return struct(
       strip = ctx.attr.strip,
-      stdlib_all = ctx.attr.stdlib_all,
       crosstool = ctx.files._crosstool,
       package_list = ctx.file._package_list,
       sdk_files = ctx.files._sdk_files,
@@ -295,7 +280,6 @@ go_context_data = rule(
     _go_context_data,
     attrs = {
         "strip": attr.string(mandatory = True),
-        "stdlib_all": attr.label_list(default = _stdlib_all()),
         # Hidden internal attributes
         "_crosstool": attr.label(default = Label("//tools/defaults:crosstool")),
         "_package_list": attr.label(
