@@ -90,5 +90,5 @@ def bootstrap_compile(go,
       inputs = sources + go.stdlib.files,
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      command = "export GOROOT=$(pwd)/{} && {} {}".format(go.stdlib.root_file.dirname, go.stdlib.go.path, " ".join(args)),
+      command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && {} {}".format(go.stdlib.root_file.dirname, go.stdlib.go.path, " ".join(args)),
   )
