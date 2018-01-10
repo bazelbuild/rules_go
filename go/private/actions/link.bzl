@@ -124,7 +124,7 @@ def bootstrap_link(go,
   if executable == None: fail("executable is a required parameter")
 
   inputs = depset([archive.data.file])
-  args = ["tool", "link", "-o", executable.path]
+  args = ["tool", "link", "-s", "-o", executable.path]
   args.extend(gc_linkopts)
   args.append(archive.data.file.path)
   go.actions.run_shell(
