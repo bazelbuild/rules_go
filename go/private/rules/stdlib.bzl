@@ -16,10 +16,6 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoStdLib",
 )
-load(
-    "@io_bazel_rules_go//go/private:common.bzl",
-    "paths",
-)
 load("@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
@@ -32,67 +28,36 @@ stdlib(
     goos = "{goos}",
     goarch = "{goarch}",
     race = {race},
-    cgo = {cgo},
+    pure = {pure},
     visibility = ["//visibility:public"],
 )
 """
 
 def _stdlib_impl(ctx):
   go = go_context(ctx)
-  src = ctx.actions.declare_directory("src")
   pkg = ctx.actions.declare_directory("pkg")
   root_file = ctx.actions.declare_file("ROOT")
-  goroot = root_file.path[:-(len(root_file.basename)+1)]
   files = [root_file, go.go, pkg]
-  ctx.actions.write(root_file, "")
-  cc_path = go.cgo_tools.compiler_executable
-  if not paths.is_absolute(cc_path):
-    cc_path = "$(pwd)/" + cc_path
-  cgo = ctx.attr.cgo
-  env = {
-      "GOROOT": "$(pwd)/{}".format(goroot),
-      "GOROOT_FINAL": "GOROOT",
-      "GOOS": ctx.attr.goos,
-      "GOARCH": ctx.attr.goarch,
-      "CGO_ENABLED": "1" if cgo else "0",
-      "CC": cc_path,
-      "CXX": cc_path,
-      "COMPILER_PATH": go.cgo_tools.compiler_path,
-      "CGO_CPPFLAGS": " ".join(go.cgo_tools.compiler_options),
-      "CGO_LDFLAGS": " ".join(go.cgo_tools.linker_options),
-  }
-  inputs = go.sdk_files + go.sdk_tools + [root_file]
-  install_args = []
+  args = go.args(go)
+  args.add(["-out", root_file.dirname])
   if ctx.attr.race:
-    install_args.append("-race")
-  install_args = " ".join(install_args)
-
-  ctx.actions.run_shell(
-      inputs = inputs,
-      outputs = [src, pkg],
+    args.add("-race")
+  ctx.actions.write(root_file, "")
+  go.actions.run(
+      inputs = go.sdk_files + go.sdk_tools + [go.package_list, root_file],
+      outputs = [pkg],
       mnemonic = "GoStdlib",
-      command = " && ".join([
-          "export " + " ".join(['{}="{}"'.format(key, value) for key, value in env.items()]),
-          "export PATH=$PATH:$(cd \"$COMPILER_PATH\" && pwd)",
-          "mkdir -p {}".format(src.path),
-          "mkdir -p {}".format(pkg.path),
-          "cp -rf {}/src/* {}/".format(go.root, src.path),
-          "cp -rf {}/pkg/tool {}/".format(go.root, pkg.path),
-          "cp -rf {}/pkg/include {}/".format(go.root, pkg.path),
-          "{} install -asmflags \"-trimpath $(pwd)\" {} std".format(go.go.path, install_args),
-          "{} install -asmflags \"-trimpath $(pwd)\" {} runtime/cgo".format(go.go.path, install_args),
-         ])
+      executable = ctx.executable._stdlib_builder,
+      arguments = [args],
   )
+
   return [
       DefaultInfo(
-          files = depset([root_file, go.go, src, pkg]),
+          files = depset(files),
       ),
       GoStdLib(
           root_file = root_file,
-          goos = ctx.attr.goos,
-          goarch = ctx.attr.goarch,
-          race = ctx.attr.race,
-          pure = not ctx.attr.cgo,
+          mode = go.mode,
           libs = [pkg],
           headers = [pkg],
           files = files,
@@ -105,11 +70,15 @@ stdlib = rule(
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
         "race": attr.bool(mandatory = True),
-        "cgo": attr.bool(mandatory = True),
+        "pure": attr.bool(mandatory = True),
         "_go_context_data": attr.label(default=Label("@io_bazel_rules_go//:go_bootstrap_context_data")),
+        "_stdlib_builder": attr.label(
+            executable = True,
+            cfg = "host",
+            default = Label("@io_bazel_rules_go//go/tools/builders:stdlib"),
+        ),
     },
     toolchains = ["@io_bazel_rules_go//go:bootstrap_toolchain"],
-    fragments = ["cpp"],
 )
 
 def _go_stdlib_impl(ctx):
@@ -118,7 +87,7 @@ def _go_stdlib_impl(ctx):
         goos = ctx.attr.goos,
         goarch = ctx.attr.goarch,
         race = ctx.attr.race,
-        cgo = ctx.attr.cgo,
+        pure = ctx.attr.pure,
     ))
 
 go_stdlib = repository_rule(
@@ -127,7 +96,7 @@ go_stdlib = repository_rule(
         "goos": attr.string(mandatory = True),
         "goarch": attr.string(mandatory = True),
         "race": attr.bool(mandatory = True),
-        "cgo": attr.bool(mandatory = True),
+        "pure": attr.bool(mandatory = True),
     },
 )
 """See /go/toolchains.rst#go-sdk for full documentation."""

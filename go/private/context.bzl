@@ -211,12 +211,15 @@ def go_context(ctx, attr=None):
 
   stdlib = None
   for check in [s[GoStdLib] for s in context_data.stdlib_all]:
-    if (check.goos == mode.goos and
-        check.goarch == mode.goarch and
-        check.race == mode.race and
-        check.pure == mode.pure):
+    if (check.mode.goos == mode.goos and
+        check.mode.goarch == mode.goarch and
+        check.mode.race == mode.race and
+        check.mode.pure == mode.pure):
       if stdlib:
-        fail("Multiple matching standard library for "+mode_string(mode))
+        fail("Multiple matching standard library for {}: {} and {}".format(
+          mode_string(mode),
+          check.root_file.dirname,
+          stdlib.root_file.dirname))
       stdlib = check
   if not stdlib and context_data.stdlib_all:
     fail("No matching standard library for "+mode_string(mode))
@@ -264,7 +267,6 @@ def _stdlib_all():
       Label("@go_stdlib_{}_{}_cgo".format(goos, goarch)),
       Label("@go_stdlib_{}_{}_pure".format(goos, goarch)),
       Label("@go_stdlib_{}_{}_cgo_race".format(goos, goarch)),
-      Label("@go_stdlib_{}_{}_pure_race".format(goos, goarch)),
     ])
   return stdlibs
 

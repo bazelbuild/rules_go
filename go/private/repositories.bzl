@@ -61,28 +61,21 @@ def go_rules_dependencies():
         goos = goos,
         goarch = goarch,
         race = False,
-        cgo = True,
+        pure = False,
     )
     _maybe(go_stdlib,
         name = "go_stdlib_{}_{}_pure".format(goos, goarch),
         goos = goos,
         goarch = goarch,
         race = False,
-        cgo = False,
+        pure = True,
     )
     _maybe(go_stdlib,
         name = "go_stdlib_{}_{}_cgo_race".format(goos, goarch),
         goos = goos,
         goarch = goarch,
         race = True,
-        cgo = True,
-    )
-    _maybe(go_stdlib,
-        name = "go_stdlib_{}_{}_pure_race".format(goos, goarch),
-        goos = goos,
-        goarch = goarch,
-        race = True,
-        cgo = False,
+        pure = False,
     )
 
   _maybe(go_repository_tools,
