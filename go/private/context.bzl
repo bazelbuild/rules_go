@@ -171,7 +171,7 @@ def _infer_importpath(ctx):
   return path, INFERRED_PATH
 
 def _get_go_binary(context_data):
-  for f in context_data.host_sdk:
+  for f in context_data.sdk_files:
     parent = paths.dirname(f.path)
     sdk = paths.dirname(parent)
     parent = paths.basename(parent)
@@ -223,8 +223,8 @@ def go_context(ctx, attr=None):
       root = root,
       go = binary,
       stdlib = stdlib,
-      host_sdk = context_data.host_sdk,
-      host_tools = context_data.host_tools,
+      sdk_files = context_data.sdk_files,
+      sdk_tools = context_data.sdk_tools,
       actions = ctx.actions,
       exe_extension = goos_to_extension(mode.goos),
       crosstool = context_data.crosstool,
@@ -268,8 +268,8 @@ def _go_context_data(ctx):
         stdlib_all = ctx.attr.stdlib_all,
         crosstool = ctx.files._crosstool,
         package_list = ctx.file._package_list,
-        host_sdk = ctx.files._host_sdk,
-        host_tools = ctx.files._host_tools,
+        sdk_files = ctx.files._sdk_files,
+        sdk_tools = ctx.files._sdk_tools,
     )
 
 go_context_data = rule(
@@ -284,14 +284,14 @@ go_context_data = rule(
             single_file = True,
             default = "@go_sdk//:packages.txt",
         ),
-        "_host_sdk": attr.label(
+        "_sdk_files": attr.label(
             allow_files = True,
-            default="@go_sdk//:host_sdk",
+            default="@go_sdk//:files",
         ),
-        "_host_tools": attr.label(
+        "_sdk_tools": attr.label(
             allow_files = True,
             cfg="host",
-            default="@go_sdk//:host_tools",
+            default="@go_sdk//:tools",
         ),
     },
 )

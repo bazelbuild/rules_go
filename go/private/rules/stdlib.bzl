@@ -82,7 +82,7 @@ def _stdlib_impl(ctx):
       "CGO_CPPFLAGS": " ".join(cleaned_compiler_options),
       "CGO_LDFLAGS": " ".join(cleaned_linker_options),
   }
-  inputs = go.host_sdk + go.host_tools + [root_file]
+  inputs = go.sdk_files + go.sdk_tools + [root_file]
   install_args = []
   if ctx.attr.race:
     install_args.append("-race")

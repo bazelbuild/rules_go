@@ -130,7 +130,7 @@ def bootstrap_link(go,
   args.extend(gc_linkopts)
   args.append(archive.data.file.path)
   go.actions.run_shell(
-      inputs = inputs + go.host_sdk + go.host_tools,
+      inputs = inputs + go.sdk_files + go.sdk_tools,
       outputs = [executable],
       mnemonic = "GoLink",
       command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && {} {}".format(go.root, go.go.path, " ".join(args)),

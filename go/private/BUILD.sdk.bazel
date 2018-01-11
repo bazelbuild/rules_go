@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
 package(default_visibility = [ "//visibility:public" ])
 
 filegroup(
-  name = "host_sdk",
+  name = "files",
   srcs = glob([
     "bin/go*",
     "src/**",
@@ -12,7 +12,7 @@ filegroup(
 )
 
 filegroup(
-  name = "host_tools",
+  name = "tools",
   srcs = select({
     "@io_bazel_rules_go//go/platform:darwin_amd64": ["@local_config_cc//:cc_wrapper"],
     "//conditions:default": None,

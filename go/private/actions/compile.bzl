@@ -88,7 +88,7 @@ def bootstrap_compile(go,
   args.extend(gc_goopts)
   args.extend([s.path for s in sources])
   go.actions.run_shell(
-      inputs = sources + go.host_sdk + go.host_tools,
+      inputs = sources + go.sdk_files + go.sdk_tools,
       outputs = [out_lib],
       mnemonic = "GoCompile",
       command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && {} {}".format(go.root, go.go.path, " ".join(args)),
