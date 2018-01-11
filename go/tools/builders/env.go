@@ -59,16 +59,20 @@ func envFlags(flags *flag.FlagSet) *GoEnv {
 	return env
 }
 
-func (env *GoEnv) absRoot() string {
-	if env.rootPath == "" {
-		env.rootPath = abs(env.rootFile)
-		if s, err := os.Stat(env.rootPath); err == nil {
+func (env *GoEnv) update() error {
+	if env.rootFile != "" {
+		env.rootFile = abs(env.rootFile)
+		env.rootPath = env.rootFile
+		if s, err := os.Stat(env.rootFile); err == nil {
 			if !s.IsDir() {
-				env.rootPath = filepath.Dir(env.rootPath)
+				env.rootPath = filepath.Dir(env.rootFile)
 			}
 		}
 	}
-	return env.rootPath
+	if env.compilerPath != "" {
+		env.compilerPath = abs(env.compilerPath)
+	}
+	return nil
 }
 
 func (env *GoEnv) Env() []string {
@@ -77,18 +81,19 @@ func (env *GoEnv) Env() []string {
 		cgoEnabled = "1"
 	}
 	return []string{
-		fmt.Sprintf("GOROOT=%s", env.absRoot()),
+		fmt.Sprintf("GOROOT=%s", env.rootPath),
 		"GOROOT_FINAL=GOROOT",
 		fmt.Sprintf("GOOS=%s", env.goos),
 		fmt.Sprintf("GOARCH=%s", env.goarch),
 		fmt.Sprintf("CGO_ENABLED=%s", cgoEnabled),
 		fmt.Sprintf("PATH=%s", env.compilerPath),
+		fmt.Sprintf("COMPILER_PATH=%s", env.compilerPath),
 	}
 }
 
 func (env *GoEnv) BuildContext() build.Context {
 	bctx := build.Default
-	bctx.GOROOT = env.absRoot()
+	bctx.GOROOT = env.rootPath
 	bctx.GOOS = env.goos
 	bctx.GOARCH = env.goarch
 	bctx.CgoEnabled = env.cgo

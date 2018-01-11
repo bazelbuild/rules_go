@@ -34,6 +34,9 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+	if err := goenv.update(); err != nil {
+		return err
+	}
 	if len(flags.Args()) < 1 {
 		return fmt.Errorf("Missing source file to asm")
 	}

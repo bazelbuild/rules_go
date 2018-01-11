@@ -30,6 +30,9 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+	if err := goenv.update(); err != nil {
+		return err
+	}
 	goargs := []string{"tool", "cover"}
 	goargs = append(goargs, flags.Args()...)
 	env := os.Environ()

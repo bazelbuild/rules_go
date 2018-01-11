@@ -165,6 +165,9 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+	if err := goenv.update(); err != nil {
+		return err
+	}
 	if *pkg == "" {
 		return fmt.Errorf("must set --package.")
 	}

@@ -49,6 +49,9 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+	if err := goenv.update(); err != nil {
+		return err
+	}
 	f := os.Stderr
 	if filename != "" {
 		var err error
