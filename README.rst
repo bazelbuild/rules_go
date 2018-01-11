@@ -39,6 +39,9 @@ Travis   Jenkins
 Announcements
 -------------
 
+January 11, 2017
+  Release `0.9.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.9.0>`_
+  is now available.
 January 2, 2017
   The old Gazelle subtree (//go/tools/gazelle) will be removed soon. See
   `#1199`_ for details. Please migrate to
@@ -49,9 +52,6 @@ December 14, 2017
   what you think.
 December 13, 2017
   Release `0.8.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.8.1>`_
-  is now available.
-December 6, 2017
-  Release `0.8.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.8.0>`_
   is now available.
 
 .. contents::
@@ -92,7 +92,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-:Note: The latest version of these rules (0.8.1) requires Bazel ≥ 0.8.0 to work.
+:Note: The latest version of these rules (0.9.0) requires Bazel ≥ 0.8.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -110,8 +110,8 @@ Setup
 
     http_archive(
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.8.1/rules_go-0.8.1.tar.gz",
-        sha256 = "90bb270d0a92ed5c83558b2797346917c46547f6f7103e648941ecdb6b9d0e72",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.9.0/rules_go-0.9.0.tar.gz",
+        sha256 = "TBD",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
