@@ -40,9 +40,9 @@ def emit_link(go,
 
   ld = None
   extldflags = []
-  if go.stdlib.cgo_tools:
-    ld = go.stdlib.cgo_tools.compiler_executable
-    extldflags.extend(go.stdlib.cgo_tools.options)
+  if go.cgo_tools:
+    ld = go.cgo_tools.compiler_executable
+    extldflags.extend(go.cgo_tools.options)
   extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)])
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)

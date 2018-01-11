@@ -46,6 +46,7 @@ go_tool_binary(
     srcs = [
         "cover.go",
         "env.go",
+        "flags.go",
     ],
     visibility = ["//visibility:public"],
 )
@@ -71,6 +72,7 @@ go_tool_binary(
     name = "info",
     srcs = [
         "env.go",
+        "flags.go",
         "info.go",
     ],
     visibility = ["//visibility:public"],

@@ -59,10 +59,10 @@ def _select_archive(files):
 
 def _cgo_codegen_impl(ctx):
   go = go_context(ctx)
-  if not go.stdlib.cgo_tools:
+  if not go.cgo_tools:
     fail("Go toolchain does not support cgo")
   linkopts = ctx.attr.linkopts[:]
-  copts = go.stdlib.cgo_tools.c_options + ctx.attr.copts
+  copts = go.cgo_tools.c_options + ctx.attr.copts
   deps = depset([], order="topological")
   cgo_export_h = go.declare_file(go, path="_cgo_export.h")
   cgo_export_c = go.declare_file(go, path="_cgo_export.c")
@@ -70,7 +70,7 @@ def _cgo_codegen_impl(ctx):
   cgo_types = go.declare_file(go, path="_cgo_gotypes.go")
   out_dir = cgo_main.dirname
 
-  cc = go.stdlib.cgo_tools.compiler_executable
+  cc = go.cgo_tools.compiler_executable
   args = go.args(go)
   args.add(["-cc", str(cc), "-objdir", out_dir])
 

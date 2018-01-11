@@ -58,14 +58,24 @@ def _declare_file(go, path="", ext="", name = ""):
 
 def _new_args(go):
   args = go.actions.args()
+  if go.stdlib:
+    root_file = go.stdlib.root_file
+  else:
+    root_file = go.package_list
   args.add([
       "-go", go.go,
-      "-root_file", go.stdlib.root_file,
+      "-root_file", root_file,
       "-goos", go.mode.goos,
       "-goarch", go.mode.goarch,
-      "-compiler_path", "" if go.mode.pure else go.compiler_path,
       "-cgo=" + ("0" if go.mode.pure else "1"),
   ])
+  if go.cgo_tools:
+    args.add([
+      "-compiler_path", go.cgo_tools.compiler_path,
+      "-cc", go.cgo_tools.compiler_executable,
+    ])
+    args.add(go.cgo_tools.compiler_options, before_each = "-cpp_flag")
+    args.add(go.cgo_tools.linker_options, before_each = "-ld_flag")
   return args
 
 def _new_library(go, resolver=None, importable=True, **kwargs):
@@ -211,10 +221,6 @@ def go_context(ctx, attr=None):
   if not stdlib and context_data.stdlib_all:
     fail("No matching standard library for "+mode_string(mode))
 
-  compiler_path = ""
-  if ctx.var.get("LD") and ctx.var.get("LD").rfind("/") > 0:
-    compiler_path, _ = ctx.var.get("LD").rsplit("/", 1)
-
   importpath, pathtype = _infer_importpath(ctx)
   return GoContext(
       # Fields
@@ -229,9 +235,9 @@ def go_context(ctx, attr=None):
       exe_extension = goos_to_extension(mode.goos),
       crosstool = context_data.crosstool,
       package_list = context_data.package_list,
-      compiler_path = compiler_path,
       importpath = importpath,
       pathtype = pathtype,
+      cgo_tools = context_data.cgo_tools,
       # Action generators
       archive = toolchain.actions.archive,
       asm = toolchain.actions.asm,
@@ -263,14 +269,39 @@ def _stdlib_all():
   return stdlibs
 
 def _go_context_data(ctx):
-    return struct(
-        strip = ctx.attr.strip,
-        stdlib_all = ctx.attr.stdlib_all,
-        crosstool = ctx.files._crosstool,
-        package_list = ctx.file._package_list,
-        sdk_files = ctx.files._sdk_files,
-        sdk_tools = ctx.files._sdk_tools,
-    )
+  cpp = ctx.fragments.cpp
+  features = ctx.features
+  raw_compiler_options = cpp.compiler_options(features)
+  raw_linker_options = cpp.mostly_static_link_options(features, False)
+  options = (raw_compiler_options +
+      cpp.unfiltered_compiler_options(features) +
+      cpp.link_options +
+      raw_linker_options)
+  compiler_options = [o for o in raw_compiler_options if not o in [
+    "-fcolor-diagnostics",
+    "-Wall",
+  ]]
+  linker_options = [o for o in raw_linker_options if not o in [
+    "-Wl,--gc-sections",
+  ]]
+  compiler_path, _ = cpp.ld_executable.rsplit("/", 1)
+  return struct(
+      strip = ctx.attr.strip,
+      stdlib_all = ctx.attr.stdlib_all,
+      crosstool = ctx.files._crosstool,
+      package_list = ctx.file._package_list,
+      sdk_files = ctx.files._sdk_files,
+      sdk_tools = ctx.files._sdk_tools,
+      cgo_tools = struct(
+          compiler_path = compiler_path,
+          compiler_executable = cpp.compiler_executable,
+          ld_executable = cpp.ld_executable,
+          compiler_options = compiler_options,
+          linker_options = linker_options,
+          options = options,
+          c_options = cpp.c_options,
+      ),
+  )
 
 go_context_data = rule(
     _go_context_data,
@@ -294,4 +325,5 @@ go_context_data = rule(
             default="@go_sdk//:tools",
         ),
     },
+    fragments = ["cpp"],
 )

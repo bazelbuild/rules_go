@@ -36,6 +36,9 @@ type GoEnv struct {
 	goos         string
 	goarch       string
 	tags         string
+	cc           string
+	cpp_flags    multiFlag
+	ld_flags     multiFlag
 }
 
 func abs(path string) string {
@@ -56,6 +59,9 @@ func envFlags(flags *flag.FlagSet) *GoEnv {
 	flags.StringVar(&env.goarch, "goarch", "", "The value for GOARCH.")
 	flags.BoolVar(&env.Verbose, "v", false, "Enables verbose debugging prints.")
 	flags.StringVar(&env.tags, "tags", "", "Only pass through files that match these tags.")
+	flags.StringVar(&env.cc, "cc", "", "Sets the c compiler to use")
+	flags.Var(&env.cpp_flags, "cpp_flag", "An entry to add to the c compiler flags")
+	flags.Var(&env.ld_flags, "ld_flag", "An entry to add to the c linker flags")
 	return env
 }
 
@@ -80,7 +86,7 @@ func (env *GoEnv) Env() []string {
 	if env.cgo {
 		cgoEnabled = "1"
 	}
-	return []string{
+	result := []string{
 		fmt.Sprintf("GOROOT=%s", env.rootPath),
 		"GOROOT_FINAL=GOROOT",
 		fmt.Sprintf("GOOS=%s", env.goos),
@@ -89,6 +95,24 @@ func (env *GoEnv) Env() []string {
 		fmt.Sprintf("PATH=%s", env.compilerPath),
 		fmt.Sprintf("COMPILER_PATH=%s", env.compilerPath),
 	}
+	if env.cc != "" {
+		cc := abs(env.cc)
+		result = append(result,
+			fmt.Sprintf("CC=%s", cc),
+			fmt.Sprintf("CXX=%s", cc),
+		)
+	}
+	if len(env.cpp_flags) > 0 {
+		result = append(result,
+			fmt.Sprintf("CGO_CPPFLAGS=%s", strings.Join(env.cpp_flags, " ")),
+		)
+	}
+	if len(env.ld_flags) > 0 {
+		result = append(result,
+			fmt.Sprintf("CGO_LDFLAGS=%s", strings.Join(env.ld_flags, " ")),
+		)
+	}
+	return result
 }
 
 func (env *GoEnv) BuildContext() build.Context {

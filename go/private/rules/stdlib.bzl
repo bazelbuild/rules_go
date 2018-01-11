@@ -44,29 +44,8 @@ def _stdlib_impl(ctx):
   root_file = ctx.actions.declare_file("ROOT")
   goroot = root_file.path[:-(len(root_file.basename)+1)]
   files = [root_file, go.go, pkg]
-  cpp = ctx.fragments.cpp
-  features = ctx.features
-  compiler_options = cpp.compiler_options(features)
-  linker_options = cpp.mostly_static_link_options(features, False)
-  options = (compiler_options +
-      cpp.unfiltered_compiler_options(features) +
-      cpp.link_options +
-      linker_options)
-  cleaned_compiler_options = []
-  for s in compiler_options:
-    if s == "-fcolor-diagnostics" or s == "-Wall":
-      continue
-    else:
-      cleaned_compiler_options.append(s)
-  cleaned_linker_options = []
-  for s in linker_options:
-    if s == "-Wl,--gc-sections":
-      continue
-    else:
-      cleaned_linker_options.append(s)
-  linker_path, _ = cpp.ld_executable.rsplit("/", 1)
   ctx.actions.write(root_file, "")
-  cc_path = cpp.compiler_executable
+  cc_path = go.cgo_tools.compiler_executable
   if not paths.is_absolute(cc_path):
     cc_path = "$(pwd)/" + cc_path
   cgo = ctx.attr.cgo
@@ -78,9 +57,9 @@ def _stdlib_impl(ctx):
       "CGO_ENABLED": "1" if cgo else "0",
       "CC": cc_path,
       "CXX": cc_path,
-      "COMPILER_PATH": linker_path,
-      "CGO_CPPFLAGS": " ".join(cleaned_compiler_options),
-      "CGO_LDFLAGS": " ".join(cleaned_linker_options),
+      "COMPILER_PATH": go.cgo_tools.compiler_path,
+      "CGO_CPPFLAGS": " ".join(go.cgo_tools.compiler_options),
+      "CGO_LDFLAGS": " ".join(go.cgo_tools.linker_options),
   }
   inputs = go.sdk_files + go.sdk_tools + [root_file]
   install_args = []
@@ -117,12 +96,6 @@ def _stdlib_impl(ctx):
           libs = [pkg],
           headers = [pkg],
           files = files,
-          cgo_tools = struct(
-              compiler_executable = cpp.compiler_executable,
-              ld_executable = cpp.ld_executable,
-              options = options,
-              c_options = cpp.c_options,
-          ),
       ),
   ]
 

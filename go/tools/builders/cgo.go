@@ -31,14 +31,12 @@ import (
 
 func run(args []string) error {
 	sources := multiFlag{}
-	cc := ""
 	objdir := ""
 	dynout := ""
 	dynimport := ""
 	flags := flag.NewFlagSet("cgo", flag.ContinueOnError)
 	goenv := envFlags(flags)
 	flags.Var(&sources, "src", "A source file to be filtered and compiled")
-	flags.StringVar(&cc, "cc", "", "Sets the c compiler to use")
 	flags.StringVar(&objdir, "objdir", "", "The output directory")
 	flags.StringVar(&dynout, "dynout", "", "The output directory")
 	flags.StringVar(&dynimport, "dynimport", "", "The output directory")
@@ -49,6 +47,8 @@ func run(args []string) error {
 	if err := goenv.update(); err != nil {
 		return err
 	}
+	// TODO: work out why setting CGO_LDFLAGS breaks cgo
+	goenv.ld_flags = []string{}
 	env := os.Environ()
 	env = append(env, goenv.Env()...)
 
@@ -171,13 +171,6 @@ func run(args []string) error {
 		}
 		copts = append(copts, args...)
 	}
-
-	// Add the absoulute path to the c compiler to the environment
-	if abs, err := filepath.Abs(cc); err == nil {
-		cc = abs
-	}
-	env = append(env, fmt.Sprintf("CC=%s", cc))
-	env = append(env, fmt.Sprintf("CXX=%s", cc))
 
 	goargs := []string{"tool", "cgo", "-objdir", objdir}
 	goargs = append(goargs, copts...)
