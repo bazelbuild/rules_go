@@ -17,6 +17,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -28,6 +30,8 @@ import (
 	"strings"
 	"unicode"
 )
+
+const linePrefix = "//line "
 
 func run(args []string) error {
 	sources := multiFlag{}
@@ -78,6 +82,7 @@ func run(args []string) error {
 	bctx := goenv.BuildContext()
 	bctx.CgoEnabled = true
 	cgoSrcs := []string{}
+	cgoOuts := []string{}
 	pkgName := ""
 	for _, s := range sources {
 		bits := strings.SplitN(s, "=", 2)
@@ -137,6 +142,7 @@ func run(args []string) error {
 		if metadata.isCgo {
 			// add to cgo file list
 			cgoSrcs = append(cgoSrcs, in)
+			cgoOuts = append(cgoOuts, out)
 		} else {
 			// Non cgo file, copy the go and fake the c
 			if err := ioutil.WriteFile(out, data, 0644); err != nil {
@@ -188,6 +194,34 @@ func run(args []string) error {
 	cmd.Env = env
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running cgo: %v", err)
+	}
+	// Now we fix up the generated files
+	trim := linePrefix + abs(".")
+	for _, src := range cgoOuts {
+		body, err := ioutil.ReadFile(src)
+		if err != nil {
+			return err
+		}
+		out, err := os.Create(src)
+		if err != nil {
+			return err
+		}
+		buf := bufio.NewWriter(out)
+		s := bufio.NewScanner(bytes.NewReader(body))
+		for s.Scan() {
+			line := s.Text()
+			if strings.HasPrefix(line, trim) {
+				line = linePrefix + line[len(trim)+1:]
+			}
+			buf.WriteString(line)
+			buf.WriteString("\n")
+		}
+		if err := buf.Flush(); err != nil {
+			return err
+		}
+		if err := out.Close(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
