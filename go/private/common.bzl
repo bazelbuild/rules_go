@@ -132,37 +132,6 @@ def goos_to_extension(goos):
 
 MINIMUM_BAZEL_VERSION = "0.8.0"
 
-# _parse_bazel_version and check_version originally copied from
-# github.com/tensorflow/tensorflow/blob/cfd0d3f2aa24b3078d2e79ad0a212c7c53916de9/tensorflow/workspace.bzl
-
-# Parse the bazel version string from `native.bazel_version`.
-# For example, "0.10.0-rc1 0123abc"
-def _parse_bazel_version(bazel_version):
-  # Find the first character that is not a digit or '.' and break there.
-  for i in range(len(bazel_version)):
-    c = bazel_version[i]
-    if not (c.isdigit() or c == "."):
-      bazel_version = bazel_version[:i]
-      break
-  # Split on '.' and convert the pieces to integers.
-  return tuple([int(n) for n in bazel_version.split(".")])
-
-# Check that a specific bazel version is being used.
-def check_version(bazel_version):
-  if "bazel_version" not in dir(native):
-    fail("\nCurrent Bazel version is lower than 0.2.1, expected at least %s\n" %
-         bazel_version)
-  elif not native.bazel_version:
-    print("\nCurrent Bazel is not a release version, cannot check for " +
-          "compatibility.")
-    print("Make sure that you are running at least Bazel %s.\n" % bazel_version)
-  else:
-    current_bazel_version = _parse_bazel_version(native.bazel_version)
-    minimum_bazel_version = _parse_bazel_version(bazel_version)
-    if minimum_bazel_version > current_bazel_version:
-      fail("\nCurrent Bazel version is {}, expected at least {}\n".format(
-          native.bazel_version, bazel_version))
-
 def as_list(v):
   if type(v) == "list":
     return v
