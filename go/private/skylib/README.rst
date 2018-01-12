@@ -1,8 +1,7 @@
-This entire directory is a subset of the functionality in bazel-skylib
-Individual modules are unmodified, but lib.bzl has had the paths changed, and 
-not all modules are included.
+This directory is a copy of github.com/bazelbuild/bazel-skylib/lib.
+Commit 2169ae1, retrieved on 2018-01-12
 
 This is needed only until nested workspaces works.
 It has to be copied in because we use the functionality inside code that 
 go_rules_dependencies itself depends on, which means we cannot automatically 
-add the skylib dependancy.
+add the skylib dependency.
