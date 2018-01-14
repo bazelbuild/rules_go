@@ -39,10 +39,10 @@ Travis   Jenkins
 Announcements
 -------------
 
-January 11, 2017
+January 11, 2018
   Release `0.9.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.9.0>`_
   is now available.
-January 2, 2017
+January 2, 2018
   The old Gazelle subtree (//go/tools/gazelle) will be removed soon. See
   `#1199`_ for details. Please migrate to
   `github.com/bazelbuild/bazel-gazelle`_.
