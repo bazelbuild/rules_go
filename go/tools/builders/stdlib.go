@@ -21,44 +21,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
-
-func link(src, dst, common string) error {
-	src = filepath.Join(src, common)
-	dst = filepath.Join(dst, common)
-	out := filepath.Dir(dst)
-	if err := os.MkdirAll(out, 0755); err != nil {
-		return fmt.Errorf("Failed to make %s: %v", out, err)
-	}
-	_ = os.Remove(dst)
-	if err := os.Symlink(src, dst); err != nil {
-		return fmt.Errorf("Failed link: %v", err)
-	}
-	return nil
-}
-
-func copy(src, dst, common string) error {
-	return filepath.Walk(filepath.Join(src, common), func(path string, f os.FileInfo, err error) error {
-		if f.IsDir() {
-			return nil
-		}
-		relative, err := filepath.Rel(src, path)
-		if err != nil {
-			return err
-		}
-		to := filepath.Join(dst, relative)
-		dir := filepath.Dir(to)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return fmt.Errorf("Failed to make %s: %v", dir, err)
-		}
-		_ = os.Remove(to)
-		if err := os.Link(path, to); err != nil {
-			return fmt.Errorf("Failed link: %v", err)
-		}
-		return nil
-	})
-}
 
 func install_stdlib(goenv *GoEnv, target string, args []string) error {
 	args = append(args, target)
@@ -89,13 +52,7 @@ func run(args []string) error {
 	goroot := goenv.rootPath
 	output := abs(*out)
 	// Link in the bare minimum needed to the new GOROOT
-	if err := link(goroot, output, "src"); err != nil {
-		return err
-	}
-	if err := copy(goroot, output, "pkg/tool"); err != nil {
-		return err
-	}
-	if err := copy(goroot, output, "pkg/include"); err != nil {
+	if err := replicate(goroot, output, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
 		return err
 	}
 	// Now switch to the newly created GOROOT
