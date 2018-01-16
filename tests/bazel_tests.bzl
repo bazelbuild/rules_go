@@ -47,6 +47,9 @@ result=$?
 
 {check}
 
+if [ "$result" -ne 0 ]; then
+  cat bazel-output.txt
+fi
 exit $result
 """
 
