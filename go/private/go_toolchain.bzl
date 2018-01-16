@@ -206,6 +206,6 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
         name = name,
         toolchain_type = "@io_bazel_rules_go//go:bootstrap_toolchain",
         exec_compatible_with = exec_constraints,
-        target_compatible_with = target_constraints,
+        target_compatible_with = [],
         toolchain = ":"+impl_name,
     )
