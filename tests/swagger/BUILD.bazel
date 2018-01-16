@@ -41,6 +41,18 @@ swagger_spec(
 )
 
 swagger_spec(
+    name = "srcs_spec_validated_nosandbox",
+    base_path = "swagger/valid",
+    paths = [
+        ":valid_srcs",
+    ],
+    validate = True,
+    tags = [
+        "no-sandbox",
+    ],
+)
+
+swagger_spec(
     name = "srcs_spec_unvalidated",
     base_path = "tests/swagger/boring",
     paths = [
@@ -56,6 +68,7 @@ sh_test(
     ],
     data = [
         ":srcs_spec_validated",
+        ":srcs_spec_validated_nosandbox",
         ":srcs_spec_unvalidated",
     ],
 )

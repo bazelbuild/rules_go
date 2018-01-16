@@ -11,8 +11,7 @@ def _collect_gopaths(paths):
     return gopath.keys()
 
 
-def _wrapper_sandwich(ctx, paths, code):
-    go = go_context(ctx)
+def _wrapper_sandwich(go, paths, code):
     return """
 #!/bin/sh
 
@@ -27,7 +26,7 @@ export GOROOT="$(pwd)/{rel_goroot}"
         code = code,
         goarch = go.stdlib.goarch,
         goos = go.stdlib.goos,
-        gopath = _go_path_str(ctx, _collect_gopaths(paths)),
+        gopath = _go_path_str(go._ctx, _collect_gopaths(paths)),
         rel_goroot = go.stdlib.root_file.dirname,
     )
 
@@ -37,8 +36,13 @@ def _go_path_str(ctx, gopaths):
     return ":".join(['$(pwd)/{}/{}'.format(ctx.bin_dir.path, entry) for entry in gopaths])
 
 
-def swagger_copy_valid(ctx, paths, script_file, spec_file, out):
-    content = _wrapper_sandwich(ctx, paths, """
+def _extract_execution_requirements(tags):
+    return {t: "" for t in tags}
+
+
+def swagger_copy_valid(ctx, paths, script_file, spec_file, out, tags = None):
+    go = go_context(ctx)
+    content = _wrapper_sandwich(go, paths, """
 {swagger} validate {spec_path}
 cp {spec_path} {out}
 """.format(
@@ -48,21 +52,29 @@ cp {spec_path} {out}
     ))
     ctx.actions.write(output = script_file, is_executable = True, content = content)
 
+    if None:
+        req = None
+    else:
+        req = _extract_execution_requirements(tags)
+
     ctx.actions.run(
         outputs = [out],
         inputs = [
             script_file,
             spec_file,
-        ] + ctx.files._swagger,
+        ] + ctx.files._swagger + go.sdk_files,
         executable = script_file,
+        execution_requirements = req,
         mnemonic = "ValidateSwaggerSpec",
         progress_message = "Validating swagger spec %s" % out.short_path,
     )
 
 
-def swagger_generate_spec(ctx, paths, script_file, out, scan_models=None):
-    go = go_context(ctx)
-    content = _wrapper_sandwich(ctx, paths, """
+def _generate_binary_src_tree(go, paths, script_file, binary_only, scan_models, out):
+    ctx = go._ctx
+
+    if binary_only:
+        prelude = """
 # Generate src tree to enable (binary) pkg
 for p in `cat {package_list}`
 do
@@ -73,8 +85,13 @@ do
 package $(basename $p)
 EOF
 done
+"""
+    else:
+        prelude = ""
+
+    content = _wrapper_sandwich(go, paths, (prelude + """
 {swagger} generate spec -b {base_path} -o {out} {scan_models}
-""".format(
+""").format(
       swagger = ctx.file._swagger.path,
       base_path = ctx.attr.base_path,
       out = out.path,
@@ -84,11 +101,30 @@ done
     ))
     ctx.actions.write(output = script_file, is_executable = True, content = content)
 
+
+def _is_sandboxed(ctx):
+    return not ("no-sandbox" in ctx.attr.tags or "local" in ctx.attr.tags)
+
+
+def swagger_generate_spec(ctx, paths, script_file, out, scan_models=None, tags=None):
     go = go_context(ctx)
     files = []
+    sandboxed = _is_sandboxed(ctx)
+    if not sandboxed:
+        files += go.sdk_files
+
+    _generate_binary_src_tree(go, paths, script_file, sandboxed, scan_models, out)
+
+    go = go_context(ctx)
+    
     files += go.stdlib.files
     for f in paths:
         files += f.files.to_list()
+
+    if None:
+        req = None
+    else:
+        req = _extract_execution_requirements(tags)
 
     ctx.actions.run(
         outputs = [out],
@@ -97,6 +133,7 @@ done
             script_file,
         ] + ctx.files._swagger + files,
         executable = script_file,
+        execution_requirements = req,
         mnemonic = "GenerateSwaggerSpec",
         progress_message = "Generating swagger spec %s" % out.short_path,
     )
@@ -112,13 +149,13 @@ def _swagger_spec_impl(ctx):
     else:
         spec_file = ctx.outputs.out
 
-    script_file = ctx.actions.declare_file("%s.generate.sh" % ctx.outputs.out.basename, sibling = ctx.outputs.out)
+    generate_file = ctx.actions.declare_file("%s.generate.sh" % ctx.outputs.out.basename, sibling = ctx.outputs.out)
     scan_models = getattr(ctx.attr, "scan_models", default = None)
-    swagger_generate_spec(ctx, paths, script_file, spec_file, scan_models = scan_models)
+    swagger_generate_spec(ctx, paths, generate_file, spec_file, scan_models = scan_models, tags = ctx.attr.tags)
 
     if ctx.attr.validate:
-        script_file = ctx.actions.declare_file("%s.validate.sh" % ctx.outputs.out.basename, sibling = ctx.outputs.out)
-        swagger_copy_valid(ctx, paths, script_file, spec_file, ctx.outputs.out)
+        validate_file = ctx.actions.declare_file("%s.validate.sh" % ctx.outputs.out.basename, sibling = ctx.outputs.out)
+        swagger_copy_valid(ctx, paths, validate_file, spec_file, ctx.outputs.out, tags = ctx.attr.tags)
 
     return struct(
         files = depset([ctx.outputs.out]),
