@@ -17,8 +17,6 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -30,8 +28,6 @@ import (
 	"strings"
 	"unicode"
 )
-
-const linePrefix = "//line "
 
 func run(args []string) error {
 	sources := multiFlag{}
@@ -196,30 +192,8 @@ func run(args []string) error {
 		return fmt.Errorf("error running cgo: %v", err)
 	}
 	// Now we fix up the generated files
-	trim := linePrefix + abs(".")
 	for _, src := range cgoOuts {
-		body, err := ioutil.ReadFile(src)
-		if err != nil {
-			return err
-		}
-		out, err := os.Create(src)
-		if err != nil {
-			return err
-		}
-		buf := bufio.NewWriter(out)
-		s := bufio.NewScanner(bytes.NewReader(body))
-		for s.Scan() {
-			line := s.Text()
-			if strings.HasPrefix(line, trim) {
-				line = linePrefix + line[len(trim)+1:]
-			}
-			buf.WriteString(line)
-			buf.WriteString("\n")
-		}
-		if err := buf.Flush(); err != nil {
-			return err
-		}
-		if err := out.Close(); err != nil {
+		if err := fixupLineComments(src); err != nil {
 			return err
 		}
 	}
@@ -270,6 +244,26 @@ func splitQuoted(s string) (r []string, err error) {
 		err = errors.New("unfinished escaping")
 	}
 	return args, err
+}
+
+// removes the abs prefix from //line comments to make source files reproducable
+func fixupLineComments(filename string) error {
+	const linePrefix = "//line "
+	trim := linePrefix + abs(".")
+	body, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(string(body), "\n")
+	for i, line := range lines {
+		if strings.HasPrefix(line, trim) {
+			lines[i] = linePrefix + line[len(trim)+1:]
+		}
+	}
+	if err := ioutil.WriteFile(filename, []byte(strings.Join(lines, "\n")), 0666); err != nil {
+		return err
+	}
+	return nil
 }
 
 func main() {
