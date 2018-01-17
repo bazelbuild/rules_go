@@ -83,6 +83,7 @@ def _new_library(go, resolver=None, importable=True, **kwargs):
       name = go._ctx.label.name,
       label = go._ctx.label,
       importpath = go.importpath,
+      importmap = getattr(go._ctx.attr, "importmap", ""),
       pathtype = go.pathtype if importable else EXPORT_PATH,
       resolve = resolver,
       **kwargs

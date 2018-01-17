@@ -23,6 +23,9 @@ def _importpath(l):
 def _searchpath(l):
   return [v.data.searchpath for v in l]
 
+def _importmap(l):
+  return ["{}={}".format(v.data.importmap, v.data.importpath) for v in l]
+
 def emit_compile(go,
     sources = None,
     importpath = "",
@@ -55,6 +58,7 @@ def emit_compile(go,
   args.add(go_sources, before_each="-src")
   args.add(archives, before_each="-dep", map_fn=_importpath)
   args.add(archives, before_each="-I", map_fn=_searchpath)
+  args.add(archives, before_each="-importmap", map_fn=_importmap)
   args.add(["-o", out_lib, "-trimpath", ".", "-I", "."])
   args.add(["--"])
   if importpath:

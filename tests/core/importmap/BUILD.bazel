@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+test_suite(
+    name = "importmap",
+)
+
+go_library(
+    name = "lib_a",
+    srcs = ["lib.go"],
+    importpath = "a/lib",
+    importmap = "lib",
+    x_defs = {"Value":"ValueA"},
+)
+
+go_library(
+    name = "lib_b",
+    srcs = ["lib.go"],
+    importpath = "b/lib",
+    importmap = "lib",
+    x_defs = {"Value":"ValueB"},
+)
+
+go_library(
+    name = "a",
+    srcs = ["import.go"],
+    importpath = "a",
+    deps = [":lib_a"],
+)
+
+go_library(
+    name = "b",
+    srcs = ["import.go"],
+    importpath = "b",
+    deps = [":lib_b"],
+)
+
+go_test(
+    name = "importmap_test",
+    size = "small",
+    srcs = ["cross_test.go"],
+    deps = [":a", ":b"],
+)

@@ -8,6 +8,7 @@ Contents
 
 .. Child list start
 
+* `Import maps <importmap/README.rst>`_
 * `Cross compilation <cross/README.rst>`_
 
 .. Child list end

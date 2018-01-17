@@ -31,11 +31,13 @@ func run(args []string) error {
 	unfiltered := multiFlag{}
 	deps := multiFlag{}
 	search := multiFlag{}
+	importmap := multiFlag{}
 	flags := flag.NewFlagSet("compile", flag.ContinueOnError)
 	goenv := envFlags(flags)
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&deps, "dep", "Import path of a direct dependency")
 	flags.Var(&search, "I", "Search paths of a direct dependency")
+	flags.Var(&importmap, "importmap", "Import maps of a direct dependency")
 	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
@@ -57,21 +59,36 @@ func run(args []string) error {
 		return ioutil.WriteFile(*output, []byte(""), 0644)
 	}
 
-	// Check that the filtered sources don't import anything outside of deps.
-	if err := checkDirectDeps(bctx, files, deps, *packageList); err != nil {
-		return err
-	}
-
 	goargs := []string{"tool", "compile"}
 	goargs = append(goargs, "-trimpath", abs(*trimpath))
 	for _, path := range search {
 		goargs = append(goargs, "-I", abs(path))
+	}
+	strictdeps := deps
+	for _, mapping := range importmap {
+		i := strings.Index(mapping, "=")
+		if i < 0 {
+			return fmt.Errorf("Invalid importmap %v", mapping)
+		}
+		importmap := mapping[0:i]
+		importpath := mapping[i+1 : len(mapping)]
+		if importmap == "" || importpath == "" {
+			continue
+		}
+		goargs = append(goargs, "-importmap", mapping)
+		strictdeps = append(strictdeps, importmap)
 	}
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, flags.Args()...)
 	for _, f := range files {
 		goargs = append(goargs, f.filename)
 	}
+
+	// Check that the filtered sources don't import anything outside of deps.
+	if err := checkDirectDeps(bctx, files, strictdeps, *packageList); err != nil {
+		return err
+	}
+
 	env := os.Environ()
 	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, goargs...)

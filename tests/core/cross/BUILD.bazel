@@ -1,14 +1,18 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test", "go_source")
 
-go_source(
+test_suite(
     name = "cross",
+)
+
+go_source(
+    name = "cross_src",
     srcs = ["main.go"],
 )
 
 go_binary(
     name = "windows",
     basename = "cross",
-    embed = [":cross"],
+    embed = [":cross_src"],
     goarch = "amd64",
     goos = "windows",
     pure = "on",
@@ -17,7 +21,7 @@ go_binary(
 go_binary(
     name = "linux",
     basename = "cross",
-    embed = [":cross"],
+    embed = [":cross_src"],
     goarch = "amd64",
     goos = "linux",
     pure = "on",
@@ -26,7 +30,7 @@ go_binary(
 go_binary(
     name = "darwin",
     basename = "cross",
-    embed = [":cross"],
+    embed = [":cross_src"],
     goarch = "amd64",
     goos = "darwin",
     pure = "on",
