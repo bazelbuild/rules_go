@@ -23,6 +23,10 @@ load(
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     _GoLibrary = "GoLibrary",
+    _GoSource = "GoSource",
+    _GoPath = "GoPath",
+    _GoArchive = "GoArchive",
+    _GoArchiveData = "GoArchiveData",
 )
 load(
     "@io_bazel_rules_go//go/private:repositories.bzl",
@@ -81,6 +85,18 @@ RULES_GO_VERSION = "0.10.0"
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""
+
+GoSource = _GoSource
+"""See go/providers.rst#GoSource for full documentation."""
+
+GoPath = _GoPath
+"""See go/providers.rst#GoPath for full documentation."""
+
+GoArchive = _GoArchive
+"""See go/providers.rst#GoArchive for full documentation."""
+
+GoArchiveData = _GoArchiveData
+"""See go/providers.rst#GoArchiveData for full documentation."""
 
 go_library = _go_library_macro
 """See go/core.rst#go_library for full documentation."""
