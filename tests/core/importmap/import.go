@@ -20,6 +20,5 @@ import (
 )
 
 func Get() string {
-	lib.Goat()
 	return lib.Value
 }

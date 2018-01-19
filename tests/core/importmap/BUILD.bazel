@@ -37,6 +37,6 @@ go_library(
 go_test(
     name = "importmap_test",
     size = "small",
-    srcs = ["cross_test.go"],
+    srcs = ["importmap_test.go"],
     deps = [":a", ":b"],
 )

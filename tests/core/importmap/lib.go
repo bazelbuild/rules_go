@@ -16,7 +16,3 @@ limitations under the License.
 package lib
 
 var Value = "Unstamped"
-
-func Goat() {
-	//panic(Value)
-}
