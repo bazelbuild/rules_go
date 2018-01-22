@@ -149,16 +149,24 @@ Generating build files
 If your project can be built with ``go build``, you can generate and update your
 build files automatically using gazelle_.
 
-* Add the code below to your WORKSPACE file *after* ``io_bazel_rules_go`` and
-  its dependencies are loaded.
+* Add the ``bazel_gazelle`` repository and its dependencies to your WORKSPACE
+  file before ``go_rules_dependencies`` is called. It should look like this:
 
-.. code:: bzl
+  .. code:: bzl
 
+    http_archive(
+        name = "io_bazel_rules_go",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.9.0/rules_go-0.9.0.tar.gz",
+        sha256 = "4d8d6244320dd751590f9100cf39fd7a4b75cd901e1f3ffdfd6f048328883695",
+    )
     http_archive(
         name = "bazel_gazelle",
         url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.8/bazel-gazelle-0.8.tar.gz",
         sha256 = "e3dadf036c769d1f40603b86ae1f0f90d11837116022d9b06e4cd88cae786676",
     )
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    go_rules_dependencies()
+    go_register_toolchains()
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
     gazelle_dependencies()
 
@@ -166,14 +174,14 @@ build files automatically using gazelle_.
   of your repository. Replace the string in ``prefix`` with the prefix you
   chose for your project earlier.
 
-.. code:: bzl
+  .. code:: bzl
 
-  load("@bazel_gazelle//:def.bzl", "gazelle")
+    load("@bazel_gazelle//:def.bzl", "gazelle")
 
-  gazelle(
-      name = "gazelle",
-      prefix = "github.com/example/project",
-  )
+    gazelle(
+        name = "gazelle",
+        prefix = "github.com/example/project",
+    )
 
 * After adding the ``gazelle`` rule, run the command below:
 
