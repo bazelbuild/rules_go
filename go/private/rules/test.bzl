@@ -15,6 +15,7 @@
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
+    "EXPORT_PATH",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
@@ -54,9 +55,13 @@ def _go_test_impl(ctx):
   test into a binary."""
 
   go = go_context(ctx)
-  archive = get_archive(ctx.attr.library)
   if ctx.attr.linkstamp:
     print("DEPRECATED: linkstamp, please use x_def for all stamping now {}".format(ctx.attr.linkstamp))
+
+  # Compile the library to test
+  library = go.new_library(go)
+  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+  archive = go.archive(go, source)
 
   # now generate the main function
   if ctx.attr.rundir:
@@ -71,14 +76,14 @@ def _go_test_impl(ctx):
   arguments = go.args(go)
   arguments.add([
       '--package',
-      archive.source.library.importpath,
+      source.library.importpath,
       '--rundir',
       run_dir,
       '--output',
       main_go,
   ])
   arguments.add(archive.cover_vars, before_each="-cover")
-  go_srcs = split_srcs(archive.source.srcs).go
+  go_srcs = split_srcs(source.srcs).go
   arguments.add(go_srcs)
   ctx.actions.run(
       inputs = go_srcs,
@@ -92,12 +97,18 @@ def _go_test_impl(ctx):
   )
 
   # Now compile the test binary itself
-  test_library = go.new_library(go,
-      resolver=_testmain_library_to_source,
-      srcs=[main_go],
-      importable=False,
+  test_library = GoLibrary(
+      name = go._ctx.label.name + "~testmain",
+      label = go._ctx.label,
+      importpath = "testmain",
+      importmap = None,
+      pathtype = EXPORT_PATH,
+      resolve = None,
   )
-  test_source = go.library_to_source(go, ctx.attr, test_library, False)
+  test_source = go.library_to_source(go, struct(
+      srcs = [struct(files=[main_go])],
+      deps = [archive],
+  ), test_library, False)
   test_archive, executable = go.binary(go,
       name = ctx.label.name,
       source = test_source,
@@ -130,7 +141,7 @@ go_test = go_rule(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
         ),
-        "library": attr.label(
+        "embed": attr.label_list(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
         ),

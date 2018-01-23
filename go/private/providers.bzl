@@ -57,11 +57,15 @@ def new_aspect_provider(source = None, archive = None):
   )
 
 def get_source(dep):
+  if type(dep) == "struct":
+    return dep
   if GoAspectProviders in dep:
     return dep[GoAspectProviders].source
   return dep[GoSource]
 
 def get_archive(dep):
+  if type(dep) == "struct":
+    return dep
   if GoAspectProviders in dep:
     return dep[GoAspectProviders].archive
   return dep[GoArchive]
