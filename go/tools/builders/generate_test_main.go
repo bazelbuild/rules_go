@@ -87,7 +87,7 @@ var benchmarks = []testing.InternalBenchmark{
 
 func testsInShard() []testing.InternalTest {
 	totalShards, err := strconv.Atoi(os.Getenv("TEST_TOTAL_SHARDS"))
-	if err != nil || totalShards <= 0 {
+	if err != nil || totalShards <= 1 {
 		return allTests
 	}
 	shardIndex, err := strconv.Atoi(os.Getenv("TEST_SHARD_INDEX"))
