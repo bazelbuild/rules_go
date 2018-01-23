@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+test_suite(
+    name = "go_test",
+)
+
+go_library(
+    name = "lib",
+    srcs = ["lib.go"],
+    importpath = "lib",
+)
+
+go_test(
+    name = "internal_test",
+    size = "small",
+    srcs = ["internal_test.go"],
+    embed = [":lib"],
+    x_defs = {
+        "lib.Got": "Internal",
+        "lib.Expect": "Internal",
+    },
+)
+
+go_test(
+    name = "external_test",
+    size = "small",
+    srcs = ["external_test.go"],
+    deps = [":lib"],
+    x_defs = {
+        "lib.Got": "External",
+        "Expect": "External",
+    },
+)
