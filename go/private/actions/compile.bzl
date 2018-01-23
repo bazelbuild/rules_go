@@ -31,7 +31,8 @@ def emit_compile(go,
     importpath = "",
     archives = [],
     out_lib = None,
-    gc_goopts = []):
+    gc_goopts = [],
+    testfilter = None):
   """See go/toolchains.rst#compile for full documentation."""
 
   if sources == None: fail("sources is a required parameter")
@@ -60,6 +61,8 @@ def emit_compile(go,
   args.add(archives, before_each="-I", map_fn=_searchpath)
   args.add(archives, before_each="-importmap", map_fn=_importmap)
   args.add(["-o", out_lib, "-trimpath", ".", "-I", "."])
+  if testfilter:
+    args.add(["--testfilter", testfilter])
   args.add(["--"])
   if importpath:
     args.add(["-p", importpath])
@@ -81,7 +84,8 @@ def bootstrap_compile(go,
     importpath = "",
     archives = [],
     out_lib = None,
-    gc_goopts = []):
+    gc_goopts = [],
+    testfilter = None):
   """See go/toolchains.rst#compile for full documentation."""
 
   if sources == None: fail("sources is a required parameter")

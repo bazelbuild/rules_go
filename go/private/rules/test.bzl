@@ -58,10 +58,25 @@ def _go_test_impl(ctx):
   if ctx.attr.linkstamp:
     print("DEPRECATED: linkstamp, please use x_def for all stamping now {}".format(ctx.attr.linkstamp))
 
-  # Compile the library to test
-  library = go.new_library(go)
-  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
-  archive = go.archive(go, source)
+  # Compile the library to test with internal white box tests
+  internal_library = go.new_library(go, testfilter="exclude")
+  internal_source = go.library_to_source(go, ctx.attr, internal_library, ctx.coverage_instrumented())
+  internal_archive = go.archive(go, internal_source)
+  go_srcs = split_srcs(internal_source.srcs).go
+
+  # Compile the library with the external black box tests
+  external_library = go.new_library(go,
+      name = internal_library.name + "_test",
+      importpath = internal_library.importpath + "_test",
+      testfilter="only",
+  )
+  external_source = go.library_to_source(go, struct(
+      srcs = [struct(files=go_srcs)],
+      deps = internal_archive.direct + [internal_archive],
+      x_defs = ctx.attr.x_defs,
+  ), external_library, False)
+  external_archive = go.archive(go, external_source)
+  external_srcs = split_srcs(external_source.srcs).go
 
   # now generate the main function
   if ctx.attr.rundir:
@@ -74,17 +89,14 @@ def _go_test_impl(ctx):
 
   main_go = go.declare_file(go, "testmain.go")
   arguments = go.args(go)
+  arguments.add(['-rundir', run_dir, '-output', main_go])
   arguments.add([
-      '--package',
-      source.library.importpath,
-      '--rundir',
-      run_dir,
-      '--output',
-      main_go,
-  ])
-  arguments.add(archive.cover_vars, before_each="-cover")
-  go_srcs = split_srcs(source.srcs).go
-  arguments.add(go_srcs)
+      # the l is the alias for the package under test, the l_test must be the
+      # same with the test suffix
+      '-import', "l="+internal_source.library.importpath,
+      '-import', "l_test="+external_source.library.importpath])
+  arguments.add(external_archive.cover_vars, before_each="-cover")
+  arguments.add(go_srcs, before_each="-src", format="l=%s")
   ctx.actions.run(
       inputs = go_srcs,
       outputs = [main_go],
@@ -107,7 +119,7 @@ def _go_test_impl(ctx):
   )
   test_source = go.library_to_source(go, struct(
       srcs = [struct(files=[main_go])],
-      deps = [archive],
+      deps = external_archive.direct + [external_archive],
   ), test_library, False)
   test_archive, executable = go.binary(go,
       name = ctx.label.name,
@@ -119,7 +131,6 @@ def _go_test_impl(ctx):
   )
 
   runfiles = ctx.runfiles(files = [executable])
-  runfiles = runfiles.merge(archive.runfiles)
   runfiles = runfiles.merge(test_archive.runfiles)
   return [
       DefaultInfo(

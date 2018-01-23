@@ -76,14 +76,15 @@ def _new_args(go):
     args.add(go.cgo_tools.linker_options, before_each = "-ld_flag")
   return args
 
-def _new_library(go, resolver=None, importable=True, **kwargs):
+def _new_library(go, name=None, importpath=None, resolver=None, importable=True, testfilter=None, **kwargs):
   return GoLibrary(
-      name = go._ctx.label.name,
+      name = go._ctx.label.name if not name else name,
       label = go._ctx.label,
-      importpath = go.importpath,
+      importpath = go.importpath if not importpath else importpath,
       importmap = getattr(go._ctx.attr, "importmap", ""),
       pathtype = go.pathtype if importable else EXPORT_PATH,
       resolve = resolver,
+      testfilter = testfilter,
       **kwargs
   )
 
