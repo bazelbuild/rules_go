@@ -48,18 +48,18 @@ def emit_link(go,
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
   # Add in any mode specific behaviours
-  linkExternal = False
+  link_external = False
   if go.mode.race:
     gc_linkopts.append("-race")
   if go.mode.msan:
     gc_linkopts.append("-msan")
   if go.mode.static:
-    linkExternal = True
+    link_external = True
     extldflags.append("-static")
   if go.mode.link != LINKMODE_NORMAL:
     gc_linkopts.extend(["-buildmode", go.mode.link])
-    linkExternal = True
-  if linkExternal:
+    link_external = True
+  if link_external:
     gc_linkopts.extend(["-linkmode", "external"])
 
   args = go.args(go)
