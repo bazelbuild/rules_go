@@ -81,7 +81,7 @@ put the call at the bottom of your WORKSPACE. For example:
 
 .. code:: bzl
 
-  go_repository,
+  go_repository(
       name = "org_golang_x_net",
       commit = "0744d001aa8470aaa53df28d32e5ceeb8af9bd70",
       importpath = "golang.org/x/net",
