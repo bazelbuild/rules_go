@@ -4,33 +4,25 @@ test_suite(
     name = "cross",
 )
 
-go_source(
-    name = "cross_src",
-    srcs = ["main.go"],
-)
-
 go_binary(
-    name = "windows",
-    basename = "cross",
-    embed = [":cross_src"],
+    name = "windows_cross",
+    srcs = ["main.go"],
     goarch = "amd64",
     goos = "windows",
     pure = "on",
 )
 
 go_binary(
-    name = "linux",
-    basename = "cross",
-    embed = [":cross_src"],
+    name = "linux_cross",
+    srcs = ["main.go"],
     goarch = "amd64",
     goos = "linux",
     pure = "on",
 )
 
 go_binary(
-    name = "darwin",
-    basename = "cross",
-    embed = [":cross_src"],
+    name = "darwin_cross",
+    srcs = ["main.go"],
     goarch = "amd64",
     goos = "darwin",
     pure = "on",
@@ -40,9 +32,15 @@ go_test(
     name = "cross_test",
     size = "small",
     srcs = ["cross_test.go"],
+    rundir = ".",
     data = [
-        ":darwin",
-        ":linux",
-        ":windows",
+        ":darwin_cross",
+        ":linux_cross",
+        ":windows_cross",
     ],
+    args = [
+        "-darwin", "$(location :darwin_cross)",
+        "-linux", "$(location :linux_cross)",
+        "-windows", "$(location :windows_cross)",
+    ]
 )
