@@ -447,19 +447,22 @@ over time.
 Methods
 ^^^^^^^
 
-  * Action generators
-    * archive_
-    * asm_
-    * binary_
-    * compile_
-    * cover_
-    * link_
-    * pack_
-  * Helpers
-    * args_
-    * declare_file_
-    * library_to_source_
-    * new_library_
+* Action generators
+
+  * archive_
+  * asm_
+  * binary_
+  * compile_
+  * cover_
+  * link_
+  * pack_
+
+* Helpers
+
+  * args_
+  * declare_file_
+  * library_to_source_
+  * new_library_
 
 
 Fields

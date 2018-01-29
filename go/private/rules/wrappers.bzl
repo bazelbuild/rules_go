@@ -64,7 +64,7 @@ def go_binary_macro(name, **kwargs):
 
 def go_test_macro(name, **kwargs):
   """See go/core.rst#go_test for full documentation."""
-  _deprecate_library(name, "go_binary", kwargs)
-  _deprecate_importpath(name, "go_binary", kwargs)
+  _deprecate_library(name, "go_test", kwargs)
+  _deprecate_importpath(name, "go_test", kwargs)
   _cgo(name, kwargs)
   go_test(name = name, **kwargs)

@@ -37,22 +37,92 @@ Design
 Defines and stamping
 ~~~~~~~~~~~~~~~~~~~~
 
-In order to make it possible to provide build time information to go code without data files, we
+In order to provide build time information to go code without data files, we
 support the concept of stamping.
 
-Stamping asks the linker to substitute the inital value of a global string variable with
-a new value. It only happens at link time, not compile, so it happens at the level of a go binary
-not a package. This means that changing a value results only in re-linking, not re-compilation
-and thus does not cause cascading changes.
+Stamping asks the linker to substitute the value of a global variable with a
+string determined at link time. Stamping only happens when linking a binary, not
+when compiling a package. This means that changing a value results only in
+re-linking, not re-compilation and thus does not cause cascading changes.
 
-You specify the values to substitute in the x_defs parameter to any of the go rules.
-This is a map of string to string, where the key is the name of the variable to substitute and the
-value is the value to use.
-If the key is not a fully qualified name, then the current package is used.
-These mappings are collected up across the entire transitive dependancies of a binary, and then
-applied, which means you can set a define on a library, and it will be applied in any binary that
-links in that library. You can also override a the value of any libraries stamping from the x_defs
-of the binary if needed.
+Link values are set in the :param:`x_defs` attribute of any Go rule. This is a
+map of string to string, where keys are the names of variables to substitute,
+and values are the string to use. Keys may be names of variables in the package
+being compiled, or they may be fully qualified names of variables in another
+package.
+
+These mappings are collected up across the entire transitive dependancies of a
+binary. This means you can set a value using :param:`x_defs` in a
+``go_library``, and any binary that links that library will be stamped with that
+value. You can also override stamp values from libraries using :param:`x_defs`
+on the ``go_binary`` rule if needed.
+
+Example
+^^^^^^^
+
+Suppose we have a small library that contains the current version.
+
+.. code:: go
+
+    package version
+
+    var Version = "redacted"
+
+We can set the version in the ``go_library`` rule for this library.
+
+.. code:: bzl
+
+    go_library(
+        name = "go_default_library",
+        srcs = ["version.go"],
+        importpath = "example.com/repo/version",
+        x_defs = {"Version": "0.9"},
+    )
+
+Binaries that depend on this library may also set this value.
+
+.. code:: bzl
+
+    go_binary(
+        name = "cmd",
+        srcs = ["main.go"], 
+        deps = ["//version:go_default_library"],
+        x_defs = {"example.com/repo/version.Version", "0.9"},
+    )
+
+Stamping with the workspace status script
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can use values produced by the workspace status command in your link stamp.
+To use this functionality, write a script that prints key-value pairs, separated
+by spaces, one per line. For example:
+
+.. code:: bash
+
+    #!/bin/bash
+
+    echo STABLE_GIT_COMMIT $(git rev-parse HEAD)
+
+**NOTE:** keys that start with ``STABLE_`` will trigger a re-link when they change.
+Other keys will NOT trigger a re-link.
+
+You can reference these in :param:`x_defs` using curly braces.
+
+.. code:: bzl
+
+    go_binary(
+        name = "cmd",
+        srcs = ["main.go"],
+        deps = ["//version:go_default_library"],
+        x_defs = {"example.com/repo/version.Version": "{STABLE_GIT_COMMIT}"},
+    )
+
+You can build using the status script using the ``--workspace_status_command``
+argument on the command line:
+
+.. code:: bash
+
+    $ bazel build --workspace_status_command=./status.sh //:cmd
 
 Embedding
 ~~~~~~~~~
