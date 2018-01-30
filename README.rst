@@ -433,6 +433,6 @@ must be named ``go_sdk``, and it must come *before* the call to
       },
   )
 
-  go_register_toolchains()
+  go_register_toolchains(go_version="1.10beta1")
 
   
