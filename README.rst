@@ -436,3 +436,10 @@ must be named ``go_sdk``, and it must come *before* the call to
   go_register_toolchains()
 
   
+How do I get information about the Go SDK used by rules_go?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run: ``bazel build @io_bazel_rules_go//:go_info`` which outputs
+``go_info_report`` with information like the used Golang version.
+
+
