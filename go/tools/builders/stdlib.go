@@ -24,6 +24,9 @@ import (
 )
 
 func install_stdlib(goenv *GoEnv, target string, args []string) error {
+	if goenv.tags != "" {
+		args = append(args, "-tags", goenv.tags)
+	}
 	args = append(args, target)
 	env := os.Environ()
 	env = append(env, goenv.Env()...)
