@@ -87,15 +87,18 @@ def _go_repository_impl(ctx):
     # Build file generation is needed
     _gazelle = "@io_bazel_rules_go_repository_tools//:bin/gazelle{}".format(executable_extension(ctx))
     gazelle = ctx.path(Label(_gazelle))
-    cmds = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
-            '--repo_root', ctx.path(''),
-            "--build_tags", ",".join(ctx.attr.build_tags),
-            "--external", ctx.attr.build_external,
-            "--proto", ctx.attr.build_file_proto_mode]
+    cmd = [gazelle, '--go_prefix', ctx.attr.importpath, '--mode', 'fix',
+            '--repo_root', ctx.path('')]
     if ctx.attr.build_file_name:
-        cmds.extend(["--build_file_name", ctx.attr.build_file_name])
-    cmds.append(ctx.path(''))
-    result = env_execute(ctx, cmds)
+      cmd.extend(["--build_file_name", ctx.attr.build_file_name])
+    if ctx.attr.build_tags:
+      cmd.extend(["--build_tags", ",".join(ctx.attr.build_tags)])
+    if ctx.attr.build_external:
+      cmd.extend(["--external", ctx.attr.build_external])
+    if ctx.attr.build_file_proto_mode:
+      cmd.extend(["--proto", ctx.attr.build_file_proto_mode])
+    cmd.append(ctx.path(''))
+    result = env_execute(ctx, cmd)
     if result.return_code:
       fail("failed to generate BUILD files for %s: %s" % (
           ctx.attr.importpath, result.stderr))
@@ -129,8 +132,8 @@ go_repository = repository_rule(
 
         # Attributes for a repository that needs automatic build file generation
         "build_external": attr.string(
-            default = "external",
             values = [
+                "",
                 "external",
                 "vendored",
             ],
@@ -146,8 +149,8 @@ go_repository = repository_rule(
         ),
         "build_tags": attr.string_list(),
         "build_file_proto_mode": attr.string(
-            default = "default",
             values = [
+                "",
                 "default",
                 "disable",
                 "legacy",
