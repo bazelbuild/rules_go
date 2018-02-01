@@ -74,6 +74,9 @@ def _new_args(go):
       "-goarch", go.mode.goarch,
       "-cgo=" + ("0" if go.mode.pure else "1"),
   ])
+  if len(go.tags) > 0:
+    args.add("-tags")
+    args.add(go.tags, join_with = ",")
   if go.cgo_tools:
     args.add([
       "-compiler_path", go.cgo_tools.compiler_path,
@@ -231,6 +234,8 @@ def go_context(ctx, attr=None):
       pathtype = pathtype,
       cgo_tools = context_data.cgo_tools,
       builders = builders,
+      env = context_data.env,
+      tags = context_data.tags,
       # Action generators
       archive = toolchain.actions.archive,
       asm = toolchain.actions.asm,
@@ -267,6 +272,10 @@ def _go_context_data(ctx):
   linker_options = [o for o in raw_linker_options if not o in [
     "-Wl,--gc-sections",
   ]]
+  env = {}
+  tags = []
+  if "gotags" in ctx.var:
+    tags = ctx.var["gotags"].split(",")
   compiler_path, _ = cpp.ld_executable.rsplit("/", 1)
   return struct(
       strip = ctx.attr.strip,
@@ -274,6 +283,8 @@ def _go_context_data(ctx):
       package_list = ctx.file._package_list,
       sdk_files = ctx.files._sdk_files,
       sdk_tools = ctx.files._sdk_tools,
+      tags = tags,
+      env = env,
       cgo_tools = struct(
           compiler_path = compiler_path,
           compiler_executable = cpp.compiler_executable,

@@ -40,6 +40,7 @@ def _stdlib_library_to_source(go, attr, source, merge):
       mnemonic = "GoStdlib",
       executable = attr._stdlib_builder.files.to_list()[0],
       arguments = [args],
+      env = go.env,
   )
   source["stdlib"] = GoStdLib(
       root_file = root_file,

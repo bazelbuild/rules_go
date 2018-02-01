@@ -156,6 +156,7 @@ def _cgo_codegen_impl(ctx):
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go.builders.cgo,
       arguments = [args],
+      env = go.env,
   )
 
   return [

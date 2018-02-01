@@ -42,4 +42,5 @@ def emit_pack(go,
       mnemonic = "GoPack",
       executable = go.builders.pack,
       arguments = [arguments],
+      env = go.env,
   )

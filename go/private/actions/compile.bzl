@@ -86,6 +86,7 @@ def emit_compile(go,
       mnemonic = "GoCompile",
       executable = go.builders.compile,
       arguments = [args],
+      env = go.env,
   )
 
 def _bootstrap_compile(go, sources, out_lib, gc_goopts):

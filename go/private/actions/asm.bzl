@@ -40,5 +40,6 @@ def emit_asm(go,
       mnemonic = "GoAsmCompile",
       executable = go.builders.asm,
       arguments = [asm_args],
+      env = go.env,
   )
   return out_obj
