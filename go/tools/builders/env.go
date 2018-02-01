@@ -49,6 +49,25 @@ func abs(path string) string {
 	}
 }
 
+func envUpdate(oldEnv, newEnv []string) []string {
+	retEnvMap := map[string]string{}
+	retEnv := []string{}
+	for _, e := range oldEnv {
+		pair := strings.SplitN(e, "=", 2)
+		k, v := pair[0], pair[1]
+		retEnvMap[k] = v
+	}
+	for _, e := range newEnv {
+		pair := strings.SplitN(e, "=", 2)
+		k, v := pair[0], pair[1]
+		retEnvMap[k] = v
+	}
+	for k, v := range retEnvMap {
+		retEnv = append(retEnv, k+"="+v)
+	}
+	return retEnv
+}
+
 func envFlags(flags *flag.FlagSet) *GoEnv {
 	env := &GoEnv{}
 	flags.StringVar(&env.Go, "go", "", "The path to the go tool.")
@@ -82,6 +101,10 @@ func (env *GoEnv) update() error {
 }
 
 func (env *GoEnv) Env() []string {
+	return envUpdate(os.Environ(), env.env())
+}
+
+func (env *GoEnv) env() []string {
 	cgoEnabled := "0"
 	if env.cgo {
 		cgoEnabled = "1"
@@ -103,8 +126,11 @@ func (env *GoEnv) Env() []string {
 		)
 	}
 	if len(env.cpp_flags) > 0 {
+		v := strings.Join(env.cpp_flags, " ")
 		result = append(result,
-			fmt.Sprintf("CGO_CPPFLAGS=%s", strings.Join(env.cpp_flags, " ")),
+			fmt.Sprintf("CGO_CFLAGS=%s", v),
+			fmt.Sprintf("CGO_CPPFLAGS=%s", v),
+			fmt.Sprintf("CGO_CXXFLAGS=%s", v),
 		)
 	}
 	if len(env.ld_flags) > 0 {

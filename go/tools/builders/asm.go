@@ -59,12 +59,10 @@ func run(args []string) error {
 	}
 	goargs = append(goargs, remains...)
 	goargs = append(goargs, source)
-	env := os.Environ()
-	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = env
+	cmd.Env = goenv.Env()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running assembler: %v", err)
 	}

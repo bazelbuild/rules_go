@@ -107,12 +107,10 @@ func run(args []string) error {
 
 	// add in the unprocess pass through options
 	goargs = append(goargs, goopts...)
-	env := os.Environ()
-	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = env
+	cmd.Env = goenv.Env()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running linker: %v", err)
 	}

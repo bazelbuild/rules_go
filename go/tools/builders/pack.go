@@ -294,11 +294,9 @@ func simpleName(name string, names map[string]bool) string {
 
 func appendFiles(goenv *GoEnv, archive string, files []string) error {
 	args := append([]string{"tool", "pack", "r", archive}, files...)
-	env := os.Environ()
-	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = env
+	cmd.Env = goenv.Env()
 	return cmd.Run()
 }
