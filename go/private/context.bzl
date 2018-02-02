@@ -45,7 +45,7 @@ INFERRED_PATH = "inferred"
 
 EXPORT_PATH = "export"
 
-def _declare_child(go, path, ext, name):
+def _child_name(go, path, ext, name):
   childname = mode_string(go.mode) + "/"
   childname += name if name else go._ctx.label.name
   if path:
@@ -55,10 +55,10 @@ def _declare_child(go, path, ext, name):
   return childname
 
 def _declare_file(go, path="", ext="", name = ""):
-  return go.actions.declare_file(_declare_child(go, path, ext, name))
+  return go.actions.declare_file(_child_name(go, path, ext, name))
 
 def _declare_directory(go, path="", ext="", name = ""):
-  return go.actions.declare_directory(_declare_child(go, path, ext, name))
+  return go.actions.declare_directory(_child_name(go, path, ext, name))
 
 def _new_args(go):
   args = go.actions.args()

@@ -17,10 +17,13 @@ load(
     "go_archive_aspect",
 )
 
+_ASPECT_ATTRS = ["pure", "static", "msan", "race"]
+
 def go_rule(implementation, attrs={}, toolchains=[], bootstrap=False, **kwargs):
   attrs["_go_context_data"] = attr.label(default = Label("@io_bazel_rules_go//:go_context_data"))
   aspects = []
-  if all([k in attrs for k in ["pure", "static", "msan", "race"]]):
+  # If all the aspect attributes are present, also trigger the aspect on the stdlib attribute
+  if all([k in attrs for k in _ASPECT_ATTRS]):
     aspects.append(go_archive_aspect)
   if not bootstrap:
     attrs["_stdlib"] = attr.label(default = Label("@io_bazel_rules_go//:stdlib"), aspects = aspects)
