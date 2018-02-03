@@ -81,7 +81,7 @@ def get_mode(ctx, go_toolchain, go_context_data):
   if race and pure:
     # You are not allowed to compile in race mode with pure enabled
     race = False
-  debug = ctx.var["COMPILATION_MODE"] == "debug"
+  debug = ctx.var["COMPILATION_MODE"] == "dbg"
   strip_mode = "sometimes"
   if go_context_data:
     strip_mode = go_context_data.strip
