@@ -41,6 +41,10 @@ def emit_compile(go,
   if sources == None: fail("sources is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
+  if not go.builders.compile:
+    if archives:  fail("compile does not accept deps in bootstrap mode")
+    return _bootstrap_compile(go, sources, out_lib, gc_goopts)
+
   # Add in any mode specific behaviours
   if go.mode.race:
     gc_goopts = gc_goopts + ["-race"]
@@ -80,23 +84,11 @@ def emit_compile(go,
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoCompile",
-      executable = go.toolchain.tools.compile,
+      executable = go.builders.compile,
       arguments = [args],
   )
 
-def bootstrap_compile(go,
-    sources = None,
-    importpath = "",
-    archives = [],
-    out_lib = None,
-    gc_goopts = [],
-    testfilter = None):
-  """See go/toolchains.rst#compile for full documentation."""
-
-  if sources == None: fail("sources is a required parameter")
-  if out_lib == None: fail("out_lib is a required parameter")
-  if archives:  fail("compile does not accept deps in bootstrap mode")
-
+def _bootstrap_compile(go, sources, out_lib, gc_goopts):
   args = ["tool", "compile", "-trimpath", "$(pwd)", "-o", out_lib.path]
   args.extend(gc_goopts)
   args.extend([s.path for s in sources])

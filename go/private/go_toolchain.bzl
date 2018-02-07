@@ -18,35 +18,25 @@ Toolchain rules used by go.
 load("@io_bazel_rules_go//go/private:actions/archive.bzl", "emit_archive")
 load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
 load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
-load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile", "bootstrap_compile")
+load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile")
 load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
-load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link", "bootstrap_link")
+load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
   return [platform_common.ToolchainInfo(
       name = ctx.label.name,
       cross_compile = ctx.attr.cross_compile,
-      bootstrap = ctx.attr.bootstrap,
       default_goos = ctx.attr.goos,
       default_goarch = ctx.attr.goarch,
       actions = struct(
           archive = emit_archive,
           asm = emit_asm,
           binary = emit_binary,
-          compile = emit_compile if ctx.executable._compile else bootstrap_compile,
+          compile = emit_compile,
           cover = emit_cover,
-          link = emit_link if ctx.executable._link else bootstrap_link,
+          link = emit_link,
           pack = emit_pack,
-      ),
-      tools = struct(
-          asm = ctx.executable._asm,
-          compile = ctx.executable._compile,
-          pack = ctx.executable._pack,
-          link = ctx.executable._link,
-          cgo = ctx.executable._cgo,
-          test_generator = ctx.executable._test_generator,
-          cover = ctx.executable._cover,
       ),
       flags = struct(
           compile = (),
@@ -54,41 +44,6 @@ def _go_toolchain_impl(ctx):
           link_cgo = ctx.attr.cgo_link_flags,
       ),
   )]
-
-def _asm(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/builders:asm")
-
-def _compile(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/builders:compile")
-
-def _pack(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/builders:pack")
-
-def _link(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/builders:link")
-
-def _cgo(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/builders:cgo")
-
-def _test_generator(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/builders:generate_test_main")
-
-def _cover(bootstrap):
-  if bootstrap:
-    return None
-  return Label("//go/tools/builders:cover")
 
 _go_toolchain = rule(
     _go_toolchain_impl,
@@ -100,57 +55,6 @@ _go_toolchain = rule(
         # Optional extras to a toolchain
         "link_flags": attr.string_list(default = []),
         "cgo_link_flags": attr.string_list(default = []),
-        "bootstrap": attr.bool(default = False),
-        # Tools, missing from bootstrap toolchains
-        "_asm": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = _asm,
-        ),
-        "_compile": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = _compile,
-        ),
-        "_pack": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = _pack,
-        ),
-        "_link": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = _link,
-        ),
-        "_cgo": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = _cgo,
-        ),
-        "_test_generator": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = _test_generator,
-        ),
-        "_cover": attr.label(
-            allow_files = True,
-            single_file = True,
-            executable = True,
-            cfg = "host",
-            default = _cover,
-        ),
     },
 )
 
@@ -176,7 +80,6 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
       goos = goos,
       goarch = goarch,
       cross_compile = cross,
-      bootstrap = False,
       tags = ["manual"],
       visibility = ["//visibility:public"],
       **kwargs
@@ -188,24 +91,3 @@ def go_toolchain(name, target, host=None, constraints=[], **kwargs):
       target_compatible_with = target_constraints,
       toolchain = ":"+impl_name,
   )
-
-  if not cross:
-    # If not cross, register a bootstrap toolchain
-    name = name + "-bootstrap"
-    impl_name = name + "-impl"
-    _go_toolchain(
-        name = impl_name,
-        goos = goos,
-        goarch = goarch,
-        bootstrap = True,
-        tags = ["manual"],
-        visibility = ["//visibility:public"],
-        **kwargs
-    )
-    native.toolchain(
-        name = name,
-        toolchain_type = "@io_bazel_rules_go//go:bootstrap_toolchain",
-        exec_compatible_with = exec_constraints,
-        target_compatible_with = [],
-        toolchain = ":"+impl_name,
-    )

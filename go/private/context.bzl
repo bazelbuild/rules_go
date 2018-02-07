@@ -18,6 +18,7 @@ load(
     "GoSource",
     "GoAspectProviders",
     "GoStdLib",
+    "GoBuilders",
     "get_source",
 )
 load(
@@ -187,18 +188,20 @@ def _get_go_binary(context_data):
   fail("Could not find go executable in go_sdk")
 
 def go_context(ctx, attr=None):
-  if "@io_bazel_rules_go//go:toolchain" in ctx.toolchains:
-    toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
-  elif "@io_bazel_rules_go//go:bootstrap_toolchain" in ctx.toolchains:
-    toolchain = ctx.toolchains["@io_bazel_rules_go//go:bootstrap_toolchain"]
-  else:
-    fail('Rule {} does not have the go toolchain available\nAdd toolchains = ["@io_bazel_rules_go//go:toolchain"] to the rule definition.'.format(ctx.label))
+  toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
 
   if not attr:
     attr = ctx.attr
 
+  builders = getattr(attr, "_builders", None)
+  if builders:
+    builders = builders[GoBuilders]
+  else:
+    builders = GoBuilders(compile=None, link=None)
+  bootstrap = builders.compile == None
+
   context_data = attr._go_context_data
-  mode = get_mode(ctx, toolchain, context_data)
+  mode = get_mode(ctx, bootstrap, toolchain, context_data)
   root, binary = _get_go_binary(context_data)
 
   stdlib = getattr(attr, "_stdlib", None)
@@ -222,6 +225,7 @@ def go_context(ctx, attr=None):
       importpath = importpath,
       pathtype = pathtype,
       cgo_tools = context_data.cgo_tools,
+      builders = builders,
       # Action generators
       archive = toolchain.actions.archive,
       asm = toolchain.actions.asm,

@@ -173,9 +173,6 @@ def go_register_toolchains(go_version=DEFAULT_VERSION):
   for toolchain in _toolchains:
     name = _label_prefix + toolchain["name"]
     native.register_toolchains(name)
-    if toolchain["host"] == toolchain["target"]:
-      name = name + "-bootstrap"
-      native.register_toolchains(name)
 
 def declare_constraints():
   for goos, constraint in GOOS.items():

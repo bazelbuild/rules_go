@@ -66,10 +66,7 @@ platforms. It should be considered an opaqute type, you only ever use it through
 Declaration
 ^^^^^^^^^^^
 
-Toolchains are declared using the go_toolchain_ macro. This actually registers two Bazel
-toolchains, the main Go toolchain, and a special bootstrap toolchain. The bootstrap toolchain
-is needed because the full toolchain includes tools that are compiled on demand and written in
-go, so we need a special cut down version of the toolchain to build those tools.
+Toolchains are declared using the go_toolchain_ macro.
 
 Toolchains are pre-declared for all the known combinations of host and target, and the names
 are a predictable
@@ -82,7 +79,6 @@ it's default name, the following toolchain labels (along with many others) will 
 .. code::
 
   @io_bazel_rules_go//go/toolchain:linux_amd64
-  @io_bazel_rules_go//go/toolchain:linux_amd64-bootstrap
   @io_bazel_rules_go//go/toolchain:linux_amd64_cross_windows_amd64
 
 The toolchains are not usable until you register_ them.
@@ -101,9 +97,6 @@ go_register_toolchains_.
 If you wish to have more control over the toolchains you can instead just make direct
 calls to register_toolchains_ with only the toolchains you wish to install. You can see an
 example of this in `limiting the available toolchains`_.
-It is important to note that you **must** also register the bootstrap toolchain for any other
-toolchain that you register, otherwise the tools for that toolchain cannot be built.
-
 
 
 The context
@@ -208,7 +201,7 @@ WORKSPACE
 
     go_download_sdk(name="my_linux_sdk", url="https://storage.googleapis.com/golang/go1.8.1.linux-amd64.tar.gz")
     register_toolchains(
-        "@//:my_linux_toolchain", "@//:my_linux_toolchain-bootstrap",
+        "@//:my_linux_toolchain",
     )
 
     go_rules_dependencies()
@@ -239,7 +232,6 @@ WORKSPACE
     go_rules_dependencies()
     register_toolchains(
         "@io_bazel_rules_go//go/toolchain:1.8.3_darwin_amd64",
-        "@io_bazel_rules_go//go/toolchain:1.8.3_darwin_amd64-bootstrap",
     )
 
 
@@ -353,8 +345,7 @@ This prepares a local path to use as the Go SDK in toolchains.
 go_toolchain
 ~~~~~~~~~~~~
 
-This adds a toolchain of type :value:`"@io_bazel_rules_go//go:toolchain"` and also a bootstrapping
-toolchain of type :value:`"@io_bazel_rules_go//go:bootstrap_toolchain"`.
+This adds a toolchain of type :value:`"@io_bazel_rules_go//go:toolchain"`.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -362,8 +353,6 @@ toolchain of type :value:`"@io_bazel_rules_go//go:bootstrap_toolchain"`.
 | :param:`name`                  | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | A unique name for the toolchain.                                                                 |
-| The base toolchain will have the name you supply, the bootstrap toolchain with have              |
-| :value:`"-bootstrap"` appended.                                                                  |
 | You will need to use this name when registering the toolchain in the WORKSPACE.                  |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`target`                | :type:`string`              | |mandatory|                       |

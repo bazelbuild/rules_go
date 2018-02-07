@@ -40,6 +40,6 @@ def emit_pack(go,
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoPack",
-      executable = go.toolchain.tools.pack,
+      executable = go.builders.pack,
       arguments = [arguments],
   )

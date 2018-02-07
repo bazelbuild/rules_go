@@ -35,8 +35,8 @@ go_download_sdk(
     },
 )
 register_toolchains(
-    "@//:my_linux_toolchain", "@//:my_linux_toolchain-bootstrap",
-    "@//:my_darwin_toolchain", "@//:my_darwin_toolchain-bootstrap",
+    "@//:my_linux_toolchain",
+    "@//:my_darwin_toolchain",
 )
 
 go_rules_dependencies()

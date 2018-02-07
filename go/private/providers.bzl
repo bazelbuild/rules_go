@@ -50,6 +50,8 @@ GoPath = provider()
 
 GoStdLib = provider()
 
+GoBuilders = provider()
+
 def new_aspect_provider(source = None, archive = None):
   return GoAspectProviders(
       source = source,

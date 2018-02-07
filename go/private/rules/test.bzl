@@ -105,7 +105,7 @@ def _go_test_impl(ctx):
       inputs = go_srcs,
       outputs = [main_go],
       mnemonic = "GoTestGenTest",
-      executable = go.toolchain.tools.test_generator,
+      executable = go.builders.test_generator,
       arguments = [arguments],
       env = {
           "RUNDIR" : ctx.label.package,

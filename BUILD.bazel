@@ -4,9 +4,15 @@ load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
 load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_google_protobuf")
 load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
+load("@io_bazel_rules_go//go/private:rules/builders.bzl", "builders")
 
 stdlib(
     name = "stdlib",
+    visibility = ["//visibility:public"],
+)
+
+builders(
+    name = "builders",
     visibility = ["//visibility:public"],
 )
 

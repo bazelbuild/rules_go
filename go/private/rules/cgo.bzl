@@ -131,7 +131,7 @@ def _cgo_codegen_impl(ctx):
       outputs = c_outs + go_outs + [cgo_main],
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
-      executable = go.toolchain.tools.cgo,
+      executable = go.builders.cgo,
       arguments = [args],
       env = {
           "CGO_LDFLAGS": " ".join(linkopts),
@@ -185,7 +185,7 @@ def _cgo_import_impl(ctx):
           ctx.files.sample_go_srcs[0],
       ] + go.stdlib.files,
       outputs = [out],
-      executable = go.toolchain.tools.cgo,
+      executable = go.builders.cgo,
       arguments = [args],
       mnemonic = "CGoImportGen",
   )

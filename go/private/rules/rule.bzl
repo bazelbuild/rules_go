@@ -25,11 +25,12 @@ def go_rule(implementation, attrs={}, toolchains=[], bootstrap=False, **kwargs):
   # If all the aspect attributes are present, also trigger the aspect on the stdlib attribute
   if all([k in attrs for k in _ASPECT_ATTRS]):
     aspects.append(go_archive_aspect)
+  toolchains = toolchains + ["@io_bazel_rules_go//go:toolchain"]
   if not bootstrap:
     attrs["_stdlib"] = attr.label(default = Label("@io_bazel_rules_go//:stdlib"), aspects = aspects)
-    toolchains = toolchains + ["@io_bazel_rules_go//go:toolchain"]
+    attrs["_builders"] = attr.label(default = Label("@io_bazel_rules_go//:builders"))
   else:
-    toolchains = toolchains + ["@io_bazel_rules_go//go:bootstrap_toolchain"]
+    attrs["_builders"] = attr.label(default = None)
 
   return rule(
       implementation = implementation,
