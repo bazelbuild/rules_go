@@ -128,7 +128,7 @@ def go_rules_dependencies():
   _maybe(go_repository,
       name = "com_github_kevinburke_go_bindata",
       importpath = "github.com/kevinburke/go-bindata",
-      tag = "v3.7.0",
+      commit = "95df019c0747a093fef2832ae530a37fd2766d16",  # v3.7.0, latest as of 2018-02-07
   )
 
 def _maybe(repo_rule, name, **kwargs):
