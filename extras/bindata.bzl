@@ -61,7 +61,7 @@ bindata = go_rule(
         "_bindata": attr.label(
             allow_files = True,
             single_file = True,
-            default = Label("@com_github_jteeuwen_go_bindata//go-bindata:go-bindata"),
+            default = Label("@com_github_kevinburke_go_bindata//go-bindata:go-bindata"),
         ),
     },
 )
