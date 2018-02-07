@@ -42,6 +42,7 @@ def emit_archive(go, source=None):
   lib_name = compilepath + ".a"
   out_lib = go.declare_file(go, path=lib_name)
   searchpath = out_lib.path[:-len(lib_name)]
+  testfilter = getattr(source.library, "testfilter", None)
 
   extra_objects = []
   for src in split.asm:
@@ -60,15 +61,17 @@ def emit_archive(go, source=None):
         archives = direct,
         out_lib = out_lib,
         gc_goopts = source.gc_goopts,
+        testfilter = testfilter,
     )
   else:
-    partial_lib = go.declare_file(go, path="partial", ext=".a")
+    partial_lib = go.declare_file(go, path=lib_name+"~partial", ext=".a")
     go.compile(go,
         sources = split.go,
         importpath = compilepath,
         archives = direct,
         out_lib = partial_lib,
         gc_goopts = source.gc_goopts,
+        testfilter = testfilter,
     )
     go.pack(go,
         in_lib = partial_lib,

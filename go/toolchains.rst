@@ -101,7 +101,7 @@ go_register_toolchains_.
 If you wish to have more control over the toolchains you can instead just make direct
 calls to register_toolchains_ with only the toolchains you wish to install. You can see an
 example of this in `limiting the available toolchains`_.
-It is important to note that you **must** also register the boostrap toolchain for any other
+It is important to note that you **must** also register the bootstrap toolchain for any other
 toolchain that you register, otherwise the tools for that toolchain cannot be built.
 
 
@@ -417,7 +417,6 @@ the go context data as an attribute. To do this declare the rule using the go_ru
       attrs = {
           ...
       },
-      toolchains = ["@io_bazel_rules_go//go:toolchain"],
   )
 
 
@@ -447,19 +446,22 @@ over time.
 Methods
 ^^^^^^^
 
-  * Action generators
-    * archive_
-    * asm_
-    * binary_
-    * compile_
-    * cover_
-    * link_
-    * pack_
-  * Helpers
-    * args_
-    * declare_file_
-    * library_to_source_
-    * new_library_
+* Action generators
+
+  * archive_
+  * asm_
+  * binary_
+  * compile_
+  * cover_
+  * link_
+  * pack_
+
+* Helpers
+
+  * args_
+  * declare_file_
+  * library_to_source_
+  * new_library_
 
 
 Fields

@@ -16,6 +16,9 @@ load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "sets",
 )
+load("@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_PLUGIN",
+)
 
 def _importpath(l):
   return [v.data.importpath for v in l]
@@ -31,7 +34,8 @@ def emit_compile(go,
     importpath = "",
     archives = [],
     out_lib = None,
-    gc_goopts = []):
+    gc_goopts = [],
+    testfilter = None):
   """See go/toolchains.rst#compile for full documentation."""
 
   if sources == None: fail("sources is a required parameter")
@@ -60,6 +64,8 @@ def emit_compile(go,
   args.add(archives, before_each="-I", map_fn=_searchpath)
   args.add(archives, before_each="-importmap", map_fn=_importmap)
   args.add(["-o", out_lib, "-trimpath", ".", "-I", "."])
+  if testfilter:
+    args.add(["--testfilter", testfilter])
   args.add(["--"])
   if importpath:
     args.add(["-p", importpath])
@@ -67,6 +73,8 @@ def emit_compile(go,
   args.add(go.toolchain.flags.compile)
   if go.mode.debug:
     args.add(["-N", "-l"])
+  if go.mode.link in [LINKMODE_PLUGIN]:
+    args.add(["-dynlink"])
   args.add(cgo_sources)
   go.actions.run(
       inputs = inputs,
@@ -81,7 +89,8 @@ def bootstrap_compile(go,
     importpath = "",
     archives = [],
     out_lib = None,
-    gc_goopts = []):
+    gc_goopts = [],
+    testfilter = None):
   """See go/toolchains.rst#compile for full documentation."""
 
   if sources == None: fail("sources is a required parameter")

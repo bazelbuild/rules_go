@@ -1,5 +1,3 @@
-load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
-
 package(default_visibility = [ "//visibility:public" ])
 
 filegroup(

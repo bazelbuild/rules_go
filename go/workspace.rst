@@ -81,7 +81,7 @@ put the call at the bottom of your WORKSPACE. For example:
 
 .. code:: bzl
 
-  go_repository,
+  go_repository(
       name = "org_golang_x_net",
       commit = "0744d001aa8470aaa53df28d32e5ceeb8af9bd70",
       importpath = "golang.org/x/net",
@@ -234,4 +234,19 @@ repository is renamed.
       urls = ["https://codeload.github.com/golang/tools/zip/663269851cdddc898f963782f74ea574bcd5c814"],
       strip_prefix = "tools-663269851cdddc898f963782f74ea574bcd5c814",
       type = "zip",
+  )
+
+The following fetches the same package, but using git without import redirection.
+This is also the same method you would use for private git repositories.
+
+.. code:: bzl
+
+  load("@io_bazel_rules_go//go:def.bzl", "go_repository")
+
+  go_repository(
+      name = "org_golang_x_tools",
+      importpath = "golang.org/x/tools",
+      remote = "git@github.com:golang/tools.git",
+      vcs = "git",
+      commit = "663269851cdddc898f963782f74ea574bcd5c814",
   )

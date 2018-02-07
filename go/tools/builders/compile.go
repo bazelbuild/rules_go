@@ -41,6 +41,7 @@ func run(args []string) error {
 	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
+	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
 	// process the args
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -49,11 +50,34 @@ func run(args []string) error {
 		return err
 	}
 
+	var matcher func(f *goMetadata) bool
+	switch *testfilter {
+	case "off":
+		matcher = func(f *goMetadata) bool {
+			return true
+		}
+	case "only":
+		matcher = func(f *goMetadata) bool {
+			return strings.HasSuffix(f.pkg, "_test")
+		}
+	case "exclude":
+		matcher = func(f *goMetadata) bool {
+			return !strings.HasSuffix(f.pkg, "_test")
+		}
+	default:
+		return fmt.Errorf("Invalid test filter %q", *testfilter)
+	}
 	// apply build constraints to the source list
 	bctx := goenv.BuildContext()
-	files, err := readFiles(bctx, unfiltered)
+	all, err := readFiles(bctx, unfiltered)
 	if err != nil {
 		return err
+	}
+	files := []*goMetadata{}
+	for _, f := range all {
+		if matcher(f) {
+			files = append(files, f)
+		}
 	}
 	if len(files) <= 0 {
 		return ioutil.WriteFile(*output, []byte(""), 0644)

@@ -16,6 +16,7 @@ limitations under the License.
 package cross_test
 
 import (
+	"flag"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,24 +25,28 @@ import (
 )
 
 type check struct {
-	file string
+	file *string
 	info []string
 }
 
+var darwin = flag.String("darwin", "", "The darwin binary")
+var linux = flag.String("linux", "", "The linux binary")
+var windows = flag.String("windows", "", "The windows binary")
+
 var checks = []check{
-	{"darwin_amd64_pure_stripped/cross", []string{
+	{darwin, []string{
 		"Mach-O",
 		"64-bit",
 		"executable",
 		"x86_64",
 	}},
-	{"linux_amd64_pure_stripped/cross", []string{
+	{linux, []string{
 		"ELF",
 		"64-bit",
 		"executable",
 		"x86-64",
 	}},
-	{"windows_amd64_pure_stripped/cross.exe", []string{
+	{windows, []string{
 		"PE32+",
 		"Windows",
 		"executable",
@@ -52,10 +57,10 @@ var checks = []check{
 
 func TestCross(t *testing.T) {
 	for _, c := range checks {
-		if _, err := os.Stat(c.file); os.IsNotExist(err) {
-			t.Fatalf("Missing binary %v", c.file)
+		if _, err := os.Stat(*c.file); os.IsNotExist(err) {
+			t.Fatalf("Missing binary %v", *c.file)
 		}
-		file, err := filepath.EvalSymlinks(c.file)
+		file, err := filepath.EvalSymlinks(*c.file)
 		if err != nil {
 			t.Fatalf("Invalid filename %v", file)
 		}

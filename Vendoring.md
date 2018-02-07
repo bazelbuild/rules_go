@@ -33,14 +33,13 @@ for you using [gazelle](https://github.com/bazelbuild/bazel-gazelle).
 
 You can use [`go_repository`](go/workspace.rst#go_repository) if the project
 you're importing already has `BUILD` files. This is like `git_repository` but it
-recognizes importpath redirection.
+recognizes importpath redirection. You can use
+[`gazelle update-repos`](https://github.com/bazelbuild/bazel-gazelle#update-repos)
+to add, update, and import repository rules.
 
 If you prefer to write your own `BUILD` files for dependencies, you can still
 use `new_git_repository`. Be aware that you can only specify one `BUILD` file
 for the top-level package.
-
-Experimental: some users may find [wtool](go/tools/wtool/README.md) helpful for
-managing go_repository entries in their WORKSPACE file.
 
 ### Example
 

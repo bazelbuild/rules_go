@@ -24,6 +24,8 @@ load(
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "mode_string",
+    "LINKMODES",
+    "LINKMODE_NORMAL",
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
@@ -69,6 +71,7 @@ go_archive_aspect = aspect(
         "embed",
         "compiler",
         "compilers",
+        "_stdlib",
     ],
     attrs = {
         "pure": attr.string(values = [
@@ -99,6 +102,7 @@ go_archive_aspect = aspect(
             values = GOARCH.keys() + ["auto"],
             default = "auto",
         ),
+        "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
