@@ -37,10 +37,33 @@ load(
 
 _CgoCodegen = provider()
 
-def _mangle(src):
-    src_stem, _, src_ext = src.path.rpartition('.')
-    mangled_stem = src_stem.replace('/', '_')
-    return mangled_stem, src_ext
+# Maximum number of characters in stem of base name for mangled cgo files.
+# Some file systems have fairly short limits (eCryptFS has a limit of 143),
+# and this should be kept below those to accomodate number suffixes and
+# extensions.
+MAX_MANGLED_STEM_LENGTH = 130
+
+def _mangle(src, stems):
+  """_mangle returns a file stem and extension for a source file that will
+  be passed to cgo. The stem will be unique among other sources in the same
+  library. It will not contain any separators, so cgo's name mangling algorithm
+  will be a no-op."""
+  src_stem, _, src_ext = src.path.rpartition('.')
+  mangled_stem = src_stem.replace('/', '_')
+  if len(mangled_stem) > MAX_MANGLED_STEM_LENGTH:
+    mangled_stem = src.basename.rpartition('.')[0]
+  if len(mangled_stem) > MAX_MANGLED_STEM_LENGTH:
+    mangled_stem = mangled_stem[:MAX_MANGLED_STEM_LENGTH]
+  if mangled_stem in stems:
+    for i in range(100):
+      next_stem = "{}_{}".format(mangled_stem, i)
+      if next_stem not in stems:
+        break
+    if next_stem in stems:
+      fail("could not find unique manged name for {}".format(src.path))
+    mangled_stem = next_stem
+  stems[mangled_stem] = None
+  return mangled_stem, src_ext
 
 def _c_filter_options(options, blacklist):
   return [opt for opt in options
@@ -83,21 +106,22 @@ def _cgo_codegen_impl(ctx):
 
   source = split_srcs(ctx.files.srcs)
   for src in source.headers:
-      copts.extend(['-iquote', src.dirname])
+    copts.extend(['-iquote', src.dirname])
+  stems = {}
   for src in source.go:
-    mangled_stem, src_ext = _mangle(src)
+    mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     gen_c_file = go.declare_file(go, path=mangled_stem + ".cgo2.c")
     go_outs.append(gen_file)
     c_outs.append(gen_c_file)
     args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.asm:
-    mangled_stem, src_ext = _mangle(src)
+    mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     go_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.c:
-    mangled_stem, src_ext = _mangle(src)
+    mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     c_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
