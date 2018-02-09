@@ -198,10 +198,9 @@ def go_context(ctx, attr=None):
     builders = builders[GoBuilders]
   else:
     builders = GoBuilders(compile=None, link=None)
-  bootstrap = builders.compile == None
 
   context_data = attr._go_context_data
-  mode = get_mode(ctx, bootstrap, toolchain, context_data)
+  mode = get_mode(ctx, toolchain, context_data)
   root, binary = _get_go_binary(context_data)
 
   stdlib = getattr(attr, "_stdlib", None)
