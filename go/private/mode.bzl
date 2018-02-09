@@ -54,9 +54,10 @@ def _ternary(*values):
     fail("Invalid value {}".format(v))
   fail("_ternary failed to produce a final result from {}".format(values))
 
-def get_mode(ctx, go_toolchain, go_context_data):
+def get_mode(ctx, host_only, go_toolchain, go_context_data):
   # We always have to  use the pure stdlib in cross compilation mode
   force_pure = "on" if go_toolchain.cross_compile else "auto"
+  force_race = "off" if host_only else "auto"
 
   static = _ternary(
       getattr(ctx.attr, "static", None),
@@ -64,7 +65,7 @@ def get_mode(ctx, go_toolchain, go_context_data):
   )
   race = _ternary(
       getattr(ctx.attr, "race", None),
-      getattr(ctx.attr, "_race", None),
+      force_race,
       "race" in ctx.features,
   )
   msan = _ternary(
