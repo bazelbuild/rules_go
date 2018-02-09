@@ -14,6 +14,9 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "env_execute", "executable_extension")
 
+# We can't disable timeouts on Bazel, but we can set them to large values.
+_GO_REPOSITORY_TIMEOUT = 86400
+
 def _go_repository_impl(ctx):
   if ctx.attr.urls:
     # download from explicit source url
@@ -71,7 +74,7 @@ def _go_repository_impl(ctx):
         args.extend(['--vcs', ctx.attr.vcs])
     if ctx.attr.importpath:
         args.extend(['--importpath', ctx.attr.importpath])
-    result = env_execute(ctx, args, environment = fetch_repo_env)
+    result = env_execute(ctx, args, environment = fetch_repo_env, timeout = _GO_REPOSITORY_TIMEOUT)
     if result.return_code:
       fail("failed to fetch %s: %s" % (ctx.name, result.stderr))
 
