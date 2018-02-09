@@ -41,29 +41,26 @@ _CgoCodegen = provider()
 # Some file systems have fairly short limits (eCryptFS has a limit of 143),
 # and this should be kept below those to accomodate number suffixes and
 # extensions.
-MAX_MANGLED_STEM_LENGTH = 130
+MAX_STEM_LENGTH = 130
 
 def _mangle(src, stems):
   """_mangle returns a file stem and extension for a source file that will
   be passed to cgo. The stem will be unique among other sources in the same
   library. It will not contain any separators, so cgo's name mangling algorithm
   will be a no-op."""
-  src_stem, _, src_ext = src.path.rpartition('.')
-  mangled_stem = src_stem.replace('/', '_')
-  if len(mangled_stem) > MAX_MANGLED_STEM_LENGTH:
-    mangled_stem = src.basename.rpartition('.')[0]
-  if len(mangled_stem) > MAX_MANGLED_STEM_LENGTH:
-    mangled_stem = mangled_stem[:MAX_MANGLED_STEM_LENGTH]
-  if mangled_stem in stems:
+  stem, _, ext = src.basename.rpartition('.')
+  if len(stem) > MAX_STEM_LENGTH:
+    stem = stem[:MAX_STEM_LENGTH]
+  if stem in stems:
     for i in range(100):
-      next_stem = "{}_{}".format(mangled_stem, i)
+      next_stem = "{}_{}".format(stem, i)
       if next_stem not in stems:
         break
     if next_stem in stems:
-      fail("could not find unique manged name for {}".format(src.path))
-    mangled_stem = next_stem
-  stems[mangled_stem] = None
-  return mangled_stem, src_ext
+      fail("could not find unique mangled name for {}".format(src.path))
+    stem = next_stem
+  stems[stem] = True
+  return stem, ext
 
 def _c_filter_options(options, blacklist):
   return [opt for opt in options
