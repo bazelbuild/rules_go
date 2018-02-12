@@ -1,6 +1,0 @@
-syntax = "proto2";
-
-option go_package = "example.com/repo/default_visibility";
-
-message Foo {
-};
