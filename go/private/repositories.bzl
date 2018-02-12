@@ -16,119 +16,131 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
+load("@io_bazel_rules_go//go/private:tools/overlay_repository.bzl", "git_repository", "http_archive")
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
+load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
 
 def go_rules_dependencies():
   """See /go/workspace.rst#go-rules-dependencies for full documentation."""
   versions.check(MINIMUM_BAZEL_VERSION)
 
-  # Needed for gazelle
-  _maybe(native.http_archive,
+  # Gazelle and dependencies. These are needed for go_repository.
+  # TODO(jayconrod): delete all of these when we've migrated everyone to
+  # Gazelle's version of go_repository.
+  _maybe(http_archive,
+      name = "bazel_gazelle",
+      urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.9/bazel-gazelle-0.9.tar.gz"],
+      sha256 = "0103991d994db55b3b5d7b06336f8ae355739635e0c2379dea16b8213ea5a223",
+  )
+
+  _maybe(http_archive,
       name = "com_github_bazelbuild_buildtools",
       # master, as of 2017-08-14
-      url = "https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6",
+      urls = ["https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6"],
       strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
       type = "zip",
   )
 
-  # New location of Gazelle. Needed by go_repository.
-  # TODO(jayconrod): delete this dependency after we've deleted go_repository
-  # or moved it into bazel_gazelle.
-  _maybe(native.http_archive,
-      name = "bazel_gazelle",
-      url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.9/bazel-gazelle-0.9.tar.gz",
-      sha256 = "0103991d994db55b3b5d7b06336f8ae355739635e0c2379dea16b8213ea5a223",
-  )
-
-  # Needed for fetch repo
-  _maybe(go_repository,
+  _maybe(http_archive,
       name = "org_golang_x_tools",
       # release-branch.go1.9, as of 2017-08-25
-      importpath = "golang.org/x/tools",
       urls = ["https://codeload.github.com/golang/tools/zip/5d2fd3ccab986d52112bf301d47a819783339d0e"],
       strip_prefix = "tools-5d2fd3ccab986d52112bf301d47a819783339d0e",
       type = "zip",
+      overlay = manifest["org_golang_x_tools"],
   )
+
+  _maybe(git_repository,
+      name = "com_github_pelletier_go_toml",
+      remote = "https://github.com/pelletier/go-toml",
+      commit = "16398bac157da96aa88f98a2df640c7f32af1da2", # v1.0.1 as of 2017-12-19
+      overlay = manifest["com_github_pelletier_go_toml"],
+  )
+  # End of Gazelle dependencies.k
 
   _maybe(go_repository_tools,
       name = "io_bazel_rules_go_repository_tools",
   )
 
   # Proto dependencies
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "com_github_golang_protobuf",
-      importpath = "github.com/golang/protobuf",
+      remote = "https://github.com/golang/protobuf",
       commit = "1e59b77b52bf8e4b449a57e6f79f21226d571845",  # master, as of 2017-11-24
+      overlay = manifest["com_github_golang_protobuf"],
   )
-  _maybe(native.http_archive,
+  _maybe(http_archive,
       name = "com_google_protobuf",
       # v3.5.1, latest as of 2018-01-11
-      url = "https://codeload.github.com/google/protobuf/zip/106ffc04be1abf3ff3399f54ccf149815b287dd9",
+      urls = ["https://codeload.github.com/google/protobuf/zip/106ffc04be1abf3ff3399f54ccf149815b287dd9"],
       strip_prefix = "protobuf-106ffc04be1abf3ff3399f54ccf149815b287dd9",
       type = "zip",
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "com_github_mwitkow_go_proto_validators",
-      importpath = "github.com/mwitkow/go-proto-validators",
+      remote = "https://github.com/mwitkow/go-proto-validators",
       commit = "a55ca57f374a8846924b030f534d8b8211508cf0",  # master, as of 2017-11-24
-      build_file_proto_mode="disable",
+      overlay = manifest["com_github_mwitkow_go_proto_validators"],
   )
-  _maybe(go_repository,
+  _maybe(http_archive,
       name = "com_github_gogo_protobuf",
-      importpath = "github.com/gogo/protobuf",
       urls = ["https://codeload.github.com/ianthehat/protobuf/zip/41168f6614b7bb144818ec8967b8c702705df564"],
       strip_prefix = "protobuf-41168f6614b7bb144818ec8967b8c702705df564",
       type = "zip",
-      build_file_proto_mode="legacy",
+      overlay = manifest["com_github_gogo_protobuf"],
   )
   _maybe(gogo_special_proto,
       name = "gogo_special_proto",
   )
 
   # Only used by deprecated go_proto_library implementation
-  _maybe(native.http_archive,
+  _maybe(http_archive,
       name = "com_github_google_protobuf",
-      url = "https://github.com/google/protobuf/archive/v3.4.0.tar.gz",
+      urls = ["https://github.com/google/protobuf/archive/v3.4.0.tar.gz"],
       strip_prefix = "protobuf-3.4.0",
   )
 
   # GRPC dependencies
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "org_golang_x_net",
+      remote = "https://github.com/golang/net",
       commit = "a04bdaca5b32abe1c069418fb7088ae607de5bd0",  # master as of 2017-10-10
-      importpath = "golang.org/x/net",
+      overlay = manifest["org_golang_x_net"],
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "org_golang_x_text",
+      remote = "https://github.com/golang/text",
       commit = "ab5ac5f9a8deb4855a60fab02bc61a4ec770bd49",  # v0.1.0, latest as of 2017-10-10
-      importpath = "golang.org/x/text",
+      overlay = manifest["org_golang_x_text"],
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "org_golang_google_grpc",
+      remote = "https://github.com/grpc/grpc-go",
       commit = "f92cdcd7dcdc69e81b2d7b338479a19a8723cfa3",  # v1.6.0, latest as of 2017-10-10
-      importpath = "google.golang.org/grpc",
-      build_file_proto_mode = "disable",  # use existing generated code
+      overlay = manifest["org_golang_google_grpc"],
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "org_golang_google_genproto",
+      remote = "https://github.com/google/go-genproto",
       commit = "f676e0f3ac6395ff1a529ae59a6670878a8371a6",  # master on 2017-10-10
-      importpath = "google.golang.org/genproto",
+      overlay = manifest["org_golang_google_genproto"],
   )
 
   # Needed for examples
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "com_github_golang_glog",
+      remote = "https://github.com/golang/glog",
       commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
-      importpath = "github.com/golang/glog",
+      overlay = manifest["com_github_golang_glog"],
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "com_github_kevinburke_go_bindata",
-      importpath = "github.com/kevinburke/go-bindata",
+      remote = "https://github.com/kevinburke/go-bindata",
       commit = "95df019c0747a093fef2832ae530a37fd2766d16",  # v3.7.0, latest as of 2018-02-07
+      overlay = manifest["com_github_kevinburke_go_bindata"],
   )
 
 def _maybe(repo_rule, name, **kwargs):

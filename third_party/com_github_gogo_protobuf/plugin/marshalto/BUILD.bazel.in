@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["marshalto.go"],
+    importpath = "github.com/gogo/protobuf/plugin/marshalto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//proto:go_default_library",
+        "//protoc-gen-gogo/descriptor:go_default_library",
+        "//protoc-gen-gogo/generator:go_default_library",
+        "//vanity:go_default_library",
+    ],
+)

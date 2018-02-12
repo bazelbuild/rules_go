@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "controller.pb.go",
+        "data.pb.go",
+        "debugger.pb.go",
+    ],
+    importpath = "google.golang.org/genproto/googleapis/devtools/clouddebugger/v2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//googleapis/api/annotations:go_default_library",
+        "//googleapis/devtools/source/v1:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+        "@com_github_golang_protobuf//ptypes/wrappers:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+)

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["static.go"],
+    importpath = "golang.org/x/tools/go/callgraph/static",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/callgraph:go_default_library",
+        "//go/ssa:go_default_library",
+        "//go/ssa/ssautil:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["static_test.go"],
+    deps = [
+        ":go_default_library",
+        "//go/callgraph:go_default_library",
+        "//go/loader:go_default_library",
+        "//go/ssa/ssautil:go_default_library",
+    ],
+)

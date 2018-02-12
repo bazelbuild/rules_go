@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "htmlindex.go",
+        "map.go",
+        "tables.go",
+    ],
+    importpath = "golang.org/x/text/encoding/htmlindex",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//encoding:go_default_library",
+        "//encoding/charmap:go_default_library",
+        "//encoding/internal/identifier:go_default_library",
+        "//encoding/japanese:go_default_library",
+        "//encoding/korean:go_default_library",
+        "//encoding/simplifiedchinese:go_default_library",
+        "//encoding/traditionalchinese:go_default_library",
+        "//encoding/unicode:go_default_library",
+        "//language:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["htmlindex_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//encoding:go_default_library",
+        "//encoding/charmap:go_default_library",
+        "//encoding/internal/identifier:go_default_library",
+        "//encoding/unicode:go_default_library",
+        "//language:go_default_library",
+    ],
+)

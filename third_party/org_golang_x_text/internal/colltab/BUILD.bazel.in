@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "collelem.go",
+        "colltab.go",
+        "contract.go",
+        "iter.go",
+        "numeric.go",
+        "table.go",
+        "trie.go",
+        "weighter.go",
+    ],
+    importpath = "golang.org/x/text/internal/colltab",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//language:go_default_library",
+        "//unicode/norm:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "collelem_test.go",
+        "colltab_test.go",
+        "contract_test.go",
+        "iter_test.go",
+        "numeric_test.go",
+        "trie_test.go",
+        "weighter_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//internal/testtext:go_default_library",
+        "//language:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["collate_test.go"],
+    deps = [
+        "//collate:go_default_library",
+        "//language:go_default_library",
+        "//unicode/rangetable:go_default_library",
+    ],
+)

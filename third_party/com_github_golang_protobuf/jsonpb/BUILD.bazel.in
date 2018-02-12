@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["jsonpb.go"],
+    importpath = "github.com/golang/protobuf/jsonpb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//proto:go_default_library",
+        "//ptypes/struct:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["jsonpb_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//jsonpb/jsonpb_test_proto:go_default_library",
+        "//proto:go_default_library",
+        "//proto/proto3_proto:go_default_library",
+        "//ptypes:go_default_library",
+        "//ptypes/any:go_default_library",
+        "//ptypes/duration:go_default_library",
+        "//ptypes/struct:go_default_library",
+        "//ptypes/timestamp:go_default_library",
+        "//ptypes/wrappers:go_default_library",
+    ],
+)

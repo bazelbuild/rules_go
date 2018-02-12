@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["issue312.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["issue312.pb.go"],
+    importpath = "issue312",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//proto:go_default_library",
+    ],
+)

@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["subproto.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "customtype.go",
+        "subproto.pb.go",
+    ],
+    importpath = "github.com/gogo/protobuf/test/importdedup/subpkg",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//proto:go_default_library",
+    ],
+)

@@ -1,0 +1,57 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cover.go",
+        "doc.go",
+        "func.go",
+        "html.go",
+    ],
+    importpath = "golang.org/x/tools/cmd/cover",
+    visibility = ["//visibility:private"],
+    deps = ["//cover:go_default_library"],
+)
+
+go_binary(
+    name = "cover",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "cover_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "cover_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+)

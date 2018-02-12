@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["issue260.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "issue260.pb.go",
+        "models.go",
+    ],
+    importpath = "github.com/gogo/protobuf/test/issue260",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//jsonpb:go_default_library",
+        "//proto:go_default_library",
+        "//types:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["issue260pb_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//jsonpb:go_default_library",
+        "//proto:go_default_library",
+        "//types:go_default_library",
+    ],
+)

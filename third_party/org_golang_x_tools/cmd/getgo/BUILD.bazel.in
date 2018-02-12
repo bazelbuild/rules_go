@@ -1,0 +1,59 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "download.go",
+        "main.go",
+        "path.go",
+        "steps.go",
+        "system.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "system_unix.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "system_windows.go",
+        ],
+        "//conditions:default": [],
+    }),
+    importpath = "golang.org/x/tools/cmd/getgo",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "getgo",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "download_test.go",
+        "main_test.go",
+        "path_test.go",
+    ],
+    embed = [":go_default_library"],
+)

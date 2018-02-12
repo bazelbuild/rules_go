@@ -1,0 +1,63 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "golang.org/x/tools/cmd/callgraph",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/buildutil:go_default_library",
+        "//go/callgraph:go_default_library",
+        "//go/callgraph/cha:go_default_library",
+        "//go/callgraph/rta:go_default_library",
+        "//go/callgraph/static:go_default_library",
+        "//go/loader:go_default_library",
+        "//go/pointer:go_default_library",
+        "//go/ssa:go_default_library",
+        "//go/ssa/ssautil:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "callgraph",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "main_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+    embed = [":go_default_library"],
+)

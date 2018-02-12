@@ -1,0 +1,45 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "blog.go",
+        "codewalk.go",
+        "dl.go",
+        "doc.go",
+        "handlers.go",
+        "index.go",
+        "main.go",
+        "play.go",
+        "remotesearch.go",
+        "x.go",
+    ],
+    importpath = "golang.org/x/tools/cmd/godoc",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//blog:go_default_library",
+        "//godoc:go_default_library",
+        "//godoc/analysis:go_default_library",
+        "//godoc/redirect:go_default_library",
+        "//godoc/static:go_default_library",
+        "//godoc/vfs:go_default_library",
+        "//godoc/vfs/gatefs:go_default_library",
+        "//godoc/vfs/mapfs:go_default_library",
+        "//godoc/vfs/zipfs:go_default_library",
+        "//playground:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "godoc",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = [
+        "godoc19_test.go",
+        "godoc_test.go",
+    ],
+)

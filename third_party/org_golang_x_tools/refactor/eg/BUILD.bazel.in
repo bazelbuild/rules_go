@@ -1,0 +1,94 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "eg.go",
+        "match.go",
+        "rewrite.go",
+    ],
+    importpath = "golang.org/x/tools/refactor/eg",
+    visibility = ["//visibility:public"],
+    deps = ["//go/ast/astutil:go_default_library"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "eg_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "eg_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+    data = glob(["testdata/**"]),
+    deps = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            ":go_default_library",
+            "//go/loader:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)

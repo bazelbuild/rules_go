@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "nested.pb.go",
+        "nested.validator.pb.go",
+    ],
+    importpath = "github.com/mwitkow/go-proto-validators/examples",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+)

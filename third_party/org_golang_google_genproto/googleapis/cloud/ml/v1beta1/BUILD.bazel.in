@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "job_service.pb.go",
+        "model_service.pb.go",
+        "operation_metadata.pb.go",
+        "prediction_service.pb.go",
+        "project_service.pb.go",
+    ],
+    importpath = "google.golang.org/genproto/googleapis/cloud/ml/v1beta1",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//googleapis/api/annotations:go_default_library",
+        "//googleapis/api/httpbody:go_default_library",
+        "//googleapis/api/serviceconfig:go_default_library",
+        "//googleapis/longrunning:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+)

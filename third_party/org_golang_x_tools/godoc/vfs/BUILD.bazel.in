@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "emptyvfs.go",
+        "namespace.go",
+        "os.go",
+        "vfs.go",
+    ],
+    importpath = "golang.org/x/tools/godoc/vfs",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["emptyvfs_test.go"],
+    deps = [
+        ":go_default_library",
+        "//godoc/vfs/mapfs:go_default_library",
+    ],
+)

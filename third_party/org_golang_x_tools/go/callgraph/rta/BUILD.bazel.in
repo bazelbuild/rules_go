@@ -1,0 +1,124 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["rta.go"],
+    importpath = "golang.org/x/tools/go/callgraph/rta",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/callgraph:go_default_library",
+        "//go/ssa:go_default_library",
+        "//go/types/typeutil:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "rta_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "rta_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+    data = glob(["testdata/**"]),
+    deps = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            ":go_default_library",
+            "//go/callgraph:go_default_library",
+            "//go/loader:go_default_library",
+            "//go/ssa:go_default_library",
+            "//go/ssa/ssautil:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)

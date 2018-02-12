@@ -1,0 +1,52 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "golang.org/x/tools/cmd/fiximports",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "fiximports",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "main_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "main_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+    embed = [":go_default_library"],
+)

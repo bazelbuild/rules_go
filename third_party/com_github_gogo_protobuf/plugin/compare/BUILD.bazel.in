@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "compare.go",
+        "comparetest.go",
+    ],
+    importpath = "github.com/gogo/protobuf/plugin/compare",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//plugin/testgen:go_default_library",
+        "//proto:go_default_library",
+        "//protoc-gen-gogo/descriptor:go_default_library",
+        "//protoc-gen-gogo/generator:go_default_library",
+        "//vanity:go_default_library",
+    ],
+)

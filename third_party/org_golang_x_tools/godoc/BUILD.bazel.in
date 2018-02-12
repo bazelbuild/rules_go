@@ -1,0 +1,48 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cmdline.go",
+        "corpus.go",
+        "dirtrees.go",
+        "format.go",
+        "godoc.go",
+        "index.go",
+        "linkify.go",
+        "meta.go",
+        "page.go",
+        "parser.go",
+        "pres.go",
+        "search.go",
+        "server.go",
+        "snippet.go",
+        "spec.go",
+        "spot.go",
+        "tab.go",
+        "template.go",
+    ],
+    importpath = "golang.org/x/tools/godoc",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//godoc/analysis:go_default_library",
+        "//godoc/util:go_default_library",
+        "//godoc/vfs:go_default_library",
+        "//godoc/vfs/httpfs:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "cmdline_test.go",
+        "godoc17_test.go",
+        "godoc_test.go",
+        "index_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//godoc/vfs:go_default_library",
+        "//godoc/vfs/mapfs:go_default_library",
+    ],
+)

@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["enumprefix.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["enumprefix.pb.go"],
+    importpath = "github.com/gogo/protobuf/test/enumprefix",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//proto:go_default_library",
+        "//test:go_default_library",
+    ],
+)

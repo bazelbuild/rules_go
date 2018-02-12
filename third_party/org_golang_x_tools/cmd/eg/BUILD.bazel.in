@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["eg.go"],
+    importpath = "golang.org/x/tools/cmd/eg",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/buildutil:go_default_library",
+        "//go/loader:go_default_library",
+        "//refactor/eg:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "eg",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

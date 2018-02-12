@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["generator.go"],
+    importpath = "github.com/golang/protobuf/protoc-gen-go/generator",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//proto:go_default_library",
+        "//protoc-gen-go/descriptor:go_default_library",
+        "//protoc-gen-go/plugin:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["name_test.go"],
+    embed = [":go_default_library"],
+    deps = ["//protoc-gen-go/descriptor:go_default_library"],
+)

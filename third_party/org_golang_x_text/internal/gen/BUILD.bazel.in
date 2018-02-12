@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "code.go",
+        "gen.go",
+    ],
+    importpath = "golang.org/x/text/internal/gen",
+    visibility = ["//:__subpackages__"],
+    deps = ["//unicode/cldr:go_default_library"],
+)

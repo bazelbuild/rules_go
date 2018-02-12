@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "analysis.go",
+        "callgraph.go",
+        "implements.go",
+        "json.go",
+        "peers.go",
+        "typeinfo.go",
+    ],
+    importpath = "golang.org/x/tools/godoc/analysis",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/callgraph:go_default_library",
+        "//go/loader:go_default_library",
+        "//go/pointer:go_default_library",
+        "//go/ssa:go_default_library",
+        "//go/ssa/ssautil:go_default_library",
+        "//go/types/typeutil:go_default_library",
+    ],
+)

@@ -1,0 +1,59 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "allpackages.go",
+        "fakecontext.go",
+        "overlay.go",
+        "tags.go",
+        "util.go",
+    ],
+    importpath = "golang.org/x/tools/go/buildutil",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = [
+        "overlay_test.go",
+        "tags_test.go",
+        "util_test.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "allpackages_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "allpackages_test.go",
+            "util_windows_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":go_default_library",
+    ],
+)

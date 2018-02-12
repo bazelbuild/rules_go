@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "asset.go",
+        "bytewriter.go",
+        "config.go",
+        "convert.go",
+        "debug.go",
+        "doc.go",
+        "release.go",
+        "restore.go",
+        "safefile.go",
+        "stringwriter.go",
+        "toc.go",
+    ],
+    importpath = "github.com/kevinburke/go-bindata",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "convert_test.go",
+        "release_test.go",
+        "safefile_test.go",
+    ],
+    embed = [":go_default_library"],
+)

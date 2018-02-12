@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["enumdeclall.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "enumdeclall.pb.go",
+        "models.go",
+    ],
+    importpath = "github.com/gogo/protobuf/test/enumdecl_all",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//proto:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["enumdeclallpb_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//gogoproto:go_default_library",
+        "//jsonpb:go_default_library",
+        "//proto:go_default_library",
+    ],
+)

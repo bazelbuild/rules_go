@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "control.pb.go",
+        "messages.pb.go",
+        "payloads.pb.go",
+        "services.pb.go",
+        "stats.pb.go",
+    ],
+    importpath = "google.golang.org/grpc/benchmark/grpc_testing",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+)

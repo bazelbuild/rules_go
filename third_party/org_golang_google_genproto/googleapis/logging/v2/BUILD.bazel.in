@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "log_entry.pb.go",
+        "logging.pb.go",
+        "logging_config.pb.go",
+        "logging_metrics.pb.go",
+    ],
+    importpath = "google.golang.org/genproto/googleapis/logging/v2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//googleapis/api/annotations:go_default_library",
+        "//googleapis/api/distribution:go_default_library",
+        "//googleapis/api/metric:go_default_library",
+        "//googleapis/api/monitoredres:go_default_library",
+        "//googleapis/logging/type:go_default_library",
+        "//googleapis/rpc/status:go_default_library",
+        "//protobuf/field_mask:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes/any:go_default_library",
+        "@com_github_golang_protobuf//ptypes/duration:go_default_library",
+        "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+        "@com_github_golang_protobuf//ptypes/struct:go_default_library",
+        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+)

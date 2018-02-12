@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["descriptor.go"],
+    importpath = "github.com/golang/protobuf/descriptor",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//proto:go_default_library",
+        "//protoc-gen-go/descriptor:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["descriptor_test.go"],
+    deps = [
+        ":go_default_library",
+        "//proto/testdata:go_default_library",
+        "//protoc-gen-go/descriptor:go_default_library",
+    ],
+)

@@ -1,0 +1,73 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cgo.go",
+        "cgo_pkgconfig.go",
+        "doc.go",
+        "loader.go",
+        "util.go",
+    ],
+    importpath = "golang.org/x/tools/go/loader",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/ast/astutil:go_default_library",
+        "//go/buildutil:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = [
+        "stdlib_test.go",
+    ] + select({
+        "@io_bazel_rules_go//go/platform:android": [
+            "example_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:dragonfly": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:freebsd": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:nacl": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:netbsd": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:openbsd": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:plan9": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:solaris": [
+            "example_test.go",
+            "loader_test.go",
+        ],
+        "@io_bazel_rules_go//go/platform:windows": [
+            "loader_test.go",
+        ],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":go_default_library",
+        "//go/buildutil:go_default_library",
+    ],
+)
