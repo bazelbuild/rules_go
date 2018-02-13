@@ -190,7 +190,7 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
       data = [
           "@bazel_gazelle//cmd/gazelle",
           "@bazel_test//:bazelrc",
-          "//tests:rules_go_deps",
+          "@io_bazel_rules_go//tests:rules_go_deps",
       ],
   )
 
