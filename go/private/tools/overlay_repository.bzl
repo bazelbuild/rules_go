@@ -13,8 +13,18 @@
 # limitations under the License.
 
 # This file was copied from github.com/bazelbuild/bazel-gazelle.
-# We need a copy here to avoid a circular dependency in go_rules_dependencies.
 # Do not edit directly.
+
+# We need a copy here to avoid a dependency impossibility:
+#   //:def.bzl
+#   loads repositories.bzl
+#   loads overlay_repository.bzl (ideally from @bazel_gazelle)
+# @bazel_gazelle is declared in the go_rules_dependencies macro in
+# repositories.bzl. .bzl files from external repositories cannot be loaded
+# until that macro has been called.
+#
+# We can remove that macro (and this file) after Bazel supports
+# recursive workspaces.
 
 def _http_archive_impl(ctx):
   ctx.download_and_extract(
