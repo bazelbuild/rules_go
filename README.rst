@@ -258,7 +258,6 @@ gazelle_, you can write build files by hand.
         name = "foo",
         srcs = ["main.go"],
         deps = [":go_default_library"],
-        importpath = "github.com/example/project/foo",
     )
 
 * For instructions on how to depend on external libraries,
