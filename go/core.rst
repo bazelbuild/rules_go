@@ -162,9 +162,17 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`importpath`        | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
-| The import path of this library. If unspecified, the library will have an implicit               |
-| dependency on ``//:go_prefix``, and the import path will be derived from the prefix              |
-| and the library's label.                                                                         |
+| The source import path of this library. Other libraries can import this                          |
+| library using this path. If unspecified, the library will have an implicit                       |
+| dependency on ``//:go_prefix``, and the import path will be derived from the                     |
+| prefix and the library's label.                                                                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`importmap`         | :type:`string`              | :value:`""`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| The actual import path of this library. This is mostly only visible to the                       |
+| compiler and linker, but it may also be seen in stack traces. This may be set                    |
+| to prevent a binary from linking multiple packages with the same import path                     |
+| e.g., from different vendor directories.                                                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`srcs`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+

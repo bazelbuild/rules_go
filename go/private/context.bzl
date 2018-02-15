@@ -132,9 +132,10 @@ def _library_to_source(go, attr, library, coverage_instrumented):
   for e in getattr(attr, "embed", []):
     _merge_embed(source, e)
   x_defs = source["x_defs"]
+  actual_importpath = library.importmap if library.importmap else library.importpath
   for k,v in getattr(attr, "x_defs", {}).items():
     if "." not in k:
-      k = "{}.{}".format(library.importpath, k)
+      k = "{}.{}".format(actual_importpath, k)
     x_defs[k] = v
   source["x_defs"] = x_defs
   if library.resolve:

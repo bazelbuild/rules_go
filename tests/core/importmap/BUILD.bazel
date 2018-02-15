@@ -7,17 +7,17 @@ test_suite(
 go_library(
     name = "lib_a",
     srcs = ["lib.go"],
-    importpath = "a/lib",
-    importmap = "lib",
-    x_defs = {"Value":"ValueA"},
+    importmap = "a/lib",
+    importpath = "lib",
+    x_defs = {"Value": "ValueA"},
 )
 
 go_library(
     name = "lib_b",
     srcs = ["lib.go"],
-    importpath = "b/lib",
-    importmap = "lib",
-    x_defs = {"Value":"ValueB"},
+    importmap = "b/lib",
+    importpath = "lib",
+    x_defs = {"Value": "ValueB"},
 )
 
 go_library(
@@ -38,5 +38,8 @@ go_test(
     name = "importmap_test",
     size = "small",
     srcs = ["importmap_test.go"],
-    deps = [":a", ":b"],
+    deps = [
+        ":a",
+        ":b",
+    ],
 )

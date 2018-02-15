@@ -27,7 +27,7 @@ def _searchpath(l):
   return [v.data.searchpath for v in l]
 
 def _importmap(l):
-  return ["{}={}".format(v.data.importmap, v.data.importpath) for v in l]
+  return ["{}={}".format(v.data.importpath, v.data.importmap) for v in l]
 
 def emit_compile(go,
     sources = None,
