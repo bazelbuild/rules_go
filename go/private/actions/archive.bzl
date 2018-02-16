@@ -38,13 +38,7 @@ def emit_archive(go, source=None):
   if go.cover:
     source, cover_vars = go.cover(go, source)
   split = split_srcs(source.srcs)
-  if source.library.importmap:
-    compilepath = source.library.importmap
-  elif source.library.importpath:
-    compilepath = source.library.importpath
-  else:
-    compilepath = source.library.name
-  lib_name = compilepath + ".a"
+  lib_name = source.library.importmap + ".a"
   out_lib = go.declare_file(go, path=lib_name)
   searchpath = out_lib.path[:-len(lib_name)]
   testfilter = getattr(source.library, "testfilter", None)
@@ -62,7 +56,7 @@ def emit_archive(go, source=None):
   if len(extra_objects) == 0 and source.cgo_archive == None:
     go.compile(go,
         sources = split.go,
-        importpath = compilepath,
+        importpath = source.library.importpath,
         archives = direct,
         out_lib = out_lib,
         gc_goopts = source.gc_goopts,
@@ -72,7 +66,7 @@ def emit_archive(go, source=None):
     partial_lib = go.declare_file(go, path=lib_name+"~partial", ext=".a")
     go.compile(go,
         sources = split.go,
-        importpath = compilepath,
+        importpath = source.library.importpath,
         archives = direct,
         out_lib = partial_lib,
         gc_goopts = source.gc_goopts,

@@ -117,7 +117,7 @@ def _go_test_impl(ctx):
       name = go._ctx.label.name + "~testmain",
       label = go._ctx.label,
       importpath = "testmain",
-      importmap = None,
+      importmap = "testmain",
       pathtype = EXPORT_PATH,
       resolve = None,
   )
