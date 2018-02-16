@@ -4,4 +4,6 @@ This directory contains useful utilities for interacting with Bazel from Go.
 
 Currently the `bazel` package supports:
 
-1.  Getting the path for a runfile in a test.
+*   Getting the path for a runfile in a test.
+
+*   Finding and entering the location of the runfiles of a binary.

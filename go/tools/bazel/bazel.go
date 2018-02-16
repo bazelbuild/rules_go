@@ -103,3 +103,71 @@ func TestWorkspace() (string, error) {
 func SetDefaultTestWorkspace(w string) {
 	defaultTestWorkspace = w
 }
+
+// getCandidates returns the list of all possible "prefix/suffix" paths where there might be an
+// optional component in-between the two pieces.
+//
+// This function exists to cope with issues #1239 because we cannot tell where the built Go
+// binaries are located upfront.
+func getCandidates(prefix string, suffix string) []string {
+	candidates := []string{filepath.Join(prefix, suffix)}
+	if entries, err := ioutil.ReadDir(prefix); err == nil {
+		for _, entry := range entries {
+			candidate := filepath.Join(prefix, entry.Name(), suffix)
+			candidates = append(candidates, candidate)
+		}
+	}
+	return candidates
+}
+
+// FindBinary locates the given executable within bazel-bin or the current directory.
+//
+// "pkg" indicates the relative path to the build package that contains the binary target, and
+// "binary" indicates the basename of the binary searched for.
+func FindBinary(pkg string, binary string) (string, bool) {
+	candidates := getCandidates(filepath.Join("bazel-bin", pkg), binary)
+	candidates = append(candidates, getCandidates(pkg, binary)...)
+
+	for _, candidate := range candidates {
+		// Following symlinks here is intentional because Bazel generates symlinks in
+		// general and we don't care about that.
+		if fileInfo, err := os.Stat(candidate); err == nil {
+			if fileInfo.Mode()&os.ModeType == 0 && fileInfo.Mode()&0100 != 0 {
+				return candidate, true
+			}
+		}
+	}
+	return "", false
+}
+
+// findRunfiles locates the directory under which a built binary can find its data dependencies
+// using relative paths.
+func findRunfiles(workspace string, pkg string, binary string, cookie string) (string, bool) {
+	candidates := getCandidates(filepath.Join("bazel-bin", pkg), filepath.Join(binary+".runfiles", workspace))
+	candidates = append(candidates, ".")
+
+	for _, candidate := range candidates {
+		if _, err := os.Stat(filepath.Join(candidate, cookie)); err == nil {
+			return candidate, true
+		}
+	}
+	return "", false
+}
+
+// EnterRunfiles locates the directory under which a built binary can find its data dependencies
+// using relative paths, and enters that directory.
+//
+// "workspace" indicates the name of the current project, "pkg" indicates the relative path to the
+// build package that contains the binary target, "binary" indicates the basename of the binary
+// searched for, and "cookie" indicates an arbitrary data file that we expect to find within the
+// runfiles tree.
+func EnterRunfiles(workspace string, pkg string, binary string, cookie string) error {
+	runfiles, ok := findRunfiles(workspace, pkg, binary, cookie)
+	if !ok {
+		return fmt.Errorf("cannot find runfiles tree")
+	}
+	if err := os.Chdir(runfiles); err != nil {
+		return fmt.Errorf("cannot enter runfiles tree: %v", err)
+	}
+	return nil
+}

@@ -14,9 +14,60 @@
 package bazel
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
+
+// makeAndEnterTempdir creates a temporary directory and chdirs into it.
+func makeAndEnterTempdir() (func(), error) {
+	oldCwd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("cannot get path to current directory: %v", err)
+	}
+
+	tempDir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary directory: %v", err)
+	}
+
+	err = os.Chdir(tempDir)
+	if err != nil {
+		os.RemoveAll(tempDir)
+		return nil, fmt.Errorf("cannot enter temporary directory %s: %v", tempDir, err)
+	}
+
+	cleanup := func() {
+		defer os.RemoveAll(tempDir)
+		defer os.Chdir(oldCwd)
+	}
+	return cleanup, nil
+}
+
+// createPaths creates a collection of paths for testing purposes.  Paths can end with a /, in
+// which case a directory is created; or they can end with a *, in which case an executable file
+// is created.  (This matches the nomenclature of "ls -F".)
+func createPaths(paths []string) error {
+	for _, path := range paths {
+		if strings.HasSuffix(path, "/") {
+			if err := os.MkdirAll(path, 0755); err != nil {
+				return fmt.Errorf("failed to create directory %s: %v", path, err)
+			}
+		} else {
+			mode := os.FileMode(0644)
+			if strings.HasSuffix(path, "*") {
+				path = path[0 : len(path)-1]
+				mode |= 0111
+			}
+			if err := ioutil.WriteFile(path, []byte{}, mode); err != nil {
+				return fmt.Errorf("failed to create file %s with mode %v: %v", path, mode, err)
+			}
+		}
+	}
+	return nil
+}
 
 func TestRunfile(t *testing.T) {
 	file := "go/tools/bazel/README.md"
@@ -110,5 +161,192 @@ func TestTestWorkspaceWithDefaultSet(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unable to get workspace with error %s", err)
+	}
+}
+
+func TestFindBinary(t *testing.T) {
+	testData := []struct {
+		name string
+
+		pathsToCreate []string
+		wantBinary    string
+		wantOk        bool
+	}{
+		{
+			"NoFiles",
+			[]string{},
+			"",
+			false,
+		},
+		{
+			"CurrentDirectoryNoConfigurationInPath",
+			[]string{
+				"some/package/",
+				"some/package/bin*",
+			},
+			"some/package/bin",
+			true,
+		},
+		{
+			"CurrentDirectoryConfigurationInPath",
+			[]string{
+				"some/package/amd64/",
+				"some/package/arm64/",
+				"some/package/arm64/bin*",
+				"some/package/powerpc/",
+			},
+			"some/package/arm64/bin",
+			true,
+		},
+		{
+			"BazelBinNoConfigurationInPath",
+			[]string{
+				"bazel-bin/some/package/",
+				"bazel-bin/some/package/bin*",
+				"bin", // bazel-bin should be preferred.
+			},
+			"bazel-bin/some/package/bin",
+			true,
+		},
+		{
+			"BazelBinConfigurationInPath",
+			[]string{
+				"bazel-bin/some/package/amd64/",
+				"bazel-bin/some/package/arm64/",
+				"bazel-bin/some/package/arm64/bin*",
+				"bazel-bin/some/package/powerpc/",
+				"bin", // bazel-bin should be preferred.
+				"some/package/amd64/",
+				"some/package/amd64/bin", // bazel-bin should be preferred.
+			},
+			"bazel-bin/some/package/arm64/bin",
+			true,
+		},
+		{
+			"IgnoreNonExecutable",
+			[]string{
+				"bazel-bin/some/package/amd64/",
+				"bazel-bin/some/package/amd64/bin",
+				"bazel-bin/some/package/arm64/",
+				"bazel-bin/some/package/arm64/bin*",
+				"bazel-bin/some/package/powerpc/",
+				"bazel-bin/some/package/powerpc/bin",
+			},
+			"bazel-bin/some/package/arm64/bin",
+			true,
+		},
+	}
+	for _, d := range testData {
+		t.Run(d.name, func(t *testing.T) {
+			cleanup, err := makeAndEnterTempdir()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer cleanup()
+
+			if err := createPaths(d.pathsToCreate); err != nil {
+				t.Fatal(err)
+			}
+
+			binary, ok := FindBinary("some/package", "bin")
+			if binary != d.wantBinary || ok != d.wantOk {
+				t.Errorf("Got %s, %v; want %s, %v", binary, ok, d.wantBinary, d.wantOk)
+			}
+		})
+	}
+}
+
+func TestFindRunfiles(t *testing.T) {
+	testData := []struct {
+		name string
+
+		pathsToCreate []string
+		wantRunfiles  string
+		wantOk        bool
+	}{
+		{
+			"NoFiles",
+			[]string{},
+			"",
+			false,
+		},
+		{
+			"CurrentDirectory",
+			[]string{
+				"data-file",
+			},
+			".",
+			true,
+		},
+		{
+			"BazelBinNoConfigurationInPath",
+			[]string{
+				"bazel-bin/some/package/bin.runfiles/project/",
+				"bazel-bin/some/package/bin.runfiles/project/data-file",
+				"data-file", // bazel-bin should be preferred.
+			},
+			"bazel-bin/some/package/bin.runfiles/project",
+			true,
+		},
+		{
+			"BazelBinConfigurationInPath",
+			[]string{
+				"bazel-bin/some/package/amd64/bin.runfiles/project/",
+				"bazel-bin/some/package/arm64/bin.runfiles/project/",
+				"bazel-bin/some/package/arm64/bin.runfiles/project/data-file",
+				"bazel-bin/some/package/powerpc/bin.runfiles/project/",
+				"data-file", // bazel-bin should be preferred.
+			},
+			"bazel-bin/some/package/arm64/bin.runfiles/project",
+			true,
+		},
+	}
+	for _, d := range testData {
+		t.Run(d.name, func(t *testing.T) {
+			cleanup, err := makeAndEnterTempdir()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer cleanup()
+
+			if err := createPaths(d.pathsToCreate); err != nil {
+				t.Fatal(err)
+			}
+
+			runfiles, ok := findRunfiles("project", "some/package", "bin", "data-file")
+			if runfiles != d.wantRunfiles || ok != d.wantOk {
+				t.Errorf("Got %s, %v; want %s, %v", runfiles, ok, d.wantRunfiles, d.wantOk)
+			}
+		})
+	}
+}
+
+func TestEnterRunfiles(t *testing.T) {
+	cleanup, err := makeAndEnterTempdir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+
+	pathsToCreate := []string{
+		"bazel-bin/some/package/bin.runfiles/project/",
+		"bazel-bin/some/package/bin.runfiles/project/data-file",
+	}
+	if err := createPaths(pathsToCreate); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := EnterRunfiles("project", "some/package", "bin", "data-file"); err != nil {
+		t.Fatalf("Cannot enter runfiles tree: %v", err)
+	}
+	// The cleanup routine returned by makeAndEnterTempdir restores the working directory from
+	// the beginning of the test, so we don't have to worry about it here.
+
+	if _, err := os.Lstat("data-file"); err != nil {
+		wd, err := os.Getwd()
+		if err != nil {
+			t.Errorf("failed to get current working directory: %v", err)
+		}
+		t.Errorf("data-file not found in current directory (%s); entered invalid runfiles tree?", wd)
 	}
 }
