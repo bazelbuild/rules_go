@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cldrtree.go",
+        "generate.go",
+        "option.go",
+        "tree.go",
+        "type.go",
+    ],
+    importpath = "golang.org/x/text/internal/cldrtree",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal:go_default_library",
+        "//internal/gen:go_default_library",
+        "//language:go_default_library",
+        "//unicode/cldr:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["cldrtree_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//internal/gen:go_default_library",
+        "//language:go_default_library",
+        "//unicode/cldr:go_default_library",
+    ],
+)

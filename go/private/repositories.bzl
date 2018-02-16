@@ -59,7 +59,7 @@ def go_rules_dependencies():
       commit = "16398bac157da96aa88f98a2df640c7f32af1da2", # v1.0.1 as of 2017-12-19
       overlay = manifest["com_github_pelletier_go_toml"],
   )
-  # End of Gazelle dependencies.k
+  # End of Gazelle dependencies.
 
   _maybe(go_repository_tools,
       name = "io_bazel_rules_go_repository_tools",
@@ -69,7 +69,7 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "com_github_golang_protobuf",
       remote = "https://github.com/golang/protobuf",
-      commit = "1e59b77b52bf8e4b449a57e6f79f21226d571845",  # master, as of 2017-11-24
+      commit = "925541529c1fa6821df4e44ce2723319eb2be768",  # v1.0.0, as of 2018-02-16
       overlay = manifest["com_github_golang_protobuf"],
   )
   _maybe(http_archive,
@@ -84,13 +84,14 @@ def go_rules_dependencies():
       remote = "https://github.com/mwitkow/go-proto-validators",
       commit = "a55ca57f374a8846924b030f534d8b8211508cf0",  # master, as of 2017-11-24
       overlay = manifest["com_github_mwitkow_go_proto_validators"],
+      # build_file_proto_mode = "disable",
   )
-  _maybe(http_archive,
+  _maybe(git_repository,
       name = "com_github_gogo_protobuf",
-      urls = ["https://codeload.github.com/ianthehat/protobuf/zip/41168f6614b7bb144818ec8967b8c702705df564"],
-      strip_prefix = "protobuf-41168f6614b7bb144818ec8967b8c702705df564",
-      type = "zip",
+      remote = "https://github.com/gogo/protobuf",
+      commit = "1adfc126b41513cc696b209667c8656ea7aac67c",  # v1.0.0, as of 2018-02-16
       overlay = manifest["com_github_gogo_protobuf"],
+      # build_file_proto_mode = "legacy",
   )
   _maybe(gogo_special_proto,
       name = "gogo_special_proto",
@@ -107,25 +108,26 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "org_golang_x_net",
       remote = "https://github.com/golang/net",
-      commit = "a04bdaca5b32abe1c069418fb7088ae607de5bd0",  # master as of 2017-10-10
+      commit = "136a25c244d3019482a795d728110278d6ba09a4",  # master as of 2018-02-16
       overlay = manifest["org_golang_x_net"],
   )
   _maybe(git_repository,
       name = "org_golang_x_text",
       remote = "https://github.com/golang/text",
-      commit = "ab5ac5f9a8deb4855a60fab02bc61a4ec770bd49",  # v0.1.0, latest as of 2017-10-10
+      commit = "c4d099d611ac3ded35360abf03581e13d91c828f",  # v0.2.0, latest as of 2018-02-16
       overlay = manifest["org_golang_x_text"],
   )
   _maybe(git_repository,
       name = "org_golang_google_grpc",
       remote = "https://github.com/grpc/grpc-go",
-      commit = "f92cdcd7dcdc69e81b2d7b338479a19a8723cfa3",  # v1.6.0, latest as of 2017-10-10
+      commit = "8e4536a86ab602859c20df5ebfd0bd4228d08655",  # v1.10.0, latest as of 2018-02-16
       overlay = manifest["org_golang_google_grpc"],
+      # build_file_proto_mode = "disable",
   )
   _maybe(git_repository,
       name = "org_golang_google_genproto",
       remote = "https://github.com/google/go-genproto",
-      commit = "f676e0f3ac6395ff1a529ae59a6670878a8371a6",  # master on 2017-10-10
+      commit = "2b5a72b8730b0b16380010cfe5286c42108d88e7",  # master on 2018-02-16
       overlay = manifest["org_golang_google_genproto"],
   )
 

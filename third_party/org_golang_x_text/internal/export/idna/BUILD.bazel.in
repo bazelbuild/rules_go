@@ -3,9 +3,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "idna.go",
+        "idna10.0.0.go",
+        "idna9.0.0.go",
         "punycode.go",
-        "tables.go",
+        "tables10.0.0.go",
+        "tables9.0.0.go",
         "trie.go",
         "trieval.go",
     ],
@@ -13,6 +15,7 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//secure/bidirule:go_default_library",
+        "//unicode/bidi:go_default_library",
         "//unicode/norm:go_default_library",
     ],
 )
@@ -21,7 +24,10 @@ go_test(
     name = "go_default_test",
     srcs = [
         "common_test.go",
-        "gen_test.go",
+        "gen10.0.0_test.go",
+        "gen9.0.0_test.go",
+        "idna10.0.0_test.go",
+        "idna9.0.0_test.go",
         "idna_test.go",
         "punycode_test.go",
     ],

@@ -7,7 +7,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//googleapis/api/annotations:go_default_library",
-        "//googleapis/api/serviceconfig:go_default_library",
         "//googleapis/iam/v1:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes/empty:go_default_library",

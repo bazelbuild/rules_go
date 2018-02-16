@@ -9,6 +9,7 @@ go_library(
         "//:go_default_library",
         "//codes:go_default_library",
         "//reflection/grpc_reflection_v1alpha:go_default_library",
+        "//status:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//protoc-gen-go/descriptor:go_default_library",
     ],

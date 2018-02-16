@@ -12,6 +12,7 @@ go_library(
     importpath = "golang.org/x/text/message",
     visibility = ["//visibility:public"],
     deps = [
+        "//feature/plural:go_default_library",
         "//internal/format:go_default_library",
         "//internal/number:go_default_library",
         "//language:go_default_library",
@@ -22,6 +23,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
+        "catalog_test.go",
         "fmt_test.go",
         "message_test.go",
     ],

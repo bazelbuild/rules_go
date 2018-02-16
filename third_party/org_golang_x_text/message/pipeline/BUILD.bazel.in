@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "extract.go",
+        "generate.go",
+        "message.go",
+        "pipeline.go",
+        "rewrite.go",
+    ],
+    importpath = "golang.org/x/text/message/pipeline",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//collate:go_default_library",
+        "//feature/plural:go_default_library",
+        "//internal:go_default_library",
+        "//internal/catmsg:go_default_library",
+        "//internal/format:go_default_library",
+        "//internal/gen:go_default_library",
+        "//language:go_default_library",
+        "@org_golang_x_tools//go/loader:go_default_library",
+    ],
+)

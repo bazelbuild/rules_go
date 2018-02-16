@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "bill_of_materials.pb.go",
+        "containeranalysis.pb.go",
+        "image_basis.pb.go",
+        "package_vulnerability.pb.go",
+        "provenance.pb.go",
+        "source_context.pb.go",
+    ],
+    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1alpha1",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//googleapis/api/annotations:go_default_library",
+        "//googleapis/iam/v1:go_default_library",
+        "//googleapis/longrunning:go_default_library",
+        "//protobuf/field_mask:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes/any:go_default_library",
+        "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+        "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+)

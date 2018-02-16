@@ -8,6 +8,7 @@ go_library(
         "log_entry.pb.go",
         "metric_value.pb.go",
         "operation.pb.go",
+        "quota_controller.pb.go",
         "service_controller.pb.go",
     ],
     importpath = "google.golang.org/genproto/googleapis/api/servicecontrol/v1",

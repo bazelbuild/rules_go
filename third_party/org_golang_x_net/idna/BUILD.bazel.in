@@ -13,6 +13,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "@org_golang_x_text//secure/bidirule:go_default_library",
+        "@org_golang_x_text//unicode/bidi:go_default_library",
         "@org_golang_x_text//unicode/norm:go_default_library",
     ],
 )

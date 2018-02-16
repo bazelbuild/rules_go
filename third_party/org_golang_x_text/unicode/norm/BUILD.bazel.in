@@ -9,7 +9,8 @@ go_library(
         "iter.go",
         "normalize.go",
         "readwriter.go",
-        "tables.go",
+        "tables10.0.0.go",
+        "tables9.0.0.go",
         "transform.go",
         "trie.go",
     ],
@@ -22,6 +23,8 @@ go_test(
     name = "go_default_test",
     srcs = [
         "composition_test.go",
+        "data10.0.0_test.go",
+        "data9.0.0_test.go",
         "iter_test.go",
         "normalize_test.go",
         "readwriter_test.go",
@@ -41,7 +44,6 @@ go_test(
     srcs = [
         "example_iter_test.go",
         "example_test.go",
-        "norm_test.go",
     ],
     deps = [":go_default_library"],
 )

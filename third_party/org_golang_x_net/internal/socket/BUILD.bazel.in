@@ -150,6 +150,7 @@ go_library(
         "@io_bazel_rules_go//go/platform:darwin_arm64": [
             "iovec_64bit.go",
             "sys_unix.go",
+            "zsys_darwin_arm64.go",
         ],
         "@io_bazel_rules_go//go/platform:dragonfly_amd64": [
             "iovec_64bit.go",

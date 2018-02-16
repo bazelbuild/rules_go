@@ -5,6 +5,8 @@ go_library(
     srcs = [
         "catalog.go",
         "dict.go",
+        "go19.go",
+        "gopre19.go",
     ],
     importpath = "golang.org/x/text/message/catalog",
     visibility = ["//visibility:public"],
@@ -20,7 +22,6 @@ go_test(
     srcs = ["catalog_test.go"],
     embed = [":go_default_library"],
     deps = [
-        "//internal:go_default_library",
         "//internal/catmsg:go_default_library",
         "//language:go_default_library",
     ],
