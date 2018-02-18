@@ -14,9 +14,22 @@ load(
     "GOOS_GOARCH",
 )
 
-DEFAULT_VERSION = "1.9.4"
+DEFAULT_VERSION = "1.10"
 
 SDK_REPOSITORIES = {
+    "1.10": {
+        "darwin_amd64":      ("go1.10.darwin-amd64.tar.gz", "511a4799e8d64cda3352bb7fe72e359689ea6ef0455329cda6b6e1f3137326c1"),
+        "linux_386":         ("go1.10.linux-386.tar.gz", "2d26a9f41fd80eeb445cc454c2ba6b3d0db2fc732c53d7d0427a9f605bfc55a1"),
+        "linux_amd64":       ("go1.10.linux-amd64.tar.gz", "b5a64335f1490277b585832d1f6c7f8c6c11206cba5cd3f771dcb87b98ad1a33"),
+        "linux_armv6l":      ("go1.10.linux-armv6l.tar.gz", "6ff665a9ab61240cf9f11a07e03e6819e452a618a32ea05bbb2c80182f838f4f"),
+        "windows_386":       ("go1.10.windows-386.zip", "83edd9e52ce6d1c8f911e7bbf6f0a73952c613b4bf66438ceb1507f892240f11"),
+        "windows_amd64":     ("go1.10.windows-amd64.zip", "210b223031c254a6eb8fa138c3782b23af710a9959d64b551fa81edd762ea167"),
+        "freebsd_386":       ("go1.10.freebsd-386.tar.gz", "d1e84cc46fa7290a6849c794785d629239f07c6f3e565616fa5421dd51344211"),
+        "freebsd_amd64":     ("go1.10.freebsd-amd64.tar.gz", "9ecc9dd288e9727b9ed250d5adbcf21073c038391e8d96aff46c20800be317c3"),
+        "linux_arm64":       ("go1.10.linux-arm64.tar.gz", "efb47e5c0e020b180291379ab625c6ec1c2e9e9b289336bc7169e6aa1da43fd8"),
+        "linux_ppc64le":     ("go1.10.linux-ppc64le.tar.gz", "a1e22e2fbcb3e551e0bf59d0f8aeb4b3f2df86714f09d2acd260c6597c43beee"),
+        "linux_s390x":       ("go1.10.linux-s390x.tar.gz", "71cde197e50afe17f097f81153edb450f880267699f22453272d184e0f4681d7"),
+    },
     "1.9.4": {
         "darwin_amd64":      ("go1.9.4.darwin-amd64.tar.gz", "0e694bfa289453ecb056cc70456e42fa331408cfa6cc985a14edb01d8b4fec51"),
         "linux_386":         ("go1.9.4.linux-386.tar.gz", "d440aee90dad851630559bcee2b767b543ce7e54f45162908f3e12c3489888ab"),
