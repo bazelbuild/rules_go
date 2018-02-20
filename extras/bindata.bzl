@@ -61,6 +61,8 @@ bindata = go_rule(
         "_bindata": attr.label(
             allow_files = True,
             single_file = True,
+            executable = True,
+            cfg = "host",
             default = Label("@com_github_kevinburke_go_bindata//go-bindata:go-bindata"),
         ),
     },
