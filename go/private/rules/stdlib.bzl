@@ -35,7 +35,7 @@ def _stdlib_library_to_source(go, attr, source, merge):
     args.add("-race")
   go.actions.write(root_file, "")
   go.actions.run(
-      inputs = go.sdk_files + go.sdk_tools + [go.package_list, root_file],
+      inputs = go.sdk_files + go.sdk_tools + go.crosstool + [go.package_list, root_file],
       outputs = [pkg],
       mnemonic = "GoStdlib",
       executable = attr._stdlib_builder.files.to_list()[0],
