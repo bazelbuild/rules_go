@@ -610,7 +610,9 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`importpath`            | :type:`string`              | :value:`""`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The import path this package represents. This is passed to the -p flag.                          |
+| The import path this package represents. This is passed to the -p flag. When the actual import   |
+| path is different than the source import path (i.e., when ``importmap`` is set in a              |
+| ``go_library`` rule), this should be the actual import path.                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`archives`              | :type:`GoArchive iterable`  | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+

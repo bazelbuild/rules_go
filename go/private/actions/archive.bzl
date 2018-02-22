@@ -56,7 +56,7 @@ def emit_archive(go, source=None):
   if len(extra_objects) == 0 and source.cgo_archive == None:
     go.compile(go,
         sources = split.go,
-        importpath = source.library.importpath,
+        importpath = source.library.importmap,
         archives = direct,
         out_lib = out_lib,
         gc_goopts = source.gc_goopts,
@@ -66,7 +66,7 @@ def emit_archive(go, source=None):
     partial_lib = go.declare_file(go, path=lib_name+"~partial", ext=".a")
     go.compile(go,
         sources = split.go,
-        importpath = source.library.importpath,
+        importpath = source.library.importmap,
         archives = direct,
         out_lib = partial_lib,
         gc_goopts = source.gc_goopts,
