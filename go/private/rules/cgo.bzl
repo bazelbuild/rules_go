@@ -86,7 +86,7 @@ def _cgo_codegen_impl(ctx):
   if not go.cgo_tools:
     fail("Go toolchain does not support cgo")
   linkopts = ctx.attr.linkopts[:]
-  copts = go.cgo_tools.c_options + ctx.attr.copts
+  copts = go.cgo_tools.c_options + go.cgo_tools.compiler_options + ctx.attr.copts
   deps = depset([], order="topological")
   cgo_export_h = go.declare_file(go, path="_cgo_export.h")
   cgo_export_c = go.declare_file(go, path="_cgo_export.c")
@@ -150,7 +150,7 @@ def _cgo_codegen_impl(ctx):
   args.add(["--", "--"])
   args.add(copts)
   ctx.actions.run(
-      inputs = inputs,
+      inputs = inputs + go.crosstool,
       outputs = c_outs + go_outs + [cgo_main],
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
