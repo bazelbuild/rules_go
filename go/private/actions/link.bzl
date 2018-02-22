@@ -56,7 +56,6 @@ def emit_link(go,
   if go.mode.msan:
     gc_linkopts.append("-msan")
   if go.mode.static:
-    link_external = True
     extldflags.append("-static")
   if go.mode.link != LINKMODE_NORMAL:
     gc_linkopts.extend(["-buildmode", go.mode.link])
