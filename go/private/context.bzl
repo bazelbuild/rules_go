@@ -46,6 +46,19 @@ INFERRED_PATH = "inferred"
 
 EXPORT_PATH = "export"
 
+_COMPILER_OPTIONS_BLACKLIST = {
+  "-fcolor-diagnostics": None,
+  "-Wall": None,
+  "-g0": None, # symbols are needed by Go, so keep them
+}
+
+_LINKER_OPTIONS_BLACKLIST = {
+  "-Wl,--gc-sections": None
+}
+
+def _filter_options(options, blacklist):
+  return [option for option in options if option not in blacklist]
+
 def _child_name(go, path, ext, name):
   childname = mode_string(go.mode) + "/"
   childname += name if name else go._ctx.label.name
@@ -259,20 +272,13 @@ def go_context(ctx, attr=None):
 def _go_context_data(ctx):
   cpp = ctx.fragments.cpp
   features = ctx.features
-  raw_compiler_options = cpp.compiler_options(features)
-  raw_linker_options = cpp.mostly_static_link_options(features, False)
-  options = (raw_compiler_options +
-      cpp.unfiltered_compiler_options(features) +
-      cpp.link_options +
-      raw_linker_options)
-  compiler_options = [o for o in raw_compiler_options if not o in [
-    "-fcolor-diagnostics",
-    "-Wall",
-    "-g0",
-  ]]
-  linker_options = [o for o in raw_linker_options if not o in [
-    "-Wl,--gc-sections",
-  ]]
+  compiler_options = _filter_options(
+    cpp.compiler_options(features) + cpp.unfiltered_compiler_options(features),
+    _COMPILER_OPTIONS_BLACKLIST)
+  linker_options = _filter_options(
+    cpp.link_options + cpp.mostly_static_link_options(features, False),
+    _LINKER_OPTIONS_BLACKLIST)
+
   env = {}
   tags = []
   if "gotags" in ctx.var:
@@ -292,7 +298,7 @@ def _go_context_data(ctx):
           ld_executable = cpp.ld_executable,
           compiler_options = compiler_options,
           linker_options = linker_options,
-          options = options,
+          options = compiler_options + linker_options,
           c_options = cpp.c_options,
       ),
   )
