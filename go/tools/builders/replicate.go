@@ -126,6 +126,9 @@ func replicateDir(src, dst string, config *replicateConfig) error {
 
 // replicateTree is called for each single src dst pair.
 func replicateTree(src, dst string, config *replicateConfig) error {
+	if err := os.RemoveAll(dst); err != nil {
+		return fmt.Errorf("Failed to remove file at destination %s: %v", dst, err)
+	}
 	if l, err := os.Readlink(src); err == nil {
 		src = l
 	}
