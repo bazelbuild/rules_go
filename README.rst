@@ -27,6 +27,7 @@ Go rules for Bazel_
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _Travis configuration file: .travis.yml
+.. _roadmap: roadmap.rst
 
 .. ;; And now we continue with the actual content
 
@@ -39,16 +40,15 @@ Travis   Bazel CI
 Announcements
 -------------
 
+February 23, 2018
+  We have published a `roadmap`_ describing new features planned and under
+  development.
 February 20, 2018
   Release `0.10.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.0>`_
   is now available.
 January 11, 2018
   Release `0.9.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.9.0>`_
   is now available.
-January 2, 2018
-  The old Gazelle subtree (//go/tools/gazelle) will be removed soon. See
-  `#1199`_ for details. Please migrate to
-  `github.com/bazelbuild/bazel-gazelle`_.
 
 .. contents::
 
