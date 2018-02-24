@@ -268,6 +268,7 @@ def _go_context_data(ctx):
   compiler_options = [o for o in raw_compiler_options if not o in [
     "-fcolor-diagnostics",
     "-Wall",
+    "-g0",
   ]]
   linker_options = [o for o in raw_linker_options if not o in [
     "-Wl,--gc-sections",
