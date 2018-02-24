@@ -70,27 +70,31 @@ def pkg_dir(workspace_root, package_name):
   return "."
 
 def split_srcs(srcs):
-  go = []
-  headers = []
-  asm = []
-  c = []
-  for src in as_iterable(srcs):
-    if any([src.basename.endswith(ext) for ext in go_exts]):
-      go.append(src)
-    elif any([src.basename.endswith(ext) for ext in hdr_exts]):
-      headers.append(src)
-    elif any([src.basename.endswith(ext) for ext in asm_exts]):
-      asm.append(src)
-    elif any([src.basename.endswith(ext) for ext in c_exts]):
-      c.append(src)
-    else:
-      fail("Unknown source type {0}".format(src.basename))
-  return struct(
-      go = go,
-      headers = headers,
-      asm = asm,
-      c = c,
+  sources = struct(
+    go = [],
+    asm = [],
+    headers = [],
+    c = [],
   )
+  ext_pairs = (
+    (sources.go, go_exts),
+    (sources.headers, hdr_exts),
+    (sources.asm, asm_exts),
+    (sources.c, c_exts),
+  )
+  extmap = {}
+  for outs, exts in ext_pairs:
+    for ext in exts:
+      ext = ext[1:] # strip the dot
+      if ext in extmap:
+        break
+      extmap[ext] = outs
+  for src in as_iterable(srcs):
+    extouts = extmap.get(src.extension)
+    if extouts == None:
+      fail("Unknown source type {0}".format(src.basename))
+    extouts.append(src)
+  return sources
 
 def join_srcs(source):
   return source.go + source.headers + source.asm + source.c
