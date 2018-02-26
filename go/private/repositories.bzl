@@ -30,17 +30,17 @@ def go_rules_dependencies():
   # Gazelle and dependencies. These are needed for go_repository.
   # TODO(jayconrod): delete all of these when we've migrated everyone to
   # Gazelle's version of go_repository.
-  _maybe(http_archive,
+  _maybe(git_repository,
       name = "bazel_gazelle",
-      urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.9/bazel-gazelle-0.9.tar.gz"],
-      sha256 = "0103991d994db55b3b5d7b06336f8ae355739635e0c2379dea16b8213ea5a223",
+      remote = "https://github.com/bazelbuild/bazel-gazelle",
+      commit = "a85b63b06c2e0c75931e57c4a1a18d4e566bb6f4", # master as of 2018-02-26
   )
 
   _maybe(http_archive,
       name = "com_github_bazelbuild_buildtools",
-      # master, as of 2017-08-14
-      urls = ["https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6"],
-      strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
+      # master, as of 2018-02-26
+      urls = ["https://codeload.github.com/bazelbuild/buildtools/zip/80c7f0d45d7e40fa1f7362852697d4a03df557b3"],
+      strip_prefix = "buildtools-80c7f0d45d7e40fa1f7362852697d4a03df557b3",
       type = "zip",
   )
 
