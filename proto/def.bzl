@@ -110,6 +110,7 @@ go_proto_library = go_rule(
             aspects = [_go_proto_aspect],
         ),
         "importpath": attr.string(),
+        "importmap": attr.string(),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "compiler": attr.label(providers = [GoProtoCompiler]),

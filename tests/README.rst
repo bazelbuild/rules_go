@@ -6,8 +6,8 @@ Main test areas
 
 .. Child list start
 
-* `Core Go rules tests <core/README.rst>`_
 * `Go rules examples <examples/README.rst>`_
+* `Core Go rules tests <core/README.rst>`_
 * `Integration tests <integration/README.rst>`_
 * `Legacy tests <legacy/README.rst>`_
 

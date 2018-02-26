@@ -8,9 +8,10 @@ Contents
 
 .. Child list start
 
-* `Import maps <importmap/README.rst>`_
 * `Cross compilation <cross/README.rst>`_
+* `Import maps <importmap/README.rst>`_
 * `Basic go_test functionality <go_test/README.rst>`_
+* `go_proto_library importmap <go_proto_library_importmap/README.rst>`_
 
 .. Child list end
 
