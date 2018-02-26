@@ -40,14 +40,14 @@ Travis   Bazel CI
 Announcements
 -------------
 
+February 26, 2018
+  Release `0.10.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.1>`_
+  is now available.
 February 23, 2018
   We have published a `roadmap`_ describing new features planned and under
   development.
 February 20, 2018
   Release `0.10.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.0>`_
-  is now available.
-January 11, 2018
-  Release `0.9.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.9.0>`_
   is now available.
 
 .. contents::
@@ -88,7 +88,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-:Note: The latest version of these rules (0.10.0) requires Bazel ≥ 0.8.0 to work.
+:Note: The latest version of these rules (0.10.1) requires Bazel ≥ 0.8.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -106,8 +106,8 @@ Setup
 
     http_archive(
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.0/rules_go-0.10.0.tar.gz",
-        sha256 = "53c8222c6eab05dd49c40184c361493705d4234e60c42c4cd13ab4898da4c6be",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.1/rules_go-0.10.1.tar.gz",
+        sha256 = "4b14d8dd31c6dbaf3ff871adcd03f28c3274e42abc855cb8fb4d01233c0154dc",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -152,13 +152,13 @@ build files automatically using gazelle_.
 
     http_archive(
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.0/rules_go-0.10.0.tar.gz",
-        sha256 = "53c8222c6eab05dd49c40184c361493705d4234e60c42c4cd13ab4898da4c6be",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.1/rules_go-0.10.1.tar.gz",
+        sha256 = "4b14d8dd31c6dbaf3ff871adcd03f28c3274e42abc855cb8fb4d01233c0154dc",
     )
     http_archive(
         name = "bazel_gazelle",
-        url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.9/bazel-gazelle-0.9.tar.gz",
-        sha256 = "0103991d994db55b3b5d7b06336f8ae355739635e0c2379dea16b8213ea5a223",
+        url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.10.0/bazel-gazelle-0.10.0.tar.gz",
+        sha256 = "6228d9618ab9536892aa69082c063207c91e777e51bd3c5544c9c060cafe1bd8",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
