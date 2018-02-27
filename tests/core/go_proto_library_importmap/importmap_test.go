@@ -11,6 +11,6 @@ func TestImportMap(t *testing.T) {
 	got := reflect.TypeOf(foo.Foo{}).PkgPath()
 	want := "never/gonna/give/you/up"
 	if got != want {
-		t.Errorf("got %q ; want %q", got, want)
+		t.Errorf("got %q; want %q", got, want)
 	}
 }
