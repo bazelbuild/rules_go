@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/doc"
 	"go/parser"
 	"go/token"
 	"log"
@@ -46,9 +47,17 @@ type Import struct {
 	Name string
 	Path string
 }
+
 type TestCase struct {
 	Package string
 	Name    string
+}
+
+type Example struct {
+	Package   string
+	Name      string
+	Output    string
+	Unordered bool
 }
 
 // Cases holds template data.
@@ -57,6 +66,7 @@ type Cases struct {
 	Imports    []*Import
 	Tests      []TestCase
 	Benchmarks []TestCase
+	Examples   []Example
 	TestMain   string
 	Cover      []*CoverPackage
 }
@@ -90,6 +100,12 @@ var allTests = []testing.InternalTest{
 var benchmarks = []testing.InternalBenchmark{
 {{range .Benchmarks}}
 	{"{{.Name}}", {{.Package}}.{{.Name}} },
+{{end}}
+}
+
+var examples = []testing.InternalExample{
+{{range .Examples}}
+  {Name: "{{.Name}}", F: {{.Package}}.{{.Name}}, Output: {{printf "%q" .Output}}, Unordered: {{.Unordered}} },
 {{end}}
 }
 
@@ -171,7 +187,7 @@ func main() {
 		testing.RegisterCover(coverage)
 	}
 
-	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, nil)
+	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, examples)
 	{{if not .TestMain}}
 	os.Exit(m.Run())
 	{{else}}
@@ -273,6 +289,18 @@ func run(args []string) error {
 		pkg := sourceMap[f]
 		if strings.HasSuffix(parse.Name.String(), "_test") {
 			pkg += "_test"
+		}
+		for _, e := range doc.Examples(parse) {
+			if e.Output == "" && !e.EmptyOutput {
+				continue
+			}
+			cases.Examples = append(cases.Examples, Example{
+				Name:      "Example" + e.Name,
+				Package:   pkg,
+				Output:    e.Output,
+				Unordered: e.Unordered,
+			})
+			pkgs[pkg] = true
 		}
 		for _, d := range parse.Decls {
 			fn, ok := d.(*ast.FuncDecl)

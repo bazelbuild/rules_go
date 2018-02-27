@@ -36,8 +36,8 @@ go_test(
     name = "combined_test",
     size = "small",
     srcs = [
-        "internal_test.go",
         "external_test.go",
+        "internal_test.go",
     ],
     embed = [":lib"],
     x_defs = {
@@ -52,5 +52,19 @@ go_test(
     srcs = [
         "flag_test.go",
     ],
-    args = ["-aflag", "somevalue"],
+    args = [
+        "-aflag",
+        "somevalue",
+    ],
+)
+
+go_test(
+    name = "example_test",
+    size = "small",
+    srcs = ["example_test.go"],
+    embed = [":lib"],
+    x_defs = {
+        "Got": "Example",
+        "Expected": "Example",
+    },
 )
