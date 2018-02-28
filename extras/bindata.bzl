@@ -34,6 +34,8 @@ def _bindata_impl(ctx):
     arguments.add("-nocompress")
   if not ctx.attr.metadata:
     arguments.add("-nometadata")
+  if not ctx.attr.modtime:
+    arguments.add(["-modtime", "0"])
   arguments.add(ctx.files.srcs)
   ctx.actions.run(
     inputs = ctx.files.srcs,
@@ -58,6 +60,7 @@ bindata = go_rule(
         "package": attr.string(mandatory = True),
         "compress": attr.bool(default = True),
         "metadata": attr.bool(default = False),
+        "modtime": attr.bool(default = False),
         "_bindata": attr.label(
             allow_files = True,
             single_file = True,
