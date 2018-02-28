@@ -58,7 +58,7 @@ GOGO_VARIANTS = [
 
 GOGO_WELL_KNOWN_TYPE_REMAPS = [
     "Mgoogle/protobuf/{}.proto=github.com/gogo/protobuf/types".format(t)
-    for t in WELL_KNOWN_PROTOS
+    for t in WELL_KNOWN_PROTOS + ["field_mask"]
 ]
 
 [go_proto_compiler(
