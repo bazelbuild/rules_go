@@ -143,6 +143,8 @@ def _cgo_codegen_impl(ctx):
         linkopts.append(lib.path)
     linkopts.extend(d.cc.link_flags)
 
+  args.add(linkopts, before_each="-ld_flag")
+
   # The first -- below is to stop the cgo from processing args, the
   # second is an actual arg to forward to the underlying go tool
   args.add(["--", "--"])
@@ -154,9 +156,6 @@ def _cgo_codegen_impl(ctx):
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go.builders.cgo,
       arguments = [args],
-      env = {
-          "CGO_LDFLAGS": " ".join(linkopts),
-      },
   )
 
   return [
