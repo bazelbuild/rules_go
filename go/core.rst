@@ -1,8 +1,8 @@
 Core go rules
 =============
 
-.. _test_filter: https://bazel.build/versions/master/docs/bazel-user-manual.html#flag--test_filter
-.. _test_arg: https://bazel.build/versions/master/docs/bazel-user-manual.html#flag--test_arg
+.. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
+.. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
 .. _gazelle: tools/gazelle/README.rst
 .. _build constraints: http://golang.org/pkg/go/build/
 .. _GoLibrary: providers.rst#GoLibrary
@@ -13,6 +13,7 @@ Core go rules
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
 .. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
 .. _cc library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
+.. _shard_count: https://docs.bazel.build/versions/master/be/common-definitions.html#test.shard_count
 .. _pure: modes.rst#pure
 .. _static: modes.rst#static
 .. _goos: modes.rst#goos
@@ -496,6 +497,15 @@ Attributes
 | behaviour of ``go test`` so it is easy to write compatible tests.                                |
 |                                                                                                  |
 | Setting it to :value:`.` makes the test behave the normal way for a bazel test.                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`shard_count`       | :type:`integer`             | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| Non-negative integer less than or equal to 50, optional.                                         |
+|                                                                                                  |
+| Specifies the number of parallel shards to run the test. Test methods will be split across the   |
+| shards in a round-robin fashion.                                                                 |
+|                                                                                                  |
+| For more details on this attribute, consult the official Bazel documentation for shard_count_.   |
 +----------------------------+-----------------------------+---------------------------------------+
 
 To write an internal test, reference the library being tested with the :param:`embed`
