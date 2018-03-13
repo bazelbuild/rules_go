@@ -129,7 +129,7 @@ go_proto_compiler = go_rule(
             single_file = True,
             executable = True,
             cfg = "host",
-            default = Label("@com_github_google_protobuf//:protoc"),
+            default = Label("@com_google_protobuf//:protoc"),
         ),
     },
 )

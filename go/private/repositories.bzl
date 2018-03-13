@@ -97,13 +97,6 @@ def go_rules_dependencies():
       name = "gogo_special_proto",
   )
 
-  # Only used by deprecated go_proto_library implementation
-  _maybe(http_archive,
-      name = "com_github_google_protobuf",
-      urls = ["https://github.com/google/protobuf/archive/v3.4.0.tar.gz"],
-      strip_prefix = "protobuf-3.4.0",
-  )
-
   # GRPC dependencies
   _maybe(git_repository,
       name = "org_golang_x_net",
