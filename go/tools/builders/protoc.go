@@ -57,6 +57,17 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+
+	// Output to a temporary folder and then move the contents into place below.
+	// This is to work around long file paths on Windows.
+	tmpDir, err := ioutil.TempDir("", "go_proto")
+	if err != nil {
+		return err
+	}
+	tmpDir = abs(tmpDir)        // required to work with long paths on Windows
+	absOutPath := abs(*outPath) // required to work with long paths on Windows
+	defer os.RemoveAll(tmpDir)
+
 	pluginBase := filepath.Base(*plugin)
 	pluginName := strings.TrimSuffix(
 		strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-"), ".exe")
@@ -64,7 +75,7 @@ func run(args []string) error {
 		options = append(options, fmt.Sprintf("M%v", m))
 	}
 	protoc_args := []string{
-		fmt.Sprintf("--%v_out=%v:%v", pluginName, strings.Join(options, ","), *outPath),
+		fmt.Sprintf("--%v_out=%v:%v", pluginName, strings.Join(options, ","), tmpDir),
 		"--plugin", fmt.Sprintf("%v=%v", strings.TrimSuffix(pluginBase, ".exe"), *plugin),
 		"--descriptor_set_in", strings.Join(descriptors, string(os.PathListSeparator)),
 	}
@@ -95,28 +106,45 @@ func run(args []string) error {
 		}
 	}
 	// Walk the generated files
-	filepath.Walk(*outPath, func(path string, f os.FileInfo, err error) error {
+	filepath.Walk(tmpDir, func(path string, f os.FileInfo, err error) error {
+		relPath, err := filepath.Rel(tmpDir, path)
+		if err != nil {
+			return err
+		}
+		if relPath == "." {
+			return nil
+		}
+
+		if f.IsDir() {
+			if err := os.Mkdir(filepath.Join(absOutPath, relPath), f.Mode()); !os.IsExist(err) {
+				return err
+			}
+			return nil
+		}
+
 		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
-		info := files[path]
-		if info != nil {
-			info.created = true
-			return nil
-		}
-		info = &genFileInfo{
+
+		info := &genFileInfo{
 			path:    path,
 			base:    filepath.Base(path),
 			created: true,
 		}
-		files[path] = info
+
+		if foundInfo, ok := files[relPath]; ok {
+			foundInfo.created = true
+			foundInfo.from = info
+			return nil
+		}
+		files[relPath] = info
 		copyTo := byBase[info.base]
 		switch {
 		case copyTo == nil:
 			// Unwanted output
 		case !copyTo.unique:
 			// not unique, no copy allowed
-		case info.from != nil:
+		case copyTo.from != nil:
 			copyTo.ambiguious = true
 			info.ambiguious = true
 		default:
@@ -138,7 +166,7 @@ func run(args []string) error {
 			if err != nil {
 				return err
 			}
-			if err := ioutil.WriteFile(f.path, data, 0644); err != nil {
+			if err := ioutil.WriteFile(abs(f.path), data, 0644); err != nil {
 				return err
 			}
 		case !f.expected:
@@ -149,6 +177,7 @@ func run(args []string) error {
 			return errors.New(buf.String())
 		}
 	}
+
 	return nil
 }
 

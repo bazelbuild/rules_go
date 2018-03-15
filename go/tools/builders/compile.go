@@ -49,6 +49,7 @@ func run(args []string) error {
 	if err := goenv.update(); err != nil {
 		return err
 	}
+	absOutput := abs(*output) // required to work with long paths on Windows
 
 	var matcher func(f *goMetadata) bool
 	switch *testfilter {
@@ -80,7 +81,7 @@ func run(args []string) error {
 		}
 	}
 	if len(files) <= 0 {
-		return ioutil.WriteFile(*output, []byte(""), 0644)
+		return ioutil.WriteFile(absOutput, []byte(""), 0644)
 	}
 
 	goargs := []string{"tool", "compile"}
@@ -102,7 +103,7 @@ func run(args []string) error {
 		goargs = append(goargs, "-importmap", mapping)
 		strictdeps = append(strictdeps, source)
 	}
-	goargs = append(goargs, "-pack", "-o", *output)
+	goargs = append(goargs, "-pack", "-o", absOutput)
 	goargs = append(goargs, flags.Args()...)
 	for _, f := range files {
 		goargs = append(goargs, f.filename)

@@ -124,3 +124,8 @@ func runTest(t *testing.T, bctx build.Context, inputs []string, expect []string)
 		t.Errorf("filter %v,%v,%v,%v: expect %v got %v", bctx.GOOS, bctx.GOARCH, bctx.CgoEnabled, bctx.BuildTags, expect, got)
 	}
 }
+
+// abs is a dummy env.go abs to avoid depending on env.go and flags.go.
+func abs(p string) string {
+	return p
+}

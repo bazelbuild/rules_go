@@ -121,6 +121,7 @@ go_tool_binary(
 go_tool_binary(
     name = "go-protoc",
     srcs = [
+        "env.go",
         "flags.go",
         "protoc.go",
     ],

@@ -37,7 +37,7 @@ type goMetadata struct {
 func readFiles(bctx build.Context, inputs []string) ([]*goMetadata, error) {
 	outputs := []*goMetadata{}
 	for _, input := range inputs {
-		if m, err := readGoMetadata(bctx, input, true); err != nil {
+		if m, err := readGoMetadata(bctx, abs(input), true); err != nil {
 			return nil, err
 		} else if m.matched {
 			outputs = append(outputs, m)

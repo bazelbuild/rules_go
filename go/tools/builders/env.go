@@ -41,6 +41,10 @@ type GoEnv struct {
 	ld_flags     multiFlag
 }
 
+// abs returns the absolute representation of path. Some tools/APIs require
+// absolute paths to work correctly. Most notably, golang on Windows cannot
+// handle relative paths to files whose absolute path is > ~250 chars, while
+// it can handle absolute paths. See http://goo.gl/eqeWjm.
 func abs(path string) string {
 	if abs, err := filepath.Abs(path); err != nil {
 		return path
