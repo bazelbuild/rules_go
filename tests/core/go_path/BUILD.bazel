@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_path", "go_test")
+
+test_suite(name = "go_path")
+
+[go_path(
+    name = mode + "_path",
+    deps = [
+        "//tests/core/go_path/cmd/bin",
+        "//tests/core/go_path/pkg/lib:go_default_library",
+        "//tests/core/go_path/pkg/lib:embed_test",
+        "//tests/core/go_path/pkg/lib:go_default_test",
+        "//tests/core/go_path/pkg/lib:vendored",
+    ],
+    data = ["extra.txt"],
+    mode = mode,
+    testonly = True,
+) for mode in ("archive", "copy", "link")]
+
+go_test(
+    name = "go_path_test",
+    srcs = ["go_path_test.go"],
+    args = [
+        "-archive_path=$(location :archive_path)",
+        "-copy_path=$(location :copy_path)",
+        "-link_path=tests/core/go_path/link_path", # can't use location; not a single file
+    ],
+    data = [
+        ":archive_path",
+        ":copy_path",
+        ":link_path",
+    ],
+    rundir = ".",
+)

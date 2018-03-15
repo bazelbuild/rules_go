@@ -6,6 +6,7 @@ Go providers
 .. _go_library: core.rst#go_library
 .. _go_binary: core.rst#go_binary
 .. _go_test: core.rst#go_test
+.. _go_path: core.rst#go_path
 .. _cc_library: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
 .. _flatbuffers: http://google.github.io/flatbuffers/
 .. _static linking: modes.rst#building-static-binaries
@@ -272,3 +273,31 @@ This is used when compiling and linking dependant libraries or binaries.
 +--------------------------------+-----------------------------------------------------------------+
 | The files needed to run anything that includes this library.                                     |
 +--------------------------------+-----------------------------------------------------------------+
+
+GoPath
+~~~~~~
+
+GoPath is produced by the `go_path`_ rule. It gives a list of packages used to
+build the ``go_path`` directory and provides a list of original files for
+each package.
+
++--------------------------------+-----------------------------------------------------------------+
+| **Name**                       | **Type**                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`gopath`                | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The short path to the output file or directory. Useful for constructing                          |
+| ``runfiles`` paths.                                                                              |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`packages`              | :type:`list of struct`                                          |
++--------------------------------+-----------------------------------------------------------------+
+| A list of structs representing packages used to build the ``go_path``                            |
+| directory. Each struct has the following fields:                                                 |
+|                                                                                                  |
+| * ``importpath``: the import path of the package.                                                |
+| * ``dir``: the subdirectory of the package within the ``go_path``, including                     |
+|   the ``src/`` prefix. May different from ``importpath`` due to vendoring.                       |
+| * ``srcs``: list of source ``File``s.                                                            |
+| * ``data``: list of data ``File``s.                                                              |
++--------------------------------+-----------------------------------------------------------------+
+

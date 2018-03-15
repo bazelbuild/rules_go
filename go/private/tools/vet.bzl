@@ -39,7 +39,7 @@ Please do not rely on it for production use, but feel free to use it and file is
   for data in ctx.attr.data:
     entry = data[GoPath]
     gopath += [entry.gopath]
-    packages += [package.dir for package in entry.packages]
+    packages += [entry.gopath + "/" + package.dir for package in entry.packages]
   ctx.actions.write(output=script_file, is_executable=True, content="""
 export GOPATH="{gopath}"
 {go} tool vet {packages}

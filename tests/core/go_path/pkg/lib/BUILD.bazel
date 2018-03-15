@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["lib.go"],
+    cgo = True,
+    data = ["data.txt"],
+    importpath = "example.com/repo/pkg/lib",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "external_test.go",
+        "internal_test.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "embed_test",
+    embed = [":embed_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "embed_lib",
+    srcs = ["embed_test.go"],
+    importpath = "example.com/repo/pkg/lib",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "vendored",
+    srcs = ["vendored.go"],
+    importpath = "example.com/repo2",
+    importmap = "example.com/repo/vendor/example.com/repo2",
+    visibility = ["//visibility:public"],
+)
