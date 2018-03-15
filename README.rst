@@ -88,7 +88,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-:Note: The latest version of these rules (0.10.1) requires Bazel ≥ 0.8.0 to work.
+:Note: The latest version of these rules (0.10.1) requires Bazel ≥ 0.10.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 

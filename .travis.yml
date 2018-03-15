@@ -13,7 +13,7 @@ os:
 env:
   # TODO(bazelbuild/continuous-integration#95): re-enable HEAD builds with stable URL
   # - V=HEAD
-  - V=0.8.0
+  - V=0.10.0
 
 before_install:
   - |
