@@ -1,0 +1,48 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test", "go_source")
+
+test_suite(
+    name = "go_binary",
+)
+
+go_binary(
+    name = "hello_plain",
+    srcs = ["hello_world.go"],
+    goarch = "amd64",
+    goos = "windows",
+    pure = "on",
+)
+
+go_binary(
+    name = "hello_no_mode",
+    srcs = ["hello_world.go"],
+    goarch = "amd64",
+    goos = "windows",
+    output_path = "{name}{path}{ext}",
+    pure = "on",
+)
+
+go_binary(
+    name = "hello_no_ext",
+    srcs = ["hello_world.go"],
+    goarch = "amd64",
+    goos = "windows",
+    output_path = "{mode}/{name}{path}",
+    pure = "on",
+)
+
+go_test(
+    name = "output_path_test",
+    size = "small",
+    srcs = ["output_path_test.go"],
+    args = [
+        "-plain $(location :hello_plain)",
+        "-no_mode $(location :hello_no_mode)",
+        "-no_ext $(location :hello_no_ext)",
+    ],
+    data = [
+        ":hello_no_ext",
+        ":hello_no_mode",
+        ":hello_plain",
+    ],
+    rundir = ".",
+)

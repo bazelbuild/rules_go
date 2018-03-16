@@ -167,3 +167,5 @@ def as_set(v):
   if type(v) == "tuple":
     return depset(v)
   fail("as_tuple failed on {}".format(v))
+
+DEFAULT_OUTPUT_PATH = "{mode}/{name}{path}{ext}"

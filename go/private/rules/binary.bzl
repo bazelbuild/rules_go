@@ -19,6 +19,7 @@ load(
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "go_filetype",
+    "DEFAULT_OUTPUT_PATH",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/prefix.bzl",
@@ -65,6 +66,7 @@ def _go_binary_impl(ctx):
       linkstamp=ctx.attr.linkstamp,
       version_file=ctx.version_file,
       info_file=ctx.info_file,
+      output_path=ctx.attr.output_path,
   )
   return [
       library, source, archive,
@@ -137,6 +139,7 @@ go_binary = go_rule(
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
+        "output_path": attr.string(default = DEFAULT_OUTPUT_PATH),
     },
     executable = True,
 )
@@ -159,6 +162,7 @@ go_tool_binary = go_rule(
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
+        "output_path": attr.string(default = DEFAULT_OUTPUT_PATH),
         "_hostonly": attr.bool(default=True),
     },
     executable = True,
