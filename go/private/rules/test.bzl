@@ -136,6 +136,15 @@ def _go_test_impl(ctx):
 
   runfiles = ctx.runfiles(files = [executable])
   runfiles = runfiles.merge(test_archive.runfiles)
+
+  # Bazel only looks for coverage data if the test target has an
+  # InstrumentedFilesProvider, but this provider can currently only be
+  # created using "legacy" provider syntax. Old and new provider syntaxes
+  # can be combined by putting new-style providers in a providers field
+  # of the old-style struct.
+  # If the provider is found and at least one source file is present, Bazel
+  # will set the COVERAGE_OUTPUT_FILE environment variable during tests
+  # and will save that file to the build events + test outputs.
   return struct(
       providers = [
           DefaultInfo(
