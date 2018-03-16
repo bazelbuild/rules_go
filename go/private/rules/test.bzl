@@ -136,13 +136,21 @@ def _go_test_impl(ctx):
 
   runfiles = ctx.runfiles(files = [executable])
   runfiles = runfiles.merge(test_archive.runfiles)
-  return [
-      DefaultInfo(
-          files = depset([executable]),
-          runfiles = runfiles,
-          executable = executable,
+  return struct(
+      providers = [
+          DefaultInfo(
+              files = depset([executable]),
+              runfiles = runfiles,
+              executable = executable,
+          ),
+      ],
+      instrumented_files = struct(
+          extensions = ['go'],
+          source_attributes = ['srcs'],
+          dependency_attributes = ['deps', 'embed'],
       ),
-]
+  )
+
 
 go_test = go_rule(
     _go_test_impl,

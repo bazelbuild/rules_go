@@ -187,6 +187,12 @@ func main() {
 		testing.RegisterCover(coverage)
 	}
 
+	if coverageDat, ok := os.LookupEnv("COVERAGE_OUTPUT_FILE"); ok {
+		if testing.CoverMode() != "" {
+			flag.Lookup("test.coverprofile").Value.Set(coverageDat)
+		}
+	}
+
 	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, examples)
 	{{if not .TestMain}}
 	os.Exit(m.Run())
