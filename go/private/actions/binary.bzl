@@ -18,13 +18,14 @@ def emit_binary(go,
     gc_linkopts = [],
     linkstamp=None,
     version_file=None,
-    info_file=None):
+    info_file=None,
+    output_path=None):
   """See go/toolchains.rst#binary for full documentation."""
 
   if name == "": fail("name is a required parameter")
 
   archive = go.archive(go, source)
-  executable = go.declare_file(go, name=name, ext=go.exe_extension)
+  executable = go.declare_file(go, name=name, ext=go.exe_extension, output_path=output_path)
   go.link(go,
       archive=archive,
       executable=executable,

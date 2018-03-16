@@ -36,6 +36,7 @@ load(
     "structs",
     "goos_to_extension",
     "as_iterable",
+    "DEFAULT_OUTPUT_PATH",
 )
 
 GoContext = provider()
@@ -59,20 +60,22 @@ _LINKER_OPTIONS_BLACKLIST = {
 def _filter_options(options, blacklist):
   return [option for option in options if option not in blacklist]
 
-def _child_name(go, path, ext, name):
-  childname = mode_string(go.mode) + "/"
-  childname += name if name else go._ctx.label.name
-  if path:
-    childname += "~/" + path
-  if ext:
-    childname += ext
-  return childname
+def _child_name(go, path, ext, name, output_path):
+  if output_path == None:
+    output_path = DEFAULT_OUTPUT_PATH
 
-def _declare_file(go, path="", ext="", name = ""):
-  return go.actions.declare_file(_child_name(go, path, ext, name))
+  return output_path.format(
+    mode = mode_string(go.mode),
+    name = name if name else go._ctx.label.name,
+    path = "~/" + path if path else "",
+    ext = ext,
+  )
 
-def _declare_directory(go, path="", ext="", name = ""):
-  return go.actions.declare_directory(_child_name(go, path, ext, name))
+def _declare_file(go, path="", ext="", name="", output_path=None):
+  return go.actions.declare_file(_child_name(go, path, ext, name, output_path))
+
+def _declare_directory(go, path="", ext="", name="", output_path=None):
+  return go.actions.declare_directory(_child_name(go, path, ext, name, output_path))
 
 def _new_args(go):
   args = go.actions.args()

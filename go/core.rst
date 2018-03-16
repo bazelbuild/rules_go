@@ -360,6 +360,11 @@ Attributes
 | Map of defines to add to the go link command.                                                    |
 | See `Defines and stamping`_ for examples of how to use these.                                    |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`output_path`       | :type:`string`              | :value:`{mode}/{name}{path}{ext}`     |
++----------------------------+-----------------------------+---------------------------------------+
+| Template used to generate the output path. By default, Go binaries are written to paths          |
+| containing their target platform, build mode, and executable extension.                          |
++----------------------------+-----------------------------+---------------------------------------+
 | :param:`cgo`               | :type:`boolean`             | :value:`False`                        |
 +----------------------------+-----------------------------+---------------------------------------+
 | If :value:`True`, the binary uses cgo_.                                                          |
