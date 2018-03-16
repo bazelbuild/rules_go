@@ -559,9 +559,10 @@ binary
 ~~~~~~
 
 This emits actions to compile and link Go code into a binary.
-It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
+It supports embedding, cgo dependencies, coverage, and assembling and packing
+.s files.
 
-It returns GoLibrary_.
+It returns a tuple containing GoArchive_ and the output executable file.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -570,9 +571,9 @@ It returns GoLibrary_.
 +--------------------------------+-----------------------------+-----------------------------------+
 | This must be the same GoContext object you got this function from.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`name`                  | :type:`string`              | |mandatory|                       |
+| :param:`name`                  | :type:`string`              | :value:`""`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The base name of the generated binaries.                                                         |
+| The base name of the generated binaries. Required if :param:`executable` is not given.           |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`source`                | :type:`GoSource`            | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -580,13 +581,25 @@ It returns GoLibrary_.
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`gc_linkopts`           | :type:`string_list`         | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| Basic link options.                                                                              |
+| Go link options.                                                                                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`x_defs`                | :type:`map`                 | :value:`{}`                       |
+| :param:`linkstamp`             | :type:`string`              | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
-| Link defines, including build stamping ones.                                                     |
+| Optional link stamp. See link_.                                                                  |
 +--------------------------------+-----------------------------+-----------------------------------+
-
+| :param:`version_file`          | :type:`File`                | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| Version file used for link stamping. See link_.                                                  |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`info_file`             | :type:`File`                | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| Info file used for link stamping. See link_.                                                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`executable`            | :type:`File`                | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| Optional output file to write. If not set, ``binary`` will generate an output                    |
+| file name based on ``name``, the target platform, and the link mode.                             |
++--------------------------------+-----------------------------+-----------------------------------+
 
 compile
 ~~~~~~~

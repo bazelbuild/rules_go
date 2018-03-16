@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
+
+test_suite(name = "go_binary")
+
+go_test(
+    name = "go_default_test",
+    srcs = ["out_test.go"],
+    data = [":custom_bin"],
+)
+
+go_binary(
+    name = "custom_bin",
+    srcs = ["custom_bin.go"],
+    out = "alt_bin",
+)

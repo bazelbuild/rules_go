@@ -23,24 +23,27 @@ load(
 )
 
 def emit_binary(go,
-    name="",
+    name = "",
     source = None,
     gc_linkopts = [],
-    linkstamp=None,
-    version_file=None,
-    info_file=None):
+    linkstamp = None,
+    version_file = None,
+    info_file = None,
+    executable = None):
   """See go/toolchains.rst#binary for full documentation."""
 
-  if name == "": fail("name is a required parameter")
+  if name == "" and executable == None:
+    fail("either name or executable must be set")
 
   archive = go.archive(go, source)
-  extension = go.exe_extension
-  if go.mode.link == LINKMODE_C_SHARED:
-    name = "lib" + name # shared libraries need a "lib" prefix in their name
-    extension = go.shared_extension
-  elif go.mode.link == LINKMODE_C_ARCHIVE:
-    extension = ARCHIVE_EXTENSION
-  executable = go.declare_file(go, name=name, ext=extension)
+  if not executable:
+    extension = go.exe_extension
+    if go.mode.link == LINKMODE_C_SHARED:
+      name = "lib" + name # shared libraries need a "lib" prefix in their name
+      extension = go.shared_extension
+    elif go.mode.link == LINKMODE_C_ARCHIVE:
+      extension = ARCHIVE_EXTENSION
+    executable = go.declare_file(go, name=name, ext=extension)
   go.link(go,
       archive=archive,
       executable=executable,

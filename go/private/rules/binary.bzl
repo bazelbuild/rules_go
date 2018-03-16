@@ -58,13 +58,20 @@ def _go_binary_impl(ctx):
   name = ctx.attr.basename
   if not name:
     name = ctx.label.name
+  executable = None
+  if ctx.attr.out:
+    # Use declare_file instead of attr.output(). When users set output files
+    # directly, Bazel warns them not to use the same name as the rule, which is
+    # the common case with go_binary.
+    executable = ctx.actions.declare_file(ctx.attr.out)
   archive, executable = go.binary(go,
       name = name,
       source = source,
       gc_linkopts = gc_linkopts(ctx),
-      linkstamp=ctx.attr.linkstamp,
-      version_file=ctx.version_file,
-      info_file=ctx.info_file,
+      linkstamp = ctx.attr.linkstamp,
+      version_file = ctx.version_file,
+      info_file = ctx.info_file,
+      executable = executable,
   )
   return [
       library, source, archive,
@@ -140,6 +147,7 @@ go_binary = go_rule(
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
+        "out": attr.string(),
     },
     executable = True,
 )
@@ -162,6 +170,7 @@ go_tool_binary = go_rule(
         "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
+        "out": attr.string(),
         "_hostonly": attr.bool(default=True),
     },
     executable = True,

@@ -386,6 +386,15 @@ Attributes
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
 | Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`out`               | :type:`string`              | :value:`""`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| Sets the output filename for the generated executable. When set, ``go_binary``                   |
+| will write this file without mode-specific directory prefixes, without                           |
+| linkmode-specific prefixes like "lib", and without platform-specific suffixes                    |
+| like ".exe". Note that without a mode-specific directory prefix, the                             |
+| output file (but not its dependencies) will be invalidated in Bazel's cache                      |
+| when changing configurations.                                                                    |
++----------------------------+-----------------------------+---------------------------------------+
 
 go_test
 ~~~~~~~
