@@ -42,7 +42,6 @@ def get_imports(attr):
   if hasattr(attr, "proto"):
     imports.append(["{}={}".format(proto_path(src), attr.importpath) for src in attr.proto.proto.direct_sources])
   imports.extend([dep[GoProtoImports].imports for dep in getattr(attr, "deps", [])])
-  imports.extend([dep[GoProtoImports].imports for dep in getattr(attr, "embed", [])])
   return sets.union(*imports)
 
 def _go_proto_aspect_impl(target, ctx):
