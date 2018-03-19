@@ -49,10 +49,7 @@ def _go_proto_aspect_impl(target, ctx):
 
 _go_proto_aspect = aspect(
     _go_proto_aspect_impl,
-    attr_aspects = [
-        "deps",
-        "embed",
-    ],
+    attr_aspects = ["deps"],
 )
 
 def _proto_library_to_source(go, attr, source, merge):
