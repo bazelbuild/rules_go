@@ -49,7 +49,7 @@ func run(args []string) error {
 	outPath := flags.String("out_path", "", "The base output path to write to.")
 	plugin := flags.String("plugin", "", "The go plugin to use.")
 	importpath := flags.String("importpath", "", "The importpath for the generated sources.")
-	compilerPath:= flags.String("compiler_path", "", "The value for PATH.")
+	compilerPath := flags.String("compiler_path", "", "The value for PATH.")
 	flags.Var(&options, "option", "The plugin options.")
 	flags.Var(&descriptors, "descriptor_set", "The descriptor set to read.")
 	flags.Var(&expected, "expected", "The expected output files.")
@@ -158,7 +158,13 @@ func run(args []string) error {
 	for _, f := range files {
 		switch {
 		case f.expected && !f.created:
-			fmt.Fprintf(buf, "Failed to create %v.\n", f.path)
+			// Some plugins only create output files if the proto source files have
+			// have relevant definitions (e.g., services for grpc_gateway). Create
+			// trivial files that the compiler will ignore for missing outputs.
+			data := []byte("// +build ignore\n\npackage ignore")
+			if err := ioutil.WriteFile(abs(f.path), data, 0644); err != nil {
+				return err
+			}
 		case f.expected && f.ambiguious:
 			fmt.Fprintf(buf, "Ambiguious output %v.\n", f.path)
 		case f.from != nil:
