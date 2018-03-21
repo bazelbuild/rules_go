@@ -33,14 +33,17 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "bazel_gazelle",
       remote = "https://github.com/bazelbuild/bazel-gazelle",
-      commit = "a85b63b06c2e0c75931e57c4a1a18d4e566bb6f4", # master as of 2018-02-26
+      commit = "b345aed922d0a31528180a73f097e2f755e6da60", # master as of 2018-03-21
   )
 
+  # Old version of buildtools, before breaking API changes. Old versions of
+  # gazelle (0.9) need this. Newer versions vendor this library, so it's only
+  # needed by old versions.
   _maybe(http_archive,
       name = "com_github_bazelbuild_buildtools",
-      # master, as of 2018-02-26
-      urls = ["https://codeload.github.com/bazelbuild/buildtools/zip/80c7f0d45d7e40fa1f7362852697d4a03df557b3"],
-      strip_prefix = "buildtools-80c7f0d45d7e40fa1f7362852697d4a03df557b3",
+      # master, as of 2017-08-14
+      urls = ["https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6"],
+      strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
       type = "zip",
   )
 
