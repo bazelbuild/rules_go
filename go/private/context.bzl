@@ -111,7 +111,7 @@ def _new_library(go, name=None, importpath=None, resolver=None, importable=True,
       label = go._ctx.label,
       importpath = importpath,
       importmap = importmap,
-      pathtype = go.pathtype if importable else EXPORT_PATH,
+      pathtype = go.pathtype,
       resolve = resolver,
       testfilter = testfilter,
       **kwargs
@@ -120,6 +120,7 @@ def _new_library(go, name=None, importpath=None, resolver=None, importable=True,
 def _merge_embed(source, embed):
   s = get_source(embed)
   source["srcs"] = s.srcs + source["srcs"]
+  source["orig_srcs"] = s.orig_srcs + source["orig_srcs"]
   source["cover"] = source["cover"] + s.cover
   source["deps"] = source["deps"] + s.deps
   source["x_defs"].update(s.x_defs)
@@ -136,10 +137,12 @@ def _library_to_source(go, attr, library, coverage_instrumented):
   #TODO: stop collapsing a depset in this line...
   attr_srcs = [f for t in getattr(attr, "srcs", []) for f in as_iterable(t.files)]
   generated_srcs = getattr(library, "srcs", [])
+  srcs = attr_srcs + generated_srcs
   source = {
-      "library" : library,
-      "mode" : go.mode,
-      "srcs" : generated_srcs + attr_srcs,
+      "library": library,
+      "mode": go.mode,
+      "srcs": srcs,
+      "orig_srcs": srcs,
       "cover" : [],
       "x_defs" : {},
       "deps" : getattr(attr, "deps", []),

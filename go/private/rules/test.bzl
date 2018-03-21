@@ -147,6 +147,7 @@ def _go_test_impl(ctx):
   # and will save that file to the build events + test outputs.
   return struct(
       providers = [
+          test_archive,
           DefaultInfo(
               files = depset([executable]),
               runfiles = runfiles,

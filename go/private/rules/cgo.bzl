@@ -111,7 +111,8 @@ def _cgo_codegen_impl(ctx):
   args.add(["-cc", str(cc), "-objdir", out_dir])
 
   c_outs = [cgo_export_h, cgo_export_c]
-  go_outs = [cgo_types]
+  transformed_go_outs = []
+  gen_go_outs = [cgo_types]
 
   source = split_srcs(ctx.files.srcs)
   for src in source.headers:
@@ -119,15 +120,15 @@ def _cgo_codegen_impl(ctx):
   stems = {}
   for src in source.go:
     mangled_stem, src_ext = _mangle(src, stems)
-    gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
+    gen_go_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     gen_c_file = go.declare_file(go, path=mangled_stem + ".cgo2.c")
-    go_outs.append(gen_file)
+    transformed_go_outs.append(gen_go_file)
     c_outs.append(gen_c_file)
-    args.add(["-src", gen_file.path + "=" + src.path])
+    args.add(["-src", gen_go_file.path + "=" + src.path])
   for src in source.asm:
     mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
-    go_outs.append(gen_file)
+    transformed_go_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.c:
     mangled_stem, src_ext = _mangle(src, stems)
@@ -163,7 +164,7 @@ def _cgo_codegen_impl(ctx):
   args.add(copts)
   ctx.actions.run(
       inputs = inputs + go.crosstool,
-      outputs = c_outs + go_outs + [cgo_main],
+      outputs = c_outs + gen_go_outs + transformed_go_outs + [cgo_main],
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go.builders.cgo,
@@ -173,8 +174,8 @@ def _cgo_codegen_impl(ctx):
 
   return [
       _CgoCodegen(
-          go_files = as_set(go_outs),
-          main_c = as_set([cgo_main]),
+          transformed_go = transformed_go_outs,
+          gen_go = gen_go_outs,
           deps = as_list(deps),
           exports = [cgo_export_h],
       ),
@@ -183,9 +184,8 @@ def _cgo_codegen_impl(ctx):
           runfiles = runfiles,
       ),
       OutputGroupInfo(
-          go_files = as_set(go_outs),
-          input_go_files = sets.union(source.go, source.asm),
           c_files = sets.union(c_outs, source.headers),
+          go_files = sets.union(transformed_go_outs, gen_go_outs),
           main_c = as_set([cgo_main]),
       ),
   ]
@@ -251,30 +251,41 @@ def _pure(ctx, mode):
 def _not_pure(ctx, mode):
     return not mode.pure
 
-def _cgo_library_to_source(go, attr, source, merge):
+def _cgo_resolve_source(go, attr, source, merge):
   library = source["library"]
+  cgo_info = library.cgo_info
+  
+  source["orig_srcs"] = cgo_info.orig_srcs
+  source["runfiles"] = cgo_info.runfiles
   if source["mode"].pure:
-    source["srcs"] = library.input_go_srcs + source["srcs"]
-    return
-  source["srcs"] = library.gen_go_srcs + source["srcs"]
-  source["cgo_deps"] = source["cgo_deps"] + library.cgo_deps
-  source["cgo_exports"] = source["cgo_exports"] + library.cgo_exports
-  source["cgo_archive"] = library.cgo_archive
-  source["runfiles"] = source["runfiles"].merge(attr.codegen.data_runfiles)
+    split = split_srcs(cgo_info.orig_srcs)
+    source["srcs"] = split.go + split.asm
+    source["cover"] = source["srcs"]
+  else:
+    source["srcs"] = cgo_info.transformed_go_srcs + cgo_info.gen_go_srcs
+    source["cover"] = cgo_info.transformed_go_srcs
+    source["cgo_deps"] = cgo_info.cgo_deps
+    source["cgo_exports"] = cgo_info.cgo_exports
+    source["cgo_archive"] = cgo_info.cgo_archive
 
 def _cgo_collect_info_impl(ctx):
   go = go_context(ctx)
   codegen = ctx.attr.codegen[_CgoCodegen]
+  import_files = as_list(ctx.files.cgo_import)
   runfiles = ctx.runfiles(collect_data = True)
   runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
 
   library = go.new_library(go,
-      resolver=_cgo_library_to_source,
-      input_go_srcs = ctx.files.input_go_srcs,
-      gen_go_srcs = ctx.files.gen_go_srcs,
-      cgo_deps = ctx.attr.codegen[_CgoCodegen].deps,
-      cgo_exports = ctx.attr.codegen[_CgoCodegen].exports,
-      cgo_archive = _select_archive(ctx.files.lib),
+      resolver = _cgo_resolve_source,
+      cgo_info = struct(
+          orig_srcs = ctx.files.srcs,
+          transformed_go_srcs = codegen.transformed_go,
+          gen_go_srcs = codegen.gen_go + import_files,
+          cgo_deps = codegen.deps,
+          cgo_exports = codegen.exports,
+          cgo_archive = _select_archive(ctx.files.lib),
+          runfiles = runfiles,
+      ),
   )
   source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
 
@@ -286,22 +297,19 @@ def _cgo_collect_info_impl(ctx):
 _cgo_collect_info = go_rule(
     _cgo_collect_info_impl,
     attrs = {
+        "srcs": attr.label_list(
+            mandatory = True,
+            allow_files = True,
+        ),
         "codegen": attr.label(
             mandatory = True,
             providers = [_CgoCodegen],
-        ),
-        "input_go_srcs": attr.label_list(
-            mandatory = True,
-            allow_files = [".go"],
-        ),
-        "gen_go_srcs": attr.label_list(
-            mandatory = True,
-            allow_files = [".go"],
         ),
         "lib": attr.label(
             mandatory = True,
             providers = ["cc"],
         ),
+        "cgo_import": attr.label(mandatory = True),
     },
 )
 """No-op rule that collects information from _cgo_codegen and cc_library
@@ -333,14 +341,6 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
       name = select_go_files,
       srcs = [cgo_codegen_name],
       output_group = "go_files",
-      visibility = ["//visibility:private"],
-  )
-
-  select_input_go_files = name + ".select_input_go_files"
-  native.filegroup(
-      name = select_input_go_files,
-      srcs = [cgo_codegen_name],
-      output_group = "input_go_files",
       visibility = ["//visibility:private"],
   )
 
@@ -406,15 +406,10 @@ def setup_cgo_library(name, srcs, cdeps, copts, clinkopts):
   cgo_embed_name = name + ".cgo_embed"
   _cgo_collect_info(
       name = cgo_embed_name,
+      srcs = srcs,
       codegen = cgo_codegen_name,
-      input_go_srcs = [
-          select_input_go_files,
-      ],
-      gen_go_srcs = [
-          select_go_files,
-          cgo_import_name,
-      ],
       lib = cgo_lib_name,
+      cgo_import = cgo_import_name,
       visibility = ["//visibility:private"],
   )
 

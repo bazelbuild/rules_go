@@ -178,6 +178,20 @@ GoArchiveData represents the compiled form of a package.
 +--------------------------------+-----------------------------------------------------------------+
 | The import path for this library. Will always be set.                                            |
 +--------------------------------+-----------------------------------------------------------------+
+| :param:`importmap`             | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The package path for this library. The compiler and linker use this to                           |
+| disambiguoate packages with the same ``importpath``. It's usually the same                       |
+| as ``importpath``, but is frequently different for vendored libraries.                           |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`pathtype`              | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| Indicates how ``importpath`` was determined. May be one of:                                      |
+|                                                                                                  |
+| * ``"explicit"``: was explicitly set.                                                            |
+| * ``"inferred"``: was inferred based on label name.                                              |
+| * ``"export"``: a special name for synthetic packages. Not importable.                           |
++--------------------------------+-----------------------------------------------------------------+
 | :param:`file`                  | :type:`compiled archive file`                                   |
 +--------------------------------+-----------------------------------------------------------------+
 | The archive file representing the library compiled in a specific :param:`mode` ready for linking |
@@ -185,7 +199,17 @@ GoArchiveData represents the compiled form of a package.
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`srcs`                  | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
-| The sources compiled into the archive.                                                           |
+| The .go sources compiled into the archive. May have been generated or                            |
+| transformed with tools like cgo and cover.                                                       |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`orig_srcs`             | :type:`list of File`                                            |
++--------------------------------+-----------------------------------------------------------------+
+| The unmodified sources provided to the rule, including .go, .s, .h, .c files.                    |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`data_files`            | :type:`list of File`                                            |
++--------------------------------+-----------------------------------------------------------------+
+| Data files which should be available at runtime to binaries and tests built                      |
+| from this archive.                                                                               |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`searchpath`            | :type:`string`                                                  |
 +--------------------------------+-----------------------------------------------------------------+

@@ -49,6 +49,7 @@ def emit_archive(go, source=None):
 
   direct = [get_archive(dep) for dep in source.deps]
   runfiles = source.runfiles
+  data_files = runfiles.files
   for a in direct:
     runfiles = runfiles.merge(a.runfiles)
     if a.source.mode != go.mode: fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
@@ -83,8 +84,11 @@ def emit_archive(go, source=None):
       label = source.library.label,
       importpath = source.library.importpath,
       importmap = source.library.importmap,
+      pathtype = source.library.pathtype,
       file = out_lib,
       srcs = as_tuple(source.srcs),
+      orig_srcs = as_tuple(source.orig_srcs),
+      data_files = as_tuple(data_files),
       searchpath = searchpath,
   )
   x_defs = dict(source.x_defs)
