@@ -189,7 +189,7 @@ GoArchiveData represents the compiled form of a package.
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`searchpath`            | :type:`string`                                                  |
 +--------------------------------+-----------------------------------------------------------------+
-| The search path entry under which the :param:`lib` would be found.                               |
+| **Deprecated:** The search path entry under which the :param:`lib` would be found.               |
 +--------------------------------+-----------------------------------------------------------------+
 
 GoArchive
@@ -210,21 +210,22 @@ This is used when compiling and linking dependant libraries or binaries.
 +--------------------------------+-----------------------------------------------------------------+
 | The non transitive data for this archive.                                                        |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`direct`                | :type:`depset of GoLibrary`                                     |
+| :param:`direct`                | :type:`list of GoArchive`                                       |
 +--------------------------------+-----------------------------------------------------------------+
-| The direct depencancies of the library.                                                          |
+| The direct dependencies of this archive.                                                         |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`searchpaths`           | :type:`depset of string`                                        |
 +--------------------------------+-----------------------------------------------------------------+
-| The transitive set of search paths needed to link with this archive.                             |
+| **Deprecated:** The transitive set of search paths needed to link with this archive.             |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`libs`                  | :type:`depset of File`                                          |
 +--------------------------------+-----------------------------------------------------------------+
 | The transitive set of libraries needed to link with this archive.                                |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`transitive`            | :type:`depset(GoLibrary)`                                       |
+| :param:`transitive`            | :type:`depset of GoArchiveData`                                 |
 +--------------------------------+-----------------------------------------------------------------+
-| The full transitive set of GoArchiveData's  depended on, including this one.                     |
+| The full set of transitive dependencies. This includes ``data`` for this                         |
+| archive and all ``data`` members transitively reachable through ``direct``.                      |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`x_defs`                | :type:`string_dict`                                             |
 +--------------------------------+-----------------------------------------------------------------+

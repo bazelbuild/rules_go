@@ -66,8 +66,10 @@ def emit_link(go,
   if link_external:
     gc_linkopts.extend(["-linkmode", "external"])
 
-  args.add(["-L", "."])
-  args.add(archive.searchpaths, before_each="-L")
+  deps = depset(transitive = [d.transitive for d in archive.direct])
+  dep_args = ["{}={}={}".format(d.label, d.importmap, d.file.path)
+              for d in deps.to_list()]
+  args.add(dep_args, before_each="-dep")
 
   for d in as_iterable(archive.cgo_deps):
     if d.basename.endswith('.so'):

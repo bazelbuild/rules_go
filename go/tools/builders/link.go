@@ -25,6 +25,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -44,14 +45,14 @@ func run(args []string) error {
 	xdefs := multiFlag{}
 	stamps := multiFlag{}
 	linkstamps := multiFlag{}
-	libPaths := multiFlag{}
+	deps := multiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
 	outFile := flags.String("out", "", "Path to output file.")
 	buildmode := flags.String("buildmode", "", "Build mode used.")
 	flags.Var(&xstamps, "Xstamp", "A link xdef that may need stamping.")
 	flags.Var(&xdefs, "Xdef", "A link xdef that may need stamping.")
-	flags.Var(&libPaths, "L", "A library search path.")
+	flags.Var(&deps, "dep", "A dependency formatted as label=pkgpath=pkgfile")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
 	flags.Var(&linkstamps, "linkstamp", "A package that requires link stamping.")
 	if err := flags.Parse(args); err != nil {
@@ -84,8 +85,31 @@ func run(args []string) error {
 		}
 	}
 	// generate any additional link options we need
-	for _, l := range libPaths {
-		goargs = append(goargs, "-L", l)
+	depsSeen := make(map[string]string)
+	for _, d := range deps {
+		parts := strings.Split(d, "=")
+		if len(parts) != 3 {
+			return fmt.Errorf("Invalid dep %q: should be label=pkgpath=pkgfile", d)
+		}
+		label, pkgPath, pkgFile := parts[0], parts[1], parts[2]
+		if conflictLabel, ok := depsSeen[pkgPath]; ok {
+			// TODO(#1327): link.bzl should report this as a failure after 0.11.0.
+			// At this point, we'll prepare an importcfg file and remove logic here.
+			log.Printf(`warning: package %q is provided by more than one rule:
+    %s
+    %s
+Set "importmap" to different paths in each library.
+This will be an error in the future.`, pkgPath, label, conflictLabel)
+			continue
+		}
+		depsSeen[pkgPath] = label
+
+		pkgSuffix := string(os.PathSeparator) + filepath.FromSlash(pkgPath) + ".a"
+		if !strings.HasSuffix(pkgFile, pkgSuffix) {
+			return fmt.Errorf("package file name %q must have searchable suffix %q", pkgFile, pkgSuffix)
+		}
+		searchPath := pkgFile[:len(pkgFile)-len(pkgSuffix)]
+		goargs = append(goargs, "-L", searchPath)
 	}
 	for _, xdef := range xdefs {
 		goargs = append(goargs, "-X", xdef)
@@ -134,6 +158,8 @@ func run(args []string) error {
 }
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("GoLink: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
