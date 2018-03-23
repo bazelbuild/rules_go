@@ -63,7 +63,7 @@ generally valid in a Bazel environment. Tools that collect build metadata with
 `go/build`_ produce incomplete or inaccurate results since `go/build`_ does not
 understand Bazel.
 
-hWe are developing a new framework for collecting build metadata that will
+We are developing a new framework for collecting build metadata that will
 decouple tools from the build system. This framework is important for both Bazel
 and vgo, which will be the primary Go build system in future releases. Tools
 using framework will be aware of generated code in Bazel workspaces.
