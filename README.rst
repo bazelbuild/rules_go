@@ -44,15 +44,16 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+March 23, 2018
+  Gazelle `0.10.1
+  <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.10.1>`_ is now
+  available.
 February 26, 2018
   Release `0.10.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.1>`_
   is now available.
 February 23, 2018
   We have published a `roadmap`_ describing new features planned and under
   development.
-February 20, 2018
-  Release `0.10.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.0>`_
-  is now available.
 
 .. contents::
 
@@ -168,8 +169,8 @@ build files automatically using gazelle_.
     )
     http_archive(
         name = "bazel_gazelle",
-        url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.10.0/bazel-gazelle-0.10.0.tar.gz",
-        sha256 = "6228d9618ab9536892aa69082c063207c91e777e51bd3c5544c9c060cafe1bd8",
+        url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.10.1/bazel-gazelle-0.10.1.tar.gz",
+        sha256 = "d03625db67e9fb0905bbd206fa97e32ae9da894fe234a493e7517fd25faec914",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
