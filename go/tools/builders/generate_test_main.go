@@ -138,7 +138,7 @@ func coverRegisterAll() testing.Cover {
 	//{{$p.Import}}
 {{range $v := $p.Files}}
 	{{$var := printf "%s.%s" $p.Name $v.Var}}
-	coverRegisterFile(&coverage, {{$v.File | printf "%q"}}, {{$var}}.Count[:], {{$var}}.Pos[:], {{$var}}.NumStmt[:])
+	coverRegisterFile(&coverage, "{{printf "%s/%s" $p.Import $v.File}}", {{$var}}.Count[:], {{$var}}.Pos[:], {{$var}}.NumStmt[:])
 {{end}}
 {{end}}
 	return coverage
