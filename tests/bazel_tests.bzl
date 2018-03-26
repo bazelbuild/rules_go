@@ -164,7 +164,6 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
   script_name = name+"_script"
   externals = externals + [
       "@io_bazel_rules_go//:AUTHORS",
-      "@local_config_cc//:toolchain",
   ]
   if go_version == None or go_version == CURRENT_VERSION:
       externals.append("@go_sdk//:packages.txt")
