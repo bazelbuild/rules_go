@@ -137,7 +137,9 @@ func archivePath(out string, manifest []manifestEntry) (err error) {
 			srcFile.Close()
 			return err
 		}
-		srcFile.Close()
+		if err := srcFile.Close(); err != nil {
+			return err
+		}
 	}
 
 	if err := outZip.Close(); err != nil {
