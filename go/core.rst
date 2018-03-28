@@ -3,8 +3,7 @@ Core go rules
 
 .. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
 .. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
-.. _gazelle: tools/gazelle/README.rst
-.. _build constraints: http://golang.org/pkg/go/build/
+.. _Gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _GoLibrary: providers.rst#GoLibrary
 .. _GoSource: providers.rst#GoSource
 .. _GoArchive: providers.rst#GoArchive
@@ -19,6 +18,10 @@ Core go rules
 .. _goos: modes.rst#goos
 .. _goarch: modes.rst#goarch
 .. _mode attributes: modes.rst#mode-attributes
+.. _write a CROSSTOOL file: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
+.. _build constraints: https://golang.org/pkg/go/build/#hdr-Build_Constraints
+.. _select: https://docs.bazel.build/versions/master/be/functions.html#select
+.. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -159,7 +162,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | A unique name for this rule.                                                                     |
 |                                                                                                  |
-| To interoperated cleanly with gazelle_ right now this should be :value:`go_default_library`.     |
+| To interoperate cleanly with Gazelle_ right now this should be :value:`go_default_library`.      |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`importpath`        | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -329,21 +332,29 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls which goos_ to compile and link for.         |
 |                                                                                                  |
-| If set to anything other than :value:`auto` this overrideds the default as set by the current    |
-| target platform, and allows for single builds to make binaries for multiple architectures.       |
+| If set to anything other than :value:`auto` this overrides the default as set by the current     |
+| target platform and allows for single builds to make binaries for multiple architectures.        |
 |                                                                                                  |
 | Because this has no control over the cc toolchain, it does not work for cgo, so if this          |
 | attribute is set then :param:`pure` must be set to :value:`on`.                                  |
+|                                                                                                  |
+| This attribute has several limitations and should only be used in situations where the           |
+| ``--platforms`` flag does not work. See `Cross compilation`_ and `Note on goos and goarch        |
+| attributes`_ for more information.                                                               |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`goarch`            | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls which goarch_ to compile and link for.       |
 |                                                                                                  |
-| If set to anything other than :value:`auto` this overrideds the default as set by the current    |
-| target platform, and allows for single builds to make binaries for multiple architectures.       |
+| If set to anything other than :value:`auto` this overrides the default as set by the current     |
+| target platform and allows for single builds to make binaries for multiple architectures.        |
 |                                                                                                  |
 | Because this has no control over the cc toolchain, it does not work for cgo, so if this          |
 | attribute is set then :param:`pure` must be set to :value:`on`.                                  |
+|                                                                                                  |
+| This attribute has several limitations and should only be used in situations where the           |
+| ``--platforms`` flag does not work. See `Cross compilation`_ and `Note on goos and goarch        |
+| attributes`_ for more information.                                                               |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`gc_goopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -421,7 +432,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | A unique name for this rule.                                                                     |
 |                                                                                                  |
-| To interoperated cleanly with gazelle_ right now this should be :value:`go_default_test` for     |
+| To interoperate cleanly with Gazelle_ right now this should be :value:`go_default_test` for      |
 | internal tests and :value:`go_default_xtest` for external tests.                                 |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`importpath`        | :type:`string`              | :value:`""`                           |
@@ -628,3 +639,102 @@ go_rule
 This is a wrapper around the normal rule function.
 It modifies the attrs and toolchains attributes to make sure everything needed to build a go_context
 is present.
+
+Cross compilation
+-----------------
+
+rules_go can cross-compile Go projects to any platform the Go toolchain
+supports. The simplest way to do this is by setting the ``--platforms`` flag on
+the command line.
+
+.. code::
+
+    $ bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //my/project
+
+You can replace ``linux_amd64`` in the example above with any valid
+GOOS / GOARCH pair. To list all platforms, run this command:
+
+.. code::
+
+    $ bazel query 'kind(platform, @io_bazel_rules_go//go/toolchain:all)'
+
+By default, cross-compilation will cause Go targets to be built in "pure mode",
+which disables cgo; cgo files will not be compiled, and C/C++ dependencies will
+not be compiled or linked.
+
+Cross-compiling cgo code is possible, but not fully supported. You will need to
+`write a CROSSTOOL file`_ that describes your C/C++ toolchain. You'll need to
+ensure it works by building ``cc_binary`` and ``cc_library`` targets with the
+``--cpu`` command line flag set. Then, to build a mixed Go / C / C++ project,
+add ``pure = "off"`` to your ``go_binary`` target and run Bazel with ``--cpu``
+and ``--platforms``.
+
+Platform-specific dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When cross-compiling, you may have some platform-specific sources and
+dependencies. Source files from all platforms can be mixed freely in a single
+``srcs`` list. Source files are filtered using `build constraints`_ (filename
+suffixes and ``+build`` tags) before being passed to the compiler.
+
+Platform-specific dependencies are another story. For example, if you are
+building a binary for Linux, and it has dependency that should only be built
+when targeting Windows, you will need to filter it out using Bazel `select`_
+expressions:
+
+.. code:: bzl
+
+    go_binary(
+        name = "cmd",
+        srcs = [
+            "foo_linux.go",
+            "foo_windows.go",
+        ],
+        deps = [
+            # platform agnostic dependencies
+            "//bar:go_default_library",
+        ] + select({
+            # OS-specific dependencies
+            "@io_bazel_rules_go//go/platform:linux": [
+                "//baz_linux:go_default_library",
+            ],
+            "@io_bazel_rules_go//go/platform:windows": [
+                "//quux_windows:go_default_library",
+            ],
+            "//conditions:default": [],
+        }),
+    )
+
+``select`` accepts a dictionary argument. The keys are labels that reference
+`config_setting`_ rules. The values are lists of labels. Exactly one of these
+lists will be selected, depending on the target configuration. rules_go has
+pre-declared ``config_setting`` rules for each OS, architecture, and
+OS-architecture pair. For a full list, run this command:
+
+.. code::
+
+    $ bazel query 'kind(config_setting, @io_bazel_rules_go//go/platform:all)'
+
+`Gazelle`_ will generate dependencies in this format automatically.
+
+Note on goos and goarch attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is possible to cross-compile ``go_binary`` and ``go_test`` targets by
+setting the ``goos`` and ``goarch`` attributes to the target platform. These
+attributes were added for projects that cross-compile binaries for multiple
+platforms in the same build, then package the resulting executables.
+
+Bazel does not have a native understanding of the ``goos`` and ``goarch``
+attributes, so values do not affect `select`_ expressions. This means if you use
+these attributes with a target that has any transitive platform-specific
+dependencies, ``select`` may choose the wrong set of dependencies. Consequently,
+if you use ``goos`` or ``goarch`` attributes, you will not be able to safely
+generate build files with Gazelle or ``go_repository``.
+
+Additionally, setting ``goos`` and ``goarch`` will not automatically disable
+cgo. You should almost always set ``pure = "on"`` together with these
+attributes.
+
+Because of these limitations, it's almost always better to cross-compile by
+setting ``--platforms`` on the command line instead.
