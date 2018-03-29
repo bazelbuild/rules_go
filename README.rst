@@ -44,6 +44,9 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+March 29, 2018
+  Release `0.10.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.2>`_
+  is now available.
 March 23, 2018
   Gazelle `0.10.1
   <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.10.1>`_ is now
@@ -51,9 +54,6 @@ March 23, 2018
 February 26, 2018
   Release `0.10.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.1>`_
   is now available.
-February 23, 2018
-  We have published a `roadmap`_ describing new features planned and under
-  development.
 
 .. contents::
 
@@ -100,7 +100,7 @@ They currently do not support (in order of importance):
 * coverage
 * test sharding
 
-:Note: The latest version of these rules (0.10.1) requires Bazel ≥ 0.10.0 to work.
+:Note: The latest version of these rules (0.10.2) requires Bazel ≥ 0.10.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -118,8 +118,8 @@ Setup
 
     http_archive(
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.1/rules_go-0.10.1.tar.gz",
-        sha256 = "4b14d8dd31c6dbaf3ff871adcd03f28c3274e42abc855cb8fb4d01233c0154dc",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.2/rules_go-0.10.2.tar.gz",
+        sha256 = "4b2c61795ac2eefcb28f3eb8e1cb2d8fb3c2eafa0f6712473bc5f93728f38758",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -164,8 +164,8 @@ build files automatically using gazelle_.
 
     http_archive(
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.1/rules_go-0.10.1.tar.gz",
-        sha256 = "4b14d8dd31c6dbaf3ff871adcd03f28c3274e42abc855cb8fb4d01233c0154dc",
+        url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.2/rules_go-0.10.2.tar.gz",
+        sha256 = "4b2c61795ac2eefcb28f3eb8e1cb2d8fb3c2eafa0f6712473bc5f93728f38758",
     )
     http_archive(
         name = "bazel_gazelle",
