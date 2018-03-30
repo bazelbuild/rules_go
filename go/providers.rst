@@ -12,6 +12,7 @@ Go providers
 .. _static linking: modes.rst#building-static-binaries
 .. _race detector: modes.rst#using-the-race-detector
 .. _runfiles: https://docs.bazel.build/versions/master/skylark/lib/runfiles.html
+.. _File: https://docs.bazel.build/versions/master/skylark/lib/File.html
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -288,6 +289,15 @@ each package.
 +--------------------------------+-----------------------------------------------------------------+
 | The short path to the output file or directory. Useful for constructing                          |
 | ``runfiles`` paths.                                                                              |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`gopath_file`           | :type:`File`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| A Bazel File_ that points to the output directory.                                               |
+|                                                                                                  |
+| * In ``archive`` mode, this is the archive.                                                      |
+| * In ``copy`` mode, this is the output directory.                                                |
+| * In ``link`` mode, this is an empty file inside the output directory, so                        |
+|   you need to use .dirname to get the path to the directory.                                     |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`packages`              | :type:`list of struct`                                          |
 +--------------------------------+-----------------------------------------------------------------+

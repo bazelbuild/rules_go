@@ -90,11 +90,13 @@ def _go_path_impl(ctx):
     out_path = out.path
     out_short_path = out.short_path
     outputs = [out]
+    out_file = out
   elif ctx.attr.mode == "copy":
     out = ctx.actions.declare_directory(ctx.label.name)
     out_path = out.path
     out_short_path = out.short_path
     outputs = [out]
+    out_file = out
   else:  # link
     # Declare individual outputs in link mode. Symlinks can't point outside
     # tree artifacts.
@@ -104,6 +106,7 @@ def _go_path_impl(ctx):
     ctx.actions.write(tag, "")
     out_path = tag.dirname
     out_short_path = tag.short_path.rpartition("/")[0]
+    out_file = tag
   args = [
       "-manifest=" + manifest_file.path,
       "-out=" + out_path,
@@ -124,6 +127,7 @@ def _go_path_impl(ctx):
       ),
       GoPath(
           gopath = out_short_path,
+          gopath_file = out_file,
           packages = pkg_map.values(),
       ),
   ]
