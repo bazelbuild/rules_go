@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_embed_data", "go_library", "go_test")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 
 go_test(
     name = "go_default_test",
@@ -20,6 +21,7 @@ go_library(
         ":local",
         ":single",
         ":str",
+        ":unpack",
     ],
     importpath = "github.com/bazelbuild/rules_go/tests/go_embed_data",
 )
@@ -68,4 +70,29 @@ go_embed_data(
     package = "go_embed_data",
     string = True,
     var = "str",
+)
+
+go_embed_data(
+    name = "unpack",
+    srcs = [
+        ":embedded_tar",
+        ":embedded_zip",
+    ],
+    package = "go_embed_data",
+    unpack = True,
+    var = "unpack",
+)
+
+pkg_tar(
+    name = "embedded_tar",
+    srcs = [":BUILD.bazel"],
+    package_dir = "/from-tar",
+)
+
+genrule(
+    name = "embedded_zip",
+    srcs = [":BUILD.bazel"],
+    outs = ["embedded_zip.zip"],
+    cmd = "$(location @bazel_tools//tools/zip:zipper/zipper) c $@ from-zip/BUILD.bazel=$(location :BUILD.bazel)",
+    tools = ["@bazel_tools//tools/zip:zipper/zipper"],
 )

@@ -117,6 +117,11 @@ It should be consumed in the srcs list of one of the `core go rules`_.
 | If :value:`true` and :param:`srcs` is used, map keys are file base names instead of relative     |
 | paths.                                                                                           |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`unpack`            | :type:`boolean`             | :value:`false`                        |
++----------------------------+-----------------------------+---------------------------------------+
+| If :value:`true`, sources are treated as archives and their contents will be stored. Supported   |
+| formats are `.zip` and `.tar`.                                                                   |
++----------------------------+-----------------------------+---------------------------------------+
 | :param:`string`            | :type:`boolean`             | :value:`false`                        |
 +----------------------------+-----------------------------+---------------------------------------+
 | If :value:`true`, the embedded data will be stored as :type:`string` instead of :type:`[]byte`.  |

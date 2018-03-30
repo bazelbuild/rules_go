@@ -54,6 +54,9 @@ def _go_embed_data_impl(ctx):
     args.add("-flatten")
   if ctx.attr.string:
     args.add("-string")
+  if ctx.attr.unpack:
+    args.add("-unpack")
+    args.add("-multi")
   args.add(srcs)
 
   library = go.new_library(go, srcs=srcs)
@@ -79,6 +82,7 @@ go_embed_data = go_rule(
         "src": attr.label(allow_single_file = True),
         "srcs": attr.label_list(allow_files = True),
         "flatten": attr.bool(),
+        "unpack": attr.bool(),
         "string": attr.bool(),
         "_embed": attr.label(
             default = Label("@io_bazel_rules_go//go/tools/builders:embed"),

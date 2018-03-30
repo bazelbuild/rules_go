@@ -64,6 +64,23 @@ func TestString(t *testing.T) {
 	}
 }
 
+func TestUnpack(t *testing.T) {
+	for _, data := range unpack {
+		checkFile(t, "tests/legacy/go_embed_data/BUILD.bazel", data)
+	}
+	for _, key := range []string{
+		"from-zip/BUILD.bazel",
+		// Note: Bazel's pkg_tar always adds a leading "./" to its outputs,
+		// but tars generated from other sources can match the original
+		// inputs more exactly.
+		"./from-tar/BUILD.bazel",
+	} {
+		if _, ok := unpack[key]; !ok {
+			t.Errorf("filename %q is not in unpacked set", key)
+		}
+	}
+}
+
 func checkFile(t *testing.T, path string, data []byte) {
 	f, err := os.Open(path)
 	if err != nil {
