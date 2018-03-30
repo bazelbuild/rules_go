@@ -98,7 +98,6 @@ They currently do not support (in order of importance):
   go_default_library)
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
-* test sharding
 
 :Note: The latest version of these rules (0.10.2) requires Bazel ≥ 0.10.0 to work.
 
