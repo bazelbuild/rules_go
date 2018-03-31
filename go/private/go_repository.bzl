@@ -100,6 +100,8 @@ def _go_repository_impl(ctx):
       cmd.extend(["--external", ctx.attr.build_external])
     if ctx.attr.build_file_proto_mode:
       cmd.extend(["--proto", ctx.attr.build_file_proto_mode])
+    if ctx.attr.build_extra_args:
+      cmd.extend(ctx.attr.build_extra_args)
     cmd.append(ctx.path(''))
     result = env_execute(ctx, cmd)
     if result.return_code:
@@ -159,6 +161,7 @@ go_repository = repository_rule(
                 "legacy",
             ],
         ),
+        "build_extra_args": attr.string_list(),
     },
 )
 """See go/workspace.rst#go-repository for full documentation."""
