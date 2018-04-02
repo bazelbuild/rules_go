@@ -7,6 +7,7 @@ test_suite(
 go_library(
     name = "lib",
     srcs = ["lib.go"],
+    cgo = True,
     importpath = "lib",
 )
 

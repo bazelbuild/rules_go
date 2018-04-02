@@ -67,12 +67,19 @@ func readGoMetadata(bctx build.Context, input string, needPackage bool) (*goMeta
 		filename: input,
 	}
 	dir, base := filepath.Split(input)
-	// First check tag filtering
-	match, err := bctx.MatchFile(dir, base)
-	if err != nil {
-		return m, err
+	// Check build constraints on non-cgo files.
+	// Skip cgo files, since they get rejected (due to leading '_') and won't
+	// have any build constraints anyway.
+	if strings.HasPrefix(base, "_cgo") {
+		m.isCgo = true
+		m.matched = true
+	} else {
+		match, err := bctx.MatchFile(dir, base)
+		if err != nil {
+			return m, err
+		}
+		m.matched = match
 	}
-	m.matched = match
 	// if we don't need the package, and we are cgo, no need to parse the file
 	if !needPackage && bctx.CgoEnabled {
 		return m, nil
@@ -111,7 +118,7 @@ func readGoMetadata(bctx build.Context, input string, needPackage bool) (*goMeta
 		}
 	}
 	// matched if cgo is enabled or the file is not cgo
-	m.matched = match && (bctx.CgoEnabled || !m.isCgo)
+	m.matched = m.matched && (bctx.CgoEnabled || !m.isCgo)
 
 	for _, i := range parsed.Imports {
 		path, err := strconv.Unquote(i.Path.Value)

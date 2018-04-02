@@ -58,15 +58,13 @@ def emit_compile(go,
   #TODO: If we really do then it needs to be moved all the way back out to the rule
   gc_goopts = [go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
   inputs = sets.union(sources, [go.package_list])
-  go_sources = [s.path for s in sources if not s.basename.startswith("_cgo")]
-  cgo_sources = [s.path for s in sources if s.basename.startswith("_cgo")]
 
   inputs = sets.union(inputs, [archive.data.file for archive in archives])
   inputs = sets.union(inputs, go.stdlib.files)
 
   args = go.args(go)
   args.add(["-package_list", go.package_list])
-  args.add(go_sources, before_each="-src")
+  args.add([s.path for s in sources], before_each="-src")
   args.add(archives, before_each="-dep", map_fn=_importpath)
   args.add(archives, before_each="-I", map_fn=_searchpath)
   args.add(archives, before_each="-importmap", map_fn=_importmap)
@@ -82,7 +80,6 @@ def emit_compile(go,
     args.add(["-N", "-l"])
   if go.mode.link in [LINKMODE_PLUGIN]:
     args.add(["-dynlink"])
-  args.add(cgo_sources)
   go.actions.run(
       inputs = inputs,
       outputs = [out_lib],

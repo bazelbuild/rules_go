@@ -15,4 +15,6 @@ limitations under the License.
 
 package lib
 
+import "C"
+
 var Got = "Got"
