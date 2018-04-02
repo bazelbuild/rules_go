@@ -154,7 +154,7 @@ func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, pac
 		depSet[d] = true
 	}
 
-	var errs depsError
+	derr := depsError{known: deps}
 	for _, f := range files {
 		for _, path := range f.imports {
 			if path == "C" || stdlib[path] || isRelative(path) {
@@ -164,31 +164,42 @@ func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, pac
 				continue
 			}
 			if !depSet[path] {
-				errs = append(errs, missingDep{f.filename, path})
+				derr.missing = append(derr.missing, missingDep{f.filename, path})
 			}
 		}
 	}
-	if len(errs) > 0 {
-		return errs
+	if len(derr.missing) > 0 {
+		return derr
 	}
 	return nil
 }
 
-type depsError []missingDep
+type depsError struct {
+	missing []missingDep
+	known   []string
+}
 
 type missingDep struct {
 	filename, imp string
 }
 
-var _ error = depsError(nil)
+var _ error = depsError{}
 
 func (e depsError) Error() string {
 	buf := bytes.NewBuffer(nil)
 	fmt.Fprintf(buf, "missing strict dependencies:\n")
-	for _, dep := range e {
+	for _, dep := range e.missing {
 		fmt.Fprintf(buf, "\t%s: import of %q\n", dep.filename, dep.imp)
 	}
-	fmt.Fprintf(buf, "Check that imports in Go sources match importpath attributes in deps.")
+	if len(e.known) == 0 {
+		fmt.Fprintln(buf, "No dependencies were provided.")
+	} else {
+		fmt.Fprintln(buf, "Known dependencies are:")
+		for _, imp := range e.known {
+			fmt.Fprintf(buf, "\t%s\n", imp)
+		}
+	}
+	fmt.Fprint(buf, "Check that imports in Go sources match importpath attributes in deps.")
 	return buf.String()
 }
 
