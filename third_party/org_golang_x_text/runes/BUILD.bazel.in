@@ -15,6 +15,7 @@ go_test(
     name = "go_default_test",
     srcs = [
         "cond_test.go",
+        "example_test.go",
         "runes_test.go",
     ],
     embed = [":go_default_library"],
@@ -22,15 +23,6 @@ go_test(
         "//cases:go_default_library",
         "//internal/testtext:go_default_library",
         "//language:go_default_library",
-        "//transform:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    deps = [
-        ":go_default_library",
         "//transform:go_default_library",
         "//unicode/norm:go_default_library",
         "//width:go_default_library",

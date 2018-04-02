@@ -12,10 +12,10 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = ["descriptor_test.go"],
+    embed = [":go_default_library"],
     deps = [
-        ":go_default_library",
         "//proto/testdata:go_default_library",
         "//protoc-gen-go/descriptor:go_default_library",
     ],

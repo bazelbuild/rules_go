@@ -24,6 +24,7 @@ go_test(
     srcs = [
         "entity_test.go",
         "escape_test.go",
+        "example_test.go",
         "node_test.go",
         "parse_test.go",
         "render_test.go",
@@ -32,11 +33,4 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":go_default_library"],
     deps = ["//html/atom:go_default_library"],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    data = glob(["testdata/**"]),
-    deps = [":go_default_library"],
 )

@@ -25,6 +25,8 @@ go_test(
     name = "go_default_test",
     srcs = [
         "coverage_test.go",
+        "examples_test.go",
+        "httpexample_test.go",
         "language_test.go",
         "lookup_test.go",
         "match_test.go",
@@ -37,14 +39,4 @@ go_test(
         "//internal/testtext:go_default_library",
         "//internal/ucd:go_default_library",
     ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = [
-        "examples_test.go",
-        "httpexample_test.go",
-    ],
-    data = glob(["testdata/**"]),
-    deps = [":go_default_library"],
 )

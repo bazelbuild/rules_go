@@ -16,46 +16,14 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = [
         "load_test.go",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:dragonfly": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:freebsd": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:linux": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:nacl": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:netbsd": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:openbsd": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:plan9": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:solaris": [
-            "switch_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:windows": [
-            "switch_test.go",
-        ],
-        "//conditions:default": [],
-    }),
+        "switch_test.go",
+    ],
     data = glob(["testdata/**"]),
-    deps = [
-        ":go_default_library",
-    ] + select({
+    embed = [":go_default_library"],
+    deps = select({
         "@io_bazel_rules_go//go/platform:darwin": [
             "//go/loader:go_default_library",
             "//go/ssa:go_default_library",

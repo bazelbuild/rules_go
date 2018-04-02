@@ -38,7 +38,7 @@ POPULAR_REPOS = [
             "bpf:go_default_test", # Needs testdata directory
             "html/charset:go_default_test", # Needs testdata directory
             "http2:go_default_test", # Needs testdata directory
-            "icmp:go_default_xtest", # icmp requires adjusting kernel options.
+            "icmp:go_default_test", # icmp requires adjusting kernel options.
             "nettest:go_default_test", #
             "lif:go_default_test",
         ],
@@ -52,7 +52,7 @@ POPULAR_REPOS = [
         importpath = "golang.org/x/sys",
         commit = "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79",
         excludes = [
-            "unix:go_default_xtest", # TODO(#413): External test depends on symbols defined in internal test.
+            "unix:go_default_test", # TODO(#413): External test depends on symbols defined in internal test.
         ],
     ),
 
@@ -68,6 +68,7 @@ POPULAR_REPOS = [
             "encoding/traditionalchinese:go_default_test", # Needs testdata directory
             "encoding/unicode/utf32:go_default_test", # Needs testdata directory
             "encoding/unicode:go_default_test", # Needs testdata directory
+            "internal/cldrtree:go_default_test", # Needs testdata directory
         ],
     ),
 
@@ -78,31 +79,30 @@ POPULAR_REPOS = [
         excludes = [
             "cmd/bundle:go_default_test", # Needs testdata directory
             "cmd/callgraph:go_default_test", # Needs testdata directory
-            "cmd/cover:go_default_xtest", # Needs testdata directory
-            "cmd/guru:go_default_xtest", # Needs testdata directory
+            "cmd/cover:go_default_test", # Needs testdata directory
+            "cmd/guru:go_default_test", # Needs testdata directory
             "cmd/stringer:go_default_test", # Needs testdata directory
-            "go/buildutil:go_default_xtest", # Needs testdata directory
-            "go/callgraph/cha:go_default_xtest", # Needs testdata directory
-            "go/callgraph/rta:go_default_xtest", # Needs testdata directory
-            "go/gccgoexportdata:go_default_xtest", # Needs testdata directory
-            "go/gcexportdata:go_default_xtest", # Needs testdata directory
+            "go/buildutil:go_default_test", # Needs testdata directory
+            "go/callgraph/cha:go_default_test", # Needs testdata directory
+            "go/callgraph/rta:go_default_test", # Needs testdata directory
+            "go/gccgoexportdata:go_default_test", # Needs testdata directory
+            "go/gcexportdata:go_default_test", # Needs testdata directory
             "go/gcimporter15:go_default_test", # Needs testdata directory
             "go/internal/gccgoimporter:go_default_test", # Needs testdata directory
-            "go/loader:go_default_xtest", # Needs testdata directory
-            "go/pointer:go_default_xtest", # Needs testdata directory
-            "go/ssa/interp:go_default_xtest", # Needs testdata directory
-            "go/ssa/ssautil:go_default_xtest", # Needs testdata directory
-            "go/ssa:go_default_xtest", # Needs testdata directory
-            "refactor/eg:go_default_xtest", # Needs testdata directory
+            "go/loader:go_default_test", # Needs testdata directory
+            "go/pointer:go_default_test", # Needs testdata directory
+            "go/ssa/interp:go_default_test", # Needs testdata directory
+            "go/ssa/ssautil:go_default_test", # Needs testdata directory
+            "go/ssa:go_default_test", # Needs testdata directory
+            "refactor/eg:go_default_test", # Needs testdata directory
             "cmd/fiximports:go_default_test", # requires working GOROOT, not present in CI.
-            "cmd/godoc:go_default_xtest", # TODO(#417)
-            "cmd/gorename:go_default_xtest", # TODO(#417)
-            "go/gcimporter15:go_default_xtest", # TODO(#417)
-            "refactor/importgraph:go_default_xtest", # TODO(#417)
+            "cmd/godoc:go_default_test", # TODO(#417)
+            "cmd/gorename:go_default_test", # TODO(#417)
+            "go/gcimporter15:go_default_test", # TODO(#417)
+            "refactor/importgraph:go_default_test", # TODO(#417)
             "refactor/rename:go_default_test", # TODO(#417)
-            "cmd/guru/testdata/src/referrers:go_default_xtest", # Not a real test
             "cmd/guru/testdata/src/referrers:go_default_test", # Not a real test
-            "container/intsets:go_default_xtest", # TODO(#413): External test depends on symbols defined in internal test.
+            "container/intsets:go_default_test", # TODO(#413): External test depends on symbols defined in internal test.
         ],
     ),
 
@@ -118,10 +118,11 @@ POPULAR_REPOS = [
         build_file_proto_mode = "disable",
         excludes = [
             "test:go_default_test",
-            "examples/route_guide/mock_routeguide:go_default_xtest",
-            "examples/helloworld/mock_helloworld:go_default_xtest",
+            "examples/route_guide/mock_routeguide:go_default_test",
+            "examples/helloworld/mock_helloworld:go_default_test",
             "credentials:go_default_test",
             ":go_default_test",
+            "transport:go_default_test", # slow
         ],
     ),
 

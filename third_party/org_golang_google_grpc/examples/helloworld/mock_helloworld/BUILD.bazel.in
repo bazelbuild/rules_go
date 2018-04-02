@@ -14,10 +14,10 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = ["hw_mock_test.go"],
+    embed = [":go_default_library"],
     deps = [
-        ":go_default_library",
         "//examples/helloworld/helloworld:go_default_library",
         "@com_github_golang_mock//gomock:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",

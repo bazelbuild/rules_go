@@ -31,7 +31,7 @@ go_library(
         "//protobuf/api:go_default_library",
         "//protobuf/ptype:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
-        "@com_github_golang_protobuf//ptypes/any:go_default_library",
-        "@com_github_golang_protobuf//ptypes/wrappers:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:any_go_proto",
+        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
     ],
 )

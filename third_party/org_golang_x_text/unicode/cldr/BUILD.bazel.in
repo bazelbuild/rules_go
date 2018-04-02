@@ -21,14 +21,9 @@ go_test(
         "cldr_test.go",
         "collate_test.go",
         "data_test.go",
+        "examples_test.go",
         "resolve_test.go",
         "slice_test.go",
     ],
     embed = [":go_default_library"],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["examples_test.go"],
-    deps = [":go_default_library"],
 )

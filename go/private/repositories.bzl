@@ -33,7 +33,7 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "bazel_gazelle",
       remote = "https://github.com/bazelbuild/bazel-gazelle",
-      commit = "b345aed922d0a31528180a73f097e2f755e6da60", # master as of 2018-03-21
+      commit = "96cf920990dd78e5ab3b701785e6a4a6eb58485e", # master as of 2018-04-02
   )
 
   # Old version of buildtools, before breaking API changes. Old versions of
@@ -74,6 +74,7 @@ def go_rules_dependencies():
       remote = "https://github.com/golang/protobuf",
       commit = "925541529c1fa6821df4e44ce2723319eb2be768",  # v1.0.0, as of 2018-02-16
       overlay = manifest["com_github_golang_protobuf"],
+      # build_file_proto_mode = "legacy",
   )
   _maybe(http_archive,
       name = "com_google_protobuf",
@@ -85,7 +86,7 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "com_github_mwitkow_go_proto_validators",
       remote = "https://github.com/mwitkow/go-proto-validators",
-      commit = "a55ca57f374a8846924b030f534d8b8211508cf0",  # master, as of 2017-11-24
+      commit = "646922ec4d2aeab6007660e0dda57f4f4321f19f",  # master, as of 2018-04-02
       overlay = manifest["com_github_mwitkow_go_proto_validators"],
       # build_file_proto_mode = "disable",
   )
@@ -104,34 +105,35 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "org_golang_x_net",
       remote = "https://github.com/golang/net",
-      commit = "136a25c244d3019482a795d728110278d6ba09a4",  # master as of 2018-02-16
+      commit = "b68f30494add4df6bd8ef5e82803f308e7f7c59c",  # master as of 2018-04-02
       overlay = manifest["org_golang_x_net"],
   )
   _maybe(git_repository,
       name = "org_golang_x_text",
       remote = "https://github.com/golang/text",
-      commit = "c4d099d611ac3ded35360abf03581e13d91c828f",  # v0.2.0, latest as of 2018-02-16
+      commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # v0.3.0, latest as of 2018-04-02
       overlay = manifest["org_golang_x_text"],
   )
   _maybe(git_repository,
       name = "org_golang_google_grpc",
       remote = "https://github.com/grpc/grpc-go",
-      commit = "8e4536a86ab602859c20df5ebfd0bd4228d08655",  # v1.10.0, latest as of 2018-02-16
+      commit = "1e2570b1b19ade82d8dbb31bba4e65e9f9ef5b34",  # v1.10.1, latest as of 2018-04-02
       overlay = manifest["org_golang_google_grpc"],
       # build_file_proto_mode = "disable",
   )
   _maybe(git_repository,
       name = "org_golang_google_genproto",
       remote = "https://github.com/google/go-genproto",
-      commit = "2b5a72b8730b0b16380010cfe5286c42108d88e7",  # master on 2018-02-16
+      commit = "ab0870e398d5dd054b868c0db1481ab029b9a9f2",  # master as of 2018-04-02
       overlay = manifest["org_golang_google_genproto"],
+      # build_file_proto_mode = "disable",
   )
 
   # Needed for examples
   _maybe(git_repository,
       name = "com_github_golang_glog",
       remote = "https://github.com/golang/glog",
-      commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
+      commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",  # master as of 2018-04-02
       overlay = manifest["com_github_golang_glog"],
   )
   _maybe(git_repository,

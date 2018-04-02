@@ -46,12 +46,9 @@ go_binary(
 
 go_test(
     name = "go_default_test",
-    srcs = ["unit_test.go"],
+    srcs = [
+        "guru_test.go",
+        "unit_test.go",
+    ],
     embed = [":go_default_library"],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["guru_test.go"],
-    deps = [":go_default_library"],
 )

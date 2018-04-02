@@ -13,10 +13,10 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = ["static_test.go"],
+    embed = [":go_default_library"],
     deps = [
-        ":go_default_library",
         "//go/callgraph:go_default_library",
         "//go/loader:go_default_library",
         "//go/ssa/ssautil:go_default_library",

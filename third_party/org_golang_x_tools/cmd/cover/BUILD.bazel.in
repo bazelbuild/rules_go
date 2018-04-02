@@ -20,38 +20,7 @@ go_binary(
 )
 
 go_test(
-    name = "go_default_xtest",
-    srcs = select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:dragonfly": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:freebsd": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:linux": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:nacl": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:netbsd": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:openbsd": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:plan9": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:solaris": [
-            "cover_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:windows": [
-            "cover_test.go",
-        ],
-        "//conditions:default": [],
-    }),
+    name = "go_default_test",
+    srcs = ["cover_test.go"],
+    embed = [":go_default_library"],
 )

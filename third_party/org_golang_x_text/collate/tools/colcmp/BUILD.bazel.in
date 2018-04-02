@@ -6,13 +6,9 @@ go_library(
         "chars.go",
         "col.go",
         "colcmp.go",
+        "darwin.go",
         "gen.go",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "darwin.go",
-        ],
-        "//conditions:default": [],
-    }),
+    ],
     cgo = True,
     clinkopts = select({
         "@io_bazel_rules_go//go/platform:darwin": [

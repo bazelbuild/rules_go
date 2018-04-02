@@ -22,6 +22,7 @@ go_test(
     name = "go_default_test",
     srcs = [
         "data_test.go",
+        "example_test.go",
         "message_test.go",
         "plural_test.go",
     ],
@@ -29,16 +30,7 @@ go_test(
     deps = [
         "//internal/catmsg:go_default_library",
         "//language:go_default_library",
-        "//message/catalog:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    deps = [
-        ":go_default_library",
-        "//language:go_default_library",
         "//message:go_default_library",
+        "//message/catalog:go_default_library",
     ],
 )

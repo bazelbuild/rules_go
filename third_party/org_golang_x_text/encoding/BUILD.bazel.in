@@ -12,14 +12,14 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = [
         "encoding_test.go",
         "example_test.go",
     ],
     data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
     deps = [
-        ":go_default_library",
         "//encoding/charmap:go_default_library",
         "//encoding/unicode:go_default_library",
         "//transform:go_default_library",

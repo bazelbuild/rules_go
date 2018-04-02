@@ -23,15 +23,6 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
-        "message_set_test.go",
-        "size2_test.go",
-    ],
-    embed = [":go_default_library"],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = [
         "all_test.go",
         "any_test.go",
         "clone_test.go",
@@ -40,17 +31,19 @@ go_test(
         "equal_test.go",
         "extensions_test.go",
         "map_test.go",
+        "message_set_test.go",
         "proto3_test.go",
+        "size2_test.go",
         "size_test.go",
         "text_parser_test.go",
         "text_test.go",
     ],
+    embed = [":go_default_library"],
     deps = [
-        ":go_default_library",
         "//proto/proto3_proto:go_default_library",
         "//proto/testdata:go_default_library",
         "//ptypes:go_default_library",
-        "//ptypes/any:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:any_go_proto",
         "@org_golang_x_sync//errgroup:go_default_library",
     ],
 )

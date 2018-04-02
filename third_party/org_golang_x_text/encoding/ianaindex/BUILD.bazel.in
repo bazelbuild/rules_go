@@ -22,7 +22,10 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["ianaindex_test.go"],
+    srcs = [
+        "example_test.go",
+        "ianaindex_test.go",
+    ],
     embed = [":go_default_library"],
     deps = [
         "//encoding:go_default_library",
@@ -33,14 +36,5 @@ go_test(
         "//encoding/simplifiedchinese:go_default_library",
         "//encoding/traditionalchinese:go_default_library",
         "//encoding/unicode:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    deps = [
-        ":go_default_library",
-        "//encoding/charmap:go_default_library",
     ],
 )

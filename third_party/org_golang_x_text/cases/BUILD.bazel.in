@@ -27,6 +27,7 @@ go_test(
     name = "go_default_test",
     srcs = [
         "context_test.go",
+        "example_test.go",
         "fold_test.go",
         "map_test.go",
         "tables10.0.0_test.go",
@@ -39,14 +40,5 @@ go_test(
         "//transform:go_default_library",
         "//unicode/norm:go_default_library",
         "//unicode/rangetable:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    deps = [
-        ":go_default_library",
-        "//language:go_default_library",
     ],
 )

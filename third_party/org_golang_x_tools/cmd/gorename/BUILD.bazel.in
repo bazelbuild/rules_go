@@ -18,9 +18,10 @@ go_binary(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = [
         "cgo_test.go",
         "gorename_test.go",
     ],
+    embed = [":go_default_library"],
 )

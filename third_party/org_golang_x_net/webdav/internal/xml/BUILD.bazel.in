@@ -16,14 +16,10 @@ go_test(
     name = "go_default_test",
     srcs = [
         "atom_test.go",
+        "example_test.go",
         "marshal_test.go",
         "read_test.go",
         "xml_test.go",
     ],
     embed = [":go_default_library"],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
 )

@@ -14,46 +14,13 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = [
+        "allpackages_test.go",
         "overlay_test.go",
         "tags_test.go",
         "util_test.go",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:dragonfly": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:freebsd": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:linux": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:nacl": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:netbsd": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:openbsd": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:plan9": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:solaris": [
-            "allpackages_test.go",
-        ],
-        "@io_bazel_rules_go//go/platform:windows": [
-            "allpackages_test.go",
-            "util_windows_test.go",
-        ],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":go_default_library",
+        "util_windows_test.go",
     ],
+    embed = [":go_default_library"],
 )

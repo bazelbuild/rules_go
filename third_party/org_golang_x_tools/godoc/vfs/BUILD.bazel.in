@@ -13,10 +13,8 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = ["emptyvfs_test.go"],
-    deps = [
-        ":go_default_library",
-        "//godoc/vfs/mapfs:go_default_library",
-    ],
+    embed = [":go_default_library"],
+    deps = ["//godoc/vfs/mapfs:go_default_library"],
 )

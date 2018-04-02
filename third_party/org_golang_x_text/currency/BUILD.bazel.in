@@ -23,6 +23,7 @@ go_test(
     name = "go_default_test",
     srcs = [
         "currency_test.go",
+        "example_test.go",
         "format_test.go",
         "query_test.go",
         "tables_test.go",
@@ -35,10 +36,4 @@ go_test(
         "//message:go_default_library",
         "//unicode/cldr:go_default_library",
     ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    deps = [":go_default_library"],
 )

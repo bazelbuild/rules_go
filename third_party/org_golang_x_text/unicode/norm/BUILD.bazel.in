@@ -25,6 +25,8 @@ go_test(
         "composition_test.go",
         "data10.0.0_test.go",
         "data9.0.0_test.go",
+        "example_iter_test.go",
+        "example_test.go",
         "iter_test.go",
         "normalize_test.go",
         "readwriter_test.go",
@@ -37,13 +39,4 @@ go_test(
         "//internal/testtext:go_default_library",
         "//transform:go_default_library",
     ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = [
-        "example_iter_test.go",
-        "example_test.go",
-    ],
-    deps = [":go_default_library"],
 )

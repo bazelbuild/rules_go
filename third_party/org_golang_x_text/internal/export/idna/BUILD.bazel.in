@@ -24,6 +24,7 @@ go_test(
     name = "go_default_test",
     srcs = [
         "common_test.go",
+        "example_test.go",
         "gen10.0.0_test.go",
         "gen9.0.0_test.go",
         "idna10.0.0_test.go",
@@ -37,10 +38,4 @@ go_test(
         "//internal/testtext:go_default_library",
         "//internal/ucd:go_default_library",
     ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    deps = [":go_default_library"],
 )

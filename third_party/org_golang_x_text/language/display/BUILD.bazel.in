@@ -21,20 +21,11 @@ go_test(
     srcs = [
         "dict_test.go",
         "display_test.go",
+        "examples_test.go",
     ],
     embed = [":go_default_library"],
     deps = [
         "//internal/testtext:go_default_library",
-        "//language:go_default_library",
-        "//message:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["examples_test.go"],
-    deps = [
-        ":go_default_library",
         "//language:go_default_library",
         "//message:go_default_library",
     ],

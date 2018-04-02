@@ -19,10 +19,10 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//proto:go_default_library",
-        "//ptypes/any:go_default_library",
-        "//ptypes/duration:go_default_library",
-        "//ptypes/struct:go_default_library",
-        "//ptypes/timestamp:go_default_library",
-        "//ptypes/wrappers:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:any_go_proto",
+        "@io_bazel_rules_go//proto/wkt:duration_go_proto",
+        "@io_bazel_rules_go//proto/wkt:struct_go_proto",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
     ],
 )

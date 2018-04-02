@@ -15,12 +15,9 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["context_test.go"],
+    srcs = [
+        "context_test.go",
+        "withtimeout_test.go",
+    ],
     embed = [":go_default_library"],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["withtimeout_test.go"],
-    deps = [":go_default_library"],
 )

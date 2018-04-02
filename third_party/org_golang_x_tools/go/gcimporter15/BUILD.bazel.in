@@ -16,18 +16,13 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["gcimporter_test.go"],
-    embed = [":go_default_library"],
-)
-
-go_test(
-    name = "go_default_xtest",
     srcs = [
         "bexport19_test.go",
         "bexport_test.go",
+        "gcimporter_test.go",
     ],
+    embed = [":go_default_library"],
     deps = [
-        ":go_default_library",
         "//go/buildutil:go_default_library",
         "//go/loader:go_default_library",
     ],

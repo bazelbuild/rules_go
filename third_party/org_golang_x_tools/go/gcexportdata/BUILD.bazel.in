@@ -12,11 +12,11 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = [
         "example_test.go",
         "gcexportdata_test.go",
     ],
     data = glob(["testdata/**"]),
-    deps = [":go_default_library"],
+    embed = [":go_default_library"],
 )

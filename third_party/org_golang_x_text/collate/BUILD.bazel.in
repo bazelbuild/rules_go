@@ -25,6 +25,7 @@ go_test(
         "export_test.go",
         "option_test.go",
         "reg_test.go",
+        "sort_test.go",
         "table_test.go",
     ],
     embed = [":go_default_library"],
@@ -34,14 +35,5 @@ go_test(
         "//internal/gen:go_default_library",
         "//language:go_default_library",
         "//unicode/norm:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["sort_test.go"],
-    deps = [
-        ":go_default_library",
-        "//language:go_default_library",
     ],
 )

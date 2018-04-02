@@ -37,9 +37,10 @@ go_binary(
 )
 
 go_test(
-    name = "go_default_xtest",
+    name = "go_default_test",
     srcs = [
         "godoc19_test.go",
         "godoc_test.go",
     ],
+    embed = [":go_default_library"],
 )

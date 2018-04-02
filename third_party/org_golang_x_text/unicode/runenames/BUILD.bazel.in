@@ -13,17 +13,14 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["runenames_test.go"],
+    srcs = [
+        "example_test.go",
+        "runenames_test.go",
+    ],
     embed = [":go_default_library"],
     deps = [
         "//internal/gen:go_default_library",
         "//internal/testtext:go_default_library",
         "//internal/ucd:go_default_library",
     ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["example_test.go"],
-    deps = [":go_default_library"],
 )

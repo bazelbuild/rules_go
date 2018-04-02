@@ -23,6 +23,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
+        "collate_test.go",
         "collelem_test.go",
         "colltab_test.go",
         "contract_test.go",
@@ -33,16 +34,8 @@ go_test(
     ],
     embed = [":go_default_library"],
     deps = [
-        "//internal/testtext:go_default_library",
-        "//language:go_default_library",
-    ],
-)
-
-go_test(
-    name = "go_default_xtest",
-    srcs = ["collate_test.go"],
-    deps = [
         "//collate:go_default_library",
+        "//internal/testtext:go_default_library",
         "//language:go_default_library",
         "//unicode/rangetable:go_default_library",
     ],
