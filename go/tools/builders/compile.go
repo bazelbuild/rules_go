@@ -17,6 +17,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"go/build"
@@ -128,6 +129,8 @@ func run(args []string) error {
 }
 
 func main() {
+	log.SetFlags(0) // no timestamp
+	log.SetPrefix("GoCompile: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
@@ -161,7 +164,7 @@ func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, pac
 				continue
 			}
 			if !depSet[path] {
-				errs = append(errs, fmt.Errorf("%s: import of %s, which is not a direct dependency", f.filename, path))
+				errs = append(errs, missingDep{f.filename, path})
 			}
 		}
 	}
@@ -171,16 +174,22 @@ func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, pac
 	return nil
 }
 
-type depsError []error
+type depsError []missingDep
+
+type missingDep struct {
+	filename, imp string
+}
 
 var _ error = depsError(nil)
 
 func (e depsError) Error() string {
-	errorStrings := make([]string, len(e))
-	for i, err := range e {
-		errorStrings[i] = err.Error()
+	buf := bytes.NewBuffer(nil)
+	fmt.Fprintf(buf, "missing strict dependencies:\n")
+	for _, dep := range e {
+		fmt.Fprintf(buf, "\t%s: import of %q\n", dep.filename, dep.imp)
 	}
-	return "missing strict dependencies:\n\t" + strings.Join(errorStrings, "\n\t")
+	fmt.Fprintf(buf, "Check that imports in Go sources match importpath attributes in deps.")
+	return buf.String()
 }
 
 func isRelative(path string) bool {
