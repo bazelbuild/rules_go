@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package tests.core.go_proto_library.bar;
+option go_package = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/bar";
+
+import "tests/core/go_proto_library/foo.proto";
+
+message Bar {
+  tests.core.go_proto_library.foo.Foo value = 1;
+}

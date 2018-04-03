@@ -38,18 +38,26 @@ load(
 GoProtoImports = provider()
 
 def get_imports(attr):
-  imports = []
+  direct = []
   if hasattr(attr, "proto"):
-    imports.append(["{}={}".format(proto_path(src), attr.importpath) for src in attr.proto.proto.direct_sources])
-  imports.extend([dep[GoProtoImports].imports for dep in getattr(attr, "deps", [])])
-  return sets.union(*imports)
+    direct = ["{}={}".format(proto_path(src), attr.importpath)
+              for src in attr.proto.proto.direct_sources]
+  deps = getattr(attr, "deps", []) + getattr(attr, "embed", [])
+  transitive = [dep[GoProtoImports].imports
+                for dep in deps
+                if GoProtoImports in dep]
+  return depset(direct = direct, transitive = transitive)
 
 def _go_proto_aspect_impl(target, ctx):
-  return [GoProtoImports(imports = get_imports(ctx.rule.attr))]
+  imports = get_imports(ctx.rule.attr)
+  return [GoProtoImports(imports = imports)]
 
 _go_proto_aspect = aspect(
     _go_proto_aspect_impl,
-    attr_aspects = ["deps"],
+    attr_aspects = [
+        "deps",
+        "embed",
+    ],
 )
 
 def _proto_library_to_source(go, attr, source, merge):
