@@ -24,6 +24,7 @@ load(
 
 def emit_link(go,
     archive = None,
+    test_archives = [],
     executable = None,
     gc_linkopts = [],
     linkstamp=None,
@@ -66,9 +67,18 @@ def emit_link(go,
   if link_external:
     gc_linkopts.extend(["-linkmode", "external"])
 
+  # Build the set of transitive dependencies. Currently, we tolerate multiple
+  # archives with the same importmap (though this will be an error in the
+  # future), but there is a special case which is difficult to avoid:
+  # If a go_test has internal and external archives, and the external test
+  # transitively depends on the library under test, we need to exclude the
+  # library under test and use the internal test archive instead. 
   deps = depset(transitive = [d.transitive for d in archive.direct])
   dep_args = ["{}={}={}".format(d.label, d.importmap, d.file.path)
-              for d in deps.to_list()]
+              for d in deps.to_list()
+              if not any([d.importmap == t.importmap for t in test_archives])]
+  dep_args.extend(["{}={}={}".format(d.label, d.importmap, d.file.path)
+                   for d in test_archives])
   args.add(dep_args, before_each="-dep")
 
   for d in as_iterable(archive.cgo_deps):

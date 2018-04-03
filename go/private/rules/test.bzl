@@ -128,6 +128,7 @@ def _go_test_impl(ctx):
   test_archive, executable = go.binary(go,
       name = ctx.label.name,
       source = test_source,
+      test_archives = [internal_archive.data],
       gc_linkopts = gc_linkopts(ctx),
       linkstamp=ctx.attr.linkstamp,
       version_file=ctx.version_file,

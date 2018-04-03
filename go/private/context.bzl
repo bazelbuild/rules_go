@@ -19,6 +19,7 @@ load(
     "GoAspectProviders",
     "GoStdLib",
     "GoBuilders",
+    "get_archive",
     "get_source",
 )
 load(
