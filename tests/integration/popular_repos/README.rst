@@ -175,7 +175,6 @@ This runs tests from the repository `google.golang.org/grpc <https://google.gola
 * @org_golang_google_grpc//benchmark/latency:go_default_test
 * @org_golang_google_grpc//benchmark/primitives:go_default_test
 * @org_golang_google_grpc//codes:go_default_test
-* @org_golang_google_grpc//credentials/alts:go_default_test
 * @org_golang_google_grpc//credentials/alts/core/authinfo:go_default_test
 * @org_golang_google_grpc//credentials/alts/core/conn:go_default_test
 * @org_golang_google_grpc//credentials/alts/core/handshaker:go_default_test

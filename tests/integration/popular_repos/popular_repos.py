@@ -121,6 +121,7 @@ POPULAR_REPOS = [
             "examples/route_guide/mock_routeguide:go_default_test",
             "examples/helloworld/mock_helloworld:go_default_test",
             "credentials:go_default_test",
+            "credentials/alts:go_default_test", # not supported on darwin
             ":go_default_test",
             "transport:go_default_test", # slow
         ],
