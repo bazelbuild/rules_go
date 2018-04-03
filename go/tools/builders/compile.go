@@ -25,6 +25,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -81,8 +82,15 @@ func run(args []string) error {
 			files = append(files, f)
 		}
 	}
-	if len(files) <= 0 {
-		return ioutil.WriteFile(absOutput, []byte(""), 0644)
+	if len(files) == 0 {
+		// We need to run the compiler to create a valid archive, even if there's
+		// nothing in it. GoPack will complain if we try to add assembly or cgo
+		// objects.
+		emptyPath := filepath.Join(abs(*trimpath), "_empty.go")
+		if err := ioutil.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
+			return err
+		}
+		files = append(files, &goMetadata{filename: emptyPath})
 	}
 
 	goargs := []string{"tool", "compile"}

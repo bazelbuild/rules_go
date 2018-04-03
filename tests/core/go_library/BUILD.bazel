@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "empty",
+    srcs = [
+        # foo and bar have different package names
+        "empty_foo.go",
+        "empty_bar.go",
+        "empty_baz.s",
+    ],
+    importpath = "empty",
+)
