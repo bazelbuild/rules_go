@@ -24,7 +24,7 @@ if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/$RULES_GO_OUTPUT/g
   echo "error: no coverage output found in test log file" >&2
   exit 1
 fi
-if ! grep -q 'io_bazel_rules_go/tests/legacy/coverage/lib.go:' "bazel-testlogs/$RULES_GO_OUTPUT/go_default_test/coverage.dat"; then
+if ! grep -q 'github.com/bazelbuild/rules_go/tests/coverage/lib.go:' "bazel-testlogs/$RULES_GO_OUTPUT/go_default_test/coverage.dat"; then
   echo "error: no coverage data found in bazel-testlogs"
   exit 1
 fi
