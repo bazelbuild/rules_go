@@ -37,6 +37,10 @@ type CoverFile struct {
 	Var  string
 }
 
+func (f *CoverFile) Base() string {
+	return filepath.Base(f.File)
+}
+
 type CoverPackage struct {
 	Name   string
 	Import string
@@ -138,7 +142,7 @@ func coverRegisterAll() testing.Cover {
 	//{{$p.Import}}
 {{range $v := $p.Files}}
 	{{$var := printf "%s.%s" $p.Name $v.Var}}
-	coverRegisterFile(&coverage, "{{printf "%s/%s" $p.Import $v.File}}", {{$var}}.Count[:], {{$var}}.Pos[:], {{$var}}.NumStmt[:])
+	coverRegisterFile(&coverage, "{{printf "%s/%s" $p.Import $v.Base}}", {{$var}}.Count[:], {{$var}}.Pos[:], {{$var}}.NumStmt[:])
 {{end}}
 {{end}}
 	return coverage
