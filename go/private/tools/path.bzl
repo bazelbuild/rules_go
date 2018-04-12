@@ -65,19 +65,14 @@ def _go_path_impl(ctx):
   # Build a manifest file that includes all files to copy/link/zip.
   inputs = []
   manifest_entries = []
+  manifest_entry_map = {}
   for pkg in pkg_map.values():
     for f in pkg.srcs + pkg.data:
-      manifest_entries.append(struct(
-          src = f.path,
-          dst = pkg.dir + "/" + f.basename,
-      ))
-      inputs.append(f)
+      _add_manifest_entry(manifest_entries, manifest_entry_map, inputs,
+                          f, pkg.dir + "/" + f.basename)
   for f in ctx.files.data:
-    manifest_entries.append(struct(
-        src = f.path,
-        dst = f.basename,
-    ))
-    inputs.append(f)
+    _add_manifest_entry(manifest_entries, manifest_entry_map, inputs,
+                        f, f.basename)
   manifest_file = ctx.actions.declare_file(ctx.label.name + "~manifest")
   manifest_entries_json = [e.to_json() for e in manifest_entries]
   manifest_content = "[\n  " + ",\n  ".join(manifest_entries_json) + "\n]"
@@ -180,4 +175,11 @@ def _merge_pkg(x, y):
   x.srcs.extend([f for f in y.srcs if f.path not in x_srcs])
   x.data.extend([f for f in y.data if f.path not in x_srcs])
 
-  
+def _add_manifest_entry(entries, entry_map, inputs, src, dst):
+  if dst in entry_map:
+    if entry_map[dst] != src.path:
+      fail("{}: references multiple files ({} and {})" % (dst, entry_map[dst], src.path))
+    return
+  entries.append(struct(src = src.path, dst = dst))
+  entry_map[dst] = src.path
+  inputs.append(src)
