@@ -64,7 +64,7 @@ def _go_binary_impl(ctx):
     # directly, Bazel warns them not to use the same name as the rule, which is
     # the common case with go_binary.
     executable = ctx.actions.declare_file(ctx.attr.out)
-  archive, executable = go.binary(go,
+  archive, executable, runfiles = go.binary(go,
       name = name,
       source = source,
       gc_linkopts = gc_linkopts(ctx),
@@ -80,7 +80,7 @@ def _go_binary_impl(ctx):
       ),
       DefaultInfo(
           files = depset([executable]),
-          runfiles = archive.runfiles,
+          runfiles = runfiles,
           executable = executable,
       ),
   ]

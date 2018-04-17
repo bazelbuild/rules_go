@@ -25,6 +25,7 @@ load(
     "as_set",
     "as_list",
     "as_iterable",
+    "SHARED_LIB_EXTENSIONS",
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
@@ -171,8 +172,14 @@ def _cgo_codegen_impl(ctx):
     for inc in d.cc.system_include_directories:
       cppopts.extend(['-isystem', inc])
     for lib in as_iterable(d.cc.libs):
-      if lib.basename.startswith('lib') and lib.basename.endswith('.so'):
-        linkopts.extend(['-L', lib.dirname, '-l', lib.basename[3:-3]])
+      # If both static and dynamic variants are available, Bazel will only give
+      # us the static variant. We'll get on file for each transitive dependency,
+      # so the same file may appear more than once.
+      # TODO(#1456): deduplicate flags, get rid of -L, and set rpaths.
+      if (lib.basename.startswith("lib") and
+          any([lib.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])):
+        libname = lib.basename[len("lib"):lib.basename.rindex(".")]
+        linkopts.extend(['-L', lib.dirname, '-l', libname])
       else:
         linkopts.append(lib.path)
     linkopts.extend(d.cc.link_flags)

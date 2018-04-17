@@ -125,7 +125,7 @@ def _go_test_impl(ctx):
       srcs = [struct(files=[main_go])],
       deps = external_archive.direct + [external_archive],
   ), test_library, False)
-  test_archive, executable = go.binary(go,
+  test_archive, executable, runfiles = go.binary(go,
       name = ctx.label.name,
       source = test_source,
       test_archives = [internal_archive.data],
@@ -134,9 +134,6 @@ def _go_test_impl(ctx):
       version_file=ctx.version_file,
       info_file=ctx.info_file,
   )
-
-  runfiles = ctx.runfiles(files = [executable])
-  runfiles = runfiles.merge(test_archive.runfiles)
 
   # Bazel only looks for coverage data if the test target has an
   # InstrumentedFilesProvider, but this provider can currently only be

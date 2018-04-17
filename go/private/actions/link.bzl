@@ -14,8 +14,9 @@
 
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "sets",
+    "SHARED_LIB_EXTENSIONS",
     "as_iterable",
+    "sets",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
@@ -46,7 +47,10 @@ def emit_link(go,
   if go.cgo_tools:
     ld = go.cgo_tools.compiler_executable
     extldflags.extend(go.cgo_tools.options)
-  extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth)])
+  # TODO(#1456): set rpaths in CgoCodegen instead of here.
+  origin = "@loader_path/" if go.mode.goos == "darwin" else "$ORIGIN/"
+  base_rpath = origin + "../" * pkg_depth
+  extldflags.append("-Wl,-rpath," + base_rpath)
 
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
 
@@ -81,10 +85,11 @@ def emit_link(go,
                    for d in test_archives])
   args.add(dep_args, before_each="-dep")
 
-  for d in as_iterable(archive.cgo_deps):
-    if d.basename.endswith('.so'):
-      short_dir = d.dirname[len(d.root.path):]
-      extldflags.extend(["-Wl,-rpath,$ORIGIN/" + ("../" * pkg_depth) + short_dir])
+  cgo_dynamic_deps = [d for d in archive.cgo_deps
+                      if any([d.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])]
+  for d in cgo_dynamic_deps:
+    short_dir = d.dirname[len(d.root.path)+len("/"):]
+    extldflags.append("-Wl,-rpath,{}/{}".format(base_rpath, short_dir))
 
   # Process x_defs, either adding them directly to linker options, or
   # saving them to process through stamping support.

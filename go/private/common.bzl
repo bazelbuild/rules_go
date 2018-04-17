@@ -138,6 +138,8 @@ def goos_to_extension(goos):
 
 ARCHIVE_EXTENSION = ".a"
 
+SHARED_LIB_EXTENSIONS = [".dll", ".dylib", ".so"]
+
 def goos_to_shared_extension(goos):
   return {
     "windows": ".dll",

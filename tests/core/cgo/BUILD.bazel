@@ -1,7 +1,13 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
+go_test(
+    name = "opts_test",
+    srcs = ["adder_test.go"],
+    embed = [":go_default_library"],
+)
+
 go_library(
-    name = "go_default_library",
+    name = "opts",
     cgo = True,
     copts = ["-DRULES_GO_C"],
     cxxopts = ["-DRULES_GO_CXX"],
@@ -16,7 +22,48 @@ go_library(
 )
 
 go_test(
-    name = "go_default_test",
-    srcs = ["adder_test.go"],
-    embed = [":go_default_library"],
+    name = "dylib_test",
+    srcs = ["dylib_test.go"],
+    embed = [":dylib_client"],
+    rundir = ".",
+)
+
+go_library(
+    name = "dylib_client",
+    srcs = ["dylib_client.go"],
+    cgo = True,
+    cdeps = select({
+        "@io_bazel_rules_go//go/platform:darwin": [":darwin_imported_dylib"],
+        "//conditions:default": [":linux_imported_dylib"],
+        # TODO(jayconrod): Support windows, skip others.
+    }),
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/dylib",
+)
+
+cc_import(
+    name = "darwin_imported_dylib",
+    shared_library = "libimported.dylib",
+    tags = ["manual"],
+)
+
+genrule(
+    name = "darwin_gen_imported_dylib",
+    srcs = ["imported.c"],
+    outs = ["libimported.dylib"],
+    cmd = "$(CC) -shared -install_name @rpath/libimported.dylib $< -o $@",
+    tags = ["manaul"],
+)
+
+cc_import(
+    name = "linux_imported_dylib",
+    shared_library = "libimported.so",
+    tags = ["manual"],
+)
+
+genrule(
+    name = "linux_gen_imported_dylib",
+    srcs = ["imported.c"],
+    outs = ["libimported.so"],
+    cmd = "$(CC) -shared $< -o $@",
+    tags = ["manual"],
 )
