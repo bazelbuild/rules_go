@@ -1,11 +1,11 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test", "go_source")
-
-test_suite(
-    name = "stdlib",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load(":stdlib_files.bzl", "stdlib_files")
 
 go_test(
     name = "buildid_test",
-    size = "small",
     srcs = ["buildid_test.go"],
+    rundir = ".",
+    data = [":stdlib_files"],
 )
+
+stdlib_files(name = "stdlib_files")
