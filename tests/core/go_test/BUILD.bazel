@@ -69,3 +69,9 @@ go_test(
         "Expected": "Example",
     },
 )
+
+go_test(
+    name = "only_testmain_test",
+    size = "small",
+    srcs = ["only_testmain_test.go"],
+)

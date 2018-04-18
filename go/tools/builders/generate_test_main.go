@@ -322,6 +322,7 @@ func run(args []string) error {
 			}
 			if fn.Name.Name == "TestMain" {
 				// TestMain is not, itself, a test
+				pkgs[pkg] = true
 				cases.TestMain = fmt.Sprintf("%s.%s", pkg, fn.Name.Name)
 				continue
 			}
