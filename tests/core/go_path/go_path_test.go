@@ -26,7 +26,7 @@ import (
 	"testing"
 )
 
-var copyPath, linkPath, archivePath string
+var copyPath, linkPath, archivePath, nodataPath string
 
 var files = []string{
 	"extra.txt",
@@ -41,6 +41,7 @@ var files = []string{
 	// "src/example.com/repo/pkg/lib/external_test.go",
 	"-src/example.com/repo/pkg/lib_test/embed_test.go",
 	"src/example.com/repo/pkg/lib/data.txt",
+	"src/example.com/repo/pkg/lib/testdata/testdata.txt",
 	"src/example.com/repo/vendor/example.com/repo2/vendored.go",
 }
 
@@ -48,6 +49,7 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&copyPath, "copy_path", "", "path to copied go_path")
 	flag.StringVar(&linkPath, "link_path", "", "path to symlinked go_path")
 	flag.StringVar(&archivePath, "archive_path", "", "path to archive go_path")
+	flag.StringVar(&nodataPath, "nodata_path", "", "path to go_path without data")
 	flag.Parse()
 	os.Exit(m.Run())
 }
@@ -104,6 +106,18 @@ func TestArchivePath(t *testing.T) {
 	}
 
 	checkPath(t, dir, files, os.FileMode(0))
+}
+
+func TestNoDataPath(t *testing.T) {
+	if nodataPath == "" {
+		t.Fatal("-nodata_path not set")
+	}
+	files := []string{
+		"extra.txt",
+		"src/example.com/repo/pkg/lib/lib.go",
+		"-src/example.com/repo/pkg/lib/data.txt",
+	}
+	checkPath(t, nodataPath, files, os.FileMode(0))
 }
 
 // checkPath checks that dir contains a list of files. files is a list of

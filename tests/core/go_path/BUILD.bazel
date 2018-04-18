@@ -4,17 +4,26 @@ test_suite(name = "go_path")
 
 [go_path(
     name = mode + "_path",
+    testonly = True,
+    data = ["extra.txt"],
+    mode = mode,
     deps = [
         "//tests/core/go_path/cmd/bin",
-        "//tests/core/go_path/pkg/lib:go_default_library",
         "//tests/core/go_path/pkg/lib:embed_test",
+        "//tests/core/go_path/pkg/lib:go_default_library",
         "//tests/core/go_path/pkg/lib:go_default_test",
         "//tests/core/go_path/pkg/lib:vendored",
     ],
-    data = ["extra.txt"],
-    mode = mode,
-    testonly = True,
 ) for mode in ("archive", "copy", "link")]
+
+go_path(
+    name = "nodata_path",
+    testonly = True,
+    data = ["extra.txt"],
+    include_data = False,
+    mode = "copy",
+    deps = ["//tests/core/go_path/pkg/lib:go_default_library"],
+)
 
 go_test(
     name = "go_path_test",
@@ -22,12 +31,14 @@ go_test(
     args = [
         "-archive_path=$(location :archive_path)",
         "-copy_path=$(location :copy_path)",
-        "-link_path=tests/core/go_path/link_path", # can't use location; not a single file
+        "-link_path=tests/core/go_path/link_path",  # can't use location; not a single file
+        "-nodata_path=$(location :nodata_path)",
     ],
     data = [
         ":archive_path",
         ":copy_path",
         ":link_path",
+        ":nodata_path",
     ],
     rundir = ".",
 )

@@ -728,6 +728,12 @@ Attributes
 | * ``"link"``: Source files are symlinked into the tree. All of the symlink                       |
 |   files are provided as separate output files.                                                   |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`include_data`      | :type:`bool`                | :value:`True`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| When true, data files referenced by libraries, binaries, and tests will be                       |
+| included in the output directory. Files listed in the :param:`data` attribute                    |
+| for this rule will be included regardless of this attribute.                                     |
++----------------------------+-----------------------------+---------------------------------------+
 
 go_rule
 ~~~~~~~

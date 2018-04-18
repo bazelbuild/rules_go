@@ -67,9 +67,19 @@ def _go_path_impl(ctx):
   manifest_entries = []
   manifest_entry_map = {}
   for pkg in pkg_map.values():
-    for f in pkg.srcs + pkg.data:
-      _add_manifest_entry(manifest_entries, manifest_entry_map, inputs,
-                          f, pkg.dir + "/" + f.basename)
+    for f in pkg.srcs:
+      dst = pkg.dir + "/" + f.basename
+      _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
+  if ctx.attr.include_data:
+    for pkg in pkg_map.values():
+      for f in pkg.data:
+        parts = f.path.split("/")
+        if "testdata" in parts:
+          i = parts.index("testdata")
+          dst = pkg.dir + "/" + "/".join(parts[i:])
+        else:
+          dst = pkg.dir + "/" + f.basename
+        _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
   for f in ctx.files.data:
     _add_manifest_entry(manifest_entries, manifest_entry_map, inputs,
                         f, f.basename)
@@ -143,6 +153,7 @@ go_path = rule(
                 "link",
             ],
         ),
+        "include_data": attr.bool(default = True),
         "_go_path": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:go_path",
             executable = True,

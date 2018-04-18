@@ -4,7 +4,10 @@ go_library(
     name = "go_default_library",
     srcs = ["lib.go"],
     cgo = True,
-    data = ["data.txt"],
+    data = [
+        "data.txt",
+        "testdata/testdata.txt",
+    ],
     importpath = "example.com/repo/pkg/lib",
     visibility = ["//visibility:public"],
 )
