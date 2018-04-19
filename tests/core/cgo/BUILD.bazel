@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_test(
     name = "opts_test",
     srcs = ["adder_test.go"],
-    embed = [":go_default_library"],
+    embed = [":opts"],
 )
 
 go_library(
@@ -51,7 +51,7 @@ genrule(
     srcs = ["imported.c"],
     outs = ["libimported.dylib"],
     cmd = "$(CC) -shared -install_name @rpath/libimported.dylib $< -o $@",
-    tags = ["manaul"],
+    tags = ["manual"],
 )
 
 cc_import(
