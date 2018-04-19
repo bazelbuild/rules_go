@@ -27,10 +27,19 @@ import (
 )
 
 func TestEmptyBuildID(t *testing.T) {
-	// Locate fmt.a (any .a file in the stdlib will do) and the buildid tool.
-	// The path may vary depending on the platform and architecture, so we
-	// just do a search.
-	var fmtPath, buildidPath string
+	// Locate the buildid tool and several archive files to check.
+	//   fmt.a - pure go
+	//   crypto/aes.a - contains assembly
+	//   runtime/cgo.a - contains cgo
+	// The path may vary depending on platform and architecture, so just
+	// do a search.
+	var buildidPath string
+	pkgPaths := map[string]string{
+		"fmt.a": "",
+		"aes.a": "",
+		"cgo.a": "",
+	}
+	n := len(pkgPaths)
 	done := errors.New("done")
 	var visit filepath.WalkFunc
 	visit = func(path string, info os.FileInfo, err error) error {
@@ -44,13 +53,16 @@ func TestEmptyBuildID(t *testing.T) {
 			}
 			return filepath.Walk(path, visit)
 		}
-		if filepath.Base(path) == "fmt.a" {
-			fmtPath = path
-		}
 		if filepath.Base(path) == "buildid" && (info.Mode()&0111) != 0 {
 			buildidPath = path
 		}
-		if fmtPath != "" && buildidPath != "" {
+		for pkg := range pkgPaths {
+			if filepath.Base(path) == pkg {
+				pkgPaths[pkg] = path
+				n--
+			}
+		}
+		if buildidPath != "" && n == 0 {
 			return done
 		}
 		return nil
@@ -63,18 +75,21 @@ func TestEmptyBuildID(t *testing.T) {
 	if buildidPath == "" {
 		t.Fatal("buildid not found")
 	}
-	if fmtPath == "" {
-		t.Fatal("fmt.a not found")
-	}
 
-	// Equivalent to: go tool buildid fmt.a
-	// It's an error if this produces any output.
-	cmd := exec.Command(buildidPath, fmtPath)
-	out, err := cmd.Output()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(bytes.TrimSpace(out)) > 0 {
-		t.Errorf("%s: unexpected buildid: %s", fmtPath, out)
+	for pkg, path := range pkgPaths {
+		if path == "" {
+			t.Errorf("could not locate %s", pkg)
+			continue
+		}
+		// Equivalent to: go tool buildid pkg.a
+		// It's an error if this produces any output.
+		cmd := exec.Command(buildidPath, path)
+		out, err := cmd.Output()
+		if err != nil {
+			t.Error(err)
+		}
+		if len(bytes.TrimSpace(out)) > 0 {
+			t.Errorf("%s: unexpected buildid: %s", path, out)
+		}
 	}
 }
