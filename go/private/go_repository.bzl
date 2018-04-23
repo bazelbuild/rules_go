@@ -18,6 +18,7 @@ load("@io_bazel_rules_go//go/private:common.bzl", "env_execute", "executable_ext
 _GO_REPOSITORY_TIMEOUT = 86400
 
 def _go_repository_impl(ctx):
+  print("DEPRECATED: the rules_go version of go_repository is deprecated. Migrate to the new version in @bazel_gazelle//def.bzl instead.")
   if ctx.attr.urls:
     # download from explicit source url
     for key in ("commit", "tag", "vcs", "remote"):

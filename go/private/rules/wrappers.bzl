@@ -42,10 +42,6 @@ def _deprecate_library(name, ruletype, kwargs):
   if value:
     kwargs["embed"] = kwargs.get("embed", []) + [value]
 
-#TODO(#1207): Remove importpath
-def _deprecate_importpath(name, ruletype, kwargs):
-  _deprecate("importpath", name, ruletype, kwargs, "")
-
 def _cgo(name, kwargs):
   cgo = kwargs.pop("cgo", False)
   if not cgo: return
@@ -64,7 +60,6 @@ def go_library_macro(name, **kwargs):
 def go_binary_macro(name, **kwargs):
   """See go/core.rst#go_binary for full documentation."""
   _deprecate_library(name, "go_binary", kwargs)
-  _deprecate_importpath(name, "go_binary", kwargs)
   _cgo(name, kwargs)
   go_binary(name = name, **kwargs)
   go_binary_c_archive_shared(name, kwargs)
@@ -72,6 +67,5 @@ def go_binary_macro(name, **kwargs):
 def go_test_macro(name, **kwargs):
   """See go/core.rst#go_test for full documentation."""
   _deprecate_library(name, "go_test", kwargs)
-  _deprecate_importpath(name, "go_test", kwargs)
   _cgo(name, kwargs)
   go_test(name = name, **kwargs)

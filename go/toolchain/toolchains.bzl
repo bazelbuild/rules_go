@@ -13,8 +13,14 @@ load(
     "GOOS",
     "GOOS_GOARCH",
 )
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/versions.bzl",
+    "versions",
+)
 
 DEFAULT_VERSION = "1.10.1"
+
+MIN_SUPPORTED_VERSION = "1.9"
 
 SDK_REPOSITORIES = {
     "1.10.1": {
@@ -236,6 +242,8 @@ def go_register_toolchains(go_version=DEFAULT_VERSION):
   """See /go/toolchains.rst#go-register-toolchains for full documentation."""
   if "go_sdk" not in native.existing_rules():
     if go_version in SDK_REPOSITORIES:
+      if not versions.is_at_least(MIN_SUPPORTED_VERSION, go_version):
+        print("DEPRECATED: go_register_toolchains: support for Go versions before {} will be removed soon".format(MIN_SUPPORTED_VERSION))
       go_download_sdk(
           name = "go_sdk",
           sdks = SDK_REPOSITORIES[go_version],

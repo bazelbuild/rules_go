@@ -22,6 +22,7 @@
 
 def _go_prefix_impl(ctx):
   """go_prefix_impl provides the go prefix to use as a transitive info provider."""
+  print("DEPRECATED: go_prefix is deprecated. Use explicit importpath attributes on go_library instead.")
   return struct(go_prefix = ctx.attr.prefix)
 
 _go_prefix_rule = rule(

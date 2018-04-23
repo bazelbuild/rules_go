@@ -29,7 +29,8 @@ Go rules for Bazel_
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _Travis configuration file: .travis.yml
-.. _roadmap: roadmap.rst
+.. _rules_go and Gazelle roadmap: roadmap.rst
+.. _Deprecation schedule: deprecation.rst
 
 .. ;; And now we continue with the actual content
 
@@ -44,6 +45,9 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+April 23, 2018
+  Some rules will be deprecated or removed in the next release. See
+  `Deprecation schedule`_ for details.
 April 16, 2018
   Release `0.11.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.11.0>`_
   is now available.
@@ -51,15 +55,15 @@ April 4, 2018
   Release `0.10.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.3>`_
   is now available. Release 0.11.0 is now expected around April 16, but you can
   try it out on the ``release-0.11`` branch.
-March 29, 2018
-  Release `0.10.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.2>`_
-  is now available.
 
-.. contents::
+Contents
+--------
 
+.. contents:: .
+  :depth: 2
 
 Documentation
--------------
+~~~~~~~~~~~~~
 
 * `Core API <go/core.rst>`_
   
@@ -77,6 +81,12 @@ Documentation
 * `Extra rules <go/extras.rst>`_
 * `Deprecated rules <go/deprecated.rst>`_
 * `Build modes <go/modes.rst>`_
+
+Quick links
+~~~~~~~~~~~
+
+* `rules_go and Gazelle roadmap`_
+* `Deprecation schedule`_
 
 Overview
 --------
