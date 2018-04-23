@@ -651,8 +651,7 @@ cover
 The cover function adds an action that runs ``go tool cover`` on a set of source files
 to produce copies with cover instrumentation.
 
-Returns a tuple of a covered GoSource with the required source files processed for cover and
-the cover vars that were added.
+Returns a covered GoSource_ with the required source files process for coverage.
 
 Note that this removes most comments, including cgo comments.
 

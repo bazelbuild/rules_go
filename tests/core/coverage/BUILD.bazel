@@ -1,0 +1,71 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+bazel_test(
+    name = "coverage_test_test",
+    check = """
+if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/test.log"; then
+  echo "error: no coverage output found in test log file" >&2
+  exit 1
+fi
+if ! grep -q 'github.com/bazelbuild/rules_go/tests/core/coverage/c/c.go:' "bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/coverage.dat"; then
+  echo "error: coverage data not found for c.go" >&2
+  exit 1
+fi
+if grep -q 'github.com/bazelbuild/rules_go/tests/core/coverage/b/b.go:' "bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/coverage.dat"; then
+  echo "error: coverage data found for b.go, but it should be excluded" >&2
+  exit 1
+fi
+    """,
+    command = "coverage",
+    args = ["--instrumentation_filter=-coverage:b"],
+    targets = [":coverage_test"],
+)
+
+go_test(
+    name = "coverage_test",
+    srcs = ["coverage_test.go"],
+    embed = [":a"],
+    tags = ["manual"],
+)
+
+bazel_test(
+    name = "coverage_bin_test",
+    check = """
+no_tests_found=4
+if [ "$result" -ne "$no_tests_found" ]; then
+  echo "error: unexpected bazel exit code: want $no_tests_found, got $result" >&2
+  exit 1
+fi
+result=0
+""",
+    command = "coverage",
+    targets = [":coverage_bin"],
+)
+
+go_binary(
+    name = "coverage_bin",
+    srcs = ["coverage_bin.go"],
+    deps = [":a"],
+    tags = ["manual"],
+)
+
+go_library(
+    name = "a",
+    srcs = ["a.go"],
+    deps = [":b"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/a",
+)
+
+go_library(
+    name = "b",
+    srcs = ["b.go"],
+    deps = [":c"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/b",
+)
+
+go_library(
+    name = "c",
+    srcs = ["c.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/c",
+)

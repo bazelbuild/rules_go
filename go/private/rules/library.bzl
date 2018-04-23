@@ -64,3 +64,30 @@ go_library = go_rule(
     },
 )
 """See go/core.rst#go_library for full documentation."""
+
+go_tool_library = go_rule(
+    _go_library_impl,
+    bootstrap_attrs = [
+        "_builders",
+        "_stdlib",
+    ],
+    attrs = {
+        "data": attr.label_list(
+            allow_files = True,
+            cfg = "data",
+        ),
+        "srcs": attr.label_list(allow_files = True),
+        "deps": attr.label_list(providers = [GoLibrary]),
+        "importpath": attr.string(),
+        "importmap": attr.string(),
+        "embed": attr.label_list(providers = [GoLibrary]),
+        "gc_goopts": attr.string_list(),
+        "x_defs": attr.string_dict(),
+        "_go_prefix": attr.label(default = go_prefix_default),
+    },
+)
+"""
+This is used instead of `go_library` for packages that are depended on
+implicitly by code generated within the Go rules. This avoids a
+bootstrapping problem.
+"""

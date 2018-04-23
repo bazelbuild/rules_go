@@ -226,6 +226,12 @@ def go_context(ctx, attr=None):
     builders = builders[GoBuilders]
   else:
     builders = GoBuilders(compile=None, link=None)
+  coverdata = getattr(attr, "_coverdata", None)
+  if coverdata:
+    coverdata = get_archive(coverdata)
+  have_cover = (ctx.configuration.coverage_enabled and
+                bool(toolchain.actions.cover) and bool(coverdata))
+
   host_only = getattr(attr, "_hostonly", False)
 
   context_data = attr._go_context_data
@@ -255,6 +261,7 @@ def go_context(ctx, attr=None):
       pathtype = pathtype,
       cgo_tools = context_data.cgo_tools,
       builders = builders,
+      coverdata = coverdata if have_cover else None,
       env = context_data.env,
       tags = context_data.tags,
       # Action generators
@@ -262,7 +269,7 @@ def go_context(ctx, attr=None):
       asm = toolchain.actions.asm,
       binary = toolchain.actions.binary,
       compile = toolchain.actions.compile,
-      cover = toolchain.actions.cover if ctx.configuration.coverage_enabled else None,
+      cover = toolchain.actions.cover if have_cover else None,
       link = toolchain.actions.link,
       pack = toolchain.actions.pack,
 
