@@ -17,6 +17,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"go/build"
@@ -38,6 +39,7 @@ func run(args []string) error {
 	flags.Var(&deps, "dep", "Import path of a direct dependency")
 	flags.Var(&search, "I", "Search paths of a direct dependency")
 	flags.Var(&importmap, "importmap", "Import maps of a direct dependency")
+	checker := flags.String("checker", "", "The checker binary")
 	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
@@ -113,6 +115,8 @@ func run(args []string) error {
 		return err
 	}
 
+	checkerChan := make(chan bool)
+	startChecker(*checker, checkerChan)
 	env := os.Environ()
 	env = append(env, goenv.Env()...)
 	cmd := exec.Command(goenv.Go, goargs...)
@@ -121,6 +125,39 @@ func run(args []string) error {
 	cmd.Env = env
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running compiler: %v", err)
+	}
+	return checkerResult(*checker, checkerChan)
+}
+
+func startChecker(checker string, c chan<- bool) {
+	if checker == "" {
+		return
+	}
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Fprintf(os.Stderr, "Recovered from checker panic: %v\n", r)
+				// Checker panics should not interrupt compilation.
+				c <- true
+			}
+		}()
+		cmd := exec.Command(checker)
+		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "error running checker: %v", err)
+			c <- false
+		}
+		c <- true
+	}()
+}
+
+func checkerResult(checker string, c <-chan bool) error {
+	if checker == "" {
+		return nil
+	}
+	ok := <-c
+	if !ok {
+		return errors.New("checker failed")
 	}
 	return nil
 }

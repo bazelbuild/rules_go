@@ -62,6 +62,9 @@ def emit_compile(go,
   inputs = sets.union(inputs, go.stdlib.files)
 
   args = go.args(go)
+  if go.checker.checker:
+    args.add(["-checker", go.checker.checker])
+    inputs = sets.union(inputs, [go.checker.checker])
   args.add(["-package_list", go.package_list])
   args.add(go_sources, before_each="-src")
   args.add(archives, before_each="-dep", map_fn=_importpath)

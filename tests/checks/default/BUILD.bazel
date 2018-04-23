@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+default_checker_exists = """
+# TODO(samueltan): parameterize architecture-specific component of this filepath.
+checker="bazel-bin/external/io_bazel_rules_go/linux_amd64_stripped/default_checker"
+if [ -x "${checker}" ]; then
+  result=0
+else
+  echo "error: checker binary ${checker} does not exist" >&2
+  result=1
+fi
+"""
+
+bazel_test(
+    name = "build_lib",
+    check = default_checker_exists,
+    command = "build",
+    targets = [":lib"],
+)
+
+bazel_test(
+    name = "build_test",
+    check = default_checker_exists,
+    command = "build",
+    targets = [":test"],
+)
+
+bazel_test(
+    name = "build_bin",
+    check = default_checker_exists,
+    command = "build",
+    targets = [":bin"],
+)
+
+go_library(
+    name = "lib",
+    srcs = ["lib.go"],
+    importpath = "lib",
+)
+
+go_test(
+    name = "test",
+    srcs = ["test.go"],
+    deps = [":lib"]
+)
+
+go_binary(
+    name = "bin",
+    srcs = ["bin.go"],
+)

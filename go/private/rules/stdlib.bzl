@@ -57,7 +57,7 @@ def _stdlib_impl(ctx):
 
 stdlib = go_rule(
     _stdlib_impl,
-    bootstrap = True,
+    bootstrap_builders = True,
     attrs = {
         "_stdlib_builder": attr.label(
             executable = True,
