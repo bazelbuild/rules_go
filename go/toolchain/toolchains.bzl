@@ -8,6 +8,10 @@ load(
     "go_host_sdk",
 )
 load(
+    "//go/private:checker.bzl",
+    "go_register_checker",
+)
+load(
     "//go/platform:list.bzl",
     "GOARCH",
     "GOOS",
@@ -15,6 +19,8 @@ load(
 )
 
 DEFAULT_VERSION = "1.10.1"
+
+DEFAULT_CHECKER = "@io_bazel_rules_go//:default_checker"
 
 SDK_REPOSITORIES = {
     "1.10.1": {
@@ -232,8 +238,12 @@ _toolchains = _generate_toolchains()
 
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
-def go_register_toolchains(go_version=DEFAULT_VERSION):
+def go_register_toolchains(go_version=DEFAULT_VERSION, go_checker=DEFAULT_CHECKER):
   """See /go/toolchains.rst#go-register-toolchains for full documentation."""
+  go_register_checker(
+      name = "go_checker",
+      checker = go_checker,
+  )
   if "go_sdk" not in native.existing_rules():
     if go_version in SDK_REPOSITORIES:
       go_download_sdk(

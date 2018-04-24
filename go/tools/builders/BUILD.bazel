@@ -58,6 +58,15 @@ go_tool_binary(
 )
 
 go_tool_binary(
+    name = "generate_checker_main",
+    srcs = [
+        "generate_checker_main.go",
+        "flags.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_binary(
     name = "generate_test_main",
     srcs = [
         "env.go",

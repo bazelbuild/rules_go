@@ -19,6 +19,7 @@ load(
     "GoAspectProviders",
     "GoStdLib",
     "GoBuilders",
+    "GoChecker",
     "get_archive",
     "get_source",
 )
@@ -225,7 +226,14 @@ def go_context(ctx, attr=None):
   if builders:
     builders = builders[GoBuilders]
   else:
-    builders = GoBuilders(compile=None, link=None)
+    builders = GoBuilders(compile=None, link=None, checker_generator=None)
+
+  checker = getattr(attr, "_checker", None)
+  if checker:
+    checker = checker[GoChecker]
+  else:
+    checker = GoChecker(checker=None)
+
   host_only = getattr(attr, "_hostonly", False)
 
   context_data = attr._go_context_data
@@ -255,6 +263,7 @@ def go_context(ctx, attr=None):
       pathtype = pathtype,
       cgo_tools = context_data.cgo_tools,
       builders = builders,
+      checker = checker,
       env = context_data.env,
       tags = context_data.tags,
       # Action generators
