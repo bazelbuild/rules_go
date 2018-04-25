@@ -1,51 +1,32 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
-load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+# Add this test back after support for vet has been added.
 
-default_checker_exists = """
-# TODO(samueltan): parameterize architecture-specific component of this filepath.
-checker="bazel-bin/external/io_bazel_rules_go/linux_amd64_stripped/default_checker"
-if [ -x "${checker}" ]; then
-  result=0
-else
-  echo "error: checker binary ${checker} does not exist" >&2
-  result=1
-fi
-"""
+# load("@io_bazel_rules_go//go:def.bzl", "go_library")
+# load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
-bazel_test(
-    name = "build_lib",
-    check = default_checker_exists,
-    command = "build",
-    targets = [":lib"],
-)
+# default_checker_error = """
+# if [[ result -eq 0 ]]; then
+#   echo "error: expected build error" >&2
+#   result=1
+# else
+#   grep -q 'TODO: fill with default check failure' bazel-output.txt
+#   if [[ $? -ne 0 ]]; then
+#     echo "error: expected error message was not emitted" >&2
+#     result=1
+#   else
+#     result=0
+#   fi
+# fi
+# """
 
-bazel_test(
-    name = "build_test",
-    check = default_checker_exists,
-    command = "build",
-    targets = [":test"],
-)
+# bazel_test(
+#     name = "checker_error",
+#     check = default_checker_error,
+#     command = "build",
+#     targets = [":lib"],
+# )
 
-bazel_test(
-    name = "build_bin",
-    check = default_checker_exists,
-    command = "build",
-    targets = [":bin"],
-)
-
-go_library(
-    name = "lib",
-    srcs = ["lib.go"],
-    importpath = "lib",
-)
-
-go_test(
-    name = "test",
-    srcs = ["test.go"],
-    deps = [":lib"]
-)
-
-go_binary(
-    name = "bin",
-    srcs = ["bin.go"],
-)
+# go_library(
+#     name = "lib",
+#     srcs = ["lib.go"],
+#     importpath = "lib",
+# )
