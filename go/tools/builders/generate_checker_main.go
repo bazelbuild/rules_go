@@ -18,6 +18,7 @@ limitations under the License.
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -25,6 +26,8 @@ import (
 	"text/template"
 )
 
+// TODO(samueltan): ensure that panics caused by check libraries are differentiated
+// from legitimate check errors.
 var codeTpl = `
 package main
 
@@ -41,22 +44,27 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
+	if *out == "" {
+		return errors.New("must provide output file")
+	}
 
 	outFile := os.Stdout
-	if *out != "" {
-		var err error
-		outFile, err = os.Create(*out)
-		if err != nil {
-			return fmt.Errorf("os.Create(%q): %v", *out, err)
-		}
-		defer outFile.Close()
+	var cErr error
+	outFile, err := os.Create(*out)
+	if err != nil {
+		return fmt.Errorf("os.Create(%q): %v", *out, err)
 	}
+	defer func() {
+		if err := outFile.Close(); err != nil {
+			cErr = fmt.Errorf("error closing %s: %v", outFile.Name(), err)
+		}
+	}()
 
 	tpl := template.Must(template.New("source").Parse(codeTpl))
 	if err := tpl.Execute(outFile, nil); err != nil {
 		return fmt.Errorf("template.Execute failed: %v", err)
 	}
-	return nil
+	return cErr
 }
 
 func main() {

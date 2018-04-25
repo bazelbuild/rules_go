@@ -128,47 +128,28 @@ func run(args []string) error {
 		return err
 	}
 
-	checkerChan := make(chan bool)
-	startChecker(*checker, checkerChan)
 	cmd := exec.Command(goenv.Go, goargs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = goenv.Env()
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running compiler: %v", err)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("error starting compiler: %v", err)
 	}
-	return checkerResult(*checker, checkerChan)
-}
-
-func startChecker(checker string, c chan<- bool) {
-	if checker == "" {
-		return
-	}
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Fprintf(os.Stderr, "Recovered from checker panic: %v\n", r)
-				// Checker panics should not interrupt compilation.
-				c <- true
+	if *checker != "" {
+		checkerCmd := exec.Command(*checker)
+		checkerCmd.Stdout, checkerCmd.Stderr = os.Stdout, os.Stderr
+		if err := checkerCmd.Run(); err != nil {
+			if _, ok := err.(*exec.ExitError); ok {
+				// Only fail the build if the checker runs but does not complete
+				// successfully.
+				return errors.New("checker failed")
 			}
-		}()
-		cmd := exec.Command(checker)
-		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-		if err := cmd.Run(); err != nil {
+			// All errors related to running the checker are merely printed.
 			fmt.Fprintf(os.Stderr, "error running checker: %v", err)
-			c <- false
 		}
-		c <- true
-	}()
-}
-
-func checkerResult(checker string, c <-chan bool) error {
-	if checker == "" {
-		return nil
 	}
-	ok := <-c
-	if !ok {
-		return errors.New("checker failed")
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("error running compiler: %v", err)
 	}
 	return nil
 }

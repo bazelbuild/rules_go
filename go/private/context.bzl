@@ -225,14 +225,10 @@ def go_context(ctx, attr=None):
   builders = getattr(attr, "_builders", None)
   if builders:
     builders = builders[GoBuilders]
-  else:
-    builders = GoBuilders(compile=None, link=None, checker_generator=None)
 
   checker = getattr(attr, "_checker", None)
   if checker:
     checker = checker[GoChecker]
-  else:
-    checker = GoChecker(checker=None)
 
   host_only = getattr(attr, "_hostonly", False)
 

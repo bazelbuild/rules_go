@@ -15,6 +15,7 @@
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
+    "EXPORT_PATH",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
@@ -33,7 +34,9 @@ def _go_checker_impl(ctx):
   checker_main = go.declare_file(go, "checker_main.go")
   checker_args = ctx.actions.args()
   # TODO(samueltan): pass import paths of check libraries to the checker generator.
-  checker_args.add(['-output', checker_main, '-config', ctx.file.config])
+  checker_args.add(['-output', checker_main])
+  if ctx.file.config:
+    checker_args.add(['-config', ctx.file.config])
   ctx.actions.run(
       outputs = [checker_main],
       mnemonic = "GoGenChecker",
@@ -45,14 +48,15 @@ def _go_checker_impl(ctx):
   checker_library = GoLibrary(
       name = go._ctx.label.name + "~checker",
       label = go._ctx.label,
-      importpath = "checker",
-      importmap = None,
+      importpath = "checkermain",
+      importmap = "checkermain",
+      pathtype = EXPORT_PATH,
       resolve = None,
   )
   checker_source = go.library_to_source(go, struct(
       srcs = [struct(files=[checker_main])],
   ), checker_library, False)
-  checker_archive, executable = go.binary(go,
+  checker_archive, executable, runfiles = go.binary(go,
       name = ctx.label.name,
       source = checker_source,
   )
@@ -69,7 +73,7 @@ go_checker = go_rule(
     _go_checker_impl,
     bootstrap_checker = True,
     attrs = {
-        "checks": attr.label_list(
+        "deps": attr.label_list(
             providers = [GoArchive],
             # TODO(samueltan): make this attribute mandatory.
         ),

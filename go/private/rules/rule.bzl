@@ -30,7 +30,7 @@ def go_rule(implementation, attrs={}, toolchains=[], bootstrap_builders=False, b
     attrs["_stdlib"] = attr.label(default = Label("@io_bazel_rules_go//:stdlib"), aspects = aspects)
     attrs["_builders"] = attr.label(default = Label("@io_bazel_rules_go//:builders"))
     if not bootstrap_checker:
-      attrs["_checker"] = attr.label(default = Label("@go_checker//:go_checker"))
+      attrs["_checker"] = attr.label(default = Label("@io_bazel_rules_go_checker//:go_checker"))
 
   return rule(
       implementation = implementation,

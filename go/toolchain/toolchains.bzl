@@ -240,10 +240,6 @@ _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
 def go_register_toolchains(go_version=DEFAULT_VERSION, go_checker=DEFAULT_CHECKER):
   """See /go/toolchains.rst#go-register-toolchains for full documentation."""
-  go_register_checker(
-      name = "go_checker",
-      checker = go_checker,
-  )
   if "go_sdk" not in native.existing_rules():
     if go_version in SDK_REPOSITORIES:
       go_download_sdk(
@@ -261,6 +257,11 @@ def go_register_toolchains(go_version=DEFAULT_VERSION, go_checker=DEFAULT_CHECKE
   for toolchain in _toolchains:
     name = _label_prefix + toolchain["name"]
     native.register_toolchains(name)
+
+  go_register_checker(
+      name = "io_bazel_rules_go_checker",
+      checker = go_checker,
+  )
 
 def declare_constraints():
   for goos, constraint in GOOS.items():

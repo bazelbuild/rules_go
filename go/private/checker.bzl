@@ -18,7 +18,7 @@ def _go_register_checker_impl(ctx):
   ctx.template("BUILD.bazel",
       Label("@io_bazel_rules_go//go/private:BUILD.checker.bazel"),
       substitutions = {
-        "%{checker}": ctx.attr.checker,
+        "{{checker}}": ctx.attr.checker,
       },
       executable = False,
   )

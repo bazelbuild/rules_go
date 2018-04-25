@@ -35,7 +35,7 @@ def emit_link(go,
 
   if archive == None: fail("archive is a required parameter")
   if executable == None: fail("executable is a required parameter")
-  if not go.builders.link:
+  if not go.builders:
     return _bootstrap_link(go, archive, executable, gc_linkopts)
 
   #TODO: There has to be a better way to work out the rpath
@@ -76,7 +76,7 @@ def emit_link(go,
   # future), but there is a special case which is difficult to avoid:
   # If a go_test has internal and external archives, and the external test
   # transitively depends on the library under test, we need to exclude the
-  # library under test and use the internal test archive instead. 
+  # library under test and use the internal test archive instead.
   deps = depset(transitive = [d.transitive for d in archive.direct])
   dep_args = ["{}={}={}".format(d.label, d.importmap, d.file.path)
               for d in deps.to_list()

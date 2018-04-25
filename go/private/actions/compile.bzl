@@ -42,7 +42,7 @@ def emit_compile(go,
   if sources == None: fail("sources is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
-  if not go.builders.compile:
+  if not go.builders:
     if archives:  fail("compile does not accept deps in bootstrap mode")
     return _bootstrap_compile(go, sources, out_lib, gc_goopts)
 
@@ -63,7 +63,7 @@ def emit_compile(go,
   inputs = sets.union(inputs, go.stdlib.files)
 
   args = go.args(go)
-  if go.checker.checker:
+  if go.checker:
     args.add(["-checker", go.checker.checker])
     inputs = sets.union(inputs, [go.checker.checker])
   args.add(["-package_list", go.package_list])
