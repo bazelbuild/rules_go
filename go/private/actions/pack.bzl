@@ -22,24 +22,19 @@ def emit_pack(go,
   if in_lib == None: fail("in_lib is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
-  inputs = [in_lib] + go.stdlib.files
+  inputs = [in_lib] + go.stdlib.files + objects + archives
 
-  arguments = go.args(go)
-  arguments.add([
-      "-in", in_lib,
-      "-out", out_lib,
-  ])
-  inputs.extend(objects)
-  arguments.add(objects, before_each="-obj")
-
-  inputs.extend(archives)
-  arguments.add(archives, before_each="-arc")
+  args = go.args(go)
+  args.add(["-in", in_lib])
+  args.add(["-out", out_lib])
+  args.add(objects, before_each="-obj")
+  args.add(archives, before_each="-arc")
 
   go.actions.run(
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoPack",
       executable = go.builders.pack,
-      arguments = [arguments],
+      arguments = [args],
       env = go.env,
   )

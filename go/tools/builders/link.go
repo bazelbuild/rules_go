@@ -24,44 +24,33 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
 func run(args []string) error {
-	// process the args
-	linkargs := []string{}
-	goopts := []string{}
-	for i, s := range args {
-		if s == "--" {
-			goopts = args[i+1:]
-			break
-		}
-		linkargs = append(linkargs, s)
-	}
-	// process the flags for this link wrapper
+	// Parse arguments.
+	builderArgs, toolArgs := splitArgs(args)
 	xstamps := multiFlag{}
-	xdefs := multiFlag{}
 	stamps := multiFlag{}
 	linkstamps := multiFlag{}
 	deps := multiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
-	outFile := flags.String("out", "", "Path to output file.")
+	main := flags.String("main", "", "Path to the main archive.")
+	outFile := flags.String("o", "", "Path to output file.")
 	buildmode := flags.String("buildmode", "", "Build mode used.")
-	flags.Var(&xstamps, "Xstamp", "A link xdef that may need stamping.")
-	flags.Var(&xdefs, "Xdef", "A link xdef that may need stamping.")
-	flags.Var(&deps, "dep", "A dependency formatted as label=pkgpath=pkgfile")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
+	flags.Var(&xstamps, "Xstamp", "A link xdef that may need stamping.")
+	flags.Var(&deps, "dep", "A dependency formatted as label=pkgpath=pkgfile")
 	flags.Var(&linkstamps, "linkstamp", "A package that requires link stamping.")
-	if err := flags.Parse(args); err != nil {
+	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
-	if err := goenv.update(); err != nil {
+	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
-	goargs := []string{"tool", "link"}
+
 	// If we were given any stamp value files, read and parse them
 	stampmap := map[string]string{}
 	for _, stampfile := range stamps {
@@ -84,7 +73,9 @@ func run(args []string) error {
 			}
 		}
 	}
+
 	// generate any additional link options we need
+	goargs := []string{"tool", "link"}
 	depsSeen := make(map[string]string)
 	for _, d := range deps {
 		parts := strings.Split(d, "=")
@@ -111,9 +102,6 @@ This will be an error in the future.`, pkgPath, label, conflictLabel)
 		searchPath := pkgFile[:len(pkgFile)-len(pkgSuffix)]
 		goargs = append(goargs, "-L", searchPath)
 	}
-	for _, xdef := range xdefs {
-		goargs = append(goargs, "-X", xdef)
-	}
 	for _, xdef := range xstamps {
 		split := strings.SplitN(xdef, "=", 2)
 		if len(split) != 2 {
@@ -136,16 +124,11 @@ This will be an error in the future.`, pkgPath, label, conflictLabel)
 	}
 	goargs = append(goargs, "-o", *outFile)
 
-	goargs = append(goargs, "-extldflags", strings.Join(goenv.ld_flags, " "))
-
 	// add in the unprocess pass through options
-	goargs = append(goargs, goopts...)
-	cmd := exec.Command(goenv.Go, goargs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = goenv.Env()
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running linker: %v", err)
+	goargs = append(goargs, toolArgs...)
+	goargs = append(goargs, *main)
+	if err := goenv.runGoCommand(goargs); err != nil {
+		return err
 	}
 
 	if *buildmode == "c-archive" {

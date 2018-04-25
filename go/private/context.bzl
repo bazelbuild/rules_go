@@ -82,29 +82,9 @@ def _declare_directory(go, path="", ext="", name = ""):
 
 def _new_args(go):
   args = go.actions.args()
-  if go.stdlib:
-    root_file = go.stdlib.root_file
-  else:
-    root_file = go.package_list
-  args.add([
-      "-go", go.go,
-      "-root_file", root_file,
-      "-goos", go.mode.goos,
-      "-goarch", go.mode.goarch,
-      "-cgo=" + ("0" if go.mode.pure else "1"),
-  ])
-  if len(go.tags) > 0:
-    args.add("-tags")
-    args.add(go.tags, join_with = ",")
-  if go.cgo_tools:
-    args.add([
-      "-compiler_path", go.cgo_tools.compiler_path,
-      "-cc", go.cgo_tools.compiler_executable,
-    ])
-    args.add(go.cgo_tools.compiler_options, before_each = "-c_flag")
-    args.add(go.cgo_tools.compiler_options, before_each = "-cxx_flag")
-    args.add(go.cgo_tools.compiler_options, before_each = "-cpp_flag")
-    args.add(go.cgo_tools.linker_options, before_each = "-ld_flag")
+  args.add(["-go", go.go])
+  if go.tags:
+    args.add(["-tags", ",".join(go.tags)])
   return args
 
 def _new_library(go, name=None, importpath=None, resolver=None, importable=True, testfilter=None, **kwargs):
@@ -245,6 +225,19 @@ def go_context(ctx, attr=None):
   stdlib = getattr(attr, "_stdlib", None)
   if stdlib:
     stdlib = get_source(stdlib).stdlib
+    goroot = stdlib.root_file.dirname
+  else:
+    goroot = root
+
+  env = dict(context_data.env)
+  env.update({
+      "GOARCH": mode.goarch,
+      "GOOS": mode.goos,
+      "GOROOT": goroot,
+      "GOROOT_FINAL": "GOROOT",
+      "CGO_ENABLED": "0" if mode.pure else "1",
+      "PATH": context_data.cgo_tools.compiler_path,
+  })
 
   importpath, pathtype = _infer_importpath(ctx)
   return GoContext(
@@ -266,7 +259,7 @@ def go_context(ctx, attr=None):
       cgo_tools = context_data.cgo_tools,
       builders = builders,
       coverdata = coverdata if have_cover else None,
-      env = context_data.env,
+      env = env,
       tags = context_data.tags,
       # Action generators
       archive = toolchain.actions.archive,

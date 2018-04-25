@@ -31,13 +31,12 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 )
 
 func run(args []string) error {
-	flags := flag.NewFlagSet("pack", flag.ContinueOnError)
+	flags := flag.NewFlagSet("GoPack", flag.ExitOnError)
 	goenv := envFlags(flags)
 	inArchive := flags.String("in", "", "Path to input archive")
 	outArchive := flags.String("out", "", "Path to output archive")
@@ -48,7 +47,7 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-	if err := goenv.update(); err != nil {
+	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
 
@@ -69,6 +68,8 @@ func run(args []string) error {
 }
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("GoPack: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
@@ -293,11 +294,7 @@ func simpleName(name string, names map[string]struct{}) string {
 	return name[:15]
 }
 
-func appendFiles(goenv *GoEnv, archive string, files []string) error {
+func appendFiles(goenv *env, archive string, files []string) error {
 	args := append([]string{"tool", "pack", "r", archive}, files...)
-	cmd := exec.Command(goenv.Go, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = goenv.Env()
-	return cmd.Run()
+	return goenv.runGoCommand(args)
 }

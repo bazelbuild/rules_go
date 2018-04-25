@@ -54,6 +54,7 @@ type manifestEntry struct {
 }
 
 func main() {
+	log.SetPrefix("GoPath: ")
 	log.SetFlags(0)
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)

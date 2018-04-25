@@ -19,60 +19,47 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go/build"
 	"log"
 	"os"
-	"os/exec"
 )
 
 func run(args []string) error {
-	search := multiFlag{}
-	flags := flag.NewFlagSet("asm", flag.ExitOnError)
+	// Parse arguments.
+	builderArgs, toolArgs := splitArgs(args)
+	flags := flag.NewFlagSet("GoAsm", flag.ExitOnError)
 	goenv := envFlags(flags)
-	flags.Var(&search, "I", "Search paths of a direct dependency")
-	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
-	output := flags.String("o", "", "The output object file to write")
-	if err := flags.Parse(args); err != nil {
+	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
-	if err := goenv.update(); err != nil {
+	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
-	if len(flags.Args()) < 1 {
-		return fmt.Errorf("Missing source file to asm")
+	if flags.NArg() != 1 {
+		return fmt.Errorf("wanted exactly 1 source file; got %d", flags.NArg())
 	}
 	source := flags.Args()[0]
-	remains := flags.Args()[1:]
 
-	// filter our input file list
-	bctx := goenv.BuildContext()
-	metadata, err := readGoMetadata(bctx, source, false)
+	// Filter the input file.
+	metadata, err := readGoMetadata(build.Default, source, false)
 	if err != nil {
 		return err
 	}
 	if !metadata.matched {
 		source = os.DevNull
 	}
+
+	// Build source with the assembler.
 	goargs := []string{"tool", "asm"}
-	if goenv.shared {
-		goargs = append(goargs, "-shared")
-	}
-	goargs = append(goargs, "-trimpath", abs(*trimpath), "-o", *output)
-	for _, path := range search {
-		goargs = append(goargs, "-I", abs(path))
-	}
-	goargs = append(goargs, remains...)
+	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, source)
-	cmd := exec.Command(goenv.Go, goargs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = goenv.Env()
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running assembler: %v", err)
-	}
-	return nil
+	absArgs(goargs, []string{"I", "o", "trimpath"})
+	return goenv.runGoCommand(goargs)
 }
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("GoAsm: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
