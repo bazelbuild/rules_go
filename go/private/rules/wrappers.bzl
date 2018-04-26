@@ -28,6 +28,22 @@ _CGO_ATTRS = {
     "cxxopts": [],
     "cppopts": [],
     "clinkopts": [],
+    "objc": False,
+}
+
+_OBJC_CGO_ATTRS = {
+  "hdrs": None,
+  "defines": None,
+  "enable_modules": None,
+  "includes": None,
+  "module_map": None,
+  "non_arc_srcs": None,
+  "pch": None,
+  "sdk_dylibs": None,
+  "sdk_frameworks": None,
+  "sdk_includes": None,
+  "textual_hdrs": None,
+  "weak_sdk_frameworks": None,
 }
 
 def _deprecate(attr, name, ruletype, kwargs, message):
@@ -46,12 +62,24 @@ def _deprecate_library(name, ruletype, kwargs):
 def _deprecate_importpath(name, ruletype, kwargs):
   _deprecate("importpath", name, ruletype, kwargs, "")
 
+def _objc(name, kwargs):
+  objcopts = {}
+  for key in kwargs.keys():
+    if key.startswith("objc_"):
+      arg = key[len("objc_"):]
+      if arg not in _OBJC_CGO_ATTRS:
+        fail("Forbidden CGo objc_library parameter: " + arg)
+      value = kwargs.pop(key)
+      objcopts[arg] = value
+  return objcopts
+
 def _cgo(name, kwargs):
   cgo = kwargs.pop("cgo", False)
   if not cgo: return
   cgo_attrs = {"name":name}
   for key, default in _CGO_ATTRS.items():
     cgo_attrs[key] = kwargs.pop(key, default)
+  cgo_attrs["objcopts"] = _objc(name, kwargs)
   cgo_embed = setup_cgo_library(**cgo_attrs)
   kwargs["embed"] = kwargs.get("embed", []) + [cgo_embed]
 

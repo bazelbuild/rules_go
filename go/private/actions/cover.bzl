@@ -26,20 +26,25 @@ def emit_cover(go, source):
 
   if source == None: fail("source is a required parameter")
   if not source.cover:
-    return source, []
+    return source
 
   covered = []
-  cover_vars = []
   for src in source.srcs:
     if not src.basename.endswith(".go") or src not in source.cover:
       covered.append(src)
       continue
     cover_var = "Cover_" + src.basename[:-3].replace("-", "_").replace(".", "_")
-    cover_vars.append("{}={}={}".format(cover_var, src.short_path, source.library.importpath))
     out = go.declare_file(go, path=cover_var, ext='.cover.go')
     covered.append(out)
     args = go.args(go)
-    args.add(["--", "--mode=set", "-var=%s" % cover_var, "-o", out, src])
+    args.add([
+      "-o=" + out.path,
+      "-var=" + cover_var,
+      "-src=" + src.path,
+      "-importpath=" + source.library.importpath,
+      "--",
+      "-mode=set",
+    ])
     go.actions.run(
         inputs = [src] + go.stdlib.files,
         outputs = [out],
@@ -50,4 +55,4 @@ def emit_cover(go, source):
     )
   members = structs.to_dict(source)
   members["srcs"] = covered
-  return GoSource(**members), cover_vars
+  return GoSource(**members)

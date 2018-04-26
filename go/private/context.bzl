@@ -40,6 +40,10 @@ load(
     "goos_to_shared_extension",
     "as_iterable",
 )
+load(
+    "@io_bazel_rules_go//go/platform:apple.bzl",
+    "apple_ensure_options",
+)
 
 GoContext = provider()
 
@@ -230,6 +234,12 @@ def go_context(ctx, attr=None):
   if checker:
     checker = checker[GoChecker]
 
+  coverdata = getattr(attr, "_coverdata", None)
+  if coverdata:
+    coverdata = get_archive(coverdata)
+  have_cover = (ctx.configuration.coverage_enabled and
+                bool(toolchain.actions.cover) and bool(coverdata))
+
   host_only = getattr(attr, "_hostonly", False)
 
   context_data = attr._go_context_data
@@ -260,6 +270,7 @@ def go_context(ctx, attr=None):
       cgo_tools = context_data.cgo_tools,
       builders = builders,
       checker = checker,
+      coverdata = coverdata if have_cover else None,
       env = context_data.env,
       tags = context_data.tags,
       # Action generators
@@ -267,7 +278,7 @@ def go_context(ctx, attr=None):
       asm = toolchain.actions.asm,
       binary = toolchain.actions.binary,
       compile = toolchain.actions.compile,
-      cover = toolchain.actions.cover if ctx.configuration.coverage_enabled else None,
+      cover = toolchain.actions.cover if have_cover else None,
       link = toolchain.actions.link,
       pack = toolchain.actions.pack,
 
@@ -296,6 +307,7 @@ def _go_context_data(ctx):
   tags = []
   if "gotags" in ctx.var:
     tags = ctx.var["gotags"].split(",")
+  apple_ensure_options(ctx, env, tags, compiler_options, linker_options)
   compiler_path, _ = cpp.ld_executable.rsplit("/", 1)
   return struct(
       strip = ctx.attr.strip,
@@ -336,6 +348,9 @@ go_context_data = rule(
             cfg="host",
             default="@go_sdk//:tools",
         ),
+        "_xcode_config": attr.label(
+            default = Label("@bazel_tools//tools/osx:current_xcode_config"),
+        ),
     },
-    fragments = ["cpp"],
+    fragments = ["cpp", "apple"],
 )
