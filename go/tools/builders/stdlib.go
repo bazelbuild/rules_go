@@ -52,7 +52,11 @@ func run(args []string) error {
 	// Now switch to the newly created GOROOT
 	os.Setenv("GOROOT", output)
 
-	// Run the commands needed to build the std library in the right mode
+	// Make sure we have an absolute path to the C compiler.
+	// TODO(#1357): also take absolute paths of includes and other paths in flags.
+	os.Setenv("CC", abs(os.Getenv("CC")))
+
+	// Build the commands needed to build the std library in the right mode
 	installArgs := []string{"install", "-toolexec", abs(*filterBuildid)}
 	gcflags := []string{}
 	ldflags := []string{"-trimpath", abs(".")}
