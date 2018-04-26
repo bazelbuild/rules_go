@@ -28,7 +28,7 @@ Principles for writing builders
 * Builders should accept arguments in three forms:
 
   * Builder arguments (before ``--``) are interpreted directly by builders.
-    These arguments may or may be passed on to underlying tools.
+    These arguments may or may not be passed on to underlying tools.
   * Tool arguments (after ``--``) are passed on to underlying tools. Builders
     may add additional arguments before or after these.
   * Environment variables are passed on to underlying tools. Builders will
