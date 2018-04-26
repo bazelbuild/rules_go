@@ -8,6 +8,10 @@ load(
     "go_host_sdk",
 )
 load(
+    "//go/private:checker.bzl",
+    "go_register_checker",
+)
+load(
     "//go/platform:list.bzl",
     "GOARCH",
     "GOOS",
@@ -232,7 +236,7 @@ _toolchains = _generate_toolchains()
 
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
-def go_register_toolchains(go_version=DEFAULT_VERSION):
+def go_register_toolchains(go_version=DEFAULT_VERSION, go_checker=None):
   """See /go/toolchains.rst#go-register-toolchains for full documentation."""
   if "go_sdk" not in native.existing_rules():
     if go_version in SDK_REPOSITORIES:
@@ -251,6 +255,13 @@ def go_register_toolchains(go_version=DEFAULT_VERSION):
   for toolchain in _toolchains:
     name = _label_prefix + toolchain["name"]
     native.register_toolchains(name)
+
+  if go_checker:
+    # Override default definition in go_rules_dependencies().
+    go_register_checker(
+        name = "io_bazel_rules_go_checker",
+        checker = go_checker,
+    )
 
 def declare_constraints():
   for goos, constraint in GOOS.items():

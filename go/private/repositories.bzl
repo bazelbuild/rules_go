@@ -18,7 +18,7 @@ load("@io_bazel_rules_go//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
 load("@io_bazel_rules_go//go/private:tools/overlay_repository.bzl", "git_repository", "http_archive")
-load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
+load("@io_bazel_rules_go//go/private:checker.bzl", "go_register_checker", "DEFAULT_CHECKER")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
 load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
@@ -141,6 +141,14 @@ def go_rules_dependencies():
       remote = "https://github.com/kevinburke/go-bindata",
       commit = "95df019c0747a093fef2832ae530a37fd2766d16",  # v3.7.0, latest as of 2018-02-07
       overlay = manifest["com_github_kevinburke_go_bindata"],
+  )
+
+  # This may be overridden by go_register_toolchains, but it's not mandatory
+  # for users to call that function (they may declare their own @go_sdk and
+  # register their own toolchains).
+  _maybe(go_register_checker,
+      name = "io_bazel_rules_go_checker",
+      checker = DEFAULT_CHECKER,
   )
 
 def _maybe(repo_rule, name, **kwargs):

@@ -32,11 +32,20 @@ def go_rule(implementation, attrs={}, toolchains=[], bootstrap=False, bootstrap_
   toolchains = toolchains + ["@io_bazel_rules_go//go:toolchain"]
 
   if "_builders" in bootstrap_attrs:
-    attrs["_builders"] = attr.label(default = Label("@io_bazel_rules_go//:builders"))
+    attrs["_builders"] = attr.label(
+        default = Label("@io_bazel_rules_go//:builders"))
+  if "_checker" in bootstrap_attrs:
+    attrs["_checker"] = attr.label(
+        default = Label("@io_bazel_rules_go_checker//:go_checker"),
+        cfg = "host")
   if "_coverdata" in bootstrap_attrs:
-    attrs["_coverdata"] = attr.label(default = Label("@io_bazel_rules_go//go/tools/coverdata"), aspects = aspects)
+    attrs["_coverdata"] = attr.label(
+        default = Label("@io_bazel_rules_go//go/tools/coverdata"),
+        aspects = aspects)
   if "_stdlib" in bootstrap_attrs:
-    attrs["_stdlib"] = attr.label(default = Label("@io_bazel_rules_go//:stdlib"), aspects = aspects)
+    attrs["_stdlib"] = attr.label(
+        default = Label("@io_bazel_rules_go//:stdlib"),
+        aspects = aspects)
 
   return rule(
       implementation = implementation,

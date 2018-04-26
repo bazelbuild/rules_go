@@ -22,6 +22,7 @@ def _builders_impl(ctx):
           pack = ctx.executable._pack,
           link = ctx.executable._link,
           cgo = ctx.executable._cgo,
+          checker_generator = ctx.executable._checker_generator,
           test_generator = ctx.executable._test_generator,
           cover = ctx.executable._cover,
       ),
@@ -75,6 +76,13 @@ builders = rule(
             executable = True,
             cfg = "host",
             default = "//go/tools/builders:cgo",
+        ),
+        "_checker_generator": attr.label(
+            allow_files = True,
+            single_file = True,
+            executable = True,
+            cfg = "host",
+            default = "//go/tools/builders:generate_checker_main",
         ),
         "_test_generator": attr.label(
             allow_files = True,

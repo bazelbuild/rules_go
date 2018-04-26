@@ -19,6 +19,7 @@ load(
     "GoAspectProviders",
     "GoStdLib",
     "GoBuilders",
+    "GoChecker",
     "get_archive",
     "get_source",
 )
@@ -228,8 +229,11 @@ def go_context(ctx, attr=None):
   builders = getattr(attr, "_builders", None)
   if builders:
     builders = builders[GoBuilders]
-  else:
-    builders = GoBuilders(compile=None, link=None)
+
+  checker = getattr(attr, "_checker", None)
+  if checker:
+    checker = checker[GoChecker]
+
   coverdata = getattr(attr, "_coverdata", None)
   if coverdata:
     coverdata = get_archive(coverdata)
@@ -265,6 +269,7 @@ def go_context(ctx, attr=None):
       pathtype = pathtype,
       cgo_tools = context_data.cgo_tools,
       builders = builders,
+      checker = checker,
       coverdata = coverdata if have_cover else None,
       env = context_data.env,
       tags = context_data.tags,
