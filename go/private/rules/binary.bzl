@@ -155,7 +155,7 @@ go_binary = go_rule(
 
 go_tool_binary = go_rule(
     _go_binary_impl,
-    bootstrap_builders = True,
+    bootstrap = True,
     attrs = {
         "basename": attr.string(),
         "data": attr.label_list(

@@ -71,7 +71,10 @@ def _go_checker_impl(ctx):
 
 go_checker = go_rule(
     _go_checker_impl,
-    bootstrap_checker = True,
+    bootstrap_attrs = [
+        "_builders",
+        "_stdlib",
+    ],
     attrs = {
         "deps": attr.label_list(
             providers = [GoArchive],
