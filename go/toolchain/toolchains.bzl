@@ -20,8 +20,6 @@ load(
 
 DEFAULT_VERSION = "1.10.1"
 
-DEFAULT_CHECKER = "@io_bazel_rules_go//:default_checker"
-
 SDK_REPOSITORIES = {
     "1.10.1": {
         "darwin_amd64":      ("go1.10.1.darwin-amd64.tar.gz", "0a5bbcbbb0d150338ba346151d2864fd326873beaedf964e2057008c8a4dc557"),
@@ -238,7 +236,7 @@ _toolchains = _generate_toolchains()
 
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
-def go_register_toolchains(go_version=DEFAULT_VERSION, go_checker=DEFAULT_CHECKER):
+def go_register_toolchains(go_version=DEFAULT_VERSION, go_checker=None):
   """See /go/toolchains.rst#go-register-toolchains for full documentation."""
   if "go_sdk" not in native.existing_rules():
     if go_version in SDK_REPOSITORIES:
@@ -258,10 +256,12 @@ def go_register_toolchains(go_version=DEFAULT_VERSION, go_checker=DEFAULT_CHECKE
     name = _label_prefix + toolchain["name"]
     native.register_toolchains(name)
 
-  go_register_checker(
-      name = "io_bazel_rules_go_checker",
-      checker = go_checker,
-  )
+  if go_checker:
+    # Override default definition in go_rules_dependencies().
+    go_register_checker(
+        name = "io_bazel_rules_go_checker",
+        checker = go_checker,
+    )
 
 def declare_constraints():
   for goos, constraint in GOOS.items():

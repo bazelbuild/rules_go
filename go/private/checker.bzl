@@ -14,6 +14,8 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "env_execute")
 
+DEFAULT_CHECKER = "@io_bazel_rules_go//:default_checker"
+
 def _go_register_checker_impl(ctx):
   ctx.template("BUILD.bazel",
       Label("@io_bazel_rules_go//go/private:BUILD.checker.bazel"),

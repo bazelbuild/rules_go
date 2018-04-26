@@ -31,6 +31,9 @@ load(
 load(
     "@io_bazel_rules_go//go/private:repositories.bzl",
     "go_rules_dependencies",
+)
+load(
+    "@io_bazel_rules_go//go/toolchain:toolchains.bzl",
     "go_register_toolchains",
 )
 load(
