@@ -28,17 +28,16 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 )
 
 func run(args []string) error {
 	flags := flag.NewFlagSet("cover", flag.ExitOnError)
-	var coverSrc, coverVar, origSrc, importpath string
+	var coverSrc, coverVar, origSrc, srcName string
 	flags.StringVar(&coverSrc, "o", "", "coverage output file")
 	flags.StringVar(&coverVar, "var", "", "name of cover variable")
 	flags.StringVar(&origSrc, "src", "", "original source file")
-	flags.StringVar(&importpath, "importpath", "", "library import path")
+	flags.StringVar(&srcName, "srcname", "", "source name printed in coverage data")
 	goenv := envFlags(flags)
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -55,11 +54,8 @@ func run(args []string) error {
 	if origSrc == "" {
 		return fmt.Errorf("-src was not set")
 	}
-	var srcName string
-	if importpath == "" {
+	if srcName == "" {
 		srcName = origSrc
-	} else {
-		srcName = filepath.Join(filepath.FromSlash(importpath), filepath.Base(origSrc))
 	}
 
 	goargs := []string{"tool", "cover", "-var=" + coverVar, "-o=" + coverSrc}

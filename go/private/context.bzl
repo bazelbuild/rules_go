@@ -14,6 +14,9 @@
 
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
+    "EXPLICIT_PATH",
+    "INFERRED_PATH",
+    "EXPORT_PATH",
     "GoLibrary",
     "GoSource",
     "GoAspectProviders",
@@ -45,12 +48,6 @@ load(
 )
 
 GoContext = provider()
-
-EXPLICIT_PATH = "explicit"
-
-INFERRED_PATH = "inferred"
-
-EXPORT_PATH = "export"
 
 _COMPILER_OPTIONS_BLACKLIST = {
   "-fcolor-diagnostics": None,
@@ -159,7 +156,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
       "cgo_deps" : [],
       "cgo_exports" : [],
   }
-  if coverage_instrumented and not attr.testonly:
+  if coverage_instrumented and not getattr(attr, "testonly", False):
     source["cover"] = attr_srcs
   for e in getattr(attr, "embed", []):
     _merge_embed(source, e)
@@ -233,8 +230,6 @@ def go_context(ctx, attr=None):
   coverdata = getattr(attr, "_coverdata", None)
   if coverdata:
     coverdata = get_archive(coverdata)
-  have_cover = (ctx.configuration.coverage_enabled and
-                bool(toolchain.actions.cover) and bool(coverdata))
 
   host_only = getattr(attr, "_hostonly", False)
 
@@ -265,7 +260,7 @@ def go_context(ctx, attr=None):
       pathtype = pathtype,
       cgo_tools = context_data.cgo_tools,
       builders = builders,
-      coverdata = coverdata if have_cover else None,
+      coverdata = coverdata,
       env = context_data.env,
       tags = context_data.tags,
       # Action generators
@@ -273,7 +268,7 @@ def go_context(ctx, attr=None):
       asm = toolchain.actions.asm,
       binary = toolchain.actions.binary,
       compile = toolchain.actions.compile,
-      cover = toolchain.actions.cover if have_cover else None,
+      cover = toolchain.actions.cover,
       link = toolchain.actions.link,
       pack = toolchain.actions.pack,
 

@@ -15,7 +15,6 @@
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
-    "EXPORT_PATH",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
@@ -33,6 +32,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
+    "EXPORT_PATH",
     "GoLibrary",
     "get_archive",
 )
@@ -78,7 +78,7 @@ def _go_test_impl(ctx):
       srcs = [struct(files=go_srcs)],
       deps = internal_archive.direct + [internal_archive],
       x_defs = ctx.attr.x_defs,
-  ), external_library, False)
+  ), external_library, ctx.coverage_instrumented())
   external_archive = go.archive(go, external_source)
   external_srcs = split_srcs(external_source.srcs).go
 
@@ -94,7 +94,7 @@ def _go_test_impl(ctx):
   main_go = go.declare_file(go, "testmain.go")
   arguments = go.args(go)
   arguments.add(['-rundir', run_dir, '-output', main_go])
-  if go.cover:
+  if ctx.configuration.coverage_enabled:
     arguments.add(["-coverage"])
   arguments.add([
       # the l is the alias for the package under test, the l_test must be the
@@ -123,7 +123,7 @@ def _go_test_impl(ctx):
       resolve = None,
   )
   test_deps = external_archive.direct + [external_archive]
-  if go.cover:
+  if ctx.configuration.coverage_enabled:
     test_deps.append(go.coverdata)
   test_source = go.library_to_source(go, struct(
       srcs = [struct(files=[main_go])],

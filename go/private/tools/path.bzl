@@ -15,13 +15,14 @@
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
-    "EXPLICIT_PATH",
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
+    "EXPLICIT_PATH",
     "GoArchive",
     "GoPath",
     "get_archive",
+    "effective_importpath_pkgpath",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
@@ -47,7 +48,7 @@ def _go_path_impl(ctx):
   # Collect sources and data files from archives. Merge archives into packages.
   pkg_map = {}  # map from package path to structs
   for archive in as_iterable(archives):
-    importpath, pkgpath = _get_importpath_pkgpath(archive)
+    importpath, pkgpath = effective_importpath_pkgpath(archive)
     if importpath == "":
       continue  # synthetic archive or inferred location
     out_prefix = "src/" + pkgpath
@@ -161,24 +162,6 @@ go_path = rule(
         ),
     },
 )
-
-def _get_importpath_pkgpath(archive):
-  if archive.pathtype != EXPLICIT_PATH:
-    return "", ""
-  importpath = archive.importpath
-  importmap = archive.importmap
-  if importpath.endswith("_test"): importpath = importpath[:-len("_test")]
-  if importmap.endswith("_test"): importmap = importmap[:-len("_test")]
-  parts = importmap.split("/")
-  if "vendor" not in parts:
-    # Unusual case not handled by go build. Just return importpath.
-    return importpath, importpath
-  elif len(parts) > 2 and archive.label.workspace_root == "external/" + parts[0]:
-    # Common case for importmap set by Gazelle in external repos.
-    return importpath, importmap[len(parts[0]):]
-  else:
-    # Vendor directory somewhere in the main repo. Leave it alone.
-    return importpath, importmap
 
 def _merge_pkg(x, y):
   x_srcs = {f.path: None for f in x.srcs}

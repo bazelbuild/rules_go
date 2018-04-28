@@ -15,6 +15,7 @@
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoSource",
+    "effective_importpath_pkgpath",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
@@ -41,10 +42,11 @@ def emit_cover(go, source):
       "-o=" + out.path,
       "-var=" + cover_var,
       "-src=" + src.path,
-      "-importpath=" + source.library.importpath,
-      "--",
-      "-mode=set",
     ])
+    _, pkgpath = effective_importpath_pkgpath(source.library)
+    if pkgpath != "":
+      args.add("-srcname=" + pkgpath + "/" + src.basename)
+    args.add(["--", "-mode=set"])
     go.actions.run(
         inputs = [src] + go.stdlib.files,
         outputs = [out],

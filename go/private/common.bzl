@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
 load("//go/private:skylib/lib/dicts.bzl", "dicts")
 load("//go/private:skylib/lib/paths.bzl", "paths")
 load("//go/private:skylib/lib/sets.bzl", "sets")

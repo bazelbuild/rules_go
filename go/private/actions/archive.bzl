@@ -34,7 +34,8 @@ def emit_archive(go, source=None):
 
   if source == None: fail("source is a required parameter")
 
-  if go.cover:
+  covered = bool(go.cover and go.coverdata and source.cover)
+  if covered:
     source = go.cover(go, source)
   split = split_srcs(source.srcs)
   lib_name = source.library.importmap + ".a"
@@ -52,7 +53,7 @@ def emit_archive(go, source=None):
   for a in direct:
     runfiles = runfiles.merge(a.runfiles)
     if a.source.mode != go.mode: fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
-  if go.cover:
+  if covered:
     direct.append(go.coverdata)
 
   if len(extra_objects) == 0 and not source.cgo_archives:
