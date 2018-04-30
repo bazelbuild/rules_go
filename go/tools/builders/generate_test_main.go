@@ -32,21 +32,6 @@ import (
 	"text/template"
 )
 
-type CoverFile struct {
-	File string
-	Var  string
-}
-
-func (f *CoverFile) Base() string {
-	return filepath.Base(f.File)
-}
-
-type CoverPackage struct {
-	Name   string
-	Import string
-	Files  []CoverFile
-}
-
 type Import struct {
 	Name string
 	Path string
@@ -72,7 +57,7 @@ type Cases struct {
 	Benchmarks []TestCase
 	Examples   []Example
 	TestMain   string
-	Cover      []*CoverPackage
+	Coverage   bool
 }
 
 var codeTpl = `
@@ -81,17 +66,16 @@ import (
 	"flag"
 	"log"
 	"os"
-	"fmt"
 	"strconv"
 	"testing"
 	"testing/internal/testdeps"
 
-{{range $p := .Imports}}
-  {{$p.Name}} "{{$p.Path}}"
+{{if .Coverage}}
+	"github.com/bazelbuild/rules_go/go/tools/coverdata"
 {{end}}
 
-{{range $p := .Cover}}
-	{{$p.Name}} {{$p.Import | printf "%q"}}
+{{range $p := .Imports}}
+  {{$p.Name}} "{{$p.Path}}"
 {{end}}
 )
 
@@ -131,46 +115,6 @@ func testsInShard() []testing.InternalTest {
 	return tests
 }
 
-func coverRegisterAll() testing.Cover {
-	coverage := testing.Cover{
-		Mode: "set",
-		CoveredPackages: "",
-		Counters: map[string][]uint32{},
-		Blocks: map[string][]testing.CoverBlock{},
-	}
-{{range $p := .Cover}}
-	//{{$p.Import}}
-{{range $v := $p.Files}}
-	{{$var := printf "%s.%s" $p.Name $v.Var}}
-	coverRegisterFile(&coverage, "{{printf "%s/%s" $p.Import $v.Base}}", {{$var}}.Count[:], {{$var}}.Pos[:], {{$var}}.NumStmt[:])
-{{end}}
-{{end}}
-	return coverage
-}
-
-func coverRegisterFile(coverage *testing.Cover, fileName string, counter []uint32, pos []uint32, numStmts []uint16) {
-	if 3*len(counter) != len(pos) || len(counter) != len(numStmts) {
-		panic("coverage: mismatched sizes")
-	}
-	if coverage.Counters[fileName] != nil {
-		// Already registered.
-		fmt.Printf("Already covered %s\n", fileName)
-		return
-	}
-	coverage.Counters[fileName] = counter
-	block := make([]testing.CoverBlock, len(counter))
-	for i := range counter {
-		block[i] = testing.CoverBlock{
-			Line0: pos[3*i+0],
-			Col0: uint16(pos[3*i+2]),
-			Line1: pos[3*i+1],
-			Col1: uint16(pos[3*i+2]>>16),
-			Stmts: numStmts[i],
-		}
-	}
-	coverage.Blocks[fileName] = block
-}
-
 func main() {
 	// Check if we're being run by Bazel and change directories if so.
 	// TEST_SRCDIR is set by the Bazel test runner, so that makes a decent proxy.
@@ -186,16 +130,16 @@ func main() {
 		}
 	}
 
-	coverage := coverRegisterAll()
-	if len(coverage.Counters) > 0 {
-		testing.RegisterCover(coverage)
+	{{if .Coverage}}
+	if len(coverdata.Cover.Counters) > 0 {
+		testing.RegisterCover(coverdata.Cover)
 	}
-
 	if coverageDat, ok := os.LookupEnv("COVERAGE_OUTPUT_FILE"); ok {
 		if testing.CoverMode() != "" {
 			flag.Lookup("test.coverprofile").Value.Set(coverageDat)
 		}
 	}
+	{{end}}
 
 	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, examples)
 	{{if not .TestMain}}
@@ -208,14 +152,13 @@ func main() {
 
 func run(args []string) error {
 	// Prepare our flags
-	cover := multiFlag{}
 	imports := multiFlag{}
 	sources := multiFlag{}
 	flags := flag.NewFlagSet("generate_test_main", flag.ExitOnError)
 	goenv := envFlags(flags)
 	runDir := flags.String("rundir", ".", "Path to directory where tests should run.")
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
-	flags.Var(&cover, "cover", "Information about a coverage variable")
+	coverage := flags.Bool("coverage", false, "whether coverage is supported")
 	flags.Var(&imports, "import", "Packages to import")
 	flags.Var(&sources, "src", "Sources to process for tests")
 	if err := flags.Parse(args); err != nil {
@@ -264,29 +207,8 @@ func run(args []string) error {
 	}
 
 	cases := Cases{
-		RunDir: strings.Replace(filepath.FromSlash(*runDir), `\`, `\\`, -1),
-	}
-
-	covered := map[string]*CoverPackage{}
-	for _, c := range cover {
-		bits := strings.SplitN(c, "=", 3)
-		if len(bits) != 3 {
-			return fmt.Errorf("Invalid cover variable arg, expected var=file=package got %s", c)
-		}
-		importPath := bits[2]
-		pkg, found := covered[importPath]
-		if !found {
-			pkg = &CoverPackage{
-				Name:   fmt.Sprintf("covered%d", len(covered)),
-				Import: importPath,
-			}
-			covered[importPath] = pkg
-			cases.Cover = append(cases.Cover, pkg)
-		}
-		pkg.Files = append(pkg.Files, CoverFile{
-			File: bits[1],
-			Var:  bits[0],
-		})
+		RunDir:   strings.Replace(filepath.FromSlash(*runDir), `\`, `\\`, -1),
+		Coverage: *coverage,
 	}
 
 	testFileSet := token.NewFileSet()

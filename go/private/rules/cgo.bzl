@@ -128,6 +128,7 @@ def _cgo_codegen_impl(ctx):
 
   c_outs = [cgo_export_h, cgo_export_c]
   cxx_outs = [cgo_export_h]
+  objc_outs = [cgo_export_h]
   transformed_go_outs = []
   gen_go_outs = [cgo_types]
 
@@ -156,6 +157,11 @@ def _cgo_codegen_impl(ctx):
     mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     cxx_outs.append(gen_file)
+    args.add(["-src", gen_file.path + "=" + src.path])
+  for src in source.objc:
+    mangled_stem, src_ext = _mangle(src, stems)
+    gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
+    objc_outs.append(gen_file)
     args.add(["-src", gen_file.path + "=" + src.path])
 
   inputs = sets.union(ctx.files.srcs, go.crosstool, go.stdlib.files,
@@ -193,7 +199,7 @@ def _cgo_codegen_impl(ctx):
   args.add(copts)
   ctx.actions.run(
       inputs = inputs + go.crosstool,
-      outputs = c_outs + cxx_outs + gen_go_outs + transformed_go_outs + [cgo_main],
+      outputs = c_outs + cxx_outs + objc_outs + gen_go_outs + transformed_go_outs + [cgo_main],
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go.builders.cgo,
@@ -215,6 +221,7 @@ def _cgo_codegen_impl(ctx):
       OutputGroupInfo(
           c_files = sets.union(c_outs, source.headers),
           cxx_files = sets.union(cxx_outs, source.headers),
+          objc_files = sets.union(objc_outs, source.headers),
           go_files = sets.union(transformed_go_outs, gen_go_outs),
           main_c = as_set([cgo_main]),
       ),
@@ -339,6 +346,7 @@ _cgo_collect_info = go_rule(
         ),
         "libs": attr.label_list(
             mandatory = True,
+            allow_files = True,
             providers = ["cc"],
         ),
         "cgo_import": attr.label(mandatory = True),
@@ -347,7 +355,7 @@ _cgo_collect_info = go_rule(
 """No-op rule that collects information from _cgo_codegen and cc_library
 info into a GoSourceList provider for easy consumption."""
 
-def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts):
+def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts):
   # Apply build constraints to source files (both Go and C) but not to header
   # files. Separate filtered Go and C sources.
 
@@ -359,6 +367,13 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts):
   copts = copts
   cxxopts = cxxopts
   cppopts = cppopts + ["-I", base_dir]
+
+  if objc:
+    clinkopts = clinkopts + [
+        "-fobjc-link-runtime",
+    ]
+    for framework in objcopts.get("sdk_frameworks", []):
+        clinkopts.append("-framework %s" % framework)
 
   cgo_codegen_name = name + ".cgo_codegen"
   _cgo_codegen(
@@ -393,6 +408,14 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts):
       name = select_cxx_files,
       srcs = [cgo_codegen_name],
       output_group = "cxx_files",
+      visibility = ["//visibility:private"],
+  )
+
+  select_objc_files = name + ".select_objc_files"
+  native.filegroup(
+      name = select_objc_files,
+      srcs = [cgo_codegen_name],
+      output_group = "objc_files",
       visibility = ["//visibility:private"],
   )
 
@@ -441,10 +464,37 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts):
       alwayslink = 1,
       visibility = ["//visibility:private"],
   )
-  cgo_libs = [
+
+  cgo_o_deps = [
       cgo_c_lib_name,
       cgo_cxx_lib_name,
   ]
+  cgo_collect_info_libs = cgo_o_deps[:]
+
+  if objc:
+    cgo_objc_lib_name = name + ".cgo_objc_lib"
+    native.objc_library(
+        name = cgo_objc_lib_name,
+        srcs = [select_objc_files],
+        deps = cdeps,
+        copts = copts + cppopts + platform_copts + [
+            # The generated thunks often contain unused variables.
+            "-Wno-unused-variable",
+        ],
+        # _cgo_.o needs all symbols because _cgo_import needs to see them.
+        alwayslink = 1,
+        visibility = ["//visibility:private"],
+        **objcopts
+    )
+    cgo_o_deps.append(cgo_objc_lib_name)
+    # cgo needs all the symbols it can find when generating _cgo_import.go. For
+    # cc_library we use linkstatic = 1. This option does not exist on
+    # objc_library. To work around that, we used the implicit and documented
+    # target that objc_library provides, which includes the fully transitive
+    # dependencies.
+    # See https://docs.bazel.build/versions/master/be/objective-c.html#objc_library
+    # for more information.
+    cgo_collect_info_libs.append(cgo_objc_lib_name + "_fully_linked.a")
 
   # Create a loadable object with no undefined references. cgo reads this
   # when it generates _cgo_import.go.
@@ -452,7 +502,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts):
   native.cc_binary(
       name = cgo_o_name,
       srcs = [select_main_c],
-      deps = cdeps + cgo_libs,
+      deps = cdeps + cgo_o_deps,
       copts = copts + cppopts,
       linkopts = clinkopts,
       visibility = ["//visibility:private"],
@@ -472,7 +522,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts):
       name = cgo_embed_name,
       srcs = srcs,
       codegen = cgo_codegen_name,
-      libs = cgo_libs,
+      libs = cgo_collect_info_libs,
       cgo_import = cgo_import_name,
       visibility = ["//visibility:private"],
   )

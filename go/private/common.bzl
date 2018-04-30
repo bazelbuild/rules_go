@@ -54,13 +54,22 @@ cxx_exts = [
     ".hxx",
 ]
 
+objc_exts = [
+    ".m",
+    ".mm",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+]
+
 go_filetype = FileType(go_exts + asm_exts)
 
 cc_hdr_filetype = FileType(hdr_exts)
 
 # Extensions of files we can build with the Go compiler or with cc_library.
 # This is a subset of the extensions recognized by go/build.
-cgo_filetype = FileType(go_exts + asm_exts + c_exts + cxx_exts)
+cgo_filetype = FileType(go_exts + asm_exts + c_exts + cxx_exts + objc_exts)
 
 def pkg_dir(workspace_root, package_name):
   """Returns a relative path to a package directory from the root of the
@@ -80,6 +89,7 @@ def split_srcs(srcs):
     headers = [],
     c = [],
     cxx = [],
+    objc = [],
   )
   ext_pairs = (
     (sources.go, go_exts),
@@ -87,6 +97,7 @@ def split_srcs(srcs):
     (sources.asm, asm_exts),
     (sources.c, c_exts),
     (sources.cxx, cxx_exts),
+    (sources.objc, objc_exts),
   )
   extmap = {}
   for outs, exts in ext_pairs:
@@ -103,7 +114,7 @@ def split_srcs(srcs):
   return sources
 
 def join_srcs(source):
-  return source.go + source.headers + source.asm + source.c + source.cxx
+  return source.go + source.headers + source.asm + source.c + source.cxx + source.objc
 
 def env_execute(ctx, arguments, environment = {}, **kwargs):
   """env_executes a command in a repository context. It prepends "env -i"

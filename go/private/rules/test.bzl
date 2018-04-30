@@ -94,12 +94,13 @@ def _go_test_impl(ctx):
   main_go = go.declare_file(go, "testmain.go")
   arguments = go.args(go)
   arguments.add(['-rundir', run_dir, '-output', main_go])
+  if go.cover:
+    arguments.add(["-coverage"])
   arguments.add([
       # the l is the alias for the package under test, the l_test must be the
       # same with the test suffix
       '-import', "l="+internal_source.library.importpath,
       '-import', "l_test="+external_source.library.importpath])
-  arguments.add(external_archive.cover_vars, before_each="-cover")
   arguments.add(go_srcs, before_each="-src", format="l=%s")
   ctx.actions.run(
       inputs = go_srcs,
@@ -121,9 +122,12 @@ def _go_test_impl(ctx):
       pathtype = EXPORT_PATH,
       resolve = None,
   )
+  test_deps = external_archive.direct + [external_archive]
+  if go.cover:
+    test_deps.append(go.coverdata)
   test_source = go.library_to_source(go, struct(
       srcs = [struct(files=[main_go])],
-      deps = external_archive.direct + [external_archive],
+      deps = test_deps,
   ), test_library, False)
   test_archive, executable, runfiles = go.binary(go,
       name = ctx.label.name,
