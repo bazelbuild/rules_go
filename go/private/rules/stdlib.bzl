@@ -42,13 +42,20 @@ def _stdlib_library_to_source(go, attr, source, merge):
     args.add("-shared")
   args.add(["-filter_buildid", filter_buildid.path])
   go.actions.write(root_file, "")
+  env = go.env
+  env.update({
+      "CC": go.cgo_tools.compiler_executable,
+      "CGO_CPPFLAGS": " ".join(go.cgo_tools.compiler_options),
+      "CGO_CFLAGS": " ".join(go.cgo_tools.c_options),
+      "CGO_LDFLAGS": " ".join(go.cgo_tools.linker_options),
+  })
   go.actions.run(
       inputs = go.sdk_files + go.sdk_tools + go.crosstool + [filter_buildid, go.package_list, root_file],
       outputs = [pkg],
       mnemonic = "GoStdlib",
       executable = attr._stdlib_builder.files.to_list()[0],
       arguments = [args],
-      env = go.env,
+      env = env,
   )
   source["stdlib"] = GoStdLib(
       root_file = root_file,

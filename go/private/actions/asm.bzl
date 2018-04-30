@@ -28,23 +28,24 @@ def emit_asm(go,
   if source == None: fail("source is a required parameter")
 
   out_obj = go.declare_file(go, path=source.basename[:-2], ext=".o")
-  includes = sets.union(
-      [go.stdlib.root_file.dirname + "/pkg/include"],
-      [f.dirname for f in hdrs])
   inputs = hdrs + go.stdlib.files + [source]
 
-  asm_args = go.args(go)
-  asm_args.add(["-o", out_obj, "-trimpath", "."])
+  args = go.args(go)
+  args.add([source, "--"])
+  includes = ([go.stdlib.root_file.dirname + "/pkg/include"] +
+              [f.dirname for f in hdrs])
+  # TODO(#1463): use uniquify=True when available.
+  includes = sorted({i: None for i in includes}.keys())
+  args.add(includes, before_each="-I")
+  args.add(["-trimpath", ".", "-o", out_obj])
   if go.mode.link == LINKMODE_C_SHARED:
-    asm_args.add("-shared")
-  asm_args.add(includes, before_each="-I")
-  asm_args.add(source.path)
+    args.add("-shared")
   go.actions.run(
       inputs = inputs,
       outputs = [out_obj],
-      mnemonic = "GoAsmCompile",
+      mnemonic = "GoAsm",
       executable = go.builders.asm,
-      arguments = [asm_args],
+      arguments = [args],
       env = go.env,
   )
   return out_obj

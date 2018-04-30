@@ -66,6 +66,8 @@ func run(args []string) error {
 }
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("GoMd5sum: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}

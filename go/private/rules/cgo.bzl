@@ -108,11 +108,17 @@ def _select_archives(libs):
     fail("cc_library(s) did not produce any files")
   return outs
 
+def _include_unique(opts, flag, include, seen):
+  if include in seen:
+    return
+  seen[include] = True
+  opts.extend([flag, include])
+
 def _cgo_codegen_impl(ctx):
   go = go_context(ctx)
   if not go.cgo_tools:
     fail("Go toolchain does not support cgo")
-  linkopts = ctx.attr.linkopts[:]
+  linkopts = go.cgo_tools.linker_options + ctx.attr.linkopts
   cppopts = go.cgo_tools.compiler_options + ctx.attr.cppopts
   copts = go.cgo_tools.c_options + ctx.attr.copts
   deps = depset([], order="topological")
@@ -122,9 +128,9 @@ def _cgo_codegen_impl(ctx):
   cgo_types = go.declare_file(go, path="_cgo_gotypes.go")
   out_dir = cgo_main.dirname
 
-  cc = go.cgo_tools.compiler_executable
-  args = go.args(go)
-  args.add(["-cc", str(cc), "-objdir", out_dir])
+  builder_args = go.args(go)     # interpreted by builder
+  tool_args = ctx.actions.args() # interpreted by cgo
+  cc_args = ctx.actions.args()   # interpreted by C compiler
 
   c_outs = [cgo_export_h, cgo_export_c]
   cxx_outs = [cgo_export_h]
@@ -132,9 +138,13 @@ def _cgo_codegen_impl(ctx):
   transformed_go_outs = []
   gen_go_outs = [cgo_types]
 
+  seen_includes = {}
+  seen_quote_includes = {}
+  seen_system_includes = {}
+
   source = split_srcs(ctx.files.srcs)
-  for src in source.headers:
-    cppopts.extend(['-iquote', src.dirname])
+  for hdr in source.headers:
+    _include_unique(cppopts, "-iquote", hdr.dirname, seen_quote_includes)
   stems = {}
   for src in source.go:
     mangled_stem, src_ext = _mangle(src, stems)
@@ -142,27 +152,29 @@ def _cgo_codegen_impl(ctx):
     gen_c_file = go.declare_file(go, path=mangled_stem + ".cgo2.c")
     transformed_go_outs.append(gen_go_file)
     c_outs.append(gen_c_file)
-    args.add(["-src", gen_go_file.path + "=" + src.path])
+    builder_args.add(["-src", gen_go_file.path + "=" + src.path])
   for src in source.asm:
     mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     transformed_go_outs.append(gen_file)
-    args.add(["-src", gen_file.path + "=" + src.path])
+    builder_args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.c:
     mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     c_outs.append(gen_file)
-    args.add(["-src", gen_file.path + "=" + src.path])
+    builder_args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.cxx:
     mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     cxx_outs.append(gen_file)
-    args.add(["-src", gen_file.path + "=" + src.path])
+    builder_args.add(["-src", gen_file.path + "=" + src.path])
   for src in source.objc:
     mangled_stem, src_ext = _mangle(src, stems)
     gen_file = go.declare_file(go, path=mangled_stem + ".cgo1."+src_ext)
     objc_outs.append(gen_file)
-    args.add(["-src", gen_file.path + "=" + src.path])
+    builder_args.add(["-src", gen_file.path + "=" + src.path])
+
+  tool_args.add(["-objdir", out_dir])
 
   inputs = sets.union(ctx.files.srcs, go.crosstool, go.stdlib.files,
                       *[d.cc.transitive_headers for d in ctx.attr.deps])
@@ -172,39 +184,47 @@ def _cgo_codegen_impl(ctx):
     runfiles = runfiles.merge(d.data_runfiles)
     cppopts.extend(['-D' + define for define in d.cc.defines])
     for inc in d.cc.include_directories:
-      cppopts.extend(['-I', inc])
+      _include_unique(cppopts, "-I", inc, seen_includes)
     for inc in d.cc.quote_include_directories:
-      cppopts.extend(['-iquote', inc])
+      _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
     for inc in d.cc.system_include_directories:
-      cppopts.extend(['-isystem', inc])
+      _include_unique(cppopts, "-isystem", inc, seen_system_includes)
     for lib in as_iterable(d.cc.libs):
       # If both static and dynamic variants are available, Bazel will only give
-      # us the static variant. We'll get on file for each transitive dependency,
+      # us the static variant. We'll get one file for each transitive dependency,
       # so the same file may appear more than once.
-      # TODO(#1456): deduplicate flags, get rid of -L, and set rpaths.
       if (lib.basename.startswith("lib") and
           any([lib.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])):
+        # If the loader would be able to find the library using rpaths,
+        # use -L and -l instead of hard coding the path to the library in
+        # the binary. This gives users more flexibility. The linker will add
+        # rpaths later. We can't add them here because they are relative to
+        # the binary location, and we don't know where that is.
         libname = lib.basename[len("lib"):lib.basename.rindex(".")]
         linkopts.extend(['-L', lib.dirname, '-l', libname])
       else:
         linkopts.append(lib.path)
     linkopts.extend(d.cc.link_flags)
 
-  args.add(linkopts, before_each="-ld_flag")
+  # cgo writes CGO_LDFLAGS to _cgo_import.go in the form of pragmas which get
+  # compiled into .a files. The linker finds these and passes them to the
+  # external linker.
+  # TODO(jayconrod): do we need to set this here, or only in _cgo_import?
+  # go build does it here.
+  env = go.env
+  env["CC"] = go.cgo_tools.compiler_executable
+  env["CGO_LDFLAGS"] = " ".join(linkopts)
 
-  # The first -- below is to stop the cgo from processing args, the
-  # second is an actual arg to forward to the underlying go tool
-  args.add(["--", "--"])
-  args.add(cppopts)
-  args.add(copts)
+  cc_args.add(cppopts + copts)
+
   ctx.actions.run(
-      inputs = inputs + go.crosstool,
+      inputs = inputs,
       outputs = c_outs + cxx_outs + objc_outs + gen_go_outs + transformed_go_outs + [cgo_main],
       mnemonic = "CGoCodeGen",
       progress_message = "CGoCodeGen %s" % ctx.label,
       executable = go.builders.cgo,
-      arguments = [args],
-      env = go.env,
+      arguments = [builder_args, "--", tool_args, "--", cc_args],
+      env = env,
   )
 
   return [
@@ -247,9 +267,11 @@ def _cgo_import_impl(ctx):
   out = go.declare_file(go, path="_cgo_import.go")
   args = go.args(go)
   args.add([
+      "-import",
+      "-src", ctx.files.sample_go_srcs[0],
+      "--",  # stop builder from processing args
       "-dynout", out,
       "-dynimport", ctx.file.cgo_o,
-      "-src", ctx.files.sample_go_srcs[0],
   ])
   ctx.actions.run(
       inputs = [

@@ -46,46 +46,45 @@ def emit_compile(go,
     if archives:  fail("compile does not accept deps in bootstrap mode")
     return _bootstrap_compile(go, sources, out_lib, gc_goopts)
 
-  # Add in any mode specific behaviours
-  if go.mode.race:
-    gc_goopts = gc_goopts + ["-race"]
-  if go.mode.msan:
-    gc_goopts = gc_goopts + ["-msan"]
-  if go.mode.link == LINKMODE_C_SHARED:
-    gc_goopts = gc_goopts + ["-shared"]
+  inputs = (sources + [go.package_list] +
+            [archive.data.file for archive in archives] +
+            go.stdlib.files)
 
+  builder_args = go.args(go)
+  builder_args.add(sources, before_each="-src")
+  builder_args.add(archives, before_each="-dep", map_fn=_importpath)
+  builder_args.add(archives, before_each="-importmap", map_fn=_importmap)
+  builder_args.add(["-o", out_lib])
+  builder_args.add(["-package_list", go.package_list])
+  if testfilter:
+    builder_args.add(["-testfilter", testfilter])
+
+  tool_args = go.actions.args()
+  tool_args.add(archives, before_each="-I", map_fn=_searchpath)
+  tool_args.add(["-trimpath", ".", "-I", "."])
   #TODO: Check if we really need this expand make variables in here
   #TODO: If we really do then it needs to be moved all the way back out to the rule
   gc_goopts = [go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-  inputs = sets.union(sources, [go.package_list])
-
-  inputs = sets.union(inputs, [archive.data.file for archive in archives])
-  inputs = sets.union(inputs, go.stdlib.files)
-
-  args = go.args(go)
-  args.add(["-package_list", go.package_list])
-  args.add([s.path for s in sources], before_each="-src")
-  args.add(archives, before_each="-dep", map_fn=_importpath)
-  args.add(archives, before_each="-I", map_fn=_searchpath)
-  args.add(archives, before_each="-importmap", map_fn=_importmap)
-  args.add(["-o", out_lib, "-trimpath", ".", "-I", "."])
-  if testfilter:
-    args.add(["--testfilter", testfilter])
-  args.add(["--"])
+  tool_args.add(gc_goopts)
+  if go.mode.race:
+    tool_args.add("-race")
+  if go.mode.msan:
+    tool_args.add("-msan")
+  if go.mode.link == LINKMODE_C_SHARED:
+    tool_args.add("-shared")
   if importpath:
-    args.add(["-p", importpath])
-  args.add(gc_goopts)
-  args.add(go.toolchain.flags.compile)
+    tool_args.add(["-p", importpath])
   if go.mode.debug:
-    args.add(["-N", "-l"])
+    tool_args.add(["-N", "-l"])
   if go.mode.link in [LINKMODE_PLUGIN]:
-    args.add(["-dynlink"])
+    tool_args.add(["-dynlink"])
+  tool_args.add(go.toolchain.flags.compile)
   go.actions.run(
       inputs = inputs,
       outputs = [out_lib],
       mnemonic = "GoCompile",
       executable = go.builders.compile,
-      arguments = [args],
+      arguments = [builder_args, "--", tool_args],
       env = go.env,
   )
 

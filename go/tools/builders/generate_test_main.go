@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/doc"
 	"go/parser"
 	"go/token"
@@ -154,7 +155,7 @@ func run(args []string) error {
 	// Prepare our flags
 	imports := multiFlag{}
 	sources := multiFlag{}
-	flags := flag.NewFlagSet("generate_test_main", flag.ExitOnError)
+	flags := flag.NewFlagSet("GoTestGenTest", flag.ExitOnError)
 	goenv := envFlags(flags)
 	runDir := flags.String("rundir", ".", "Path to directory where tests should run.")
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
@@ -164,7 +165,7 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-	if err := goenv.update(); err != nil {
+	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
 	// Process import args
@@ -190,8 +191,7 @@ func run(args []string) error {
 	}
 
 	// filter our input file list
-	bctx := goenv.BuildContext()
-	filenames, err := filterFiles(bctx, sourceList)
+	filenames, err := filterFiles(build.Default, sourceList)
 	if err != nil {
 		return err
 	}
@@ -315,6 +315,8 @@ func run(args []string) error {
 }
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("GoTestGenTest: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}

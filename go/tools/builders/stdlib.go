@@ -18,57 +18,53 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go/build"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 )
-
-func install_stdlib(goenv *GoEnv, target string, args []string) error {
-	if goenv.tags != "" {
-		args = append(args, "-tags", goenv.tags)
-	}
-	args = append(args, target)
-	cmd := exec.Command(goenv.Go, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = goenv.Env()
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running go install %s: %v", target, err)
-	}
-	return nil
-}
 
 func run(args []string) error {
 	// process the args
 	flags := flag.NewFlagSet("stdlib", flag.ExitOnError)
 	goenv := envFlags(flags)
-	filter_buildid := flags.String("filter_buildid", "", "Path to filter_buildid tool")
+	filterBuildid := flags.String("filter_buildid", "", "Path to filter_buildid tool")
 	out := flags.String("out", "", "Path to output go root")
 	race := flags.Bool("race", false, "Build in race mode")
+	shared := flags.Bool("shared", false, "Build in shared mode")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-	if err := goenv.update(); err != nil {
+	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
-	goroot := goenv.rootPath
+	goroot := os.Getenv("GOROOT")
+	if goroot == "" {
+		return fmt.Errorf("GOROOT not set")
+	}
 	output := abs(*out)
+
 	// Link in the bare minimum needed to the new GOROOT
 	if err := replicate(goroot, output, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
 		return err
 	}
+
 	// Now switch to the newly created GOROOT
-	goenv.rootPath = output
-	// Run the commands needed to build the std library in the right mode
-	installArgs := []string{"install", "-toolexec", abs(*filter_buildid)}
+	os.Setenv("GOROOT", output)
+
+	// Make sure we have an absolute path to the C compiler.
+	// TODO(#1357): also take absolute paths of includes and other paths in flags.
+	os.Setenv("CC", abs(os.Getenv("CC")))
+
+	// Build the commands needed to build the std library in the right mode
+	installArgs := []string{"install", "-toolexec", abs(*filterBuildid)}
 	gcflags := []string{}
 	ldflags := []string{"-trimpath", abs(".")}
 	asmflags := []string{"-trimpath", abs(".")}
 	if *race {
 		installArgs = append(installArgs, "-race")
 	}
-	if goenv.shared {
+	if *shared {
 		gcflags = append(gcflags, "-shared")
 		ldflags = append(ldflags, "-shared")
 		asmflags = append(asmflags, "-shared")
@@ -78,23 +74,27 @@ func run(args []string) error {
 	// and its dependencies, rather than just the package itself. This was the
 	// default behavior before Go 1.10.
 	allSlug := ""
-	if goReleaseTags["go1.10"] {
-		allSlug = "all="
+	for _, t := range build.Default.ReleaseTags {
+		if t == "go1.10" {
+			allSlug = "all="
+			break
+		}
 	}
 	installArgs = append(installArgs, "-gcflags="+allSlug+strings.Join(gcflags, " "))
 	installArgs = append(installArgs, "-ldflags="+allSlug+strings.Join(ldflags, " "))
 	installArgs = append(installArgs, "-asmflags="+allSlug+strings.Join(asmflags, " "))
 
-	if err := install_stdlib(goenv, "std", installArgs); err != nil {
-		return err
-	}
-	if err := install_stdlib(goenv, "runtime/cgo", installArgs); err != nil {
-		return err
+	for _, target := range []string{"std", "runtime/cgo"} {
+		if err := goenv.runGoCommand(append(installArgs, target)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("GoStdlib: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}

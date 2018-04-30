@@ -21,25 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 )
-
-const endOfHereDoc = "EndOfGoInfoReport"
-
-func invoke(goenv *GoEnv, out *os.File, args []string) error {
-	cmd := exec.Command(goenv.Go, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = append(os.Environ(), goenv.Env()...)
-	if out != nil {
-		cmd.Stdout = out
-		cmd.Stderr = out
-	}
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running %v: %v", args, err)
-	}
-	return nil
-}
 
 func run(args []string) error {
 	filename := ""
@@ -49,7 +31,7 @@ func run(args []string) error {
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-	if err := goenv.update(); err != nil {
+	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
 	f := os.Stderr
@@ -61,10 +43,10 @@ func run(args []string) error {
 		}
 		defer f.Close()
 	}
-	if err := invoke(goenv, f, []string{"version"}); err != nil {
+	if err := goenv.runGoCommandToFile(f, []string{"version"}); err != nil {
 		return err
 	}
-	if err := invoke(goenv, f, []string{"env"}); err != nil {
+	if err := goenv.runGoCommandToFile(f, []string{"env"}); err != nil {
 		return err
 	}
 	return nil

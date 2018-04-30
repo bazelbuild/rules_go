@@ -61,7 +61,7 @@ The toolchain
 ~~~~~~~~~~~~~
 
 This a wrapper over the sdk that provides enough extras to match, target and work on a specific
-platforms. It should be considered an opaqute type, you only ever use it through `the context`_.
+platforms. It should be considered an opaque type, you only ever use it through `the context`_.
 
 Declaration
 ^^^^^^^^^^^
@@ -309,9 +309,9 @@ go_host_sdk
 
 This detects the host Go SDK for use in toolchains.
 
-It first checks the GOROOT and then searches the PATH. You can achive the same result by setting
+It first checks the GOROOT and then searches the PATH. You can achieve the same result by setting
 the version to "host" when registering toolchains to select the `installed sdk`_ so it should
-never be neccesary to use this feature directly.
+never be necessary to use this feature directly.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -396,7 +396,7 @@ go_context
 ~~~~~~~~~~
 
 This collects the information needed to form and return a :type:`GoContext` from a rule ctx.
-It uses the attrbutes and the toolchains.
+It uses the attributes and the toolchains.
 It can only be used in the implementation of a rule that has the go toolchain attached and
 the go context data as an attribute. To do this declare the rule using the go_rule wrapper.
 
@@ -837,3 +837,4 @@ they will be visible to the resolver when it is invoked.
 | This controls whether the GoLibrary_ is supposed to be importable. This is generally only false  |
 | for the "main" libraries that are built just before linking.                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
+

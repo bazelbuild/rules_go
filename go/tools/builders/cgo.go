@@ -12,62 +12,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// cgo invokes "go tool cgo" after filtering souces, and then process the output
-// into a normalised form. It is invoked by the Go rules as an action.
+// cgo invokes "go tool cgo" in two separate actions:
+//
+// * In _cgo_codegen, cgo filters source files and then generates .cgo1.go
+//   and .cgo2.c files containing split definitions.
+// * In _cgo_import, cgo generates _cgo_gotypes.go which contains type
+//   information for C definitions.
+
 package main
 
 import (
 	"errors"
 	"flag"
 	"fmt"
+	"go/build"
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"unicode"
 )
 
 func run(args []string) error {
+	builderArgs, toolArgs := splitArgs(args)
 	sources := multiFlag{}
-	objDir := ""
-	dynout := ""
-	dynimport := ""
-	flags := flag.NewFlagSet("cgo", flag.ContinueOnError)
+	importMode := false
+	flags := flag.NewFlagSet("CGoCodeGen", flag.ExitOnError)
 	goenv := envFlags(flags)
 	flags.Var(&sources, "src", "A source file to be filtered and compiled")
-	flags.StringVar(&objDir, "objdir", "", "The output directory")
-	flags.StringVar(&dynout, "dynout", "", "The output directory")
-	flags.StringVar(&dynimport, "dynimport", "", "The output directory")
+	flags.BoolVar(&importMode, "import", false, "When true, run cgo in import mode.")
 	// process the args
-	if err := flags.Parse(args); err != nil {
+	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
-	if err := goenv.update(); err != nil {
+	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
-	env := goenv.Env()
 
-	if len(dynout) > 0 {
+	// When running in import mode, just invoke cgo with the tool args. No need
+	// to process source files.
+	if importMode {
 		dynpackage, err := extractPackage(sources[0])
 		if err != nil {
 			return err
 		}
-		goargs := []string{
-			"tool", "cgo",
-			"-dynout", dynout,
-			"-dynimport", dynimport,
-			"-dynpackage", dynpackage,
-		}
-		cmd := exec.Command(goenv.Go, goargs...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Env = env
-		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("error running cgo: %v", err)
-		}
-		return nil
+		goargs := append([]string{"tool", "cgo", "-dynpackage", dynpackage}, toolArgs...)
+		return goenv.runGoCommand(goargs)
 	}
 
 	// create a temporary directory. sources actually passed to cgo will be moved
@@ -80,8 +71,6 @@ func run(args []string) error {
 
 	// apply build constraints to the source list
 	// also pick out the cgo sources
-	bctx := goenv.BuildContext()
-	bctx.CgoEnabled = true
 	cgoSrcs := []string{}
 	cgoOuts := []string{}
 	pkgName := ""
@@ -97,7 +86,7 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
-		metadata, err := readGoMetadata(bctx, in, true)
+		metadata, err := readGoMetadata(build.Default, in, true)
 		if err != nil {
 			return err
 		}
@@ -174,27 +163,32 @@ func run(args []string) error {
 		cgoSrcs = append(cgoSrcs, nullCgoBase)
 	}
 
-	// Tokenize copts. cc_library does this automatically, but cgo does not,
-	// so we need to do it here.
-	var copts []string
-	for _, arg := range flags.Args() {
-		args, err := splitQuoted(arg)
-		if err != nil {
-			return err
+	// Tokenize arguments to the C compiler. go_library.copts may contain
+	// multiple options in the same string. Rules are expected to apply Bourne
+	// shell tokenization to these, respecting quotes. Ideally, this would
+	// be done in Skylark, but there's no API, and here, we can just copy what
+	// go/build does.
+	var ccArgs []string
+	toolArgs, ccArgs = splitArgs(toolArgs)
+	ccArgsSplit := make([]string, 0, len(ccArgs))
+	for _, s := range ccArgs {
+		if r, err := splitQuoted(s); err != nil {
+			return fmt.Errorf("error tokenizing argument to C compiler: %s: %v:", s, err)
+		} else {
+			ccArgsSplit = append(ccArgsSplit, r...)
 		}
-		copts = append(copts, args...)
 	}
 
-	goargs := []string{"tool", "cgo", "-srcdir", srcDir, "-objdir", objDir}
-	goargs = append(goargs, copts...)
+	// Run cgo.
+	goargs := []string{"tool", "cgo", "-srcdir", srcDir}
+	goargs = append(goargs, toolArgs...)
+	goargs = append(goargs, "--")
+	goargs = append(goargs, ccArgsSplit...)
 	goargs = append(goargs, cgoSrcs...)
-	cmd := exec.Command(goenv.Go, goargs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = env
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running cgo: %v", err)
+	if err := goenv.runGoCommand(goargs); err != nil {
+		return err
 	}
+
 	// Now we fix up the generated files
 	for _, src := range cgoOuts {
 		if err := fixupLineComments(src); err != nil {

@@ -14,7 +14,11 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"go/build"
+	"strings"
+)
 
 // multiFlag allows repeated string flags to be collected into a slice
 type multiFlag []string
@@ -28,5 +32,19 @@ func (m *multiFlag) String() string {
 
 func (m *multiFlag) Set(v string) error {
 	(*m) = append(*m, v)
+	return nil
+}
+
+// tagFlag adds tags to the build.Default context. Tags are expected to be
+// formatted as a comma-separated list.
+type tagFlag struct{}
+
+func (f *tagFlag) String() string {
+	return strings.Join(build.Default.BuildTags, ",")
+}
+
+func (f *tagFlag) Set(opt string) error {
+	tags := strings.Split(opt, ",")
+	build.Default.BuildTags = append(build.Default.BuildTags, tags...)
 	return nil
 }

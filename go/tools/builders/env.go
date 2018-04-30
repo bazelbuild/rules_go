@@ -15,52 +15,91 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"flag"
 	"fmt"
-	"go/build"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
-var (
-	// goBuildTags holds the build tags with which Go was built as a map.
-	// This is useful for detecting the presence of a particular build tag.
-	goBuildTags = map[string]bool{}
+// env holds a small amount of Go environment and toolchain information
+// which is common to multiple builders. Most Bazel-agnostic build information
+// is collected in go/build.Default though.
+//
+// See ./README.rst for more information about handling arguments and
+// environment variables.
+type env struct {
+	// go_ is the path to the go executable
+	go_ string
 
-	// goReleaseTags holds the release tags with which Go was built as a map.
-	// This is useful for detecting mininum required Go versions.
-	goReleaseTags = map[string]bool{}
-)
-
-// GoEnv holds the go environment as specified on the command line.
-type GoEnv struct {
-	// Go is the path to the go executable.
-	Go string
-	// Verbose debugging print control
-	Verbose      bool
-	rootFile     string
-	rootPath     string
-	cgo          bool
-	compilerPath string
-	goos         string
-	goarch       string
-	tags         string
-	cc           string
-	c_flags      multiFlag
-	cxx_flags    multiFlag
-	cpp_flags    multiFlag
-	ld_flags     multiFlag
-	shared       bool
+	// verbose indicates whether subprocess command lines should be printed.
+	verbose bool
 }
 
-func init() {
-	for _, tag := range build.Default.BuildTags {
-		goBuildTags[tag] = true
+// envFlags registers flags common to multiple builders and returns an env
+// configured with those flags.
+func envFlags(flags *flag.FlagSet) *env {
+	env := &env{}
+	flags.StringVar(&env.go_, "go", "", "The path to the go tool.")
+	flags.Var(&tagFlag{}, "tags", "List of build tags considered true.")
+	flags.BoolVar(&env.verbose, "v", false, "Whether subprocess command lines should be printed")
+	return env
+}
+
+// checkFlags checks whether env flags were set to valid values. checkFlags
+// should be called after parsing flags.
+func (e *env) checkFlags() error {
+	if e.go_ == "" {
+		return errors.New("-go was not specified")
 	}
-	for _, tag := range build.Default.ReleaseTags {
-		goReleaseTags[tag] = true
+	return nil
+}
+
+// runGoCommand executes a subprocess through the go tool. The subprocess will
+// inherit stdout, stderr, and the environment from this process.
+func (e *env) runGoCommand(goargs []string) error {
+	cmd := exec.Command(e.go_, goargs...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return runAndLogCommand(cmd, e.verbose)
+}
+
+// runGoCommandToFile executes a subprocess through the go tool and writes
+// the output to the given writer.
+func (e *env) runGoCommandToFile(w io.Writer, goargs []string) error {
+	cmd := exec.Command(e.go_, goargs...)
+	cmd.Stdout = w
+	cmd.Stderr = os.Stderr
+	return runAndLogCommand(cmd, e.verbose)
+}
+
+func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
+	if err := cmd.Run(); err != nil {
+		var buf bytes.Buffer
+		formatCommand(&buf, cmd)
+		return fmt.Errorf("error running subcommand:\n%s\n%v", buf.String(), err)
 	}
+	if verbose {
+		formatCommand(os.Stderr, cmd)
+	}
+	return nil
+}
+
+// splitArgs splits a list of command line arguments into two parts: arguments
+// that should be interpreted by the builder (before "--"), and arguments
+// that should be passed through to the underlying tool (after "--").
+func splitArgs(args []string) (builderArgs []string, toolArgs []string) {
+	for i, arg := range args {
+		if arg == "--" {
+			return args[:i], args[i+1:]
+		}
+	}
+	return args, nil
 }
 
 // abs returns the absolute representation of path. Some tools/APIs require
@@ -75,106 +114,77 @@ func abs(path string) string {
 	}
 }
 
-func envUpdate(oldEnv, newEnv []string) []string {
-	retEnvMap := map[string]string{}
-	retEnv := []string{}
-	for _, e := range oldEnv {
-		pair := strings.SplitN(e, "=", 2)
-		k, v := pair[0], pair[1]
-		retEnvMap[k] = v
-	}
-	for _, e := range newEnv {
-		pair := strings.SplitN(e, "=", 2)
-		k, v := pair[0], pair[1]
-		retEnvMap[k] = v
-	}
-	for k, v := range retEnvMap {
-		retEnv = append(retEnv, k+"="+v)
-	}
-	return retEnv
-}
-
-func envFlags(flags *flag.FlagSet) *GoEnv {
-	env := &GoEnv{}
-	flags.StringVar(&env.Go, "go", "", "The path to the go tool.")
-	flags.StringVar(&env.rootFile, "root_file", "", "The go root file to use.")
-	flags.BoolVar(&env.cgo, "cgo", false, "The value for CGO_ENABLED.")
-	flags.StringVar(&env.compilerPath, "compiler_path", "", "The value for PATH.")
-	flags.StringVar(&env.goos, "goos", "", "The value for GOOS.")
-	flags.StringVar(&env.goarch, "goarch", "", "The value for GOARCH.")
-	flags.BoolVar(&env.Verbose, "v", false, "Enables verbose debugging prints.")
-	flags.StringVar(&env.tags, "tags", "", "Only pass through files that match these tags.")
-	flags.BoolVar(&env.shared, "shared", false, "Build in shared mode")
-	flags.StringVar(&env.cc, "cc", "", "Sets the c compiler to use")
-	flags.Var(&env.c_flags, "c_flag", "An entry to add to the C compiler flags")
-	flags.Var(&env.cxx_flags, "cxx_flag", "An entry to add to the C++ compiler flags")
-	flags.Var(&env.cpp_flags, "cpp_flag", "An entry to add to the CPP compiler flags")
-	flags.Var(&env.ld_flags, "ld_flag", "An entry to add to the c linker flags")
-	return env
-}
-
-func (env *GoEnv) update() error {
-	if env.rootFile != "" {
-		env.rootFile = abs(env.rootFile)
-		env.rootPath = env.rootFile
-		if s, err := os.Stat(env.rootFile); err == nil {
-			if !s.IsDir() {
-				env.rootPath = filepath.Dir(env.rootFile)
+// absArgs applies abs to strings that appear in args. Only paths that are
+// part of options named by flags are modified.
+func absArgs(args []string, flags []string) {
+	absNext := false
+	for i := range args {
+		if absNext {
+			args[i] = abs(args[i])
+			absNext = false
+			continue
+		}
+		if !strings.HasPrefix(args[i], "-") {
+			continue
+		}
+		var flag, value string
+		var separate bool
+		if j := strings.IndexByte(args[i], '='); j >= 0 {
+			flag = args[i][:j]
+			value = args[i][j+1:]
+		} else {
+			separate = true
+			flag = args[i]
+		}
+		flag = strings.TrimLeft(args[i], "-")
+		for _, f := range flags {
+			if flag != f {
+				continue
 			}
+			if separate {
+				absNext = true
+			} else {
+				value = abs(value)
+				args[i] = fmt.Sprintf("-%s=%s", flag, value)
+			}
+			break
 		}
 	}
-	if env.compilerPath != "" {
-		env.compilerPath = abs(env.compilerPath)
-	}
-	return nil
 }
 
-func (env *GoEnv) Env() []string {
-	return envUpdate(os.Environ(), env.env())
-}
+// formatCommand writes cmd to w in a format where it can be pasted into a
+// shell. Spaces in environment variables and arguments are escaped as needed.
+func formatCommand(w io.Writer, cmd *exec.Cmd) {
+	quoteIfNeeded := func(s string) string {
+		if strings.IndexByte(s, ' ') < 0 {
+			return s
+		}
+		return strconv.Quote(s)
+	}
+	quoteEnvIfNeeded := func(s string) string {
+		eq := strings.IndexByte(s, '=')
+		if eq < 0 {
+			return s
+		}
+		key, value := s[:eq], s[eq+1:]
+		if strings.IndexByte(value, ' ') < 0 {
+			return s
+		}
+		return fmt.Sprintf("%s=%s", key, strconv.Quote(value))
+	}
 
-func (env *GoEnv) env() []string {
-	cgoEnabled := "0"
-	if env.cgo {
-		cgoEnabled = "1"
+	environ := cmd.Env
+	if environ == nil {
+		environ = os.Environ()
 	}
-	result := []string{
-		fmt.Sprintf("GOROOT=%s", env.rootPath),
-		"GOROOT_FINAL=GOROOT",
-		fmt.Sprintf("GOOS=%s", env.goos),
-		fmt.Sprintf("GOARCH=%s", env.goarch),
-		fmt.Sprintf("CGO_ENABLED=%s", cgoEnabled),
-		fmt.Sprintf("PATH=%s", env.compilerPath),
-		fmt.Sprintf("COMPILER_PATH=%s", env.compilerPath),
+	for _, e := range environ {
+		fmt.Fprintf(w, "%s \\\n", quoteEnvIfNeeded(e))
 	}
-	if env.cc != "" {
-		cc := abs(env.cc)
-		result = append(result,
-			fmt.Sprintf("CC=%s", cc),
-			fmt.Sprintf("CXX=%s", cc),
-		)
-	}
-	// Make sure the sandbox path doesn't appear in DWARF
-	debugPrefixMap := "-fdebug-prefix-map=" + abs(".") + "=."
-	cgoFlags := map[string]multiFlag{
-		"CGO_CFLAGS":   append(env.c_flags, debugPrefixMap),
-		"CGO_CXXFLAGS": append(env.cxx_flags, debugPrefixMap),
-		"CGO_CPPFLAGS": append(env.cpp_flags, debugPrefixMap),
-		"CGO_LDFLAGS":  env.ld_flags,
-	}
-	for envVar, flags := range cgoFlags {
-		v := strings.Join(flags, " ")
-		result = append(result, envVar+"="+v)
-	}
-	return result
-}
 
-func (env *GoEnv) BuildContext() build.Context {
-	bctx := build.Default
-	bctx.GOROOT = env.rootPath
-	bctx.GOOS = env.goos
-	bctx.GOARCH = env.goarch
-	bctx.CgoEnabled = env.cgo
-	bctx.BuildTags = strings.Split(env.tags, ",")
-	return bctx
+	sep := ""
+	for _, arg := range cmd.Args {
+		fmt.Fprintf(w, "%s%s", sep, quoteIfNeeded(arg))
+		sep = " "
+	}
+	fmt.Fprint(w, "\n")
 }
