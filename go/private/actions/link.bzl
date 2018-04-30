@@ -28,7 +28,6 @@ def emit_link(go,
     test_archives = [],
     executable = None,
     gc_linkopts = [],
-    linkstamp=None,
     version_file=None,
     info_file=None):
   """See go/toolchains.rst#link for full documentation."""
@@ -105,14 +104,9 @@ def emit_link(go,
 
   # Stamping support
   stamp_inputs = []
-  if stamp_x_defs or linkstamp:
+  if stamp_x_defs:
     stamp_inputs = [info_file, version_file]
     builder_args.add(stamp_inputs, before_each="-stamp")
-    # linkstamp option support: read workspace status files,
-    # converting "KEY value" lines to "-X $linkstamp.KEY=value" arguments
-    # to the go linker.
-    if linkstamp:
-      builder_args.add(["-linkstamp", linkstamp])
 
   builder_args.add(["-o", executable])
   builder_args.add(["-main", archive.data.file])

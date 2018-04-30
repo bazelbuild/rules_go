@@ -50,8 +50,6 @@ load(
 def _go_binary_impl(ctx):
   """go_binary_impl emits actions for compiling and linking a go executable."""
   go = go_context(ctx)
-  if ctx.attr.linkstamp:
-    print("DEPRECATED: linkstamp, please use x_def for all stamping now {}".format(ctx.attr.linkstamp))
 
   library = go.new_library(go, importable=False)
   source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
@@ -68,7 +66,6 @@ def _go_binary_impl(ctx):
       name = name,
       source = source,
       gc_linkopts = gc_linkopts(ctx),
-      linkstamp = ctx.attr.linkstamp,
       version_file = ctx.version_file,
       info_file = ctx.info_file,
       executable = executable,
@@ -144,7 +141,6 @@ go_binary = go_rule(
         ),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
-        "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
         "out": attr.string(),
@@ -167,7 +163,6 @@ go_tool_binary = go_rule(
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
-        "linkstamp": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
         "out": attr.string(),

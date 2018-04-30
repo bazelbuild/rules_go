@@ -38,7 +38,6 @@ load(
     go_download_sdk = "go_download_sdk",
     go_host_sdk = "go_host_sdk",
     go_local_sdk = "go_local_sdk",
-    go_sdk = "go_sdk",  # DEPRECATED
 )
 load(
     "@io_bazel_rules_go//go/private:go_toolchain.bzl",
@@ -125,28 +124,3 @@ go_vet_test = _go_vet_test
 """
     go_vet_test
 """
-
-# Compatability shims
-def cgo_genrule(name, tags=[], **kwargs):
-  print("DEPRECATED: {0} : cgo_genrule is deprecated. Please migrate to go_library with cgo=True.".format(name))
-  return go_library(name=name, tags=tags+["manual"], cgo=True, **kwargs)
-
-def cgo_library(name, **kwargs):
-  print("DEPRECATED: {0} : cgo_library is deprecated. Please migrate to go_library with cgo=True.".format(name))
-  return go_library(name=name, cgo=True, **kwargs)
-
-def new_go_repository(name, **kwargs):
-  print("DEPRECATED: {0} : new_go_repository is deprecated. Please migrate to go_repository soon.".format(name))
-  return go_repository(name=name, **kwargs)
-
-def go_repositories(
-    go_version = None,
-    go_linux = None,
-    go_darwin = None):
-
-  print("DEPRECATED: go_repositories has been deprecated. go_rules_dependencies installs dependencies the way nested workspaces should, and go_register_toolchains adds the toolchains")
-  go_rules_dependencies()
-  if go_version != None:
-    go_register_toolchains(go_version=go_version)
-  else:
-    go_register_toolchains()

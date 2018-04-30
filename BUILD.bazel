@@ -1,7 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_path", "go_vet_test")
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
-load("@io_bazel_rules_go//proto:go_proto_library.bzl", "go_google_protobuf")
 load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
 load("@io_bazel_rules_go//go/private:rules/builders.bzl", "builders")
@@ -27,8 +26,6 @@ go_context_data(
 )
 
 # gazelle:prefix github.com/bazelbuild/rules_go
-
-go_google_protobuf()
 
 lines_sorted_test(
     name = "contributors_sorted_test",

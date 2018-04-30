@@ -54,8 +54,8 @@ Go rules
 | **Rationale:** The ``linkstamp`` has been made entirely redundant by 
   ``x_defs``, which allows multiple stamped variables in both ``go_binary``
   and ``go_library``.
-| **Migration:** Gazelle_ will convert ``linkstamp`` to ``x_defs``
-  (see `bazelbuild/bazel-gazelle#186`_).
+| **Migration:** Requires a manual change. `gazelle fix`_ can't replace these,
+  since it would require knowing which symbols will be stamped.
 |
 | **Legacy go_repository and new_go_repository**
 | **Deprecated in:** 0.12.0

@@ -52,12 +52,6 @@ def _deprecate(attr, name, ruletype, kwargs, message):
     print("\nDEPRECATED: //{}:{} : the {} attribute on {} is deprecated. {}".format(native.package_name(), name, attr, ruletype, message))
   return value
 
-#TODO(#1208): Remove library attribute
-def _deprecate_library(name, ruletype, kwargs):
-  value = _deprecate("library", name, ruletype, kwargs, "Please migrate to embed.")
-  if value:
-    kwargs["embed"] = kwargs.get("embed", []) + [value]
-
 def _objc(name, kwargs):
   objcopts = {}
   for key in kwargs.keys():
@@ -81,19 +75,16 @@ def _cgo(name, kwargs):
 
 def go_library_macro(name, **kwargs):
   """See go/core.rst#go_library for full documentation."""
-  _deprecate_library(name, "go_library", kwargs)
   _cgo(name, kwargs)
   go_library(name = name, **kwargs)
 
 def go_binary_macro(name, **kwargs):
   """See go/core.rst#go_binary for full documentation."""
-  _deprecate_library(name, "go_binary", kwargs)
   _cgo(name, kwargs)
   go_binary(name = name, **kwargs)
   go_binary_c_archive_shared(name, kwargs)
 
 def go_test_macro(name, **kwargs):
   """See go/core.rst#go_test for full documentation."""
-  _deprecate_library(name, "go_test", kwargs)
   _cgo(name, kwargs)
   go_test(name = name, **kwargs)

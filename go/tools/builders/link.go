@@ -33,7 +33,6 @@ func run(args []string) error {
 	builderArgs, toolArgs := splitArgs(args)
 	xstamps := multiFlag{}
 	stamps := multiFlag{}
-	linkstamps := multiFlag{}
 	deps := multiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
@@ -43,7 +42,6 @@ func run(args []string) error {
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
 	flags.Var(&xstamps, "Xstamp", "A link xdef that may need stamping.")
 	flags.Var(&deps, "dep", "A dependency formatted as label=pkgpath=pkgfile")
-	flags.Var(&linkstamps, "linkstamp", "A package that requires link stamping.")
 	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
@@ -111,11 +109,6 @@ This will be an error in the future.`, pkgPath, label, conflictLabel)
 		key := split[1]
 		if value, found := stampmap[key]; found {
 			goargs = append(goargs, "-X", fmt.Sprintf("%s=%s", name, value))
-		}
-	}
-	for _, linkstamp := range linkstamps {
-		for key, value := range stampmap {
-			goargs = append(goargs, "-X", fmt.Sprintf("%s.%s=%s", linkstamp, key, value))
 		}
 	}
 

@@ -70,27 +70,6 @@ go_local_sdk = repository_rule(
     },
 )
 
-def _go_sdk_impl(ctx):
-  urls = ctx.attr.urls
-  if ctx.attr.url:
-    print("DEPRECATED: use urls instead of url on go_sdk, {}".format(ctx.attr.url))
-    urls = [ctx.attr.url] + urls
-  if urls:
-    if ctx.attr.path:
-      fail("url and path cannot both be set on go_sdk, got {} and {}".format(urls, ctx.attr.path))
-    _sdk_build_file(ctx)
-    _remote_sdk(ctx, urls, ctx.attr.strip_prefix, ctx.attr.sha256)
-  elif ctx.attr.path:
-    print("DEPRECATED: go_sdk with a path, please use go_local_sdk")
-    _sdk_build_file(ctx)
-    _local_sdk(ctx, ctx.attr.path)
-  else:
-    print("DEPRECATED: go_sdk without path or urls, please use go_host_sdk")
-    path = _detect_host_sdk(ctx)
-    _sdk_build_file(ctx)
-    _local_sdk(ctx, path)
-  _prepare(ctx)
-
 def _prepare(ctx):
   # Create a text file with a list of standard packages.
   # OPT: just list directories under src instead of running "go list". No
@@ -103,18 +82,6 @@ def _prepare(ctx):
     print(result.stderr)
     fail("failed to list standard packages")
   ctx.file("packages.txt", result.stdout)
-
-go_sdk = repository_rule(
-    implementation = _go_sdk_impl,
-    attrs = {
-        "path": attr.string(),
-        "url": attr.string(),
-        "urls": attr.string_list(),
-        "strip_prefix": attr.string(default = "go"),
-        "sha256": attr.string(),
-    },
-)
-"""See /go/toolchains.rst#go-sdk for full documentation."""
 
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
   ctx.download_and_extract(

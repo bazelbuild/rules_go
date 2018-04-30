@@ -59,8 +59,6 @@ def _go_test_impl(ctx):
   test into a binary."""
 
   go = go_context(ctx)
-  if ctx.attr.linkstamp:
-    print("DEPRECATED: linkstamp, please use x_def for all stamping now {}".format(ctx.attr.linkstamp))
 
   # Compile the library to test with internal white box tests
   internal_library = go.new_library(go, testfilter="exclude")
@@ -134,7 +132,6 @@ def _go_test_impl(ctx):
       source = test_source,
       test_archives = [internal_archive.data],
       gc_linkopts = gc_linkopts(ctx),
-      linkstamp=ctx.attr.linkstamp,
       version_file=ctx.version_file,
       info_file=ctx.info_file,
   )
@@ -214,7 +211,6 @@ go_test = go_rule(
         ),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
-        "linkstamp": attr.string(),
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(default=LINKMODE_NORMAL),
