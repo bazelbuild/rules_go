@@ -10,6 +10,16 @@ if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/$RULES_GO_OUTPUT/c
 fi
 
 data_file=bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/coverage.dat
+if [ ! -e "$data_file" ]; then
+  echo "error: $data_file: does not exist" >&2
+  exit 1
+fi
+if [ ! -s "$data_file" ]; then
+  echo "warning: $data_file: has size zero. Bazel may have trashed it with lcov." >&2
+  echo "skipping rest of test" >&2
+  exit 0
+fi
+
 function check_file_included {
   if ! grep -q "$1" "$data_file"; then
     echo "error: coverage data not found for $1" >&2
