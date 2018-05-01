@@ -105,6 +105,7 @@ def _merge_embed(source, embed):
   s = get_source(embed)
   source["srcs"] = s.srcs + source["srcs"]
   source["orig_srcs"] = s.orig_srcs + source["orig_srcs"]
+  source["orig_src_map"].update(s.orig_src_map)
   source["cover"] = source["cover"] + s.cover
   source["deps"] = source["deps"] + s.deps
   source["x_defs"].update(s.x_defs)
@@ -127,6 +128,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
       "mode": go.mode,
       "srcs": srcs,
       "orig_srcs": srcs,
+      "orig_src_map": {},
       "cover" : [],
       "x_defs" : {},
       "deps" : getattr(attr, "deps", []),
@@ -254,6 +256,8 @@ def go_context(ctx, attr=None):
       cgo_tools = context_data.cgo_tools,
       builders = builders,
       coverdata = coverdata,
+      coverage_enabled = ctx.configuration.coverage_enabled,
+      coverage_instrumented = ctx.coverage_instrumented(),
       env = env,
       tags = context_data.tags,
       # Action generators

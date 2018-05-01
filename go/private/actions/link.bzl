@@ -42,6 +42,8 @@ def emit_link(go,
   pkg_depth = executable.dirname[config_strip:].count('/') + 1
 
   extldflags = list(go.cgo_tools.linker_options)
+  if go.coverage_enabled:
+    extldflags.append("--coverage")
   gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
   builder_args = go.args(go)
   tool_args = go.actions.args()

@@ -204,6 +204,12 @@ GoArchiveData represents the compiled form of a package.
 +--------------------------------+-----------------------------------------------------------------+
 | The unmodified sources provided to the rule, including .go, .s, .h, .c files.                    |
 +--------------------------------+-----------------------------------------------------------------+
+| :param:`orig_src_map`          | :type:`dict mapping File to File`                               |
++--------------------------------+-----------------------------------------------------------------+
+| A map from generated source files to the original files (in ``orig_srcs``)                       |
+| they were generated from. Generated sources may be absent if they were not                       |
+| generated from individual files in ``orig_srcs``.                                                |
++--------------------------------+-----------------------------------------------------------------+
 | :param:`data_files`            | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
 | Data files which should be available at runtime to binaries and tests built                      |
