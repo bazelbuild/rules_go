@@ -176,35 +176,49 @@ def _cgo_codegen_impl(ctx):
 
   tool_args.add(["-objdir", out_dir])
 
-  inputs = sets.union(ctx.files.srcs, go.crosstool, go.stdlib.files,
-                      *[d.cc.transitive_headers for d in ctx.attr.deps])
-  deps = sets.union(deps, *[d.cc.libs for d in ctx.attr.deps])
+  inputs = sets.union(ctx.files.srcs, go.crosstool, go.stdlib.files)
+  deps = depset()
   runfiles = ctx.runfiles(collect_data = True)
   for d in ctx.attr.deps:
     runfiles = runfiles.merge(d.data_runfiles)
-    cppopts.extend(['-D' + define for define in d.cc.defines])
-    for inc in d.cc.include_directories:
-      _include_unique(cppopts, "-I", inc, seen_includes)
-    for inc in d.cc.quote_include_directories:
-      _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
-    for inc in d.cc.system_include_directories:
-      _include_unique(cppopts, "-isystem", inc, seen_system_includes)
-    for lib in as_iterable(d.cc.libs):
-      # If both static and dynamic variants are available, Bazel will only give
-      # us the static variant. We'll get one file for each transitive dependency,
-      # so the same file may appear more than once.
-      if (lib.basename.startswith("lib") and
-          any([lib.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])):
-        # If the loader would be able to find the library using rpaths,
-        # use -L and -l instead of hard coding the path to the library in
-        # the binary. This gives users more flexibility. The linker will add
-        # rpaths later. We can't add them here because they are relative to
-        # the binary location, and we don't know where that is.
-        libname = lib.basename[len("lib"):lib.basename.rindex(".")]
-        linkopts.extend(['-L', lib.dirname, '-l', libname])
-      else:
-        linkopts.append(lib.path)
-    linkopts.extend(d.cc.link_flags)
+    if hasattr(d, "cc"):
+      inputs = sets.union(inputs, d.cc.transitive_headers)
+      deps = sets.union(deps, d.cc.libs)
+      cppopts.extend(['-D' + define for define in d.cc.defines])
+      for inc in d.cc.include_directories:
+        _include_unique(cppopts, "-I", inc, seen_includes)
+      for inc in d.cc.quote_include_directories:
+        _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
+      for inc in d.cc.system_include_directories:
+        _include_unique(cppopts, "-isystem", inc, seen_system_includes)
+      for lib in as_iterable(d.cc.libs):
+        # If both static and dynamic variants are available, Bazel will only give
+        # us the static variant. We'll get one file for each transitive dependency,
+        # so the same file may appear more than once.
+        if (lib.basename.startswith("lib") and
+            any([lib.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])):
+          # If the loader would be able to find the library using rpaths,
+          # use -L and -l instead of hard coding the path to the library in
+          # the binary. This gives users more flexibility. The linker will add
+          # rpaths later. We can't add them here because they are relative to
+          # the binary location, and we don't know where that is.
+          libname = lib.basename[len("lib"):lib.basename.rindex(".")]
+          linkopts.extend(['-L', lib.dirname, '-l', libname])
+        else:
+          linkopts.append(lib.path)
+      linkopts.extend(d.cc.link_flags)
+    elif hasattr(d, "objc"):
+      cppopts.extend(['-D' + define for define in d.objc.define.to_list()])
+      for inc in d.objc.include:
+        _include_unique(cppopts, "-I", inc, seen_includes)
+      for inc in d.objc.iquote:
+        _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
+      for inc in d.objc.include_system:
+        _include_unique(cppopts, "-isystem", inc, seen_system_includes)
+      # TODO(jayconrod): do we need to link against dynamic libraries or
+      # frameworks? We link against *_fully_linked.a, so maybe not?
+    else:
+      fail("unknown library has neither cc nor objc providers: %s" % d.label)
 
   # cgo writes CGO_LDFLAGS to _cgo_import.go in the form of pragmas which get
   # compiled into .a files. The linker finds these and passes them to the
@@ -251,10 +265,7 @@ _cgo_codegen = go_rule(
     _cgo_codegen_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
-        "deps": attr.label_list(
-            allow_files = False,
-            providers = ["cc"],
-        ),
+        "deps": attr.label_list(allow_files = False),
         "copts": attr.string_list(),
         "cxxopts": attr.string_list(),
         "cppopts": attr.string_list(),
@@ -377,7 +388,7 @@ _cgo_collect_info = go_rule(
 """No-op rule that collects information from _cgo_codegen and cc_library
 info into a GoSourceList provider for easy consumption."""
 
-def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts):
+def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, tags):
   # Apply build constraints to source files (both Go and C) but not to header
   # files. Separate filtered Go and C sources.
 
@@ -406,6 +417,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       cxxopts = cxxopts,
       cppopts = cppopts,
       linkopts = clinkopts,
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -414,6 +426,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_go_files,
       srcs = [cgo_codegen_name],
       output_group = "go_files",
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -422,6 +435,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_c_files,
       srcs = [cgo_codegen_name],
       output_group = "c_files",
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -430,6 +444,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_cxx_files,
       srcs = [cgo_codegen_name],
       output_group = "cxx_files",
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -438,6 +453,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_objc_files,
       srcs = [cgo_codegen_name],
       output_group = "objc_files",
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -446,6 +462,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_main_c,
       srcs = [cgo_codegen_name],
       output_group = "main_c",
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -468,6 +485,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       linkstatic = 1,
       # _cgo_.o needs all symbols because _cgo_import needs to see them.
       alwayslink = 1,
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -484,6 +502,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       linkstatic = 1,
       # _cgo_.o needs all symbols because _cgo_import needs to see them.
       alwayslink = 1,
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -505,6 +524,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         ],
         # _cgo_.o needs all symbols because _cgo_import needs to see them.
         alwayslink = 1,
+        tags = tags,
         visibility = ["//visibility:private"],
         **objcopts
     )
@@ -527,6 +547,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       deps = cdeps + cgo_o_deps,
       copts = copts + cppopts,
       linkopts = clinkopts,
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -536,6 +557,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = cgo_import_name,
       cgo_o = cgo_o_name,
       sample_go_srcs = [select_go_files],
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 
@@ -546,6 +568,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       codegen = cgo_codegen_name,
       libs = cgo_collect_info_libs,
       cgo_import = cgo_import_name,
+      tags = tags,
       visibility = ["//visibility:private"],
   )
 

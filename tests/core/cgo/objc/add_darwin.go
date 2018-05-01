@@ -1,7 +1,7 @@
 package objc
 
 /*
-#include "add.h"
+#include "add_darwin.h"
 */
 import "C"
 

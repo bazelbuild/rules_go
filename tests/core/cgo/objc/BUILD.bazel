@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_test(
+    name = "objc_test",
+    srcs = ["objc_darwin_test.go"],
+    embed = select({
+        "@io_bazel_rules_go//go/platform:darwin": [":objc_lib"],
+        "//conditions:default": [],
+    }),
+)
+
+go_library(
+    name = "objc_lib",
+    srcs = [
+        "add_darwin.go",
+        "add_darwin.h",
+        "add_darwin.m",
+        "sub_darwin.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/objc",
+    cdeps = [":sub"],
+    cgo = True,
+    objc = True,
+    objc_enable_modules = True,
+    tags = ["manual"],
+)
+
+objc_library(
+    name = "sub",
+    srcs = ["sub.m"],
+    enable_modules = True,
+    tags = ["manual"],
+)

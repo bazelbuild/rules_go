@@ -1,6 +1,6 @@
 @import Foundation;
 
-#include "add.h"
+#include "add_darwin.h"
 
 @interface Adder : NSObject
 

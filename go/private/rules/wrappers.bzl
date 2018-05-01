@@ -32,18 +32,22 @@ _CGO_ATTRS = {
 }
 
 _OBJC_CGO_ATTRS = {
-  "hdrs": None,
-  "defines": None,
-  "enable_modules": None,
-  "includes": None,
-  "module_map": None,
-  "non_arc_srcs": None,
-  "pch": None,
-  "sdk_dylibs": None,
-  "sdk_frameworks": None,
-  "sdk_includes": None,
-  "textual_hdrs": None,
-  "weak_sdk_frameworks": None,
+    "hdrs": None,
+    "defines": None,
+    "enable_modules": None,
+    "includes": None,
+    "module_map": None,
+    "non_arc_srcs": None,
+    "pch": None,
+    "sdk_dylibs": None,
+    "sdk_frameworks": None,
+    "sdk_includes": None,
+    "textual_hdrs": None,
+    "weak_sdk_frameworks": None,
+}
+
+_COMMON_ATTRS = {
+    "tags": None,
 }
 
 def _deprecate(attr, name, ruletype, kwargs, message):
@@ -69,6 +73,8 @@ def _cgo(name, kwargs):
   cgo_attrs = {"name":name}
   for key, default in _CGO_ATTRS.items():
     cgo_attrs[key] = kwargs.pop(key, default)
+  for key, default in _COMMON_ATTRS.items():
+    cgo_attrs[key] = kwargs.get(key, default)
   cgo_attrs["objcopts"] = _objc(name, kwargs)
   cgo_embed = setup_cgo_library(**cgo_attrs)
   kwargs["embed"] = kwargs.get("embed", []) + [cgo_embed]
