@@ -80,6 +80,12 @@ def _bazel_test_script_impl(ctx):
   go = go_context(ctx)
   script_file = go.declare_file(go, ext=".bash")
 
+  if not ctx.attr.targets:
+    # Skip test when there are no targets. Targets may be platform-specific,
+    # and we may not have any targets on some platforms.
+    ctx.actions.write(script_file, "", is_executable = True)
+    return [DefaultInfo(files = depset([script_file]))]
+
   if ctx.attr.go_version == CURRENT_VERSION:
     register = 'go_register_toolchains()\n'
   elif ctx.attr.go_version != None:

@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 bazel_test(
     name = "coverage_test_test",
     check = """
-if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/test.log"; then
+if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/$RULES_GO_OUTPUT/"coverage_*_test/test.log; then
   echo "error: no coverage output found in test log file" >&2
   exit 1
 fi
@@ -26,8 +26,13 @@ function check_file_excluded {
 included_files=(
   'github.com/bazelbuild/rules_go/tests/core/coverage/a/a.go:'
   'github.com/bazelbuild/rules_go/tests/core/coverage/c/c.go:'
-  'github.com/bazelbuild/rules_go/tests/core/coverage/c/c_cgo.go:'
 )
+if [ "$(uname -s)" != Darwin ]; then
+  included_files+=(
+    'github.com/bazelbuild/rules_go/tests/core/coverage/a/a_cgo.go:'
+    'github.com/bazelbuild/rules_go/tests/core/coverage/c/c_cgo.go:'
+  )
+fi
 excluded_files=(
   'github.com/bazelbuild/rules_go/tests/core/coverage/b/b.go:'
   'github.com/bazelbuild/rules_go/tests/core/coverage/b/b_cgo.go:'
@@ -42,7 +47,10 @@ done
     """,
     command = "coverage",
     args = ["--instrumentation_filter=-coverage:b"],
-    targets = [":coverage_test"],
+    targets = select({
+        "@io_bazel_rules_go//go/platform:darwin": [],
+        "//conditions:default": [":coverage_test"],
+    }),
 )
 
 go_test(
@@ -63,7 +71,13 @@ fi
 result=0
 """,
     command = "coverage",
-    targets = [":coverage_bin"],
+    targets = select({
+        # TODO(bazelbuild/bazel#5128): skip coverage test on Darwin. The target
+        # includes cgo, which gets instrumented, and Bazel reports link errors
+        # for instrumented C code on Darwin.
+        "@io_bazel_rules_go//go/platform:darwin": [],
+        "//conditions:default": [":coverage_bin"],
+    }),
 )
 
 go_binary(
