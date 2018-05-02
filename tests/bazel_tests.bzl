@@ -31,12 +31,11 @@ build:fetch --fetch=True
 _basic_workspace = """
 load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_rules_dependencies()
-go_register_toolchains()
 """
 
 # _bazel_test_script_template is the template for the bazel invocation script
 _bazel_test_script_template = """
-set -euo pipefail
+set -u
 
 echo running in {work_dir}
 unset TEST_TMPDIR
