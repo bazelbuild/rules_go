@@ -36,12 +36,9 @@ function check_file_excluded {
 included_files=(
   'github.com/bazelbuild/rules_go/tests/core/coverage/a/a.go:'
   'github.com/bazelbuild/rules_go/tests/core/coverage/c/c.go:'
-  'github.com/bazelbuild/rules_go/tests/core/coverage/c/c_cgo.go:'
 )
 excluded_files=(
   'github.com/bazelbuild/rules_go/tests/core/coverage/b/b.go:'
-  'github.com/bazelbuild/rules_go/tests/core/coverage/b/b_cgo.go:'
-  '\.cgo1\.go:'
 )
 for i in "${included_files[@]}"; do
   check_file_included "$i"
@@ -55,10 +52,7 @@ done
         "--instrumentation_filter=-coverage:b",
         "--nocache_test_results",
     ],
-    targets = select({
-        "@io_bazel_rules_go//go/platform:darwin": [],
-        "//conditions:default": [":coverage_test"],
-    }),
+    targets = [":coverage_test"],
 )
 
 go_test(
@@ -68,61 +62,22 @@ go_test(
     tags = ["manual"],
 )
 
-bazel_test(
-    name = "coverage_bin_test",
-    check = """
-no_tests_found=4
-if [ "$result" -ne "$no_tests_found" ]; then
-  echo "error: unexpected bazel exit code: want $no_tests_found, got $result" >&2
-  exit 1
-fi
-result=0
-""",
-    command = "coverage",
-    targets = select({
-        # TODO(bazelbuild/bazel#5128): skip coverage test on Darwin. The target
-        # includes cgo, which gets instrumented, and Bazel reports link errors
-        # for instrumented C code on Darwin.
-        "@io_bazel_rules_go//go/platform:darwin": [],
-        "//conditions:default": [":coverage_bin"],
-    }),
-)
-
-go_binary(
-    name = "coverage_bin",
-    srcs = ["coverage_bin.go"],
-    deps = [":a"],
-    tags = ["manual"],
-)
-
 go_library(
     name = "a",
-    srcs = [
-        "a.go",
-        "a_cgo.go",
-    ],
-    cgo = True,
+    srcs = ["a.go"],
     deps = [":b"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/a",
 )
 
 go_library(
     name = "b",
-    srcs = [
-        "b.go",
-        "b_cgo.go",
-    ],
-    cgo = True,
+    srcs = ["b.go"],
     deps = [":c"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/b",
 )
 
 go_library(
     name = "c",
-    srcs = [
-        "c.go",
-        "c_cgo.go",
-    ],
-    cgo = True,
+    srcs = ["c.go"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/c",
 )
