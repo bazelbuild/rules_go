@@ -51,10 +51,7 @@ for i in "${excluded_files[@]}"; do
 done
     """,
     command = "coverage",
-    args = [
-        "--instrumentation_filter=-coverage:b",
-        "--nocache_test_results",
-    ],
+    args = ["--instrumentation_filter=-coverage:b"],
     targets = select({
         "@io_bazel_rules_go//go/platform:darwin": [],
         "//conditions:default": [":coverage_test"],
