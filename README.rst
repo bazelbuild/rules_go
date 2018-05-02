@@ -46,8 +46,9 @@ Announcements
 -------------
 
 April 30, 2018
-  Release `0.11.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.11.1>`_
-  is now available.
+  Releases `0.11.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.11.1>`_
+  and `0.10.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.4>`_
+  are now available.
 April 23, 2018
   Some rules will be deprecated or removed in the next release. See
   `Deprecation schedule`_ for details.
@@ -127,7 +128,7 @@ Setup
     http_archive(
         name = "io_bazel_rules_go",
         url = "https://github.com/bazelbuild/rules_go/releases/download/0.11.1/rules_go-0.11.1.tar.gz",
-        sha256 = "cfb29d459ec64426ea200e498be5e59e1ffe538f2ee541ab86b6d3d49e94552a",
+        sha256 = "1868ff68d6079e31b2f09b828b58d62e57ca8e9636edff699247c9108518570b",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -173,7 +174,7 @@ build files automatically using gazelle_.
     http_archive(
         name = "io_bazel_rules_go",
         url = "https://github.com/bazelbuild/rules_go/releases/download/0.11.1/rules_go-0.11.1.tar.gz",
-        sha256 = "cfb29d459ec64426ea200e498be5e59e1ffe538f2ee541ab86b6d3d49e94552a",
+        sha256 = "1868ff68d6079e31b2f09b828b58d62e57ca8e9636edff699247c9108518570b",
     )
     http_archive(
         name = "bazel_gazelle",
