@@ -15,7 +15,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -79,13 +78,11 @@ func (e *env) runGoCommandToFile(w io.Writer, goargs []string) error {
 }
 
 func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
-	if err := cmd.Run(); err != nil {
-		var buf bytes.Buffer
-		formatCommand(&buf, cmd)
-		return fmt.Errorf("error running subcommand:\n%s\n%v", buf.String(), err)
-	}
 	if verbose {
 		formatCommand(os.Stderr, cmd)
+	}
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("error running subcommand: %v", err)
 	}
 	return nil
 }
