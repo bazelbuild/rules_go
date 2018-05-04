@@ -1,15 +1,9 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-
-go_library(
-    name = "go_default_library",
-    srcs = ["bin.go"],
-    data = ["bin.go"],  # test duplicate
-    importpath = "example.com/repo/cmd/bin",
-    visibility = ["//visibility:public"],
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 
 go_binary(
     name = "bin",
-    embed = [":go_default_library"],
+    srcs = ["bin.go"],
+    data = ["bin.go"],  # test duplicate
+    importpath = "example.com/repo/cmd/bin",
     visibility = ["//visibility:public"],
 )

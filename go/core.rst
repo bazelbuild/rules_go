@@ -299,12 +299,6 @@ Attributes
 |                                                                                                  |
 | This should be named the same as the desired name of the generated binary .                      |
 +----------------------------+-----------------------------+---------------------------------------+
-| :param:`importpath`        | :type:`string`              | :value:`""`                           |
-+----------------------------+-----------------------------+---------------------------------------+
-| The import path of this binary. If unspecified, the binary will have an implicit                 |
-| dependency on ``//:go_prefix``, and the import path will be derived from the prefix              |
-| and the binary's label.                                                                          |
-+----------------------------+-----------------------------+---------------------------------------+
 | :param:`srcs`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | The list of Go source files that are compiled to create the binary.                              |
@@ -330,6 +324,12 @@ Attributes
 | appear in the *.runfiles area of this rule, if it has one. This may include data files needed    |
 | by the binary, or other programs needed by it. See `data dependencies`_ for more information     |
 | about how to depend on and use data files.                                                       |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`importpath`        | :type:`string`              | :value:`""`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| The import path of this binary. Binaries can't actually be imported, but this                    |
+| may be used by `go_path`_ and other tools to report the location of source                       |
+| files. This may be inferred from embedded libraries.                                             |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`pure`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -491,6 +491,12 @@ Attributes
 | appear in the *.runfiles area of this rule, if it has one. This may include data files needed    |
 | by the binary, or other programs needed by it. See `data dependencies`_ for more information     |
 | about how to depend on and use data files.                                                       |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`importpath`        | :type:`string`              | :value:`""`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| The import path of this test. Tests can't actually be imported, but this                         |
+| may be used by `go_path`_ and other tools to report the location of source                       |
+| files. This may be inferred from embedded libraries.                                             |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`gc_goopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+

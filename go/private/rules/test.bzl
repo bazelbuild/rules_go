@@ -32,7 +32,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
-    "EXPORT_PATH",
+    "INFERRED_PATH",
     "GoLibrary",
     "get_archive",
 )
@@ -117,7 +117,7 @@ def _go_test_impl(ctx):
       label = go._ctx.label,
       importpath = "testmain",
       importmap = "testmain",
-      pathtype = EXPORT_PATH,
+      pathtype = INFERRED_PATH,
       resolve = None,
   )
   test_deps = external_archive.direct + [external_archive]
@@ -177,6 +177,7 @@ go_test = go_rule(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
         ),
+        "importpath": attr.string(),
         "pure": attr.string(
             values = [
                 "on",

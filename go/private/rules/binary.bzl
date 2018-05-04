@@ -99,6 +99,7 @@ go_binary = go_rule(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
         ),
+        "importpath": attr.string(),
         "pure": attr.string(
             values = [
                 "on",

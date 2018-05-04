@@ -18,7 +18,6 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
-    "EXPLICIT_PATH",
     "GoArchive",
     "GoPath",
     "get_archive",

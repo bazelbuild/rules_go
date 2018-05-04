@@ -90,12 +90,16 @@ def _new_library(go, name=None, importpath=None, resolver=None, importable=True,
   importmap = getattr(go._ctx.attr, "importmap", "")
   if not importmap:
     importmap = importpath
+  pathtype = go.pathtype
+  if not importable and pathtype == EXPLICIT_PATH:
+    pathtype = EXPORT_PATH
+
   return GoLibrary(
       name = go._ctx.label.name if not name else name,
       label = go._ctx.label,
       importpath = importpath,
       importmap = importmap,
-      pathtype = go.pathtype,
+      pathtype = pathtype,
       resolve = resolver,
       testfilter = testfilter,
       **kwargs

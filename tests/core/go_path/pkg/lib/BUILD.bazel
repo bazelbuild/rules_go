@@ -18,6 +18,7 @@ go_test(
         "external_test.go",
         "internal_test.go",
     ],
+    importpath = "example.com/repo/pkg/lib",
     visibility = ["//visibility:public"],
 )
 

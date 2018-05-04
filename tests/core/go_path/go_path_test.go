@@ -36,9 +36,8 @@ var files = []string{
 	"src/example.com/repo/cmd/bin/bin.go",
 	"src/example.com/repo/pkg/lib/lib.go",
 	"src/example.com/repo/pkg/lib/embed_test.go",
-	// TODO: how about go_test without embed?
-	// "src/example.com/repo/pkg/lib/internal_test.go",
-	// "src/example.com/repo/pkg/lib/external_test.go",
+	"src/example.com/repo/pkg/lib/internal_test.go",
+	"src/example.com/repo/pkg/lib/external_test.go",
 	"-src/example.com/repo/pkg/lib_test/embed_test.go",
 	"src/example.com/repo/pkg/lib/data.txt",
 	"src/example.com/repo/pkg/lib/testdata/testdata.txt",
