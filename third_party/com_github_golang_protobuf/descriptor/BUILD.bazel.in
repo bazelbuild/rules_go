@@ -16,7 +16,7 @@ go_test(
     srcs = ["descriptor_test.go"],
     embed = [":go_default_library"],
     deps = [
-        "//proto/testdata:go_default_library",
+        "//proto/test_proto:go_default_library",
         "//protoc-gen-go/descriptor:go_default_library",
     ],
 )

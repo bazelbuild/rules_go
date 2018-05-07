@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["conformance.go"],
+    importpath = "github.com/golang/protobuf/conformance",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//conformance/internal/conformance_proto:go_default_library",
+        "//jsonpb:go_default_library",
+        "//proto:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "conformance",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

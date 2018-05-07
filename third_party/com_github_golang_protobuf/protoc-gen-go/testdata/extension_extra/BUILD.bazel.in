@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["extension_extra.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["extension_extra.pb.go"],
+    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/extension_extra",
+    visibility = ["//visibility:public"],
+    deps = ["//proto:go_default_library"],
+)

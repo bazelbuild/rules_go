@@ -10,6 +10,7 @@ go_library(
     ],
     importpath = "golang.org/x/net/proxy",
     visibility = ["//visibility:public"],
+    deps = ["//internal/socks:go_default_library"],
 )
 
 go_test(
@@ -19,4 +20,5 @@ go_test(
         "proxy_test.go",
     ],
     embed = [":go_default_library"],
+    deps = ["//internal/sockstest:go_default_library"],
 )

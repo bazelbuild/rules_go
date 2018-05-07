@@ -2,18 +2,18 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 filegroup(
     name = "go_default_library_protos",
-    srcs = ["proto3.proto"],
+    srcs = ["deprecated.proto"],
     visibility = ["//visibility:public"],
 )
 
 go_library(
     name = "go_default_library",
-    srcs = ["proto3.pb.go"],
-    importpath = "github.com/golang/protobuf/proto/proto3_proto",
+    srcs = ["deprecated.pb.go"],
+    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/deprecated",
     visibility = ["//visibility:public"],
     deps = [
         "//proto:go_default_library",
-        "//proto/test_proto:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:any_go_proto",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
     ],
 )

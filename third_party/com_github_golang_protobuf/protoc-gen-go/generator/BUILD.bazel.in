@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//proto:go_default_library",
         "//protoc-gen-go/descriptor:go_default_library",
+        "//protoc-gen-go/generator/internal/remap:go_default_library",
         "//protoc-gen-go/plugin:go_default_library",
     ],
 )

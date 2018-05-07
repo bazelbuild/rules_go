@@ -33,6 +33,7 @@ go_library(
     importpath = "golang.org/x/net/http2",
     visibility = ["//visibility:public"],
     deps = [
+        "//http/httpguts:go_default_library",
         "//http2/hpack:go_default_library",
         "//idna:go_default_library",
         "//lex/httplex:go_default_library",
