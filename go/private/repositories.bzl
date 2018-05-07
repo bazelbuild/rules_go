@@ -23,8 +23,6 @@ load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
 load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
 
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
-
 def go_rules_dependencies():
   """See /go/workspace.rst#go-rules-dependencies for full documentation."""
   versions.check(MINIMUM_BAZEL_VERSION)
@@ -71,13 +69,13 @@ def go_rules_dependencies():
   )
 
   # Proto dependencies
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "com_github_golang_protobuf",
-      # remote = "https://github.com/golang/protobuf",
+      remote = "https://github.com/golang/protobuf",
       commit = "b4deda0973fb4c70b50d226b1af49f3da59f5265",  # v1.1.0, as of 2018-05-07
-      # overlay = manifest["com_github_golang_protobuf"],
-      build_file_proto_mode = "legacy",
-      importpath = "github.com/golang/protobuf",
+      overlay = manifest["com_github_golang_protobuf"],
+      # build_file_proto_mode = "legacy",
+      # importpath = "github.com/golang/protobuf",
   )
   _maybe(http_archive,
       name = "com_google_protobuf",
@@ -86,13 +84,13 @@ def go_rules_dependencies():
       strip_prefix = "protobuf-106ffc04be1abf3ff3399f54ccf149815b287dd9",
       type = "zip",
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "com_github_mwitkow_go_proto_validators",
-      # remote = "https://github.com/mwitkow/go-proto-validators",
+      remote = "https://github.com/mwitkow/go-proto-validators",
       commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2018-05-07
-      # overlay = manifest["com_github_mwitkow_go_proto_validators"],
-      build_file_proto_mode = "disable",
-      importpath = "github.com/mwitkow/go-proto-validators",
+      overlay = manifest["com_github_mwitkow_go_proto_validators"],
+      # build_file_proto_mode = "disable",
+      # importpath = "github.com/mwitkow/go-proto-validators",
   )
   _maybe(git_repository,
       name = "com_github_gogo_protobuf",
@@ -106,12 +104,12 @@ def go_rules_dependencies():
   )
 
   # GRPC dependencies
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "org_golang_x_net",
-      # remote = "https://github.com/golang/net",
+      remote = "https://github.com/golang/net",
       commit = "640f4622ab692b87c2f3a94265e6f579fe38263d",  # master as of 2018-05-07
-      # overlay = manifest["org_golang_x_net"],
-      importpath = "golang.org/x/net",
+      overlay = manifest["org_golang_x_net"],
+      # importpath = "golang.org/x/net",
   )
   _maybe(git_repository,
       name = "org_golang_x_text",
@@ -119,21 +117,21 @@ def go_rules_dependencies():
       commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # v0.3.0, latest as of 2018-04-02
       overlay = manifest["org_golang_x_text"],
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "org_golang_google_grpc",
-      # remote = "https://github.com/grpc/grpc-go",
+      remote = "https://github.com/grpc/grpc-go",
       commit = "d11072e7ca9811b1100b80ca0269ac831f06d024",  # v1.10.3, latest as of 2018-05-07
-      # overlay = manifest["org_golang_google_grpc"],
-      build_file_proto_mode = "disable",
-      importpath = "google.golang.org/grpc",
+      overlay = manifest["org_golang_google_grpc"],
+      # build_file_proto_mode = "disable",
+      # importpath = "google.golang.org/grpc",
   )
-  _maybe(go_repository,
+  _maybe(git_repository,
       name = "org_golang_google_genproto",
-      # remote = "https://github.com/google/go-genproto",
+      remote = "https://github.com/google/go-genproto",
       commit = "86e600f69ee4704c6efbf6a2a40a5c10700e76c2",  # master as of 2018-05-07
-      # overlay = manifest["org_golang_google_genproto"],
-      build_file_proto_mode = "disable",
-      importpath = "google.golang.org/genproto",
+      overlay = manifest["org_golang_google_genproto"],
+      # build_file_proto_mode = "disable",
+      # importpath = "google.golang.org/genproto",
   )
 
   # Needed for examples
