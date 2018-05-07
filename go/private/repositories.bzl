@@ -35,7 +35,7 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "bazel_gazelle",
       remote = "https://github.com/bazelbuild/bazel-gazelle",
-      commit = "96cf920990dd78e5ab3b701785e6a4a6eb58485e", # master as of 2018-04-02
+      commit = "3d136956adafb6e6c4ba8f60bbb8352eba6e87ae", # master as of 2018-05-07
   )
 
   # Old version of buildtools, before breaking API changes. Old versions of
@@ -74,7 +74,7 @@ def go_rules_dependencies():
   _maybe(go_repository,
       name = "com_github_golang_protobuf",
       # remote = "https://github.com/golang/protobuf",
-      commit = "925541529c1fa6821df4e44ce2723319eb2be768",  # v1.0.0, as of 2018-02-16
+      commit = "b4deda0973fb4c70b50d226b1af49f3da59f5265",  # v1.1.0, as of 2018-05-07
       # overlay = manifest["com_github_golang_protobuf"],
       build_file_proto_mode = "legacy",
       importpath = "github.com/golang/protobuf",
@@ -89,7 +89,7 @@ def go_rules_dependencies():
   _maybe(go_repository,
       name = "com_github_mwitkow_go_proto_validators",
       # remote = "https://github.com/mwitkow/go-proto-validators",
-      commit = "646922ec4d2aeab6007660e0dda57f4f4321f19f",  # master, as of 2018-04-02
+      commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2018-05-07
       # overlay = manifest["com_github_mwitkow_go_proto_validators"],
       build_file_proto_mode = "disable",
       importpath = "github.com/mwitkow/go-proto-validators",
@@ -109,7 +109,7 @@ def go_rules_dependencies():
   _maybe(go_repository,
       name = "org_golang_x_net",
       # remote = "https://github.com/golang/net",
-      commit = "b68f30494add4df6bd8ef5e82803f308e7f7c59c",  # master as of 2018-04-02
+      commit = "640f4622ab692b87c2f3a94265e6f579fe38263d",  # master as of 2018-05-07
       # overlay = manifest["org_golang_x_net"],
       importpath = "golang.org/x/net",
   )
@@ -122,7 +122,7 @@ def go_rules_dependencies():
   _maybe(go_repository,
       name = "org_golang_google_grpc",
       # remote = "https://github.com/grpc/grpc-go",
-      commit = "1e2570b1b19ade82d8dbb31bba4e65e9f9ef5b34",  # v1.10.1, latest as of 2018-04-02
+      commit = "d11072e7ca9811b1100b80ca0269ac831f06d024",  # v1.10.3, latest as of 2018-05-07
       # overlay = manifest["org_golang_google_grpc"],
       build_file_proto_mode = "disable",
       importpath = "google.golang.org/grpc",
@@ -130,7 +130,7 @@ def go_rules_dependencies():
   _maybe(go_repository,
       name = "org_golang_google_genproto",
       # remote = "https://github.com/google/go-genproto",
-      commit = "ab0870e398d5dd054b868c0db1481ab029b9a9f2",  # master as of 2018-04-02
+      commit = "86e600f69ee4704c6efbf6a2a40a5c10700e76c2",  # master as of 2018-05-07
       # overlay = manifest["org_golang_google_genproto"],
       build_file_proto_mode = "disable",
       importpath = "google.golang.org/genproto",
