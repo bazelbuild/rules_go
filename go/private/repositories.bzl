@@ -33,7 +33,7 @@ def go_rules_dependencies():
   _maybe(git_repository,
       name = "bazel_gazelle",
       remote = "https://github.com/bazelbuild/bazel-gazelle",
-      commit = "3d136956adafb6e6c4ba8f60bbb8352eba6e87ae", # master as of 2018-05-07
+      commit = "7f30ba724af9495b221e2df0f5ac58511179485f", # master as of 2018-05-08
   )
 
   # Old version of buildtools, before breaking API changes. Old versions of
