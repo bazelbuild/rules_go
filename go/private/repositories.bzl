@@ -18,9 +18,11 @@ load("@io_bazel_rules_go//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
 load("@io_bazel_rules_go//go/private:tools/overlay_repository.bzl", "git_repository", "http_archive")
+load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
+load("@io_bazel_rules_go//proto:grpc_gateway.bzl", "googleapis_repository")
 load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
 
 def go_rules_dependencies():
@@ -103,6 +105,9 @@ def go_rules_dependencies():
       name = "gogo_special_proto",
   )
 
+  _maybe(googleapis_repository,
+    name = "com_github_googleapis_googleapis")
+
   # GRPC dependencies
   _maybe(git_repository,
       name = "org_golang_x_net",
@@ -133,6 +138,16 @@ def go_rules_dependencies():
       # build_file_proto_mode = "disable",
       # importpath = "google.golang.org/genproto",
   )
+
+  # GRPC Gateway
+#   _maybe(git_repository,
+#       name = "com_github_grpc_ecosystem_grpc_gateway",
+#       remote = "https://github.com/grpc-ecosystem/grpc-gateway",
+#       # tag = "v1.3.1",  # lastest as of 2018-05-08
+#       commit = "a53af079f669b6375dd96cdf5e98e67f886a8b4d",
+#       overlay = manifest["com_github_grpc_ecosystem_grpc_gateway"],
+#       # build_file_proto_mode="disable",
+#   )
 
   # Needed for examples
   _maybe(git_repository,
