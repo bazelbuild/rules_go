@@ -48,6 +48,8 @@ _OBJC_CGO_ATTRS = {
 
 _COMMON_ATTRS = {
     "tags": None,
+    "restricted_to": None,
+    "compatible_with": None,
 }
 
 def _deprecate(attr, name, ruletype, kwargs, message):

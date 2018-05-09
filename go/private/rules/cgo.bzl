@@ -397,7 +397,7 @@ _cgo_collect_info = go_rule(
 """No-op rule that collects information from _cgo_codegen and cc_library
 info into a GoSourceList provider for easy consumption."""
 
-def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, tags):
+def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, **common_attrs):
   # Apply build constraints to source files (both Go and C) but not to header
   # files. Separate filtered Go and C sources.
 
@@ -426,8 +426,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       cxxopts = cxxopts,
       cppopts = cppopts,
       linkopts = clinkopts,
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   select_go_files = name + ".select_go_files"
@@ -435,8 +435,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_go_files,
       srcs = [cgo_codegen_name],
       output_group = "go_files",
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   select_c_files = name + ".select_c_files"
@@ -444,8 +444,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_c_files,
       srcs = [cgo_codegen_name],
       output_group = "c_files",
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   select_cxx_files = name + ".select_cxx_files"
@@ -453,8 +453,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_cxx_files,
       srcs = [cgo_codegen_name],
       output_group = "cxx_files",
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   select_objc_files = name + ".select_objc_files"
@@ -462,8 +462,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_objc_files,
       srcs = [cgo_codegen_name],
       output_group = "objc_files",
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   select_main_c = name + ".select_main_c"
@@ -471,8 +471,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = select_main_c,
       srcs = [cgo_codegen_name],
       output_group = "main_c",
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   # Compile C sources and generated files into a library. This will be linked
@@ -494,8 +494,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       linkstatic = 1,
       # _cgo_.o needs all symbols because _cgo_import needs to see them.
       alwayslink = 1,
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   cgo_cxx_lib_name = name + ".cgo_cxx_lib"
@@ -511,8 +511,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       linkstatic = 1,
       # _cgo_.o needs all symbols because _cgo_import needs to see them.
       alwayslink = 1,
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   cgo_o_deps = [
@@ -523,6 +523,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
 
   if objc:
     cgo_objc_lib_name = name + ".cgo_objc_lib"
+    objcopts.update(common_attrs)
     native.objc_library(
         name = cgo_objc_lib_name,
         srcs = [select_objc_files],
@@ -533,7 +534,6 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         ],
         # _cgo_.o needs all symbols because _cgo_import needs to see them.
         alwayslink = 1,
-        tags = tags,
         visibility = ["//visibility:private"],
         **objcopts
     )
@@ -556,8 +556,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       deps = cdeps + cgo_o_deps,
       copts = copts + cppopts,
       linkopts = clinkopts,
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   # Create a Go file which imports symbols from the C library.
@@ -566,8 +566,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       name = cgo_import_name,
       cgo_o = cgo_o_name,
       sample_go_srcs = [select_go_files],
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   cgo_embed_name = name + ".cgo_embed"
@@ -577,8 +577,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
       codegen = cgo_codegen_name,
       libs = cgo_collect_info_libs,
       cgo_import = cgo_import_name,
-      tags = tags,
       visibility = ["//visibility:private"],
+      **common_attrs
   )
 
   return cgo_embed_name
