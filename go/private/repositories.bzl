@@ -18,7 +18,6 @@ load("@io_bazel_rules_go//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
 load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
 load("@io_bazel_rules_go//go/private:tools/overlay_repository.bzl", "git_repository", "http_archive")
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
@@ -140,14 +139,12 @@ def go_rules_dependencies():
   )
 
   # GRPC Gateway
-#   _maybe(git_repository,
-#       name = "com_github_grpc_ecosystem_grpc_gateway",
-#       remote = "https://github.com/grpc-ecosystem/grpc-gateway",
-#       # tag = "v1.3.1",  # lastest as of 2018-05-08
-#       commit = "a53af079f669b6375dd96cdf5e98e67f886a8b4d",
-#       overlay = manifest["com_github_grpc_ecosystem_grpc_gateway"],
-#       # build_file_proto_mode="disable",
-#   )
+  _maybe(git_repository,
+      name = "com_github_grpc_ecosystem_grpc_gateway",
+      remote = "https://github.com/Mistobaan/grpc-gateway", # FIXME once 266 is merged
+      commit = "61b3985dcc1da52e6eb473dc6aff61e9bef35559",
+      overlay = manifest["com_github_grpc_ecosystem_grpc_gateway"],
+  )
 
   # Needed for examples
   _maybe(git_repository,

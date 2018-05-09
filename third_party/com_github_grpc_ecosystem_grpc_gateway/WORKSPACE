@@ -1,0 +1,1 @@
+workspace(name = "com_github_grpc_ecosystem_grpc_gateway")
