@@ -22,7 +22,7 @@ def emit_pack(go,
   if in_lib == None: fail("in_lib is a required parameter")
   if out_lib == None: fail("out_lib is a required parameter")
 
-  inputs = [in_lib] + go.stdlib.files + objects + archives
+  inputs = [in_lib] + go.sdk_tools + objects + archives
 
   args = go.args(go)
   args.add(["-in", in_lib])

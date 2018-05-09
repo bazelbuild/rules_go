@@ -43,10 +43,10 @@ func run(args []string) error {
 		}
 		defer f.Close()
 	}
-	if err := goenv.runGoCommandToFile(f, []string{"version"}); err != nil {
+	if err := goenv.runCommandToFile(f, goenv.goCmd("version")); err != nil {
 		return err
 	}
-	if err := goenv.runGoCommandToFile(f, []string{"env"}); err != nil {
+	if err := goenv.runCommandToFile(f, goenv.goCmd("env")); err != nil {
 		return err
 	}
 	return nil

@@ -295,6 +295,7 @@ func simpleName(name string, names map[string]struct{}) string {
 }
 
 func appendFiles(goenv *env, archive string, files []string) error {
-	args := append([]string{"tool", "pack", "r", archive}, files...)
-	return goenv.runGoCommand(args)
+	args := goenv.goTool("pack", "r", archive)
+	args = append(args, files...)
+	return goenv.runCommand(args)
 }

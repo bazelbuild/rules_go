@@ -50,11 +50,10 @@ func run(args []string) error {
 	}
 
 	// Build source with the assembler.
-	goargs := []string{"tool", "asm"}
-	goargs = append(goargs, toolArgs...)
+	goargs := goenv.goTool("asm", toolArgs...)
 	goargs = append(goargs, source)
 	absArgs(goargs, []string{"I", "o", "trimpath"})
-	return goenv.runGoCommand(goargs)
+	return goenv.runCommand(goargs)
 }
 
 func main() {

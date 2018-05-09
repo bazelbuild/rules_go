@@ -73,7 +73,7 @@ func run(args []string) error {
 	}
 
 	// generate any additional link options we need
-	goargs := []string{"tool", "link"}
+	goargs := goenv.goTool("link")
 	depsSeen := make(map[string]string)
 	for _, d := range deps {
 		parts := strings.Split(d, "=")
@@ -120,7 +120,7 @@ This will be an error in the future.`, pkgPath, label, conflictLabel)
 	// add in the unprocess pass through options
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, *main)
-	if err := goenv.runGoCommand(goargs); err != nil {
+	if err := goenv.runCommand(goargs); err != nil {
 		return err
 	}
 

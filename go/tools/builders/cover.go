@@ -57,10 +57,10 @@ func run(args []string) error {
 		srcName = origSrc
 	}
 
-	goargs := []string{"tool", "cover", "-var=" + coverVar, "-o=" + coverSrc}
+	goargs := goenv.goTool("cover", "-var", coverVar, "-o", coverSrc)
 	goargs = append(goargs, flags.Args()...)
 	goargs = append(goargs, origSrc)
-	if err := goenv.runGoCommand(goargs); err != nil {
+	if err := goenv.runCommand(goargs); err != nil {
 		return err
 	}
 

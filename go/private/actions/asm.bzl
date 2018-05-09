@@ -28,7 +28,7 @@ def emit_asm(go,
   if source == None: fail("source is a required parameter")
 
   out_obj = go.declare_file(go, path=source.basename[:-2], ext=".o")
-  inputs = hdrs + go.stdlib.files + [source]
+  inputs = hdrs + go.sdk_tools + go.stdlib.files + [source]
 
   args = go.args(go)
   args.add([source, "--"])

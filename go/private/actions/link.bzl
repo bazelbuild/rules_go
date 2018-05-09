@@ -121,7 +121,7 @@ def emit_link(go,
   
   go.actions.run(
       inputs = sets.union(archive.libs, archive.cgo_deps,
-                go.crosstool, stamp_inputs, go.stdlib.files),
+                go.crosstool, stamp_inputs, go.sdk_tools, go.stdlib.files),
       outputs = [executable],
       mnemonic = "GoLink",
       executable = go.builders.link,

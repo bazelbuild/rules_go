@@ -48,7 +48,7 @@ def emit_compile(go,
 
   inputs = (sources + [go.package_list] +
             [archive.data.file for archive in archives] +
-            go.stdlib.files)
+            go.sdk_tools + go.stdlib.files)
 
   builder_args = go.args(go)
   builder_args.add(sources, before_each="-src")

@@ -110,7 +110,7 @@ func run(args []string) error {
 	}
 
 	// Compile the filtered files.
-	goargs := []string{"tool", "compile"}
+	goargs := goenv.goTool("compile")
 	goargs = append(goargs, importmapArgs...)
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, toolArgs...)
@@ -119,7 +119,7 @@ func run(args []string) error {
 		goargs = append(goargs, f.filename)
 	}
 	absArgs(goargs, []string{"I", "o", "trimpath"})
-	return goenv.runGoCommand(goargs)
+	return goenv.runCommand(goargs)
 }
 
 func main() {

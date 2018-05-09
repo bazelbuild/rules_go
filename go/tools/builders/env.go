@@ -22,6 +22,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -33,8 +34,9 @@ import (
 // See ./README.rst for more information about handling arguments and
 // environment variables.
 type env struct {
-	// go_ is the path to the go executable
-	go_ string
+	// sdk is the path to the Go SDK, which contains tools for the host
+	// platform. This may be different than GOROOT.
+	sdk string
 
 	// verbose indicates whether subprocess command lines should be printed.
 	verbose bool
@@ -44,7 +46,7 @@ type env struct {
 // configured with those flags.
 func envFlags(flags *flag.FlagSet) *env {
 	env := &env{}
-	flags.StringVar(&env.go_, "go", "", "The path to the go tool.")
+	flags.StringVar(&env.sdk, "sdk", "", "Path to the Go SDK.")
 	flags.Var(&tagFlag{}, "tags", "List of build tags considered true.")
 	flags.BoolVar(&env.verbose, "v", false, "Whether subprocess command lines should be printed")
 	return env
@@ -53,25 +55,46 @@ func envFlags(flags *flag.FlagSet) *env {
 // checkFlags checks whether env flags were set to valid values. checkFlags
 // should be called after parsing flags.
 func (e *env) checkFlags() error {
-	if e.go_ == "" {
-		return errors.New("-go was not specified")
+	if e.sdk == "" {
+		return errors.New("-sdk was not set")
 	}
 	return nil
 }
 
-// runGoCommand executes a subprocess through the go tool. The subprocess will
-// inherit stdout, stderr, and the environment from this process.
-func (e *env) runGoCommand(goargs []string) error {
-	cmd := exec.Command(e.go_, goargs...)
+// goTool returns a slice containing the path to an executable at
+// $GOROOT/pkg/$GOOS_$GOARCH/$tool and additional arguments.
+func (e *env) goTool(tool string, args ...string) []string {
+	platform := fmt.Sprintf("%s_%s", runtime.GOOS, runtime.GOARCH)
+	toolPath := filepath.Join(e.sdk, "pkg", "tool", platform, tool)
+	if runtime.GOOS == "windows" {
+		toolPath += ".exe"
+	}
+	return append([]string{toolPath}, args...)
+}
+
+// goCmd returns a slice containing the path to the go executable
+// and additional arguments.
+func (e *env) goCmd(cmd string, args ...string) []string {
+	exe := filepath.Join(e.sdk, "bin", "go")
+	if runtime.GOOS == "windows" {
+		exe += ".exe"
+	}
+	return append([]string{exe, cmd}, args...)
+}
+
+// runCommand executes a subprocess that inherits stdout, stderr, and the
+// environment from this process.
+func (e *env) runCommand(args []string) error {
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return runAndLogCommand(cmd, e.verbose)
 }
 
-// runGoCommandToFile executes a subprocess through the go tool and writes
-// the output to the given writer.
-func (e *env) runGoCommandToFile(w io.Writer, goargs []string) error {
-	cmd := exec.Command(e.go_, goargs...)
+// runCommandToFile executes a subprocess and writes the output to the given
+// writer.
+func (e *env) runCommandToFile(w io.Writer, args []string) error {
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
 	return runAndLogCommand(cmd, e.verbose)

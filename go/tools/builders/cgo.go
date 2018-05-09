@@ -57,8 +57,9 @@ func run(args []string) error {
 		if err != nil {
 			return err
 		}
-		goargs := append([]string{"tool", "cgo", "-dynpackage", dynpackage}, toolArgs...)
-		return goenv.runGoCommand(goargs)
+		goargs := goenv.goTool("cgo", "-dynpackage", dynpackage)
+		goargs = append(goargs, toolArgs...)
+		return goenv.runCommand(goargs)
 	}
 
 	// create a temporary directory. sources actually passed to cgo will be moved
@@ -180,12 +181,12 @@ func run(args []string) error {
 	}
 
 	// Run cgo.
-	goargs := []string{"tool", "cgo", "-srcdir", srcDir}
+	goargs := goenv.goTool("cgo", "-srcdir", srcDir)
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, "--")
 	goargs = append(goargs, ccArgsSplit...)
 	goargs = append(goargs, cgoSrcs...)
-	if err := goenv.runGoCommand(goargs); err != nil {
+	if err := goenv.runCommand(goargs); err != nil {
 		return err
 	}
 

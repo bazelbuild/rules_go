@@ -79,7 +79,7 @@ def _declare_directory(go, path="", ext="", name = ""):
 
 def _new_args(go):
   args = go.actions.args()
-  args.add(["-go", go.go])
+  args.add(["-sdk", go.sdk_root.dirname])
   if go.tags:
     args.add(["-tags", ",".join(go.tags)])
   return args
@@ -189,7 +189,7 @@ def _infer_importpath(ctx):
   return path, INFERRED_PATH
 
 def _get_go_binary(context_data):
-  for f in context_data.sdk_files:
+  for f in context_data.sdk_tools:
     parent = paths.dirname(f.path)
     sdk = paths.dirname(parent)
     parent = paths.basename(parent)
@@ -199,7 +199,7 @@ def _get_go_binary(context_data):
     name, ext = paths.split_extension(basename)
     if name != "go":
       continue
-    return sdk, f
+    return f
   fail("Could not find go executable in go_sdk")
 
 def go_context(ctx, attr=None):
@@ -221,14 +221,14 @@ def go_context(ctx, attr=None):
 
   context_data = attr._go_context_data
   mode = get_mode(ctx, host_only, toolchain, context_data)
-  root, binary = _get_go_binary(context_data)
+  binary = _get_go_binary(context_data)
 
   stdlib = getattr(attr, "_stdlib", None)
   if stdlib:
     stdlib = get_source(stdlib).stdlib
     goroot = stdlib.root_file.dirname
   else:
-    goroot = root
+    goroot = context_data.sdk_root.dirname
 
   env = dict(context_data.env)
   env.update({
@@ -245,9 +245,10 @@ def go_context(ctx, attr=None):
       # Fields
       toolchain = toolchain,
       mode = mode,
-      root = root,
+      root = goroot,
       go = binary,
       stdlib = stdlib,
+      sdk_root = context_data.sdk_root,
       sdk_files = context_data.sdk_files,
       sdk_tools = context_data.sdk_tools,
       actions = ctx.actions,
@@ -304,6 +305,7 @@ def _go_context_data(ctx):
       strip = ctx.attr.strip,
       crosstool = ctx.files._crosstool,
       package_list = ctx.file._package_list,
+      sdk_root = ctx.file._sdk_root,
       sdk_files = ctx.files._sdk_files,
       sdk_tools = ctx.files._sdk_tools,
       tags = tags,
@@ -329,6 +331,10 @@ go_context_data = rule(
             allow_files = True,
             single_file = True,
             default = "@go_sdk//:packages.txt",
+        ),
+        "_sdk_root": attr.label(
+            allow_single_file = True,
+            default = "@go_sdk//:ROOT",
         ),
         "_sdk_files": attr.label(
             allow_files = True,

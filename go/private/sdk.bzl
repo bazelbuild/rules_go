@@ -84,6 +84,7 @@ def _prepare(ctx):
     print(result.stderr)
     fail("failed to list standard packages")
   ctx.file("packages.txt", result.stdout)
+  ctx.file("ROOT", "")
 
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
   ctx.download_and_extract(

@@ -1,20 +1,23 @@
-package(default_visibility = [ "//visibility:public" ])
+package(default_visibility = ["//visibility:public"])
 
 filegroup(
-  name = "files",
-  srcs = glob([
-    "bin/go*",
-    "src/**",
-    "pkg/**",
-  ]),
+    name = "files",
+    srcs = glob([
+        "bin/go*",
+        "src/**",
+        "pkg/**",
+    ]),
 )
 
 filegroup(
-  name = "tools",
-  srcs = select({
-    "@io_bazel_rules_go//go/platform:darwin_amd64": ["@local_config_cc//:cc_wrapper"],
-    "//conditions:default": None,
-  }),
+    name = "tools",
+    srcs = glob([
+        "bin/go*",
+        "pkg/tool/**",
+    ]) + select({
+        "@io_bazel_rules_go//go/platform:darwin_amd64": ["@local_config_cc//:cc_wrapper"],
+        "//conditions:default": [],
+    }),
 )
 
-exports_files(["packages.txt"])
+exports_files(["packages.txt", "ROOT"])
