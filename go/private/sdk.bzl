@@ -40,6 +40,8 @@ def _go_download_sdk_impl(ctx):
     host = "darwin_amd64"
   elif ctx.os.name.startswith('windows'):
     host = "windows_amd64"
+  elif ctx.os.name == 'freebsd':
+    host = "freebsd_amd64"
   else:
     fail("Unsupported operating system: " + ctx.os.name)
   sdks = ctx.attr.sdks
