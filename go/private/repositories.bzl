@@ -98,6 +98,8 @@ def go_rules_dependencies():
       commit = "1adfc126b41513cc696b209667c8656ea7aac67c",  # v1.0.0, as of 2018-02-16
       overlay = manifest["com_github_gogo_protobuf"],
       # build_file_proto_mode = "legacy",
+      # TODO(jayconrod): incorporate manual changes when regenerating build
+      # files. This repo contains aliases for //proto/wkt targets.
   )
   _maybe(gogo_special_proto,
       name = "gogo_special_proto",
@@ -132,6 +134,8 @@ def go_rules_dependencies():
       overlay = manifest["org_golang_google_genproto"],
       # build_file_proto_mode = "disable",
       # importpath = "google.golang.org/genproto",
+      # TODO(jayconrod): incorporate manual changes when regenerating build
+      # files. This repo contains aliases for //proto/wkt targets.
   )
 
   # Needed for examples

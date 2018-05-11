@@ -6,10 +6,8 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-go_library(
+alias(
     name = "go_default_library",
-    srcs = ["wrappers.pb.go"],
-    importpath = "github.com/golang/protobuf/ptypes/wrappers",
+    actual = "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
     visibility = ["//visibility:public"],
-    deps = ["//proto:go_default_library"],
 )

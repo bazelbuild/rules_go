@@ -1,9 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
-go_library(
+alias(
     name = "go_default_library",
-    srcs = ["source_context.pb.go"],
-    importpath = "google.golang.org/genproto/protobuf/source_context",
+    actual = "@io_bazel_rules_go//proto/wkt:source_context_go_proto",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_golang_protobuf//proto:go_default_library"],
 )

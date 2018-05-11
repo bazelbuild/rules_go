@@ -1,13 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
-go_library(
+alias(
     name = "go_default_library",
-    srcs = ["type.pb.go"],
-    importpath = "google.golang.org/genproto/protobuf/ptype",
+    actual = "@io_bazel_rules_go//proto/wkt:type_go_proto",
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:any_go_proto",
-        "@io_bazel_rules_go//proto/wkt:source_context_go_proto",
-    ],
 )
