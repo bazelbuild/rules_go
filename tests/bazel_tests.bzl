@@ -10,6 +10,14 @@ load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     "go_rule",
 )
+load(
+  "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
+  "paths",
+)
+load(
+  "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+  "shell",
+)
 
 # _bazelrc is the bazel.rc file that sets the default options for tests
 _bazelrc = """
@@ -44,6 +52,9 @@ mkdir -p {work_dir}
 mkdir -p {cache_dir}
 cp -f {workspace} {work_dir}/WORKSPACE
 cp -f {build} {work_dir}/BUILD.bazel
+if [ -n '{extra_files}' ]; then
+  cp -f {extra_files} {work_dir}/
+fi
 cd {work_dir}
 
 {bazel} --bazelrc {bazelrc} --nomaster_blazerc {command}  --experimental_repository_cache={cache_dir} --config {config} {args} {target} >& bazel-output.txt
@@ -110,6 +121,7 @@ def _bazel_test_script_impl(ctx):
   script_content = _bazel_test_script_template.format(
       bazelrc = ctx.attr._settings.exec_root+"/"+ctx.file._bazelrc.path,
       config = ctx.attr.config,
+      extra_files = " ".join([shell.quote(paths.join(ctx.attr._settings.exec_root, "execroot", "io_bazel_rules_go", file.path)) for file in ctx.files.extra_files]),
       command = ctx.attr.command,
       args = " ".join(ctx.attr.args),
       target = " ".join(targets),
@@ -147,6 +159,7 @@ _bazel_test_script = go_rule(
         "build": attr.string(),
         "check": attr.string(),
         "config": attr.string(default = "isolate"),
+        "extra_files": attr.label_list(allow_files = True),
         "data": attr.label_list(
             allow_files = True,
             cfg = "data",
@@ -160,7 +173,7 @@ _bazel_test_script = go_rule(
     },
 )
 
-def bazel_test(name, command = None, args=None, targets = None, go_version = None, tags=[], externals=[], workspace="", build="", check="", config=None):
+def bazel_test(name, command = None, args=None, targets = None, go_version = None, tags=[], externals=[], workspace="", build="", check="", config=None, extra_files=[]):
   script_name = name+"_script"
   externals = externals + [
       "@io_bazel_rules_go//:AUTHORS",
@@ -179,6 +192,7 @@ def bazel_test(name, command = None, args=None, targets = None, go_version = Non
       build = build,
       check = check,
       config = config,
+      extra_files = extra_files,
   )
   native.sh_test(
       name = name,

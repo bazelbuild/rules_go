@@ -18,7 +18,7 @@ load(
 )
 
 _ASPECT_ATTRS = ["pure", "static", "msan", "race"]
-_BOOTSTRAP_ATTRS = ["_builders", "_coverdata", "_stdlib"]
+_BOOTSTRAP_ATTRS = ["_builders", "_coverdata", "_stdlib", "_checker"]
 
 def go_rule(implementation, attrs={}, toolchains=[], bootstrap=False, bootstrap_attrs=_BOOTSTRAP_ATTRS, **kwargs):
   if bootstrap:

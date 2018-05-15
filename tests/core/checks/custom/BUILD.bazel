@@ -1,0 +1,107 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+WORKSPACE = """
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+
+go_rules_dependencies()
+go_register_toolchains(go_checker="@//:my_checker")
+"""
+
+BUILD = """
+load("@io_bazel_rules_go//go:def.bzl", "go_checker", "go_tool_library")
+
+go_checker(
+    name = "my_checker",
+    deps = [
+        ":foo_func_check",
+        ":return_bool_check",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "foo_func_check",
+    srcs = ["foo_func_check.go"],
+    importpath = "foofunccheck",
+    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "return_bool_check",
+    srcs = ["return_bool_check.go"],
+    importpath = "returnboolcheck",
+    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    visibility = ["//visibility:public"],
+)
+"""
+
+_no_error_check = """
+if [[ result -eq 1 ]]; then
+  echo "error: unexpected build error" >&2
+  result=1
+else
+  result=0
+fi
+"""
+
+_has_err_check_tmpl = """
+if [[ result -eq 0 ]]; then
+  echo "error: expected build error" >&2
+  result=1
+else
+  {check_err}
+fi
+"""
+
+_check_err_tmpl = """
+  if ! grep -q '{err}' bazel-output.txt; then
+    echo "error: expected error message: '{err}'" >&2
+    result=1
+  else
+    result=0
+  fi
+"""
+
+bazel_test(
+    name = "custom_check_errors",
+    build = BUILD,
+    workspace = WORKSPACE,
+    check = _has_err_check_tmpl.format(
+        check_err =
+            _check_err_tmpl.format(err = "has_errors.go:4:1: function must not be named Foo") +
+            _check_err_tmpl.format(err = "has_errors.go:6:1: function must not return bool")
+    ),
+    command = "build",
+    targets = [":has_errors"],
+    extra_files = [
+      ":foo_func_check.go",
+      ":return_bool_check.go",
+    ],
+)
+
+bazel_test(
+    name = "custom_check_no_errors",
+    build = BUILD,
+    workspace = WORKSPACE,
+    check = _no_error_check,
+    command = "build",
+    targets = [":no_errors"],
+    extra_files = [
+      ":foo_func_check.go",
+      ":return_bool_check.go",
+    ],
+)
+
+go_library(
+    name = "has_errors",
+    srcs = ["has_errors.go"],
+    importpath = "haserrors",
+)
+
+go_library(
+    name = "no_errors",
+    srcs = ["no_errors.go"],
+    importpath = "noerrors",
+)

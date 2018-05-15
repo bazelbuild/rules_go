@@ -81,6 +81,14 @@ load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     _go_rule = "go_rule",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/library.bzl",
+    "go_tool_library",
+)
+load(
+    "@io_bazel_rules_go//go/private:rules/checker.bzl",
+    "go_checker",
+)
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.

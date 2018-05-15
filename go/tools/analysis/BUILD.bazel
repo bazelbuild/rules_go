@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go/private:rules/library.bzl", "go_tool_library")
+
+go_tool_library(
+    name = "analysis",
+    srcs = ["analysis.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/analysis",
+    visibility = ["//visibility:public"],
+)

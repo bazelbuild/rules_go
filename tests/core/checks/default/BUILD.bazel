@@ -30,3 +30,20 @@
 #     srcs = ["lib.go"],
 #     importpath = "lib",
 # )
+
+_build = """
+load("@io_bazel_rules_go//go:def.bzl", "go_checker", "go_binary", "go_library", "go_test")
+
+go_checker(
+    name = "my_checker",
+    visibility = ["//visibility:public"],
+)
+"""
+
+
+_workspace = """
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")                                                  │·············
+                                                                                                                                           │·············
+go_rules_dependencies()                                                                                                                    │·············
+go_register_toolchains(go_checker="@//:my_checker")
+"""

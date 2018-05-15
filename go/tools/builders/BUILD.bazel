@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_source")
 
 go_test(
     name = "filter_test",
@@ -60,8 +60,21 @@ go_tool_binary(
 go_tool_binary(
     name = "generate_checker_main",
     srcs = [
-        "generate_checker_main.go",
         "flags.go",
+        "generate_checker_main.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_source(
+    name = "checker_srcs",
+    srcs = [
+        "checker_main.go",
+        "flags.go",
+    ],
+    deps = [
+        "@io_bazel_rules_go//go/tools/analysis:analysis",
+        "@io_bazel_rules_go//vendor/golang.org/x/tools/go/gcexportdata:go_default_library",
     ],
     visibility = ["//visibility:public"],
 )

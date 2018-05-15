@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_tool_library")
+
+go_tool_library(
+    name = "go_default_library",
+    srcs = glob(["*.go"], exclude=["*_test.go"]),
+    importpath = "golang.org/x/tools/go/gcexportdata",
+    deps = ["//vendor/golang.org/x/tools/go/gcimporter15:go_default_library"],
+    visibility = ["//visibility:public"],
+)

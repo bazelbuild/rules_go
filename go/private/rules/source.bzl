@@ -47,6 +47,7 @@ def _go_source_impl(ctx):
 
 go_source = go_rule(
     _go_source_impl,
+    bootstrap = True,
     attrs = {
         "data": attr.label_list(
             allow_files = True,

@@ -9,6 +9,7 @@ Contents
 .. Child list start
 
 * `Default checker <default/README.rst>`_
+* `Custom checks <custom/README.rst>`_
 
 .. Child list end
 

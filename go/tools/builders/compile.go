@@ -18,7 +18,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"go/build"
@@ -33,6 +32,7 @@ import (
 func run(args []string) error {
 	unfiltered := multiFlag{}
 	deps := multiFlag{}
+	archiveFiles := multiFlag{}
 	search := multiFlag{}
 	importmap := multiFlag{}
 	flags := flag.NewFlagSet("compile", flag.ContinueOnError)
@@ -41,6 +41,7 @@ func run(args []string) error {
 	flags.Var(&deps, "dep", "Import path of a direct dependency")
 	flags.Var(&search, "I", "Search paths of a direct dependency")
 	flags.Var(&importmap, "importmap", "Import maps of a direct dependency")
+	flags.Var(&archiveFiles, "archivefile", "Archive file of a direct dependency")
 	checker := flags.String("checker", "", "The checker binary")
 	trimpath := flags.String("trimpath", "", "The base of the paths to trim")
 	output := flags.String("o", "", "The output object file to write")
@@ -119,9 +120,11 @@ func run(args []string) error {
 	}
 	goargs = append(goargs, "-pack", "-o", absOutput)
 	goargs = append(goargs, flags.Args()...)
+	filenames := make([]string, 0, len(files))
 	for _, f := range files {
-		goargs = append(goargs, f.filename)
+		filenames = append(filenames, f.filename)
 	}
+	goargs = append(goargs, filenames...)
 
 	// Check that the filtered sources don't import anything outside of deps.
 	if err := checkDirectDeps(bctx, files, strictdeps, *packageList); err != nil {
@@ -135,21 +138,37 @@ func run(args []string) error {
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("error starting compiler: %v", err)
 	}
+	var checkerOutput bytes.Buffer
+	checkerFailed := false
 	if *checker != "" {
-		checkerCmd := exec.Command(*checker)
-		checkerCmd.Stdout, checkerCmd.Stderr = os.Stdout, os.Stderr
+		var checkerargs []string
+		for _, a := range archiveFiles {
+			checkerargs = append(checkerargs, "-archivefile", a)
+		}
+		checkerargs = append(checkerargs, "-stdlib", filepath.Dir(goenv.rootFile))
+		checkerargs = append(checkerargs, filenames...)
+		checkerCmd := exec.Command(*checker, checkerargs...)
+		checkerCmd.Stdout, checkerCmd.Stderr = &checkerOutput, &checkerOutput
 		if err := checkerCmd.Run(); err != nil {
 			if _, ok := err.(*exec.ExitError); ok {
 				// Only fail the build if the checker runs but does not complete
 				// successfully.
-				return errors.New("checker failed")
+				checkerFailed = true
+			} else {
+				// All errors related to running the checker will merely be printed.
+				checkerOutput.WriteString(fmt.Sprintf("error running checker: %v\n", err))
 			}
-			// All errors related to running the checker are merely printed.
-			fmt.Fprintf(os.Stderr, "error running checker: %v", err)
 		}
 	}
 	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("error running compiler: %v", err)
+	}
+	// Only print the output of the checker if compilation succeeds.
+	if checkerFailed {
+		return fmt.Errorf("%s", checkerOutput.String())
+	}
+	if checkerOutput.Len() != 0 {
+		fmt.Fprintln(os.Stderr, checkerOutput.String())
 	}
 	return nil
 }

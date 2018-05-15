@@ -26,20 +26,22 @@ import (
 	"text/template"
 )
 
-// TODO(samueltan): ensure that panics caused by check libraries are differentiated
-// from legitimate check errors.
 var codeTpl = `
 package main
 
-func main() {
-	// This is a stub.
-}
+import (
+{{range $importPath := .}}
+	_ "{{$importPath}}"
+{{- end}}
+)
 `
 
 func run(args []string) error {
+	checkImportPaths := multiFlag{}
 	flags := flag.NewFlagSet("generate_checker_main", flag.ExitOnError)
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
-	// TODO(samueltan): use config and a list of import paths to generate checker source.
+	flags.Var(&checkImportPaths, "check_importpath", "import path of a check library")
+	// TODO(samueltan): use the config file to generate whitelist tables in the checker.
 	flags.String("config", "", "checker config file")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -61,7 +63,7 @@ func run(args []string) error {
 	}()
 
 	tpl := template.Must(template.New("source").Parse(codeTpl))
-	if err := tpl.Execute(outFile, nil); err != nil {
+	if err := tpl.Execute(outFile, checkImportPaths); err != nil {
 		return fmt.Errorf("template.Execute failed: %v", err)
 	}
 	return cErr
