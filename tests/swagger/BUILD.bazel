@@ -1,0 +1,74 @@
+
+load("//go:def.bzl", "go_binary", "go_library", "go_path")
+load("//go:swagger.bzl", "swagger_spec")
+
+go_binary(
+    name = "boring",
+    srcs = [
+         "boring/main.go",
+    ],
+)
+
+go_library(
+    name = "valid",
+    importpath = "swagger/valid",
+    srcs = [
+        "valid/lib.go",
+    ],
+)
+
+go_path(
+    name = "boring_srcs",
+    deps = [
+        ":boring",
+    ],
+)
+
+go_path(
+    name = "valid_srcs",
+    deps = [
+        ":valid",
+    ],
+)
+
+swagger_spec(
+    name = "srcs_spec_validated",
+    base_path = "swagger/valid",
+    paths = [
+        ":valid_srcs",
+    ],
+    validate = True,
+)
+
+swagger_spec(
+    name = "srcs_spec_validated_nosandbox",
+    base_path = "swagger/valid",
+    paths = [
+        ":valid_srcs",
+    ],
+    validate = True,
+    tags = [
+        "no-sandbox",
+    ],
+)
+
+swagger_spec(
+    name = "srcs_spec_unvalidated",
+    base_path = "tests/swagger/boring",
+    paths = [
+        ":boring_srcs",
+    ],
+    validate = False,
+)
+
+sh_test(
+    name = "spec_test",
+    srcs = [
+        "test.sh",
+    ],
+    data = [
+        ":srcs_spec_validated",
+        ":srcs_spec_validated_nosandbox",
+        ":srcs_spec_unvalidated",
+    ],
+)
