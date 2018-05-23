@@ -132,9 +132,9 @@ def _cgo_codegen_impl(ctx):
     cgo_types = go.declare_file(go, path = "_cgo_gotypes.go")
     out_dir = cgo_main.dirname
 
-    builder_args = go.args(go)
-    tool_args = ctx.actions.args()
-    cc_args = ctx.actions.args()
+    builder_args = go.args(go)     # interpreted by builder
+    tool_args = ctx.actions.args() # interpreted by cgo
+    cc_args = ctx.actions.args()   # interpreted by C compiler
 
     c_outs = [cgo_export_h, cgo_export_c]
     cxx_outs = [cgo_export_h]
