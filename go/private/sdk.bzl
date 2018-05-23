@@ -55,7 +55,7 @@ go_download_sdk = repository_rule(
     _go_download_sdk_impl,
     attrs = {
         "sdks": attr.string_list_dict(),
-        "urls": attr.string_list(default = ["https://storage.googleapis.com/golang/{}"]),
+        "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "strip_prefix": attr.string(default = "go"),
     },
 )
