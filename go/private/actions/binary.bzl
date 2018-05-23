@@ -14,8 +14,8 @@
 
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
-    "LINKMODE_C_SHARED",
     "LINKMODE_C_ARCHIVE",
+    "LINKMODE_C_SHARED",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
@@ -23,38 +23,43 @@ load(
     "SHARED_LIB_EXTENSIONS",
 )
 
-def emit_binary(go,
-    name = "",
-    source = None,
-    test_archives = [],
-    gc_linkopts = [],
-    version_file = None,
-    info_file = None,
-    executable = None):
-  """See go/toolchains.rst#binary for full documentation."""
+def emit_binary(
+        go,
+        name = "",
+        source = None,
+        test_archives = [],
+        gc_linkopts = [],
+        version_file = None,
+        info_file = None,
+        executable = None):
+    """See go/toolchains.rst#binary for full documentation."""
 
-  if name == "" and executable == None:
-    fail("either name or executable must be set")
+    if name == "" and executable == None:
+        fail("either name or executable must be set")
 
-  archive = go.archive(go, source)
-  if not executable:
-    extension = go.exe_extension
-    if go.mode.link == LINKMODE_C_SHARED:
-      name = "lib" + name # shared libraries need a "lib" prefix in their name
-      extension = go.shared_extension
-    elif go.mode.link == LINKMODE_C_ARCHIVE:
-      extension = ARCHIVE_EXTENSION
-    executable = go.declare_file(go, name=name, ext=extension)
-  go.link(go,
-      archive=archive,
-      test_archives=test_archives,
-      executable=executable,
-      gc_linkopts=gc_linkopts,
-      version_file=version_file,
-      info_file=info_file,
-  )
-  cgo_dynamic_deps = [d for d in archive.cgo_deps
-                      if any([d.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])]
-  runfiles = go._ctx.runfiles(files = cgo_dynamic_deps).merge(archive.runfiles)
+    archive = go.archive(go, source)
+    if not executable:
+        extension = go.exe_extension
+        if go.mode.link == LINKMODE_C_SHARED:
+            name = "lib" + name  # shared libraries need a "lib" prefix in their name
+            extension = go.shared_extension
+        elif go.mode.link == LINKMODE_C_ARCHIVE:
+            extension = ARCHIVE_EXTENSION
+        executable = go.declare_file(go, name = name, ext = extension)
+    go.link(
+        go,
+        archive = archive,
+        test_archives = test_archives,
+        executable = executable,
+        gc_linkopts = gc_linkopts,
+        version_file = version_file,
+        info_file = info_file,
+    )
+    cgo_dynamic_deps = [
+        d
+        for d in archive.cgo_deps
+        if any([d.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])
+    ]
+    runfiles = go._ctx.runfiles(files = cgo_dynamic_deps).merge(archive.runfiles)
 
-  return archive, executable, runfiles
+    return archive, executable, runfiles

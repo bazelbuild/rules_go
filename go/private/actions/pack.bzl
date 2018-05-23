@@ -12,29 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def emit_pack(go,
-    in_lib = None,
-    out_lib = None,
-    objects = [],
-    archives = []):
-  """See go/toolchains.rst#pack for full documentation."""
+def emit_pack(
+        go,
+        in_lib = None,
+        out_lib = None,
+        objects = [],
+        archives = []):
+    """See go/toolchains.rst#pack for full documentation."""
 
-  if in_lib == None: fail("in_lib is a required parameter")
-  if out_lib == None: fail("out_lib is a required parameter")
+    if in_lib == None:
+        fail("in_lib is a required parameter")
+    if out_lib == None:
+        fail("out_lib is a required parameter")
 
-  inputs = [in_lib] + go.sdk_tools + objects + archives
+    inputs = [in_lib] + go.sdk_tools + objects + archives
 
-  args = go.args(go)
-  args.add(["-in", in_lib])
-  args.add(["-out", out_lib])
-  args.add(objects, before_each="-obj")
-  args.add(archives, before_each="-arc")
+    args = go.args(go)
+    args.add(["-in", in_lib])
+    args.add(["-out", out_lib])
+    args.add(objects, before_each = "-obj")
+    args.add(archives, before_each = "-arc")
 
-  go.actions.run(
-      inputs = inputs,
-      outputs = [out_lib],
-      mnemonic = "GoPack",
-      executable = go.builders.pack,
-      arguments = [args],
-      env = go.env,
-  )
+    go.actions.run(
+        inputs = inputs,
+        outputs = [out_lib],
+        mnemonic = "GoPack",
+        executable = go.builders.pack,
+        arguments = [args],
+        env = go.env,
+    )

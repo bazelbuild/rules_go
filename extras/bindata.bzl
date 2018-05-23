@@ -22,37 +22,40 @@ load(
 )
 
 def _bindata_impl(ctx):
-  go = go_context(ctx)
-  out = go.declare_file(go, ext=".go")
-  arguments = ctx.actions.args()
-  arguments.add([
-      "-o", out.path,
-      "-pkg", ctx.attr.package,
-      "-prefix", ctx.label.package,
-  ])
-  if not ctx.attr.compress:
-    arguments.add("-nocompress")
-  if not ctx.attr.metadata:
-    arguments.add("-nometadata")
-  if not ctx.attr.memcopy:
-    arguments.add("-nomemcopy")
-  if not ctx.attr.modtime:
-    arguments.add(["-modtime", "0"])
-  if ctx.attr.extra_args:
-    arguments.add(ctx.attr.extra_args)
-  arguments.add(ctx.files.srcs)
-  ctx.actions.run(
-    inputs = ctx.files.srcs,
-    outputs = [out],
-    mnemonic = "GoBindata",
-    executable = ctx.file._bindata,
-    arguments = [arguments],
-  )
-  return [
-    DefaultInfo(
-      files = depset([out])
+    go = go_context(ctx)
+    out = go.declare_file(go, ext = ".go")
+    arguments = ctx.actions.args()
+    arguments.add([
+        "-o",
+        out.path,
+        "-pkg",
+        ctx.attr.package,
+        "-prefix",
+        ctx.label.package,
+    ])
+    if not ctx.attr.compress:
+        arguments.add("-nocompress")
+    if not ctx.attr.metadata:
+        arguments.add("-nometadata")
+    if not ctx.attr.memcopy:
+        arguments.add("-nomemcopy")
+    if not ctx.attr.modtime:
+        arguments.add(["-modtime", "0"])
+    if ctx.attr.extra_args:
+        arguments.add(ctx.attr.extra_args)
+    arguments.add(ctx.files.srcs)
+    ctx.actions.run(
+        inputs = ctx.files.srcs,
+        outputs = [out],
+        mnemonic = "GoBindata",
+        executable = ctx.file._bindata,
+        arguments = [arguments],
     )
-  ]
+    return [
+        DefaultInfo(
+            files = depset([out]),
+        ),
+    ]
 
 bindata = go_rule(
     _bindata_impl,

@@ -38,49 +38,52 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/platform:list.bzl",
-    "GOOS",
     "GOARCH",
+    "GOOS",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
-    "LINKMODE_NORMAL",
     "LINKMODES",
+    "LINKMODE_NORMAL",
 )
 
 def _go_binary_impl(ctx):
-  """go_binary_impl emits actions for compiling and linking a go executable."""
-  go = go_context(ctx)
+    """go_binary_impl emits actions for compiling and linking a go executable."""
+    go = go_context(ctx)
 
-  library = go.new_library(go, importable=False)
-  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
-  name = ctx.attr.basename
-  if not name:
-    name = ctx.label.name
-  executable = None
-  if ctx.attr.out:
-    # Use declare_file instead of attr.output(). When users set output files
-    # directly, Bazel warns them not to use the same name as the rule, which is
-    # the common case with go_binary.
-    executable = ctx.actions.declare_file(ctx.attr.out)
-  archive, executable, runfiles = go.binary(go,
-      name = name,
-      source = source,
-      gc_linkopts = gc_linkopts(ctx),
-      version_file = ctx.version_file,
-      info_file = ctx.info_file,
-      executable = executable,
-  )
-  return [
-      library, source, archive,
-      OutputGroupInfo(
-          cgo_exports = archive.cgo_exports,
-      ),
-      DefaultInfo(
-          files = depset([executable]),
-          runfiles = runfiles,
-          executable = executable,
-      ),
-  ]
+    library = go.new_library(go, importable = False)
+    source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+    name = ctx.attr.basename
+    if not name:
+        name = ctx.label.name
+    executable = None
+    if ctx.attr.out:
+        # Use declare_file instead of attr.output(). When users set output files
+        # directly, Bazel warns them not to use the same name as the rule, which is
+        # the common case with go_binary.
+        executable = ctx.actions.declare_file(ctx.attr.out)
+    archive, executable, runfiles = go.binary(
+        go,
+        name = name,
+        source = source,
+        gc_linkopts = gc_linkopts(ctx),
+        version_file = ctx.version_file,
+        info_file = ctx.info_file,
+        executable = executable,
+    )
+    return [
+        library,
+        source,
+        archive,
+        OutputGroupInfo(
+            cgo_exports = archive.cgo_exports,
+        ),
+        DefaultInfo(
+            files = depset([executable]),
+            runfiles = runfiles,
+            executable = executable,
+        ),
+    ]
 
 go_binary = go_rule(
     _go_binary_impl,
@@ -143,7 +146,7 @@ go_binary = go_rule(
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "x_defs": attr.string_dict(),
-        "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
+        "linkmode": attr.string(values = LINKMODES, default = LINKMODE_NORMAL),
         "out": attr.string(),
     },
     executable = True,
@@ -165,9 +168,9 @@ go_tool_binary = go_rule(
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
         "x_defs": attr.string_dict(),
-        "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
+        "linkmode": attr.string(values = LINKMODES, default = LINKMODE_NORMAL),
         "out": attr.string(),
-        "_hostonly": attr.bool(default=True),
+        "_hostonly": attr.bool(default = True),
     },
     executable = True,
 )
@@ -185,6 +188,8 @@ and it can pick the boostrap toolchain when it sees it.
 """
 
 def gc_linkopts(ctx):
-  gc_linkopts = [ctx.expand_make_variables("gc_linkopts", f, {})
-                 for f in ctx.attr.gc_linkopts]
-  return gc_linkopts
+    gc_linkopts = [
+        ctx.expand_make_variables("gc_linkopts", f, {})
+        for f in ctx.attr.gc_linkopts
+    ]
+    return gc_linkopts

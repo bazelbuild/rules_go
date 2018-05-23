@@ -15,12 +15,12 @@
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoSource")
 
 def _stdlib_files_impl(ctx):
-  files = ctx.attr._stdlib[GoSource].stdlib.files
-  runfiles = ctx.runfiles(files = files)
-  return [DefaultInfo(
-      files = depset(files),
-      runfiles = runfiles,
-  )]
+    files = ctx.attr._stdlib[GoSource].stdlib.files
+    runfiles = ctx.runfiles(files = files)
+    return [DefaultInfo(
+        files = depset(files),
+        runfiles = runfiles,
+    )]
 
 stdlib_files = rule(
     _stdlib_files_impl,

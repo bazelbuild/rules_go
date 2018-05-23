@@ -26,32 +26,32 @@ load(
 )
 
 def _go_vet_generate_impl(ctx):
-  print("""
+    print("""
 EXPERIMENTAL: the go_vet_test rule is still very experimental
 Please do not rely on it for production use, but feel free to use it and file issues
 """)
-  go = go_context(ctx)
-  script_file = go.declare_file(go, ext=".bash")
-  gopath = []
-  files = ctx.files.data + go.stdlib.files
-  gopath = []
-  packages = []
-  for data in ctx.attr.data:
-    entry = data[GoPath]
-    gopath += [entry.gopath]
-    packages += [entry.gopath + "/" + package.dir for package in entry.packages]
-  ctx.actions.write(output=script_file, is_executable=True, content="""
+    go = go_context(ctx)
+    script_file = go.declare_file(go, ext = ".bash")
+    gopath = []
+    files = ctx.files.data + go.stdlib.files
+    gopath = []
+    packages = []
+    for data in ctx.attr.data:
+        entry = data[GoPath]
+        gopath += [entry.gopath]
+        packages += [entry.gopath + "/" + package.dir for package in entry.packages]
+    ctx.actions.write(output = script_file, is_executable = True, content = """
 export GOPATH="{gopath}"
 {go} tool vet {packages}
 """.format(
-      go=go.go.short_path,
-      gopath=":".join(['$(pwd)/{})'.format(entry) for entry in gopath]),
-      packages=" ".join(packages),
-  ))
-  return struct(
-    files = depset([script_file]),
-    runfiles = ctx.runfiles(files, collect_data = True),
-  )
+        go = go.go.short_path,
+        gopath = ":".join(["$(pwd)/{})".format(entry) for entry in gopath]),
+        packages = " ".join(packages),
+    ))
+    return struct(
+        files = depset([script_file]),
+        runfiles = ctx.runfiles(files, collect_data = True),
+    )
 
 _go_vet_generate = go_rule(
     _go_vet_generate_impl,
@@ -64,15 +64,15 @@ _go_vet_generate = go_rule(
 )
 
 def go_vet_test(name, data, **kwargs):
-  script_name = "generate_"+name
-  _go_vet_generate(
-    name=script_name,
-    data=data,
-    tags = ["manual"],
-  )
-  native.sh_test(
-    name=name,
-    srcs=[script_name],
-    data=data,
-    **kwargs
-  )
+    script_name = "generate_" + name
+    _go_vet_generate(
+        name = script_name,
+        data = data,
+        tags = ["manual"],
+    )
+    native.sh_test(
+        name = name,
+        srcs = [script_name],
+        data = data,
+        **kwargs
+    )

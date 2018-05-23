@@ -83,21 +83,21 @@ GOOS_GOARCH = (
 )
 
 def declare_config_settings():
-  for goos in GOOS:
-    native.config_setting(
-        name = goos,
-        constraint_values = ["//go/toolchain:" + goos],
-    )
-  for goarch in GOARCH:
-    native.config_setting(
-        name = goarch,
-        constraint_values = ["//go/toolchain:" + goarch],
-    )
-  for goos, goarch in GOOS_GOARCH:
-    native.config_setting(
-        name = goos + "_" + goarch,
-        constraint_values = [
-            "//go/toolchain:" + goos,
-            "//go/toolchain:" + goarch,
-        ],
-    )
+    for goos in GOOS:
+        native.config_setting(
+            name = goos,
+            constraint_values = ["//go/toolchain:" + goos],
+        )
+    for goarch in GOARCH:
+        native.config_setting(
+            name = goarch,
+            constraint_values = ["//go/toolchain:" + goarch],
+        )
+    for goos, goarch in GOOS_GOARCH:
+        native.config_setting(
+            name = goos + "_" + goarch,
+            constraint_values = [
+                "//go/toolchain:" + goos,
+                "//go/toolchain:" + goarch,
+            ],
+        )

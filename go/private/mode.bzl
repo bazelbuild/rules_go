@@ -29,89 +29,95 @@ LINKMODE_C_ARCHIVE = "c-archive"
 LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]
 
 def mode_string(mode):
-  result = [mode.goos, mode.goarch]
-  if mode.static:
-    result.append("static")
-  if mode.race:
-    result.append("race")
-  if mode.msan:
-    result.append("msan")
-  if mode.pure:
-    result.append("pure")
-  if mode.debug:
-    result.append("debug")
-  if mode.strip:
-    result.append("stripped")
-  if not result or not mode.link == LINKMODE_NORMAL:
-    result.append(mode.link)
-  return "_".join(result)
+    result = [mode.goos, mode.goarch]
+    if mode.static:
+        result.append("static")
+    if mode.race:
+        result.append("race")
+    if mode.msan:
+        result.append("msan")
+    if mode.pure:
+        result.append("pure")
+    if mode.debug:
+        result.append("debug")
+    if mode.strip:
+        result.append("stripped")
+    if not result or not mode.link == LINKMODE_NORMAL:
+        result.append(mode.link)
+    return "_".join(result)
 
 def _ternary(*values):
-  for v in values:
-    if v == None: continue
-    if type(v) == "bool": return v
-    if type(v) != "string": fail("Invalid value type {}".format(type(v)))
-    v = v.lower()
-    if v == "on": return True
-    if v == "off": return False
-    if v == "auto": continue
-    fail("Invalid value {}".format(v))
-  fail("_ternary failed to produce a final result from {}".format(values))
+    for v in values:
+        if v == None:
+            continue
+        if type(v) == "bool":
+            return v
+        if type(v) != "string":
+            fail("Invalid value type {}".format(type(v)))
+        v = v.lower()
+        if v == "on":
+            return True
+        if v == "off":
+            return False
+        if v == "auto":
+            continue
+        fail("Invalid value {}".format(v))
+    fail("_ternary failed to produce a final result from {}".format(values))
 
 def get_mode(ctx, host_only, go_toolchain, go_context_data):
-  # We always have to  use the pure stdlib in cross compilation mode
-  force_pure = "on" if go_toolchain.cross_compile else "auto"
-  force_race = "off" if host_only else "auto"
+    # We always have to  use the pure stdlib in cross compilation mode
+    force_pure = "on" if go_toolchain.cross_compile else "auto"
+    force_race = "off" if host_only else "auto"
 
-  linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
-  if linkmode in [LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]:
-    force_pure = "off"
+    linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
+    if linkmode in [LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]:
+        force_pure = "off"
 
-  static = _ternary(
-      getattr(ctx.attr, "static", None),
-      "static" in ctx.features,
-  )
-  race = _ternary(
-      getattr(ctx.attr, "race", None),
-      force_race,
-      "race" in ctx.features,
-  )
-  msan = _ternary(
-      getattr(ctx.attr, "msan", None),
-      "msan" in ctx.features,
-  )
-  pure = _ternary(
-      getattr(ctx.attr, "pure", None),
-      force_pure,
-      "pure" in ctx.features,
-  )
-  if race and pure:
-    # You are not allowed to compile in race mode with pure enabled
-    race = False
-  debug = ctx.var["COMPILATION_MODE"] == "dbg"
-  strip_mode = "sometimes"
-  if go_context_data:
-    strip_mode = go_context_data.strip
-  strip = False
-  if strip_mode == "always":
-    strip = True
-  elif strip_mode == "sometimes":
-    strip = not debug
-  goos = getattr(ctx.attr, "goos", None)
-  if goos == None or goos == "auto":
-    goos = go_toolchain.default_goos
-  goarch = getattr(ctx.attr, "goarch", None)
-  if goarch == None or goarch == "auto":
-    goarch = go_toolchain.default_goarch
+    static = _ternary(
+        getattr(ctx.attr, "static", None),
+        "static" in ctx.features,
+    )
+    race = _ternary(
+        getattr(ctx.attr, "race", None),
+        force_race,
+        "race" in ctx.features,
+    )
+    msan = _ternary(
+        getattr(ctx.attr, "msan", None),
+        "msan" in ctx.features,
+    )
+    pure = _ternary(
+        getattr(ctx.attr, "pure", None),
+        force_pure,
+        "pure" in ctx.features,
+    )
+    if race and pure:
+        # You are not allowed to compile in race mode with pure enabled
+        race = False
+    debug = ctx.var["COMPILATION_MODE"] == "dbg"
+    strip_mode = "sometimes"
+    if go_context_data:
+        strip_mode = go_context_data.strip
+    strip = False
+    if strip_mode == "always":
+        strip = True
+    elif strip_mode == "sometimes":
+        strip = not debug
+    goos = getattr(ctx.attr, "goos", None)
+    if goos == None or goos == "auto":
+        goos = go_toolchain.default_goos
+    goarch = getattr(ctx.attr, "goarch", None)
+    if goarch == None or goarch == "auto":
+        goarch = go_toolchain.default_goarch
 
-  return struct(
-      static = static,
-      race = race,
-      msan = msan,
-      pure = pure,
-      link = linkmode,
-      debug = debug,
-      strip = strip,
-      goos = goos,
-      goarch = goarch,
-  )
+    return struct(
+        static = static,
+        race = race,
+        msan = msan,
+        pure = pure,
+        link = linkmode,
+        debug = debug,
+        strip = strip,
+        goos = goos,
+        goarch = goarch,
+    )

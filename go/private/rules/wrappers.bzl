@@ -17,8 +17,8 @@ load("@io_bazel_rules_go//go/private:rules/library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:rules/test.bzl", "go_test")
 load(
     "@io_bazel_rules_go//go/private:rules/cgo.bzl",
-    "setup_cgo_library",
     "go_binary_c_archive_shared",
+    "setup_cgo_library",
 )
 
 _CGO_ATTRS = {
@@ -53,46 +53,47 @@ _COMMON_ATTRS = {
 }
 
 def _deprecate(attr, name, ruletype, kwargs, message):
-  value = kwargs.pop(attr, None)
-  if value and native.repository_name() == "@":
-    print("\nDEPRECATED: //{}:{} : the {} attribute on {} is deprecated. {}".format(native.package_name(), name, attr, ruletype, message))
-  return value
+    value = kwargs.pop(attr, None)
+    if value and native.repository_name() == "@":
+        print("\nDEPRECATED: //{}:{} : the {} attribute on {} is deprecated. {}".format(native.package_name(), name, attr, ruletype, message))
+    return value
 
 def _objc(name, kwargs):
-  objcopts = {}
-  for key in kwargs.keys():
-    if key.startswith("objc_"):
-      arg = key[len("objc_"):]
-      if arg not in _OBJC_CGO_ATTRS:
-        fail("Forbidden CGo objc_library parameter: " + arg)
-      value = kwargs.pop(key)
-      objcopts[arg] = value
-  return objcopts
+    objcopts = {}
+    for key in kwargs.keys():
+        if key.startswith("objc_"):
+            arg = key[len("objc_"):]
+            if arg not in _OBJC_CGO_ATTRS:
+                fail("Forbidden CGo objc_library parameter: " + arg)
+            value = kwargs.pop(key)
+            objcopts[arg] = value
+    return objcopts
 
 def _cgo(name, kwargs):
-  cgo = kwargs.pop("cgo", False)
-  if not cgo: return
-  cgo_attrs = {"name":name}
-  for key, default in _CGO_ATTRS.items():
-    cgo_attrs[key] = kwargs.pop(key, default)
-  for key, default in _COMMON_ATTRS.items():
-    cgo_attrs[key] = kwargs.get(key, default)
-  cgo_attrs["objcopts"] = _objc(name, kwargs)
-  cgo_embed = setup_cgo_library(**cgo_attrs)
-  kwargs["embed"] = kwargs.get("embed", []) + [cgo_embed]
+    cgo = kwargs.pop("cgo", False)
+    if not cgo:
+        return
+    cgo_attrs = {"name": name}
+    for key, default in _CGO_ATTRS.items():
+        cgo_attrs[key] = kwargs.pop(key, default)
+    for key, default in _COMMON_ATTRS.items():
+        cgo_attrs[key] = kwargs.get(key, default)
+    cgo_attrs["objcopts"] = _objc(name, kwargs)
+    cgo_embed = setup_cgo_library(**cgo_attrs)
+    kwargs["embed"] = kwargs.get("embed", []) + [cgo_embed]
 
 def go_library_macro(name, **kwargs):
-  """See go/core.rst#go_library for full documentation."""
-  _cgo(name, kwargs)
-  go_library(name = name, **kwargs)
+    """See go/core.rst#go_library for full documentation."""
+    _cgo(name, kwargs)
+    go_library(name = name, **kwargs)
 
 def go_binary_macro(name, **kwargs):
-  """See go/core.rst#go_binary for full documentation."""
-  _cgo(name, kwargs)
-  go_binary(name = name, **kwargs)
-  go_binary_c_archive_shared(name, kwargs)
+    """See go/core.rst#go_binary for full documentation."""
+    _cgo(name, kwargs)
+    go_binary(name = name, **kwargs)
+    go_binary_c_archive_shared(name, kwargs)
 
 def go_test_macro(name, **kwargs):
-  """See go/core.rst#go_test for full documentation."""
-  _cgo(name, kwargs)
-  go_test(name = name, **kwargs)
+    """See go/core.rst#go_test for full documentation."""
+    _cgo(name, kwargs)
+    go_test(name = name, **kwargs)

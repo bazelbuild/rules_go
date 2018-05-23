@@ -30,47 +30,47 @@ filegroup(
 """
 
 def _go_repository_tools_impl(ctx):
-  # We work this out here because you can't use a toolchain from a repository rule
-  # TODO: This is an ugly non sustainable hack, we need to kill repository tools.
+    # We work this out here because you can't use a toolchain from a repository rule
+    # TODO: This is an ugly non sustainable hack, we need to kill repository tools.
 
-  extension = executable_extension(ctx)
-  go_tool = ctx.path(Label("@go_sdk//:bin/go{}".format(extension)))
+    extension = executable_extension(ctx)
+    go_tool = ctx.path(Label("@go_sdk//:bin/go{}".format(extension)))
 
-  x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"
-  x_tools_path = ctx.path('tools-' + x_tools_commit)
-  go_tools_path = ctx.path(ctx.attr._tools).dirname
-  buildtools_path = ctx.path(ctx.attr._buildtools).dirname
-  gazelle_path = ctx.path(ctx.attr._gazelle).dirname
+    x_tools_commit = "3d92dd60033c312e3ae7cac319c792271cf67e37"
+    x_tools_path = ctx.path("tools-" + x_tools_commit)
+    go_tools_path = ctx.path(ctx.attr._tools).dirname
+    buildtools_path = ctx.path(ctx.attr._buildtools).dirname
+    gazelle_path = ctx.path(ctx.attr._gazelle).dirname
 
-  # We have to download this directly because the normal version is based on go_repository
-  # and thus requires the gazelle we build in here to generate it's BUILD files
-  # The commit used here should match the one in repositories.bzl
-  ctx.download_and_extract(
-      url = "https://codeload.github.com/golang/tools/zip/" + x_tools_commit,
-      type = "zip",
-  )
+    # We have to download this directly because the normal version is based on go_repository
+    # and thus requires the gazelle we build in here to generate it's BUILD files
+    # The commit used here should match the one in repositories.bzl
+    ctx.download_and_extract(
+        url = "https://codeload.github.com/golang/tools/zip/" + x_tools_commit,
+        type = "zip",
+    )
 
-  # Build something that looks like a normal GOPATH so go install will work
-  ctx.symlink(x_tools_path, "src/golang.org/x/tools")
-  ctx.symlink(go_tools_path, "src/github.com/bazelbuild/rules_go/go/tools")
-  ctx.symlink(buildtools_path, "src/github.com/bazelbuild/buildtools")
-  ctx.symlink(gazelle_path, "src/github.com/bazelbuild/bazel-gazelle")
-  env = {
-    'GOROOT': str(go_tool.dirname.dirname),
-    'GOPATH': str(ctx.path('')),
-  }
+    # Build something that looks like a normal GOPATH so go install will work
+    ctx.symlink(x_tools_path, "src/golang.org/x/tools")
+    ctx.symlink(go_tools_path, "src/github.com/bazelbuild/rules_go/go/tools")
+    ctx.symlink(buildtools_path, "src/github.com/bazelbuild/buildtools")
+    ctx.symlink(gazelle_path, "src/github.com/bazelbuild/bazel-gazelle")
+    env = {
+        "GOROOT": str(go_tool.dirname.dirname),
+        "GOPATH": str(ctx.path("")),
+    }
 
-  # build all the repository tools
-  for tool, importpath in (
-      ("gazelle", 'github.com/bazelbuild/bazel-gazelle/cmd/gazelle'),
-      ("fetch_repo", 'github.com/bazelbuild/rules_go/go/tools/fetch_repo'),
-  ):
-    result = env_execute(ctx, [go_tool, "install", importpath], environment = env)
-    if result.return_code:
-        fail("failed to build {}: {}".format(tool, result.stderr))
+    # build all the repository tools
+    for tool, importpath in (
+        ("gazelle", "github.com/bazelbuild/bazel-gazelle/cmd/gazelle"),
+        ("fetch_repo", "github.com/bazelbuild/rules_go/go/tools/fetch_repo"),
+    ):
+        result = env_execute(ctx, [go_tool, "install", importpath], environment = env)
+        if result.return_code:
+            fail("failed to build {}: {}".format(tool, result.stderr))
 
-  # add a build file to export the tools
-  ctx.file('BUILD.bazel', _GO_REPOSITORY_TOOLS_BUILD_FILE.format(extension=executable_extension(ctx)), False)
+    # add a build file to export the tools
+    ctx.file("BUILD.bazel", _GO_REPOSITORY_TOOLS_BUILD_FILE.format(extension = executable_extension(ctx)), False)
 
 go_repository_tools = repository_rule(
     _go_repository_tools_impl,

@@ -16,43 +16,46 @@
 """Tests that two files contain the same data."""
 
 def _impl(ctx):
-  if ctx.file.golden == ctx.file.actual:
-    fail("GOLDEN and ACTUAL should be different files")
-  ctx.actions.write(
-      output=ctx.outputs.executable,
-      content="\n".join([
-          "#!/bin/bash",
-          "function checksum() {",
-          "  if command -v openssl >/dev/null; then",
-          "    openssl sha1 $1 | cut -f 2 -d ' '",
-          "  elif command -v sha256sum >/dev/null; then",
-          "    sha256sum $1 | cut -f 1 -d ' '",
-          "  elif command -v shasum >/dev/null; then",
-          "    cat $1 | shasum -a 256 | cut -f 1 -d ' '",
-          "  else",
-          "    echo please install openssl >&2",
-          "    exit 1",
-          "  fi",
-          "}",
-          "SUM1=$(checksum %s)" % _runpath(ctx.file.golden),
-          "SUM2=$(checksum %s)" % _runpath(ctx.file.actual),
-          "if [[ ${SUM1} != ${SUM2} ]]; then",
-          "  echo ERROR: %s >&2" % ctx.attr.error_message,
-          "  echo %s ${SUM1} >&2" % _runpath(ctx.file.golden),
-          "  echo %s ${SUM2} >&2" % _runpath(ctx.file.actual),
-          "  exit 1",
-          "fi",
-      ]),
-      is_executable=True)
-  return struct(runfiles=ctx.runfiles([ctx.file.golden,
-                                       ctx.file.actual]))
+    if ctx.file.golden == ctx.file.actual:
+        fail("GOLDEN and ACTUAL should be different files")
+    ctx.actions.write(
+        output = ctx.outputs.executable,
+        content = "\n".join([
+            "#!/bin/bash",
+            "function checksum() {",
+            "  if command -v openssl >/dev/null; then",
+            "    openssl sha1 $1 | cut -f 2 -d ' '",
+            "  elif command -v sha256sum >/dev/null; then",
+            "    sha256sum $1 | cut -f 1 -d ' '",
+            "  elif command -v shasum >/dev/null; then",
+            "    cat $1 | shasum -a 256 | cut -f 1 -d ' '",
+            "  else",
+            "    echo please install openssl >&2",
+            "    exit 1",
+            "  fi",
+            "}",
+            "SUM1=$(checksum %s)" % _runpath(ctx.file.golden),
+            "SUM2=$(checksum %s)" % _runpath(ctx.file.actual),
+            "if [[ ${SUM1} != ${SUM2} ]]; then",
+            "  echo ERROR: %s >&2" % ctx.attr.error_message,
+            "  echo %s ${SUM1} >&2" % _runpath(ctx.file.golden),
+            "  echo %s ${SUM2} >&2" % _runpath(ctx.file.actual),
+            "  exit 1",
+            "fi",
+        ]),
+        is_executable = True,
+    )
+    return struct(runfiles = ctx.runfiles([
+        ctx.file.golden,
+        ctx.file.actual,
+    ]))
 
 def _runpath(f):
-  """Figures out the proper runfiles path for a file, using voodoo"""
-  if f.path.startswith('bazel-out/'):
-    return f.short_path
-  else:
-    return f.path
+    """Figures out the proper runfiles path for a file, using voodoo"""
+    if f.path.startswith("bazel-out/"):
+        return f.short_path
+    else:
+        return f.path
 
 files_equal_test = rule(
     attrs = {

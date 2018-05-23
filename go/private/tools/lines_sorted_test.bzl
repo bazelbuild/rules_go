@@ -15,31 +15,31 @@
 
 load("@io_bazel_rules_go//go/private:tools/files_equal_test.bzl", "files_equal_test")
 
-def lines_sorted_test(name, file, cmd="cat $< >$@", visibility=None, **kwargs):
-  """Tests that lines within a file are sorted."""
+def lines_sorted_test(name, file, cmd = "cat $< >$@", visibility = None, **kwargs):
+    """Tests that lines within a file are sorted."""
 
-  native.genrule(
-      name = name + "_lines",
-      testonly = True,
-      srcs = [file],
-      outs = [name + "_lines.txt"],
-      cmd = cmd,
-      visibility = visibility,
-   )
+    native.genrule(
+        name = name + "_lines",
+        testonly = True,
+        srcs = [file],
+        outs = [name + "_lines.txt"],
+        cmd = cmd,
+        visibility = visibility,
+    )
 
-  native.genrule(
-      name = name + "_lines_sorted",
-      testonly = True,
-      srcs = [name + "_lines.txt"],
-      outs = [name + "_lines_sorted.txt"],
-      cmd = "sort $< >$@",
-      visibility = visibility,
-   )
+    native.genrule(
+        name = name + "_lines_sorted",
+        testonly = True,
+        srcs = [name + "_lines.txt"],
+        outs = [name + "_lines_sorted.txt"],
+        cmd = "sort $< >$@",
+        visibility = visibility,
+    )
 
-  files_equal_test(
-      name = name,
-      actual = name + "_lines.txt",
-      golden = name + "_lines_sorted.txt",
-      visibility = visibility,
-      **kwargs
-   )
+    files_equal_test(
+        name = name,
+        actual = name + "_lines.txt",
+        golden = name + "_lines_sorted.txt",
+        visibility = visibility,
+        **kwargs
+    )

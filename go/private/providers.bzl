@@ -59,53 +59,55 @@ INFERRED_PATH = "inferred"
 EXPORT_PATH = "export"
 
 def new_aspect_provider(source = None, archive = None):
-  return GoAspectProviders(
-      source = source,
-      archive = archive,
-  )
+    return GoAspectProviders(
+        source = source,
+        archive = archive,
+    )
 
 def get_source(dep):
-  if type(dep) == "struct":
-    return dep
-  if GoAspectProviders in dep:
-    return dep[GoAspectProviders].source
-  return dep[GoSource]
+    if type(dep) == "struct":
+        return dep
+    if GoAspectProviders in dep:
+        return dep[GoAspectProviders].source
+    return dep[GoSource]
 
 def get_archive(dep):
-  if type(dep) == "struct":
-    return dep
-  if GoAspectProviders in dep:
-    return dep[GoAspectProviders].archive
-  return dep[GoArchive]
+    if type(dep) == "struct":
+        return dep
+    if GoAspectProviders in dep:
+        return dep[GoAspectProviders].archive
+    return dep[GoArchive]
 
 def effective_importpath_pkgpath(lib):
-  """Returns import and package paths for a given lib with some
-  modifications for display.
+    """Returns import and package paths for a given lib with some
+    modifications for display.
 
-  This is used when we need to represent sources in a manner compatible with Go
-  build (e.g., for packaging or coverage data listing). _test suffixes are
-  removed, and vendor directories from importmap may be modified.
+    This is used when we need to represent sources in a manner compatible with Go
+    build (e.g., for packaging or coverage data listing). _test suffixes are
+    removed, and vendor directories from importmap may be modified.
 
-  Args:
-    lib: GoLibrary or GoArchiveData
+    Args:
+      lib: GoLibrary or GoArchiveData
 
-  Returns:
-    A tuple of effective import path and effective package path. Both are ""
-    for synthetic archives (e.g., generated testmain).
-  """
-  if lib.pathtype not in (EXPLICIT_PATH, EXPORT_PATH):
-    return "", ""
-  importpath = lib.importpath
-  importmap = lib.importmap
-  if importpath.endswith("_test"): importpath = importpath[:-len("_test")]
-  if importmap.endswith("_test"): importmap = importmap[:-len("_test")]
-  parts = importmap.split("/")
-  if "vendor" not in parts:
-    # Unusual case not handled by go build. Just return importpath.
-    return importpath, importpath
-  elif len(parts) > 2 and lib.label.workspace_root == "external/" + parts[0]:
-    # Common case for importmap set by Gazelle in external repos.
-    return importpath, importmap[len(parts[0]):]
-  else:
-    # Vendor directory somewhere in the main repo. Leave it alone.
-    return importpath, importmap  
+    Returns:
+      A tuple of effective import path and effective package path. Both are ""
+      for synthetic archives (e.g., generated testmain).
+    """
+    if lib.pathtype not in (EXPLICIT_PATH, EXPORT_PATH):
+        return "", ""
+    importpath = lib.importpath
+    importmap = lib.importmap
+    if importpath.endswith("_test"):
+        importpath = importpath[:-len("_test")]
+    if importmap.endswith("_test"):
+        importmap = importmap[:-len("_test")]
+    parts = importmap.split("/")
+    if "vendor" not in parts:
+        # Unusual case not handled by go build. Just return importpath.
+        return importpath, importpath
+    elif len(parts) > 2 and lib.label.workspace_root == "external/" + parts[0]:
+        # Common case for importmap set by Gazelle in external repos.
+        return importpath, importmap[len(parts[0]):]
+    else:
+        # Vendor directory somewhere in the main repo. Leave it alone.
+        return importpath, importmap

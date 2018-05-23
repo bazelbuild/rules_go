@@ -13,13 +13,13 @@
 # limitations under the License.
 
 def _gogo_special_proto_impl(ctx):
-
-  ctx.file("WORKSPACE", 'workspace(name = "{}")'.format(ctx.name))
-  ctx.file("BUILD.bazel", "")
-  ctx.symlink(
-      ctx.path(Label("@com_github_gogo_protobuf//gogoproto:gogo.proto")),
-      "github.com/gogo/protobuf/gogoproto/gogo.proto")
-  ctx.file("github.com/gogo/protobuf/gogoproto/BUILD.bazel", """
+    ctx.file("WORKSPACE", 'workspace(name = "{}")'.format(ctx.name))
+    ctx.file("BUILD.bazel", "")
+    ctx.symlink(
+        ctx.path(Label("@com_github_gogo_protobuf//gogoproto:gogo.proto")),
+        "github.com/gogo/protobuf/gogoproto/gogo.proto",
+    )
+    ctx.file("github.com/gogo/protobuf/gogoproto/BUILD.bazel", """
 proto_library(
     name = "gogoproto",
     srcs = [":gogo.proto"],

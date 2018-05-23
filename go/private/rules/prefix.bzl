@@ -21,9 +21,9 @@
 # info provider.
 
 def _go_prefix_impl(ctx):
-  """go_prefix_impl provides the go prefix to use as a transitive info provider."""
-  print("DEPRECATED: go_prefix is deprecated. Use explicit importpath attributes on go_library instead.")
-  return struct(go_prefix = ctx.attr.prefix)
+    """go_prefix_impl provides the go prefix to use as a transitive info provider."""
+    print("DEPRECATED: go_prefix is deprecated. Use explicit importpath attributes on go_library instead.")
+    return struct(go_prefix = ctx.attr.prefix)
 
 _go_prefix_rule = rule(
     _go_prefix_impl,
@@ -33,13 +33,12 @@ _go_prefix_rule = rule(
 )
 
 def go_prefix(prefix):
-  """go_prefix sets the Go import name to be used for this workspace."""
-  _go_prefix_rule(name = "go_prefix",
-    prefix = prefix,
-    visibility = ["//visibility:public" ]
-  )
+    """go_prefix sets the Go import name to be used for this workspace."""
+    _go_prefix_rule(
+        name = "go_prefix",
+        prefix = prefix,
+        visibility = ["//visibility:public"],
+    )
 
 def go_prefix_default(importpath):
-  return (None
-          if importpath
-          else Label("//:go_prefix", relative_to_caller_repository = True))
+    return (None if importpath else Label("//:go_prefix", relative_to_caller_repository = True))

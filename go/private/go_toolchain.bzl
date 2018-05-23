@@ -24,26 +24,26 @@ load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
-  return [platform_common.ToolchainInfo(
-      name = ctx.label.name,
-      cross_compile = ctx.attr.cross_compile,
-      default_goos = ctx.attr.goos,
-      default_goarch = ctx.attr.goarch,
-      actions = struct(
-          archive = emit_archive,
-          asm = emit_asm,
-          binary = emit_binary,
-          compile = emit_compile,
-          cover = emit_cover,
-          link = emit_link,
-          pack = emit_pack,
-      ),
-      flags = struct(
-          compile = (),
-          link = ctx.attr.link_flags,
-          link_cgo = ctx.attr.cgo_link_flags,
-      ),
-  )]
+    return [platform_common.ToolchainInfo(
+        name = ctx.label.name,
+        cross_compile = ctx.attr.cross_compile,
+        default_goos = ctx.attr.goos,
+        default_goarch = ctx.attr.goarch,
+        actions = struct(
+            archive = emit_archive,
+            asm = emit_asm,
+            binary = emit_binary,
+            compile = emit_compile,
+            cover = emit_cover,
+            link = emit_link,
+            pack = emit_pack,
+        ),
+        flags = struct(
+            compile = (),
+            link = ctx.attr.link_flags,
+            link_cgo = ctx.attr.cgo_link_flags,
+        ),
+    )]
 
 _go_toolchain = rule(
     _go_toolchain_impl,
@@ -58,36 +58,37 @@ _go_toolchain = rule(
     },
 )
 
-def go_toolchain(name, target, host=None, constraints=[], **kwargs):
-  """See go/toolchains.rst#go-toolchain for full documentation."""
+def go_toolchain(name, target, host = None, constraints = [], **kwargs):
+    """See go/toolchains.rst#go-toolchain for full documentation."""
 
-  if not host: host = target
-  cross = host != target
-  goos, _, goarch = target.partition("_")
-  target_constraints = constraints + [
-    "@io_bazel_rules_go//go/toolchain:" + goos,
-    "@io_bazel_rules_go//go/toolchain:" + goarch,
-  ]
-  host_goos, _, host_goarch = host.partition("_")
-  exec_constraints = [
-      "@io_bazel_rules_go//go/toolchain:" + host_goos,
-      "@io_bazel_rules_go//go/toolchain:" + host_goarch,
-  ]
+    if not host:
+        host = target
+    cross = host != target
+    goos, _, goarch = target.partition("_")
+    target_constraints = constraints + [
+        "@io_bazel_rules_go//go/toolchain:" + goos,
+        "@io_bazel_rules_go//go/toolchain:" + goarch,
+    ]
+    host_goos, _, host_goarch = host.partition("_")
+    exec_constraints = [
+        "@io_bazel_rules_go//go/toolchain:" + host_goos,
+        "@io_bazel_rules_go//go/toolchain:" + host_goarch,
+    ]
 
-  impl_name = name + "-impl"
-  _go_toolchain(
-      name = impl_name,
-      goos = goos,
-      goarch = goarch,
-      cross_compile = cross,
-      tags = ["manual"],
-      visibility = ["//visibility:public"],
-      **kwargs
-  )
-  native.toolchain(
-      name = name,
-      toolchain_type = "@io_bazel_rules_go//go:toolchain",
-      exec_compatible_with = exec_constraints,
-      target_compatible_with = target_constraints,
-      toolchain = ":"+impl_name,
-  )
+    impl_name = name + "-impl"
+    _go_toolchain(
+        name = impl_name,
+        goos = goos,
+        goarch = goarch,
+        cross_compile = cross,
+        tags = ["manual"],
+        visibility = ["//visibility:public"],
+        **kwargs
+    )
+    native.toolchain(
+        name = name,
+        toolchain_type = "@io_bazel_rules_go//go:toolchain",
+        exec_compatible_with = exec_constraints,
+        target_compatible_with = target_constraints,
+        toolchain = ":" + impl_name,
+    )

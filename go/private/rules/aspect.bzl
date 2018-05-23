@@ -18,51 +18,52 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "split_srcs",
     "sets",
+    "split_srcs",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
-    "mode_string",
     "LINKMODES",
     "LINKMODE_NORMAL",
+    "mode_string",
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
-    "GoLibrary",
     "GoArchive",
     "GoArchiveData",
+    "GoLibrary",
     "GoSource",
     "new_aspect_provider",
 )
 load(
     "@io_bazel_rules_go//go/platform:list.bzl",
-    "GOOS",
     "GOARCH",
+    "GOOS",
 )
 
 def _go_archive_aspect_impl(target, ctx):
-  go = go_context(ctx, ctx.rule.attr)
-  source = target[GoSource] if GoSource in target else None
-  archive = target[GoArchive] if GoArchive in target else None
-  if source and source.mode == go.mode:
-    # The base layer already built the right mode for us
+    go = go_context(ctx, ctx.rule.attr)
+    source = target[GoSource] if GoSource in target else None
+    archive = target[GoArchive] if GoArchive in target else None
+    if source and source.mode == go.mode:
+        # The base layer already built the right mode for us
+        return [new_aspect_provider(
+            source = source,
+            archive = archive,
+        )]
+    if not GoLibrary in target:
+        # Not a rule we can do anything with
+        return []
+
+    # We have a library and we need to compile it in a new mode
+    library = target[GoLibrary]
+    source = go.library_to_source(go, ctx.rule.attr, library, ctx.coverage_instrumented())
+    if archive:
+        archive = go.archive(go, source = source)
     return [new_aspect_provider(
-      source = source,
-      archive = archive,
+        source = source,
+        archive = archive,
     )]
-  if not GoLibrary in target:
-    # Not a rule we can do anything with
-    return []
-  # We have a library and we need to compile it in a new mode
-  library = target[GoLibrary]
-  source = go.library_to_source(go, ctx.rule.attr, library, ctx.coverage_instrumented())
-  if archive:
-    archive = go.archive(go, source = source)
-  return [new_aspect_provider(
-    source = source,
-    archive = archive,
-  )]
 
 go_archive_aspect = aspect(
     _go_archive_aspect_impl,
@@ -102,7 +103,7 @@ go_archive_aspect = aspect(
             values = GOARCH.keys() + ["auto"],
             default = "auto",
         ),
-        "linkmode": attr.string(values=LINKMODES, default=LINKMODE_NORMAL),
+        "linkmode": attr.string(values = LINKMODES, default = LINKMODE_NORMAL),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

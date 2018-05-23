@@ -30,21 +30,23 @@ load(
 )
 
 def _go_library_impl(ctx):
-  """Implements the go_library() rule."""
-  go = go_context(ctx)
-  library = go.new_library(go)
-  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
-  archive = go.archive(go, source)
+    """Implements the go_library() rule."""
+    go = go_context(ctx)
+    library = go.new_library(go)
+    source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+    archive = go.archive(go, source)
 
-  return [
-      library, source, archive,
-      DefaultInfo(
-          files = depset([archive.data.file]),
-      ),
-      OutputGroupInfo(
-          cgo_exports = archive.cgo_exports,
-      ),
-  ]
+    return [
+        library,
+        source,
+        archive,
+        DefaultInfo(
+            files = depset([archive.data.file]),
+        ),
+        OutputGroupInfo(
+            cgo_exports = archive.cgo_exports,
+        ),
+    ]
 
 go_library = go_rule(
     _go_library_impl,

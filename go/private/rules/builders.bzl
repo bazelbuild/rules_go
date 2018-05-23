@@ -15,28 +15,28 @@
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoBuilders")
 
 def _builders_impl(ctx):
-  return [
-      GoBuilders(
-          asm = ctx.executable._asm,
-          compile = ctx.executable._compile,
-          pack = ctx.executable._pack,
-          link = ctx.executable._link,
-          cgo = ctx.executable._cgo,
-          test_generator = ctx.executable._test_generator,
-          cover = ctx.executable._cover,
-      ),
-      DefaultInfo(
-          files = depset([
-              ctx.executable._asm,
-              ctx.executable._compile,
-              ctx.executable._pack,
-              ctx.executable._link,
-              ctx.executable._cgo,
-              ctx.executable._test_generator,
-              ctx.executable._cover,
-          ]),
-      ),
-  ]
+    return [
+        GoBuilders(
+            asm = ctx.executable._asm,
+            compile = ctx.executable._compile,
+            pack = ctx.executable._pack,
+            link = ctx.executable._link,
+            cgo = ctx.executable._cgo,
+            test_generator = ctx.executable._test_generator,
+            cover = ctx.executable._cover,
+        ),
+        DefaultInfo(
+            files = depset([
+                ctx.executable._asm,
+                ctx.executable._compile,
+                ctx.executable._pack,
+                ctx.executable._link,
+                ctx.executable._cgo,
+                ctx.executable._test_generator,
+                ctx.executable._cover,
+            ]),
+        ),
+    ]
 
 builders = rule(
     _builders_impl,

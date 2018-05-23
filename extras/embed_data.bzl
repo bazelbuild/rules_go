@@ -22,57 +22,63 @@ load(
 )
 
 def _go_embed_data_impl(ctx):
-  go = go_context(ctx)
-  if ctx.attr.src and ctx.attr.srcs:
-    fail("%s: src and srcs attributes cannot both be specified" % ctx.label)
-  if ctx.attr.src and ctx.attr.flatten:
-    fail("%s: src and flatten attributes cannot both be specified" % ctx.label)
+    go = go_context(ctx)
+    if ctx.attr.src and ctx.attr.srcs:
+        fail("%s: src and srcs attributes cannot both be specified" % ctx.label)
+    if ctx.attr.src and ctx.attr.flatten:
+        fail("%s: src and flatten attributes cannot both be specified" % ctx.label)
 
-  args = ctx.actions.args()
-  if ctx.attr.src:
-    srcs = [ctx.file.src]
-  else:
-    srcs = ctx.files.srcs
-    args.add("-multi")
+    args = ctx.actions.args()
+    if ctx.attr.src:
+        srcs = [ctx.file.src]
+    else:
+        srcs = ctx.files.srcs
+        args.add("-multi")
 
-  if ctx.attr.package:
-    package = ctx.attr.package
-  else:
-    _, _, package = ctx.label.package.rpartition("/")
-    if package == "":
-      fail("%s: must provide package attribute for go_embed_data rules in the repository root directory" % ctx.label)
+    if ctx.attr.package:
+        package = ctx.attr.package
+    else:
+        _, _, package = ctx.label.package.rpartition("/")
+        if package == "":
+            fail("%s: must provide package attribute for go_embed_data rules in the repository root directory" % ctx.label)
 
-  out = go.declare_file(go, ext=".go")
-  args.add([
-    "-workspace", ctx.workspace_name,
-    "-label", str(ctx.label),
-    "-out", out,
-    "-package", package,
-    "-var", ctx.attr.var,
-  ])
-  if ctx.attr.flatten:
-    args.add("-flatten")
-  if ctx.attr.string:
-    args.add("-string")
-  if ctx.attr.unpack:
-    args.add("-unpack")
-    args.add("-multi")
-  args.add(srcs)
+    out = go.declare_file(go, ext = ".go")
+    args.add([
+        "-workspace",
+        ctx.workspace_name,
+        "-label",
+        str(ctx.label),
+        "-out",
+        out,
+        "-package",
+        package,
+        "-var",
+        ctx.attr.var,
+    ])
+    if ctx.attr.flatten:
+        args.add("-flatten")
+    if ctx.attr.string:
+        args.add("-string")
+    if ctx.attr.unpack:
+        args.add("-unpack")
+        args.add("-multi")
+    args.add(srcs)
 
-  library = go.new_library(go, srcs=srcs)
-  source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+    library = go.new_library(go, srcs = srcs)
+    source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
 
-  ctx.actions.run(
-      outputs = [out],
-      inputs = srcs,
-      executable = ctx.executable._embed,
-      arguments = [args],
-      mnemonic = "GoSourcesData",
-  )
-  return [
-      DefaultInfo(files = depset([out])),
-      library, source,
-  ]
+    ctx.actions.run(
+        outputs = [out],
+        inputs = srcs,
+        executable = ctx.executable._embed,
+        arguments = [args],
+        mnemonic = "GoSourcesData",
+    )
+    return [
+        DefaultInfo(files = depset([out])),
+        library,
+        source,
+    ]
 
 go_embed_data = go_rule(
     implementation = _go_embed_data_impl,

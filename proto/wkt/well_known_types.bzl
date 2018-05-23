@@ -20,7 +20,8 @@ WELL_KNOWN_TYPE_PACKAGES = {
 
 GOGO_WELL_KNOWN_TYPE_REMAPS = [
     "Mgoogle/protobuf/{}.proto=github.com/gogo/protobuf/types".format(wkt)
-    for wkt, (go_package, _) in WELL_KNOWN_TYPE_PACKAGES.items() if "protoc-gen-go" not in go_package
+    for wkt, (go_package, _) in WELL_KNOWN_TYPE_PACKAGES.items()
+    if "protoc-gen-go" not in go_package
 ] + [
     "Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
     "Mgoogle/protobuf/compiler_plugin.proto=github.com/gogo/protobuf/protoc-gen-gogo/plugin",

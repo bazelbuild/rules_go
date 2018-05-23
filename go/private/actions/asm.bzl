@@ -16,36 +16,40 @@ load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "sets",
 )
-load("@io_bazel_rules_go//go/private:mode.bzl",
+load(
+    "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_SHARED",
 )
 
-def emit_asm(go,
-    source = None,
-    hdrs = []):
-  """See go/toolchains.rst#asm for full documentation."""
+def emit_asm(
+        go,
+        source = None,
+        hdrs = []):
+    """See go/toolchains.rst#asm for full documentation."""
 
-  if source == None: fail("source is a required parameter")
+    if source == None:
+        fail("source is a required parameter")
 
-  out_obj = go.declare_file(go, path=source.basename[:-2], ext=".o")
-  inputs = hdrs + go.sdk_tools + go.stdlib.files + [source]
+    out_obj = go.declare_file(go, path = source.basename[:-2], ext = ".o")
+    inputs = hdrs + go.sdk_tools + go.stdlib.files + [source]
 
-  args = go.args(go)
-  args.add([source, "--"])
-  includes = ([go.stdlib.root_file.dirname + "/pkg/include"] +
-              [f.dirname for f in hdrs])
-  # TODO(#1463): use uniquify=True when available.
-  includes = sorted({i: None for i in includes}.keys())
-  args.add(includes, before_each="-I")
-  args.add(["-trimpath", ".", "-o", out_obj])
-  if go.mode.link == LINKMODE_C_SHARED:
-    args.add("-shared")
-  go.actions.run(
-      inputs = inputs,
-      outputs = [out_obj],
-      mnemonic = "GoAsm",
-      executable = go.builders.asm,
-      arguments = [args],
-      env = go.env,
-  )
-  return out_obj
+    args = go.args(go)
+    args.add([source, "--"])
+    includes = ([go.stdlib.root_file.dirname + "/pkg/include"] +
+                [f.dirname for f in hdrs])
+
+    # TODO(#1463): use uniquify=True when available.
+    includes = sorted({i: None for i in includes}.keys())
+    args.add(includes, before_each = "-I")
+    args.add(["-trimpath", ".", "-o", out_obj])
+    if go.mode.link == LINKMODE_C_SHARED:
+        args.add("-shared")
+    go.actions.run(
+        inputs = inputs,
+        outputs = [out_obj],
+        mnemonic = "GoAsm",
+        executable = go.builders.asm,
+        arguments = [args],
+        env = go.env,
+    )
+    return out_obj

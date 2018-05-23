@@ -92,68 +92,71 @@ filegroup(
 CURRENT_VERSION = "current"
 
 def _bazel_test_script_impl(ctx):
-  go = go_context(ctx)
-  script_file = go.declare_file(go, ext=".bash")
+    go = go_context(ctx)
+    script_file = go.declare_file(go, ext = ".bash")
 
-  if not ctx.attr.targets:
-    # Skip test when there are no targets. Targets may be platform-specific,
-    # and we may not have any targets on some platforms.
-    ctx.actions.write(script_file, "", is_executable = True)
-    return [DefaultInfo(files = depset([script_file]))]
+    if not ctx.attr.targets:
+        # Skip test when there are no targets. Targets may be platform-specific,
+        # and we may not have any targets on some platforms.
+        ctx.actions.write(script_file, "", is_executable = True)
+        return [DefaultInfo(files = depset([script_file]))]
 
-  if ctx.attr.go_version == CURRENT_VERSION:
-    register = 'go_register_toolchains()\n'
-  elif ctx.attr.go_version != None:
-    register = 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
+    if ctx.attr.go_version == CURRENT_VERSION:
+        register = "go_register_toolchains()\n"
+    elif ctx.attr.go_version != None:
+        register = 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
 
-  workspace_content = 'workspace(name = "bazel_test")\n\n'
-  for ext in ctx.attr.externals:
-    root = ext.label.workspace_root
-    _,_,name = ext.label.workspace_root.rpartition("/")
-    workspace_content += 'local_repository(name="{name}", path="{exec_root}/{root}")\n'.format(
-        name = name,
-        root = root,
-        exec_root = ctx.attr._settings.exec_root,
+    workspace_content = 'workspace(name = "bazel_test")\n\n'
+    for ext in ctx.attr.externals:
+        root = ext.label.workspace_root
+        _, _, name = ext.label.workspace_root.rpartition("/")
+        workspace_content += 'local_repository(name="{name}", path="{exec_root}/{root}")\n'.format(
+            name = name,
+            root = root,
+            exec_root = ctx.attr._settings.exec_root,
+        )
+    if ctx.attr.workspace:
+        workspace_content += ctx.attr.workspace
+    else:
+        workspace_content += _basic_workspace.format()
+        workspace_content += register
+
+    workspace_file = go.declare_file(go, path = "WORKSPACE.in")
+    ctx.actions.write(workspace_file, workspace_content)
+    build_file = go.declare_file(go, path = "BUILD.in")
+    ctx.actions.write(build_file, ctx.attr.build)
+
+    output = "external/" + ctx.workspace_name + "/" + ctx.label.package
+    targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
+    logs = []
+    if ctx.attr.command in ("test", "coverage"):
+        # TODO(jayconrod): read logs for other packages
+        logs = [
+            "bazel-testlogs/{}/{}/test.log".format(output, t[1:])
+            for t in ctx.attr.targets
+            if t.startswith(":")
+        ]
+
+    script_content = _bazel_test_script_template.format(
+        bazelrc = ctx.attr._settings.exec_root + "/" + ctx.file._bazelrc.path,
+        config = ctx.attr.config,
+        command = ctx.attr.command,
+        args = " ".join(ctx.attr.args),
+        target = " ".join(targets),
+        logs = " ".join(logs),
+        check = ctx.attr.check,
+        workspace = workspace_file.short_path,
+        build = build_file.short_path,
+        output = output,
+        bazel = ctx.attr._settings.bazel,
+        work_dir = ctx.attr._settings.scratch_dir + "/" + ctx.attr.config,
+        cache_dir = ctx.attr._settings.scratch_dir + "/cache",
     )
-  if ctx.attr.workspace:
-    workspace_content += ctx.attr.workspace
-  else:
-    workspace_content += _basic_workspace.format()
-    workspace_content += register
-
-  workspace_file = go.declare_file(go, path="WORKSPACE.in")
-  ctx.actions.write(workspace_file, workspace_content)
-  build_file = go.declare_file(go, path="BUILD.in")
-  ctx.actions.write(build_file, ctx.attr.build)
-
-  output = "external/" + ctx.workspace_name + "/" + ctx.label.package
-  targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
-  logs = []
-  if ctx.attr.command in ("test", "coverage"):
-    # TODO(jayconrod): read logs for other packages
-    logs = ["bazel-testlogs/{}/{}/test.log".format(output, t[1:])
-            for t in ctx.attr.targets if t.startswith(":")]
-
-  script_content = _bazel_test_script_template.format(
-      bazelrc = ctx.attr._settings.exec_root+"/"+ctx.file._bazelrc.path,
-      config = ctx.attr.config,
-      command = ctx.attr.command,
-      args = " ".join(ctx.attr.args),
-      target = " ".join(targets),
-      logs = " ".join(logs),
-      check = ctx.attr.check,
-      workspace = workspace_file.short_path,
-      build = build_file.short_path,
-      output = output,
-      bazel = ctx.attr._settings.bazel,
-      work_dir = ctx.attr._settings.scratch_dir + "/" + ctx.attr.config,
-      cache_dir = ctx.attr._settings.scratch_dir + "/cache",
-  )
-  ctx.actions.write(output=script_file, is_executable=True, content=script_content)
-  return struct(
-      files = depset([script_file]),
-      runfiles = ctx.runfiles([workspace_file, build_file], collect_data=True)
-  )
+    ctx.actions.write(output = script_file, is_executable = True, content = script_content)
+    return struct(
+        files = depset([script_file]),
+        runfiles = ctx.runfiles([workspace_file, build_file], collect_data = True),
+    )
 
 _bazel_test_script = go_rule(
     _bazel_test_script_impl,
@@ -188,53 +191,53 @@ _bazel_test_script = go_rule(
     },
 )
 
-def bazel_test(name, command = None, args=None, targets = None, go_version = None, tags=[], externals=[], workspace="", build="", check="", config=None):
-  script_name = name+"_script"
-  externals = externals + [
-      "@io_bazel_rules_go//:AUTHORS",
-  ]
-  if go_version == None or go_version == CURRENT_VERSION:
-      externals.append("@go_sdk//:packages.txt")
+def bazel_test(name, command = None, args = None, targets = None, go_version = None, tags = [], externals = [], workspace = "", build = "", check = "", config = None):
+    script_name = name + "_script"
+    externals = externals + [
+        "@io_bazel_rules_go//:AUTHORS",
+    ]
+    if go_version == None or go_version == CURRENT_VERSION:
+        externals.append("@go_sdk//:packages.txt")
 
-  _bazel_test_script(
-      name = script_name,
-      command = command,
-      args = args,
-      targets = targets,
-      externals = externals,
-      go_version = go_version,
-      workspace = workspace,
-      build = build,
-      check = check,
-      config = config,
-  )
-  native.sh_test(
-      name = name,
-      size = "large",
-      timeout = "moderate",
-      srcs = [":" + script_name],
-      tags = ["local", "bazel", "exclusive"] + tags,
-      data = [
-          "@bazel_gazelle//cmd/gazelle",
-          "@bazel_test//:bazelrc",
-          "@io_bazel_rules_go//tests:rules_go_deps",
-      ],
-  )
+    _bazel_test_script(
+        name = script_name,
+        command = command,
+        args = args,
+        targets = targets,
+        externals = externals,
+        go_version = go_version,
+        workspace = workspace,
+        build = build,
+        check = check,
+        config = config,
+    )
+    native.sh_test(
+        name = name,
+        size = "large",
+        timeout = "moderate",
+        srcs = [":" + script_name],
+        tags = ["local", "bazel", "exclusive"] + tags,
+        data = [
+            "@bazel_gazelle//cmd/gazelle",
+            "@bazel_test//:bazelrc",
+            "@io_bazel_rules_go//tests:rules_go_deps",
+        ],
+    )
 
 def _md5_sum_impl(ctx):
-  go = go_context(ctx)
-  out = go.declare_file(go, ext=".md5")
-  arguments = ctx.actions.args()
-  arguments.add(["-output", out.path])
-  arguments.add(ctx.files.srcs)
-  ctx.actions.run(
-      inputs = ctx.files.srcs,
-      outputs = [out],
-      mnemonic = "GoMd5sum",
-      executable = ctx.file._md5sum,
-      arguments = [arguments],
-  )
-  return struct(files=depset([out]))
+    go = go_context(ctx)
+    out = go.declare_file(go, ext = ".md5")
+    arguments = ctx.actions.args()
+    arguments.add(["-output", out.path])
+    arguments.add(ctx.files.srcs)
+    ctx.actions.run(
+        inputs = ctx.files.srcs,
+        outputs = [out],
+        mnemonic = "GoMd5sum",
+        executable = ctx.file._md5sum,
+        arguments = [arguments],
+    )
+    return struct(files = depset([out]))
 
 md5_sum = go_rule(
     _md5_sum_impl,
@@ -249,36 +252,36 @@ md5_sum = go_rule(
 )
 
 def _test_environment_impl(ctx):
-  # Find bazel
-  bazel = ""
-  if "BAZEL" in ctx.os.environ:
-    bazel = ctx.os.environ["BAZEL"]
-  elif "BAZEL_VERSION" in ctx.os.environ:
-    home = ctx.os.environ["HOME"]
-    bazel = home + "/.bazel/{0}/bin/bazel".format(ctx.os.environ["BAZEL_VERSION"])
-  if bazel == "" or not ctx.path(bazel).exists:
-    bazel = ctx.which("bazel")
+    # Find bazel
+    bazel = ""
+    if "BAZEL" in ctx.os.environ:
+        bazel = ctx.os.environ["BAZEL"]
+    elif "BAZEL_VERSION" in ctx.os.environ:
+        home = ctx.os.environ["HOME"]
+        bazel = home + "/.bazel/{0}/bin/bazel".format(ctx.os.environ["BAZEL_VERSION"])
+    if bazel == "" or not ctx.path(bazel).exists:
+        bazel = ctx.which("bazel")
 
-  # Get a temporary directory to use as our scratch workspace
-  if ctx.os.name.startswith('windows'):
-    scratch_dir = ctx.os.environ["TMP"].replace("\\","/") + "/bazel_go_test"
-  else:
-    result = env_execute(ctx, ["mktemp", "-d"])
-    if result.return_code:
-      fail("failed to create temporary directory for bazel tests: {}".format(result.stderr))
-    scratch_dir = result.stdout.strip()
+    # Get a temporary directory to use as our scratch workspace
+    if ctx.os.name.startswith("windows"):
+        scratch_dir = ctx.os.environ["TMP"].replace("\\", "/") + "/bazel_go_test"
+    else:
+        result = env_execute(ctx, ["mktemp", "-d"])
+        if result.return_code:
+            fail("failed to create temporary directory for bazel tests: {}".format(result.stderr))
+        scratch_dir = result.stdout.strip()
 
-  # Work out where we are running so we can find externals
-  exec_root, _, _ = str(ctx.path(".")).rpartition("/external/")
+    # Work out where we are running so we can find externals
+    exec_root, _, _ = str(ctx.path(".")).rpartition("/external/")
 
-  # build the basic environment
-  ctx.file("WORKSPACE", 'workspace(name = "{}")'.format(ctx.name))
-  ctx.file("BUILD.bazel", _env_build_template.format(
-      bazel = bazel,
-      exec_root = exec_root,
-      scratch_dir = scratch_dir,
-  ))
-  ctx.file("test.bazelrc", content=_bazelrc)
+    # build the basic environment
+    ctx.file("WORKSPACE", 'workspace(name = "{}")'.format(ctx.name))
+    ctx.file("BUILD.bazel", _env_build_template.format(
+        bazel = bazel,
+        exec_root = exec_root,
+        scratch_dir = scratch_dir,
+    ))
+    ctx.file("test.bazelrc", content = _bazelrc)
 
 _test_environment = repository_rule(
     implementation = _test_environment_impl,
@@ -291,11 +294,11 @@ _test_environment = repository_rule(
 )
 
 def _bazel_test_settings_impl(ctx):
-  return struct(
-      bazel = ctx.attr.bazel,
-      exec_root = ctx.attr.exec_root,
-      scratch_dir = ctx.attr.scratch_dir,
-  )
+    return struct(
+        bazel = ctx.attr.bazel,
+        exec_root = ctx.attr.exec_root,
+        scratch_dir = ctx.attr.scratch_dir,
+    )
 
 bazel_test_settings = rule(
     _bazel_test_settings_impl,
@@ -307,4 +310,4 @@ bazel_test_settings = rule(
 )
 
 def test_environment():
-  _test_environment(name="bazel_test")
+    _test_environment(name = "bazel_test")
