@@ -21,6 +21,7 @@ load("@io_bazel_rules_go//go/private:tools/overlay_repository.bzl", "git_reposit
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
+load("@io_bazel_rules_go//proto:grpc_gateway.bzl", "googleapis_repository")
 load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
 
 def go_rules_dependencies():
@@ -105,6 +106,9 @@ def go_rules_dependencies():
       name = "gogo_special_proto",
   )
 
+  _maybe(googleapis_repository,
+    name = "com_github_googleapis_googleapis")
+
   # GRPC dependencies
   _maybe(git_repository,
       name = "org_golang_x_net",
@@ -136,6 +140,14 @@ def go_rules_dependencies():
       # importpath = "google.golang.org/genproto",
       # TODO(jayconrod): incorporate manual changes when regenerating build
       # files. This repo contains aliases for //proto/wkt targets.
+  )
+
+  # GRPC Gateway
+  _maybe(git_repository,
+      name = "com_github_grpc_ecosystem_grpc_gateway",
+      remote = "https://github.com/Mistobaan/grpc-gateway", # FIXME once 266 is merged
+      commit = "61b3985dcc1da52e6eb473dc6aff61e9bef35559",
+      overlay = manifest["com_github_grpc_ecosystem_grpc_gateway"],
   )
 
   # Needed for examples

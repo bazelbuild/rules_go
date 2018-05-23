@@ -623,4 +623,8 @@ manifest = {
         "@io_bazel_rules_go//third_party:org_golang_x_tools/refactor/rename/BUILD.bazel.in": "refactor/rename/BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_tools/refactor/satisfy/BUILD.bazel.in": "refactor/satisfy/BUILD.bazel",
     },
+    "com_github_grpc_ecosystem_grpc_gateway": {
+        "@io_bazel_rules_go//third_party:com_github_grpc_ecosystem_grpc_gateway/WORKSPACE": "WORKSPACE",
+        "@io_bazel_rules_go//third_party:com_github_grpc_ecosystem_grpc_gateway/protoc-gen-grpc-gateway/BUILD.in": "protoc-gen-grpc-gateway/BUILD.bazel",
+    },
 }
