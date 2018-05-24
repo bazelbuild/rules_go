@@ -2,8 +2,9 @@ Extra rules
 ===========
 
 .. _`core go rules`: core.rst
-.. _go_repository: workspace.rst#go_repository
-.. _`gazelle documentation`: tools/gazelle/README.rst
+.. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
+.. _`gazelle documentation`: https://github.com/bazelbuild/bazel-gazelle/blob/master/README.rst
+.. _gazelle rule: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -20,61 +21,7 @@ to make life a little easier.
 gazelle
 -------
 
-This rule should only occur once in the top level build file.
-Running
-
-.. code::
-
-  bazel run //:gazelle
-
-will cause gazelle to run with the supplied options in the source tree at the root.
-See the `gazelle documentation`_ for more details.
-
-+----------------------------+-----------------------------+---------------------------------------+
-| **Name**                   | **Type**                    | **Default value**                     |
-+----------------------------+-----------------------------+---------------------------------------+
-| :param:`name`              | :type:`string`              | |mandatory|                           |
-+----------------------------+-----------------------------+---------------------------------------+
-| A unique name for this rule.                                                                     |
-+----------------------------+-----------------------------+---------------------------------------+
-| :param:`command`           | :type:`string`              | :value:`update`                       |
-+----------------------------+-----------------------------+---------------------------------------+
-| Controls the basic mode of operation gazelle runs in.                                            |
-|                                                                                                  |
-| * :value:`update` : Gazelle will create new BUILD files or update existing BUILD files if        |
-|   needed.                                                                                        |
-| * :value:`fix` : In addition to the changes made in update, Gazelle will make potentially        |
-|   breaking changes.                                                                              |
-+----------------------------+-----------------------------+---------------------------------------+
-| :param:`mode`              | :type:`string`              | :value:`fix`                          |
-+----------------------------+-----------------------------+---------------------------------------+
-| Controls the action gazelle takes when it detects files that are out of date.                    |
-|                                                                                                  |
-| * :value:`print` : prints all of the updated BUILD files.                                        |
-| * :value:`fix` : rewrites all of the BUILD files in place.                                       |
-| * :value:`diff` : computes the rewrite but then just does a diff.                                |
-+----------------------------+-----------------------------+---------------------------------------+
-| :param:`external`          | :type:`string`              | :value:`external`                     |
-+----------------------------+-----------------------------+---------------------------------------+
-| Controls how gazelle resolves import paths to labels.                                            |
-|                                                                                                  |
-| * :value:`external` - resolve external packages with go_repository_                              |
-| * :value:`vendored` - resolve external packages as packages in vendor                            |
-+----------------------------+-----------------------------+---------------------------------------+
-| :param:`build_tags`        | :type:`string_list`         | :value:`None`                         |
-+----------------------------+-----------------------------+---------------------------------------+
-| A list of build tags. If not specified, Gazelle will not filter sources with build constraints.  |
-+----------------------------+-----------------------------+---------------------------------------+
-| :param:`args`              | :type:`string_list`         | :value:`None`                         |
-+----------------------------+-----------------------------+---------------------------------------+
-| Arguments to forward to gazelle.                                                                 |
-+----------------------------+-----------------------------+---------------------------------------+
-| :param:`prefix`            | :type:`string`              | :value:`""`                           |
-+----------------------------+-----------------------------+---------------------------------------+
-| The prefix of the target workspace. This is path fragement fom the GOPATH to your repository if  |
-| it were checked out with the normal go tools. It is combined the workspace relative path when    |
-| guessing the import path of a library.                                                           |
-+----------------------------+-----------------------------+---------------------------------------+
+This rule has moved. See `gazelle rule`_ in the Gazelle repository.
 
 go_embed_data
 -------------
@@ -126,5 +73,3 @@ It should be consumed in the srcs list of one of the `core go rules`_.
 +----------------------------+-----------------------------+---------------------------------------+
 | If :value:`true`, the embedded data will be stored as :type:`string` instead of :type:`[]byte`.  |
 +----------------------------+-----------------------------+---------------------------------------+
-
-

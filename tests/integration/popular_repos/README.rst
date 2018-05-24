@@ -70,6 +70,8 @@ This runs tests from the repository `golang.org/x/net <https://golang.org/x/net>
 * @org_golang_x_net//http2/hpack:go_default_test
 * @org_golang_x_net//idna:go_default_test
 * @org_golang_x_net//internal/socket:go_default_test
+* @org_golang_x_net//internal/socks:go_default_test
+* @org_golang_x_net//internal/sockstest:go_default_test
 * @org_golang_x_net//internal/timeseries:go_default_test
 * @org_golang_x_net//ipv4:go_default_test
 * @org_golang_x_net//ipv6:go_default_test

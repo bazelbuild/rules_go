@@ -23,10 +23,6 @@ load(
     "split_srcs",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
-    "go_prefix_default",
-)
-load(
     "@io_bazel_rules_go//go/private:rules/binary.bzl",
     "gc_linkopts",
 )

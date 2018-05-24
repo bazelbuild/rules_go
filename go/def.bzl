@@ -17,10 +17,6 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:go_repository.bzl",
-    "go_repository",
-)
-load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     _GoArchive = "GoArchive",
     _GoArchiveData = "GoArchiveData",
@@ -42,10 +38,6 @@ load(
 load(
     "@io_bazel_rules_go//go/private:go_toolchain.bzl",
     "go_toolchain",
-)
-load(
-    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
-    "go_prefix",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/wrappers.bzl",

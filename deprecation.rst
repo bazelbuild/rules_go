@@ -7,9 +7,9 @@ Deprecation schedule
 .. _proto rules: /proto/core.rst
 .. _bazelbuild/bazel-bazelle#186: https://github.com/bazelbuild/bazel-gazelle/issues/186
 
-This document lists public interfaces and features that are deprecated or will
-be soon. For each item in this document, the deprecation rationale is listed,
-along with the last supported rules_go release and the release when the
+This document lists public interfaces and features that are deprecated and will
+be removed soon. For each item in this document, the deprecation rationale is
+listed, along with the last supported rules_go release and the release when the
 functionality is scheduled to be removed.
 
 Go SDKs
@@ -28,6 +28,15 @@ Go SDKs
 Go rules
 --------
 
+| **rules_go gazelle rule**
+| **Deprecated in:** 0.13.0
+| **Removed in:** 0.14.0
+| **Rationale:** This lets us reduce coupling between rules_go and Gazelle.
+  With this change, we should be able to remove the automatic dependency
+  on ``@bazel_gazelle``.
+| **Migration:** `gazelle fix`_ will change the load for the ``gazelle`` rule
+  from ``@io_bazel_rules_go//go:def.bzl`` to ``@bazel_gazelle//:def.bzl``.
+|
 | **go_prefix**
 | **Deprecated in:** 0.12.0
 | **Removed in:** 0.13.0
@@ -38,7 +47,10 @@ Go rules
   attributes for several releases. ``go_prefix`` will be removed and
   ``importpath`` will be mandatory for ``go_library`` and ``go_proto_library``.
 | **Migration:** Gazelle_ sets ``importpath`` automatically.
-|
+
+Removed features
+----------------
+
 | **library attribute**
 | **Deprecated in:** 0.9.0
 | **Removed in:** 0.12.0
@@ -83,10 +95,7 @@ Go rules
   ``cgo = True``.
 | **Migration:** `gazelle fix`_ automatically squashes or renames
   ``cgo_library`` rules with ``go_library``.
-
-proto rules
------------
-
+|
 | **Legacy go_proto_library.bzl**
 | **Deprecated in:** 0.9.0
 | **Removed in:** 0.12.0

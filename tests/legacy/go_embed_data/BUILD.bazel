@@ -7,7 +7,7 @@ go_test(
     data = [
         "BUILD.bazel",
         "//:AUTHORS",
-        "@io_bazel_rules_go_repository_tools//:BUILD.bazel",
+        "@com_google_protobuf//:LICENSE",
     ],
     embed = [":go_default_library"],
 )
@@ -51,7 +51,7 @@ go_embed_data(
 
 go_embed_data(
     name = "ext",
-    srcs = ["@io_bazel_rules_go_repository_tools//:BUILD.bazel"],
+    srcs = ["@com_google_protobuf//:LICENSE"],
     package = "go_embed_data",
     var = "ext",
 )

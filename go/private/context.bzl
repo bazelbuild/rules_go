@@ -175,16 +175,9 @@ def _infer_importpath(ctx):
         if embed[GoLibrary].pathtype == EXPLICIT_PATH:
             return embed[GoLibrary].importpath, EXPLICIT_PATH
 
-    # TODO: stop using the prefix
-    prefix = getattr(ctx.attr, "_go_prefix", None)
-    path = prefix.go_prefix if prefix else ""
-
     # Guess an import path based on the directory structure
     # This should only really be relied on for binaries
-    if path.endswith("/"):
-        path = path[:-1]
-    if ctx.label.package:
-        path += "/" + ctx.label.package
+    path = ctx.label.package
     if ctx.label.name != DEFAULT_LIB and not path.endswith(ctx.label.name):
         path += "/" + ctx.label.name
     if path.rfind(VENDOR_PREFIX) != -1:

@@ -19,10 +19,7 @@ load(
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
-)
-load(
-    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
-    "go_prefix_default",
+    "INFERRED_PATH",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
@@ -32,6 +29,8 @@ load(
 def _go_library_impl(ctx):
     """Implements the go_library() rule."""
     go = go_context(ctx)
+    if go.pathtype == INFERRED_PATH:
+        fail("importpath must be specified in this library or one of its embedded libraries")
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     archive = go.archive(go, source)
@@ -62,7 +61,6 @@ go_library = go_rule(
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "x_defs": attr.string_dict(),
-        "_go_prefix": attr.label(default = go_prefix_default),
     },
 )
 """See go/core.rst#go_library for full documentation."""
@@ -85,7 +83,6 @@ go_tool_library = go_rule(
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "x_defs": attr.string_dict(),
-        "_go_prefix": attr.label(default = go_prefix_default),
     },
 )
 """

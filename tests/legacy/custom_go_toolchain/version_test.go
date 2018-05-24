@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const expected = "go1.8.1"
+const expected = "go1.10.1"
 
 func TestVersion(t *testing.T) {
 	if expected != runtime.Version() {

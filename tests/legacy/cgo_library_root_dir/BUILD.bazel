@@ -1,7 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_prefix", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
-
-go_prefix("github.com/bazelbuild/rules_go/tests/cgo_library_root_dir")
 
 go_test(
     name = "go_default_test",

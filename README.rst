@@ -11,7 +11,7 @@ Go rules for Bazel_
 .. _github.com/bazelbuild/bazel-gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _vendoring: Vendoring.md
 .. _protocol buffers: proto/core.rst
-.. _go_repository: go/workspace.rst#go_repository
+.. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
 .. _go_library: go/core.rst#go_library
 .. _go_binary: go/core.rst#go_binary
 .. _go_test: go/core.rst#go_test
@@ -82,7 +82,6 @@ Documentation
 
 * `Toolchains <go/toolchains.rst>`_
 * `Extra rules <go/extras.rst>`_
-* `Deprecated rules <go/deprecated.rst>`_
 * `Build modes <go/modes.rst>`_
 
 Quick links
@@ -151,7 +150,8 @@ Setup
     go_rules_dependencies()
     go_register_toolchains()
 
-  You can add more external dependencies to this file later (see go_repository_).
+  You can add more external dependencies to this file later (see
+  `go_repository`_).
 
 * Add a file named ``BUILD.bazel`` in the root directory of your
   project. In general, you need one of these files in every directory
@@ -302,22 +302,22 @@ What's up with the ``go_default_library`` name?
 This was used to keep import paths consistent in libraries that can be built
 with ``go build`` before the ``importpath`` attribute was available.
 
-In order to compile and link correctly, the Go rules need to be able to
-translate Bazel labels to Go import paths. Libraries that don't set the
-``importpath`` attribute explicitly have an implicit dependency on ``//:go_prefix``,
-a special rule that specifies an import path prefix. The import path is
-the prefix concatenated with the Bazel package and target name. For example,
-if your prefix was ``github.com/example/project``, and your library was
-``//foo/bar:bar``, the Go rules would decide the import path was
-``github.com/example/project/foo/bar/bar``. The stutter at the end is incompatible
-with ``go build``, so if the label name is ``go_default_library``, the import path
-is just the prefix concatenated with the package name. So if your library is
-``//foo/bar:go_default_library``, the import path is
+In order to compile and link correctly, rules_go must know the Go import path
+(the string by which a package can be imported) for each library. This is now
+set explicitly with the ``importpath`` attribute. Before that attribute existed,
+the import path was inferred by concatenating a string from a special
+``go_prefix`` rule and the library's package and label name. For example, if
+``go_prefix`` was ``github.com/example/project``, for a library
+``//foo/bar:bar``, rules_go would infer the import path as
+``github.com/example/project/foo/bar/bar``. The stutter at the end is
+incompatible with ``go build``, so if the label name was ``go_default_library``,
+the import path would not include it. So for the library
+``//foo/bar:go_default_library``, the import path would be
 ``github.com/example/project/foo/bar``.
 
-We are working on deprecating ``go_prefix`` and making ``importpath`` mandatory (see
-`#721`_). When this work is   complete, the ``go_default_library`` name won't be needed.
-We may decide to stop using this name in the future (see `#265`_).
+Since ``go_prefix`` was removed and the ``importpath`` attribute became
+mandatory (see `#721`_), the ``go_default_library`` name no longer serves any
+purpose. We may decide to stop using it in the future (see `#265`_).
 
 How do I access testdata?
 ~~~~~~~~~~~~~~~~~~~~~~~~~

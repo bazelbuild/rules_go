@@ -21,10 +21,6 @@ load(
     "go_filetype",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
-    "go_prefix_default",
-)
-load(
     "@io_bazel_rules_go//go/private:rules/aspect.bzl",
     "go_archive_aspect",
 )

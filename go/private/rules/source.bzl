@@ -12,14 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# In Go, imports are always fully qualified with a URL,
-# eg. github.com/user/project. Hence, a label //foo:bar from within a
-# Bazel workspace must be referred to as
-# "github.com/user/project/foo/bar". To make this work, each rule must
-# know the repository's URL. This is achieved, by having all go rules
-# depend on a globally unique target that has a "go_prefix" transitive
-# info provider.
-
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",

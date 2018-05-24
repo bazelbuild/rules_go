@@ -15,7 +15,6 @@
 # Once nested repositories work, this file should cease to exist.
 
 load("@io_bazel_rules_go//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
-load("@io_bazel_rules_go//go/private:repository_tools.bzl", "go_repository_tools")
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
 load("@io_bazel_rules_go//go/private:tools/overlay_repository.bzl", "git_repository", "http_archive")
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
@@ -67,11 +66,6 @@ def go_rules_dependencies():
         overlay = manifest["com_github_pelletier_go_toml"],
     )
     # End of Gazelle dependencies.
-
-    _maybe(
-        go_repository_tools,
-        name = "io_bazel_rules_go_repository_tools",
-    )
 
     # Proto dependencies
     _maybe(

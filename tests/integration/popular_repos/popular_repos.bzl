@@ -16,7 +16,7 @@
 # Generated file, do not edit!
 ##############################
 
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
+load("@bazel_gazelle//:def.bzl", "go_repository")
 
 def _maybe(repo_rule, name, **kwargs):
     if name not in native.existing_rules():

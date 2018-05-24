@@ -1,4 +1,4 @@
-// +build !go1.9
+// +build !go1.11
 
 package test_version
 

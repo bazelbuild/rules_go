@@ -3,7 +3,7 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:go_repository.bzl",
+    "@io_bazel_rules_go//go/private:common.bzl",
     "env_execute",
 )
 load(

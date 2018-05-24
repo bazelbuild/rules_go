@@ -20,7 +20,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        urls = ["https://codeload.github.com/golang/crypto/zip/81e90905daefcd6fd217b62423c0908922eadb30"],
+        urls = "https://codeload.github.com/golang/crypto/zip/81e90905daefcd6fd217b62423c0908922eadb30",
         strip_prefix = "crypto-81e90905daefcd6fd217b62423c0908922eadb30",
         type = "zip",
         excludes = [
@@ -157,11 +157,11 @@ COPYRIGHT_HEADER = """
 
 BZL_HEADER = COPYRIGHT_HEADER + """
 
-load("@io_bazel_rules_go//go/private:go_repository.bzl", "go_repository")
+load("@bazel_gazelle//:def.bzl", "go_repository")
 
 def _maybe(repo_rule, name, **kwargs):
-  if name not in native.existing_rules():
-    repo_rule(name=name, **kwargs)
+    if name not in native.existing_rules():
+        repo_rule(name = name, **kwargs)
 
 def popular_repos():
 """
@@ -185,12 +185,12 @@ def popular_repos_bzl():
   with open("popular_repos.bzl", "w") as f:
     f.write(BZL_HEADER)
     for repo in POPULAR_REPOS:
-      f.write("  _maybe(\n    go_repository,\n")
+      f.write("    _maybe(\n        go_repository,\n")
       for k in ["name", "importpath", "commit", "strip_prefix", "type", "build_file_proto_mode"]:
-        if k in repo: f.write('    {}="{}",\n'.format(k, repo[k]))
+        if k in repo: f.write('        {} = "{}",\n'.format(k, repo[k]))
       for k in ["urls"]:
-        if k in repo: f.write('    {}={},\n'.format(k, repo[k]))
-      f.write("  )\n")
+        if k in repo: f.write('        {} = ["{}"],\n'.format(k, repo[k]))
+      f.write("    )\n")
 
 def build_bazel():
   with open("BUILD.bazel", "w") as f:

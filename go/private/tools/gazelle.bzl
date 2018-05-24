@@ -29,21 +29,21 @@ $BASE/{gazelle} {args} $@
 """
 
 def _gazelle_script_impl(ctx):
+    print("DEPRECATED: %s: load gazelle rule from @bazel_gazelle//:def.bzl instead of @io_bazel_rules_go//go:def.bzl" % ctx.label)
     # TODO(jayconrod): add a fix to Gazelle to replace invocations of this rule
     # with the new one in @bazel_gazelle. Once in place, fail here.
     go = go_context(ctx)
-    prefix = ctx.attr.prefix if ctx.attr.prefix else ctx.attr._go_prefix.go_prefix
     args = [ctx.attr.command]
     args += [
         "-repo_root",
         "$WORKSPACE",
         "-go_prefix",
-        prefix,
-        "-external",
         ctx.attr.external,
         "-mode",
         ctx.attr.mode,
     ]
+    if ctx.attr.prefix:
+        args += ["-go_prefix", ctx.attr.prefix]
     if ctx.attr.build_tags:
         args += ["-build_tags", ",".join(ctx.attr.build_tags)]
     args += ctx.attr.args
@@ -54,9 +54,6 @@ def _gazelle_script_impl(ctx):
         files = depset([script_file]),
         runfiles = ctx.runfiles([ctx.file._gazelle]),
     )
-
-def _go_prefix_default(prefix):
-    return (None if prefix else Label("//:go_prefix", relative_to_caller_repository = True))
 
 _gazelle_script = go_rule(
     _gazelle_script_impl,
@@ -93,7 +90,6 @@ _gazelle_script = go_rule(
             executable = True,
             cfg = "host",
         ),
-        "_go_prefix": attr.label(default = _go_prefix_default),
     },
 )
 

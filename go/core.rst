@@ -165,12 +165,11 @@ Attributes
 |                                                                                                  |
 | To interoperate cleanly with Gazelle_ right now this should be :value:`go_default_library`.      |
 +----------------------------+-----------------------------+---------------------------------------+
-| :param:`importpath`        | :type:`string`              | :value:`""`                           |
+| :param:`importpath`        | :type:`string`              | |mandatory|                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | The source import path of this library. Other libraries can import this                          |
-| library using this path. If unspecified, the library will have an implicit                       |
-| dependency on ``//:go_prefix``, and the import path will be derived from the                     |
-| prefix and the library's label.                                                                  |
+| library using this path. This must either be specified in ``go_library`` or                      |
+| inherited from one of the libraries in ``embeds``.                                               |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`importmap`         | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -438,7 +437,7 @@ go_test
 This builds a set of tests that can be run with ``bazel test``.
 
 To run all tests in the workspace, and print output on failure (the
-equivalent of ``go test ./...`` from ``go_prefix`` in a ``GOPATH`` tree), run
+equivalent of ``go test ./...``), run
 
 ::
 
@@ -462,9 +461,9 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`importpath`        | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
-| The import path of this test. If unspecified, the test will have an implicit                     |
-| dependency on ``//:go_prefix``, and the import path will be derived from the prefix              |
-| and the test's label.                                                                            |
+| The import path of this test. Tests can't actually be imported, but this                         |
+| may be used by `go_path`_ and other tools to report the location of source                       |
+| files. This may be inferred from embedded libraries.                                             |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`srcs`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+

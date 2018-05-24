@@ -1,7 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_prefix", "go_test", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_binary")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
-
-go_prefix("github.com/bazelbuild/rules_go/tests/custom_go_toolchain")
 
 go_test(
     name = "go_default_test",
@@ -30,8 +28,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies")
 go_download_sdk(
     name = "go_sdk",
     sdks = {
-        "linux_amd64":       ("go1.8.1.linux-amd64.tar.gz", "a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994"),
-        "darwin_amd64":      ("go1.8.1.darwin-amd64.tar.gz", "25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd"),
+        "linux_amd64":       ("go1.10.1.linux-amd64.tar.gz", "72d820dec546752e5a8303b33b009079c15c2390ce76d67cf514991646c6127b"),
+        "darwin_amd64":      ("go1.10.1.darwin-amd64.tar.gz", "feca4e920d5ca25001dc0823390df79bc7ea5b5b8c03483e5a2c54f164654936"),
     },
 )
 register_toolchains(

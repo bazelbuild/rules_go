@@ -8,6 +8,10 @@ go_rules_dependencies()
 go_register_toolchains()
 
 # Needed for tests
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+gazelle_dependencies()
+
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "test_environment")
 
 test_environment()

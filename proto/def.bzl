@@ -22,10 +22,6 @@ load(
     "sets",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/prefix.bzl",
-    "go_prefix_default",
-)
-load(
     "@io_bazel_rules_go//proto:compiler.bzl",
     "GoProtoCompiler",
     "proto_path",
@@ -33,6 +29,10 @@ load(
 load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     "go_rule",
+)
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
+    "INFERRED_PATH",
 )
 
 GoProtoImports = provider()
@@ -73,6 +73,8 @@ def _proto_library_to_source(go, attr, source, merge):
 
 def _go_proto_library_impl(ctx):
     go = go_context(ctx)
+    if go.pathtype == INFERRED_PATH:
+        fail("importpath must be specified in this library or one of its embedded libraries")
     if ctx.attr.compiler:
         #TODO: print("DEPRECATED: compiler attribute on {}, use compilers instead".format(ctx.label))
         compilers = [ctx.attr.compiler]
@@ -130,7 +132,6 @@ go_proto_library = go_rule(
             providers = [GoProtoCompiler],
             default = ["@io_bazel_rules_go//proto:go_proto"],
         ),
-        "_go_prefix": attr.label(default = go_prefix_default),
     },
 )
 """
