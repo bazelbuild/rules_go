@@ -10,3 +10,13 @@ go_library(
     ],
     importpath = "empty",
 )
+
+go_library(
+    name = "asm_include",
+    srcs = [
+        "inc.go",
+        "inc_bar.s",
+        "inc_foo.s",
+    ],
+    importpath = "asm_include",
+)

@@ -46,7 +46,11 @@ def emit_archive(go, source = None):
 
     extra_objects = []
     for src in split.asm:
-        extra_objects.append(go.asm(go, source = src, hdrs = split.headers))
+        # include other .s as inputs, since they may be #included.
+        # This may result in multiple copies of symbols defined in included
+        # files, but go build allows it, so we do, too.
+        headers = split.headers + split.asm
+        extra_objects.append(go.asm(go, source = src, hdrs = headers))
 
     direct = [get_archive(dep) for dep in source.deps]
     runfiles = source.runfiles
