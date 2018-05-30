@@ -8,7 +8,7 @@ go_rules_dependencies()
 go_register_toolchains(go_checker="@//:my_checker")
 """
 
-BUILD = """
+BUILD_TMPL = """
 load("@io_bazel_rules_go//go:def.bzl", "go_checker", "go_tool_library")
 
 go_checker(
@@ -16,15 +16,9 @@ go_checker(
     deps = [
         ":foo_func_check",
         ":return_bool_check",
+        ":import_fmt_check",
     ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_library(
-    name = "foo_func_check",
-    srcs = ["foo_func_check.go"],
-    importpath = "foofunccheck",
-    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    {config}
     visibility = ["//visibility:public"],
 )
 
@@ -35,69 +29,136 @@ go_tool_library(
     deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
     visibility = ["//visibility:public"],
 )
+
+go_tool_library(
+    name = "import_fmt_check",
+    srcs = ["import_fmt_check.go"],
+    importpath = "importfmtcheck",
+    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "foo_func_check",
+    srcs = ["foo_func_check.go"],
+    importpath = "foofunccheck",
+    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    visibility = ["//visibility:public"],
+)
 """
 
-_no_error_check = """
-if [[ result -eq 1 ]]; then
-  echo "error: unexpected build error" >&2
+EXTRA_FILES = [
+    ":return_bool_check.go",
+    ":import_fmt_check.go",
+    ":foo_func_check.go",
+    ":config.json",
+]
+
+BUILD_FAILED_TMPL = """
+if [[ result -eq 0 ]]; then
+  echo "TEST FAILED: expected build error" >&2
   result=1
 else
   result=0
+  {check_err}
 fi
 """
 
-_has_err_check_tmpl = """
-if [[ result -eq 0 ]]; then
-  echo "error: expected build error" >&2
+BUILD_PASSED_TMPL = """
+if [[ result -ne 0 ]]; then
+  echo "TEST FAILED: unexpected build error" >&2
   result=1
 else
   {check_err}
 fi
 """
 
-_check_err_tmpl = """
+CONTAINS_ERR_TMPL = """
   if ! grep -q '{err}' bazel-output.txt; then
-    echo "error: expected error message: '{err}'" >&2
+    echo "TEST FAILED: expected error message containing: '{err}'" >&2
     result=1
-  else
-    result=0
+  fi
+"""
+
+DOES_NOT_CONTAIN_ERR_TMPL = """
+  if grep -q '{err}' bazel-output.txt; then
+    echo "TEST FAILED: received error message containing: '{err}'" >&2
+    result=1
   fi
 """
 
 bazel_test(
-    name = "custom_check_errors",
-    build = BUILD,
+    name = "custom_checks_default_config",
+    build = BUILD_TMPL.format(config = ""),
     workspace = WORKSPACE,
-    check = _has_err_check_tmpl.format(
+    check = BUILD_PASSED_TMPL.format(
         check_err =
-            _check_err_tmpl.format(err = "has_errors.go:4:1: function must not be named Foo") +
-            _check_err_tmpl.format(err = "has_errors.go:6:1: function must not return bool")
+            CONTAINS_ERR_TMPL.format(err = "custom/foo_func.go:4:1: function must not be named Foo") +
+            CONTAINS_ERR_TMPL.format(err = "custom/return_bool/return_bool.go:4:1: function must not return bool") +
+            CONTAINS_ERR_TMPL.format(err = "custom/import_fmt.go:5:2: package fmt must not be imported")
     ),
     command = "build",
-    targets = [":has_errors"],
-    extra_files = [
-      ":foo_func_check.go",
-      ":return_bool_check.go",
+    targets = [
+        ":return_bool",
+        ":import_fmt",
+        ":foo_func",
     ],
+    extra_files = EXTRA_FILES,
 )
 
 bazel_test(
-    name = "custom_check_no_errors",
-    build = BUILD,
+    name = "custom_checks_custom_config",
+    build = BUILD_TMPL.format(config = "config = \":config.json\","),
     workspace = WORKSPACE,
-    check = _no_error_check,
+    check = BUILD_FAILED_TMPL.format(
+        check_err =
+            CONTAINS_ERR_TMPL.format(err = "custom/foo_func.go:4:1: function must not be named Foo") +
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/return_bool/return_bool.go:") +
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/import_fmt.go:")
+    ),
+    command = "build",
+    targets = [
+        ":return_bool",
+        ":import_fmt",
+        # Note: we have configured foo_func_check to fail builds, so we need :foo_func
+        # to be built last so as not to short-circuit the test.
+        ":foo_func",
+    ],
+    extra_files = EXTRA_FILES,
+)
+
+bazel_test(
+    name = "custom_checks_no_errors",
+    build = BUILD_TMPL.format(config = ""),
+    workspace = WORKSPACE,
+    check = BUILD_PASSED_TMPL.format(
+        check_err =
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "no_errors.go:")
+    ),
     command = "build",
     targets = [":no_errors"],
-    extra_files = [
-      ":foo_func_check.go",
-      ":return_bool_check.go",
-    ],
+    extra_files = EXTRA_FILES,
+)
+
+# TODO(samueltan): consider testing that analysis failures and panics do not
+# fail builds or interfere with other analyses.
+
+go_library(
+    name = "import_fmt",
+    srcs = ["import_fmt.go"],
+    importpath = "importfmt",
 )
 
 go_library(
-    name = "has_errors",
-    srcs = ["has_errors.go"],
-    importpath = "haserrors",
+    name = "return_bool",
+    srcs = ["return_bool/return_bool.go"],
+    importpath = "returnbool",
+)
+
+go_library(
+    name = "foo_func",
+    srcs = ["foo_func.go"],
+    importpath = "foofunc",
 )
 
 go_library(

@@ -18,9 +18,11 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"text/template"
@@ -30,10 +32,35 @@ var codeTpl = `
 package main
 
 import (
-{{range $importPath := .}}
+{{- range $importPath := .ImportPaths}}
 	_ "{{$importPath}}"
 {{- end}}
 )
+
+// configs maps analysis names to configurations.
+var configs = map[string]config{
+{{- range $name, $config := .Configs}}
+	{{printf "%q" $name}}: config{
+		severity:  {{$config.Severity}},
+		{{- if $config.ApplyTo -}}
+		applyTo:  map[string]bool{
+			{{range $path, $comment := $config.ApplyTo -}}
+			// {{$comment}}
+			{{printf "%q" $path}}: true,
+			{{- end}}
+		},
+		{{- end}}
+		{{if $config.Whitelist -}}
+		whitelist:  map[string]bool{
+			{{range $path, $comment := $config.Whitelist -}}
+			// {{$comment}}
+			{{printf "%q" $path}}: true,
+			{{- end}}
+		},
+		{{- end}}
+	},
+{{- end}}
+}
 `
 
 func run(args []string) error {
@@ -41,8 +68,7 @@ func run(args []string) error {
 	flags := flag.NewFlagSet("generate_checker_main", flag.ExitOnError)
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
 	flags.Var(&checkImportPaths, "check_importpath", "import path of a check library")
-	// TODO(samueltan): use the config file to generate whitelist tables in the checker.
-	flags.String("config", "", "checker config file")
+	configFile := flags.String("config", "", "checker config file")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -62,8 +88,19 @@ func run(args []string) error {
 		}
 	}()
 
+	config, err := buildConfig(*configFile)
+	if err != nil {
+		return err
+	}
+	data := struct {
+		ImportPaths []string
+		Configs     Configs
+	}{
+		ImportPaths: checkImportPaths,
+		Configs:     config,
+	}
 	tpl := template.Must(template.New("source").Parse(codeTpl))
-	if err := tpl.Execute(outFile, checkImportPaths); err != nil {
+	if err := tpl.Execute(outFile, data); err != nil {
 		return fmt.Errorf("template.Execute failed: %v", err)
 	}
 	return cErr
@@ -73,4 +110,44 @@ func main() {
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func buildConfig(path string) (Configs, error) {
+	if path == "" {
+		return Configs{}, nil
+	}
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return Configs{}, fmt.Errorf("failed to read config file: %v", err)
+	}
+	configs := make(Configs)
+	if err = json.Unmarshal(b, &configs); err != nil {
+		return Configs{}, fmt.Errorf("failed to unmarshal config file: %v", err)
+	}
+	for name, config := range configs {
+		s, ok := severityStringtoEnumName[config.Severity]
+		if !ok {
+			return Configs{}, fmt.Errorf("invalid severity %q", config.Severity)
+		}
+		configs[name] = Config{
+			// Description is currently unused.
+			Severity:  s,
+			ApplyTo:   config.ApplyTo,
+			Whitelist: config.Whitelist,
+		}
+	}
+	return configs, nil
+}
+
+type Configs map[string]Config
+
+type Config struct {
+	Description, Severity string
+	ApplyTo               map[string]string `json:"apply_to"`
+	Whitelist             map[string]string
+}
+
+var severityStringtoEnumName = map[string]string{
+	"WARNING": "severityWarning",
+	"ERROR":   "severityError",
 }

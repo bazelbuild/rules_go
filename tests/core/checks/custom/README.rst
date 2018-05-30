@@ -8,12 +8,17 @@ errors.
 
 .. contents::
 
-custom_check_errors
--------------------
-Verifies that a multiple (2) custom checks successfully reports errors while
-building a library and causes a build failure.
+custom_checks_default_config
+----------------------------
+Verifies that custom checks print warnings without failing a go_library build
+when the checks are not explicitly configured.
 
-custom_check_no_errors
-----------------------
-Verifies that a multiple (2) custom checks do not find errors while building a
-library and allows that build to succeed.
+custom_checks_custom_config
+---------------------------
+Verifies that custom checks can be configured to fail builds and ignore errors
+in certain files using a custom configuration file.
+
+custom_checks_no_errors
+------------------------
+Verifies that a library build succeeds if custom checks do not find any errors
+in the library's source code.

@@ -1,0 +1,18 @@
+{
+  "return_bool_check": {
+    "severity": "WARNING",
+    "whitelist": {
+      "return_bool/*": "security-reviewed functions that safely return bool"
+    }
+  },
+  "import_fmt_check": {
+    "severity": "WARNING",
+    "apply_to": {
+      "return_bool/*": ""
+    }
+  },
+  "foo_func_check": {
+    "description": "no exemptions since we know this check is 100% accurate",
+    "severity": "ERROR"
+  }
+}
