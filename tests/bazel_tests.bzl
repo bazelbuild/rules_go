@@ -10,6 +10,14 @@ load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     "go_rule",
 )
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
+    "paths",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "shell",
+)
 
 # _bazelrc is the bazel.rc file that sets the default options for tests
 _bazelrc = """
@@ -45,9 +53,13 @@ mkdir -p {work_dir}
 mkdir -p {cache_dir}
 cp -f {workspace} {work_dir}/WORKSPACE
 cp -f {build} {work_dir}/BUILD.bazel
+extra_files=({extra_files})
+if [ "${{#extra_files[@]}}" -ne 0 ]; then
+  cp -f "${{extra_files[@]}}" {work_dir}/
+fi
 cd {work_dir}
 
-{bazel} --bazelrc {bazelrc} --nomaster_blazerc {command}  --experimental_repository_cache={cache_dir} --config {config} {args} {target} >& bazel-output.txt
+{bazel} --bazelrc {bazelrc} {command} --experimental_repository_cache={cache_dir} --config {config} {args} {target} >& bazel-output.txt
 result=$?
 
 function at_exit {{
@@ -138,24 +150,28 @@ def _bazel_test_script_impl(ctx):
         ]
 
     script_content = _bazel_test_script_template.format(
-        bazelrc = ctx.attr._settings.exec_root + "/" + ctx.file._bazelrc.path,
+        bazelrc = shell.quote(ctx.attr._settings.exec_root + "/" + ctx.file._bazelrc.path),
         config = ctx.attr.config,
+        extra_files = " ".join([shell.quote(paths.join(ctx.attr._settings.exec_root, "execroot", "io_bazel_rules_go", file.path)) for file in ctx.files.extra_files]),
         command = ctx.attr.command,
         args = " ".join(ctx.attr.args),
         target = " ".join(targets),
-        logs = " ".join(logs),
+        logs = " ".join([shell.quote(l) for l in logs]),
         check = ctx.attr.check,
-        workspace = workspace_file.short_path,
-        build = build_file.short_path,
-        output = output,
+        workspace = shell.quote(workspace_file.short_path),
+        build = shell.quote(build_file.short_path),
+        output = shell.quote(output),
         bazel = ctx.attr._settings.bazel,
-        work_dir = ctx.attr._settings.scratch_dir + "/" + ctx.attr.config,
-        cache_dir = ctx.attr._settings.scratch_dir + "/cache",
+        work_dir = shell.quote(ctx.attr._settings.scratch_dir + "/" + ctx.attr.config),
+        cache_dir = shell.quote(ctx.attr._settings.scratch_dir + "/cache"),
     )
     ctx.actions.write(output = script_file, is_executable = True, content = script_content)
     return struct(
         files = depset([script_file]),
-        runfiles = ctx.runfiles([workspace_file, build_file], collect_data = True),
+        runfiles = ctx.runfiles(
+            [workspace_file, build_file] + ctx.files.extra_files,
+            collect_data = True,
+        ),
     )
 
 _bazel_test_script = go_rule(
@@ -178,6 +194,7 @@ _bazel_test_script = go_rule(
         "build": attr.string(),
         "check": attr.string(),
         "config": attr.string(default = "isolate"),
+        "extra_files": attr.label_list(allow_files = True),
         "data": attr.label_list(
             allow_files = True,
             cfg = "data",
@@ -191,7 +208,7 @@ _bazel_test_script = go_rule(
     },
 )
 
-def bazel_test(name, command = None, args = None, targets = None, go_version = None, tags = [], externals = [], workspace = "", build = "", check = "", config = None):
+def bazel_test(name, command = None, args = None, targets = None, go_version = None, tags = [], externals = [], workspace = "", build = "", check = "", config = None, extra_files = []):
     script_name = name + "_script"
     externals = externals + [
         "@io_bazel_rules_go//:AUTHORS",
@@ -210,6 +227,7 @@ def bazel_test(name, command = None, args = None, targets = None, go_version = N
         build = build,
         check = check,
         config = config,
+        extra_files = extra_files,
     )
     native.sh_test(
         name = name,
