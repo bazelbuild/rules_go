@@ -19,7 +19,6 @@ load(
     "GoAspectProviders",
     "GoStdLib",
     "GoBuilders",
-    "GoChecker",
     "get_archive",
     "get_source",
 )
@@ -232,7 +231,7 @@ def go_context(ctx, attr=None):
 
   checker = getattr(attr, "_checker", None)
   if checker:
-    checker = checker[GoChecker]
+    checker = checker[DefaultInfo].files_to_run
 
   coverdata = getattr(attr, "_coverdata", None)
   if coverdata:

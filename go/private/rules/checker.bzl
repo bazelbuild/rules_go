@@ -25,7 +25,6 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoArchive",
     "GoLibrary",
-    "GoChecker",
     "get_archive"
 )
 
@@ -66,14 +65,11 @@ def _go_checker_impl(ctx):
       name = ctx.label.name,
       source = checker_source,
   )
-  return [
-      GoChecker(checker = executable),
-      DefaultInfo(
-          files = depset([executable]),
-          runfiles = checker_archive.runfiles,
-          executable = executable,
-      ),
-  ]
+  return [DefaultInfo(
+      files = depset([executable]),
+      runfiles = checker_archive.runfiles,
+      executable = executable,
+  )]
 
 go_checker = go_rule(
     _go_checker_impl,

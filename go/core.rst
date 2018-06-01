@@ -23,6 +23,7 @@ Core go rules
 .. _build constraints: https://golang.org/pkg/go/build/#hdr-Build_Constraints
 .. _select: https://docs.bazel.build/versions/master/be/functions.html#select
 .. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
+.. _go_checker: checks.rst#go_checker
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -272,6 +273,75 @@ Example
       importpath = "github.com/example/project/foo",
       visibility = ["//visibility:public"],
   )
+
+go_tool_library
+~~~~~~~~~~~~~~~
+
+This builds a Go library from a set of source files that are all part of
+the same package.
+
+This rule is identical to ``go_library``, but must be used to build check
+libraries to avoid a circular dependency: ``go_library`` implicitly
+depends on `go_checker`_, which depends on check libraries, which must not
+depend on `go_checker`_. ``go_tool_library`` does not have the same implicit
+dependency.
+
+Providers
+^^^^^^^^^
+
+* GoLibrary_
+* GoSource_
+* GoArchive_
+
+Attributes
+^^^^^^^^^^
+
++----------------------------+-----------------------------+---------------------------------------+
+| **Name**                   | **Type**                    | **Default value**                     |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`name`              | :type:`string`              | |mandatory|                           |
++----------------------------+-----------------------------+---------------------------------------+
+| A unique name for this rule.                                                                     |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`srcs`              | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| The list of Go source files that are compiled to create the package.                             |
+| Only :value:`.go` files are permitted, unless the cgo attribute is set, in which case the        |
+| following file types are permitted: :value:`.go, .c, .s, .S .h`.                                 |
+| The files may contain Go-style `build constraints`_.                                             |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`deps`              | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| List of Go libraries this library imports directly.                                              |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`embed`             | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| List of Go libraries this test library directly.                                                 |
+| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
+| These can provide both :param:`srcs` and :param:`deps` to this library.                          |
+| See Embedding_ for more information about how and when to use this.                              |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`data`              | :type:`label_list`          | :value:`None`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| The list of files needed by this rule at runtime. Targets named in the data attribute will       |
+| appear in the *.runfiles area of this rule, if it has one. This may include data files needed    |
+| by the binary, or other programs needed by it. See `data dependencies`_ for more information     |
+| about how to depend on and use data files.                                                       |
++----------------------------+-----------------------------+---------------------------------------+
+
+Example
+^^^^^^^
+
+.. code:: bzl
+
+    go_tool_library(
+        name = "importunsafe",
+        srcs = ["importunsafe.go"],
+        importpath = "importunsafe",
+        deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+        visibility = ["//visibility:public"],
+    )
 
 go_binary
 ~~~~~~~~~
