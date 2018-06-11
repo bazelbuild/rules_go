@@ -92,7 +92,7 @@ def _select_archive(files):
     # list of file extensions in descending order or preference.
     exts = [".pic.lo", ".lo", ".a"]
     for ext in exts:
-        for f in files:
+        for f in as_iterable(files):
             if f.basename.endswith(ext):
                 return f
 
@@ -132,9 +132,9 @@ def _cgo_codegen_impl(ctx):
     cgo_types = go.declare_file(go, path = "_cgo_gotypes.go")
     out_dir = cgo_main.dirname
 
-    builder_args = go.args(go)     # interpreted by builder
-    tool_args = ctx.actions.args() # interpreted by cgo
-    cc_args = ctx.actions.args()   # interpreted by C compiler
+    builder_args = go.args(go)  # interpreted by builder
+    tool_args = ctx.actions.args()  # interpreted by cgo
+    cc_args = ctx.actions.args()  # interpreted by C compiler
 
     c_outs = [cgo_export_h, cgo_export_c]
     cxx_outs = [cgo_export_h]
@@ -415,9 +415,10 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
 
     # Run cgo on the filtered Go files. This will split them into pure Go files
     # and pure C files, plus a few other glue files.
+    repo_name = native.repository_name()
     base_dir = pkg_dir(
-        "external/" + REPOSITORY_NAME[1:] if len(REPOSITORY_NAME) > 1 else "",
-        PACKAGE_NAME,
+        "external/" + repo_name[1:] if len(repo_name) > 1 else "",
+        native.package_name(),
     )
     copts = copts
     cxxopts = cxxopts

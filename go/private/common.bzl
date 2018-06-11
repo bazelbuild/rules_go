@@ -62,14 +62,6 @@ objc_exts = [
     ".hxx",
 ]
 
-go_filetype = FileType(go_exts + asm_exts)
-
-cc_hdr_filetype = FileType(hdr_exts)
-
-# Extensions of files we can build with the Go compiler or with cc_library.
-# This is a subset of the extensions recognized by go/build.
-cgo_filetype = FileType(go_exts + asm_exts + c_exts + cxx_exts + objc_exts)
-
 def pkg_dir(workspace_root, package_name):
     """Returns a relative path to a package directory from the root of the
     sandbox. Useful at execution-time or run-time."""

@@ -94,7 +94,7 @@ def emit_link(
     base_rpath = origin + "../" * pkg_depth
     cgo_dynamic_deps = [
         d
-        for d in archive.cgo_deps
+        for d in archive.cgo_deps.to_list()
         if any([d.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])
     ]
     cgo_rpaths = []
@@ -148,12 +148,12 @@ def emit_link(
 def _bootstrap_link(go, archive, executable, gc_linkopts):
     """See go/toolchains.rst#link for full documentation."""
 
-    inputs = depset([archive.data.file])
+    inputs = [archive.data.file] + go.sdk_files + go.sdk_tools
     args = ["tool", "link", "-s", "-o", executable.path]
     args.extend(gc_linkopts)
     args.append(archive.data.file.path)
     go.actions.run_shell(
-        inputs = inputs + go.sdk_files + go.sdk_tools,
+        inputs = inputs,
         outputs = [executable],
         mnemonic = "GoLink",
         command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && {} {}".format(go.root, go.go.path, " ".join(args)),

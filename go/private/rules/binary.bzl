@@ -18,7 +18,8 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "go_filetype",
+    "asm_exts",
+    "go_exts",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/aspect.bzl",
@@ -89,7 +90,7 @@ go_binary = go_rule(
             allow_files = True,
             cfg = "data",
         ),
-        "srcs": attr.label_list(allow_files = go_filetype),
+        "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
@@ -158,7 +159,7 @@ go_tool_binary = go_rule(
             allow_files = True,
             cfg = "data",
         ),
-        "srcs": attr.label_list(allow_files = go_filetype),
+        "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),

@@ -18,7 +18,8 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "go_filetype",
+    "asm_exts",
+    "go_exts",
     "pkg_dir",
     "split_srcs",
 )
@@ -168,7 +169,7 @@ go_test = go_rule(
             allow_files = True,
             cfg = "data",
         ),
-        "srcs": attr.label_list(allow_files = go_filetype),
+        "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
