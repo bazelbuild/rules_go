@@ -14,7 +14,7 @@
 
 """Skylib module containing convenience interfaces for select()."""
 
-def _with_or(input_dict):
+def _with_or(input_dict, no_match_error=''):
   """Drop-in replacement for `select()` that supports ORed keys.
 
   Args:
@@ -22,6 +22,7 @@ def _with_or(input_dict):
         either the usual form `"//foo:config1"` or
         `("//foo:config1", "//foo:config2", ...)` to signify
         `//foo:config1` OR `//foo:config2` OR `...`.
+    no_match_error: Optional custom error to report if no condition matches.
 
         Example:
 
@@ -48,7 +49,7 @@ def _with_or(input_dict):
     "//configs:three": [":dep2or3"],
     ```
   """
-  return select(_with_or_dict(input_dict))
+  return select(_with_or_dict(input_dict), no_match_error=no_match_error)
 
 
 def _with_or_dict(input_dict):
@@ -72,7 +73,7 @@ def _with_or_dict(input_dict):
         output_dict[config_setting] = value
     else:
       if key in output_dict.keys():
-        fail("key %s appears multiple times" % config_setting)
+        fail("key %s appears multiple times" % key)
       output_dict[key] = value
   return output_dict
 

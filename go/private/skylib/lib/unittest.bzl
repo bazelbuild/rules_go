@@ -20,6 +20,7 @@ assertions used to within tests.
 """
 
 load(":sets.bzl", "sets")
+load(":new_sets.bzl", new_sets="sets")
 
 
 def _make(impl, attrs=None):
@@ -52,6 +53,7 @@ def _make(impl, attrs=None):
     impl: The implementation function of the unit test.
     attrs: An optional dictionary to supplement the attrs passed to the
         unit test's `rule()` constructor.
+
   Returns:
     A rule definition that should be stored in a global whose name ends in
     `_test`.
@@ -144,6 +146,7 @@ def _begin(ctx):
   Args:
     ctx: The Skylark context. Pass the implementation function's `ctx` argument
         in verbatim.
+
   Returns:
     A test environment struct that must be passed to assertions and finally to
     `unittest.end`. Do not rely on internal details about the fields in this
@@ -253,11 +256,29 @@ def _assert_set_equals(env, expected, actual, msg=None):
       full_msg = expectation_msg
     _fail(env, full_msg)
 
+def _assert_new_set_equals(env, expected, actual, msg=None):
+  """Asserts that the given `expected` and `actual` sets are equal.
+
+  Args:
+    env: The test environment returned by `unittest.begin`.
+    expected: The expected set resulting from some computation.
+    actual: The actual set returned by some computation.
+    msg: An optional message that will be printed that describes the failure.
+        If omitted, a default will be used.
+  """
+  if not new_sets.is_equal(expected, actual):
+    expectation_msg = "Expected %r, but got %r" % (expected, actual)
+    if msg:
+      full_msg = "%s (%s)" % (msg, expectation_msg)
+    else:
+      full_msg = expectation_msg
+    _fail(env, full_msg)
 
 asserts = struct(
     equals=_assert_equals,
     false=_assert_false,
     set_equals=_assert_set_equals,
+    new_set_equals = _assert_new_set_equals,
     true=_assert_true,
 )
 

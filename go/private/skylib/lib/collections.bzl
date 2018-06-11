@@ -21,6 +21,7 @@ def _after_each(separator, iterable):
   Args:
     separator: The value to insert after each item in `iterable`.
     iterable: The list into which to intersperse the separator.
+
   Returns:
     A new list with `separator` after each item in `iterable`.
   """
@@ -38,6 +39,7 @@ def _before_each(separator, iterable):
   Args:
     separator: The value to insert before each item in `iterable`.
     iterable: The list into which to intersperse the separator.
+
   Returns:
     A new list with `separator` before each item in `iterable`.
   """
@@ -56,6 +58,7 @@ def _uniq(iterable):
 
   Args:
     iterable: An iterable to filter.
+
   Returns:
     A new list with all unique elements from `iterable`.
   """

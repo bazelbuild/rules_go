@@ -48,6 +48,7 @@ def _is_equal(a, b):
   Args:
     a: A depset or a list.
     b: A depset or a list.
+
   Returns:
     True if `a` is equal to `b`, False otherwise.
   """
@@ -115,10 +116,8 @@ def _union(*args):
     The set union of all sets or lists in `*args`.
   """
   _precondition_only_sets_or_lists(*args)
-  r = depset()
-  for a in args:
-    r += a
-  return r
+  args_deps = [depset(x) if type(x) == type([]) else x for x in args]
+  return depset(transitive=args_deps)
 
 
 def _difference(a, b):

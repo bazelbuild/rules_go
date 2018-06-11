@@ -28,6 +28,7 @@ def _add(*dictionaries):
 
   Args:
     *dictionaries: Zero or more dictionaries to be added.
+
   Returns:
     A new `dict` that has all the entries of the given dictionaries.
   """

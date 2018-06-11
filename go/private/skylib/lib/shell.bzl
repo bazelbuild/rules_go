@@ -28,6 +28,7 @@ def _array_literal(iterable):
   Args:
     iterable: A sequence of elements. Elements that are not strings will be
         converted to strings first, by calling `str()`.
+
   Returns:
     A string that represents the sequence as a shell array; that is,
     parentheses containing the quoted elements.
@@ -43,6 +44,7 @@ def _quote(s):
 
   Args:
     s: The string to quote.
+
   Returns:
     A quoted version of the string that can be passed to a shell command.
   """

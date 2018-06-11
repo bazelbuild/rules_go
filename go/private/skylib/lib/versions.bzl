@@ -108,7 +108,6 @@ def _check_bazel_version(minimum_bazel_version, maximum_bazel_version=None, baze
         bazel_version, minimum_bazel_version))
 
   if maximum_bazel_version:
-    max_bazel_version = _parse_bazel_version(maximum_bazel_version)
     if not _is_at_most(
         threshold = maximum_bazel_version,
         version = bazel_version):

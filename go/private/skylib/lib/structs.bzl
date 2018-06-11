@@ -20,6 +20,7 @@ def _to_dict(s):
 
   Args:
     s: A `struct`.
+
   Returns:
     A `dict` whose keys and values are the same as the fields in `s`. The
     transformation is only applied to the struct's fields and not to any
