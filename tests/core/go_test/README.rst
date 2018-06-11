@@ -45,3 +45,14 @@ only_testmain_test
 ------------------
 Test that an `go_test`_ that contains a ``TestMain`` function but no tests
 still builds and passes.
+
+external_importmap_test
+----------------------
+
+Test that an external test package in `go_test`_ is compiled with the correct
+``importmap`` for the library under test. This is verified by defining an
+interface in the library under test and implementing it in a separate
+dependency.
+
+Verifies #1538.
+
