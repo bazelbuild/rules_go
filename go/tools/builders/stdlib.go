@@ -21,6 +21,7 @@ import (
 	"go/build"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -55,6 +56,13 @@ func run(args []string) error {
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
 	os.Setenv("CC", abs(os.Getenv("CC")))
+
+	// Ensure paths are absolute.
+	absPaths := []string{}
+	for _, path := range filepath.SplitList(os.Getenv("PATH")) {
+		absPaths = append(absPaths, abs(path))
+	}
+	os.Setenv("PATH", strings.Join(absPaths, string(os.PathListSeparator)))
 
 	// Build the commands needed to build the std library in the right mode
 	installArgs := goenv.goCmd("install", "-toolexec", abs(*filterBuildid))
