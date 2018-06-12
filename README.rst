@@ -45,6 +45,11 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+June 12, 2018
+  Releases `0.12.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.12.1>`_,
+  `0.11.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.11.2>`_, and
+  `0.10.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.5>`_ are
+  now available. There will be no major release this month.
 May 8, 2018
   Release `0.12.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.12.0>`_
   is now available.
@@ -52,12 +57,6 @@ April 30, 2018
   Releases `0.11.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.11.1>`_
   and `0.10.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.4>`_
   are now available.
-April 23, 2018
-  Some rules will be deprecated or removed in the next release. See
-  `Deprecation schedule`_ for details.
-April 16, 2018
-  Release `0.11.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.11.0>`_
-  is now available.
 
 Contents
 --------
@@ -111,7 +110,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-:Note: The latest version of these rules (0.12.0) requires Bazel ≥ 0.10.0 to work.
+:Note: The latest version of these rules (0.12.1) requires Bazel ≥ 0.10.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -130,8 +129,8 @@ Setup
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.12.0/rules_go-0.12.0.tar.gz"],
-        sha256 = "c1f52b8789218bb1542ed362c4f7de7052abcf254d865d96fb7ba6d44bc15ee3",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.12.1/rules_go-0.12.1.tar.gz"],
+        sha256 = "8b68d0630d63d95dacc0016c3bb4b76154fe34fca93efd65d1c366de3fcb4294",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -179,8 +178,8 @@ build files automatically using gazelle_.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.12.0/rules_go-0.12.0.tar.gz"],
-        sha256 = "c1f52b8789218bb1542ed362c4f7de7052abcf254d865d96fb7ba6d44bc15ee3",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.12.1/rules_go-0.12.1.tar.gz"],
+        sha256 = "8b68d0630d63d95dacc0016c3bb4b76154fe34fca93efd65d1c366de3fcb4294",
     )
     http_archive(
         name = "bazel_gazelle",
