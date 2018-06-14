@@ -31,7 +31,7 @@ GOARCH = {
     "amd64": "@bazel_tools//platforms:x86_64",
     "amd64p32": None,
     "arm": "@bazel_tools//platforms:arm",
-    "arm64": None,
+    "arm64": "@bazel_tools//platforms:aarch64",
     "mips": None,
     "mips64": None,
     "mips64le": None,
