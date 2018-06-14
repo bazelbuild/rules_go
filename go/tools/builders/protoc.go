@@ -71,7 +71,17 @@ func run(args []string) error {
 	pluginBase := filepath.Base(*plugin)
 	pluginName := strings.TrimSuffix(
 		strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-"), ".exe")
+imports_loop:
 	for _, m := range imports {
+		importName := m[:strings.Index(m, "=")+1]
+		for _, option := range options {
+			if option[0] != 'M' {
+				continue
+			}
+			if strings.HasPrefix(option[1:], importName) {
+				continue imports_loop
+			}
+		}
 		options = append(options, fmt.Sprintf("M%v", m))
 	}
 	protoc_args := []string{
