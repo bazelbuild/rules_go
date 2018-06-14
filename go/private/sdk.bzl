@@ -35,7 +35,11 @@ def _go_download_sdk_impl(ctx):
                 host = "linux_s390x"
             elif uname == "ppc64le":
                 host = "linux_ppc64le"
-            elif uname == "aarch64":
+        # uname -p is not working on Aarch64 boards
+        res = ctx.execute(["uname", "-m"])
+        if res.return_code == 0:
+            uname = res.stdout.strip()
+            if uname == "aarch64":
                 host = "linux_arm64"
             elif uname == "armhf":
                 host = "linux_armv6l"
