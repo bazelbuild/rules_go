@@ -27,6 +27,13 @@ import (
 	"strings"
 )
 
+var (
+	// cgoEnvVars is the list of all cgo environment variable
+	cgoEnvVars = []string{"CGO_CFLAGS", "CGO_CXXFLAGS", "CGO_CPPFLAGS", "CGO_LDFLAGS"}
+	// cgoAbsEnvFlags are all the flags that need absolute path in cgoEnvVars
+	cgoAbsEnvFlags = []string{"-I", "-L", "-isysroot", "-isystem", "-iquote", "-include", "-gcc-toolchain", "--sysroot"}
+)
+
 // env holds a small amount of Go environment and toolchain information
 // which is common to multiple builders. Most Bazel-agnostic build information
 // is collected in go/build.Default though.
@@ -100,6 +107,17 @@ func (e *env) runCommandToFile(w io.Writer, args []string) error {
 	return runAndLogCommand(cmd, e.verbose)
 }
 
+func absEnv(envNameList []string, argList []string) error {
+	for _, envName := range envNameList {
+		splitedEnv := strings.Fields(os.Getenv(envName))
+		absArgs(splitedEnv, argList)
+		if err := os.Setenv(envName, strings.Join(splitedEnv, " ")); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
 	if verbose {
 		formatCommand(os.Stderr, cmd)
@@ -144,29 +162,21 @@ func absArgs(args []string, flags []string) {
 			absNext = false
 			continue
 		}
-		if !strings.HasPrefix(args[i], "-") {
-			continue
-		}
-		var flag, value string
-		var separate bool
-		if j := strings.IndexByte(args[i], '='); j >= 0 {
-			flag = args[i][:j]
-			value = args[i][j+1:]
-		} else {
-			separate = true
-			flag = args[i]
-		}
-		flag = strings.TrimLeft(args[i], "-")
 		for _, f := range flags {
-			if flag != f {
+			if !strings.HasPrefix(args[i], f) {
 				continue
 			}
-			if separate {
+			possibleValue := args[i][len(f):]
+			if len(possibleValue) == 0 {
 				absNext = true
-			} else {
-				value = abs(value)
-				args[i] = fmt.Sprintf("-%s=%s", flag, value)
+				break
 			}
+			separator := ""
+			if possibleValue[0] == '=' {
+				possibleValue = possibleValue[1:]
+				separator = "="
+			}
+			args[i] = fmt.Sprintf("%s%s%s", f, separator, abs(possibleValue))
 			break
 		}
 	}
