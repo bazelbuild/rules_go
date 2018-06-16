@@ -41,7 +41,9 @@ def _go_download_sdk_impl(ctx):
             uname = res.stdout.strip()
             if uname == "aarch64":
                 host = "linux_arm64"
-            elif uname == "armhf":
+            elif uname == "armv6l":
+                host = "linux_armv6l"
+            elif uname == "armv7l":
                 host = "linux_armv6l"
 
         # Default to amd64 when uname doesn't return a known value.
