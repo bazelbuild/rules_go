@@ -18,6 +18,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
 )
@@ -76,7 +77,7 @@ def emit_compile(
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
-    if go.mode.link == LINKMODE_C_SHARED:
+    if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
         tool_args.add("-shared")
     if importpath:
         tool_args.add(["-p", importpath])

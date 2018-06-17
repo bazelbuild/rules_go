@@ -26,6 +26,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
 )
 
@@ -38,7 +39,7 @@ def _stdlib_library_to_source(go, attr, source, merge):
     args.add(["-out", root_file.dirname])
     if go.mode.race:
         args.add("-race")
-    if go.mode.link == LINKMODE_C_SHARED:
+    if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
         args.add("-shared")
     args.add(["-filter_buildid", filter_buildid.path])
     go.actions.write(root_file, "")

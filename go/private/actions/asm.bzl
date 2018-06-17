@@ -18,6 +18,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
 )
 
@@ -42,7 +43,7 @@ def emit_asm(
     includes = sorted({i: None for i in includes}.keys())
     args.add(includes, before_each = "-I")
     args.add(["-trimpath", ".", "-o", out_obj])
-    if go.mode.link == LINKMODE_C_SHARED:
+    if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
         args.add("-shared")
     go.actions.run(
         inputs = inputs,
