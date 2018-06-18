@@ -16,6 +16,7 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
+    "LINKMODE_PLUGIN",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
@@ -45,6 +46,8 @@ def emit_binary(
             extension = go.shared_extension
         elif go.mode.link == LINKMODE_C_ARCHIVE:
             extension = ARCHIVE_EXTENSION
+        elif go.mode.link == LINKMODE_PLUGIN:
+            extension = go.shared_extension
         executable = go.declare_file(go, name = name, ext = extension)
     go.link(
         go,

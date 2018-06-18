@@ -78,12 +78,12 @@ def emit_compile(
         tool_args.add("-msan")
     if go.mode.link == LINKMODE_C_SHARED:
         tool_args.add("-shared")
+    if go.mode.link == LINKMODE_PLUGIN:
+        tool_args.add("-dynlink")
     if importpath:
         tool_args.add(["-p", importpath])
     if go.mode.debug:
         tool_args.add(["-N", "-l"])
-    if go.mode.link in [LINKMODE_PLUGIN]:
-        tool_args.add(["-dynlink"])
     tool_args.add(go.toolchain.flags.compile)
     go.actions.run(
         inputs = inputs,

@@ -21,6 +21,7 @@ load(
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_NORMAL",
+    "LINKMODE_PLUGIN",
 )
 
 def emit_link(
@@ -63,6 +64,8 @@ def emit_link(
     if go.mode.link != LINKMODE_NORMAL:
         builder_args.add(["-buildmode", go.mode.link])
         tool_args.add(["-linkmode", "external"])
+    if go.mode.link == LINKMODE_PLUGIN:
+        tool_args.add(["-pluginpath", archive.data.importpath])
 
     # Build the set of transitive dependencies. Currently, we tolerate multiple
     # archives with the same importmap (though this will be an error in the

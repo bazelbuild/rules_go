@@ -33,6 +33,7 @@ func run(args []string) error {
 	out := flags.String("out", "", "Path to output go root")
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
+	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -79,6 +80,11 @@ func run(args []string) error {
 		gcflags = append(gcflags, "-shared")
 		ldflags = append(ldflags, "-shared")
 		asmflags = append(asmflags, "-shared")
+	}
+	if *dynlink {
+		gcflags = append(gcflags, "-dynlink")
+		ldflags = append(ldflags, "-dynlink")
+		asmflags = append(asmflags, "-dynlink")
 	}
 
 	// Since Go 1.10, an all= prefix indicates the flags should apply to the package

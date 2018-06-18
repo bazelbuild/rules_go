@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
+
+test_suite(name = "go_plugin")
+
+go_test(
+    name = "go_default_test",
+    srcs = ["all_test.go"],
+    data = [":plugin"],
+)
+
+go_binary(
+    name = "plugin",
+    srcs = ["plugin.go"],
+    out = "plugin.so",
+    linkmode = "plugin",
+)

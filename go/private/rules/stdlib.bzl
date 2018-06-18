@@ -27,6 +27,7 @@ load(
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_SHARED",
+    "LINKMODE_PLUGIN",
 )
 
 def _stdlib_library_to_source(go, attr, source, merge):
@@ -40,6 +41,8 @@ def _stdlib_library_to_source(go, attr, source, merge):
         args.add("-race")
     if go.mode.link == LINKMODE_C_SHARED:
         args.add("-shared")
+    if go.mode.link == LINKMODE_PLUGIN:
+        args.add("-dynlink")
     args.add(["-filter_buildid", filter_buildid.path])
     go.actions.write(root_file, "")
     env = go.env
