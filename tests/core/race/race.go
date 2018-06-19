@@ -1,7 +1,7 @@
 package race
 
 import (
-	"github.com/bazelbuild/rules_go/tests/race/racy"
+	"github.com/bazelbuild/rules_go/tests/core/race/racy"
 )
 
 func TriggerRace() {

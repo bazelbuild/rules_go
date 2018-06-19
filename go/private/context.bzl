@@ -224,6 +224,11 @@ def go_context(ctx, attr = None):
 
     context_data = attr._go_context_data
     mode = get_mode(ctx, host_only, toolchain, context_data)
+    tags = list(context_data.tags)
+    if mode.race:
+        tags.append("race")
+    if mode.msan:
+        tags.append("msan")
     binary = _get_go_binary(context_data)
 
     stdlib = getattr(attr, "_stdlib", None)
@@ -268,7 +273,7 @@ def go_context(ctx, attr = None):
         coverage_enabled = ctx.configuration.coverage_enabled,
         coverage_instrumented = ctx.coverage_instrumented(),
         env = env,
-        tags = context_data.tags,
+        tags = tags,
         # Action generators
         archive = toolchain.actions.archive,
         asm = toolchain.actions.asm,

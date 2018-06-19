@@ -1,0 +1,69 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_source", "go_test")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+go_test(
+    name = "race_auto_test",
+    size = "small",
+    embed = [":race_test_src"],
+)
+
+go_source(
+    name = "race_test_src",
+    srcs = ["race_test.go"],
+    embed = [":go_default_library"],
+)
+
+go_test(
+    name = "race_on_test",
+    srcs = [
+        "race_off_fail_test.go",
+        "race_on_test.go",
+    ],
+    args = [
+        "$(location :race_on_tester)",
+        "$(location :race_bin)",
+    ],
+    data = [
+        ":race_bin",
+        ":race_on_tester",
+    ],
+    race = "on",
+    rundir = ".",
+    deps = ["//tests/core/race/racy:go_default_library"],
+)
+
+go_test(
+    name = "race_on_tester",
+    embed = [":race_test_src"],
+    race = "on",
+    tags = ["manual"],
+)
+
+go_binary(
+    name = "race_bin",
+    srcs = ["race_main.go"],
+    race = "on",
+    deps = [":go_default_library"],
+)
+
+bazel_test(
+    name = "race_feature_test",
+    args = ["--features=race"],
+    check = """
+if [ "$result" -ne 3 ]; then
+  echo "error: bazel test failure expected (code 3). Got code $result" >&2
+  exit 1
+else
+  result=0
+fi
+""",
+    command = "test",
+    targets = [":race_auto_test"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["race.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/race",
+    deps = ["//tests/core/race/racy:go_default_library"],
+)

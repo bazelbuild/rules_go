@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bazelbuild/rules_go/tests/race"
+	"github.com/bazelbuild/rules_go/tests/core/race"
 )
 
 func main() {
