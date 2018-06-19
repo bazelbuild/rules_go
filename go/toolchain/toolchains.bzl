@@ -194,11 +194,6 @@ def _generate_toolchains():
             link_flags = []
             cgo_link_flags = []
             if "darwin" in host:
-                # workaround for a bug in ld(1) on Mac OS X.
-                # http://lists.apple.com/archives/Darwin-dev/2006/Sep/msg00084.html
-                # TODO(yugui) Remove this workaround once rules_go stops supporting XCode 7.2
-                # or earlier.
-                link_flags.append("-s")
                 cgo_link_flags.extend(["-shared", "-Wl,-all_load"])
             if "linux" in host:
                 cgo_link_flags.append("-Wl,-whole-archive")
