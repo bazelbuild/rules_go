@@ -19,11 +19,9 @@ PLATFORMS = {
     "arm64-apple-ios": apple_common.platform.ios_device,
     "arm64-apple-tvos": apple_common.platform.tvos_device,
     "i386-apple-ios": apple_common.platform.ios_simulator,
-    "i386-apple-macosx": apple_common.platform.macos,
     "i386-apple-tvos": apple_common.platform.tvos_simulator,
     "i386-apple-watchos": apple_common.platform.watchos_simulator,
     "x86_64-apple-ios": apple_common.platform.ios_simulator,
-    "x86_64-apple-macosx": apple_common.platform.macos,
     "x86_64-apple-tvos": apple_common.platform.ios_simulator,
     "x86_64-apple-watchos": apple_common.platform.watchos_simulator,
 }
