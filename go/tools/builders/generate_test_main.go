@@ -67,6 +67,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"testing/internal/testdeps"
@@ -76,7 +77,7 @@ import (
 {{end}}
 
 {{range $p := .Imports}}
-  {{$p.Name}} "{{$p.Path}}"
+	{{$p.Name}} "{{$p.Path}}"
 {{end}}
 )
 
@@ -94,7 +95,7 @@ var benchmarks = []testing.InternalBenchmark{
 
 var examples = []testing.InternalExample{
 {{range .Examples}}
-  {Name: "{{.Name}}", F: {{.Package}}.{{.Name}}, Output: {{printf "%q" .Output}}, Unordered: {{.Unordered}} },
+	{Name: "{{.Name}}", F: {{.Package}}.{{.Name}}, Output: {{printf "%q" .Output}}, Unordered: {{.Unordered}} },
 {{end}}
 }
 
@@ -120,8 +121,12 @@ func main() {
 	// Check if we're being run by Bazel and change directories if so.
 	// TEST_SRCDIR is set by the Bazel test runner, so that makes a decent proxy.
 	if _, ok := os.LookupEnv("TEST_SRCDIR"); ok {
-		if err := os.Chdir("{{.RunDir}}"); err != nil {
+		abs, absErr := filepath.Abs({{printf "%q" .RunDir}})
+		if err := os.Chdir({{printf "%q" .RunDir}}); err != nil {
 			log.Fatalf("could not change to test directory: %v", err)
+		}
+		if absErr == nil {
+			os.Setenv("PWD", abs)
 		}
 	}
 

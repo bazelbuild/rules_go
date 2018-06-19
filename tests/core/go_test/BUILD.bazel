@@ -97,3 +97,9 @@ go_library(
     importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/external_importmap_dep",
     deps = [":external_importmap_lib"],
 )
+
+go_test(
+    name = "pwd_test",
+    size = "small",
+    srcs = ["pwd_test.go"],
+)

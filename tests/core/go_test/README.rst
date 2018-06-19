@@ -56,3 +56,11 @@ dependency.
 
 Verifies #1538.
 
+pwd_test
+--------
+
+Checks that the ``PWD`` environment variable is set to the current directory
+in the generated test main before running a test. This matches functionality
+in ``go test``.
+
+Verifies #1561.
