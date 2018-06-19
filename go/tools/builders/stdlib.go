@@ -101,6 +101,12 @@ func run(args []string) error {
 	installArgs = append(installArgs, "-ldflags="+allSlug+strings.Join(ldflags, " "))
 	installArgs = append(installArgs, "-asmflags="+allSlug+strings.Join(asmflags, " "))
 
+	// Modifying CGO flags to use only absolute path
+	// because go is having its own sandbox, all CGO flags must use absolute path
+	if err := absEnv(cgoEnvVars, cgoAbsEnvFlags); err != nil {
+		return fmt.Errorf("error modifying cgo environment to absolute path: %v", err)
+	}
+
 	for _, target := range []string{"std", "runtime/cgo"} {
 		if err := goenv.runCommand(append(installArgs, target)); err != nil {
 			return err

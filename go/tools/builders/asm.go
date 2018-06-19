@@ -52,7 +52,7 @@ func run(args []string) error {
 	// Build source with the assembler.
 	goargs := goenv.goTool("asm", toolArgs...)
 	goargs = append(goargs, source)
-	absArgs(goargs, []string{"I", "o", "trimpath"})
+	absArgs(goargs, []string{"-I", "-o", "-trimpath"})
 	return goenv.runCommand(goargs)
 }
 

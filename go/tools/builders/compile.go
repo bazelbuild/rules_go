@@ -118,7 +118,7 @@ func run(args []string) error {
 	for _, f := range files {
 		goargs = append(goargs, f.filename)
 	}
-	absArgs(goargs, []string{"I", "o", "trimpath"})
+	absArgs(goargs, []string{"-I", "-o", "-trimpath"})
 	return goenv.runCommand(goargs)
 }
 
