@@ -75,6 +75,7 @@ Documentation
 
 * `Toolchains <go/toolchains.rst>`_
 * `Extra rules <go/extras.rst>`_
+* `Build-time code analysis <go/checks.rst>`_
 * `Deprecated rules <go/deprecated.rst>`_
 * `Build modes <go/modes.rst>`_
 
