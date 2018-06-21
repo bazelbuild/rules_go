@@ -129,7 +129,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_google_grpc",
         remote = "https://github.com/grpc/grpc-go",
-        commit = "d11072e7ca9811b1100b80ca0269ac831f06d024",  # v1.10.3, latest as of 2018-05-07
+        commit = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8",  # v1.13.0, latest as of 2018-06-20
         overlay = manifest["org_golang_google_grpc"],
         # build_file_proto_mode = "disable",
         # importpath = "google.golang.org/grpc",

@@ -182,7 +182,6 @@ test_suite(
         "@org_golang_google_grpc//credentials/alts/core/handshaker:go_default_test",
         "@org_golang_google_grpc//credentials/alts/core/handshaker/service:go_default_test",
         "@org_golang_google_grpc//encoding/proto:go_default_test",
-        "@org_golang_google_grpc//grpclb:go_default_test",
         "@org_golang_google_grpc//grpclog:go_default_test",
         "@org_golang_google_grpc//metadata:go_default_test",
         "@org_golang_google_grpc//naming:go_default_test",
@@ -191,7 +190,6 @@ test_suite(
         "@org_golang_google_grpc//stats:go_default_test",
         "@org_golang_google_grpc//status:go_default_test",
         "@org_golang_google_grpc//test/bufconn:go_default_test",
-        "@org_golang_google_grpc//test/leakcheck:go_default_test",
     ],
 )
 

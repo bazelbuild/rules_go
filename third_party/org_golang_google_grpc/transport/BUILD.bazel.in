@@ -4,7 +4,8 @@ go_library(
     name = "go_default_library",
     srcs = [
         "bdp_estimator.go",
-        "control.go",
+	"controlbuf.go",
+        "flowcontrol.go",
         "go16.go",
         "go17.go",
         "handler_server.go",
@@ -20,6 +21,8 @@ go_library(
         "//codes:go_default_library",
         "//credentials:go_default_library",
         "//grpclog:go_default_library",
+        "//internal/channelz:go_default_library",
+        "//internal/grpcrand:go_default_library",
         "//keepalive:go_default_library",
         "//metadata:go_default_library",
         "//peer:go_default_library",
@@ -44,6 +47,7 @@ go_test(
     embed = [":go_default_library"],
     deps = [
         "//codes:go_default_library",
+        "//internal/leakcheck:go_default_library",
         "//keepalive:go_default_library",
         "//metadata:go_default_library",
         "//status:go_default_library",
