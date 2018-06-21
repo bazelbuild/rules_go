@@ -32,6 +32,7 @@ load(
 
 def _stdlib_library_to_source(go, attr, source, merge):
     pkg = go.declare_directory(go, "pkg")
+    src = go.declare_directory(go, "src")
     root_file = go.declare_file(go, "ROOT")
     filter_buildid = attr._filter_buildid_builder.files.to_list()[0]
     files = [root_file, go.go, pkg]
@@ -54,7 +55,7 @@ def _stdlib_library_to_source(go, attr, source, merge):
     })
     go.actions.run(
         inputs = go.sdk_files + go.sdk_tools + go.crosstool + [filter_buildid, go.package_list, root_file],
-        outputs = [pkg],
+        outputs = [pkg, src],
         mnemonic = "GoStdlib",
         executable = attr._stdlib_builder.files.to_list()[0],
         arguments = [args],
@@ -65,6 +66,7 @@ def _stdlib_library_to_source(go, attr, source, merge):
         mode = go.mode,
         libs = [pkg],
         headers = [pkg],
+        srcs = [src],
         files = files,
     )
 
