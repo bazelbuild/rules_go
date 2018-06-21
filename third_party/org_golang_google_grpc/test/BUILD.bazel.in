@@ -38,7 +38,6 @@ go_test(
         "//status:go_default_library",
         "//tap:go_default_library",
         "//test/grpc_testing:go_default_library",
-        "//test/leakcheck:go_default_library",
         "//testdata:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@io_bazel_rules_go//proto/wkt:any_go_proto",

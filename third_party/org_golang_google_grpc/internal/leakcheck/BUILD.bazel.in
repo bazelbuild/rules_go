@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = ["leakcheck.go"],
-    importpath = "google.golang.org/grpc/test/leakcheck",
+    importpath = "google.golang.org/grpc/internal/leakcheck",
     visibility = ["//visibility:public"],
 )
 

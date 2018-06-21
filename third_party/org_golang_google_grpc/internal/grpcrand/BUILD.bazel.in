@@ -2,7 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["noimport.go"],
-    importpath = "google.golang.org/grpc/grpclb",
+    srcs = ["grpcrand.go"],
+    importpath = "google.golang.org/grpc/internal/grpcrand",
     visibility = ["//visibility:public"],
 )
