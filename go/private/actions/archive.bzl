@@ -44,14 +44,6 @@ def emit_archive(go, source = None):
     searchpath = out_lib.path[:-len(lib_name)]
     testfilter = getattr(source.library, "testfilter", None)
 
-    extra_objects = []
-    for src in split.asm:
-        # include other .s as inputs, since they may be #included.
-        # This may result in multiple copies of symbols defined in included
-        # files, but go build allows it, so we do, too.
-        headers = split.headers + split.asm
-        extra_objects.append(go.asm(go, source = src, hdrs = headers))
-
     direct = [get_archive(dep) for dep in source.deps]
     runfiles = source.runfiles
     data_files = runfiles.files
@@ -62,7 +54,11 @@ def emit_archive(go, source = None):
     if covered:
         direct.append(go.coverdata)
 
-    if len(extra_objects) == 0 and not source.cgo_archives:
+    asmhdr = None
+    if split.asm:
+        asmhdr = go.declare_file(go, "go_asm.h")
+
+    if len(split.asm) == 0 and not source.cgo_archives:
         go.compile(
             go,
             sources = split.go,
@@ -82,7 +78,16 @@ def emit_archive(go, source = None):
             out_lib = partial_lib,
             gc_goopts = source.gc_goopts,
             testfilter = testfilter,
+            asmhdr = asmhdr,
         )
+
+        # include other .s as inputs, since they may be #included.
+        # This may result in multiple copies of symbols defined in included
+        # files, but go build allows it, so we do, too.
+        asm_headers = split.headers + split.asm + [asmhdr]
+        extra_objects = []
+        for src in split.asm:
+            extra_objects.append(go.asm(go, source = src, hdrs = asm_headers))
         go.pack(
             go,
             in_lib = partial_lib,

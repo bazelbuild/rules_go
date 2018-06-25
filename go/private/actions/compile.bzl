@@ -38,7 +38,8 @@ def emit_compile(
         archives = [],
         out_lib = None,
         gc_goopts = [],
-        testfilter = None):
+        testfilter = None,
+        asmhdr = None):
     """See go/toolchains.rst#compile for full documentation."""
 
     if sources == None:
@@ -54,6 +55,7 @@ def emit_compile(
     inputs = (sources + [go.package_list] +
               [archive.data.file for archive in archives] +
               go.sdk_tools + go.stdlib.files)
+    outputs = [out_lib]
 
     builder_args = go.args(go)
     builder_args.add(sources, before_each = "-src")
@@ -65,6 +67,9 @@ def emit_compile(
         builder_args.add(["-testfilter", testfilter])
 
     tool_args = go.actions.args()
+    if asmhdr:
+        tool_args.add(["-asmhdr", asmhdr.path])
+        outputs.append(asmhdr)
     tool_args.add(archives, before_each = "-I", map_fn = _searchpath)
     tool_args.add(["-trimpath", ".", "-I", "."])
 
@@ -87,7 +92,7 @@ def emit_compile(
     tool_args.add(go.toolchain.flags.compile)
     go.actions.run(
         inputs = inputs,
-        outputs = [out_lib],
+        outputs = outputs,
         mnemonic = "GoCompile",
         executable = go.builders.compile,
         arguments = [builder_args, "--", tool_args],

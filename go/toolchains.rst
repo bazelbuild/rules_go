@@ -643,6 +643,18 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | Additional flags to pass to the compiler.                                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
+| :param:`testfilter`            | :type:`string`              | :value:`"off"`                    |
++--------------------------------+-----------------------------+-----------------------------------+
+| Controls how files with a ``_test`` suffix are filtered.                                         |
+|                                                                                                  |
+| * ``"off"`` - files with and without a ``_test`` suffix are compiled.                            |
+| * ``"only"`` - only files with a ``_test`` suffix are compiled.                                  |
+| * ``"exclude"`` - only files without a ``_test`` suffix are compiled.                            |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`asmhdr`                | :type:`File`                | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| If provided, the compiler will write an assembly header to this file.                            |
++--------------------------------+-----------------------------+-----------------------------------+
 
 
 cover
