@@ -18,7 +18,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"syscall"
 )
 
@@ -33,5 +36,15 @@ func main() {
 		}
 		newArgs = append(newArgs, arg)
 	}
-	syscall.Exec(newArgs[0], newArgs, os.Environ())
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command(newArgs[0], newArgs[1:]...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Println("error executing command %v: %v", newArgs[0], err)
+			os.Exit(1)
+		}
+	} else {
+		syscall.Exec(newArgs[0], newArgs, os.Environ())
+	}
 }
