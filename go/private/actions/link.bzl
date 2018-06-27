@@ -159,7 +159,9 @@ def _bootstrap_link(go, archive, executable, gc_linkopts):
         inputs = inputs,
         outputs = [executable],
         mnemonic = "GoLink",
-        command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && {} {}".format(go.root, go.go.path, " ".join(args)),
+         # workaround: go link tool needs some features of gcc to complete the job on Arm platform.
+         # So, PATH for 'gcc' is required here on Arm platform.
+        command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && export PATH={} && {} {}".format(go.root, go.cgo_tools.compiler_path, go.go.path, " ".join(args)),
     )
 
 def _extract_extldflags(gc_linkopts, extldflags):
