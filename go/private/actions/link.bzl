@@ -132,6 +132,8 @@ def emit_link(
     if extldflags:
         tool_args.add(["-extldflags", " ".join(extldflags)])
 
+    builder_args.use_param_file("@%s")
+    builder_args.set_param_file_format("multiline")
     go.actions.run(
         inputs = sets.union(
             archive.libs,
