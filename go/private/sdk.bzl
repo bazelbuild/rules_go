@@ -37,6 +37,10 @@ def _go_download_sdk_impl(ctx):
                 host = "linux_ppc64le"
             elif uname == "i686":
                 host = "linux_386"
+            elif uname in ["armv6l", "armv7l"]:
+                host = "linux_armv6l"
+            elif uname == "aarch64":
+                host = "linux_arm64"
 
         # Default to amd64 when uname doesn't return a known value.
 
