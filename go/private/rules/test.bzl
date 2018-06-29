@@ -42,6 +42,11 @@ load(
     "go_rule",
 )
 load(
+    "@io_bazel_rules_go//go/platform:list.bzl",
+    "GOARCH",
+    "GOOS",
+)
+load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_NORMAL",
 )
@@ -209,6 +214,14 @@ go_test = go_rule(
                 "off",
                 "auto",
             ],
+            default = "auto",
+        ),
+        "goos": attr.string(
+            values = GOOS.keys() + ["auto"],
+            default = "auto",
+        ),
+        "goarch": attr.string(
+            values = GOARCH.keys() + ["auto"],
             default = "auto",
         ),
         "gc_goopts": attr.string_list(),
