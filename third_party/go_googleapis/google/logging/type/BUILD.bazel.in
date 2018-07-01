@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "ltype_proto",
+    srcs = [
+        "http_request.proto",
+        "log_severity.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "@com_google_protobuf//:duration_proto",
+    ],
+)
+
+go_proto_library(
+    name = "ltype_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/logging/type",
+    proto = ":ltype_proto",
+    visibility = ["//visibility:public"],
+    deps = ["//google/api:annotations_go_proto"],
+)

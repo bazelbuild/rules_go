@@ -145,6 +145,13 @@ def go_rules_dependencies():
         # TODO(jayconrod): incorporate manual changes when regenerating build
         # files. This repo contains aliases for //proto/wkt targets.
     )
+    _maybe(
+        git_repository,
+        name = "go_googleapis",
+        remote = "https://github.com/googleapis/googleapis",
+        commit = "6a3277c0656219174ff7c345f31fb20a90b30b97",  # master as of 2018-07-01
+        overlay = manifest["go_googleapis"],
+    )
 
     # Needed for examples
     _maybe(

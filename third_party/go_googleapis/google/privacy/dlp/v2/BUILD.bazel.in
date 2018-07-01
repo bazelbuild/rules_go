@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "dlp_proto",
+    srcs = [
+        "dlp.proto",
+        "storage.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/rpc:status_proto",
+        "//google/type:date_proto",
+        "//google/type:dayofweek_proto",
+        "//google/type:timeofday_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "dlp_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/privacy/dlp/v2",
+    proto = ":dlp_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/rpc:status_go_proto",
+        "//google/type:date_go_proto",
+        "//google/type:dayofweek_go_proto",
+        "//google/type:timeofday_go_proto",
+    ],
+)

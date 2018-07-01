@@ -1,0 +1,159 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "annotations_proto",
+    srcs = [
+        "annotations.proto",
+        "http.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:descriptor_proto"],
+)
+
+proto_library(
+    name = "configchange_proto",
+    srcs = ["config_change.proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "distribution_proto",
+    srcs = ["distribution.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":annotations_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+proto_library(
+    name = "httpbody_proto",
+    srcs = ["httpbody.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:any_proto"],
+)
+
+proto_library(
+    name = "label_proto",
+    srcs = ["label.proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "metric_proto",
+    srcs = ["metric.proto"],
+    visibility = ["//visibility:public"],
+    deps = [":label_proto"],
+)
+
+proto_library(
+    name = "monitoredres_proto",
+    srcs = ["monitored_resource.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":label_proto",
+        "@com_google_protobuf//:struct_proto",
+    ],
+)
+
+proto_library(
+    name = "serviceconfig_proto",
+    srcs = [
+        "auth.proto",
+        "backend.proto",
+        "billing.proto",
+        "consumer.proto",
+        "context.proto",
+        "control.proto",
+        "documentation.proto",
+        "endpoint.proto",
+        "log.proto",
+        "logging.proto",
+        "monitoring.proto",
+        "quota.proto",
+        "service.proto",
+        "source_info.proto",
+        "system_parameter.proto",
+        "usage.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":annotations_proto",
+        ":label_proto",
+        ":metric_proto",
+        ":monitoredres_proto",
+        "//google/api/experimental:api_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:api_proto",
+        "@com_google_protobuf//:type_proto",
+        "@com_google_protobuf//:wrappers_proto",
+    ],
+)
+
+go_proto_library(
+    name = "annotations_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api/annotations",
+    proto = ":annotations_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "configchange_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api/configchange",
+    proto = ":configchange_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "distribution_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api/distribution",
+    proto = ":distribution_proto",
+    visibility = ["//visibility:public"],
+    deps = [":annotations_go_proto"],
+)
+
+go_proto_library(
+    name = "httpbody_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api/httpbody",
+    proto = ":httpbody_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "label_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api/label",
+    proto = ":label_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "metric_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api/metric",
+    proto = ":metric_proto",
+    visibility = ["//visibility:public"],
+    deps = [":label_go_proto"],
+)
+
+go_proto_library(
+    name = "monitoredres_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api/monitoredres",
+    proto = ":monitoredres_proto",
+    visibility = ["//visibility:public"],
+    deps = [":label_go_proto"],
+)
+
+go_proto_library(
+    name = "serviceconfig_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/api/serviceconfig",
+    proto = ":serviceconfig_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":annotations_go_proto",
+        ":label_go_proto",
+        ":metric_go_proto",
+        ":monitoredres_go_proto",
+        "//google/api/experimental:api_go_proto",
+    ],
+)

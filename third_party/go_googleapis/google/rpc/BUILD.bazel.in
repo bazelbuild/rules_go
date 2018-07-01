@@ -1,0 +1,46 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "code_proto",
+    srcs = ["code.proto"],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "errdetails_proto",
+    srcs = ["error_details.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:duration_proto"],
+)
+
+proto_library(
+    name = "status_proto",
+    srcs = ["status.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_protobuf//:any_proto"],
+)
+
+go_proto_library(
+    name = "code_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/rpc/code",
+    proto = ":code_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "errdetails_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/rpc/errdetails",
+    proto = ":errdetails_proto",
+    visibility = ["//visibility:public"],
+)
+
+# gRPC imports this proto (and only this proto), so we'll get the
+# pre-generated version of this library in any build that depends
+# on gRPC (whether we want to use pre-generated .pb.go files or not).
+# To avoid conflicts, this must be an alias for the pre-generated
+# version of that library.
+alias(
+    name = "status_go_proto",
+    actual = "@org_golang_google_genproto//googleapis/rpc/status:go_default_library",
+    visibility = ["//visibility:public"],
+)
