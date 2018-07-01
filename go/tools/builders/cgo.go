@@ -74,6 +74,8 @@ func run(args []string) error {
 	// also pick out the cgo sources
 	cgoSrcs := []string{}
 	cgoOuts := []string{}
+	cgoCOuts := []string{}
+	objDirs := make(map[string]bool)
 	pkgName := ""
 	for _, s := range sources {
 		bits := strings.SplitN(s, "=", 2)
@@ -139,6 +141,8 @@ func run(args []string) error {
 			}
 			cgoSrcs = append(cgoSrcs, srcInBase)
 			cgoOuts = append(cgoOuts, out)
+			cgoCOuts = append(cgoCOuts, cOut)
+			objDirs[filepath.Dir(out)] = true
 		} else {
 			// Non cgo file, copy the go and fake the c
 			if err := ioutil.WriteFile(out, data, 0644); err != nil {
@@ -192,10 +196,21 @@ func run(args []string) error {
 
 	// Now we fix up the generated files
 	for _, src := range cgoOuts {
-		if err := fixupLineComments(src); err != nil {
+		if err := fixupLineComments(src, abs("."), false); err != nil {
 			return err
 		}
 	}
+	for _, src := range cgoCOuts {
+		if err := fixupLineComments(src, srcDir, true); err != nil {
+			return err
+		}
+	}
+	for objDir, _ := range objDirs {
+		if err := fixupLineComments(filepath.Join(objDir, "_cgo_export.h"), srcDir, true); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -245,18 +260,25 @@ func splitQuoted(s string) (r []string, err error) {
 	return args, err
 }
 
-// removes the abs prefix from //line comments to make source files reproducable
-func fixupLineComments(filename string) error {
-	const linePrefix = "//line "
-	trim := linePrefix + abs(".")
+// removes the srcDir prefix from //line or #line comments to make source files reproducible
+func fixupLineComments(filename, srcDir string, cFile bool) error {
+	const goFileLinePrefix = "//line "
+	const cFileLinePrefix = "#line "
+	goFileTrim := goFileLinePrefix + srcDir
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
 	lines := strings.Split(string(body), "\n")
 	for i, line := range lines {
-		if strings.HasPrefix(line, trim) {
-			lines[i] = linePrefix + line[len(trim)+1:]
+		if cFile {
+			if strings.HasPrefix(line, cFileLinePrefix) {
+				lines[i] = strings.Replace(line, srcDir, "", 1)
+			}
+		} else {
+			if strings.HasPrefix(line, goFileTrim) {
+				lines[i] = goFileLinePrefix + line[len(goFileTrim)+1:]
+			}
 		}
 	}
 	if err := ioutil.WriteFile(filename, []byte(strings.Join(lines, "\n")), 0666); err != nil {
