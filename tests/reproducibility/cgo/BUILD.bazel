@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_binary")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "add.c",
+        "add.cpp",
+        "add.h",
+        "adder.go",
+        "main.go",
+    ],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/reproducibility/cgo",
+    visibility = ["//tests/reproducibility:__pkg__"],
+)
+
+go_binary(
+    name = "cgo",
+    embed = [":go_default_library"],
+    linkmode = "c-archive",
+    visibility = ["//visibility:public"],
+)

@@ -22,6 +22,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func md5SumFile(filename string) ([]byte, error) {
@@ -55,11 +56,25 @@ func run(args []string) error {
 		defer f.Close()
 		to = f
 	}
-	for _, filename := range flags.Args() {
-		if b, err := md5SumFile(filename); err != nil {
+	for _, path := range flags.Args() {
+		walkFn := func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				return nil
+			}
+
+			if b, err := md5SumFile(path); err != nil {
+				return err
+			} else {
+				fmt.Fprintf(to, "%s  %x\n", path, b)
+			}
+			return nil
+		}
+
+		if err := filepath.Walk(path, walkFn); err != nil {
 			return err
-		} else {
-			fmt.Fprintf(to, "%s  %x\n", filename, b)
 		}
 	}
 	return nil

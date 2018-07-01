@@ -20,19 +20,20 @@ load(
 )
 
 # _bazelrc is the bazel.rc file that sets the default options for tests
-_bazelrc = """
+def _bazelrc(strategy):
+    return """
 build --verbose_failures
 build --sandbox_debug
 build --test_output=errors
-build --spawn_strategy=standalone
-build --genrule_strategy=standalone
+build --spawn_strategy={strategy}
+build --genrule_strategy={strategy}
 
-test --test_strategy=standalone
+test --test_strategy={strategy}
 test --nocache_test_results
 
 build:isolate --
 build:fetch --fetch=True
-"""
+""".format(strategy = strategy)
 
 # _basic_workspace is the content appended to all test workspace files
 # it contains the calls required to make the go rules work
@@ -59,7 +60,19 @@ if [ "${{#extra_files[@]}}" -ne 0 ]; then
 fi
 cd {work_dir}
 
-{bazel} --bazelrc {bazelrc} {command} --experimental_repository_cache={cache_dir} --config {config} {args} {target} >& bazel-output.txt
+output_base_arg=""
+if (( {clean_build} )); then
+  tmp_output_base="$(mktemp -d)"
+  output_base_arg="--output_base=${{tmp_output_base}}"
+fi
+
+cmd=(
+{bazel} --bazelrc {bazelrc} ${{output_base_arg}} {command}
+--experimental_repository_cache={cache_dir} --config {config} {args}
+{target}
+)
+echo "${{cmd[*]}}" >bazel-output.txt
+"${{cmd[@]}}" >>bazel-output.txt 2>&1
 result=$?
 
 function at_exit {{
@@ -76,6 +89,10 @@ function at_exit {{
       echo "----- $log end -----"
     fi
   done
+  if (( {clean_build} )); then
+    {bazel} --bazelrc {bazelrc} ${{output_base_arg}} clean &> /dev/null
+    {bazel} --bazelrc {bazelrc} ${{output_base_arg}} shutdown &> /dev/null
+  fi
 }}
 trap at_exit EXIT
 
@@ -95,8 +112,13 @@ bazel_test_settings(
   visibility = ["//visibility:public"],
 )
 filegroup(
-  name = "bazelrc",
+  name = "standalone_bazelrc",
   srcs = ["test.bazelrc"],
+  visibility = ["//visibility:public"],
+)
+filegroup(
+  name = "sandboxed_bazelrc",
+  srcs = ["sandboxed_test.bazelrc"],
   visibility = ["//visibility:public"],
 )
 """
@@ -150,7 +172,7 @@ def _bazel_test_script_impl(ctx):
         ]
 
     script_content = _bazel_test_script_template.format(
-        bazelrc = shell.quote(ctx.attr._settings.exec_root + "/" + ctx.file._bazelrc.path),
+        bazelrc = shell.quote(ctx.attr._settings.exec_root + "/" + ctx.file.bazelrc.path),
         config = ctx.attr.config,
         extra_files = " ".join([shell.quote(paths.join(ctx.attr._settings.exec_root, "execroot", "io_bazel_rules_go", file.path)) for file in ctx.files.extra_files]),
         command = ctx.attr.command,
@@ -164,6 +186,7 @@ def _bazel_test_script_impl(ctx):
         bazel = ctx.attr._settings.bazel,
         work_dir = shell.quote(ctx.attr._settings.scratch_dir + "/" + ctx.attr.config),
         cache_dir = shell.quote(ctx.attr._settings.scratch_dir + "/cache"),
+        clean_build = "1" if ctx.attr.clean_build else "0",
     )
     ctx.actions.write(output = script_file, is_executable = True, content = script_content)
     return struct(
@@ -199,16 +222,17 @@ _bazel_test_script = go_rule(
             allow_files = True,
             cfg = "data",
         ),
-        "_bazelrc": attr.label(
+        "clean_build": attr.bool(default = False),
+        "bazelrc": attr.label(
             allow_files = True,
             single_file = True,
-            default = "@bazel_test//:bazelrc",
+            default = "@bazel_test//:standalone_bazelrc",
         ),
         "_settings": attr.label(default = Label("@bazel_test//:settings")),
     },
 )
 
-def bazel_test(name, command = None, args = None, targets = None, go_version = None, tags = [], externals = [], workspace = "", build = "", check = "", config = None, extra_files = []):
+def bazel_test(name, command = None, args = None, targets = None, go_version = None, tags = [], externals = [], workspace = "", build = "", check = "", config = None, extra_files = [], standalone = True, clean_build = False):
     script_name = name + "_script"
     externals = externals + [
         "@io_bazel_rules_go//:AUTHORS",
@@ -216,18 +240,22 @@ def bazel_test(name, command = None, args = None, targets = None, go_version = N
     if go_version == None or go_version == CURRENT_VERSION:
         externals.append("@go_sdk//:packages.txt")
 
+    bazelrc = "@bazel_test//:standalone_bazelrc" if standalone else "@bazel_test//:sandboxed_bazelrc"
+
     _bazel_test_script(
         name = script_name,
-        command = command,
         args = args,
-        targets = targets,
-        externals = externals,
-        go_version = go_version,
-        workspace = workspace,
+        bazelrc = bazelrc,
         build = build,
         check = check,
+        clean_build = clean_build,
+        command = command,
         config = config,
+        externals = externals,
         extra_files = extra_files,
+        go_version = go_version,
+        targets = targets,
+        workspace = workspace,
     )
     native.sh_test(
         name = name,
@@ -237,7 +265,7 @@ def bazel_test(name, command = None, args = None, targets = None, go_version = N
         tags = ["local", "bazel", "exclusive"] + tags,
         data = [
             "@bazel_gazelle//cmd/gazelle",
-            "@bazel_test//:bazelrc",
+            bazelrc,
             "@io_bazel_rules_go//tests:rules_go_deps",
         ],
     )
@@ -299,16 +327,17 @@ def _test_environment_impl(ctx):
         exec_root = exec_root,
         scratch_dir = scratch_dir,
     ))
-    ctx.file("test.bazelrc", content = _bazelrc)
+    ctx.file("test.bazelrc", content = _bazelrc("standalone"))
+    ctx.file("sandboxed_test.bazelrc", content = _bazelrc("sandboxed"))
 
 _test_environment = repository_rule(
-    implementation = _test_environment_impl,
     attrs = {},
     environ = [
         "BAZEL",
         "BAZEL_VERSION",
         "HOME",
     ],
+    implementation = _test_environment_impl,
 )
 
 def _bazel_test_settings_impl(ctx):

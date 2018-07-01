@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test", "md5_sum")
+
+# A test script that, when run, builds the given targets in a clean build state
+# with sandboxed strategy, and outputs their md5 digests from the build with
+# ___MD5___ prefix to each line.
+bazel_test(
+    name = "collect_digests",
+    check = """
+print_digests() {
+  if (( result == 0 )); then
+    echo "#### BEGIN DIGESTS ####"
+    pushd bazel-bin
+    set -o pipefail
+
+    external/io_bazel_rules_go/go/tools/builders/*/md5sum . | \
+      # TODO: Find why .lo files are not reproducible.
+      grep -v '\.lo ' | \
+      grep -v 'MANIFEST ' | \
+      grep -v 'runfiles_manifest ' | \
+      sed -e 's/^/___MD5___ /'
+    result=$?
+
+    set +o pipefail
+    popd
+    echo "#### END DIGESTS ####"
+  fi
+}
+print_digests
+""",
+    clean_build = True,
+    command = "build",
+    standalone = False,
+    targets = [
+        "@io_bazel_rules_go//go/tools/builders:md5sum",
+        "@io_bazel_rules_go//tests/reproducibility/cgo",
+    ],
+)
+
+# A test that runs the above test script twice and diffs the output.
+sh_test(
+    name = "reproducibility",
+    size = "large",
+    timeout = "moderate",
+    srcs = ["test.sh"],
+    data = [":collect_digests"],
+    tags = [
+        "bazel",
+        "exclusive",
+        "local",
+    ],
+)
