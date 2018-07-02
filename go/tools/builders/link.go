@@ -98,7 +98,7 @@ This will be an error in the future.`, pkgPath, label, conflictLabel)
 			return fmt.Errorf("package file name %q must have searchable suffix %q", pkgFile, pkgSuffix)
 		}
 		searchPath := pkgFile[:len(pkgFile)-len(pkgSuffix)]
-		goargs = append(goargs, "-L", searchPath)
+		goargs = append(goargs, "-L", abs(searchPath))
 	}
 	for _, xdef := range xstamps {
 		split := strings.SplitN(xdef, "=", 2)
