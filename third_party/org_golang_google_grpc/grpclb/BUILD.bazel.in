@@ -1,24 +1,8 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
-go_test(
-    name = "go_default_test",
-    srcs = ["grpclb_test.go"],
-    deps = [
-        "//:go_default_library",
-        "//balancer:go_default_library",
-        "//codes:go_default_library",
-        "//credentials:go_default_library",
-        "//grpclb/grpc_lb_v1/messages:go_default_library",
-        "//grpclb/grpc_lb_v1/service:go_default_library",
-        "//grpclog/glogger:go_default_library",
-        "//metadata:go_default_library",
-        "//peer:go_default_library",
-        "//resolver:go_default_library",
-        "//resolver/manual:go_default_library",
-        "//status:go_default_library",
-        "//test/grpc_testing:go_default_library",
-        "//test/leakcheck:go_default_library",
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@org_golang_x_net//context:go_default_library",
-    ],
+go_library(
+    name = "go_default_library",
+    srcs = ["noimport.go"],
+    importpath = "google.golang.org/grpc/grpclb",
+    visibility = ["//visibility:public"],
 )

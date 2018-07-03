@@ -6,8 +6,8 @@ go_library(
     importpath = "google.golang.org/genproto/protobuf/api",
     visibility = ["//visibility:public"],
     deps = [
+        "//protobuf/ptype:go_default_library",
+        "//protobuf/source_context:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:source_context_go_proto",
-        "@io_bazel_rules_go//proto/wkt:type_go_proto",
     ],
 )

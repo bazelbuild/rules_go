@@ -88,9 +88,9 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "com_google_protobuf",
-        # v3.5.1, latest as of 2018-01-11
-        urls = ["https://codeload.github.com/google/protobuf/zip/ab8edf1dbe2237b4717869eaab11a2998541ad8d"],
-        strip_prefix = "protobuf-ab8edf1dbe2237b4717869eaab11a2998541ad8d",
+        # v3.6.0.1, latest as of 2018-07-03
+        urls = ["https://codeload.github.com/google/protobuf/zip/ce044817c7ba0aea27c3fd8e496635d94d20a755"],
+        strip_prefix = "protobuf-ce044817c7ba0aea27c3fd8e496635d94d20a755",
         type = "zip",
     )
     _maybe(
@@ -103,15 +103,19 @@ def go_rules_dependencies():
         build_file_proto_mode = "disable",
         importpath = "github.com/mwitkow/go-proto-validators",
     )
-    _maybe(
-        go_repository,
+    # _maybe(
+    #     go_repository,
+    #     name = "com_github_gogo_protobuf",
+    #     remote = "https://github.com/gogo/protobuf",
+    #     vcs = "git",
+    #     commit = "1adfc126b41513cc696b209667c8656ea7aac67c",  # v1.0.0, as of 2018-07-03
+    #     # overlay = manifest["com_github_gogo_protobuf"],
+    #     importpath = "github.com/gogo/protobuf",
+    #     build_file_proto_mode = "legacy",
+    # )
+    native.local_repository(
         name = "com_github_gogo_protobuf",
-        remote = "https://github.com/gogo/protobuf",
-        vcs = "git",
-        commit = "1adfc126b41513cc696b209667c8656ea7aac67c",  # v1.0.0, as of 2018-07-03
-        # overlay = manifest["com_github_gogo_protobuf"],
-        importpath = "github.com/gogo/protobuf",
-        build_file_proto_mode = "legacy",
+        path = "/usr/local/google/home/jayconrod/go/src/github.com/gogo/protobuf",
     )
     _maybe(
         gogo_special_proto,

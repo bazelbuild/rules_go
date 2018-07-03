@@ -17,3 +17,13 @@ go_test(
         "//vanity/test/slick:go_default_library",
     ],
 )
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = [
+        "gogovanity.proto",
+        "proto3.proto",
+        "vanity.proto",
+    ],
+    visibility = ["//visibility:public"],
+)

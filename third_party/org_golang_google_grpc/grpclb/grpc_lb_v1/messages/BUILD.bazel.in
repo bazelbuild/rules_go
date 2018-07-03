@@ -5,5 +5,9 @@ go_library(
     srcs = ["messages.pb.go"],
     importpath = "google.golang.org/grpc/grpclb/grpc_lb_v1/messages",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_golang_protobuf//proto:go_default_library"],
+    deps = [
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:duration_go_proto",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+    ],
 )

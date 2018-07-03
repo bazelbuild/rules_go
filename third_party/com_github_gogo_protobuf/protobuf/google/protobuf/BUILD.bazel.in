@@ -1,0 +1,14 @@
+filegroup(
+    name = "go_default_library_protos",
+    srcs = [
+        "any.proto",
+        "descriptor.proto",
+        "duration.proto",
+        "empty.proto",
+        "field_mask.proto",
+        "struct.proto",
+        "timestamp.proto",
+        "wrappers.proto",
+    ],
+    visibility = ["//visibility:public"],
+)

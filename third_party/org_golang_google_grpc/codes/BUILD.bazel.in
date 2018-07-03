@@ -14,5 +14,5 @@ go_test(
     name = "go_default_test",
     srcs = ["codes_test.go"],
     embed = [":go_default_library"],
-    deps = ["@org_golang_google_genproto//googleapis/rpc/code:go_default_library"],
+    deps = ["@go_googleapis//google/rpc:code_go_proto"],
 )

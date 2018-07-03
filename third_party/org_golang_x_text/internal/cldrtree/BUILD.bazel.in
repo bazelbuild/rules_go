@@ -22,6 +22,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = ["cldrtree_test.go"],
+    data = glob(["testdata/**"]),
     embed = [":go_default_library"],
     deps = [
         "//internal/gen:go_default_library",

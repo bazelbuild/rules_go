@@ -36,7 +36,6 @@ go_library(
         "//http/httpguts:go_default_library",
         "//http2/hpack:go_default_library",
         "//idna:go_default_library",
-        "//lex/httplex:go_default_library",
     ],
 )
 

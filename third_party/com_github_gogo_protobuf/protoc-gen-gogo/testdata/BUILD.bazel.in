@@ -11,3 +11,18 @@ go_test(
         "//protoc-gen-gogo/testdata/my_test:go_default_library",
     ],
 )
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = [
+        "extension_base.proto",
+        "extension_extra.proto",
+        "extension_user.proto",
+        "grpc.proto",
+        "imp.proto",
+        "imp2.proto",
+        "imp3.proto",
+        "proto3.proto",
+    ],
+    visibility = ["//visibility:public"],
+)
