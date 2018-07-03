@@ -6,8 +6,10 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-alias(
+go_library(
     name = "go_default_library",
-    actual = "@io_bazel_rules_go//proto/wkt:struct_go_proto",
+    srcs = ["struct.pb.go"],
+    importpath = "github.com/golang/protobuf/ptypes/struct",
     visibility = ["//visibility:public"],
+    deps = ["//proto:go_default_library"],
 )
