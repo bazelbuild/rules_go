@@ -100,7 +100,7 @@ def go_rules_dependencies():
         vcs = "git",
         commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2018-05-07
         # overlay = manifest["com_github_mwitkow_go_proto_validators"],
-        build_file_proto_mode = "package",
+        build_file_proto_mode = "disable",
         importpath = "github.com/mwitkow/go-proto-validators",
     )
     _maybe(
