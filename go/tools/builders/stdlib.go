@@ -66,7 +66,7 @@ func run(args []string) error {
 	os.Setenv("PATH", strings.Join(absPaths, string(os.PathListSeparator)))
 
 	// Strip path prefix from source files in debug information.
-	os.Setenv("CGO_CFLAGS", os.Getenv("CGO_CFLAGS")+" -fdebug-prefix-map="+abs(".")+"=")
+	os.Setenv("CGO_CFLAGS", os.Getenv("CGO_CFLAGS")+" -fdebug-prefix-map="+abs(".")+string(os.PathSeparator)+"=")
 
 	// Build the commands needed to build the std library in the right mode
 	installArgs := goenv.goCmd("install", "-toolexec", abs(*filterBuildid))

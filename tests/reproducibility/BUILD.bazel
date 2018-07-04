@@ -1,4 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test", "md5_sum")
+
+go_test(
+    name = "go_default_test",
+    srcs = ["reproducible_binary_test.go"],
+    args = ["$(location //tests/reproducibility/cgo)"],
+    data = ["//tests/reproducibility/cgo"],
+    rundir = ".",  # run in repo root instead of test dir
+)
 
 # A test script that, when run, builds the given targets in a clean build state
 # with sandboxed strategy, and outputs their md5 digests from the build with
@@ -34,6 +43,8 @@ print_digests
         "@io_bazel_rules_go//go/tools/builders:md5sum",
         "@io_bazel_rules_go//tests/reproducibility/cgo",
     ],
+    tags = ["manual"],
+    args = ["--compilation_mode=dbg"],
 )
 
 # A test that runs the above test script twice and diffs the output.

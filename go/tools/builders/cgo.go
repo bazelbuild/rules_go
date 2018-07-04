@@ -273,7 +273,7 @@ func fixupLineComments(filename, srcDir string, cFile bool) error {
 	for i, line := range lines {
 		if cFile {
 			if strings.HasPrefix(line, cFileLinePrefix) {
-				lines[i] = strings.Replace(line, srcDir, "", 1)
+				lines[i] = strings.Replace(line, srcDir+string(os.PathSeparator), "", 1)
 			}
 		} else {
 			if strings.HasPrefix(line, goFileTrim) {
