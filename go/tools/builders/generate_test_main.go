@@ -119,15 +119,15 @@ func testsInShard() []testing.InternalTest {
 
 func main() {
 	// Check if we're being run by Bazel and change directories if so.
-	// TEST_SRCDIR is set by the Bazel test runner, so that makes a decent proxy.
-	if _, ok := os.LookupEnv("TEST_SRCDIR"); ok {
-		abs, absErr := filepath.Abs({{printf "%q" .RunDir}})
-		if err := os.Chdir({{printf "%q" .RunDir}}); err != nil {
+	// TEST_SRCDIR and TEST_WORKSPACE are set by the Bazel test runner, so that makes a decent proxy.
+	testSrcdir := os.Getenv("TEST_SRCDIR")
+	testWorkspace := os.Getenv("TEST_WORKSPACE")
+	if testSrcdir != "" && testWorkspace != "" {
+		abs := filepath.Join(testSrcdir, testWorkspace, {{printf "%q" .RunDir}})
+		if err := os.Chdir(abs); err != nil {
 			log.Fatalf("could not change to test directory: %v", err)
 		}
-		if absErr == nil {
-			os.Setenv("PWD", abs)
-		}
+		os.Setenv("PWD", abs)
 	}
 
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
