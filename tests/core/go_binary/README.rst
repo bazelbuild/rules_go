@@ -5,8 +5,14 @@ Basic go_binary functionality
 
 Tests to ensure the basic features of go_binary are working as expected.
 
+hello
+-----
+
+Hello is a basic "hello world" program that doesn't do anything interesting.
+Useful as a primitive smoke test -- if this doesn't build, nothing will.
+
 out_test
 --------
 
-Test that a go_binary_ rule can write its executable file with a custom name
+Test that a `go_binary`_ rule can write its executable file with a custom name
 in the package directory (not the mode directory).

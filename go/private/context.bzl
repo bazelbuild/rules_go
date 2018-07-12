@@ -66,7 +66,7 @@ def _child_name(go, path, ext, name):
     childname = mode_string(go.mode) + "/"
     childname += name if name else go._ctx.label.name
     if path:
-        childname += "~/" + path
+        childname += "%/" + path
     if ext:
         childname += ext
     return childname
