@@ -28,6 +28,19 @@ LINKMODE_C_ARCHIVE = "c-archive"
 
 LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]
 
+def new_mode(goos, goarch, static = False, race = False, msan = False, pure = False, link = LINKMODE_NORMAL, debug = False, strip = False):
+    return struct(
+        static = static,
+        race = race,
+        msan = msan,
+        pure = pure,
+        link = link,
+        debug = debug,
+        strip = strip,
+        goos = goos,
+        goarch = goarch,
+    )
+
 def mode_string(mode):
     result = [mode.goos, mode.goarch]
     if mode.static:
@@ -121,3 +134,11 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
         goos = goos,
         goarch = goarch,
     )
+
+def mode_tags_equivalent(l, r):
+    """Returns whether two modes are equivalent for Go build tags. For example,
+    goos and goarch must match, but static doesn't matter."""
+    return (l.goos == r.goos and
+            l.goarch == r.goarch and
+            l.race == r.race and
+            l.msan == r.msan)

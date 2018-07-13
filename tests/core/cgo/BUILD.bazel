@@ -8,16 +8,16 @@ go_test(
 
 go_library(
     name = "opts",
-    cgo = True,
-    copts = ["-DRULES_GO_C"],
-    cxxopts = ["-DRULES_GO_CXX"],
-    cppopts = ["-DRULES_GO_CPP"],
     srcs = [
-        "add.h",
         "add.c",
         "add.cpp",
+        "add.h",
         "adder.go",
     ],
+    cgo = True,
+    copts = ["-DRULES_GO_C"],
+    cppopts = ["-DRULES_GO_CPP"],
+    cxxopts = ["-DRULES_GO_CXX"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/cxx",
 )
 
@@ -31,12 +31,12 @@ go_test(
 go_library(
     name = "dylib_client",
     srcs = ["dylib_client.go"],
-    cgo = True,
     cdeps = select({
         "@io_bazel_rules_go//go/platform:darwin": [":darwin_imported_dylib"],
         "//conditions:default": [":linux_imported_dylib"],
         # TODO(jayconrod): Support windows, skip others.
     }),
+    cgo = True,
     importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/dylib",
 )
 
@@ -66,4 +66,17 @@ genrule(
     outs = ["libimported.so"],
     cmd = "$(CC) -shared $< -o $@",
     tags = ["manual"],
+)
+
+go_test(
+    name = "race_test",
+    srcs = [
+        "race_off.c",
+        "race_off.go",
+        "race_on.c",
+        "race_on.go",
+        "race_test.go",
+    ],
+    cgo = True,
+    race = "on",
 )

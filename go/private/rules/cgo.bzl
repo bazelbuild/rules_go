@@ -39,9 +39,20 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
+    "mode_string",
+    "new_mode",
+)
+load(
+    "@io_bazel_rules_go//go/platform:list.bzl",
+    "GOOS",
+    "GOARCH",
+    "GOOS_GOARCH",
+    "MSAN_GOOS_GOARCH",
+    "RACE_GOOS_GOARCH",
 )
 
 _CgoCodegen = provider()
+_CgoInfo = provider()
 
 # Maximum number of characters in stem of base name for mangled cgo files.
 # Some file systems have fairly short limits (eCryptFS has a limit of 143),
@@ -124,6 +135,9 @@ def _include_unique(opts, flag, include, seen):
         return
     seen[include] = True
     opts.extend([flag, include])
+
+def _encode_cgo_mode(goos, goarch, race, msan):
+    return "_".join((goos, goarch, race, msan))
 
 def _cgo_codegen_impl(ctx):
     go = go_context(ctx)
@@ -287,7 +301,26 @@ _cgo_codegen = go_rule(
         "cxxopts": attr.string_list(),
         "cppopts": attr.string_list(),
         "linkopts": attr.string_list(),
-        "pure": attr.string(default = "off"),
+        # Attributes below are read into go.mode. They determine build tags
+        # which are used to filter sources. We need to set these explicitly,
+        # since the aspect won't reach this rule.
+        "goos": attr.string(
+            mandatory = True,
+            values = GOOS.keys(),
+        ),
+        "goarch": attr.string(
+            mandatory = True,
+            values = GOARCH.keys(),
+        ),
+        "race": attr.string(
+            values = ["on", "off"],
+            default = "off",
+        ),
+        "msan": attr.string(
+            values = ["on", "off"],
+            default = "off",
+        ),
+        "pure": attr.string(default = "off"), # never explicitly set
     },
 )
 
@@ -338,15 +371,16 @@ Args:
   out: Destination of the generated codes.
 """
 
-def _pure(ctx, mode):
-    return mode.pure
-
-def _not_pure(ctx, mode):
-    return not mode.pure
-
 def _cgo_resolve_source(go, attr, source, merge):
     library = source["library"]
-    cgo_info = library.cgo_info
+    cgo_mode = _encode_cgo_mode(go.mode.goos, go.mode.goarch, go.mode.race, go.mode.msan)
+    cgo_info = None
+    for target, target_cgo_mode in library.cgo_mode_info.items():
+        if cgo_mode == target_cgo_mode:
+            cgo_info = target[_CgoInfo]
+            break
+    if not cgo_info:
+        fail("{}: no matching cgo rules for mode {}".format(library.label, mode_string(go.mode)))
 
     source["orig_srcs"] = cgo_info.orig_srcs
     source["orig_src_map"] = cgo_info.transformed_go_map
@@ -371,11 +405,8 @@ def _cgo_collect_info_impl(ctx):
     import_files = as_list(ctx.files.cgo_import)
     runfiles = ctx.runfiles(collect_data = True)
     runfiles = runfiles.merge(ctx.attr.codegen.data_runfiles)
-
-    library = go.new_library(
-        go,
-        resolver = _cgo_resolve_source,
-        cgo_info = struct(
+    return [
+        _CgoInfo(
             orig_srcs = ctx.files.srcs,
             transformed_go_srcs = codegen.transformed_go,
             transformed_go_map = codegen.transformed_go_map,
@@ -385,12 +416,6 @@ def _cgo_collect_info_impl(ctx):
             cgo_archives = _select_archives(ctx.attr.libs),
             runfiles = runfiles,
         ),
-    )
-    source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
-
-    return [
-        source,
-        library,
         DefaultInfo(files = depset(), runfiles = runfiles),
     ]
 
@@ -413,15 +438,46 @@ _cgo_collect_info = go_rule(
         "cgo_import": attr.label(mandatory = True),
     },
 )
-"""No-op rule that collects information from _cgo_codegen and cc_library
-info into a GoSourceList provider for easy consumption."""
+"""No-op rule that collects mode-specific information from _cgo_codegen and
+cc_library info into a _CgoInfo provider for easy consumption."""
+
+def _cgo_select_embed_impl(ctx):
+    go = go_context(ctx)
+    library = go.new_library(
+        go,
+        resolver = _cgo_resolve_source,
+        cgo_mode_info = ctx.attr.info,
+    )
+    source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+    return [
+        library,
+        source,
+        DefaultInfo(files = depset(), runfiles = source.runfiles),
+    ]
+
+_cgo_select_embed = go_rule(
+    _cgo_select_embed_impl,
+    attrs = {
+        "info": attr.label_keyed_string_dict(
+            mandatory = True,
+            providers = [_CgoInfo],
+        ),
+    },
+)
+"""No-op rule that collects information about cgo rules in all supported
+modes, then builds GoLibrary and GoSource providers for the current mode."""
 
 def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, **common_attrs):
-    # Apply build constraints to source files (both Go and C) but not to header
-    # files. Separate filtered Go and C sources.
+    """Declares a graph of rules needed to build the cgo part of a go_library.
+    The graph is collected into a single rule which may be embedded in a
+    regular go_library.
 
-    # Run cgo on the filtered Go files. This will split them into pure Go files
-    # and pure C files, plus a few other glue files.
+    We build C/C++/ObjC code using cc_library / objc_library rules. We'd prefer
+    to create our own compile / link actions within a single rule, but we'd
+    almost certainly break something.
+    """
+
+    # Add some implicit flags for the current rule.
     repo_name = native.repository_name()
     base_dir = pkg_dir(
         "external/" + repo_name[1:] if len(repo_name) > 1 else "",
@@ -438,7 +494,39 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         for framework in objcopts.get("sdk_frameworks", []):
             clinkopts.append("-framework %s" % framework)
 
-    cgo_codegen_name = name + ".cgo_codegen"
+    # Declare cgo rules for each platform and race / msan configuration. We
+    # normally propagate mode attributes through an aspect, but we can't create
+    # alternate cc_library rules with an aspect.
+    cgo_mode_info = {}
+    for goos, goarch in GOOS_GOARCH:
+        cgo_info_name = setup_cgo_library_for_mode(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, goos, goarch, race = False, msan = False, **common_attrs)
+        cgo_mode_info[cgo_info_name] = _encode_cgo_mode(goos, goarch, race = False, msan = False)
+    for goos, goarch in RACE_GOOS_GOARCH:
+        cgo_info_name = setup_cgo_library_for_mode(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, goos, goarch, race = True, msan = False, **common_attrs)
+        cgo_mode_info[cgo_info_name] = _encode_cgo_mode(goos, goarch, race = True, msan = False)
+    for goos, goarch in MSAN_GOOS_GOARCH:
+        cgo_info_name = setup_cgo_library_for_mode(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, goos, goarch, race = False, msan = True, **common_attrs)
+        cgo_mode_info[cgo_info_name] = _encode_cgo_mode(goos, goarch, race = False, msan = True)
+
+    # Collect everything in a single embedable, aspect-friendly library.
+    cgo_embed_name = name + "%cgo_embed"
+    _cgo_select_embed(
+        name = cgo_embed_name,
+        info = cgo_mode_info,
+        visibility = ["//visibility:private"],
+        **common_attrs
+    )
+    return cgo_embed_name
+
+def setup_cgo_library_for_mode(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, goos, goarch, race, msan, **common_attrs):
+    mode = new_mode(
+        goos = goos,
+        goarch = goarch,
+        race = race,
+        msan = msan,
+    )
+    prefix = "{}%{}%".format(name, mode_string(mode))
+    cgo_codegen_name = prefix + "cgo_codegen"
     _cgo_codegen(
         name = cgo_codegen_name,
         srcs = srcs,
@@ -447,11 +535,15 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         cxxopts = cxxopts,
         cppopts = cppopts,
         linkopts = clinkopts,
+        goos = goos,
+        goarch = goarch,
+        race = "on" if race else "off",
+        msan = "on" if msan else "off",
         visibility = ["//visibility:private"],
         **common_attrs
     )
 
-    select_go_files = name + ".select_go_files"
+    select_go_files = prefix + "select_go_files"
     native.filegroup(
         name = select_go_files,
         srcs = [cgo_codegen_name],
@@ -460,7 +552,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         **common_attrs
     )
 
-    select_c_files = name + ".select_c_files"
+    select_c_files = prefix + "select_c_files"
     native.filegroup(
         name = select_c_files,
         srcs = [cgo_codegen_name],
@@ -469,7 +561,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         **common_attrs
     )
 
-    select_cxx_files = name + ".select_cxx_files"
+    select_cxx_files = prefix + "select_cxx_files"
     native.filegroup(
         name = select_cxx_files,
         srcs = [cgo_codegen_name],
@@ -478,7 +570,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         **common_attrs
     )
 
-    select_objc_files = name + ".select_objc_files"
+    select_objc_files = prefix + "select_objc_files"
     native.filegroup(
         name = select_objc_files,
         srcs = [cgo_codegen_name],
@@ -487,7 +579,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         **common_attrs
     )
 
-    select_main_c = name + ".select_main_c"
+    select_main_c = prefix + "select_main_c"
     native.filegroup(
         name = select_main_c,
         srcs = [cgo_codegen_name],
@@ -499,19 +591,16 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
     # Compile C sources and generated files into a library. This will be linked
     # into binaries that depend on this cgo_library. It will also be used
     # in _cgo_.o.
-    platform_copts = _DEFAULT_PLATFORM_COPTS
-    platform_linkopts = _DEFAULT_PLATFORM_LINKOPTS
-
-    cgo_c_lib_name = name + ".cgo_c_lib"
+    cgo_c_lib_name = prefix + "cgo_c_lib"
     native.cc_library(
         name = cgo_c_lib_name,
         srcs = [select_c_files],
         deps = cdeps,
-        copts = copts + cppopts + platform_copts + [
+        copts = copts + cppopts + _DEFAULT_PLATFORM_COPTS + [
             # The generated thunks often contain unused variables.
             "-Wno-unused-variable",
         ],
-        linkopts = clinkopts + platform_linkopts,
+        linkopts = clinkopts + _DEFAULT_PLATFORM_LINKOPTS,
         linkstatic = 1,
         # _cgo_.o needs all symbols because _cgo_import needs to see them.
         alwayslink = 1,
@@ -519,16 +608,16 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         **common_attrs
     )
 
-    cgo_cxx_lib_name = name + ".cgo_cxx_lib"
+    cgo_cxx_lib_name = prefix + "cgo_cxx_lib"
     native.cc_library(
         name = cgo_cxx_lib_name,
         srcs = [select_cxx_files],
         deps = cdeps,
-        copts = cxxopts + cppopts + platform_copts + [
+        copts = cxxopts + cppopts + _DEFAULT_PLATFORM_COPTS + [
             # The generated thunks often contain unused variables.
             "-Wno-unused-variable",
         ],
-        linkopts = clinkopts + platform_linkopts,
+        linkopts = clinkopts + _DEFAULT_PLATFORM_LINKOPTS,
         linkstatic = 1,
         # _cgo_.o needs all symbols because _cgo_import needs to see them.
         alwayslink = 1,
@@ -543,13 +632,13 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
     cgo_collect_info_libs = cgo_o_deps[:]
 
     if objc:
-        cgo_objc_lib_name = name + ".cgo_objc_lib"
+        cgo_objc_lib_name = prefix + "cgo_objc_lib"
         objcopts.update(common_attrs)
         native.objc_library(
             name = cgo_objc_lib_name,
             srcs = [select_objc_files],
             deps = cdeps,
-            copts = copts + cppopts + platform_copts + [
+            copts = copts + cppopts + _DEFAULT_PLATFORM_COPTS + [
                 # The generated thunks often contain unused variables.
                 "-Wno-unused-variable",
             ],
@@ -571,7 +660,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
 
     # Create a loadable object with no undefined references. cgo reads this
     # when it generates _cgo_import.go.
-    cgo_o_name = name + "._cgo_.o"
+    cgo_o_name = prefix + "_cgo_.o"
     native.cc_binary(
         name = cgo_o_name,
         srcs = [select_main_c],
@@ -583,7 +672,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
     )
 
     # Create a Go file which imports symbols from the C library.
-    cgo_import_name = name + ".cgo_import"
+    cgo_import_name = prefix + "cgo_import"
     _cgo_import(
         name = cgo_import_name,
         cgo_o = cgo_o_name,
@@ -592,18 +681,17 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         **common_attrs
     )
 
-    cgo_embed_name = name + ".cgo_embed"
+    cgo_info_name = prefix + "cgo_info"
     _cgo_collect_info(
-        name = cgo_embed_name,
+        name = cgo_info_name,
         srcs = srcs,
+        cgo_import = cgo_import_name,
         codegen = cgo_codegen_name,
         libs = cgo_collect_info_libs,
-        cgo_import = cgo_import_name,
         visibility = ["//visibility:private"],
         **common_attrs
     )
-
-    return cgo_embed_name
+    return cgo_info_name
 
 # Sets up the cc_ targets when a go_binary is built in either c-archive or
 # c-shared mode.
@@ -617,7 +705,7 @@ def go_binary_c_archive_shared(name, kwargs):
     cc_library_name = name + ".cc"
     tags = kwargs.get("tags", ["manual"])
     if "manual" not in tags:
-        # These archives can't be built on all platforms, so use "manual" tag.s
+        # These archives can't be built on all platforms, so use "manual" tags.
         tags.append("manual")
     native.filegroup(
         name = cgo_exports,

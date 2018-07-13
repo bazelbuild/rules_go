@@ -13,3 +13,9 @@ dylib_test
 Checks that Go binaries can link against dynamic C libraries. Some libraries
 (especially those provided with ``cc_import``) may only have dynamic versions,
 and we should be able to link against them and find them at run-time.
+
+race_test
+---------
+
+Checks that cgo code in a binary with ``race = "on"`` is compiled in race mode.
+Verifies #1592.

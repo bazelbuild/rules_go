@@ -82,6 +82,17 @@ GOOS_GOARCH = (
     ("windows", "amd64"),
 )
 
+RACE_GOOS_GOARCH = (
+    ("darwin", "amd64"),
+    ("freebsd", "amd64"),
+    ("linux", "amd64"),
+    ("windows", "amd64"),
+)
+
+MSAN_GOOS_GOARCH = (
+    ("linux", "amd64"),
+)
+
 def declare_config_settings():
     for goos in GOOS:
         native.config_setting(
