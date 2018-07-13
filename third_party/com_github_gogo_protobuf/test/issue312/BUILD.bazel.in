@@ -9,7 +9,7 @@ filegroup(
 go_library(
     name = "go_default_library",
     srcs = ["issue312.pb.go"],
-    importpath = "issue312",
+    importpath = "github.com/gogo/protobuf/test/issue312",
     visibility = ["//visibility:public"],
     deps = [
         "//gogoproto:go_default_library",

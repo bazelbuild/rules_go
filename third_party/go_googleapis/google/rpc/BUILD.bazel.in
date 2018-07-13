@@ -34,13 +34,10 @@ go_proto_library(
     visibility = ["//visibility:public"],
 )
 
-# gRPC imports this proto (and only this proto), so we'll get the
-# pre-generated version of this library in any build that depends
-# on gRPC (whether we want to use pre-generated .pb.go files or not).
-# To avoid conflicts, this must be an alias for the pre-generated
-# version of that library.
-alias(
+go_proto_library(
     name = "status_go_proto",
-    actual = "@org_golang_google_genproto//googleapis/rpc/status:go_default_library",
+    importpath = "google.golang.org/genproto/googleapis/rpc/status",
+    proto = ":status_proto",
     visibility = ["//visibility:public"],
+    deps = ["@io_bazel_rules_go//proto/wkt:any_go_proto"],
 )

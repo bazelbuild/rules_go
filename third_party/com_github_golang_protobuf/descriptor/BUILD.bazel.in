@@ -11,11 +11,24 @@ go_library(
     ],
 )
 
+go_library(
+    name = "go_default_library_gen",
+    srcs = ["descriptor.go"],
+    importpath = "github.com/golang/protobuf/descriptor",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//proto:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
+    ],
+)
+
+# keep
 go_test(
     name = "go_default_test",
     srcs = ["descriptor_test.go"],
     embed = [":go_default_library"],
     deps = [
+        ":go_default_library",
         "//proto/test_proto:go_default_library",
         "//protoc-gen-go/descriptor:go_default_library",
     ],

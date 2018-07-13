@@ -1,0 +1,8 @@
+filegroup(
+    name = "go_default_library_protos",
+    srcs = [
+        "a1.proto",
+        "a2.proto",
+    ],
+    visibility = ["//visibility:public"],
+)
