@@ -58,6 +58,5 @@ sh_test(
         "bazel",
         "exclusive",
         "local",
-        "manual",
     ],
 )
