@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "env_execute", "executable_extension")
+load("@io_bazel_rules_go//go/private:common.bzl", "env_execute", "executable_path")
 
 def _go_host_sdk_impl(ctx):
     path = _detect_host_sdk(ctx)
@@ -83,12 +83,14 @@ def _prepare(ctx):
     # need to read all source files. We need a portable way to run code though.
     result = env_execute(
         ctx,
-        arguments = ["bin/go" + executable_extension(ctx), "list", "..."],
-        environment = {"GOROOT": str(ctx.path("."))},
+        arguments = [executable_path(ctx, "./bin/go"), "list", "..."],
+        environment = {
+            "GOROOT": str(ctx.path(".")),
+            "GOPATH": "",
+        },
     )
     if result.return_code != 0:
-        print(result.stderr)
-        fail("failed to list standard packages")
+        fail("failed to list standard packages: code {}:\n{}".format(result.return_code, result.stdout + result.stderr))
     ctx.file("packages.txt", result.stdout)
     ctx.file("ROOT", "")
 
@@ -115,7 +117,7 @@ def _detect_host_sdk(ctx):
     root = "@invalid@"
     if "GOROOT" in ctx.os.environ:
         return ctx.os.environ["GOROOT"]
-    res = ctx.execute(["go" + executable_extension(ctx), "env", "GOROOT"])
+    res = ctx.execute([executable_path(ctx, "go"), "env", "GOROOT"])
     if res.return_code:
         fail("Could not detect host go version")
     root = res.stdout.strip()

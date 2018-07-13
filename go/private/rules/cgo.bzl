@@ -615,11 +615,16 @@ def go_binary_c_archive_shared(name, kwargs):
     c_hdrs = name + ".c_hdrs"
     cc_import_name = name + ".cc_import"
     cc_library_name = name + ".cc"
+    tags = kwargs.get("tags", ["manual"])
+    if "manual" not in tags:
+        # These archives can't be built on all platforms, so use "manual" tag.s
+        tags.append("manual")
     native.filegroup(
         name = cgo_exports,
         srcs = [name],
         output_group = "cgo_exports",
         visibility = ["//visibility:private"],
+        tags = tags,
     )
     native.genrule(
         name = c_hdrs,
@@ -627,6 +632,7 @@ def go_binary_c_archive_shared(name, kwargs):
         outs = ["%s.h" % name],
         cmd = "cat $(SRCS) > $(@)",
         visibility = ["//visibility:private"],
+        tags = tags,
     )
     cc_import_kwargs = {}
     if linkmode == LINKMODE_C_SHARED:
@@ -637,6 +643,7 @@ def go_binary_c_archive_shared(name, kwargs):
         name = cc_import_name,
         alwayslink = 1,
         visibility = ["//visibility:private"],
+        tags = tags,
         **cc_import_kwargs
     )
     native.cc_library(
@@ -648,4 +655,5 @@ def go_binary_c_archive_shared(name, kwargs):
         copts = _DEFAULT_PLATFORM_COPTS,
         linkopts = _DEFAULT_PLATFORM_COPTS,
         visibility = ["//visibility:public"],
+        tags = tags,
     )

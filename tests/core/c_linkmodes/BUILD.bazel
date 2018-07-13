@@ -1,31 +1,41 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 
-test_suite(
-    name = "c_archive",
-)
-
 go_binary(
     name = "adder_archive",
     srcs = ["add.go"],
     cgo = True,
-    linkmode = "c-archive"
+    linkmode = "c-archive",
+    tags = ["manual"],
 )
 
 cc_test(
     name = "c-archive_test",
-    srcs = ["add_test_archive.c"],
-    deps = [":adder_archive.cc"],
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:windows": ["skip.c"],
+        "//conditions:default": ["add_test_archive.c"],
+    }),
+    deps = select({
+        "@io_bazel_rules_go//go/platform:windows": [],
+        "//conditions:default": [":adder_archive.cc"],
+    }),
 )
 
 go_binary(
     name = "adder_shared",
     srcs = ["add.go"],
     cgo = True,
-    linkmode = "c-shared"
+    linkmode = "c-shared",
+    tags = ["manual"],
 )
 
 cc_test(
     name = "c-shared_test",
-    srcs = ["add_test_shared.c"],
-    deps = [":adder_shared.cc"],
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:windows": ["skip.c"],
+        "//conditions:default": ["add_test_shared.c"],
+    }),
+    deps = select({
+        "@io_bazel_rules_go//go/platform:windows": [],
+        "//conditions:default": [":adder_shared.cc"],
+    }),
 )

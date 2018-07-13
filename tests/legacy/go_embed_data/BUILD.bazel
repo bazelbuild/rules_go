@@ -93,6 +93,6 @@ genrule(
     name = "embedded_zip",
     srcs = [":BUILD.bazel"],
     outs = ["embedded_zip.zip"],
-    cmd = "$(location @bazel_tools//tools/zip:zipper/zipper) c $@ from-zip/BUILD.bazel=$(location :BUILD.bazel)",
-    tools = ["@bazel_tools//tools/zip:zipper/zipper"],
+    cmd = "$(location @bazel_tools//tools/zip:zipper) c $@ from-zip/BUILD.bazel=$(location :BUILD.bazel)",
+    tools = ["@bazel_tools//tools/zip:zipper"],
 )
