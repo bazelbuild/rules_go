@@ -44,7 +44,9 @@ print_digests
         "@io_bazel_rules_go//tests/reproducibility/cgo",
     ],
     tags = ["manual"],
-    args = ["--compilation_mode=dbg"],
+    # dbg builds are not reproducible with llvm 6.0 and below (default on macOS).
+    # https://bugs.llvm.org/show_bug.cgi?id=38050
+    #args = ["--compilation_mode=dbg"],
 )
 
 # A test that runs the above test script twice and diffs the output.
