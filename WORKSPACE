@@ -28,9 +28,9 @@ popular_repos()
 # Use --crosstool_top=@llvm_toolchain//:toolchain
 http_archive(
     name = "com_grail_bazel_toolchain",
-    sha256 = "282c67435ebbb612c8a68f3b17f14713e66cbbb863cdd7e206acbd0a2c3f7842",
-    strip_prefix = "bazel-toolchain-a964325290a98766305ec2d8963b1749fe612533",
-    urls = ["https://github.com/grailbio/bazel-toolchain/archive/a964325290a98766305ec2d8963b1749fe612533.tar.gz"],
+    sha256 = "aafea89b6abe75205418c0d2127252948afe6c7f2287a79b67aab3e0c3676c4f",
+    strip_prefix = "bazel-toolchain-d0a5b0af3102c7c607f2cf098421fcdbaeaaaf19",
+    urls = ["https://github.com/grailbio/bazel-toolchain/archive/d0a5b0af3102c7c607f2cf098421fcdbaeaaaf19.tar.gz"],
 )
 
 load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
