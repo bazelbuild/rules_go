@@ -1,0 +1,9 @@
+package main
+
+import "fmt"
+
+const incr = "INCR"
+
+func main() {
+	fmt.Println(incr)
+}
