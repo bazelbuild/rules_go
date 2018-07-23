@@ -109,12 +109,13 @@ func run(args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	if rulesGoDir != "" {
-		var err error
-		rulesGoDir, err = filepath.Abs(rulesGoDir)
-		if err != nil {
-			return err
-		}
+	if rulesGoDir == "" {
+		return errors.New("-rules_go_dir not set")
+	}
+	if abs, err := filepath.Abs(rulesGoDir); err != nil {
+		return err
+	} else {
+		rulesGoDir = abs
 	}
 	if outPath == "" {
 		return errors.New("-out not set")
@@ -125,14 +126,6 @@ func run(args []string) error {
 		outPath = abs
 	}
 
-	if rulesGoDir == "" {
-		var err error
-		rulesGoDir, err = cloneRulesGo()
-		if err != nil {
-			return err
-		}
-		defer os.RemoveAll(rulesGoDir)
-	}
 	commit, err := getCommit(rulesGoDir)
 	if err != nil {
 		return err
@@ -142,11 +135,16 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("running benchmarks in %s", dir)
 	if !keep {
 		defer cleanupWorkspace(dir)
 	}
 
+	bazelVersion, err := getBazelVersion()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("running benchmarks in %s", dir)
 	targetSet := make(map[string]bool)
 	for _, b := range benchmarks {
 		for _, t := range b.targets {
@@ -168,25 +166,7 @@ func run(args []string) error {
 	}
 
 	log.Printf("writing results to %s", outPath)
-	return recordResults(outPath, time.Now().UTC(), commit, benchmarks)
-}
-
-func cloneRulesGo() (dir string, err error) {
-	dir, err = ioutil.TempDir("", "rules_go")
-	if err != nil {
-		return "", err
-	}
-	defer func() {
-		if err != nil {
-			os.RemoveAll(dir)
-		}
-	}()
-	cmd := exec.Command("git", "clone", "--depth=1", "--single-branch", "--no-tags", "--", "https://github.com/bazelbuild/rules_go", dir)
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return "", err
-	}
-	return dir, nil
+	return recordResults(outPath, time.Now().UTC(), bazelVersion, commit, benchmarks)
 }
 
 func getCommit(rulesGoDir string) (commit string, err error) {
@@ -266,8 +246,25 @@ func cleanupWorkspace(dir string) error {
 	if err := logBazelCommand("clean", "--expunge"); err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stderr, "skipping removal of dir %s\n", dir)
-	return nil
+	return os.RemoveAll(dir)
+}
+
+func getBazelVersion() (string, error) {
+	out, err := exec.Command("bazel", "version").Output()
+	if err != nil {
+		return "", err
+	}
+	prefix := []byte("Build label: ")
+	i := bytes.Index(out, prefix)
+	if i < 0 {
+		return "", errors.New("could not find bazel version in output")
+	}
+	out = out[i+len(prefix):]
+	i = bytes.IndexByte(out, '\n')
+	if i >= 0 {
+		out = out[:i]
+	}
+	return string(out), nil
 }
 
 func fetch(targets []string) error {
@@ -309,11 +306,11 @@ func runBenchmark(b *benchmark) error {
 	return nil
 }
 
-func recordResults(outPath string, t time.Time, commit string, benchmarks []benchmark) (err error) {
+func recordResults(outPath string, t time.Time, bazelVersion, commit string, benchmarks []benchmark) (err error) {
 	// TODO(jayconrod): update the header if new columns are added.
 	columnMap, outExists, err := buildColumnMap(outPath, benchmarks)
 	header := buildHeader(columnMap)
-	record := buildRecord(t, commit, benchmarks, columnMap)
+	record := buildRecord(t, bazelVersion, commit, benchmarks, columnMap)
 	defer func() {
 		if err != nil {
 			log.Printf("error writing results: %s: %v", outPath, err)
@@ -370,7 +367,7 @@ func buildColumnMap(outPath string, benchmarks []benchmark) (columnMap map[strin
 	}
 
 doneReading:
-	for _, s := range []string{"time", "commit"} {
+	for _, s := range []string{"time", "bazel_version", "commit"} {
 		if _, ok := columnMap[s]; !ok {
 			columnMap[s] = len(columnMap)
 		}
@@ -391,9 +388,10 @@ func buildHeader(columnMap map[string]int) []string {
 	return header
 }
 
-func buildRecord(t time.Time, commit string, benchmarks []benchmark, columnMap map[string]int) []string {
+func buildRecord(t time.Time, bazelVersion, commit string, benchmarks []benchmark, columnMap map[string]int) []string {
 	record := make([]string, len(columnMap))
 	record[columnMap["time"]] = t.Format("2006-01-02 15:04:05")
+	record[columnMap["bazel_version"]] = bazelVersion
 	record[columnMap["commit"]] = commit
 	for _, b := range benchmarks {
 		record[columnMap[b.desc]] = fmt.Sprintf("%.3f", b.result.Seconds())
