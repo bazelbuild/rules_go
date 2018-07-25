@@ -274,8 +274,8 @@ def _md5_sum_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, ext = ".md5")
     arguments = ctx.actions.args()
-    arguments.add(["-output", out.path])
-    arguments.add(ctx.files.srcs)
+    arguments.add_all(["-output", out.path])
+    arguments.add_all(ctx.files.srcs)
     ctx.actions.run(
         inputs = ctx.files.srcs,
         outputs = [out],

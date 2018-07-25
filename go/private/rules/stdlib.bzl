@@ -38,14 +38,14 @@ def _stdlib_library_to_source(go, attr, source, merge):
     filter_buildid = attr._filter_buildid_builder.files.to_list()[0]
     files = [root_file, go.go, pkg]
     args = go.args(go)
-    args.add(["-out", root_file.dirname])
+    args.add_all(["-out", root_file.dirname])
     if go.mode.race:
         args.add("-race")
     if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
         args.add("-shared")
     if go.mode.link == LINKMODE_PLUGIN:
         args.add("-dynlink")
-    args.add(["-filter_buildid", filter_buildid.path])
+    args.add_all(["-filter_buildid", filter_buildid.path])
     go.actions.write(root_file, "")
     env = go.env
     env.update({

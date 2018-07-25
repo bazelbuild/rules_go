@@ -36,14 +36,14 @@ def emit_asm(
     inputs = hdrs + go.sdk_tools + go.stdlib.files + [source]
 
     args = go.args(go)
-    args.add([source, "--"])
+    args.add_all([source, "--"])
     includes = ([go.stdlib.root_file.dirname + "/pkg/include"] +
                 [f.dirname for f in hdrs])
 
     # TODO(#1463): use uniquify=True when available.
     includes = sorted({i: None for i in includes}.keys())
-    args.add(includes, before_each = "-I")
-    args.add(["-trimpath", ".", "-o", out_obj])
+    args.add_all(includes, before_each = "-I")
+    args.add_all(["-trimpath", ".", "-o", out_obj])
     if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
         args.add("-shared")
     if go.mode.link == LINKMODE_PLUGIN:

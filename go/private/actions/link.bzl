@@ -54,7 +54,7 @@ def emit_link(
 
     # Add in any mode specific behaviours
     extld = go.cgo_tools.compiler_executable
-    tool_args.add(["-extld", extld])
+    tool_args.add_all(["-extld", extld])
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
@@ -62,10 +62,10 @@ def emit_link(
     if go.mode.static:
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
-        builder_args.add(["-buildmode", go.mode.link])
-        tool_args.add(["-linkmode", "external"])
+        builder_args.add_all(["-buildmode", go.mode.link])
+        tool_args.add_all(["-linkmode", "external"])
     if go.mode.link == LINKMODE_PLUGIN:
-        tool_args.add(["-pluginpath", archive.data.importpath])
+        tool_args.add_all(["-pluginpath", archive.data.importpath])
 
     # Build the set of transitive dependencies. Currently, we tolerate multiple
     # archives with the same importmap (though this will be an error in the
@@ -83,7 +83,7 @@ def emit_link(
         "{}={}={}".format(d.label, d.importmap, d.file.path)
         for d in test_archives
     ])
-    builder_args.add(dep_args, before_each = "-dep")
+    builder_args.add_all(dep_args, before_each = "-dep")
 
     # Build a list of rpaths for dynamic libraries we need to find.
     # rpaths are relative paths from the binary to directories where libraries
@@ -112,25 +112,26 @@ def emit_link(
     stamp_x_defs = False
     for k, v in archive.x_defs.items():
         if v.startswith("{") and v.endswith("}"):
-            builder_args.add(["-Xstamp", "%s=%s" % (k, v[1:-1])])
+            builder_args.add_all(["-Xstamp", "%s=%s" % (k, v[1:-1])])
             stamp_x_defs = True
         else:
-            tool_args.add(["-X", "%s=%s" % (k, v)])
+            tool_args.add_all(["-X", "%s=%s" % (k, v)])
 
     # Stamping support
     stamp_inputs = []
     if stamp_x_defs:
         stamp_inputs = [info_file, version_file]
-        builder_args.add(stamp_inputs, before_each = "-stamp")
+        builder_args.add_all(stamp_inputs, before_each = "-stamp")
 
-    builder_args.add(["-o", executable])
-    builder_args.add(["-main", archive.data.file])
-    tool_args.add(gc_linkopts)
-    tool_args.add(go.toolchain.flags.link)
+    builder_args.add_all(["-o", executable])
+    builder_args.add_all(["-main", archive.data.file])
+    tool_args.add_all(gc_linkopts)
+    tool_args.add_all(go.toolchain.flags.link)
     if go.mode.strip:
         tool_args.add("-w")
     if extldflags:
-        tool_args.add(["-extldflags", " ".join(extldflags)])
+        tool_args.add("-extldflags")
+        tool_args.add_joined(extldflags, join_with = " ")
 
     builder_args.use_param_file("@%s")
     builder_args.set_param_file_format("multiline")

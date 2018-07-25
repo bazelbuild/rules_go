@@ -23,14 +23,14 @@ load(
     "LINKMODE_PLUGIN",
 )
 
-def _importpath(l):
-    return [v.data.importpath for v in l]
+def _importpath(v):
+    return v.data.importpath
 
-def _searchpath(l):
-    return [v.data.searchpath for v in l]
+def _searchpath(v):
+    return v.data.searchpath
 
-def _importmap(l):
-    return ["{}={}".format(v.data.importpath, v.data.importmap) for v in l]
+def _importmap(v):
+    return "{}={}".format(v.data.importpath, v.data.importmap)
 
 def emit_compile(
         go,
@@ -59,25 +59,25 @@ def emit_compile(
     outputs = [out_lib]
 
     builder_args = go.args(go)
-    builder_args.add(sources, before_each = "-src")
-    builder_args.add(archives, before_each = "-dep", map_fn = _importpath)
-    builder_args.add(archives, before_each = "-importmap", map_fn = _importmap)
-    builder_args.add(["-o", out_lib])
-    builder_args.add(["-package_list", go.package_list])
+    builder_args.add_all(sources, before_each = "-src")
+    builder_args.add_all(archives, before_each = "-dep", map_each = _importpath)
+    builder_args.add_all(archives, before_each = "-importmap", map_each = _importmap)
+    builder_args.add_all(["-o", out_lib])
+    builder_args.add_all(["-package_list", go.package_list])
     if testfilter:
-        builder_args.add(["-testfilter", testfilter])
+        builder_args.add_all(["-testfilter", testfilter])
 
     tool_args = go.actions.args()
     if asmhdr:
-        tool_args.add(["-asmhdr", asmhdr.path])
+        tool_args.add_all(["-asmhdr", asmhdr.path])
         outputs.append(asmhdr)
-    tool_args.add(archives, before_each = "-I", map_fn = _searchpath)
-    tool_args.add(["-trimpath", ".", "-I", "."])
+    tool_args.add_all(archives, before_each = "-I", map_each = _searchpath)
+    tool_args.add_all(["-trimpath", ".", "-I", "."])
 
     #TODO: Check if we really need this expand make variables in here
     #TODO: If we really do then it needs to be moved all the way back out to the rule
     gc_goopts = [go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
-    tool_args.add(gc_goopts)
+    tool_args.add_all(gc_goopts)
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
@@ -87,10 +87,10 @@ def emit_compile(
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-dynlink")
     if importpath:
-        tool_args.add(["-p", importpath])
+        tool_args.add_all(["-p", importpath])
     if go.mode.debug:
-        tool_args.add(["-N", "-l"])
-    tool_args.add(go.toolchain.flags.compile)
+        tool_args.add_all(["-N", "-l"])
+    tool_args.add_all(go.toolchain.flags.compile)
     go.actions.run(
         inputs = inputs,
         outputs = outputs,

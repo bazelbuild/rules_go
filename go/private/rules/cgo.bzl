@@ -165,30 +165,30 @@ def _cgo_codegen_impl(ctx):
         transformed_go_outs.append(gen_go_file)
         transformed_go_map[gen_go_file] = src
         c_outs.append(gen_c_file)
-        builder_args.add(["-src", gen_go_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_go_file.path + "=" + src.path])
     for src in source.asm:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         transformed_go_outs.append(gen_file)
         transformed_go_map[gen_go_file] = src
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
     for src in source.c:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         c_outs.append(gen_file)
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
     for src in source.cxx:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         cxx_outs.append(gen_file)
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
     for src in source.objc:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         objc_outs.append(gen_file)
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
 
-    tool_args.add(["-objdir", out_dir])
+    tool_args.add_all(["-objdir", out_dir])
 
     inputs = sets.union(ctx.files.srcs, go.crosstool, go.sdk_tools, go.stdlib.files)
     deps = depset()
@@ -245,7 +245,8 @@ def _cgo_codegen_impl(ctx):
     env["CC"] = go.cgo_tools.compiler_executable
     env["CGO_LDFLAGS"] = " ".join(linkopts)
 
-    cc_args.add(cppopts + copts)
+    cc_args.add_all(cppopts)
+    cc_args.add_all(copts)
 
     ctx.actions.run(
         inputs = inputs,
@@ -295,7 +296,7 @@ def _cgo_import_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, path = "_cgo_import.go")
     args = go.args(go)
-    args.add([
+    args.add_all([
         "-import",
         "-src",
         ctx.files.sample_go_srcs[0],

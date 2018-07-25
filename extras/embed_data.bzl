@@ -43,7 +43,7 @@ def _go_embed_data_impl(ctx):
             fail("%s: must provide package attribute for go_embed_data rules in the repository root directory" % ctx.label)
 
     out = go.declare_file(go, ext = ".go")
-    args.add([
+    args.add_all([
         "-workspace",
         ctx.workspace_name,
         "-label",
@@ -62,7 +62,7 @@ def _go_embed_data_impl(ctx):
     if ctx.attr.unpack:
         args.add("-unpack")
         args.add("-multi")
-    args.add(srcs)
+    args.add_all(srcs)
 
     library = go.new_library(go, srcs = srcs)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())

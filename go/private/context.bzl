@@ -79,9 +79,10 @@ def _declare_directory(go, path = "", ext = "", name = ""):
 
 def _new_args(go):
     args = go.actions.args()
-    args.add(["-sdk", go.sdk_root.dirname])
+    args.add_all(["-sdk", go.sdk_root.dirname])
     if go.tags:
-        args.add(["-tags", ",".join(go.tags)])
+        args.add("-tags")
+        args.add_joined(go.tags, join_with = ",")
     return args
 
 def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, **kwargs):
