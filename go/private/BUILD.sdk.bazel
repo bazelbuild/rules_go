@@ -1,4 +1,58 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_sdk")
+load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "declare_toolchains")
+load("@io_bazel_rules_go//go/private:rules/sdk.bzl", "package_list")
+
 package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "libs",
+    srcs = glob(
+        ["pkg/{goos}_{goarch}/**/*.a"],
+        exclude = ["pkg/{goos}_{goarch}/**/cmd/**"],
+    ),
+)
+
+filegroup(
+    name = "headers",
+    srcs = glob(["pkg/include/*.h"]),
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob(["src/**"]),
+)
+
+filegroup(
+    name = "tools",
+    srcs = glob(["pkg/tool/**"]),
+)
+
+go_sdk(
+    name = "go_sdk",
+    goos = "{goos}",
+    goarch = "{goarch}",
+    root_file = "ROOT",
+    package_list = ":package_list",
+    libs = [":libs"],
+    headers = [":headers"],
+    srcs = [":srcs"],
+    tools = [":tools"],
+    go = "bin/go{exe}",
+)
+
+# TODO(jayconrod): Gazelle depends on this file directly. This dependency
+# should be broken, and this rule should be folded into go_sdk.
+package_list(
+    name = "package_list",
+    srcs = [":srcs"],
+    root_file = "ROOT",
+    out = "packages.txt",
+)
+
+declare_toolchains(
+    host = "{goos}_{goarch}",
+    sdk = ":go_sdk",
+)
 
 filegroup(
     name = "files",
@@ -8,16 +62,3 @@ filegroup(
         "pkg/**",
     ]),
 )
-
-filegroup(
-    name = "tools",
-    srcs = glob([
-        "bin/go*",
-        "pkg/tool/**",
-    ]) + select({
-        "@io_bazel_rules_go//go/platform:darwin_amd64": ["@local_config_cc//:cc_wrapper"],
-        "//conditions:default": [],
-    }),
-)
-
-exports_files(["packages.txt", "ROOT"])

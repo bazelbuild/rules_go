@@ -1,5 +1,6 @@
 load(
     "//go/private:go_toolchain.bzl",
+    "generate_toolchains",
     "go_toolchain",
 )
 load(
@@ -181,35 +182,6 @@ SDK_REPOSITORIES = {
     },
 }
 
-def _generate_toolchains():
-    # Use all the above information to generate all the possible toolchains we might support
-    toolchains = []
-    for host_goos, host_goarch in GOOS_GOARCH:
-        host = "{}_{}".format(host_goos, host_goarch)
-        for target_goos, target_goarch in GOOS_GOARCH:
-            target = "{}_{}".format(target_goos, target_goarch)
-            toolchain_name = "go_{}".format(host)
-            if host != target:
-                toolchain_name += "_cross_" + target
-            link_flags = []
-            cgo_link_flags = []
-            if "darwin" in host:
-                cgo_link_flags.extend(["-shared", "-Wl,-all_load"])
-            if "linux" in host:
-                cgo_link_flags.append("-Wl,-whole-archive")
-
-            # Add the primary toolchain
-            toolchains.append(dict(
-                name = toolchain_name,
-                host = host,
-                target = target,
-                link_flags = link_flags,
-                cgo_link_flags = cgo_link_flags,
-            ))
-    return toolchains
-
-_toolchains = _generate_toolchains()
-
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
 def go_register_toolchains(go_version = DEFAULT_VERSION):
@@ -228,11 +200,6 @@ def go_register_toolchains(go_version = DEFAULT_VERSION):
             )
         else:
             fail("Unknown go version {}".format(go_version))
-
-    # Use the final dictionaries to register all the toolchains
-    for toolchain in _toolchains:
-        name = _label_prefix + toolchain["name"]
-        native.register_toolchains(name)
 
 def declare_constraints():
     for goos, constraint in GOOS.items():
@@ -266,15 +233,7 @@ def declare_constraints():
             ],
         )
 
-def declare_toolchains():
+def declare_toolchains(host, sdk):
     # Use the final dictionaries to create all the toolchains
-    for toolchain in _toolchains:
-        go_toolchain(
-            # Required fields
-            name = toolchain["name"],
-            host = toolchain["host"],
-            target = toolchain["target"],
-            # Optional fields
-            link_flags = toolchain["link_flags"],
-            cgo_link_flags = toolchain["cgo_link_flags"],
-        )
+    for toolchain in generate_toolchains(host, sdk):
+        go_toolchain(**toolchain)

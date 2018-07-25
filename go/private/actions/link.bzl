@@ -141,8 +141,8 @@ def emit_link(
             archive.cgo_deps,
             go.crosstool,
             stamp_inputs,
-            go.sdk_tools,
-            go.stdlib.files,
+            go.sdk.tools,
+            go.stdlib.libs,
         ),
         outputs = [executable],
         mnemonic = "GoLink",
@@ -154,7 +154,7 @@ def emit_link(
 def _bootstrap_link(go, archive, executable, gc_linkopts):
     """See go/toolchains.rst#link for full documentation."""
 
-    inputs = [archive.data.file] + go.sdk_files + go.sdk_tools
+    inputs = [archive.data.file] + go.sdk.libs + go.sdk.tools + [go.go]
     args = ["tool", "link", "-s", "-o", executable.path]
     args.extend(gc_linkopts)
     args.append(archive.data.file.path)

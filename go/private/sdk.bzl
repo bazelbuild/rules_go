@@ -12,20 +12,101 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "env_execute", "executable_path")
+load(
+    "@io_bazel_rules_go//go/private:common.bzl",
+    "env_execute",
+    "executable_path",
+)
+load(
+    "@io_bazel_rules_go//go/private:go_toolchain.bzl",
+    "generate_toolchains",
+    "generate_toolchain_names",
+)
 
 def _go_host_sdk_impl(ctx):
     path = _detect_host_sdk(ctx)
-    _sdk_build_file(ctx)
+    host = _detect_host_platform(ctx)
+    _sdk_build_file(ctx, host)
     _local_sdk(ctx, path)
-    _prepare(ctx)
 
-go_host_sdk = repository_rule(
+_go_host_sdk = repository_rule(
     _go_host_sdk_impl,
     environ = ["GOROOT"],
 )
 
+def go_host_sdk(name, **kwargs):
+    _go_host_sdk(name = name, **kwargs)
+    _register_toolchains(name)
+
 def _go_download_sdk_impl(ctx):
+    sdks = ctx.attr.sdks
+    host = _detect_host_platform(ctx)
+    if host not in sdks:
+        fail("Unsupported host {}".format(host))
+    filename, sha256 = ctx.attr.sdks[host]
+    _sdk_build_file(ctx, host)
+    _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
+
+_go_download_sdk = repository_rule(
+    _go_download_sdk_impl,
+    attrs = {
+        "sdks": attr.string_list_dict(),
+        "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
+        "strip_prefix": attr.string(default = "go"),
+    },
+)
+
+def go_download_sdk(name, **kwargs):
+    _go_download_sdk(name = name, **kwargs)
+    _register_toolchains(name)
+
+def _go_local_sdk_impl(ctx):
+    host = _detect_host_platform(ctx)
+    _sdk_build_file(ctx, host)
+    _local_sdk(ctx, ctx.attr.path)
+
+_go_local_sdk = repository_rule(
+    _go_local_sdk_impl,
+    attrs = {
+        "path": attr.string(),
+    },
+)
+
+def go_local_sdk(name, **kwargs):
+    _go_local_sdk(name = name, **kwargs)
+    _register_toolchains(name)
+
+def _register_toolchains(repo):
+    labels = ["@{}//:{}".format(repo, name)
+              for name in generate_toolchain_names()]
+    native.register_toolchains(*labels)
+
+def _remote_sdk(ctx, urls, strip_prefix, sha256):
+    ctx.download_and_extract(
+        url = urls,
+        stripPrefix = strip_prefix,
+        sha256 = sha256,
+    )
+
+def _local_sdk(ctx, path):
+    for entry in ["src", "pkg", "bin"]:
+        ctx.symlink(path + "/" + entry, entry)
+
+def _sdk_build_file(ctx, host):
+    ctx.file("ROOT")
+    goos, _, goarch = host.partition("_")
+    ctx.template(
+        "BUILD.bazel",
+        Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
+        executable = False,
+        substitutions = {
+            "{goos}": goos,
+            "{goarch}": goarch,
+            "{exe}": ".exe" if goos == "windows" else "",
+        },
+    )
+
+def _detect_host_platform(ctx):
     if ctx.os.name == "linux":
         host = "linux_amd64"
         res = ctx.execute(["uname", "-p"])
@@ -48,70 +129,8 @@ def _go_download_sdk_impl(ctx):
         host = "freebsd_amd64"
     else:
         fail("Unsupported operating system: " + ctx.os.name)
-    sdks = ctx.attr.sdks
-    if host not in sdks:
-        fail("Unsupported host {}".format(host))
-    filename, sha256 = ctx.attr.sdks[host]
-    _sdk_build_file(ctx)
-    _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
-    _prepare(ctx)
 
-go_download_sdk = repository_rule(
-    _go_download_sdk_impl,
-    attrs = {
-        "sdks": attr.string_list_dict(),
-        "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
-        "strip_prefix": attr.string(default = "go"),
-    },
-)
-
-def _go_local_sdk_impl(ctx):
-    _sdk_build_file(ctx)
-    _local_sdk(ctx, ctx.attr.path)
-    _prepare(ctx)
-
-go_local_sdk = repository_rule(
-    _go_local_sdk_impl,
-    attrs = {
-        "path": attr.string(),
-    },
-)
-
-def _prepare(ctx):
-    # Create a text file with a list of standard packages.
-    # OPT: just list directories under src instead of running "go list". No
-    # need to read all source files. We need a portable way to run code though.
-    result = env_execute(
-        ctx,
-        arguments = [executable_path(ctx, "./bin/go"), "list", "..."],
-        environment = {
-            "GOROOT": str(ctx.path(".")),
-            "GOPATH": "",
-        },
-    )
-    if result.return_code != 0:
-        fail("failed to list standard packages: code {}:\n{}".format(result.return_code, result.stdout + result.stderr))
-    ctx.file("packages.txt", result.stdout)
-    ctx.file("ROOT", "")
-
-def _remote_sdk(ctx, urls, strip_prefix, sha256):
-    ctx.download_and_extract(
-        url = urls,
-        stripPrefix = strip_prefix,
-        sha256 = sha256,
-    )
-
-def _local_sdk(ctx, path):
-    for entry in ["src", "pkg", "bin"]:
-        ctx.symlink(path + "/" + entry, entry)
-
-def _sdk_build_file(ctx):
-    ctx.file("ROOT")
-    ctx.template(
-        "BUILD.bazel",
-        Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
-        executable = False,
-    )
+    return host
 
 def _detect_host_sdk(ctx):
     root = "@invalid@"

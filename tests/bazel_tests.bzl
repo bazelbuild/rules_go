@@ -7,6 +7,10 @@ load(
     "env_execute",
 )
 load(
+    "@io_bazel_rules_go//go/private:go_toolchain.bzl",
+    "generate_toolchain_names",
+)
+load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     "go_rule",
 )
@@ -135,10 +139,15 @@ def _bazel_test_script_impl(ctx):
         ctx.actions.write(script_file, "", is_executable = True)
         return [DefaultInfo(files = depset([script_file]))]
 
+    register = ""
+    if any([ext.label.workspace_root.endswith("/go_sdk") for ext in ctx.attr.externals]):
+        register += "register_toolchains(\n{}\n)\n".format(
+            "\n".join(['    "@go_sdk//:{}",'.format(name)
+                       for name in generate_toolchain_names()]))
     if ctx.attr.go_version == CURRENT_VERSION:
-        register = "go_register_toolchains()\n"
+        register += "go_register_toolchains()\n"
     elif ctx.attr.go_version != None:
-        register = 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
+        register += 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
 
     workspace_content = 'workspace(name = "bazel_test")\n\n'
     for ext in ctx.attr.externals:

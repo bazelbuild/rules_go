@@ -33,11 +33,11 @@ def emit_asm(
         fail("source is a required parameter")
 
     out_obj = go.declare_file(go, path = source.basename[:-2], ext = ".o")
-    inputs = hdrs + go.sdk_tools + go.stdlib.files + [source]
+    inputs = hdrs + go.sdk.tools + go.sdk.headers + go.stdlib.libs + [source]
 
     args = go.args(go)
     args.add_all([source, "--"])
-    includes = ([go.stdlib.root_file.dirname + "/pkg/include"] +
+    includes = ([go.sdk.root_file.dirname + "/pkg/include"] +
                 [f.dirname for f in hdrs])
 
     # TODO(#1463): use uniquify=True when available.

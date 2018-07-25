@@ -33,7 +33,10 @@ Please do not rely on it for production use, but feel free to use it and file is
     go = go_context(ctx)
     script_file = go.declare_file(go, ext = ".bash")
     gopath = []
-    files = ctx.files.data + go.stdlib.files
+    runfiles = ctx.runfiles(
+        files = ctx.files.data + go.stdlib.libs + go.sdk.tools + [go.go],
+        collect_data = True,
+    )
     gopath = []
     packages = []
     for data in ctx.attr.data:
@@ -48,10 +51,10 @@ export GOPATH="{gopath}"
         gopath = ":".join(["$(pwd)/{})".format(entry) for entry in gopath]),
         packages = " ".join(packages),
     ))
-    return struct(
+    return [DefaultInfo(
         files = depset([script_file]),
-        runfiles = ctx.runfiles(files, collect_data = True),
-    )
+        runfiles = runfiles,
+    )]
 
 _go_vet_generate = go_rule(
     _go_vet_generate_impl,

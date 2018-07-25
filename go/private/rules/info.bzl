@@ -27,7 +27,7 @@ def _go_info_impl(ctx):
     args = go.args(go)
     args.add_all(["-out", report])
     go.actions.run(
-        inputs = go.stdlib.files,
+        inputs = [go.go],
         outputs = [report],
         mnemonic = "GoInfo",
         executable = ctx.executable._go_info,

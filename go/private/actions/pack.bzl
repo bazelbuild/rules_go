@@ -25,7 +25,7 @@ def emit_pack(
     if out_lib == None:
         fail("out_lib is a required parameter")
 
-    inputs = [in_lib] + go.sdk_tools + objects + archives
+    inputs = [in_lib] + go.sdk.tools + objects + archives
 
     args = go.args(go)
     args.add_all(["-in", in_lib])
