@@ -28,10 +28,31 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
+    "LINKMODE_NORMAL",
     "LINKMODE_PLUGIN",
 )
 
 def _stdlib_library_to_source(go, attr, source, merge):
+    if _should_use_sdk_stdlib(go):
+        source["stdlib"] = _sdk_stdlib(go)
+    else:
+        source["stdlib"] = _build_stdlib(go, attr)
+
+def _should_use_sdk_stdlib(go):
+    return (go.mode.goos == go.sdk.goos and
+            go.mode.goarch == go.sdk.goarch and
+            not go.mode.race and  # TODO(jayconrod): use precompiled race
+            not go.mode.msan and
+            not go.mode.pure and
+            go.mode.link == LINKMODE_NORMAL)
+
+def _sdk_stdlib(go):
+    return GoStdLib(
+        root_file = go.sdk.root_file,
+        libs = go.sdk.libs,
+    )
+
+def _build_stdlib(go, attr):
     pkg = go.declare_directory(go, "pkg")
     src = go.declare_directory(go, "src")
     root_file = go.declare_file(go, "ROOT")
@@ -67,7 +88,7 @@ def _stdlib_library_to_source(go, attr, source, merge):
         arguments = [args],
         env = env,
     )
-    source["stdlib"] = GoStdLib(
+    return GoStdLib(
         root_file = root_file,
         libs = [pkg],
     )
