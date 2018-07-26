@@ -37,6 +37,8 @@ Please do not rely on it for production use, but feel free to use it and file is
         files = ctx.files.data + go.stdlib.libs + go.sdk.tools + [go.go],
         collect_data = True,
     )
+    root_file = go.stdlib.root_file.short_path
+    goroot, _, _ = root_file.rpartition("/")
     gopath = []
     packages = []
     for data in ctx.attr.data:
@@ -45,10 +47,12 @@ Please do not rely on it for production use, but feel free to use it and file is
         packages += [entry.gopath + "/" + package.dir for package in entry.packages]
     ctx.actions.write(output = script_file, is_executable = True, content = """
 export GOPATH="{gopath}"
+export GOROOT="$(pwd)/{goroot}"
 {go} tool vet {packages}
 """.format(
         go = go.go.short_path,
-        gopath = ":".join(["$(pwd)/{})".format(entry) for entry in gopath]),
+        goroot = goroot,
+        gopath = ":".join(["$(pwd)/{}".format(entry) for entry in gopath]),
         packages = " ".join(packages),
     ))
     return [DefaultInfo(
