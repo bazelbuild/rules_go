@@ -337,7 +337,7 @@ go_context_data = rule(
     attrs = {
         "strip": attr.string(mandatory = True),
         # Hidden internal attributes
-        "_crosstool": attr.label(default = Label("//tools/defaults:crosstool")),
+        "_crosstool": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
         "_package_list": attr.label(
             allow_files = True,
             single_file = True,
