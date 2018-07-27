@@ -139,9 +139,7 @@ def emit_link(
     tool_args.add_all(go.toolchain.flags.link)
     if go.mode.strip:
         tool_args.add("-w")
-    if extldflags:
-        tool_args.add("-extldflags")
-        tool_args.add_joined(extldflags, join_with = " ")
+    tool_args.add_joined("-extldflags", extldflags, join_with = " ")
 
     builder_args.use_param_file("@%s")
     builder_args.set_param_file_format("multiline")
