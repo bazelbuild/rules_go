@@ -20,3 +20,12 @@ go_library(
     ],
     importpath = "asm_include",
 )
+
+go_library(
+    name = "asm_header",
+    srcs = [
+        "inc.go",
+        "inc_asmhdr.s",
+    ],
+    importpath = "asm_header",
+)

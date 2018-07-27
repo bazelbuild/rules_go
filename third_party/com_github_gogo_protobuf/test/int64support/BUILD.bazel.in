@@ -12,7 +12,7 @@ go_library(
         "object.pb.go",
         "object_js.go",
     ],
-    importpath = "int64support",
+    importpath = "github.com/gogo/protobuf/test/int64support",
     visibility = ["//visibility:public"],
     deps = [
         "//gogoproto:go_default_library",

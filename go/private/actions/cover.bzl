@@ -56,7 +56,7 @@ def emit_cover(go, source):
             "-mode=set",
         ])
         go.actions.run(
-            inputs = [src] + go.sdk_tools,
+            inputs = [src] + go.sdk.tools,
             outputs = [out],
             mnemonic = "GoCover",
             executable = go.builders.cover,

@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "source_proto",
+    srcs = ["source_context.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["//google/api:annotations_proto"],
+)
+
+go_proto_library(
+    name = "source_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/devtools/source/v1",
+    proto = ":source_proto",
+    visibility = ["//visibility:public"],
+    deps = ["//google/api:annotations_go_proto"],
+)

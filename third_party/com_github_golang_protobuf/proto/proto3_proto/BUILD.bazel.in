@@ -14,6 +14,6 @@ go_library(
     deps = [
         "//proto:go_default_library",
         "//proto/test_proto:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:any_go_proto",
+        "//ptypes/any:go_default_library",
     ],
 )

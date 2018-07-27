@@ -21,3 +21,10 @@ go_test(
         "//proto/testdata:go_default_library",
     ],
 )
+
+go_test(
+    name = "go_default_test",
+    srcs = ["descriptor_test.go"],
+    embed = [":go_default_library"],
+    deps = ["//proto/testdata:go_default_library"],
+)

@@ -93,7 +93,7 @@ def _apply_overlay(ctx, overlay):
 
     # TODO(jayconrod): sanitize destination paths.
     for src_path, dst_rel in overlay:
-        _check_execute(ctx, ["cp", src_path, dst_rel], "failed to copy file from %s" % src_path)
+        ctx.template(dst_rel, src_path)
 
 def _check_execute(ctx, arguments, message):
     res = ctx.execute(arguments)

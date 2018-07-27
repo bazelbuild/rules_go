@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "support_proto",
+    srcs = ["cloud_support.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/cloud/support:common_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+    ],
+)
+
+go_proto_library(
+    name = "support_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/cloud/support/v1alpha1",
+    proto = ":support_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/cloud/support:common_go_proto",
+    ],
+)

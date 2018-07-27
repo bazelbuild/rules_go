@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "videointelligence_proto",
+    srcs = ["video_intelligence.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/longrunning:longrunning_proto",
+        "//google/rpc:status_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "videointelligence_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/cloud/videointelligence/v1beta1",
+    proto = ":videointelligence_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/longrunning:longrunning_go_proto",
+        "//google/rpc:status_go_proto",
+    ],
+)

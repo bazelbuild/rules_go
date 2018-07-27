@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -131,13 +132,30 @@ func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
 // splitArgs splits a list of command line arguments into two parts: arguments
 // that should be interpreted by the builder (before "--"), and arguments
 // that should be passed through to the underlying tool (after "--").
+// A group consisting of a single argument that is prefixed with an '@', is
+// treated as a pointer to a params file, which is read and its contents used
+// as the arguments.
 func splitArgs(args []string) (builderArgs []string, toolArgs []string) {
 	for i, arg := range args {
 		if arg == "--" {
-			return args[:i], args[i+1:]
+
+			return readParamsFile(args[:i]), readParamsFile(args[i+1:])
 		}
 	}
-	return args, nil
+	return readParamsFile(args), nil
+}
+
+// readParamsFile replaces the passed in slice with the contents of a params
+// file, if the slice is a single string that starts with an '@'.
+// Errors reading the file are ignored and the original slice is returned.
+func readParamsFile(args []string) []string {
+	if len(args) == 1 && strings.HasPrefix(args[0], "@") {
+		content, err := ioutil.ReadFile(args[0][1:])
+		if err == nil {
+			args = strings.Split(string(content), "\n")
+		}
+	}
+	return args
 }
 
 // abs returns the absolute representation of path. Some tools/APIs require

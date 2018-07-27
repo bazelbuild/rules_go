@@ -7,6 +7,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_golang_protobuf//proto:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+        "@com_github_golang_protobuf//ptypes/wrappers:go_default_library",
     ],
 )

@@ -46,8 +46,7 @@ go_test(
     deps = [
         "//proto/proto3_proto:go_default_library",
         "//proto/test_proto:go_default_library",
-        "//ptypes:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:any_go_proto",
+        "//ptypes/any:go_default_library",
         "@org_golang_x_sync//errgroup:go_default_library",
     ],
 )

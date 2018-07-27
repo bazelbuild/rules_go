@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "logging_proto",
+    srcs = ["audit_data.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/rpc:status_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "logging_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/cloud/bigquery/logging/v1",
+    proto = ":logging_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/rpc:status_go_proto",
+    ],
+)

@@ -6,3 +6,12 @@ go_library(
     importpath = "github.com/gogo/protobuf/test/mapsproto2",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = [
+        "header.proto",
+        "mapsproto2.proto",
+    ],
+    visibility = ["//visibility:public"],
+)

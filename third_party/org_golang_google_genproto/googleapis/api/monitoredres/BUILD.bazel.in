@@ -8,5 +8,6 @@ go_library(
     deps = [
         "//googleapis/api/label:go_default_library",
         "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes/struct:go_default_library",
     ],
 )

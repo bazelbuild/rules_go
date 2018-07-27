@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "api_proto",
+    srcs = [
+        "authorization_config.proto",
+        "experimental.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = ["//google/api:annotations_proto"],
+)
+
+go_proto_library(
+    name = "api_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/api",
+    proto = ":api_proto",
+    visibility = ["//visibility:public"],
+    deps = ["//google/api:annotations_go_proto"],
+)

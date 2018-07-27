@@ -112,7 +112,7 @@ def env_execute(ctx, arguments, environment = {}, **kwargs):
     to "arguments" before calling "ctx.execute".
 
     Variables that aren't explicitly mentioned in "environment"
-    are removed from the environment. This should be preferred to "ctx.execut"e
+    are removed from the environment. This should be preferred to "ctx.execute"
     in most situations.
     """
     if ctx.os.name.startswith("windows"):
@@ -126,6 +126,18 @@ def env_execute(ctx, arguments, environment = {}, **kwargs):
         env_args.append("%s=%s" % (k, v))
     arguments = env_args + arguments
     return ctx.execute(arguments, **kwargs)
+
+def os_path(ctx, path):
+    path = str(path)  # maybe convert from path type
+    if ctx.os.name.startswith("windows"):
+        path = path.replace("/", "\\")
+    return path
+
+def executable_path(ctx, path):
+    path = os_path(ctx, path)
+    if ctx.os.name.startswith("windows"):
+        path += ".exe"
+    return path
 
 def executable_extension(ctx):
     extension = ""

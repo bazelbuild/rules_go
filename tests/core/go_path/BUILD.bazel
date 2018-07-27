@@ -6,9 +6,11 @@ test_suite(name = "go_path")
     name = mode + "_path",
     testonly = True,
     data = ["extra.txt"],
+    include_pkg = True,
     mode = mode,
     deps = [
         "//tests/core/go_path/cmd/bin",
+        "//tests/core/go_path/cmd/bin:cross",
         "//tests/core/go_path/pkg/lib:embed_test",
         "//tests/core/go_path/pkg/lib:go_default_library",
         "//tests/core/go_path/pkg/lib:go_default_test",

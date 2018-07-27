@@ -6,3 +6,9 @@ go_library(
     importpath = "github.com/gogo/protobuf/test/oneof3",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["one.proto"],
+    visibility = ["//visibility:public"],
+)

@@ -11,9 +11,7 @@ os:
   - osx
 
 env:
-  # TODO(bazelbuild/continuous-integration#95): re-enable HEAD builds with stable URL
-  # - V=HEAD
-  - V=0.10.0
+  - V=0.15.0
 
 before_install:
   - |

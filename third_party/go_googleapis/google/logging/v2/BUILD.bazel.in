@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "logging_proto",
+    srcs = [
+        "log_entry.proto",
+        "logging.proto",
+        "logging_config.proto",
+        "logging_metrics.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/api:distribution_proto",
+        "//google/api:metric_proto",
+        "//google/api:monitoredres_proto",
+        "//google/logging/type:ltype_proto",
+        "//google/rpc:status_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:struct_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "logging_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/logging/v2",
+    proto = ":logging_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/api:distribution_go_proto",
+        "//google/api:metric_go_proto",
+        "//google/api:monitoredres_go_proto",
+        "//google/logging/type:ltype_go_proto",
+        "//google/rpc:status_go_proto",
+    ],
+)

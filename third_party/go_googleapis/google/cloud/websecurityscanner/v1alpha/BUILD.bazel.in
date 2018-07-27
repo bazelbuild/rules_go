@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "websecurityscanner_proto",
+    srcs = [
+        "crawled_url.proto",
+        "finding.proto",
+        "finding_addon.proto",
+        "finding_type_stats.proto",
+        "scan_config.proto",
+        "scan_run.proto",
+        "web_security_scanner.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "websecurityscanner_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/cloud/websecurityscanner/v1alpha",
+    proto = ":websecurityscanner_proto",
+    visibility = ["//visibility:public"],
+    deps = ["//google/api:annotations_go_proto"],
+)

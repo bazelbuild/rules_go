@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "ml_proto",
+    srcs = [
+        "job_service.proto",
+        "model_service.proto",
+        "operation_metadata.proto",
+        "prediction_service.proto",
+        "project_service.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/api:httpbody_proto",
+        "//google/api:serviceconfig_proto",
+        "//google/longrunning:longrunning_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "ml_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/cloud/ml/v1",
+    proto = ":ml_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/api:httpbody_go_proto",
+        "//google/api:serviceconfig_go_proto",
+        "//google/longrunning:longrunning_go_proto",
+    ],
+)

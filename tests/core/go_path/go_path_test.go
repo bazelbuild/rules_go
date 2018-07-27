@@ -22,11 +22,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
 
 var copyPath, linkPath, archivePath, nodataPath string
+
+var defaultMode = runtime.GOOS + "_" + runtime.GOARCH
 
 var files = []string{
 	"extra.txt",
@@ -42,6 +45,10 @@ var files = []string{
 	"src/example.com/repo/pkg/lib/data.txt",
 	"src/example.com/repo/pkg/lib/testdata/testdata.txt",
 	"src/example.com/repo/vendor/example.com/repo2/vendored.go",
+	"pkg/" + defaultMode + "/example.com/repo/cmd/bin.a",
+	"pkg/" + defaultMode + "/example.com/repo/pkg/lib.a",
+	"pkg/" + defaultMode + "/example.com/repo/vendor/example.com/repo2.a",
+	"pkg/plan9_arm/example.com/repo/cmd/bin.a",
 }
 
 func TestMain(m *testing.M) {

@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "vision_proto",
+    srcs = [
+        "geometry.proto",
+        "image_annotator.proto",
+        "text_annotation.proto",
+        "web_detection.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/longrunning:longrunning_proto",
+        "//google/rpc:status_proto",
+        "//google/type:color_proto",
+        "//google/type:latlng_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "vision_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/cloud/vision/v1p2beta1",
+    proto = ":vision_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/longrunning:longrunning_go_proto",
+        "//google/rpc:status_go_proto",
+        "//google/type:color_go_proto",
+        "//google/type:latlng_go_proto",
+    ],
+)

@@ -42,6 +42,11 @@ load(
     "go_rule",
 )
 load(
+    "@io_bazel_rules_go//go/platform:list.bzl",
+    "GOARCH",
+    "GOOS",
+)
+load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_NORMAL",
 )
@@ -89,10 +94,10 @@ def _go_test_impl(ctx):
 
     main_go = go.declare_file(go, "testmain.go")
     arguments = go.args(go)
-    arguments.add(["-rundir", run_dir, "-output", main_go])
+    arguments.add_all(["-rundir", run_dir, "-output", main_go])
     if ctx.configuration.coverage_enabled:
-        arguments.add(["-coverage"])
-    arguments.add([
+        arguments.add("-coverage")
+    arguments.add_all([
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
         "-import",
@@ -100,7 +105,7 @@ def _go_test_impl(ctx):
         "-import",
         "l_test=" + external_source.library.importpath,
     ])
-    arguments.add(go_srcs, before_each = "-src", format = "l=%s")
+    arguments.add_all(go_srcs, before_each = "-src", format_each = "l=%s")
     ctx.actions.run(
         inputs = go_srcs,
         outputs = [main_go],
@@ -209,6 +214,14 @@ go_test = go_rule(
                 "off",
                 "auto",
             ],
+            default = "auto",
+        ),
+        "goos": attr.string(
+            values = GOOS.keys() + ["auto"],
+            default = "auto",
+        ),
+        "goarch": attr.string(
+            values = GOARCH.keys() + ["auto"],
             default = "auto",
         ),
         "gc_goopts": attr.string_list(),

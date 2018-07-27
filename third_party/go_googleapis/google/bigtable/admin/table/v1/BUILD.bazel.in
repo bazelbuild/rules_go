@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "table_proto",
+    srcs = [
+        "bigtable_table_data.proto",
+        "bigtable_table_service.proto",
+        "bigtable_table_service_messages.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/longrunning:longrunning_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:empty_proto",
+    ],
+)
+
+go_proto_library(
+    name = "table_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/bigtable/admin/table/v1",
+    proto = ":table_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/longrunning:longrunning_go_proto",
+    ],
+)

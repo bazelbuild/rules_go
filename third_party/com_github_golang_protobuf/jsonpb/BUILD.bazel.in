@@ -7,6 +7,17 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//proto:go_default_library",
+        "//ptypes/struct:go_default_library",
+    ],
+)
+
+go_library(
+    name = "go_default_library_gen",
+    srcs = ["jsonpb.go"],
+    importpath = "github.com/golang/protobuf/jsonpb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//proto:go_default_library",
         "@io_bazel_rules_go//proto/wkt:struct_go_proto",
     ],
 )
@@ -19,11 +30,10 @@ go_test(
         "//jsonpb/jsonpb_test_proto:go_default_library",
         "//proto:go_default_library",
         "//proto/proto3_proto:go_default_library",
-        "//ptypes:go_default_library",
-        "@io_bazel_rules_go//proto/wkt:any_go_proto",
-        "@io_bazel_rules_go//proto/wkt:duration_go_proto",
-        "@io_bazel_rules_go//proto/wkt:struct_go_proto",
-        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
-        "@io_bazel_rules_go//proto/wkt:wrappers_go_proto",
+        "//ptypes/any:go_default_library",
+        "//ptypes/duration:go_default_library",
+        "//ptypes/struct:go_default_library",
+        "//ptypes/timestamp:go_default_library",
+        "//ptypes/wrappers:go_default_library",
     ],
 )

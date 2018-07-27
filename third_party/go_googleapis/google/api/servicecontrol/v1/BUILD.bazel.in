@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "servicecontrol_proto",
+    srcs = [
+        "check_error.proto",
+        "distribution.proto",
+        "log_entry.proto",
+        "metric_value.proto",
+        "operation.proto",
+        "quota_controller.proto",
+        "service_controller.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/logging/type:ltype_proto",
+        "//google/rpc:status_proto",
+        "//google/type:money_proto",
+        "@com_google_protobuf//:any_proto",
+        "@com_google_protobuf//:struct_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "servicecontrol_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/api/servicecontrol/v1",
+    proto = ":servicecontrol_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/logging/type:ltype_go_proto",
+        "//google/rpc:status_go_proto",
+        "//google/type:money_go_proto",
+    ],
+)

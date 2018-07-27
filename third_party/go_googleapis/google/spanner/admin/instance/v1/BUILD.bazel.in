@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "instance_proto",
+    srcs = ["spanner_instance_admin.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/iam/v1:iam_proto",
+        "//google/longrunning:longrunning_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "instance_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/spanner/admin/instance/v1",
+    proto = ":instance_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/iam/v1:iam_go_proto",
+        "//google/longrunning:longrunning_go_proto",
+    ],
+)

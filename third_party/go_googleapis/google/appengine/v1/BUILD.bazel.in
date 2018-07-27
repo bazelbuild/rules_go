@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "appengine_proto",
+    srcs = [
+        "app_yaml.proto",
+        "appengine.proto",
+        "application.proto",
+        "audit_data.proto",
+        "deploy.proto",
+        "instance.proto",
+        "location.proto",
+        "operation.proto",
+        "service.proto",
+        "version.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/iam/v1:iam_proto",
+        "//google/longrunning:longrunning_proto",
+        "//google/type:latlng_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "appengine_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/appengine/v1",
+    proto = ":appengine_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/iam/v1:iam_go_proto",
+        "//google/longrunning:longrunning_go_proto",
+        "//google/type:latlng_go_proto",
+    ],
+)

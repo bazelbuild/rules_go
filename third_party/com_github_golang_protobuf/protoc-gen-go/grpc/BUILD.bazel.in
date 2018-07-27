@@ -6,7 +6,7 @@ go_library(
     importpath = "github.com/golang/protobuf/protoc-gen-go/grpc",
     visibility = ["//visibility:public"],
     deps = [
-        "//protoc-gen-go/descriptor:descriptor_bootstrap",
+        "//protoc-gen-go/descriptor:go_default_library",
         "//protoc-gen-go/generator:go_default_library",
     ],
 )

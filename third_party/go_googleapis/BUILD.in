@@ -1,0 +1,4 @@
+# gazelle:proto package
+# gazelle:proto_group go_package
+# gazelle:exclude gapic
+# gazelle:exclude third_party

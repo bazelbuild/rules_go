@@ -7,3 +7,13 @@ go_binary(
     importpath = "example.com/repo/cmd/bin",
     visibility = ["//visibility:public"],
 )
+
+go_binary(
+    name = "cross",
+    srcs = ["bin.go"],
+    goarch = "arm",
+    goos = "plan9",
+    importpath = "example.com/repo/cmd/bin",
+    pure = "on",
+    visibility = ["//visibility:public"],
+)
