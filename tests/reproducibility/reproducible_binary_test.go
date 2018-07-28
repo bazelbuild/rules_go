@@ -24,7 +24,9 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"path"
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -37,7 +39,11 @@ func TestMain(m *testing.M) {
 		log.Fatalf("usage: %s <binary>\n", os.Args[0])
 	}
 
-	binaryData, err := ioutil.ReadFile(os.Args[1])
+	binary := os.Args[1]
+	if strings.HasPrefix(binary, "external/") {
+		binary = path.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(os.Args[1], "external/"))
+	}
+	binaryData, err := ioutil.ReadFile(binary)
 	if err != nil {
 		log.Fatal(err)
 	}

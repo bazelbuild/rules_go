@@ -142,8 +142,7 @@ def _bazel_test_script_impl(ctx):
     register = ""
     if any([ext.label.workspace_root.endswith("/go_sdk") for ext in ctx.attr.externals]):
         register += "register_toolchains(\n{}\n)\n".format(
-            "\n".join(['    "@go_sdk//:{}",'.format(name)
-                       for name in generate_toolchain_names()]))
+            "\n".join(['"@go_sdk//:{}",'.format(name) for name in generate_toolchain_names()]))
     if ctx.attr.go_version == CURRENT_VERSION:
         register += "go_register_toolchains()\n"
     elif ctx.attr.go_version != None:
@@ -169,32 +168,27 @@ def _bazel_test_script_impl(ctx):
     build_file = go.declare_file(go, path = "BUILD.in")
     ctx.actions.write(build_file, ctx.attr.build)
 
-    output = "external/" + ctx.workspace_name + "/" + ctx.label.package
-    targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
+    output = "/".join([ctx.label.workspace_root if ctx.label.workspace_root else "external/{}".format(ctx.workspace_name), ctx.label.package])
+    targets = [t.label if t.label.workspace_root else Label("@{}//{}:{}".format(ctx.workspace_name, t.label.package, t.label.name)) for t in ctx.attr.targets]
     logs = []
     if ctx.attr.command in ("test", "coverage"):
-        # TODO(jayconrod): read logs for other packages
-        logs = [
-            "bazel-testlogs/{}/{}/test.log".format(output, t[1:])
-            for t in ctx.attr.targets
-            if t.startswith(":")
-        ]
+        logs = ["/".join(["bazel-testlogs", t.workspace_root, t.package, t.name, "test.log"]) for t in targets]
 
     script_content = _bazel_test_script_template.format(
-        bazelrc = shell.quote(ctx.attr._settings.exec_root + "/" + ctx.file.bazelrc.path),
+        bazelrc = shell.quote("/".join([ctx.attr._settings.exec_root, ctx.file.bazelrc.path])),
         config = ctx.attr.config,
         extra_files = " ".join([shell.quote(paths.join(ctx.attr._settings.exec_root, "execroot", "io_bazel_rules_go", file.path)) for file in ctx.files.extra_files]),
         command = ctx.attr.command,
-        args = " ".join(ctx.attr.args),
-        target = " ".join(targets),
+        args = " ".join(ctx.attr.args2),
+        target = " ".join([str(t) for t in targets]),
         logs = " ".join([shell.quote(l) for l in logs]),
         check = ctx.attr.check,
         workspace = shell.quote(workspace_file.short_path),
         build = shell.quote(build_file.short_path),
         output = shell.quote(output),
         bazel = ctx.attr._settings.bazel,
-        work_dir = shell.quote(ctx.attr._settings.scratch_dir + "/" + ctx.attr.config),
-        cache_dir = shell.quote(ctx.attr._settings.scratch_dir + "/cache"),
+        work_dir = shell.quote("/".join([ctx.attr._settings.scratch_dir, ctx.attr.config])),
+        cache_dir = shell.quote("{}/cache".format(ctx.attr._settings.scratch_dir)),
         clean_build = "1" if ctx.attr.clean_build else "0",
     )
     ctx.actions.write(output = script_file, is_executable = True, content = script_content)
@@ -204,10 +198,12 @@ def _bazel_test_script_impl(ctx):
             [workspace_file, build_file] + ctx.files.extra_files,
             collect_data = True,
         ),
+        executable = script_file,
     )
 
-_bazel_test_script = go_rule(
+_bazel_test_script_test = go_rule(
     _bazel_test_script_impl,
+    test = True,
     attrs = {
         "command": attr.string(
             mandatory = True,
@@ -218,8 +214,8 @@ _bazel_test_script = go_rule(
                 "run",
             ],
         ),
-        "args": attr.string_list(default = []),
-        "targets": attr.string_list(mandatory = True),
+        "args2": attr.string_list(default = []),
+        "targets": attr.label_list(mandatory = True),
         "externals": attr.label_list(allow_files = True),
         "go_version": attr.string(default = CURRENT_VERSION),
         "workspace": attr.string(),
@@ -250,9 +246,9 @@ def bazel_test(name, command = None, args = None, targets = None, go_version = N
 
     bazelrc = "@bazel_test//:standalone_bazelrc" if standalone else "@bazel_test//:sandboxed_bazelrc"
 
-    _bazel_test_script(
+    _bazel_test_script_test(
         name = script_name,
-        args = args,
+        args2 = args,
         bazelrc = bazelrc,
         build = build,
         check = check,

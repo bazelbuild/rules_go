@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -82,6 +83,10 @@ func TestUnpack(t *testing.T) {
 }
 
 func checkFile(t *testing.T, path string, data []byte) {
+	if strings.HasPrefix(path, "external/") {
+		path = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(path, "external/"))
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		t.Error(err)

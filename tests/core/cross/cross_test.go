@@ -57,10 +57,15 @@ var checks = []check{
 
 func TestCross(t *testing.T) {
 	for _, c := range checks {
-		if _, err := os.Stat(*c.file); os.IsNotExist(err) {
-			t.Fatalf("Missing binary %v", *c.file)
+		file := *c.file
+		if strings.HasPrefix(file, "external") {
+			file = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(file, "external/"))
 		}
-		file, err := filepath.EvalSymlinks(*c.file)
+
+		if _, err := os.Stat(file); os.IsNotExist(err) {
+			t.Fatalf("Missing binary %v", file)
+		}
+		file, err := filepath.EvalSymlinks(file)
 		if err != nil {
 			t.Fatalf("Invalid filename %v", file)
 		}

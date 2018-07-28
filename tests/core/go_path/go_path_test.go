@@ -84,6 +84,10 @@ func TestArchivePath(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
+	if strings.HasPrefix(archivePath, "external") {
+		archivePath = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(archivePath, "external/"))
+	}
+
 	z, err := zip.OpenReader(archivePath)
 	if err != nil {
 		t.Fatalf("error opening zip: %v", err)
@@ -131,6 +135,10 @@ func TestNoDataPath(t *testing.T) {
 // absent. Files that end with "/" should be directories. Other files should
 // be of fileType.
 func checkPath(t *testing.T, dir string, files []string, fileType os.FileMode) {
+	if strings.HasPrefix(dir, "external") {
+		dir = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(dir, "external/"))
+	}
+
 	for _, f := range files {
 		wantType := fileType
 		wantAbsent := false
