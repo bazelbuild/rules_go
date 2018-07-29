@@ -35,18 +35,11 @@ def _map_archive(x):
     # transitively depends on the library under test, we need to exclude the
     # library under test and use the internal test archive instead.
     deps = depset(transitive = [d.transitive for d in x.archive.direct])
-    test_importmaps = {
-        t.importmap: None
-        for t in x.test_archives
-    }
     return [
         _format_archive(d)
         for d in deps.to_list()
-        if d.importmap not in test_importmaps
+        if not any([d.importmap == t.importmap for t in x.test_archives])
     ]
-
-def _map_test_archive(d):
-    return _format_archive(d)
 
 def emit_link(
         go,
@@ -93,7 +86,7 @@ def emit_link(
 
     builder_args.add_all([struct(archive = archive, test_archives = test_archives)], before_each = "-dep",
         map_each = _map_archive)
-    builder_args.add_all(test_archives, before_each = "-dep", map_each = _map_test_archive)
+    builder_args.add_all(test_archives, before_each = "-dep", map_each = _format_archive)
 
     # Build a list of rpaths for dynamic libraries we need to find.
     # rpaths are relative paths from the binary to directories where libraries
