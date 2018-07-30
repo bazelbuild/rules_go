@@ -155,7 +155,7 @@ def _bootstrap_link(go, archive, executable, gc_linkopts):
     """See go/toolchains.rst#link for full documentation."""
 
     inputs = [archive.data.file] + go.sdk.libs + go.sdk.tools + [go.go]
-    args = ["tool", "link", "-s", "-o", executable.path]
+    args = ["tool", "link", "-s", "-linkmode", "internal", "-o", executable.path]
     args.extend(gc_linkopts)
     args.append(archive.data.file.path)
     go.actions.run_shell(
