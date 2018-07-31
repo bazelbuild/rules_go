@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
-    "sets",
-)
-load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
@@ -53,9 +49,9 @@ def emit_compile(
             fail("compile does not accept deps in bootstrap mode")
         return _bootstrap_compile(go, sources, out_lib, gc_goopts)
 
-    inputs = sets.union(sources, [go.package_list],
-              [archive.data.file for archive in archives],
-              go.sdk.tools, go.stdlib.libs)
+    inputs = (sources + [go.package_list] +
+              [archive.data.file for archive in archives] +
+              go.sdk.tools + go.stdlib.libs)
     outputs = [out_lib]
 
     builder_args = go.args(go)
@@ -107,7 +103,7 @@ def _bootstrap_compile(go, sources, out_lib, gc_goopts):
     args.add_all(gc_goopts)
     args.add_all(sources)
     go.actions.run_shell(
-        inputs = sets.union(sources, go.sdk.libs, go.sdk.tools, [go.go]),
+        inputs = sources + go.sdk.libs + go.sdk.tools + [go.go],
         outputs = [out_lib],
         arguments = [args],
         mnemonic = "GoCompile",

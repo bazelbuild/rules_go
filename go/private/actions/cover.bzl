@@ -19,7 +19,6 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "sets",
     "structs",
 )
 
@@ -57,7 +56,7 @@ def emit_cover(go, source):
             "-mode=set",
         ])
         go.actions.run(
-            inputs = sets.union([src], go.sdk.tools),
+            inputs = [src] + go.sdk.tools,
             outputs = [out],
             mnemonic = "GoCover",
             executable = go.builders.cover,
