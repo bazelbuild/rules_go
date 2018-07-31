@@ -32,49 +32,51 @@ customize the behavior of the core_ Go rules.
 Design
 ------
 
-The Go toolchain consists of three main layers, `the sdk`_ and `the toolchain`_ and `the context`_.
+The Go toolchain consists of three main layers, `the sdk`_ and `the toolchain`_
+and `the context`_.
 
 The SDK
 ~~~~~~~
 
-At the bottom is the Go SDK. This is the same thing you would get if you go to the main
-`Go website`_ and download a `binary distribution`_.
+At the bottom is the Go SDK. This is the same thing you would get if you go to
+the main `Go website`_ and download a `binary distribution`_.
 
-This is always bound to ``@go_sdk`` and can be referred to directly if needed, but in general
-you should always access it through the toolchain.
+This is always bound to ``@go_sdk`` and can be referred to directly if needed,
+but in general you should always access it through the toolchain.
 
-The go_download_sdk_, go_host_sdk_ and go_local_sdk_ family of rules are responsible for downloading
-these, and adding just enough of a build file to expose the contents to Bazel.
-It currently also builds the cross compiled standard libraries for specific combinations, although
-we hope to make that an on demand step in the future.
+The go_download_sdk_, go_host_sdk_ and go_local_sdk_ family of rules are
+responsible for downloading these, and adding just enough of a build file to
+expose the contents to Bazel.  It currently also builds the cross compiled
+standard libraries for specific combinations, although we hope to make that an
+on demand step in the future.
 
-SDKs are specific to the host they are running on and the version of Go they want to use
-but not the target they compile for. The Go SDK is naturally `cross compiling`_.
+SDKs are specific to the host they are running on and the version of Go they
+want to use but not the target they compile for. The Go SDK is naturally `cross
+compiling`_.
 
-If you don't do anything special, the Go rules will download the most recent official SDK for
-your host.
-If you need a `forked version of Go`_\, want to `control the version`_ or just use the
-`installed sdk`_ then it is easy to do, you just need to make sure you have bound the go_sdk
-repository before you call go_register_toolchains_.
+If you don't do anything special, the Go rules will download the most recent
+official SDK for your host.  If you need a `forked version of Go`_\, want to
+`control the version`_ or just use the `installed sdk`_ then it is easy to do,
+you just need to make sure you have bound the go_sdk repository before you call
+go_register_toolchains_.
 
 The toolchain
 ~~~~~~~~~~~~~
 
-This a wrapper over the sdk that provides enough extras to match, target and work on a specific
-platforms. It should be considered an opaque type, you only ever use it through `the context`_.
+This a wrapper over the sdk that provides enough extras to match, target and
+work on a specific platforms. It should be considered an opaque type, you only
+ever use it through `the context`_.
 
 Declaration
 ^^^^^^^^^^^
 
 Toolchains are declared using the go_toolchain_ macro.
 
-Toolchains are pre-declared for all the known combinations of host and target, and the names
-are a predictable
-"<**host**>"
-for host toolchains and
-"<**host**>_cross\_<**target**>"
-for cross compilation toolchains. So for instance if the rules_go repository is loaded with
-it's default name, the following toolchain labels (along with many others) will be available
+Toolchains are pre-declared for all the known combinations of host and target,
+and the names are a predictable "<**host**>" for host toolchains and
+"<**host**>_cross\_<**target**>" for cross compilation toolchains. So for
+instance if the rules_go repository is loaded with it's default name, the
+following toolchain labels (along with many others) will be available
 
 .. code::
 
@@ -86,17 +88,18 @@ The toolchains are not usable until you register_ them.
 Registration
 ^^^^^^^^^^^^
 
-Normally you would just call go_register_toolchains_ from your WORKSPACE to register all the
-pre-declared toolchains, and allow normal selection logic to pick the right one.
+Normally you would just call go_register_toolchains_ from your WORKSPACE to
+register all the pre-declared toolchains, and allow normal selection logic to
+pick the right one.
 
-It is fine to add more toolchains to the available set if you like. Because the normal
-toolchain matching mechanism prefers the first declared match, you can also override individual
-toolchains by declaring and registering toolchains with the same constraints *before* calling
-go_register_toolchains_.
+It is fine to add more toolchains to the available set if you like. Because the
+normal toolchain matching mechanism prefers the first declared match, you can
+also override individual toolchains by declaring and registering toolchains with
+the same constraints *before* calling go_register_toolchains_.
 
-If you wish to have more control over the toolchains you can instead just make direct
-calls to register_toolchains_ with only the toolchains you wish to install. You can see an
-example of this in `limiting the available toolchains`_.
+If you wish to have more control over the toolchains you can instead just make
+direct calls to register_toolchains_ with only the toolchains you wish to
+install. You can see an example of this in `limiting the available toolchains`_.
 
 
 The context
@@ -107,10 +110,11 @@ This is the type you use if you are writing custom rules that need
 Use
 ^^^
 
-If you are writing a new rule that wants to use the Go toolchain, you need to do a couple of things.
-First, you have to declare that you want to consume the toolchain on the rule declaration.
-The easiest way to do this is to use the go_rule wrapper, which adds in the toolchain and some
-hidden attributes that it consumes.
+If you are writing a new rule that wants to use the Go toolchain, you need to do
+a couple of things.  First, you have to declare that you want to consume the
+toolchain on the rule declaration.  The easiest way to do this is to use the
+go_rule wrapper, which adds in the toolchain and some hidden attributes that it
+consumes.
 
 .. code:: bzl
 
@@ -123,7 +127,8 @@ hidden attributes that it consumes.
       },
   )
 
-And then in the rule body, you need to get the toolchain itself and use it's action generators.
+And then in the rule body, you need to get the toolchain itself and use it's
+action generators.
 
 .. code:: bzl
 
@@ -137,9 +142,9 @@ Customizing
 Normal usage
 ~~~~~~~~~~~~
 
-This is an example of normal usage for the other examples to be compared against.
-This will download and use the latest Go SDK that was available when the version of rules_go
-you're using was released.
+This is an example of normal usage for the other examples to be compared
+against.  This will download and use the latest Go SDK that was available when
+the version of rules_go you're using was released.
 
 WORKSPACE
 ^^^^^^^^^
@@ -172,8 +177,8 @@ WORKSPACE
 Using the installed Go SDK
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The "host" version is a special toolchain that breaks the hermetic seal to use the host installed
-toolchain.
+The "host" version is a special toolchain that breaks the hermetic seal to use
+the host installed toolchain.
 
 WORKSPACE
 ^^^^^^^^^
@@ -190,8 +195,8 @@ WORKSPACE
 Registering a custom SDK
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want to register your own toolchain that takes precedence over the pre-declared ones you can
-just add it and register it before the normal ones.
+If you want to register your own toolchain that takes precedence over the
+pre-declared ones you can just add it and register it before the normal ones.
 
 WORKSPACE
 ^^^^^^^^^
@@ -309,9 +314,10 @@ go_host_sdk
 
 This detects the host Go SDK for use in toolchains.
 
-It first checks the GOROOT and then searches the PATH. You can achieve the same result by setting
-the version to "host" when registering toolchains to select the `installed sdk`_ so it should
-never be necessary to use this feature directly.
+It first checks the GOROOT and then searches the PATH. You can achieve the same
+result by setting the version to "host" when registering toolchains to select
+the `installed sdk`_ so it should never be necessary to use this feature
+directly.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -395,10 +401,11 @@ This adds a toolchain of type :value:`"@io_bazel_rules_go//go:toolchain"`.
 go_context
 ~~~~~~~~~~
 
-This collects the information needed to form and return a :type:`GoContext` from a rule ctx.
-It uses the attributes and the toolchains.
-It can only be used in the implementation of a rule that has the go toolchain attached and
-the go context data as an attribute. To do this declare the rule using the go_rule wrapper.
+This collects the information needed to form and return a :type:`GoContext` from
+a rule ctx.  It uses the attributes and the toolchains.  It can only be used in
+the implementation of a rule that has the go toolchain attached and the go
+context data as an attribute. To do this declare the rule using the go_rule
+wrapper.
 
 .. code:: bzl
 
@@ -421,16 +428,17 @@ the go context data as an attribute. To do this declare the rule using the go_ru
 The context object
 ~~~~~~~~~~~~~~~~~~
 
-GoContext is never returned by a rule, instead you build one using go_context(ctx) in the top of
-any custom skylark rule that wants to interact with the go rules.
-It provides all the information needed to create go actions, and create or interact with the other
-go providers.
+GoContext is never returned by a rule, instead you build one using
+go_context(ctx) in the top of any custom skylark rule that wants to interact
+with the go rules.  It provides all the information needed to create go actions,
+and create or interact with the other go providers.
 
-When you get a GoContext from a context (see use_) it exposes a number of fields and methods.
+When you get a GoContext from a context (see use_) it exposes a number of fields
+and methods.
 
-All methods take the GoContext as the only positional argument, all other arguments even if
-mandatory must be specified by name, to allow us to re-order and deprecate individual parameters
-over time.
+All methods take the GoContext as the only positional argument, all other
+arguments even if mandatory must be specified by name, to allow us to re-order
+and deprecate individual parameters over time.
 
 
 Methods
@@ -514,8 +522,8 @@ Fields
 archive
 ~~~~~~~
 
-This emits actions to compile Go code into an archive.
-It supports embedding, cgo dependencies, coverage, and assembling and packing .s files.
+This emits actions to compile Go code into an archive.  It supports embedding,
+cgo dependencies, coverage, and assembling and packing .s files.
 
 It returns a GoArchive_.
 
@@ -535,8 +543,8 @@ It returns a GoArchive_.
 asm
 ~~~
 
-The asm function adds an action that runs ``go tool asm`` on a source file
-to produce an object, and returns the File of that object.
+The asm function adds an action that runs ``go tool asm`` on a source file to
+produce an object, and returns the File of that object.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -559,9 +567,8 @@ to produce an object, and returns the File of that object.
 binary
 ~~~~~~
 
-This emits actions to compile and link Go code into a binary.
-It supports embedding, cgo dependencies, coverage, and assembling and packing
-.s files.
+This emits actions to compile and link Go code into a binary.  It supports
+embedding, cgo dependencies, coverage, and assembling and packing .s files.
 
 It returns a tuple containing GoArchive_ and the output executable file.
 
@@ -605,8 +612,8 @@ It returns a tuple containing GoArchive_ and the output executable file.
 compile
 ~~~~~~~
 
-The compile function adds an action that runs ``go tool compile`` on a set of source files
-to produce an archive.
+The compile function adds an action that runs ``go tool compile`` on a set of
+source files to produce an archive.
 
 It does not return anything.
 
@@ -660,8 +667,8 @@ It does not return anything.
 cover
 ~~~~~
 
-The cover function adds an action that runs ``go tool cover`` on a set of source files
-to produce copies with cover instrumentation.
+The cover function adds an action that runs ``go tool cover`` on a set of source
+files to produce copies with cover instrumentation.
 
 Returns a covered GoSource_ with the required source files process for coverage.
 
@@ -715,8 +722,8 @@ It does not return anything.
 pack
 ~~~~
 
-The pack function adds an action that produces an archive from a base archive and a collection
-of additional object files.
+The pack function adds an action that produces an archive from a base archive
+and a collection of additional object files.
 
 It does not return anything.
 
@@ -752,8 +759,8 @@ It does not return anything.
 args
 ~~~~
 
-This creates a new args object, using the ctx.args method, and the populates it with the standard
-arguments used by all the go toolchain builders.
+This creates a new args object, using the ctx.args method, and the populates it
+with the standard arguments used by all the go toolchain builders.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -766,8 +773,8 @@ arguments used by all the go toolchain builders.
 declare_file
 ~~~~~~~~~~~~
 
-This is the equivalent of ctx.actions.declare_file except it uses the current build mode to make
-the filename unique between configurations.
+This is the equivalent of ctx.actions.declare_file except it uses the current
+build mode to make the filename unique between configurations.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -793,7 +800,8 @@ the filename unique between configurations.
 library_to_source
 ~~~~~~~~~~~~~~~~~
 
-This is used to build a GoSource object for a given GoLibrary in the current build mode.
+This is used to build a GoSource object for a given GoLibrary in the current
+build mode.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -820,9 +828,9 @@ This is used to build a GoSource object for a given GoLibrary in the current bui
 new_library
 ~~~~~~~~~~~
 
-This creates a new GoLibrary.
-You can add extra fields to the go library by providing extra named parameters to this function,
-they will be visible to the resolver when it is invoked.
+This creates a new GoLibrary.  You can add extra fields to the go library by
+providing extra named parameters to this function, they will be visible to the
+resolver when it is invoked.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -849,4 +857,3 @@ they will be visible to the resolver when it is invoked.
 | This controls whether the GoLibrary_ is supposed to be importable. This is generally only false  |
 | for the "main" libraries that are built just before linking.                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
-
