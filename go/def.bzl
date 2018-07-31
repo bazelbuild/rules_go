@@ -22,8 +22,8 @@ load(
     _GoArchiveData = "GoArchiveData",
     _GoLibrary = "GoLibrary",
     _GoPath = "GoPath",
-    _GoSource = "GoSource",
     _GoSDK = "GoSDK",
+    _GoSource = "GoSource",
 )
 load(
     "@io_bazel_rules_go//go/private:repositories.bzl",
@@ -35,6 +35,7 @@ load(
     "go_download_sdk",
     "go_host_sdk",
     "go_local_sdk",
+    "go_wrap_sdk",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/sdk.bzl",

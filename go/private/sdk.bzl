@@ -76,6 +76,26 @@ def go_local_sdk(name, **kwargs):
     _go_local_sdk(name = name, **kwargs)
     _register_toolchains(name)
 
+def _go_wrap_sdk_impl(ctx):
+    host = _detect_host_platform(ctx)
+    path = str(ctx.path(ctx.attr.root_file).dirname)
+    _sdk_build_file(ctx, host)
+    _local_sdk(ctx, path)
+
+_go_wrap_sdk = repository_rule(
+    _go_wrap_sdk_impl,
+    attrs = {
+        "root_file": attr.label(
+            mandatory = True,
+            doc = "A file in the SDK root direcotry. Used to determine GOROOT.",
+        ),
+    },
+)
+
+def go_wrap_sdk(name, **kwargs):
+    _go_wrap_sdk(name = name, **kwargs)
+    _register_toolchains(name)
+
 def _register_toolchains(repo):
     labels = ["@{}//:{}".format(repo, name)
               for name in generate_toolchain_names()]
