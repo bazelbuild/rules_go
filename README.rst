@@ -457,7 +457,6 @@ In order to run Bazel tests on Travis CI, you'll need to install Bazel in the
 You'll want to run Bazel with a number of flags to prevent it from consuming
 a huge amount of memory in the test environment.
 
-* ``--batch``: Don't start the Bazel server.
 * ``--host_jvm_args=-Xmx500m --host_jvm_args=-Xms500m``: Set the maximum and
   initial JVM heap size. Keeping the same means the JVM won't spend time
   growing the heap. The choice of heap size is somewhat arbitrary; other

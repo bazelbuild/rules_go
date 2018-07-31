@@ -47,7 +47,6 @@ script:
   - |
     bazel \
       --output_base=$HOME/.cache/bazel \
-      --batch \
       --host_jvm_args=-Xmx500m \
       --host_jvm_args=-Xms500m \
       test \
