@@ -95,12 +95,11 @@ an input to the `library_to_source`_ helper method, which produces GoSource_.
 |     not importable. This is the case for binaries and tests. The importpath                      |
 |     may still be useful for `go_path`_ and other rules.                                          |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`resolve`               | :type:`function (optional)`                                                |
+| :param:`resolve`               | :type:`function (optional)`                                     |
 +--------------------------------+-----------------------------------------------------------------+
 | A function called by `library_to_source`_ that can be used to resolve this                       |
 | library to a mode-specific GoSource_.                                                            |
 +--------------------------------+-----------------------------------------------------------------+
-
 
 GoSource
 ~~~~~~~~

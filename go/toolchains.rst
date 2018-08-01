@@ -8,15 +8,14 @@ Go toolchains
 .. _go sdk rules: `The SDK`_
 .. _Go website: https://golang.org/
 .. _binary distribution: https://golang.org/dl/
-.. _cross compiling: crosscompile.rst
 .. _register: Registration_
 .. _register_toolchains: https://docs.bazel.build/versions/master/skylark/lib/globals.html#register_toolchains
 .. _compilation modes: modes.rst#compilation-modes
 .. _go assembly: https://golang.org/doc/asm
-.. _GoLibrary: providers.rst#GoLibrary
-.. _GoSource: providers.rst#GoSource
-.. _GoArchive: providers.rst#GoArchive
-.. _GoSDK: providers.rst#GoSDK
+.. _GoLibrary: providers.rst#golibrary
+.. _GoSource: providers.rst#gosource
+.. _GoArchive: providers.rst#goarchive
+.. _GoSDK: providers.rst#gosdk
 .. _go/platform/list.bzl: platform/list.bzl
 .. _Args: https://docs.bazel.build/versions/master/skylark/lib/Args.html
 
@@ -54,7 +53,7 @@ adding just enough of a build file to expose the contents to Bazel.
 
 SDKs are specific to a host platform (e.g., ``linux_amd64``) and a version of
 Go. They may target all platforms that Go supports. The Go SDK is naturally
-`cross compiling`_.
+cross compiling.
 
 SDKs are declared to Bazel with the `go_sdk`_ rule, which gathers information
 about the SDK into the `GoSDK`_ provider, which may be consumed by other
@@ -211,7 +210,7 @@ SDK will be used.
 | :param:`go_version`            | :type:`string`              | latest release                    |
 +--------------------------------+-----------------------------+-----------------------------------+
 | This specifies the version of the Go SDK to download. This is only used if                       |
-| no SDK has been declared with the name :value:`go_sdk` before the call to                             |
+| no SDK has been declared with the name :value:`go_sdk` before the call to                        |
 | ``go_register_toolchains``. The default version is the latest version of Go                      |
 | that was released at the time the rules_go release you're using was tagged.                      |
 +--------------------------------+-----------------------------+-----------------------------------+
