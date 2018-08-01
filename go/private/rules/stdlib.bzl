@@ -65,7 +65,7 @@ def _build_stdlib(go, attr):
         args.add("-shared")
     if go.mode.link == LINKMODE_PLUGIN:
         args.add("-dynlink")
-    args.add_all(["-filter_buildid", filter_buildid.path])
+    args.add_all(["-filter_buildid", filter_buildid])
     go.actions.write(root_file, "")
     env = go.env
     env.update({

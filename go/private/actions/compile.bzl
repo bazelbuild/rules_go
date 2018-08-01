@@ -18,6 +18,10 @@ load(
     "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
 )
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "shell",
+)
 
 def _importpath(v):
     return v.data.importpath
@@ -97,7 +101,7 @@ def emit_compile(
     )
 
 def _bootstrap_compile(go, sources, out_lib, gc_goopts):
-    cmd = [go.go.path, "tool", "compile", "-trimpath", "$(pwd)"]
+    cmd = [shell.quote(go.go.path), "tool", "compile", "-trimpath", "\"$(pwd)\""]
     args = go.actions.args()
     args.add_all(["-o", out_lib])
     args.add_all(gc_goopts)
@@ -107,5 +111,8 @@ def _bootstrap_compile(go, sources, out_lib, gc_goopts):
         outputs = [out_lib],
         arguments = [args],
         mnemonic = "GoCompile",
-        command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && {} \"$@\"".format(go.root, " ".join(cmd)),
+        command = "export GOROOT=\"$(pwd)\"/{} && {} \"$@\"".format(shell.quote(go.root), " ".join(cmd)),
+        env = {
+            "GOROOT_FINAL": "GOROOT",
+        },
     )

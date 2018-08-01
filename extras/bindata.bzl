@@ -27,7 +27,7 @@ def _bindata_impl(ctx):
     arguments = ctx.actions.args()
     arguments.add_all([
         "-o",
-        out.path,
+        out,
         "-pkg",
         ctx.attr.package,
         "-prefix",
