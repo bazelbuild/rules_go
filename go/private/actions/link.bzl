@@ -23,6 +23,10 @@ load(
     "LINKMODE_NORMAL",
     "LINKMODE_PLUGIN",
 )
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "shell",
+)
 
 def _format_archive(d):
     return "{}={}={}".format(d.label, d.importmap, d.file.path)
@@ -156,16 +160,21 @@ def _bootstrap_link(go, archive, executable, gc_linkopts):
     """See go/toolchains.rst#link for full documentation."""
 
     inputs = [archive.data.file] + go.sdk.libs + go.sdk.tools + [go.go]
-    args = ["tool", "link", "-s", "-linkmode", "internal", "-o", executable.path]
+    args = ["tool", "link", "-s", "-linkmode", "internal", "-o", shell.quote(executable.path)]
     args.extend(gc_linkopts)
-    args.append(archive.data.file.path)
+    args.append(shell.quote(archive.data.file.path))
     go.actions.run_shell(
         inputs = inputs,
         outputs = [executable],
         mnemonic = "GoLink",
          # workaround: go link tool needs some features of gcc to complete the job on Arm platform.
          # So, PATH for 'gcc' is required here on Arm platform.
-        command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && export PATH={} && {} {}".format(go.root, go.cgo_tools.compiler_path, go.go.path, " ".join(args)),
+        command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && export PATH={} && {} {}".format(
+            shell.quote(go.root), 
+            shell.quote(go.cgo_tools.compiler_path), 
+            shell.quote(go.go.path), 
+            " ".join(args)
+        ),
     )
 
 def _extract_extldflags(gc_linkopts, extldflags):
