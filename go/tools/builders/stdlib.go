@@ -22,7 +22,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"syscall"
 )
 
 func run(args []string) error {
@@ -53,6 +55,19 @@ func run(args []string) error {
 	// Link in the bare minimum needed to the new GOROOT
 	if err := replicate(goroot, output, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
 		return err
+	}
+
+	if runtime.GOOS == "windows" {
+		var buf [258]uint16
+		up, err := syscall.UTF16PtrFromString(output)
+		if err != nil {
+			return err
+		}
+		_, err = syscall.GetShortPathName(up, &buf[0], 258)
+		if err != nil {
+			return err
+		}
+		output = syscall.UTF16ToString(buf[:])
 	}
 
 	// Now switch to the newly created GOROOT
