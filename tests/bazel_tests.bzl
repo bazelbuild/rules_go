@@ -237,7 +237,7 @@ _bazel_test_script = go_rule(
             single_file = True,
             default = "@bazel_test//:standalone_bazelrc",
         ),
-        "_settings": attr.label(default = Label("@bazel_test//:settings")),
+        "_settings": attr.label(default = "@bazel_test//:settings"),
     },
 )
 
@@ -301,7 +301,7 @@ md5_sum = go_rule(
         "_md5sum": attr.label(
             allow_files = True,
             single_file = True,
-            default = Label("@io_bazel_rules_go//go/tools/builders:md5sum"),
+            default = "@io_bazel_rules_go//go/tools/builders:md5sum",
         ),
     },
 )

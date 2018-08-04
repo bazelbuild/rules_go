@@ -75,7 +75,7 @@ bindata = go_rule(
             single_file = True,
             executable = True,
             cfg = "host",
-            default = Label("@com_github_kevinburke_go_bindata//go-bindata:go-bindata"),
+            default = "@com_github_kevinburke_go_bindata//go-bindata:go-bindata",
         ),
     },
 )

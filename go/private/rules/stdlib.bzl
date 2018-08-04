@@ -106,12 +106,12 @@ stdlib = go_rule(
         "_stdlib_builder": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:stdlib"),
+            default = "@io_bazel_rules_go//go/tools/builders:stdlib",
         ),
         "_filter_buildid_builder": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:filter_buildid"),
+            default = "@io_bazel_rules_go//go/tools/builders:filter_buildid",
         ),
     },
 )

@@ -326,9 +326,9 @@ go_context_data = rule(
     _go_context_data,
     attrs = {
         "strip": attr.string(mandatory = True),
-        "_crosstool": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+        "_crosstool": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
-            default = Label("@bazel_tools//tools/osx:current_xcode_config"),
+            default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
     fragments = ["cpp", "apple"],

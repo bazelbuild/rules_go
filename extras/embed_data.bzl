@@ -91,7 +91,7 @@ go_embed_data = go_rule(
         "unpack": attr.bool(),
         "string": attr.bool(),
         "_embed": attr.label(
-            default = Label("@io_bazel_rules_go//go/tools/builders:embed"),
+            default = "@io_bazel_rules_go//go/tools/builders:embed",
             executable = True,
             cfg = "host",
         ),

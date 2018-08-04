@@ -24,7 +24,7 @@ def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, boot
     if bootstrap:
         bootstrap_attrs = []
 
-    attrs["_go_context_data"] = attr.label(default = Label("@io_bazel_rules_go//:go_context_data"))
+    attrs["_go_context_data"] = attr.label(default = "@io_bazel_rules_go//:go_context_data")
     aspects = []
 
     # If all the aspect attributes are present, also trigger the aspect on the stdlib attribute
@@ -33,11 +33,11 @@ def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, boot
     toolchains = toolchains + ["@io_bazel_rules_go//go:toolchain"]
 
     if "_builders" in bootstrap_attrs:
-        attrs["_builders"] = attr.label(default = Label("@io_bazel_rules_go//:builders"))
+        attrs["_builders"] = attr.label(default = "@io_bazel_rules_go//:builders")
     if "_coverdata" in bootstrap_attrs:
-        attrs["_coverdata"] = attr.label(default = Label("@io_bazel_rules_go//go/tools/coverdata"), aspects = aspects)
+        attrs["_coverdata"] = attr.label(default = "@io_bazel_rules_go//go/tools/coverdata", aspects = aspects)
     if "_stdlib" in bootstrap_attrs:
-        attrs["_stdlib"] = attr.label(default = Label("@io_bazel_rules_go//:stdlib"), aspects = aspects)
+        attrs["_stdlib"] = attr.label(default = "@io_bazel_rules_go//:stdlib", aspects = aspects)
 
     return rule(
         implementation = implementation,

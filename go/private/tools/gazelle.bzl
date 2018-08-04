@@ -84,7 +84,7 @@ _gazelle_script = go_rule(
         "args": attr.string_list(),
         "prefix": attr.string(),
         "_gazelle": attr.label(
-            default = Label("@bazel_gazelle//cmd/gazelle"),
+            default = "@bazel_gazelle//cmd/gazelle",
             allow_files = True,
             single_file = True,
             executable = True,
