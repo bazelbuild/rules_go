@@ -324,8 +324,7 @@ _cgo_import = go_rule(
     _cgo_import_impl,
     attrs = {
         "cgo_o": attr.label(
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
         ),
         "sample_go_srcs": attr.label_list(allow_files = True),
     },

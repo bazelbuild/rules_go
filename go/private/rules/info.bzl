@@ -42,7 +42,6 @@ _go_info = go_rule(
     _go_info_impl,
     attrs = {
         "_go_info": attr.label(
-            single_file = True,
             executable = True,
             cfg = "host",
             default = "@io_bazel_rules_go//go/tools/builders:info",

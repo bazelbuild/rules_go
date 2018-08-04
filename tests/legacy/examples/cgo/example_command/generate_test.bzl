@@ -11,8 +11,7 @@ generate_script = rule(
     _generate_script_impl,
     attrs = {
         "binary": attr.label(
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
         ),
     },
 )

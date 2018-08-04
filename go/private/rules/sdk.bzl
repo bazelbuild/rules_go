@@ -27,7 +27,7 @@ def _go_sdk_impl(ctx):
         headers = ctx.files.headers,
         srcs = ctx.files.srcs,
         tools = ctx.files.tools,
-        go = ctx.file.go,
+        go = ctx.executable.go,
     )]
 
 go_sdk = rule(

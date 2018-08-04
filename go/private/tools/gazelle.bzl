@@ -47,12 +47,12 @@ def _gazelle_script_impl(ctx):
     if ctx.attr.build_tags:
         args += ["-build_tags", ",".join(ctx.attr.build_tags)]
     args += ctx.attr.args
-    script_content = _script_content.format(gazelle = ctx.file._gazelle.short_path, args = " ".join(args))
+    script_content = _script_content.format(gazelle = ctx.executable._gazelle.short_path, args = " ".join(args))
     script_file = go.declare_file(go, ext = ".bash")
     ctx.actions.write(output = script_file, is_executable = True, content = script_content)
     return struct(
         files = depset([script_file]),
-        runfiles = ctx.runfiles([ctx.file._gazelle]),
+        runfiles = ctx.runfiles([ctx.executable._gazelle]),
     )
 
 _gazelle_script = go_rule(
@@ -85,8 +85,6 @@ _gazelle_script = go_rule(
         "prefix": attr.string(),
         "_gazelle": attr.label(
             default = Label("@bazel_gazelle//cmd/gazelle"),
-            allow_files = True,
-            single_file = True,
             executable = True,
             cfg = "host",
         ),
