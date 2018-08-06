@@ -30,6 +30,7 @@ $BASE/{gazelle} {args} $@
 
 def _gazelle_script_impl(ctx):
     print("DEPRECATED: %s: load gazelle rule from @bazel_gazelle//:def.bzl instead of @io_bazel_rules_go//go:def.bzl" % ctx.label)
+
     # TODO(jayconrod): add a fix to Gazelle to replace invocations of this rule
     # with the new one in @bazel_gazelle. Once in place, fail here.
     go = go_context(ctx)
@@ -84,7 +85,7 @@ _gazelle_script = go_rule(
         "args": attr.string_list(),
         "prefix": attr.string(),
         "_gazelle": attr.label(
-            default = Label("@bazel_gazelle//cmd/gazelle"),
+            default = "@bazel_gazelle//cmd/gazelle",
             executable = True,
             cfg = "host",
         ),

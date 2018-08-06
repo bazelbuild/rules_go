@@ -379,10 +379,10 @@ usually won't need to declare this rule explicitly.
 +--------------------------------+-----------------------------+-----------------------------------+
 | A file in the SDK root directory. Used to determine GOROOT.                                      |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`package_list`          | :type:`label`               | |mandatory|                       |
+| :param:`package_list`          | :type:`label`               | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | A text file containing a list of packages in the standard library that may                       |
-| be imported.                                                                                     |
+| be imported. If unspecified, this will be generated from ``srcs``.                               |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`libs`                  | :type:`label_list`          | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+

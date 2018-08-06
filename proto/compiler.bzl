@@ -120,17 +120,17 @@ go_proto_compiler = go_rule(
             allow_single_file = True,
             executable = True,
             cfg = "host",
-            default = Label("@com_github_golang_protobuf//protoc-gen-go"),
+            default = "@com_github_golang_protobuf//protoc-gen-go",
         ),
         "_go_protoc": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:go-protoc"),
+            default = "@io_bazel_rules_go//go/tools/builders:go-protoc",
         ),
         "_protoc": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@com_google_protobuf//:protoc"),
+            default = "@com_google_protobuf//:protoc",
         ),
     },
 )

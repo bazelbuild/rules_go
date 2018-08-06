@@ -73,7 +73,7 @@ bindata = go_rule(
         "_bindata": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@com_github_kevinburke_go_bindata//go-bindata:go-bindata"),
+            default = "@com_github_kevinburke_go_bindata//go-bindata:go-bindata",
         ),
     },
 )

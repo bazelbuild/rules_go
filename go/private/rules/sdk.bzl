@@ -18,11 +18,15 @@ load(
 )
 
 def _go_sdk_impl(ctx):
+    package_list = ctx.file.package_list
+    if package_list == None:
+        package_list = ctx.actions.declare_file("packages.txt")
+        _build_package_list(ctx, ctx.files.srcs, ctx.file.root_file, package_list)
     return [GoSDK(
         goos = ctx.attr.goos,
         goarch = ctx.attr.goarch,
         root_file = ctx.file.root_file,
-        package_list = ctx.file.package_list,
+        package_list = package_list,
         libs = ctx.files.libs,
         headers = ctx.files.headers,
         srcs = ctx.files.srcs,
@@ -47,7 +51,6 @@ go_sdk = rule(
             doc = "A file in the SDK root directory. Used to determine GOROOT.",
         ),
         "package_list": attr.label(
-            mandatory = True,
             allow_single_file = True,
             doc = ("A text file containing a list of packages in the " +
                    "standard library that may be imported."),
@@ -86,18 +89,7 @@ go_sdk = rule(
 )
 
 def _package_list_impl(ctx):
-    packages = {}
-    src_dir = ctx.file.root_file.dirname + "/src/"
-    for src in ctx.files.srcs:
-        pkg_src_dir = src.dirname
-        if not pkg_src_dir.startswith(src_dir):
-            continue
-        pkg_name = pkg_src_dir[len(src_dir):]
-        if any([prefix in pkg_name for prefix in ("vendor/", "cmd/")]):
-            continue
-        packages[pkg_name] = None
-    content = "\n".join(sorted(packages.keys())) + "\n"
-    ctx.actions.write(ctx.outputs.out, content)
+    _build_package_list(ctx, ctx.files.srcs, ctx.file.root_file, ctx.outputs.out)
     return [DefaultInfo(files = depset([ctx.outputs.out]))]
 
 package_list = rule(
@@ -122,3 +114,18 @@ package_list = rule(
         ),
     },
 )
+
+def _build_package_list(ctx, srcs, root_file, out):
+    packages = {}
+    src_dir = root_file.dirname + "/src/"
+    for src in srcs:
+        pkg_src_dir = src.dirname
+        if not pkg_src_dir.startswith(src_dir):
+            continue
+        pkg_name = pkg_src_dir[len(src_dir):]
+        if any([prefix in pkg_name for prefix in ("vendor/", "cmd/")]):
+            continue
+        packages[pkg_name] = None
+    content = "\n".join(sorted(packages.keys())) + "\n"
+    ctx.actions.write(out, content)
+    

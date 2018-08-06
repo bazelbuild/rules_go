@@ -236,7 +236,7 @@ _bazel_test_script = go_rule(
             allow_single_file = True,
             default = "@bazel_test//:standalone_bazelrc",
         ),
-        "_settings": attr.label(default = Label("@bazel_test//:settings")),
+        "_settings": attr.label(default = "@bazel_test//:settings"),
     },
 )
 
