@@ -18,6 +18,9 @@ load(
 )
 
 _ASPECT_ATTRS = ["pure", "static", "msan", "race"]
+
+# Keep in sync with attr_aspects in go_archive_aspect. Any implicit dependency
+# that is built in the target configuration should go there.
 _BOOTSTRAP_ATTRS = ["_builders", "_coverdata", "_stdlib"]
 
 def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, bootstrap_attrs = _BOOTSTRAP_ATTRS, **kwargs):
