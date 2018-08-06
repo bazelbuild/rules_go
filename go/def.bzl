@@ -78,7 +78,7 @@ load(
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.13.0"
+RULES_GO_VERSION = "0.14.0"
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""
