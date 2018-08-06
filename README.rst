@@ -31,6 +31,7 @@ Go rules for Bazel_
 .. _Travis configuration file: .travis.yml
 .. _rules_go and Gazelle roadmap: roadmap.rst
 .. _Deprecation schedule: deprecation.rst
+.. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 
 .. ;; And now we continue with the actual content
 
@@ -525,4 +526,7 @@ How do I get information about the Go SDK used by rules_go?
 You can run: ``bazel build @io_bazel_rules_go//:go_info`` which outputs
 ``go_info_report`` with information like the used Golang version.
 
+How do I avoid conflicts with protocol buffers?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+See `Avoiding conflicts`_ in the proto documentation.
