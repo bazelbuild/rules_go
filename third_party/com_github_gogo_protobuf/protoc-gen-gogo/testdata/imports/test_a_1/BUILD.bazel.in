@@ -3,15 +3,19 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 filegroup(
     name = "go_default_library_protos",
     srcs = [
-        "header.proto",
-        "mapsproto2.proto",
+        "m1.proto",
+        "m2.proto",
     ],
     visibility = ["//visibility:public"],
 )
 
 go_library(
     name = "go_default_library",
-    srcs = ["doc.go"],
-    importpath = "github.com/gogo/protobuf/test/mapsproto2",
+    srcs = [
+        "m1.pb.go",
+        "m2.pb.go",
+    ],
+    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/imports/test_a_1",
     visibility = ["//visibility:public"],
+    deps = ["//proto:go_default_library"],
 )

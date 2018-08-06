@@ -12,6 +12,7 @@ go_library(
         "//gogoproto:go_default_library",
         "//proto:go_default_library",
         "//protoc-gen-gogo/descriptor:go_default_library",
+        "//protoc-gen-gogo/generator/internal/remap:go_default_library",
         "//protoc-gen-gogo/plugin:go_default_library",
     ],
 )

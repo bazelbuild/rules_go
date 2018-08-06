@@ -7,22 +7,11 @@ go_test(
         "main_test.go",
     ],
     deps = [
+        "//proto:go_default_library",
+        "//protoc-gen-gogo/testdata/extension_base:go_default_library",
+        "//protoc-gen-gogo/testdata/extension_user:go_default_library",
+        "//protoc-gen-gogo/testdata/imports:go_default_library",
         "//protoc-gen-gogo/testdata/multi:go_default_library",
         "//protoc-gen-gogo/testdata/my_test:go_default_library",
     ],
-)
-
-filegroup(
-    name = "go_default_library_protos",
-    srcs = [
-        "extension_base.proto",
-        "extension_extra.proto",
-        "extension_user.proto",
-        "grpc.proto",
-        "imp.proto",
-        "imp2.proto",
-        "imp3.proto",
-        "proto3.proto",
-    ],
-    visibility = ["//visibility:public"],
 )
