@@ -22,6 +22,8 @@ load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
 load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
 
+load("@bazel_gazelle//:deps.bzl", "go_repository")
+
 def go_rules_dependencies():
     """See /go/workspace.rst#go-rules-dependencies for full documentation."""
     versions.check(MINIMUM_BAZEL_VERSION)
