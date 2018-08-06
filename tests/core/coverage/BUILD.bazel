@@ -95,5 +95,6 @@ go_test(
     embed = [":a"],
     goarch = "386",
     goos = "linux",
+    pure = "on",
     tags = ["manual"],
 )
