@@ -148,8 +148,8 @@ def go_rules_dependencies():
         http_archive,
         name = "go_googleapis",
         # master as of 2018-07-01
-        urls = ["https://codeload.github.com/googleapis/googleapis/zip/6a3277c0656219174ff7c345f31fb20a90b30b97"],
-        strip_prefix = "googleapis-6a3277c0656219174ff7c345f31fb20a90b30b97",
+        urls = ["https://codeload.github.com/googleapis/googleapis/zip/f47204e81e5aee2c1dfc7cc5ea729aa2fbaa7603"],
+        strip_prefix = "googleapis-f47204e81e5aee2c1dfc7cc5ea729aa2fbaa7603",
         type = "zip",
         overlay = manifest["go_googleapis"],
     )
