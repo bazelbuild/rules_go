@@ -224,6 +224,7 @@ manifest = {
     "com_github_kevinburke_go_bindata": {
         "@io_bazel_rules_go//third_party:com_github_kevinburke_go_bindata/BUILD.bazel.in": "BUILD.bazel",
         "@io_bazel_rules_go//third_party:com_github_kevinburke_go_bindata/go-bindata/BUILD.bazel.in": "go-bindata/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:com_github_kevinburke_go_bindata/testdata/assets/BUILD.bazel.in": "testdata/assets/BUILD.bazel",
         "@io_bazel_rules_go//third_party:com_github_kevinburke_go_bindata/testdata/out/BUILD.bazel.in": "testdata/out/BUILD.bazel",
     },
     "com_github_mwitkow_go_proto_validators": {

@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "asset.go",
+        "bits.go",
         "bytewriter.go",
         "config.go",
         "convert.go",
@@ -22,6 +23,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
+        "benchmark_test.go",
         "convert_test.go",
         "release_test.go",
         "safefile_test.go",
