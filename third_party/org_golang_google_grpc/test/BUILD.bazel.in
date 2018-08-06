@@ -18,9 +18,11 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
+        "channelz_linux_go110_test.go",
         "channelz_test.go",
         "end2end_test.go",
         "gracefulstop_test.go",
+        "retry_test.go",
     ],
     embed = [":go_default_library"],
     deps = [
@@ -36,6 +38,7 @@ go_test(
         "//health/grpc_health_v1:go_default_library",
         "//internal:go_default_library",
         "//internal/channelz:go_default_library",
+        "//internal/envconfig:go_default_library",
         "//internal/leakcheck:go_default_library",
         "//keepalive:go_default_library",
         "//metadata:go_default_library",

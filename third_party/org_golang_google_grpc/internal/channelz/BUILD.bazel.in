@@ -1,15 +1,37 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
     srcs = [
         "funcs.go",
         "types.go",
+        "types_linux.go",
+        "types_nonlinux.go",
+        "util_linux_go19.go",
+        "util_nonlinux_pre_go19.go",
     ],
     importpath = "google.golang.org/grpc/internal/channelz",
     visibility = ["//:__subpackages__"],
     deps = [
         "//connectivity:go_default_library",
+        "//credentials:go_default_library",
         "//grpclog:go_default_library",
-    ],
+    ] + select({
+        "@io_bazel_rules_go//go/platform:linux": [
+            "@org_golang_x_sys//unix:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["util_test.go"],
+    embed = [":go_default_library"],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:linux": [
+            "@org_golang_x_sys//unix:go_default_library",
+        ],
+        "//conditions:default": [],
+    }),
 )
