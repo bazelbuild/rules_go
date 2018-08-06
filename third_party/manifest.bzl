@@ -583,6 +583,7 @@ manifest = {
         "@io_bazel_rules_go//third_party:org_golang_x_net/http/httpguts/BUILD.bazel.in": "http/httpguts/BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_net/http/httpproxy/BUILD.bazel.in": "http/httpproxy/BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_net/http2/BUILD.bazel.in": "http2/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_net/http2/h2c/BUILD.bazel.in": "http2/h2c/BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_net/http2/h2i/BUILD.bazel.in": "http2/h2i/BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_net/http2/hpack/BUILD.bazel.in": "http2/hpack/BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_net/icmp/BUILD.bazel.in": "icmp/BUILD.bazel",
