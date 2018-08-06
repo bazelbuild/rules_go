@@ -35,7 +35,7 @@ def go_rules_dependencies():
         git_repository,
         name = "bazel_gazelle",
         remote = "https://github.com/bazelbuild/bazel-gazelle",
-        commit = "7f30ba724af9495b221e2df0f5ac58511179485f",  # master as of 2018-05-08
+        commit = "bfb9a4d2a5e6785c792f6fabd5238f8a33e60768",  # master as of 2018-08-06
     )
 
     # Old version of buildtools, before breaking API changes. Old versions of
@@ -74,35 +74,35 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_golang_protobuf",
         remote = "https://github.com/golang/protobuf",
-        commit = "b4deda0973fb4c70b50d226b1af49f3da59f5265",  # v1.1.0, as of 2018-07-03
+        commit = "b4deda0973fb4c70b50d226b1af49f3da59f5265",  # v1.1.0, as of 2018-08-06
         overlay = manifest["com_github_golang_protobuf"],
         # Contains manual modifications to build files. Update with care.
     )
     _maybe(
         http_archive,
         name = "com_google_protobuf",
-        # v3.6.0.1, latest as of 2018-07-03
-        urls = ["https://codeload.github.com/google/protobuf/zip/ce044817c7ba0aea27c3fd8e496635d94d20a755"],
-        strip_prefix = "protobuf-ce044817c7ba0aea27c3fd8e496635d94d20a755",
+        # v3.6.1, latest as of 2018-08-06
+        urls = ["https://codeload.github.com/google/protobuf/zip/48cb18e5c419ddd23d9badcfe4e9df7bde1979b2"],
+        strip_prefix = "protobuf-48cb18e5c419ddd23d9badcfe4e9df7bde1979b2",
         type = "zip",
     )
     _maybe(
         git_repository,
         name = "com_github_mwitkow_go_proto_validators",
         remote = "https://github.com/mwitkow/go-proto-validators",
-        commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2018-07-03
+        commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2018-08-06
         overlay = manifest["com_github_mwitkow_go_proto_validators"],
         # build_file_proto_mode = "disable",
         # importpath = "github.com/mwitkow/go-proto-validators",
     )
     _maybe(
-        git_repository,
+        go_repository,
         name = "com_github_gogo_protobuf",
-        remote = "https://github.com/gogo/protobuf",
-        commit = "1adfc126b41513cc696b209667c8656ea7aac67c",  # v1.0.0, as of 2018-07-03
-        overlay = manifest["com_github_gogo_protobuf"],
-        # importpath = "github.com/gogo/protobuf",
-        # build_file_proto_mode = "legacy",
+        # remote = "https://github.com/gogo/protobuf",
+        commit = "636bf0302bc95575d69441b25a2603156ffdddf1",  # v1.1.1, as of 2018-08-06
+        # overlay = manifest["com_github_gogo_protobuf"],
+        importpath = "github.com/gogo/protobuf",
+        build_file_proto_mode = "legacy",
     )
     _maybe(
         gogo_special_proto,
@@ -111,38 +111,38 @@ def go_rules_dependencies():
 
     # GRPC dependencies
     _maybe(
-        git_repository,
+        go_repository,
         name = "org_golang_x_net",
-        remote = "https://github.com/golang/net",
-        commit = "ed29d75add3d7c4bf7ca65aac0c6df3d1420216f",  # master as of 2018-07-03
-        overlay = manifest["org_golang_x_net"],
-        # importpath = "golang.org/x/net",
+        # remote = "https://github.com/golang/net",
+        commit = "f4c29de78a2a91c00474a2e689954305c350adf9",  # master as of 2018-08-06
+        # overlay = manifest["org_golang_x_net"],
+        importpath = "golang.org/x/net",
     )
     _maybe(
         git_repository,
         name = "org_golang_x_text",
         remote = "https://github.com/golang/text",
-        commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # v0.3.0, latest as of 2018-07-03
+        commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # v0.3.0, latest as of 2018-08-06
         overlay = manifest["org_golang_x_text"],
         # importpath = "golang.org/x/text",
     )
     _maybe(
-        git_repository,
+        go_repository,
         name = "org_golang_google_grpc",
-        remote = "https://github.com/grpc/grpc-go",
-        commit = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8",  # v1.13.0, latest as of 2018-07-03
-        overlay = manifest["org_golang_google_grpc"],
-        # build_file_proto_mode = "disable",
-        # importpath = "google.golang.org/grpc",
+        # remote = "https://github.com/grpc/grpc-go",
+        commit = "32fb0ac620c32ba40a4626ddf94d90d12cce3455",  # v1.14.0, latest as of 2018-08-06
+        # overlay = manifest["org_golang_google_grpc"],
+        build_file_proto_mode = "disable",
+        importpath = "google.golang.org/grpc",
     )
     _maybe(
-        git_repository,
+        go_repository,
         name = "org_golang_google_genproto",
-        remote = "https://github.com/google/go-genproto",
-        commit = "ff3583edef7de132f219f0efc00e097cabcc0ec0",  # master as of 2018-07-03
-        overlay = manifest["org_golang_google_genproto"],
-        # build_file_proto_mode = "disable_global",
-        # importpath = "google.golang.org/genproto",
+        # remote = "https://github.com/google/go-genproto",
+        commit = "daca94659cb50e9f37c1b834680f2e46358f10b0",  # master as of 2018-08-06
+        # overlay = manifest["org_golang_google_genproto"],
+        build_file_proto_mode = "disable_global",
+        importpath = "google.golang.org/genproto",
     )
     _maybe(
         http_archive,
@@ -164,12 +164,13 @@ def go_rules_dependencies():
         # importpath = "github.com/golang/glog",
     )
     _maybe(
-        git_repository,
+        # git_repository,
+        go_repository,
         name = "com_github_kevinburke_go_bindata",
-        remote = "https://github.com/kevinburke/go-bindata",
-        commit = "95df019c0747a093fef2832ae530a37fd2766d16",  # v3.7.0, latest as of 2018-07-03
-        overlay = manifest["com_github_kevinburke_go_bindata"],
-        # importpath = "github.com/kevinburke/go-bindata",
+        # remote = "https://github.com/kevinburke/go-bindata",
+        commit = "06af60a4461b70d84a2b173d92f9f425d78baf55",  # v3.11.0, latest as of 2018-08-06
+        # overlay = manifest["com_github_kevinburke_go_bindata"],
+        importpath = "github.com/kevinburke/go-bindata",
     )
 
 def _maybe(repo_rule, name, **kwargs):
