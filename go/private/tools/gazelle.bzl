@@ -30,6 +30,7 @@ $BASE/{gazelle} {args} $@
 
 def _gazelle_script_impl(ctx):
     print("DEPRECATED: %s: load gazelle rule from @bazel_gazelle//:def.bzl instead of @io_bazel_rules_go//go:def.bzl" % ctx.label)
+
     # TODO(jayconrod): add a fix to Gazelle to replace invocations of this rule
     # with the new one in @bazel_gazelle. Once in place, fail here.
     go = go_context(ctx)
@@ -47,12 +48,12 @@ def _gazelle_script_impl(ctx):
     if ctx.attr.build_tags:
         args += ["-build_tags", ",".join(ctx.attr.build_tags)]
     args += ctx.attr.args
-    script_content = _script_content.format(gazelle = ctx.file._gazelle.short_path, args = " ".join(args))
+    script_content = _script_content.format(gazelle = ctx.executable._gazelle.short_path, args = " ".join(args))
     script_file = go.declare_file(go, ext = ".bash")
     ctx.actions.write(output = script_file, is_executable = True, content = script_content)
     return struct(
         files = depset([script_file]),
-        runfiles = ctx.runfiles([ctx.file._gazelle]),
+        runfiles = ctx.runfiles([ctx.executable._gazelle]),
     )
 
 _gazelle_script = go_rule(
@@ -84,9 +85,7 @@ _gazelle_script = go_rule(
         "args": attr.string_list(),
         "prefix": attr.string(),
         "_gazelle": attr.label(
-            default = Label("@bazel_gazelle//cmd/gazelle"),
-            allow_files = True,
-            single_file = True,
+            default = "@bazel_gazelle//cmd/gazelle",
             executable = True,
             cfg = "host",
         ),

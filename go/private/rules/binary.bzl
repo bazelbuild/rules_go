@@ -44,6 +44,20 @@ load(
     "LINKMODE_NORMAL",
 )
 
+_SHARED_ATTRS = {
+    "basename": attr.string(),
+    "data": attr.label_list(
+        allow_files = True,
+        cfg = "data",
+    ),
+    "srcs": attr.label_list(allow_files = go_exts + asm_exts),
+    "gc_goopts": attr.string_list(),
+    "gc_linkopts": attr.string_list(),
+    "x_defs": attr.string_dict(),
+    "linkmode": attr.string(values = LINKMODES, default = LINKMODE_NORMAL),
+    "out": attr.string(),
+}
+
 def _go_binary_impl(ctx):
     """go_binary_impl emits actions for compiling and linking a go executable."""
     go = go_context(ctx)
@@ -85,12 +99,6 @@ def _go_binary_impl(ctx):
 go_binary = go_rule(
     _go_binary_impl,
     attrs = {
-        "basename": attr.string(),
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
-        "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
@@ -140,12 +148,7 @@ go_binary = go_rule(
             values = GOARCH.keys() + ["auto"],
             default = "auto",
         ),
-        "gc_goopts": attr.string_list(),
-        "gc_linkopts": attr.string_list(),
-        "x_defs": attr.string_dict(),
-        "linkmode": attr.string(values = LINKMODES, default = LINKMODE_NORMAL),
-        "out": attr.string(),
-    },
+    } + _SHARED_ATTRS,
     executable = True,
 )
 """See go/core.rst#go_binary for full documentation."""
@@ -154,21 +157,10 @@ go_tool_binary = go_rule(
     _go_binary_impl,
     bootstrap = True,
     attrs = {
-        "basename": attr.string(),
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
-        "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),
-        "gc_goopts": attr.string_list(),
-        "gc_linkopts": attr.string_list(),
-        "x_defs": attr.string_dict(),
-        "linkmode": attr.string(values = LINKMODES, default = LINKMODE_NORMAL),
-        "out": attr.string(),
         "_hostonly": attr.bool(default = True),
-    },
+    } + _SHARED_ATTRS,
     executable = True,
 )
 """

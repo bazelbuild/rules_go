@@ -79,9 +79,8 @@ def _declare_directory(go, path = "", ext = "", name = ""):
 
 def _new_args(go):
     args = go.actions.args()
-    args.add(["-sdk", go.sdk_root.dirname])
-    if go.tags:
-        args.add(["-tags", ",".join(go.tags)])
+    args.add_all(["-sdk", go.sdk.root_file.dirname])
+    args.add_joined("-tags", go.tags, join_with = ",")
     return args
 
 def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, **kwargs):
@@ -191,20 +190,6 @@ def _infer_importpath(ctx):
         importpath = importpath[1:]
     return importpath, importpath, INFERRED_PATH
 
-def _get_go_binary(context_data):
-    for f in context_data.sdk_tools:
-        parent = paths.dirname(f.path)
-        sdk = paths.dirname(parent)
-        parent = paths.basename(parent)
-        if parent != "bin":
-            continue
-        basename = paths.basename(f.path)
-        name, ext = paths.split_extension(basename)
-        if name != "go":
-            continue
-        return f
-    fail("Could not find go executable in go_sdk")
-
 def go_context(ctx, attr = None):
     toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
 
@@ -232,14 +217,14 @@ def go_context(ctx, attr = None):
         tags.append("race")
     if mode.msan:
         tags.append("msan")
-    binary = _get_go_binary(context_data)
+    binary = toolchain.sdk.go
 
     stdlib = getattr(attr, "_stdlib", None)
     if stdlib:
         stdlib = get_source(stdlib).stdlib
         goroot = stdlib.root_file.dirname
     else:
-        goroot = context_data.sdk_root.dirname
+        goroot = toolchain.sdk.root_file.dirname
 
     env = dict(context_data.env)
     env.update({
@@ -251,22 +236,31 @@ def go_context(ctx, attr = None):
         "PATH": context_data.cgo_tools.compiler_path,
     })
 
+    # TODO(jayconrod): remove this. It's way too broad. Everything should
+    # depend on more specific lists.
+    sdk_files = ([toolchain.sdk.go] +
+                 toolchain.sdk.srcs +
+                 toolchain.sdk.headers +
+                 toolchain.sdk.libs +
+                 toolchain.sdk.tools)
+
     importpath, importmap, pathtype = _infer_importpath(ctx)
     return GoContext(
         # Fields
         toolchain = toolchain,
+        sdk = toolchain.sdk,
         mode = mode,
         root = goroot,
         go = binary,
         stdlib = stdlib,
-        sdk_root = context_data.sdk_root,
-        sdk_files = context_data.sdk_files,
-        sdk_tools = context_data.sdk_tools,
+        sdk_root = toolchain.sdk.root_file,
+        sdk_files = sdk_files,
+        sdk_tools = toolchain.sdk.tools,
         actions = ctx.actions,
         exe_extension = goos_to_extension(mode.goos),
         shared_extension = goos_to_shared_extension(mode.goos),
         crosstool = context_data.crosstool,
-        package_list = context_data.package_list,
+        package_list = toolchain.sdk.package_list,
         importpath = importpath,
         importmap = importmap,
         pathtype = pathtype,
@@ -319,10 +313,6 @@ def _go_context_data(ctx):
     return struct(
         strip = ctx.attr.strip,
         crosstool = ctx.files._crosstool,
-        package_list = ctx.file._package_list,
-        sdk_root = ctx.file._sdk_root,
-        sdk_files = ctx.files._sdk_files,
-        sdk_tools = ctx.files._sdk_tools,
         tags = tags,
         env = env,
         cgo_tools = struct(
@@ -340,28 +330,9 @@ go_context_data = rule(
     _go_context_data,
     attrs = {
         "strip": attr.string(mandatory = True),
-        # Hidden internal attributes
-        "_crosstool": attr.label(default = Label("//tools/defaults:crosstool")),
-        "_package_list": attr.label(
-            allow_files = True,
-            single_file = True,
-            default = "@go_sdk//:packages.txt",
-        ),
-        "_sdk_root": attr.label(
-            allow_single_file = True,
-            default = "@go_sdk//:ROOT",
-        ),
-        "_sdk_files": attr.label(
-            allow_files = True,
-            default = "@go_sdk//:files",
-        ),
-        "_sdk_tools": attr.label(
-            allow_files = True,
-            cfg = "host",
-            default = "@go_sdk//:tools",
-        ),
+        "_crosstool": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
-            default = Label("@bazel_tools//tools/osx:current_xcode_config"),
+            default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
     fragments = ["cpp", "apple"],

@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 bazel_test(
     name = "coverage_test_test",
+    args = ["--instrumentation_filter=-coverage:b"],
     check = """
 if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/test.log"; then
   echo "error: no coverage output found in test log file" >&2
@@ -48,7 +49,6 @@ for i in "${excluded_files[@]}"; do
 done
     """,
     command = "coverage",
-    args = ["--instrumentation_filter=-coverage:b"],
     targets = [":coverage_test"],
 )
 
@@ -62,19 +62,39 @@ go_test(
 go_library(
     name = "a",
     srcs = ["a.go"],
-    deps = [":b"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/a",
+    deps = [":b"],
 )
 
 go_library(
     name = "b",
     srcs = ["b.go"],
-    deps = [":c"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/b",
+    deps = [":c"],
 )
 
 go_library(
     name = "c",
     srcs = ["c.go"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/c",
+)
+
+bazel_test(
+    name = "cross_cover_test_test",
+    args = [
+        "--collect_code_coverage",
+        "--instrumentation_filter=-coverage:b",
+    ],
+    command = "build",
+    targets = [":cross_cover_test"],
+)
+
+go_test(
+    name = "cross_cover_test",
+    srcs = ["coverage_test.go"],
+    embed = [":a"],
+    goarch = "386",
+    goos = "linux",
+    pure = "on",
+    tags = ["manual"],
 )

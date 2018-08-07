@@ -63,6 +63,16 @@ func TestStandardPath(t *testing.T) {
 	}
 }
 
+// TestSandbox checks that the bazel-sandbox path does not appear in strings
+// from the binary.
+func TestSandboxPath(t *testing.T) {
+	for _, s := range allStrings {
+		if bytes.Contains(s, []byte("bazel-sandbox")) {
+			t.Errorf("binary contains bazel sandbox path: %s", s)
+		}
+	}
+}
+
 // TestUserNameAndHome checks the user name and home directory do not
 // appear in strings from the binary.
 func TestUserNameAndHome(t *testing.T) {

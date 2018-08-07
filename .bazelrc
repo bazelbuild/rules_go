@@ -1,0 +1,3 @@
+# Import the old rc file. In the future, remove it and migrate its contents
+# to this file. For now, we keep both for backwards compatibility.
+import %workspace%/tools/bazel.rc

@@ -1,4 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test", "md5_sum")
+
+go_test(
+    name = "go_default_test",
+    srcs = ["reproducible_binary_test.go"],
+    args = ["$(location //tests/reproducibility/cgo)"],
+    data = ["//tests/reproducibility/cgo"],
+    rundir = ".",  # run in repo root instead of test dir
+)
 
 # A test script that, when run, builds the given targets in a clean build state
 # with sandboxed strategy, and outputs their md5 digests from the build with
@@ -35,6 +44,9 @@ print_digests
         "@io_bazel_rules_go//tests/reproducibility/cgo",
     ],
     tags = ["manual"],
+    # dbg builds are not reproducible with llvm 6.0 and below (default on macOS).
+    # https://bugs.llvm.org/show_bug.cgi?id=38050
+    #args = ["--compilation_mode=dbg"],
 )
 
 # A test that runs the above test script twice and diffs the output.
@@ -48,6 +60,5 @@ sh_test(
         "bazel",
         "exclusive",
         "local",
-        "manual",
     ],
 )

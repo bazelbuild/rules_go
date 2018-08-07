@@ -47,16 +47,16 @@ def emit_cover(go, source):
         covered.append(out)
 
         args = go.args(go)
-        args.add([
-            "-o=" + out.path,
-            "-var=" + cover_var,
-            "-src=" + src.path,
-            "-srcname=" + srcname,
+        args.add_all([
+            "-o", out,
+            "-var", cover_var,
+            "-src", src,
+            "-srcname", srcname,
             "--",
             "-mode=set",
         ])
         go.actions.run(
-            inputs = [src] + go.sdk_tools,
+            inputs = [src] + go.sdk.tools,
             outputs = [out],
             mnemonic = "GoCover",
             executable = go.builders.cover,

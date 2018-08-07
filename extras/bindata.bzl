@@ -25,9 +25,9 @@ def _bindata_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, ext = ".go")
     arguments = ctx.actions.args()
-    arguments.add([
+    arguments.add_all([
         "-o",
-        out.path,
+        out,
         "-pkg",
         ctx.attr.package,
         "-prefix",
@@ -40,15 +40,15 @@ def _bindata_impl(ctx):
     if not ctx.attr.memcopy:
         arguments.add("-nomemcopy")
     if not ctx.attr.modtime:
-        arguments.add(["-modtime", "0"])
+        arguments.add_all(["-modtime", "0"])
     if ctx.attr.extra_args:
-        arguments.add(ctx.attr.extra_args)
-    arguments.add(ctx.files.srcs)
+        arguments.add_all(ctx.attr.extra_args)
+    arguments.add_all(ctx.files.srcs)
     ctx.actions.run(
         inputs = ctx.files.srcs,
         outputs = [out],
         mnemonic = "GoBindata",
-        executable = ctx.file._bindata,
+        executable = ctx.executable._bindata,
         arguments = [arguments],
     )
     return [
@@ -71,11 +71,9 @@ bindata = go_rule(
         "modtime": attr.bool(default = False),
         "extra_args": attr.string_list(),
         "_bindata": attr.label(
-            allow_files = True,
-            single_file = True,
             executable = True,
             cfg = "host",
-            default = Label("@com_github_kevinburke_go_bindata//go-bindata:go-bindata"),
+            default = "@com_github_kevinburke_go_bindata//go-bindata:go-bindata",
         ),
     },
 )

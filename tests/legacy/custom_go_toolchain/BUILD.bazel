@@ -10,11 +10,6 @@ go_test(
 
 bazel_test(
     name = "custom_go_toolchain",
-    build = """
-load("@io_bazel_rules_go//go:def.bzl", "go_toolchain")
-go_toolchain(name="my_linux_toolchain", target="linux_amd64")
-go_toolchain(name="my_darwin_toolchain", target="darwin_amd64")
-""",
     command = "test",
     config = "fetch",
     go_version = "",
@@ -31,10 +26,6 @@ go_download_sdk(
         "linux_amd64":       ("go1.10.1.linux-amd64.tar.gz", "72d820dec546752e5a8303b33b009079c15c2390ce76d67cf514991646c6127b"),
         "darwin_amd64":      ("go1.10.1.darwin-amd64.tar.gz", "0a5bbcbbb0d150338ba346151d2864fd326873beaedf964e2057008c8a4dc557"),
     },
-)
-register_toolchains(
-    "@//:my_linux_toolchain",
-    "@//:my_darwin_toolchain",
 )
 
 go_rules_dependencies()

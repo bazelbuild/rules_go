@@ -13,6 +13,7 @@ Go Protocol buffers
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
 .. _gogoprotobuf: https://github.com/gogo/protobuf
 .. _compiler.bzl: compiler.bzl
+.. _bazelbuild/bazel#3867: https://github.com/bazelbuild/bazel/issues/3867
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -55,6 +56,99 @@ protoc), you can implement a compatible rule that returns one of these.
 The ``go_proto_library`` rule produces the normal set of `Go providers`_. This
 makes it compatible with other Go rules for use in ``deps`` and ``embed``
 attributes.
+
+Avoiding conflicts
+------------------
+
+When linking programs that depend on protos, care must be taken to ensure that
+the same proto isn't registered by more than one package. This may happen if
+you depend on a ``go_proto_library`` and a vendored ``go_library`` generated
+from the same .proto files. You may see compile-time, link-time, or run-time
+errors as a result of this.
+
+There are two main ways to avoid conflicts.
+
+Option 1: Use go_proto_library exclusively
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can avoid proto conflicts by using ``go_proto_library`` to generate code
+at build time and avoiding ``go_library`` rules based on pre-generated .pb.go
+files.
+
+Gazelle generates rules in this mode by default. When .proto files are present,
+it will generate ``go_proto_library`` rules and ``go_library`` rules that embed
+them (which are safe to use). Gazelle will automatically exclude .pb.go files
+that correspond to .proto files. If you have .proto files belonging to multiple
+packages in the same directory, add the following directives to your
+root build file:
+
+.. code:: bzl
+
+    # gazelle:proto package
+    # gazelle:proto_group go_package
+
+rules_go provides ``go_proto_library`` rules for commonly used proto libraries.
+The Well Known Types can be found in the ``@io_bazel_rules_go//proto/wkt``
+package. There are implicit dependencies of ``go_proto_library`` rules
+that use the default compiler, so they don't need to be written
+explicitly in ``deps``. You can also find rules for Google APIs and gRPC in
+``@go_googleapis//``. You can list these rules with the commands:
+
+.. code:: bash
+
+    $ bazel query 'kind(go_proto_library, @io_bazel_rules_go//proto/wkt:all)'
+    $ bazel query 'kind(go_proto_library, @go_googleapis//...)'
+
+Some commonly used Go libraries, such as ``github.com/golang/protobuf/ptypes``,
+depend on the Well Known Types. In order to avoid conflicts when using these
+libraries, separate versions of these libraries are provided with
+``go_proto_library`` dependencies. Gazelle resolves imports of these libraries
+automatically. For example, it will resolve ``ptypes`` as
+``@com_github_golang_protobuf//ptypes:go_default_library_gen``.
+
+Option 2: Use pre-generated .pb.go files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also avoid conflicts by generating .pb.go files ahead of time and using
+those exclusively instead of using ``go_proto_library``. This may be a better
+option for established Go projects that also need to build with ``go build``.
+
+Gazelle can generate rules for projects built in this mode. Add the following
+comment to your root build file:
+
+.. code:: bzl
+
+    # gazelle:proto disable_global
+
+This prevents Gazelle from generating ``go_proto_library`` rules. .pb.go files
+won't be excluded, and all special cases for imports (such as ``ptypes``) are
+disabled.
+
+If you have ``go_repository`` rules in your ``WORKSPACE`` file that may
+have protos, you'll also need to add
+``build_file_proto_mode = "disable_global"`` to those as well.
+
+.. code:: bzl
+
+    go_repository(
+        name = "com_example_some_project",
+        importpath = "example.com/some/project",
+        tag = "v0.1.2",
+        build_file_proto_mode = "disable_global",
+    )
+
+A note on vendored .proto files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Bazel can only handle imports in .proto files that are relative to a repository
+root directory. This means, for example, if you import ``"foo/bar/baz.proto"``,
+that file must be in the directory ``foo/bar``, not
+``vendor/example.com/repo/foo/bar``.
+
+If you have proto files that don't conform to this convention, follow the
+instructions for using pre-generated .pb.go files above.
+
+The Bazel tracking issue for supporting this is `bazelbuild/bazel#3867`_.
 
 API
 ---

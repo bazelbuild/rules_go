@@ -1,11 +1,8 @@
 load(
     ":toolchains.bzl",
     "declare_constraints",
-    "declare_toolchains",
 )
 
 package(default_visibility = ["//visibility:public"])
-
-declare_toolchains()
 
 declare_constraints()

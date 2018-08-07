@@ -28,24 +28,44 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
+    "LINKMODE_NORMAL",
     "LINKMODE_PLUGIN",
 )
 
 def _stdlib_library_to_source(go, attr, source, merge):
+    if _should_use_sdk_stdlib(go):
+        source["stdlib"] = _sdk_stdlib(go)
+    else:
+        source["stdlib"] = _build_stdlib(go, attr)
+
+def _should_use_sdk_stdlib(go):
+    return (go.mode.goos == go.sdk.goos and
+            go.mode.goarch == go.sdk.goarch and
+            not go.mode.race and  # TODO(jayconrod): use precompiled race
+            not go.mode.msan and
+            not go.mode.pure and
+            go.mode.link == LINKMODE_NORMAL)
+
+def _sdk_stdlib(go):
+    return GoStdLib(
+        root_file = go.sdk.root_file,
+        libs = go.sdk.libs,
+    )
+
+def _build_stdlib(go, attr):
     pkg = go.declare_directory(go, "pkg")
     src = go.declare_directory(go, "src")
     root_file = go.declare_file(go, "ROOT")
     filter_buildid = attr._filter_buildid_builder.files.to_list()[0]
-    files = [root_file, go.go, pkg]
     args = go.args(go)
-    args.add(["-out", root_file.dirname])
+    args.add_all(["-out", root_file.dirname])
     if go.mode.race:
         args.add("-race")
     if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
         args.add("-shared")
     if go.mode.link == LINKMODE_PLUGIN:
         args.add("-dynlink")
-    args.add(["-filter_buildid", filter_buildid.path])
+    args.add_all(["-filter_buildid", filter_buildid])
     go.actions.write(root_file, "")
     env = go.env
     env.update({
@@ -54,21 +74,23 @@ def _stdlib_library_to_source(go, attr, source, merge):
         "CGO_CFLAGS": " ".join(go.cgo_tools.c_options),
         "CGO_LDFLAGS": " ".join(go.cgo_tools.linker_options),
     })
+    inputs = (go.sdk.srcs +
+              go.sdk.headers +
+              go.sdk.tools +
+              [go.sdk.go, filter_buildid, go.sdk.package_list, go.sdk.root_file] +
+              go.crosstool)
+    outputs = [pkg, src]
     go.actions.run(
-        inputs = go.sdk_files + go.sdk_tools + go.crosstool + [filter_buildid, go.package_list, root_file],
-        outputs = [pkg, src],
+        inputs = inputs,
+        outputs = outputs,
         mnemonic = "GoStdlib",
         executable = attr._stdlib_builder.files.to_list()[0],
         arguments = [args],
         env = env,
     )
-    source["stdlib"] = GoStdLib(
+    return GoStdLib(
         root_file = root_file,
-        mode = go.mode,
         libs = [pkg],
-        headers = [pkg],
-        srcs = [src],
-        files = files,
     )
 
 def _stdlib_impl(ctx):
@@ -84,12 +106,12 @@ stdlib = go_rule(
         "_stdlib_builder": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:stdlib"),
+            default = "@io_bazel_rules_go//go/tools/builders:stdlib",
         ),
         "_filter_buildid_builder": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:filter_buildid"),
+            default = "@io_bazel_rules_go//go/tools/builders:filter_buildid",
         ),
     },
 )

@@ -15,6 +15,8 @@
 Toolchain rules used by go.
 """
 
+load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoSDK")
 load("@io_bazel_rules_go//go/private:actions/archive.bzl", "emit_archive")
 load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
 load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
@@ -24,9 +26,11 @@ load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 
 def _go_toolchain_impl(ctx):
+    sdk = ctx.attr.sdk[GoSDK]
+    cross_compile = ctx.attr.goos != sdk.goos or ctx.attr.goarch != sdk.goarch
     return [platform_common.ToolchainInfo(
         name = ctx.label.name,
-        cross_compile = ctx.attr.cross_compile,
+        cross_compile = cross_compile,
         default_goos = ctx.attr.goos,
         default_goarch = ctx.attr.goarch,
         actions = struct(
@@ -43,27 +47,43 @@ def _go_toolchain_impl(ctx):
             link = ctx.attr.link_flags,
             link_cgo = ctx.attr.cgo_link_flags,
         ),
+        sdk = sdk,
     )]
 
 _go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
         # Minimum requirements to specify a toolchain
-        "goos": attr.string(mandatory = True),
-        "goarch": attr.string(mandatory = True),
-        "cross_compile": attr.bool(default = False),
+        "goos": attr.string(
+            mandatory = True,
+            doc = "Default target OS",
+        ),
+        "goarch": attr.string(
+            mandatory = True,
+            doc = "Default target architecture",
+        ),
+        "sdk": attr.label(
+            mandatory = True,
+            providers = [GoSDK],
+            doc = "The SDK this toolchain is based on",
+        ),
         # Optional extras to a toolchain
-        "link_flags": attr.string_list(default = []),
-        "cgo_link_flags": attr.string_list(default = []),
+        "link_flags": attr.string_list(
+            doc = "Flags passed to the Go internal linker",
+        ),
+        "cgo_link_flags": attr.string_list(
+            doc = "Flags passed to the external linker (if it is used)",
+        ),
     },
+    doc = "Defines a Go toolchain based on an SDK",
+    provides = [platform_common.ToolchainInfo],
 )
 
-def go_toolchain(name, target, host = None, constraints = [], **kwargs):
+def go_toolchain(name, target, sdk, host = None, constraints = [], **kwargs):
     """See go/toolchains.rst#go-toolchain for full documentation."""
 
     if not host:
         host = target
-    cross = host != target
     goos, _, goarch = target.partition("_")
     target_constraints = constraints + [
         "@io_bazel_rules_go//go/toolchain:" + goos,
@@ -80,7 +100,7 @@ def go_toolchain(name, target, host = None, constraints = [], **kwargs):
         name = impl_name,
         goos = goos,
         goarch = goarch,
-        cross_compile = cross,
+        sdk = sdk,
         tags = ["manual"],
         visibility = ["//visibility:public"],
         **kwargs
@@ -92,3 +112,32 @@ def go_toolchain(name, target, host = None, constraints = [], **kwargs):
         target_compatible_with = target_constraints,
         toolchain = ":" + impl_name,
     )
+
+def generate_toolchains(host, sdk):
+    host_goos, _, host_goarch = host.partition("_")
+    toolchains = []
+    for target_goos, target_goarch in GOOS_GOARCH:
+        target = "{}_{}".format(target_goos, target_goarch)
+        toolchain_name = "go_" + target
+        link_flags = []
+        cgo_link_flags = []
+        if "darwin" in host:
+            cgo_link_flags.extend(["-shared", "-Wl,-all_load"])
+        if "linux" in host:
+            cgo_link_flags.append("-Wl,-whole-archive")
+
+        # Add the primary toolchain
+        toolchains.append(dict(
+            name = toolchain_name,
+            host = host,
+            target = target,
+            sdk = sdk,
+            link_flags = link_flags,
+            cgo_link_flags = cgo_link_flags,
+        ))
+    return toolchains
+
+def generate_toolchain_names():
+    # Keep in sync with generate_toolchains
+    return ["go_{}_{}".format(target_goos, target_goarch)
+            for target_goos, target_goarch in GOOS_GOARCH]

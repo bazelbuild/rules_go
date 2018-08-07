@@ -18,13 +18,16 @@ load(
 )
 
 _ASPECT_ATTRS = ["pure", "static", "msan", "race"]
+
+# Keep in sync with attr_aspects in go_archive_aspect. Any implicit dependency
+# that is built in the target configuration should go there.
 _BOOTSTRAP_ATTRS = ["_builders", "_coverdata", "_stdlib", "_checker"]
 
 def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, bootstrap_attrs = _BOOTSTRAP_ATTRS, **kwargs):
     if bootstrap:
         bootstrap_attrs = []
 
-    attrs["_go_context_data"] = attr.label(default = Label("@io_bazel_rules_go//:go_context_data"))
+    attrs["_go_context_data"] = attr.label(default = "@io_bazel_rules_go//:go_context_data")
     aspects = []
 
     # If all the aspect attributes are present, also trigger the aspect on the stdlib attribute
@@ -33,24 +36,13 @@ def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, boot
     toolchains = toolchains + ["@io_bazel_rules_go//go:toolchain"]
 
     if "_builders" in bootstrap_attrs:
-        attrs["_builders"] = attr.label(
-            default = Label("@io_bazel_rules_go//:builders"),
-        )
+        attrs["_builders"] = attr.label(default = "@io_bazel_rules_go//:builders")
     if "_checker" in bootstrap_attrs:
-        attrs["_checker"] = attr.label(
-            default = Label("@io_bazel_rules_go_checker//:go_checker"),
-            cfg = "host",
-        )
+        attrs["_checker"] = attr.label(default = Label("@io_bazel_rules_go_checker//:go_checker"), cfg = "host")
     if "_coverdata" in bootstrap_attrs:
-        attrs["_coverdata"] = attr.label(
-            default = Label("@io_bazel_rules_go//go/tools/coverdata"),
-            aspects = aspects,
-        )
+        attrs["_coverdata"] = attr.label(default = "@io_bazel_rules_go//go/tools/coverdata", aspects = aspects)
     if "_stdlib" in bootstrap_attrs:
-        attrs["_stdlib"] = attr.label(
-            default = Label("@io_bazel_rules_go//:stdlib"),
-            aspects = aspects,
-        )
+        attrs["_stdlib"] = attr.label(default = "@io_bazel_rules_go//:stdlib", aspects = aspects)
 
     return rule(
         implementation = implementation,

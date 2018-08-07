@@ -48,6 +48,27 @@ GoAspectProviders = provider()
 
 GoPath = provider()
 
+GoSDK = provider(
+    doc = "Contains information about the Go SDK used in the toolchain",
+    fields = {
+        "goos": "The host OS the SDK was built for.",
+        "goarch": "The host architecture the SDK was built for.",
+        "root_file": "A file in the SDK root directory",
+        "libs": ("List of pre-compiled .a files for the standard library " +
+                 "built for the execution platform."),
+        "headers": ("List of .h files from pkg/include that may be included " +
+                    "in assembly sources."),
+        "srcs": ("List of source files for importable packages in the " +
+                 "standard library. Internal, vendored, and tool packages " +
+                 "may not be included."),
+        "package_list": ("A file containing a list of importable packages " +
+                         "in the standard library."),
+        "tools": ("List of executable files from pkg/tool " +
+                  "built for the execution platform."),
+        "go": "The go binary file",
+    },
+)
+
 GoStdLib = provider()
 
 GoBuilders = provider()

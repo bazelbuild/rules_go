@@ -12,19 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_rule")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoSource")
 
 def _stdlib_files_impl(ctx):
-    files = ctx.attr._stdlib[GoSource].stdlib.files
-    runfiles = ctx.runfiles(files = files)
+    go = go_context(ctx)
+    libs = go.stdlib.libs
+    runfiles = ctx.runfiles(files = libs + go.sdk.tools)
     return [DefaultInfo(
-        files = depset(files),
+        files = depset(libs),
         runfiles = runfiles,
     )]
 
-stdlib_files = rule(
+stdlib_files = go_rule(
     _stdlib_files_impl,
     attrs = {
-        "_stdlib": attr.label(default = "@io_bazel_rules_go//:stdlib"),
+        "pure": attr.string(default = "on"),  # force recompilation
+        "static": attr.string(default = "off"),
+        "msan": attr.string(default = "off"),
+        "race": attr.string(default = "off"),
     },
 )

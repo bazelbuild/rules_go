@@ -61,13 +61,11 @@ files_equal_test = rule(
     attrs = {
         "golden": attr.label(
             mandatory = True,
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
         ),
         "actual": attr.label(
             mandatory = True,
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
         ),
         "error_message": attr.string(
             default = "FILES DO NOT HAVE EQUAL CONTENTS",
