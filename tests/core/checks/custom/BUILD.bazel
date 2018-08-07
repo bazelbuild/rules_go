@@ -1,13 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
-WORKSPACE = """
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
-
-go_rules_dependencies()
-go_register_toolchains(go_checker="@//:my_checker")
-"""
-
 BUILD_TMPL = """
 load("@io_bazel_rules_go//go:def.bzl", "go_checker", "go_tool_library")
 
@@ -90,7 +83,7 @@ DOES_NOT_CONTAIN_ERR_TMPL = """
 bazel_test(
     name = "custom_checks_default_config",
     build = BUILD_TMPL.format(config = ""),
-    workspace = WORKSPACE,
+    go_checker = "@//:my_checker",
     check = BUILD_PASSED_TMPL.format(
         check_err =
             CONTAINS_ERR_TMPL.format(err = "custom/foo_func.go:4:1: function must not be named Foo") +
@@ -109,7 +102,7 @@ bazel_test(
 bazel_test(
     name = "custom_checks_custom_config",
     build = BUILD_TMPL.format(config = "config = \":config.json\","),
-    workspace = WORKSPACE,
+    go_checker = "@//:my_checker",
     check = BUILD_FAILED_TMPL.format(
         check_err =
             CONTAINS_ERR_TMPL.format(err = "custom/foo_func.go:4:1: function must not be named Foo") +
@@ -130,7 +123,7 @@ bazel_test(
 bazel_test(
     name = "custom_checks_no_errors",
     build = BUILD_TMPL.format(config = ""),
-    workspace = WORKSPACE,
+    go_checker = "@//:my_checker",
     check = BUILD_PASSED_TMPL.format(
         check_err =
             DOES_NOT_CONTAIN_ERR_TMPL.format(err = "no_errors.go:")
