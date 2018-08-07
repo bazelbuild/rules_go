@@ -149,6 +149,7 @@ __________________
 This runs tests from the repository `golang.org/x/tools <https://golang.org/x/tools>`_
 
 * @org_golang_x_tools//benchmark/parse:go_default_test
+* @org_golang_x_tools//blog:go_default_test
 * @org_golang_x_tools//cmd/benchcmp:go_default_test
 * @org_golang_x_tools//cmd/callgraph/testdata/src/pkg:go_default_test
 * @org_golang_x_tools//cmd/digraph:go_default_test
@@ -159,12 +160,12 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/types/typeutil:go_default_test
 * @org_golang_x_tools//go/vcs:go_default_test
-* @org_golang_x_tools//godoc:go_default_test
 * @org_golang_x_tools//godoc/redirect:go_default_test
 * @org_golang_x_tools//godoc/vfs:go_default_test
+* @org_golang_x_tools//godoc/vfs/gatefs:go_default_test
 * @org_golang_x_tools//godoc/vfs/mapfs:go_default_test
 * @org_golang_x_tools//godoc/vfs/zipfs:go_default_test
-* @org_golang_x_tools//imports:go_default_test
+* @org_golang_x_tools//internal/fastwalk:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
 * @org_golang_x_tools//present:go_default_test
 

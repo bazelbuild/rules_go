@@ -51,11 +51,12 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "org_golang_x_tools",
-        # release-branch.go1.9, as of 2017-08-25
-        urls = ["https://codeload.github.com/golang/tools/zip/5d2fd3ccab986d52112bf301d47a819783339d0e"],
-        strip_prefix = "tools-5d2fd3ccab986d52112bf301d47a819783339d0e",
+        # master, as of 2018-08-07
+        urls = ["https://codeload.github.com/golang/tools/zip/3c07937fe18c27668fd78bbaed3d6b8b39e202ea"],
+        strip_prefix = "tools-3c07937fe18c27668fd78bbaed3d6b8b39e202ea",
         type = "zip",
         overlay = manifest["org_golang_x_tools"],
+        # importpath = "golang.org/x/tools",
     )
 
     _maybe(

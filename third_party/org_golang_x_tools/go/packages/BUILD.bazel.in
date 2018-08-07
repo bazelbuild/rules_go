@@ -4,25 +4,24 @@ go_library(
     name = "go_default_library",
     srcs = [
         "doc.go",
-        "loader.go",
-        "util.go",
+        "external.go",
+        "packages.go",
     ],
-    importpath = "golang.org/x/tools/go/loader",
+    importpath = "golang.org/x/tools/go/packages",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/ast/astutil:go_default_library",
-        "//go/buildutil:go_default_library",
-        "//go/internal/cgo:go_default_library",
+        "//go/gcexportdata:go_default_library",
+        "//go/packages/golist:go_default_library",
+        "//go/packages/raw:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
     srcs = [
-        "example_test.go",
-        "loader_test.go",
+        "packages110_test.go",
+        "packages_test.go",
         "stdlib_test.go",
     ],
     embed = [":go_default_library"],
-    deps = ["//go/buildutil:go_default_library"],
 )

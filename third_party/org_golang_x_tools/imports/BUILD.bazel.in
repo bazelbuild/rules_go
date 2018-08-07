@@ -3,11 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "fastwalk.go",
-        "fastwalk_dirent_fileno.go",
-        "fastwalk_dirent_ino.go",
-        "fastwalk_portable.go",
-        "fastwalk_unix.go",
         "fix.go",
         "imports.go",
         "sortimports.go",
@@ -17,14 +12,12 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/ast/astutil:go_default_library",
+        "//internal/fastwalk:go_default_library",
     ],
 )
 
 go_test(
     name = "go_default_test",
-    srcs = [
-        "fastwalk_test.go",
-        "fix_test.go",
-    ],
+    srcs = ["fix_test.go"],
     embed = [":go_default_library"],
 )
