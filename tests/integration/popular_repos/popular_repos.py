@@ -50,7 +50,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        commit = "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79",
+        commit = "acbc56fc7007d2a01796d5bde54f39e3b3e95945",
         excludes = [
             "unix:go_default_test", # TODO(#413): External test depends on symbols defined in internal test.
         ],
@@ -123,7 +123,7 @@ POPULAR_REPOS = [
             "credentials:go_default_test",
             "credentials/alts:go_default_test", # not supported on darwin
             ":go_default_test",
-            "transport:go_default_test", # slow
+            "internal/transport:go_default_test", # slow
         ],
     ),
 

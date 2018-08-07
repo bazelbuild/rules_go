@@ -68,6 +68,7 @@ This runs tests from the repository `golang.org/x/net <https://golang.org/x/net>
 * @org_golang_x_net//html/atom:go_default_test
 * @org_golang_x_net//http/httpguts:go_default_test
 * @org_golang_x_net//http/httpproxy:go_default_test
+* @org_golang_x_net//http2/h2c:go_default_test
 * @org_golang_x_net//http2/hpack:go_default_test
 * @org_golang_x_net//idna:go_default_test
 * @org_golang_x_net//internal/socket:go_default_test
@@ -91,6 +92,7 @@ ________________
 
 This runs tests from the repository `golang.org/x/sys <https://golang.org/x/sys>`_
 
+* @org_golang_x_sys//cpu:go_default_test
 * @org_golang_x_sys//plan9:go_default_test
 * @org_golang_x_sys//windows:go_default_test
 * @org_golang_x_sys//windows/registry:go_default_test
@@ -185,6 +187,8 @@ This runs tests from the repository `google.golang.org/grpc <https://google.gola
 * @org_golang_google_grpc//credentials/alts/core/handshaker/service:go_default_test
 * @org_golang_google_grpc//encoding/proto:go_default_test
 * @org_golang_google_grpc//grpclog:go_default_test
+* @org_golang_google_grpc//internal/channelz:go_default_test
+* @org_golang_google_grpc//internal/grpcsync:go_default_test
 * @org_golang_google_grpc//internal/leakcheck:go_default_test
 * @org_golang_google_grpc//metadata:go_default_test
 * @org_golang_google_grpc//naming:go_default_test
