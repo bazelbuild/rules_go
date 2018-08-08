@@ -43,9 +43,10 @@ llvm_toolchain(
 
 http_archive(
     name = "bazel_toolchains",
-    sha256 = "7938215442cc96b1a16809f4643db14af7d91c3ef1e98d39593bb46862204537",
-    strip_prefix = "bazel-toolchains-809c13c3a96966f63c7a43c586cb4e72589184b6",
+    sha256 = "c3b08805602cd1d2b67ebe96407c1e8c6ed3d4ce55236ae2efe2f1948f38168d",
+    strip_prefix = "bazel-toolchains-5124557861ebf4c0b67f98180bff1f8551e0b421",
     urls = [
-        "https://github.com/bazelbuild/bazel-toolchains/archive/809c13c3a96966f63c7a43c586cb4e72589184b6.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/5124557861ebf4c0b67f98180bff1f8551e0b421.tar.gz",
+        "https://github.com/bazelbuild/bazel-toolchains/archive/5124557861ebf4c0b67f98180bff1f8551e0b421.tar.gz",
     ],
 )
