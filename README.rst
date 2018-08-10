@@ -16,6 +16,7 @@ Go rules for Bazel_
 .. _go_binary: go/core.rst#go_binary
 .. _go_test: go/core.rst#go_test
 .. _go_download_sdk: go/toolchains.rst#go_download_sdk
+.. _go_rules_dependencies: go/workspace.rst#go_rules_dependencies
 .. _go_register_toolchains: go/toolchains.rst#go_register_toolchains
 .. _go_proto_library: proto/core.rst#go_proto_library
 .. _go_proto_compiler: proto/core.rst#go_proto_compiler
@@ -32,6 +33,7 @@ Go rules for Bazel_
 .. _rules_go and Gazelle roadmap: roadmap.rst
 .. _Deprecation schedule: deprecation.rst
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
+.. _Overriding dependencies: go/workspace.rst#overriding-dependencies
 
 .. ;; And now we continue with the actual content
 
@@ -528,3 +530,13 @@ How do I avoid conflicts with protocol buffers?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See `Avoiding conflicts`_ in the proto documentation.
+
+How do I use a specific version of golang.org/x/sys, net or text?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Several of the golang.org/x repositories are declared in
+`go_rules_dependencies`_. We declare these automatically because they're needed
+by gRPC.
+
+See `Overriding dependencies`_ for an example of how to replace these
+with specific commits.
