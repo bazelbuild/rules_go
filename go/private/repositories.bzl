@@ -127,6 +127,15 @@ def go_rules_dependencies():
     )
     _maybe(
         git_repository,
+        name = "org_golang_x_sys",
+        remote = "https://github.com/golang/sys",
+        commit = "f0d5e33068cb57c22a181f5df0ffda885309eb5a",  # master as of 2018-08-10
+        overlay = manifest["org_golang_x_sys"],
+        # importpath = "golang.org/x/sys",
+        # vcs = "git",
+    )
+    _maybe(
+        git_repository,
         name = "org_golang_google_grpc",
         remote = "https://github.com/grpc/grpc-go",
         commit = "32fb0ac620c32ba40a4626ddf94d90d12cce3455",  # v1.14.0, latest as of 2018-08-06
