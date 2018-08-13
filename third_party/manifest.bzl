@@ -339,6 +339,7 @@ manifest = {
         "@io_bazel_rules_go//third_party:go_googleapis/google/devtools/sourcerepo/v1/BUILD.bazel.in": "google/devtools/sourcerepo/v1/BUILD.bazel",
         "@io_bazel_rules_go//third_party:go_googleapis/google/example/library/v1/BUILD.bazel.in": "google/example/library/v1/BUILD.bazel",
         "@io_bazel_rules_go//third_party:go_googleapis/google/firestore/admin/v1beta1/BUILD.bazel.in": "google/firestore/admin/v1beta1/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:go_googleapis/google/firestore/admin/v1beta2/BUILD.bazel.in": "google/firestore/admin/v1beta2/BUILD.bazel",
         "@io_bazel_rules_go//third_party:go_googleapis/google/firestore/v1beta1/BUILD.bazel.in": "google/firestore/v1beta1/BUILD.bazel",
         "@io_bazel_rules_go//third_party:go_googleapis/google/genomics/v1/BUILD.bazel.in": "google/genomics/v1/BUILD.bazel",
         "@io_bazel_rules_go//third_party:go_googleapis/google/genomics/v1alpha2/BUILD.bazel.in": "google/genomics/v1alpha2/BUILD.bazel",

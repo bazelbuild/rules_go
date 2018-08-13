@@ -155,9 +155,9 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "go_googleapis",
-        # master as of 2018-07-01
-        urls = ["https://codeload.github.com/googleapis/googleapis/zip/f47204e81e5aee2c1dfc7cc5ea729aa2fbaa7603"],
-        strip_prefix = "googleapis-f47204e81e5aee2c1dfc7cc5ea729aa2fbaa7603",
+        # master as of 2018-08-08
+        urls = ["https://codeload.github.com/googleapis/googleapis/zip/3e68e19410baa7d78cdacc45b034eafe7467b439"],
+        strip_prefix = "googleapis-3e68e19410baa7d78cdacc45b034eafe7467b439",
         type = "zip",
         overlay = manifest["go_googleapis"],
     )
