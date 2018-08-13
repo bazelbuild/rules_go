@@ -610,6 +610,18 @@ manifest = {
         "@io_bazel_rules_go//third_party:org_golang_x_net/websocket/BUILD.bazel.in": "websocket/BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_net/xsrftoken/BUILD.bazel.in": "xsrftoken/BUILD.bazel",
     },
+    "org_golang_x_sys": {
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/cpu/BUILD.bazel.in": "cpu/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/plan9/BUILD.bazel.in": "plan9/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/unix/BUILD.bazel.in": "unix/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/windows/BUILD.bazel.in": "windows/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/windows/registry/BUILD.bazel.in": "windows/registry/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/windows/svc/BUILD.bazel.in": "windows/svc/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/windows/svc/debug/BUILD.bazel.in": "windows/svc/debug/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/windows/svc/eventlog/BUILD.bazel.in": "windows/svc/eventlog/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/windows/svc/example/BUILD.bazel.in": "windows/svc/example/BUILD.bazel",
+        "@io_bazel_rules_go//third_party:org_golang_x_sys/windows/svc/mgr/BUILD.bazel.in": "windows/svc/mgr/BUILD.bazel",
+    },
     "org_golang_x_text": {
         "@io_bazel_rules_go//third_party:org_golang_x_text/BUILD.bazel.in": "BUILD.bazel",
         "@io_bazel_rules_go//third_party:org_golang_x_text/cases/BUILD.bazel.in": "cases/BUILD.bazel",

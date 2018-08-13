@@ -8,6 +8,7 @@ Go workspace rules
 .. _golang.org/x/net: https://github.com/golang/net/
 .. _golang.org/x/text: https://github.com/golang/text/
 .. _golang.org/x/tools: https://github.com/golang/tools/
+.. _golang.org/x/sys: https://github.com/golang/sys/
 .. _go_library: core.rst#go_library
 .. _toolchains: toolchains.rst
 .. _go_register_toolchains: toolchains.rst#go_register_toolchains
@@ -61,32 +62,63 @@ in the bottom of your WORKSPACE file and forget about it.
 The list of dependencies it adds is quite long, there are a few listed below that you are more
 likely to want to know about and override, but it is by no means a complete list.
 
-* :value:`com_google_protobuf` : An http_archive for `github.com/google/protobuf`_
-* :value:`com_github_golang_protobuf` : A go_repository for `github.com/golang/protobuf`_
-* :value:`org_golang_google_genproto` : A go_repository for `google.golang.org/genproto`_
-* :value:`org_golang_google_grpc` : A go_repository for `google.golang.org/grpc`_
-* :value:`org_golang_x_net` : A go_repository for `golang.org/x/net`_
-* :value:`org_golang_x_text` : A go_repository for `golang.org/x/text`_
-* :value:`org_golang_x_tools` : A go_repository for `golang.org/x/tools`_
+* :value:`com_google_protobuf` : `github.com/google/protobuf`_
+* :value:`com_github_golang_protobuf` : `github.com/golang/protobuf`_
+* :value:`org_golang_google_genproto` : `google.golang.org/genproto`_
+* :value:`org_golang_google_grpc` : `google.golang.org/grpc`_
+* :value:`org_golang_x_net` : `golang.org/x/net`_
+* :value:`org_golang_x_text` : `golang.org/x/text`_
+* :value:`org_golang_x_tools` : `golang.org/x/tools`_
+* :value:`org_golang_x_sys`: `golang.org/x/sys`_
 
 
-It won't override repositories that were declared earlier, so you can replace any of these with
-a different version by declaring it before calling this macro, which is why we recommend you should
-put the call at the bottom of your WORKSPACE. For example:
-
-.. code:: bzl
-
-  go_repository(
-      name = "org_golang_x_net",
-      commit = "0744d001aa8470aaa53df28d32e5ceeb8af9bd70",
-      importpath = "golang.org/x/net",
-  )
-
-  go_rules_dependencies()
-
-would cause the go rules to use the specified version of x/net.
+It won't override repositories that were declared earlier, so you can replace
+any of these with a different version by declaring it before calling this macro.
 
 go_repository
 ~~~~~~~~~~~~~
 
 This rule has moved. See `go_repository`_ in the Gazelle repository.
+
+Overriding dependencies
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can override a dependency declared in ``go_rules_dependencies`` by
+declaring a repository rule in WORKSPACE with the same name *before* the call
+to ``go_rules_dependencies``.
+
+For example, this is how you would override ``org_golang_x_sys``.
+
+.. code:: bzl
+
+    load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+    http_archive(
+        name = "io_bazel_rules_go",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.14.0/rules_go-0.14.0.tar.gz"],
+        sha256 = "5756a4ad75b3703eb68249d50e23f5d64eaf1593e886b9aa931aa6e938c4e301",
+    )
+
+    http_archive(
+        name = "bazel_gazelle",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.14.0/bazel-gazelle-0.14.0.tar.gz"],
+        sha256 = "c0a5739d12c6d05b6c1ad56f2200cb0b57c5a70e03ebd2f7b87ce88cabf09c7b",
+    )
+
+    load("@bazel_gazelle//:deps.bzl", "go_repository")
+
+    go_repository(
+        name = "org_golang_x_sys",
+        commit = "57f5ac02873b2752783ca8c3c763a20f911e4d89",
+        importpath = "golang.org/x/sys",
+    )
+
+    load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+    go_rules_dependencies()
+
+    go_register_toolchains()
+
+    load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+    gazelle_dependencies()
