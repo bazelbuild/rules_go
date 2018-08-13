@@ -35,6 +35,10 @@ import (
 )
 
 func run(args []string) error {
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	builderArgs, toolArgs := splitArgs(args)
 	sources := multiFlag{}
 	importMode := false

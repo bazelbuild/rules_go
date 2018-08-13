@@ -340,6 +340,20 @@ Attributes
 | This is one of the `mode attributes`_ that controls whether to link in static_ mode.             |
 | It should be one of :value:`on`, :value:`off` or :value:`auto`.                                  |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`race`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to instrument                        |
+| code for data race detection. It may be :value:`on`, :value:`off`, or                            |
+| :value:`auto`. In most cases, it's better to enable race detection globally                      |
+| with ``--features=race`` on the command line.                                                    |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`msan`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to instrument                        |
+| code for memory santization. It may be :value:`on`, :value:`off`, or                             |
+| :value:`auto`. In most cases, it's better to enable memory sanitization                          |
+| globally with ``--features=msan`` on the command line.                                           |
++----------------------------+-----------------------------+---------------------------------------+
 | :param:`goos`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls which goos_ to compile and link for.         |
@@ -421,6 +435,21 @@ Attributes
 | Subject to `"Make variable"`_ substitution and `Bourne shell tokenization`_.                     |
 | Only valid if :param:`cgo` = :value:`True`.                                                      |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`linkmode`          | :type:`string`              | :value:`"normal"`                     |
++----------------------------+-----------------------------+---------------------------------------+
+| Determines how the binary should be built and linked. This accepts some of                       |
+| the same values as ``go build -buildmode`` and works the same way.                               |
+|                                                                                                  |
+| :value:`normal`                                                                                  |
+|     Builds a normal executable with position-dependent code.                                     |
+| :value:`plugin`                                                                                  |
+|     Builds a shared library that can be loaded as a Go plugin. Only supported                    |
+|     on platforms that support plugins.                                                           |
+| :value:`c-shared`                                                                                |
+|     Builds a shared library that can be linked into a C program.                                 |
+| :value:`c-archive`                                                                               |
+|     Builds an archive that can be linked into a C program.                                       |
++----------------------------+-----------------------------+---------------------------------------+
 | :param:`out`               | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | Sets the output filename for the generated executable. When set, ``go_binary``                   |
@@ -496,6 +525,58 @@ Attributes
 | The import path of this test. Tests can't actually be imported, but this                         |
 | may be used by `go_path`_ and other tools to report the location of source                       |
 | files. This may be inferred from embedded libraries.                                             |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`pure`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to link in pure_ mode.               |
+| It should be one of :value:`on`, :value:`off` or :value:`auto`.                                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`static`            | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to link in static_ mode.             |
+| It should be one of :value:`on`, :value:`off` or :value:`auto`.                                  |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`race`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to instrument                        |
+| code for data race detection. It may be :value:`on`, :value:`off`, or                            |
+| :value:`auto`. In most cases, it's better to enable race detection globally                      |
+| with ``--features=race`` on the command line.                                                    |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`msan`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls whether to instrument                        |
+| code for memory santization. It may be :value:`on`, :value:`off`, or                             |
+| :value:`auto`. In most cases, it's better to enable memory sanitization                          |
+| globally with ``--features=msan`` on the command line.                                           |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`goos`              | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls which goos_ to compile and link for.         |
+|                                                                                                  |
+| If set to anything other than :value:`auto` this overrides the default as set by the current     |
+| target platform and allows for single builds to make binaries for multiple architectures.        |
+|                                                                                                  |
+| Because this has no control over the cc toolchain, it does not work for cgo, so if this          |
+| attribute is set then :param:`pure` must be set to :value:`on`.                                  |
+|                                                                                                  |
+| This attribute has several limitations and should only be used in situations where the           |
+| ``--platforms`` flag does not work. See `Cross compilation`_ and `Note on goos and goarch        |
+| attributes`_ for more information.                                                               |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`goarch`            | :type:`string`              | :value:`auto`                         |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls which goarch_ to compile and link for.       |
+|                                                                                                  |
+| If set to anything other than :value:`auto` this overrides the default as set by the current     |
+| target platform and allows for single builds to make binaries for multiple architectures.        |
+|                                                                                                  |
+| Because this has no control over the cc toolchain, it does not work for cgo, so if this          |
+| attribute is set then :param:`pure` must be set to :value:`on`.                                  |
+|                                                                                                  |
+| This attribute has several limitations and should only be used in situations where the           |
+| ``--platforms`` flag does not work. See `Cross compilation`_ and `Note on goos and goarch        |
+| attributes`_ for more information.                                                               |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`gc_goopts`         | :type:`string_list`         | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+

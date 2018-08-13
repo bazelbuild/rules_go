@@ -78,11 +78,21 @@ def _declare_directory(go, path = "", ext = "", name = ""):
     return go.actions.declare_directory(_child_name(go, path, ext, name))
 
 def _new_args(go):
+    # TODO(jayconrod): print warning.
+    return go.builder_args(go)
+
+def _builder_args(go):
     args = go.actions.args()
-    args.add_all(["-sdk", go.sdk.root_file.dirname])
-    if go.tags:
-        args.add("-tags")
-        args.add_joined(go.tags, join_with = ",")
+    args.use_param_file("-param=%s")
+    args.set_param_file_format("multiline")
+    args.add("-sdk", go.sdk.root_file.dirname)
+    args.add_joined("-tags", go.tags, join_with = ",")
+    return args
+
+def _tool_args(go):
+    args = go.actions.args()
+    args.use_param_file("-param=%s")
+    args.set_param_file_format("multiline")
     return args
 
 def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, **kwargs):
@@ -280,7 +290,9 @@ def go_context(ctx, attr = None):
         pack = toolchain.actions.pack,
 
         # Helpers
-        args = _new_args,
+        args = _new_args,  # deprecated
+        builder_args = _builder_args,
+        tool_args = _tool_args,
         new_library = _new_library,
         library_to_source = _library_to_source,
         declare_file = _declare_file,
@@ -328,9 +340,9 @@ go_context_data = rule(
     _go_context_data,
     attrs = {
         "strip": attr.string(mandatory = True),
-        "_crosstool": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+        "_crosstool": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
-            default = Label("@bazel_tools//tools/osx:current_xcode_config"),
+            default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
     fragments = ["cpp", "apple"],

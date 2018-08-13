@@ -3,8 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "cgo.go",
-        "cgo_pkgconfig.go",
         "doc.go",
         "loader.go",
         "util.go",
@@ -14,6 +12,7 @@ go_library(
     deps = [
         "//go/ast/astutil:go_default_library",
         "//go/buildutil:go_default_library",
+        "//go/internal/cgo:go_default_library",
     ],
 )
 
@@ -25,7 +24,5 @@ go_test(
         "stdlib_test.go",
     ],
     embed = [":go_default_library"],
-    deps = [
-        "//go/buildutil:go_default_library",
-    ],
+    deps = ["//go/buildutil:go_default_library"],
 )

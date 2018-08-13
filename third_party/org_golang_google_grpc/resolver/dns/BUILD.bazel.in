@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//grpclog:go_default_library",
+        "//internal/backoff:go_default_library",
         "//internal/grpcrand:go_default_library",
         "//resolver:go_default_library",
         "@org_golang_x_net//context:go_default_library",

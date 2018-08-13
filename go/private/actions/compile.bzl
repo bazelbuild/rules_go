@@ -13,14 +13,14 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
-    "sets",
-)
-load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "shell",
 )
 
 def _importpath(v):
@@ -58,7 +58,7 @@ def emit_compile(
               go.sdk.tools + go.stdlib.libs)
     outputs = [out_lib]
 
-    builder_args = go.args(go)
+    builder_args = go.builder_args(go)
     builder_args.add_all(sources, before_each = "-src")
     builder_args.add_all(archives, before_each = "-dep", map_each = _importpath)
     builder_args.add_all(archives, before_each = "-importmap", map_each = _importmap)
@@ -67,9 +67,9 @@ def emit_compile(
     if testfilter:
         builder_args.add_all(["-testfilter", testfilter])
 
-    tool_args = go.actions.args()
+    tool_args = go.tool_args(go)
     if asmhdr:
-        tool_args.add_all(["-asmhdr", asmhdr.path])
+        tool_args.add_all(["-asmhdr", asmhdr])
         outputs.append(asmhdr)
     tool_args.add_all(archives, before_each = "-I", map_each = _searchpath)
     tool_args.add_all(["-trimpath", ".", "-I", "."])
@@ -101,12 +101,18 @@ def emit_compile(
     )
 
 def _bootstrap_compile(go, sources, out_lib, gc_goopts):
-    args = ["tool", "compile", "-trimpath", "$(pwd)", "-o", out_lib.path]
-    args.extend(gc_goopts)
-    args.extend([s.path for s in sources])
+    cmd = [shell.quote(go.go.path), "tool", "compile", "-trimpath", "\"$(pwd)\""]
+    args = go.actions.args()
+    args.add_all(["-o", out_lib])
+    args.add_all(gc_goopts)
+    args.add_all(sources)
     go.actions.run_shell(
         inputs = sources + go.sdk.libs + go.sdk.tools + [go.go],
         outputs = [out_lib],
+        arguments = [args],
         mnemonic = "GoCompile",
-        command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && {} {}".format(go.root, go.go.path, " ".join(args)),
+        command = "export GOROOT=\"$(pwd)\"/{} && {} \"$@\"".format(shell.quote(go.root), " ".join(cmd)),
+        env = {
+            "GOROOT_FINAL": "GOROOT",
+        },
     )

@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+filegroup(
+    name = "go_default_library_protos",
+    srcs = ["deprecated.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = ["deprecated.pb.go"],
+    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/deprecated",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//proto:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+)

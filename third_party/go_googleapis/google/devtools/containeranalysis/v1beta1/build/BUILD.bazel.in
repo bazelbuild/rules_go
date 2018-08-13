@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "build_proto",
+    srcs = ["build.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["//google/devtools/containeranalysis/v1beta1/provenance:provenance_proto"],
+)
+
+go_proto_library(
+    name = "build_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/build",
+    proto = ":build_proto",
+    visibility = ["//visibility:public"],
+    deps = ["//google/devtools/containeranalysis/v1beta1/provenance:provenance_go_proto"],
+)

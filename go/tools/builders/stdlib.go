@@ -27,6 +27,10 @@ import (
 
 func run(args []string) error {
 	// process the args
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	flags := flag.NewFlagSet("stdlib", flag.ExitOnError)
 	goenv := envFlags(flags)
 	filterBuildid := flags.String("filter_buildid", "", "Path to filter_buildid tool")

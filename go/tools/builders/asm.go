@@ -26,6 +26,10 @@ import (
 
 func run(args []string) error {
 	// Parse arguments.
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	builderArgs, toolArgs := splitArgs(args)
 	flags := flag.NewFlagSet("GoAsm", flag.ExitOnError)
 	goenv := envFlags(flags)

@@ -22,8 +22,8 @@ load(
     _GoArchiveData = "GoArchiveData",
     _GoLibrary = "GoLibrary",
     _GoPath = "GoPath",
-    _GoSource = "GoSource",
     _GoSDK = "GoSDK",
+    _GoSource = "GoSource",
 )
 load(
     "@io_bazel_rules_go//go/private:repositories.bzl",
@@ -35,6 +35,7 @@ load(
     "go_download_sdk",
     "go_host_sdk",
     "go_local_sdk",
+    "go_wrap_sdk",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/sdk.bzl",
@@ -77,7 +78,7 @@ load(
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.13.0"
+RULES_GO_VERSION = "0.14.0"
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""

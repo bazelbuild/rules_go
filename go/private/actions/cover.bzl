@@ -46,12 +46,16 @@ def emit_cover(go, source):
         covered_src_map[out] = orig
         covered.append(out)
 
-        args = go.args(go)
-        args.add([
-            "-o=" + out.path,
-            "-var=" + cover_var,
-            "-src=" + src.path,
-            "-srcname=" + srcname,
+        args = go.builder_args(go)
+        args.add_all([
+            "-o",
+            out,
+            "-var",
+            cover_var,
+            "-src",
+            src,
+            "-srcname",
+            srcname,
             "--",
             "-mode=set",
         ])

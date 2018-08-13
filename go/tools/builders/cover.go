@@ -31,6 +31,10 @@ import (
 )
 
 func run(args []string) error {
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	flags := flag.NewFlagSet("cover", flag.ExitOnError)
 	var coverSrc, coverVar, origSrc, srcName string
 	flags.StringVar(&coverSrc, "o", "", "coverage output file")

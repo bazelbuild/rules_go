@@ -4,9 +4,12 @@ proto_library(
     name = "dialogflow_proto",
     srcs = [
         "agent.proto",
+        "audio_config.proto",
         "context.proto",
+        "document.proto",
         "entity_type.proto",
         "intent.proto",
+        "knowledge_base.proto",
         "session.proto",
         "session_entity_type.proto",
         "webhook.proto",

@@ -158,6 +158,10 @@ func main() {
 
 func run(args []string) error {
 	// Prepare our flags
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	imports := multiFlag{}
 	sources := multiFlag{}
 	flags := flag.NewFlagSet("GoTestGenTest", flag.ExitOnError)

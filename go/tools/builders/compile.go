@@ -30,6 +30,10 @@ import (
 
 func run(args []string) error {
 	// Parse arguments.
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	builderArgs, toolArgs := splitArgs(args)
 	flags := flag.NewFlagSet("GoCompile", flag.ExitOnError)
 	unfiltered := multiFlag{}

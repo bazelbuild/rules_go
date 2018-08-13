@@ -31,13 +31,17 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"path/filepath"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 func run(args []string) error {
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	flags := flag.NewFlagSet("GoPack", flag.ExitOnError)
 	goenv := envFlags(flags)
 	inArchive := flags.String("in", "", "Path to input archive")

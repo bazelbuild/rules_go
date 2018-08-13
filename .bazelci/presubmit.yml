@@ -15,3 +15,18 @@ platforms:
     - "..."
     test_targets:
     - "..."
+  rbe_ubuntu1604:
+    build_targets:
+    - "..."
+    test_flags:
+    # Some tests depend on this feature being disabled. However, because it's
+    # enabled by default in the rbe_ubuntu1604 platform, we cannot simply remove
+    # this flag here, we have to explicitly override it with 0.
+    - "--action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0"
+    test_targets:
+    - "--"
+    - "..."
+    - "-//:vet"
+    - "-//tests/core/go_path:go_path_test"
+    - "-//tests/core/stdlib:buildid_test"
+    - "-@com_github_mattn_go_sqlite3//:go_default_test"

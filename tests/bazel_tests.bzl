@@ -233,11 +233,10 @@ _bazel_test_script = go_rule(
         ),
         "clean_build": attr.bool(default = False),
         "bazelrc": attr.label(
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
             default = "@bazel_test//:standalone_bazelrc",
         ),
-        "_settings": attr.label(default = Label("@bazel_test//:settings")),
+        "_settings": attr.label(default = "@bazel_test//:settings"),
     },
 )
 
@@ -283,13 +282,13 @@ def _md5_sum_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, ext = ".md5")
     arguments = ctx.actions.args()
-    arguments.add_all(["-output", out.path])
+    arguments.add_all(["-output", out])
     arguments.add_all(ctx.files.srcs)
     ctx.actions.run(
         inputs = ctx.files.srcs,
         outputs = [out],
         mnemonic = "GoMd5sum",
-        executable = ctx.file._md5sum,
+        executable = ctx.executable._md5sum,
         arguments = [arguments],
     )
     return struct(files = depset([out]))
@@ -299,9 +298,9 @@ md5_sum = go_rule(
     attrs = {
         "srcs": attr.label_list(allow_files = True),
         "_md5sum": attr.label(
-            allow_files = True,
-            single_file = True,
-            default = Label("@io_bazel_rules_go//go/tools/builders:md5sum"),
+            executable = True,
+            default = "@io_bazel_rules_go//go/tools/builders:md5sum",
+            cfg = "host",
         ),
     },
 )

@@ -35,7 +35,7 @@ def emit_asm(
     out_obj = go.declare_file(go, path = source.basename[:-2], ext = ".o")
     inputs = hdrs + go.sdk.tools + go.sdk.headers + go.stdlib.libs + [source]
 
-    args = go.args(go)
+    args = go.builder_args(go)
     args.add_all([source, "--"])
     includes = ([go.sdk.root_file.dirname + "/pkg/include"] +
                 [f.dirname for f in hdrs])

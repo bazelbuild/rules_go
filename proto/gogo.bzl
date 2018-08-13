@@ -34,6 +34,6 @@ proto_library(
 gogo_special_proto = repository_rule(
     _gogo_special_proto_impl,
     attrs = {
-        "proto": attr.label(single_file = True),
+        "proto": attr.label(allow_single_file = True),
     },
 )

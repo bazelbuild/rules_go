@@ -24,6 +24,7 @@ go_test(
     srcs = [
         "map_test.go",
         "mappb_test.go",
+        "unknown_test.go",
     ],
     embed = [":go_default_library"],
     deps = [

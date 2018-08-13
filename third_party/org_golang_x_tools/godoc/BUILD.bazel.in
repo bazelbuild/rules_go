@@ -21,6 +21,7 @@ go_library(
         "spot.go",
         "tab.go",
         "template.go",
+        "versions.go",
     ],
     importpath = "golang.org/x/tools/godoc",
     visibility = ["//visibility:public"],
@@ -36,13 +37,18 @@ go_test(
     name = "go_default_test",
     srcs = [
         "cmdline_test.go",
+        "dirtrees_test.go",
         "godoc17_test.go",
         "godoc_test.go",
         "index_test.go",
+        "server_test.go",
+        "spec_test.go",
+        "versions_test.go",
     ],
     embed = [":go_default_library"],
     deps = [
         "//godoc/vfs:go_default_library",
+        "//godoc/vfs/gatefs:go_default_library",
         "//godoc/vfs/mapfs:go_default_library",
     ],
 )

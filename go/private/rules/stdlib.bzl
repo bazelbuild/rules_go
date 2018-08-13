@@ -57,7 +57,7 @@ def _build_stdlib(go, attr):
     src = go.declare_directory(go, "src")
     root_file = go.declare_file(go, "ROOT")
     filter_buildid = attr._filter_buildid_builder.files.to_list()[0]
-    args = go.args(go)
+    args = go.builder_args(go)
     args.add_all(["-out", root_file.dirname])
     if go.mode.race:
         args.add("-race")
@@ -65,7 +65,7 @@ def _build_stdlib(go, attr):
         args.add("-shared")
     if go.mode.link == LINKMODE_PLUGIN:
         args.add("-dynlink")
-    args.add_all(["-filter_buildid", filter_buildid.path])
+    args.add_all(["-filter_buildid", filter_buildid])
     go.actions.write(root_file, "")
     env = go.env
     env.update({
@@ -106,12 +106,12 @@ stdlib = go_rule(
         "_stdlib_builder": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:stdlib"),
+            default = "@io_bazel_rules_go//go/tools/builders:stdlib",
         ),
         "_filter_buildid_builder": attr.label(
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:filter_buildid"),
+            default = "@io_bazel_rules_go//go/tools/builders:filter_buildid",
         ),
     },
 )

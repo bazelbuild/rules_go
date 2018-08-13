@@ -50,7 +50,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        commit = "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79",
+        commit = "acbc56fc7007d2a01796d5bde54f39e3b3e95945",
         excludes = [
             "unix:go_default_test", # TODO(#413): External test depends on symbols defined in internal test.
         ],
@@ -87,7 +87,6 @@ POPULAR_REPOS = [
             "go/callgraph/rta:go_default_test", # Needs testdata directory
             "go/gccgoexportdata:go_default_test", # Needs testdata directory
             "go/gcexportdata:go_default_test", # Needs testdata directory
-            "go/gcimporter15:go_default_test", # Needs testdata directory
             "go/internal/gccgoimporter:go_default_test", # Needs testdata directory
             "go/loader:go_default_test", # Needs testdata directory
             "go/pointer:go_default_test", # Needs testdata directory
@@ -98,11 +97,15 @@ POPULAR_REPOS = [
             "cmd/fiximports:go_default_test", # requires working GOROOT, not present in CI.
             "cmd/godoc:go_default_test", # TODO(#417)
             "cmd/gorename:go_default_test", # TODO(#417)
-            "go/gcimporter15:go_default_test", # TODO(#417)
             "refactor/importgraph:go_default_test", # TODO(#417)
             "refactor/rename:go_default_test", # TODO(#417)
             "cmd/guru/testdata/src/referrers:go_default_test", # Not a real test
             "container/intsets:go_default_test", # TODO(#413): External test depends on symbols defined in internal test.
+            "go/internal/gcimporter:go_default_test", # Needs testdata directory
+            "go/packages:go_default_test", # Hah!
+            "godoc:go_default_test", # requires GOROOT and GOPATH
+            "godoc/static:go_default_test", # requires data files
+            "imports:go_default_test", # probably needs GOROOT
         ],
     ),
 
@@ -123,7 +126,7 @@ POPULAR_REPOS = [
             "credentials:go_default_test",
             "credentials/alts:go_default_test", # not supported on darwin
             ":go_default_test",
-            "transport:go_default_test", # slow
+            "internal/transport:go_default_test", # slow
         ],
     ),
 

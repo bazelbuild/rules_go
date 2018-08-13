@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "automl_proto",
+    srcs = [
+        "annotation_payload.proto",
+        "classification.proto",
+        "data_items.proto",
+        "dataset.proto",
+        "image.proto",
+        "io.proto",
+        "model.proto",
+        "model_evaluation.proto",
+        "operations.proto",
+        "prediction_service.proto",
+        "service.proto",
+        "text.proto",
+        "translation.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/longrunning:longrunning_proto",
+        "//google/rpc:status_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "automl_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/cloud/automl/v1beta1",
+    proto = ":automl_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/longrunning:longrunning_go_proto",
+        "//google/rpc:status_go_proto",
+    ],
+)

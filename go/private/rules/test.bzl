@@ -93,7 +93,7 @@ def _go_test_impl(ctx):
         run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
     main_go = go.declare_file(go, "testmain.go")
-    arguments = go.args(go)
+    arguments = go.builder_args(go)
     arguments.add_all(["-rundir", run_dir, "-output", main_go])
     if ctx.configuration.coverage_enabled:
         arguments.add("-coverage")

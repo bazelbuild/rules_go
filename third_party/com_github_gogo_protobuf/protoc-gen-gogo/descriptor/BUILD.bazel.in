@@ -14,17 +14,8 @@ go_library(
 )
 
 go_test(
-    name = "go_default_xtest",
-    srcs = ["descriptor_test.go"],
-    deps = [
-        ":go_default_library",
-        "//proto/testdata:go_default_library",
-    ],
-)
-
-go_test(
     name = "go_default_test",
     srcs = ["descriptor_test.go"],
     embed = [":go_default_library"],
-    deps = ["//proto/testdata:go_default_library"],
+    deps = ["//proto/test_proto:go_default_library"],
 )
