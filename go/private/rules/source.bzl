@@ -41,10 +41,7 @@ def _go_source_impl(ctx):
 go_source = go_rule(
     _go_source_impl,
     attrs = {
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "data": attr.label_list(allow_files = True),
         "srcs": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),

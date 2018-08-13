@@ -46,10 +46,7 @@ load(
 
 _SHARED_ATTRS = {
     "basename": attr.string(),
-    "data": attr.label_list(
-        allow_files = True,
-        cfg = "data",
-    ),
+    "data": attr.label_list(allow_files = True),
     "srcs": attr.label_list(allow_files = go_exts + asm_exts),
     "gc_goopts": attr.string_list(),
     "gc_linkopts": attr.string_list(),

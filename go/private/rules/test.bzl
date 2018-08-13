@@ -170,10 +170,7 @@ def _go_test_impl(ctx):
 go_test = go_rule(
     _go_test_impl,
     attrs = {
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "data": attr.label_list(allow_files = True),
         "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(
             providers = [GoLibrary],
