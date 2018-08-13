@@ -147,7 +147,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_google_genproto",
         remote = "https://github.com/google/go-genproto",
-        commit = "daca94659cb50e9f37c1b834680f2e46358f10b0",  # master as of 2018-08-06
+        commit = "383e8b2c3b9e36c4076b235b32537292176bae20",  # master as of 2018-08-13
         overlay = manifest["org_golang_google_genproto"],
         # build_file_proto_mode = "disable_global",
         # importpath = "google.golang.org/genproto",
