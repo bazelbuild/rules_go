@@ -60,10 +60,6 @@ load(
     "go_embed_data",
 )
 load(
-    "@io_bazel_rules_go//go/private:tools/gazelle.bzl",
-    "gazelle",
-)
-load(
     "@io_bazel_rules_go//go/private:tools/path.bzl",
     _go_path = "go_path",
 )

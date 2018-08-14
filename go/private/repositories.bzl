@@ -26,28 +26,8 @@ def go_rules_dependencies():
     """See /go/workspace.rst#go-rules-dependencies for full documentation."""
     versions.check(MINIMUM_BAZEL_VERSION)
 
-    # Gazelle and dependencies. These are needed for go_repository.
-    # TODO(jayconrod): delete all of these when we've migrated everyone to
-    # Gazelle's version of go_repository.
-    _maybe(
-        git_repository,
-        name = "bazel_gazelle",
-        remote = "https://github.com/bazelbuild/bazel-gazelle",
-        commit = "bfb9a4d2a5e6785c792f6fabd5238f8a33e60768",  # master as of 2018-08-06
-    )
-
-    # Old version of buildtools, before breaking API changes. Old versions of
-    # gazelle (0.9) need this. Newer versions vendor this library, so it's only
-    # needed by old versions.
-    _maybe(
-        http_archive,
-        name = "com_github_bazelbuild_buildtools",
-        # master, as of 2017-08-14
-        urls = ["https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6"],
-        strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
-        type = "zip",
-    )
-
+    # Was needed by Gazelle in the past. Will likely be needed for go/packages
+    # and analysis in the future.
     _maybe(
         http_archive,
         name = "org_golang_x_tools",
@@ -58,15 +38,6 @@ def go_rules_dependencies():
         overlay = manifest["org_golang_x_tools"],
         # importpath = "golang.org/x/tools",
     )
-
-    _maybe(
-        git_repository,
-        name = "com_github_pelletier_go_toml",
-        remote = "https://github.com/pelletier/go-toml",
-        commit = "16398bac157da96aa88f98a2df640c7f32af1da2",  # v1.0.1 as of 2017-12-19
-        overlay = manifest["com_github_pelletier_go_toml"],
-    )
-    # End of Gazelle dependencies.
 
     # Proto dependencies
     _maybe(
