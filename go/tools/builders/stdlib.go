@@ -22,9 +22,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
-	"syscall"
 )
 
 func run(args []string) error {
@@ -57,17 +55,9 @@ func run(args []string) error {
 		return err
 	}
 
-	if runtime.GOOS == "windows" {
-		var buf [258]uint16
-		up, err := syscall.UTF16PtrFromString(output)
-		if err != nil {
-			return err
-		}
-		_, err = syscall.GetShortPathName(up, &buf[0], 258)
-		if err != nil {
-			return err
-		}
-		output = syscall.UTF16ToString(buf[:])
+	output, err = processPath(output)
+	if err != nil {
+		return err
 	}
 
 	// Now switch to the newly created GOROOT
