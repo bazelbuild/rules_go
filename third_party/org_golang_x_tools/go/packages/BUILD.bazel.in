@@ -5,14 +5,15 @@ go_library(
     srcs = [
         "doc.go",
         "external.go",
+        "golist.go",
+        "golist_fallback.go",
         "packages.go",
     ],
     importpath = "golang.org/x/tools/go/packages",
     visibility = ["//visibility:public"],
     deps = [
         "//go/gcexportdata:go_default_library",
-        "//go/packages/golist:go_default_library",
-        "//go/packages/raw:go_default_library",
+        "//go/internal/cgo:go_default_library",
     ],
 )
 
