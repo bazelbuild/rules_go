@@ -15,6 +15,7 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 
 * @org_golang_x_crypto//acme:go_default_test
 * @org_golang_x_crypto//acme/autocert:go_default_test
+* @org_golang_x_crypto//argon2:go_default_test
 * @org_golang_x_crypto//bcrypt:go_default_test
 * @org_golang_x_crypto//blake2b:go_default_test
 * @org_golang_x_crypto//blake2s:go_default_test
@@ -22,15 +23,17 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 * @org_golang_x_crypto//bn256:go_default_test
 * @org_golang_x_crypto//cast5:go_default_test
 * @org_golang_x_crypto//chacha20poly1305:go_default_test
-* @org_golang_x_crypto//chacha20poly1305/internal/chacha20:go_default_test
 * @org_golang_x_crypto//cryptobyte:go_default_test
 * @org_golang_x_crypto//curve25519:go_default_test
 * @org_golang_x_crypto//ed25519:go_default_test
 * @org_golang_x_crypto//hkdf:go_default_test
+* @org_golang_x_crypto//internal/chacha20:go_default_test
+* @org_golang_x_crypto//internal/subtle:go_default_test
 * @org_golang_x_crypto//md4:go_default_test
 * @org_golang_x_crypto//nacl/auth:go_default_test
 * @org_golang_x_crypto//nacl/box:go_default_test
 * @org_golang_x_crypto//nacl/secretbox:go_default_test
+* @org_golang_x_crypto//nacl/sign:go_default_test
 * @org_golang_x_crypto//ocsp:go_default_test
 * @org_golang_x_crypto//openpgp:go_default_test
 * @org_golang_x_crypto//openpgp/armor:go_default_test
