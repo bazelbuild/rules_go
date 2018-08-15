@@ -95,7 +95,7 @@ def _go_binary_impl(ctx):
 
 go_binary = go_rule(
     _go_binary_impl,
-    attrs = {
+    attrs = dict({
         "deps": attr.label_list(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
@@ -145,7 +145,7 @@ go_binary = go_rule(
             values = GOARCH.keys() + ["auto"],
             default = "auto",
         ),
-    } + _SHARED_ATTRS,
+    }.items() + _SHARED_ATTRS.items()),
     executable = True,
 )
 """See go/core.rst#go_binary for full documentation."""
@@ -153,11 +153,11 @@ go_binary = go_rule(
 go_tool_binary = go_rule(
     _go_binary_impl,
     bootstrap = True,
-    attrs = {
+    attrs = dict({
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),
         "_hostonly": attr.bool(default = True),
-    } + _SHARED_ATTRS,
+    }.items() + _SHARED_ATTRS.items()),
     executable = True,
 )
 """
