@@ -155,7 +155,7 @@ func buildImportcfgFile(archives []archive, packageList, installSuffix, dir stri
 		if line == "" {
 			continue
 		}
-		fmt.Fprintf(buf, "packagefile %s=%s/%s.a\n", line, prefix, filepath.FromSlash(line))
+		fmt.Fprintf(buf, "packagefile %s=%s.a\n", line, filepath.Join(prefix, filepath.FromSlash(line)))
 	}
 	if err := scanner.Err(); err != nil {
 		return "", err
