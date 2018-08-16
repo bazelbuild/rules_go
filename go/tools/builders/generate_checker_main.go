@@ -41,7 +41,6 @@ import (
 var configs = map[string]config{
 {{- range $name, $config := .Configs}}
 	{{printf "%q" $name}}: config{
-		severity:  {{$config.Severity}},
 		{{- if $config.ApplyTo -}}
 		applyTo:  map[string]bool{
 			{{range $path, $comment := $config.ApplyTo -}}
@@ -125,13 +124,8 @@ func buildConfig(path string) (Configs, error) {
 		return Configs{}, fmt.Errorf("failed to unmarshal config file: %v", err)
 	}
 	for name, config := range configs {
-		s, ok := severityStringtoEnumName[config.Severity]
-		if !ok {
-			return Configs{}, fmt.Errorf("invalid severity %q", config.Severity)
-		}
 		configs[name] = Config{
 			// Description is currently unused.
-			Severity:  s,
 			ApplyTo:   config.ApplyTo,
 			Whitelist: config.Whitelist,
 		}
@@ -142,12 +136,7 @@ func buildConfig(path string) (Configs, error) {
 type Configs map[string]Config
 
 type Config struct {
-	Description, Severity string
-	ApplyTo               map[string]string `json:"apply_to"`
-	Whitelist             map[string]string
-}
-
-var severityStringtoEnumName = map[string]string{
-	"WARNING": "severityWarning",
-	"ERROR":   "severityError",
+	Description string
+	ApplyTo     map[string]string `json:"apply_to"`
+	Whitelist   map[string]string
 }

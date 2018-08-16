@@ -98,7 +98,6 @@ func run(args []string) error {
 	}
 	// Collate analysis results.
 	var allFindings []*analysis.Finding
-	failBuild := false
 	for i := 0; i < len(analysis.Analyses()); i++ {
 		result := <-c
 		if result.err != nil {
@@ -111,12 +110,9 @@ func run(args []string) error {
 		}
 		config, ok := configs[result.name]
 		if !ok {
-			// The default behavior is not to fail builds but print analysis findings.
+			// If the check is not explicitly configured, it applies to all files.
 			allFindings = append(allFindings, result.findings...)
 			continue
-		}
-		if config.severity == severityError {
-			failBuild = true
 		}
 		// Discard findings based on the check configuration.
 		for _, finding := range result.findings {
@@ -141,34 +137,23 @@ func run(args []string) error {
 			}
 		}
 	}
-	// Print analysis results, returning an error to fail the build if necessary.
-	if len(allFindings) != 0 {
-		sort.Slice(allFindings, func(i, j int) bool {
-			return allFindings[i].Pos < allFindings[j].Pos
-		})
-		errMsg := "errors found during build-time code analysis:\n"
-		for _, f := range allFindings {
-			errMsg += fmt.Sprintf("%s: %s\n", fset.Position(f.Pos), f.Message)
-		}
-		if failBuild {
-			return errors.New(errMsg)
-		}
-		log.Println(errMsg)
+	// Return an error that fails the build if we have any findings.
+	if len(allFindings) == 0 {
+		return nil
 	}
-	return nil
+	sort.Slice(allFindings, func(i, j int) bool {
+		return allFindings[i].Pos < allFindings[j].Pos
+	})
+	errMsg := "errors found during build-time code analysis:\n"
+	for _, f := range allFindings {
+		errMsg += fmt.Sprintf("%s: %s\n", fset.Position(f.Pos), f.Message)
+	}
+	return errors.New(errMsg)
 }
 
 type config struct {
-	severity           severity
 	applyTo, whitelist map[string]bool
 }
-
-type severity uint8
-
-const (
-	severityWarning severity = iota
-	severityError
-)
 
 func main() {
 	log.SetFlags(0) // no timestamp

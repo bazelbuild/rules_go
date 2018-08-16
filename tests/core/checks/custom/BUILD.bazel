@@ -84,18 +84,14 @@ bazel_test(
     name = "custom_checks_default_config",
     build = BUILD_TMPL.format(config = ""),
     go_checker = "@//:my_checker",
-    check = BUILD_PASSED_TMPL.format(
+    check = BUILD_FAILED_TMPL.format(
         check_err =
-            CONTAINS_ERR_TMPL.format(err = "custom/foo_func.go:4:1: function must not be named Foo") +
-            CONTAINS_ERR_TMPL.format(err = "custom/return_bool/return_bool.go:4:1: function must not return bool") +
-            CONTAINS_ERR_TMPL.format(err = "custom/import_fmt.go:5:2: package fmt must not be imported")
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not return bool") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not be named Foo")
     ),
     command = "build",
-    targets = [
-        ":return_bool",
-        ":import_fmt",
-        ":foo_func",
-    ],
+    targets = [":has_errors"],
     extra_files = EXTRA_FILES,
 )
 
@@ -105,18 +101,12 @@ bazel_test(
     go_checker = "@//:my_checker",
     check = BUILD_FAILED_TMPL.format(
         check_err =
-            CONTAINS_ERR_TMPL.format(err = "custom/foo_func.go:4:1: function must not be named Foo") +
-            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/return_bool/return_bool.go:") +
-            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/import_fmt.go:")
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not return bool") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not be named Foo")
     ),
     command = "build",
-    targets = [
-        ":return_bool",
-        ":import_fmt",
-        # Note: we have configured foo_func_check to fail builds, so we need :foo_func
-        # to be built last so as not to short-circuit the test.
-        ":foo_func",
-    ],
+    targets = [":has_errors"],
     extra_files = EXTRA_FILES,
 )
 
@@ -137,21 +127,9 @@ bazel_test(
 # fail builds or interfere with other analyses.
 
 go_library(
-    name = "import_fmt",
-    srcs = ["import_fmt.go"],
-    importpath = "importfmt",
-)
-
-go_library(
-    name = "return_bool",
-    srcs = ["return_bool/return_bool.go"],
-    importpath = "returnbool",
-)
-
-go_library(
-    name = "foo_func",
-    srcs = ["foo_func.go"],
-    importpath = "foofunc",
+    name = "has_errors",
+    srcs = ["has_errors.go"],
+    importpath = "haserrors",
 )
 
 go_library(

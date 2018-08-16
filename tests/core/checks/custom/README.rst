@@ -10,13 +10,13 @@ errors.
 
 custom_checks_default_config
 ----------------------------
-Verifies that custom checks print warnings without failing a go_library build
-when the checks are not explicitly configured.
+Verifies that custom checks print errors and fail a go_library build when a
+configuration file is not provided.
 
 custom_checks_custom_config
 ---------------------------
-Verifies that custom checks can be configured to fail builds and ignore errors
-in certain files using a custom configuration file.
+Verifies that custom checks can be configured to apply only to certain file
+paths using a custom configuration file.
 
 custom_checks_no_errors
 ------------------------

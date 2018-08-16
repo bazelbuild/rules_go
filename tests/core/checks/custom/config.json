@@ -1,18 +1,15 @@
 {
-  "return_bool_check": {
-    "severity": "WARNING",
-    "whitelist": {
-      "return_bool/*": "security-reviewed functions that safely return bool"
+  "import_fmt_check": {
+    "apply_to": {
+      "has_errors\\.go": ""
     }
   },
-  "import_fmt_check": {
-    "severity": "WARNING",
-    "apply_to": {
-      "return_bool/*": ""
+  "return_bool_check": {
+    "whitelist": {
+      "has_.*\\.go": "security-reviewed functions that safely return bool"
     }
   },
   "foo_func_check": {
-    "description": "no exemptions since we know this check is 100% accurate",
-    "severity": "ERROR"
+    "description": "no exemptions since we know this check is 100% accurate"
   }
 }

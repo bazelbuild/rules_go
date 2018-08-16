@@ -142,8 +142,8 @@ repository are imported into other workspaces and built there.
 Configuring checks
 ~~~~~~~~~~~~~~~~~~
 
-By default, checks print their findings but do not interrupt compilation. This
-default behavior can be overridden with a JSON configuration file.
+By default, checks apply to all files. This behavior can be changed with a JSON
+configuration file.
 
 The top-level JSON object in the file must be keyed by the name of the check
 being configured. These names must match the Analysis.Name of the registered
@@ -156,14 +156,6 @@ contain the following key-value pairs:
 | ``"description"``          | :type:`string`                                                      |
 +----------------------------+---------------------------------------------------------------------+
 | Description of this check configuration.                                                         |
-+----------------------------+---------------------------------------------------------------------+
-| ``"severity"``             | :type:`string`                                                      |
-+----------------------------+---------------------------------------------------------------------+
-| Determines the actions taken when a check violation is found. It must take on one of the         |
-| following values:                                                                                |
-|                                                                                                  |
-| - ``"WARNING"`` : warning message emitted at compile-time                                        |
-| - ``"ERROR"``   : fails compilation in addition to emitting an error message                     |
 +----------------------------+---------------------------------------------------------------------+
 | ``"apply_to"``             | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
@@ -182,31 +174,26 @@ contain the following key-value pairs:
 Example
 ^^^^^^^
 
-The following configuration file configures the checks named ``importunsafe``,
-``unsafedom``, and ``loopclosure``.
+The following configuration file configures the checks named ``importunsafe``
+and ``unsafedom``. Since the ``loopclosure`` check is not explicitly configured,
+it will apply to all Go files built by Bazel.
 
 .. code:: json
 
     {
       "importunsafe": {
-        "severity": "ERROR",
         "whitelist": {
           "src/foo.go": "manually verified that behavior is working-as-intended",
           "src/bar.go": "see issue #1337"
         }
       },
       "unsafedom": {
-        "severity": "WARNING",
         "apply_to": {
           "src/js/*": ""
         },
         "whitelist": {
           "src/(third_party|vendor)/*": "enforce DOM safety requirements only on first-party code"
         }
-      },
-      "loopclosure": {
-        "description": "fail builds without exception since we know this check is 100% accurate",
-        "severity": "ERROR"
       }
     }
 
