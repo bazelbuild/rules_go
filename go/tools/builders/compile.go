@@ -186,6 +186,7 @@ func buildImportcfgFile(archives []archive, stdImports []string, installSuffix, 
 	if !ok {
 		return "", errors.New("GOROOT not set")
 	}
+	goroot = abs(goroot)
 	for _, imp := range stdImports {
 		path := filepath.Join(goroot, "pkg", installSuffix, filepath.FromSlash(imp))
 		fmt.Fprintf(buf, "packagefile %s=%s.a\n", imp, path)

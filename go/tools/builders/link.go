@@ -143,7 +143,7 @@ func buildImportcfgFile(archives []archive, packageList, installSuffix, dir stri
 	if !ok {
 		return "", errors.New("GOROOT not set")
 	}
-	prefix := filepath.Join(goroot, "pkg", installSuffix)
+	prefix := abs(filepath.Join(goroot, "pkg", installSuffix))
 	packageListFile, err := os.Open(packageList)
 	if err != nil {
 		return "", err
