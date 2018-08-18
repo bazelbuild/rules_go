@@ -92,7 +92,7 @@ Binaries that depend on this library may also set this value.
         name = "cmd",
         srcs = ["main.go"],
         deps = ["//version:go_default_library"],
-        x_defs = {"example.com/repo/version.Version", "0.9"},
+        x_defs = {"example.com/repo/version.Version": "0.9"},
     )
 
 Stamping with the workspace status script
