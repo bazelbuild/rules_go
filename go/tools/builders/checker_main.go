@@ -20,11 +20,11 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
-	"go/build"
 	"go/parser"
 	"go/token"
 	"go/types"
@@ -44,39 +44,94 @@ import (
 // do not return an error so as not to unnecessarily interrupt builds.
 func run(args []string) error {
 	archiveFiles := multiFlag{}
+	importMapIn := multiFlag{}
+	srcs := multiFlag{}
 	flags := flag.NewFlagSet("checker", flag.ContinueOnError)
 	flags.Var(&archiveFiles, "archivefile", "Archive file of a direct dependency")
+	flags.Var(&importMapIn, "importmap", "Import maps of a direct dependency")
+	flags.Var(&srcs, "src", "A source file being compiled")
+	vetTool := flags.String("vet_tool", "", "The vet tool")
+	stdLib := flags.String("stdlib", "", "The directory containing stdlib packages")
+	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	if err := flags.Parse(args); err != nil {
 		log.Println(err)
 		return nil
 	}
-	goroot, ok := os.LookupEnv("GOROOT")
-	if !ok {
-		log.Fatalf("GOROOT not set")
+	// TODO(samueltan): derive this information from the importcfg file built by
+	// compile.go instead of using multiple flags.
+	packageFile, importMap, err := parseArchivesAndImportMap(archiveFiles, importMapIn)
+	if err != nil {
+		log.Printf("error parsing arguments: %v", err)
+		return nil
 	}
-	importsToArchives := make(map[string]string)
+	if enableVet {
+		vcfgFile, err := makeVetCfg(*packageList, *stdLib, packageFile, importMap, srcs)
+		if err != nil {
+			log.Printf("error creating vet config: %v", err)
+			return nil
+		}
+		defer os.Remove(vcfgFile)
+		findings, err := runVet(*vetTool, vcfgFile)
+		if err != nil {
+			return fmt.Errorf("error running vet:\n%v\n", err)
+		} else if findings != "" {
+			return fmt.Errorf("errors found by vet:\n%s\n", findings)
+		}
+	}
+	c := make(chan result)
+	fset := token.NewFileSet()
+	if err := runAnalyses(c, fset, packageFile, importMap, flags.Args(), *stdLib); err != nil {
+		log.Printf("error running analyses: %s\n", err)
+		return nil
+	}
+	if err := checkAnalysisResults(c, fset); err != nil {
+		return fmt.Errorf("errors found during build-time code analysis:\n%s\n", err)
+	}
+	return nil
+}
+
+// parseArchivesAndImportMap parses the -archivefile and -importmap arguments
+// created by the compile rule into the packageFiles and importMap maps used
+// by the vet and checker importers.
+func parseArchivesAndImportMap(archiveFiles, importMapIn []string) (packageFiles map[string]string, importMap map[string]string, err error) {
+	packageFiles, importMap = make(map[string]string), make(map[string]string)
+	for _, mapping := range importMapIn {
+		i := strings.Index(mapping, "=")
+		if i < 0 {
+			return nil, nil, fmt.Errorf("invalid importmap %v: no = separator", mapping)
+		}
+		source := mapping[:i]
+		actual := mapping[i+1:]
+		if source == "" || actual == "" {
+			continue
+		}
+		importMap[source] = actual
+	}
 	for _, a := range archiveFiles {
 		kv := strings.Split(a, "=")
 		if len(kv) != 2 {
-			continue // sanity check
+			return nil, nil, fmt.Errorf("invalid archivefile %v: no = separator", a)
 		}
-		importsToArchives[kv[0]] = kv[1]
+		path := kv[0]
+		if p, ok := importMap[path]; ok {
+			path = p
+		}
+		packageFiles[path] = kv[1]
 	}
-	fset := token.NewFileSet()
-	imp := &importer{
-		fset:              fset,
-		packages:          make(map[string]*types.Package),
-		importsToArchives: importsToArchives,
-		stdlib:            goroot,
-	}
-	apkg, err := load(fset, imp, flags.Args())
-	if err != nil {
-		log.Printf("error loading package: %v\n", err)
+	return
+}
+
+// runAnalyses runs all analyses, filters results, and writes findings to the
+// given channel.
+func runAnalyses(c chan result, fset *token.FileSet, packageFile, importMap map[string]string, srcFiles []string, stdLib string) error {
+	if len(analysis.Analyses()) == 0 {
 		return nil
 	}
-
-	c := make(chan result)
-	// Perform analyses in parallel.
+	apkg, err := newAnalysisPackage(fset, packageFile, importMap, srcFiles, stdLib)
+	if err != nil {
+		return fmt.Errorf("error building analysis package: %s\n", err)
+	}
+	// Run all other analyses.
 	for _, a := range analysis.Analyses() {
 		go func(a *analysis.Analysis) {
 			defer func() {
@@ -88,7 +143,7 @@ func run(args []string) error {
 			res, err := a.Run(apkg)
 			switch err {
 			case nil:
-				c <- result{name: a.Name, findings: res.Findings}
+				c <- result{analysis.Result{res.Findings}, a.Name, nil}
 			case analysis.ErrSkipped:
 				c <- result{name: a.Name, err: fmt.Errorf("skipped : %v", err)}
 			default:
@@ -96,26 +151,74 @@ func run(args []string) error {
 			}
 		}(a)
 	}
-	// Collate analysis results.
-	var allFindings []*analysis.Finding
+	return nil
+}
+
+func newAnalysisPackage(fset *token.FileSet, packageFile, importMap map[string]string, srcFiles []string, stdLib string) (*analysis.Package, error) {
+	imp := &importer{
+		fset:         fset,
+		importMap:    importMap,
+		packageCache: make(map[string]*types.Package),
+		packageFile:  packageFile,
+		stdLib:       stdLib,
+	}
+	apkg, err := load(fset, imp, srcFiles)
+	if err != nil {
+		return nil, fmt.Errorf("error loading package: %v\n", err)
+	}
+	return apkg, nil
+}
+
+// load parses and type checks the source code in each file in filenames.
+func load(fset *token.FileSet, imp types.Importer, filenames []string) (*analysis.Package, error) {
+	if len(filenames) == 0 {
+		return nil, errors.New("no filenames")
+	}
+	var files []*ast.File
+	for _, file := range filenames {
+		f, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, f)
+	}
+	config := types.Config{Importer: imp}
+	info := &types.Info{
+		Types:     make(map[ast.Expr]types.TypeAndValue),
+		Uses:      make(map[*ast.Ident]types.Object),
+		Defs:      make(map[*ast.Ident]types.Object),
+		Implicits: make(map[ast.Node]types.Object),
+	}
+	pkg, err := config.Check(files[0].Name.Name, fset, files, info)
+	if err != nil {
+		return nil, errors.New("type-checking failed")
+	}
+	return &analysis.Package{Fset: fset, Files: files, Types: pkg, Info: info}, nil
+}
+
+// checkAnalysisResults checks the analysis results written to the given channel
+// and returns an error if the analysis finds errors that should fail
+// compilation.
+func checkAnalysisResults(c chan result, fset *token.FileSet) error {
+	var analysisFindings []*analysis.Finding
 	for i := 0; i < len(analysis.Analyses()); i++ {
 		result := <-c
 		if result.err != nil {
 			// Analysis failed or skipped.
-			log.Printf("analysis %q %v", result.name, result.err)
+			log.Printf("analysis %q: %v", result.name, result.err)
 			continue
 		}
-		if len(result.findings) == 0 {
+		if len(result.Findings) == 0 {
 			continue
 		}
 		config, ok := configs[result.name]
 		if !ok {
 			// If the check is not explicitly configured, it applies to all files.
-			allFindings = append(allFindings, result.findings...)
+			analysisFindings = append(analysisFindings, result.Findings...)
 			continue
 		}
 		// Discard findings based on the check configuration.
-		for _, finding := range result.findings {
+		for _, finding := range result.Findings {
 			filename := fset.File(finding.Pos).Name()
 			include := true
 			if len(config.applyTo) > 0 {
@@ -133,22 +236,24 @@ func run(args []string) error {
 				}
 			}
 			if include {
-				allFindings = append(allFindings, finding)
+				analysisFindings = append(analysisFindings, finding)
 			}
 		}
 	}
-	// Return an error that fails the build if we have any findings.
-	if len(allFindings) == 0 {
+	if len(analysisFindings) == 0 {
 		return nil
 	}
-	sort.Slice(allFindings, func(i, j int) bool {
-		return allFindings[i].Pos < allFindings[j].Pos
+	sort.Slice(analysisFindings, func(i, j int) bool {
+		return analysisFindings[i].Pos < analysisFindings[j].Pos
 	})
-	errMsg := "errors found during build-time code analysis:\n"
-	for _, f := range allFindings {
-		errMsg += fmt.Sprintf("%s: %s\n", fset.Position(f.Pos), f.Message)
+	var errMsg bytes.Buffer
+	for i, f := range analysisFindings {
+		if i > 0 {
+			errMsg.WriteByte('\n')
+		}
+		errMsg.WriteString(fmt.Sprintf("%s: %s\n", fset.Position(f.Pos), f.Message))
 	}
-	return errors.New(errMsg)
+	return errors.New(errMsg.String())
 }
 
 type config struct {
@@ -163,69 +268,38 @@ func main() {
 	}
 }
 
+// result is used to collate all the findings and errors returned
+// by analyses run in parallel.
 type result struct {
-	name      string
-	findings  []*analysis.Finding
-	err       error
-	failBuild bool
-}
-
-// load parses and type checks the source code in each file in filenames.
-func load(fset *token.FileSet, imp types.Importer, filenames []string) (*analysis.Package, error) {
-	if len(filenames) == 0 {
-		return nil, errors.New("no filenames")
-	}
-	var files []*ast.File
-	for _, file := range filenames {
-		f, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, f)
-	}
-
-	config := types.Config{
-		Importer: imp,
-		Error: func(err error) {
-			e := err.(types.Error)
-			msg := fmt.Sprintf("%s", e.Msg)
-			posn := e.Fset.Position(e.Pos)
-			if posn.Filename != "" {
-				msg = fmt.Sprintf("%s: %s", posn, msg)
-			}
-			fmt.Fprintln(os.Stderr, msg)
-		},
-	}
-	info := &types.Info{
-		Types:     make(map[ast.Expr]types.TypeAndValue),
-		Uses:      make(map[*ast.Ident]types.Object),
-		Defs:      make(map[*ast.Ident]types.Object),
-		Implicits: make(map[ast.Node]types.Object),
-	}
-	pkg, err := config.Check(files[0].Name.Name, fset, files, info)
-	if err != nil {
-		// Errors were already reported through config.Error.
-		return nil, nil
-	}
-	return &analysis.Package{Fset: fset, Files: files, Types: pkg, Info: info}, nil
+	analysis.Result
+	name string
+	err  error
 }
 
 type importer struct {
-	fset     *token.FileSet
-	packages map[string]*types.Package
-	// importsToArchives maps import paths to the path to the archive file representing the
-	// corresponding library.
-	importsToArchives map[string]string
-	// stdlib is the root directory containing standard library package archive files.
-	stdlib string
+	fset         *token.FileSet
+	importMap    map[string]string         // map import path in source code to package path
+	packageCache map[string]*types.Package // cache of previously imported packages
+	packageFile  map[string]string         // map non-stdlib package path to .a file with export data
+	stdLib       string                    // the directory containing stdlib packages
 }
 
 func (i *importer) Import(path string) (*types.Package, error) {
-	archive, ok := i.importsToArchives[path]
+	if imp, ok := i.importMap[path]; ok {
+		// Translate import path if necessary.
+		path = imp
+	}
+	if path == "unsafe" {
+		return types.Unsafe, nil
+	}
+	if pkg, ok := i.packageCache[path]; ok && pkg.Complete() {
+		return pkg, nil // cache hit
+	}
+
+	archive, ok := i.packageFile[path]
 	if !ok {
 		// stdlib package.
-		ctxt := build.Default
-		archive = filepath.Join(i.stdlib, "pkg", ctxt.GOOS+"_"+ctxt.GOARCH, path+".a")
+		archive = filepath.Join(i.stdLib, path+".a")
 	}
 	// open file
 	f, err := os.Open(archive)
@@ -245,5 +319,5 @@ func (i *importer) Import(path string) (*types.Package, error) {
 		return nil, err
 	}
 
-	return gcexportdata.Read(r, i.fset, i.packages, path)
+	return gcexportdata.Read(r, i.fset, i.packageCache, path)
 }

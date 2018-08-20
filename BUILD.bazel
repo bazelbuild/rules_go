@@ -16,7 +16,6 @@ builders(
     visibility = ["//visibility:public"],
 )
 
-# TODO(samueltan): add checks.
 go_checker(
     name = "default_checker",
     visibility = ["//visibility:public"],

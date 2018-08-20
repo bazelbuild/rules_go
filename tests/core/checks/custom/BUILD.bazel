@@ -1,5 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+load(
+    "@io_bazel_rules_go//tests/core/checks:common.bzl",
+    "BUILD_FAILED_TMPL",
+    "BUILD_PASSED_TMPL",
+    "CONTAINS_ERR_TMPL",
+    "DOES_NOT_CONTAIN_ERR_TMPL",
+)
 
 BUILD_TMPL = """
 load("@io_bazel_rules_go//go:def.bzl", "go_checker", "go_tool_library")
@@ -47,43 +54,12 @@ EXTRA_FILES = [
     ":config.json",
 ]
 
-BUILD_FAILED_TMPL = """
-if [[ result -eq 0 ]]; then
-  echo "TEST FAILED: expected build error" >&2
-  result=1
-else
-  result=0
-  {check_err}
-fi
-"""
-
-BUILD_PASSED_TMPL = """
-if [[ result -ne 0 ]]; then
-  echo "TEST FAILED: unexpected build error" >&2
-  result=1
-else
-  {check_err}
-fi
-"""
-
-CONTAINS_ERR_TMPL = """
-  if ! grep -q '{err}' bazel-output.txt; then
-    echo "TEST FAILED: expected error message containing: '{err}'" >&2
-    result=1
-  fi
-"""
-
-DOES_NOT_CONTAIN_ERR_TMPL = """
-  if grep -q '{err}' bazel-output.txt; then
-    echo "TEST FAILED: received error message containing: '{err}'" >&2
-    result=1
-  fi
-"""
+CHECKER = "@//:my_checker"
 
 bazel_test(
     name = "custom_checks_default_config",
     build = BUILD_TMPL.format(config = ""),
-    go_checker = "@//:my_checker",
+    go_checker = CHECKER,
     check = BUILD_FAILED_TMPL.format(
         check_err =
             CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
@@ -98,7 +74,7 @@ bazel_test(
 bazel_test(
     name = "custom_checks_custom_config",
     build = BUILD_TMPL.format(config = "config = \":config.json\","),
-    go_checker = "@//:my_checker",
+    go_checker = CHECKER,
     check = BUILD_FAILED_TMPL.format(
         check_err =
             CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
@@ -113,7 +89,7 @@ bazel_test(
 bazel_test(
     name = "custom_checks_no_errors",
     build = BUILD_TMPL.format(config = ""),
-    go_checker = "@//:my_checker",
+    go_checker = CHECKER,
     check = BUILD_PASSED_TMPL.format(
         check_err =
             DOES_NOT_CONTAIN_ERR_TMPL.format(err = "no_errors.go:")

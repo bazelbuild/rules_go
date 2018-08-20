@@ -33,6 +33,7 @@ def _builders_impl(ctx):
                 ctx.executable._pack,
                 ctx.executable._link,
                 ctx.executable._cgo,
+                ctx.executable._checker_generator,
                 ctx.executable._test_generator,
                 ctx.executable._cover,
             ]),

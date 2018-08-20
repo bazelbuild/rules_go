@@ -8,6 +8,7 @@ Go build-time code analysis
 .. _GoLibrary: providers.rst#GoLibrary
 .. _GoSource: providers.rst#GoSource
 .. _GoArchive: providers.rst#GoArchive
+.. _vet: https://golang.org/cmd/vet/
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -19,11 +20,9 @@ Please do not rely on it for production use, but feel free to use it and file
 issues.
 
 rules_go allows you to define custom source-code-level checks that are executed
-alongside the Go compiler. These checks print error messages by default, but can
-be configured to also fail compilation. Checks can be used to catch bug and
-anti-patterns early in the development process.
-
-**TODO**: make vet run by default.
+alongside the Go compiler. These checks will print error messages and fail
+compilation if they find issues in source code. Checks can be used to catch
+bugs and coding anti-patterns early in the development process.
 
 .. contents:: :depth: 2
 
@@ -72,6 +71,9 @@ syntax trees (ASTs) and type information for that package. For example:
       }
       return &analysis.Result{Findings: findings}, nil
     }
+
+Any findings returned by the check will fail compilation. Do not emit findings
+unless they are severe enough to warrant interrupting the compiler.
 
 Each check must be written as a `go_tool_library`_ rule. This rule
 is identical to `go_library`_ but avoids a bootstrapping problem, which
@@ -213,6 +215,27 @@ This label referencing this configuration file must be provided as the
         visibility = ["//visibility:public"],
     )
 
+Running vet
+~~~~~~~~~~~
+
+You can choose to run the `vet`_ tool alongside the Go compiler and custom
+checks by setting the ``vet`` attribute of your `go_checker`_ rule:
+
+.. code:: bzl
+
+    go_checker(
+        name = "my_checker",
+        vet = True,
+        visibility = ["//visibility:public"],
+    )
+
+`vet`_ will print error messages and fail compilation if it finds any issues in
+the source code being built. Just like in the upstream Go build toolchain, only
+a subset of `vet`_ checks which are 100% accurate will be run.
+
+In the above example, `vet`_ will run alone. It can also run alongside custom
+checks given by the ``deps`` attribute.
+
 API
 ---
 
@@ -242,6 +265,10 @@ Attributes
 | :param:`config`            | :type:`label`               | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | JSON configuration file that configures one or more of the checks in `deps`.                     |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`vet`               | :type:`bool`                | :value:`False`                        |
++----------------------------+-----------------------------+---------------------------------------+
+| Whether to run the `vet` tool.                                                                   |
 +----------------------------+-----------------------------+---------------------------------------+
 
 Example

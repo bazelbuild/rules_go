@@ -10,7 +10,7 @@ errors.
 
 custom_checks_default_config
 ----------------------------
-Verifies that custom checks print errors and fail a go_library build when a
+Verifies that custom checks print errors and fail a `go_library`_ build when a
 configuration file is not provided.
 
 custom_checks_custom_config

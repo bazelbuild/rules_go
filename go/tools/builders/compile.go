@@ -36,13 +36,14 @@ func run(args []string) error {
 	unfiltered := multiFlag{}
 	deps := multiFlag{}
 	archiveFiles := multiFlag{}
-	importmap := multiFlag{}
+	importMap := multiFlag{}
 	goenv := envFlags(flags)
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&deps, "dep", "Import path of a direct dependency")
-	flags.Var(&importmap, "importmap", "Import maps of a direct dependency")
+	flags.Var(&importMap, "importmap", "Import maps of a direct dependency")
 	flags.Var(&archiveFiles, "archivefile", "Archive file of a direct dependency")
 	checker := flags.String("checker", "", "The checker binary")
+	stdLib := flags.String("stdlib", "", "The directory containing stdlib packages")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
@@ -95,8 +96,8 @@ func run(args []string) error {
 
 	// Check that the filtered sources don't import anything outside of deps.
 	strictdeps := deps
-	var importmapArgs []string
-	for _, mapping := range importmap {
+	var importMapArgs []string
+	for _, mapping := range importMap {
 		i := strings.Index(mapping, "=")
 		if i < 0 {
 			return fmt.Errorf("Invalid importmap %v: no = separator", mapping)
@@ -106,7 +107,7 @@ func run(args []string) error {
 		if source == "" || actual == "" || source == actual {
 			continue
 		}
-		importmapArgs = append(importmapArgs, "-importmap", mapping)
+		importMapArgs = append(importMapArgs, "-importmap", mapping)
 		strictdeps = append(strictdeps, source)
 	}
 	if err := checkDirectDeps(build.Default, files, strictdeps, *packageList); err != nil {
@@ -115,7 +116,7 @@ func run(args []string) error {
 
 	// Compile the filtered files.
 	goargs := goenv.goTool("compile")
-	goargs = append(goargs, importmapArgs...)
+	goargs = append(goargs, importMapArgs...)
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, "--")
@@ -139,6 +140,15 @@ func run(args []string) error {
 		var checkerargs []string
 		for _, a := range archiveFiles {
 			checkerargs = append(checkerargs, "-archivefile", a)
+		}
+		checkerargs = append(checkerargs, "-vet_tool", goenv.goTool("vet")[0])
+		checkerargs = append(checkerargs, "-package_list", *packageList)
+		checkerargs = append(checkerargs, "-stdlib", *stdLib)
+		for _, im := range importMap {
+			checkerargs = append(checkerargs, "-importmap", im)
+		}
+		for _, f := range filenames {
+			checkerargs = append(checkerargs, "-src", f)
 		}
 		checkerargs = append(checkerargs, filenames...)
 		checkerCmd := exec.Command(*checker, checkerargs...)

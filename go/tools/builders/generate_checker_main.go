@@ -28,7 +28,7 @@ import (
 	"text/template"
 )
 
-var codeTpl = `
+const codeTpl = `
 package main
 
 import (
@@ -37,6 +37,8 @@ import (
 {{- end}}
 )
 
+const enableVet = {{.EnableVet}}
+
 // configs maps analysis names to configurations.
 var configs = map[string]config{
 {{- range $name, $config := .Configs}}
@@ -44,7 +46,7 @@ var configs = map[string]config{
 		{{- if $config.ApplyTo -}}
 		applyTo:  map[string]bool{
 			{{range $path, $comment := $config.ApplyTo -}}
-			// {{$comment}}
+			{{if $comment -}} // {{$comment}} {{- end}}
 			{{printf "%q" $path}}: true,
 			{{- end}}
 		},
@@ -52,7 +54,7 @@ var configs = map[string]config{
 		{{if $config.Whitelist -}}
 		whitelist:  map[string]bool{
 			{{range $path, $comment := $config.Whitelist -}}
-			// {{$comment}}
+			{{if $comment -}} // {{$comment}} {{- end}}
 			{{printf "%q" $path}}: true,
 			{{- end}}
 		},
@@ -68,6 +70,7 @@ func run(args []string) error {
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
 	flags.Var(&checkImportPaths, "check_importpath", "import path of a check library")
 	configFile := flags.String("config", "", "checker config file")
+	enableVet := flags.Bool("vet", false, "whether to run vet")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -94,9 +97,11 @@ func run(args []string) error {
 	data := struct {
 		ImportPaths []string
 		Configs     Configs
+		EnableVet   bool
 	}{
 		ImportPaths: checkImportPaths,
 		Configs:     config,
+		EnableVet:   *enableVet,
 	}
 	tpl := template.Must(template.New("source").Parse(codeTpl))
 	if err := tpl.Execute(outFile, data); err != nil {

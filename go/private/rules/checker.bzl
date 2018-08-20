@@ -33,12 +33,14 @@ def _go_checker_impl(ctx):
     go = go_context(ctx)
     checker_main = go.declare_file(go, "checker_main.go")
     checker_args = ctx.actions.args()
-    checker_args.add(["-output", checker_main])
+    checker_args.add("-output", checker_main)
     check_archives = [get_archive(dep) for dep in ctx.attr.deps]
     check_importpaths = [archive.data.importpath for archive in check_archives]
-    checker_args.add(check_importpaths, before_each = "-check_importpath")
+    checker_args.add_all(check_importpaths, before_each = "-check_importpath")
+    if ctx.attr.vet:
+        checker_args.add("-vet")
     if ctx.file.config:
-        checker_args.add(["-config", ctx.file.config])
+        checker_args.add("-config", ctx.file.config.path)
     ctx.actions.run(
         outputs = [checker_main],
         mnemonic = "GoGenChecker",
@@ -81,10 +83,12 @@ go_checker = go_rule(
     attrs = {
         "deps": attr.label_list(
             providers = [GoArchive],
-            # TODO(samueltan): make this attribute mandatory.
         ),
         "config": attr.label(
             allow_single_file = True,
+        ),
+        "vet": attr.bool(
+            default = False,
         ),
         "_analysis": attr.label(
             default = "@io_bazel_rules_go//go/tools/analysis:analysis",

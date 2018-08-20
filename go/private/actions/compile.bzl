@@ -67,6 +67,7 @@ def emit_compile(
     builder_args.add_all(archives, before_each = "-importmap", map_each = _importmap)
     builder_args.add_all(archives, before_each = "-archivefile", map_each = _archivefile)
     builder_args.add_all(["-o", out_lib])
+    builder_args.add_all(["-stdlib", go.toolchain.sdk.root_file.dirname+"/pkg/"+go.toolchain.sdk.goos+"_"+go.toolchain.sdk.goarch])
     builder_args.add_all(["-package_list", go.package_list])
     if testfilter:
         builder_args.add_all(["-testfilter", testfilter])

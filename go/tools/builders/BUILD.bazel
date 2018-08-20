@@ -37,6 +37,7 @@ go_tool_binary(
         "env.go",
         "filter.go",
         "flags.go",
+        "vet.go",
     ],
     visibility = ["//visibility:public"],
 )
@@ -71,6 +72,7 @@ go_source(
     srcs = [
         "checker_main.go",
         "flags.go",
+        "vet.go",
     ],
     deps = [
         "@io_bazel_rules_go//go/tools/analysis:analysis",
