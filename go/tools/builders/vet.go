@@ -89,9 +89,16 @@ func splitOutput(out string) []string {
 	return res
 }
 
-// makeVetCfg creates a vet.cfg file and returns its file path. It is the
+// buildVetcfgFile creates a vet.cfg file and returns its file path. It is the
 // caller's responsibility to remove this file when it is no longer needed.
-func makeVetCfg(packageList, stdLib string, packageFile, importMap map[string]string, files []string) (string, error) {
+func buildVetcfgFile(packageFile, importMap map[string]string, stdImports, files []string) (string, error) {
+	for path := range packageFile {
+		if _, ok := importMap[path]; !ok {
+			// vet expects every import path to be in the import map, even if the
+			// mapping is redundant.
+			importMap[path] = path
+		}
+	}
 	vcfg := &vetConfig{
 		Compiler:                  "gc", // gccgo is currently not supported
 		GoFiles:                   files,
@@ -100,20 +107,8 @@ func makeVetCfg(packageList, stdLib string, packageFile, importMap map[string]st
 		Standard:                  make(map[string]bool),
 		SucceedOnTypecheckFailure: false,
 	}
-	packagesTxt, err := ioutil.ReadFile(packageList)
-	if err != nil {
-		return "", err
-	}
-	for _, line := range strings.Split(string(packagesTxt), "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		vcfg.Standard[line] = true
-		// vet expects all packages, including those in the stdlib, to be in
-		// ImportMap and PackageFile.
-		vcfg.ImportMap[line] = line // stdlib package names have no aliases.
-		vcfg.PackageFile[line] = filepath.Join(stdLib, line+".a")
+	for _, imp := range stdImports {
+		vcfg.Standard[imp] = true
 	}
 
 	js, err := json.MarshalIndent(vcfg, "", "\t")

@@ -45,15 +45,10 @@ func run(args []string) error {
 	flags := flag.NewFlagSet("GoCompile", flag.ExitOnError)
 	unfiltered := multiFlag{}
 	archives := archiveMultiFlag{}
-	archiveFiles := multiFlag{}
-	importMap := multiFlag{}
 	goenv := envFlags(flags)
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&archives, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
-	flags.Var(&importMap, "importmap", "Import maps of a direct dependency")
-	flags.Var(&archiveFiles, "archivefile", "Archive file of a direct dependency")
 	checker := flags.String("checker", "", "The checker binary")
-	stdLib := flags.String("stdlib", "", "The directory containing stdlib packages")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
@@ -143,14 +138,10 @@ func run(args []string) error {
 	checkerFailed := false
 	if *checker != "" {
 		var checkerargs []string
-		for _, a := range archiveFiles {
-			checkerargs = append(checkerargs, "-archivefile", a)
-		}
 		checkerargs = append(checkerargs, "-vet_tool", goenv.goTool("vet")[0])
-		checkerargs = append(checkerargs, "-package_list", *packageList)
-		checkerargs = append(checkerargs, "-stdlib", *stdLib)
-		for _, im := range importMap {
-			checkerargs = append(checkerargs, "-importmap", im)
+		checkerargs = append(checkerargs, "-importcfg", importcfgName)
+		for _, imp := range stdImports {
+			checkerargs = append(checkerargs, "-stdimport", imp)
 		}
 		for _, f := range filenames {
 			checkerargs = append(checkerargs, "-src", f)
@@ -244,6 +235,11 @@ func buildImportcfgFile(archives []archive, stdImports []string, installSuffix, 
 		return "", errors.New("GOROOT not set")
 	}
 	goroot = abs(goroot)
+	// UGLY HACK: The vet tool called by compile program expects the vet.cfg file
+	// passed to it to contain import information for package fmt. Since we use
+	// importcfg to create vet.cfg, ensure that an entry for package fmt exists in
+	// the former.
+	stdImports = append(stdImports, "fmt")
 	for _, imp := range stdImports {
 		path := filepath.Join(goroot, "pkg", installSuffix, filepath.FromSlash(imp))
 		fmt.Fprintf(buf, "packagefile %s=%s.a\n", imp, path)

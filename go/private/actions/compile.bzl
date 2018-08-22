@@ -23,12 +23,6 @@ load(
     "shell",
 )
 
-def _importmap(v):
-    return "{}={}".format(v.data.importpath, v.data.importmap)
-
-def _archivefile(v):
-    return "{}={}".format(v.data.importpath, v.data.file.path)
-
 def _archive(v):
     return "{}={}={}".format(v.data.importpath, v.data.importmap, v.data.file.path)
 
@@ -63,9 +57,6 @@ def emit_compile(
     builder_args.add_all(archives, before_each = "-arc", map_each = _archive)
     builder_args.add_all(["-o", out_lib])
     builder_args.add_all(["-package_list", go.package_list])
-    builder_args.add_all(archives, before_each = "-importmap", map_each = _importmap)
-    builder_args.add_all(archives, before_each = "-archivefile", map_each = _archivefile)
-    builder_args.add_all(["-stdlib", go.toolchain.sdk.root_file.dirname+"/pkg/"+go.toolchain.sdk.goos+"_"+go.toolchain.sdk.goarch])
     if testfilter:
         builder_args.add_all(["-testfilter", testfilter])
     if go.checker:
