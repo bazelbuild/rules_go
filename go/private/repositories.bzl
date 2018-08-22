@@ -31,9 +31,9 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "org_golang_x_tools",
-        # master, as of 2018-08-15
-        urls = ["https://codeload.github.com/golang/tools/zip/8f8fd1f23985f19c387c894e5597b22d8256a495"],
-        strip_prefix = "tools-8f8fd1f23985f19c387c894e5597b22d8256a495",
+        # master, as of 2018-08-24
+        urls = ["https://codeload.github.com/golang/tools/zip/6c1c5e93cdc185a6ddf8f821166b3e631b0f8a72"],
+        strip_prefix = "tools-6c1c5e93cdc185a6ddf8f821166b3e631b0f8a72",
         type = "zip",
         overlay = manifest["org_golang_x_tools"],
         # importpath = "golang.org/x/tools",
