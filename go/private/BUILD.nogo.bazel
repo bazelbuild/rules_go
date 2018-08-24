@@ -1,6 +1,6 @@
 package(default_visibility = [ "//visibility:public" ])
 
 alias(
-    name = "go_checker",
-    actual = "{{checker}}",
+    name = "nogo",
+    actual = "{{nogo}}",
 )

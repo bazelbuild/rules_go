@@ -214,9 +214,9 @@ def go_context(ctx, attr = None):
     if builders:
         builders = builders[GoBuilders]
 
-    checker = getattr(attr, "_checker", None)
-    if checker:
-        checker = checker[DefaultInfo].files_to_run
+    nogo = getattr(attr, "_nogo", None)
+    if nogo:
+        nogo = nogo[DefaultInfo].files_to_run
 
     coverdata = getattr(attr, "_coverdata", None)
     if coverdata:
@@ -280,7 +280,7 @@ def go_context(ctx, attr = None):
         pathtype = pathtype,
         cgo_tools = context_data.cgo_tools,
         builders = builders,
-        checker = checker,
+        nogo = nogo,
         coverdata = coverdata,
         coverage_enabled = ctx.configuration.coverage_enabled,
         coverage_instrumented = ctx.coverage_instrumented(),

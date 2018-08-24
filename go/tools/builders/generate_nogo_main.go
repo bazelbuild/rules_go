@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Generates a checker binary for Bazel Go rules.
+// Generates the nogo binary to analyze Go source code at build time.
 
 package main
 
@@ -66,10 +66,10 @@ var configs = map[string]config{
 
 func run(args []string) error {
 	checkImportPaths := multiFlag{}
-	flags := flag.NewFlagSet("generate_checker_main", flag.ExitOnError)
+	flags := flag.NewFlagSet("generate_nogo_main", flag.ExitOnError)
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
 	flags.Var(&checkImportPaths, "check_importpath", "import path of a check library")
-	configFile := flags.String("config", "", "checker config file")
+	configFile := flags.String("config", "", "nogo config file")
 	enableVet := flags.Bool("vet", false, "whether to run vet")
 	if err := flags.Parse(args); err != nil {
 		return err

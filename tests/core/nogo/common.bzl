@@ -1,4 +1,4 @@
-# Macros used by all build-time code analysis integration tests.
+# Macros used by all nogo integration tests.
 
 BUILD_FAILED_TMPL = """
 if [[ result -eq 0 ]]; then

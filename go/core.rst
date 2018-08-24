@@ -23,7 +23,7 @@ Core go rules
 .. _build constraints: https://golang.org/pkg/go/build/#hdr-Build_Constraints
 .. _select: https://docs.bazel.build/versions/master/be/functions.html#select
 .. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
-.. _go_checker: checks.rst#go_checker
+.. _nogo: nogo.rst#nogo
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -281,9 +281,8 @@ the same package.
 
 This rule is identical to ``go_library``, but must be used to build check
 libraries to avoid a circular dependency: ``go_library`` implicitly
-depends on `go_checker`_, which depends on check libraries, which must not
-depend on `go_checker`_. ``go_tool_library`` does not have the same implicit
-dependency.
+depends on `nogo`_, which depends on check libraries, which must not depend on
+`nogo`_. ``go_tool_library`` does not have the same implicit dependency.
 
 Providers
 ^^^^^^^^^

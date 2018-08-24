@@ -80,9 +80,9 @@ go_tool_library = go_rule(
     },
 )
 """
-This is used instead of `go_library` for dependencies of the go_checker rule and
+This is used instead of `go_library` for dependencies of the `nogo` rule and
 packages that are depended on implicitly by code generated within the Go rules.
 This avoids a bootstrapping problem.
 
-See go/checks.rst#go_tool_library for full documentation.
+See go/core.rst#go_tool_library for full documentation.
 """

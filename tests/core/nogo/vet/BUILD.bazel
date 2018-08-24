@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 load(
-    "@io_bazel_rules_go//tests/core/checks:common.bzl",
+    "@io_bazel_rules_go//tests/core/nogo:common.bzl",
     "BUILD_FAILED_TMPL",
     "BUILD_PASSED_TMPL",
     "CONTAINS_ERR_TMPL",
@@ -9,40 +9,40 @@ load(
 )
 
 BUILD_ENABLE_VET = """
-load("@io_bazel_rules_go//go:def.bzl", "go_checker", "go_tool_library")
+load("@io_bazel_rules_go//go:def.bzl", "nogo", "go_tool_library")
 
-go_checker(
-    name = "my_checker",
+nogo(
+    name = "nogo",
     vet = True,
     visibility = ["//visibility:public"],
 )
 """
 
-CHECKER = "@//:my_checker"
+NOGO = "@//:nogo"
 
 bazel_test(
     name = "vet_enabled_no_errors",
     build = BUILD_ENABLE_VET,
-    go_checker = CHECKER,
     check = BUILD_PASSED_TMPL.format(
-        check_err = ":"  # no-op
+        check_err = ":",  # no-op
     ),
     command = "build",
+    nogo = NOGO,
     targets = [":no_errors"],
 )
 
 bazel_test(
     name = "vet_enabled_has_errors",
     build = BUILD_ENABLE_VET,
-    go_checker = CHECKER,
     check = BUILD_FAILED_TMPL.format(
         check_err =
             CONTAINS_ERR_TMPL.format(err = "has_errors.go:3: +build comment must appear before package clause and be followed by a blank line") +
             CONTAINS_ERR_TMPL.format(err = "has_errors.go:15: comparison of function F == nil is always false") +
             CONTAINS_ERR_TMPL.format(err = 'has_errors.go:18: Printf format %b has arg "hi" of wrong type strin') +
-            CONTAINS_ERR_TMPL.format(err = "has_errors.go:19: redundant or: true || true")
+            CONTAINS_ERR_TMPL.format(err = "has_errors.go:19: redundant or: true || true"),
     ),
     command = "build",
+    nogo = NOGO,
     targets = [":has_errors"],
 )
 
@@ -53,7 +53,7 @@ bazel_test(
             DOES_NOT_CONTAIN_ERR_TMPL.format(err = "+build comment must appear before package clause and be followed by a blank line") +
             DOES_NOT_CONTAIN_ERR_TMPL.format(err = "comparison of function F == nil is always false") +
             DOES_NOT_CONTAIN_ERR_TMPL.format(err = 'Printf format %b has arg "hi" of wrong type strin') +
-            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "redundant or: true || true")
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "redundant or: true || true"),
     ),
     command = "build",
     targets = [":has_errors"],

@@ -59,9 +59,9 @@ def emit_compile(
     builder_args.add_all(["-package_list", go.package_list])
     if testfilter:
         builder_args.add_all(["-testfilter", testfilter])
-    if go.checker:
-        builder_args.add_all(["-checker", go.checker.executable])
-        inputs.append(go.checker.executable)
+    if go.nogo:
+        builder_args.add_all(["-nogo", go.nogo.executable])
+        inputs.append(go.nogo.executable)
 
     tool_args = go.tool_args(go)
     if asmhdr:

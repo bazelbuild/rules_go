@@ -34,6 +34,7 @@ Go rules for Bazel_
 .. _Deprecation schedule: deprecation.rst
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Overriding dependencies: go/workspace.rst#overriding-dependencies
+.. _nogo: go/nogo.rst
 
 .. ;; And now we continue with the actual content
 
@@ -81,7 +82,7 @@ Documentation
 
 * `Toolchains <go/toolchains.rst>`_
 * `Extra rules <go/extras.rst>`_
-* `Build-time code analysis <go/checks.rst>`_
+* `nogo build-time code analysis <go/nogo.rst>`_
 * `Build modes <go/modes.rst>`_
 
 Quick links
@@ -102,6 +103,7 @@ The rules are in the alpha stage of development. They support:
 * cgo
 * cross compilation
 * auto generating BUILD files via gazelle_
+* build-time code analysis via nogo_
 * `protocol buffers`_
 
 They currently do not support (in order of importance):

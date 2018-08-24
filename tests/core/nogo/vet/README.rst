@@ -3,7 +3,7 @@ Vet check
 
 .. _go_library: /go/core.rst#_go_library
 
-Tests to ensure that vet run and detects errors.
+Tests to ensure that vet runs and detects errors.
 
 .. contents::
 

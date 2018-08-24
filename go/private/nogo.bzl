@@ -14,21 +14,21 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "env_execute")
 
-DEFAULT_CHECKER = "@io_bazel_rules_go//:default_checker"
+DEFAULT_NOGO = "@io_bazel_rules_go//:default_nogo"
 
-def _go_register_checker_impl(ctx):
+def _go_register_nogo_impl(ctx):
     ctx.template(
         "BUILD.bazel",
-        Label("@io_bazel_rules_go//go/private:BUILD.checker.bazel"),
+        Label("@io_bazel_rules_go//go/private:BUILD.nogo.bazel"),
         substitutions = {
-            "{{checker}}": ctx.attr.checker,
+            "{{nogo}}": ctx.attr.nogo,
         },
         executable = False,
     )
 
-go_register_checker = repository_rule(
-    _go_register_checker_impl,
+go_register_nogo = repository_rule(
+    _go_register_nogo_impl,
     attrs = {
-        "checker": attr.string(mandatory = True),
+        "nogo": attr.string(mandatory = True),
     },
 )

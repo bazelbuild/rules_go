@@ -48,7 +48,7 @@ func run(args []string) error {
 	goenv := envFlags(flags)
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&archives, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
-	checker := flags.String("checker", "", "The checker binary")
+	nogo := flags.String("nogo", "", "The nogo binary")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
@@ -133,42 +133,41 @@ func run(args []string) error {
 		return fmt.Errorf("error starting compiler: %v", err)
 	}
 
-	// Run the checker concurrently.
-	var checkerOutput bytes.Buffer
-	checkerFailed := false
-	if *checker != "" {
-		var checkerargs []string
-		checkerargs = append(checkerargs, "-vet_tool", goenv.goTool("vet")[0])
-		checkerargs = append(checkerargs, "-importcfg", importcfgName)
+	// Run nogo concurrently.
+	var nogoOutput bytes.Buffer
+	nogoFailed := false
+	if *nogo != "" {
+		var nogoargs []string
+		nogoargs = append(nogoargs, "-vet_tool", goenv.goTool("vet")[0])
+		nogoargs = append(nogoargs, "-importcfg", importcfgName)
 		for _, imp := range stdImports {
-			checkerargs = append(checkerargs, "-stdimport", imp)
+			nogoargs = append(nogoargs, "-stdimport", imp)
 		}
 		for _, f := range filenames {
-			checkerargs = append(checkerargs, "-src", f)
+			nogoargs = append(nogoargs, "-src", f)
 		}
-		checkerargs = append(checkerargs, filenames...)
-		checkerCmd := exec.Command(*checker, checkerargs...)
-		checkerCmd.Stdout, checkerCmd.Stderr = &checkerOutput, &checkerOutput
-		if err := checkerCmd.Run(); err != nil {
+		nogoargs = append(nogoargs, filenames...)
+		nogoCmd := exec.Command(*nogo, nogoargs...)
+		nogoCmd.Stdout, nogoCmd.Stderr = &nogoOutput, &nogoOutput
+		if err := nogoCmd.Run(); err != nil {
 			if _, ok := err.(*exec.ExitError); ok {
-				// Only fail the build if the checker runs but does not complete
-				// successfully.
-				checkerFailed = true
+				// Only fail the build if nogo runs and finds errors in source code.
+				nogoFailed = true
 			} else {
-				// All errors related to running the checker will merely be printed.
-				checkerOutput.WriteString(fmt.Sprintf("error running checker: %v\n", err))
+				// All errors related to running nogo will merely be printed.
+				nogoOutput.WriteString(fmt.Sprintf("error running nogo: %v\n", err))
 			}
 		}
 	}
 	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("error running compiler: %v", err)
 	}
-	// Only print the output of the checker if compilation succeeds.
-	if checkerFailed {
-		return fmt.Errorf("%s", checkerOutput.String())
+	// Only print the output of nogo if compilation succeeds.
+	if nogoFailed {
+		return fmt.Errorf("%s", nogoOutput.String())
 	}
-	if checkerOutput.Len() != 0 {
-		fmt.Fprintln(os.Stderr, checkerOutput.String())
+	if nogoOutput.Len() != 0 {
+		fmt.Fprintln(os.Stderr, nogoOutput.String())
 	}
 	return nil
 }

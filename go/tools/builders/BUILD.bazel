@@ -59,18 +59,18 @@ go_tool_binary(
 )
 
 go_tool_binary(
-    name = "generate_checker_main",
+    name = "generate_nogo_main",
     srcs = [
         "flags.go",
-        "generate_checker_main.go",
+        "generate_nogo_main.go",
     ],
     visibility = ["//visibility:public"],
 )
 
 go_source(
-    name = "checker_srcs",
+    name = "nogo_srcs",
     srcs = [
-        "checker_main.go",
+        "nogo_main.go",
         "flags.go",
         "vet.go",
     ],

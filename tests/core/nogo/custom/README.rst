@@ -1,10 +1,10 @@
-Custom checks
-=============
+Custom nogo checks
+==================
 
+.. _nogo: /go/nogo.rst
 .. _go_library: /go/core.rst#_go_library
 
-Tests to ensure that custom build-time code analysis checks run and detect
-errors.
+Tests to ensure that custom `nogo`_ checks run and detect errors.
 
 .. contents::
 

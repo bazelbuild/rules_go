@@ -1,7 +1,7 @@
-Go build-time code analysis
-===========================
+nogo build-time code analysis
+=============================
 
-.. _go_checker: core.rst#go_checker
+.. _nogo: nogo.rst#nogo
 .. _go_library: core.rst#go_library
 .. _go_tool_library: core.rst#go_tool_library
 .. _analysis: tools/analysis/analysis.go
@@ -19,10 +19,13 @@ Go build-time code analysis
 Please do not rely on it for production use, but feel free to use it and file
 issues.
 
-rules_go allows you to define custom source-code-level checks that are executed
-alongside the Go compiler. These checks will print error messages and fail
-compilation if they find issues in source code. Checks can be used to catch
-bugs and coding anti-patterns early in the development process.
+``nogo`` is a tool that analyzes the source code of Go programs. It runs
+alongisde the Go compiler in the Bazel Go rules and rejects programs that
+contain disallowed coding patterns. In addition, ``nogo`` may report
+compiler-like errors.
+
+``nogo`` is a powerful tool for preventing bugs and coding anti-patterns early
+in the development process.
 
 .. contents:: :depth: 2
 
@@ -34,9 +37,9 @@ Overview
 Writing and registering checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Checks are Go packages are register themselves with package `analysis`_.
-Each check is invoked once per Go package, and is provided the abstract
-syntax trees (ASTs) and type information for that package. For example:
+``nogo`` checks are Go packages are register themselves with package
+`analysis`_. Each check is invoked once per Go package, and is provided the
+abstract syntax trees (ASTs) and type information for that package. For example:
 
 .. code:: go
 
@@ -102,17 +105,17 @@ we will explain later. For example:
         visibility = ["//visibility:public"],
     )
 
-`go_checker`_ generates a checker program that is run alongside the compiler
-to analyze Go source code. You must define a `go_checker`_ target whose ``deps``
+The `nogo`_ rule generates a program that analyzes Go source code. This program
+is run alongside the compiler. You must define a `nogo`_ target whose ``deps``
 attribute contains all check targets. These checks will be linked to the
-generated check binary and executed at build-time.
+generated ``nogo`` binary and executed at build-time.
 
 .. code:: bzl
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_checker")
+    load("@io_bazel_rules_go//go:def.bzl", "nogo")
 
-    go_checker(
-        name = "my_checker",
+    nogo(
+        name = "nogo",
         deps = [
             ":importunsafe",
             ":unsafedom",
@@ -121,31 +124,31 @@ generated check binary and executed at build-time.
         visibility = ["//visibility:public"],
     )
 
-**NOTE**: Writing each check as a `go_tool_library`_ rule instead of a
+**NOTE**: Writing each ``nogo`` check as a `go_tool_library`_ rule instead of a
 `go_library`_ rule avoids a circular dependency: `go_library`_ implicitly
-depends on `go_checker`_, which depends on check libraries, which must not
-depend on `go_checker`_. `go_tool_library`_ does not have the same implicit
-dependency.
+depends on `nogo`_, which depends on check libraries, which must not depend on
+`nogo`_. `go_tool_library`_ does not have the same implicit dependency.
 
-Finally, the `go_checker`_ target must be passed to ``go_register_toolchains``
+Finally, the `nogo`_ target must be passed to ``go_register_toolchains``
 in your ``WORKSPACE`` file.
 
 .. code:: bzl
 
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
-    go_register_toolchains(checker="@//:my_checker")
+    go_register_toolchains(nogo="@//:nogo")
 
-The generated checker will run when building any Go target (e.g. `go_library`_)
-within your workspace, even if the target is imported from an external
-repository. However, the checker will not run when targets from the current
-repository are imported into other workspaces and built there.
+The generated ``nogo`` program will run alongside the compiler when building any
+Go target (e.g. `go_library`_) within your workspace, even if the target is
+imported from an external repository. However, ``nogo`` will not run when
+targets from the current repository are imported into other workspaces and built
+there.
 
 Configuring checks
 ~~~~~~~~~~~~~~~~~~
 
-By default, checks apply to all files. This behavior can be changed with a JSON
-configuration file.
+By default, ``nogo`` checks apply to all files. This behavior can be changed
+with a JSON configuration file.
 
 The top-level JSON object in the file must be keyed by the name of the check
 being configured. These names must match the Analysis.Name of the registered
@@ -200,12 +203,12 @@ it will apply to all Go files built by Bazel.
     }
 
 This label referencing this configuration file must be provided as the
-``config`` attribute value of the ``go_checker`` rule.
+``config`` attribute value of the ``nogo`` rule.
 
 .. code:: bzl
 
-    go_checker(
-        name = "my_checker",
+    nogo(
+        name = "nogo",
         deps = [
             ":importunsafe",
             ":unsafedom",
@@ -219,19 +222,20 @@ Running vet
 ~~~~~~~~~~~
 
 You can choose to run the `vet`_ tool alongside the Go compiler and custom
-checks by setting the ``vet`` attribute of your `go_checker`_ rule:
+checks by setting the ``vet`` attribute of your `nogo`_ target:
 
 .. code:: bzl
 
-    go_checker(
-        name = "my_checker",
+    nogo(
+        name = "nogo",
         vet = True,
         visibility = ["//visibility:public"],
     )
 
-`vet`_ will print error messages and fail compilation if it finds any issues in
-the source code being built. Just like in the upstream Go build toolchain, only
-a subset of `vet`_ checks which are 100% accurate will be run.
+`vet`_ will print error messages and fail compilation if any disallowed coding
+patterns are found in the source code being compiled. Just like in the upstream
+Go build toolchain, only a subset of `vet`_ checks which are 100% accurate will
+be run.
 
 In the above example, `vet`_ will run alone. It can also run alongside custom
 checks given by the ``deps`` attribute.
@@ -239,11 +243,12 @@ checks given by the ``deps`` attribute.
 API
 ---
 
-go_checker
-~~~~~~~~~~
+nogo
+~~~~
 
-This generates a checker program that is run alongside the compiler to analyze
-Go source code.
+This generates a program that that analyzes the source code of Go programs. It
+runs alongisde the Go compiler in the Bazel Go rules and rejects programs that
+contain disallowed coding patterns.
 
 Attributes
 ^^^^^^^^^^
@@ -257,9 +262,9 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of Go libraries that will be linked to the generated checker binary.                        |
+| List of Go libraries that will be linked to the generated nogo binary.                           |
 | These libraries must call ``analysis.Register`` to ensure that the analyses they implement are   |
-| called by the checker binary.                                                                    |
+| called by nogo.                                                                                  |
 | These libraries must be `go_tool_library`_ targets to avoid bootstrapping problems.              |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`config`            | :type:`label`               | :value:`None`                         |
@@ -276,8 +281,8 @@ Example
 
 .. code:: bzl
 
-    go_checker(
-        name = "my_checker",
+    nogo(
+        name = "nogo",
         deps = [
             ":importunsafe",
             ":othercheck",

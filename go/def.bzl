@@ -79,8 +79,8 @@ load(
     "go_tool_library",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/checker.bzl",
-    "go_checker",
+    "@io_bazel_rules_go//go/private:rules/nogo.bzl",
+    "nogo",
 )
 
 # Current version or next version to be tagged. Gazelle and other tools may
