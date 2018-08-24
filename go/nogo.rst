@@ -1,5 +1,5 @@
-nogo build-time code analysis
-=============================
+|logo| nogo build-time code analysis
+====================================
 
 .. _nogo: nogo.rst#nogo
 .. _go_library: core.rst#go_library
@@ -14,6 +14,9 @@ nogo build-time code analysis
 .. role:: type(emphasis)
 .. role:: value(code)
 .. |mandatory| replace:: **mandatory value**
+.. |logo| image:: nogo_logo.png
+.. footer:: The ``nogo`` logo was derived from the Go gopher, which was designed by Renee French. (http://reneefrench.blogspot.com/) The design is licensed under the Creative Commons 3.0 Attributions license. Read this article for more details: http://blog.golang.org/gopher
+
 
 **WARNING**: This functionality is experimental, so its API might change.
 Please do not rely on it for production use, but feel free to use it and file
@@ -221,8 +224,11 @@ This label referencing this configuration file must be provided as the
 Running vet
 ~~~~~~~~~~~
 
-You can choose to run the `vet`_ tool alongside the Go compiler and custom
-checks by setting the ``vet`` attribute of your `nogo`_ target:
+`vet_` is a tool included in the official Go distribution that examines Go
+source code and reports correctness issues not caught by Go compilers.
+
+You can choose to run `vet`_ alongside the Go compiler by setting the ``vet``
+attribute in your `nogo`_ target:
 
 .. code:: bzl
 
@@ -232,13 +238,14 @@ checks by setting the ``vet`` attribute of your `nogo`_ target:
         visibility = ["//visibility:public"],
     )
 
-`vet`_ will print error messages and fail compilation if any disallowed coding
-patterns are found in the source code being compiled. Just like in the upstream
-Go build toolchain, only a subset of `vet`_ checks which are 100% accurate will
-be run.
-
 In the above example, `vet`_ will run alone. It can also run alongside custom
 checks given by the ``deps`` attribute.
+
+`vet`_ will print error messages and fail compilation if any correctness issues
+are found in the source code being compiled. Only a subset of `vet`_ checks
+which are 100% accurate will be executed. This is the same subset of `vet_`
+checks that are run by the ``go`` tool during ``go test``.
+
 
 API
 ---
@@ -286,8 +293,9 @@ Example
         deps = [
             ":importunsafe",
             ":othercheck",
-            "@javascript_checks//:unsafedom", # we can import checks from a remote repo
+            "@javascript_checks//:unsafedom",
         ],
-        config = ":config.json"
+        config = ":config.json",
+        vet = True,
         visibility = ["//visibility:public"],
     )
