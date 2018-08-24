@@ -80,7 +80,7 @@ func run(args []string) error {
 	// Build the commands needed to build the std library in the right mode
 	installArgs := goenv.goCmd("install", "-toolexec", abs(*filterBuildid))
 	if len(build.Default.BuildTags) > 0 {
-		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, ","))
+		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, " "))
 	}
 	gcflags := []string{}
 	ldflags := []string{"-trimpath", abs(".")}
