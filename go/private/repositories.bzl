@@ -113,6 +113,7 @@ def go_rules_dependencies():
         overlay = manifest["org_golang_google_grpc"],
         # build_file_proto_mode = "disable",
         # importpath = "google.golang.org/grpc",
+        # Contains manual modifications to build files. Update with care.
     )
     _maybe(
         git_repository,
