@@ -66,7 +66,11 @@ def emit_link(
     config_strip = len(go._ctx.configuration.bin_dir.path) + 1
     pkg_depth = executable.dirname[config_strip:].count("/") + 1
 
-    extldflags = list(go.cgo_tools.linker_options)
+    # Exclude -lstdc++ from link options. We don't want to link against it
+    # unless we actually have some C++ code. _cgo_codegen will include it
+    # in archives via CGO_LDFLAGS if it's needed.
+    extldflags = [f for f in go.cgo_tools.linker_options if f not in ("-lstdc++", "-lc++")]
+
     if go.coverage_enabled:
         extldflags.append("--coverage")
     gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
