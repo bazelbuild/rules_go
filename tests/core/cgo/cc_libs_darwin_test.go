@@ -30,7 +30,10 @@ func TestBinaries(t *testing.T) {
 	}{
 		{
 			shortPath: "tests/core/cgo/pure_bin",
-			wantLibs:  map[string]bool{"libSystem": false, "libc++": false},
+			// Since go1.11, pure binaries have a dependency on libSystem.
+			// This is true with go tool link -linkmode=internal
+			// and with CGO_ENABLED=0 go build ...
+			wantLibs: map[string]bool{"libc++": false},
 		}, {
 			shortPath: "tests/core/cgo/c_srcs_bin",
 			wantLibs:  map[string]bool{"libSystem": true, "libc++": false},
