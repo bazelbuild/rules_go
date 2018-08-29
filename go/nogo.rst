@@ -23,11 +23,11 @@ Please do not rely on it for production use, but feel free to use it and file
 issues.
 
 ``nogo`` is a tool that analyzes the source code of Go programs. It runs
-alongisde the Go compiler in the Bazel Go rules and rejects programs that
+alongside the Go compiler in the Bazel Go rules and rejects programs that
 contain disallowed coding patterns. In addition, ``nogo`` may report
 compiler-like errors.
 
-``nogo`` is a powerful tool for preventing bugs and coding anti-patterns early
+``nogo`` is a powerful tool for preventing bugs and code anti-patterns early
 in the development process.
 
 .. contents:: :depth: 2
@@ -40,7 +40,7 @@ Overview
 Writing and registering checks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``nogo`` checks are Go packages are register themselves with package
+``nogo`` checks are Go packages that register themselves with package
 `analysis`_. Each check is invoked once per Go package, and is provided the
 abstract syntax trees (ASTs) and type information for that package. For example:
 
@@ -83,7 +83,7 @@ unless they are severe enough to warrant interrupting the compiler.
 
 Each check must be written as a `go_tool_library`_ rule. This rule
 is identical to `go_library`_ but avoids a bootstrapping problem, which
-we will explain later. For example:
+will be explained later. For example:
 
 .. code:: bzl
 
@@ -122,9 +122,9 @@ generated ``nogo`` binary and executed at build-time.
         deps = [
             ":importunsafe",
             ":unsafedom",
-            "@javascript_checks//:loopclosure", # we can import checks from a remote repo
+            "@javascript_checks//:loopclosure", # checks can be imported from a remote repo
         ],
-        visibility = ["//visibility:public"],
+        visibility = ["//visibility:public"], # must have public visibility
     )
 
 **NOTE**: Writing each ``nogo`` check as a `go_tool_library`_ rule instead of a
@@ -150,11 +150,11 @@ there.
 Configuring checks
 ~~~~~~~~~~~~~~~~~~
 
-By default, ``nogo`` checks apply to all files. This behavior can be changed
-with a JSON configuration file.
+By default, ``nogo`` checks apply to all Go source files being compiled. This
+behavior can be changed with a JSON configuration file.
 
 The top-level JSON object in the file must be keyed by the name of the check
-being configured. These names must match the Analysis.Name of the registered
+being configured. These names must match the ``Analysis.Name`` of the registered
 analysis package. The JSON object's values are themselves objects which may
 contain the following key-value pairs:
 
@@ -171,12 +171,12 @@ contain the following key-value pairs:
 | Its keys are regular expression strings matching Go files, and its values are strings containing |
 | a description of the entry.                                                                      |
 +----------------------------+---------------------------------------------------------------------+
-| ``"whitelist"``            | :type:`dictionary`                                                  |
+| ``"whitelist"``            | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
 | Specifies files that are exempt from this check.                                                 |
-| Its keys and values are strings that have the same semantics as those in `apply_to`.             |
-| Keys in whitelist override keys in apply_to. If a .go file matches both an `apply_to` and        |
-| `whitelist` key, the check will not apply to that file.                                          |
+| Its keys and values are strings that have the same semantics as those in ``apply_to``.           |
+| Keys in whitelist override keys in apply_to. If a .go file matches both an ``apply_to`` and      |
+| ``whitelist`` key, the check will not apply to that file.                                        |
 +----------------------------+---------------------------------------------------------------------+
 
 Example
@@ -224,8 +224,8 @@ This label referencing this configuration file must be provided as the
 Running vet
 ~~~~~~~~~~~
 
-`vet_` is a tool included in the official Go distribution that examines Go
-source code and reports correctness issues not caught by Go compilers.
+`vet`_ is a tool that examines Go source code and reports correctness issues not
+caught by Go compilers. It is included in the official Go distribution.
 
 You can choose to run `vet`_ alongside the Go compiler by setting the ``vet``
 attribute in your `nogo`_ target:
@@ -238,12 +238,12 @@ attribute in your `nogo`_ target:
         visibility = ["//visibility:public"],
     )
 
-In the above example, `vet`_ will run alone. It can also run alongside custom
-checks given by the ``deps`` attribute.
+In the above example, the generated ``nogo`` program will only run `vet`_.
+`vet`_ can also run alongside ``nogo`` checks given by the ``deps`` attribute.
 
 `vet`_ will print error messages and fail compilation if any correctness issues
 are found in the source code being compiled. Only a subset of `vet`_ checks
-which are 100% accurate will be executed. This is the same subset of `vet_`
+which are 100% accurate will be executed. This is the same subset of `vet`_
 checks that are run by the ``go`` tool during ``go test``.
 
 
@@ -276,11 +276,11 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`config`            | :type:`label`               | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| JSON configuration file that configures one or more of the checks in `deps`.                     |
+| JSON configuration file that configures one or more of the checks in ``deps``.                   |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`vet`               | :type:`bool`                | :value:`False`                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| Whether to run the `vet` tool.                                                                   |
+| Whether to run the `vet`_ tool.                                                                  |
 +----------------------------+-----------------------------+---------------------------------------+
 
 Example
