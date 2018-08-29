@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "enclosing.go",
         "imports.go",
+        "rewrite.go",
         "util.go",
     ],
     importpath = "golang.org/x/tools/go/ast/astutil",
@@ -16,6 +17,7 @@ go_test(
     srcs = [
         "enclosing_test.go",
         "imports_test.go",
+        "rewrite_test.go",
     ],
     embed = [":go_default_library"],
 )

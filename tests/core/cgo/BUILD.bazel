@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
 go_test(
     name = "opts_test",
@@ -66,6 +66,62 @@ genrule(
     outs = ["libimported.so"],
     cmd = "$(CC) -shared $< -o $@",
     tags = ["manual"],
+)
+
+go_test(
+    name = "cc_libs_test",
+    srcs = [
+        "cc_libs_darwin_test.go",
+        "cc_libs_linux_test.go",
+    ],
+    data = [
+        ":c_srcs",
+        ":cc_deps",
+        ":cc_srcs",
+        ":pure",
+    ],
+    deps = ["//go/tools/bazel:go_default_library"],
+)
+
+go_binary(
+    name = "pure",
+    srcs = ["main.go"],
+    out = "pure_bin",
+    cgo = True,
+    pure = "on",
+)
+
+go_binary(
+    name = "c_srcs",
+    srcs = [
+        "foo.c",
+        "main.go",
+    ],
+    out = "c_srcs_bin",
+    cgo = True,
+)
+
+go_binary(
+    name = "cc_srcs",
+    srcs = [
+        "bar.cc",
+        "main.go",
+    ],
+    out = "cc_srcs_bin",
+    cgo = True,
+)
+
+go_binary(
+    name = "cc_deps",
+    srcs = ["main.go"],
+    out = "cc_deps_bin",
+    cdeps = [":bar_dep"],
+    cgo = True,
+)
+
+cc_library(
+    name = "bar_dep",
+    srcs = ["bar.cc"],
 )
 
 go_test(

@@ -93,11 +93,11 @@ def _go_test_impl(ctx):
         run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
     main_go = go.declare_file(go, "testmain.go")
-    arguments = go.args(go)
-    arguments.add(["-rundir", run_dir, "-output", main_go])
+    arguments = go.builder_args(go)
+    arguments.add_all(["-rundir", run_dir, "-output", main_go])
     if ctx.configuration.coverage_enabled:
-        arguments.add(["-coverage"])
-    arguments.add([
+        arguments.add("-coverage")
+    arguments.add_all([
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
         "-import",
@@ -105,7 +105,7 @@ def _go_test_impl(ctx):
         "-import",
         "l_test=" + external_source.library.importpath,
     ])
-    arguments.add(go_srcs, before_each = "-src", format = "l=%s")
+    arguments.add_all(go_srcs, before_each = "-src", format_each = "l=%s")
     ctx.actions.run(
         inputs = go_srcs,
         outputs = [main_go],
@@ -170,10 +170,7 @@ def _go_test_impl(ctx):
 go_test = go_rule(
     _go_test_impl,
     attrs = {
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "data": attr.label_list(allow_files = True),
         "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(
             providers = [GoLibrary],

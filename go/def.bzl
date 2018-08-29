@@ -22,6 +22,7 @@ load(
     _GoArchiveData = "GoArchiveData",
     _GoLibrary = "GoLibrary",
     _GoPath = "GoPath",
+    _GoSDK = "GoSDK",
     _GoSource = "GoSource",
 )
 load(
@@ -34,6 +35,11 @@ load(
     "go_download_sdk",
     "go_host_sdk",
     "go_local_sdk",
+    "go_wrap_sdk",
+)
+load(
+    "@io_bazel_rules_go//go/private:rules/sdk.bzl",
+    "go_sdk",
 )
 load(
     "@io_bazel_rules_go//go/private:go_toolchain.bzl",
@@ -54,10 +60,6 @@ load(
     "go_embed_data",
 )
 load(
-    "@io_bazel_rules_go//go/private:tools/gazelle.bzl",
-    "gazelle",
-)
-load(
     "@io_bazel_rules_go//go/private:tools/path.bzl",
     _go_path = "go_path",
 )
@@ -72,7 +74,7 @@ load(
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.13.0"
+RULES_GO_VERSION = "0.15.0"
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""
@@ -88,6 +90,9 @@ GoArchive = _GoArchive
 
 GoArchiveData = _GoArchiveData
 """See go/providers.rst#GoArchiveData for full documentation."""
+
+GoSDK = _GoSDK
+"""See go/providers.rst#GoSDK for full documentation."""
 
 go_library = _go_library_macro
 """See go/core.rst#go_library for full documentation."""

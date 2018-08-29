@@ -15,6 +15,7 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 
 * @org_golang_x_crypto//acme:go_default_test
 * @org_golang_x_crypto//acme/autocert:go_default_test
+* @org_golang_x_crypto//argon2:go_default_test
 * @org_golang_x_crypto//bcrypt:go_default_test
 * @org_golang_x_crypto//blake2b:go_default_test
 * @org_golang_x_crypto//blake2s:go_default_test
@@ -22,15 +23,17 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 * @org_golang_x_crypto//bn256:go_default_test
 * @org_golang_x_crypto//cast5:go_default_test
 * @org_golang_x_crypto//chacha20poly1305:go_default_test
-* @org_golang_x_crypto//chacha20poly1305/internal/chacha20:go_default_test
 * @org_golang_x_crypto//cryptobyte:go_default_test
 * @org_golang_x_crypto//curve25519:go_default_test
 * @org_golang_x_crypto//ed25519:go_default_test
 * @org_golang_x_crypto//hkdf:go_default_test
+* @org_golang_x_crypto//internal/chacha20:go_default_test
+* @org_golang_x_crypto//internal/subtle:go_default_test
 * @org_golang_x_crypto//md4:go_default_test
 * @org_golang_x_crypto//nacl/auth:go_default_test
 * @org_golang_x_crypto//nacl/box:go_default_test
 * @org_golang_x_crypto//nacl/secretbox:go_default_test
+* @org_golang_x_crypto//nacl/sign:go_default_test
 * @org_golang_x_crypto//ocsp:go_default_test
 * @org_golang_x_crypto//openpgp:go_default_test
 * @org_golang_x_crypto//openpgp/armor:go_default_test
@@ -68,6 +71,7 @@ This runs tests from the repository `golang.org/x/net <https://golang.org/x/net>
 * @org_golang_x_net//html/atom:go_default_test
 * @org_golang_x_net//http/httpguts:go_default_test
 * @org_golang_x_net//http/httpproxy:go_default_test
+* @org_golang_x_net//http2/h2c:go_default_test
 * @org_golang_x_net//http2/hpack:go_default_test
 * @org_golang_x_net//idna:go_default_test
 * @org_golang_x_net//internal/socket:go_default_test
@@ -91,6 +95,7 @@ ________________
 
 This runs tests from the repository `golang.org/x/sys <https://golang.org/x/sys>`_
 
+* @org_golang_x_sys//cpu:go_default_test
 * @org_golang_x_sys//plan9:go_default_test
 * @org_golang_x_sys//windows:go_default_test
 * @org_golang_x_sys//windows/registry:go_default_test
@@ -147,6 +152,7 @@ __________________
 This runs tests from the repository `golang.org/x/tools <https://golang.org/x/tools>`_
 
 * @org_golang_x_tools//benchmark/parse:go_default_test
+* @org_golang_x_tools//blog:go_default_test
 * @org_golang_x_tools//cmd/benchcmp:go_default_test
 * @org_golang_x_tools//cmd/callgraph/testdata/src/pkg:go_default_test
 * @org_golang_x_tools//cmd/digraph:go_default_test
@@ -157,12 +163,12 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/types/typeutil:go_default_test
 * @org_golang_x_tools//go/vcs:go_default_test
-* @org_golang_x_tools//godoc:go_default_test
 * @org_golang_x_tools//godoc/redirect:go_default_test
 * @org_golang_x_tools//godoc/vfs:go_default_test
+* @org_golang_x_tools//godoc/vfs/gatefs:go_default_test
 * @org_golang_x_tools//godoc/vfs/mapfs:go_default_test
 * @org_golang_x_tools//godoc/vfs/zipfs:go_default_test
-* @org_golang_x_tools//imports:go_default_test
+* @org_golang_x_tools//internal/fastwalk:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
 * @org_golang_x_tools//present:go_default_test
 
@@ -185,6 +191,8 @@ This runs tests from the repository `google.golang.org/grpc <https://google.gola
 * @org_golang_google_grpc//credentials/alts/core/handshaker/service:go_default_test
 * @org_golang_google_grpc//encoding/proto:go_default_test
 * @org_golang_google_grpc//grpclog:go_default_test
+* @org_golang_google_grpc//internal/channelz:go_default_test
+* @org_golang_google_grpc//internal/grpcsync:go_default_test
 * @org_golang_google_grpc//internal/leakcheck:go_default_test
 * @org_golang_google_grpc//metadata:go_default_test
 * @org_golang_google_grpc//naming:go_default_test

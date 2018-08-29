@@ -40,6 +40,10 @@ type genFileInfo struct {
 
 func run(args []string) error {
 	// process the args
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	options := multiFlag{}
 	descriptors := multiFlag{}
 	expected := multiFlag{}

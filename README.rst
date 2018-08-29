@@ -16,6 +16,7 @@ Go rules for Bazel_
 .. _go_binary: go/core.rst#go_binary
 .. _go_test: go/core.rst#go_test
 .. _go_download_sdk: go/toolchains.rst#go_download_sdk
+.. _go_rules_dependencies: go/workspace.rst#go_rules_dependencies
 .. _go_register_toolchains: go/toolchains.rst#go_register_toolchains
 .. _go_proto_library: proto/core.rst#go_proto_library
 .. _go_proto_compiler: proto/core.rst#go_proto_compiler
@@ -31,6 +32,8 @@ Go rules for Bazel_
 .. _Travis configuration file: .travis.yml
 .. _rules_go and Gazelle roadmap: roadmap.rst
 .. _Deprecation schedule: deprecation.rst
+.. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
+.. _Overriding dependencies: go/workspace.rst#overriding-dependencies
 
 .. ;; And now we continue with the actual content
 
@@ -45,16 +48,18 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
-July 10, 2018
-  Release `0.13.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.13.0>`_
+August 25, 2018
+  Releases
+  `0.15.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.1>`_,
+  `0.14.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.1>`_,
+  and `0.13.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.13.1>`_
+  are now available with support for Go 1.11! Also, come find us at GopherCon!
+  Ping @jayconrod on Twitter to meet up.
+August 16, 2018
+  Release `0.15.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.0>`_
   is now available.
-June 12, 2018
-  Releases `0.12.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.12.1>`_,
-  `0.11.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.11.2>`_, and
-  `0.10.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.10.5>`_ are
-  now available. There will be no major release this month.
-May 8, 2018
-  Release `0.12.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.12.0>`_
+August 8, 2018
+  Release `0.14.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.0>`_
   is now available.
 
 Contents
@@ -109,7 +114,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-:Note: The latest version of these rules (0.13.0) requires Bazel ≥ 0.10.0 to work.
+Note: The latest version of these rules (0.15.1) requires Bazel ≥ 0.16.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -128,8 +133,8 @@ Setup
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.13.0/rules_go-0.13.0.tar.gz"],
-        sha256 = "ba79c532ac400cefd1859cbc8a9829346aa69e3b99482cd5a54432092cbc3933",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.1/rules_go-0.15.1.tar.gz"],
+        sha256 = "5f3b0304cdf0c505ec9e5b3c4fc4a87b5ca21b13d8ecc780c97df3d1809b9ce6",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -177,13 +182,13 @@ build files automatically using gazelle_.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.13.0/rules_go-0.13.0.tar.gz"],
-        sha256 = "ba79c532ac400cefd1859cbc8a9829346aa69e3b99482cd5a54432092cbc3933",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.1/rules_go-0.15.1.tar.gz"],
+        sha256 = "5f3b0304cdf0c505ec9e5b3c4fc4a87b5ca21b13d8ecc780c97df3d1809b9ce6",
     )
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.13.0/bazel-gazelle-0.13.0.tar.gz"],
-        sha256 = "bc653d3e058964a5a26dcad02b6c72d7d63e6bb88d94704990b908a1445b8758",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.14.0/bazel-gazelle-0.14.0.tar.gz"],
+        sha256 = "c0a5739d12c6d05b6c1ad56f2200cb0b57c5a70e03ebd2f7b87ce88cabf09c7b",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -192,17 +197,15 @@ build files automatically using gazelle_.
     gazelle_dependencies()
 
 * Add the code below to the BUILD or BUILD.bazel file in the root directory
-  of your repository. Replace the string in ``prefix`` with the prefix you
+  of your repository. Replace the string after ``prefix`` with the prefix you
   chose for your project earlier.
 
   .. code:: bzl
 
     load("@bazel_gazelle//:def.bzl", "gazelle")
 
-    gazelle(
-        name = "gazelle",
-        prefix = "github.com/example/project",
-    )
+    # gazelle:prefix github.com/example/project
+    gazelle(name = "gazelle")
 
 * After adding the ``gazelle`` rule, run the command below:
 
@@ -457,7 +460,6 @@ In order to run Bazel tests on Travis CI, you'll need to install Bazel in the
 You'll want to run Bazel with a number of flags to prevent it from consuming
 a huge amount of memory in the test environment.
 
-* ``--batch``: Don't start the Bazel server.
 * ``--host_jvm_args=-Xmx500m --host_jvm_args=-Xms500m``: Set the maximum and
   initial JVM heap size. Keeping the same means the JVM won't spend time
   growing the heap. The choice of heap size is somewhat arbitrary; other
@@ -526,4 +528,17 @@ How do I get information about the Go SDK used by rules_go?
 You can run: ``bazel build @io_bazel_rules_go//:go_info`` which outputs
 ``go_info_report`` with information like the used Golang version.
 
+How do I avoid conflicts with protocol buffers?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+See `Avoiding conflicts`_ in the proto documentation.
+
+How do I use a specific version of golang.org/x/sys, net or text?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Several of the golang.org/x repositories are declared in
+`go_rules_dependencies`_. We declare these automatically because they're needed
+by gRPC.
+
+See `Overriding dependencies`_ for an example of how to replace these
+with specific commits.

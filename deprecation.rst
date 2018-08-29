@@ -8,12 +8,18 @@ Deprecation schedule
 .. _bazelbuild/bazel-bazelle#186: https://github.com/bazelbuild/bazel-gazelle/issues/186
 
 This document lists public interfaces and features that are deprecated and will
-be removed soon. For each item in this document, the deprecation rationale is
-listed, along with the last supported rules_go release and the release when the
-functionality is scheduled to be removed.
+be removed soon, as well as features that have already been removed. For each
+item in this document, the deprecation rationale is listed, along with the last
+supported rules_go release and the release when the functionality is scheduled
+to be removed.
 
-Go SDKs
--------
+Deprecated features
+-------------------
+
+No major features are deprecated right now.
+
+Removed features
+----------------
 
 | **Go 1.8**
 | **Deprecated in:** 0.12.0
@@ -24,13 +30,10 @@ Go SDKs
   symlinking before compiling.
 | **Migration:** ``go_register_toolchains()`` automatically selects the newest
   version of Go unless a version is explicitly specified.
-
-Go rules
---------
-
+|
 | **rules_go gazelle rule**
 | **Deprecated in:** 0.13.0
-| **Removed in:** 0.14.0
+| **Removed in:** 0.15.0
 | **Rationale:** This lets us reduce coupling between rules_go and Gazelle.
   With this change, we should be able to remove the automatic dependency
   on ``@bazel_gazelle``.
@@ -47,10 +50,7 @@ Go rules
   attributes for several releases. ``go_prefix`` will be removed and
   ``importpath`` will be mandatory for ``go_library`` and ``go_proto_library``.
 | **Migration:** Gazelle_ sets ``importpath`` automatically.
-
-Removed features
-----------------
-
+|
 | **library attribute**
 | **Deprecated in:** 0.9.0
 | **Removed in:** 0.12.0

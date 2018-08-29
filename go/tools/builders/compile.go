@@ -18,9 +18,11 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"go/build"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -28,17 +30,23 @@ import (
 	"strings"
 )
 
+type archive struct {
+	importPath, importMap, file string
+}
+
 func run(args []string) error {
 	// Parse arguments.
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	builderArgs, toolArgs := splitArgs(args)
 	flags := flag.NewFlagSet("GoCompile", flag.ExitOnError)
 	unfiltered := multiFlag{}
-	deps := multiFlag{}
-	importmap := multiFlag{}
+	archives := archiveMultiFlag{}
 	goenv := envFlags(flags)
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
-	flags.Var(&deps, "dep", "Import path of a direct dependency")
-	flags.Var(&importmap, "importmap", "Import maps of a direct dependency")
+	flags.Var(&archives, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
@@ -48,6 +56,7 @@ func run(args []string) error {
 	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
+	*output = abs(*output)
 
 	// Filter sources using build constraints.
 	var matcher func(f *goMetadata) bool
@@ -89,36 +98,30 @@ func run(args []string) error {
 		files = append(files, &goMetadata{filename: emptyPath})
 	}
 
-	// Check that the filtered sources don't import anything outside of deps.
-	strictdeps := deps
-	var importmapArgs []string
-	for _, mapping := range importmap {
-		i := strings.Index(mapping, "=")
-		if i < 0 {
-			return fmt.Errorf("Invalid importmap %v: no = separator", mapping)
-		}
-		source := mapping[:i]
-		actual := mapping[i+1:]
-		if source == "" || actual == "" || source == actual {
-			continue
-		}
-		importmapArgs = append(importmapArgs, "-importmap", mapping)
-		strictdeps = append(strictdeps, source)
-	}
-	if err := checkDirectDeps(build.Default, files, strictdeps, *packageList); err != nil {
+	// Check that the filtered sources don't import anything outside of
+	// the standard library and the direct dependencies.
+	_, stdImports, err := checkDirectDeps(files, archives, *packageList)
+	if err != nil {
 		return err
 	}
 
+	// Build an importcfg file for the compiler.
+	importcfgName, err := buildImportcfgFile(archives, stdImports, goenv.installSuffix, filepath.Dir(*output))
+	if err != nil {
+		return err
+	}
+	defer os.Remove(importcfgName)
+
 	// Compile the filtered files.
 	goargs := goenv.goTool("compile")
-	goargs = append(goargs, importmapArgs...)
+	goargs = append(goargs, "-importcfg", importcfgName)
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, "--")
 	for _, f := range files {
 		goargs = append(goargs, f.filename)
 	}
-	absArgs(goargs, []string{"-I", "-o", "-trimpath"})
+	absArgs(goargs, []string{"-I", "-o", "-trimpath", "-importcfg"})
 	return goenv.runCommand(goargs)
 }
 
@@ -130,41 +133,106 @@ func main() {
 	}
 }
 
-func checkDirectDeps(bctx build.Context, files []*goMetadata, deps []string, packageList string) error {
+func checkDirectDeps(files []*goMetadata, archives []archive, packageList string) (depImports, stdImports []string, err error) {
 	packagesTxt, err := ioutil.ReadFile(packageList)
 	if err != nil {
 		log.Fatal(err)
 	}
-	stdlib := map[string]bool{}
+	stdlibSet := map[string]bool{}
 	for _, line := range strings.Split(string(packagesTxt), "\n") {
 		line = strings.TrimSpace(line)
 		if line != "" {
-			stdlib[line] = true
+			stdlibSet[line] = true
 		}
 	}
 
-	depSet := make(map[string]bool)
-	for _, d := range deps {
-		depSet[d] = true
+	depSet := map[string]bool{}
+	depList := make([]string, len(archives))
+	for i, arc := range archives {
+		depSet[arc.importPath] = true
+		depList[i] = arc.importPath
 	}
 
-	derr := depsError{known: deps}
+	importSet := map[string]bool{}
+
+	derr := depsError{known: depList}
 	for _, f := range files {
 		for _, path := range f.imports {
-			if path == "C" || stdlib[path] || isRelative(path) {
-				// Standard paths don't need to be listed as dependencies (for now).
-				// Relative paths aren't supported yet. We don't emit errors here, but
-				// they will certainly break something else.
+			if path == "C" || isRelative(path) || importSet[path] {
+				// TODO(#1645): Support local (relative) import paths. We don't emit
+				// errors for them here, but they will probably break something else.
 				continue
 			}
-			if !depSet[path] {
-				derr.missing = append(derr.missing, missingDep{f.filename, path})
+			if stdlibSet[path] {
+				stdImports = append(stdImports, path)
+				continue
 			}
+			if depSet[path] {
+				depImports = append(depImports, path)
+				continue
+			}
+			derr.missing = append(derr.missing, missingDep{f.filename, path})
 		}
 	}
 	if len(derr.missing) > 0 {
-		return derr
+		return nil, nil, derr
 	}
+	return depImports, stdImports, nil
+}
+
+func buildImportcfgFile(archives []archive, stdImports []string, installSuffix, dir string) (string, error) {
+	buf := &bytes.Buffer{}
+	goroot, ok := os.LookupEnv("GOROOT")
+	if !ok {
+		return "", errors.New("GOROOT not set")
+	}
+	goroot = abs(goroot)
+	for _, imp := range stdImports {
+		path := filepath.Join(goroot, "pkg", installSuffix, filepath.FromSlash(imp))
+		fmt.Fprintf(buf, "packagefile %s=%s.a\n", imp, path)
+	}
+	for _, arc := range archives {
+		if arc.importPath != arc.importMap {
+			fmt.Fprintf(buf, "importmap %s=%s\n", arc.importPath, arc.importMap)
+		}
+		fmt.Fprintf(buf, "packagefile %s=%s\n", arc.importMap, arc.file)
+	}
+	f, err := ioutil.TempFile(dir, "importcfg")
+	if err != nil {
+		return "", err
+	}
+	filename := f.Name()
+	if _, err := io.Copy(f, buf); err != nil {
+		f.Close()
+		os.Remove(filename)
+		return "", err
+	}
+	if err := f.Close(); err != nil {
+		os.Remove(filename)
+		return "", err
+	}
+	return filename, nil
+}
+
+type archiveMultiFlag []archive
+
+func (m *archiveMultiFlag) String() string {
+	if m == nil || len(*m) == 0 {
+		return ""
+	}
+	return fmt.Sprint(*m)
+}
+
+func (m *archiveMultiFlag) Set(v string) error {
+	parts := strings.Split(v, "=")
+	if len(parts) != 3 {
+		return fmt.Errorf("badly formed -arc flag: %s", v)
+	}
+	*m = append(*m, archive{
+		importPath: parts[0],
+		importMap:  parts[1],
+		file:       abs(parts[2]),
+	})
 	return nil
 }
 

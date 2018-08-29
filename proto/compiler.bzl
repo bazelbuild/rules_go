@@ -37,7 +37,7 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
         if outpath == None:
             outpath = out.dirname[:-len(importpath)]
     args = go.actions.args()
-    args.add([
+    args.add_all([
         "--protoc",
         compiler.protoc,
         "--importpath",
@@ -49,14 +49,13 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
         "--compiler_path",
         go.cgo_tools.compiler_path,
     ])
-    options = compiler.options
+    args.add_all(compiler.options, before_each = "--option")
     if compiler.import_path_option:
-        options = options + ["import_path={}".format(importpath)]
-    args.add(options, before_each = "--option")
-    args.add(proto.transitive_descriptor_sets, before_each = "--descriptor_set")
-    args.add(go_srcs, before_each = "--expected")
-    args.add(imports, before_each = "--import")
-    args.add(proto.direct_sources, map_fn = _all_proto_paths)
+        args.add_all([importpath], before_each = "--option", format_each = "import_path=%s")
+    args.add_all(proto.transitive_descriptor_sets, before_each = "--descriptor_set")
+    args.add_all(go_srcs, before_each = "--expected")
+    args.add_all(imports, before_each = "--import")
+    args.add_all(proto.direct_sources, map_each = proto_path)
     go.actions.run(
         inputs = sets.union([
             compiler.go_protoc,
@@ -70,9 +69,6 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
         arguments = [args],
     )
     return go_srcs
-
-def _all_proto_paths(protos):
-    return [proto_path(proto) for proto in protos]
 
 def proto_path(proto):
     """
@@ -102,9 +98,9 @@ def _go_proto_compiler_impl(ctx):
             compile = go_proto_compile,
             options = ctx.attr.options,
             suffix = ctx.attr.suffix,
-            go_protoc = ctx.file._go_protoc,
-            protoc = ctx.file._protoc,
-            plugin = ctx.file.plugin,
+            go_protoc = ctx.executable._go_protoc,
+            protoc = ctx.executable._protoc,
+            plugin = ctx.executable.plugin,
             valid_archive = ctx.attr.valid_archive,
             import_path_option = ctx.attr.import_path_option,
         ),
@@ -121,25 +117,20 @@ go_proto_compiler = go_rule(
         "valid_archive": attr.bool(default = True),
         "import_path_option": attr.bool(default = True),
         "plugin": attr.label(
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
             executable = True,
             cfg = "host",
-            default = Label("@com_github_golang_protobuf//protoc-gen-go"),
+            default = "@com_github_golang_protobuf//protoc-gen-go",
         ),
         "_go_protoc": attr.label(
-            allow_files = True,
-            single_file = True,
             executable = True,
             cfg = "host",
-            default = Label("@io_bazel_rules_go//go/tools/builders:go-protoc"),
+            default = "@io_bazel_rules_go//go/tools/builders:go-protoc",
         ),
         "_protoc": attr.label(
-            allow_files = True,
-            single_file = True,
             executable = True,
             cfg = "host",
-            default = Label("@com_google_protobuf//:protoc"),
+            default = "@com_google_protobuf//:protoc",
         ),
     },
 )

@@ -7,7 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/buildutil:go_default_library",
-        "//go/loader:go_default_library",
+        "//go/packages:go_default_library",
         "//go/ssa:go_default_library",
         "//go/ssa/interp:go_default_library",
         "//go/ssa/ssautil:go_default_library",

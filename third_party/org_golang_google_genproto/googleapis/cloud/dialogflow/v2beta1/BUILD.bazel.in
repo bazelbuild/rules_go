@@ -4,9 +4,12 @@ go_library(
     name = "go_default_library",
     srcs = [
         "agent.pb.go",
+        "audio_config.pb.go",
         "context.pb.go",
+        "document.pb.go",
         "entity_type.pb.go",
         "intent.pb.go",
+        "knowledge_base.pb.go",
         "session.pb.go",
         "session_entity_type.pb.go",
         "webhook.pb.go",

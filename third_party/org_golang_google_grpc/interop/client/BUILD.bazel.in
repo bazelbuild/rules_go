@@ -14,6 +14,7 @@ go_library(
         "//grpclog:go_default_library",
         "//interop:go_default_library",
         "//interop/grpc_testing:go_default_library",
+        "//resolver:go_default_library",
         "//testdata:go_default_library",
     ],
 )

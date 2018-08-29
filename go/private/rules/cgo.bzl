@@ -153,9 +153,9 @@ def _cgo_codegen_impl(ctx):
     cgo_types = go.declare_file(go, path = "_cgo_gotypes.go")
     out_dir = cgo_main.dirname
 
-    builder_args = go.args(go)  # interpreted by builder
-    tool_args = ctx.actions.args()  # interpreted by cgo
-    cc_args = ctx.actions.args()  # interpreted by C compiler
+    builder_args = go.builder_args(go)  # interpreted by builder
+    tool_args = go.tool_args(go)  # interpreted by cgo
+    cc_args = go.tool_args(go)  # interpreted by C compiler
 
     c_outs = [cgo_export_h, cgo_export_c]
     cxx_outs = [cgo_export_h]
@@ -179,32 +179,38 @@ def _cgo_codegen_impl(ctx):
         transformed_go_outs.append(gen_go_file)
         transformed_go_map[gen_go_file] = src
         c_outs.append(gen_c_file)
-        builder_args.add(["-src", gen_go_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_go_file.path + "=" + src.path])
     for src in source.asm:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         transformed_go_outs.append(gen_file)
         transformed_go_map[gen_go_file] = src
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
     for src in source.c:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         c_outs.append(gen_file)
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
     for src in source.cxx:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         cxx_outs.append(gen_file)
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
     for src in source.objc:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         objc_outs.append(gen_file)
-        builder_args.add(["-src", gen_file.path + "=" + src.path])
+        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
 
-    tool_args.add(["-objdir", out_dir])
+    # Filter out -lstdc++ in CGO_LDFLAGS if we don't have any C++ code. This
+    # also gets filtered out in link.bzl.
+    have_cc = len(source.cxx) + len(source.objc) + len(ctx.attr.deps) > 0
+    if not have_cc:
+        linkopts = [o for o in linkopts if o not in ("-lstdc++", "-lc++")]
 
-    inputs = sets.union(ctx.files.srcs, go.crosstool, go.sdk_tools, go.stdlib.files)
+    tool_args.add_all(["-objdir", out_dir])
+
+    inputs = sets.union(ctx.files.srcs, go.crosstool, go.sdk.tools, go.stdlib.libs)
     deps = depset()
     runfiles = ctx.runfiles(collect_data = True)
     for d in ctx.attr.deps:
@@ -259,7 +265,8 @@ def _cgo_codegen_impl(ctx):
     env["CC"] = go.cgo_tools.compiler_executable
     env["CGO_LDFLAGS"] = " ".join(linkopts)
 
-    cc_args.add(cppopts + copts)
+    cc_args.add_all(cppopts)
+    cc_args.add_all(copts)
 
     ctx.actions.run(
         inputs = inputs,
@@ -327,8 +334,8 @@ _cgo_codegen = go_rule(
 def _cgo_import_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, path = "_cgo_import.go")
-    args = go.args(go)
-    args.add([
+    args = go.builder_args(go)
+    args.add_all([
         "-import",
         "-src",
         ctx.files.sample_go_srcs[0],
@@ -342,7 +349,7 @@ def _cgo_import_impl(ctx):
         inputs = [
             ctx.file.cgo_o,
             ctx.files.sample_go_srcs[0],
-        ] + go.sdk_tools,
+        ] + go.sdk.tools,
         outputs = [out],
         executable = go.builders.cgo,
         arguments = [args],
@@ -356,8 +363,7 @@ _cgo_import = go_rule(
     _cgo_import_impl,
     attrs = {
         "cgo_o": attr.label(
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
         ),
         "sample_go_srcs": attr.label_list(allow_files = True),
     },

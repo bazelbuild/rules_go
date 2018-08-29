@@ -142,7 +142,10 @@ go_tool_binary(
         "flags.go",
         "replicate.go",
         "stdlib.go",
-    ],
+    ] + select({
+        "@bazel_tools//src/conditions:windows": ["path_windows.go"],
+        "//conditions:default": ["path.go"],
+    }),
     visibility = ["//visibility:public"],
 )
 

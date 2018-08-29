@@ -6,6 +6,8 @@ go_library(
         "backdoor.go",
         "gccgoinstallation.go",
         "importer.go",
+        "newInterface10.go",
+        "newInterface11.go",
         "parser.go",
     ],
     importpath = "golang.org/x/tools/go/internal/gccgoimporter",

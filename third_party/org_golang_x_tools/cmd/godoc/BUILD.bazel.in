@@ -7,6 +7,7 @@ go_library(
         "codewalk.go",
         "dl.go",
         "doc.go",
+        "goroot.go",
         "handlers.go",
         "index.go",
         "main.go",

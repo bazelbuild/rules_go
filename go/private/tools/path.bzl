@@ -53,7 +53,7 @@ def _go_path_impl(ctx):
             if importpath == "":
                 continue  # synthetic archive or inferred location
             pkg = struct(
-            importpath = importpath,
+                importpath = importpath,
                 dir = "src/" + pkgpath,
                 srcs = as_list(archive.orig_srcs),
                 data = as_list(archive.data_files),
@@ -106,13 +106,13 @@ def _go_path_impl(ctx):
     # Execute the builder
     if ctx.attr.mode == "archive":
         out = ctx.actions.declare_file(ctx.label.name + ".zip")
-        out_path = out.path
+        out_path = out
         out_short_path = out.short_path
         outputs = [out]
         out_file = out
     elif ctx.attr.mode == "copy":
         out = ctx.actions.declare_directory(ctx.label.name)
-        out_path = out.path
+        out_path = out
         out_short_path = out.short_path
         outputs = [out]
         out_file = out
@@ -128,17 +128,21 @@ def _go_path_impl(ctx):
         out_path = tag.dirname
         out_short_path = tag.short_path.rpartition("/")[0]
         out_file = tag
-    args = [
-        "-manifest=" + manifest_file.path,
-        "-out=" + out_path,
-        "-mode=" + ctx.attr.mode,
-    ]
+    args = ctx.actions.args()
+    args.add_all([
+        "-manifest",
+        manifest_file,
+        "-out",
+        out_path,
+        "-mode",
+        ctx.attr.mode,
+    ])
     ctx.actions.run(
         outputs = outputs,
         inputs = inputs,
         mnemonic = "GoPath",
         executable = ctx.executable._go_path,
-        arguments = args,
+        arguments = [args],
     )
 
     return [
@@ -157,10 +161,7 @@ go_path = rule(
     _go_path_impl,
     attrs = {
         "deps": attr.label_list(providers = [GoArchive]),
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "data": attr.label_list(allow_files = True),
         "mode": attr.string(
             default = "copy",
             values = [

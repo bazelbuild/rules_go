@@ -24,6 +24,10 @@ import (
 )
 
 func run(args []string) error {
+	args, err := readParamsFiles(args)
+	if err != nil {
+		return err
+	}
 	filename := ""
 	flags := flag.NewFlagSet("info", flag.ExitOnError)
 	flags.StringVar(&filename, "out", filename, "The file to write the report to")

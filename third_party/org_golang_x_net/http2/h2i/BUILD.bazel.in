@@ -31,11 +31,6 @@ go_library(
             "//http2/hpack:go_default_library",
             "@org_golang_x_crypto//ssh/terminal:go_default_library",
         ],
-        "@io_bazel_rules_go//go/platform:nacl": [
-            "//http2:go_default_library",
-            "//http2/hpack:go_default_library",
-            "@org_golang_x_crypto//ssh/terminal:go_default_library",
-        ],
         "@io_bazel_rules_go//go/platform:netbsd": [
             "//http2:go_default_library",
             "//http2/hpack:go_default_library",

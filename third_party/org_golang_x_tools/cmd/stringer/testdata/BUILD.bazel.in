@@ -9,6 +9,7 @@ go_library(
         "num.go",
         "number.go",
         "prime.go",
+        "tag_main.go",
         "unum.go",
         "unum2.go",
     ],

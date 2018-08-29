@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "package_proto",
+    srcs = ["package.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "package_go_proto",
+    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/package",
+    proto = ":package_proto",
+    visibility = ["//visibility:public"],
+)

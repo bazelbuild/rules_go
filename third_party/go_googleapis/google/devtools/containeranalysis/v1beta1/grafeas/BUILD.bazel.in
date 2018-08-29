@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "grafeas_proto",
+    srcs = ["grafeas.proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_proto",
+        "//google/devtools/containeranalysis/v1beta1/attestation:attestation_proto",
+        "//google/devtools/containeranalysis/v1beta1/build:build_proto",
+        "//google/devtools/containeranalysis/v1beta1/common:common_proto",
+        "//google/devtools/containeranalysis/v1beta1/deployment:deployment_proto",
+        "//google/devtools/containeranalysis/v1beta1/discovery:discovery_proto",
+        "//google/devtools/containeranalysis/v1beta1/image:image_proto",
+        "//google/devtools/containeranalysis/v1beta1/package:package_proto",
+        "//google/devtools/containeranalysis/v1beta1/provenance:provenance_proto",
+        "//google/devtools/containeranalysis/v1beta1/vulnerability:vulnerability_proto",
+        "@com_google_protobuf//:empty_proto",
+        "@com_google_protobuf//:field_mask_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_proto_library(
+    name = "grafeas_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/grafeas",
+    proto = ":grafeas_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//google/api:annotations_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/attestation:attestation_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/build:build_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/common:common_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/deployment:deployment_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/discovery:discovery_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/image:image_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/package:package_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/provenance:provenance_go_proto",
+        "//google/devtools/containeranalysis/v1beta1/vulnerability:vulnerability_go_proto",
+    ],
+)

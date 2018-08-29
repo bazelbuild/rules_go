@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_path", "go_vet_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_path", "go_vet_test")
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
 load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
@@ -25,8 +25,6 @@ go_context_data(
     visibility = ["//visibility:public"],
 )
 
-# gazelle:prefix github.com/bazelbuild/rules_go
-
 lines_sorted_test(
     name = "contributors_sorted_test",
     size = "small",
@@ -41,10 +39,6 @@ lines_sorted_test(
     cmd = "grep -v '^#' $< | grep -v '^$$' >$@",
     error_message = "Authors must be sorted by first name",
     file = "AUTHORS",
-)
-
-gazelle(
-    name = "gazelle",
 )
 
 # This could be any file, used as an anchor point for the directory in tests

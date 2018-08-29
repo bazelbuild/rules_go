@@ -24,10 +24,10 @@ load(
 def _go_info_impl(ctx):
     go = go_context(ctx)
     report = go.declare_file(go, "go_info_report")
-    args = go.args(go)
-    args.add(["-out", report])
+    args = go.builder_args(go)
+    args.add_all(["-out", report])
     go.actions.run(
-        inputs = go.stdlib.files,
+        inputs = [go.go],
         outputs = [report],
         mnemonic = "GoInfo",
         executable = ctx.executable._go_info,
@@ -42,7 +42,6 @@ _go_info = go_rule(
     _go_info_impl,
     attrs = {
         "_go_info": attr.label(
-            single_file = True,
             executable = True,
             cfg = "host",
             default = "@io_bazel_rules_go//go/tools/builders:info",

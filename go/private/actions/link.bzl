@@ -23,6 +23,27 @@ load(
     "LINKMODE_NORMAL",
     "LINKMODE_PLUGIN",
 )
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "shell",
+)
+
+def _format_archive(d):
+    return "{}={}={}".format(d.label, d.importmap, d.file.path)
+
+def _map_archive(x):
+    # Build the set of transitive dependencies. Currently, we tolerate multiple
+    # archives with the same importmap (though this will be an error in the
+    # future), but there is a special case which is difficult to avoid:
+    # If a go_test has internal and external archives, and the external test
+    # transitively depends on the library under test, we need to exclude the
+    # library under test and use the internal test archive instead.
+    deps = depset(transitive = [d.transitive for d in x.archive.direct])
+    return [
+        _format_archive(d)
+        for d in deps.to_list()
+        if not any([d.importmap == t.importmap for t in x.test_archives])
+    ]
 
 def emit_link(
         go,
@@ -45,16 +66,20 @@ def emit_link(
     config_strip = len(go._ctx.configuration.bin_dir.path) + 1
     pkg_depth = executable.dirname[config_strip:].count("/") + 1
 
-    extldflags = list(go.cgo_tools.linker_options)
+    # Exclude -lstdc++ from link options. We don't want to link against it
+    # unless we actually have some C++ code. _cgo_codegen will include it
+    # in archives via CGO_LDFLAGS if it's needed.
+    extldflags = [f for f in go.cgo_tools.linker_options if f not in ("-lstdc++", "-lc++")]
+
     if go.coverage_enabled:
         extldflags.append("--coverage")
     gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
-    builder_args = go.args(go)
-    tool_args = go.actions.args()
+    builder_args = go.builder_args(go)
+    tool_args = go.tool_args(go)
 
     # Add in any mode specific behaviours
     extld = go.cgo_tools.compiler_executable
-    tool_args.add(["-extld", extld])
+    tool_args.add_all(["-extld", extld])
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
@@ -62,28 +87,18 @@ def emit_link(
     if go.mode.static:
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
-        builder_args.add(["-buildmode", go.mode.link])
-        tool_args.add(["-linkmode", "external"])
+        builder_args.add_all(["-buildmode", go.mode.link])
+        tool_args.add_all(["-linkmode", "external"])
     if go.mode.link == LINKMODE_PLUGIN:
-        tool_args.add(["-pluginpath", archive.data.importpath])
+        tool_args.add_all(["-pluginpath", archive.data.importpath])
 
-    # Build the set of transitive dependencies. Currently, we tolerate multiple
-    # archives with the same importmap (though this will be an error in the
-    # future), but there is a special case which is difficult to avoid:
-    # If a go_test has internal and external archives, and the external test
-    # transitively depends on the library under test, we need to exclude the
-    # library under test and use the internal test archive instead.
-    deps = depset(transitive = [d.transitive for d in archive.direct])
-    dep_args = [
-        "{}={}={}".format(d.label, d.importmap, d.file.path)
-        for d in deps.to_list()
-        if not any([d.importmap == t.importmap for t in test_archives])
-    ]
-    dep_args.extend([
-        "{}={}={}".format(d.label, d.importmap, d.file.path)
-        for d in test_archives
-    ])
-    builder_args.add(dep_args, before_each = "-dep")
+    builder_args.add_all(
+        [struct(archive = archive, test_archives = test_archives)],
+        before_each = "-arc",
+        map_each = _map_archive,
+    )
+    builder_args.add_all(test_archives, before_each = "-arc", map_each = _format_archive)
+    builder_args.add("-package_list", go.package_list)
 
     # Build a list of rpaths for dynamic libraries we need to find.
     # rpaths are relative paths from the binary to directories where libraries
@@ -112,36 +127,34 @@ def emit_link(
     stamp_x_defs = False
     for k, v in archive.x_defs.items():
         if v.startswith("{") and v.endswith("}"):
-            builder_args.add(["-Xstamp", "%s=%s" % (k, v[1:-1])])
+            builder_args.add_all(["-Xstamp", "%s=%s" % (k, v[1:-1])])
             stamp_x_defs = True
         else:
-            tool_args.add(["-X", "%s=%s" % (k, v)])
+            tool_args.add_all(["-X", "%s=%s" % (k, v)])
 
     # Stamping support
     stamp_inputs = []
     if stamp_x_defs:
         stamp_inputs = [info_file, version_file]
-        builder_args.add(stamp_inputs, before_each = "-stamp")
+        builder_args.add_all(stamp_inputs, before_each = "-stamp")
 
-    builder_args.add(["-o", executable])
-    builder_args.add(["-main", archive.data.file])
-    tool_args.add(gc_linkopts)
-    tool_args.add(go.toolchain.flags.link)
+    builder_args.add_all(["-o", executable])
+    builder_args.add_all(["-main", archive.data.file])
+    tool_args.add_all(gc_linkopts)
+    tool_args.add_all(go.toolchain.flags.link)
     if go.mode.strip:
         tool_args.add("-w")
-    if extldflags:
-        tool_args.add(["-extldflags", " ".join(extldflags)])
+    tool_args.add_joined("-extldflags", extldflags, join_with = " ")
 
-    builder_args.use_param_file("@%s")
-    builder_args.set_param_file_format("multiline")
     go.actions.run(
         inputs = sets.union(
             archive.libs,
             archive.cgo_deps,
             go.crosstool,
             stamp_inputs,
-            go.sdk_tools,
-            go.stdlib.files,
+            go.sdk.tools,
+            [go.sdk.package_list],
+            go.stdlib.libs,
         ),
         outputs = [executable],
         mnemonic = "GoLink",
@@ -153,17 +166,23 @@ def emit_link(
 def _bootstrap_link(go, archive, executable, gc_linkopts):
     """See go/toolchains.rst#link for full documentation."""
 
-    inputs = [archive.data.file] + go.sdk_files + go.sdk_tools
-    args = ["tool", "link", "-s", "-o", executable.path]
-    args.extend(gc_linkopts)
-    args.append(archive.data.file.path)
+    inputs = [archive.data.file] + go.sdk.libs + go.sdk.tools + [go.go]
+    args = go.actions.args()
+    args.add_all(["tool", "link", "-s", "-linkmode", "internal", "-o", executable])
+    args.add_all(gc_linkopts)
+    args.add(archive.data.file)
     go.actions.run_shell(
         inputs = inputs,
         outputs = [executable],
+        arguments = [args],
         mnemonic = "GoLink",
-         # workaround: go link tool needs some features of gcc to complete the job on Arm platform.
-         # So, PATH for 'gcc' is required here on Arm platform.
-        command = "export GOROOT=$(pwd)/{} && export GOROOT_FINAL=GOROOT && export PATH={} && {} {}".format(go.root, go.cgo_tools.compiler_path, go.go.path, " ".join(args)),
+        command = "export GOROOT=\"$(pwd)\"/{} && {} \"$@\"".format(shell.quote(go.root), shell.quote(go.go.path)),
+        env = {
+            # workaround: go link tool needs some features of gcc to complete the job on Arm platform.
+            # So, PATH for 'gcc' is required here on Arm platform.
+            "PATH": go.cgo_tools.compiler_path,
+            "GOROOT_FINAL": "GOROOT",
+        },
     )
 
 def _extract_extldflags(gc_linkopts, extldflags):

@@ -13,7 +13,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//proto:go_default_library",
-        "//proto/testdata:go_default_library",
+        "//proto/test_proto:go_default_library",
         "//types:go_default_library",
     ],
 )

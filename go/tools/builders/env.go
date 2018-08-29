@@ -46,6 +46,11 @@ type env struct {
 	// platform. This may be different than GOROOT.
 	sdk string
 
+	// installSuffix is the name of the directory below GOROOT/pkg that contains
+	// the .a files for the standard library we should build against.
+	// For example, linux_amd64_race.
+	installSuffix string
+
 	// verbose indicates whether subprocess command lines should be printed.
 	verbose bool
 }
@@ -56,6 +61,7 @@ func envFlags(flags *flag.FlagSet) *env {
 	env := &env{}
 	flags.StringVar(&env.sdk, "sdk", "", "Path to the Go SDK.")
 	flags.Var(&tagFlag{}, "tags", "List of build tags considered true.")
+	flags.StringVar(&env.installSuffix, "installsuffix", "", "Standard library under GOROOT/pkg")
 	flags.BoolVar(&env.verbose, "v", false, "Whether subprocess command lines should be printed")
 	return env
 }
@@ -129,33 +135,52 @@ func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
 	return nil
 }
 
+// readParamsFile looks for arguments in args of the form
+// "-param=filename". When it finds these arguments it reads the file "filename"
+// and replaces the argument with its content (each argument must be on a
+// separate line; blank lines are ignored).
+func readParamsFiles(args []string) ([]string, error) {
+	var paramsIndices []int
+	for i, arg := range args {
+		if strings.HasPrefix(arg, "-param=") {
+			paramsIndices = append(paramsIndices, i)
+		}
+	}
+	if len(paramsIndices) == 0 {
+		return args, nil
+	}
+	var expandedArgs []string
+	last := 0
+	for _, pi := range paramsIndices {
+		expandedArgs = append(expandedArgs, args[last:pi]...)
+		last = pi + 1
+
+		fileName := args[pi][len("-param="):]
+		content, err := ioutil.ReadFile(fileName)
+		if err != nil {
+			return nil, err
+		}
+		fileArgs := strings.Split(string(content), "\n")
+		if len(fileArgs) >= 0 && fileArgs[len(fileArgs)-1] == "" {
+			// Ignore final empty line.
+			fileArgs = fileArgs[:len(fileArgs)-1]
+		}
+		expandedArgs = append(expandedArgs, fileArgs...)
+	}
+	expandedArgs = append(expandedArgs, args[last:]...)
+	return expandedArgs, nil
+}
+
 // splitArgs splits a list of command line arguments into two parts: arguments
 // that should be interpreted by the builder (before "--"), and arguments
 // that should be passed through to the underlying tool (after "--").
-// A group consisting of a single argument that is prefixed with an '@', is
-// treated as a pointer to a params file, which is read and its contents used
-// as the arguments.
 func splitArgs(args []string) (builderArgs []string, toolArgs []string) {
 	for i, arg := range args {
 		if arg == "--" {
-
-			return readParamsFile(args[:i]), readParamsFile(args[i+1:])
+			return args[:i], args[i+1:]
 		}
 	}
-	return readParamsFile(args), nil
-}
-
-// readParamsFile replaces the passed in slice with the contents of a params
-// file, if the slice is a single string that starts with an '@'.
-// Errors reading the file are ignored and the original slice is returned.
-func readParamsFile(args []string) []string {
-	if len(args) == 1 && strings.HasPrefix(args[0], "@") {
-		content, err := ioutil.ReadFile(args[0][1:])
-		if err == nil {
-			args = strings.Split(string(content), "\n")
-		}
-	}
-	return args
+	return args, nil
 }
 
 // abs returns the absolute representation of path. Some tools/APIs require

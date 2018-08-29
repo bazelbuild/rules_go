@@ -16,3 +16,10 @@ out_test
 
 Test that a `go_binary`_ rule can write its executable file with a custom name
 in the package directory (not the mode directory).
+
+many_deps
+---------
+
+Test that a `go_binary`_ with many imports with long names can be linked. This
+makes sure we don't exceed command-line length limits with -I and -L flags.
+Verifies #1637.

@@ -73,6 +73,7 @@ go_archive_aspect = aspect(
         "compiler",
         "compilers",
         "_stdlib",
+        "_coverdata",
     ],
     attrs = {
         "pure": attr.string(values = [

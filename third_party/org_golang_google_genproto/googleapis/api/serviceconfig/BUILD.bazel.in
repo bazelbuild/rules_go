@@ -23,7 +23,6 @@ go_library(
     importpath = "google.golang.org/genproto/googleapis/api/serviceconfig",
     visibility = ["//visibility:public"],
     deps = [
-        "//googleapis/api:go_default_library",
         "//googleapis/api/annotations:go_default_library",
         "//googleapis/api/label:go_default_library",
         "//googleapis/api/metric:go_default_library",

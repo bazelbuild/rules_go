@@ -135,6 +135,14 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
         goarch = goarch,
     )
 
+def installsuffix(mode):
+    s = mode.goos + "_" + mode.goarch
+    if mode.race:
+        s += "_race"
+    elif mode.msan:
+        s += "_msan"
+    return s
+
 def mode_tags_equivalent(l, r):
     """Returns whether two modes are equivalent for Go build tags. For example,
     goos and goarch must match, but static doesn't matter."""
