@@ -43,4 +43,5 @@ go_test(
         ":nodata_path",
     ],
     rundir = ".",
+    tags = ["manual"],
 )
