@@ -30,9 +30,7 @@ func checkRaceBinary(t *testing.T, bin string) {
 		return
 	}
 
-	if err := exec.Command(path).Run(); err != nil {
-		if _, ok := err.(*exec.ExitError); !ok {
-			t.Errorf("want ExitError; got %v", err)
-		}
+	if _, ok := exec.Command(path).Run().(*exec.ExitError); !ok {
+		t.Errorf("want ExitError; got %v", err)
 	}
 }
