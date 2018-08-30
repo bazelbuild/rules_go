@@ -42,6 +42,7 @@ go_test(
         ":link_path",
         ":nodata_path",
     ],
+    deps = ["//go/tools/bazel:go_default_library"],
     rundir = ".",
     tags = ["manual"],
 )

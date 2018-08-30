@@ -38,6 +38,7 @@ go_test(
         ":linux_cross",
         ":windows_cross",
     ],
+    deps = ["//go/tools/bazel:go_default_library"],
     args = [
         "-darwin", "$(location :darwin_cross)",
         "-linux", "$(location :linux_cross)",

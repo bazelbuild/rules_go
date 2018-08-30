@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
 type check struct {
@@ -57,17 +59,17 @@ var checks = []check{
 
 func TestCross(t *testing.T) {
 	for _, c := range checks {
-		file := *c.file
-		if strings.HasPrefix(file, "external") {
-			file = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(file, "external/"))
+		path, err := bazel.Runfile(*c.file)
+		if err != nil {
+			t.Fatalf("Could not find runfile %s: %q", *c.file, err)
 		}
 
-		if _, err := os.Stat(file); os.IsNotExist(err) {
-			t.Fatalf("Missing binary %v", file)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Fatalf("Missing binary %v", path)
 		}
-		file, err := filepath.EvalSymlinks(file)
+		file, err := filepath.EvalSymlinks(path)
 		if err != nil {
-			t.Fatalf("Invalid filename %v", file)
+			t.Fatalf("Invalid filename %v", path)
 		}
 		cmd := exec.Command("file", file)
 		cmd.Stderr = os.Stderr

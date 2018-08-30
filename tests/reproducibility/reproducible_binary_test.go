@@ -24,10 +24,10 @@ import (
 	"log"
 	"os"
 	"os/user"
-	"path"
 	"regexp"
-	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
 var allStrings [][]byte
@@ -39,9 +39,9 @@ func TestMain(m *testing.M) {
 		log.Fatalf("usage: %s <binary>\n", os.Args[0])
 	}
 
-	binary := os.Args[1]
-	if strings.HasPrefix(binary, "external/") {
-		binary = path.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(os.Args[1], "external/"))
+	binary, err := bazel.Runfile(os.Args[1])
+	if err != nil {
+		log.Fatalf("Could not find runfile %s: %q", os.Args[1], err)
 	}
 	binaryData, err := ioutil.ReadFile(binary)
 	if err != nil {

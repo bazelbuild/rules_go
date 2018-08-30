@@ -6,6 +6,7 @@ go_test(
     srcs = ["reproducible_binary_test.go"],
     args = ["$(location //tests/reproducibility/cgo)"],
     data = ["//tests/reproducibility/cgo"],
+    deps = ["//go/tools/bazel:go_default_library"],
     rundir = ".",  # run in repo root instead of test dir
 )
 

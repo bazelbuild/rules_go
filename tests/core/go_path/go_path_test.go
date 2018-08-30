@@ -25,6 +25,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
 var copyPath, linkPath, archivePath, nodataPath string
@@ -84,11 +86,12 @@ func TestArchivePath(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	if strings.HasPrefix(archivePath, "external") {
-		archivePath = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(archivePath, "external/"))
+	path, err := bazel.Runfile(archivePath)
+	if err != nil {
+		t.Fatalf("Could not find runfile %s: %q", archivePath, err)
 	}
 
-	z, err := zip.OpenReader(archivePath)
+	z, err := zip.OpenReader(path)
 	if err != nil {
 		t.Fatalf("error opening zip: %v", err)
 	}

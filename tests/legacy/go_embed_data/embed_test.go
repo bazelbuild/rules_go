@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
 func TestMain(m *testing.M) {
@@ -82,9 +83,11 @@ func TestUnpack(t *testing.T) {
 	}
 }
 
-func checkFile(t *testing.T, path string, data []byte) {
-	if strings.HasPrefix(path, "external/") {
-		path = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(path, "external/"))
+func checkFile(t *testing.T, rawPath string, data []byte) {
+	path, err := bazel.Runfile(rawPath)
+	if err != nil {
+		t.Error(err)
+		return
 	}
 
 	f, err := os.Open(path)
