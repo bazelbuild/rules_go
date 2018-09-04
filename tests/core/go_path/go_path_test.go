@@ -64,14 +64,14 @@ func TestCopyPath(t *testing.T) {
 	if copyPath == "" {
 		t.Fatal("-copy_path not set")
 	}
-	checkPath(t, copyPath, files, os.FileMode(0))
+	checkPath(t, copyPath, files)
 }
 
 func TestLinkPath(t *testing.T) {
 	if linkPath == "" {
 		t.Fatal("-link_path not set")
 	}
-	checkPath(t, linkPath, files, os.ModeSymlink)
+	checkPath(t, linkPath, files)
 }
 
 func TestArchivePath(t *testing.T) {
@@ -111,7 +111,7 @@ func TestArchivePath(t *testing.T) {
 		}
 	}
 
-	checkPath(t, dir, files, os.FileMode(0))
+	checkPath(t, dir, files)
 }
 
 func TestNoDataPath(t *testing.T) {
@@ -123,23 +123,19 @@ func TestNoDataPath(t *testing.T) {
 		"src/example.com/repo/pkg/lib/lib.go",
 		"-src/example.com/repo/pkg/lib/data.txt",
 	}
-	checkPath(t, nodataPath, files, os.FileMode(0))
+	checkPath(t, nodataPath, files)
 }
 
 // checkPath checks that dir contains a list of files. files is a list of
 // slash-separated paths relative to dir. Files that start with "-" should be
-// absent. Files that end with "/" should be directories. Other files should
-// be of fileType.
-func checkPath(t *testing.T, dir string, files []string, fileType os.FileMode) {
+// absent. Files that end with "/" should be directories.
+func checkPath(t *testing.T, dir string, files []string) {
 	for _, f := range files {
-		wantType := fileType
+		wantDir := strings.HasSuffix(f, "/")
 		wantAbsent := false
 		if strings.HasPrefix(f, "-") {
 			f = f[1:]
 			wantAbsent = true
-		}
-		if strings.HasSuffix(f, "/") {
-			wantType = os.ModeDir
 		}
 		path := filepath.Join(dir, filepath.FromSlash(f))
 		st, err := os.Lstat(path)
@@ -158,9 +154,10 @@ func checkPath(t *testing.T, dir string, files []string, fileType os.FileMode) {
 				}
 				continue
 			}
-			gotType := st.Mode() & os.ModeType
-			if gotType != wantType {
-				t.Errorf("%s: got type %s; want type %s .. %s", path, gotType, wantType, st.Mode())
+			if st.IsDir() && !wantDir {
+				t.Errorf("%s: got directory; wanted file", path)
+			} else if !st.IsDir() && wantDir {
+				t.Errorf("%s: got file; wanted directory", path)
 			}
 		}
 	}
