@@ -5,7 +5,7 @@ bindata(
     name = "data",
     srcs = glob(["data/*"]),
     package = "bindata",
-    experimental_strip_external = True,
+    strip_external = True,
 )
 
 go_library(

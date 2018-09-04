@@ -44,8 +44,8 @@ def _bindata_impl(ctx):
     if ctx.attr.extra_args:
         arguments.add_all(ctx.attr.extra_args)
     srcs = [f.path for f in ctx.files.srcs]
-    if ctx.attr.experimental_strip_external and [f for f in srcs if f.startswith("external/")]:
-        arguments.add_all(["-prefix", "/".join([ctx.label.workspace_root, ctx.label.package])])
+    if ctx.attr.strip_external and any([f.startswith("external/") for f in srcs]):
+        arguments.add("-prefix", ctx.label.workspace_root + "/" + ctx.label.package)
     arguments.add_all(srcs)
     ctx.actions.run(
         inputs = ctx.files.srcs,
@@ -68,11 +68,11 @@ bindata = go_rule(
             cfg = "data",
         ),
         "package": attr.string(mandatory = True),
-        "experimental_strip_external": attr.bool(default = False),
         "compress": attr.bool(default = True),
         "metadata": attr.bool(default = False),
         "memcopy": attr.bool(default = True),
         "modtime": attr.bool(default = False),
+        "strip_external": attr.bool(default = False),
         "extra_args": attr.string_list(),
         "_bindata": attr.label(
             executable = True,

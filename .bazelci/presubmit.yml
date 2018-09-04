@@ -3,28 +3,21 @@ platforms:
   ubuntu1404:
     build_targets:
     - "..."
-    - "@io_bazel_rules_go//..."
     test_targets:
     - "..."
-    - "@io_bazel_rules_go//..."
   ubuntu1604:
     build_targets:
     - "..."
-    - "@io_bazel_rules_go//..."
     test_targets:
     - "..."
-    - "@io_bazel_rules_go//..."
   macos:
     build_targets:
     - "..."
-    - "@io_bazel_rules_go//..."
     test_targets:
     - "..."
-    - "@io_bazel_rules_go//..."
   rbe_ubuntu1604:
     build_targets:
     - "..."
-    - "@io_bazel_rules_go//..."
     test_flags:
     # Some tests depend on this feature being disabled. However, because it's
     # enabled by default in the rbe_ubuntu1604 platform, we cannot simply remove
@@ -37,4 +30,3 @@ platforms:
     - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-@com_github_mattn_go_sqlite3//:go_default_test"
-    - "@io_bazel_rules_go//..."
