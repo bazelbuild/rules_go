@@ -53,7 +53,7 @@ def _parse_bazel_version(bazel_version):
   """
 
   version = _extract_version_number(bazel_version)
-  return tuple([int(n) for n in version.split(".")])
+  return tuple([int(n or "0") for n in version.split(".")])
 
 
 def _is_at_most(threshold, version):
@@ -64,8 +64,12 @@ def _is_at_most(threshold, version):
     version: the version string to be compared to the threshold
 
   Returns:
-    True if version <= threshold.
+    True if version <= threshold, or if version is falsy.
   """
+
+  if not version:
+      return True    
+    
   return _parse_bazel_version(version) <= _parse_bazel_version(threshold)
 
 
@@ -77,8 +81,11 @@ def _is_at_least(threshold, version):
     version: the version string to be compared to the threshold
 
   Returns:
-    True if version >= threshold.
+    True if version >= threshold, or if version is falsy.
   """
+    
+  if not version:
+      return True
 
   return _parse_bazel_version(version) >= _parse_bazel_version(threshold)
 
