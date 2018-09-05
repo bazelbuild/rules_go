@@ -48,6 +48,9 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+September 5, 2018
+  Release `0.15.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.2>`_
+  is now available.
 August 25, 2018
   Releases
   `0.15.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.1>`_,
@@ -57,9 +60,6 @@ August 25, 2018
   Ping @jayconrod on Twitter to meet up.
 August 16, 2018
   Release `0.15.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.0>`_
-  is now available.
-August 8, 2018
-  Release `0.14.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.0>`_
   is now available.
 
 Contents
@@ -114,7 +114,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.15.1) requires Bazel ≥ 0.16.0 to work.
+Note: The latest version of these rules (0.15.2) requires Bazel ≥ 0.16.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -133,8 +133,8 @@ Setup
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.1/rules_go-0.15.1.tar.gz"],
-        sha256 = "5f3b0304cdf0c505ec9e5b3c4fc4a87b5ca21b13d8ecc780c97df3d1809b9ce6",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.2/rules_go-0.15.2.tar.gz"],
+        sha256 = "70d0204f1e834d14fa9eef1e9b97160917a48957cd1e3a39b5ef9acdbdde6972",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -182,8 +182,8 @@ build files automatically using gazelle_.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.1/rules_go-0.15.1.tar.gz"],
-        sha256 = "5f3b0304cdf0c505ec9e5b3c4fc4a87b5ca21b13d8ecc780c97df3d1809b9ce6",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.2/rules_go-0.15.2.tar.gz"],
+        sha256 = "70d0204f1e834d14fa9eef1e9b97160917a48957cd1e3a39b5ef9acdbdde6972",
     )
     http_archive(
         name = "bazel_gazelle",
