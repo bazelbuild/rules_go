@@ -194,12 +194,12 @@ _LINK_PLUGIN_PLATFORMS = {
 }
 
 def link_mode_args(mode):
+    # based on buildModeInit in cmd/go/internal/work/init.go
     platform = mode.goos + "/" + mode.goarch
     args = []
     if mode.link == LINKMODE_C_ARCHIVE:
-        if platform in _LINK_C_ARCHIVE_PLATFORMS or mode.goos in _LINK_C_ARCHIVE_GOOS:
-            if platform == "linux/ppc64":
-                return
+        if (platform in _LINK_C_ARCHIVE_PLATFORMS or
+            mode.goos in _LINK_C_ARCHIVE_GOOS and platform != "linux/ppc64"):
             args.append("-shared")
     elif mode.link == LINKMODE_C_SHARED:
         if platform in _LINK_C_SHARED_PLATFORMS:
