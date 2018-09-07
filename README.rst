@@ -50,7 +50,7 @@ Announcements
 
 September 5, 2018
   Release `0.15.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.2>`_
-  and ``0.15.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.3>`_
+  and `0.15.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.3>`_
   are now available. 0.15.4 is coming soon.
 August 25, 2018
   Releases
