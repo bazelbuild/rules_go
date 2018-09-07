@@ -44,5 +44,4 @@ go_test(
     ],
     deps = ["//go/tools/bazel:go_default_library"],
     rundir = ".",
-    tags = ["manual"],
 )

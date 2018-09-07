@@ -813,6 +813,11 @@ Attributes
 |   are copied into the tree.                                                                      |
 | * ``"link"``: Source files are symlinked into the tree. All of the symlink                       |
 |   files are provided as separate output files.                                                   |
+|                                                                                                  |
+| **NOTE:** In ``"copy"`` mode, when a ``GoPath`` is consumed as a set of input                    |
+| files or run files, Bazel may provide symbolic links instead of regular files.                   |
+| Any program that consumes these files should dereference links, e.g., if you                     |
+| run ``tar``, use the ``--dereference`` flag.                                                     |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`include_data`      | :type:`bool`                | :value:`True`                         |
 +----------------------------+-----------------------------+---------------------------------------+

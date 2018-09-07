@@ -14,9 +14,7 @@
 
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
-    "LINKMODE_C_ARCHIVE",
-    "LINKMODE_C_SHARED",
-    "LINKMODE_PLUGIN",
+    "link_mode_args",
 )
 load(
     "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
@@ -74,10 +72,7 @@ def emit_compile(
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
-    if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
-        tool_args.add("-shared")
-    if go.mode.link == LINKMODE_PLUGIN:
-        tool_args.add("-dynlink")
+    tool_args.add_all(link_mode_args(go.mode))
     if importpath:
         tool_args.add_all(["-p", importpath])
     if go.mode.debug:

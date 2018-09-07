@@ -24,7 +24,8 @@ load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
 
 def go_rules_dependencies():
     """See /go/workspace.rst#go-rules-dependencies for full documentation."""
-    versions.check(MINIMUM_BAZEL_VERSION)
+    if getattr(native, "bazel_version", None):
+        versions.check(MINIMUM_BAZEL_VERSION, bazel_version = native.bazel_version)
 
     # Was needed by Gazelle in the past. Will likely be needed for go/packages
     # and analysis in the future.
