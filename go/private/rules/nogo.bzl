@@ -29,6 +29,11 @@ load(
 )
 
 def _nogo_impl(ctx):
+    if not ctx.attr.deps and not ctx.attr.vet:
+        # If there aren't any checks to perform, don't generate a binary.
+        # go_context will check for this condition.
+        return None
+
     # Generate the source for the nogo binary.
     go = go_context(ctx)
     nogo_main = go.declare_file(go, "nogo_main.go")
@@ -100,5 +105,4 @@ nogo = go_rule(
             default = "@io_bazel_rules_go//go/tools/builders:nogo_srcs",
         ),
     },
-    executable = True,
 )

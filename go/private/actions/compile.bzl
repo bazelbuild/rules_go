@@ -58,8 +58,8 @@ def emit_compile(
     if testfilter:
         builder_args.add_all(["-testfilter", testfilter])
     if go.nogo:
-        builder_args.add_all(["-nogo", go.nogo.executable])
-        inputs.append(go.nogo.executable)
+        builder_args.add_all(["-nogo", go.nogo])
+        inputs.append(go.nogo)
 
     tool_args = go.tool_args(go)
     if asmhdr:
