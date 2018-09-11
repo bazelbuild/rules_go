@@ -75,8 +75,7 @@ func run(args []string) error {
 	c := make(chan result)
 	fset := token.NewFileSet()
 	if err := runAnalyses(c, fset, packageFile, importMap, flags.Args()); err != nil {
-		log.Printf("error running analyses: %s\n", err)
-		return nil
+		return fmt.Errorf("error running analyses: %v", err)
 	}
 	if err := checkAnalysisResults(c, fset); err != nil {
 		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", err)
@@ -196,7 +195,7 @@ func load(fset *token.FileSet, imp types.Importer, filenames []string) (*analysi
 	}
 	pkg, err := config.Check(files[0].Name.Name, fset, files, info)
 	if err != nil {
-		return nil, errors.New("type-checking failed")
+		return nil, fmt.Errorf("type-checking failed: %v", err)
 	}
 	return &analysis.Package{Fset: fset, Files: files, Types: pkg, Info: info}, nil
 }
