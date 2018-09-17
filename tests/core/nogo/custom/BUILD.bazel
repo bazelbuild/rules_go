@@ -99,9 +99,6 @@ bazel_test(
     targets = [":no_errors"],
 )
 
-# TODO(samueltan): consider testing that analysis failures and panics do not
-# fail builds or interfere with other analyses.
-
 go_library(
     name = "has_errors",
     srcs = ["has_errors.go"],

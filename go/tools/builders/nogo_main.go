@@ -39,30 +39,27 @@ import (
 	"golang.org/x/tools/go/gcexportdata"
 )
 
-// run returns an error only if the package is successfully loaded and at least
-// one analysis fails. All other errors (e.g. during loading) are logged but
-// do not return an error so as not to unnecessarily interrupt builds.
+// run returns an error if there is a problem loading the package or if any
+// analysis fails.
 func run(args []string) error {
 	srcs := multiFlag{}
 	stdImports := multiFlag{}
-	flags := flag.NewFlagSet("nogo", flag.ContinueOnError)
+	flags := flag.NewFlagSet("nogo", flag.ExitOnError)
 	flags.Var(&srcs, "src", "A source file being compiled")
 	flags.Var(&stdImports, "stdimport", "A standard library import path")
 	vetTool := flags.String("vet_tool", "", "The vet tool")
 	importcfg := flags.String("importcfg", "", "The import configuration file")
-	if err := flags.Parse(args); err != nil {
-		log.Println(err)
-		return nil
-	}
+	flags.Parse(args)
+
 	packageFile, importMap, err := readImportCfg(*importcfg)
 	if err != nil {
 		return fmt.Errorf("error parsing importcfg: %v", err)
 	}
+
 	if enableVet {
 		vcfgFile, err := buildVetcfgFile(packageFile, importMap, stdImports, srcs)
 		if err != nil {
-			log.Printf("error creating vet config: %v", err)
-			return nil
+			return fmt.Errorf("error creating vet config: %v", err)
 		}
 		defer os.Remove(vcfgFile)
 		findings, err := runVet(*vetTool, vcfgFile)
@@ -110,7 +107,7 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 		}
 		switch verb {
 		default:
-			log.Fatalf("%s:%d: unknown directive %q", file, lineNum, verb)
+			return nil, nil, fmt.Errorf("%s:%d: unknown directive %q", file, lineNum, verb)
 		case "importmap":
 			if before == "" || after == "" {
 				return nil, nil, fmt.Errorf(`%s:%d: invalid importmap: syntax is "importmap old=new"`, file, lineNum)
@@ -123,7 +120,7 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 			packageFile[before] = after
 		}
 	}
-	return
+	return packageFile, importMap, nil
 }
 
 // runAnalyses runs all analyses, filters results, and writes findings to the
@@ -204,12 +201,13 @@ func load(fset *token.FileSet, imp types.Importer, filenames []string) (*analysi
 // and returns an error if the analysis finds errors that should fail
 // compilation.
 func checkAnalysisResults(c chan result, fset *token.FileSet) error {
-	var analysisFindings []*analysis.Finding
+	var findings []*analysis.Finding
+	var errs []error
 	for i := 0; i < len(analysis.Analyses()); i++ {
 		result := <-c
 		if result.err != nil {
 			// Analysis failed or skipped.
-			log.Printf("analysis %q: %v", result.name, result.err)
+			errs = append(errs, fmt.Errorf("analysis %q: %v", result.name, result.err))
 			continue
 		}
 		if len(result.Findings) == 0 {
@@ -218,7 +216,7 @@ func checkAnalysisResults(c chan result, fset *token.FileSet) error {
 		config, ok := configs[result.name]
 		if !ok {
 			// If the check is not explicitly configured, it applies to all files.
-			analysisFindings = append(analysisFindings, result.Findings...)
+			findings = append(findings, result.Findings...)
 			continue
 		}
 		// Discard findings based on the check configuration.
@@ -244,22 +242,28 @@ func checkAnalysisResults(c chan result, fset *token.FileSet) error {
 				}
 			}
 			if include {
-				analysisFindings = append(analysisFindings, finding)
+				findings = append(findings, finding)
 			}
 		}
 	}
-	if len(analysisFindings) == 0 {
+	if len(findings) == 0 && len(errs) == 0 {
 		return nil
 	}
-	sort.Slice(analysisFindings, func(i, j int) bool {
-		return analysisFindings[i].Pos < analysisFindings[j].Pos
+
+	sort.Slice(findings, func(i, j int) bool {
+		return findings[i].Pos < findings[j].Pos
 	})
-	var errMsg bytes.Buffer
-	for i, f := range analysisFindings {
-		if i > 0 {
-			errMsg.WriteByte('\n')
-		}
-		errMsg.WriteString(fmt.Sprintf("%s: %s\n", fset.Position(f.Pos), f.Message))
+	errMsg := &bytes.Buffer{}
+	sep := ""
+	for _, err := range errs {
+		errMsg.WriteString(sep)
+		sep = "\n"
+		errMsg.WriteString(err.Error())
+	}
+	for _, f := range findings {
+		errMsg.WriteString(sep)
+		sep = "\n"
+		fmt.Fprintf(errMsg, "%s: %s", fset.Position(f.Pos), f.Message)
 	}
 	return errors.New(errMsg.String())
 }
