@@ -95,12 +95,6 @@ nogo = go_rule(
         "vet": attr.bool(
             default = False,
         ),
-        "_analysis": attr.label(
-            default = "@io_bazel_rules_go//go/tools/analysis:analysis",
-        ),
-        "_gcexportdata": attr.label(
-            default = "@io_bazel_rules_go//vendor/golang.org/x/tools/go/gcexportdata:go_default_library",
-        ),
         "_nogo_srcs": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:nogo_srcs",
         ),
