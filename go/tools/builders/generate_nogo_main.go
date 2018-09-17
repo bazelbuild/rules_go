@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 	"text/template"
 )
 
@@ -32,6 +33,9 @@ const codeTpl = `
 package main
 
 import (
+{{- if .NeedRegexp }}
+	"regexp"
+{{- end}}
 {{- range $importPath := .ImportPaths}}
 	_ "{{$importPath}}"
 {{- end}}
@@ -43,19 +47,23 @@ const enableVet = {{.EnableVet}}
 var configs = map[string]config{
 {{- range $name, $config := .Configs}}
 	{{printf "%q" $name}}: config{
-		{{- if $config.ApplyTo -}}
-		applyTo:  map[string]bool{
-			{{range $path, $comment := $config.ApplyTo -}}
-			{{if $comment -}} // {{$comment}} {{- end}}
-			{{printf "%q" $path}}: true,
+		{{- if $config.ApplyTo}}
+		applyTo: []*regexp.Regexp{
+			{{- range $path, $comment := $config.ApplyTo}}
+			{{- if $comment}}
+			// {{$comment}}
+			{{end -}}
+			{{printf "regexp.MustCompile(%q)" $path}},
 			{{- end}}
 		},
-		{{- end}}
-		{{if $config.Whitelist -}}
-		whitelist:  map[string]bool{
-			{{range $path, $comment := $config.Whitelist -}}
-			{{if $comment -}} // {{$comment}} {{- end}}
-			{{printf "%q" $path}}: true,
+		{{- end -}}
+		{{- if $config.Whitelist}}
+		whitelist: []*regexp.Regexp{
+			{{- range $path, $comment := $config.Whitelist}}
+			{{- if $comment}}
+			// {{$comment}}
+			{{end -}}
+			{{printf "regexp.MustCompile(%q)" $path}},
 			{{- end}}
 		},
 		{{- end}}
@@ -98,10 +106,17 @@ func run(args []string) error {
 		ImportPaths []string
 		Configs     Configs
 		EnableVet   bool
+		NeedRegexp  bool
 	}{
 		ImportPaths: checkImportPaths,
 		Configs:     config,
 		EnableVet:   *enableVet,
+	}
+	for _, c := range config {
+		if len(c.ApplyTo) > 0 || len(c.Whitelist) > 0 {
+			data.NeedRegexp = true
+			break
+		}
 	}
 	tpl := template.Must(template.New("source").Parse(codeTpl))
 	if err := tpl.Execute(outFile, data); err != nil {
@@ -111,6 +126,8 @@ func run(args []string) error {
 }
 
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("GoGenNogo: ")
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
@@ -129,6 +146,16 @@ func buildConfig(path string) (Configs, error) {
 		return Configs{}, fmt.Errorf("failed to unmarshal config file: %v", err)
 	}
 	for name, config := range configs {
+		for pattern := range config.ApplyTo {
+			if _, err := regexp.Compile(pattern); err != nil {
+				return Configs{}, fmt.Errorf("invalid pattern for analysis %q: %v", name, err)
+			}
+		}
+		for pattern := range config.Whitelist {
+			if _, err := regexp.Compile(pattern); err != nil {
+				return Configs{}, fmt.Errorf("invalid pattern for analysis %q: %v", name, err)
+			}
+		}
 		configs[name] = Config{
 			// Description is currently unused.
 			ApplyTo:   config.ApplyTo,

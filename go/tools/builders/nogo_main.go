@@ -228,15 +228,19 @@ func checkAnalysisResults(c chan result, fset *token.FileSet) error {
 			if len(config.applyTo) > 0 {
 				// This analysis applies exclusively to a set of files.
 				include = false
-				for pattern := range config.applyTo {
-					if matched, err := regexp.MatchString(pattern, filename); err == nil && matched {
+				for _, pattern := range config.applyTo {
+					if pattern.MatchString(filename) {
 						include = true
+						break
 					}
 				}
 			}
-			for pattern := range config.whitelist {
-				if matched, err := regexp.MatchString(pattern, filename); err == nil && matched {
-					include = false
+			if include {
+				for _, pattern := range config.whitelist {
+					if pattern.MatchString(filename) {
+						include = false
+						break
+					}
 				}
 			}
 			if include {
@@ -260,8 +264,17 @@ func checkAnalysisResults(c chan result, fset *token.FileSet) error {
 	return errors.New(errMsg.String())
 }
 
+// config determines which source files an analysis should be applied to.
+// config values are generated in another file that is compiled with
+// nogo_main.go by the nogo rule.
 type config struct {
-	applyTo, whitelist map[string]bool
+	// applyTo is a list of regular expressions that match files a check
+	// should apply to. When empty, the check will apply to all files.
+	applyTo []*regexp.Regexp
+
+	// whitelist is a list of regular expressions that match files that are
+	// exempt from a check.
+	whitelist []*regexp.Regexp
 }
 
 func main() {
