@@ -26,6 +26,10 @@ def _go_register_nogo_impl(ctx):
         executable = False,
     )
 
+# go_register_nogo creates a repository with an alias rule that points
+# to the nogo rule that should be used globally by go rules in the workspace.
+# This may be called automatically by go_rules_dependencies or by
+# go_register_toolchains.
 go_register_nogo = repository_rule(
     _go_register_nogo_impl,
     attrs = {
