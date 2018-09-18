@@ -106,6 +106,7 @@ POPULAR_REPOS = [
             "godoc:go_default_test", # requires GOROOT and GOPATH
             "godoc/static:go_default_test", # requires data files
             "imports:go_default_test", # probably needs GOROOT
+            "go/types/typeutil:go_default_test", # requires GOROOT
         ],
     ),
 
