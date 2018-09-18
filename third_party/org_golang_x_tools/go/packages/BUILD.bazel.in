@@ -7,7 +7,9 @@ go_library(
         "external.go",
         "golist.go",
         "golist_fallback.go",
+        "golist_fallback_testmain.go",
         "packages.go",
+        "visit.go",
     ],
     importpath = "golang.org/x/tools/go/packages",
     visibility = ["//visibility:public"],
@@ -20,6 +22,7 @@ go_library(
 go_test(
     name = "go_default_test",
     srcs = [
+        "example_test.go",
         "packages110_test.go",
         "packages_test.go",
         "stdlib_test.go",
