@@ -281,6 +281,8 @@ type result struct {
 	err  error
 }
 
+// importer is an implementation of go/types.Importer that imports type
+// information from the export data in compiled .a files.
 type importer struct {
 	fset         *token.FileSet
 	importMap    map[string]string         // map import path in source code to package path
@@ -294,6 +296,8 @@ func (i *importer) Import(path string) (*types.Package, error) {
 		path = imp
 	}
 	if path == "unsafe" {
+		// Special case: go/types has pre-defined type information for unsafe.
+		// See https://github.com/golang/go/issues/13882.
 		return types.Unsafe, nil
 	}
 	if pkg, ok := i.packageCache[path]; ok && pkg.Complete() {

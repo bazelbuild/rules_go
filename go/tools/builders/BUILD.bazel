@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
-load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_source")
+load("@io_bazel_rules_go//go:def.bzl", "go_source", "go_test")
 
 go_test(
     name = "filter_test",
@@ -37,7 +37,6 @@ go_tool_binary(
         "env.go",
         "filter.go",
         "flags.go",
-        "vet.go",
     ],
     visibility = ["//visibility:public"],
 )
@@ -70,15 +69,15 @@ go_tool_binary(
 go_source(
     name = "nogo_srcs",
     srcs = [
-        "nogo_main.go",
         "flags.go",
-        "vet.go",
-    ],
-    deps = [
-        "@io_bazel_rules_go//go/tools/analysis:analysis",
-        "@io_bazel_rules_go//vendor/golang.org/x/tools/go/gcexportdata:go_default_library",
+        "nogo_main.go",
+        "nogo_vet.go",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "@io_bazel_rules_go//go/tools/analysis",
+        "@io_bazel_rules_go//vendor/golang.org/x/tools/go/gcexportdata:go_default_library",
+    ],
 )
 
 go_tool_binary(

@@ -68,8 +68,8 @@ abstract syntax trees (ASTs) and type information for that package. For example:
           path, err := strconv.Unquote(imp.Path.Value)
           if err == nil && path == "unsafe" {
             findings = append(findings, &analysis.Finding{
-              Pos:     n.Pos(),
-              End:     n.End(),
+              Pos:     imp.Pos(),
+              End:     imp.End(),
               Message: "package unsafe must not be imported",
             })
           }
