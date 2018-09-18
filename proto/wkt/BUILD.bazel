@@ -1,3 +1,10 @@
 load("//proto/wkt:well_known_types.bzl", "gen_well_known_types")
 
 gen_well_known_types()
+
+filegroup(
+    name = "all_rules",
+    testonly = True,
+    srcs = glob(["*.bzl"]),
+    visibility = ["//:__subpackages__"],
+)
