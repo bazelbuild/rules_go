@@ -35,6 +35,7 @@ def go_rules_dependencies():
         # master, as of 2018-09-18
         urls = ["https://codeload.github.com/golang/tools/zip/90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d"],
         strip_prefix = "tools-90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d",
+        sha256 = "d22945772a265fa5684b6a04e83fdfee458b7d4c1cefec423a6cd0866b3be719",
         type = "zip",
         overlay = manifest["org_golang_x_tools"],
         # importpath = "golang.org/x/tools",
@@ -55,6 +56,7 @@ def go_rules_dependencies():
         # v3.6.1, latest as of 2018-08-06
         urls = ["https://codeload.github.com/google/protobuf/zip/48cb18e5c419ddd23d9badcfe4e9df7bde1979b2"],
         strip_prefix = "protobuf-48cb18e5c419ddd23d9badcfe4e9df7bde1979b2",
+        sha256 = "b6b42f90c60b54732f764ae875623a9b05e6eede064173c36c6fea12dd376cdd",
         type = "zip",
     )
     _maybe(
@@ -131,6 +133,7 @@ def go_rules_dependencies():
         # master as of 2018-08-08
         urls = ["https://codeload.github.com/googleapis/googleapis/zip/3e68e19410baa7d78cdacc45b034eafe7467b439"],
         strip_prefix = "googleapis-3e68e19410baa7d78cdacc45b034eafe7467b439",
+        sha256 = "7cbea2a6705305aa735500f41720c363260190a6751c6df7ae036fe947437306",
         type = "zip",
         overlay = manifest["go_googleapis"],
     )
