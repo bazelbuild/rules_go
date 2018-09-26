@@ -53,7 +53,7 @@ def _go_path_impl(ctx):
             if importpath == "":
                 continue  # synthetic archive or inferred location
             pkg = struct(
-            importpath = importpath,
+                importpath = importpath,
                 dir = "src/" + pkgpath,
                 srcs = as_list(archive.orig_srcs),
                 data = as_list(archive.data_files),
@@ -130,9 +130,12 @@ def _go_path_impl(ctx):
         out_file = tag
     args = ctx.actions.args()
     args.add_all([
-        "-manifest", manifest_file,
-        "-out", out_path,
-        "-mode", ctx.attr.mode,
+        "-manifest",
+        manifest_file,
+        "-out",
+        out_path,
+        "-mode",
+        ctx.attr.mode,
     ])
     ctx.actions.run(
         outputs = outputs,
@@ -158,10 +161,7 @@ go_path = rule(
     _go_path_impl,
     attrs = {
         "deps": attr.label_list(providers = [GoArchive]),
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "data": attr.label_list(allow_files = True),
         "mode": attr.string(
             default = "copy",
             values = [

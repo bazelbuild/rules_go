@@ -47,7 +47,7 @@ _OBJC_CGO_ATTRS = {
 }
 
 _COMMON_ATTRS = {
-    "tags": None,
+    "tags": ["manual"],
     "restricted_to": None,
     "compatible_with": None,
 }
@@ -78,6 +78,8 @@ def _cgo(name, kwargs):
         cgo_attrs[key] = kwargs.pop(key, default)
     for key, default in _COMMON_ATTRS.items():
         cgo_attrs[key] = kwargs.get(key, default)
+    if "manual" not in cgo_attrs["tags"]:
+        cgo_attrs["tags"] = cgo_attrs["tags"] + ["manual"]
     cgo_attrs["objcopts"] = _objc(name, kwargs)
     cgo_embed = setup_cgo_library(**cgo_attrs)
     kwargs["embed"] = kwargs.get("embed", []) + [cgo_embed]

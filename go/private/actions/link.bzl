@@ -66,7 +66,11 @@ def emit_link(
     config_strip = len(go._ctx.configuration.bin_dir.path) + 1
     pkg_depth = executable.dirname[config_strip:].count("/") + 1
 
-    extldflags = list(go.cgo_tools.linker_options)
+    # Exclude -lstdc++ from link options. We don't want to link against it
+    # unless we actually have some C++ code. _cgo_codegen will include it
+    # in archives via CGO_LDFLAGS if it's needed.
+    extldflags = [f for f in go.cgo_tools.linker_options if f not in ("-lstdc++", "-lc++")]
+
     if go.coverage_enabled:
         extldflags.append("--coverage")
     gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
@@ -90,10 +94,11 @@ def emit_link(
 
     builder_args.add_all(
         [struct(archive = archive, test_archives = test_archives)],
-        before_each = "-dep",
+        before_each = "-arc",
         map_each = _map_archive,
     )
-    builder_args.add_all(test_archives, before_each = "-dep", map_each = _format_archive)
+    builder_args.add_all(test_archives, before_each = "-arc", map_each = _format_archive)
+    builder_args.add("-package_list", go.package_list)
 
     # Build a list of rpaths for dynamic libraries we need to find.
     # rpaths are relative paths from the binary to directories where libraries
@@ -137,6 +142,8 @@ def emit_link(
     builder_args.add_all(["-main", archive.data.file])
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
+    # Do not remove, somehow this is needed when building for darwin/arm only.
+    tool_args.add("-buildid=redacted")
     if go.mode.strip:
         tool_args.add("-w")
     tool_args.add_joined("-extldflags", extldflags, join_with = " ")
@@ -148,6 +155,7 @@ def emit_link(
             go.crosstool,
             stamp_inputs,
             go.sdk.tools,
+            [go.sdk.package_list],
             go.stdlib.libs,
         ),
         outputs = [executable],

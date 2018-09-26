@@ -11,7 +11,7 @@ go_library(
         "//go/callgraph/cha:go_default_library",
         "//go/callgraph/rta:go_default_library",
         "//go/callgraph/static:go_default_library",
-        "//go/loader:go_default_library",
+        "//go/packages:go_default_library",
         "//go/pointer:go_default_library",
         "//go/ssa:go_default_library",
         "//go/ssa/ssautil:go_default_library",

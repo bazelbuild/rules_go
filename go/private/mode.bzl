@@ -28,6 +28,19 @@ LINKMODE_C_ARCHIVE = "c-archive"
 
 LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]
 
+def new_mode(goos, goarch, static = False, race = False, msan = False, pure = False, link = LINKMODE_NORMAL, debug = False, strip = False):
+    return struct(
+        static = static,
+        race = race,
+        msan = msan,
+        pure = pure,
+        link = link,
+        debug = debug,
+        strip = strip,
+        goos = goos,
+        goarch = goarch,
+    )
+
 def mode_string(mode):
     result = [mode.goos, mode.goarch]
     if mode.static:
@@ -121,3 +134,77 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
         goos = goos,
         goarch = goarch,
     )
+
+def installsuffix(mode):
+    s = mode.goos + "_" + mode.goarch
+    if mode.race:
+        s += "_race"
+    elif mode.msan:
+        s += "_msan"
+    return s
+
+def mode_tags_equivalent(l, r):
+    """Returns whether two modes are equivalent for Go build tags. For example,
+    goos and goarch must match, but static doesn't matter."""
+    return (l.goos == r.goos and
+            l.goarch == r.goarch and
+            l.race == r.race and
+            l.msan == r.msan)
+
+# Ported from https://github.com/golang/go/blob/master/src/cmd/go/internal/work/init.go#L76
+_LINK_C_ARCHIVE_PLATFORMS = {
+    "darwin/arm": None,
+    "darwin/arm64": None,
+}
+
+_LINK_C_ARCHIVE_GOOS = {
+    "dragonfly": None,
+    "freebsd": None,
+    "linux": None,
+    "netbsd": None,
+    "openbsd": None,
+    "solaris": None,
+}
+
+_LINK_C_SHARED_PLATFORMS = {
+    "linux/amd64": None,
+    "linux/arm": None,
+    "linux/arm64": None,
+    "linux/386": None,
+    "linux/ppc64le": None,
+    "linux/s390x": None,
+    "android/amd64": None,
+    "android/arm": None,
+    "android/arm64": None,
+    "android/386": None,
+}
+
+_LINK_PLUGIN_PLATFORMS = {
+    "linux/amd64": None,
+    "linux/arm": None,
+    "linux/arm64": None,
+    "linux/386": None,
+    "linux/s390x": None,
+    "linux/ppc64le": None,
+    "android/amd64": None,
+    "android/arm": None,
+    "android/arm64": None,
+    "android/386": None,
+    "darwin/amd64": None,
+}
+
+def link_mode_args(mode):
+    # based on buildModeInit in cmd/go/internal/work/init.go
+    platform = mode.goos + "/" + mode.goarch
+    args = []
+    if mode.link == LINKMODE_C_ARCHIVE:
+        if (platform in _LINK_C_ARCHIVE_PLATFORMS or
+            mode.goos in _LINK_C_ARCHIVE_GOOS and platform != "linux/ppc64"):
+            args.append("-shared")
+    elif mode.link == LINKMODE_C_SHARED:
+        if platform in _LINK_C_SHARED_PLATFORMS:
+            args.append("-shared")
+    elif mode.link == LINKMODE_PLUGIN:
+        if platform in _LINK_PLUGIN_PLATFORMS:
+            args.append("-dynlink")
+    return args

@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/loader:go_default_library",
+        "//go/packages:go_default_library",
         "//go/ssa:go_default_library",
     ],
 )
@@ -23,7 +24,9 @@ go_test(
     ],
     data = glob(["testdata/**"]),
     embed = [":go_default_library"],
-    deps = select({
+    deps = [
+        "//go/packages:go_default_library",
+    ] + select({
         "@io_bazel_rules_go//go/platform:darwin": [
             "//go/loader:go_default_library",
             "//go/ssa:go_default_library",

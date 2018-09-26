@@ -60,10 +60,6 @@ load(
     "go_embed_data",
 )
 load(
-    "@io_bazel_rules_go//go/private:tools/gazelle.bzl",
-    "gazelle",
-)
-load(
     "@io_bazel_rules_go//go/private:tools/path.bzl",
     _go_path = "go_path",
 )
@@ -78,7 +74,7 @@ load(
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.14.0"
+RULES_GO_VERSION = "0.15.0"
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""

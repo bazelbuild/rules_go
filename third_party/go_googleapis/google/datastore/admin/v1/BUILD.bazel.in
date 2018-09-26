@@ -2,7 +2,10 @@ load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 proto_library(
     name = "admin_proto",
-    srcs = ["datastore_admin.proto"],
+    srcs = [
+        "datastore_admin.proto",
+        "index.proto",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//google/api:annotations_proto",

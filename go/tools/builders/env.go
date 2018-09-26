@@ -46,6 +46,11 @@ type env struct {
 	// platform. This may be different than GOROOT.
 	sdk string
 
+	// installSuffix is the name of the directory below GOROOT/pkg that contains
+	// the .a files for the standard library we should build against.
+	// For example, linux_amd64_race.
+	installSuffix string
+
 	// verbose indicates whether subprocess command lines should be printed.
 	verbose bool
 }
@@ -56,6 +61,7 @@ func envFlags(flags *flag.FlagSet) *env {
 	env := &env{}
 	flags.StringVar(&env.sdk, "sdk", "", "Path to the Go SDK.")
 	flags.Var(&tagFlag{}, "tags", "List of build tags considered true.")
+	flags.StringVar(&env.installSuffix, "installsuffix", "", "Standard library under GOROOT/pkg")
 	flags.BoolVar(&env.verbose, "v", false, "Whether subprocess command lines should be printed")
 	return env
 }

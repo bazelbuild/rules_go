@@ -142,7 +142,10 @@ go_tool_binary(
         "flags.go",
         "replicate.go",
         "stdlib.go",
-    ],
+    ] + select({
+        "@bazel_tools//src/conditions:windows": ["path_windows.go"],
+        "//conditions:default": ["path.go"],
+    }),
     visibility = ["//visibility:public"],
 )
 
@@ -152,4 +155,11 @@ go_tool_binary(
         "filter_buildid.go",
     ],
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_builder_srcs",
+    testonly = True,
+    srcs = glob(["*.go"]),
+    visibility = ["//:__subpackages__"],
 )

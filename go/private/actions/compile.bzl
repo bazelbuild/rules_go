@@ -14,23 +14,15 @@
 
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
-    "LINKMODE_C_ARCHIVE",
-    "LINKMODE_C_SHARED",
-    "LINKMODE_PLUGIN",
+    "link_mode_args",
 )
 load(
     "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
     "shell",
 )
 
-def _importpath(v):
-    return v.data.importpath
-
-def _searchpath(v):
-    return v.data.searchpath
-
-def _importmap(v):
-    return "{}={}".format(v.data.importpath, v.data.importmap)
+def _archive(v):
+    return "{}={}={}".format(v.data.importpath, v.data.importmap, v.data.file.path)
 
 def emit_compile(
         go,
@@ -60,8 +52,7 @@ def emit_compile(
 
     builder_args = go.builder_args(go)
     builder_args.add_all(sources, before_each = "-src")
-    builder_args.add_all(archives, before_each = "-dep", map_each = _importpath)
-    builder_args.add_all(archives, before_each = "-importmap", map_each = _importmap)
+    builder_args.add_all(archives, before_each = "-arc", map_each = _archive)
     builder_args.add_all(["-o", out_lib])
     builder_args.add_all(["-package_list", go.package_list])
     if testfilter:
@@ -71,8 +62,7 @@ def emit_compile(
     if asmhdr:
         tool_args.add_all(["-asmhdr", asmhdr])
         outputs.append(asmhdr)
-    tool_args.add_all(archives, before_each = "-I", map_each = _searchpath)
-    tool_args.add_all(["-trimpath", ".", "-I", "."])
+    tool_args.add_all(["-trimpath", "."])
 
     #TODO: Check if we really need this expand make variables in here
     #TODO: If we really do then it needs to be moved all the way back out to the rule
@@ -82,10 +72,7 @@ def emit_compile(
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
-    if go.mode.link in [LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED]:
-        tool_args.add("-shared")
-    if go.mode.link == LINKMODE_PLUGIN:
-        tool_args.add("-dynlink")
+    tool_args.add_all(link_mode_args(go.mode))
     if importpath:
         tool_args.add_all(["-p", importpath])
     if go.mode.debug:

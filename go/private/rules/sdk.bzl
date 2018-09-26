@@ -123,9 +123,6 @@ def _build_package_list(ctx, srcs, root_file, out):
         if not pkg_src_dir.startswith(src_dir):
             continue
         pkg_name = pkg_src_dir[len(src_dir):]
-        if any([prefix in pkg_name for prefix in ("vendor/", "cmd/")]):
-            continue
         packages[pkg_name] = None
     content = "\n".join(sorted(packages.keys())) + "\n"
     ctx.actions.write(out, content)
-    

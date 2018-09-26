@@ -48,6 +48,7 @@ go_test(
     deps = [
         "//go/ast/astutil:go_default_library",
         "//go/loader:go_default_library",
+        "//go/packages:go_default_library",
         "//go/ssa/ssautil:go_default_library",
     ] + select({
         "@io_bazel_rules_go//go/platform:darwin": [

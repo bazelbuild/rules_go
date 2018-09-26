@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
+load(":many_deps.bzl", "many_deps")
 
 test_suite(name = "go_binary")
 
@@ -18,3 +19,5 @@ go_binary(
     srcs = ["custom_bin.go"],
     out = "alt_bin",
 )
+    
+many_deps(name = "many_deps")

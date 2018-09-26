@@ -63,10 +63,7 @@ export GOROOT="$(pwd)/{goroot}"
 _go_vet_generate = go_rule(
     _go_vet_generate_impl,
     attrs = {
-        "data": attr.label_list(
-            providers = [GoPath],
-            cfg = "data",
-        ),
+        "data": attr.label_list(providers = [GoPath]),
     },
 )
 

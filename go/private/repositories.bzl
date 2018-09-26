@@ -24,49 +24,21 @@ load("@io_bazel_rules_go//third_party:manifest.bzl", "manifest")
 
 def go_rules_dependencies():
     """See /go/workspace.rst#go-rules-dependencies for full documentation."""
-    versions.check(MINIMUM_BAZEL_VERSION)
+    if getattr(native, "bazel_version", None):
+        versions.check(MINIMUM_BAZEL_VERSION, bazel_version = native.bazel_version)
 
-    # Gazelle and dependencies. These are needed for go_repository.
-    # TODO(jayconrod): delete all of these when we've migrated everyone to
-    # Gazelle's version of go_repository.
-    _maybe(
-        git_repository,
-        name = "bazel_gazelle",
-        remote = "https://github.com/bazelbuild/bazel-gazelle",
-        commit = "bfb9a4d2a5e6785c792f6fabd5238f8a33e60768",  # master as of 2018-08-06
-    )
-
-    # Old version of buildtools, before breaking API changes. Old versions of
-    # gazelle (0.9) need this. Newer versions vendor this library, so it's only
-    # needed by old versions.
-    _maybe(
-        http_archive,
-        name = "com_github_bazelbuild_buildtools",
-        # master, as of 2017-08-14
-        urls = ["https://codeload.github.com/bazelbuild/buildtools/zip/799e530642bac55de7e76728fa0c3161484899f6"],
-        strip_prefix = "buildtools-799e530642bac55de7e76728fa0c3161484899f6",
-        type = "zip",
-    )
-
+    # Was needed by Gazelle in the past. Will likely be needed for go/packages
+    # and analysis in the future.
     _maybe(
         http_archive,
         name = "org_golang_x_tools",
-        # master, as of 2018-08-07
-        urls = ["https://codeload.github.com/golang/tools/zip/3c07937fe18c27668fd78bbaed3d6b8b39e202ea"],
-        strip_prefix = "tools-3c07937fe18c27668fd78bbaed3d6b8b39e202ea",
+        # master, as of 2018-09-18
+        urls = ["https://codeload.github.com/golang/tools/zip/90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d"],
+        strip_prefix = "tools-90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d",
         type = "zip",
         overlay = manifest["org_golang_x_tools"],
         # importpath = "golang.org/x/tools",
     )
-
-    _maybe(
-        git_repository,
-        name = "com_github_pelletier_go_toml",
-        remote = "https://github.com/pelletier/go-toml",
-        commit = "16398bac157da96aa88f98a2df640c7f32af1da2",  # v1.0.1 as of 2017-12-19
-        overlay = manifest["com_github_pelletier_go_toml"],
-    )
-    # End of Gazelle dependencies.
 
     # Proto dependencies
     _maybe(
@@ -142,12 +114,13 @@ def go_rules_dependencies():
         overlay = manifest["org_golang_google_grpc"],
         # build_file_proto_mode = "disable",
         # importpath = "google.golang.org/grpc",
+        # Contains manual modifications to build files. Update with care.
     )
     _maybe(
         git_repository,
         name = "org_golang_google_genproto",
         remote = "https://github.com/google/go-genproto",
-        commit = "daca94659cb50e9f37c1b834680f2e46358f10b0",  # master as of 2018-08-06
+        commit = "383e8b2c3b9e36c4076b235b32537292176bae20",  # master as of 2018-08-13
         overlay = manifest["org_golang_google_genproto"],
         # build_file_proto_mode = "disable_global",
         # importpath = "google.golang.org/genproto",
@@ -155,9 +128,9 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "go_googleapis",
-        # master as of 2018-07-01
-        urls = ["https://codeload.github.com/googleapis/googleapis/zip/f47204e81e5aee2c1dfc7cc5ea729aa2fbaa7603"],
-        strip_prefix = "googleapis-f47204e81e5aee2c1dfc7cc5ea729aa2fbaa7603",
+        # master as of 2018-08-08
+        urls = ["https://codeload.github.com/googleapis/googleapis/zip/3e68e19410baa7d78cdacc45b034eafe7467b439"],
+        strip_prefix = "googleapis-3e68e19410baa7d78cdacc45b034eafe7467b439",
         type = "zip",
         overlay = manifest["go_googleapis"],
     )

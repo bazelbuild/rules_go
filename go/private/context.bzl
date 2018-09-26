@@ -32,6 +32,7 @@ load(
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "get_mode",
+    "installsuffix",
     "mode_string",
 )
 load(
@@ -86,6 +87,7 @@ def _builder_args(go):
     args.use_param_file("-param=%s")
     args.set_param_file_format("multiline")
     args.add("-sdk", go.sdk.root_file.dirname)
+    args.add("-installsuffix", installsuffix(go.mode))
     args.add_joined("-tags", go.tags, join_with = ",")
     return args
 
