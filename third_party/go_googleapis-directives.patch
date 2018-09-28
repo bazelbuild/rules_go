@@ -1,69 +1,31 @@
 diff -urN a/BUILD b/BUILD
---- a/BUILD	2018-08-13 12:58:50.000000000 -0400
-+++ b/BUILD	2018-09-27 18:05:37.556473647 -0400
-@@ -1 +1,4 @@
--# empty BUILD file
+--- a/BUILD	1969-12-31 19:00:00.000000000 -0500
++++ b/BUILD	2018-09-28 13:46:41.484250945 -0400
+@@ -0,0 +1,4 @@
 +# gazelle:proto package
 +# gazelle:proto_group go_package
 +# gazelle:exclude gapic
 +# gazelle:exclude third_party
+Binary files a/.git/index and b/.git/index differ
+diff -urN a/google/api/expr/v1beta1/value.proto b/google/api/expr/v1beta1/value.proto
+--- a/google/api/expr/v1beta1/value.proto	2018-09-28 13:02:38.156796548 -0400
++++ b/google/api/expr/v1beta1/value.proto	2018-09-28 13:47:08.368609071 -0400
+@@ -21,7 +21,7 @@
+ import "google/protobuf/struct.proto";
+ 
+ option cc_enable_arenas = true;
+-option go_package = "google.golang.org/genproto/googleapis/api/expr/v1beta;expr";
++option go_package = "google.golang.org/genproto/googleapis/api/expr/v1beta1;expr";
+ option java_multiple_files = true;
+ option java_outer_classname = "ValueProto";
+ option java_package = "com.google.api.expr.v1beta1";
 diff -urN a/google/BUILD.bazel b/google/BUILD.bazel
 --- a/google/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/google/BUILD.bazel	2018-09-27 18:05:49.808629470 -0400
++++ b/google/BUILD.bazel	2018-09-28 13:46:41.484250945 -0400
 @@ -0,0 +1 @@
 +# gazelle:prefix google.golang.org/genproto/googleapis
-diff -urN a/google/monitoring/v3/BUILD b/google/monitoring/v3/BUILD
---- a/google/monitoring/v3/BUILD	2018-08-13 12:58:50.000000000 -0400
-+++ b/google/monitoring/v3/BUILD	2018-09-27 18:10:12.667973269 -0400
-@@ -1,42 +1 @@
--
- package(default_visibility = ["//visibility:public"])
--
--load("@submodule_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
--
--grpc_proto_library(name = "metric",
--    srcs = ["metric.proto"],
--    deps = [
--      "//google/api:metric",
--      "//google/api:monitored_resource",
--      ":common",
--    ],
--    well_known_protos = "@submodule_protobuf//:well_known_protos",
--    use_external = True,
--)
--
--grpc_proto_library(
--    name = "common",
--    srcs = ["common.proto"],
--    deps = [
--      "//google/api:distribution",
--      "//google/api:annotations",
--    ],
--    well_known_protos = "@submodule_protobuf//:well_known_protos",
--    use_external = True,
--)
--
--grpc_proto_library(
--    name = "metric_service",
--    srcs = ["metric_service.proto"],
--    deps = [
--      "//google/api:annotations",
--      "//google/api:metric",
--      "//google/api:monitored_resource",
--      "//google/api:label",
--      "//google/rpc:status",
--      ":common",
--      ":metric",
--    ],
--    well_known_protos = "@submodule_protobuf//:well_known_protos",
--    use_external = True,
--)
 diff -urN a/WORKSPACE b/WORKSPACE
---- a/WORKSPACE	2018-08-13 12:58:50.000000000 -0400
-+++ b/WORKSPACE	2018-09-27 17:07:42.904310012 -0400
-@@ -1,3 +1,5 @@
+--- a/WORKSPACE	1969-12-31 19:00:00.000000000 -0500
++++ b/WORKSPACE	2018-09-28 13:46:41.484250945 -0400
+@@ -0,0 +1 @@
 +workspace(name = "go_googleapis")
-+
- # nanopb
- bind(
-     name = "nanopb",

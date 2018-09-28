@@ -1,6 +1,6 @@
 diff -urN a/balancer/base/BUILD.bazel b/balancer/base/BUILD.bazel
 --- a/balancer/base/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/balancer/base/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/balancer/base/BUILD.bazel	2018-09-28 12:59:04.337882175 -0400
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -22,7 +22,7 @@ diff -urN a/balancer/base/BUILD.bazel b/balancer/base/BUILD.bazel
 +)
 diff -urN a/balancer/BUILD.bazel b/balancer/BUILD.bazel
 --- a/balancer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/balancer/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/balancer/BUILD.bazel	2018-09-28 12:59:04.337882175 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -40,7 +40,7 @@ diff -urN a/balancer/BUILD.bazel b/balancer/BUILD.bazel
 +)
 diff -urN a/balancer/grpclb/BUILD.bazel b/balancer/grpclb/BUILD.bazel
 --- a/balancer/grpclb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/balancer/grpclb/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/balancer/grpclb/BUILD.bazel	2018-09-28 12:59:04.337882175 -0400
 @@ -0,0 +1,56 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -100,7 +100,7 @@ diff -urN a/balancer/grpclb/BUILD.bazel b/balancer/grpclb/BUILD.bazel
 +)
 diff -urN a/balancer/grpclb/grpc_lb_v1/BUILD.bazel b/balancer/grpclb/grpc_lb_v1/BUILD.bazel
 --- a/balancer/grpclb/grpc_lb_v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/balancer/grpclb/grpc_lb_v1/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/balancer/grpclb/grpc_lb_v1/BUILD.bazel	2018-09-28 12:59:04.337882175 -0400
 @@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -119,7 +119,7 @@ diff -urN a/balancer/grpclb/grpc_lb_v1/BUILD.bazel b/balancer/grpclb/grpc_lb_v1/
 +)
 diff -urN a/balancer/roundrobin/BUILD.bazel b/balancer/roundrobin/BUILD.bazel
 --- a/balancer/roundrobin/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/balancer/roundrobin/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/balancer/roundrobin/BUILD.bazel	2018-09-28 12:59:04.337882175 -0400
 @@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -156,8 +156,8 @@ diff -urN a/balancer/roundrobin/BUILD.bazel b/balancer/roundrobin/BUILD.bazel
 +)
 diff -urN a/benchmark/benchmain/BUILD.bazel b/benchmark/benchmain/BUILD.bazel
 --- a/benchmark/benchmain/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/benchmain/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
-@@ -0,0 +1,24 @@
++++ b/benchmark/benchmain/BUILD.bazel	2018-09-28 12:59:04.337882175 -0400
+@@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
 +go_library(
@@ -172,6 +172,7 @@ diff -urN a/benchmark/benchmain/BUILD.bazel b/benchmark/benchmain/BUILD.bazel
 +        "//benchmark/latency:go_default_library",
 +        "//benchmark/stats:go_default_library",
 +        "//grpclog:go_default_library",
++        "//internal/channelz:go_default_library",
 +        "//test/bufconn:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
 +    ],
@@ -184,7 +185,7 @@ diff -urN a/benchmark/benchmain/BUILD.bazel b/benchmark/benchmain/BUILD.bazel
 +)
 diff -urN a/benchmark/benchresult/BUILD.bazel b/benchmark/benchresult/BUILD.bazel
 --- a/benchmark/benchresult/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/benchresult/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/benchresult/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -203,7 +204,7 @@ diff -urN a/benchmark/benchresult/BUILD.bazel b/benchmark/benchresult/BUILD.baze
 +)
 diff -urN a/benchmark/BUILD.bazel b/benchmark/BUILD.bazel
 --- a/benchmark/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -236,7 +237,7 @@ diff -urN a/benchmark/BUILD.bazel b/benchmark/BUILD.bazel
 +)
 diff -urN a/benchmark/client/BUILD.bazel b/benchmark/client/BUILD.bazel
 --- a/benchmark/client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/client/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/client/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -263,7 +264,7 @@ diff -urN a/benchmark/client/BUILD.bazel b/benchmark/client/BUILD.bazel
 +)
 diff -urN a/benchmark/grpc_testing/BUILD.bazel b/benchmark/grpc_testing/BUILD.bazel
 --- a/benchmark/grpc_testing/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/grpc_testing/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/grpc_testing/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -286,7 +287,7 @@ diff -urN a/benchmark/grpc_testing/BUILD.bazel b/benchmark/grpc_testing/BUILD.ba
 +)
 diff -urN a/benchmark/latency/BUILD.bazel b/benchmark/latency/BUILD.bazel
 --- a/benchmark/latency/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/latency/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/latency/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -305,7 +306,7 @@ diff -urN a/benchmark/latency/BUILD.bazel b/benchmark/latency/BUILD.bazel
 +)
 diff -urN a/benchmark/primitives/BUILD.bazel b/benchmark/primitives/BUILD.bazel
 --- a/benchmark/primitives/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/primitives/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/primitives/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
@@ -323,7 +324,7 @@ diff -urN a/benchmark/primitives/BUILD.bazel b/benchmark/primitives/BUILD.bazel
 +)
 diff -urN a/benchmark/server/BUILD.bazel b/benchmark/server/BUILD.bazel
 --- a/benchmark/server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/server/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/server/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -346,7 +347,7 @@ diff -urN a/benchmark/server/BUILD.bazel b/benchmark/server/BUILD.bazel
 +)
 diff -urN a/benchmark/stats/BUILD.bazel b/benchmark/stats/BUILD.bazel
 --- a/benchmark/stats/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/stats/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/stats/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,12 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -362,7 +363,7 @@ diff -urN a/benchmark/stats/BUILD.bazel b/benchmark/stats/BUILD.bazel
 +)
 diff -urN a/benchmark/worker/BUILD.bazel b/benchmark/worker/BUILD.bazel
 --- a/benchmark/worker/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/benchmark/worker/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/benchmark/worker/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -397,8 +398,8 @@ diff -urN a/benchmark/worker/BUILD.bazel b/benchmark/worker/BUILD.bazel
 +)
 diff -urN a/BUILD.bazel b/BUILD.bazel
 --- a/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/BUILD.bazel	2018-09-27 16:55:16.114787111 -0400
-@@ -0,0 +1,103 @@
++++ b/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
+@@ -0,0 +1,102 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -455,7 +456,6 @@ diff -urN a/BUILD.bazel b/BUILD.bazel
 +        "//status:go_default_library",
 +        "//tap:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
-+        "@org_golang_x_net//http2:go_default_library",
 +        "@org_golang_x_net//trace:go_default_library",
 +    ],
 +)
@@ -504,7 +504,7 @@ diff -urN a/BUILD.bazel b/BUILD.bazel
 +)
 diff -urN a/channelz/grpc_channelz_v1/BUILD.bazel b/channelz/grpc_channelz_v1/BUILD.bazel
 --- a/channelz/grpc_channelz_v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/channelz/grpc_channelz_v1/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/channelz/grpc_channelz_v1/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -525,7 +525,7 @@ diff -urN a/channelz/grpc_channelz_v1/BUILD.bazel b/channelz/grpc_channelz_v1/BU
 +)
 diff -urN a/channelz/service/BUILD.bazel b/channelz/service/BUILD.bazel
 --- a/channelz/service/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/channelz/service/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/channelz/service/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,53 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -582,7 +582,7 @@ diff -urN a/channelz/service/BUILD.bazel b/channelz/service/BUILD.bazel
 +)
 diff -urN a/codes/BUILD.bazel b/codes/BUILD.bazel
 --- a/codes/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/codes/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/codes/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -604,7 +604,7 @@ diff -urN a/codes/BUILD.bazel b/codes/BUILD.bazel
 +)
 diff -urN a/connectivity/BUILD.bazel b/connectivity/BUILD.bazel
 --- a/connectivity/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/connectivity/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/connectivity/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,12 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -620,7 +620,7 @@ diff -urN a/connectivity/BUILD.bazel b/connectivity/BUILD.bazel
 +)
 diff -urN a/credentials/alts/BUILD.bazel b/credentials/alts/BUILD.bazel
 --- a/credentials/alts/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/credentials/alts/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,36 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -634,10 +634,10 @@ diff -urN a/credentials/alts/BUILD.bazel b/credentials/alts/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//credentials:go_default_library",
-+        "//credentials/alts/core:go_default_library",
-+        "//credentials/alts/core/handshaker:go_default_library",
-+        "//credentials/alts/core/handshaker/service:go_default_library",
-+        "//credentials/alts/core/proto/grpc_gcp:go_default_library",
++        "//credentials/alts/internal:go_default_library",
++        "//credentials/alts/internal/handshaker:go_default_library",
++        "//credentials/alts/internal/handshaker/service:go_default_library",
++        "//credentials/alts/internal/proto/grpc_gcp:go_default_library",
 +        "//grpclog:go_default_library",
 +        "//peer:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
@@ -652,26 +652,26 @@ diff -urN a/credentials/alts/BUILD.bazel b/credentials/alts/BUILD.bazel
 +    ],
 +    embed = [":go_default_library"],
 +    deps = [
-+        "//credentials/alts/core/proto/grpc_gcp:go_default_library",
++        "//credentials/alts/internal/proto/grpc_gcp:go_default_library",
 +        "//peer:go_default_library",
 +        "@com_github_golang_protobuf//proto:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
 +    ],
 +)
-diff -urN a/credentials/alts/core/authinfo/BUILD.bazel b/credentials/alts/core/authinfo/BUILD.bazel
---- a/credentials/alts/core/authinfo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/core/authinfo/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
+diff -urN a/credentials/alts/internal/authinfo/BUILD.bazel b/credentials/alts/internal/authinfo/BUILD.bazel
+--- a/credentials/alts/internal/authinfo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/credentials/alts/internal/authinfo/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = ["authinfo.go"],
-+    importpath = "google.golang.org/grpc/credentials/alts/core/authinfo",
-+    visibility = ["//visibility:public"],
++    importpath = "google.golang.org/grpc/credentials/alts/internal/authinfo",
++    visibility = ["//credentials/alts:__subpackages__"],
 +    deps = [
 +        "//credentials:go_default_library",
-+        "//credentials/alts/core/proto/grpc_gcp:go_default_library",
++        "//credentials/alts/internal/proto/grpc_gcp:go_default_library",
 +    ],
 +)
 +
@@ -679,28 +679,28 @@ diff -urN a/credentials/alts/core/authinfo/BUILD.bazel b/credentials/alts/core/a
 +    name = "go_default_test",
 +    srcs = ["authinfo_test.go"],
 +    embed = [":go_default_library"],
-+    deps = ["//credentials/alts/core/proto/grpc_gcp:go_default_library"],
++    deps = ["//credentials/alts/internal/proto/grpc_gcp:go_default_library"],
 +)
-diff -urN a/credentials/alts/core/BUILD.bazel b/credentials/alts/core/BUILD.bazel
---- a/credentials/alts/core/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/core/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
+diff -urN a/credentials/alts/internal/BUILD.bazel b/credentials/alts/internal/BUILD.bazel
+--- a/credentials/alts/internal/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/credentials/alts/internal/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,12 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = ["common.go"],
-+    importpath = "google.golang.org/grpc/credentials/alts/core",
++    importpath = "google.golang.org/grpc/credentials/alts/internal",
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//credentials:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
 +    ],
 +)
-diff -urN a/credentials/alts/core/conn/BUILD.bazel b/credentials/alts/core/conn/BUILD.bazel
---- a/credentials/alts/core/conn/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/core/conn/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
-@@ -0,0 +1,29 @@
+diff -urN a/credentials/alts/internal/conn/BUILD.bazel b/credentials/alts/internal/conn/BUILD.bazel
+--- a/credentials/alts/internal/conn/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/credentials/alts/internal/conn/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -712,10 +712,11 @@ diff -urN a/credentials/alts/core/conn/BUILD.bazel b/credentials/alts/core/conn/
 +        "common.go",
 +        "counter.go",
 +        "record.go",
++        "utils.go",
 +    ],
-+    importpath = "google.golang.org/grpc/credentials/alts/core/conn",
-+    visibility = ["//visibility:public"],
-+    deps = ["//credentials/alts/core:go_default_library"],
++    importpath = "google.golang.org/grpc/credentials/alts/internal/conn",
++    visibility = ["//credentials/alts:__subpackages__"],
++    deps = ["//credentials/alts/internal:go_default_library"],
 +)
 +
 +go_test(
@@ -728,27 +729,27 @@ diff -urN a/credentials/alts/core/conn/BUILD.bazel b/credentials/alts/core/conn/
 +        "record_test.go",
 +    ],
 +    embed = [":go_default_library"],
-+    deps = ["//credentials/alts/core:go_default_library"],
++    deps = ["//credentials/alts/internal:go_default_library"],
 +)
-diff -urN a/credentials/alts/core/handshaker/BUILD.bazel b/credentials/alts/core/handshaker/BUILD.bazel
---- a/credentials/alts/core/handshaker/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/core/handshaker/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
+diff -urN a/credentials/alts/internal/handshaker/BUILD.bazel b/credentials/alts/internal/handshaker/BUILD.bazel
+--- a/credentials/alts/internal/handshaker/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/credentials/alts/internal/handshaker/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = ["handshaker.go"],
-+    importpath = "google.golang.org/grpc/credentials/alts/core/handshaker",
-+    visibility = ["//visibility:public"],
++    importpath = "google.golang.org/grpc/credentials/alts/internal/handshaker",
++    visibility = ["//credentials/alts:__subpackages__"],
 +    deps = [
 +        "//:go_default_library",
 +        "//codes:go_default_library",
 +        "//credentials:go_default_library",
-+        "//credentials/alts/core:go_default_library",
-+        "//credentials/alts/core/authinfo:go_default_library",
-+        "//credentials/alts/core/conn:go_default_library",
-+        "//credentials/alts/core/proto/grpc_gcp:go_default_library",
++        "//credentials/alts/internal:go_default_library",
++        "//credentials/alts/internal/authinfo:go_default_library",
++        "//credentials/alts/internal/conn:go_default_library",
++        "//credentials/alts/internal/proto/grpc_gcp:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
 +    ],
 +)
@@ -759,23 +760,23 @@ diff -urN a/credentials/alts/core/handshaker/BUILD.bazel b/credentials/alts/core
 +    embed = [":go_default_library"],
 +    deps = [
 +        "//:go_default_library",
-+        "//credentials/alts/core:go_default_library",
-+        "//credentials/alts/core/proto/grpc_gcp:go_default_library",
-+        "//credentials/alts/core/testutil:go_default_library",
++        "//credentials/alts/internal:go_default_library",
++        "//credentials/alts/internal/proto/grpc_gcp:go_default_library",
++        "//credentials/alts/internal/testutil:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
 +    ],
 +)
-diff -urN a/credentials/alts/core/handshaker/service/BUILD.bazel b/credentials/alts/core/handshaker/service/BUILD.bazel
---- a/credentials/alts/core/handshaker/service/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/core/handshaker/service/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
+diff -urN a/credentials/alts/internal/handshaker/service/BUILD.bazel b/credentials/alts/internal/handshaker/service/BUILD.bazel
+--- a/credentials/alts/internal/handshaker/service/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/credentials/alts/internal/handshaker/service/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,16 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = ["service.go"],
-+    importpath = "google.golang.org/grpc/credentials/alts/core/handshaker/service",
-+    visibility = ["//visibility:public"],
++    importpath = "google.golang.org/grpc/credentials/alts/internal/handshaker/service",
++    visibility = ["//credentials/alts:__subpackages__"],
 +    deps = ["//:go_default_library"],
 +)
 +
@@ -785,9 +786,9 @@ diff -urN a/credentials/alts/core/handshaker/service/BUILD.bazel b/credentials/a
 +    embed = [":go_default_library"],
 +    deps = ["//:go_default_library"],
 +)
-diff -urN a/credentials/alts/core/proto/grpc_gcp/BUILD.bazel b/credentials/alts/core/proto/grpc_gcp/BUILD.bazel
---- a/credentials/alts/core/proto/grpc_gcp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/core/proto/grpc_gcp/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
+diff -urN a/credentials/alts/internal/proto/grpc_gcp/BUILD.bazel b/credentials/alts/internal/proto/grpc_gcp/BUILD.bazel
+--- a/credentials/alts/internal/proto/grpc_gcp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/credentials/alts/internal/proto/grpc_gcp/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -798,30 +799,30 @@ diff -urN a/credentials/alts/core/proto/grpc_gcp/BUILD.bazel b/credentials/alts/
 +        "handshaker.pb.go",
 +        "transport_security_common.pb.go",
 +    ],
-+    importpath = "google.golang.org/grpc/credentials/alts/core/proto/grpc_gcp",
-+    visibility = ["//visibility:public"],
++    importpath = "google.golang.org/grpc/credentials/alts/internal/proto/grpc_gcp",
++    visibility = ["//credentials/alts:__subpackages__"],
 +    deps = [
 +        "//:go_default_library",
 +        "@com_github_golang_protobuf//proto:go_default_library",
 +        "@org_golang_x_net//context:go_default_library",
 +    ],
 +)
-diff -urN a/credentials/alts/core/testutil/BUILD.bazel b/credentials/alts/core/testutil/BUILD.bazel
---- a/credentials/alts/core/testutil/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/alts/core/testutil/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
+diff -urN a/credentials/alts/internal/testutil/BUILD.bazel b/credentials/alts/internal/testutil/BUILD.bazel
+--- a/credentials/alts/internal/testutil/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/credentials/alts/internal/testutil/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,9 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = ["testutil.go"],
-+    importpath = "google.golang.org/grpc/credentials/alts/core/testutil",
-+    visibility = ["//visibility:public"],
-+    deps = ["//credentials/alts/core/conn:go_default_library"],
++    importpath = "google.golang.org/grpc/credentials/alts/internal/testutil",
++    visibility = ["//credentials/alts:__subpackages__"],
++    deps = ["//credentials/alts/internal/conn:go_default_library"],
 +)
 diff -urN a/credentials/BUILD.bazel b/credentials/BUILD.bazel
 --- a/credentials/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/credentials/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -853,7 +854,7 @@ diff -urN a/credentials/BUILD.bazel b/credentials/BUILD.bazel
 +)
 diff -urN a/credentials/oauth/BUILD.bazel b/credentials/oauth/BUILD.bazel
 --- a/credentials/oauth/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/credentials/oauth/BUILD.bazel	2018-09-27 16:55:16.106787007 -0400
++++ b/credentials/oauth/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -872,7 +873,7 @@ diff -urN a/credentials/oauth/BUILD.bazel b/credentials/oauth/BUILD.bazel
 +)
 diff -urN a/encoding/BUILD.bazel b/encoding/BUILD.bazel
 --- a/encoding/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/encoding/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/encoding/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -884,7 +885,7 @@ diff -urN a/encoding/BUILD.bazel b/encoding/BUILD.bazel
 +)
 diff -urN a/encoding/gzip/BUILD.bazel b/encoding/gzip/BUILD.bazel
 --- a/encoding/gzip/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/encoding/gzip/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/encoding/gzip/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,9 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -897,7 +898,7 @@ diff -urN a/encoding/gzip/BUILD.bazel b/encoding/gzip/BUILD.bazel
 +)
 diff -urN a/encoding/proto/BUILD.bazel b/encoding/proto/BUILD.bazel
 --- a/encoding/proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/encoding/proto/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/encoding/proto/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -927,7 +928,7 @@ diff -urN a/encoding/proto/BUILD.bazel b/encoding/proto/BUILD.bazel
 +)
 diff -urN a/examples/helloworld/greeter_client/BUILD.bazel b/examples/helloworld/greeter_client/BUILD.bazel
 --- a/examples/helloworld/greeter_client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/helloworld/greeter_client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/helloworld/greeter_client/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -950,7 +951,7 @@ diff -urN a/examples/helloworld/greeter_client/BUILD.bazel b/examples/helloworld
 +)
 diff -urN a/examples/helloworld/greeter_server/BUILD.bazel b/examples/helloworld/greeter_server/BUILD.bazel
 --- a/examples/helloworld/greeter_server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/helloworld/greeter_server/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/helloworld/greeter_server/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -974,7 +975,7 @@ diff -urN a/examples/helloworld/greeter_server/BUILD.bazel b/examples/helloworld
 +)
 diff -urN a/examples/helloworld/helloworld/BUILD.bazel b/examples/helloworld/helloworld/BUILD.bazel
 --- a/examples/helloworld/helloworld/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/helloworld/helloworld/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/helloworld/helloworld/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -991,7 +992,7 @@ diff -urN a/examples/helloworld/helloworld/BUILD.bazel b/examples/helloworld/hel
 +)
 diff -urN a/examples/helloworld/mock_helloworld/BUILD.bazel b/examples/helloworld/mock_helloworld/BUILD.bazel
 --- a/examples/helloworld/mock_helloworld/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/helloworld/mock_helloworld/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/helloworld/mock_helloworld/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1021,7 +1022,7 @@ diff -urN a/examples/helloworld/mock_helloworld/BUILD.bazel b/examples/helloworl
 +)
 diff -urN a/examples/oauth/client/BUILD.bazel b/examples/oauth/client/BUILD.bazel
 --- a/examples/oauth/client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/oauth/client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/oauth/client/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1047,7 +1048,7 @@ diff -urN a/examples/oauth/client/BUILD.bazel b/examples/oauth/client/BUILD.baze
 +)
 diff -urN a/examples/oauth/server/BUILD.bazel b/examples/oauth/server/BUILD.bazel
 --- a/examples/oauth/server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/oauth/server/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/oauth/server/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1075,7 +1076,7 @@ diff -urN a/examples/oauth/server/BUILD.bazel b/examples/oauth/server/BUILD.baze
 +)
 diff -urN a/examples/route_guide/client/BUILD.bazel b/examples/route_guide/client/BUILD.bazel
 --- a/examples/route_guide/client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/route_guide/client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/route_guide/client/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1100,7 +1101,7 @@ diff -urN a/examples/route_guide/client/BUILD.bazel b/examples/route_guide/clien
 +)
 diff -urN a/examples/route_guide/mock_routeguide/BUILD.bazel b/examples/route_guide/mock_routeguide/BUILD.bazel
 --- a/examples/route_guide/mock_routeguide/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/route_guide/mock_routeguide/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/route_guide/mock_routeguide/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1131,7 +1132,7 @@ diff -urN a/examples/route_guide/mock_routeguide/BUILD.bazel b/examples/route_gu
 +)
 diff -urN a/examples/route_guide/routeguide/BUILD.bazel b/examples/route_guide/routeguide/BUILD.bazel
 --- a/examples/route_guide/routeguide/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/route_guide/routeguide/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/route_guide/routeguide/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1148,7 +1149,7 @@ diff -urN a/examples/route_guide/routeguide/BUILD.bazel b/examples/route_guide/r
 +)
 diff -urN a/examples/route_guide/server/BUILD.bazel b/examples/route_guide/server/BUILD.bazel
 --- a/examples/route_guide/server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/route_guide/server/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/route_guide/server/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1174,7 +1175,7 @@ diff -urN a/examples/route_guide/server/BUILD.bazel b/examples/route_guide/serve
 +)
 diff -urN a/examples/rpc_errors/client/BUILD.bazel b/examples/rpc_errors/client/BUILD.bazel
 --- a/examples/rpc_errors/client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/rpc_errors/client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/rpc_errors/client/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1199,7 +1200,7 @@ diff -urN a/examples/rpc_errors/client/BUILD.bazel b/examples/rpc_errors/client/
 +)
 diff -urN a/examples/rpc_errors/server/BUILD.bazel b/examples/rpc_errors/server/BUILD.bazel
 --- a/examples/rpc_errors/server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/rpc_errors/server/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/examples/rpc_errors/server/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1223,9 +1224,27 @@ diff -urN a/examples/rpc_errors/server/BUILD.bazel b/examples/rpc_errors/server/
 +    embed = [":go_default_library"],
 +    visibility = ["//visibility:public"],
 +)
+diff -urN a/go_vet/BUILD.bazel b/go_vet/BUILD.bazel
+--- a/go_vet/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go_vet/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["vet.go"],
++    importpath = "google.golang.org/grpc/go_vet",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "go_vet",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
 diff -urN a/grpclog/BUILD.bazel b/grpclog/BUILD.bazel
 --- a/grpclog/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/grpclog/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/grpclog/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1247,7 +1266,7 @@ diff -urN a/grpclog/BUILD.bazel b/grpclog/BUILD.bazel
 +)
 diff -urN a/grpclog/glogger/BUILD.bazel b/grpclog/glogger/BUILD.bazel
 --- a/grpclog/glogger/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/grpclog/glogger/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/grpclog/glogger/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,12 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1263,9 +1282,9 @@ diff -urN a/grpclog/glogger/BUILD.bazel b/grpclog/glogger/BUILD.bazel
 +)
 diff -urN a/health/BUILD.bazel b/health/BUILD.bazel
 --- a/health/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/health/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
-@@ -0,0 +1,14 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
++++ b/health/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "go_default_library",
@@ -1279,9 +1298,19 @@ diff -urN a/health/BUILD.bazel b/health/BUILD.bazel
 +        "@org_golang_x_net//context:go_default_library",
 +    ],
 +)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["health_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//:go_default_library",
++        "//health/grpc_health_v1:go_default_library",
++    ],
++)
 diff -urN a/health/grpc_health_v1/BUILD.bazel b/health/grpc_health_v1/BUILD.bazel
 --- a/health/grpc_health_v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/health/grpc_health_v1/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/health/grpc_health_v1/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1298,7 +1327,7 @@ diff -urN a/health/grpc_health_v1/BUILD.bazel b/health/grpc_health_v1/BUILD.baze
 +)
 diff -urN a/internal/backoff/BUILD.bazel b/internal/backoff/BUILD.bazel
 --- a/internal/backoff/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/backoff/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/backoff/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,9 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1311,7 +1340,7 @@ diff -urN a/internal/backoff/BUILD.bazel b/internal/backoff/BUILD.bazel
 +)
 diff -urN a/internal/BUILD.bazel b/internal/BUILD.bazel
 --- a/internal/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1323,7 +1352,7 @@ diff -urN a/internal/BUILD.bazel b/internal/BUILD.bazel
 +)
 diff -urN a/internal/channelz/BUILD.bazel b/internal/channelz/BUILD.bazel
 --- a/internal/channelz/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/channelz/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/channelz/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,37 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1364,7 +1393,7 @@ diff -urN a/internal/channelz/BUILD.bazel b/internal/channelz/BUILD.bazel
 +)
 diff -urN a/internal/envconfig/BUILD.bazel b/internal/envconfig/BUILD.bazel
 --- a/internal/envconfig/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/envconfig/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/envconfig/BUILD.bazel	2018-09-28 12:59:04.341882228 -0400
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1376,7 +1405,7 @@ diff -urN a/internal/envconfig/BUILD.bazel b/internal/envconfig/BUILD.bazel
 +)
 diff -urN a/internal/grpcrand/BUILD.bazel b/internal/grpcrand/BUILD.bazel
 --- a/internal/grpcrand/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/grpcrand/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/grpcrand/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1388,7 +1417,7 @@ diff -urN a/internal/grpcrand/BUILD.bazel b/internal/grpcrand/BUILD.bazel
 +)
 diff -urN a/internal/grpcsync/BUILD.bazel b/internal/grpcsync/BUILD.bazel
 --- a/internal/grpcsync/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/grpcsync/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/grpcsync/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1406,7 +1435,7 @@ diff -urN a/internal/grpcsync/BUILD.bazel b/internal/grpcsync/BUILD.bazel
 +)
 diff -urN a/internal/leakcheck/BUILD.bazel b/internal/leakcheck/BUILD.bazel
 --- a/internal/leakcheck/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/leakcheck/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/leakcheck/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1424,7 +1453,7 @@ diff -urN a/internal/leakcheck/BUILD.bazel b/internal/leakcheck/BUILD.bazel
 +)
 diff -urN a/internal/syscall/BUILD.bazel b/internal/syscall/BUILD.bazel
 --- a/internal/syscall/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/syscall/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/syscall/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,48 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1476,7 +1505,7 @@ diff -urN a/internal/syscall/BUILD.bazel b/internal/syscall/BUILD.bazel
 +)
 diff -urN a/internal/transport/BUILD.bazel b/internal/transport/BUILD.bazel
 --- a/internal/transport/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/transport/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/internal/transport/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,62 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1542,7 +1571,7 @@ diff -urN a/internal/transport/BUILD.bazel b/internal/transport/BUILD.bazel
 +)
 diff -urN a/interop/alts/client/BUILD.bazel b/interop/alts/client/BUILD.bazel
 --- a/interop/alts/client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/interop/alts/client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/interop/alts/client/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1567,7 +1596,7 @@ diff -urN a/interop/alts/client/BUILD.bazel b/interop/alts/client/BUILD.bazel
 +)
 diff -urN a/interop/alts/server/BUILD.bazel b/interop/alts/server/BUILD.bazel
 --- a/interop/alts/server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/interop/alts/server/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/interop/alts/server/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1592,7 +1621,7 @@ diff -urN a/interop/alts/server/BUILD.bazel b/interop/alts/server/BUILD.bazel
 +)
 diff -urN a/interop/BUILD.bazel b/interop/BUILD.bazel
 --- a/interop/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/interop/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/interop/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1616,7 +1645,7 @@ diff -urN a/interop/BUILD.bazel b/interop/BUILD.bazel
 +)
 diff -urN a/interop/client/BUILD.bazel b/interop/client/BUILD.bazel
 --- a/interop/client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/interop/client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/interop/client/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1646,7 +1675,7 @@ diff -urN a/interop/client/BUILD.bazel b/interop/client/BUILD.bazel
 +)
 diff -urN a/interop/grpc_testing/BUILD.bazel b/interop/grpc_testing/BUILD.bazel
 --- a/interop/grpc_testing/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/interop/grpc_testing/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/interop/grpc_testing/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1663,7 +1692,7 @@ diff -urN a/interop/grpc_testing/BUILD.bazel b/interop/grpc_testing/BUILD.bazel
 +)
 diff -urN a/interop/http2/BUILD.bazel b/interop/http2/BUILD.bazel
 --- a/interop/http2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/interop/http2/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/interop/http2/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1690,7 +1719,7 @@ diff -urN a/interop/http2/BUILD.bazel b/interop/http2/BUILD.bazel
 +)
 diff -urN a/interop/server/BUILD.bazel b/interop/server/BUILD.bazel
 --- a/interop/server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/interop/server/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/interop/server/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -1717,7 +1746,7 @@ diff -urN a/interop/server/BUILD.bazel b/interop/server/BUILD.bazel
 +)
 diff -urN a/keepalive/BUILD.bazel b/keepalive/BUILD.bazel
 --- a/keepalive/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/keepalive/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/keepalive/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1729,7 +1758,7 @@ diff -urN a/keepalive/BUILD.bazel b/keepalive/BUILD.bazel
 +)
 diff -urN a/metadata/BUILD.bazel b/metadata/BUILD.bazel
 --- a/metadata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/metadata/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/metadata/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,16 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1749,7 +1778,7 @@ diff -urN a/metadata/BUILD.bazel b/metadata/BUILD.bazel
 +)
 diff -urN a/naming/BUILD.bazel b/naming/BUILD.bazel
 --- a/naming/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/naming/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/naming/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1781,7 +1810,7 @@ diff -urN a/naming/BUILD.bazel b/naming/BUILD.bazel
 +)
 diff -urN a/peer/BUILD.bazel b/peer/BUILD.bazel
 --- a/peer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/peer/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/peer/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,12 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1797,7 +1826,7 @@ diff -urN a/peer/BUILD.bazel b/peer/BUILD.bazel
 +)
 diff -urN a/reflection/BUILD.bazel b/reflection/BUILD.bazel
 --- a/reflection/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/reflection/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/reflection/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1832,7 +1861,7 @@ diff -urN a/reflection/BUILD.bazel b/reflection/BUILD.bazel
 +)
 diff -urN a/reflection/grpc_reflection_v1alpha/BUILD.bazel b/reflection/grpc_reflection_v1alpha/BUILD.bazel
 --- a/reflection/grpc_reflection_v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/reflection/grpc_reflection_v1alpha/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/reflection/grpc_reflection_v1alpha/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1849,7 +1878,7 @@ diff -urN a/reflection/grpc_reflection_v1alpha/BUILD.bazel b/reflection/grpc_ref
 +)
 diff -urN a/reflection/grpc_testing/BUILD.bazel b/reflection/grpc_testing/BUILD.bazel
 --- a/reflection/grpc_testing/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/reflection/grpc_testing/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/reflection/grpc_testing/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1871,7 +1900,7 @@ diff -urN a/reflection/grpc_testing/BUILD.bazel b/reflection/grpc_testing/BUILD.
 +)
 diff -urN a/reflection/grpc_testingv3/BUILD.bazel b/reflection/grpc_testingv3/BUILD.bazel
 --- a/reflection/grpc_testingv3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/reflection/grpc_testingv3/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/reflection/grpc_testingv3/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1888,7 +1917,7 @@ diff -urN a/reflection/grpc_testingv3/BUILD.bazel b/reflection/grpc_testingv3/BU
 +)
 diff -urN a/resolver/BUILD.bazel b/resolver/BUILD.bazel
 --- a/resolver/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/resolver/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/resolver/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1900,7 +1929,7 @@ diff -urN a/resolver/BUILD.bazel b/resolver/BUILD.bazel
 +)
 diff -urN a/resolver/dns/BUILD.bazel b/resolver/dns/BUILD.bazel
 --- a/resolver/dns/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/resolver/dns/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/resolver/dns/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1938,7 +1967,7 @@ diff -urN a/resolver/dns/BUILD.bazel b/resolver/dns/BUILD.bazel
 +)
 diff -urN a/resolver/manual/BUILD.bazel b/resolver/manual/BUILD.bazel
 --- a/resolver/manual/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/resolver/manual/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/resolver/manual/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,9 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1951,7 +1980,7 @@ diff -urN a/resolver/manual/BUILD.bazel b/resolver/manual/BUILD.bazel
 +)
 diff -urN a/resolver/passthrough/BUILD.bazel b/resolver/passthrough/BUILD.bazel
 --- a/resolver/passthrough/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/resolver/passthrough/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/resolver/passthrough/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,9 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -1964,7 +1993,7 @@ diff -urN a/resolver/passthrough/BUILD.bazel b/resolver/passthrough/BUILD.bazel
 +)
 diff -urN a/stats/BUILD.bazel b/stats/BUILD.bazel
 --- a/stats/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/stats/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/stats/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1994,7 +2023,7 @@ diff -urN a/stats/BUILD.bazel b/stats/BUILD.bazel
 +)
 diff -urN a/stats/grpc_testing/BUILD.bazel b/stats/grpc_testing/BUILD.bazel
 --- a/stats/grpc_testing/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/stats/grpc_testing/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/stats/grpc_testing/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -2011,7 +2040,7 @@ diff -urN a/stats/grpc_testing/BUILD.bazel b/stats/grpc_testing/BUILD.bazel
 +)
 diff -urN a/status/BUILD.bazel b/status/BUILD.bazel
 --- a/status/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/status/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/status/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,39 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -2054,7 +2083,7 @@ diff -urN a/status/BUILD.bazel b/status/BUILD.bazel
 +)
 diff -urN a/stress/client/BUILD.bazel b/stress/client/BUILD.bazel
 --- a/stress/client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/stress/client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/stress/client/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -2084,7 +2113,7 @@ diff -urN a/stress/client/BUILD.bazel b/stress/client/BUILD.bazel
 +)
 diff -urN a/stress/grpc_testing/BUILD.bazel b/stress/grpc_testing/BUILD.bazel
 --- a/stress/grpc_testing/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/stress/grpc_testing/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/stress/grpc_testing/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -2101,7 +2130,7 @@ diff -urN a/stress/grpc_testing/BUILD.bazel b/stress/grpc_testing/BUILD.bazel
 +)
 diff -urN a/stress/metrics_client/BUILD.bazel b/stress/metrics_client/BUILD.bazel
 --- a/stress/metrics_client/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/stress/metrics_client/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/stress/metrics_client/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -2125,7 +2154,7 @@ diff -urN a/stress/metrics_client/BUILD.bazel b/stress/metrics_client/BUILD.baze
 +)
 diff -urN a/tap/BUILD.bazel b/tap/BUILD.bazel
 --- a/tap/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/tap/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/tap/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,9 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -2138,7 +2167,7 @@ diff -urN a/tap/BUILD.bazel b/tap/BUILD.bazel
 +)
 diff -urN a/test/bufconn/BUILD.bazel b/test/bufconn/BUILD.bazel
 --- a/test/bufconn/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/bufconn/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/test/bufconn/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -2156,8 +2185,8 @@ diff -urN a/test/bufconn/BUILD.bazel b/test/bufconn/BUILD.bazel
 +)
 diff -urN a/test/BUILD.bazel b/test/BUILD.bazel
 --- a/test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/BUILD.bazel	2018-09-27 16:55:16.114787111 -0400
-@@ -0,0 +1,60 @@
++++ b/test/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
+@@ -0,0 +1,59 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2196,7 +2225,6 @@ diff -urN a/test/BUILD.bazel b/test/BUILD.bazel
 +        "//grpclog/glogger:go_default_library",
 +        "//health:go_default_library",
 +        "//health/grpc_health_v1:go_default_library",
-+        "//internal:go_default_library",
 +        "//internal/channelz:go_default_library",
 +        "//internal/envconfig:go_default_library",
 +        "//internal/leakcheck:go_default_library",
@@ -2220,7 +2248,7 @@ diff -urN a/test/BUILD.bazel b/test/BUILD.bazel
 +)
 diff -urN a/test/codec_perf/BUILD.bazel b/test/codec_perf/BUILD.bazel
 --- a/test/codec_perf/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/codec_perf/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/test/codec_perf/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,9 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -2233,7 +2261,7 @@ diff -urN a/test/codec_perf/BUILD.bazel b/test/codec_perf/BUILD.bazel
 +)
 diff -urN a/test/grpc_testing/BUILD.bazel b/test/grpc_testing/BUILD.bazel
 --- a/test/grpc_testing/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/grpc_testing/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
++++ b/test/grpc_testing/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,13 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -2250,7 +2278,7 @@ diff -urN a/test/grpc_testing/BUILD.bazel b/test/grpc_testing/BUILD.bazel
 +)
 diff -urN a/testdata/BUILD.bazel b/testdata/BUILD.bazel
 --- a/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/testdata/BUILD.bazel	2018-09-27 16:55:16.114787111 -0400
++++ b/testdata/BUILD.bazel	2018-09-28 12:59:04.345882283 -0400
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +

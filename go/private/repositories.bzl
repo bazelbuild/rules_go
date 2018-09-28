@@ -33,8 +33,8 @@ def go_rules_dependencies():
         http_archive,
         name = "org_golang_x_tools",
         # master, as of 2018-09-18
-        urls = ["https://codeload.github.com/golang/tools/zip/90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d"],
-        strip_prefix = "tools-90fa682c2a6e6a37b3a1364ce2fe1d5e41af9d6d",
+        urls = ["https://codeload.github.com/golang/tools/zip/7b71b077e1f4a3d5f15ca417a16c3b4dbb629b8b"],
+        strip_prefix = "tools-7b71b077e1f4a3d5f15ca417a16c3b4dbb629b8b",
         type = "zip",
         patches = ["//third_party:org_golang_x_tools-gazelle.patch"],
         patch_args = ["-p1"],
@@ -46,7 +46,7 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_golang_protobuf",
         remote = "https://github.com/golang/protobuf",
-        commit = "b4deda0973fb4c70b50d226b1af49f3da59f5265",  # v1.1.0, as of 2018-08-06
+        commit = "aa810b61a9c79d51363740d207bb46cf8e620ed5",  # v1.2.0, as of 2018-09-28
         patches = [
             "//third_party:com_github_golang_protobuf-gazelle.patch",
             "//third_party:com_github_golang_protobuf-extras.patch",
@@ -57,7 +57,7 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "com_google_protobuf",
-        # v3.6.1, latest as of 2018-08-06
+        # v3.6.1, latest as of 2018-09-28
         urls = ["https://codeload.github.com/google/protobuf/zip/48cb18e5c419ddd23d9badcfe4e9df7bde1979b2"],
         strip_prefix = "protobuf-48cb18e5c419ddd23d9badcfe4e9df7bde1979b2",
         type = "zip",
@@ -66,7 +66,7 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_mwitkow_go_proto_validators",
         remote = "https://github.com/mwitkow/go-proto-validators",
-        commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2018-08-06
+        commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2018-09-28
         patches = ["//third_party:com_github_mwitkow_go_proto_validators-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/mwitkow/go-proto-validators -proto disable
@@ -75,7 +75,7 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_gogo_protobuf",
         remote = "https://github.com/gogo/protobuf",
-        commit = "636bf0302bc95575d69441b25a2603156ffdddf1",  # v1.1.1, as of 2018-08-06
+        commit = "636bf0302bc95575d69441b25a2603156ffdddf1",  # v1.1.1, as of 2018-09-28
         patches = ["//third_party:com_github_gogo_protobuf-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/gogo/protobuf -proto legacy
@@ -90,7 +90,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_x_net",
         remote = "https://github.com/golang/net",
-        commit = "f4c29de78a2a91c00474a2e689954305c350adf9",  # master as of 2018-08-06
+        commit = "4dfa2610cdf3b287375bbba5b8f2a14d3b01d8de",  # master as of 2018-09-28
         patches = ["//third_party:org_golang_x_net-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix golang.org/x/net
@@ -99,7 +99,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_x_text",
         remote = "https://github.com/golang/text",
-        commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # v0.3.0, latest as of 2018-08-06
+        commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # v0.3.0, latest as of 2018-09-28
         patches = ["//third_party:org_golang_x_text-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix golang.org/x/text
@@ -108,7 +108,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_x_sys",
         remote = "https://github.com/golang/sys",
-        commit = "f0d5e33068cb57c22a181f5df0ffda885309eb5a",  # master as of 2018-08-10
+        commit = "e4b3c5e9061176387e7cea65e4dc5853801f3fb7",  # master as of 2018-09-28
         patches = ["//third_party:org_golang_x_sys-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix golang.org/x/sys
@@ -117,7 +117,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_google_grpc",
         remote = "https://github.com/grpc/grpc-go",
-        commit = "32fb0ac620c32ba40a4626ddf94d90d12cce3455",  # v1.14.0, latest as of 2018-08-06
+        commit = "8dea3dc473e90c8179e519d91302d0597c0ca1d1",  # v1.15.0, latest as of 2018-09-28
         patches = [
             "//third_party:org_golang_google_grpc-gazelle.patch",
             "//third_party:org_golang_google_grpc-android.patch",
@@ -129,7 +129,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_google_genproto",
         remote = "https://github.com/google/go-genproto",
-        commit = "383e8b2c3b9e36c4076b235b32537292176bae20",  # master as of 2018-08-13
+        commit = "0e822944c569bf5c9afd034adaa56208bd2906ac",  # master as of 2018-09-28
         patches = ["//third_party:org_golang_google_genproto-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix google.golang.org/genproto -proto disable_global
@@ -138,8 +138,8 @@ def go_rules_dependencies():
         http_archive,
         name = "go_googleapis",
         # master as of 2018-08-08
-        urls = ["https://codeload.github.com/googleapis/googleapis/zip/3e68e19410baa7d78cdacc45b034eafe7467b439"],
-        strip_prefix = "googleapis-3e68e19410baa7d78cdacc45b034eafe7467b439",
+        urls = ["https://codeload.github.com/googleapis/googleapis/zip/071efb9af05d831205787108e163235db6b763e4"],
+        strip_prefix = "googleapis-071efb9af05d831205787108e163235db6b763e4",
         type = "zip",
         patches = [
             "//third_party:go_googleapis-directives.patch",
@@ -153,7 +153,7 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_golang_glog",
         remote = "https://github.com/golang/glog",
-        commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",  # master as of 2018-04-02
+        commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",  # master as of 2018-09-28
         patches = ["//third_party:com_github_golang_glog-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/golang/glog
@@ -162,7 +162,7 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_kevinburke_go_bindata",
         remote = "https://github.com/kevinburke/go-bindata",
-        commit = "06af60a4461b70d84a2b173d92f9f425d78baf55",  # v3.11.0, latest as of 2018-08-06
+        commit = "06af60a4461b70d84a2b173d92f9f425d78baf55",  # v3.11.0, latest as of 2018-09-28
         patches = ["//third_party:com_github_kevinburke_go_bindata-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/kevinburke/go-bindata

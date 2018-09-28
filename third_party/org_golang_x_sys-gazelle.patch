@@ -1,6 +1,6 @@
 diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 --- a/cpu/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/cpu/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/cpu/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -29,7 +29,7 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 +)
 diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 --- a/plan9/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/plan9/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/plan9/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -67,7 +67,7 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 +)
 diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 --- a/unix/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/unix/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/unix/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,233 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -304,7 +304,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +)
 diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 --- a/windows/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/windows/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -346,7 +346,7 @@ diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 +)
 diff -urN a/windows/registry/BUILD.bazel b/windows/registry/BUILD.bazel
 --- a/windows/registry/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/registry/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/windows/registry/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -379,7 +379,7 @@ diff -urN a/windows/registry/BUILD.bazel b/windows/registry/BUILD.bazel
 +)
 diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
 --- a/windows/svc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/windows/svc/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -417,7 +417,7 @@ diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
 +)
 diff -urN a/windows/svc/debug/BUILD.bazel b/windows/svc/debug/BUILD.bazel
 --- a/windows/svc/debug/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/debug/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/windows/svc/debug/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -438,7 +438,7 @@ diff -urN a/windows/svc/debug/BUILD.bazel b/windows/svc/debug/BUILD.bazel
 +)
 diff -urN a/windows/svc/eventlog/BUILD.bazel b/windows/svc/eventlog/BUILD.bazel
 --- a/windows/svc/eventlog/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/eventlog/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/windows/svc/eventlog/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -466,7 +466,7 @@ diff -urN a/windows/svc/eventlog/BUILD.bazel b/windows/svc/eventlog/BUILD.bazel
 +)
 diff -urN a/windows/svc/example/BUILD.bazel b/windows/svc/example/BUILD.bazel
 --- a/windows/svc/example/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/example/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/windows/svc/example/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -499,7 +499,7 @@ diff -urN a/windows/svc/example/BUILD.bazel b/windows/svc/example/BUILD.bazel
 +)
 diff -urN a/windows/svc/mgr/BUILD.bazel b/windows/svc/mgr/BUILD.bazel
 --- a/windows/svc/mgr/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/mgr/BUILD.bazel	2018-09-27 16:52:25.800595529 -0400
++++ b/windows/svc/mgr/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +

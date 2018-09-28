@@ -79,6 +79,7 @@ POPULAR_REPOS = [
         excludes = [
             "cmd/bundle:go_default_test", # Needs testdata directory
             "cmd/callgraph:go_default_test", # Needs testdata directory
+            "cmd/callgraph/testdata/src/pkg:go_default_test", # is testdata
             "cmd/cover:go_default_test", # Needs testdata directory
             "cmd/guru:go_default_test", # Needs testdata directory
             "cmd/stringer:go_default_test", # Needs testdata directory
@@ -105,8 +106,15 @@ POPULAR_REPOS = [
             "go/packages:go_default_test", # Hah!
             "godoc:go_default_test", # requires GOROOT and GOPATH
             "godoc/static:go_default_test", # requires data files
+            "godoc/vfs/zipfs:go_default_test", # requires GOROOT
             "imports:go_default_test", # probably needs GOROOT
             "go/types/typeutil:go_default_test", # requires GOROOT
+            "go/analysis/analysistest:go_default_test", # requires build cache
+            "go/analysis/passes/findcall:go_default_test", # requires build cache
+            "go/analysis/passes/pkgfact:go_default_test", # requires go list
+            "go/analysis/passes/vet/testdata/divergent:go_default_test", # is testdata
+            "go/analysis/passes/vet/testdata/incomplete:go_default_test", # is testdata
+            "go/analysis/passes/vet/testdata/testingpkg:go_default_test", # is testdata
         ],
     ),
 
