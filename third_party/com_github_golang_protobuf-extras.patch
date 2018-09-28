@@ -1,0 +1,502 @@
+diff -urN b/conformance/internal/conformance_proto/BUILD.bazel c/conformance/internal/conformance_proto/BUILD.bazel
+--- b/conformance/internal/conformance_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
++++ c/conformance/internal/conformance_proto/BUILD.bazel	2018-09-28 12:28:40.234183077 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["conformance.proto"],
++    visibility = ["//conformance:__subpackages__"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["conformance.pb.go"],
+diff -urN b/descriptor/BUILD.bazel c/descriptor/BUILD.bazel
+--- b/descriptor/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
++++ c/descriptor/BUILD.bazel	2018-09-28 12:28:40.234183077 -0400
+@@ -11,6 +11,18 @@
+     ],
+ )
+ 
++go_library(
++    name = "go_default_library_gen",
++    srcs = ["descriptor.go"],
++    importpath = "github.com/golang/protobuf/descriptor",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "@io_bazel_rules_go//proto/wkt:descriptor_go_proto",
++    ],
++)
++
++# keep
+ go_test(
+     name = "go_default_test",
+     srcs = ["descriptor_test.go"],
+diff -urN b/jsonpb/BUILD.bazel c/jsonpb/BUILD.bazel
+--- b/jsonpb/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
++++ c/jsonpb/BUILD.bazel	2018-09-28 12:28:40.234183077 -0400
+@@ -11,6 +11,17 @@
+     ],
+ )
+ 
++go_library(
++    name = "go_default_library_gen",
++    srcs = ["jsonpb.go"],
++    importpath = "github.com/golang/protobuf/jsonpb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "@io_bazel_rules_go//proto/wkt:struct_go_proto",
++    ],
++)
++
+ go_test(
+     name = "go_default_test",
+     srcs = ["jsonpb_test.go"],
+diff -urN b/jsonpb/jsonpb_test_proto/BUILD.bazel c/jsonpb/jsonpb_test_proto/BUILD.bazel
+--- b/jsonpb/jsonpb_test_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
++++ c/jsonpb/jsonpb_test_proto/BUILD.bazel	2018-09-28 12:28:40.234183077 -0400
+@@ -1,5 +1,14 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "more_test_objects.proto",
++        "test_objects.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/proto/proto3_proto/BUILD.bazel c/proto/proto3_proto/BUILD.bazel
+--- b/proto/proto3_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
++++ c/proto/proto3_proto/BUILD.bazel	2018-09-28 12:28:40.234183077 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["proto3.pb.go"],
+diff -urN b/proto/test_proto/BUILD.bazel c/proto/test_proto/BUILD.bazel
+--- b/proto/test_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
++++ c/proto/test_proto/BUILD.bazel	2018-09-28 12:28:40.234183077 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["test.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["test.pb.go"],
+diff -urN b/protoc-gen-go/descriptor/BUILD.bazel c/protoc-gen-go/descriptor/BUILD.bazel
+--- b/protoc-gen-go/descriptor/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
++++ c/protoc-gen-go/descriptor/BUILD.bazel	2018-09-28 12:28:40.234183077 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["descriptor.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["descriptor.pb.go"],
+diff -urN b/protoc-gen-go/plugin/BUILD.bazel c/protoc-gen-go/plugin/BUILD.bazel
+--- b/protoc-gen-go/plugin/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/plugin/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["plugin.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["plugin.pb.go"],
+diff -urN b/protoc-gen-go/testdata/deprecated/BUILD.bazel c/protoc-gen-go/testdata/deprecated/BUILD.bazel
+--- b/protoc-gen-go/testdata/deprecated/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/deprecated/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["deprecated.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["deprecated.pb.go"],
+diff -urN b/protoc-gen-go/testdata/extension_base/BUILD.bazel c/protoc-gen-go/testdata/extension_base/BUILD.bazel
+--- b/protoc-gen-go/testdata/extension_base/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/extension_base/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["extension_base.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["extension_base.pb.go"],
+diff -urN b/protoc-gen-go/testdata/extension_extra/BUILD.bazel c/protoc-gen-go/testdata/extension_extra/BUILD.bazel
+--- b/protoc-gen-go/testdata/extension_extra/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/extension_extra/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["extension_extra.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["extension_extra.pb.go"],
+diff -urN b/protoc-gen-go/testdata/extension_user/BUILD.bazel c/protoc-gen-go/testdata/extension_user/BUILD.bazel
+--- b/protoc-gen-go/testdata/extension_user/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/extension_user/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["extension_user.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["extension_user.pb.go"],
+diff -urN b/protoc-gen-go/testdata/grpc/BUILD.bazel c/protoc-gen-go/testdata/grpc/BUILD.bazel
+--- b/protoc-gen-go/testdata/grpc/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/grpc/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["grpc.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["grpc.pb.go"],
+diff -urN b/protoc-gen-go/testdata/import_public/BUILD.bazel c/protoc-gen-go/testdata/import_public/BUILD.bazel
+--- b/protoc-gen-go/testdata/import_public/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/import_public/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,14 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "a.proto",
++        "b.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/protoc-gen-go/testdata/import_public/sub/BUILD.bazel c/protoc-gen-go/testdata/import_public/sub/BUILD.bazel
+--- b/protoc-gen-go/testdata/import_public/sub/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/import_public/sub/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,14 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "a.proto",
++        "b.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/protoc-gen-go/testdata/imports/BUILD.bazel c/protoc-gen-go/testdata/imports/BUILD.bazel
+--- b/protoc-gen-go/testdata/imports/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/imports/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,15 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "test_import_a1m1.proto",
++        "test_import_a1m2.proto",
++        "test_import_all.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/protoc-gen-go/testdata/imports/fmt/BUILD.bazel c/protoc-gen-go/testdata/imports/fmt/BUILD.bazel
+--- b/protoc-gen-go/testdata/imports/fmt/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/imports/fmt/BUILD.bazel	2018-09-28 12:28:40.238183129 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["m.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["m.pb.go"],
+diff -urN b/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel c/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel
+--- b/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,14 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "m1.proto",
++        "m2.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel c/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel
+--- b/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,14 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "m3.proto",
++        "m4.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel c/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel
+--- b/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,14 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "m1.proto",
++        "m2.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/protoc-gen-go/testdata/multi/BUILD.bazel c/protoc-gen-go/testdata/multi/BUILD.bazel
+--- b/protoc-gen-go/testdata/multi/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/multi/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,15 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "multi1.proto",
++        "multi2.proto",
++        "multi3.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = [
+diff -urN b/protoc-gen-go/testdata/my_test/BUILD.bazel c/protoc-gen-go/testdata/my_test/BUILD.bazel
+--- b/protoc-gen-go/testdata/my_test/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/my_test/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["test.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["test.pb.go"],
+diff -urN b/protoc-gen-go/testdata/proto3/BUILD.bazel c/protoc-gen-go/testdata/proto3/BUILD.bazel
+--- b/protoc-gen-go/testdata/proto3/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/protoc-gen-go/testdata/proto3/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["proto3.pb.go"],
+diff -urN b/ptypes/any/BUILD.bazel c/ptypes/any/BUILD.bazel
+--- b/ptypes/any/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/ptypes/any/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["any.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["any.pb.go"],
+diff -urN b/ptypes/BUILD.bazel c/ptypes/BUILD.bazel
+--- b/ptypes/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/ptypes/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -18,6 +18,24 @@
+     ],
+ )
+ 
++go_library(
++    name = "go_default_library_gen",
++    srcs = [
++        "any.go",
++        "doc.go",
++        "duration.go",
++        "timestamp.go",
++    ],
++    importpath = "github.com/golang/protobuf/ptypes",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "@io_bazel_rules_go//proto/wkt:any_go_proto",
++        "@io_bazel_rules_go//proto/wkt:duration_go_proto",
++        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
++    ],
++)
++
+ go_test(
+     name = "go_default_test",
+     srcs = [
+diff -urN b/ptypes/duration/BUILD.bazel c/ptypes/duration/BUILD.bazel
+--- b/ptypes/duration/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/ptypes/duration/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["duration.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["duration.pb.go"],
+diff -urN b/ptypes/empty/BUILD.bazel c/ptypes/empty/BUILD.bazel
+--- b/ptypes/empty/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/ptypes/empty/BUILD.bazel	2018-09-28 12:28:40.242183180 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["empty.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["empty.pb.go"],
+diff -urN b/ptypes/struct/BUILD.bazel c/ptypes/struct/BUILD.bazel
+--- b/ptypes/struct/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/ptypes/struct/BUILD.bazel	2018-09-28 12:28:40.246183232 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["struct.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["struct.pb.go"],
+diff -urN b/ptypes/timestamp/BUILD.bazel c/ptypes/timestamp/BUILD.bazel
+--- b/ptypes/timestamp/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/ptypes/timestamp/BUILD.bazel	2018-09-28 12:28:40.246183232 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["timestamp.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["timestamp.pb.go"],
+diff -urN b/ptypes/wrappers/BUILD.bazel c/ptypes/wrappers/BUILD.bazel
+--- b/ptypes/wrappers/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
++++ c/ptypes/wrappers/BUILD.bazel	2018-09-28 12:28:40.246183232 -0400
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["wrappers.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["wrappers.pb.go"],

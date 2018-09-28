@@ -1,9 +1,0 @@
-filegroup(
-    name = "go_default_library_protos",
-    srcs = [
-        "multi1.proto",
-        "multi2.proto",
-        "multi3.proto",
-    ],
-    visibility = ["//visibility:public"],
-)

@@ -1,0 +1,2955 @@
+diff -ruN a/benchmark/parse/BUILD.bazel b/benchmark/parse/BUILD.bazel
+--- a/benchmark/parse/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/benchmark/parse/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["parse.go"],
++    importpath = "golang.org/x/tools/benchmark/parse",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["parse_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/blog/atom/BUILD.bazel b/blog/atom/BUILD.bazel
+--- a/blog/atom/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/blog/atom/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["atom.go"],
++    importpath = "golang.org/x/tools/blog/atom",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/blog/BUILD.bazel b/blog/BUILD.bazel
+--- a/blog/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/blog/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["blog.go"],
++    importpath = "golang.org/x/tools/blog",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//blog/atom:go_default_library",
++        "//present:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["blog_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/benchcmp/BUILD.bazel b/cmd/benchcmp/BUILD.bazel
+--- a/cmd/benchcmp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/benchcmp/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "benchcmp.go",
++        "compare.go",
++        "doc.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/benchcmp",
++    visibility = ["//visibility:private"],
++    deps = ["//benchmark/parse:go_default_library"],
++)
++
++go_binary(
++    name = "benchcmp",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "benchcmp_test.go",
++        "compare_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = ["//benchmark/parse:go_default_library"],
++)
+diff -ruN a/cmd/bundle/BUILD.bazel b/cmd/bundle/BUILD.bazel
+--- a/cmd/bundle/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/bundle/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/bundle",
++    visibility = ["//visibility:private"],
++    deps = ["//go/loader:go_default_library"],
++)
++
++go_binary(
++    name = "bundle",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["main_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//go/buildutil:go_default_library"],
++)
+diff -ruN a/cmd/bundle/testdata/src/domain.name/importdecl/BUILD.bazel b/cmd/bundle/testdata/src/domain.name/importdecl/BUILD.bazel
+--- a/cmd/bundle/testdata/src/domain.name/importdecl/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/bundle/testdata/src/domain.name/importdecl/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["p.go"],
++    importpath = "golang.org/x/tools/cmd/bundle/testdata/src/domain.name/importdecl",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/bundle/testdata/src/initial/BUILD.bazel b/cmd/bundle/testdata/src/initial/BUILD.bazel
+--- a/cmd/bundle/testdata/src/initial/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/bundle/testdata/src/initial/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "a.go",
++        "b.go",
++        "c.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/bundle/testdata/src/initial",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/callgraph/BUILD.bazel b/cmd/callgraph/BUILD.bazel
+--- a/cmd/callgraph/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/callgraph/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/callgraph",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//go/buildutil:go_default_library",
++        "//go/callgraph:go_default_library",
++        "//go/callgraph/cha:go_default_library",
++        "//go/callgraph/rta:go_default_library",
++        "//go/callgraph/static:go_default_library",
++        "//go/packages:go_default_library",
++        "//go/pointer:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "callgraph",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["main_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/callgraph/testdata/src/pkg/BUILD.bazel b/cmd/callgraph/testdata/src/pkg/BUILD.bazel
+--- a/cmd/callgraph/testdata/src/pkg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/callgraph/testdata/src/pkg/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["pkg.go"],
++    importpath = "golang.org/x/tools/cmd/callgraph/testdata/src/pkg",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "pkg",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["pkg_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/compilebench/BUILD.bazel b/cmd/compilebench/BUILD.bazel
+--- a/cmd/compilebench/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/compilebench/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/compilebench",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "compilebench",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/cover/BUILD.bazel b/cmd/cover/BUILD.bazel
+--- a/cmd/cover/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/cover/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,26 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cover.go",
++        "doc.go",
++        "func.go",
++        "html.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/cover",
++    visibility = ["//visibility:private"],
++    deps = ["//cover:go_default_library"],
++)
++
++go_binary(
++    name = "cover",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["cover_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/cover/testdata/BUILD.bazel b/cmd/cover/testdata/BUILD.bazel
+--- a/cmd/cover/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/cover/testdata/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "main.go",
++        "test.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/cover/testdata",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "testdata",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/digraph/BUILD.bazel b/cmd/digraph/BUILD.bazel
+--- a/cmd/digraph/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/digraph/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["digraph.go"],
++    importpath = "golang.org/x/tools/cmd/digraph",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "digraph",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["digraph_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/eg/BUILD.bazel b/cmd/eg/BUILD.bazel
+--- a/cmd/eg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/eg/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["eg.go"],
++    importpath = "golang.org/x/tools/cmd/eg",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//go/buildutil:go_default_library",
++        "//go/loader:go_default_library",
++        "//refactor/eg:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "eg",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/BUILD.bazel b/cmd/fiximports/BUILD.bazel
+--- a/cmd/fiximports/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "fiximports",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["main_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/fruit.io/banana/BUILD.bazel b/cmd/fiximports/testdata/src/fruit.io/banana/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/fruit.io/banana/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/fruit.io/banana/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["banana.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/fruit.io/banana",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/fruit.io/orange/BUILD.bazel b/cmd/fiximports/testdata/src/fruit.io/orange/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/fruit.io/orange/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/fruit.io/orange/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["orange.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/fruit.io/orange",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/fruit.io/pear/BUILD.bazel b/cmd/fiximports/testdata/src/fruit.io/pear/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/fruit.io/pear/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/fruit.io/pear/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["pear.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/fruit.io/pear",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/new.com/one/BUILD.bazel b/cmd/fiximports/testdata/src/new.com/one/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/new.com/one/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/new.com/one/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/new.com/one",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/old.com/bad/BUILD.bazel b/cmd/fiximports/testdata/src/old.com/bad/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/old.com/bad/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/old.com/bad/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["bad.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/old.com/bad",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/old.com/one/BUILD.bazel b/cmd/fiximports/testdata/src/old.com/one/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/old.com/one/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/old.com/one/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/old.com/one",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/titanic.biz/bar/BUILD.bazel b/cmd/fiximports/testdata/src/titanic.biz/bar/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/titanic.biz/bar/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/titanic.biz/bar/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["bar.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/titanic.biz/bar",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/fiximports/testdata/src/titanic.biz/foo/BUILD.bazel b/cmd/fiximports/testdata/src/titanic.biz/foo/BUILD.bazel
+--- a/cmd/fiximports/testdata/src/titanic.biz/foo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/fiximports/testdata/src/titanic.biz/foo/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["foo.go"],
++    importpath = "golang.org/x/tools/cmd/fiximports/testdata/src/titanic.biz/foo",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/getgo/BUILD.bazel b/cmd/getgo/BUILD.bazel
+--- a/cmd/getgo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/getgo/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "download.go",
++        "main.go",
++        "path.go",
++        "steps.go",
++        "system.go",
++        "system_unix.go",
++        "system_windows.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/getgo",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "getgo",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "download_test.go",
++        "main_test.go",
++        "path_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/getgo/server/BUILD.bazel b/cmd/getgo/server/BUILD.bazel
+--- a/cmd/getgo/server/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/getgo/server/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/getgo/server",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/go-contrib-init/BUILD.bazel b/cmd/go-contrib-init/BUILD.bazel
+--- a/cmd/go-contrib-init/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/go-contrib-init/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["contrib.go"],
++    importpath = "golang.org/x/tools/cmd/go-contrib-init",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "go-contrib-init",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["contrib_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/godex/BUILD.bazel b/cmd/godex/BUILD.bazel
+--- a/cmd/godex/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/godex/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "gc.go",
++        "gccgo.go",
++        "godex.go",
++        "isAlias18.go",
++        "isAlias19.go",
++        "print.go",
++        "source.go",
++        "writetype.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/godex",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "godex",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/godoc/BUILD.bazel b/cmd/godoc/BUILD.bazel
+--- a/cmd/godoc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/godoc/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,44 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "blog.go",
++        "codewalk.go",
++        "dl.go",
++        "doc.go",
++        "goroot.go",
++        "handlers.go",
++        "index.go",
++        "main.go",
++        "play.go",
++        "remotesearch.go",
++        "x.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/godoc",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//blog:go_default_library",
++        "//godoc:go_default_library",
++        "//godoc/analysis:go_default_library",
++        "//godoc/redirect:go_default_library",
++        "//godoc/static:go_default_library",
++        "//godoc/vfs:go_default_library",
++        "//godoc/vfs/gatefs:go_default_library",
++        "//godoc/vfs/mapfs:go_default_library",
++        "//godoc/vfs/zipfs:go_default_library",
++        "//playground:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "godoc",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["godoc_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/goimports/BUILD.bazel b/cmd/goimports/BUILD.bazel
+--- a/cmd/goimports/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/goimports/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "goimports.go",
++        "goimports_gc.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/goimports",
++    visibility = ["//visibility:private"],
++    deps = ["//imports:go_default_library"],
++)
++
++go_binary(
++    name = "goimports",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/gomvpkg/BUILD.bazel b/cmd/gomvpkg/BUILD.bazel
+--- a/cmd/gomvpkg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gomvpkg/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/gomvpkg",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//go/buildutil:go_default_library",
++        "//refactor/rename:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "gomvpkg",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/gorename/BUILD.bazel b/cmd/gorename/BUILD.bazel
+--- a/cmd/gorename/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gorename/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/gorename",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//go/buildutil:go_default_library",
++        "//refactor/rename:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "gorename",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "cgo_test.go",
++        "gorename_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/gotype/BUILD.bazel b/cmd/gotype/BUILD.bazel
+--- a/cmd/gotype/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gotype/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "gotype.go",
++        "sizesFor18.go",
++        "sizesFor19.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/gotype",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "gotype",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/goyacc/BUILD.bazel b/cmd/goyacc/BUILD.bazel
+--- a/cmd/goyacc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/goyacc/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "yacc.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/goyacc",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "goyacc",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/goyacc/testdata/expr/BUILD.bazel b/cmd/goyacc/testdata/expr/BUILD.bazel
+--- a/cmd/goyacc/testdata/expr/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/goyacc/testdata/expr/BUILD.bazel	2018-09-27 15:25:09.244911752 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/goyacc/testdata/expr",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "expr",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/BUILD.bazel b/cmd/guru/BUILD.bazel
+--- a/cmd/guru/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,55 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "callees.go",
++        "callers.go",
++        "callstack.go",
++        "definition.go",
++        "describe.go",
++        "freevars.go",
++        "guru.go",
++        "implements.go",
++        "isAlias18.go",
++        "isAlias19.go",
++        "main.go",
++        "peers.go",
++        "pointsto.go",
++        "pos.go",
++        "referrers.go",
++        "what.go",
++        "whicherrs.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/guru",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//cmd/guru/serial:go_default_library",
++        "//go/ast/astutil:go_default_library",
++        "//go/buildutil:go_default_library",
++        "//go/callgraph:go_default_library",
++        "//go/callgraph/static:go_default_library",
++        "//go/loader:go_default_library",
++        "//go/pointer:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++        "//go/types/typeutil:go_default_library",
++        "//imports:go_default_library",
++        "//refactor/importgraph:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "guru",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "guru_test.go",
++        "unit_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/guru/serial/BUILD.bazel b/cmd/guru/serial/BUILD.bazel
+--- a/cmd/guru/serial/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/serial/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["serial.go"],
++    importpath = "golang.org/x/tools/cmd/guru/serial",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/alias/BUILD.bazel b/cmd/guru/testdata/src/alias/BUILD.bazel
+--- a/cmd/guru/testdata/src/alias/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/alias/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["alias.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/alias",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/calls/BUILD.bazel b/cmd/guru/testdata/src/calls/BUILD.bazel
+--- a/cmd/guru/testdata/src/calls/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/calls/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/calls",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "calls",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/calls-json/BUILD.bazel b/cmd/guru/testdata/src/calls-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/calls-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/calls-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/calls-json",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "calls-json",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/definition-json/BUILD.bazel b/cmd/guru/testdata/src/definition-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/definition-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/definition-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "main.go",
++        "main19.go",
++        "type.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/definition-json",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/describe/BUILD.bazel b/cmd/guru/testdata/src/describe/BUILD.bazel
+--- a/cmd/guru/testdata/src/describe/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/describe/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,11 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "main.go",
++        "main19.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/describe",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/describe-json/BUILD.bazel b/cmd/guru/testdata/src/describe-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/describe-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/describe-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/describe-json",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/freevars/BUILD.bazel b/cmd/guru/testdata/src/freevars/BUILD.bazel
+--- a/cmd/guru/testdata/src/freevars/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/freevars/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/freevars",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "freevars",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/implements/BUILD.bazel b/cmd/guru/testdata/src/implements/BUILD.bazel
+--- a/cmd/guru/testdata/src/implements/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/implements/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/implements",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "implements",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/implements-json/BUILD.bazel b/cmd/guru/testdata/src/implements-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/implements-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/implements-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/implements-json",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "implements-json",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/implements-methods/BUILD.bazel b/cmd/guru/testdata/src/implements-methods/BUILD.bazel
+--- a/cmd/guru/testdata/src/implements-methods/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/implements-methods/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/implements-methods",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "implements-methods",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/implements-methods-json/BUILD.bazel b/cmd/guru/testdata/src/implements-methods-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/implements-methods-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/implements-methods-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/implements-methods-json",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "implements-methods-json",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/imports/BUILD.bazel b/cmd/guru/testdata/src/imports/BUILD.bazel
+--- a/cmd/guru/testdata/src/imports/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/imports/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/imports",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "imports",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/lib/BUILD.bazel b/cmd/guru/testdata/src/lib/BUILD.bazel
+--- a/cmd/guru/testdata/src/lib/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/lib/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["lib.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/lib",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/lib/sublib/BUILD.bazel b/cmd/guru/testdata/src/lib/sublib/BUILD.bazel
+--- a/cmd/guru/testdata/src/lib/sublib/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/lib/sublib/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["sublib.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/lib/sublib",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/main/BUILD.bazel b/cmd/guru/testdata/src/main/BUILD.bazel
+--- a/cmd/guru/testdata/src/main/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/main/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["multi.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/main",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "main",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/peers/BUILD.bazel b/cmd/guru/testdata/src/peers/BUILD.bazel
+--- a/cmd/guru/testdata/src/peers/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/peers/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/peers",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "peers",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/peers-json/BUILD.bazel b/cmd/guru/testdata/src/peers-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/peers-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/peers-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/peers-json",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "peers-json",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/pointsto/BUILD.bazel b/cmd/guru/testdata/src/pointsto/BUILD.bazel
+--- a/cmd/guru/testdata/src/pointsto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/pointsto/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/pointsto",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "pointsto",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/pointsto-json/BUILD.bazel b/cmd/guru/testdata/src/pointsto-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/pointsto-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/pointsto-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/pointsto-json",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "pointsto-json",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/referrers/BUILD.bazel b/cmd/guru/testdata/src/referrers/BUILD.bazel
+--- a/cmd/guru/testdata/src/referrers/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/referrers/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/referrers",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "referrers",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "ext_test.go",
++        "int_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/guru/testdata/src/referrers-json/BUILD.bazel b/cmd/guru/testdata/src/referrers-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/referrers-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/referrers-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/referrers-json",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "referrers-json",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/reflection/BUILD.bazel b/cmd/guru/testdata/src/reflection/BUILD.bazel
+--- a/cmd/guru/testdata/src/reflection/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/reflection/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/reflection",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "reflection",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/softerrs/BUILD.bazel b/cmd/guru/testdata/src/softerrs/BUILD.bazel
+--- a/cmd/guru/testdata/src/softerrs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/softerrs/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/softerrs",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "softerrs",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/what/BUILD.bazel b/cmd/guru/testdata/src/what/BUILD.bazel
+--- a/cmd/guru/testdata/src/what/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/what/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/what",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "what",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/what-json/BUILD.bazel b/cmd/guru/testdata/src/what-json/BUILD.bazel
+--- a/cmd/guru/testdata/src/what-json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/what-json/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/what-json",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "what-json",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/guru/testdata/src/whicherrs/BUILD.bazel b/cmd/guru/testdata/src/whicherrs/BUILD.bazel
+--- a/cmd/guru/testdata/src/whicherrs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/guru/testdata/src/whicherrs/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/guru/testdata/src/whicherrs",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "whicherrs",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/heapview/BUILD.bazel b/cmd/heapview/BUILD.bazel
+--- a/cmd/heapview/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/heapview/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/heapview",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "heapview",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/heapview/internal/core/BUILD.bazel b/cmd/heapview/internal/core/BUILD.bazel
+--- a/cmd/heapview/internal/core/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/heapview/internal/core/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "mmapfile.go",
++        "mmapfile_other.go",
++        "raw.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/heapview/internal/core",
++    visibility = ["//cmd/heapview:__subpackages__"],
++)
+diff -ruN a/cmd/html2article/BUILD.bazel b/cmd/html2article/BUILD.bazel
+--- a/cmd/html2article/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/html2article/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["conv.go"],
++    importpath = "golang.org/x/tools/cmd/html2article",
++    visibility = ["//visibility:private"],
++    deps = [
++        "@org_golang_x_net//html:go_default_library",
++        "@org_golang_x_net//html/atom:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "html2article",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/present/BUILD.bazel b/cmd/present/BUILD.bazel
+--- a/cmd/present/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/present/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "dir.go",
++        "doc.go",
++        "local.go",
++        "play.go",
++        "play_socket.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/present",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//godoc/static:go_default_library",
++        "//playground/socket:go_default_library",
++        "//present:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "present",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/ssadump/BUILD.bazel b/cmd/ssadump/BUILD.bazel
+--- a/cmd/ssadump/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/ssadump/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/cmd/ssadump",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//go/buildutil:go_default_library",
++        "//go/packages:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/ssa/interp:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "ssadump",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/stress/BUILD.bazel b/cmd/stress/BUILD.bazel
+--- a/cmd/stress/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/stress/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["stress.go"],
++    importpath = "golang.org/x/tools/cmd/stress",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "stress",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/stringer/BUILD.bazel b/cmd/stringer/BUILD.bazel
+--- a/cmd/stringer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/stringer/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "importer18.go",
++        "importer19.go",
++        "stringer.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/stringer",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "stringer",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "endtoend_test.go",
++        "golden_test.go",
++        "util_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/stringer/testdata/BUILD.bazel b/cmd/stringer/testdata/BUILD.bazel
+--- a/cmd/stringer/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/stringer/testdata/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cgo.go",
++        "day.go",
++        "gap.go",
++        "num.go",
++        "number.go",
++        "prime.go",
++        "tag_main.go",
++        "unum.go",
++        "unum2.go",
++    ],
++    cgo = True,
++    importpath = "golang.org/x/tools/cmd/stringer/testdata",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "testdata",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/cmd/tip/BUILD.bazel b/cmd/tip/BUILD.bazel
+--- a/cmd/tip/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/tip/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "godoc.go",
++        "talks.go",
++        "tip.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/tip",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "tip",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["tip_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cmd/toolstash/BUILD.bazel b/cmd/toolstash/BUILD.bazel
+--- a/cmd/toolstash/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/toolstash/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cmp.go",
++        "main.go",
++    ],
++    importpath = "golang.org/x/tools/cmd/toolstash",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "toolstash",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/container/intsets/BUILD.bazel b/container/intsets/BUILD.bazel
+--- a/container/intsets/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/container/intsets/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "popcnt_amd64.go",
++        "popcnt_amd64.s",
++        "popcnt_generic.go",
++        "sparse.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/container/intsets",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "sparse_test.go",
++        "util_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/cover/BUILD.bazel b/cover/BUILD.bazel
+--- a/cover/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cover/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["profile.go"],
++    importpath = "golang.org/x/tools/cover",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/go/analysis/BUILD.bazel b/go/analysis/BUILD.bazel
+--- a/go/analysis/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/analysis/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,11 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "analysis.go",
++        "validate.go",
++    ],
++    importpath = "golang.org/x/tools/go/analysis",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/go/analysis/plugin/findcall/BUILD.bazel b/go/analysis/plugin/findcall/BUILD.bazel
+--- a/go/analysis/plugin/findcall/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/analysis/plugin/findcall/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["findcall.go"],
++    importpath = "golang.org/x/tools/go/analysis/plugin/findcall",
++    visibility = ["//visibility:public"],
++    deps = ["//go/analysis:go_default_library"],
++)
+diff -ruN a/go/analysis/plugin/pkglemma/BUILD.bazel b/go/analysis/plugin/pkglemma/BUILD.bazel
+--- a/go/analysis/plugin/pkglemma/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/analysis/plugin/pkglemma/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["pkglemma.go"],
++    importpath = "golang.org/x/tools/go/analysis/plugin/pkglemma",
++    visibility = ["//visibility:public"],
++    deps = ["//go/analysis:go_default_library"],
++)
+diff -ruN a/go/ast/astutil/BUILD.bazel b/go/ast/astutil/BUILD.bazel
+--- a/go/ast/astutil/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/ast/astutil/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "enclosing.go",
++        "imports.go",
++        "rewrite.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/go/ast/astutil",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "enclosing_test.go",
++        "imports_test.go",
++        "rewrite_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/go/buildutil/BUILD.bazel b/go/buildutil/BUILD.bazel
+--- a/go/buildutil/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/buildutil/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,26 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "allpackages.go",
++        "fakecontext.go",
++        "overlay.go",
++        "tags.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/go/buildutil",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "allpackages_test.go",
++        "overlay_test.go",
++        "tags_test.go",
++        "util_test.go",
++        "util_windows_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/go/callgraph/BUILD.bazel b/go/callgraph/BUILD.bazel
+--- a/go/callgraph/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/callgraph/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "callgraph.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/go/callgraph",
++    visibility = ["//visibility:public"],
++    deps = ["//go/ssa:go_default_library"],
++)
+diff -ruN a/go/callgraph/cha/BUILD.bazel b/go/callgraph/cha/BUILD.bazel
+--- a/go/callgraph/cha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/callgraph/cha/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,73 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["cha.go"],
++    importpath = "golang.org/x/tools/go/callgraph/cha",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/callgraph:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["cha_test.go"],
++    embed = [":go_default_library"],
++    deps = select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:dragonfly": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:freebsd": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:linux": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:nacl": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:netbsd": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:openbsd": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:plan9": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:solaris": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:windows": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "//conditions:default": [],
++    }),
++)
+diff -ruN a/go/callgraph/cha/testdata/BUILD.bazel b/go/callgraph/cha/testdata/BUILD.bazel
+--- a/go/callgraph/cha/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/callgraph/cha/testdata/BUILD.bazel	2018-09-27 15:25:09.248911804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["issue23925.go"],
++    importpath = "golang.org/x/tools/go/callgraph/cha/testdata",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "testdata",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/go/callgraph/rta/BUILD.bazel b/go/callgraph/rta/BUILD.bazel
+--- a/go/callgraph/rta/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/callgraph/rta/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,83 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["rta.go"],
++    importpath = "golang.org/x/tools/go/callgraph/rta",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/callgraph:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["rta_test.go"],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++    deps = select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:dragonfly": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:freebsd": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:linux": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:nacl": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:netbsd": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:openbsd": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:plan9": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:solaris": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:windows": [
++            "//go/callgraph:go_default_library",
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "//conditions:default": [],
++    }),
++)
+diff -ruN a/go/callgraph/static/BUILD.bazel b/go/callgraph/static/BUILD.bazel
+--- a/go/callgraph/static/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/callgraph/static/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["static.go"],
++    importpath = "golang.org/x/tools/go/callgraph/static",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/callgraph:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["static_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//go/callgraph:go_default_library",
++        "//go/loader:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++    ],
++)
+diff -ruN a/go/gccgoexportdata/BUILD.bazel b/go/gccgoexportdata/BUILD.bazel
+--- a/go/gccgoexportdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/gccgoexportdata/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["gccgoexportdata.go"],
++    importpath = "golang.org/x/tools/go/gccgoexportdata",
++    visibility = ["//visibility:public"],
++    deps = ["//go/internal/gccgoimporter:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["gccgoexportdata_test.go"],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++)
+diff -ruN a/go/gcexportdata/BUILD.bazel b/go/gcexportdata/BUILD.bazel
+--- a/go/gcexportdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/gcexportdata/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "gcexportdata.go",
++        "importer.go",
++    ],
++    importpath = "golang.org/x/tools/go/gcexportdata",
++    visibility = ["//visibility:public"],
++    deps = ["//go/internal/gcimporter:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "gcexportdata_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++)
+diff -ruN a/go/internal/cgo/BUILD.bazel b/go/internal/cgo/BUILD.bazel
+--- a/go/internal/cgo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/internal/cgo/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,11 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cgo.go",
++        "cgo_pkgconfig.go",
++    ],
++    importpath = "golang.org/x/tools/go/internal/cgo",
++    visibility = ["//go:__subpackages__"],
++)
+diff -ruN a/go/internal/gccgoimporter/BUILD.bazel b/go/internal/gccgoimporter/BUILD.bazel
+--- a/go/internal/gccgoimporter/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/internal/gccgoimporter/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "backdoor.go",
++        "gccgoinstallation.go",
++        "importer.go",
++        "newInterface10.go",
++        "newInterface11.go",
++        "parser.go",
++    ],
++    importpath = "golang.org/x/tools/go/internal/gccgoimporter",
++    visibility = ["//go:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "gccgoinstallation_test.go",
++        "importer19_test.go",
++        "importer_test.go",
++        "parser_test.go",
++        "testenv_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++)
+diff -ruN a/go/internal/gcimporter/BUILD.bazel b/go/internal/gcimporter/BUILD.bazel
+--- a/go/internal/gcimporter/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/internal/gcimporter/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "bexport.go",
++        "bimport.go",
++        "exportdata.go",
++        "gcimporter.go",
++        "iimport.go",
++        "isAlias18.go",
++        "isAlias19.go",
++        "newInterface10.go",
++        "newInterface11.go",
++    ],
++    importpath = "golang.org/x/tools/go/internal/gcimporter",
++    visibility = ["//go:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "bexport19_test.go",
++        "bexport_test.go",
++        "gcimporter11_test.go",
++        "gcimporter_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//go/buildutil:go_default_library",
++        "//go/loader:go_default_library",
++    ],
++)
+diff -ruN a/go/internal/gcimporter/testdata/versions/BUILD.bazel b/go/internal/gcimporter/testdata/versions/BUILD.bazel
+--- a/go/internal/gcimporter/testdata/versions/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/internal/gcimporter/testdata/versions/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["test.go"],
++    importpath = "golang.org/x/tools/go/internal/gcimporter/testdata/versions",
++    visibility = ["//go:__subpackages__"],
++)
+diff -ruN a/go/loader/BUILD.bazel b/go/loader/BUILD.bazel
+--- a/go/loader/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/loader/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "loader.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/go/loader",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/ast/astutil:go_default_library",
++        "//go/buildutil:go_default_library",
++        "//go/internal/cgo:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "loader_test.go",
++        "stdlib_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = ["//go/buildutil:go_default_library"],
++)
+diff -ruN a/go/loader/testdata/BUILD.bazel b/go/loader/testdata/BUILD.bazel
+--- a/go/loader/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/loader/testdata/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "a.go",
++        "b.go",
++        "badpkgdecl.go",
++    ],
++    importpath = "golang.org/x/tools/go/loader/testdata",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/go/packages/BUILD.bazel b/go/packages/BUILD.bazel
+--- a/go/packages/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/packages/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "external.go",
++        "golist.go",
++        "golist_fallback.go",
++        "golist_fallback_testmain.go",
++        "packages.go",
++        "visit.go",
++    ],
++    importpath = "golang.org/x/tools/go/packages",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/gcexportdata:go_default_library",
++        "//go/internal/cgo:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "packages110_test.go",
++        "packages_test.go",
++        "stdlib_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/go/packages/gopackages/BUILD.bazel b/go/packages/gopackages/BUILD.bazel
+--- a/go/packages/gopackages/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/packages/gopackages/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/tools/go/packages/gopackages",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//go/packages:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "gopackages",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/go/pointer/BUILD.bazel b/go/pointer/BUILD.bazel
+--- a/go/pointer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/pointer/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,89 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "analysis.go",
++        "api.go",
++        "callgraph.go",
++        "constraint.go",
++        "doc.go",
++        "gen.go",
++        "hvn.go",
++        "intrinsics.go",
++        "labels.go",
++        "opt.go",
++        "print.go",
++        "query.go",
++        "reflect.go",
++        "solve.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/go/pointer",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//container/intsets:go_default_library",
++        "//go/callgraph:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "pointer_test.go",
++        "query_test.go",
++        "stdlib_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//go/callgraph:go_default_library",
++        "//go/loader:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++    ] + select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:dragonfly": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:freebsd": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:linux": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:nacl": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:netbsd": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:openbsd": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:plan9": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:solaris": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:windows": [
++            "//go/buildutil:go_default_library",
++            "//go/types/typeutil:go_default_library",
++        ],
++        "//conditions:default": [],
++    }),
++)
+diff -ruN a/go/pointer/testdata/BUILD.bazel b/go/pointer/testdata/BUILD.bazel
+--- a/go/pointer/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/pointer/testdata/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "finalizer.go",
++        "issue9002.go",
++        "rtti.go",
++    ],
++    importpath = "golang.org/x/tools/go/pointer/testdata",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "testdata",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/go/ssa/BUILD.bazel b/go/ssa/BUILD.bazel
+--- a/go/ssa/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/ssa/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,86 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "blockopt.go",
++        "builder.go",
++        "const.go",
++        "create.go",
++        "doc.go",
++        "dom.go",
++        "emit.go",
++        "func.go",
++        "identical.go",
++        "identical_17.go",
++        "lift.go",
++        "lvalue.go",
++        "methods.go",
++        "mode.go",
++        "print.go",
++        "sanity.go",
++        "source.go",
++        "ssa.go",
++        "testmain.go",
++        "util.go",
++        "wrappers.go",
++    ],
++    importpath = "golang.org/x/tools/go/ssa",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/ast/astutil:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "builder_test.go",
++        "example_test.go",
++        "identical_test.go",
++        "source_test.go",
++        "stdlib_test.go",
++        "testmain_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++    deps = [
++        "//go/ast/astutil:go_default_library",
++        "//go/loader:go_default_library",
++        "//go/packages:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++    ] + select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:dragonfly": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:freebsd": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:linux": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:nacl": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:netbsd": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:openbsd": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:plan9": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:solaris": [
++            "//go/buildutil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:windows": [
++            "//go/buildutil:go_default_library",
++        ],
++        "//conditions:default": [],
++    }),
++)
+diff -ruN a/go/ssa/interp/BUILD.bazel b/go/ssa/interp/BUILD.bazel
+--- a/go/ssa/interp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/ssa/interp/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,41 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "external.go",
++        "external_darwin.go",
++        "external_unix.go",
++        "interp.go",
++        "map.go",
++        "ops.go",
++        "reflect.go",
++        "value.go",
++    ],
++    importpath = "golang.org/x/tools/go/ssa/interp",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/ssa:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["interp_test.go"],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++    deps = select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:linux": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++            "//go/ssa/ssautil:go_default_library",
++        ],
++        "//conditions:default": [],
++    }),
++)
+diff -ruN a/go/ssa/ssautil/BUILD.bazel b/go/ssa/ssautil/BUILD.bazel
+--- a/go/ssa/ssautil/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/ssa/ssautil/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,72 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "load.go",
++        "switch.go",
++        "visit.go",
++    ],
++    importpath = "golang.org/x/tools/go/ssa/ssautil",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/loader:go_default_library",
++        "//go/packages:go_default_library",
++        "//go/ssa:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "load_test.go",
++        "switch_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++    deps = [
++        "//go/packages:go_default_library",
++    ] + select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:dragonfly": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:freebsd": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:linux": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:nacl": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:netbsd": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:openbsd": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:plan9": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:solaris": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:windows": [
++            "//go/loader:go_default_library",
++            "//go/ssa:go_default_library",
++        ],
++        "//conditions:default": [],
++    }),
++)
+diff -ruN a/go/types/typeutil/BUILD.bazel b/go/types/typeutil/BUILD.bazel
+--- a/go/types/typeutil/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/types/typeutil/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,26 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "callee.go",
++        "imports.go",
++        "map.go",
++        "methodsetcache.go",
++        "ui.go",
++    ],
++    importpath = "golang.org/x/tools/go/types/typeutil",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "callee_test.go",
++        "example_test.go",
++        "imports_test.go",
++        "map_test.go",
++        "ui_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/go/vcs/BUILD.bazel b/go/vcs/BUILD.bazel
+--- a/go/vcs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/go/vcs/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "discovery.go",
++        "env.go",
++        "http.go",
++        "vcs.go",
++    ],
++    importpath = "golang.org/x/tools/go/vcs",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["vcs_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/godoc/analysis/BUILD.bazel b/godoc/analysis/BUILD.bazel
+--- a/godoc/analysis/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/analysis/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "analysis.go",
++        "callgraph.go",
++        "implements.go",
++        "json.go",
++        "peers.go",
++        "typeinfo.go",
++    ],
++    importpath = "golang.org/x/tools/godoc/analysis",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/callgraph:go_default_library",
++        "//go/loader:go_default_library",
++        "//go/pointer:go_default_library",
++        "//go/ssa:go_default_library",
++        "//go/ssa/ssautil:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)
+diff -ruN a/godoc/BUILD.bazel b/godoc/BUILD.bazel
+--- a/godoc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,54 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cmdline.go",
++        "corpus.go",
++        "dirtrees.go",
++        "format.go",
++        "godoc.go",
++        "index.go",
++        "linkify.go",
++        "meta.go",
++        "page.go",
++        "parser.go",
++        "pres.go",
++        "search.go",
++        "server.go",
++        "snippet.go",
++        "spec.go",
++        "spot.go",
++        "tab.go",
++        "template.go",
++        "versions.go",
++    ],
++    importpath = "golang.org/x/tools/godoc",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//godoc/analysis:go_default_library",
++        "//godoc/util:go_default_library",
++        "//godoc/vfs:go_default_library",
++        "//godoc/vfs/httpfs:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "cmdline_test.go",
++        "dirtrees_test.go",
++        "godoc17_test.go",
++        "godoc_test.go",
++        "index_test.go",
++        "server_test.go",
++        "spec_test.go",
++        "versions_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//godoc/vfs:go_default_library",
++        "//godoc/vfs/gatefs:go_default_library",
++        "//godoc/vfs/mapfs:go_default_library",
++    ],
++)
+diff -ruN a/godoc/redirect/BUILD.bazel b/godoc/redirect/BUILD.bazel
+--- a/godoc/redirect/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/redirect/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "hash.go",
++        "redirect.go",
++    ],
++    importpath = "golang.org/x/tools/godoc/redirect",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["redirect_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/godoc/static/BUILD.bazel b/godoc/static/BUILD.bazel
+--- a/godoc/static/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/static/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "gen.go",
++        "static.go",
++    ],
++    importpath = "golang.org/x/tools/godoc/static",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["gen_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/godoc/util/BUILD.bazel b/godoc/util/BUILD.bazel
+--- a/godoc/util/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/util/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "throttle.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/godoc/util",
++    visibility = ["//visibility:public"],
++    deps = ["//godoc/vfs:go_default_library"],
++)
+diff -ruN a/godoc/vfs/BUILD.bazel b/godoc/vfs/BUILD.bazel
+--- a/godoc/vfs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/vfs/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "emptyvfs.go",
++        "namespace.go",
++        "os.go",
++        "vfs.go",
++    ],
++    importpath = "golang.org/x/tools/godoc/vfs",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "emptyvfs_test.go",
++        "os_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = ["//godoc/vfs/mapfs:go_default_library"],
++)
+diff -ruN a/godoc/vfs/gatefs/BUILD.bazel b/godoc/vfs/gatefs/BUILD.bazel
+--- a/godoc/vfs/gatefs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/vfs/gatefs/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["gatefs.go"],
++    importpath = "golang.org/x/tools/godoc/vfs/gatefs",
++    visibility = ["//visibility:public"],
++    deps = ["//godoc/vfs:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["gatefs_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//godoc/vfs:go_default_library"],
++)
+diff -ruN a/godoc/vfs/httpfs/BUILD.bazel b/godoc/vfs/httpfs/BUILD.bazel
+--- a/godoc/vfs/httpfs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/vfs/httpfs/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["httpfs.go"],
++    importpath = "golang.org/x/tools/godoc/vfs/httpfs",
++    visibility = ["//visibility:public"],
++    deps = ["//godoc/vfs:go_default_library"],
++)
+diff -ruN a/godoc/vfs/mapfs/BUILD.bazel b/godoc/vfs/mapfs/BUILD.bazel
+--- a/godoc/vfs/mapfs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/vfs/mapfs/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["mapfs.go"],
++    importpath = "golang.org/x/tools/godoc/vfs/mapfs",
++    visibility = ["//visibility:public"],
++    deps = ["//godoc/vfs:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["mapfs_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/godoc/vfs/zipfs/BUILD.bazel b/godoc/vfs/zipfs/BUILD.bazel
+--- a/godoc/vfs/zipfs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/godoc/vfs/zipfs/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["zipfs.go"],
++    importpath = "golang.org/x/tools/godoc/vfs/zipfs",
++    visibility = ["//visibility:public"],
++    deps = ["//godoc/vfs:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["zipfs_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//godoc/vfs:go_default_library"],
++)
+diff -ruN a/imports/BUILD.bazel b/imports/BUILD.bazel
+--- a/imports/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/imports/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "fix.go",
++        "imports.go",
++        "sortimports.go",
++        "zstdlib.go",
++    ],
++    importpath = "golang.org/x/tools/imports",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/ast/astutil:go_default_library",
++        "//internal/fastwalk:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["fix_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/internal/fastwalk/BUILD.bazel b/internal/fastwalk/BUILD.bazel
+--- a/internal/fastwalk/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/fastwalk/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "fastwalk.go",
++        "fastwalk_dirent_fileno.go",
++        "fastwalk_dirent_ino.go",
++        "fastwalk_portable.go",
++        "fastwalk_unix.go",
++    ],
++    importpath = "golang.org/x/tools/internal/fastwalk",
++    visibility = ["//:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["fastwalk_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/playground/BUILD.bazel b/playground/BUILD.bazel
+--- a/playground/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/playground/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,11 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "common.go",
++        "local.go",
++    ],
++    importpath = "golang.org/x/tools/playground",
++    visibility = ["//visibility:public"],
++)
+diff -ruN a/playground/socket/BUILD.bazel b/playground/socket/BUILD.bazel
+--- a/playground/socket/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/playground/socket/BUILD.bazel	2018-09-27 15:25:09.252911855 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["socket.go"],
++    importpath = "golang.org/x/tools/playground/socket",
++    visibility = ["//visibility:public"],
++    deps = ["@org_golang_x_net//websocket:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["socket_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/present/BUILD.bazel b/present/BUILD.bazel
+--- a/present/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/present/BUILD.bazel	2018-09-27 15:25:09.256911908 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "args.go",
++        "caption.go",
++        "code.go",
++        "doc.go",
++        "html.go",
++        "iframe.go",
++        "image.go",
++        "link.go",
++        "parse.go",
++        "style.go",
++        "video.go",
++    ],
++    importpath = "golang.org/x/tools/present",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "code_test.go",
++        "link_test.go",
++        "style_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -ruN a/refactor/eg/BUILD.bazel b/refactor/eg/BUILD.bazel
+--- a/refactor/eg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/refactor/eg/BUILD.bazel	2018-09-27 15:25:09.256911908 -0400
+@@ -0,0 +1,53 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "eg.go",
++        "match.go",
++        "rewrite.go",
++    ],
++    importpath = "golang.org/x/tools/refactor/eg",
++    visibility = ["//visibility:public"],
++    deps = ["//go/ast/astutil:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["eg_test.go"],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++    deps = select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:dragonfly": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:freebsd": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:linux": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:nacl": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:netbsd": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:openbsd": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:plan9": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:solaris": [
++            "//go/loader:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:windows": [
++            "//go/loader:go_default_library",
++        ],
++        "//conditions:default": [],
++    }),
++)
+diff -ruN a/refactor/importgraph/BUILD.bazel b/refactor/importgraph/BUILD.bazel
+--- a/refactor/importgraph/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/refactor/importgraph/BUILD.bazel	2018-09-27 15:25:09.256911908 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["graph.go"],
++    importpath = "golang.org/x/tools/refactor/importgraph",
++    visibility = ["//visibility:public"],
++    deps = ["//go/buildutil:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["graph_test.go"],
++    embed = [":go_default_library"],
++)
+diff -ruN a/refactor/rename/BUILD.bazel b/refactor/rename/BUILD.bazel
+--- a/refactor/rename/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/refactor/rename/BUILD.bazel	2018-09-27 15:25:09.256911908 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "check.go",
++        "mvpkg.go",
++        "rename.go",
++        "spec.go",
++        "util.go",
++    ],
++    importpath = "golang.org/x/tools/refactor/rename",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/ast/astutil:go_default_library",
++        "//go/buildutil:go_default_library",
++        "//go/loader:go_default_library",
++        "//go/types/typeutil:go_default_library",
++        "//refactor/importgraph:go_default_library",
++        "//refactor/satisfy:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "mvpkg_test.go",
++        "rename_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = ["//go/buildutil:go_default_library"],
++)
+diff -ruN a/refactor/satisfy/BUILD.bazel b/refactor/satisfy/BUILD.bazel
+--- a/refactor/satisfy/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/refactor/satisfy/BUILD.bazel	2018-09-27 15:25:09.256911908 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["find.go"],
++    importpath = "golang.org/x/tools/refactor/satisfy",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/ast/astutil:go_default_library",
++        "//go/types/typeutil:go_default_library",
++    ],
++)

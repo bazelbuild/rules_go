@@ -1,0 +1,1836 @@
+diff -urN a/BUILD.bazel b/BUILD.bazel
+--- a/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "golang.org/x/text",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/cases/BUILD.bazel b/cases/BUILD.bazel
+--- a/cases/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cases/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,44 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cases.go",
++        "context.go",
++        "fold.go",
++        "info.go",
++        "map.go",
++        "tables10.0.0.go",
++        "tables9.0.0.go",
++        "trieval.go",
++    ],
++    cgo = True,
++    importpath = "golang.org/x/text/cases",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal:go_default_library",
++        "//language:go_default_library",
++        "//transform:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "context_test.go",
++        "example_test.go",
++        "fold_test.go",
++        "map_test.go",
++        "tables10.0.0_test.go",
++        "tables9.0.0_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/testtext:go_default_library",
++        "//language:go_default_library",
++        "//transform:go_default_library",
++        "//unicode/norm:go_default_library",
++        "//unicode/rangetable:go_default_library",
++    ],
++)
+diff -urN a/cmd/gotext/BUILD.bazel b/cmd/gotext/BUILD.bazel
+--- a/cmd/gotext/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gotext/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "common.go",
++        "doc.go",
++        "extract.go",
++        "generate.go",
++        "main.go",
++        "rewrite.go",
++    ],
++    importpath = "golang.org/x/text/cmd/gotext",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//internal:go_default_library",
++        "//language:go_default_library",
++        "//message/pipeline:go_default_library",
++        "@org_golang_x_tools//go/buildutil:go_default_library",
++        "@org_golang_x_tools//go/loader:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "gotext",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/cmd/gotext/examples/extract/BUILD.bazel b/cmd/gotext/examples/extract/BUILD.bazel
+--- a/cmd/gotext/examples/extract/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gotext/examples/extract/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "catalog.go",
++        "main.go",
++    ],
++    importpath = "golang.org/x/text/cmd/gotext/examples/extract",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//language:go_default_library",
++        "//message:go_default_library",
++        "//message/catalog:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "extract",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/cmd/gotext/examples/extract_http/BUILD.bazel b/cmd/gotext/examples/extract_http/BUILD.bazel
+--- a/cmd/gotext/examples/extract_http/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gotext/examples/extract_http/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/text/cmd/gotext/examples/extract_http",
++    visibility = ["//visibility:private"],
++    deps = ["//cmd/gotext/examples/extract_http/pkg:go_default_library"],
++)
++
++go_binary(
++    name = "extract_http",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/cmd/gotext/examples/extract_http/pkg/BUILD.bazel b/cmd/gotext/examples/extract_http/pkg/BUILD.bazel
+--- a/cmd/gotext/examples/extract_http/pkg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gotext/examples/extract_http/pkg/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["pkg.go"],
++    importpath = "golang.org/x/text/cmd/gotext/examples/extract_http/pkg",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//language:go_default_library",
++        "//message:go_default_library",
++    ],
++)
+diff -urN a/cmd/gotext/examples/rewrite/BUILD.bazel b/cmd/gotext/examples/rewrite/BUILD.bazel
+--- a/cmd/gotext/examples/rewrite/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/gotext/examples/rewrite/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/text/cmd/gotext/examples/rewrite",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//language:go_default_library",
++        "//message:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "rewrite",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/collate/build/BUILD.bazel b/collate/build/BUILD.bazel
+--- a/collate/build/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/collate/build/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "builder.go",
++        "colelem.go",
++        "contract.go",
++        "order.go",
++        "table.go",
++        "trie.go",
++    ],
++    importpath = "golang.org/x/text/collate/build",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/colltab:go_default_library",
++        "//language:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "builder_test.go",
++        "colelem_test.go",
++        "contract_test.go",
++        "order_test.go",
++        "trie_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = ["//internal/colltab:go_default_library"],
++)
+diff -urN a/collate/BUILD.bazel b/collate/BUILD.bazel
+--- a/collate/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/collate/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,39 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "collate.go",
++        "index.go",
++        "option.go",
++        "sort.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/collate",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/colltab:go_default_library",
++        "//language:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "collate_test.go",
++        "export_test.go",
++        "option_test.go",
++        "reg_test.go",
++        "sort_test.go",
++        "table_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//collate/build:go_default_library",
++        "//internal/colltab:go_default_library",
++        "//internal/gen:go_default_library",
++        "//language:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
+diff -urN a/collate/tools/colcmp/BUILD.bazel b/collate/tools/colcmp/BUILD.bazel
+--- a/collate/tools/colcmp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/collate/tools/colcmp/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "chars.go",
++        "col.go",
++        "colcmp.go",
++        "darwin.go",
++        "gen.go",
++    ],
++    cgo = True,
++    clinkopts = select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "-framework CoreFoundation",
++        ],
++        "//conditions:default": [],
++    }),
++    importpath = "golang.org/x/text/collate/tools/colcmp",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//collate:go_default_library",
++        "//language:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "colcmp",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/currency/BUILD.bazel b/currency/BUILD.bazel
+--- a/currency/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/currency/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,39 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "common.go",
++        "currency.go",
++        "format.go",
++        "query.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/currency",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal:go_default_library",
++        "//internal/format:go_default_library",
++        "//internal/tag:go_default_library",
++        "//language:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "currency_test.go",
++        "example_test.go",
++        "format_test.go",
++        "query_test.go",
++        "tables_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//language:go_default_library",
++        "//message:go_default_library",
++        "//unicode/cldr:go_default_library",
++    ],
++)
+diff -urN a/date/BUILD.bazel b/date/BUILD.bazel
+--- a/date/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/date/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["tables.go"],
++    importpath = "golang.org/x/text/date",
++    visibility = ["//visibility:public"],
++    deps = ["//internal/cldrtree:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "data_test.go",
++        "gen_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/cldrtree:go_default_library",
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//language:go_default_library",
++        "//unicode/cldr:go_default_library",
++    ],
++)
+diff -urN a/encoding/BUILD.bazel b/encoding/BUILD.bazel
+--- a/encoding/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["encoding.go"],
++    importpath = "golang.org/x/text/encoding",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "encoding_test.go",
++        "example_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding/charmap:go_default_library",
++        "//encoding/unicode:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/charmap/BUILD.bazel b/encoding/charmap/BUILD.bazel
+--- a/encoding/charmap/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/charmap/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "charmap.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/encoding/charmap",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["charmap_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/enctest:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/htmlindex/BUILD.bazel b/encoding/htmlindex/BUILD.bazel
+--- a/encoding/htmlindex/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/htmlindex/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "htmlindex.go",
++        "map.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/encoding/htmlindex",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/charmap:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//encoding/japanese:go_default_library",
++        "//encoding/korean:go_default_library",
++        "//encoding/simplifiedchinese:go_default_library",
++        "//encoding/traditionalchinese:go_default_library",
++        "//encoding/unicode:go_default_library",
++        "//language:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["htmlindex_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/charmap:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//encoding/unicode:go_default_library",
++        "//language:go_default_library",
++    ],
++)
+diff -urN a/encoding/ianaindex/BUILD.bazel b/encoding/ianaindex/BUILD.bazel
+--- a/encoding/ianaindex/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/ianaindex/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,40 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "ianaindex.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/encoding/ianaindex",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/charmap:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//encoding/japanese:go_default_library",
++        "//encoding/korean:go_default_library",
++        "//encoding/simplifiedchinese:go_default_library",
++        "//encoding/traditionalchinese:go_default_library",
++        "//encoding/unicode:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "ianaindex_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/charmap:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//encoding/japanese:go_default_library",
++        "//encoding/korean:go_default_library",
++        "//encoding/simplifiedchinese:go_default_library",
++        "//encoding/traditionalchinese:go_default_library",
++        "//encoding/unicode:go_default_library",
++    ],
++)
+diff -urN a/encoding/internal/BUILD.bazel b/encoding/internal/BUILD.bazel
+--- a/encoding/internal/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/internal/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,13 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["internal.go"],
++    importpath = "golang.org/x/text/encoding/internal",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/internal/enctest/BUILD.bazel b/encoding/internal/enctest/BUILD.bazel
+--- a/encoding/internal/enctest/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/internal/enctest/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,13 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["enctest.go"],
++    importpath = "golang.org/x/text/encoding/internal/enctest",
++    visibility = ["//encoding:__subpackages__"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/internal/identifier/BUILD.bazel b/encoding/internal/identifier/BUILD.bazel
+--- a/encoding/internal/identifier/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/internal/identifier/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,11 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "identifier.go",
++        "mib.go",
++    ],
++    importpath = "golang.org/x/text/encoding/internal/identifier",
++    visibility = ["//encoding:__subpackages__"],
++)
+diff -urN a/encoding/japanese/BUILD.bazel b/encoding/japanese/BUILD.bazel
+--- a/encoding/japanese/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/japanese/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "all.go",
++        "eucjp.go",
++        "iso2022jp.go",
++        "shiftjis.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/encoding/japanese",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["all_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/enctest:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/korean/BUILD.bazel b/encoding/korean/BUILD.bazel
+--- a/encoding/korean/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/korean/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "euckr.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/encoding/korean",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["all_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/enctest:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/simplifiedchinese/BUILD.bazel b/encoding/simplifiedchinese/BUILD.bazel
+--- a/encoding/simplifiedchinese/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/simplifiedchinese/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "all.go",
++        "gbk.go",
++        "hzgb2312.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/encoding/simplifiedchinese",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["all_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/enctest:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/traditionalchinese/BUILD.bazel b/encoding/traditionalchinese/BUILD.bazel
+--- a/encoding/traditionalchinese/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/traditionalchinese/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "big5.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/encoding/traditionalchinese",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["all_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/enctest:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/unicode/BUILD.bazel b/encoding/unicode/BUILD.bazel
+--- a/encoding/unicode/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/unicode/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "override.go",
++        "unicode.go",
++    ],
++    importpath = "golang.org/x/text/encoding/unicode",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//internal/utf8internal:go_default_library",
++        "//runes:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["unicode_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/charmap:go_default_library",
++        "//encoding/internal/enctest:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/encoding/unicode/utf32/BUILD.bazel b/encoding/unicode/utf32/BUILD.bazel
+--- a/encoding/unicode/utf32/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/encoding/unicode/utf32/BUILD.bazel	2018-09-27 16:47:51.977071375 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["utf32.go"],
++    importpath = "golang.org/x/text/encoding/unicode/utf32",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal/identifier:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["utf32_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//encoding:go_default_library",
++        "//encoding/internal/enctest:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/feature/plural/BUILD.bazel b/feature/plural/BUILD.bazel
+--- a/feature/plural/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/feature/plural/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "common.go",
++        "message.go",
++        "plural.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/feature/plural",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/catmsg:go_default_library",
++        "//internal/number:go_default_library",
++        "//language:go_default_library",
++        "//message/catalog:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "data_test.go",
++        "example_test.go",
++        "message_test.go",
++        "plural_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/catmsg:go_default_library",
++        "//language:go_default_library",
++        "//message:go_default_library",
++        "//message/catalog:go_default_library",
++    ],
++)
+diff -urN a/internal/BUILD.bazel b/internal/BUILD.bazel
+--- a/internal/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "internal.go",
++        "match.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/internal",
++    visibility = ["//visibility:public"],
++    deps = ["//language:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "gen_test.go",
++        "internal_test.go",
++        "match_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = ["//language:go_default_library"],
++)
+diff -urN a/internal/catmsg/BUILD.bazel b/internal/catmsg/BUILD.bazel
+--- a/internal/catmsg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/catmsg/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "catmsg.go",
++        "codec.go",
++        "varint.go",
++    ],
++    importpath = "golang.org/x/text/internal/catmsg",
++    visibility = ["//:__subpackages__"],
++    deps = ["//language:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "catmsg_test.go",
++        "varint_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = ["//language:go_default_library"],
++)
+diff -urN a/internal/cldrtree/BUILD.bazel b/internal/cldrtree/BUILD.bazel
+--- a/internal/cldrtree/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/cldrtree/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cldrtree.go",
++        "generate.go",
++        "option.go",
++        "tree.go",
++        "type.go",
++    ],
++    importpath = "golang.org/x/text/internal/cldrtree",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//internal:go_default_library",
++        "//internal/gen:go_default_library",
++        "//language:go_default_library",
++        "//unicode/cldr:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["cldrtree_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//language:go_default_library",
++        "//unicode/cldr:go_default_library",
++    ],
++)
+diff -urN a/internal/cldrtree/testdata/test1/BUILD.bazel b/internal/cldrtree/testdata/test1/BUILD.bazel
+--- a/internal/cldrtree/testdata/test1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/cldrtree/testdata/test1/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["output.go"],
++    importpath = "golang.org/x/text/internal/cldrtree/testdata/test1",
++    visibility = ["//:__subpackages__"],
++    deps = ["//internal/cldrtree:go_default_library"],
++)
+diff -urN a/internal/cldrtree/testdata/test2/BUILD.bazel b/internal/cldrtree/testdata/test2/BUILD.bazel
+--- a/internal/cldrtree/testdata/test2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/cldrtree/testdata/test2/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["output.go"],
++    importpath = "golang.org/x/text/internal/cldrtree/testdata/test2",
++    visibility = ["//:__subpackages__"],
++    deps = ["//internal/cldrtree:go_default_library"],
++)
+diff -urN a/internal/colltab/BUILD.bazel b/internal/colltab/BUILD.bazel
+--- a/internal/colltab/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/colltab/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,42 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "collelem.go",
++        "colltab.go",
++        "contract.go",
++        "iter.go",
++        "numeric.go",
++        "table.go",
++        "trie.go",
++        "weighter.go",
++    ],
++    importpath = "golang.org/x/text/internal/colltab",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//language:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "collate_test.go",
++        "collelem_test.go",
++        "colltab_test.go",
++        "contract_test.go",
++        "iter_test.go",
++        "numeric_test.go",
++        "trie_test.go",
++        "weighter_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//collate:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//language:go_default_library",
++        "//unicode/rangetable:go_default_library",
++    ],
++)
+diff -urN a/internal/export/idna/BUILD.bazel b/internal/export/idna/BUILD.bazel
+--- a/internal/export/idna/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/export/idna/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,41 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "idna10.0.0.go",
++        "idna9.0.0.go",
++        "punycode.go",
++        "tables10.0.0.go",
++        "tables9.0.0.go",
++        "trie.go",
++        "trieval.go",
++    ],
++    importpath = "golang.org/x/text/internal/export/idna",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//secure/bidirule:go_default_library",
++        "//unicode/bidi:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "common_test.go",
++        "example_test.go",
++        "gen10.0.0_test.go",
++        "gen9.0.0_test.go",
++        "idna10.0.0_test.go",
++        "idna9.0.0_test.go",
++        "idna_test.go",
++        "punycode_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//internal/ucd:go_default_library",
++    ],
++)
+diff -urN a/internal/format/BUILD.bazel b/internal/format/BUILD.bazel
+--- a/internal/format/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/format/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "format.go",
++        "parser.go",
++    ],
++    importpath = "golang.org/x/text/internal/format",
++    visibility = ["//:__subpackages__"],
++    deps = ["//language:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["parser_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/internal/gen/BUILD.bazel b/internal/gen/BUILD.bazel
+--- a/internal/gen/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/gen/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "code.go",
++        "gen.go",
++    ],
++    importpath = "golang.org/x/text/internal/gen",
++    visibility = ["//:__subpackages__"],
++    deps = ["//unicode/cldr:go_default_library"],
++)
+diff -urN a/internal/number/BUILD.bazel b/internal/number/BUILD.bazel
+--- a/internal/number/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/number/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,39 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "common.go",
++        "decimal.go",
++        "format.go",
++        "number.go",
++        "pattern.go",
++        "roundingmode_string.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/internal/number",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//internal:go_default_library",
++        "//internal/stringset:go_default_library",
++        "//language:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "decimal_test.go",
++        "format_test.go",
++        "number_test.go",
++        "pattern_test.go",
++        "tables_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//language:go_default_library",
++        "//unicode/cldr:go_default_library",
++    ],
++)
+diff -urN a/internal/stringset/BUILD.bazel b/internal/stringset/BUILD.bazel
+--- a/internal/stringset/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/stringset/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["set.go"],
++    importpath = "golang.org/x/text/internal/stringset",
++    visibility = ["//:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["set_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/internal/tag/BUILD.bazel b/internal/tag/BUILD.bazel
+--- a/internal/tag/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/tag/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["tag.go"],
++    importpath = "golang.org/x/text/internal/tag",
++    visibility = ["//:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["tag_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/internal/testtext/BUILD.bazel b/internal/testtext/BUILD.bazel
+--- a/internal/testtext/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/testtext/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "codesize.go",
++        "flag.go",
++        "gc.go",
++        "go1_6.go",
++        "go1_7.go",
++        "text.go",
++    ],
++    importpath = "golang.org/x/text/internal/testtext",
++    visibility = ["//:__subpackages__"],
++    deps = ["//internal/gen:go_default_library"],
++)
+diff -urN a/internal/triegen/BUILD.bazel b/internal/triegen/BUILD.bazel
+--- a/internal/triegen/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/triegen/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "compact.go",
++        "print.go",
++        "triegen.go",
++    ],
++    importpath = "golang.org/x/text/internal/triegen",
++    visibility = ["//:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "data_test.go",
++        "example_compact_test.go",
++        "example_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -urN a/internal/ucd/BUILD.bazel b/internal/ucd/BUILD.bazel
+--- a/internal/ucd/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/ucd/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["ucd.go"],
++    importpath = "golang.org/x/text/internal/ucd",
++    visibility = ["//:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "ucd_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -urN a/internal/utf8internal/BUILD.bazel b/internal/utf8internal/BUILD.bazel
+--- a/internal/utf8internal/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/utf8internal/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["utf8internal.go"],
++    importpath = "golang.org/x/text/internal/utf8internal",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/language/BUILD.bazel b/language/BUILD.bazel
+--- a/language/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/language/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,42 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "common.go",
++        "coverage.go",
++        "doc.go",
++        "go1_1.go",
++        "go1_2.go",
++        "index.go",
++        "language.go",
++        "lookup.go",
++        "match.go",
++        "parse.go",
++        "tables.go",
++        "tags.go",
++    ],
++    importpath = "golang.org/x/text/language",
++    visibility = ["//visibility:public"],
++    deps = ["//internal/tag:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "coverage_test.go",
++        "examples_test.go",
++        "httpexample_test.go",
++        "language_test.go",
++        "lookup_test.go",
++        "match_test.go",
++        "parse_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/tag:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//internal/ucd:go_default_library",
++    ],
++)
+diff -urN a/language/display/BUILD.bazel b/language/display/BUILD.bazel
+--- a/language/display/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/language/display/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "dict.go",
++        "display.go",
++        "lookup.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/language/display",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/format:go_default_library",
++        "//language:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "dict_test.go",
++        "display_test.go",
++        "examples_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/testtext:go_default_library",
++        "//language:go_default_library",
++        "//message:go_default_library",
++    ],
++)
+diff -urN a/message/BUILD.bazel b/message/BUILD.bazel
+--- a/message/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/message/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,38 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "catalog.go",
++        "doc.go",
++        "format.go",
++        "message.go",
++        "print.go",
++    ],
++    importpath = "golang.org/x/text/message",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//feature/plural:go_default_library",
++        "//internal/format:go_default_library",
++        "//internal/number:go_default_library",
++        "//language:go_default_library",
++        "//message/catalog:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "catalog_test.go",
++        "examples_test.go",
++        "fmt_test.go",
++        "message_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal:go_default_library",
++        "//internal/format:go_default_library",
++        "//language:go_default_library",
++        "//message/catalog:go_default_library",
++    ],
++)
+diff -urN a/message/catalog/BUILD.bazel b/message/catalog/BUILD.bazel
+--- a/message/catalog/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/message/catalog/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "catalog.go",
++        "dict.go",
++        "go19.go",
++        "gopre19.go",
++    ],
++    importpath = "golang.org/x/text/message/catalog",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal:go_default_library",
++        "//internal/catmsg:go_default_library",
++        "//language:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["catalog_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/catmsg:go_default_library",
++        "//language:go_default_library",
++    ],
++)
+diff -urN a/message/pipeline/BUILD.bazel b/message/pipeline/BUILD.bazel
+--- a/message/pipeline/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/message/pipeline/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "extract.go",
++        "generate.go",
++        "message.go",
++        "pipeline.go",
++        "rewrite.go",
++    ],
++    importpath = "golang.org/x/text/message/pipeline",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//collate:go_default_library",
++        "//feature/plural:go_default_library",
++        "//internal:go_default_library",
++        "//internal/catmsg:go_default_library",
++        "//internal/format:go_default_library",
++        "//internal/gen:go_default_library",
++        "//language:go_default_library",
++        "@org_golang_x_tools//go/loader:go_default_library",
++    ],
++)
+diff -urN a/number/BUILD.bazel b/number/BUILD.bazel
+--- a/number/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/number/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "format.go",
++        "number.go",
++        "option.go",
++    ],
++    importpath = "golang.org/x/text/number",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//feature/plural:go_default_library",
++        "//internal/format:go_default_library",
++        "//internal/number:go_default_library",
++        "//language:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "examples_test.go",
++        "format_test.go",
++        "number_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//feature/plural:go_default_library",
++        "//language:go_default_library",
++        "//message:go_default_library",
++    ],
++)
+diff -urN a/runes/BUILD.bazel b/runes/BUILD.bazel
+--- a/runes/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/runes/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "cond.go",
++        "runes.go",
++    ],
++    importpath = "golang.org/x/text/runes",
++    visibility = ["//visibility:public"],
++    deps = ["//transform:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "cond_test.go",
++        "example_test.go",
++        "runes_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//cases:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//language:go_default_library",
++        "//transform:go_default_library",
++        "//unicode/norm:go_default_library",
++        "//width:go_default_library",
++    ],
++)
+diff -urN a/search/BUILD.bazel b/search/BUILD.bazel
+--- a/search/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/search/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "index.go",
++        "pattern.go",
++        "search.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/search",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/colltab:go_default_library",
++        "//language:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["pattern_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//language:go_default_library"],
++)
+diff -urN a/secure/bidirule/BUILD.bazel b/secure/bidirule/BUILD.bazel
+--- a/secure/bidirule/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/secure/bidirule/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "bidirule.go",
++        "bidirule10.0.0.go",
++        "bidirule9.0.0.go",
++    ],
++    importpath = "golang.org/x/text/secure/bidirule",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//transform:go_default_library",
++        "//unicode/bidi:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "bench_test.go",
++        "bidirule10.0.0_test.go",
++        "bidirule9.0.0_test.go",
++        "bidirule_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/testtext:go_default_library",
++        "//transform:go_default_library",
++        "//unicode/bidi:go_default_library",
++    ],
++)
+diff -urN a/secure/BUILD.bazel b/secure/BUILD.bazel
+--- a/secure/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/secure/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "golang.org/x/text/secure",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/secure/precis/BUILD.bazel b/secure/precis/BUILD.bazel
+--- a/secure/precis/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/secure/precis/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,50 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "class.go",
++        "context.go",
++        "doc.go",
++        "nickname.go",
++        "options.go",
++        "profile.go",
++        "profiles.go",
++        "tables10.0.0.go",
++        "tables9.0.0.go",
++        "transformer.go",
++        "trieval.go",
++    ],
++    importpath = "golang.org/x/text/secure/precis",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//cases:go_default_library",
++        "//language:go_default_library",
++        "//runes:go_default_library",
++        "//secure/bidirule:go_default_library",
++        "//transform:go_default_library",
++        "//unicode/norm:go_default_library",
++        "//width:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "benchmark_test.go",
++        "class_test.go",
++        "enforce10.0.0_test.go",
++        "enforce9.0.0_test.go",
++        "enforce_test.go",
++        "profile_test.go",
++        "tables_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/testtext:go_default_library",
++        "//runes:go_default_library",
++        "//secure/bidirule:go_default_library",
++        "//transform:go_default_library",
++        "//unicode/rangetable:go_default_library",
++    ],
++)
+diff -urN a/transform/BUILD.bazel b/transform/BUILD.bazel
+--- a/transform/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/transform/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["transform.go"],
++    importpath = "golang.org/x/text/transform",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "examples_test.go",
++        "transform_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/testtext:go_default_library",
++        "//unicode/norm:go_default_library",
++    ],
++)
+diff -urN a/unicode/bidi/BUILD.bazel b/unicode/bidi/BUILD.bazel
+--- a/unicode/bidi/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/unicode/bidi/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "bidi.go",
++        "bracket.go",
++        "core.go",
++        "prop.go",
++        "tables10.0.0.go",
++        "tables9.0.0.go",
++        "trieval.go",
++    ],
++    importpath = "golang.org/x/text/unicode/bidi",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "core_test.go",
++        "ranges_test.go",
++        "tables_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//internal/ucd:go_default_library",
++        "//unicode/norm:go_default_library",
++        "//unicode/rangetable:go_default_library",
++    ],
++)
+diff -urN a/unicode/BUILD.bazel b/unicode/BUILD.bazel
+--- a/unicode/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/unicode/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "golang.org/x/text/unicode",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/unicode/cldr/BUILD.bazel b/unicode/cldr/BUILD.bazel
+--- a/unicode/cldr/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/unicode/cldr/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "base.go",
++        "cldr.go",
++        "collate.go",
++        "decode.go",
++        "resolve.go",
++        "slice.go",
++        "xml.go",
++    ],
++    importpath = "golang.org/x/text/unicode/cldr",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "cldr_test.go",
++        "collate_test.go",
++        "data_test.go",
++        "examples_test.go",
++        "resolve_test.go",
++        "slice_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -urN a/unicode/norm/BUILD.bazel b/unicode/norm/BUILD.bazel
+--- a/unicode/norm/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/unicode/norm/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,42 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "composition.go",
++        "forminfo.go",
++        "input.go",
++        "iter.go",
++        "normalize.go",
++        "readwriter.go",
++        "tables10.0.0.go",
++        "tables9.0.0.go",
++        "transform.go",
++        "trie.go",
++    ],
++    importpath = "golang.org/x/text/unicode/norm",
++    visibility = ["//visibility:public"],
++    deps = ["//transform:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "composition_test.go",
++        "data10.0.0_test.go",
++        "data9.0.0_test.go",
++        "example_iter_test.go",
++        "example_test.go",
++        "iter_test.go",
++        "normalize_test.go",
++        "readwriter_test.go",
++        "transform_test.go",
++        "ucd_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//transform:go_default_library",
++    ],
++)
+diff -urN a/unicode/rangetable/BUILD.bazel b/unicode/rangetable/BUILD.bazel
+--- a/unicode/rangetable/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/unicode/rangetable/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "merge.go",
++        "rangetable.go",
++        "tables10.0.0.go",
++        "tables9.0.0.go",
++    ],
++    importpath = "golang.org/x/text/unicode/rangetable",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "merge_test.go",
++        "rangetable_test.go",
++    ],
++    embed = [":go_default_library"],
++)
+diff -urN a/unicode/runenames/BUILD.bazel b/unicode/runenames/BUILD.bazel
+--- a/unicode/runenames/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/unicode/runenames/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,26 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "bits.go",
++        "runenames.go",
++        "tables.go",
++    ],
++    importpath = "golang.org/x/text/unicode/runenames",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "runenames_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//internal/ucd:go_default_library",
++    ],
++)
+diff -urN a/width/BUILD.bazel b/width/BUILD.bazel
+--- a/width/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/width/BUILD.bazel	2018-09-27 16:47:51.981071428 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "kind_string.go",
++        "tables10.0.0.go",
++        "tables9.0.0.go",
++        "transform.go",
++        "trieval.go",
++        "width.go",
++    ],
++    importpath = "golang.org/x/text/width",
++    visibility = ["//visibility:public"],
++    deps = ["//transform:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "common_test.go",
++        "example_test.go",
++        "runes_test.go",
++        "tables_test.go",
++        "transform_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//internal/gen:go_default_library",
++        "//internal/testtext:go_default_library",
++        "//internal/ucd:go_default_library",
++        "//transform:go_default_library",
++    ],
++)

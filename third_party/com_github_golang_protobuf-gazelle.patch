@@ -1,0 +1,717 @@
+diff -urN a/conformance/BUILD.bazel b/conformance/BUILD.bazel
+--- a/conformance/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/conformance/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["conformance.go"],
++    importpath = "github.com/golang/protobuf/conformance",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//conformance/internal/conformance_proto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "conformance",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/conformance/internal/conformance_proto/BUILD.bazel b/conformance/internal/conformance_proto/BUILD.bazel
+--- a/conformance/internal/conformance_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/conformance/internal/conformance_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["conformance.pb.go"],
++    importpath = "github.com/golang/protobuf/conformance/internal/conformance_proto",
++    visibility = ["//conformance:__subpackages__"],
++    deps = [
++        "//proto:go_default_library",
++        "//ptypes/any:go_default_library",
++        "//ptypes/duration:go_default_library",
++        "//ptypes/struct:go_default_library",
++        "//ptypes/timestamp:go_default_library",
++        "//ptypes/wrappers:go_default_library",
++        "@org_golang_google_genproto//protobuf/field_mask:go_default_library",
++    ],
++)
+diff -urN a/descriptor/BUILD.bazel b/descriptor/BUILD.bazel
+--- a/descriptor/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/descriptor/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["descriptor.go"],
++    importpath = "github.com/golang/protobuf/descriptor",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["descriptor_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//proto/test_proto:go_default_library",
++        "//protoc-gen-go/descriptor:go_default_library",
++    ],
++)
+diff -urN a/jsonpb/BUILD.bazel b/jsonpb/BUILD.bazel
+--- a/jsonpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/jsonpb/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["jsonpb.go"],
++    importpath = "github.com/golang/protobuf/jsonpb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//ptypes/struct:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["jsonpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//jsonpb/jsonpb_test_proto:go_default_library",
++        "//proto:go_default_library",
++        "//proto/proto3_proto:go_default_library",
++        "//ptypes:go_default_library",
++        "//ptypes/any:go_default_library",
++        "//ptypes/duration:go_default_library",
++        "//ptypes/struct:go_default_library",
++        "//ptypes/timestamp:go_default_library",
++        "//ptypes/wrappers:go_default_library",
++    ],
++)
+diff -urN a/jsonpb/jsonpb_test_proto/BUILD.bazel b/jsonpb/jsonpb_test_proto/BUILD.bazel
+--- a/jsonpb/jsonpb_test_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/jsonpb/jsonpb_test_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "more_test_objects.pb.go",
++        "test_objects.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/jsonpb/jsonpb_test_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//ptypes/any:go_default_library",
++        "//ptypes/duration:go_default_library",
++        "//ptypes/struct:go_default_library",
++        "//ptypes/timestamp:go_default_library",
++        "//ptypes/wrappers:go_default_library",
++    ],
++)
+diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
+--- a/proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,53 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "clone.go",
++        "decode.go",
++        "discard.go",
++        "encode.go",
++        "equal.go",
++        "extensions.go",
++        "lib.go",
++        "message_set.go",
++        "pointer_unsafe.go",
++        "properties.go",
++        "table_marshal.go",
++        "table_merge.go",
++        "table_unmarshal.go",
++        "text.go",
++        "text_parser.go",
++    ],
++    importpath = "github.com/golang/protobuf/proto",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "all_test.go",
++        "any_test.go",
++        "clone_test.go",
++        "decode_test.go",
++        "discard_test.go",
++        "encode_test.go",
++        "equal_test.go",
++        "extensions_test.go",
++        "map_test.go",
++        "message_set_test.go",
++        "proto3_test.go",
++        "size2_test.go",
++        "size_test.go",
++        "text_parser_test.go",
++        "text_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//proto/proto3_proto:go_default_library",
++        "//proto/test_proto:go_default_library",
++        "//ptypes:go_default_library",
++        "//ptypes/any:go_default_library",
++        "@org_golang_x_sync//errgroup:go_default_library",
++    ],
++)
+diff -urN a/proto/proto3_proto/BUILD.bazel b/proto/proto3_proto/BUILD.bazel
+--- a/proto/proto3_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/proto/proto3_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,13 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto3.pb.go"],
++    importpath = "github.com/golang/protobuf/proto/proto3_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//proto/test_proto:go_default_library",
++        "//ptypes/any:go_default_library",
++    ],
++)
+diff -urN a/proto/test_proto/BUILD.bazel b/proto/test_proto/BUILD.bazel
+--- a/proto/test_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/proto/test_proto/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["test.pb.go"],
++    importpath = "github.com/golang/protobuf/proto/test_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/BUILD.bazel b/protoc-gen-go/BUILD.bazel
+--- a/protoc-gen-go/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "link_grpc.go",
++        "main.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/generator:go_default_library",
++        "//protoc-gen-go/grpc:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "protoc-gen-go",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["golden_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/protoc-gen-go/descriptor/BUILD.bazel b/protoc-gen-go/descriptor/BUILD.bazel
+--- a/protoc-gen-go/descriptor/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/descriptor/BUILD.bazel	2018-09-28 12:25:59.940105588 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["descriptor.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/descriptor",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/generator/BUILD.bazel b/protoc-gen-go/generator/BUILD.bazel
+--- a/protoc-gen-go/generator/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/generator/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["generator.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/generator",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/descriptor:go_default_library",
++        "//protoc-gen-go/generator/internal/remap:go_default_library",
++        "//protoc-gen-go/plugin:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["name_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//protoc-gen-go/descriptor:go_default_library"],
++)
+diff -urN a/protoc-gen-go/generator/internal/remap/BUILD.bazel b/protoc-gen-go/generator/internal/remap/BUILD.bazel
+--- a/protoc-gen-go/generator/internal/remap/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/generator/internal/remap/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["remap.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/generator/internal/remap",
++    visibility = ["//protoc-gen-go/generator:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["remap_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/protoc-gen-go/grpc/BUILD.bazel b/protoc-gen-go/grpc/BUILD.bazel
+--- a/protoc-gen-go/grpc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/grpc/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["grpc.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/grpc",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//protoc-gen-go/descriptor:go_default_library",
++        "//protoc-gen-go/generator:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/plugin/BUILD.bazel b/protoc-gen-go/plugin/BUILD.bazel
+--- a/protoc-gen-go/plugin/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/plugin/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["plugin.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/plugin",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/descriptor:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/BUILD.bazel b/protoc-gen-go/testdata/BUILD.bazel
+--- a/protoc-gen-go/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_test")
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "extension_test.go",
++        "import_public_test.go",
++        "main_test.go",
++    ],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/testdata/extension_base:go_default_library",
++        "//protoc-gen-go/testdata/extension_user:go_default_library",
++        "//protoc-gen-go/testdata/import_public:go_default_library",
++        "//protoc-gen-go/testdata/import_public/sub:go_default_library",
++        "//protoc-gen-go/testdata/imports:go_default_library",
++        "//protoc-gen-go/testdata/multi:go_default_library",
++        "//protoc-gen-go/testdata/my_test:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/deprecated/BUILD.bazel b/protoc-gen-go/testdata/deprecated/BUILD.bazel
+--- a/protoc-gen-go/testdata/deprecated/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/deprecated/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,13 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["deprecated.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/deprecated",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_x_net//context:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/extension_base/BUILD.bazel b/protoc-gen-go/testdata/extension_base/BUILD.bazel
+--- a/protoc-gen-go/testdata/extension_base/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/extension_base/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["extension_base.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/extension_base",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/extension_extra/BUILD.bazel b/protoc-gen-go/testdata/extension_extra/BUILD.bazel
+--- a/protoc-gen-go/testdata/extension_extra/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/extension_extra/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["extension_extra.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/extension_extra",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/extension_user/BUILD.bazel b/protoc-gen-go/testdata/extension_user/BUILD.bazel
+--- a/protoc-gen-go/testdata/extension_user/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/extension_user/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,13 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["extension_user.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/extension_user",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/testdata/extension_base:go_default_library",
++        "//protoc-gen-go/testdata/extension_extra:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/grpc/BUILD.bazel b/protoc-gen-go/testdata/grpc/BUILD.bazel
+--- a/protoc-gen-go/testdata/grpc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/grpc/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,13 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["grpc.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/grpc",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_x_net//context:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/import_public/BUILD.bazel b/protoc-gen-go/testdata/import_public/BUILD.bazel
+--- a/protoc-gen-go/testdata/import_public/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/import_public/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "a.pb.go",
++        "b.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/import_public",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/testdata/import_public/sub:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/import_public/sub/BUILD.bazel b/protoc-gen-go/testdata/import_public/sub/BUILD.bazel
+--- a/protoc-gen-go/testdata/import_public/sub/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/import_public/sub/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "a.pb.go",
++        "b.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/import_public/sub",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/imports/BUILD.bazel b/protoc-gen-go/testdata/imports/BUILD.bazel
+--- a/protoc-gen-go/testdata/imports/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/imports/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "test_import_a1m1.pb.go",
++        "test_import_a1m2.pb.go",
++        "test_import_all.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/imports",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/testdata/imports/fmt:go_default_library",
++        "//protoc-gen-go/testdata/imports/test_a_1:go_default_library",
++        "//protoc-gen-go/testdata/imports/test_a_2:go_default_library",
++        "//protoc-gen-go/testdata/imports/test_b_1:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/imports/fmt/BUILD.bazel b/protoc-gen-go/testdata/imports/fmt/BUILD.bazel
+--- a/protoc-gen-go/testdata/imports/fmt/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/imports/fmt/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["m.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/imports/fmt",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel b/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel
+--- a/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "m1.pb.go",
++        "m2.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/imports/test_a_1",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel b/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel
+--- a/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "m3.pb.go",
++        "m4.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/imports/test_a_2",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel b/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel
+--- a/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "m1.pb.go",
++        "m2.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/imports/test_b_1",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/multi/BUILD.bazel b/protoc-gen-go/testdata/multi/BUILD.bazel
+--- a/protoc-gen-go/testdata/multi/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/multi/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,13 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "multi1.pb.go",
++        "multi2.pb.go",
++        "multi3.pb.go",
++    ],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/multi",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-go/testdata/my_test/BUILD.bazel b/protoc-gen-go/testdata/my_test/BUILD.bazel
+--- a/protoc-gen-go/testdata/my_test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/my_test/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["test.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/my_test",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/testdata/multi:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-go/testdata/proto3/BUILD.bazel b/protoc-gen-go/testdata/proto3/BUILD.bazel
+--- a/protoc-gen-go/testdata/proto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-go/testdata/proto3/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto3.pb.go"],
++    importpath = "github.com/golang/protobuf/protoc-gen-go/testdata/proto3",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/ptypes/any/BUILD.bazel b/ptypes/any/BUILD.bazel
+--- a/ptypes/any/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/ptypes/any/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["any.pb.go"],
++    importpath = "github.com/golang/protobuf/ptypes/any",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/ptypes/BUILD.bazel b/ptypes/BUILD.bazel
+--- a/ptypes/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/ptypes/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "any.go",
++        "doc.go",
++        "duration.go",
++        "timestamp.go",
++    ],
++    importpath = "github.com/golang/protobuf/ptypes",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//ptypes/any:go_default_library",
++        "//ptypes/duration:go_default_library",
++        "//ptypes/timestamp:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "any_test.go",
++        "duration_test.go",
++        "timestamp_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-go/descriptor:go_default_library",
++        "//ptypes/any:go_default_library",
++        "//ptypes/duration:go_default_library",
++        "//ptypes/timestamp:go_default_library",
++    ],
++)
+diff -urN a/ptypes/duration/BUILD.bazel b/ptypes/duration/BUILD.bazel
+--- a/ptypes/duration/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/ptypes/duration/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["duration.pb.go"],
++    importpath = "github.com/golang/protobuf/ptypes/duration",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/ptypes/empty/BUILD.bazel b/ptypes/empty/BUILD.bazel
+--- a/ptypes/empty/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/ptypes/empty/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["empty.pb.go"],
++    importpath = "github.com/golang/protobuf/ptypes/empty",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/ptypes/struct/BUILD.bazel b/ptypes/struct/BUILD.bazel
+--- a/ptypes/struct/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/ptypes/struct/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["struct.pb.go"],
++    importpath = "github.com/golang/protobuf/ptypes/struct",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/ptypes/timestamp/BUILD.bazel b/ptypes/timestamp/BUILD.bazel
+--- a/ptypes/timestamp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/ptypes/timestamp/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["timestamp.pb.go"],
++    importpath = "github.com/golang/protobuf/ptypes/timestamp",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/ptypes/wrappers/BUILD.bazel b/ptypes/wrappers/BUILD.bazel
+--- a/ptypes/wrappers/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/ptypes/wrappers/BUILD.bazel	2018-09-28 12:25:59.944105639 -0400
+@@ -0,0 +1,9 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["wrappers.pb.go"],
++    importpath = "github.com/golang/protobuf/ptypes/wrappers",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
