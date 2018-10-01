@@ -534,12 +534,12 @@ How do I avoid conflicts with protocol buffers?
 
 See `Avoiding conflicts`_ in the proto documentation.
 
-How do I use a specific version of golang.org/x/sys, net or text?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How do I use a specific version of gRPC or golang.org/x/...?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Several of the golang.org/x repositories are declared in
-`go_rules_dependencies`_. We declare these automatically because they're needed
-by gRPC.
+The `go_rules_dependencies`_ macro declares several external repositories
+at specific versions. These are needed for `go_proto_library`_ to work,
+especially with gRPC.
 
-See `Overriding dependencies`_ for an example of how to replace these
-with specific commits.
+See `Overriding dependencies`_ for information and an example of how to
+replace these repositories with different versions.
