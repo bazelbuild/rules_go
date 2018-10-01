@@ -31,9 +31,9 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoArchive",
     "GoArchiveData",
+    "GoAspectProviders",
     "GoLibrary",
     "GoSource",
-    "new_aspect_provider",
 )
 load(
     "@io_bazel_rules_go//go/platform:list.bzl",
@@ -43,14 +43,12 @@ load(
 
 def _go_archive_aspect_impl(target, ctx):
     go = go_context(ctx, ctx.rule.attr)
+
     source = target[GoSource] if GoSource in target else None
     archive = target[GoArchive] if GoArchive in target else None
     if source and source.mode == go.mode:
         # The base layer already built the right mode for us
-        return [new_aspect_provider(
-            source = source,
-            archive = archive,
-        )]
+        return []
     if not GoLibrary in target:
         # Not a rule we can do anything with
         return []
@@ -60,7 +58,7 @@ def _go_archive_aspect_impl(target, ctx):
     source = go.library_to_source(go, ctx.rule.attr, library, ctx.coverage_instrumented())
     if archive:
         archive = go.archive(go, source = source)
-    return [new_aspect_provider(
+    return [GoAspectProviders(
         source = source,
         archive = archive,
     )]

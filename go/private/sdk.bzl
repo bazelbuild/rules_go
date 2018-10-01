@@ -138,6 +138,16 @@ def _detect_host_platform(ctx):
                 host = "linux_ppc64le"
             elif uname == "i686":
                 host = "linux_386"
+        # uname -p is not working on Aarch64 boards
+        res = ctx.execute(["uname", "-m"])
+        if res.return_code == 0:
+            uname = res.stdout.strip()
+            if uname == "aarch64":
+                host = "linux_arm64"
+            elif uname == "armv6l":
+                host = "linux_armv6l"
+            elif uname == "armv7l":
+                host = "linux_armv6l"
 
         # Default to amd64 when uname doesn't return a known value.
 

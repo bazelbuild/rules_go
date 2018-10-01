@@ -79,12 +79,6 @@ INFERRED_PATH = "inferred"
 
 EXPORT_PATH = "export"
 
-def new_aspect_provider(source = None, archive = None):
-    return GoAspectProviders(
-        source = source,
-        archive = archive,
-    )
-
 def get_source(dep):
     if type(dep) == "struct":
         return dep

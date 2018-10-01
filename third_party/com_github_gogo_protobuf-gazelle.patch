@@ -1,0 +1,4975 @@
+diff -urN a/codec/BUILD.bazel b/codec/BUILD.bazel
+--- a/codec/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/codec/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["codec.go"],
++    importpath = "github.com/gogo/protobuf/codec",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["codec_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//test:go_default_library"],
++)
+diff -urN a/conformance/BUILD.bazel b/conformance/BUILD.bazel
+--- a/conformance/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/conformance/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["conformance.go"],
++    importpath = "github.com/gogo/protobuf/conformance",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//conformance/internal/conformance_proto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "conformance",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/conformance/internal/conformance_proto/BUILD.bazel b/conformance/internal/conformance_proto/BUILD.bazel
+--- a/conformance/internal/conformance_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/conformance/internal/conformance_proto/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["conformance.proto"],
++    visibility = ["//conformance:__subpackages__"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["conformance.pb.go"],
++    importpath = "github.com/gogo/protobuf/conformance/internal/conformance_proto",
++    visibility = ["//conformance:__subpackages__"],
++    deps = [
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/gogoproto/BUILD.bazel b/gogoproto/BUILD.bazel
+--- a/gogoproto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/gogoproto/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["gogo.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "gogo.pb.go",
++        "helper.go",
++    ],
++    importpath = "github.com/gogo/protobuf/gogoproto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
+diff -urN a/gogoreplace/BUILD.bazel b/gogoreplace/BUILD.bazel
+--- a/gogoreplace/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/gogoreplace/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/gogoreplace",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "gogoreplace",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/io/BUILD.bazel b/io/BUILD.bazel
+--- a/io/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/io/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "full.go",
++        "io.go",
++        "uint32.go",
++        "varint.go",
++    ],
++    importpath = "github.com/gogo/protobuf/io",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "io_test.go",
++        "uint32_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//test:go_default_library",
++        "//test/example:go_default_library",
++    ],
++)
+diff -urN a/jsonpb/BUILD.bazel b/jsonpb/BUILD.bazel
+--- a/jsonpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/jsonpb/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["jsonpb.go"],
++    importpath = "github.com/gogo/protobuf/jsonpb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["jsonpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//jsonpb/jsonpb_test_proto:go_default_library",
++        "//proto:go_default_library",
++        "//proto/proto3_proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/jsonpb/jsonpb_test_proto/BUILD.bazel b/jsonpb/jsonpb_test_proto/BUILD.bazel
+--- a/jsonpb/jsonpb_test_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/jsonpb/jsonpb_test_proto/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "more_test_objects.proto",
++        "test_objects.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "bytes.go",
++        "more_test_objects.pb.go",
++        "test_objects.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/jsonpb/jsonpb_test_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/plugin/compare/BUILD.bazel b/plugin/compare/BUILD.bazel
+--- a/plugin/compare/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/compare/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "compare.go",
++        "comparetest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/compare",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++        "//vanity:go_default_library",
++    ],
++)
+diff -urN a/plugin/defaultcheck/BUILD.bazel b/plugin/defaultcheck/BUILD.bazel
+--- a/plugin/defaultcheck/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/defaultcheck/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["defaultcheck.go"],
++    importpath = "github.com/gogo/protobuf/plugin/defaultcheck",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/description/BUILD.bazel b/plugin/description/BUILD.bazel
+--- a/plugin/description/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/description/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "description.go",
++        "descriptiontest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/description",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/embedcheck/BUILD.bazel b/plugin/embedcheck/BUILD.bazel
+--- a/plugin/embedcheck/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/embedcheck/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["embedcheck.go"],
++    importpath = "github.com/gogo/protobuf/plugin/embedcheck",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/enumstringer/BUILD.bazel b/plugin/enumstringer/BUILD.bazel
+--- a/plugin/enumstringer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/enumstringer/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["enumstringer.go"],
++    importpath = "github.com/gogo/protobuf/plugin/enumstringer",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/equal/BUILD.bazel b/plugin/equal/BUILD.bazel
+--- a/plugin/equal/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/equal/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "equal.go",
++        "equaltest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/equal",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++        "//vanity:go_default_library",
++    ],
++)
+diff -urN a/plugin/face/BUILD.bazel b/plugin/face/BUILD.bazel
+--- a/plugin/face/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/face/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "face.go",
++        "facetest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/face",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/gostring/BUILD.bazel b/plugin/gostring/BUILD.bazel
+--- a/plugin/gostring/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/gostring/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "gostring.go",
++        "gostringtest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/gostring",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/marshalto/BUILD.bazel b/plugin/marshalto/BUILD.bazel
+--- a/plugin/marshalto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/marshalto/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["marshalto.go"],
++    importpath = "github.com/gogo/protobuf/plugin/marshalto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++        "//vanity:go_default_library",
++    ],
++)
+diff -urN a/plugin/oneofcheck/BUILD.bazel b/plugin/oneofcheck/BUILD.bazel
+--- a/plugin/oneofcheck/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/oneofcheck/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["oneofcheck.go"],
++    importpath = "github.com/gogo/protobuf/plugin/oneofcheck",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/populate/BUILD.bazel b/plugin/populate/BUILD.bazel
+--- a/plugin/populate/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/populate/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["populate.go"],
++    importpath = "github.com/gogo/protobuf/plugin/populate",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++        "//vanity:go_default_library",
++    ],
++)
+diff -urN a/plugin/size/BUILD.bazel b/plugin/size/BUILD.bazel
+--- a/plugin/size/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/size/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "size.go",
++        "sizetest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/size",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++        "//vanity:go_default_library",
++    ],
++)
+diff -urN a/plugin/stringer/BUILD.bazel b/plugin/stringer/BUILD.bazel
+--- a/plugin/stringer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/stringer/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "stringer.go",
++        "stringertest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/stringer",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/testgen/BUILD.bazel b/plugin/testgen/BUILD.bazel
+--- a/plugin/testgen/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/testgen/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["testgen.go"],
++    importpath = "github.com/gogo/protobuf/plugin/testgen",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/union/BUILD.bazel b/plugin/union/BUILD.bazel
+--- a/plugin/union/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/union/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "union.go",
++        "uniontest.go",
++    ],
++    importpath = "github.com/gogo/protobuf/plugin/union",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/plugin/unmarshal/BUILD.bazel b/plugin/unmarshal/BUILD.bazel
+--- a/plugin/unmarshal/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/plugin/unmarshal/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["unmarshal.go"],
++    importpath = "github.com/gogo/protobuf/plugin/unmarshal",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
+--- a/proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/proto/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,65 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "clone.go",
++        "custom_gogo.go",
++        "decode.go",
++        "discard.go",
++        "duration.go",
++        "duration_gogo.go",
++        "encode.go",
++        "encode_gogo.go",
++        "equal.go",
++        "extensions.go",
++        "extensions_gogo.go",
++        "lib.go",
++        "lib_gogo.go",
++        "message_set.go",
++        "pointer_unsafe.go",
++        "pointer_unsafe_gogo.go",
++        "properties.go",
++        "properties_gogo.go",
++        "skip_gogo.go",
++        "table_marshal.go",
++        "table_marshal_gogo.go",
++        "table_merge.go",
++        "table_unmarshal.go",
++        "table_unmarshal_gogo.go",
++        "text.go",
++        "text_gogo.go",
++        "text_parser.go",
++        "timestamp.go",
++        "timestamp_gogo.go",
++    ],
++    importpath = "github.com/gogo/protobuf/proto",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "all_test.go",
++        "any_test.go",
++        "clone_test.go",
++        "decode_test.go",
++        "discard_test.go",
++        "encode_test.go",
++        "equal_test.go",
++        "extensions_test.go",
++        "map_test.go",
++        "message_set_test.go",
++        "proto3_test.go",
++        "size2_test.go",
++        "size_test.go",
++        "text_parser_test.go",
++        "text_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//proto/proto3_proto:go_default_library",
++        "//proto/test_proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/proto/proto3_proto/BUILD.bazel b/proto/proto3_proto/BUILD.bazel
+--- a/proto/proto3_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/proto/proto3_proto/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto3.pb.go"],
++    importpath = "github.com/gogo/protobuf/proto/proto3_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//proto/test_proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/proto/test_proto/BUILD.bazel b/proto/test_proto/BUILD.bazel
+--- a/proto/test_proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/proto/test_proto/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["test.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "deterministic.go",
++        "test.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/proto/test_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protobuf/google/protobuf/BUILD.bazel b/protobuf/google/protobuf/BUILD.bazel
+--- a/protobuf/google/protobuf/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protobuf/google/protobuf/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,17 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "any.proto",
++        "api.proto",
++        "descriptor.proto",
++        "duration.proto",
++        "empty.proto",
++        "field_mask.proto",
++        "source_context.proto",
++        "struct.proto",
++        "timestamp.proto",
++        "type.proto",
++        "wrappers.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protobuf/google/protobuf/compiler/BUILD.bazel b/protobuf/google/protobuf/compiler/BUILD.bazel
+--- a/protobuf/google/protobuf/compiler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protobuf/google/protobuf/compiler/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,5 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["plugin.proto"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-combo/BUILD.bazel b/protoc-gen-combo/BUILD.bazel
+--- a/protoc-gen-combo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-combo/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["combo.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-combo",
++    visibility = ["//visibility:private"],
++    deps = ["//version:go_default_library"],
++)
++
++go_binary(
++    name = "protoc-gen-combo",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-gofast/BUILD.bazel b/protoc-gen-gofast/BUILD.bazel
+--- a/protoc-gen-gofast/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gofast/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gofast",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//vanity:go_default_library",
++        "//vanity/command:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "protoc-gen-gofast",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-gogo/BUILD.bazel b/protoc-gen-gogo/BUILD.bazel
+--- a/protoc-gen-gogo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo",
++    visibility = ["//visibility:private"],
++    deps = ["//vanity/command:go_default_library"],
++)
++
++go_binary(
++    name = "protoc-gen-gogo",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["golden_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/descriptor/BUILD.bazel b/protoc-gen-gogo/descriptor/BUILD.bazel
+--- a/protoc-gen-gogo/descriptor/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/descriptor/BUILD.bazel	2018-09-27 16:42:40.821065804 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "descriptor.go",
++        "descriptor.pb.go",
++        "descriptor_gostring.gen.go",
++        "helper.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["descriptor_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto/test_proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/generator/BUILD.bazel b/protoc-gen-gogo/generator/BUILD.bazel
+--- a/protoc-gen-gogo/generator/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/generator/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "generator.go",
++        "helper.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/generator",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator/internal/remap:go_default_library",
++        "//protoc-gen-gogo/plugin:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["name_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//protoc-gen-gogo/descriptor:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/generator/internal/remap/BUILD.bazel b/protoc-gen-gogo/generator/internal/remap/BUILD.bazel
+--- a/protoc-gen-gogo/generator/internal/remap/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/generator/internal/remap/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["remap.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/generator/internal/remap",
++    visibility = ["//protoc-gen-gogo/generator:__subpackages__"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["remap_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/grpc/BUILD.bazel b/protoc-gen-gogo/grpc/BUILD.bazel
+--- a/protoc-gen-gogo/grpc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/grpc/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["grpc.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/grpc",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/plugin/BUILD.bazel b/protoc-gen-gogo/plugin/BUILD.bazel
+--- a/protoc-gen-gogo/plugin/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/plugin/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["plugin.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/plugin",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/BUILD.bazel b/protoc-gen-gogo/testdata/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_test")
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "extension_test.go",
++        "main_test.go",
++    ],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/testdata/extension_base:go_default_library",
++        "//protoc-gen-gogo/testdata/extension_user:go_default_library",
++        "//protoc-gen-gogo/testdata/imports:go_default_library",
++        "//protoc-gen-gogo/testdata/multi:go_default_library",
++        "//protoc-gen-gogo/testdata/my_test:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/deprecated/BUILD.bazel b/protoc-gen-gogo/testdata/deprecated/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/deprecated/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/deprecated/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["deprecated.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["deprecated.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/deprecated",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_x_net//context:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/extension_base/BUILD.bazel b/protoc-gen-gogo/testdata/extension_base/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/extension_base/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/extension_base/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["extension_base.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["extension_base.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/extension_base",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/testdata/extension_extra/BUILD.bazel b/protoc-gen-gogo/testdata/extension_extra/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/extension_extra/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/extension_extra/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["extension_extra.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["extension_extra.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/extension_extra",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/testdata/extension_user/BUILD.bazel b/protoc-gen-gogo/testdata/extension_user/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/extension_user/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/extension_user/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["extension_user.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["extension_user.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/extension_user",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/testdata/extension_base:go_default_library",
++        "//protoc-gen-gogo/testdata/extension_extra:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/grpc/BUILD.bazel b/protoc-gen-gogo/testdata/grpc/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/grpc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/grpc/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["grpc.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["grpc.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/grpc",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_x_net//context:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/import_public/BUILD.bazel b/protoc-gen-gogo/testdata/import_public/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/import_public/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/import_public/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "a.proto",
++        "b.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "a.pb.go",
++        "b.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/import_public",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/testdata/import_public/sub:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/import_public/sub/BUILD.bazel b/protoc-gen-gogo/testdata/import_public/sub/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/import_public/sub/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/import_public/sub/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "a.proto",
++        "b.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "a.pb.go",
++        "b.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/import_public/sub",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/testdata/imports/BUILD.bazel b/protoc-gen-gogo/testdata/imports/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/imports/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/imports/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "test_import_a1m1.proto",
++        "test_import_a1m2.proto",
++        "test_import_all.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "test_import_a1m1.pb.go",
++        "test_import_a1m2.pb.go",
++        "test_import_all.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/imports",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/testdata/imports/fmt:go_default_library",
++        "//protoc-gen-gogo/testdata/imports/test_a_1:go_default_library",
++        "//protoc-gen-gogo/testdata/imports/test_a_2:go_default_library",
++        "//protoc-gen-gogo/testdata/imports/test_b_1:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/imports/fmt/BUILD.bazel b/protoc-gen-gogo/testdata/imports/fmt/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/imports/fmt/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/imports/fmt/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["m.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["m.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/imports/fmt",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/testdata/imports/test_a_1/BUILD.bazel b/protoc-gen-gogo/testdata/imports/test_a_1/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/imports/test_a_1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/imports/test_a_1/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "m1.proto",
++        "m2.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "m1.pb.go",
++        "m2.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/imports/test_a_1",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/testdata/imports/test_a_2/BUILD.bazel b/protoc-gen-gogo/testdata/imports/test_a_2/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/imports/test_a_2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/imports/test_a_2/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "m3.proto",
++        "m4.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "m3.pb.go",
++        "m4.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/imports/test_a_2",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/testdata/imports/test_b_1/BUILD.bazel b/protoc-gen-gogo/testdata/imports/test_b_1/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/imports/test_b_1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/imports/test_b_1/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "m1.proto",
++        "m2.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "m1.pb.go",
++        "m2.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/imports/test_b_1",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogo/testdata/multi/BUILD.bazel b/protoc-gen-gogo/testdata/multi/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/multi/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/multi/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,9 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "multi1.proto",
++        "multi2.proto",
++        "multi3.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-gogo/testdata/my_test/BUILD.bazel b/protoc-gen-gogo/testdata/my_test/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/my_test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/my_test/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["test.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["test.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/my_test",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/testdata/multi:go_default_library",
++    ],
++)
+diff -urN a/protoc-gen-gogo/testdata/proto3/BUILD.bazel b/protoc-gen-gogo/testdata/proto3/BUILD.bazel
+--- a/protoc-gen-gogo/testdata/proto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogo/testdata/proto3/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto3.pb.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/proto3",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/protoc-gen-gogofast/BUILD.bazel b/protoc-gen-gogofast/BUILD.bazel
+--- a/protoc-gen-gogofast/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogofast/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogofast",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//vanity:go_default_library",
++        "//vanity/command:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "protoc-gen-gogofast",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-gogofaster/BUILD.bazel b/protoc-gen-gogofaster/BUILD.bazel
+--- a/protoc-gen-gogofaster/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogofaster/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogofaster",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//vanity:go_default_library",
++        "//vanity/command:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "protoc-gen-gogofaster",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-gogoslick/BUILD.bazel b/protoc-gen-gogoslick/BUILD.bazel
+--- a/protoc-gen-gogoslick/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogoslick/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogoslick",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//vanity:go_default_library",
++        "//vanity/command:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "protoc-gen-gogoslick",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-gogotypes/BUILD.bazel b/protoc-gen-gogotypes/BUILD.bazel
+--- a/protoc-gen-gogotypes/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gogotypes/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gogotypes",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//vanity:go_default_library",
++        "//vanity/command:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "protoc-gen-gogotypes",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-gen-gostring/BUILD.bazel b/protoc-gen-gostring/BUILD.bazel
+--- a/protoc-gen-gostring/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-gen-gostring/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["main.go"],
++    importpath = "github.com/gogo/protobuf/protoc-gen-gostring",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//plugin/gostring:go_default_library",
++        "//vanity/command:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "protoc-gen-gostring",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/protoc-min-version/BUILD.bazel b/protoc-min-version/BUILD.bazel
+--- a/protoc-min-version/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/protoc-min-version/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["minversion.go"],
++    importpath = "github.com/gogo/protobuf/protoc-min-version",
++    visibility = ["//visibility:private"],
++    deps = ["//version:go_default_library"],
++)
++
++go_binary(
++    name = "protoc-min-version",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/sortkeys/BUILD.bazel b/sortkeys/BUILD.bazel
+--- a/sortkeys/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/sortkeys/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["sortkeys.go"],
++    importpath = "github.com/gogo/protobuf/sortkeys",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/asymetric-issue125/BUILD.bazel b/test/asymetric-issue125/BUILD.bazel
+--- a/test/asymetric-issue125/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/asymetric-issue125/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["asym.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "asym.pb.go",
++        "pop.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/asymetric-issue125",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["asym_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/BUILD.bazel b/test/BUILD.bazel
+--- a/test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,42 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["thetest.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "t.go",
++        "thetest.pb.go",
++        "uuid.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/custom:go_default_library",
++        "//test/custom-dash-type:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "bug_test.go",
++        "extension_test.go",
++        "thetestpb_test.go",
++        "uuid_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/cachedsize/BUILD.bazel b/test/cachedsize/BUILD.bazel
+--- a/test/cachedsize/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/cachedsize/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["cachedsize.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["cachedsize.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/cachedsize",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["cachedsize_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/casttype/BUILD.bazel b/test/casttype/BUILD.bazel
+--- a/test/casttype/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/casttype/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["casttype.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["mytypes.go"],
++    importpath = "github.com/gogo/protobuf/test/casttype",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/casttype/combos/both/BUILD.bazel b/test/casttype/combos/both/BUILD.bazel
+--- a/test/casttype/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/casttype/combos/both/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["casttype.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["casttype.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/casttype/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/casttype:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["casttypepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/casttype/combos/marshaler/BUILD.bazel b/test/casttype/combos/marshaler/BUILD.bazel
+--- a/test/casttype/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/casttype/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["casttype.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["casttype.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/casttype/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/casttype:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["casttypepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/casttype/combos/neither/BUILD.bazel b/test/casttype/combos/neither/BUILD.bazel
+--- a/test/casttype/combos/neither/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/casttype/combos/neither/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["casttype.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["casttype.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/casttype/combos/neither",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/casttype:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["casttypepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/casttype/combos/unmarshaler/BUILD.bazel b/test/casttype/combos/unmarshaler/BUILD.bazel
+--- a/test/casttype/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/casttype/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["casttype.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["casttype.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/casttype/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/casttype:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["casttypepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/castvalue/BUILD.bazel b/test/castvalue/BUILD.bazel
+--- a/test/castvalue/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/castvalue/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["castvalue.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "castvalue.pb.go",
++        "mytypes.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/castvalue",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["castvaluepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/castvalue/combos/both/BUILD.bazel b/test/castvalue/combos/both/BUILD.bazel
+--- a/test/castvalue/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/castvalue/combos/both/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["castvalue.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "castvalue.pb.go",
++        "mytypes.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/castvalue/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["castvaluepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/castvalue/combos/marshaler/BUILD.bazel b/test/castvalue/combos/marshaler/BUILD.bazel
+--- a/test/castvalue/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/castvalue/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["castvalue.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "castvalue.pb.go",
++        "mytypes.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/castvalue/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["castvaluepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/castvalue/combos/unmarshaler/BUILD.bazel b/test/castvalue/combos/unmarshaler/BUILD.bazel
+--- a/test/castvalue/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/castvalue/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["castvalue.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "castvalue.pb.go",
++        "mytypes.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/castvalue/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["castvaluepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/combos/both/BUILD.bazel b/test/combos/both/BUILD.bazel
+--- a/test/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/combos/both/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,40 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["thetest.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "t.go",
++        "thetest.pb.go",
++        "uuid.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/custom:go_default_library",
++        "//test/custom-dash-type:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "bug_test.go",
++        "thetestpb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/combos/marshaler/BUILD.bazel b/test/combos/marshaler/BUILD.bazel
+--- a/test/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,40 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["thetest.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "t.go",
++        "thetest.pb.go",
++        "uuid.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/custom:go_default_library",
++        "//test/custom-dash-type:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "bug_test.go",
++        "thetestpb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/combos/unmarshaler/BUILD.bazel b/test/combos/unmarshaler/BUILD.bazel
+--- a/test/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.825065854 -0400
+@@ -0,0 +1,40 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["thetest.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "t.go",
++        "thetest.pb.go",
++        "uuid.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/custom:go_default_library",
++        "//test/custom-dash-type:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "bug_test.go",
++        "thetestpb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/custom/BUILD.bazel b/test/custom/BUILD.bazel
+--- a/test/custom/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/custom/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["custom.go"],
++    importpath = "github.com/gogo/protobuf/test/custom",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["custom_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/custombytesnonstruct/BUILD.bazel b/test/custombytesnonstruct/BUILD.bazel
+--- a/test/custombytesnonstruct/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/custombytesnonstruct/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "customtype.go",
++        "proto.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/custombytesnonstruct",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["custombytesnonstruct_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/custom-dash-type/BUILD.bazel b/test/custom-dash-type/BUILD.bazel
+--- a/test/custom-dash-type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/custom-dash-type/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["customdash.go"],
++    importpath = "github.com/gogo/protobuf/test/custom-dash-type",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/dashfilename/BUILD.bazel b/test/dashfilename/BUILD.bazel
+--- a/test/dashfilename/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/dashfilename/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["dash-filename.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/dashfilename",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["df_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/data/BUILD.bazel b/test/data/BUILD.bazel
+--- a/test/data/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/data/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["data.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["data.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/data",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["datapb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/defaultconflict/BUILD.bazel b/test/defaultconflict/BUILD.bazel
+--- a/test/defaultconflict/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/defaultconflict/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,26 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "df.proto",
++        "dg.proto",
++        "nc.proto",
++        "ne.proto",
++        "nx.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/defaultconflict",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["nc_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/deterministic/BUILD.bazel b/test/deterministic/BUILD.bazel
+--- a/test/deterministic/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/deterministic/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,26 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["deterministic.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["deterministic.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/deterministic",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["deterministic_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/embedconflict/BUILD.bazel b/test/embedconflict/BUILD.bazel
+--- a/test/embedconflict/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/embedconflict/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "eb.proto",
++        "ec.proto",
++        "ee.proto",
++        "em.proto",
++        "en.proto",
++        "er.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/embedconflict",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["ec_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/empty-issue70/BUILD.bazel b/test/empty-issue70/BUILD.bazel
+--- a/test/empty-issue70/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/empty-issue70/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["empty.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["empty.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/empty-issue70",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["empty_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/enumcustomname/BUILD.bazel b/test/enumcustomname/BUILD.bazel
+--- a/test/enumcustomname/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/enumcustomname/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["enumcustomname.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["enumcustomname.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/enumcustomname",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test:go_default_library",
++    ],
++)
+diff -urN a/test/enumdecl/BUILD.bazel b/test/enumdecl/BUILD.bazel
+--- a/test/enumdecl/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/enumdecl/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["enumdecl.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "enumdecl.pb.go",
++        "models.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/enumdecl",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["enumdeclpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/enumdecl_all/BUILD.bazel b/test/enumdecl_all/BUILD.bazel
+--- a/test/enumdecl_all/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/enumdecl_all/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["enumdeclall.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "enumdeclall.pb.go",
++        "models.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/enumdecl_all",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["enumdeclallpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/enumprefix/BUILD.bazel b/test/enumprefix/BUILD.bazel
+--- a/test/enumprefix/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/enumprefix/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["enumprefix.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["enumprefix.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/enumprefix",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test:go_default_library",
++    ],
++)
+diff -urN a/test/enumstringer/BUILD.bazel b/test/enumstringer/BUILD.bazel
+--- a/test/enumstringer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/enumstringer/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["enumstringer.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "enumstringer.pb.go",
++        "string.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/enumstringer",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["enumstringerpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/example/BUILD.bazel b/test/example/BUILD.bazel
+--- a/test/example/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/example/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["example.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["example.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/example",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//test:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "example_test.go",
++        "examplepb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/filedotname/BUILD.bazel b/test/filedotname/BUILD.bazel
+--- a/test/filedotname/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/filedotname/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["file.dot.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["file.dot.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/filedotname",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["file.dotpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/fuzztests/BUILD.bazel b/test/fuzztests/BUILD.bazel
+--- a/test/fuzztests/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/fuzztests/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["fuzz.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["fuzz.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/fuzztests",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["fuzz_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/group/BUILD.bazel b/test/group/BUILD.bazel
+--- a/test/group/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/group/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["group.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["group.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/group",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["grouppb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/importcustom-issue389/imported/BUILD.bazel b/test/importcustom-issue389/imported/BUILD.bazel
+--- a/test/importcustom-issue389/imported/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/importcustom-issue389/imported/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["a.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "a.pb.go",
++        "b.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/importcustom-issue389/imported",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["apb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/importcustom-issue389/importing/BUILD.bazel b/test/importcustom-issue389/importing/BUILD.bazel
+--- a/test/importcustom-issue389/importing/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/importcustom-issue389/importing/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["c.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["c.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/importcustom-issue389/importing",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test/importcustom-issue389/imported:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["cpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/importcustom-issue389/imported:go_default_library",
++    ],
++)
+diff -urN a/test/importdedup/BUILD.bazel b/test/importdedup/BUILD.bazel
+--- a/test/importdedup/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/importdedup/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/importdedup",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test/importdedup/subpkg:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["importdedup_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/importdedup/subpkg/BUILD.bazel b/test/importdedup/subpkg/BUILD.bazel
+--- a/test/importdedup/subpkg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/importdedup/subpkg/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["subproto.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "customtype.go",
++        "subproto.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/importdedup/subpkg",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/importduplicate/BUILD.bazel b/test/importduplicate/BUILD.bazel
+--- a/test/importduplicate/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/importduplicate/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,37 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["importduplicate.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["importduplicate.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/importduplicate",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/importduplicate/proto:go_default_library",
++        "//test/importduplicate/sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "importduplicate_test.go",
++        "importduplicatepb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/importduplicate/proto:go_default_library",
++        "//test/importduplicate/sortkeys:go_default_library",
++    ],
++)
+diff -urN a/test/importduplicate/proto/BUILD.bazel b/test/importduplicate/proto/BUILD.bazel
+--- a/test/importduplicate/proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/importduplicate/proto/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/importduplicate/proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["protopb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/importduplicate/sortkeys/BUILD.bazel b/test/importduplicate/sortkeys/BUILD.bazel
+--- a/test/importduplicate/sortkeys/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/importduplicate/sortkeys/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["sortable.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["sortable.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/importduplicate/sortkeys",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["sortablepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/indeximport-issue72/BUILD.bazel b/test/indeximport-issue72/BUILD.bazel
+--- a/test/indeximport-issue72/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/indeximport-issue72/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["indeximport.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["indeximport.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/indeximport-issue72",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test/indeximport-issue72/index:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["indeximportpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/indeximport-issue72/index:go_default_library",
++    ],
++)
+diff -urN a/test/indeximport-issue72/index/BUILD.bazel b/test/indeximport-issue72/index/BUILD.bazel
+--- a/test/indeximport-issue72/index/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/indeximport-issue72/index/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["index.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["index.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/indeximport-issue72/index",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["indexpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/int64support/BUILD.bazel b/test/int64support/BUILD.bazel
+--- a/test/int64support/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/int64support/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["object.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "object.pb.go",
++        "object_js.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/int64support",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "object_js_test.go",
++        "objectpb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/issue260/BUILD.bazel b/test/issue260/BUILD.bazel
+--- a/test/issue260/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue260/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["issue260.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "issue260.pb.go",
++        "models.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/issue260",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["issue260pb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/issue261/BUILD.bazel b/test/issue261/BUILD.bazel
+--- a/test/issue261/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue261/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["issue261.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["issue261.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue261",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//sortkeys:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/issue262/BUILD.bazel b/test/issue262/BUILD.bazel
+--- a/test/issue262/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue262/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["timefail.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["timefail.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue262",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/issue270/a/BUILD.bazel b/test/issue270/a/BUILD.bazel
+--- a/test/issue270/a/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue270/a/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,8 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "a1.proto",
++        "a2.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/issue270/b/BUILD.bazel b/test/issue270/b/BUILD.bazel
+--- a/test/issue270/b/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue270/b/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,5 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["b.proto"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/issue270/BUILD.bazel b/test/issue270/BUILD.bazel
+--- a/test/issue270/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue270/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/issue270",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["issue270_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/issue312/BUILD.bazel b/test/issue312/BUILD.bazel
+--- a/test/issue312/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue312/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["issue312.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["issue312.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue312",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/issue312/events/BUILD.bazel b/test/issue312/events/BUILD.bazel
+--- a/test/issue312/events/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue312/events/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["events.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["events.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue312/events",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test/issue312:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["eventspb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/issue312:go_default_library",
++    ],
++)
+diff -urN a/test/issue322/BUILD.bazel b/test/issue322/BUILD.bazel
+--- a/test/issue322/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue322/BUILD.bazel	2018-09-27 16:42:40.829065906 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["issue322.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["issue322.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue322",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["issue322pb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/issue330/BUILD.bazel b/test/issue330/BUILD.bazel
+--- a/test/issue330/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue330/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["issue330.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "issue330.pb.go",
++        "type.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/issue330",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["issue330pb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/issue34/BUILD.bazel b/test/issue34/BUILD.bazel
+--- a/test/issue34/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue34/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue34",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["issue34_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/issue427/BUILD.bazel b/test/issue427/BUILD.bazel
+--- a/test/issue427/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue427/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,5 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["issue427.proto"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/issue42order/BUILD.bazel b/test/issue42order/BUILD.bazel
+--- a/test/issue42order/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue42order/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["issue42.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["issue42.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue42order",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["order_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/issue8/BUILD.bazel b/test/issue8/BUILD.bazel
+--- a/test/issue8/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue8/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/issue8",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["protopb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/jsonpb-gogo/BUILD.bazel b/test/jsonpb-gogo/BUILD.bazel
+--- a/test/jsonpb-gogo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/jsonpb-gogo/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["jsonpb_gogo.go"],
++    importpath = "github.com/gogo/protobuf/test/jsonpb-gogo",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["jsonpb_gogo_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//jsonpb:go_default_library"],
++)
+diff -urN a/test/mapdefaults/BUILD.bazel b/test/mapdefaults/BUILD.bazel
+--- a/test/mapdefaults/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapdefaults/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["map.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["map.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapdefaults",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/mapdefaults/combos/both/BUILD.bazel b/test/mapdefaults/combos/both/BUILD.bazel
+--- a/test/mapdefaults/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapdefaults/combos/both/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["map.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["map.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapdefaults/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "map_test.go",
++        "mappb_test.go",
++        "unknown_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/mapdefaults/combos/marshaler/BUILD.bazel b/test/mapdefaults/combos/marshaler/BUILD.bazel
+--- a/test/mapdefaults/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapdefaults/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["map.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["map.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapdefaults/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "map_test.go",
++        "mappb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/mapdefaults/combos/neither/BUILD.bazel b/test/mapdefaults/combos/neither/BUILD.bazel
+--- a/test/mapdefaults/combos/neither/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapdefaults/combos/neither/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["map.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["map.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapdefaults/combos/neither",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "map_test.go",
++        "mappb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/mapdefaults/combos/unmarshaler/BUILD.bazel b/test/mapdefaults/combos/unmarshaler/BUILD.bazel
+--- a/test/mapdefaults/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapdefaults/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["map.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["map.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapdefaults/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "map_test.go",
++        "mappb_test.go",
++        "unknown_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/mapsproto2/BUILD.bazel b/test/mapsproto2/BUILD.bazel
+--- a/test/mapsproto2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapsproto2/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,17 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "header.proto",
++        "mapsproto2.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/mapsproto2",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/mapsproto2/combos/both/BUILD.bazel b/test/mapsproto2/combos/both/BUILD.bazel
+--- a/test/mapsproto2/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapsproto2/combos/both/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["mapsproto2.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["mapsproto2.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapsproto2/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "mapsproto2_test.go",
++        "mapsproto2pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/mapsproto2/combos/marshaler/BUILD.bazel b/test/mapsproto2/combos/marshaler/BUILD.bazel
+--- a/test/mapsproto2/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapsproto2/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["mapsproto2.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["mapsproto2.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapsproto2/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "mapsproto2_test.go",
++        "mapsproto2pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/mapsproto2/combos/neither/BUILD.bazel b/test/mapsproto2/combos/neither/BUILD.bazel
+--- a/test/mapsproto2/combos/neither/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapsproto2/combos/neither/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["mapsproto2.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["mapsproto2.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapsproto2/combos/neither",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "mapsproto2_test.go",
++        "mapsproto2pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/mapsproto2/combos/unmarshaler/BUILD.bazel b/test/mapsproto2/combos/unmarshaler/BUILD.bazel
+--- a/test/mapsproto2/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mapsproto2/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["mapsproto2.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["mapsproto2.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/mapsproto2/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "mapsproto2_test.go",
++        "mapsproto2pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/merge/BUILD.bazel b/test/merge/BUILD.bazel
+--- a/test/merge/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/merge/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["merge.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["merge.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/merge",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["merge_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/mixbench/BUILD.bazel b/test/mixbench/BUILD.bazel
+--- a/test/mixbench/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/mixbench/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["mixbench.go"],
++    importpath = "github.com/gogo/protobuf/test/mixbench",
++    visibility = ["//visibility:private"],
++)
++
++go_binary(
++    name = "mixbench",
++    embed = [":go_default_library"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/moredefaults/BUILD.bazel b/test/moredefaults/BUILD.bazel
+--- a/test/moredefaults/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/moredefaults/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["md.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["md.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/moredefaults",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test/example:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "md_test.go",
++        "mdpb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/example:go_default_library",
++    ],
++)
+diff -urN a/test/nopackage/BUILD.bazel b/test/nopackage/BUILD.bazel
+--- a/test/nopackage/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/nopackage/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["nopackage.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["nopackage.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/nopackage",
++    visibility = ["//visibility:public"],
++    deps = ["//proto:go_default_library"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["nopackage_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/oneof/BUILD.bazel b/test/oneof/BUILD.bazel
+--- a/test/oneof/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/oneof/combos/both/BUILD.bazel b/test/oneof/combos/both/BUILD.bazel
+--- a/test/oneof/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof/combos/both/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//test/casttype:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneof/combos/marshaler/BUILD.bazel b/test/oneof/combos/marshaler/BUILD.bazel
+--- a/test/oneof/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//test/casttype:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneof/combos/neither/BUILD.bazel b/test/oneof/combos/neither/BUILD.bazel
+--- a/test/oneof/combos/neither/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof/combos/neither/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof/combos/neither",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//test/casttype:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneof/combos/unmarshaler/BUILD.bazel b/test/oneof/combos/unmarshaler/BUILD.bazel
+--- a/test/oneof/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//test/casttype:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneof3/BUILD.bazel b/test/oneof3/BUILD.bazel
+--- a/test/oneof3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof3/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof3",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/oneof3/combos/both/BUILD.bazel b/test/oneof3/combos/both/BUILD.bazel
+--- a/test/oneof3/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof3/combos/both/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof3/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneof3/combos/marshaler/BUILD.bazel b/test/oneof3/combos/marshaler/BUILD.bazel
+--- a/test/oneof3/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof3/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof3/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneof3/combos/neither/BUILD.bazel b/test/oneof3/combos/neither/BUILD.bazel
+--- a/test/oneof3/combos/neither/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof3/combos/neither/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof3/combos/neither",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneof3/combos/unmarshaler/BUILD.bazel b/test/oneof3/combos/unmarshaler/BUILD.bazel
+--- a/test/oneof3/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneof3/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["one.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["one.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneof3/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["onepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/oneofembed/BUILD.bazel b/test/oneofembed/BUILD.bazel
+--- a/test/oneofembed/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/oneofembed/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["oneofembed.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["oneofembed.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/oneofembed",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["oneofembedpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/packed/BUILD.bazel b/test/packed/BUILD.bazel
+--- a/test/packed/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/packed/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["packed.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "packed.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/packed",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["packed_test.go"],
++    embed = [":go_default_library"],
++    deps = ["//proto:go_default_library"],
++)
+diff -urN a/test/proto3extension/BUILD.bazel b/test/proto3extension/BUILD.bazel
+--- a/test/proto3extension/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/proto3extension/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["proto3ext.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["proto3ext.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/proto3extension",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
+diff -urN a/test/protosize/BUILD.bazel b/test/protosize/BUILD.bazel
+--- a/test/protosize/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/protosize/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["protosize.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["protosize.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/protosize",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "protosize_test.go",
++        "protosizepb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/registration/BUILD.bazel b/test/registration/BUILD.bazel
+--- a/test/registration/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/registration/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,5 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["registration.proto"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/required/BUILD.bazel b/test/required/BUILD.bazel
+--- a/test/required/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/required/BUILD.bazel	2018-09-27 16:42:40.833065957 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["requiredexample.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["requiredexample.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/required",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["requiredexamplepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//proto:go_default_library",
++        "//test:go_default_library",
++    ],
++)
+diff -urN a/test/sizerconflict/BUILD.bazel b/test/sizerconflict/BUILD.bazel
+--- a/test/sizerconflict/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/sizerconflict/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["sizerconflict.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/sizerconflict",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["sizerconflict_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/sizeunderscore/BUILD.bazel b/test/sizeunderscore/BUILD.bazel
+--- a/test/sizeunderscore/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/sizeunderscore/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["sizeunderscore.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["sizeunderscore.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/sizeunderscore",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["sizeunderscorepb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/stdtypes/BUILD.bazel b/test/stdtypes/BUILD.bazel
+--- a/test/stdtypes/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/stdtypes/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["stdtypes.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["stdtypes.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/stdtypes",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//sortkeys:go_default_library",
++        "//types:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "concurrency_test.go",
++        "stdtypespb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/tags/BUILD.bazel b/test/tags/BUILD.bazel
+--- a/test/tags/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/tags/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["tags.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "doc.go",
++        "tags.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/tags",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["tags_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/theproto3/BUILD.bazel b/test/theproto3/BUILD.bazel
+--- a/test/theproto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/theproto3/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "footer.proto",
++        "header.proto",
++        "maps.proto",
++        "theproto3.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/theproto3",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/theproto3/combos/both/BUILD.bazel b/test/theproto3/combos/both/BUILD.bazel
+--- a/test/theproto3/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/theproto3/combos/both/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,37 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["theproto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["theproto3.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/theproto3/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/combos/both:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "proto3_test.go",
++        "theproto3pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/combos/both:go_default_library",
++    ],
++)
+diff -urN a/test/theproto3/combos/marshaler/BUILD.bazel b/test/theproto3/combos/marshaler/BUILD.bazel
+--- a/test/theproto3/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/theproto3/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,37 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["theproto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["theproto3.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/theproto3/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/combos/both:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "proto3_test.go",
++        "theproto3pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/combos/both:go_default_library",
++    ],
++)
+diff -urN a/test/theproto3/combos/neither/BUILD.bazel b/test/theproto3/combos/neither/BUILD.bazel
+--- a/test/theproto3/combos/neither/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/theproto3/combos/neither/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,37 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["theproto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["theproto3.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/theproto3/combos/neither",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/combos/both:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "proto3_test.go",
++        "theproto3pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/combos/both:go_default_library",
++    ],
++)
+diff -urN a/test/theproto3/combos/unmarshaler/BUILD.bazel b/test/theproto3/combos/unmarshaler/BUILD.bazel
+--- a/test/theproto3/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/theproto3/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,37 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["theproto3.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["theproto3.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/theproto3/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++        "//sortkeys:go_default_library",
++        "//test/combos/both:go_default_library",
++        "//test/custom:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "proto3_test.go",
++        "theproto3pb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//test/combos/both:go_default_library",
++    ],
++)
+diff -urN a/test/typedecl/BUILD.bazel b/test/typedecl/BUILD.bazel
+--- a/test/typedecl/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/typedecl/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["typedecl.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "models.go",
++        "typedecl.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/typedecl",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["typedeclpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/typedecl_all/BUILD.bazel b/test/typedecl_all/BUILD.bazel
+--- a/test/typedecl_all/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/typedecl_all/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["typedeclall.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "models.go",
++        "typedeclall.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/typedecl_all",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["typedeclallpb_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/typedeclimport/BUILD.bazel b/test/typedeclimport/BUILD.bazel
+--- a/test/typedeclimport/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/typedeclimport/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["typedeclimport.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "models.go",
++        "typedeclimport.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/typedeclimport",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//test/typedeclimport/subpkg:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["typedeclimport_test.go"],
++    embed = [":go_default_library"],
++)
+diff -urN a/test/typedeclimport/subpkg/BUILD.bazel b/test/typedeclimport/subpkg/BUILD.bazel
+--- a/test/typedeclimport/subpkg/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/typedeclimport/subpkg/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["subpkg.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["subpkg.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/typedeclimport/subpkg",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/types/BUILD.bazel b/test/types/BUILD.bazel
+--- a/test/types/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/types/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,5 @@
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["types.proto"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/test/types/combos/both/BUILD.bazel b/test/types/combos/both/BUILD.bazel
+--- a/test/types/combos/both/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/types/combos/both/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["types.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["types.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/types/combos/both",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "types_test.go",
++        "typespb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/types/combos/marshaler/BUILD.bazel b/test/types/combos/marshaler/BUILD.bazel
+--- a/test/types/combos/marshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/types/combos/marshaler/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["types.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["types.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/types/combos/marshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "types_test.go",
++        "typespb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/types/combos/neither/BUILD.bazel b/test/types/combos/neither/BUILD.bazel
+--- a/test/types/combos/neither/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/types/combos/neither/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["types.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["types.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/types/combos/neither",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "types_test.go",
++        "typespb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/types/combos/unmarshaler/BUILD.bazel b/test/types/combos/unmarshaler/BUILD.bazel
+--- a/test/types/combos/unmarshaler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/types/combos/unmarshaler/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["types.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["types.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/types/combos/unmarshaler",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "types_test.go",
++        "typespb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++        "//types:go_default_library",
++    ],
++)
+diff -urN a/test/unmarshalmerge/BUILD.bazel b/test/unmarshalmerge/BUILD.bazel
+--- a/test/unmarshalmerge/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/unmarshalmerge/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["unmarshalmerge.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["unmarshalmerge.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/unmarshalmerge",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "unmarshalmerge_test.go",
++        "unmarshalmergepb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/unrecognized/BUILD.bazel b/test/unrecognized/BUILD.bazel
+--- a/test/unrecognized/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/unrecognized/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["unrecognized.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["unrecognized.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/unrecognized",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "oldnew_test.go",
++        "unrecognizedpb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/test/unrecognizedgroup/BUILD.bazel b/test/unrecognizedgroup/BUILD.bazel
+--- a/test/unrecognizedgroup/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/unrecognizedgroup/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["unrecognizedgroup.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["unrecognizedgroup.pb.go"],
++    importpath = "github.com/gogo/protobuf/test/unrecognizedgroup",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "oldnew_test.go",
++        "unrecognizedgrouppb_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//jsonpb:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/types/BUILD.bazel b/types/BUILD.bazel
+--- a/types/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/types/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,43 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "any.go",
++        "any.pb.go",
++        "api.pb.go",
++        "doc.go",
++        "duration.go",
++        "duration.pb.go",
++        "duration_gogo.go",
++        "empty.pb.go",
++        "field_mask.pb.go",
++        "source_context.pb.go",
++        "struct.pb.go",
++        "timestamp.go",
++        "timestamp.pb.go",
++        "timestamp_gogo.go",
++        "type.pb.go",
++        "wrappers.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/types",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto:go_default_library",
++        "//sortkeys:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = [
++        "any_test.go",
++        "duration_test.go",
++        "timestamp_test.go",
++    ],
++    embed = [":go_default_library"],
++    deps = [
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
+diff -urN a/vanity/BUILD.bazel b/vanity/BUILD.bazel
+--- a/vanity/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/vanity/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "enum.go",
++        "field.go",
++        "file.go",
++        "foreach.go",
++        "msg.go",
++    ],
++    importpath = "github.com/gogo/protobuf/vanity",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/descriptor:go_default_library",
++    ],
++)
+diff -urN a/vanity/command/BUILD.bazel b/vanity/command/BUILD.bazel
+--- a/vanity/command/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/vanity/command/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["command.go"],
++    importpath = "github.com/gogo/protobuf/vanity/command",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//plugin/compare:go_default_library",
++        "//plugin/defaultcheck:go_default_library",
++        "//plugin/description:go_default_library",
++        "//plugin/embedcheck:go_default_library",
++        "//plugin/enumstringer:go_default_library",
++        "//plugin/equal:go_default_library",
++        "//plugin/face:go_default_library",
++        "//plugin/gostring:go_default_library",
++        "//plugin/marshalto:go_default_library",
++        "//plugin/oneofcheck:go_default_library",
++        "//plugin/populate:go_default_library",
++        "//plugin/size:go_default_library",
++        "//plugin/stringer:go_default_library",
++        "//plugin/testgen:go_default_library",
++        "//plugin/union:go_default_library",
++        "//plugin/unmarshal:go_default_library",
++        "//proto:go_default_library",
++        "//protoc-gen-gogo/generator:go_default_library",
++        "//protoc-gen-gogo/grpc:go_default_library",
++        "//protoc-gen-gogo/plugin:go_default_library",
++    ],
++)
+diff -urN a/vanity/test/BUILD.bazel b/vanity/test/BUILD.bazel
+--- a/vanity/test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/vanity/test/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = [
++        "gogovanity.proto",
++        "proto3.proto",
++        "vanity.proto",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/vanity/test",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["vanity_test.go"],
++    embed = [":go_default_library"],
++    deps = [
++        "//vanity/test/fast:go_default_library",
++        "//vanity/test/faster:go_default_library",
++        "//vanity/test/slick:go_default_library",
++    ],
++)
+diff -urN a/vanity/test/fast/BUILD.bazel b/vanity/test/fast/BUILD.bazel
+--- a/vanity/test/fast/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/vanity/test/fast/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "gogovanity.pb.go",
++        "proto3.pb.go",
++        "vanity.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/vanity/test/fast",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/vanity/test/faster/BUILD.bazel b/vanity/test/faster/BUILD.bazel
+--- a/vanity/test/faster/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/vanity/test/faster/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "gogovanity.pb.go",
++        "proto3.pb.go",
++        "vanity.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/vanity/test/faster",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/vanity/test/slick/BUILD.bazel b/vanity/test/slick/BUILD.bazel
+--- a/vanity/test/slick/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/vanity/test/slick/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "gogovanity.pb.go",
++        "proto3.pb.go",
++        "vanity.pb.go",
++    ],
++    importpath = "github.com/gogo/protobuf/vanity/test/slick",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
+diff -urN a/version/BUILD.bazel b/version/BUILD.bazel
+--- a/version/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/version/BUILD.bazel	2018-09-27 16:42:40.837066009 -0400
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["version.go"],
++    importpath = "github.com/gogo/protobuf/version",
++    visibility = ["//visibility:public"],
++)

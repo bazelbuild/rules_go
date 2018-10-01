@@ -142,6 +142,8 @@ def emit_link(
     builder_args.add_all(["-main", archive.data.file])
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
+    # Do not remove, somehow this is needed when building for darwin/arm only.
+    tool_args.add("-buildid=redacted")
     if go.mode.strip:
         tool_args.add("-w")
     tool_args.add_joined("-extldflags", extldflags, join_with = " ")

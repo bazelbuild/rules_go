@@ -16,7 +16,6 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
-    "GoAspectProviders",
     "GoBuilders",
     "GoLibrary",
     "GoSource",
@@ -157,7 +156,10 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     }
     if coverage_instrumented and not getattr(attr, "testonly", False):
         source["cover"] = attr_srcs
+    for dep in source["deps"]:
+        _check_binary_dep(go, dep, "deps")
     for e in getattr(attr, "embed", []):
+        _check_binary_dep(go, e, "embed")
         _merge_embed(source, e)
     x_defs = source["x_defs"]
     for k, v in getattr(attr, "x_defs", {}).items():
@@ -168,6 +170,25 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     if library.resolve:
         library.resolve(go, attr, source, _merge_embed)
     return GoSource(**source)
+
+def _check_binary_dep(go, dep, edge):
+    """Checks that this rule doesn't depend on a go_binary or go_test.
+
+    go_binary and go_test apply an aspect to their deps and embeds. If a
+    go_binary / go_test depends on another go_binary / go_test in different
+    modes, the aspect is applied twice, and Bazel emits an opaque error
+    message.
+    """
+    if (type(dep) == "Target" and
+        DefaultInfo in dep and
+        getattr(dep[DefaultInfo], "files_to_run", None) and
+        dep[DefaultInfo].files_to_run.executable):
+        # TODO(#1735): make this an error after 0.16 is released.
+        print("WARNING: rule {rule} depends on executable {dep} via {edge}. This is not safe for cross-compilation. Depend on go_library instead. This will be an error in the future.".format(
+            rule = str(go._ctx.label),
+            dep = str(dep.label),
+            edge = edge,
+        ))
 
 def _infer_importpath(ctx):
     DEFAULT_LIB = "go_default_library"

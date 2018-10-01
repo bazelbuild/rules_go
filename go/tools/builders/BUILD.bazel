@@ -156,3 +156,10 @@ go_tool_binary(
     ],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "all_builder_srcs",
+    testonly = True,
+    srcs = glob(["*.go"]),
+    visibility = ["//:__subpackages__"],
+)

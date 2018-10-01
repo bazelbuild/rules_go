@@ -27,6 +27,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -60,16 +61,15 @@ func run(args []string) error {
 		return err
 	}
 
-	// On Windows, take the absolute path of the output file.
+	// On Windows, take the absolute path of the output file and main file.
 	// This is needed on Windows because the relative path is frequently too long.
 	// os.Open on Windows converts absolute paths to some other path format with
 	// longer length limits. Absolute paths do not work on macOS for .dylib
 	// outputs because they get baked in as the "install path".
-	if goos, ok := os.LookupEnv("GOOS"); !ok {
-		return fmt.Errorf("GOOS not set")
-	} else if goos == "windows" {
+	if runtime.GOOS != "darwin" {
 		*outFile = abs(*outFile)
 	}
+	*main = abs(*main)
 
 	// If we were given any stamp value files, read and parse them
 	stampmap := map[string]string{}
