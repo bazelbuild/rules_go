@@ -129,7 +129,7 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_google_genproto",
         remote = "https://github.com/google/go-genproto",
-        commit = "0e822944c569bf5c9afd034adaa56208bd2906ac",  # master as of 2018-09-28
+        commit = "c7e5094acea1ca1b899e2259d80a6b0f882f81f8",  # master as of 2018-09-28
         patches = ["//third_party:org_golang_google_genproto-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix google.golang.org/genproto -proto disable_global
@@ -137,13 +137,14 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "go_googleapis",
-        # master as of 2018-08-08
-        urls = ["https://codeload.github.com/googleapis/googleapis/zip/071efb9af05d831205787108e163235db6b763e4"],
-        strip_prefix = "googleapis-071efb9af05d831205787108e163235db6b763e4",
+        # master as of 2018-09-28
+        urls = ["https://codeload.github.com/googleapis/googleapis/zip/b71d0c74de0b84f2f10a2c61cd66fbb48873709f"],
+        strip_prefix = "googleapis-b71d0c74de0b84f2f10a2c61cd66fbb48873709f",
         type = "zip",
         patches = [
             "//third_party:go_googleapis-directives.patch",
             "//third_party:go_googleapis-gazelle.patch",
+            "//third_party:go_googleapis-fix.patch",
         ],
         patch_args = ["-p1"],
     )
