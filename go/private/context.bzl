@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+)
+load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
@@ -326,14 +330,14 @@ def go_context(ctx, attr = None):
     )
 
 def _go_context_data(ctx):
-    cpp = ctx.fragments.cpp
+    cpp = find_cpp_toolchain(ctx)
     features = ctx.features
     compiler_options = _filter_options(
-        cpp.compiler_options(features) + cpp.unfiltered_compiler_options(features),
+        cpp.compiler_options() + cpp.unfiltered_compiler_options(features),
         _COMPILER_OPTIONS_BLACKLIST,
     )
     linker_options = _filter_options(
-        cpp.link_options + cpp.mostly_static_link_options(features, False),
+        cpp.mostly_static_link_options(False),
         _LINKER_OPTIONS_BLACKLIST,
     )
 
@@ -341,11 +345,11 @@ def _go_context_data(ctx):
     tags = []
     if "gotags" in ctx.var:
         tags = ctx.var["gotags"].split(",")
-    apple_ensure_options(ctx, env, tags, compiler_options, linker_options)
+    apple_ensure_options(ctx, env, tags, compiler_options, linker_options, cpp.target_gnu_system_name)
     compiler_path, _ = cpp.ld_executable.rsplit("/", 1)
     return struct(
         strip = ctx.attr.strip,
-        crosstool = ctx.files._crosstool,
+        crosstool = ctx.files._cc_toolchain,
         tags = tags,
         env = env,
         cgo_tools = struct(
@@ -355,7 +359,7 @@ def _go_context_data(ctx):
             compiler_options = compiler_options,
             linker_options = linker_options,
             options = compiler_options + linker_options,
-            c_options = cpp.c_options,
+            c_options = cpp.c_options(),
         ),
     )
 
@@ -363,10 +367,10 @@ go_context_data = rule(
     _go_context_data,
     attrs = {
         "strip": attr.string(mandatory = True),
-        "_crosstool": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
+        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
             default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
-    fragments = ["cpp", "apple"],
+    fragments = ["apple"],
 )

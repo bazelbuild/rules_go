@@ -230,10 +230,7 @@ _bazel_test_script = go_rule(
         "check": attr.string(),
         "config": attr.string(default = "isolate"),
         "extra_files": attr.label_list(allow_files = True),
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "data": attr.label_list(allow_files = True),
         "clean_build": attr.bool(default = False),
         "bazelrc": attr.label(
             allow_single_file = True,
