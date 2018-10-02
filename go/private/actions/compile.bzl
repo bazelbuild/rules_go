@@ -53,16 +53,16 @@ def emit_compile(
     builder_args = go.builder_args(go)
     builder_args.add_all(sources, before_each = "-src")
     builder_args.add_all(archives, before_each = "-arc", map_each = _archive)
-    builder_args.add_all(["-o", out_lib])
-    builder_args.add_all(["-package_list", go.package_list])
+    builder_args.add("-o", out_lib)
+    builder_args.add("-package_list", go.package_list)
     if testfilter:
-        builder_args.add_all(["-testfilter", testfilter])
+        builder_args.add("-testfilter", testfilter)
 
     tool_args = go.tool_args(go)
     if asmhdr:
-        tool_args.add_all(["-asmhdr", asmhdr])
+        tool_args.add("-asmhdr", asmhdr)
         outputs.append(asmhdr)
-    tool_args.add_all(["-trimpath", "."])
+    tool_args.add("-trimpath", ".")
 
     #TODO: Check if we really need this expand make variables in here
     #TODO: If we really do then it needs to be moved all the way back out to the rule
@@ -74,7 +74,7 @@ def emit_compile(
         tool_args.add("-msan")
     tool_args.add_all(link_mode_args(go.mode))
     if importpath:
-        tool_args.add_all(["-p", importpath])
+        tool_args.add("-p", importpath)
     if go.mode.debug:
         tool_args.add_all(["-N", "-l"])
     tool_args.add_all(go.toolchain.flags.compile)
@@ -90,7 +90,7 @@ def emit_compile(
 def _bootstrap_compile(go, sources, out_lib, gc_goopts):
     cmd = [shell.quote(go.go.path), "tool", "compile", "-trimpath", "\"$(pwd)\""]
     args = go.actions.args()
-    args.add_all(["-o", out_lib])
+    args.add("-o", out_lib)
     args.add_all(gc_goopts)
     args.add_all(sources)
     go.actions.run_shell(

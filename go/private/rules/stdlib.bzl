@@ -56,11 +56,11 @@ def _build_stdlib(go, attr):
     root_file = go.declare_file(go, "ROOT")
     filter_buildid = attr._filter_buildid_builder.files.to_list()[0]
     args = go.builder_args(go)
-    args.add_all(["-out", root_file.dirname])
+    args.add("-out", root_file.dirname)
     if go.mode.race:
         args.add("-race")
     args.add_all(link_mode_args(go.mode))
-    args.add_all(["-filter_buildid", filter_buildid])
+    args.add("-filter_buildid", filter_buildid)
     go.actions.write(root_file, "")
     env = go.env
     env.update({

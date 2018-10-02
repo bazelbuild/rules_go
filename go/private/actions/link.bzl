@@ -79,7 +79,7 @@ def emit_link(
 
     # Add in any mode specific behaviours
     extld = go.cgo_tools.compiler_executable
-    tool_args.add_all(["-extld", extld])
+    tool_args.add("-extld", extld)
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
@@ -87,10 +87,10 @@ def emit_link(
     if go.mode.static:
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
-        builder_args.add_all(["-buildmode", go.mode.link])
-        tool_args.add_all(["-linkmode", "external"])
+        builder_args.add("-buildmode", go.mode.link)
+        tool_args.add("-linkmode", "external")
     if go.mode.link == LINKMODE_PLUGIN:
-        tool_args.add_all(["-pluginpath", archive.data.importpath])
+        tool_args.add("-pluginpath", archive.data.importpath)
 
     builder_args.add_all(
         [struct(archive = archive, test_archives = test_archives)],
@@ -127,10 +127,10 @@ def emit_link(
     stamp_x_defs = False
     for k, v in archive.x_defs.items():
         if v.startswith("{") and v.endswith("}"):
-            builder_args.add_all(["-Xstamp", "%s=%s" % (k, v[1:-1])])
+            builder_args.add("-Xstamp", "%s=%s" % (k, v[1:-1]))
             stamp_x_defs = True
         else:
-            tool_args.add_all(["-X", "%s=%s" % (k, v)])
+            tool_args.add("-X", "%s=%s" % (k, v))
 
     # Stamping support
     stamp_inputs = []
@@ -138,10 +138,11 @@ def emit_link(
         stamp_inputs = [info_file, version_file]
         builder_args.add_all(stamp_inputs, before_each = "-stamp")
 
-    builder_args.add_all(["-o", executable])
-    builder_args.add_all(["-main", archive.data.file])
+    builder_args.add("-o", executable)
+    builder_args.add("-main", archive.data.file)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
+
     # Do not remove, somehow this is needed when building for darwin/arm only.
     tool_args.add("-buildid=redacted")
     if go.mode.strip:

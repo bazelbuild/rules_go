@@ -142,8 +142,11 @@ def _bazel_test_script_impl(ctx):
     register = ""
     if any([ext.label.workspace_root.endswith("/go_sdk") for ext in ctx.attr.externals]):
         register += "register_toolchains(\n{}\n)\n".format(
-            "\n".join(['    "@go_sdk//:{}",'.format(name)
-                       for name in generate_toolchain_names()]))
+            "\n".join([
+                '    "@go_sdk//:{}",'.format(name)
+                for name in generate_toolchain_names()
+            ]),
+        )
     if ctx.attr.go_version == CURRENT_VERSION:
         register += "go_register_toolchains()\n"
     elif ctx.attr.go_version != None:

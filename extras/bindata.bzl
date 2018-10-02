@@ -60,10 +60,7 @@ def _bindata_impl(ctx):
 bindata = go_rule(
     _bindata_impl,
     attrs = {
-        "srcs": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "srcs": attr.label_list(allow_files = True),
         "package": attr.string(mandatory = True),
         "compress": attr.bool(default = True),
         "metadata": attr.bool(default = False),
