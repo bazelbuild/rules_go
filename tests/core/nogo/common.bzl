@@ -20,8 +20,12 @@ fi
 """
 
 CONTAINS_ERR_TMPL = """
-  if ! grep -q '{err}' bazel-output.txt; then
+  lines=$(grep '{err}' bazel-output.txt | wc -l)
+  if [ $lines -eq 0 ]; then
     echo "TEST FAILED: expected error message containing: '{err}'" >&2
+    result=1
+  elif [ $lines -ne 1 ]; then
+    echo "TEST FAILED: expected error message '{err}' appears more than once" >&2
     result=1
   fi
 """

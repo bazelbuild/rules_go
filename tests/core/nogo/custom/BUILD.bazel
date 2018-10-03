@@ -14,50 +14,50 @@ load("@io_bazel_rules_go//go:def.bzl", "nogo", "go_tool_library")
 nogo(
     name = "nogo",
     deps = [
-        ":foo_func_check",
-        ":return_bool_check",
-        ":import_fmt_check",
+        ":foo_func_analyzer",
+        ":return_bool_analyzer",
+        ":import_fmt_analyzer",
     ],
     {config}
     visibility = ["//visibility:public"],
 )
 
 go_tool_library(
-    name = "return_bool_check",
-    srcs = ["return_bool_check.go"],
-    importpath = "returnboolcheck",
-    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    name = "return_bool_analyzer",
+    srcs = ["return_bool_analyzer.go"],
+    importpath = "returnboolanalyzer",
+    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
 )
 
 go_tool_library(
-    name = "import_fmt_check",
-    srcs = ["import_fmt_check.go"],
-    importpath = "importfmtcheck",
-    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    name = "import_fmt_analyzer",
+    srcs = ["import_fmt_analyzer.go"],
+    importpath = "importfmtanalyzer",
+    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
 )
 
 go_tool_library(
-    name = "foo_func_check",
-    srcs = ["foo_func_check.go"],
-    importpath = "foofunccheck",
-    deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+    name = "foo_func_analyzer",
+    srcs = ["foo_func_analyzer.go"],
+    importpath = "foofuncanalyzer",
+    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
 )
 """
 
 EXTRA_FILES = [
-    ":return_bool_check.go",
-    ":import_fmt_check.go",
-    ":foo_func_check.go",
+    ":return_bool_analyzer.go",
+    ":import_fmt_analyzer.go",
+    ":foo_func_analyzer.go",
     ":config.json",
 ]
 
 NOGO = "@//:nogo"
 
 bazel_test(
-    name = "custom_checks_default_config",
+    name = "custom_analyzers_default_config",
     build = BUILD_TMPL.format(config = ""),
     check = BUILD_FAILED_TMPL.format(
         check_err =
@@ -72,7 +72,7 @@ bazel_test(
 )
 
 bazel_test(
-    name = "custom_checks_custom_config",
+    name = "custom_analyzers_custom_config",
     build = BUILD_TMPL.format(config = "config = \":config.json\","),
     check = BUILD_FAILED_TMPL.format(
         check_err =
@@ -87,7 +87,7 @@ bazel_test(
 )
 
 bazel_test(
-    name = "custom_checks_no_errors",
+    name = "custom_analyzers_no_errors",
     build = BUILD_TMPL.format(config = ""),
     check = BUILD_PASSED_TMPL.format(
         check_err =

@@ -4,7 +4,8 @@
 .. _nogo: nogo.rst#nogo
 .. _go_library: core.rst#go_library
 .. _go_tool_library: core.rst#go_tool_library
-.. _analysis: tools/analysis/analysis.go
+.. _analysis: https://godoc.org/golang.org/x/tools/go/analysis
+.. _Analyzer: https://godoc.org/golang.org/x/tools/go/analysis#Analyzer
 .. _GoLibrary: providers.rst#GoLibrary
 .. _GoSource: providers.rst#GoSource
 .. _GoArchive: providers.rst#GoArchive
@@ -37,12 +38,13 @@ in the development process.
 Overview
 --------
 
-Writing and registering checks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Writing and registering analyzers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``nogo`` checks are Go packages that register themselves with package
-`analysis`_. Each check is invoked once per Go package, and is provided the
-abstract syntax trees (ASTs) and type information for that package. For example:
+``nogo`` analyzers are Go packages that declare a variable named `Analyzer` of
+type `Analyzer`_ from package `analysis`_. Each analyzer is invoked once per Go
+package, and is provided the abstract syntax trees (ASTs) and type information
+for that package. For example:
 
 .. code:: go
 
@@ -55,35 +57,32 @@ abstract syntax trees (ASTs) and type information for that package. For example:
       "github.com/bazelbuild/rules_go/go/tools/analysis"
     )
 
-    var Analysis = &analysis.Analysis{Name: "importunsafe", Run: run}
-
-    func init() {
-      analysis.Register(Analysis)
+    var Analyzer = &analysis.Analyzer{
+      Name: "importunsafe",
+      Doc: "reports imports of package unsafe",
+      Run: run,
     }
 
-    func run(p *analysis.Package) (*analysis.Result, error) {
+    func run(pass *analysis.Pass) (interface{}, error) {
       var findings []*analysis.Finding
-      for _, f := range p.Files {
+      for _, f := range pass.Files {
         for _, imp := range f.Imports {
           path, err := strconv.Unquote(imp.Path.Value)
           if err == nil && path == "unsafe" {
-            findings = append(findings, &analysis.Finding{
-              Pos:     imp.Pos(),
-              End:     imp.End(),
-              Message: "package unsafe must not be imported",
-            })
+            pass.Reportf(imp.Pos(), "package unsafe must not be imported")
           }
         }
       }
-      return &analysis.Result{Findings: findings}, nil
+      return nil, nil
     }
 
-Any findings returned by the check will fail compilation. Do not emit findings
-unless they are severe enough to warrant interrupting the compiler.
+Any diagnostics reported by the analyzer will fail compilation. Do not emit
+diagnostics unless they are severe enough to warrant interrupting the compiler.
 
-Each check must be written as a `go_tool_library`_ rule. This rule
-is identical to `go_library`_ but avoids a bootstrapping problem, which
-will be explained later. For example:
+Each analyzer must be written as a `go_tool_library`_ rule and must import a
+`go_tool_library`_ version of the package `analysis`_ target. This rule is
+identical to `go_library`_ but avoids a bootstrapping problem, which will be
+explained later. For example:
 
 .. code:: bzl
 
@@ -93,7 +92,7 @@ will be explained later. For example:
         name = "importunsafe",
         srcs = ["importunsafe.go"],
         importpath = "importunsafe",
-        deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
         visibility = ["//visibility:public"],
     )
 
@@ -104,13 +103,13 @@ will be explained later. For example:
             "dom_utils.go",
         ],
         importpath = "unsafedom",
-        deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
         visibility = ["//visibility:public"],
     )
 
 The `nogo`_ rule generates a program that analyzes Go source code. This program
 is run alongside the compiler. You must define a `nogo`_ target whose ``deps``
-attribute contains all check targets. These checks will be linked to the
+attribute contains all analyzer targets. These analyzers will be linked to the
 generated ``nogo`` binary and executed at build-time.
 
 .. code:: bzl
@@ -122,15 +121,15 @@ generated ``nogo`` binary and executed at build-time.
         deps = [
             ":importunsafe",
             ":unsafedom",
-            "@javascript_checks//:loopclosure", # checks can be imported from a remote repo
+            "@javascript_analyzers//:loopclosure", # analyzers can be imported from a remote repo
         ],
         visibility = ["//visibility:public"], # must have public visibility
     )
 
-**NOTE**: Writing each ``nogo`` check as a `go_tool_library`_ rule instead of a
-`go_library`_ rule avoids a circular dependency: `go_library`_ implicitly
-depends on `nogo`_, which depends on check libraries, which must not depend on
-`nogo`_. `go_tool_library`_ does not have the same implicit dependency.
+**NOTE**: Writing each ``nogo`` analyzer as a `go_tool_library`_ rule instead of
+a `go_library`_ rule avoids a circular dependency: `go_library`_ implicitly
+depends on `nogo`_, which depends on analyzer libraries, which must not depend
+on `nogo`_. `go_tool_library`_ does not have the same implicit dependency.
 
 Finally, the `nogo`_ target must be passed to ``go_register_toolchains``
 in your ``WORKSPACE`` file.
@@ -147,13 +146,13 @@ imported from an external repository. However, ``nogo`` will not run when
 targets from the current repository are imported into other workspaces and built
 there.
 
-Configuring checks
-~~~~~~~~~~~~~~~~~~
+Configuring analyzers
+~~~~~~~~~~~~~~~~~~~~~
 
-By default, ``nogo`` checks apply to all Go source files being compiled. This
+By default, ``nogo`` analyzers apply to all Go source files being compiled. This
 behavior can be changed with a JSON configuration file.
 
-The top-level JSON object in the file must be keyed by the name of the check
+The top-level JSON object in the file must be keyed by the name of the analyzer
 being configured. These names must match the ``Analysis.Name`` of the registered
 analysis package. The JSON object's values are themselves objects which may
 contain the following key-value pairs:
@@ -163,28 +162,28 @@ contain the following key-value pairs:
 +----------------------------+---------------------------------------------------------------------+
 | ``"description"``          | :type:`string`                                                      |
 +----------------------------+---------------------------------------------------------------------+
-| Description of this check configuration.                                                         |
+| Description of this analyzer configuration.                                                      |
 +----------------------------+---------------------------------------------------------------------+
 | ``"apply_to"``             | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
-| Specifies files that this check will exclusively apply to.                                       |
+| Specifies files that this analyzer will exclusively apply to.                                    |
 | Its keys are regular expression strings matching Go files, and its values are strings containing |
 | a description of the entry.                                                                      |
 +----------------------------+---------------------------------------------------------------------+
 | ``"whitelist"``            | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
-| Specifies files that are exempt from this check.                                                 |
+| Specifies files that are exempt from this analyzer.                                              |
 | Its keys and values are strings that have the same semantics as those in ``apply_to``.           |
 | Keys in whitelist override keys in apply_to. If a .go file matches both an ``apply_to`` and      |
-| ``whitelist`` key, the check will not apply to that file.                                        |
+| ``whitelist`` key, the analyzer will not apply to that file.                                     |
 +----------------------------+---------------------------------------------------------------------+
 
 Example
 ^^^^^^^
 
-The following configuration file configures the checks named ``importunsafe``
-and ``unsafedom``. Since the ``loopclosure`` check is not explicitly configured,
-it will apply to all Go files built by Bazel.
+The following configuration file configures the analyzers named ``importunsafe``
+and ``unsafedom``. Since the ``loopclosure`` analyzer is not explicitly
+configured, it will apply to all Go files built by Bazel.
 
 .. code:: json
 
@@ -215,7 +214,7 @@ This label referencing this configuration file must be provided as the
         deps = [
             ":importunsafe",
             ":unsafedom",
-            "@javascript_checks//:loopclosure",
+            "@javascript_analyzers//:loopclosure",
         ],
         config = "config.json"
         visibility = ["//visibility:public"],
@@ -239,7 +238,8 @@ attribute in your `nogo`_ target:
     )
 
 In the above example, the generated ``nogo`` program will only run `vet`_.
-`vet`_ can also run alongside ``nogo`` checks given by the ``deps`` attribute.
+`vet`_ can also run alongside ``nogo`` analyzers given by the ``deps``
+attribute.
 
 `vet`_ will print error messages and fail compilation if any correctness issues
 are found in the source code being compiled. Only a subset of `vet`_ checks
@@ -270,13 +270,14 @@ Attributes
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries that will be linked to the generated nogo binary.                           |
-| These libraries must call ``analysis.Register`` to ensure that the analyses they implement are   |
-| called by nogo.                                                                                  |
-| These libraries must be `go_tool_library`_ targets to avoid bootstrapping problems.              |
+| These libraries must declare an ``analysis.Analyzer`` variable named `Analyzer` to ensure that   |
+| the analyzers they implement are called by nogo.                                                 |
+| These libraries must be `go_tool_library`_ targets, and must import a `go_tool_library`_ version |
+| of the package `analysis`_ target the to avoid bootstrapping problems.                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`config`            | :type:`label`               | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| JSON configuration file that configures one or more of the checks in ``deps``.                   |
+| JSON configuration file that configures one or more of the analyzers in ``deps``.                |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`vet`               | :type:`bool`                | :value:`False`                        |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -292,8 +293,8 @@ Example
         name = "nogo",
         deps = [
             ":importunsafe",
-            ":othercheck",
-            "@javascript_checks//:unsafedom",
+            ":otheranalyzer",
+            "@javascript_analyzers//:unsafedom",
         ],
         config = ":config.json",
         vet = True,

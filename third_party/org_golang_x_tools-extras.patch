@@ -1,0 +1,27 @@
+diff -urN b/go/analysis/BUILD.bazel c/go/analysis/BUILD.bazel
+--- b/go/analysis/BUILD.bazel	2018-10-03 11:26:53.547962992 -0700
++++ c/go/analysis/BUILD.bazel	2018-10-03 11:27:58.822361161 -0700
+@@ -1,10 +1,22 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
+
+ go_library(
+     name = "go_default_library",
+     srcs = [
+         "analysis.go",
+         "validate.go",
++    ],
++    importpath = "golang.org/x/tools/go/analysis",
++    visibility = ["//visibility:public"],
++)
++
++# Only the generated nogo program and nogo analyzers should depend on this
++# target to avoid bootstrapping problems.
++go_tool_library(
++    name = "go_tool_library",
++    srcs = [
++        "analysis.go",
++        "validate.go",
+     ],
+     importpath = "golang.org/x/tools/go/analysis",
+     visibility = ["//visibility:public"],

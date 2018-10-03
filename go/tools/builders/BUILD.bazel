@@ -75,8 +75,8 @@ go_source(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "@io_bazel_rules_go//go/tools/analysis",
         "@io_bazel_rules_go//vendor/golang.org/x/tools/go/gcexportdata:go_default_library",
+        "@org_golang_x_tools//go/analysis:go_tool_library",
     ],
 )
 

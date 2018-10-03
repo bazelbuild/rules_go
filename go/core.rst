@@ -279,10 +279,10 @@ go_tool_library
 This builds a Go library from a set of source files that are all part of
 the same package.
 
-This rule is identical to ``go_library``, but must be used to build check
+This rule is identical to ``go_library``, but must be used to build analyzer
 libraries to avoid a circular dependency: ``go_library`` implicitly
-depends on `nogo`_, which depends on check libraries, which must not depend on
-`nogo`_. ``go_tool_library`` does not have the same implicit dependency.
+depends on `nogo`_, which depends on analyzer libraries, which must not depend
+on `nogo`_. ``go_tool_library`` does not have the same implicit dependency.
 
 Providers
 ^^^^^^^^^

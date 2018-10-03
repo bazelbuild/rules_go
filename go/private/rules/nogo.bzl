@@ -30,7 +30,7 @@ load(
 
 def _nogo_impl(ctx):
     if not ctx.attr.deps and not ctx.attr.vet:
-        # If there aren't any checks to perform, don't generate a binary.
+        # If there aren't any analyzers to run, don't generate a binary.
         # go_context will check for this condition.
         return None
 
@@ -40,9 +40,9 @@ def _nogo_impl(ctx):
     nogo_args = ctx.actions.args()
     nogo_args.add("-output", nogo_main)
     nogo_inputs = []
-    check_archives = [get_archive(dep) for dep in ctx.attr.deps]
-    check_importpaths = [archive.data.importpath for archive in check_archives]
-    nogo_args.add_all(check_importpaths, before_each = "-check_importpath")
+    analyzer_archives = [get_archive(dep) for dep in ctx.attr.deps]
+    analyzer_importpaths = [archive.data.importpath for archive in analyzer_archives]
+    nogo_args.add_all(analyzer_importpaths, before_each = "-analyzer_importpath")
     if ctx.attr.vet:
         nogo_args.add("-vet")
     if ctx.file.config:
@@ -69,7 +69,7 @@ def _nogo_impl(ctx):
     nogo_source = go.library_to_source(go, struct(
         srcs = [struct(files = [nogo_main])],
         embed = [ctx.attr._nogo_srcs],
-        deps = check_archives,
+        deps = analyzer_archives,
     ), nogo_library, False)
     nogo_archive, executable, runfiles = go.binary(
         go,

@@ -31,13 +31,21 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 
-	"github.com/bazelbuild/rules_go/go/tools/analysis"
+	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/gcexportdata"
 )
+
+func init() {
+	if err := analysis.Validate(analyzers); err != nil {
+		log.Fatal(err)
+	}
+}
 
 // run returns an error if there is a problem loading the package or if any
 // analysis fails.
@@ -69,13 +77,11 @@ func run(args []string) error {
 			return fmt.Errorf("errors found by vet:\n%s\n", findings)
 		}
 	}
-	c := make(chan result)
 	fset := token.NewFileSet()
-	if err := runAnalyses(c, fset, packageFile, importMap, flags.Args()); err != nil {
-		return fmt.Errorf("error running analyses: %v", err)
-	}
-	if err := checkAnalysisResults(c, fset); err != nil {
-		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", err)
+	if d, err := runAnalyzers(analyzers, fset, packageFile, importMap, flags.Args()); err != nil {
+		return fmt.Errorf("error running analyzers: %v", err)
+	} else if d != "" {
+		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", d)
 	}
 	return nil
 }
@@ -123,66 +129,158 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 	return packageFile, importMap, nil
 }
 
-// runAnalyses runs all analyses, filters results, and writes findings to the
-// given channel.
-func runAnalyses(c chan result, fset *token.FileSet, packageFile, importMap map[string]string, srcFiles []string) error {
-	if len(analysis.Analyses()) == 0 {
-		return nil
-	}
-	apkg, err := newAnalysisPackage(fset, packageFile, importMap, srcFiles)
-	if err != nil {
-		return fmt.Errorf("error building analysis package: %s\n", err)
-	}
-	// Run all other analyses.
-	for _, a := range analysis.Analyses() {
-		go func(a *analysis.Analysis) {
-			defer func() {
-				// Prevent a panic in a single analysis from interrupting other analyses.
-				if r := recover(); r != nil {
-					c <- result{name: a.Name, err: fmt.Errorf("panic : %v", r)}
-				}
-			}()
-			res, err := a.Run(apkg)
-			switch err {
-			case nil:
-				c <- result{analysis.Result{res.Findings}, a.Name, nil}
-			case analysis.ErrSkipped:
-				c <- result{name: a.Name, err: fmt.Errorf("skipped : %v", err)}
-			default:
-				c <- result{name: a.Name, err: fmt.Errorf("internal error: %v", err)}
-			}
-		}(a)
-	}
-	return nil
-}
-
-func newAnalysisPackage(fset *token.FileSet, packageFile, importMap map[string]string, srcFiles []string) (*analysis.Package, error) {
+// runAnalyzers runs all the given analyzers on the specified package and
+// returns the source code diagnostics that the must be printed in the build log.
+// It returns an empty string if no source code diagnostics need to be printed.
+func runAnalyzers(analyzers []*analysis.Analyzer, fset *token.FileSet, packageFile, importMap map[string]string, filenames []string) (string, error) {
 	imp := &importer{
 		fset:         fset,
 		importMap:    importMap,
 		packageCache: make(map[string]*types.Package),
 		packageFile:  packageFile,
 	}
-	apkg, err := load(fset, imp, srcFiles)
+	pkg, err := load(fset, imp, filenames)
 	if err != nil {
-		return nil, fmt.Errorf("error loading package: %v\n", err)
+		return "", fmt.Errorf("error loading package: %v", err)
 	}
-	return apkg, nil
+
+	// Construct the action graph.
+	var roots []*action
+	actions := make(map[*analysis.Analyzer]*action)
+
+	var visit func(a *analysis.Analyzer) *action
+	visit = func(a *analysis.Analyzer) *action {
+		act, ok := actions[a]
+		if !ok {
+			act = &action{a: a, pkg: pkg}
+
+			// Add a dependency on each required analyzers.
+			for _, req := range a.Requires {
+				act.deps = append(act.deps, visit(req))
+			}
+			actions[a] = act
+		}
+		return act
+	}
+
+	for _, analyzer := range analyzers {
+		action := visit(analyzer)
+		roots = append(roots, action)
+	}
+
+	execAll(roots)
+	return checkAnalysisResults(roots, pkg), nil
+}
+
+// An action represents one unit of analysis work: the application of
+// one analysis to one package. Actions form a DAG within a
+// package (as different analyzers are applied, either in sequence or
+// parallel).
+type action struct {
+	once        sync.Once
+	a           *analysis.Analyzer
+	pass        *analysis.Pass
+	pkg         *goPackage
+	deps        []*action
+	inputs      map[*analysis.Analyzer]interface{}
+	result      interface{}
+	diagnostics []analysis.Diagnostic
+	err         error
+}
+
+func (act *action) String() string {
+	return fmt.Sprintf("%s@%s", act.a, act.pkg)
+}
+
+func execAll(actions []*action) {
+	var wg sync.WaitGroup
+	for _, act := range actions {
+		wg.Add(1)
+		work := func(act *action) {
+			act.exec()
+			wg.Done()
+		}
+		go work(act)
+	}
+	wg.Wait()
+}
+
+func (act *action) exec() { act.once.Do(act.execOnce) }
+
+func (act *action) execOnce() {
+	// Analyze dependencies.
+	execAll(act.deps)
+
+	// Report an error if any dependency failed.
+	var failed []string
+	for _, dep := range act.deps {
+		if dep.err != nil {
+			failed = append(failed, dep.String())
+		}
+	}
+	if failed != nil {
+		sort.Strings(failed)
+		act.err = fmt.Errorf("failed prerequisites: %s", strings.Join(failed, ", "))
+		return
+	}
+
+	// Plumb the output values of the dependencies
+	// into the inputs of this action.
+	inputs := make(map[*analysis.Analyzer]interface{})
+	for _, dep := range act.deps {
+		// Same package, different analysis (horizontal edge):
+		// in-memory outputs of prerequisite analyzers
+		// become inputs to this analysis pass.
+		inputs[dep.a] = dep.result
+	}
+
+	// Run the analysis.
+	pass := &analysis.Pass{
+		Analyzer:          act.a,
+		Fset:              act.pkg.fset,
+		Files:             act.pkg.syntax,
+		Pkg:               act.pkg.types,
+		TypesInfo:         act.pkg.typesInfo,
+		ResultOf:          inputs,
+		Report:            func(d analysis.Diagnostic) { act.diagnostics = append(act.diagnostics, d) },
+		ImportPackageFact: importPackageFact,
+		ExportPackageFact: exportPackageFact,
+		ImportObjectFact:  importObjectFact,
+		ExportObjectFact:  exportObjectFact,
+	}
+	act.pass = pass
+
+	var err error
+	if act.pkg.illTyped && !pass.Analyzer.RunDespiteErrors {
+		err = fmt.Errorf("analysis skipped due to type-checking error: %v", act.pkg.typeCheckError)
+	} else {
+		act.result, err = pass.Analyzer.Run(pass)
+		if err == nil {
+			if got, want := reflect.TypeOf(act.result), pass.Analyzer.ResultType; got != want {
+				err = fmt.Errorf(
+					"internal error: on package %s, analyzer %s returned a result of type %v, but declared ResultType %v",
+					pass.Pkg.Path(), pass.Analyzer, got, want)
+			}
+		}
+	}
+	act.err = err
 }
 
 // load parses and type checks the source code in each file in filenames.
-func load(fset *token.FileSet, imp types.Importer, filenames []string) (*analysis.Package, error) {
+func load(fset *token.FileSet, imp types.Importer, filenames []string) (*goPackage, error) {
 	if len(filenames) == 0 {
 		return nil, errors.New("no filenames")
 	}
-	var files []*ast.File
+	var syntax []*ast.File
 	for _, file := range filenames {
-		f, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
+		s, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, f)
+		syntax = append(syntax, s)
 	}
+	pkg := &goPackage{fset: fset, syntax: syntax}
+
 	config := types.Config{Importer: imp}
 	info := &types.Info{
 		Types:     make(map[ast.Expr]types.TypeAndValue),
@@ -190,41 +288,66 @@ func load(fset *token.FileSet, imp types.Importer, filenames []string) (*analysi
 		Defs:      make(map[*ast.Ident]types.Object),
 		Implicits: make(map[ast.Node]types.Object),
 	}
-	pkg, err := config.Check(files[0].Name.Name, fset, files, info)
+	types, err := config.Check(syntax[0].Name.Name, fset, syntax, info)
 	if err != nil {
-		return nil, fmt.Errorf("type-checking failed: %v", err)
+		pkg.illTyped, pkg.typeCheckError = true, err
 	}
-	return &analysis.Package{Fset: fset, Files: files, Types: pkg, Info: info}, nil
+	pkg.types, pkg.typesInfo = types, info
+
+	return pkg, nil
 }
 
-// checkAnalysisResults checks the analysis results written to the given channel
-// and returns an error if the analysis finds errors that should fail
-// compilation.
-func checkAnalysisResults(c chan result, fset *token.FileSet) error {
-	var findings []*analysis.Finding
+// A goPackage describes a loaded Go package.
+type goPackage struct {
+	// fset provides position information for types, typesInfo, and syntax.
+	// It is set only when types is set.
+	fset *token.FileSet
+	// syntax is the package's syntax trees.
+	syntax []*ast.File
+	// types provides type information for the package.
+	types *types.Package
+	// illTyped indicates whether the package or any dependency contains errors.
+	// It is set only when types is set.
+	illTyped bool
+	// typeCheckError contains any error encountered during type-checking. It is
+	// only set when illTyped is true.
+	typeCheckError error
+	// typesInfo provides type information about the package's syntax trees.
+	// It is set only when syntax is set.
+	typesInfo *types.Info
+}
+
+func (g *goPackage) String() string {
+	return g.types.Path()
+}
+
+// checkAnalysisResults checks the analysis diagnostics in the given actions
+// and returns a string containing all the diagnostics that should be printed
+// to the build log.
+func checkAnalysisResults(actions []*action, pkg *goPackage) string {
+	var diagnostics []analysis.Diagnostic
 	var errs []error
-	for i := 0; i < len(analysis.Analyses()); i++ {
-		result := <-c
-		if result.err != nil {
-			// Analysis failed or skipped.
-			errs = append(errs, fmt.Errorf("analysis %q: %v", result.name, result.err))
+	for _, act := range actions {
+		if act.err != nil {
+			// Analyzer failed.
+			errs = append(errs, fmt.Errorf("analyzer %q failed: %v", act.a.Name, act.err))
 			continue
 		}
-		if len(result.Findings) == 0 {
+		if len(act.diagnostics) == 0 {
 			continue
 		}
-		config, ok := configs[result.name]
+		config, ok := configs[act.a.Name]
 		if !ok {
-			// If the check is not explicitly configured, it applies to all files.
-			findings = append(findings, result.Findings...)
+			// If the analyzer is not explicitly configured, it applies to all files.
+			diagnostics = append(diagnostics, act.diagnostics...)
 			continue
 		}
-		// Discard findings based on the check configuration.
-		for _, finding := range result.Findings {
-			filename := fset.File(finding.Pos).Name()
+		// Discard findings based on the analyzer configuration.
+		for _, d := range act.diagnostics {
+			filename := pkg.fset.File(d.Pos).Name()
 			include := true
 			if len(config.applyTo) > 0 {
-				// This analysis applies exclusively to a set of files.
+				// This analyzer applies exclusively to a set of files.
 				include = false
 				for _, pattern := range config.applyTo {
 					if pattern.MatchString(filename) {
@@ -242,16 +365,16 @@ func checkAnalysisResults(c chan result, fset *token.FileSet) error {
 				}
 			}
 			if include {
-				findings = append(findings, finding)
+				diagnostics = append(diagnostics, d)
 			}
 		}
 	}
-	if len(findings) == 0 && len(errs) == 0 {
-		return nil
+	if len(diagnostics) == 0 && len(errs) == 0 {
+		return ""
 	}
 
-	sort.Slice(findings, func(i, j int) bool {
-		return findings[i].Pos < findings[j].Pos
+	sort.Slice(diagnostics, func(i, j int) bool {
+		return diagnostics[i].Pos < diagnostics[j].Pos
 	})
 	errMsg := &bytes.Buffer{}
 	sep := ""
@@ -260,24 +383,24 @@ func checkAnalysisResults(c chan result, fset *token.FileSet) error {
 		sep = "\n"
 		errMsg.WriteString(err.Error())
 	}
-	for _, f := range findings {
+	for _, d := range diagnostics {
 		errMsg.WriteString(sep)
 		sep = "\n"
-		fmt.Fprintf(errMsg, "%s: %s", fset.Position(f.Pos), f.Message)
+		fmt.Fprintf(errMsg, "%s: %s", pkg.fset.Position(d.Pos), d.Message)
 	}
-	return errors.New(errMsg.String())
+	return errMsg.String()
 }
 
-// config determines which source files an analysis should be applied to.
+// config determines which source files an analyzer should be applied to.
 // config values are generated in another file that is compiled with
 // nogo_main.go by the nogo rule.
 type config struct {
-	// applyTo is a list of regular expressions that match files a check
-	// should apply to. When empty, the check will apply to all files.
+	// applyTo is a list of regular expressions that match files an analyzer
+	// should apply to. When empty, the analyzer will apply to all files.
 	applyTo []*regexp.Regexp
 
 	// whitelist is a list of regular expressions that match files that are
-	// exempt from a check.
+	// exempt from an analyzer.
 	whitelist []*regexp.Regexp
 }
 
@@ -287,14 +410,6 @@ func main() {
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// result is used to collate all the findings and errors returned
-// by analyses run in parallel.
-type result struct {
-	analysis.Result
-	name string
-	err  error
 }
 
 // importer is an implementation of go/types.Importer that imports type
@@ -343,4 +458,19 @@ func (i *importer) Import(path string) (*types.Package, error) {
 	}
 
 	return gcexportdata.Read(r, i.fset, i.packageCache, path)
+}
+
+// Facts are unsupported.
+// TODO(samueltan): support them.
+func importPackageFact(pkg *types.Package, fact analysis.Fact) bool {
+	panic("Facts are not yet supported")
+}
+func exportPackageFact(fact analysis.Fact) {
+	panic("Facts are not yet supported")
+}
+func importObjectFact(obj types.Object, fact analysis.Fact) bool {
+	panic("Facts are not yet supported")
+}
+func exportObjectFact(obj types.Object, fact analysis.Fact) {
+	panic("Facts are not yet supported")
 }

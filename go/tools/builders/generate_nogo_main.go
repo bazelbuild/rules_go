@@ -32,14 +32,22 @@ import (
 const codeTpl = `
 package main
 
+
 import (
 {{- if .NeedRegexp }}
 	"regexp"
 {{- end}}
-{{- range $importPath := .ImportPaths}}
-	_ "{{$importPath}}"
+{{- range $import := .Imports}}
+	{{$import.Name}} "{{$import.Path}}"
 {{- end}}
+	"golang.org/x/tools/go/analysis"
 )
+
+var analyzers = []*analysis.Analyzer{
+{{- range $import := .Imports}}
+	{{$import.Name}}.Analyzer,
+{{- end}}
+}
 
 const enableVet = {{.EnableVet}}
 
@@ -73,10 +81,10 @@ var configs = map[string]config{
 `
 
 func run(args []string) error {
-	checkImportPaths := multiFlag{}
+	analyzerImportPaths := multiFlag{}
 	flags := flag.NewFlagSet("generate_nogo_main", flag.ExitOnError)
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
-	flags.Var(&checkImportPaths, "check_importpath", "import path of a check library")
+	flags.Var(&analyzerImportPaths, "analyzer_importpath", "import path of an analyzer library")
 	configFile := flags.String("config", "", "nogo config file")
 	enableVet := flags.Bool("vet", false, "whether to run vet")
 	if err := flags.Parse(args); err != nil {
@@ -102,15 +110,29 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
+
+	type Import struct {
+		Path, Name string
+	}
+	// Create unique name for each imported analyzer.
+	suffix := 'A'
+	imports := make([]Import, 0, len(analyzerImportPaths))
+	for _, path := range analyzerImportPaths {
+		imports = append(imports, Import{
+			Path: path,
+			// Name: filepath.Base(path)})
+			Name: "analyzer" + string(suffix)})
+		suffix++
+	}
 	data := struct {
-		ImportPaths []string
-		Configs     Configs
-		EnableVet   bool
-		NeedRegexp  bool
+		Imports    []Import
+		Configs    Configs
+		EnableVet  bool
+		NeedRegexp bool
 	}{
-		ImportPaths: checkImportPaths,
-		Configs:     config,
-		EnableVet:   *enableVet,
+		Imports:   imports,
+		Configs:   config,
+		EnableVet: *enableVet,
 	}
 	for _, c := range config {
 		if len(c.ApplyTo) > 0 || len(c.Whitelist) > 0 {
@@ -118,6 +140,7 @@ func run(args []string) error {
 			break
 		}
 	}
+
 	tpl := template.Must(template.New("source").Parse(codeTpl))
 	if err := tpl.Execute(outFile, data); err != nil {
 		return fmt.Errorf("template.Execute failed: %v", err)
