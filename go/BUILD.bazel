@@ -3,3 +3,8 @@ filegroup(
     srcs = glob(["*.bzl"]) + ["//go/private:all_rules"],
     visibility = ["//visibility:public"],
 )
+
+toolchain_type(
+    name = "toolchain",
+    visibility = ["//visibility:public"],
+)
