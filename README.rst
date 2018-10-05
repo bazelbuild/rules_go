@@ -26,7 +26,7 @@ Go rules for Bazel_
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
 .. _#1199: https://github.com/bazelbuild/rules_go/issues/1199
-.. _reproducible_binary: tests/reproducible_binary/BUILD.bazel
+.. _//tests/core/cross: https://github.com/bazelbuild/rules_go/blob/master/tests/core/cross/BUILD.bazel
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _Travis configuration file: .travis.yml
@@ -429,7 +429,8 @@ For example:
       data = [":cmd"],
   )
 
-See `reproducible_binary`_ for a complete example.
+See `//tests/core/cross`_ for a full example of a test that
+accesses a binary.
 
 Alternatively, you can set the ``out`` attribute of `go_binary`_ to a specific
 filename. Note that when ``out`` is set, the binary won't be cached when
