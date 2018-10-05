@@ -26,7 +26,7 @@ Go rules for Bazel_
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
 .. _#1199: https://github.com/bazelbuild/rules_go/issues/1199
-.. _reproducible_binary: tests/reproducible_binary/BUILD.bazel
+.. _reproducible_binary: tests/reproducibility/BUILD.bazel
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _Travis configuration file: .travis.yml
