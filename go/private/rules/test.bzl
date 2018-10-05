@@ -162,6 +162,9 @@ def _go_test_impl(ctx):
                 runfiles = runfiles,
                 executable = executable,
             ),
+            OutputGroupInfo(
+                compilation_outputs = [internal_archive.data.file],
+            ),
         ],
         instrumented_files = struct(
             extensions = ["go"],
