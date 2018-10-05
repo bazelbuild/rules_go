@@ -22,6 +22,7 @@ Contents
 * `coverage functionality <coverage/README.rst>`_
 * `Import maps <importmap/README.rst>`_
 * `Basic go_path functionality <go_path/README.rst>`_
+* `output_groups functionality <output_groups/README.rst>`_
 
 .. Child list end
 
