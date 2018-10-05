@@ -24,8 +24,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"regexp"
+	"strconv"
 	"text/template"
 )
 
@@ -115,13 +117,15 @@ func run(args []string) error {
 		Path, Name string
 	}
 	// Create unique name for each imported analyzer.
-	suffix := 'A'
+	suffix := 1
 	imports := make([]Import, 0, len(analyzerImportPaths))
 	for _, path := range analyzerImportPaths {
 		imports = append(imports, Import{
 			Path: path,
-			// Name: filepath.Base(path)})
-			Name: "analyzer" + string(suffix)})
+			Name: "analyzer" + strconv.Itoa(suffix)})
+		if suffix == math.MaxInt32 {
+			return fmt.Errorf("cannot generate more than %d analyzers", suffix)
+		}
 		suffix++
 	}
 	data := struct {

@@ -3,6 +3,7 @@ package c
 import (
 	"d"
 	"fmt"
+	"go/token"
 	"reflect"
 
 	"golang.org/x/tools/go/analysis"
@@ -17,6 +18,6 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	pass.Report(analysis.Diagnostic{Message: "ran c"})
-	return fmt.Sprintf("c %s", pass.ResultOf[d.Analyzer].(string)), nil
+	pass.Reportf(token.NoPos, "only printed once")
+	return fmt.Sprintf("c %s", pass.ResultOf[d.Analyzer]), nil
 }

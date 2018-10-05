@@ -132,6 +132,8 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 // runAnalyzers runs all the given analyzers on the specified package and
 // returns the source code diagnostics that the must be printed in the build log.
 // It returns an empty string if no source code diagnostics need to be printed.
+//
+// This implementation was adapted from that of golang.org/x/tools/go/checker/internal/checker.
 func runAnalyzers(analyzers []*analysis.Analyzer, fset *token.FileSet, packageFile, importMap map[string]string, filenames []string) (string, error) {
 	imp := &importer{
 		fset:         fset,

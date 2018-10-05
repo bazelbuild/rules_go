@@ -12,7 +12,7 @@ custom_analyzers_default_config
 -------------------------------
 Verifies that custom analyzers print errors and fail a `go_library`_ build when
 a configuration file is not provided, and that analyzers with the same package
-name o not conflict.
+name do not conflict.
 
 custom_analyzers_custom_config
 ------------------------------

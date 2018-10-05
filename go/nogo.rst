@@ -41,10 +41,11 @@ Overview
 Writing and registering analyzers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``nogo`` analyzers are Go packages that declare a variable named `Analyzer` of
-type `Analyzer`_ from package `analysis`_. Each analyzer is invoked once per Go
-package, and is provided the abstract syntax trees (ASTs) and type information
-for that package. For example:
+``nogo`` analyzers are Go packages that declare a variable named ``Analyzer``
+of type `Analyzer`_ from package `analysis`_. Each analyzer is invoked once per
+Go package, and is provided the abstract syntax trees (ASTs) and type
+information for that package, as well as relevant results of analyzers that have
+already been run. For example:
 
 .. code:: go
 
@@ -76,8 +77,8 @@ for that package. For example:
       return nil, nil
     }
 
-Any diagnostics reported by the analyzer will fail compilation. Do not emit
-diagnostics unless they are severe enough to warrant interrupting the compiler.
+Any diagnostics reported by the analyzer will stop the build. Do not emit
+diagnostics unless they are severe enough to warrant stopping the build.
 
 Each analyzer must be written as a `go_tool_library`_ rule and must import a
 `go_tool_library`_ version of the package `analysis`_ target. This rule is
@@ -121,7 +122,7 @@ generated ``nogo`` binary and executed at build-time.
         deps = [
             ":importunsafe",
             ":unsafedom",
-            "@javascript_analyzers//:loopclosure", # analyzers can be imported from a remote repo
+            "@analyzers//:loopclosure", # analyzers can be imported from a remote repo
         ],
         visibility = ["//visibility:public"], # must have public visibility
     )
@@ -214,7 +215,7 @@ This label referencing this configuration file must be provided as the
         deps = [
             ":importunsafe",
             ":unsafedom",
-            "@javascript_analyzers//:loopclosure",
+            "@analyzers//:loopclosure",
         ],
         config = "config.json"
         visibility = ["//visibility:public"],
@@ -241,7 +242,7 @@ In the above example, the generated ``nogo`` program will only run `vet`_.
 `vet`_ can also run alongside ``nogo`` analyzers given by the ``deps``
 attribute.
 
-`vet`_ will print error messages and fail compilation if any correctness issues
+`vet`_ will print error messages and stop the build if any correctness issues
 are found in the source code being compiled. Only a subset of `vet`_ checks
 which are 100% accurate will be executed. This is the same subset of `vet`_
 checks that are run by the ``go`` tool during ``go test``.
@@ -294,7 +295,7 @@ Example
         deps = [
             ":importunsafe",
             ":otheranalyzer",
-            "@javascript_analyzers//:unsafedom",
+            "@analyzers//:unsafedom",
         ],
         config = ":config.json",
         vet = True,

@@ -17,7 +17,6 @@ nogo(
         ":b",
         ":c",
     ],
-    {config}
     visibility = ["//visibility:public"],
 )
 
@@ -77,12 +76,10 @@ bazel_test(
     build = BUILD_TMPL.format(config = ""),
     check = BUILD_FAILED_TMPL.format(
         check_err =
-            CONTAINS_ERR_TMPL.format(err = "ran a") +
-            CONTAINS_ERR_TMPL.format(err = "ran b") +
-            CONTAINS_ERR_TMPL.format(err = "ran c") +
-            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "ran d") +
             CONTAINS_ERR_TMPL.format(err = "a c d") +
-            CONTAINS_ERR_TMPL.format(err = "b c d"),
+            CONTAINS_ERR_TMPL.format(err = "b c d") +
+            CONTAINS_ERR_TMPL.format(err = "only printed once") +
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "this should not be printed"),
     ),
     command = "build",
     extra_files = EXTRA_FILES,

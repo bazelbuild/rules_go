@@ -14,33 +14,33 @@ load("@io_bazel_rules_go//go:def.bzl", "nogo", "go_tool_library")
 nogo(
     name = "nogo",
     deps = [
-        ":foo_func_analyzer",
-        ":return_bool_analyzer",
-        ":import_fmt_analyzer",
+        ":foofuncname",
+        ":boolreturn",
+        ":importfmt",
     ],
     {config}
     visibility = ["//visibility:public"],
 )
 
 go_tool_library(
-    name = "return_bool_analyzer",
-    srcs = ["return_bool_analyzer.go"],
+    name = "boolreturn",
+    srcs = ["boolreturn.go"],
     importpath = "returnboolanalyzer",
     deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
 )
 
 go_tool_library(
-    name = "import_fmt_analyzer",
-    srcs = ["import_fmt_analyzer.go"],
+    name = "importfmt",
+    srcs = ["importfmt.go"],
     importpath = "importfmtanalyzer",
     deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
 )
 
 go_tool_library(
-    name = "foo_func_analyzer",
-    srcs = ["foo_func_analyzer.go"],
+    name = "foofuncname",
+    srcs = ["foofuncname.go"],
     importpath = "foofuncanalyzer",
     deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
@@ -48,9 +48,9 @@ go_tool_library(
 """
 
 EXTRA_FILES = [
-    ":return_bool_analyzer.go",
-    ":import_fmt_analyzer.go",
-    ":foo_func_analyzer.go",
+    ":boolreturn.go",
+    ":importfmt.go",
+    ":foofuncname.go",
     ":config.json",
 ]
 

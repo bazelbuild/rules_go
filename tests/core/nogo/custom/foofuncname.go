@@ -1,7 +1,7 @@
-// importfmtanalyzer checks for functions named "Foo".
+// importfmt checks for functions named "Foo".
 // It has the same package name as another check to test the checks with
 // the same package name do not conflict.
-package importfmtanalyzer
+package importfmt
 
 import (
 	"go/ast"
@@ -11,17 +11,19 @@ import (
 
 const doc = `report calls of functions named "Foo"
 
-The foo_func_analyzer analyzer reports calls to functions that are
+The foofuncname analyzer reports calls to functions that are
 named "Foo".`
 
 var Analyzer = &analysis.Analyzer{
-	Name: "foo_func_analyzer",
+	Name: "foofuncname",
 	Run:  run,
 	Doc:  doc,
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	for _, f := range pass.Files {
+		// TODO(samueltan): use package inspector once the latest golang.org/x/tools
+		// changes are pulled into this branch  (see #1755).
 		ast.Inspect(f, func(n ast.Node) bool {
 			switch n := n.(type) {
 			case *ast.FuncDecl:

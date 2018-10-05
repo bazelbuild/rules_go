@@ -1,15 +1,15 @@
 {
-  "import_fmt_analyzer": {
+  "importfmt": {
     "apply_to": {
       "has_errors\\.go": ""
     }
   },
-  "return_bool_analyzer": {
+  "boolreturn": {
     "whitelist": {
       "has_.*\\.go": "security-reviewed functions that safely return bool"
     }
   },
-  "foo_func_analyzer": {
+  "foofuncname": {
     "description": "no exemptions since we know this check is 100% accurate"
   }
 }

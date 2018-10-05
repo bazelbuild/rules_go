@@ -1,15 +1,11 @@
 package d
 
 import (
-	"fmt"
+	"go/token"
 	"reflect"
 
 	"golang.org/x/tools/go/analysis"
 )
-
-// Since the test nogo rule does not explicitly depend on d, we package state
-// to assert that this package is only run once.
-var numRuns = 0
 
 var Analyzer = &analysis.Analyzer{
 	Name:       "d",
@@ -19,10 +15,6 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	numRuns++
-	pass.Report(analysis.Diagnostic{Message: "ran d"})
-	if numRuns > 1 {
-		return fmt.Sprintf("ran analyzer d %d times", numRuns), nil
-	}
+	pass.Reportf(token.NoPos, "this should not be printed")
 	return "d", nil
 }

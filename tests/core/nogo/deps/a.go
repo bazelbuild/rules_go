@@ -2,7 +2,7 @@ package a
 
 import (
 	"c"
-	"fmt"
+	"go/token"
 
 	"golang.org/x/tools/go/analysis"
 )
@@ -15,7 +15,6 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	pass.Report(analysis.Diagnostic{Message: "ran a"})
-	pass.Report(analysis.Diagnostic{Message: fmt.Sprintf("a %s", pass.ResultOf[c.Analyzer].(string))})
+	pass.Reportf(token.NoPos, "a %s", pass.ResultOf[c.Analyzer])
 	return nil, nil
 }
