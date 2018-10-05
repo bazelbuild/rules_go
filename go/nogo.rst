@@ -80,10 +80,11 @@ already been run. For example:
 Any diagnostics reported by the analyzer will stop the build. Do not emit
 diagnostics unless they are severe enough to warrant stopping the build.
 
-Each analyzer must be written as a `go_tool_library`_ rule and must import a
-`go_tool_library`_ version of the package `analysis`_ target. This rule is
-identical to `go_library`_ but avoids a bootstrapping problem, which will be
-explained later. For example:
+Each analyzer must be written as a `go_tool_library`_ rule and must import
+`@org_golang_x_tools//go/analysis:go_tool_library`, the `go_tool_library`_
+version of the package `analysis`_ target. `go_tool_library`_ is identical to
+`go_library`_ but avoids a bootstrapping problem, which will be explained later.
+For example:
 
 .. code:: bzl
 
@@ -271,10 +272,13 @@ Attributes
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries that will be linked to the generated nogo binary.                           |
+|                                                                                                  |
 | These libraries must declare an ``analysis.Analyzer`` variable named `Analyzer` to ensure that   |
 | the analyzers they implement are called by nogo.                                                 |
-| These libraries must be `go_tool_library`_ targets, and must import a `go_tool_library`_ version |
-| of the package `analysis`_ target the to avoid bootstrapping problems.                           |
+|                                                                                                  |
+| To avoid bootstrapping problems, these libraries must be `go_tool_library`_ targets, and must    |
+| import `@org_golang_x_tools//go/analysis:go_tool_library`, the `go_tool_library`_ version of     |
+| the package `analysis`_ target.                                                                  |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`config`            | :type:`label`               | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
