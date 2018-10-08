@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_source", "go_test")
 
 go_test(
     name = "filter_test",
@@ -55,6 +55,29 @@ go_tool_binary(
     name = "embed",
     srcs = ["embed.go"],
     visibility = ["//visibility:public"],
+)
+
+go_tool_binary(
+    name = "generate_nogo_main",
+    srcs = [
+        "flags.go",
+        "generate_nogo_main.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_source(
+    name = "nogo_srcs",
+    srcs = [
+        "flags.go",
+        "nogo_main.go",
+        "nogo_vet.go",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@org_golang_x_tools//go/analysis:go_tool_library",
+        "@org_golang_x_tools//go/gcexportdata:go_tool_library",
+    ],
 )
 
 go_tool_binary(

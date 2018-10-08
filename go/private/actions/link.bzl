@@ -59,7 +59,7 @@ def emit_link(
         fail("archive is a required parameter")
     if executable == None:
         fail("executable is a required parameter")
-    if not go.builders.link:
+    if not go.builders:
         return _bootstrap_link(go, archive, executable, gc_linkopts)
 
     #TODO: There has to be a better way to work out the rpath

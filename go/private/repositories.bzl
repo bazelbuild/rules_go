@@ -16,7 +16,7 @@
 
 load("@io_bazel_rules_go//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
-load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "go_register_toolchains")
+load("@io_bazel_rules_go//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -36,7 +36,10 @@ def go_rules_dependencies():
         urls = ["https://codeload.github.com/golang/tools/zip/7b71b077e1f4a3d5f15ca417a16c3b4dbb629b8b"],
         strip_prefix = "tools-7b71b077e1f4a3d5f15ca417a16c3b4dbb629b8b",
         type = "zip",
-        patches = ["@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch"],
+        patches = [
+            "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",
+            "@io_bazel_rules_go//third_party:org_golang_x_tools-extras.patch",
+        ],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix golang.org/x/tools
     )
@@ -167,6 +170,15 @@ def go_rules_dependencies():
         patches = ["@io_bazel_rules_go//third_party:com_github_kevinburke_go_bindata-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/kevinburke/go-bindata
+    )
+
+    # This may be overridden by go_register_toolchains, but it's not mandatory
+    # for users to call that function (they may declare their own @go_sdk and
+    # register their own toolchains).
+    _maybe(
+        go_register_nogo,
+        name = "io_bazel_rules_nogo",
+        nogo = DEFAULT_NOGO,
     )
 
 def _maybe(repo_rule, name, **kwargs):

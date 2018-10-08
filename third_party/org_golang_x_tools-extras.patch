@@ -1,0 +1,86 @@
+diff -urN b/go/analysis/BUILD.bazel c/go/analysis/BUILD.bazel
+--- b/go/analysis/BUILD.bazel	2018-10-08 14:32:08.240212629 -0400
++++ c/go/analysis/BUILD.bazel	2018-10-08 14:32:44.276675699 -0400
+@@ -1,10 +1,22 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
+ 
+ go_library(
+     name = "go_default_library",
+     srcs = [
+         "analysis.go",
+         "validate.go",
++    ],
++    importpath = "golang.org/x/tools/go/analysis",
++    visibility = ["//visibility:public"],
++)
++
++# Only the generated nogo program and nogo analyzers should depend on this
++# target to avoid bootstrapping problems.
++go_tool_library(
++    name = "go_tool_library",
++    srcs = [
++        "analysis.go",
++        "validate.go",
+     ],
+     importpath = "golang.org/x/tools/go/analysis",
+     visibility = ["//visibility:public"],
+diff -urN b/go/gcexportdata/BUILD.bazel c/go/gcexportdata/BUILD.bazel
+--- b/go/gcexportdata/BUILD.bazel	2018-10-08 14:32:08.240212629 -0400
++++ c/go/gcexportdata/BUILD.bazel	2018-10-08 14:34:44.378218807 -0400
+@@ -1,4 +1,4 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
+ 
+ go_library(
+     name = "go_default_library",
+@@ -11,6 +11,17 @@
+     deps = ["//go/internal/gcimporter:go_default_library"],
+ )
+ 
++go_tool_library(
++    name = "go_tool_library",
++    srcs = [
++        "gcexportdata.go",
++        "importer.go",
++    ],
++    importpath = "golang.org/x/tools/go/gcexportdata",
++    visibility = ["//visibility:public"],
++    deps = ["//go/internal/gcimporter:go_tool_library"],
++)
++
+ go_test(
+     name = "go_default_test",
+     srcs = [
+diff -urN b/go/internal/gcimporter/BUILD.bazel c/go/internal/gcimporter/BUILD.bazel
+--- b/go/internal/gcimporter/BUILD.bazel	2018-10-08 14:32:08.240212629 -0400
++++ c/go/internal/gcimporter/BUILD.bazel	2018-10-08 14:34:03.945699347 -0400
+@@ -1,10 +1,27 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
+ 
+ go_library(
+     name = "go_default_library",
+     srcs = [
+         "bexport.go",
+         "bimport.go",
++        "exportdata.go",
++        "gcimporter.go",
++        "iimport.go",
++        "isAlias18.go",
++        "isAlias19.go",
++        "newInterface10.go",
++        "newInterface11.go",
++    ],
++    importpath = "golang.org/x/tools/go/internal/gcimporter",
++    visibility = ["//go:__subpackages__"],
++)
++
++go_tool_library(
++    name = "go_tool_library",
++    srcs = [
++        "bexport.go",
++        "bimport.go",
+         "exportdata.go",
+         "gcimporter.go",
+         "iimport.go",

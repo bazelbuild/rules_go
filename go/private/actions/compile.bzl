@@ -40,7 +40,7 @@ def emit_compile(
     if out_lib == None:
         fail("out_lib is a required parameter")
 
-    if not go.builders.compile:
+    if not go.builders:
         if archives:
             fail("compile does not accept deps in bootstrap mode")
         return _bootstrap_compile(go, sources, out_lib, gc_goopts)
@@ -57,6 +57,9 @@ def emit_compile(
     builder_args.add("-package_list", go.package_list)
     if testfilter:
         builder_args.add("-testfilter", testfilter)
+    if go.nogo:
+        builder_args.add("-nogo", go.nogo)
+        inputs.append(go.nogo)
 
     tool_args = go.tool_args(go)
     if asmhdr:

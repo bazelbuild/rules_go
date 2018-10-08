@@ -34,6 +34,7 @@ Go rules for Bazel_
 .. _Deprecation schedule: deprecation.rst
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Overriding dependencies: go/workspace.rst#overriding-dependencies
+.. _nogo: go/nogo.rst
 
 .. ;; And now we continue with the actual content
 
@@ -76,7 +77,7 @@ Documentation
 ~~~~~~~~~~~~~
 
 * `Core API <go/core.rst>`_
-  
+
   * `go_binary`_
   * `go_library`_
   * `go_test`_
@@ -89,6 +90,7 @@ Documentation
 
 * `Toolchains <go/toolchains.rst>`_
 * `Extra rules <go/extras.rst>`_
+* `nogo build-time code analysis <go/nogo.rst>`_
 * `Build modes <go/modes.rst>`_
 
 Quick links
@@ -109,6 +111,7 @@ The rules are in the alpha stage of development. They support:
 * cgo
 * cross compilation
 * auto generating BUILD files via gazelle_
+* build-time code analysis via nogo_
 * `protocol buffers`_
 
 They currently do not support (in order of importance):
@@ -397,7 +400,7 @@ work in some cases.
 
 In some cases, you may want to set the ``goos`` and ``goarch`` attributes of
 ``go_binary``. This will cross-compile a binary for a specific platform.
-This is necessary when you need to produce multiple binaries for different 
+This is necessary when you need to produce multiple binaries for different
 platforms in a single build. However, note that ``select`` expressions will
 not work correctly when using these attributes.
 
@@ -526,7 +529,7 @@ must be named ``go_sdk``, and it must come *before* the call to
 
   go_register_toolchains()
 
-  
+
 How do I get information about the Go SDK used by rules_go?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_path", "go_vet_test")
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
+load("@io_bazel_rules_go//go/private:rules/nogo.bzl", "nogo")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
 load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
@@ -12,6 +13,11 @@ stdlib(
 
 builders(
     name = "builders",
+    visibility = ["//visibility:public"],
+)
+
+nogo(
+    name = "default_nogo",
     visibility = ["//visibility:public"],
 )
 
@@ -52,6 +58,7 @@ go_path(
         "//go/tools/builders:cgo",
         "//go/tools/builders:compile",
         "//go/tools/builders:embed",
+        "//go/tools/builders:generate_nogo_main",
         "//go/tools/builders:generate_test_main",
         "//go/tools/builders:link",
         "//go/tools/builders:md5sum",

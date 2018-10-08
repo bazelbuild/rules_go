@@ -238,8 +238,9 @@ def go_context(ctx, attr = None):
     builders = getattr(attr, "_builders", None)
     if builders:
         builders = builders[GoBuilders]
-    else:
-        builders = GoBuilders(compile = None, link = None)
+
+    nogo = ctx.files._nogo[0] if getattr(ctx.files, "_nogo", None) else None
+
     coverdata = getattr(attr, "_coverdata", None)
     if coverdata:
         coverdata = get_archive(coverdata)
@@ -302,6 +303,7 @@ def go_context(ctx, attr = None):
         pathtype = pathtype,
         cgo_tools = context_data.cgo_tools,
         builders = builders,
+        nogo = nogo,
         coverdata = coverdata,
         coverage_enabled = ctx.configuration.coverage_enabled,
         coverage_instrumented = ctx.coverage_instrumented(),

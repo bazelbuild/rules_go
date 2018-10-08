@@ -1,0 +1,15 @@
+{
+  "importfmt": {
+    "apply_to": {
+      "has_errors\\.go": ""
+    }
+  },
+  "boolreturn": {
+    "whitelist": {
+      "has_.*\\.go": "security-reviewed functions that safely return bool"
+    }
+  },
+  "foofuncname": {
+    "description": "no exemptions since we know this check is 100% accurate"
+  }
+}

@@ -9,6 +9,10 @@ load(
     "go_host_sdk",
 )
 load(
+    "//go/private:nogo.bzl",
+    "go_register_nogo",
+)
+load(
     "//go/platform:list.bzl",
     "GOARCH",
     "GOOS",
@@ -223,7 +227,7 @@ SDK_REPOSITORIES = {
 
 _label_prefix = "@io_bazel_rules_go//go/toolchain:"
 
-def go_register_toolchains(go_version = DEFAULT_VERSION):
+def go_register_toolchains(go_version = DEFAULT_VERSION, nogo = None):
     """See /go/toolchains.rst#go-register-toolchains for full documentation."""
     if "go_sdk" not in native.existing_rules():
         if go_version in SDK_REPOSITORIES:
@@ -239,6 +243,13 @@ def go_register_toolchains(go_version = DEFAULT_VERSION):
             )
         else:
             fail("Unknown go version {}".format(go_version))
+
+    if nogo:
+        # Override default definition in go_rules_dependencies().
+        go_register_nogo(
+            name = "io_bazel_rules_nogo",
+            nogo = nogo,
+        )
 
 def declare_constraints():
     for goos, constraint in GOOS.items():

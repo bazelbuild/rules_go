@@ -22,6 +22,7 @@ def _builders_impl(ctx):
             pack = ctx.executable._pack,
             link = ctx.executable._link,
             cgo = ctx.executable._cgo,
+            nogo_generator = ctx.executable._nogo_generator,
             test_generator = ctx.executable._test_generator,
             cover = ctx.executable._cover,
         ),
@@ -32,6 +33,7 @@ def _builders_impl(ctx):
                 ctx.executable._pack,
                 ctx.executable._link,
                 ctx.executable._cgo,
+                ctx.executable._nogo_generator,
                 ctx.executable._test_generator,
                 ctx.executable._cover,
             ]),
@@ -65,6 +67,11 @@ builders = rule(
             executable = True,
             cfg = "host",
             default = "//go/tools/builders:cgo",
+        ),
+        "_nogo_generator": attr.label(
+            executable = True,
+            cfg = "host",
+            default = "//go/tools/builders:generate_nogo_main",
         ),
         "_test_generator": attr.label(
             executable = True,
