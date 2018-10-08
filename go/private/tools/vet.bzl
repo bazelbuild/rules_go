@@ -73,6 +73,7 @@ def go_vet_test(name, data, **kwargs):
         name = script_name,
         data = data,
         tags = ["manual"],
+        testonly = kwargs.get("testonly"),
     )
     native.sh_test(
         name = name,

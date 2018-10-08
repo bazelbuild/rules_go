@@ -28,8 +28,8 @@ def emit_pack(
     inputs = [in_lib] + go.sdk.tools + objects + archives
 
     args = go.builder_args(go)
-    args.add_all(["-in", in_lib])
-    args.add_all(["-out", out_lib])
+    args.add("-in", in_lib)
+    args.add("-out", out_lib)
     args.add_all(objects, before_each = "-obj")
     args.add_all(archives, before_each = "-arc")
 

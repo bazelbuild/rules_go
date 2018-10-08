@@ -179,28 +179,28 @@ def _cgo_codegen_impl(ctx):
         transformed_go_outs.append(gen_go_file)
         transformed_go_map[gen_go_file] = src
         c_outs.append(gen_c_file)
-        builder_args.add_all(["-src", gen_go_file.path + "=" + src.path])
+        builder_args.add("-src", gen_go_file.path + "=" + src.path)
     for src in source.asm:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         transformed_go_outs.append(gen_file)
         transformed_go_map[gen_go_file] = src
-        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
+        builder_args.add("-src", gen_file.path + "=" + src.path)
     for src in source.c:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         c_outs.append(gen_file)
-        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
+        builder_args.add("-src", gen_file.path + "=" + src.path)
     for src in source.cxx:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         cxx_outs.append(gen_file)
-        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
+        builder_args.add("-src", gen_file.path + "=" + src.path)
     for src in source.objc:
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         objc_outs.append(gen_file)
-        builder_args.add_all(["-src", gen_file.path + "=" + src.path])
+        builder_args.add("-src", gen_file.path + "=" + src.path)
 
     # Filter out -lstdc++ in CGO_LDFLAGS if we don't have any C++ code. This
     # also gets filtered out in link.bzl.
@@ -208,7 +208,7 @@ def _cgo_codegen_impl(ctx):
     if not have_cc:
         linkopts = [o for o in linkopts if o not in ("-lstdc++", "-lc++")]
 
-    tool_args.add_all(["-objdir", out_dir])
+    tool_args.add("-objdir", out_dir)
 
     inputs = sets.union(ctx.files.srcs, go.crosstool, go.sdk.tools)
     deps = depset()
@@ -327,7 +327,7 @@ _cgo_codegen = go_rule(
             values = ["on", "off"],
             default = "off",
         ),
-        "pure": attr.string(default = "off"), # never explicitly set
+        "pure": attr.string(default = "off"),  # never explicitly set
     },
 )
 
@@ -335,16 +335,11 @@ def _cgo_import_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, path = "_cgo_import.go")
     args = go.builder_args(go)
-    args.add_all([
-        "-import",
-        "-src",
-        ctx.files.sample_go_srcs[0],
-        "--",  # stop builder from processing args
-        "-dynout",
-        out,
-        "-dynimport",
-        ctx.file.cgo_o,
-    ])
+    args.add("-import")
+    args.add("-src", ctx.files.sample_go_srcs[0])
+    args.add("--")  # stop builder from processing args
+    args.add("-dynout", out)
+    args.add("-dynimport", ctx.file.cgo_o)
     ctx.actions.run(
         inputs = [
             ctx.file.cgo_o,

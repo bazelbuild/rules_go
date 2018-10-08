@@ -15,10 +15,12 @@ Go workspace rules
 .. _go_toolchain: toolchains.rst#go_toolchain
 .. _normal go logic: https://golang.org/cmd/go/#hdr-Remote_import_paths
 .. _gazelle: tools/gazelle/README.rst
-.. _http_archive: https://docs.bazel.build/versions/master/be/workspace.html#http_archive
-.. _git_repository: https://docs.bazel.build/versions/master/be/workspace.html#git_repository
+.. _http_archive: https://github.com/bazelbuild/bazel/blob/master/tools/build_defs/repo/http.bzl
+.. _git_repository: https://github.com/bazelbuild/bazel/blob/master/tools/build_defs/repo/git.bzl
 .. _nested workspaces: https://bazel.build/designs/2016/09/19/recursive-ws-parsing.html
 .. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
+.. _repositories.bzl: https://github.com/bazelbuild/rules_go/blob/master/go/private/repositories.bzl
+.. _third_party: https://github.com/bazelbuild/rules_go/tree/master/third_party
 
 .. _go_prefix_faq: /README.rst#whats-up-with-the-go_default_library-name
 .. |go_prefix_faq| replace:: FAQ
@@ -43,37 +45,38 @@ workspace rule.
 go_rules_dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
-Registers external dependencies needed by rules_go, including the Go toolchain and standard
-library.
-All the other workspace rules and build rules assume that this rule is placed in the WORKSPACE.
+``go_rules_dependencies`` is a macro that registers external dependencies needed
+by the Go and proto rules in rules_go.
 
-When `nested workspaces`_  arrive this will be redundant, but for now you should **always** call
-this macro from your WORKSPACE.
+When Bazel supports `nested workspaces`_ in the future, this macro may be
+redundant, but for now, projects that use rules_go should *always* call it
+from WORKSPACE. It takes no arguments and returns no results.
 
-The macro takes no arguments and returns no results. You put
-
-.. code:: bzl
-
-  go_rules_dependencies()
-
-in the bottom of your WORKSPACE file and forget about it.
-
-
-The list of dependencies it adds is quite long, there are a few listed below that you are more
-likely to want to know about and override, but it is by no means a complete list.
+The list of dependencies declared by ``go_rules_dependencies`` is quite long.
+There are a few listed below that you are more likely to want to know about and
+override, but it is by no means a complete list.
 
 * :value:`com_google_protobuf` : `github.com/google/protobuf`_
 * :value:`com_github_golang_protobuf` : `github.com/golang/protobuf`_
 * :value:`org_golang_google_genproto` : `google.golang.org/genproto`_
+  (``go_library`` rules with pre-generated .pb.go files)
+* :value:`go_googleapis` : `google.golang.org/genproto`_ (``go_proto_library``
+  rules that generate code at build time)
 * :value:`org_golang_google_grpc` : `google.golang.org/grpc`_
 * :value:`org_golang_x_net` : `golang.org/x/net`_
 * :value:`org_golang_x_text` : `golang.org/x/text`_
 * :value:`org_golang_x_tools` : `golang.org/x/tools`_
 * :value:`org_golang_x_sys`: `golang.org/x/sys`_
 
+``go_rules_dependencies`` won't override repositories that were declared
+earlier, so you can replace any of these repositories with a different version
+by declaring a repository rule with the same name before calling
+``go_rules_dependencies``.
 
-It won't override repositories that were declared earlier, so you can replace
-any of these with a different version by declaring it before calling this macro.
+You can find the full implementation in `repositories.bzl`_.
+
+See `Overriding dependencies`_ for examples of how to use alternative
+versions of these repositories.
 
 go_repository
 ~~~~~~~~~~~~~
@@ -122,3 +125,26 @@ For example, this is how you would override ``org_golang_x_sys``.
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
     gazelle_dependencies()
+
+In order to avoid a dependency on Gazelle, the repositories in
+``go_rules_dependencies`` are declared with Bazel's `git_repository`_ and
+`http_archive`_ rules instead of `go_repository`_. These rules accept a list of
+patches, so we provide pre-generated patches that are equivalent to running
+Gazelle.  These patches are checked into the `third_party`_ directory with the
+suffix ``-gazelle.patch``.
+
+When upgrading these rules, you can use `go_repository`_ instead of using these
+patches. This will run Gazelle automatically when the repository is checked
+out. Note that some repositories require additional patches after running
+Gazelle. You can provide the additional patches to `go_repository`_.
+
+.. code:: bzl
+
+    go_repository(
+        name = "com_github_golang_protobuf",
+        build_file_proto_mode = "disable_global",
+        commit = "7011d38ac0d201eeddff4a4085a657c3da322d75",
+        importpath = "github.com/golang/protobuf",
+        patch_args = ["-p1"],
+        patches = ["@io_bazel_rules_go//third_party:com_github_golang_protobuf-extras.patch"],
+    )

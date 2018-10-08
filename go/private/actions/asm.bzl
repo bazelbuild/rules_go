@@ -34,14 +34,16 @@ def emit_asm(
     inputs = hdrs + go.sdk.tools + go.sdk.headers + go.stdlib.libs + [source]
 
     args = go.builder_args(go)
-    args.add_all([source, "--"])
+    args.add(source)
+    args.add("--")
     includes = ([go.sdk.root_file.dirname + "/pkg/include"] +
                 [f.dirname for f in hdrs])
 
     # TODO(#1463): use uniquify=True when available.
     includes = sorted({i: None for i in includes}.keys())
     args.add_all(includes, before_each = "-I")
-    args.add_all(["-trimpath", ".", "-o", out_obj])
+    args.add("-trimpath", ".")
+    args.add("-o", out_obj)
     args.add_all(link_mode_args(go.mode))
     go.actions.run(
         inputs = inputs,
