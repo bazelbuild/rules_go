@@ -1,11 +1,11 @@
 {
   "importfmt": {
-    "apply_to": {
+    "only_files": {
       "has_errors\\.go": ""
     }
   },
   "boolreturn": {
-    "whitelist": {
+    "exclude_files": {
       "has_.*\\.go": "security-reviewed functions that safely return bool"
     }
   },

@@ -151,8 +151,8 @@ there.
 Configuring analyzers
 ~~~~~~~~~~~~~~~~~~~~~
 
-By default, ``nogo`` analyzers apply to all Go source files being compiled. This
-behavior can be changed with a JSON configuration file.
+By default, ``nogo`` analyzers will emit diagnostics for all Go source files
+built by Bazel. This behavior can be changed with a JSON configuration file.
 
 The top-level JSON object in the file must be keyed by the name of the analyzer
 being configured. These names must match the ``Analyzer.Name`` of the registered
@@ -166,18 +166,21 @@ contain the following key-value pairs:
 +----------------------------+---------------------------------------------------------------------+
 | Description of this analyzer configuration.                                                      |
 +----------------------------+---------------------------------------------------------------------+
-| ``"apply_to"``             | :type:`dictionary, string to string`                                |
+| ``"only_files"``           | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
-| Specifies files that this analyzer will exclusively apply to.                                    |
+| Specifies files that this analyzer will emit diagnostics for.                                    |
 | Its keys are regular expression strings matching Go files, and its values are strings containing |
 | a description of the entry.                                                                      |
+| If both ``only_files``and ``exclude_files`` are empty, this analyzer will emit diagnostics for   |
+| all Go files built by Bazel.                                                                     |
 +----------------------------+---------------------------------------------------------------------+
-| ``"whitelist"``            | :type:`dictionary, string to string`                                |
+| ``"exclude_files"``        | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
-| Specifies files that are exempt from this analyzer.                                              |
-| Its keys and values are strings that have the same semantics as those in ``apply_to``.           |
-| Keys in whitelist override keys in apply_to. If a .go file matches both an ``apply_to`` and      |
-| ``whitelist`` key, the analyzer will not apply to that file.                                     |
+| Specifies files that this analyzer will not emit diagnostics for.                                |
+| Its keys and values are strings that have the same semantics as those in ``only_files``.         |
+| Keys in ``exclude_files`` override keys in ``only_files``. If a .go file matches a key present   |
+| in both ``only_files`` and ``exclude_files``, the analyzer will not emit diagnostics for that    |
+| file.                                                                                            |
 +----------------------------+---------------------------------------------------------------------+
 
 Example
@@ -185,22 +188,22 @@ Example
 
 The following configuration file configures the analyzers named ``importunsafe``
 and ``unsafedom``. Since the ``loopclosure`` analyzer is not explicitly
-configured, it will apply to all Go files built by Bazel.
+configured, it will emit diagnostics for all Go files built by Bazel.
 
 .. code:: json
 
     {
       "importunsafe": {
-        "whitelist": {
+        "exclude_files": {
           "src/foo.go": "manually verified that behavior is working-as-intended",
           "src/bar.go": "see issue #1337"
         }
       },
       "unsafedom": {
-        "apply_to": {
+        "only_files": {
           "src/js/*": ""
         },
-        "whitelist": {
+        "exclude_fiiles": {
           "src/(third_party|vendor)/*": "enforce DOM safety requirements only on first-party code"
         }
       }

@@ -340,18 +340,19 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 		}
 		config, ok := configs[act.a.Name]
 		if !ok {
-			// If the analyzer is not explicitly configured, it applies to all files.
+			// If the analyzer is not explicitly configured, it emits diagnostics for
+			// all files.
 			diagnostics = append(diagnostics, act.diagnostics...)
 			continue
 		}
-		// Discard findings based on the analyzer configuration.
+		// Discard diagnostics based on the analyzer configuration.
 		for _, d := range act.diagnostics {
 			filename := pkg.fset.File(d.Pos).Name()
 			include := true
-			if len(config.applyTo) > 0 {
-				// This analyzer applies exclusively to a set of files.
+			if len(config.onlyFiles) > 0 {
+				// This analyzer emits diagnostics for only a set of files.
 				include = false
-				for _, pattern := range config.applyTo {
+				for _, pattern := range config.onlyFiles {
 					if pattern.MatchString(filename) {
 						include = true
 						break
@@ -359,7 +360,7 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 				}
 			}
 			if include {
-				for _, pattern := range config.whitelist {
+				for _, pattern := range config.excludeFiles {
 					if pattern.MatchString(filename) {
 						include = false
 						break
@@ -393,17 +394,18 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 	return errMsg.String()
 }
 
-// config determines which source files an analyzer should be applied to.
+// config determines which source files an analyzer will emit diagnostics for.
 // config values are generated in another file that is compiled with
 // nogo_main.go by the nogo rule.
 type config struct {
-	// applyTo is a list of regular expressions that match files an analyzer
-	// should apply to. When empty, the analyzer will apply to all files.
-	applyTo []*regexp.Regexp
+	// onlyFiles is a list of regular expressions that match files an analyzer
+	// will emit diagnostics for. When empty, the analyzer will emit diagnostics
+	// for all files.
+	onlyFiles []*regexp.Regexp
 
-	// whitelist is a list of regular expressions that match files that are
-	// exempt from an analyzer.
-	whitelist []*regexp.Regexp
+	// excludeFiles is a list of regular expressions that match files that an
+	// analyzer will not emit diagnostics for.
+	excludeFiles []*regexp.Regexp
 }
 
 func main() {

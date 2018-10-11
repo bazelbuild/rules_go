@@ -57,9 +57,9 @@ const enableVet = {{.EnableVet}}
 var configs = map[string]config{
 {{- range $name, $config := .Configs}}
 	{{printf "%q" $name}}: config{
-		{{- if $config.ApplyTo}}
-		applyTo: []*regexp.Regexp{
-			{{- range $path, $comment := $config.ApplyTo}}
+		{{- if $config.OnlyFiles}}
+		onlyFiles: []*regexp.Regexp{
+			{{- range $path, $comment := $config.OnlyFiles}}
 			{{- if $comment}}
 			// {{$comment}}
 			{{end -}}
@@ -67,9 +67,9 @@ var configs = map[string]config{
 			{{- end}}
 		},
 		{{- end -}}
-		{{- if $config.Whitelist}}
-		whitelist: []*regexp.Regexp{
-			{{- range $path, $comment := $config.Whitelist}}
+		{{- if $config.ExcludeFiles}}
+		excludeFiles: []*regexp.Regexp{
+			{{- range $path, $comment := $config.ExcludeFiles}}
 			{{- if $comment}}
 			// {{$comment}}
 			{{end -}}
@@ -139,7 +139,7 @@ func run(args []string) error {
 		EnableVet: *enableVet,
 	}
 	for _, c := range config {
-		if len(c.ApplyTo) > 0 || len(c.Whitelist) > 0 {
+		if len(c.OnlyFiles) > 0 || len(c.ExcludeFiles) > 0 {
 			data.NeedRegexp = true
 			break
 		}
@@ -173,20 +173,20 @@ func buildConfig(path string) (Configs, error) {
 		return Configs{}, fmt.Errorf("failed to unmarshal config file: %v", err)
 	}
 	for name, config := range configs {
-		for pattern := range config.ApplyTo {
+		for pattern := range config.OnlyFiles {
 			if _, err := regexp.Compile(pattern); err != nil {
 				return Configs{}, fmt.Errorf("invalid pattern for analysis %q: %v", name, err)
 			}
 		}
-		for pattern := range config.Whitelist {
+		for pattern := range config.ExcludeFiles {
 			if _, err := regexp.Compile(pattern); err != nil {
 				return Configs{}, fmt.Errorf("invalid pattern for analysis %q: %v", name, err)
 			}
 		}
 		configs[name] = Config{
 			// Description is currently unused.
-			ApplyTo:   config.ApplyTo,
-			Whitelist: config.Whitelist,
+			OnlyFiles:    config.OnlyFiles,
+			ExcludeFiles: config.ExcludeFiles,
 		}
 	}
 	return configs, nil
@@ -195,7 +195,7 @@ func buildConfig(path string) (Configs, error) {
 type Configs map[string]Config
 
 type Config struct {
-	Description string
-	ApplyTo     map[string]string `json:"apply_to"`
-	Whitelist   map[string]string
+	Description  string
+	OnlyFiles    map[string]string `json:"only_files"`
+	ExcludeFiles map[string]string `json:"exclude_files"`
 }
