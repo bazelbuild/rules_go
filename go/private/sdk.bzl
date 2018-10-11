@@ -19,15 +19,15 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:go_toolchain.bzl",
-    "generate_toolchains",
     "generate_toolchain_names",
+    "generate_toolchains",
 )
 
 def _go_host_sdk_impl(ctx):
-    path = _detect_host_sdk(ctx)
-    host = _detect_host_platform(ctx)
-    _sdk_build_file(ctx, host)
-    _local_sdk(ctx, path)
+    goroot = _detect_host_sdk(ctx)
+    platform = _detect_sdk_platform(ctx, goroot)
+    _sdk_build_file(ctx, platform)
+    _local_sdk(ctx, goroot)
 
 _go_host_sdk = repository_rule(
     _go_host_sdk_impl,
@@ -40,16 +40,21 @@ def go_host_sdk(name, **kwargs):
 
 def _go_download_sdk_impl(ctx):
     sdks = ctx.attr.sdks
-    host = _detect_host_platform(ctx)
-    if host not in sdks:
-        fail("Unsupported host {}".format(host))
-    filename, sha256 = ctx.attr.sdks[host]
-    _sdk_build_file(ctx, host)
+    if not ctx.attr.goos and not ctx.attr.goarch:
+        platform = _detect_host_platform(ctx)
+    else:
+        platform = ctx.attr.goos + "_" + ctx.attr.goarch
+    if platform not in sdks:
+        fail("Unsupported platform {}".format(platform))
+    filename, sha256 = ctx.attr.sdks[platform]
+    _sdk_build_file(ctx, platform)
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
 
 _go_download_sdk = repository_rule(
     _go_download_sdk_impl,
     attrs = {
+        "goos": attr.string(),
+        "goarch": attr.string(),
         "sdks": attr.string_list_dict(),
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "strip_prefix": attr.string(default = "go"),
@@ -61,9 +66,10 @@ def go_download_sdk(name, **kwargs):
     _register_toolchains(name)
 
 def _go_local_sdk_impl(ctx):
-    host = _detect_host_platform(ctx)
-    _sdk_build_file(ctx, host)
-    _local_sdk(ctx, ctx.attr.path)
+    goroot = ctx.attr.path
+    platform = _detect_sdk_platform(ctx, goroot)
+    _sdk_build_file(ctx, platform)
+    _local_sdk(ctx, goroot)
 
 _go_local_sdk = repository_rule(
     _go_local_sdk_impl,
@@ -77,10 +83,10 @@ def go_local_sdk(name, **kwargs):
     _register_toolchains(name)
 
 def _go_wrap_sdk_impl(ctx):
-    host = _detect_host_platform(ctx)
-    path = str(ctx.path(ctx.attr.root_file).dirname)
-    _sdk_build_file(ctx, host)
-    _local_sdk(ctx, path)
+    goroot = str(ctx.path(ctx.attr.root_file).dirname)
+    platform = _detect_sdk_platform(ctx, goroot)
+    _sdk_build_file(ctx, platform)
+    _local_sdk(ctx, goroot)
 
 _go_wrap_sdk = repository_rule(
     _go_wrap_sdk_impl,
@@ -97,8 +103,10 @@ def go_wrap_sdk(name, **kwargs):
     _register_toolchains(name)
 
 def _register_toolchains(repo):
-    labels = ["@{}//:{}".format(repo, name)
-              for name in generate_toolchain_names()]
+    labels = [
+        "@{}//:{}".format(repo, name)
+        for name in generate_toolchain_names()
+    ]
     native.register_toolchains(*labels)
 
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
@@ -112,9 +120,9 @@ def _local_sdk(ctx, path):
     for entry in ["src", "pkg", "bin"]:
         ctx.symlink(path + "/" + entry, entry)
 
-def _sdk_build_file(ctx, host):
+def _sdk_build_file(ctx, platform):
     ctx.file("ROOT")
-    goos, _, goarch = host.partition("_")
+    goos, _, goarch = platform.partition("_")
     ctx.template(
         "BUILD.bazel",
         Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
@@ -138,6 +146,7 @@ def _detect_host_platform(ctx):
                 host = "linux_ppc64le"
             elif uname == "i686":
                 host = "linux_386"
+
         # uname -p is not working on Aarch64 boards
         res = ctx.execute(["uname", "-m"])
         if res.return_code == 0:
@@ -173,3 +182,12 @@ def _detect_host_sdk(ctx):
     if not root:
         fail("host go version failed to report it's GOROOT")
     return root
+
+def _detect_sdk_platform(ctx, goroot):
+    res = ctx.execute("ls", goroot + "/pkg/tool")
+    if res.return_code != 0:
+        fail("Could not detect SDK platform")
+    for f in res.stdout.strip().split("\n"):
+        if f.find("_") >= 0:
+            return f
+    fail("Could not detect SDK platform")

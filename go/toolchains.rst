@@ -244,6 +244,20 @@ This downloads a Go SDK for use in toolchains.
 | sha256 for that file. The filename is combined the :param:`urls` to produce the final download   |
 | urls to use.                                                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
+| :param:`goos`                  | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The operating system the binaries in the SDK are intended to run on.                             |
+| By default, this is detected automatically, but if you're building on                            |
+| an unusual platform, or if you're using remote execution and the execution                       |
+| platform is different than the host, you may need to specify this explictly.                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`goarch`                | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The architecture the binaries in the SDK are intended to run on.                                 |
+| By default, this is detected automatically, but if you're building on                            |
+| an unusual platform, or if you're using remote execution and the execution                       |
+| platform is different than the host, you may need to specify this explictly.                     |
++--------------------------------+-----------------------------+-----------------------------------+
 
 **Example**:
 
