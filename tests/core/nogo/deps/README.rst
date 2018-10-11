@@ -23,4 +23,4 @@ isn't, verifies that a `go_library`_ build causes both paths in the graph
 (a->c->d and b->c->d) to be executed, and that each analyzer runs exactly once.
 
 Also verify that the diagnostics reported by d are not printed to the build log
-since d was not explicitly depended on by the declared nogo rule.
+since d was not explicitly depended on by the declared `nogo`_ rule.
