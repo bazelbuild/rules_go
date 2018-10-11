@@ -1,4 +1,4 @@
-// package noerrors contains no analysis errors.
+// package noerrors contains no analyzer errors.
 package noerrors
 
 func Baz() int {

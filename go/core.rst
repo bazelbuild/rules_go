@@ -279,10 +279,11 @@ go_tool_library
 This builds a Go library from a set of source files that are all part of
 the same package.
 
-This rule is identical to ``go_library``, but must be used to build analyzer
-libraries to avoid a circular dependency: ``go_library`` implicitly
-depends on `nogo`_, which depends on analyzer libraries, which must not depend
-on `nogo`_. ``go_tool_library`` does not have the same implicit dependency.
+This rule is a limited variant of ``go_library`` which may be used to
+bootstrap tools used by rules_go. This avoids a circular dependency.
+If you are building analyzers to be linked into a `nogo`_ binary, you'll
+need to use ``go_tool_library`` since ``go_library`` depends on `nogo`_
+implicitly.
 
 Providers
 ^^^^^^^^^
@@ -304,21 +305,21 @@ Attributes
 | :param:`srcs`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | The list of Go source files that are compiled to create the package.                             |
-| Only :value:`.go` files are permitted, unless the cgo attribute is set, in which case the        |
-| following file types are permitted: :value:`.go, .c, .s, .S .h`.                                 |
-| The files may contain Go-style `build constraints`_.                                             |
+| Only :value:`.go` files are permitted. Cgo, assembly, and build constraints                      |
+| are not supported.                                                                               |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`deps`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries this library imports directly.                                              |
-| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
+| These must be ``go_tool_library`` targets to avoid circular dependencies.                        |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of Go libraries this test library directly.                                                 |
-| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
-| These can provide both :param:`srcs` and :param:`deps` to this library.                          |
-| See Embedding_ for more information about how and when to use this.                              |
+| List of Go libraries this library embeds. Embedded sources will be compiled                      |
+| together with this library's sources, and the combined list of dependencies                      |
+| will be available for import. These libraries must be ``go_tool_library``                        |
+| targets to avoid circular dependencies. See Embedding_ for more information                      |
+| about how and when to use this.                                                                  |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -337,7 +338,7 @@ Example
         name = "importunsafe",
         srcs = ["importunsafe.go"],
         importpath = "importunsafe",
-        deps = ["@io_bazel_rules_go//go/tools/analysis:analysis"],
+        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
         visibility = ["//visibility:public"],
     )
 

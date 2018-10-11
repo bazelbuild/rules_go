@@ -18,8 +18,8 @@ Given the following dependency graph of analyzers:
           v
     b --> c --> d
 
-Where analyzers a, b, c are explicitly depended on by the nogo rule and d isn't,
-verifies that a `go_library`_ build causes both paths in the graph
+Where analyzers a, b, c are explicitly depended on by the `nogo`_ rule and d
+isn't, verifies that a `go_library`_ build causes both paths in the graph
 (a->c->d and b->c->d) to be executed, and that each analyzer runs exactly once.
 
 Also verify that the diagnostics reported by d are not printed to the build log

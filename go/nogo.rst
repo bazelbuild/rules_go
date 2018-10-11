@@ -155,7 +155,7 @@ By default, ``nogo`` analyzers apply to all Go source files being compiled. This
 behavior can be changed with a JSON configuration file.
 
 The top-level JSON object in the file must be keyed by the name of the analyzer
-being configured. These names must match the ``Analysis.Name`` of the registered
+being configured. These names must match the ``Analyzer.Name`` of the registered
 analysis package. The JSON object's values are themselves objects which may
 contain the following key-value pairs:
 
@@ -218,7 +218,7 @@ This label referencing this configuration file must be provided as the
             ":unsafedom",
             "@analyzers//:loopclosure",
         ],
-        config = "config.json"
+        config = "config.json",
         visibility = ["//visibility:public"],
     )
 
