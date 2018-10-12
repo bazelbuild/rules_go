@@ -169,9 +169,9 @@ contain the following key-value pairs:
 | ``"only_files"``           | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
 | Specifies files that this analyzer will emit diagnostics for.                                    |
-| Its keys are regular expression strings matching Go files, and its values are strings containing |
-| a description of the entry.                                                                      |
-| If both ``only_files``and ``exclude_files`` are empty, this analyzer will emit diagnostics for   |
+| Its keys are regular expression strings matching Go file names, and its values are strings       |
+| containing a description of the entry.                                                           |
+| If both ``only_files`` and ``exclude_files`` are empty, this analyzer will emit diagnostics for  |
 | all Go files built by Bazel.                                                                     |
 +----------------------------+---------------------------------------------------------------------+
 | ``"exclude_files"``        | :type:`dictionary, string to string`                                |
@@ -203,7 +203,7 @@ configured, it will emit diagnostics for all Go files built by Bazel.
         "only_files": {
           "src/js/*": ""
         },
-        "exclude_fiiles": {
+        "exclude_files": {
           "src/(third_party|vendor)/*": "enforce DOM safety requirements only on first-party code"
         }
       }
