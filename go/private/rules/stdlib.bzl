@@ -26,8 +26,9 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
-    "link_mode_args",
     "LINKMODE_NORMAL",
+    "extldflags_from_cc_toolchain",
+    "link_mode_args",
 )
 
 def _stdlib_library_to_source(go, attr, source, merge):
@@ -64,10 +65,9 @@ def _build_stdlib(go, attr):
     go.actions.write(root_file, "")
     env = go.env
     env.update({
-        "CC": go.cgo_tools.compiler_executable,
-        "CGO_CPPFLAGS": " ".join(go.cgo_tools.compiler_options),
-        "CGO_CFLAGS": " ".join(go.cgo_tools.c_options),
-        "CGO_LDFLAGS": " ".join(go.cgo_tools.linker_options),
+        "CC": go.cgo_tools.c_compiler_path,
+        "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
+        "CGO_LDFLAGS": " ".join(extldflags_from_cc_toolchain(go)),
     })
     inputs = (go.sdk.srcs +
               go.sdk.headers +

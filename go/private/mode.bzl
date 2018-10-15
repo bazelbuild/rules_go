@@ -208,3 +208,19 @@ def link_mode_args(mode):
         if platform in _LINK_PLUGIN_PLATFORMS:
             args.append("-dynlink")
     return args
+
+def extldflags_from_cc_toolchain(go):
+    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
+        return go.cgo_tools.ld_dynamic_lib_options
+    elif go.mode.link == LINKMODE_C_ARCHIVE:
+        return []  # can't pass options to ar (-extldflags ignored with -extar)
+    else:
+        return go.cgo_tools.ld_executable_options
+
+def extld_from_cc_toolchain(go):
+    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
+        return ["-extld", go.cgo_tools.ld_dynamic_lib_path]
+    elif go.mode.link == LINKMODE_C_ARCHIVE:
+        return ["-extar", go.cgo_tools.ld_static_lib_path]
+    else:
+        return ["-extld", go.cgo_tools.ld_executable_path]

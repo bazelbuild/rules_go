@@ -17,6 +17,14 @@ load(
     "find_cpp_toolchain",
 )
 load(
+    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
+    "CPP_COMPILE_ACTION_NAME",
+    "CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME",
+    "CPP_LINK_EXECUTABLE_ACTION_NAME",
+    "CPP_LINK_STATIC_LIBRARY_ACTION_NAME",
+    "C_COMPILE_ACTION_NAME",
+)
+load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
@@ -52,6 +60,7 @@ load(
 )
 
 GoContext = provider()
+_GoContextData = provider()
 
 _COMPILER_OPTIONS_BLACKLIST = {
     "-fcolor-diagnostics": None,
@@ -247,7 +256,7 @@ def go_context(ctx, attr = None):
 
     host_only = getattr(attr, "_hostonly", False)
 
-    context_data = attr._go_context_data
+    context_data = attr._go_context_data[_GoContextData]
     mode = get_mode(ctx, host_only, toolchain, context_data)
     tags = list(context_data.tags)
     if mode.race:
@@ -270,7 +279,6 @@ def go_context(ctx, attr = None):
         "GOROOT": goroot,
         "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",
-        "PATH": context_data.cgo_tools.compiler_path,
     })
 
     # TODO(jayconrod): remove this. It's way too broad. Everything should
@@ -331,42 +339,166 @@ def go_context(ctx, attr = None):
         _ctx = ctx,  # TODO: All uses of this should be removed
     )
 
-def _go_context_data(ctx):
-    cpp = find_cpp_toolchain(ctx)
-    features = ctx.features
-    compiler_options = _filter_options(
-        cpp.compiler_options() + cpp.unfiltered_compiler_options(features),
-        _COMPILER_OPTIONS_BLACKLIST,
-    )
-    linker_options = _filter_options(
-        cpp.mostly_static_link_options(False),
-        _LINKER_OPTIONS_BLACKLIST,
+def _go_context_data_impl(ctx):
+    # TODO(jayconrod): find a way to get a list of files that comprise the
+    # toolchain (to be inputs into actions that need it).
+    # ctx.files._cc_toolchain won't work when cc toolchain resolution
+    # is switched on.
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
     )
 
+    # TODO(jayconrod): keep the environment separate for different actions.
     env = {}
+
+    c_compile_variables = cc_common.create_compile_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+    )
+    c_compiler_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = C_COMPILE_ACTION_NAME,
+    )
+    c_compile_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = C_COMPILE_ACTION_NAME,
+            variables = c_compile_variables,
+        ),
+        _COMPILER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = C_COMPILE_ACTION_NAME,
+        variables = c_compile_variables,
+    ))
+
+    cxx_compile_variables = cc_common.create_compile_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+    )
+    cxx_compile_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_COMPILE_ACTION_NAME,
+            variables = cxx_compile_variables,
+        ),
+        _COMPILER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_COMPILE_ACTION_NAME,
+        variables = cxx_compile_variables,
+    ))
+
+    ld_executable_variables = cc_common.create_link_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        is_linking_dynamic_library = False,
+    )
+    ld_executable_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+    )
+    ld_executable_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+            variables = ld_executable_variables,
+        ),
+        _LINKER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+        variables = ld_executable_variables,
+    ))
+
+    # We don't collect options for static libraries. Go always links with
+    # "ar" in "c-archive" mode. We can set the ar executable path with
+    # -extar, but the options are hard-coded to something like -q -c -s.
+    ld_static_lib_variables = cc_common.create_link_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        is_linking_dynamic_library = False,
+    )
+    ld_static_lib_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+        variables = ld_static_lib_variables,
+    ))
+
+    ld_dynamic_lib_variables = cc_common.create_link_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        is_linking_dynamic_library = True,
+    )
+    ld_dynamic_lib_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+    )
+    ld_dynamic_lib_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+            variables = ld_dynamic_lib_variables,
+        ),
+        _LINKER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+        variables = ld_dynamic_lib_variables,
+    ))
+
     tags = []
     if "gotags" in ctx.var:
         tags = ctx.var["gotags"].split(",")
-    apple_ensure_options(ctx, env, tags, compiler_options, linker_options, cpp.target_gnu_system_name)
-    compiler_path, _ = cpp.ld_executable.rsplit("/", 1)
-    return struct(
+    apple_ensure_options(
+        ctx,
+        env,
+        tags,
+        (c_compile_options, cxx_compile_options),
+        (ld_executable_options, ld_dynamic_lib_options),
+        cc_toolchain.target_gnu_system_name,
+    )
+
+    # Add C toolchain directories to PATH.
+    # On ARM, go tool link uses some features of gcc to complete its work,
+    # so PATH is needed on ARM.
+    paths = env.get("PATH", "").split(ctx.configuration.host_path_separator)
+    paths.extend(sorted({
+        p.rpartition("/")[0]: None
+        for p in [c_compiler_path, ld_executable_path, ld_static_lib_path, ld_dynamic_lib_path]
+    }.keys()))
+    env["PATH"] = ctx.configuration.host_path_separator.join(paths)
+
+    return [_GoContextData(
         strip = ctx.attr.strip,
         crosstool = ctx.files._cc_toolchain,
         tags = tags,
         env = env,
         cgo_tools = struct(
-            compiler_path = compiler_path,
-            compiler_executable = cpp.compiler_executable,
-            ld_executable = cpp.ld_executable,
-            compiler_options = compiler_options,
-            linker_options = linker_options,
-            options = compiler_options + linker_options,
-            c_options = cpp.c_options(),
+            c_compiler_path = c_compiler_path,
+            c_compile_options = c_compile_options,
+            cxx_compile_options = cxx_compile_options,
+            ld_executable_path = ld_executable_path,
+            ld_executable_options = ld_executable_options,
+            ld_static_lib_path = ld_static_lib_path,
+            ld_dynamic_lib_path = ld_dynamic_lib_path,
+            ld_dynamic_lib_options = ld_dynamic_lib_options,
         ),
-    )
+    )]
 
 go_context_data = rule(
-    _go_context_data,
+    _go_context_data_impl,
     attrs = {
         "strip": attr.string(mandatory = True),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),

@@ -22,6 +22,8 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_NORMAL",
     "LINKMODE_PLUGIN",
+    "extld_from_cc_toolchain",
+    "extldflags_from_cc_toolchain",
 )
 load(
     "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
@@ -69,7 +71,7 @@ def emit_link(
     # Exclude -lstdc++ from link options. We don't want to link against it
     # unless we actually have some C++ code. _cgo_codegen will include it
     # in archives via CGO_LDFLAGS if it's needed.
-    extldflags = [f for f in go.cgo_tools.linker_options if f not in ("-lstdc++", "-lc++")]
+    extldflags = [f for f in extldflags_from_cc_toolchain(go) if f not in ("-lstdc++", "-lc++")]
 
     if go.coverage_enabled:
         extldflags.append("--coverage")
@@ -78,8 +80,7 @@ def emit_link(
     tool_args = go.tool_args(go)
 
     # Add in any mode specific behaviours
-    extld = go.cgo_tools.compiler_executable
-    tool_args.add("-extld", extld)
+    tool_args.add_all(extld_from_cc_toolchain(go))
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
@@ -180,12 +181,7 @@ def _bootstrap_link(go, archive, executable, gc_linkopts):
         arguments = [args],
         mnemonic = "GoLink",
         command = "export GOROOT=\"$(pwd)\"/{} && {} \"$@\"".format(shell.quote(go.root), shell.quote(go.go.path)),
-        env = {
-            # workaround: go link tool needs some features of gcc to complete the job on Arm platform.
-            # So, PATH for 'gcc' is required here on Arm platform.
-            "PATH": go.cgo_tools.compiler_path,
-            "GOROOT_FINAL": "GOROOT",
-        },
+        env = {"GOROOT_FINAL": "GOROOT"},
     )
 
 def _extract_extldflags(gc_linkopts, extldflags):
