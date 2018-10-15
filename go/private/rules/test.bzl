@@ -232,6 +232,12 @@ go_test = go_rule(
         "rundir": attr.string(),
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(default = LINKMODE_NORMAL),
+        # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
+        "_lcov_merger": attr.label(
+            executable = True,
+            default = "@io_bazel_rules_go//go/tools/builders:lcov_merger",
+            cfg = "target",
+        ),
     },
     executable = True,
     test = True,
