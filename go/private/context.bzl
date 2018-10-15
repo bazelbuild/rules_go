@@ -473,11 +473,23 @@ def _go_context_data_impl(ctx):
     # Add C toolchain directories to PATH.
     # On ARM, go tool link uses some features of gcc to complete its work,
     # so PATH is needed on ARM.
-    paths = env.get("PATH", "").split(ctx.configuration.host_path_separator)
-    paths.extend(sorted({
-        p.rpartition("/")[0]: None
-        for p in [c_compiler_path, ld_executable_path, ld_static_lib_path, ld_dynamic_lib_path]
-    }.keys()))
+    path_set = {}
+    if "PATH" in env:
+        for p in env["PATH"].split(ctx.configuration.host_path_separator):
+            path_set[p] = None
+    for tool_path in [c_compiler_path, ld_executable_path, ld_static_lib_path, ld_dynamic_lib_path]:
+        tool_dir, _, _ = tool_path.rpartition("/")
+        path_set[tool_dir] = None
+    paths = sorted(path_set.keys())
+    if ctx.configuration.host_path_separator == ":":
+        # HACK: ":" is a proxy for a UNIX-like host.
+        # The tools returned above may be bash scripts that reference commands
+        # in directories we might not otherwise include. For example,
+        # on macOS, wrapped_ar calls dirname.
+        if "/bin" not in path_set:
+            paths.append("/bin")
+        if "/usr/bin" not in path_set:
+            paths.append("/usr/bin")
     env["PATH"] = ctx.configuration.host_path_separator.join(paths)
 
     return [_GoContextData(

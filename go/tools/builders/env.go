@@ -187,7 +187,15 @@ func splitArgs(args []string) (builderArgs []string, toolArgs []string) {
 // absolute paths to work correctly. Most notably, golang on Windows cannot
 // handle relative paths to files whose absolute path is > ~250 chars, while
 // it can handle absolute paths. See http://goo.gl/eqeWjm.
+//
+// Note that strings that begin with "__BAZEL_" are not absolutized. These are
+// used on macOS for paths that the compiler wrapper (wrapped_clang) is
+// supposed to know about.
 func abs(path string) string {
+	if strings.HasPrefix(path, "__BAZEL_") {
+		return path
+	}
+
 	if abs, err := filepath.Abs(path); err != nil {
 		return path
 	} else {
