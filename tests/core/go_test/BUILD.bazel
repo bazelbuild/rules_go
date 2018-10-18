@@ -103,3 +103,37 @@ go_test(
     size = "small",
     srcs = ["pwd_test.go"],
 )
+
+go_test(
+    name = "data_test",
+    size = "small",
+    embed = [":data_test_lib"],
+)
+
+go_library(
+    name = "data_test_lib",
+    srcs = [":data_test_srcs"],
+    data = ["x"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/data_test",
+    deps = [":data_test_dep"],
+)
+
+filegroup(
+    name = "data_test_srcs",
+    srcs = ["data_test.go"],
+)
+
+go_library(
+    name = "data_test_dep",
+    srcs = ["data_test_dep.go"],
+    data = ["y"],
+    embed = [":data_test_embed"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/data_test_dep",
+)
+
+go_library(
+    name = "data_test_embed",
+    srcs = ["data_test_embed.go"],
+    data = ["z"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/data_test_dep",
+)

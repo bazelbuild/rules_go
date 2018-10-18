@@ -8,9 +8,9 @@ Contents
 
 .. Child list start
 
-* `Vet <vet/README.rst>`_
+* `Vet check <vet/README.rst>`_
+* `nogo analyzers with dependencies <deps/README.rst>`_
 * `Custom nogo analyzers <custom/README.rst>`_
-* `nogo analyzer dependencies <deps/README.rst>`_
 
 .. Child list end
 
