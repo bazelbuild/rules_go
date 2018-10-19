@@ -21,7 +21,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -91,7 +90,7 @@ func splitOutput(out string) []string {
 
 // buildVetcfgFile creates a vet.cfg file and returns its file path. It is the
 // caller's responsibility to remove this file when it is no longer needed.
-func buildVetcfgFile(packageFile, importMap map[string]string, stdImports, files []string) (string, error) {
+func buildVetcfgFile(packageFile, importMap map[string]string, stdImports, files []string) (vcfgPath_ string, err error) {
 	for path := range packageFile {
 		if _, ok := importMap[path]; !ok {
 			// vet expects every import path to be in the import map, even if the
@@ -111,16 +110,27 @@ func buildVetcfgFile(packageFile, importMap map[string]string, stdImports, files
 		vcfg.Standard[imp] = true
 	}
 
-	js, err := json.MarshalIndent(vcfg, "", "\t")
+	// GRIPE: vet checks whether its first positional argument has the suffix
+	// "vet.cfg", rather than accepting the file as an option.
+	vcfgFile, err := ioutil.TempFile("", "nogo-*-vet.cfg")
 	if err != nil {
-		return "", fmt.Errorf("internal error marshaling vet config: %v", err)
-	}
-	js = append(js, '\n')
-	vcfgFile := filepath.Join(os.TempDir(), "vet.cfg")
-	if err := ioutil.WriteFile(vcfgFile, js, 0666); err != nil {
 		return "", err
 	}
-	return vcfgFile, nil
+	vcfgPath := vcfgFile.Name() // vcfgPath may be "" when returning
+	defer func() {
+		if cerr := vcfgFile.Close(); err == nil && cerr != nil {
+			os.Remove(vcfgPath)
+			err = cerr
+		}
+	}()
+
+	enc := json.NewEncoder(vcfgFile)
+	enc.SetIndent("", "\t")
+	if err := enc.Encode(vcfg); err != nil {
+		return "", fmt.Errorf("internal error marshaling vet config: %v", err)
+	}
+
+	return vcfgPath, nil
 }
 
 // vetConfig is the configuration passed to vet describing a single package.

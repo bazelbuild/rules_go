@@ -65,12 +65,12 @@ func run(args []string) error {
 	}
 
 	if enableVet {
-		vcfgFile, err := buildVetcfgFile(packageFile, importMap, stdImports, srcs)
+		vcfgPath, err := buildVetcfgFile(packageFile, importMap, stdImports, srcs)
 		if err != nil {
 			return fmt.Errorf("error creating vet config: %v", err)
 		}
-		defer os.Remove(vcfgFile)
-		findings, err := runVet(*vetTool, vcfgFile)
+		defer os.Remove(vcfgPath)
+		findings, err := runVet(*vetTool, vcfgPath)
 		if err != nil {
 			return fmt.Errorf("error running vet:\n%v\n", err)
 		} else if findings != "" {
