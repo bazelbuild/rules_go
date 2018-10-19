@@ -118,8 +118,8 @@ func buildVetcfgFile(packageFile, importMap map[string]string, stdImports, files
 	}
 	vcfgPath := vcfgFile.Name() // vcfgPath may be "" when returning
 	defer func() {
+		os.Remove(vcfgPath)
 		if cerr := vcfgFile.Close(); err == nil && cerr != nil {
-			os.Remove(vcfgPath)
 			err = cerr
 		}
 	}()
