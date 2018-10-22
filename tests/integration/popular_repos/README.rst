@@ -158,17 +158,23 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/getgo:go_default_test
 * @org_golang_x_tools//cmd/go-contrib-init:go_default_test
 * @org_golang_x_tools//cmd/tip:go_default_test
+* @org_golang_x_tools//go/analysis/internal/analysisflags:go_default_test
+* @org_golang_x_tools//go/analysis/passes/tests/testdata/src/divergent:go_default_test
 * @org_golang_x_tools//go/ast/astutil:go_default_test
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/cfg:go_default_test
+* @org_golang_x_tools//go/packages/packagestest:go_default_test
 * @org_golang_x_tools//go/types/objectpath:go_default_test
 * @org_golang_x_tools//go/vcs:go_default_test
+* @org_golang_x_tools//godoc/dl:go_default_test
 * @org_golang_x_tools//godoc/redirect:go_default_test
 * @org_golang_x_tools//godoc/vfs:go_default_test
 * @org_golang_x_tools//godoc/vfs/gatefs:go_default_test
 * @org_golang_x_tools//godoc/vfs/mapfs:go_default_test
 * @org_golang_x_tools//internal/fastwalk:go_default_test
+* @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
+* @org_golang_x_tools//internal/semver:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
 * @org_golang_x_tools//present:go_default_test
 

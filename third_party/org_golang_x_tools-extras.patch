@@ -1,19 +1,16 @@
 diff -urN b/go/analysis/BUILD.bazel c/go/analysis/BUILD.bazel
---- b/go/analysis/BUILD.bazel	2018-10-08 14:32:08.240212629 -0400
-+++ c/go/analysis/BUILD.bazel	2018-10-08 14:32:44.276675699 -0400
-@@ -1,10 +1,22 @@
+--- b/go/analysis/BUILD.bazel	2018-10-22 21:15:32.000000000 +1100
++++ c/go/analysis/BUILD.bazel	2018-10-22 21:20:54.000000000 +1100
+@@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
  
  go_library(
      name = "go_default_library",
-     srcs = [
-         "analysis.go",
-         "validate.go",
-+    ],
-+    importpath = "golang.org/x/tools/go/analysis",
-+    visibility = ["//visibility:public"],
-+)
+@@ -10,3 +10,16 @@
+     importpath = "golang.org/x/tools/go/analysis",
+     visibility = ["//visibility:public"],
+ )
 +
 +# Only the generated nogo program and nogo analyzers should depend on this
 +# target to avoid bootstrapping problems.
@@ -21,13 +18,31 @@ diff -urN b/go/analysis/BUILD.bazel c/go/analysis/BUILD.bazel
 +    name = "go_tool_library",
 +    srcs = [
 +        "analysis.go",
++        "doc.go",
 +        "validate.go",
-     ],
-     importpath = "golang.org/x/tools/go/analysis",
-     visibility = ["//visibility:public"],
++    ],
++    importpath = "golang.org/x/tools/go/analysis",
++    visibility = ["//visibility:public"],
++)
+diff -urN b/go/analysis/BUILD.bazel.orig c/go/analysis/BUILD.bazel.orig
+--- b/go/analysis/BUILD.bazel.orig	1970-01-01 10:00:00.000000000 +1000
++++ c/go/analysis/BUILD.bazel.orig	2018-10-22 21:18:43.000000000 +1100
+@@ -0,0 +1,12 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "analysis.go",
++        "doc.go",
++        "validate.go",
++    ],
++    importpath = "golang.org/x/tools/go/analysis",
++    visibility = ["//visibility:public"],
++)
 diff -urN b/go/gcexportdata/BUILD.bazel c/go/gcexportdata/BUILD.bazel
---- b/go/gcexportdata/BUILD.bazel	2018-10-08 14:32:08.240212629 -0400
-+++ c/go/gcexportdata/BUILD.bazel	2018-10-08 14:34:44.378218807 -0400
+--- b/go/gcexportdata/BUILD.bazel	2018-10-22 21:15:32.000000000 +1100
++++ c/go/gcexportdata/BUILD.bazel	2018-10-22 21:39:40.000000000 +1100
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -53,22 +68,26 @@ diff -urN b/go/gcexportdata/BUILD.bazel c/go/gcexportdata/BUILD.bazel
      name = "go_default_test",
      srcs = [
 diff -urN b/go/internal/gcimporter/BUILD.bazel c/go/internal/gcimporter/BUILD.bazel
---- b/go/internal/gcimporter/BUILD.bazel	2018-10-08 14:32:08.240212629 -0400
-+++ c/go/internal/gcimporter/BUILD.bazel	2018-10-08 14:34:03.945699347 -0400
-@@ -1,10 +1,27 @@
+--- b/go/internal/gcimporter/BUILD.bazel	2018-10-22 21:15:32.000000000 +1100
++++ c/go/internal/gcimporter/BUILD.bazel	2018-10-22 21:40:50.000000000 +1100
+@@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
  
  go_library(
      name = "go_default_library",
-     srcs = [
-         "bexport.go",
-         "bimport.go",
+@@ -15,6 +15,21 @@
+     visibility = ["//go:__subpackages__"],
+ )
+ 
++go_tool_library(
++    name = "go_tool_library",
++    srcs = [
++        "bexport.go",
++        "bimport.go",
 +        "exportdata.go",
 +        "gcimporter.go",
 +        "iimport.go",
-+        "isAlias18.go",
-+        "isAlias19.go",
 +        "newInterface10.go",
 +        "newInterface11.go",
 +    ],
@@ -76,11 +95,6 @@ diff -urN b/go/internal/gcimporter/BUILD.bazel c/go/internal/gcimporter/BUILD.ba
 +    visibility = ["//go:__subpackages__"],
 +)
 +
-+go_tool_library(
-+    name = "go_tool_library",
-+    srcs = [
-+        "bexport.go",
-+        "bimport.go",
-         "exportdata.go",
-         "gcimporter.go",
-         "iimport.go",
+ go_test(
+     name = "go_default_test",
+     srcs = [

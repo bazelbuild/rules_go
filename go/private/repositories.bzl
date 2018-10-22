@@ -32,9 +32,9 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "org_golang_x_tools",
-        # master, as of 2018-09-18
-        urls = ["https://codeload.github.com/golang/tools/zip/7b71b077e1f4a3d5f15ca417a16c3b4dbb629b8b"],
-        strip_prefix = "tools-7b71b077e1f4a3d5f15ca417a16c3b4dbb629b8b",
+        # master, as of 2018-10-22
+        urls = ["https://codeload.github.com/golang/tools/zip/3e7aa9e59977626dc60433e9aeadf1bb63d28295"],
+        strip_prefix = "tools-3e7aa9e59977626dc60433e9aeadf1bb63d28295",
         type = "zip",
         patches = [
             "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",

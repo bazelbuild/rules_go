@@ -75,7 +75,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
-        commit = "663269851cdddc898f963782f74ea574bcd5c814",
+        commit = "3e7aa9e59977626dc60433e9aeadf1bb63d28295",
         excludes = [
             "cmd/bundle:go_default_test", # Needs testdata directory
             "cmd/callgraph:go_default_test", # Needs testdata directory
@@ -83,6 +83,32 @@ POPULAR_REPOS = [
             "cmd/cover:go_default_test", # Needs testdata directory
             "cmd/guru:go_default_test", # Needs testdata directory
             "cmd/stringer:go_default_test", # Needs testdata directory
+            "go/analysis/passes/asmdecl:go_default_test", # Needs testdata directory
+            "go/analysis/passes/assign:go_default_test", # Needs testdata directory
+            "go/analysis/passes/atomic:go_default_test", # Needs testdata directory
+            "go/analysis/passes/bools:go_default_test", # Needs testdata directory
+            "go/analysis/passes/buildssa:go_default_test", # Needs testdata directory
+            "go/analysis/passes/buildtag:go_default_test", # Needs testdata directory
+            "go/analysis/passes/cgocall:go_default_test", # Needs testdata directory
+            "go/analysis/passes/ctrlflow:go_default_test", # Needs testdata directory
+            "go/analysis/passes/composite:go_default_test", # Needs testdata directory
+            "go/analysis/passes/copylock:go_default_test", # Needs testdata directory
+            "go/analysis/passes/httpresponse:go_default_test", # Needs testdata directory
+            "go/analysis/passes/loopclosure:go_default_test", # Needs testdata directory
+            "go/analysis/passes/lostcancel:go_default_test", # Needs testdata directory
+            "go/analysis/passes/nilfunc:go_default_test", # Needs testdata directory
+            "go/analysis/passes/nilness:go_default_test", # Needs testdata directory
+            "go/analysis/passes/printf:go_default_test", # Needs testdata directory
+            "go/analysis/passes/shift:go_default_test", # Needs testdata directory
+            "go/analysis/passes/stdmethods:go_default_test", # Needs testdata directory
+            "go/analysis/passes/structtag:go_default_test", # Needs testdata directory
+            "go/analysis/passes/shadow:go_default_test", # Needs testdata directory
+            "go/analysis/passes/tests:go_default_test", # Needs testdata directory
+            "go/analysis/passes/tests/testdata/src/a:go_default_test", # Not a real test
+            "go/analysis/passes/unreachable:go_default_test", # Needs testdata directory
+            "go/analysis/passes/unusedresult:go_default_test", # Needs testdata directory
+            "go/analysis/passes/unsafeptr:go_default_test", # Needs testdata directory
+            "go/ast/inspector:go_default_test", # requires GOROOT and GOPATH
             "go/buildutil:go_default_test", # Needs testdata directory
             "go/callgraph/cha:go_default_test", # Needs testdata directory
             "go/callgraph/rta:go_default_test", # Needs testdata directory
@@ -112,9 +138,6 @@ POPULAR_REPOS = [
             "go/analysis/analysistest:go_default_test", # requires build cache
             "go/analysis/passes/findcall:go_default_test", # requires build cache
             "go/analysis/passes/pkgfact:go_default_test", # requires go list
-            "go/analysis/passes/vet/testdata/divergent:go_default_test", # is testdata
-            "go/analysis/passes/vet/testdata/incomplete:go_default_test", # is testdata
-            "go/analysis/passes/vet/testdata/testingpkg:go_default_test", # is testdata
         ],
     ),
 
