@@ -184,7 +184,7 @@ def _detect_host_sdk(ctx):
     return root
 
 def _detect_sdk_platform(ctx, goroot):
-    res = ctx.execute("ls", goroot + "/pkg/tool")
+    res = ctx.execute(["ls", goroot + "/pkg/tool"])
     if res.return_code != 0:
         fail("Could not detect SDK platform")
     for f in res.stdout.strip().split("\n"):
