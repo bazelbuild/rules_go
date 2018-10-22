@@ -16,9 +16,50 @@ builders(
     visibility = ["//visibility:public"],
 )
 
+# default_nogo is the nogo target that nogo references by default. It
+# does not analyze anything, which means no binary is built or run
+# at compile time.
 nogo(
     name = "default_nogo",
     visibility = ["//visibility:public"],
+)
+
+# tools_nogo includes all of the analysis passes in
+# golang.org/x/tools/go/analysis/passes.
+# This is not backward compatible, so use caution when depending on this --
+# new analyses may discover issues in existing builds.
+nogo(
+    name = "tools_nogo",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@org_golang_x_tools//go/analysis/passes/asmdecl:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/assign:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/atomic:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/bools:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/buildssa:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/buildtag:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/cgocall:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/composite:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/copylock:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/ctrlflow:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/findcall:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/httpresponse:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/inspect:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/loopclosure:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/lostcancel:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/nilfunc:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/nilness:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/pkgfact:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/shadow:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/shift:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/stdmethods:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/structtag:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/tests:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/unreachable:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/unsafeptr:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/unusedresult:go_tool_library",
+    ],
 )
 
 go_context_data(
