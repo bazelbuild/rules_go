@@ -147,6 +147,28 @@ def _merge_embed(source, embed):
             fail("multiple libraries with cgo_archives embedded")
         source["cgo_archives"] = s.cgo_archives
 
+def _dedup_deps(deps):
+    """Returns a list of targets without duplicate import paths.
+
+    Earlier targets take precedence over later targets. This is intended to
+    allow an embedding library to override the dependencies of its
+    embedded libraries.
+    """
+    deduped_deps = []
+    importpaths = {}
+    for dep in deps:
+        # TODO(#1784): we allow deps to be a list of GoArchive since go_test and
+        # nogo work this way. We should force deps to be a list of Targets.
+        if hasattr(dep, "data") and hasattr(dep.data, "importpath"):
+            importpath = dep.data.importpath
+        else:
+            importpath = dep[GoLibrary].importpath
+        if importpath in importpaths:
+            continue
+        importpaths[importpath] = None
+        deduped_deps.append(dep)
+    return deduped_deps
+
 def _library_to_source(go, attr, library, coverage_instrumented):
     #TODO: stop collapsing a depset in this line...
     attr_srcs = [f for t in getattr(attr, "srcs", []) for f in as_iterable(t.files)]
@@ -174,6 +196,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     for e in getattr(attr, "embed", []):
         _check_binary_dep(go, e, "embed")
         _merge_embed(source, e)
+    source["deps"] = _dedup_deps(source["deps"])
     x_defs = source["x_defs"]
     for k, v in getattr(attr, "x_defs", {}).items():
         if "." not in k:
