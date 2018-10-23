@@ -50,11 +50,20 @@ want to run.
     nogo(
         name = "my_nogo",
         deps = [
+            # analyzer from the local repository
             ":importunsafe",
-            ":unsafedom",
-            "@analyzers//:loopclosure", # analyzers can be imported from a remote repo
+            # analyzer from a remote repository
+            "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
         ],
         visibility = ["//visibility:public"], # must have public visibility
+    )
+
+    go_tool_library(
+        name = "importunsafe",
+        srcs = ["importunsafe.go"],
+        importpath = "importunsafe",
+        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+        visibility = ["//visibility:public"],
     )
 
 Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
