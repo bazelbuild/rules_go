@@ -1,6 +1,5 @@
-# This file contains options passed to Bazel when running tests
-# on continuous integration services.
-# Run with: bazel test --config=ci
+build:windows --cpu=x64_windows
+build:windows --compiler=mingw-gcc
 
 build:check --all_incompatible_changes
 
