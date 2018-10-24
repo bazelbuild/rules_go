@@ -57,7 +57,7 @@ func run(args []string) error {
 		return err
 	}
 
-	if err := copyFile(*inArchive, *outArchive); err != nil {
+	if err := copyFile(abs(*inArchive), abs(*outArchive)); err != nil {
 		return err
 	}
 
@@ -76,7 +76,7 @@ func run(args []string) error {
 		objects = append(objects, archiveObjects...)
 	}
 
-	return appendFiles(goenv, *outArchive, objects)
+	return appendFiles(goenv, abs(*outArchive), objects)
 }
 
 func main() {

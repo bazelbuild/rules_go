@@ -59,17 +59,17 @@ It should be consumed in the srcs list of one of the `core go rules`_.
 | Keys for files in external repositories will be prefixed with :value:`"external/repo/"` where    |
 | "repo" is the name of the external repository.                                                   |
 +----------------------------+-----------------------------+---------------------------------------+
-| :param:`flatten`           | :type:`boolean`             | :value:`false`                        |
+| :param:`flatten`           | :type:`boolean`             | :value:`False`                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| If :value:`true` and :param:`srcs` is used, map keys are file base names instead of relative     |
+| If :value:`True` and :param:`srcs` is used, map keys are file base names instead of relative     |
 | paths.                                                                                           |
 +----------------------------+-----------------------------+---------------------------------------+
-| :param:`unpack`            | :type:`boolean`             | :value:`false`                        |
+| :param:`unpack`            | :type:`boolean`             | :value:`False`                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| If :value:`true`, sources are treated as archives and their contents will be stored. Supported   |
+| If :value:`True`, sources are treated as archives and their contents will be stored. Supported   |
 | formats are `.zip` and `.tar`.                                                                   |
 +----------------------------+-----------------------------+---------------------------------------+
-| :param:`string`            | :type:`boolean`             | :value:`false`                        |
+| :param:`string`            | :type:`boolean`             | :value:`False`                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| If :value:`true`, the embedded data will be stored as :type:`string` instead of :type:`[]byte`.  |
+| If :value:`True`, the embedded data will be stored as :type:`string` instead of :type:`[]byte`.  |
 +----------------------------+-----------------------------+---------------------------------------+

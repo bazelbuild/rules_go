@@ -26,7 +26,7 @@ Go rules for Bazel_
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
 .. _#1199: https://github.com/bazelbuild/rules_go/issues/1199
-.. _reproducible_binary: tests/reproducible_binary/BUILD.bazel
+.. _//tests/core/cross: https://github.com/bazelbuild/rules_go/blob/master/tests/core/cross/BUILD.bazel
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _Travis configuration file: .travis.yml
@@ -34,6 +34,7 @@ Go rules for Bazel_
 .. _Deprecation schedule: deprecation.rst
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Overriding dependencies: go/workspace.rst#overriding-dependencies
+.. _nogo: go/nogo.rst
 
 .. ;; And now we continue with the actual content
 
@@ -48,20 +49,26 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
-September 5, 2018
-  Release `0.15.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.2>`_
-  and ``0.15.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.3>`_
-  are now available. 0.15.4 is coming soon.
-August 25, 2018
+October 24, 2018
   Releases
-  `0.15.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.1>`_,
-  `0.14.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.1>`_,
-  and `0.13.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.13.1>`_
-  are now available with support for Go 1.11! Also, come find us at GopherCon!
-  Ping @jayconrod on Twitter to meet up.
-August 16, 2018
-  Release `0.15.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.0>`_
-  is now available.
+  `0.16.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.1>`_,
+  `0.15.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.6>`_,
+  and `0.14.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.4>`_
+  are now available.
+October 16, 2018
+  Releases
+  `0.16.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.0>`_,
+  `0.15.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.5>`_,
+  and `0.14.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.3>`_
+  are now available. Also, Gazelle
+  `0.15.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.15.0>`_
+  is also available.
+October 3, 2018
+  Releases
+  `0.15.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.4>`_,
+  `0.14.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.2>`_,
+  and `0.13.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.13.2>`_
+  are now available with support for Go 1.11.1.
 
 Contents
 --------
@@ -73,7 +80,7 @@ Documentation
 ~~~~~~~~~~~~~
 
 * `Core API <go/core.rst>`_
-  
+
   * `go_binary`_
   * `go_library`_
   * `go_test`_
@@ -86,6 +93,7 @@ Documentation
 
 * `Toolchains <go/toolchains.rst>`_
 * `Extra rules <go/extras.rst>`_
+* `nogo build-time code analysis <go/nogo.rst>`_
 * `Build modes <go/modes.rst>`_
 
 Quick links
@@ -106,6 +114,7 @@ The rules are in the alpha stage of development. They support:
 * cgo
 * cross compilation
 * auto generating BUILD files via gazelle_
+* build-time code analysis via nogo_
 * `protocol buffers`_
 
 They currently do not support (in order of importance):
@@ -115,7 +124,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.15.3) requires Bazel ≥ 0.16.0 to work.
+Note: The latest version of these rules (0.16.1) requires Bazel ≥ 0.17.2 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -134,8 +143,8 @@ Setup
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.3/rules_go-0.15.3.tar.gz"],
-        sha256 = "97cf62bdef33519412167fd1e4b0810a318a7c234f5f8dc4f53e2da86241c492",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.1/rules_go-0.16.1.tar.gz"],
+        sha256 = "f5127a8f911468cd0b2d7a141f17253db81177523e4429796e14d429f5444f5f",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -183,13 +192,13 @@ build files automatically using gazelle_.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.15.3/rules_go-0.15.3.tar.gz"],
-        sha256 = "97cf62bdef33519412167fd1e4b0810a318a7c234f5f8dc4f53e2da86241c492",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.1/rules_go-0.16.1.tar.gz"],
+        sha256 = "f5127a8f911468cd0b2d7a141f17253db81177523e4429796e14d429f5444f5f",
     )
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.14.0/bazel-gazelle-0.14.0.tar.gz"],
-        sha256 = "c0a5739d12c6d05b6c1ad56f2200cb0b57c5a70e03ebd2f7b87ce88cabf09c7b",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.15.0/bazel-gazelle-0.15.0.tar.gz"],
+        sha256 = "6e875ab4b6bf64a38c352887760f21203ab054676d9c1b274963907e0768740d",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -394,7 +403,7 @@ work in some cases.
 
 In some cases, you may want to set the ``goos`` and ``goarch`` attributes of
 ``go_binary``. This will cross-compile a binary for a specific platform.
-This is necessary when you need to produce multiple binaries for different 
+This is necessary when you need to produce multiple binaries for different
 platforms in a single build. However, note that ``select`` expressions will
 not work correctly when using these attributes.
 
@@ -426,7 +435,8 @@ For example:
       data = [":cmd"],
   )
 
-See `reproducible_binary`_ for a complete example.
+See `//tests/core/cross`_ for a full example of a test that
+accesses a binary.
 
 Alternatively, you can set the ``out`` attribute of `go_binary`_ to a specific
 filename. Note that when ``out`` is set, the binary won't be cached when
@@ -522,7 +532,7 @@ must be named ``go_sdk``, and it must come *before* the call to
 
   go_register_toolchains()
 
-  
+
 How do I get information about the Go SDK used by rules_go?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -534,12 +544,12 @@ How do I avoid conflicts with protocol buffers?
 
 See `Avoiding conflicts`_ in the proto documentation.
 
-How do I use a specific version of golang.org/x/sys, net or text?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How do I use a specific version of gRPC or golang.org/x/...?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Several of the golang.org/x repositories are declared in
-`go_rules_dependencies`_. We declare these automatically because they're needed
-by gRPC.
+The `go_rules_dependencies`_ macro declares several external repositories
+at specific versions. These are needed for `go_proto_library`_ to work,
+especially with gRPC.
 
-See `Overriding dependencies`_ for an example of how to replace these
-with specific commits.
+See `Overriding dependencies`_ for information and an example of how to
+replace these repositories with different versions.

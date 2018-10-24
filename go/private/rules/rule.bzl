@@ -21,7 +21,7 @@ _ASPECT_ATTRS = ["pure", "static", "msan", "race"]
 
 # Keep in sync with attr_aspects in go_archive_aspect. Any implicit dependency
 # that is built in the target configuration should go there.
-_BOOTSTRAP_ATTRS = ["_builders", "_coverdata", "_stdlib"]
+_BOOTSTRAP_ATTRS = ["_builders", "_coverdata", "_stdlib", "_nogo"]
 
 def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, bootstrap_attrs = _BOOTSTRAP_ATTRS, **kwargs):
     if bootstrap:
@@ -37,6 +37,8 @@ def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, boot
 
     if "_builders" in bootstrap_attrs:
         attrs["_builders"] = attr.label(default = "@io_bazel_rules_go//:builders")
+    if "_nogo" in bootstrap_attrs:
+        attrs["_nogo"] = attr.label(default = Label("@io_bazel_rules_nogo//:nogo"), cfg = "host")
     if "_coverdata" in bootstrap_attrs:
         attrs["_coverdata"] = attr.label(default = "@io_bazel_rules_go//go/tools/coverdata", aspects = aspects)
     if "_stdlib" in bootstrap_attrs:

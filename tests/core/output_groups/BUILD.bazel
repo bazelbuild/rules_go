@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
+
+go_library(
+    name = "lib",
+    srcs = ["lib.go"],
+    importpath = "lib",
+)
+
+go_test(
+    name = "lib_test",
+    srcs = ["lib_test.go"],
+    embed = [":lib"],
+)
+
+go_binary(
+    name = "bin",
+    srcs = ["bin.go"],
+)
+
+filegroup(
+    name = "compilation_outputs",
+    testonly = True,
+    srcs = [
+        ":bin",
+        ":lib",
+        ":lib_test",
+    ],
+    output_group = "compilation_outputs",
+)
+
+go_test(
+    name = "compilation_outputs_test",
+    srcs = ["compilation_outputs_test.go"],
+    data = [":compilation_outputs"],
+)

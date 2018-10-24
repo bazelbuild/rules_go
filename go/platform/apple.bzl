@@ -29,18 +29,19 @@ PLATFORMS = {
 def _apple_version_min(platform, version):
     return "-m" + platform.name_in_plist.lower() + "-version-min=" + version
 
-def apple_ensure_options(ctx, env, tags, compiler_options, linker_options):
+def apple_ensure_options(ctx, env, tags, compiler_option_lists, linker_option_lists, target_gnu_system_name):
     """apple_ensure_options ensures that, when building an Apple target, the
     proper environment, compiler flags and Go tags are correctly set."""
-    system_name = ctx.fragments.cpp.target_gnu_system_name
-    platform = PLATFORMS.get(system_name)
+    platform = PLATFORMS.get(target_gnu_system_name)
     if platform == None:
         return
-    if system_name.endswith("-ios"):
+    if target_gnu_system_name.endswith("-ios"):
         tags.append("ios")  # needed for stdlib building
     if platform in [apple_common.platform.ios_device, apple_common.platform.ios_simulator]:
         min_version = _apple_version_min(platform, "7.0")
-        compiler_options.append(min_version)
-        linker_options.append(min_version)
+        for compiler_options in compiler_option_lists:
+            compiler_options.append(min_version)
+        for linker_options in linker_option_lists:
+            linker_options.append(min_version)
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     env.update(apple_common.target_apple_env(xcode_config, platform))

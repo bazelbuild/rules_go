@@ -208,3 +208,30 @@ def link_mode_args(mode):
         if platform in _LINK_PLUGIN_PLATFORMS:
             args.append("-dynlink")
     return args
+
+def extldflags_from_cc_toolchain(go):
+    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
+        return go.cgo_tools.ld_dynamic_lib_options
+    else:
+        # NOTE: in c-archive mode, -extldflags are ignored by the linker.
+        # However, we still need to set them for cgo, which links a binary
+        # in each package. We use the executable options for this.
+        return go.cgo_tools.ld_executable_options
+
+def extld_from_cc_toolchain(go):
+    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
+        return ["-extld", go.cgo_tools.ld_dynamic_lib_path]
+    elif go.mode.link == LINKMODE_C_ARCHIVE:
+        if go.mode.goos == "darwin":
+            # TODO(jayconrod): on macOS, set -extar. At this time, wrapped_ar is
+            # a bash script without a shebang line, so we can't execute it. We
+            # use /usr/bin/ar (the default) instead.
+            return []
+        else:
+            return ["-extar", go.cgo_tools.ld_static_lib_path]
+    else:
+        # NOTE: In c-archive mode, we should probably set -extar. However,
+        # on macOS, Bazel returns wrapped_ar, which is not executable.
+        # /usr/bin/ar (the default) should be visible though, and we have a
+        # hack in link.go to strip out non-reproducible stuff.
+        return ["-extld", go.cgo_tools.ld_executable_path]

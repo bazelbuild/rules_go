@@ -25,7 +25,7 @@ def _go_info_impl(ctx):
     go = go_context(ctx)
     report = go.declare_file(go, "go_info_report")
     args = go.builder_args(go)
-    args.add_all(["-out", report])
+    args.add("-out", report)
     go.actions.run(
         inputs = [go.go],
         outputs = [report],

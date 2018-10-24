@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -47,6 +48,7 @@ func run(args []string) error {
 	goenv := envFlags(flags)
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&archives, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
+	nogo := flags.String("nogo", "", "The nogo binary")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
@@ -118,11 +120,56 @@ func run(args []string) error {
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, "--")
+	filenames := make([]string, 0, len(files))
 	for _, f := range files {
-		goargs = append(goargs, f.filename)
+		filenames = append(filenames, f.filename)
 	}
+	goargs = append(goargs, filenames...)
 	absArgs(goargs, []string{"-I", "-o", "-trimpath", "-importcfg"})
-	return goenv.runCommand(goargs)
+	cmd := exec.Command(goargs[0], goargs[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("error starting compiler: %v", err)
+	}
+
+	// Run nogo concurrently.
+	var nogoOutput bytes.Buffer
+	nogoFailed := false
+	if *nogo != "" {
+		var nogoargs []string
+		nogoargs = append(nogoargs, "-vet_tool", goenv.goTool("vet")[0])
+		nogoargs = append(nogoargs, "-importcfg", importcfgName)
+		for _, imp := range stdImports {
+			nogoargs = append(nogoargs, "-stdimport", imp)
+		}
+		for _, f := range filenames {
+			nogoargs = append(nogoargs, "-src", f)
+		}
+		nogoargs = append(nogoargs, filenames...)
+		nogoCmd := exec.Command(*nogo, nogoargs...)
+		nogoCmd.Stdout, nogoCmd.Stderr = &nogoOutput, &nogoOutput
+		if err := nogoCmd.Run(); err != nil {
+			if _, ok := err.(*exec.ExitError); ok {
+				// Only fail the build if nogo runs and finds errors in source code.
+				nogoFailed = true
+			} else {
+				// All errors related to running nogo will merely be printed.
+				nogoOutput.WriteString(fmt.Sprintf("error running nogo: %v\n", err))
+			}
+		}
+	}
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("error running compiler: %v", err)
+	}
+	// Only print the output of nogo if compilation succeeds.
+	if nogoFailed {
+		return fmt.Errorf("%s", nogoOutput.String())
+	}
+	if nogoOutput.Len() != 0 {
+		fmt.Fprintln(os.Stderr, nogoOutput.String())
+	}
+	return nil
 }
 
 func main() {
@@ -187,6 +234,11 @@ func buildImportcfgFile(archives []archive, stdImports []string, installSuffix, 
 		return "", errors.New("GOROOT not set")
 	}
 	goroot = abs(goroot)
+	// UGLY HACK: The vet tool called by compile program expects the vet.cfg file
+	// passed to it to contain import information for package fmt. Since we use
+	// importcfg to create vet.cfg, ensure that an entry for package fmt exists in
+	// the former.
+	stdImports = append(stdImports, "fmt")
 	for _, imp := range stdImports {
 		path := filepath.Join(goroot, "pkg", installSuffix, filepath.FromSlash(imp))
 		fmt.Fprintf(buf, "packagefile %s=%s.a\n", imp, path)

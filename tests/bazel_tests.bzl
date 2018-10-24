@@ -149,11 +149,18 @@ def _bazel_test_script_impl(ctx):
     register = ""
     if any([ext.label.workspace_root.endswith("/go_sdk") for ext in ctx.attr.externals]):
         register += "register_toolchains(\n{}\n)\n".format(
-            "\n".join(['    "@go_sdk//:{}",'.format(name) for name in generate_toolchain_names()]))
-    if ctx.attr.go_version == CURRENT_VERSION:
-        register += "go_register_toolchains()\n"
-    elif ctx.attr.go_version != None:
-        register += 'go_register_toolchains(go_version="{}")\n'.format(ctx.attr.go_version)
+            "\n".join([
+                '    "@go_sdk//:{}",'.format(name)
+                for name in generate_toolchain_names()
+            ]),
+        )
+    if ctx.attr.go_version != None or ctx.attr.nogo != "":
+        register += "go_register_toolchains(\n"
+        if ctx.attr.nogo != "":
+            register += 'nogo="{}",\n'.format(ctx.attr.nogo)
+        if ctx.attr.go_version != None and ctx.attr.go_version != CURRENT_VERSION:
+            register += 'go_version="{}",\n'.format(ctx.attr.go_version)
+        register += ")\n"
 
     workspace_content = 'workspace(name = "bazel_test")\n\n'
     for ext in ctx.attr.externals:
@@ -227,14 +234,12 @@ _bazel_test_script = go_rule(
         "externals": attr.label_list(allow_files = True),
         "go_version": attr.string(default = CURRENT_VERSION),
         "workspace": attr.string(),
+        "nogo": attr.string(),
         "build": attr.string(),
         "check": attr.string(),
         "config": attr.string(default = "isolate"),
         "extra_files": attr.label_list(allow_files = True),
-        "data": attr.label_list(
-            allow_files = True,
-            cfg = "data",
-        ),
+        "data": attr.label_list(allow_files = True),
         "clean_build": attr.bool(default = False),
         "bazelrc": attr.label(
             allow_single_file = True,
@@ -244,7 +249,7 @@ _bazel_test_script = go_rule(
     },
 )
 
-def bazel_test(name, command = None, args = None, targets = None, go_version = None, tags = [], externals = [], workspace = "", build = "", check = "", config = None, extra_files = [], standalone = True, clean_build = False):
+def bazel_test(name, command = None, args = None, targets = None, go_version = None, tags = [], externals = [], workspace = "", nogo = "", build = "", check = "", config = None, extra_files = [], standalone = True, clean_build = False):
     script_name = name + "_script"
     externals = externals + [
         "@io_bazel_rules_go//:AUTHORS",
@@ -268,6 +273,7 @@ def bazel_test(name, command = None, args = None, targets = None, go_version = N
         go_version = go_version,
         targets = targets,
         workspace = workspace,
+        nogo = nogo,
         testonly = True,
     )
     native.sh_test(

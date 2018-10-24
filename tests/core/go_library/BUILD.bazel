@@ -29,3 +29,40 @@ go_library(
     ],
     importpath = "asm_header",
 )
+
+go_library(
+    name = "package_height",
+    srcs = ["package_height.go"],
+    importpath = "package_height",
+    deps = [
+        ":package_height_dep_deep",
+        ":package_height_embedder",
+    ],
+)
+
+go_library(
+    name = "package_height_embedder",
+    srcs = ["package_height_embedder.go"],
+    embed = [":package_height_embeddee"],
+    importpath = "package_height/embed",
+    deps = [":package_height_dep_deep"],
+)
+
+go_library(
+    name = "package_height_embeddee",
+    srcs = ["package_height_embeddee.go"],
+    importpath = "package_height/embed",
+    deps = [":package_height_dep_shallow"],
+)
+
+go_library(
+    name = "package_height_dep_deep",
+    srcs = ["package_height_dep_deep.go"],
+    importpath = "package_height/dep",
+)
+
+go_library(
+    name = "package_height_dep_shallow",
+    srcs = ["package_height_dep_shallow.go"],
+    importpath = "package_height/dep",
+)

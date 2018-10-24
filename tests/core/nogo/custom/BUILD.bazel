@@ -1,0 +1,112 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+load(
+    "@io_bazel_rules_go//tests/core/nogo:common.bzl",
+    "BUILD_FAILED_TMPL",
+    "BUILD_PASSED_TMPL",
+    "CONTAINS_ERR_TMPL",
+    "DOES_NOT_CONTAIN_ERR_TMPL",
+)
+
+BUILD_TMPL = """
+load("@io_bazel_rules_go//go:def.bzl", "nogo", "go_tool_library")
+
+nogo(
+    name = "nogo",
+    deps = [
+        ":foofuncname",
+        ":boolreturn",
+        ":importfmt",
+    ],
+    {config}
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "boolreturn",
+    srcs = ["boolreturn.go"],
+    importpath = "returnboolanalyzer",
+    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "importfmt",
+    srcs = ["importfmt.go"],
+    importpath = "importfmtanalyzer",
+    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "foofuncname",
+    srcs = ["foofuncname.go"],
+    importpath = "foofuncanalyzer",
+    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+    visibility = ["//visibility:public"],
+)
+"""
+
+EXTRA_FILES = [
+    ":boolreturn.go",
+    ":importfmt.go",
+    ":foofuncname.go",
+    ":config.json",
+]
+
+NOGO = "@//:nogo"
+
+bazel_test(
+    name = "custom_analyzers_default_config",
+    build = BUILD_TMPL.format(config = ""),
+    check = BUILD_FAILED_TMPL.format(
+        check_err =
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not return bool") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not be named Foo"),
+    ),
+    command = "build",
+    extra_files = EXTRA_FILES,
+    nogo = NOGO,
+    targets = [":has_errors"],
+)
+
+bazel_test(
+    name = "custom_analyzers_custom_config",
+    build = BUILD_TMPL.format(config = "config = \":config.json\","),
+    check = BUILD_FAILED_TMPL.format(
+        check_err =
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not return bool") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not be named Foo"),
+    ),
+    command = "build",
+    extra_files = EXTRA_FILES,
+    nogo = NOGO,
+    targets = [":has_errors"],
+)
+
+bazel_test(
+    name = "custom_analyzers_no_errors",
+    build = BUILD_TMPL.format(config = ""),
+    check = BUILD_PASSED_TMPL.format(
+        check_err =
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "no_errors.go:"),
+    ),
+    command = "build",
+    extra_files = EXTRA_FILES,
+    nogo = NOGO,
+    targets = [":no_errors"],
+)
+
+go_library(
+    name = "has_errors",
+    srcs = ["has_errors.go"],
+    importpath = "haserrors",
+)
+
+go_library(
+    name = "no_errors",
+    srcs = ["no_errors.go"],
+    importpath = "noerrors",
+)

@@ -1,0 +1,72 @@
+diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
+--- c/google/api/BUILD.bazel	2018-10-01 11:16:42.874328344 -0400
++++ d/google/api/BUILD.bazel	2018-10-01 11:17:12.582705780 -0400
+@@ -12,8 +12,13 @@
+ 
+ proto_library(
+     name = "api_proto",
+-    srcs = ["launch_stage.proto"],
++    srcs = [
++        "experimental/authorization_config.proto",
++        "experimental/experimental.proto",
++        "launch_stage.proto",
++    ],
+     visibility = ["//visibility:public"],
++    deps = [":annotations_proto"],
+ )
+ 
+ proto_library(
+@@ -90,10 +95,10 @@
+     visibility = ["//visibility:public"],
+     deps = [
+         ":annotations_proto",
++        ":api_proto",
+         ":label_proto",
+         ":metric_proto",
+         ":monitoredres_proto",
+-        "//google/api/experimental:api_proto",
+         "@com_google_protobuf//:any_proto",
+         "@com_google_protobuf//:api_proto",
+         "@com_google_protobuf//:type_proto",
+@@ -113,6 +118,7 @@
+     importpath = "google.golang.org/genproto/googleapis/api",
+     proto = ":api_proto",
+     visibility = ["//visibility:public"],
++    deps = [":annotations_go_proto"],
+ )
+ 
+ go_proto_library(
+@@ -171,9 +177,9 @@
+     visibility = ["//visibility:public"],
+     deps = [
+         ":annotations_go_proto",
++        ":api_go_proto",
+         ":label_go_proto",
+         ":metric_go_proto",
+         ":monitoredres_go_proto",
+-        "//google/api/experimental:api_go_proto",
+     ],
+ )
+diff -urN c/google/api/experimental/BUILD.bazel d/google/api/experimental/BUILD.bazel
+--- c/google/api/experimental/BUILD.bazel	2018-10-01 11:16:42.874328344 -0400
++++ d/google/api/experimental/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1,19 +0,0 @@
+-load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+-
+-proto_library(
+-    name = "api_proto",
+-    srcs = [
+-        "authorization_config.proto",
+-        "experimental.proto",
+-    ],
+-    visibility = ["//visibility:public"],
+-    deps = ["//google/api:annotations_proto"],
+-)
+-
+-go_proto_library(
+-    name = "api_go_proto",
+-    importpath = "google.golang.org/genproto/googleapis/api",
+-    proto = ":api_proto",
+-    visibility = ["//visibility:public"],
+-    deps = ["//google/api:annotations_go_proto"],
+-)

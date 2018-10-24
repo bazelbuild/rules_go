@@ -85,6 +85,7 @@ def _go_binary_impl(ctx):
         archive,
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
+            compilation_outputs = [archive.data.file],
         ),
         DefaultInfo(
             files = depset([executable]),

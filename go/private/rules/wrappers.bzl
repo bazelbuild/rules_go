@@ -55,7 +55,7 @@ _COMMON_ATTRS = {
 def _deprecate(attr, name, ruletype, kwargs, message):
     value = kwargs.pop(attr, None)
     if value and native.repository_name() == "@":
-        print("\nDEPRECATED: //{}:{} : the {} attribute on {} is deprecated. {}".format(native.package_name(), name, attr, ruletype, message))
+        print("DEPRECATED: //{}:{} : the {} attribute on {} is deprecated. {}".format(native.package_name(), name, attr, ruletype, message))
     return value
 
 def _objc(name, kwargs):

@@ -13,10 +13,21 @@
 # limitations under the License.
 
 load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+)
+load(
+    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
+    "CPP_COMPILE_ACTION_NAME",
+    "CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME",
+    "CPP_LINK_EXECUTABLE_ACTION_NAME",
+    "CPP_LINK_STATIC_LIBRARY_ACTION_NAME",
+    "C_COMPILE_ACTION_NAME",
+)
+load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
-    "GoAspectProviders",
     "GoBuilders",
     "GoLibrary",
     "GoSource",
@@ -49,6 +60,7 @@ load(
 )
 
 GoContext = provider()
+_GoContextData = provider()
 
 _COMPILER_OPTIONS_BLACKLIST = {
     "-fcolor-diagnostics": None,
@@ -135,6 +147,28 @@ def _merge_embed(source, embed):
             fail("multiple libraries with cgo_archives embedded")
         source["cgo_archives"] = s.cgo_archives
 
+def _dedup_deps(deps):
+    """Returns a list of targets without duplicate import paths.
+
+    Earlier targets take precedence over later targets. This is intended to
+    allow an embedding library to override the dependencies of its
+    embedded libraries.
+    """
+    deduped_deps = []
+    importpaths = {}
+    for dep in deps:
+        # TODO(#1784): we allow deps to be a list of GoArchive since go_test and
+        # nogo work this way. We should force deps to be a list of Targets.
+        if hasattr(dep, "data") and hasattr(dep.data, "importpath"):
+            importpath = dep.data.importpath
+        else:
+            importpath = dep[GoLibrary].importpath
+        if importpath in importpaths:
+            continue
+        importpaths[importpath] = None
+        deduped_deps.append(dep)
+    return deduped_deps
+
 def _library_to_source(go, attr, library, coverage_instrumented):
     #TODO: stop collapsing a depset in this line...
     attr_srcs = [f for t in getattr(attr, "srcs", []) for f in as_iterable(t.files)]
@@ -150,15 +184,19 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "x_defs": {},
         "deps": getattr(attr, "deps", []),
         "gc_goopts": getattr(attr, "gc_goopts", []),
-        "runfiles": go._ctx.runfiles(collect_data = True),
+        "runfiles": _collect_runfiles(go, getattr(attr, "data", []), getattr(attr, "deps", [])),
         "cgo_archives": [],
         "cgo_deps": [],
         "cgo_exports": [],
     }
     if coverage_instrumented and not getattr(attr, "testonly", False):
         source["cover"] = attr_srcs
+    for dep in source["deps"]:
+        _check_binary_dep(go, dep, "deps")
     for e in getattr(attr, "embed", []):
+        _check_binary_dep(go, e, "embed")
         _merge_embed(source, e)
+    source["deps"] = _dedup_deps(source["deps"])
     x_defs = source["x_defs"]
     for k, v in getattr(attr, "x_defs", {}).items():
         if "." not in k:
@@ -168,6 +206,36 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     if library.resolve:
         library.resolve(go, attr, source, _merge_embed)
     return GoSource(**source)
+
+def _collect_runfiles(go, data, deps):
+    """Builds a set of runfiles from the deps and data attributes. srcs and
+    their runfiles are not included."""
+    files = depset(transitive = [t[DefaultInfo].files for t in data])
+    runfiles = go._ctx.runfiles(transitive_files = files)
+    for t in data:
+        runfiles = runfiles.merge(t[DefaultInfo].data_runfiles)
+    for t in deps:
+        runfiles = runfiles.merge(get_source(t).runfiles)
+    return runfiles
+
+def _check_binary_dep(go, dep, edge):
+    """Checks that this rule doesn't depend on a go_binary or go_test.
+
+    go_binary and go_test apply an aspect to their deps and embeds. If a
+    go_binary / go_test depends on another go_binary / go_test in different
+    modes, the aspect is applied twice, and Bazel emits an opaque error
+    message.
+    """
+    if (type(dep) == "Target" and
+        DefaultInfo in dep and
+        getattr(dep[DefaultInfo], "files_to_run", None) and
+        dep[DefaultInfo].files_to_run.executable):
+        # TODO(#1735): make this an error after 0.16 is released.
+        print("WARNING: rule {rule} depends on executable {dep} via {edge}. This is not safe for cross-compilation. Depend on go_library instead. This will be an error in the future.".format(
+            rule = str(go._ctx.label),
+            dep = str(dep.label),
+            edge = edge,
+        ))
 
 def _infer_importpath(ctx):
     DEFAULT_LIB = "go_default_library"
@@ -213,15 +281,16 @@ def go_context(ctx, attr = None):
     builders = getattr(attr, "_builders", None)
     if builders:
         builders = builders[GoBuilders]
-    else:
-        builders = GoBuilders(compile = None, link = None)
+
+    nogo = ctx.files._nogo[0] if getattr(ctx.files, "_nogo", None) else None
+
     coverdata = getattr(attr, "_coverdata", None)
     if coverdata:
         coverdata = get_archive(coverdata)
 
     host_only = getattr(attr, "_hostonly", False)
 
-    context_data = attr._go_context_data
+    context_data = attr._go_context_data[_GoContextData]
     mode = get_mode(ctx, host_only, toolchain, context_data)
     tags = list(context_data.tags)
     if mode.race:
@@ -244,7 +313,6 @@ def go_context(ctx, attr = None):
         "GOROOT": goroot,
         "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",
-        "PATH": context_data.cgo_tools.compiler_path,
     })
 
     # TODO(jayconrod): remove this. It's way too broad. Everything should
@@ -277,6 +345,7 @@ def go_context(ctx, attr = None):
         pathtype = pathtype,
         cgo_tools = context_data.cgo_tools,
         builders = builders,
+        nogo = nogo,
         coverdata = coverdata,
         coverage_enabled = ctx.configuration.coverage_enabled,
         coverage_instrumented = ctx.coverage_instrumented(),
@@ -304,48 +373,184 @@ def go_context(ctx, attr = None):
         _ctx = ctx,  # TODO: All uses of this should be removed
     )
 
-def _go_context_data(ctx):
-    cpp = ctx.fragments.cpp
-    features = ctx.features
-    compiler_options = _filter_options(
-        cpp.compiler_options(features) + cpp.unfiltered_compiler_options(features),
-        _COMPILER_OPTIONS_BLACKLIST,
-    )
-    linker_options = _filter_options(
-        cpp.link_options + cpp.mostly_static_link_options(features, False),
-        _LINKER_OPTIONS_BLACKLIST,
+def _go_context_data_impl(ctx):
+    # TODO(jayconrod): find a way to get a list of files that comprise the
+    # toolchain (to be inputs into actions that need it).
+    # ctx.files._cc_toolchain won't work when cc toolchain resolution
+    # is switched on.
+    cc_toolchain = find_cpp_toolchain(ctx)
+    feature_configuration = cc_common.configure_features(
+        cc_toolchain = cc_toolchain,
+        requested_features = ctx.features,
+        unsupported_features = ctx.disabled_features,
     )
 
+    # TODO(jayconrod): keep the environment separate for different actions.
     env = {}
+
+    c_compile_variables = cc_common.create_compile_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+    )
+    c_compiler_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = C_COMPILE_ACTION_NAME,
+    )
+    c_compile_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = C_COMPILE_ACTION_NAME,
+            variables = c_compile_variables,
+        ),
+        _COMPILER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = C_COMPILE_ACTION_NAME,
+        variables = c_compile_variables,
+    ))
+
+    cxx_compile_variables = cc_common.create_compile_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+    )
+    cxx_compile_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_COMPILE_ACTION_NAME,
+            variables = cxx_compile_variables,
+        ),
+        _COMPILER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_COMPILE_ACTION_NAME,
+        variables = cxx_compile_variables,
+    ))
+
+    ld_executable_variables = cc_common.create_link_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        is_linking_dynamic_library = False,
+    )
+    ld_executable_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+    )
+    ld_executable_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+            variables = ld_executable_variables,
+        ),
+        _LINKER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
+        variables = ld_executable_variables,
+    ))
+
+    # We don't collect options for static libraries. Go always links with
+    # "ar" in "c-archive" mode. We can set the ar executable path with
+    # -extar, but the options are hard-coded to something like -q -c -s.
+    ld_static_lib_variables = cc_common.create_link_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        is_linking_dynamic_library = False,
+    )
+    ld_static_lib_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_STATIC_LIBRARY_ACTION_NAME,
+        variables = ld_static_lib_variables,
+    ))
+
+    ld_dynamic_lib_variables = cc_common.create_link_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+        is_linking_dynamic_library = True,
+    )
+    ld_dynamic_lib_path = cc_common.get_tool_for_action(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+    )
+    ld_dynamic_lib_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+            variables = ld_dynamic_lib_variables,
+        ),
+        _LINKER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+        variables = ld_dynamic_lib_variables,
+    ))
+
     tags = []
     if "gotags" in ctx.var:
         tags = ctx.var["gotags"].split(",")
-    apple_ensure_options(ctx, env, tags, compiler_options, linker_options)
-    compiler_path, _ = cpp.ld_executable.rsplit("/", 1)
-    return struct(
+    apple_ensure_options(
+        ctx,
+        env,
+        tags,
+        (c_compile_options, cxx_compile_options),
+        (ld_executable_options, ld_dynamic_lib_options),
+        cc_toolchain.target_gnu_system_name,
+    )
+
+    # Add C toolchain directories to PATH.
+    # On ARM, go tool link uses some features of gcc to complete its work,
+    # so PATH is needed on ARM.
+    path_set = {}
+    if "PATH" in env:
+        for p in env["PATH"].split(ctx.configuration.host_path_separator):
+            path_set[p] = None
+    for tool_path in [c_compiler_path, ld_executable_path, ld_static_lib_path, ld_dynamic_lib_path]:
+        tool_dir, _, _ = tool_path.rpartition("/")
+        path_set[tool_dir] = None
+    paths = sorted(path_set.keys())
+    if ctx.configuration.host_path_separator == ":":
+        # HACK: ":" is a proxy for a UNIX-like host.
+        # The tools returned above may be bash scripts that reference commands
+        # in directories we might not otherwise include. For example,
+        # on macOS, wrapped_ar calls dirname.
+        if "/bin" not in path_set:
+            paths.append("/bin")
+        if "/usr/bin" not in path_set:
+            paths.append("/usr/bin")
+    env["PATH"] = ctx.configuration.host_path_separator.join(paths)
+
+    return [_GoContextData(
         strip = ctx.attr.strip,
-        crosstool = ctx.files._crosstool,
+        crosstool = ctx.files._cc_toolchain,
         tags = tags,
         env = env,
         cgo_tools = struct(
-            compiler_path = compiler_path,
-            compiler_executable = cpp.compiler_executable,
-            ld_executable = cpp.ld_executable,
-            compiler_options = compiler_options,
-            linker_options = linker_options,
-            options = compiler_options + linker_options,
-            c_options = cpp.c_options,
+            c_compiler_path = c_compiler_path,
+            c_compile_options = c_compile_options,
+            cxx_compile_options = cxx_compile_options,
+            ld_executable_path = ld_executable_path,
+            ld_executable_options = ld_executable_options,
+            ld_static_lib_path = ld_static_lib_path,
+            ld_dynamic_lib_path = ld_dynamic_lib_path,
+            ld_dynamic_lib_options = ld_dynamic_lib_options,
         ),
-    )
+    )]
 
 go_context_data = rule(
-    _go_context_data,
+    _go_context_data_impl,
     attrs = {
         "strip": attr.string(mandatory = True),
-        "_crosstool": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
+        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
             default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
-    fragments = ["cpp", "apple"],
+    fragments = ["apple"],
 )

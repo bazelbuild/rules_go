@@ -1,0 +1,31 @@
+diff -urN a/BUILD b/BUILD
+--- a/BUILD	1969-12-31 19:00:00.000000000 -0500
++++ b/BUILD	2018-09-28 13:46:41.484250945 -0400
+@@ -0,0 +1,4 @@
++# gazelle:proto package
++# gazelle:proto_group go_package
++# gazelle:exclude gapic
++# gazelle:exclude third_party
+Binary files a/.git/index and b/.git/index differ
+diff -urN a/google/api/expr/v1beta1/value.proto b/google/api/expr/v1beta1/value.proto
+--- a/google/api/expr/v1beta1/value.proto	2018-09-28 13:02:38.156796548 -0400
++++ b/google/api/expr/v1beta1/value.proto	2018-09-28 13:47:08.368609071 -0400
+@@ -21,7 +21,7 @@
+ import "google/protobuf/struct.proto";
+ 
+ option cc_enable_arenas = true;
+-option go_package = "google.golang.org/genproto/googleapis/api/expr/v1beta;expr";
++option go_package = "google.golang.org/genproto/googleapis/api/expr/v1beta1;expr";
+ option java_multiple_files = true;
+ option java_outer_classname = "ValueProto";
+ option java_package = "com.google.api.expr.v1beta1";
+diff -urN a/google/BUILD.bazel b/google/BUILD.bazel
+--- a/google/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/google/BUILD.bazel	2018-09-28 13:46:41.484250945 -0400
+@@ -0,0 +1 @@
++# gazelle:prefix google.golang.org/genproto/googleapis
+diff -urN a/WORKSPACE b/WORKSPACE
+--- a/WORKSPACE	1969-12-31 19:00:00.000000000 -0500
++++ b/WORKSPACE	2018-09-28 13:46:41.484250945 -0400
+@@ -0,0 +1 @@
++workspace(name = "go_googleapis")

@@ -64,3 +64,10 @@ in the generated test main before running a test. This matches functionality
 in ``go test``.
 
 Verifies #1561.
+
+data_test
+---------
+
+Checks that data dependencies, including those inherited from ``deps`` and
+``embed``, are visible to tests at run-time. Source files should not be
+visible at run-time.

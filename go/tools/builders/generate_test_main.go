@@ -68,6 +68,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"testing"
 	"testing/internal/testdeps"
@@ -124,10 +125,15 @@ func main() {
 	testWorkspace := os.Getenv("TEST_WORKSPACE")
 	if testSrcdir != "" && testWorkspace != "" {
 		abs := filepath.Join(testSrcdir, testWorkspace, {{printf "%q" .RunDir}})
-		if err := os.Chdir(abs); err != nil {
+		err := os.Chdir(abs)
+		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
+		// https://github.com/bazelbuild/rules_go/pull/1721#issuecomment-422145904
+		if err != nil && runtime.GOOS != "windows" {
 			log.Fatalf("could not change to test directory: %v", err)
 		}
-		os.Setenv("PWD", abs)
+		if err == nil {
+			os.Setenv("PWD", abs)
+		}
 	}
 
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {

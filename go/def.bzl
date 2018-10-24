@@ -27,8 +27,11 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:repositories.bzl",
-    "go_register_toolchains",
     "go_rules_dependencies",
+)
+load(
+    "@io_bazel_rules_go//go/toolchain:toolchains.bzl",
+    "go_register_toolchains",
 )
 load(
     "@io_bazel_rules_go//go/private:sdk.bzl",
@@ -71,10 +74,18 @@ load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     _go_rule = "go_rule",
 )
+load(
+    "@io_bazel_rules_go//go/private:rules/library.bzl",
+    "go_tool_library",
+)
+load(
+    "@io_bazel_rules_go//go/private:rules/nogo.bzl",
+    "nogo",
+)
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.15.0"
+RULES_GO_VERSION = "0.16.0"
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""

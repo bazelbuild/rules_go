@@ -1,0 +1,94 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+load(
+    "@io_bazel_rules_go//tests/core/nogo:common.bzl",
+    "BUILD_FAILED_TMPL",
+    "CONTAINS_ERR_TMPL",
+    "DOES_NOT_CONTAIN_ERR_TMPL",
+)
+
+BUILD_TMPL = """
+load("@io_bazel_rules_go//go:def.bzl", "nogo", "go_tool_library")
+
+nogo(
+    name = "nogo",
+    deps = [
+        ":a",
+        ":b",
+        ":c",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "a",
+    srcs = ["a.go"],
+    importpath = "a",
+    deps = [
+        ":c",
+        "@org_golang_x_tools//go/analysis:go_tool_library"
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "b",
+    srcs = ["b.go"],
+    importpath = "b",
+    deps = [
+        ":c",
+        "@org_golang_x_tools//go/analysis:go_tool_library"
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "c",
+    srcs = ["c.go"],
+    importpath = "c",
+    deps = [
+        ":d",
+        "@org_golang_x_tools//go/analysis:go_tool_library"
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_tool_library(
+    name = "d",
+    srcs = ["d.go"],
+    importpath = "d",
+    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+    visibility = ["//visibility:public"],
+)
+"""
+
+EXTRA_FILES = [
+    ":a.go",
+    ":b.go",
+    ":c.go",
+    ":d.go",
+]
+
+NOGO = "@//:nogo"
+
+bazel_test(
+    name = "dep_graph",
+    build = BUILD_TMPL.format(config = ""),
+    check = BUILD_FAILED_TMPL.format(
+        check_err =
+            CONTAINS_ERR_TMPL.format(err = "a c d") +
+            CONTAINS_ERR_TMPL.format(err = "b c d") +
+            CONTAINS_ERR_TMPL.format(err = "only printed once") +
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "this should not be printed"),
+    ),
+    command = "build",
+    extra_files = EXTRA_FILES,
+    nogo = NOGO,
+    targets = [":src"],
+)
+
+go_library(
+    name = "src",
+    srcs = ["src.go"],
+    importpath = "src",
+)

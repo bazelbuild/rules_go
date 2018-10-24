@@ -110,6 +110,9 @@ def _go_proto_library_impl(ctx):
             files = depset([archive.data.file]),
             runfiles = archive.runfiles,
         ),
+        OutputGroupInfo(
+            compilation_outputs = [archive.data.file],
+        ),
     ]
 
 go_proto_library = go_rule(
