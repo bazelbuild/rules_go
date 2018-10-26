@@ -23,6 +23,13 @@ load(
     "shell",
 )
 
+def _testlog_path(t):
+    return "bazel-testlogs/{workspace_root}/{package}/{name}/test.log".format(
+        workspace_root = t.workspace_root,
+        package = t.package,
+        name = t.name,
+    )
+
 # _bazelrc is the bazel.rc file that sets the default options for tests
 def _bazelrc(strategy):
     return """
@@ -175,16 +182,14 @@ def _bazel_test_script_impl(ctx):
     build_file = go.declare_file(go, path = "BUILD.in")
     ctx.actions.write(build_file, ctx.attr.build)
 
-    output = "external/" + ctx.workspace_name + "/" + ctx.label.package
-    targets = ["@" + ctx.workspace_name + "//" + ctx.label.package + t if t.startswith(":") else t for t in ctx.attr.targets]
+    output = "{workspace_root}/{package}".format(
+        workspace_root = ctx.label.workspace_root if ctx.label.workspace_root else "external/{}".format(ctx.workspace_name),
+        package = ctx.label.package
+    )
+    targets = [t.label if t.label.workspace_root else Label("@{}//{}:{}".format(ctx.workspace_name, t.label.package, t.label.name)) for t in ctx.attr.targets]
     logs = []
     if ctx.attr.command in ("test", "coverage"):
-        # TODO(jayconrod): read logs for other packages
-        logs = [
-            "bazel-testlogs/{}/{}/test.log".format(output, t[1:])
-            for t in ctx.attr.targets
-            if t.startswith(":")
-        ]
+        logs = [_testlog_path(t) for t in targets]
 
     script_content = _bazel_test_script_template.format(
         bazelrc = shell.quote(ctx.attr._settings.exec_root + "/" + ctx.file.bazelrc.path),
@@ -192,7 +197,7 @@ def _bazel_test_script_impl(ctx):
         extra_files = " ".join([shell.quote(paths.join(ctx.attr._settings.exec_root, "execroot", "io_bazel_rules_go", file.path)) for file in ctx.files.extra_files]),
         command = ctx.attr.command,
         args = " ".join(ctx.attr.args),
-        target = " ".join(targets),
+        target = " ".join([str(t) for t in targets]),
         logs = " ".join([shell.quote(l) for l in logs]),
         check = ctx.attr.check,
         workspace = shell.quote(workspace_file.short_path),
@@ -225,7 +230,7 @@ _bazel_test_script = go_rule(
             ],
         ),
         "args": attr.string_list(default = []),
-        "targets": attr.string_list(mandatory = True),
+        "targets": attr.label_list(mandatory = True),
         "externals": attr.label_list(allow_files = True),
         "go_version": attr.string(default = CURRENT_VERSION),
         "workspace": attr.string(),
@@ -269,6 +274,7 @@ def bazel_test(name, command = None, args = None, targets = None, go_version = N
         targets = targets,
         workspace = workspace,
         nogo = nogo,
+        testonly = True,
     )
     native.sh_test(
         name = name,

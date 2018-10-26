@@ -43,7 +43,10 @@ def _bindata_impl(ctx):
         arguments.add_all(["-modtime", "0"])
     if ctx.attr.extra_args:
         arguments.add_all(ctx.attr.extra_args)
-    arguments.add_all(ctx.files.srcs)
+    srcs = [f.path for f in ctx.files.srcs]
+    if ctx.attr.strip_external and any([f.startswith("external/") for f in srcs]):
+        arguments.add("-prefix", ctx.label.workspace_root + "/" + ctx.label.package)
+    arguments.add_all(srcs)
     ctx.actions.run(
         inputs = ctx.files.srcs,
         outputs = [out],
@@ -66,6 +69,7 @@ bindata = go_rule(
         "metadata": attr.bool(default = False),
         "memcopy": attr.bool(default = True),
         "modtime": attr.bool(default = False),
+        "strip_external": attr.bool(default = False),
         "extra_args": attr.string_list(),
         "_bindata": attr.label(
             executable = True,

@@ -25,6 +25,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
 var copyPath, linkPath, archivePath, nodataPath string
@@ -84,7 +86,12 @@ func TestArchivePath(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	z, err := zip.OpenReader(archivePath)
+	path, err := bazel.Runfile(archivePath)
+	if err != nil {
+		t.Fatalf("Could not find runfile %s: %q", archivePath, err)
+	}
+
+	z, err := zip.OpenReader(path)
 	if err != nil {
 		t.Fatalf("error opening zip: %v", err)
 	}
@@ -130,6 +137,10 @@ func TestNoDataPath(t *testing.T) {
 // slash-separated paths relative to dir. Files that start with "-" should be
 // absent. Files that end with "/" should be directories.
 func checkPath(t *testing.T, dir string, files []string) {
+	if strings.HasPrefix(dir, "external") {
+		dir = filepath.Join(os.Getenv("TEST_SRCDIR"), strings.TrimPrefix(dir, "external/"))
+	}
+
 	for _, f := range files {
 		wantDir := strings.HasSuffix(f, "/")
 		wantAbsent := false

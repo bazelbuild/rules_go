@@ -29,7 +29,10 @@ go_test(
     ],
     race = "on",
     rundir = ".",
-    deps = ["//tests/core/race/racy:go_default_library"],
+    deps = [
+        "//go/tools/bazel:go_default_library",
+        "//tests/core/race/racy:go_default_library",
+    ],
 )
 
 go_test(

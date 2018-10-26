@@ -31,15 +31,62 @@ compiler-like errors.
 ``nogo`` is a powerful tool for preventing bugs and code anti-patterns early
 in the development process.
 
-.. contents:: :depth: 2
+.. contents:: .
+  :depth: 2
 
 -----
 
-Overview
---------
+Setup
+-----
+
+Create a `nogo`_ target in a ``BUILD`` file in your workspace. The ``deps``
+attribute of this target must contain labels all the analyzers targets that you
+want to run.
+
+.. code:: bzl
+
+    load("@io_bazel_rules_go//go:def.bzl", "nogo")
+
+    nogo(
+        name = "my_nogo",
+        deps = [
+            # analyzer from the local repository
+            ":importunsafe",
+            # analyzer from a remote repository
+            "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
+        ],
+        visibility = ["//visibility:public"], # must have public visibility
+    )
+
+    go_tool_library(
+        name = "importunsafe",
+        srcs = ["importunsafe.go"],
+        importpath = "importunsafe",
+        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+        visibility = ["//visibility:public"],
+    )
+
+Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
+``WORKSPACE`` file.
+
+.. code:: bzl
+
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    go_rules_dependencies()
+    go_register_toolchains(nogo="@//:my_nogo") # my_nogo is in the top-level BUILD file of this workspace
+
+**NOTE**: You must include ``"@//"`` prefix when referring to targets in the local
+workspace.
+
+The `nogo`_ rule will generate a program that executes all the supplied
+analyzers at build-time. The generated ``nogo`` program will run alongside the
+compiler when building any Go target (e.g. `go_library`_) within your workspace,
+even if the target is imported from an external repository. However, ``nogo``
+will not run when targets from the current repository are imported into other
+workspaces and built there.
 
 Writing and registering analyzers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------
 
 ``nogo`` analyzers are Go packages that declare a variable named ``Analyzer``
 of type `Analyzer`_ from package `analysis`_. Each analyzer is invoked once per
@@ -82,8 +129,8 @@ diagnostics unless they are severe enough to warrant stopping the build.
 
 Each analyzer must be written as a `go_tool_library`_ rule and must import
 `@org_golang_x_tools//go/analysis:go_tool_library`, the `go_tool_library`_
-version of the package `analysis`_ target. `go_tool_library`_ is identical to
-`go_library`_ but avoids a bootstrapping problem, which will be explained later.
+version of the package `analysis`_ target.
+
 For example:
 
 .. code:: bzl
@@ -109,44 +156,13 @@ For example:
         visibility = ["//visibility:public"],
     )
 
-The `nogo`_ rule generates a program that analyzes Go source code. This program
-is run alongside the compiler. You must define a `nogo`_ target whose ``deps``
-attribute contains all analyzer targets. These analyzers will be linked to the
-generated ``nogo`` binary and executed at build-time.
+**NOTE**: `go_tool_library`_ is a limited variant of ``go_library`` which avoids
+a circular dependency: `go_library`_ implicitly depends on `nogo`_, which
+depends on analyzer libraries, which must not depend on `nogo`_.
+`go_tool_library`_ does not have the same implicit dependency.
 
-.. code:: bzl
-
-    load("@io_bazel_rules_go//go:def.bzl", "nogo")
-
-    nogo(
-        name = "nogo",
-        deps = [
-            ":importunsafe",
-            ":unsafedom",
-            "@analyzers//:loopclosure", # analyzers can be imported from a remote repo
-        ],
-        visibility = ["//visibility:public"], # must have public visibility
-    )
-
-**NOTE**: Writing each ``nogo`` analyzer as a `go_tool_library`_ rule instead of
-a `go_library`_ rule avoids a circular dependency: `go_library`_ implicitly
-depends on `nogo`_, which depends on analyzer libraries, which must not depend
-on `nogo`_. `go_tool_library`_ does not have the same implicit dependency.
-
-Finally, the `nogo`_ target must be passed to ``go_register_toolchains``
-in your ``WORKSPACE`` file.
-
-.. code:: bzl
-
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
-    go_rules_dependencies()
-    go_register_toolchains(nogo="@//:nogo")
-
-The generated ``nogo`` program will run alongside the compiler when building any
-Go target (e.g. `go_library`_) within your workspace, even if the target is
-imported from an external repository. However, ``nogo`` will not run when
-targets from the current repository are imported into other workspaces and built
-there.
+Pass labels for these targets to the ``deps`` attribute of your `nogo`_ target,
+as described in the `Setup`_ section.
 
 Configuring analyzers
 ~~~~~~~~~~~~~~~~~~~~~
@@ -215,7 +231,7 @@ This label referencing this configuration file must be provided as the
 .. code:: bzl
 
     nogo(
-        name = "nogo",
+        name = "my_nogo",
         deps = [
             ":importunsafe",
             ":unsafedom",
@@ -226,7 +242,7 @@ This label referencing this configuration file must be provided as the
     )
 
 Running vet
-~~~~~~~~~~~
+-----------
 
 `vet`_ is a tool that examines Go source code and reports correctness issues not
 caught by Go compilers. It is included in the official Go distribution.
@@ -237,7 +253,7 @@ attribute in your `nogo`_ target:
 .. code:: bzl
 
     nogo(
-        name = "nogo",
+        name = "my_nogo",
         vet = True,
         visibility = ["//visibility:public"],
     )
@@ -298,7 +314,7 @@ Example
 .. code:: bzl
 
     nogo(
-        name = "nogo",
+        name = "my_nogo",
         deps = [
             ":importunsafe",
             ":otheranalyzer",

@@ -26,6 +26,8 @@ import (
 	"os/user"
 	"regexp"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
 var allStrings [][]byte
@@ -37,7 +39,11 @@ func TestMain(m *testing.M) {
 		log.Fatalf("usage: %s <binary>\n", os.Args[0])
 	}
 
-	binaryData, err := ioutil.ReadFile(os.Args[1])
+	binary, err := bazel.Runfile(os.Args[1])
+	if err != nil {
+		log.Fatalf("Could not find runfile %s: %q", os.Args[1], err)
+	}
+	binaryData, err := ioutil.ReadFile(binary)
 	if err != nil {
 		log.Fatal(err)
 	}

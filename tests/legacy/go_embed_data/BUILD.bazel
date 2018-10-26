@@ -9,6 +9,7 @@ go_test(
         "//:AUTHORS",
         "@com_google_protobuf//:LICENSE",
     ],
+    deps = ["//go/tools/bazel:go_default_library"],
     embed = [":go_default_library"],
 )
 

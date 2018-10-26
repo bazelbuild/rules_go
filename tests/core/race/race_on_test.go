@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 	"github.com/bazelbuild/rules_go/tests/core/race/racy"
 )
 
@@ -23,8 +24,13 @@ func TestRaceTag(t *testing.T) {
 }
 
 func checkRaceBinary(t *testing.T, bin string) {
-	err := exec.Command(bin).Run()
-	if _, ok := err.(*exec.ExitError); !ok {
+	path, err := bazel.Runfile(bin)
+	if err != nil {
+		t.Errorf("Could not find runfile %s: %q", bin, err)
+		return
+	}
+
+	if _, ok := exec.Command(path).Run().(*exec.ExitError); !ok {
 		t.Errorf("want ExitError; got %v", err)
 	}
 }
