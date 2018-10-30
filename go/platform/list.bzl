@@ -24,6 +24,7 @@ GOOS = {
     "plan9": None,
     "solaris": None,
     "windows": "@bazel_tools//platforms:windows",
+    "js": None,
 }
 
 GOARCH = {
@@ -39,6 +40,7 @@ GOARCH = {
     "ppc64": None,
     "ppc64le": "@bazel_tools//platforms:ppc",
     "s390x": "@bazel_tools//platforms:s390x",
+    "wasm": None,
 }
 
 GOOS_GOARCH = (
@@ -80,6 +82,7 @@ GOOS_GOARCH = (
     ("solaris", "amd64"),
     ("windows", "386"),
     ("windows", "amd64"),
+    ("js", "wasm"),
 )
 
 RACE_GOOS_GOARCH = (
