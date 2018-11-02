@@ -46,6 +46,7 @@ func run(args []string) error {
 	unfiltered := multiFlag{}
 	archives := archiveMultiFlag{}
 	goenv := envFlags(flags)
+	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&archives, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	nogo := flags.String("nogo", "", "The nogo binary")
@@ -97,7 +98,11 @@ func run(args []string) error {
 		if err := ioutil.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
 			return err
 		}
-		files = append(files, &goMetadata{filename: emptyPath})
+		files = append(files, &goMetadata{filename: emptyPath, pkg: "empty"})
+	}
+
+	if *packagePath == "" {
+		*packagePath = files[0].pkg
 	}
 
 	// Check that the filtered sources don't import anything outside of
@@ -116,6 +121,7 @@ func run(args []string) error {
 
 	// Compile the filtered files.
 	goargs := goenv.goTool("compile")
+	goargs = append(goargs, "-p", *packagePath)
 	goargs = append(goargs, "-importcfg", importcfgName)
 	goargs = append(goargs, "-pack", "-o", *output)
 	goargs = append(goargs, toolArgs...)
@@ -138,14 +144,13 @@ func run(args []string) error {
 	nogoFailed := false
 	if *nogo != "" {
 		var nogoargs []string
+		nogoargs = append(nogoargs, "-p", *packagePath)
 		nogoargs = append(nogoargs, "-vet_tool", goenv.goTool("vet")[0])
 		nogoargs = append(nogoargs, "-importcfg", importcfgName)
 		for _, imp := range stdImports {
 			nogoargs = append(nogoargs, "-stdimport", imp)
 		}
-		for _, f := range filenames {
-			nogoargs = append(nogoargs, "-src", f)
-		}
+		nogoargs = append(nogoargs, "-x", strings.TrimSuffix(*output, ".a")+".x")
 		nogoargs = append(nogoargs, filenames...)
 		nogoCmd := exec.Command(*nogo, nogoargs...)
 		nogoCmd.Stdout, nogoCmd.Stderr = &nogoOutput, &nogoOutput

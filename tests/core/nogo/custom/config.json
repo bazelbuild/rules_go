@@ -4,12 +4,12 @@
       "has_errors\\.go": ""
     }
   },
-  "boolreturn": {
-    "exclude_files": {
-      "has_.*\\.go": "security-reviewed functions that safely return bool"
-    }
-  },
   "foofuncname": {
     "description": "no exemptions since we know this check is 100% accurate"
+  },
+  "visibility": {
+    "exclude_files": {
+      "has_.*\\.go": "special exception to visibility rules"
+    }
   }
 }

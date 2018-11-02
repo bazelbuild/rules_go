@@ -27,9 +27,10 @@ def _archive(v):
 def emit_compile(
         go,
         sources = None,
-        importpath = "",
+        importpath = "",  # actually importmap, left as importpath for compatibility
         archives = [],
         out_lib = None,
+        out_export = None,
         gc_goopts = [],
         testfilter = None,
         asmhdr = None):
@@ -60,6 +61,8 @@ def emit_compile(
     if go.nogo:
         builder_args.add("-nogo", go.nogo)
         inputs.append(go.nogo)
+        inputs.extend([archive.data.export_file for archive in archives])
+        outputs.append(out_export)
 
     tool_args = go.tool_args(go)
     if asmhdr:
@@ -77,7 +80,7 @@ def emit_compile(
         tool_args.add("-msan")
     tool_args.add_all(link_mode_args(go.mode))
     if importpath:
-        tool_args.add("-p", importpath)
+        builder_args.add("-p", importpath)
     if go.mode.debug:
         tool_args.add_all(["-N", "-l"])
     tool_args.add_all(go.toolchain.flags.compile)
