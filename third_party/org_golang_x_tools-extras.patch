@@ -1,6 +1,6 @@
 diff -urN b/go/analysis/BUILD.bazel c/go/analysis/BUILD.bazel
---- b/go/analysis/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,10 +1,23 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
@@ -26,9 +26,42 @@ diff -urN b/go/analysis/BUILD.bazel c/go/analysis/BUILD.bazel
          "validate.go",
      ],
      importpath = "golang.org/x/tools/go/analysis",
+diff -urN b/go/analysis/internal/facts/BUILD.bazel c/go/analysis/internal/facts/BUILD.bazel
+--- b/go/analysis/internal/facts/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/internal/facts/BUILD.bazel	2018-11-02 17:26:59.899713791 -0400
+@@ -1,4 +1,4 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
+ 
+ go_library(
+     name = "go_default_library",
+@@ -14,6 +14,23 @@
+     ],
+ )
+ 
++go_tool_library(
++    name = "go_tool_library",
++    srcs = [
++        "facts.go",
++        "imports.go",
++    ],
++    importpath = "golang.org/x/tools/go/analysis/internal/facts",
++    visibility = [
++        "//go/analysis:__subpackages__",
++        "@io_bazel_rules_go//go/tools/builders:__pkg__",
++    ],
++    deps = [
++        "//go/analysis:go_tool_library",
++        "//go/types/objectpath:go_tool_library",
++    ],
++)
++
+ go_test(
+     name = "go_default_test",
+     srcs = ["facts_test.go"],
 diff -urN b/go/analysis/passes/asmdecl/BUILD.bazel c/go/analysis/passes/asmdecl/BUILD.bazel
---- b/go/analysis/passes/asmdecl/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/asmdecl/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/asmdecl/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/asmdecl/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -54,8 +87,8 @@ diff -urN b/go/analysis/passes/asmdecl/BUILD.bazel c/go/analysis/passes/asmdecl/
      name = "go_default_test",
      srcs = ["asmdecl_test.go"],
 diff -urN b/go/analysis/passes/assign/BUILD.bazel c/go/analysis/passes/assign/BUILD.bazel
---- b/go/analysis/passes/assign/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/assign/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/assign/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/assign/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -83,8 +116,8 @@ diff -urN b/go/analysis/passes/assign/BUILD.bazel c/go/analysis/passes/assign/BU
      name = "go_default_test",
      srcs = ["assign_test.go"],
 diff -urN b/go/analysis/passes/atomic/BUILD.bazel c/go/analysis/passes/atomic/BUILD.bazel
---- b/go/analysis/passes/atomic/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/atomic/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/atomic/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/atomic/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -112,8 +145,8 @@ diff -urN b/go/analysis/passes/atomic/BUILD.bazel c/go/analysis/passes/atomic/BU
      name = "go_default_test",
      srcs = ["atomic_test.go"],
 diff -urN b/go/analysis/passes/bools/BUILD.bazel c/go/analysis/passes/bools/BUILD.bazel
---- b/go/analysis/passes/bools/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/bools/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/bools/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/bools/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -141,8 +174,8 @@ diff -urN b/go/analysis/passes/bools/BUILD.bazel c/go/analysis/passes/bools/BUIL
      name = "go_default_test",
      srcs = ["bools_test.go"],
 diff -urN b/go/analysis/passes/buildssa/BUILD.bazel c/go/analysis/passes/buildssa/BUILD.bazel
---- b/go/analysis/passes/buildssa/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/buildssa/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/buildssa/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/buildssa/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -168,8 +201,8 @@ diff -urN b/go/analysis/passes/buildssa/BUILD.bazel c/go/analysis/passes/buildss
      name = "go_default_test",
      srcs = ["buildssa_test.go"],
 diff -urN b/go/analysis/passes/buildtag/BUILD.bazel c/go/analysis/passes/buildtag/BUILD.bazel
---- b/go/analysis/passes/buildtag/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/buildtag/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/buildtag/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/buildtag/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -195,8 +228,8 @@ diff -urN b/go/analysis/passes/buildtag/BUILD.bazel c/go/analysis/passes/buildta
      name = "go_default_test",
      srcs = ["buildtag_test.go"],
 diff -urN b/go/analysis/passes/cgocall/BUILD.bazel c/go/analysis/passes/cgocall/BUILD.bazel
---- b/go/analysis/passes/cgocall/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/cgocall/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/cgocall/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/cgocall/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -224,8 +257,8 @@ diff -urN b/go/analysis/passes/cgocall/BUILD.bazel c/go/analysis/passes/cgocall/
      name = "go_default_test",
      srcs = ["cgocall_test.go"],
 diff -urN b/go/analysis/passes/composite/BUILD.bazel c/go/analysis/passes/composite/BUILD.bazel
---- b/go/analysis/passes/composite/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/composite/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/composite/BUILD.bazel	2018-11-02 14:34:01.958516827 -0400
++++ c/go/analysis/passes/composite/BUILD.bazel	2018-11-02 17:25:38.530669073 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -255,8 +288,8 @@ diff -urN b/go/analysis/passes/composite/BUILD.bazel c/go/analysis/passes/compos
      name = "go_default_test",
      srcs = ["composite_test.go"],
 diff -urN b/go/analysis/passes/copylock/BUILD.bazel c/go/analysis/passes/copylock/BUILD.bazel
---- b/go/analysis/passes/copylock/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/copylock/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/copylock/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/copylock/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -284,8 +317,8 @@ diff -urN b/go/analysis/passes/copylock/BUILD.bazel c/go/analysis/passes/copyloc
      name = "go_default_test",
      srcs = ["copylock_test.go"],
 diff -urN b/go/analysis/passes/ctrlflow/BUILD.bazel c/go/analysis/passes/ctrlflow/BUILD.bazel
---- b/go/analysis/passes/ctrlflow/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/ctrlflow/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/ctrlflow/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/ctrlflow/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -314,8 +347,8 @@ diff -urN b/go/analysis/passes/ctrlflow/BUILD.bazel c/go/analysis/passes/ctrlflo
      name = "go_default_test",
      srcs = ["ctrlflow_test.go"],
 diff -urN b/go/analysis/passes/findcall/BUILD.bazel c/go/analysis/passes/findcall/BUILD.bazel
---- b/go/analysis/passes/findcall/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/findcall/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/findcall/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/findcall/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -338,8 +371,8 @@ diff -urN b/go/analysis/passes/findcall/BUILD.bazel c/go/analysis/passes/findcal
      name = "go_default_test",
      srcs = ["findcall_test.go"],
 diff -urN b/go/analysis/passes/httpresponse/BUILD.bazel c/go/analysis/passes/httpresponse/BUILD.bazel
---- b/go/analysis/passes/httpresponse/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/httpresponse/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/httpresponse/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/httpresponse/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -366,8 +399,8 @@ diff -urN b/go/analysis/passes/httpresponse/BUILD.bazel c/go/analysis/passes/htt
      name = "go_default_test",
      srcs = ["httpresponse_test.go"],
 diff -urN b/go/analysis/passes/inspect/BUILD.bazel c/go/analysis/passes/inspect/BUILD.bazel
---- b/go/analysis/passes/inspect/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/inspect/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/inspect/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/inspect/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
@@ -390,8 +423,8 @@ diff -urN b/go/analysis/passes/inspect/BUILD.bazel c/go/analysis/passes/inspect/
 +    ],
 +)
 diff -urN b/go/analysis/passes/internal/analysisutil/BUILD.bazel c/go/analysis/passes/internal/analysisutil/BUILD.bazel
---- b/go/analysis/passes/internal/analysisutil/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/internal/analysisutil/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/internal/analysisutil/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/internal/analysisutil/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,8 +1,15 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
@@ -410,8 +443,8 @@ diff -urN b/go/analysis/passes/internal/analysisutil/BUILD.bazel c/go/analysis/p
 +    visibility = ["//go/analysis/passes:__subpackages__"],
  )
 diff -urN b/go/analysis/passes/loopclosure/BUILD.bazel c/go/analysis/passes/loopclosure/BUILD.bazel
---- b/go/analysis/passes/loopclosure/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/loopclosure/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/loopclosure/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/loopclosure/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -438,8 +471,8 @@ diff -urN b/go/analysis/passes/loopclosure/BUILD.bazel c/go/analysis/passes/loop
      name = "go_default_test",
      srcs = ["loopclosure_test.go"],
 diff -urN b/go/analysis/passes/lostcancel/BUILD.bazel c/go/analysis/passes/lostcancel/BUILD.bazel
---- b/go/analysis/passes/lostcancel/BUILD.bazel	2018-10-22 14:00:49.701743634 -0400
-+++ c/go/analysis/passes/lostcancel/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/lostcancel/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/lostcancel/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -468,8 +501,8 @@ diff -urN b/go/analysis/passes/lostcancel/BUILD.bazel c/go/analysis/passes/lostc
      name = "go_default_test",
      srcs = ["lostcancel_test.go"],
 diff -urN b/go/analysis/passes/nilfunc/BUILD.bazel c/go/analysis/passes/nilfunc/BUILD.bazel
---- b/go/analysis/passes/nilfunc/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/nilfunc/BUILD.bazel	2018-10-22 14:57:35.962793340 -0400
+--- b/go/analysis/passes/nilfunc/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/nilfunc/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -496,8 +529,8 @@ diff -urN b/go/analysis/passes/nilfunc/BUILD.bazel c/go/analysis/passes/nilfunc/
      name = "go_default_test",
      srcs = ["nilfunc_test.go"],
 diff -urN b/go/analysis/passes/nilness/BUILD.bazel c/go/analysis/passes/nilness/BUILD.bazel
---- b/go/analysis/passes/nilness/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/nilness/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/nilness/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/nilness/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -524,8 +557,8 @@ diff -urN b/go/analysis/passes/nilness/BUILD.bazel c/go/analysis/passes/nilness/
      name = "go_default_test",
      srcs = ["nilness_test.go"],
 diff -urN b/go/analysis/passes/pkgfact/BUILD.bazel c/go/analysis/passes/pkgfact/BUILD.bazel
---- b/go/analysis/passes/pkgfact/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/pkgfact/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/pkgfact/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/pkgfact/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -548,8 +581,8 @@ diff -urN b/go/analysis/passes/pkgfact/BUILD.bazel c/go/analysis/passes/pkgfact/
      name = "go_default_test",
      srcs = ["pkgfact_test.go"],
 diff -urN b/go/analysis/passes/printf/BUILD.bazel c/go/analysis/passes/printf/BUILD.bazel
---- b/go/analysis/passes/printf/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/printf/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/printf/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/printf/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -581,8 +614,8 @@ diff -urN b/go/analysis/passes/printf/BUILD.bazel c/go/analysis/passes/printf/BU
      name = "go_default_test",
      srcs = ["printf_test.go"],
 diff -urN b/go/analysis/passes/shadow/BUILD.bazel c/go/analysis/passes/shadow/BUILD.bazel
---- b/go/analysis/passes/shadow/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/shadow/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/shadow/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/shadow/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -609,8 +642,8 @@ diff -urN b/go/analysis/passes/shadow/BUILD.bazel c/go/analysis/passes/shadow/BU
      name = "go_default_test",
      srcs = ["shadow_test.go"],
 diff -urN b/go/analysis/passes/shift/BUILD.bazel c/go/analysis/passes/shift/BUILD.bazel
---- b/go/analysis/passes/shift/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/shift/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/shift/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/shift/BUILD.bazel	2018-11-02 17:25:38.534669125 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -641,8 +674,8 @@ diff -urN b/go/analysis/passes/shift/BUILD.bazel c/go/analysis/passes/shift/BUIL
      name = "go_default_test",
      srcs = ["shift_test.go"],
 diff -urN b/go/analysis/passes/stdmethods/BUILD.bazel c/go/analysis/passes/stdmethods/BUILD.bazel
---- b/go/analysis/passes/stdmethods/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/stdmethods/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/stdmethods/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/stdmethods/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -669,8 +702,8 @@ diff -urN b/go/analysis/passes/stdmethods/BUILD.bazel c/go/analysis/passes/stdme
      name = "go_default_test",
      srcs = ["stdmethods_test.go"],
 diff -urN b/go/analysis/passes/structtag/BUILD.bazel c/go/analysis/passes/structtag/BUILD.bazel
---- b/go/analysis/passes/structtag/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/structtag/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/structtag/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/structtag/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -697,8 +730,8 @@ diff -urN b/go/analysis/passes/structtag/BUILD.bazel c/go/analysis/passes/struct
      name = "go_default_test",
      srcs = ["structtag_test.go"],
 diff -urN b/go/analysis/passes/tests/BUILD.bazel c/go/analysis/passes/tests/BUILD.bazel
---- b/go/analysis/passes/tests/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/tests/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/tests/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/tests/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -721,8 +754,8 @@ diff -urN b/go/analysis/passes/tests/BUILD.bazel c/go/analysis/passes/tests/BUIL
      name = "go_default_test",
      srcs = ["tests_test.go"],
 diff -urN b/go/analysis/passes/unreachable/BUILD.bazel c/go/analysis/passes/unreachable/BUILD.bazel
---- b/go/analysis/passes/unreachable/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/unreachable/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/unreachable/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/unreachable/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -749,8 +782,8 @@ diff -urN b/go/analysis/passes/unreachable/BUILD.bazel c/go/analysis/passes/unre
      name = "go_default_test",
      srcs = ["unreachable_test.go"],
 diff -urN b/go/analysis/passes/unsafeptr/BUILD.bazel c/go/analysis/passes/unsafeptr/BUILD.bazel
---- b/go/analysis/passes/unsafeptr/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/unsafeptr/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/unsafeptr/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/unsafeptr/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -777,8 +810,8 @@ diff -urN b/go/analysis/passes/unsafeptr/BUILD.bazel c/go/analysis/passes/unsafe
      name = "go_default_test",
      srcs = ["unsafeptr_test.go"],
 diff -urN b/go/analysis/passes/unusedresult/BUILD.bazel c/go/analysis/passes/unusedresult/BUILD.bazel
---- b/go/analysis/passes/unusedresult/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/analysis/passes/unusedresult/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/analysis/passes/unusedresult/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/analysis/passes/unusedresult/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -806,8 +839,8 @@ diff -urN b/go/analysis/passes/unusedresult/BUILD.bazel c/go/analysis/passes/unu
      name = "go_default_test",
      srcs = ["unusedresult_test.go"],
 diff -urN b/go/ast/astutil/BUILD.bazel c/go/ast/astutil/BUILD.bazel
---- b/go/ast/astutil/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/ast/astutil/BUILD.bazel	2018-10-22 15:11:01.974322075 -0400
+--- b/go/ast/astutil/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/ast/astutil/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,10 +1,22 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -833,8 +866,8 @@ diff -urN b/go/ast/astutil/BUILD.bazel c/go/ast/astutil/BUILD.bazel
          "util.go",
      ],
 diff -urN b/go/ast/inspector/BUILD.bazel c/go/ast/inspector/BUILD.bazel
---- b/go/ast/inspector/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/ast/inspector/BUILD.bazel	2018-10-22 15:12:30.359556217 -0400
+--- b/go/ast/inspector/BUILD.bazel	2018-11-02 14:34:01.962516879 -0400
++++ c/go/ast/inspector/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,10 +1,20 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -858,8 +891,8 @@ diff -urN b/go/ast/inspector/BUILD.bazel c/go/ast/inspector/BUILD.bazel
      importpath = "golang.org/x/tools/go/ast/inspector",
      visibility = ["//visibility:public"],
 diff -urN b/go/cfg/BUILD.bazel c/go/cfg/BUILD.bazel
---- b/go/cfg/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/cfg/BUILD.bazel	2018-10-22 15:13:32.316415616 -0400
+--- b/go/cfg/BUILD.bazel	2018-11-02 14:34:01.966516930 -0400
++++ c/go/cfg/BUILD.bazel	2018-11-02 17:43:48.772672622 -0400
 @@ -1,10 +1,20 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -874,7 +907,7 @@ diff -urN b/go/cfg/BUILD.bazel c/go/cfg/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +)
 +
-+go_library(
++go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
 +        "builder.go",
@@ -883,8 +916,8 @@ diff -urN b/go/cfg/BUILD.bazel c/go/cfg/BUILD.bazel
      importpath = "golang.org/x/tools/go/cfg",
      visibility = ["//visibility:public"],
 diff -urN b/go/gcexportdata/BUILD.bazel c/go/gcexportdata/BUILD.bazel
---- b/go/gcexportdata/BUILD.bazel	2018-10-22 14:00:49.705743686 -0400
-+++ c/go/gcexportdata/BUILD.bazel	2018-10-22 14:57:35.966793395 -0400
+--- b/go/gcexportdata/BUILD.bazel	2018-11-02 14:34:01.966516930 -0400
++++ c/go/gcexportdata/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -910,8 +943,8 @@ diff -urN b/go/gcexportdata/BUILD.bazel c/go/gcexportdata/BUILD.bazel
      name = "go_default_test",
      srcs = [
 diff -urN b/go/internal/gcimporter/BUILD.bazel c/go/internal/gcimporter/BUILD.bazel
---- b/go/internal/gcimporter/BUILD.bazel	2018-10-22 14:00:49.709743737 -0400
-+++ c/go/internal/gcimporter/BUILD.bazel	2018-10-22 14:57:35.970793450 -0400
+--- b/go/internal/gcimporter/BUILD.bazel	2018-11-02 14:34:01.966516930 -0400
++++ c/go/internal/gcimporter/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,10 +1,25 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -940,8 +973,8 @@ diff -urN b/go/internal/gcimporter/BUILD.bazel c/go/internal/gcimporter/BUILD.ba
          "gcimporter.go",
          "iimport.go",
 diff -urN b/go/ssa/BUILD.bazel c/go/ssa/BUILD.bazel
---- b/go/ssa/BUILD.bazel	2018-10-22 14:00:49.709743737 -0400
-+++ c/go/ssa/BUILD.bazel	2018-10-22 15:12:49.839826917 -0400
+--- b/go/ssa/BUILD.bazel	2018-11-02 14:34:01.966516930 -0400
++++ c/go/ssa/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
@@ -988,9 +1021,31 @@ diff -urN b/go/ssa/BUILD.bazel c/go/ssa/BUILD.bazel
  go_test(
      name = "go_default_test",
      srcs = [
+diff -urN b/go/types/objectpath/BUILD.bazel c/go/types/objectpath/BUILD.bazel
+--- b/go/types/objectpath/BUILD.bazel	2018-11-02 14:34:01.966516930 -0400
++++ c/go/types/objectpath/BUILD.bazel	2018-11-02 17:27:32.736135169 -0400
+@@ -1,10 +1,17 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
+ 
+ go_library(
+     name = "go_default_library",
+     srcs = ["objectpath.go"],
+     importpath = "golang.org/x/tools/go/types/objectpath",
+     visibility = ["//visibility:public"],
++)
++
++go_tool_library(
++    name = "go_tool_library",
++    srcs = ["objectpath.go"],
++    importpath = "golang.org/x/tools/go/types/objectpath",
++    visibility = ["//visibility:public"],
+ )
+ 
+ go_test(
 diff -urN b/go/types/typeutil/BUILD.bazel c/go/types/typeutil/BUILD.bazel
---- b/go/types/typeutil/BUILD.bazel	2018-10-22 14:00:49.709743737 -0400
-+++ c/go/types/typeutil/BUILD.bazel	2018-10-22 15:11:30.894727000 -0400
+--- b/go/types/typeutil/BUILD.bazel	2018-11-02 14:34:01.966516930 -0400
++++ c/go/types/typeutil/BUILD.bazel	2018-11-02 17:25:38.538669177 -0400
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
