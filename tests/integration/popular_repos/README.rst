@@ -163,7 +163,6 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//go/ast/astutil:go_default_test
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/cfg:go_default_test
-* @org_golang_x_tools//go/packages/packagestest:go_default_test
 * @org_golang_x_tools//go/types/objectpath:go_default_test
 * @org_golang_x_tools//go/vcs:go_default_test
 * @org_golang_x_tools//godoc/dl:go_default_test

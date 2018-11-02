@@ -75,7 +75,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
-        commit = "3e7aa9e59977626dc60433e9aeadf1bb63d28295",
+        commit = "92b943e6bff73e0dfe9e975d94043d8f31067b06",
         excludes = [
             "cmd/bundle:go_default_test", # Needs testdata directory
             "cmd/callgraph:go_default_test", # Needs testdata directory
@@ -138,6 +138,8 @@ POPULAR_REPOS = [
             "go/analysis/analysistest:go_default_test", # requires build cache
             "go/analysis/passes/findcall:go_default_test", # requires build cache
             "go/analysis/passes/pkgfact:go_default_test", # requires go list
+            "go/packages/packagestest:go_default_test", # requires build cache
+            "go/analysis/internal/facts:go_default_test", # loads test package with go/packages, which probably needs go list
         ],
     ),
 
