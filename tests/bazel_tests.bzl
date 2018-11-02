@@ -137,6 +137,13 @@ filegroup(
 CURRENT_VERSION = "current"
 
 def _bazel_test_script_impl(ctx):
+    base_label = ctx.label
+    if not base_label.workspace_root:
+        # We need a fully qualified label to get absolute file paths.
+        if not ctx.workspace_name:
+            fail("workspace_name must not be empty for bazel_test")
+        base_label = Label("@{}//{}:{}".format(ctx.workspace_name, ctx.label.package, ctx.label.name))
+
     go = go_context(ctx)
     script_file = go.declare_file(go, ext = ".bash")
 
@@ -183,10 +190,10 @@ def _bazel_test_script_impl(ctx):
     ctx.actions.write(build_file, ctx.attr.build)
 
     output = "{workspace_root}/{package}".format(
-        workspace_root = ctx.label.workspace_root if ctx.label.workspace_root else "external/{}".format(ctx.workspace_name),
-        package = ctx.label.package
+        workspace_root = base_label.workspace_root,
+        package = base_label.package
     )
-    targets = [t.label if t.label.workspace_root else Label("@{}//{}:{}".format(ctx.workspace_name, t.label.package, t.label.name)) for t in ctx.attr.targets]
+    targets = [base_label.relative(t) for t in ctx.attr.targets]
     logs = []
     if ctx.attr.command in ("test", "coverage"):
         logs = [_testlog_path(t) for t in targets]
@@ -230,7 +237,7 @@ _bazel_test_script = go_rule(
             ],
         ),
         "args": attr.string_list(default = []),
-        "targets": attr.label_list(mandatory = True),
+        "targets": attr.string_list(mandatory = True),
         "externals": attr.label_list(allow_files = True),
         "go_version": attr.string(default = CURRENT_VERSION),
         "workspace": attr.string(),
