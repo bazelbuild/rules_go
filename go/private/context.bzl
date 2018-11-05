@@ -65,7 +65,13 @@ _GoContextData = provider()
 _COMPILER_OPTIONS_BLACKLIST = {
     "-fcolor-diagnostics": None,
     "-Wall": None,
-    "-g0": None,  # symbols are needed by Go, so keep them
+
+    # Symbols are needed by Go, so keep them
+    "-g0": None,
+
+    # Don't compile generated cgo code with coverage. If we do an internal
+    # link, we may have undefined references to coverage functions.
+    "--coverage": None,
 }
 
 _LINKER_OPTIONS_BLACKLIST = {
