@@ -72,6 +72,8 @@ _COMPILER_OPTIONS_BLACKLIST = {
     # Don't compile generated cgo code with coverage. If we do an internal
     # link, we may have undefined references to coverage functions.
     "--coverage": None,
+    "-ftest-coverage": None,
+    "-fprofile-arcs": None,
 }
 
 _LINKER_OPTIONS_BLACKLIST = {
