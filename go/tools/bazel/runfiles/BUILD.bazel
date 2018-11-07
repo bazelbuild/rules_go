@@ -2,20 +2,18 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["bazel.go"],
-    deps = [
-        "//go/tools/bazel/runfiles:go_default_library",
+    srcs = [
+        "directory.go",
+        "manifest.go",
+        "resolver.go",
     ],
-    importpath = "github.com/bazelbuild/rules_go/go/tools/bazel",
+    importpath = "github.com/bazelbuild/rules_go/go/tools/bazel/runfiles",
     visibility = ["//visibility:public"],
 )
 
 go_test(
     name = "go_default_test",
     size = "small",
-    srcs = ["bazel_test.go"],
-    data = [
-        "README.md",
-    ],
+    srcs = ["resolver_test.go"],
     embed = [":go_default_library"],
 )
