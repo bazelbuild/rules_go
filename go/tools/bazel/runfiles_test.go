@@ -31,6 +31,12 @@ func setenvForTest(key, value string) (cleanup func()) {
 	return cleanup
 }
 
+func setupResolverForTest() {
+	// Prevent initialization code from running.
+	runfileResolverOnce.Do(func() {})
+	runfileResolver, runfileResolverErr = newRunfilesResolver()
+}
+
 func TestManifestRunfiles(t *testing.T) {
 	dir, err := NewTmpDir("test")
 	if err != nil {
@@ -49,20 +55,22 @@ func TestManifestRunfiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cleanupEnv := setenvForTest(RUNFILES_MANIFEST_FILE, manifestFilename)
-	defer cleanupEnv()
+	cleanupManifestEnv := setenvForTest(RUNFILES_MANIFEST_FILE, manifestFilename)
+	defer cleanupManifestEnv()
+	cleanupDirEnv := setenvForTest(RUNFILES_DIR, "")
+	defer cleanupDirEnv()
 
-	resolver, err := newRunfilesResolver()
-	if err != nil {
-		t.Fatal(err)
+	setupResolverForTest()
+	if runfileResolverErr != nil {
+		t.Fatal(runfileResolverErr)
 	}
-	if _, ok := resolver.(manifestResolver); !ok {
+	if _, ok := runfileResolver.(manifestResolver); !ok {
 		t.Error("resolver should be manifest resolver")
 	}
 
-	filename, ok := resolver.Resolve("runfiles/test.txt")
-	if !ok {
-		t.Fatal("expected ok to be true, was false")
+	filename, err := Runfile("runfiles/test.txt")
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	d, err := ioutil.ReadFile(filename)
@@ -88,20 +96,22 @@ func TestDirectoryRunfiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cleanupEnv := setenvForTest(RUNFILES_DIR, dir)
-	defer cleanupEnv()
+	cleanupManifestEnv := setenvForTest(RUNFILES_MANIFEST_FILE, "")
+	defer cleanupManifestEnv()
+	cleanupDirEnv := setenvForTest(RUNFILES_DIR, dir)
+	defer cleanupDirEnv()
 
-	resolver, err := newRunfilesResolver()
-	if err != nil {
-		t.Fatal(err)
+	setupResolverForTest()
+	if runfileResolverErr != nil {
+		t.Fatal(runfileResolverErr)
 	}
-	if _, ok := resolver.(directoryResolver); !ok {
+	if _, ok := runfileResolver.(directoryResolver); !ok {
 		t.Error("resolver should be directory resolver")
 	}
 
-	filename, ok := resolver.Resolve("runfile.txt")
-	if !ok {
-		t.Fatal("expected ok to be true, was false")
+	filename, err := Runfile("runfile.txt")
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	d, err := ioutil.ReadFile(filename)
