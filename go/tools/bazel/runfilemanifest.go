@@ -1,4 +1,4 @@
-// Copyright 2018 Google Inc.
+// Copyright 2018 The Bazel Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,28 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runfiles
+package bazel
 
 import (
 	"bufio"
+	"errors"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 )
 
+var errManifestInvalid = errors.New("runfiles manifest syntax error")
+
 type manifestResolver map[string]string
 
-// NewManifestResolver creates a new runfiles resolver that uses a manifest
-// file to resolve filenames.
-func NewManifestResolver(manifest io.Reader) (Resolver, error) {
+// newManifestRunfilesResolver creates a new runfiles resolver that uses a manifest file to resolve
+// filenames.
+func newManifestRunfilesResolver(manifest io.Reader) (runfilesResolver, error) {
 	resolver := manifestResolver{}
 	scanner := bufio.NewScanner(manifest)
 
 	for scanner.Scan() {
 		a := strings.SplitN(scanner.Text(), " ", 2)
 		if len(a) != 2 {
-			return nil, ErrManifestInvalid
+			return nil, errManifestInvalid
 		}
 		resolver[filepath.Clean(a[0])] = a[1]
 	}
@@ -42,10 +44,10 @@ func NewManifestResolver(manifest io.Reader) (Resolver, error) {
 }
 
 // Resolve implements the Resolver interface.
-func (r manifestResolver) Resolve(n string) (string, error) {
+func (r manifestResolver) Resolve(n string) (string, bool) {
 	if fn, ok := r[filepath.Clean(n)]; ok {
-		return fn, nil
+		return fn, true
 	}
 
-	return "", os.ErrNotExist
+	return "", false
 }

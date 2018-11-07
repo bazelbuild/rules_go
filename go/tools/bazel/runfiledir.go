@@ -1,4 +1,4 @@
-// Copyright 2018 Google Inc.
+// Copyright 2018 The Bazel Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runfiles
+package bazel
 
 import (
 	"path/filepath"
@@ -20,13 +20,13 @@ import (
 
 type directoryResolver string
 
-// NewDirectoryResolver creates a new runfiles resolver that uses a runfiles
-// directory to derive filenames.
-func NewDirectoryResolver(directory string) (Resolver, error) {
+// newDirectoryRunfilesResolver creates a new runfiles resolver that uses a runfiles directory to derive
+// filenames.
+func newDirectoryRunfilesResolver(directory string) (runfilesResolver, error) {
 	return directoryResolver(directory), nil
 }
 
 // Resolve implements the Resolver interface.
-func (r directoryResolver) Resolve(n string) (string, error) {
-	return filepath.Join(string(r), n), nil
+func (r directoryResolver) Resolve(n string) (string, bool) {
+	return filepath.Join(string(r), n), true
 }

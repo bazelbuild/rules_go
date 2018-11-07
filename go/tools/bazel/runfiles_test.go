@@ -1,4 +1,4 @@
-// Copyright 2018 Google Inc.
+// Copyright 2018 The Bazel Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runfiles
+package bazel
 
 import (
 	"io/ioutil"
@@ -21,34 +21,38 @@ import (
 	"testing"
 )
 
-func fakeGetenv(env map[string]string) func(string) string {
-	return func(key string) string {
-		return env[key]
+func setenvForTest(key, value string) (cleanup func()) {
+	if old, ok := os.LookupEnv(key); ok {
+		cleanup = func() { os.Setenv(key, old) }
+	} else {
+		cleanup = func() { os.Unsetenv(key) }
 	}
+	os.Setenv(key, value)
+	return cleanup
 }
 
 func TestManifestRunfiles(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
+	dir, err := NewTmpDir("test")
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	defer os.RemoveAll(dir)
 
 	testStr := "This is a test"
-	mappedfn := filepath.Join(dir, "mapped_file.txt")
-	if err := ioutil.WriteFile(mappedfn, []byte(testStr), 0600); err != nil {
+	mappedFilename := filepath.Join(dir, "mapped_file.txt")
+	if err := ioutil.WriteFile(mappedFilename, []byte(testStr), 0600); err != nil {
 		t.Fatal(err)
 	}
 
-	manifestfn := filepath.Join(dir, "MANIFEST")
-	if err := ioutil.WriteFile(manifestfn, []byte("runfiles/test.txt "+mappedfn), 0600); err != nil {
+	manifestFilename := filepath.Join(dir, "MANIFEST")
+	if err := ioutil.WriteFile(manifestFilename, []byte("runfiles/test.txt "+mappedFilename), 0600); err != nil {
 		t.Fatal(err)
 	}
 
-	resolver, err := newResolverWithGetenv(fakeGetenv(map[string]string{
-		RUNFILES_MANIFEST_FILE: manifestfn,
-	}))
+	cleanupEnv := setenvForTest(RUNFILES_MANIFEST_FILE, manifestFilename)
+	defer cleanupEnv()
+
+	resolver, err := newRunfilesResolver()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,12 +60,12 @@ func TestManifestRunfiles(t *testing.T) {
 		t.Error("resolver should be manifest resolver")
 	}
 
-	fn, err := resolver.Resolve("runfiles/test.txt")
-	if err != nil {
-		t.Fatal(err)
+	filename, ok := resolver.Resolve("runfiles/test.txt")
+	if !ok {
+		t.Fatal("expected ok to be true, was false")
 	}
 
-	d, err := ioutil.ReadFile(fn)
+	d, err := ioutil.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,11 +76,10 @@ func TestManifestRunfiles(t *testing.T) {
 }
 
 func TestDirectoryRunfiles(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test")
+	dir, err := NewTmpDir("test")
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	defer os.RemoveAll(dir)
 
 	testStr := "This is a test"
@@ -85,9 +88,10 @@ func TestDirectoryRunfiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resolver, err := newResolverWithGetenv(fakeGetenv(map[string]string{
-		RUNFILES_DIR: dir,
-	}))
+	cleanupEnv := setenvForTest(RUNFILES_DIR, dir)
+	defer cleanupEnv()
+
+	resolver, err := newRunfilesResolver()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,12 +99,12 @@ func TestDirectoryRunfiles(t *testing.T) {
 		t.Error("resolver should be directory resolver")
 	}
 
-	fn, err := resolver.Resolve("runfile.txt")
-	if err != nil {
-		t.Fatal(err)
+	filename, ok := resolver.Resolve("runfile.txt")
+	if !ok {
+		t.Fatal("expected ok to be true, was false")
 	}
 
-	d, err := ioutil.ReadFile(fn)
+	d, err := ioutil.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}

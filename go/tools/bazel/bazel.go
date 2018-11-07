@@ -21,9 +21,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"sync/atomic"
-
-	"github.com/bazelbuild/rules_go/go/tools/bazel/runfiles"
 )
 
 const TEST_SRCDIR = "TEST_SRCDIR"
@@ -33,27 +30,16 @@ const TEST_WORKSPACE = "TEST_WORKSPACE"
 var (
 	defaultTestWorkspace = ""
 
-	// Runfiles resolver state. We can't use sync.Once because of error handling.
-	runfileResolver runfiles.Resolver
-	resolverInited  uint32
-	resolverMutex   sync.Mutex
+	runfileResolver     runfilesResolver
+	runfileResolverErr  error
+	runfileResolverOnce sync.Once
 )
 
-func getResolver() (runfiles.Resolver, error) {
-	var err error
-
-	if atomic.LoadUint32(&resolverInited) == 1 {
-		return runfileResolver, nil
-	}
-
-	resolverMutex.Lock()
-	defer resolverMutex.Unlock()
-	runfileResolver, err = runfiles.NewResolver()
-	if err != nil {
-		return nil, err
-	}
-	atomic.StoreUint32(&resolverInited, 1)
-	return runfileResolver, nil
+func getRunfilesResolver() (runfilesResolver, error) {
+	runfileResolverOnce.Do(func() {
+		runfileResolver, runfileResolverErr = newRunfilesResolver()
+	})
+	return runfileResolver, runfileResolverErr
 }
 
 // Runfile returns an absolute path to the specified file in the runfiles directory of the running target.
@@ -66,7 +52,7 @@ func Runfile(path string) (string, error) {
 		return path, nil
 	}
 
-	resolver, err := getResolver()
+	resolver, err := getRunfilesResolver()
 	if err != nil {
 		return "", err
 	}
@@ -78,8 +64,8 @@ func Runfile(path string) (string, error) {
 	}
 
 	for _, path := range searchPath {
-		filename, err := resolver.Resolve(path)
-		if err != nil {
+		filename, ok := resolver.Resolve(path)
+		if !ok {
 			continue
 		}
 
