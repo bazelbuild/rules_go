@@ -41,6 +41,7 @@ func newRunfilesResolver() (runfilesResolver, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer f.Close()
 		return newManifestRunfilesResolver(f)
 	}
 
