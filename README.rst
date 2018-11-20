@@ -553,3 +553,23 @@ especially with gRPC.
 
 See `Overriding dependencies`_ for information and an example of how to
 replace these repositories with different versions.
+
+Can I use a vendored gRPC with go_proto_library?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is not supported. When using `go_proto_library`_ with the
+``@io_bazel_rules_go//proto:go_grpc`` compiler, an implicit dependency is added
+on ``@org_golang_google_grpc//:go_default_library``. If you link another copy of
+the same package from ``//vendor/google.golang.org/grpc:go_default_library``
+or anywhere else, you may experience conflicts at compile or run-time.
+
+If you're using Gazelle with proto rule generation enabled, imports of
+``google.golang.org/grpc`` will be automatically resolved to
+``@org_golang_google_grpc//:go_default_library`` to avoid conflicts. The
+vendored gRPC should be ignored in this case.
+
+If you specifically need to use a vendored gRPC package, it's best to avoid
+using ``go_proto_library`` altogether. You can check in pre-generated .pb.go
+files and build them with ``go_library`` rules. Gazelle will generate these
+rules when proto rule generation is disabled (add ``# gazelle:proto
+disable_global`` to your root build file).
