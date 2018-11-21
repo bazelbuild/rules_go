@@ -511,7 +511,7 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         cgo_mode_info[cgo_info_name] = _encode_cgo_mode(goos, goarch, race = False, msan = True)
 
     # Collect everything in a single embedable, aspect-friendly library.
-    cgo_embed_name = name + "%cgo_embed"
+    cgo_embed_name = name + "__cgo_embed"
     _cgo_select_embed(
         name = cgo_embed_name,
         info = cgo_mode_info,

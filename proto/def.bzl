@@ -99,21 +99,23 @@ def _go_proto_library_impl(ctx):
         srcs = go_srcs,
     )
     source = go.library_to_source(go, ctx.attr, library, False)
-    if not valid_archive:
-        return [library, source]
-    archive = go.archive(go, source)
-    return [
-        library,
-        source,
-        archive,
-        DefaultInfo(
-            files = depset([archive.data.file]),
-            runfiles = archive.runfiles,
-        ),
-        OutputGroupInfo(
-            compilation_outputs = [archive.data.file],
-        ),
-    ]
+    providers = [library, source]
+    if valid_archive:
+        archive = go.archive(go, source)
+        providers.extend([
+            archive,
+            DefaultInfo(
+                files = depset([archive.data.file]),
+                runfiles = archive.runfiles,
+            ),
+            OutputGroupInfo(
+                compilation_outputs = [archive.data.file],
+            ),
+        ])
+    return struct(
+        providers = providers,
+        aspect_proto_go_api_info = struct(files_to_build = go_srcs),
+    )
 
 go_proto_library = go_rule(
     _go_proto_library_impl,
