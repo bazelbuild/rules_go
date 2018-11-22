@@ -14,8 +14,11 @@
 
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
-    "EXPORT_PATH",
     "go_context",
+)
+load(
+    "@io_bazel_rules_go//go/private:providers.bzl",
+    "EXPORT_PATH",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",

@@ -191,7 +191,7 @@ def _bazel_test_script_impl(ctx):
 
     output = "{workspace_root}/{package}".format(
         workspace_root = base_label.workspace_root,
-        package = base_label.package
+        package = base_label.package,
     )
     targets = [base_label.relative(t) for t in ctx.attr.targets]
     logs = []
