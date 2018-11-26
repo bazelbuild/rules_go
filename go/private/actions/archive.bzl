@@ -13,9 +13,12 @@
 # limitations under the License.
 
 load(
+    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "sets",
+)
+load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "as_tuple",
-    "sets",
     "split_srcs",
 )
 load(

@@ -18,7 +18,7 @@ load(
     "effective_importpath_pkgpath",
 )
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
+    "@io_bazel_rules_go//go/private:skylib/lib/structs.bzl",
     "structs",
 )
 

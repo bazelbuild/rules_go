@@ -13,10 +13,13 @@
 # limitations under the License.
 
 load(
+    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "sets",
+)
+load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "SHARED_LIB_EXTENSIONS",
     "as_iterable",
-    "sets",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",

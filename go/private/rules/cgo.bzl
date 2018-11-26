@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "sets",
+)
+load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
@@ -24,7 +28,6 @@ load(
     "as_set",
     "join_srcs",
     "pkg_dir",
-    "sets",
     "split_srcs",
 )
 load(

@@ -18,7 +18,7 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
+    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
     "sets",
 )
 load(

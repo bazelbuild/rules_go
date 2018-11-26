@@ -51,7 +51,13 @@ load(
     "as_iterable",
     "goos_to_extension",
     "goos_to_shared_extension",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
     "paths",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/structs.bzl",
     "structs",
 )
 load(
