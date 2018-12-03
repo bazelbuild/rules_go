@@ -153,9 +153,9 @@ def _detect_host_platform(ctx):
             if uname == "aarch64":
                 host = "linux_arm64"
             elif uname == "armv6l":
-                host = "linux_armv6l"
+                host = "linux_arm"
             elif uname == "armv7l":
-                host = "linux_armv6l"
+                host = "linux_arm"
             elif uname == "ppc64le":
                 host = "linux_ppc64le"
 
