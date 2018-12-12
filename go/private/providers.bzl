@@ -66,6 +66,7 @@ GoSDK = provider(
         "tools": ("List of executable files from pkg/tool " +
                   "built for the execution platform."),
         "go": "The go binary file",
+        "gofmt": "The gofmt binary file",
     },
 )
 

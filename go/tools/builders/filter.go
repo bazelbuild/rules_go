@@ -15,11 +15,15 @@
 package main
 
 import (
+	"archive/zip"
+	"fmt"
 	"go/ast"
 	"go/build"
 	"go/parser"
 	"go/token"
+	"io"
 	"log"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -129,4 +133,76 @@ func readGoMetadata(bctx build.Context, input string, needPackage bool) (*goMeta
 	}
 
 	return m, nil
+}
+
+func filterSrcjars(inputs []string) ([]string, []string) {
+	var regular []string
+	var srcjars []string
+
+	for _, input := range inputs {
+		if filepath.Ext(input) == ".srcjar" {
+			srcjars = append(srcjars, input)
+		} else {
+			regular = append(regular, input)
+		}
+	}
+
+	return regular, srcjars
+}
+
+func readSrcjarsInput(inputs []string, unzipDir string) ([]string, error) {
+	var outputs []string
+	for _, input := range inputs {
+		if unzippedInput, err := unzipFiles(abs(input), unzipDir); err != nil {
+			return outputs, err
+		} else {
+			outputs = append(outputs, unzippedInput...)
+		}
+	}
+
+	return outputs, nil
+}
+
+func unzipFiles(input string, dest string) ([]string, error) {
+	var unzippedInputs []string
+
+	r, err := zip.OpenReader(input)
+	if err != nil {
+		return unzippedInputs, err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		rc, err := f.Open()
+		if err != nil {
+			return unzippedInputs, err
+		}
+		defer rc.Close()
+
+		fpath := filepath.Join(dest, f.Name)
+
+		// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
+		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return unzippedInputs, fmt.Errorf("%s: illegal file path", fpath)
+		}
+		unzippedInputs = append(unzippedInputs, fpath)
+
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(fpath, os.ModePerm)
+		} else {
+			if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+				return unzippedInputs, err
+			}
+			outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+			if err != nil {
+				return unzippedInputs, err
+			}
+			_, err = io.Copy(outFile, rc)
+			outFile.Close()
+			if err != nil {
+				return unzippedInputs, err
+			}
+		}
+	}
+	return unzippedInputs, nil
 }

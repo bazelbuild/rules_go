@@ -28,4 +28,4 @@ diff -urN a/WORKSPACE b/WORKSPACE
 --- a/WORKSPACE	1969-12-31 19:00:00.000000000 -0500
 +++ b/WORKSPACE	2018-09-28 13:46:41.484250945 -0400
 @@ -0,0 +1 @@
-+workspace(name = "go_googleapis")
++workspace(name = "com_google_googleapis")

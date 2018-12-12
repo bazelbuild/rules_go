@@ -5,8 +5,8 @@ proto_library(
     name = "color_service_proto",
     srcs = ["color_service.proto"],
     deps = [
-        "@go_googleapis//google/rpc:status_proto",
-        "@go_googleapis//google/type:color_proto",
+        "@com_google_googleapis//google/rpc:status_proto",
+        "@com_google_googleapis//google/type:color_proto",
     ],
 )
 
@@ -16,8 +16,8 @@ go_proto_library(
     importpath = "github.com/bazelbuild/rules_go/tests/integration/googleapis/color_service_proto",
     proto = ":color_service_proto",
     deps = [
-        "@go_googleapis//google/rpc:status_go_proto",
-        "@go_googleapis//google/type:color_go_proto",
+        "@com_google_googleapis//google/rpc:status_go_proto",
+        "@com_google_googleapis//google/type:color_go_proto",
     ],
 )
 
@@ -27,9 +27,9 @@ go_library(
     srcs = ["color_service.go"],
     deps = [
         ":color_service_go_proto",
-        "@go_googleapis//google/rpc:code_go_proto",
-        "@go_googleapis//google/rpc:status_go_proto",
-        "@go_googleapis//google/type:color_go_proto",
+        "@com_google_googleapis//google/rpc:code_go_proto",
+        "@com_google_googleapis//google/rpc:status_go_proto",
+        "@com_google_googleapis//google/type:color_go_proto",
     ],
 )
 
@@ -39,7 +39,7 @@ go_test(
     deps = [
         ":color_service",
         ":color_service_go_proto",
-        "@go_googleapis//google/type:color_go_proto",
+        "@com_google_googleapis//google/type:color_go_proto",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )

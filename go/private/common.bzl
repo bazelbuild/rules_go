@@ -55,6 +55,10 @@ objc_exts = [
     ".hxx",
 ]
 
+srcjar_exts = [
+    ".srcjar",
+]
+
 def pkg_dir(workspace_root, package_name):
     """Returns a relative path to a package directory from the root of the
     sandbox. Useful at execution-time or run-time."""
@@ -74,6 +78,7 @@ def split_srcs(srcs):
         c = [],
         cxx = [],
         objc = [],
+        srcjar = [],
     )
     ext_pairs = (
         (sources.go, go_exts),
@@ -82,6 +87,7 @@ def split_srcs(srcs):
         (sources.c, c_exts),
         (sources.cxx, cxx_exts),
         (sources.objc, objc_exts),
+        (sources.srcjar, srcjar_exts),
     )
     extmap = {}
     for outs, exts in ext_pairs:
