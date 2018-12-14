@@ -296,7 +296,11 @@ def go_context(ctx, attr = None):
     if builders:
         builders = builders[GoBuilders]
 
-    nogo = ctx.files._nogo[0] if getattr(ctx.files, "_nogo", None) else None
+    nogo = None
+    if hasattr(attr, "_nogo"):
+        nogo_files = attr._nogo.files.to_list()
+        if nogo_files:
+            nogo = nogo_files[0]
 
     coverdata = getattr(attr, "_coverdata", None)
     if coverdata:
