@@ -17,6 +17,13 @@ out_test
 Test that a `go_binary`_ rule can write its executable file with a custom name
 in the package directory (not the mode directory).
 
+goos_pure_bin
+-------------
+
+Tests that specifying the `goos` attribute on a `go_binary`_ target to be
+different than the host os forces the pure mode to be on. This is achieved
+by including a broken cgo file in the sources for the build.
+
 many_deps
 ---------
 
