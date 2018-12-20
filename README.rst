@@ -49,6 +49,10 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+December 20, 2018
+  Gazelle
+  `0.16.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.16.0>`_
+   is now available.
 December 15, 2018
   Releases
   `0.16.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.5>`_,
@@ -61,12 +65,6 @@ December 13, 2018
   `0.15.9 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.9>`_,
   and `0.14.7 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.7>`_
   are now available with support for Go 1.11.3 and 1.10.6.
-November 30, 2018
-  Releases
-  `0.16.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.3>`_,
-  `0.15.8 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.8>`_,
-  and `0.14.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.6>`_
-  are now available with bug fixes and compatibility improvements.
 
 Contents
 --------
@@ -195,8 +193,8 @@ build files automatically using gazelle_.
     )
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.15.0/bazel-gazelle-0.15.0.tar.gz"],
-        sha256 = "6e875ab4b6bf64a38c352887760f21203ab054676d9c1b274963907e0768740d",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
+        sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
