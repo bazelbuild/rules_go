@@ -43,7 +43,7 @@ def get_imports(attr):
         proto = attr.proto.proto
         direct = [
             "{}={}".format(proto_path(src, proto), attr.importpath)
-            for src in proto.direct_sources
+            for src in proto.check_deps_sources
         ]
     deps = getattr(attr, "deps", []) + getattr(attr, "embed", [])
     transitive = [

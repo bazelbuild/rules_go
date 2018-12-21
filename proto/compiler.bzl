@@ -35,7 +35,7 @@ GoProtoCompiler = provider()
 def go_proto_compile(go, compiler, proto, imports, importpath):
     go_srcs = []
     outpath = None
-    for src in proto.direct_sources:
+    for src in proto.check_deps_sources:
         out = go.declare_file(go, path = importpath + "/" + src.basename[:-len(".proto")], ext = compiler.suffix)
         go_srcs.append(out)
         if outpath == None:
@@ -54,7 +54,7 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
     args.add_all(proto.transitive_descriptor_sets, before_each = "-descriptor_set")
     args.add_all(go_srcs, before_each = "-expected")
     args.add_all(imports, before_each = "-import")
-    args.add_all([proto_path(src, proto) for src in proto.direct_sources])
+    args.add_all([proto_path(src, proto) for src in proto.check_deps_sources])
     go.actions.run(
         inputs = sets.union([
             compiler.go_protoc,
