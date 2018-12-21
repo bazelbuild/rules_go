@@ -25,7 +25,6 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -206,28 +205,8 @@ func run(args []string) error {
 		sourceMap[parts[1]] = parts[0]
 	}
 
-	regular, srcjars := filterSrcjars(sourceList)
-	if len(srcjars) > 0 {
-		unzipDir, err := ioutil.TempDir(os.TempDir(), "go-test-srcjar")
-		if err != nil {
-			return err
-		}
-		defer os.RemoveAll(unzipDir)
-
-		for _, srcjar := range srcjars {
-			regularSrcs, err := readSrcjarsInput([]string{srcjar}, unzipDir)
-			if err != nil {
-				return err
-			}
-			regular = append(regular, regularSrcs...)
-			for _, regularSrc := range regularSrcs {
-				sourceMap[regularSrc] = sourceMap[srcjar]
-			}
-		}
-	}
-
 	// filter our input file list
-	filenames, err := filterFiles(build.Default, regular)
+	filenames, err := filterFiles(build.Default, sourceList)
 	if err != nil {
 		return err
 	}

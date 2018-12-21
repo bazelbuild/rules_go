@@ -68,7 +68,6 @@ def emit_archive(go, source = None):
         go.compile(
             go,
             sources = split.go,
-            zipped_sources = split.srcjar,
             importpath = source.library.importmap,
             archives = direct,
             out_lib = out_lib,
@@ -81,7 +80,6 @@ def emit_archive(go, source = None):
         go.compile(
             go,
             sources = split.go,
-            zipped_sources = split.srcjar,
             importpath = source.library.importmap,
             archives = direct,
             out_lib = partial_lib,

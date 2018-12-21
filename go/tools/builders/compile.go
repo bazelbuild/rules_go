@@ -80,24 +80,7 @@ func run(args []string) error {
 		return fmt.Errorf("Invalid test filter %q", *testfilter)
 	}
 	// apply build constraints to the source list
-
-	regular := unfiltered
-	regular, srcjars := filterSrcjars(unfiltered)
-	if len(srcjars) > 0 {
-		unzipDir, err := ioutil.TempDir(os.TempDir(), "go-srcjar")
-		if err != nil {
-			return err
-		}
-		defer os.RemoveAll(unzipDir)
-
-		unzipped, err := readSrcjarsInput(srcjars, unzipDir)
-		if err != nil {
-			return err
-		}
-		regular = append(regular, unzipped...)
-	}
-
-	all, err := readFiles(build.Default, regular)
+	all, err := readFiles(build.Default, unfiltered)
 	if err != nil {
 		return err
 	}

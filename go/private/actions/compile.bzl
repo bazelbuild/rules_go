@@ -27,7 +27,6 @@ def _archive(v):
 def emit_compile(
         go,
         sources = None,
-        zipped_sources = [],
         importpath = "",  # actually importmap, left as importpath for compatibility
         archives = [],
         out_lib = None,
@@ -47,13 +46,13 @@ def emit_compile(
             fail("compile does not accept deps in bootstrap mode")
         return _bootstrap_compile(go, sources, out_lib, gc_goopts)
 
-    inputs = (sources + zipped_sources + [go.package_list] +
+    inputs = (sources + [go.package_list] +
               [archive.data.file for archive in archives] +
               go.sdk.tools + go.stdlib.libs)
     outputs = [out_lib]
 
     builder_args = go.builder_args(go)
-    builder_args.add_all(sources + zipped_sources, before_each = "-src")
+    builder_args.add_all(sources, before_each = "-src")
     builder_args.add_all(archives, before_each = "-arc", map_each = _archive)
     builder_args.add("-o", out_lib)
     builder_args.add("-package_list", go.package_list)

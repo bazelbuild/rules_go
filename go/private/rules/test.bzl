@@ -20,7 +20,6 @@ load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "asm_exts",
     "go_exts",
-    "srcjar_exts",
     "pkg_dir",
     "split_srcs",
 )
@@ -67,8 +66,7 @@ def _go_test_impl(ctx):
     internal_library = go.new_library(go, testfilter = "exclude")
     internal_source = go.library_to_source(go, ctx.attr, internal_library, ctx.coverage_instrumented())
     internal_archive = go.archive(go, internal_source)
-    split = split_srcs(internal_source.srcs)
-    go_srcs = split.go + split.srcjar
+    go_srcs = split_srcs(internal_source.srcs).go
 
     # Compile the library with the external black box tests
     external_library = go.new_library(
@@ -179,7 +177,7 @@ go_test = go_rule(
     _go_test_impl,
     attrs = {
         "data": attr.label_list(allow_files = True),
-        "srcs": attr.label_list(allow_files = go_exts + asm_exts + srcjar_exts),
+        "srcs": attr.label_list(allow_files = go_exts + asm_exts),
         "deps": attr.label_list(
             providers = [GoLibrary],
             aspects = [go_archive_aspect],
