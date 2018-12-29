@@ -52,7 +52,7 @@ Announcements
 December 20, 2018
   Gazelle
   `0.16.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.16.0>`_
-   is now available.
+  is now available.
 December 15, 2018
   Releases
   `0.16.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.5>`_,
