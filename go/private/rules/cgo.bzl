@@ -57,6 +57,40 @@ load(
 
 _CgoCodegen = provider()
 _CgoInfo = provider()
+_CcAlwaysLinkInfo = provider()
+
+_WHOLE_ARCHIVE_FLAGS_BY_GOOS = {
+    goos: ("-Wl,--whole-archive", "-Wl,--no-whole-archive")
+    for goos in GOOS.keys()
+} + {
+    "darwin": ("-Wl,-all_load", ""),
+    "js": ("", ""),
+    "windows": ("", ""),
+}
+
+def _always_link_aspect_impl(target, ctx):
+    # Make sure the rule has a srcs attribute.
+    transitive_always_links = {}
+    alwayslink = getattr(ctx.rule.attr, "alwayslink") in [1, True]
+    for dep in getattr(ctx.rule.attr, "deps", []):
+        if dep[_CcAlwaysLinkInfo]:
+            info = dep[_CcAlwaysLinkInfo]
+            transitive_always_links.update(info.transitive_always_links)
+            for f in dep.files:
+                # Only set the ones that are true
+                if info.alwayslink == True:
+                    transitive_always_links[f] = info.alwayslink
+    return [
+        _CcAlwaysLinkInfo(
+            alwayslink = alwayslink,
+            transitive_always_links = transitive_always_links,
+        ),
+    ]
+
+always_link_aspect = aspect(
+    implementation = _always_link_aspect_impl,
+    attr_aspects = ["cdeps", "deps"],
+)
 
 # Maximum number of characters in stem of base name for mangled cgo files.
 # Some file systems have fairly short limits (eCryptFS has a limit of 143),
@@ -219,6 +253,9 @@ def _cgo_codegen_impl(ctx):
     runfiles = ctx.runfiles(collect_data = True)
     for d in ctx.attr.deps:
         runfiles = runfiles.merge(d.data_runfiles)
+        always_links = {}
+        if d[_CcAlwaysLinkInfo]:
+            always_links = d[_CcAlwaysLinkInfo].transitive_always_links
         if hasattr(d, "cc"):
             inputs = sets.union(inputs, d.cc.transitive_headers)
             deps = sets.union(deps, d.cc.libs)
@@ -230,6 +267,9 @@ def _cgo_codegen_impl(ctx):
             for inc in d.cc.system_include_directories:
                 _include_unique(cppopts, "-isystem", inc, seen_system_includes)
             for lib in as_iterable(d.cc.libs):
+                is_whole_archive = (always_links.get(lib) == True)
+                if is_whole_archive:
+                    linkopts.append(_WHOLE_ARCHIVE_FLAGS_BY_GOOS[go.mode.goos][0])
                 # If both static and dynamic variants are available, Bazel will only give
                 # us the static variant. We'll get one file for each transitive dependency,
                 # so the same file may appear more than once.
@@ -244,6 +284,8 @@ def _cgo_codegen_impl(ctx):
                     linkopts.extend(["-L", lib.dirname, "-l", libname])
                 else:
                     linkopts.append(lib.path)
+                if is_whole_archive:
+                    linkopts.append(_WHOLE_ARCHIVE_FLAGS_BY_GOOS[go.mode.goos][1])
             linkopts.extend(d.cc.link_flags)
         elif hasattr(d, "objc"):
             cppopts.extend(["-D" + define for define in d.objc.define.to_list()])
@@ -307,7 +349,10 @@ _cgo_codegen = go_rule(
     _cgo_codegen_impl,
     attrs = {
         "srcs": attr.label_list(allow_files = True),
-        "deps": attr.label_list(allow_files = False),
+        "deps": attr.label_list(
+            allow_files = False,
+            aspects = [always_link_aspect],
+        ),
         "copts": attr.string_list(),
         "cxxopts": attr.string_list(),
         "cppopts": attr.string_list(),
