@@ -8,6 +8,7 @@ Go rules for Bazel_
 .. |bazelci| image:: https://badge.buildkite.com/7ff4772cf73f716565daee2e0e6f4c8d8dee2b086caf27b6a8.svg
   :target: https://buildkite.com/bazel/golang-rules-go
 .. _gazelle: https://github.com/bazelbuild/bazel-gazelle
+.. _gazelle update-repos: https://github.com/bazelbuild/bazel-gazelle#update-repos
 .. _github.com/bazelbuild/bazel-gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _vendoring: Vendoring.md
 .. _protocol buffers: proto/core.rst
@@ -300,11 +301,31 @@ Can I still use the ``go`` tool?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, this setup was deliberately chosen to be compatible with ``go build``.
-Make sure your project appears in ``GOPATH``, and it should work.
+Make sure your project appears in ``GOPATH`` or has a go.mod file, and it should
+work.
 
-Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``, so
-these will be downloaded into ``GOPATH``. You may also need to check in generated
-files.
+Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``,
+so you may want to download your dependencies into your ``GOPATH`` or module
+cache so that your tools are aware of them.  You may also need to check in
+generated files.
+
+Does this work with Go modules?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes, but not directly. Modules are a dependency management feature in cmd/go,
+the build system that ships with the Go SDK. Bazel uses the Go compiler and
+linker in the Go toolchain, but it does not use cmd/go. You need to describe
+your Go packages and executables and their dependencies in ``go_library``,
+``go_binary``, and ``go_test`` rules written in build files, and you need to
+describe your external dependencies in Bazel's WORKSPACE file.
+
+If your project follows normal Go conventions (those required by cmd/go), you
+can generate and update build files using gazelle_. You can import external
+dependencies from your go.mod file with a command like ``gazelle update-repos
+-from_file=go.mod``. This will add `go_repository`_ rules to your WORKSPACE.
+Each `go_repository`_ rule can download a module and generate build files for
+the module's packages using Gazelle. See `gazelle update-repos`_ for more
+information.
 
 What's up with the ``go_default_library`` name?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
