@@ -24,7 +24,7 @@ filegroup(
 
 filegroup(
     name = "tools",
-    srcs = glob(["pkg/tool/**"]),
+    srcs = glob(["pkg/tool/**", "bin/gofmt*"])
 )
 
 go_sdk(
@@ -38,7 +38,6 @@ go_sdk(
     srcs = [":srcs"],
     tools = [":tools"],
     go = "bin/go{exe}",
-    gofmt = "bin/gofmt{exe}",
 )
 
 # TODO(jayconrod): Gazelle depends on this file directly. This dependency

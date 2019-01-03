@@ -32,7 +32,6 @@ def _go_sdk_impl(ctx):
         srcs = ctx.files.srcs,
         tools = ctx.files.tools,
         go = ctx.executable.go,
-        gofmt = ctx.executable.gofmt,
     )]
 
 go_sdk = rule(
@@ -73,8 +72,8 @@ go_sdk = rule(
         "tools": attr.label_list(
             allow_files = True,
             cfg = "host",
-            doc = ("List of executable files from pkg/tool " +
-                   "built for the execution platform"),
+            doc = ("List of executable files in the SDK built for " +
+                   "the execution platform, excluding the go binary"),
         ),
         "go": attr.label(
             mandatory = True,
@@ -82,13 +81,6 @@ go_sdk = rule(
             executable = True,
             cfg = "host",
             doc = "The go binary",
-        ),
-        "gofmt": attr.label(
-            mandatory = True,
-            allow_single_file = True,
-            executable = True,
-            cfg = "host",
-            doc = "The gofmt binary",
         ),
     },
     doc = ("Collects information about a Go SDK. The SDK must have a normal " +
