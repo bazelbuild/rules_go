@@ -60,7 +60,7 @@ override, but it is by no means a complete list.
 * :value:`com_github_golang_protobuf` : `github.com/golang/protobuf`_
 * :value:`org_golang_google_genproto` : `google.golang.org/genproto`_
   (``go_library`` rules with pre-generated .pb.go files)
-* :value:`com_google_googleapis` : `google.golang.org/genproto`_ (``go_proto_library``
+* :value:`go_googleapis` : `google.golang.org/genproto`_ (``go_proto_library``
   rules that generate code at build time)
 * :value:`org_golang_google_grpc` : `google.golang.org/grpc`_
 * :value:`org_golang_x_net` : `golang.org/x/net`_

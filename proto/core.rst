@@ -92,12 +92,12 @@ The Well Known Types can be found in the ``@io_bazel_rules_go//proto/wkt``
 package. There are implicit dependencies of ``go_proto_library`` rules
 that use the default compiler, so they don't need to be written
 explicitly in ``deps``. You can also find rules for Google APIs and gRPC in
-``@com_google_googleapis//``. You can list these rules with the commands:
+``@go_googleapis//``. You can list these rules with the commands:
 
 .. code:: bash
 
     $ bazel query 'kind(go_proto_library, @io_bazel_rules_go//proto/wkt:all)'
-    $ bazel query 'kind(go_proto_library, @com_google_googleapis//...)'
+    $ bazel query 'kind(go_proto_library, @go_googleapis//...)'
 
 Some commonly used Go libraries, such as ``github.com/golang/protobuf/ptypes``,
 depend on the Well Known Types. In order to avoid conflicts when using these

@@ -152,7 +152,7 @@ def go_rules_dependencies():
     )
     _maybe(
         http_archive,
-        name = "com_google_googleapis",
+        name = "go_googleapis",
         # master as of 2018-09-28
         urls = ["https://codeload.github.com/googleapis/googleapis/zip/b71d0c74de0b84f2f10a2c61cd66fbb48873709f"],
         strip_prefix = "googleapis-b71d0c74de0b84f2f10a2c61cd66fbb48873709f",
