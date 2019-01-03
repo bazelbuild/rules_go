@@ -26,5 +26,5 @@ func use(interface{}) {}
 func TestProxy(t *testing.T) {
 	// just make sure both types exist
 	use(proxy.A{})
-  use(proxy.B{})
+	use(proxy.B{})
 }
