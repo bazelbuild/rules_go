@@ -35,7 +35,7 @@ GoProtoCompiler = provider()
 def go_proto_compile(go, compiler, proto, imports, importpath):
     go_srcs = []
     outpath = None
-    for src in proto.direct_sources:
+    for src in proto.check_deps_sources:
         out = go.declare_file(go, path = importpath + "/" + src.basename[:-len(".proto")], ext = compiler.suffix)
         go_srcs.append(out)
         if outpath == None:
@@ -54,7 +54,7 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
     args.add_all(proto.transitive_descriptor_sets, before_each = "-descriptor_set")
     args.add_all(go_srcs, before_each = "-expected")
     args.add_all(imports, before_each = "-import")
-    args.add_all([proto_path(src, proto) for src in proto.direct_sources])
+    args.add_all([proto_path(src, proto) for src in proto.check_deps_sources])
     go.actions.run(
         inputs = sets.union([
             compiler.go_protoc,
@@ -96,7 +96,10 @@ def proto_path(src, proto):
             path = path[1:]
         return path
 
-    if proto.proto_source_root.startswith(src.root.path):
+    if proto.proto_source_root == ".":
+        # true if proto sources were generated
+        prefix = src.root.path + "/"
+    elif proto.proto_source_root.startswith(src.root.path):
         # sometimes true when import paths are adjusted with import_prefix
         prefix = proto.proto_source_root + "/"
     else:

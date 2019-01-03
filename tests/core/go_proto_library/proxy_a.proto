@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+option go_package = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/proxy";
+
+message A {
+  int64 a = 1;
+}
