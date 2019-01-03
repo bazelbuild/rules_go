@@ -1,17 +1,23 @@
 diff -urN b/internal/channelz/BUILD.bazel c/internal/channelz/BUILD.bazel
 --- b/internal/channelz/BUILD.bazel	2018-09-27 16:55:16.110787059 -0400
 +++ c/internal/channelz/BUILD.bazel	2018-09-27 16:55:54.851285539 -0400
-@@ -17,6 +17,9 @@
+@@ -17,6 +17,15 @@
          "//credentials:go_default_library",
          "//grpclog:go_default_library",
      ] + select({
++        "@io_bazel_rules_go//go/platform:darwin": [
++            "@org_golang_x_sys//unix:go_default_library",
++        ],
++        "@io_bazel_rules_go//go/platform:windows": [
++            "@org_golang_x_sys//unix:go_default_library",
++        ],
 +        "@io_bazel_rules_go//go/platform:android": [
 +            "@org_golang_x_sys//unix:go_default_library",
 +        ],
          "@io_bazel_rules_go//go/platform:linux": [
              "@org_golang_x_sys//unix:go_default_library",
          ],
-@@ -29,6 +32,9 @@
+@@ -29,6 +38,9 @@
      srcs = ["util_test.go"],
      embed = [":go_default_library"],
      deps = select({

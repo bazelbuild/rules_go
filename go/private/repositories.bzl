@@ -136,7 +136,7 @@ def go_rules_dependencies():
         commit = "8dea3dc473e90c8179e519d91302d0597c0ca1d1",  # v1.15.0, latest as of 2018-09-28
         patches = [
             "@io_bazel_rules_go//third_party:org_golang_google_grpc-gazelle.patch",
-            "@io_bazel_rules_go//third_party:org_golang_google_grpc-android.patch",
+            "@io_bazel_rules_go//third_party:org_golang_google_grpc-crosscompile.patch",
         ],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix google.golang.org/grpc -proto disable
