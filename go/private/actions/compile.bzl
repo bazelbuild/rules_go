@@ -60,6 +60,7 @@ def emit_compile(
         builder_args.add("-testfilter", testfilter)
     if go.nogo:
         builder_args.add("-nogo", go.nogo)
+        builder_args.add("-x", out_export)
         inputs.append(go.nogo)
         inputs.extend([archive.data.export_file for archive in archives])
         outputs.append(out_export)

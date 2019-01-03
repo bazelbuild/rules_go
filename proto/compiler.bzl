@@ -22,6 +22,10 @@ load(
     "sets",
 )
 load(
+    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
+    "paths",
+)
+load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     "go_rule",
 )
@@ -44,13 +48,13 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
 
     # TODO(jayconrod): can we just use go.env instead?
     args.add("-compiler_path", go.cgo_tools.c_compiler_path.rpartition("/")[0])
-    args.add_all(compiler.options, before_each = "--option")
+    args.add_all(compiler.options, before_each = "-option")
     if compiler.import_path_option:
-        args.add_all([importpath], before_each = "--option", format_each = "import_path=%s")
-    args.add_all(proto.transitive_descriptor_sets, before_each = "--descriptor_set")
-    args.add_all(go_srcs, before_each = "--expected")
-    args.add_all(imports, before_each = "--import")
-    args.add_all(proto.direct_sources, map_each = proto_path)
+        args.add_all([importpath], before_each = "-option", format_each = "import_path=%s")
+    args.add_all(proto.transitive_descriptor_sets, before_each = "-descriptor_set")
+    args.add_all(go_srcs, before_each = "-expected")
+    args.add_all(imports, before_each = "-import")
+    args.add_all([proto_path(src, proto) for src in proto.direct_sources])
     go.actions.run(
         inputs = sets.union([
             compiler.go_protoc,
@@ -65,23 +69,43 @@ def go_proto_compile(go, compiler, proto, imports, importpath):
     )
     return go_srcs
 
-def proto_path(proto):
+def proto_path(src, proto):
+    """proto_path returns the string used to import the proto. This is the proto
+    source path within its repository, adjusted by import_prefix and
+    strip_import_prefix.
+
+    Args:
+        src: the proto source File.
+        proto: the ProtoInfo provider.
+
+    Returns:
+        An import path string.
     """
-    The proto path is not really a file path
-    It's the path to the proto that was seen when the descriptor file was generated.
-    """
-    path = proto.path
-    root = proto.root.path
-    ws = proto.owner.workspace_root
-    if path.startswith(root):
-        path = path[len(root):]
-    if path.startswith("/"):
-        path = path[1:]
-    if path.startswith(ws):
-        path = path[len(ws):]
-    if path.startswith("/"):
-        path = path[1:]
-    return path
+    if not hasattr(proto, "proto_source_root"):
+        # Legacy path. Remove when Bazel minimum version >= 0.21.0.
+        path = src.path
+        root = src.root.path
+        ws = src.owner.workspace_root
+        if path.startswith(root):
+            path = path[len(root):]
+        if path.startswith("/"):
+            path = path[1:]
+        if path.startswith(ws):
+            path = path[len(ws):]
+        if path.startswith("/"):
+            path = path[1:]
+        return path
+
+    if proto.proto_source_root.startswith(src.root.path):
+        # sometimes true when import paths are adjusted with import_prefix
+        prefix = proto.proto_source_root + "/"
+    else:
+        # usually true when paths are not adjusted
+        prefix = paths.join(src.root.path, proto.proto_source_root) + "/"
+    if not src.path.startswith(prefix):
+        # sometimes true when importing multiple adjusted protos
+        return src.path
+    return src.path[len(prefix):]
 
 def _go_proto_compiler_impl(ctx):
     go = go_context(ctx)

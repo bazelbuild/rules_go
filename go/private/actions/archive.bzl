@@ -46,6 +46,8 @@ def emit_archive(go, source = None):
     out_lib = go.declare_file(go, path = lib_name)
     out_export = None
     if go.nogo:
+        # TODO(#1847): write nogo data into a new section in the .a file instead
+        # of writing a separate file.
         out_export = go.declare_file(go, path = lib_name[:-len(".a")] + ".x")
     searchpath = out_lib.path[:-len(lib_name)]
     testfilter = getattr(source.library, "testfilter", None)

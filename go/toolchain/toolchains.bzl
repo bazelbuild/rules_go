@@ -23,11 +23,37 @@ load(
     "versions",
 )
 
-DEFAULT_VERSION = "1.11.2"
+DEFAULT_VERSION = "1.11.4"
 
 MIN_SUPPORTED_VERSION = "1.9"
 
 SDK_REPOSITORIES = {
+    "1.11.4": {
+        "darwin_amd64": ("go1.11.4.darwin-amd64.tar.gz", "48ea987fb610894b3108ecf42e7a4fd1c1e3eabcaeb570e388c75af1f1375f80"),
+        "freebsd_386": ("go1.11.4.freebsd-386.tar.gz", "7c302a5fcb25c7a4d370e856218b748994bbb129810306260293cdfba0a80650"),
+        "freebsd_amd64": ("go1.11.4.freebsd-amd64.tar.gz", "e5a99add3e60e38ef559e211584bb09a883ccc46a6fb1432dcaa9fd052689b71"),
+        "linux_386": ("go1.11.4.linux-386.tar.gz", "cecd2da1849043237d5f0756a93d601db6798fa3bb27a14563d201088aa415f3"),
+        "linux_amd64": ("go1.11.4.linux-amd64.tar.gz", "fb26c30e6a04ad937bbc657a1b5bba92f80096af1e8ee6da6430c045a8db3a5b"),
+        "linux_arm64": ("go1.11.4.linux-arm64.tar.gz", "b76df430ba8caff197b8558921deef782cdb20b62fa36fa93f81a8c08ab7c8e7"),
+        "linux_arm": ("go1.11.4.linux-armv6l.tar.gz", "9f7a71d27fef69f654a93e265560c8d9db1a2ca3f1dcdbe5288c46facfde5821"),
+        "linux_ppc64le": ("go1.11.4.linux-ppc64le.tar.gz", "1f10146826acd56716b00b9188079af53823ddd79ceb6362e78e2f3aafb370ab"),
+        "linux_s390x": ("go1.11.4.linux-s390x.tar.gz", "4467442dacf89eb94c5d6f9f700204cb360be82db60e6296cc2ef8d0e890cd42"),
+        "windows_386": ("go1.11.4.windows-386.zip", "bc25ea25406878986f91c92ae802f25f033cb0163b4aeac7e7185f71d0ede788"),
+        "windows_amd64": ("go1.11.4.windows-amd64.zip", "eeb20e21702f2b9469d9381df5de85e2f731b64a1f54effe196d0f7d0227fe14"),
+    },
+    "1.11.3": {
+        "darwin_amd64": ("go1.11.3.darwin-amd64.tar.gz", "3d164d44fcb06a4bbd69d19d8d91308d601f7d855a1037346389644803fdf148"),
+        "freebsd_386": ("go1.11.3.freebsd-386.tar.gz", "2b4aacf3dc09c8b210fe3daf00f7c17c97d29503070200ba46e04f2d93790672"),
+        "freebsd_amd64": ("go1.11.3.freebsd-amd64.tar.gz", "29b3fcc8d80ac1ea10cd82ca78d3dac4e7242333b882855ea7bc8e3a9d974116"),
+        "linux_386": ("go1.11.3.linux-386.tar.gz", "c3fadf7f8652c060e18b7907fb8e15b853955b25aa661dbd991f6d6bc581d7a9"),
+        "linux_amd64": ("go1.11.3.linux-amd64.tar.gz", "d20a4869ffb13cee0f7ee777bf18c7b9b67ef0375f93fac1298519e0c227a07f"),
+        "linux_arm64": ("go1.11.3.linux-arm64.tar.gz", "723c54cb081dd629a44d620197e4a789dccdfe6dee7f8b4ad7a6659f76952056"),
+        "linux_arm": ("go1.11.3.linux-armv6l.tar.gz", "384933e6e97b74c5125011c8f0539362bbed5a015978a34e441d7333d8e519b9"),
+        "linux_ppc64le": ("go1.11.3.linux-ppc64le.tar.gz", "57c89a047ef4f539580af4cadebf1364a906891b065afa0664592e72a034b0ee"),
+        "linux_s390x": ("go1.11.3.linux-s390x.tar.gz", "183258709c051ceb2900dee5ee681abb0bc440624c8f657374bde2a5658bef27"),
+        "windows_386": ("go1.11.3.windows-386.zip", "07a38035d642ae81820551ce486f2ac7d541c0caf910659452b4661656db0691"),
+        "windows_amd64": ("go1.11.3.windows-amd64.zip", "bc168207115eb0686e226ed3708337b161946c1acb0437603e1221e94f2e1f0f"),
+    },
     "1.11.2": {
         "darwin_amd64": ("go1.11.2.darwin-amd64.tar.gz", "be2a9382ef85792280951a78e789e8891ddb1df4ac718cd241ea9d977c85c683"),
         "freebsd_386": ("go1.11.2.freebsd-386.tar.gz", "7daf8c1995e6eb343c4b487ba4d6b8fb5463cdead8a8bde867a25cc7168ff77b"),
@@ -66,6 +92,32 @@ SDK_REPOSITORIES = {
         "linux_s390x": ("go1.11.linux-s390x.tar.gz", "c113495fbb175d6beb1b881750de1dd034c7ae8657c30b3de8808032c9af0a15"),
         "windows_386": ("go1.11.windows-386.zip", "d3279f0e3d728637352eff0aa1e11268a0eb01f13644bcbce1c066139f5a90db"),
         "windows_amd64": ("go1.11.windows-amd64.zip", "29f9291270f0b303d0b270f993972ead215b1bad3cc674a0b8a09699d978aeb4"),
+    },
+    "1.10.7": {
+        "darwin_amd64": ("go1.10.7.darwin-amd64.tar.gz", "700725a36d29d6e5d474a887acbf490c3d2762d719bdfef8370e22198077297d"),
+        "freebsd_386": ("go1.10.7.freebsd-386.tar.gz", "d45bd54c38169ba228a67a17c92560e5a455405f6f5116a030c512510b06987c"),
+        "freebsd_amd64": ("go1.10.7.freebsd-amd64.tar.gz", "21c9bda5fa37d668348e65b2374de6da84c85d601e45bbba4d8e2c86450f2a95"),
+        "linux_386": ("go1.10.7.linux-386.tar.gz", "55cd25e550cb8ce8250dbc9eda56b9c10b3097c7f6beed45066fbaaf8c6c1ebd"),
+        "linux_amd64": ("go1.10.7.linux-amd64.tar.gz", "1aabe10919048822f3bb1865f7a22f8b78387a12c03cd573101594bc8fb33579"),
+        "linux_arm64": ("go1.10.7.linux-arm64.tar.gz", "cb5a274f7c8f6186957e4503e724dda8aeffe84b76a146748c55ea5bb22d9ae4"),
+        "linux_arm": ("go1.10.7.linux-armv6l.tar.gz", "1f81c995f829c8fc7def4d0cc1bde63cac1834386e6f650f2cd7be56ab5e8b98"),
+        "linux_ppc64le": ("go1.10.7.linux-ppc64le.tar.gz", "11279ffebfcfa875b0552839d428cc72e2056e68681286429b57173c0da91fb4"),
+        "linux_s390x": ("go1.10.7.linux-s390x.tar.gz", "e0d7802029ed8d2720a2b27ec1816e71cb29f818380abb8b449080e97547881e"),
+        "windows_386": ("go1.10.7.windows-386.zip", "bbd297a456aded5dcafe91194aafec883802cd0982120c735d15a39810248ea7"),
+        "windows_amd64": ("go1.10.7.windows-amd64.zip", "791e2d5a409932157ac87f4da7fa22d5e5468b784d5933121e4a747d89639e15"),
+    },
+    "1.10.6": {
+        "darwin_amd64": ("go1.10.6.darwin-amd64.tar.gz", "419e7a775c39074ff967b4e66fa212eb4fd310b1f15675ce13977b57635dd3a8"),
+        "freebsd_386": ("go1.10.6.freebsd-386.tar.gz", "d1f0aef497588865967256030cb676c6c62f6a4b53649814e753ae150fbaa960"),
+        "freebsd_amd64": ("go1.10.6.freebsd-amd64.tar.gz", "194a1a39a96bb8d7ed8370dae7768db47109f628aea4f1588f677f66c384955a"),
+        "linux_386": ("go1.10.6.linux-386.tar.gz", "171fe6cbecb2845b875a35ac7ad758d4c0c5bd03f330fa35d340de85b9070e71"),
+        "linux_amd64": ("go1.10.6.linux-amd64.tar.gz", "acbdedf28b55b38d2db6f06209a25a869a36d31bdcf09fd2ec3d40e1279e0592"),
+        "linux_arm64": ("go1.10.6.linux-arm64.tar.gz", "0fcbfbcbf6373c0b6876786900a4a100c1ed9af86bd3258f23ab498cca4c02a1"),
+        "linux_arm": ("go1.10.6.linux-armv6l.tar.gz", "4da252fc7e834b7ce35d349fb581aa84a08adece926a0b9a8e4216451ffcb11e"),
+        "linux_ppc64le": ("go1.10.6.linux-ppc64le.tar.gz", "ebd7e4688f3e1baabbc735453b19c6c27116e1f292bf46622123bfc4c160c747"),
+        "linux_s390x": ("go1.10.6.linux-s390x.tar.gz", "0223daa57bdef5bf85d308f6d2793c58055d294c13cbaca240ead2f568de2e9f"),
+        "windows_386": ("go1.10.6.windows-386.zip", "2f3ded109a37d53bd8600fa23c07d9abea41fb30a5f5954bbc97e9c57d8e0ce0"),
+        "windows_amd64": ("go1.10.6.windows-amd64.zip", "fc57f16c23b7fb41b664f549ff2ed6cca340555e374c5ff52fa296cd3f228f32"),
     },
     "1.10.5": {
         "darwin_amd64": ("go1.10.5.darwin-amd64.tar.gz", "36873d9935f7f3519da11c9e928b66c94ccbf71c37df71b7635e804a226ae631"),

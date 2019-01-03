@@ -78,8 +78,17 @@ def _ternary(*values):
     fail("_ternary failed to produce a final result from {}".format(values))
 
 def get_mode(ctx, host_only, go_toolchain, go_context_data):
+    goos = getattr(ctx.attr, "goos", None)
+    if goos == None or goos == "auto":
+        goos = go_toolchain.default_goos
+    goarch = getattr(ctx.attr, "goarch", None)
+    if goarch == None or goarch == "auto":
+        goarch = go_toolchain.default_goarch
+
     # We always have to  use the pure stdlib in cross compilation mode
-    force_pure = "on" if go_toolchain.cross_compile else "auto"
+    cross_compile = (goos != go_toolchain.sdk.goos or
+                     goarch != go_toolchain.sdk.goarch)
+    force_pure = "on" if cross_compile else "auto"
     force_race = "off" if host_only else "auto"
 
     linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
@@ -116,12 +125,6 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
         strip = True
     elif strip_mode == "sometimes":
         strip = not debug
-    goos = getattr(ctx.attr, "goos", None)
-    if goos == None or goos == "auto":
-        goos = go_toolchain.default_goos
-    goarch = getattr(ctx.attr, "goarch", None)
-    if goarch == None or goarch == "auto":
-        goarch = go_toolchain.default_goarch
 
     return struct(
         static = static,

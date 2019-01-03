@@ -29,9 +29,9 @@ go_proto_library(
 # embed_test
 go_proto_library(
     name = "embed_go_proto",
-    proto = ":foo_proto",
-    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/foo",
     embed = [":extra_lib"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/foo",
+    proto = ":foo_proto",
 )
 
 go_library(
@@ -52,16 +52,16 @@ go_test(
 # transitive_test
 go_proto_library(
     name = "transitive_go_proto",
-    proto = ":bar_proto",
     importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/bar",
+    proto = ":bar_proto",
     deps = [":wrap_lib"],
 )
 
 go_library(
     name = "wrap_lib",
     srcs = ["extra.go"],
-    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/foo",
     embed = [":foo_go_proto"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/foo",
 )
 
 go_test(
@@ -72,3 +72,70 @@ go_test(
         ":wrap_lib",
     ],
 )
+
+# adjusted_import_test
+# TODO(#1851): uncomment when Bazel 0.22.0 is the minimum version.
+# go_test(
+#     name = "adjusted_import_test",
+#     srcs = ["adjusted_import_test.go"],
+#     deps = [
+#         ":adjusted_a_go_proto",
+#         ":adjusted_b_go_library",
+#         ":adjusted_c_go_proto",
+#     ],
+# )
+
+# go_proto_library(
+#     name = "adjusted_a_go_proto",
+#     importpath = "adjusted/a",
+#     proto = "adjusted_a_proto",
+#     deps = [
+#         ":adjusted_b_go_library",
+#         ":adjusted_c_go_proto",
+#     ],
+# )
+
+# proto_library(
+#     name = "adjusted_a_proto",
+#     srcs = ["adjusted_a.proto"],
+#     import_prefix = "adjusted",
+#     strip_import_prefix = "",
+#     deps = [
+#         ":adjusted_b_proto",
+#         ":adjusted_c_proto",
+#     ],
+# )
+
+# go_library(
+#     name = "adjusted_b_go_library",
+#     embed = [":adjusted_b_go_proto"],
+#     importpath = "adjusted/b",
+# )
+
+# go_proto_library(
+#     name = "adjusted_b_go_proto",
+#     importpath = "adjusted/b",
+#     proto = "adjusted_b_proto",
+#     deps = [":adjusted_c_go_proto"],
+# )
+
+# proto_library(
+#     name = "adjusted_b_proto",
+#     srcs = ["adjusted_b.proto"],
+#     import_prefix = "adjusted",
+#     strip_import_prefix = "",
+#     deps = [":adjusted_c_proto"],
+# )
+
+# go_proto_library(
+#     name = "adjusted_c_go_proto",
+#     importpath = "adjusted/c",
+#     proto = ":adjusted_c_proto",
+# )
+
+# proto_library(
+#     name = "adjusted_c_proto",
+#     srcs = ["adjusted_c.proto"],
+#     import_prefix = "adjusted",
+#     strip_import_prefix = "",
+# )

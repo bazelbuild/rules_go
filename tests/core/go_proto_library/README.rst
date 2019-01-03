@@ -18,3 +18,9 @@ transitive_test
 
 Checks that `go_proto_library`_ can import a proto dependency that is
 embedded in a `go_library`_. Verifies #1422.
+
+adjusted_import_test
+--------------------
+
+Checks that `go_proto_library`_ can build ``proto_library`` with
+``import_prefix`` and ``strip_import_prefix``.

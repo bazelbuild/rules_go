@@ -112,7 +112,6 @@ already been run. For example:
     }
 
     func run(pass *analysis.Pass) (interface{}, error) {
-      var findings []*analysis.Finding
       for _, f := range pass.Files {
         for _, imp := range f.Imports {
           path, err := strconv.Unquote(imp.Path.Value)

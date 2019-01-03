@@ -50,6 +50,7 @@ func run(args []string) error {
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&archives, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	nogo := flags.String("nogo", "", "The nogo binary")
+	outExport := flags.String("x", "", "Path to nogo that should be written")
 	output := flags.String("o", "", "The output object file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
@@ -150,7 +151,7 @@ func run(args []string) error {
 		for _, imp := range stdImports {
 			nogoargs = append(nogoargs, "-stdimport", imp)
 		}
-		nogoargs = append(nogoargs, "-x", strings.TrimSuffix(*output, ".a")+".x")
+		nogoargs = append(nogoargs, "-x", *outExport)
 		nogoargs = append(nogoargs, filenames...)
 		nogoCmd := exec.Command(*nogo, nogoargs...)
 		nogoCmd.Stdout, nogoCmd.Stderr = &nogoOutput, &nogoOutput

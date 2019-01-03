@@ -68,5 +68,6 @@ go_library(
 go_library(
     name = "no_errors",
     srcs = ["no_errors.go"],
+    cgo = True,
     importpath = "noerrors",
 )

@@ -39,10 +39,11 @@ GoProtoImports = provider()
 
 def get_imports(attr):
     direct = []
-    if hasattr(attr, "proto"):
+    if hasattr(attr, "proto") and hasattr(attr.proto, "proto"):
+        proto = attr.proto.proto
         direct = [
-            "{}={}".format(proto_path(src), attr.importpath)
-            for src in attr.proto.proto.direct_sources
+            "{}={}".format(proto_path(src, proto), attr.importpath)
+            for src in proto.direct_sources
         ]
     deps = getattr(attr, "deps", []) + getattr(attr, "embed", [])
     transitive = [
