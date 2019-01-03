@@ -96,7 +96,10 @@ def proto_path(src, proto):
             path = path[1:]
         return path
 
-    if proto.proto_source_root.startswith(src.root.path):
+    if proto.proto_source_root == ".":
+        # true if proto sources were generated
+        prefix = src.root.path + "/"
+    elif proto.proto_source_root.startswith(src.root.path):
         # sometimes true when import paths are adjusted with import_prefix
         prefix = proto.proto_source_root + "/"
     else:
