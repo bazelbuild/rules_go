@@ -19,6 +19,14 @@ go_test(
     ],
 )
 
+filegroup(
+    name = "builder_srcs",
+    srcs = [
+        "builder.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 go_tool_binary(
     name = "asm",
     srcs = [

@@ -29,6 +29,7 @@ def _go_toolchain_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]
     cross_compile = ctx.attr.goos != sdk.goos or ctx.attr.goarch != sdk.goarch
     return [platform_common.ToolchainInfo(
+        # Public fields
         name = ctx.label.name,
         cross_compile = cross_compile,
         default_goos = ctx.attr.goos,
@@ -48,12 +49,21 @@ def _go_toolchain_impl(ctx):
             link_cgo = ctx.attr.cgo_link_flags,
         ),
         sdk = sdk,
+
+        # Internal fields -- may be read by emit functions.
+        _builder = ctx.executable.builder,
     )]
 
 _go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
         # Minimum requirements to specify a toolchain
+        "builder": attr.label(
+            mandatory = True,
+            cfg = "host",
+            executable = True,
+            doc = "Tool used to execute most Go actions",
+        ),
         "goos": attr.string(
             mandatory = True,
             doc = "Default target OS",
@@ -113,7 +123,7 @@ def go_toolchain(name, target, sdk, host = None, constraints = [], **kwargs):
         toolchain = ":" + impl_name,
     )
 
-def generate_toolchains(host, sdk):
+def generate_toolchains(host, sdk, builder):
     host_goos, _, host_goarch = host.partition("_")
     toolchains = []
     for target_goos, target_goarch in GOOS_GOARCH:
@@ -132,6 +142,7 @@ def generate_toolchains(host, sdk):
             host = host,
             target = target,
             sdk = sdk,
+            builder = builder,
             link_flags = link_flags,
             cgo_link_flags = cgo_link_flags,
         ))
