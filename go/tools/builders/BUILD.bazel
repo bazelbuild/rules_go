@@ -23,7 +23,15 @@ filegroup(
     name = "builder_srcs",
     srcs = [
         "builder.go",
-    ],
+        "env.go",
+        "filter_buildid.go",
+        "flags.go",
+        "replicate.go",
+        "stdlib.go",
+    ] + select({
+        "@bazel_tools//src/conditions:windows": ["path_windows.go"],
+        "//conditions:default": ["path.go"],
+    }),
     visibility = ["//visibility:public"],
 )
 
@@ -169,20 +177,6 @@ go_tool_binary(
         "flags.go",
         "protoc.go",
     ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "stdlib",
-    srcs = [
-        "env.go",
-        "flags.go",
-        "replicate.go",
-        "stdlib.go",
-    ] + select({
-        "@bazel_tools//src/conditions:windows": ["path_windows.go"],
-        "//conditions:default": ["path.go"],
-    }),
     visibility = ["//visibility:public"],
 )
 

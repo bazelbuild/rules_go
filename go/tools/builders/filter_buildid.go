@@ -12,21 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This tool filters out the -buildid args from any Go tool invocation when
-// passed via -toolexec.
-
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 	"syscall"
 )
 
-func main() {
-	args := os.Args[1:]
+// filterBuildID executes the tool on the command line, filtering out any
+// -buildid arguments. It is intended to be used with -toolexec.
+func filterBuildID(args []string) error {
 	newArgs := make([]string, 0, len(args))
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
@@ -40,11 +37,8 @@ func main() {
 		cmd := exec.Command(newArgs[0], newArgs[1:]...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("error executing command %v: %v", newArgs[0], err)
-			os.Exit(1)
-		}
+		return cmd.Run()
 	} else {
-		syscall.Exec(newArgs[0], newArgs, os.Environ())
+		return syscall.Exec(newArgs[0], newArgs, os.Environ())
 	}
 }

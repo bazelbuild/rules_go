@@ -24,6 +24,7 @@ load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile")
 load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
 load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
+load("@io_bazel_rules_go//go/private:actions/stdlib.bzl", "emit_stdlib")
 
 def _go_toolchain_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]
@@ -42,6 +43,7 @@ def _go_toolchain_impl(ctx):
             cover = emit_cover,
             link = emit_link,
             pack = emit_pack,
+            stdlib = emit_stdlib,
         ),
         flags = struct(
             compile = (),

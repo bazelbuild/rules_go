@@ -23,7 +23,9 @@ _ASPECT_ATTRS = ["pure", "static", "msan", "race"]
 # that is built in the target configuration should go there.
 _BOOTSTRAP_ATTRS = ["_builders", "_coverdata", "_stdlib", "_nogo"]
 
-def go_rule(implementation, attrs = {}, toolchains = [], bootstrap = False, bootstrap_attrs = _BOOTSTRAP_ATTRS, **kwargs):
+def go_rule(implementation, attrs = None, toolchains = None, bootstrap = False, bootstrap_attrs = _BOOTSTRAP_ATTRS, **kwargs):
+    attrs = attrs if attrs else {}
+    toolchains = toolchains if toolchains else []
     if bootstrap:
         bootstrap_attrs = []
 

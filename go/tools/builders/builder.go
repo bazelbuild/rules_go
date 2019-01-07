@@ -27,20 +27,28 @@ import (
 func main() {
 	log.SetFlags(0)
 	log.SetPrefix("builder: ")
-	if len(os.Args) <= 2 {
+
+	args, err := readParamsFiles(os.Args[1:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(args) == 0 {
 		log.Fatalf("usage: %s verb options...", os.Args[0])
 	}
-	verb := os.Args[1]
-	args := os.Args[2:]
+	verb, rest := args[0], args[1:]
 
 	var action func(args []string) error
 	switch verb {
+	case "filterbuildid":
+		action = filterBuildID
+	case "stdlib":
+		action = stdlib
 	default:
 		log.Fatalf("unknown action: %s", verb)
 	}
 	log.SetPrefix(verb + ": ")
 
-	if err := action(args); err != nil {
+	if err := action(rest); err != nil {
 		log.Fatal(err)
 	}
 }

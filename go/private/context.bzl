@@ -108,10 +108,12 @@ def _new_args(go):
     # TODO(jayconrod): print warning.
     return go.builder_args(go)
 
-def _builder_args(go):
+def _builder_args(go, command = None):
     args = go.actions.args()
     args.use_param_file("-param=%s")
     args.set_param_file_format("multiline")
+    if command:
+        args.add(command)
     args.add("-sdk", go.sdk.root_file.dirname)
     args.add("-installsuffix", installsuffix(go.mode))
     args.add_joined("-tags", go.tags, join_with = ",")
