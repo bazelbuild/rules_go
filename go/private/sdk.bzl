@@ -110,11 +110,27 @@ def _register_toolchains(repo):
     native.register_toolchains(*labels)
 
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
-    ctx.download_and_extract(
-        url = urls,
-        stripPrefix = strip_prefix,
-        sha256 = sha256,
-    )
+    if ctx.os.name == "mac os x":
+        # TODO(bazelbuild/bazel#7055): download_and_extract fails to extract
+        # archives containing files with non-ASCII names. Go 1.12b1 has a test
+        # file like this. Remove this workaround when the bug is fixed.
+        if strip_prefix != "go":
+            fail("strip_prefix not supported on macOS")
+        ctx.download(
+            url = urls,
+            sha256 = sha256,
+            output = "go_sdk.tar.gz",
+        )
+        res = ctx.execute(["tar", "-xf", "go_sdk.tar.gz", "--strip-components=1"])
+        if res.return_code:
+            fail("error extracting Go SDK:\n" + res.stdout + res.stderr)
+        ctx.execute(["rm", "go_sdk.tar.gz"])
+    else:
+        ctx.download_and_extract(
+            url = urls,
+            stripPrefix = strip_prefix,
+            sha256 = sha256,
+        )
 
 def _local_sdk(ctx, path):
     for entry in ["src", "pkg", "bin"]:
