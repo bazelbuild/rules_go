@@ -185,7 +185,7 @@ Attributes
 | :param:`proto`      | :type:`label`        | |mandatory|                                     |
 +---------------------+----------------------+-------------------------------------------------+
 | Points to the ``proto_library`` containing the .proto sources this rule                      |
-| should generate code from. Avoid using this argument, use `protos` instead.                  |
+| should generate code from. Avoid using this argument, use ``protos`` instead.                |
 +---------------------+----------------------+-------------------------------------------------+
 | :param:`protos`     | :type:`label`        | |mandatory|                                     |
 +---------------------+----------------------+-------------------------------------------------+
