@@ -83,6 +83,15 @@ def _go_proto_library_impl(ctx):
         compilers = ctx.attr.compilers
     go_srcs = []
     valid_archive = False
+
+    if ctx.attr.proto:
+        #TODO: print("DEPRECATED: proto attribute on {}, use protos instead".format(ctx.label))
+        protos = [ctx.attr.proto]
+    elif not ctx.attr.protos:
+        fail("Either proto or protos (non-empty) argument must be specified")
+    else:
+        protos = ctx.attr.protos
+
     for c in compilers:
         compiler = c[GoProtoCompiler]
         if compiler.valid_archive:
@@ -90,7 +99,7 @@ def _go_proto_library_impl(ctx):
         go_srcs.extend(compiler.compile(
             go,
             compiler = compiler,
-            proto = ctx.attr.proto.proto,
+            protos = [proto.proto for proto in protos],
             imports = get_imports(ctx.attr),
             importpath = go.importpath,
         ))
@@ -119,9 +128,10 @@ def _go_proto_library_impl(ctx):
 go_proto_library = go_rule(
     _go_proto_library_impl,
     attrs = {
-        "proto": attr.label(
-            mandatory = True,
+        "proto": attr.label(providers = ["proto"]),
+        "protos": attr.label_list(
             providers = ["proto"],
+            default = [],
         ),
         "deps": attr.label_list(
             providers = [GoLibrary],
