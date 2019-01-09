@@ -23,7 +23,6 @@ def _builders_impl(ctx):
             cgo = ctx.executable._cgo,
             nogo_generator = ctx.executable._nogo_generator,
             test_generator = ctx.executable._test_generator,
-            cover = ctx.executable._cover,
         ),
         DefaultInfo(
             files = depset([
@@ -33,7 +32,6 @@ def _builders_impl(ctx):
                 ctx.executable._cgo,
                 ctx.executable._nogo_generator,
                 ctx.executable._test_generator,
-                ctx.executable._cover,
             ]),
         ),
     ]
@@ -70,11 +68,6 @@ builders = rule(
             executable = True,
             cfg = "host",
             default = "//go/tools/builders:generate_test_main",
-        ),
-        "_cover": attr.label(
-            executable = True,
-            cfg = "host",
-            default = "//go/tools/builders:cover",
         ),
     },
 )

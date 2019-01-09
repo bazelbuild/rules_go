@@ -41,6 +41,8 @@ func main() {
 	switch verb {
 	case "asm":
 		action = asm
+	case "cover":
+		action = cover
 	case "filterbuildid":
 		action = filterBuildID
 	case "stdlib":
