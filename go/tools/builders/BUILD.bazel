@@ -162,14 +162,6 @@ go_tool_binary(
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
-    name = "filter_buildid",
-    srcs = [
-        "filter_buildid.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 sh_binary(
     name = "lcov_merger",
     srcs = ["lcov_merger.sh"],
