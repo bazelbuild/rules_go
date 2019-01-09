@@ -41,7 +41,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
         transitive = [proto.transitive_descriptor_sets for proto in protos],
     )
 
-    for src in dep_sources:
+    for src in dep_sources.to_list():
         out = go.declare_file(go, path = importpath + "/" + src.basename[:-len(".proto")], ext = compiler.suffix)
         go_srcs.append(out)
         if outpath == None:

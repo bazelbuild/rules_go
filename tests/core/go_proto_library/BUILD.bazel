@@ -104,7 +104,6 @@ proto_library(
     srcs = ["proxy_b.proto"],
 )
 
-
 # protos_test (multiple entries in protos argument)
 go_test(
     name = "protos_test",
@@ -118,8 +117,7 @@ go_proto_library(
     protos = [
         ":protos_a_proto",
         ":protos_b_proto",
-
-    ]
+    ],
 )
 
 proto_library(
