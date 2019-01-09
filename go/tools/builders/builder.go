@@ -45,6 +45,8 @@ func main() {
 		action = cover
 	case "filterbuildid":
 		action = filterBuildID
+	case "pack":
+		action = pack
 	case "stdlib":
 		action = stdlib
 	default:

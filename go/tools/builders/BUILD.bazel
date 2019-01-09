@@ -29,6 +29,7 @@ filegroup(
         "filter.go",
         "filter_buildid.go",
         "flags.go",
+        "pack.go",
         "replicate.go",
         "stdlib.go",
     ] + select({
@@ -138,16 +139,6 @@ go_tool_binary(
     name = "md5sum",
     srcs = [
         "md5sum.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "pack",
-    srcs = [
-        "env.go",
-        "flags.go",
-        "pack.go",
     ],
     visibility = ["//visibility:public"],
 )

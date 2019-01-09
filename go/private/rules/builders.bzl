@@ -18,7 +18,6 @@ def _builders_impl(ctx):
     return [
         GoBuilders(
             compile = ctx.executable._compile,
-            pack = ctx.executable._pack,
             link = ctx.executable._link,
             cgo = ctx.executable._cgo,
             nogo_generator = ctx.executable._nogo_generator,
@@ -27,7 +26,6 @@ def _builders_impl(ctx):
         DefaultInfo(
             files = depset([
                 ctx.executable._compile,
-                ctx.executable._pack,
                 ctx.executable._link,
                 ctx.executable._cgo,
                 ctx.executable._nogo_generator,
@@ -43,11 +41,6 @@ builders = rule(
             executable = True,
             cfg = "host",
             default = "//go/tools/builders:compile",
-        ),
-        "_pack": attr.label(
-            executable = True,
-            cfg = "host",
-            default = "//go/tools/builders:pack",
         ),
         "_link": attr.label(
             executable = True,
