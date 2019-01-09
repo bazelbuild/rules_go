@@ -39,6 +39,8 @@ func main() {
 
 	var action func(args []string) error
 	switch verb {
+	case "asm":
+		action = asm
 	case "filterbuildid":
 		action = filterBuildID
 	case "stdlib":

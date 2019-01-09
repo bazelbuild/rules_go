@@ -17,7 +17,6 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoBuilders")
 def _builders_impl(ctx):
     return [
         GoBuilders(
-            asm = ctx.executable._asm,
             compile = ctx.executable._compile,
             pack = ctx.executable._pack,
             link = ctx.executable._link,
@@ -28,7 +27,6 @@ def _builders_impl(ctx):
         ),
         DefaultInfo(
             files = depset([
-                ctx.executable._asm,
                 ctx.executable._compile,
                 ctx.executable._pack,
                 ctx.executable._link,
@@ -43,11 +41,6 @@ def _builders_impl(ctx):
 builders = rule(
     _builders_impl,
     attrs = {
-        "_asm": attr.label(
-            executable = True,
-            cfg = "host",
-            default = "//go/tools/builders:asm",
-        ),
         "_compile": attr.label(
             executable = True,
             cfg = "host",

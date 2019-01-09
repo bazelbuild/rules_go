@@ -22,8 +22,10 @@ go_test(
 filegroup(
     name = "builder_srcs",
     srcs = [
+        "asm.go",
         "builder.go",
         "env.go",
+        "filter.go",
         "filter_buildid.go",
         "flags.go",
         "replicate.go",
@@ -32,17 +34,6 @@ filegroup(
         "@bazel_tools//src/conditions:windows": ["path_windows.go"],
         "//conditions:default": ["path.go"],
     }),
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "asm",
-    srcs = [
-        "asm.go",
-        "env.go",
-        "filter.go",
-        "flags.go",
-    ],
     visibility = ["//visibility:public"],
 )
 
