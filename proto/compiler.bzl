@@ -35,17 +35,27 @@ GoProtoCompiler = provider()
 def go_proto_compile(go, compiler, protos, imports, importpath):
     go_srcs = []
     outpath = None
-    dep_sources = depset(direct = [], transitive = [proto.check_deps_sources for proto in protos])
+    proto_paths = {}
+    for proto in protos:
+        for src in proto.check_deps_sources.to_list():
+            path = proto_path(src, proto)
+            if path in proto_paths:
+                continue
+            proto_paths[path] = True
+            out = go.declare_file(
+                go,
+                path = importpath + "/" + src.basename[:-len(".proto")],
+                ext = compiler.suffix,
+            )
+            go_srcs.append(out)
+            if outpath == None:
+                outpath = out.dirname[:-len(importpath)]
+
     transitive_descriptor_sets = depset(
         direct = [],
         transitive = [proto.transitive_descriptor_sets for proto in protos],
     )
 
-    for src in dep_sources.to_list():
-        out = go.declare_file(go, path = importpath + "/" + src.basename[:-len(".proto")], ext = compiler.suffix)
-        go_srcs.append(out)
-        if outpath == None:
-            outpath = out.dirname[:-len(importpath)]
     args = go.actions.args()
     args.add("-protoc", compiler.protoc)
     args.add("-importpath", importpath)
@@ -60,12 +70,6 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     args.add_all(transitive_descriptor_sets, before_each = "-descriptor_set")
     args.add_all(go_srcs, before_each = "-expected")
     args.add_all(imports, before_each = "-import")
-
-    proto_paths = dict()
-    for proto in protos:
-        for src in proto.check_deps_sources:
-            proto_paths[proto_path(src, proto)] = True
-
     args.add_all(proto_paths.keys())
     go.actions.run(
         inputs = sets.union([
