@@ -78,10 +78,15 @@ def emit_archive(go, source = None):
             testfilter = testfilter,
         )
     else:
+        # Assembly files must be passed to the compiler as sources. We need
+        # to run the assembler to produce a symabis file that gets passed to
+        # the compiler. The compiler builder does all this so it doesn't
+        # need to be a separate action (but individual .o files are still
+        # produced with separate actions).
         partial_lib = go.declare_file(go, path = lib_name + "~partial", ext = ".a")
         go.compile(
             go,
-            sources = split.go,
+            sources = split.go + split.asm + split.headers,
             importpath = source.library.importmap,
             archives = direct,
             out_lib = partial_lib,
