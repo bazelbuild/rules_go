@@ -36,7 +36,9 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     go_srcs = []
     outpath = None
     proto_paths = {}
+    desc_sets = []
     for proto in protos:
+        desc_sets.append(proto.transitive_descriptor_sets)
         for src in proto.check_deps_sources.to_list():
             path = proto_path(src, proto)
             if path in proto_paths:
@@ -51,10 +53,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
             if outpath == None:
                 outpath = out.dirname[:-len(importpath)]
 
-    transitive_descriptor_sets = depset(
-        direct = [],
-        transitive = [proto.transitive_descriptor_sets for proto in protos],
-    )
+    transitive_descriptor_sets = depset(direct = [], transitive = desc_sets)
 
     args = go.actions.args()
     args.add("-protoc", compiler.protoc)
