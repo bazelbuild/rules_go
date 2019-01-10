@@ -63,6 +63,12 @@ func run(args []string) error {
 	// Now switch to the newly created GOROOT
 	os.Setenv("GOROOT", output)
 
+	// Create a temporary cache directory. "go build" requires this starting
+	// in Go 1.12.
+	cachePath := filepath.Join(output, ".gocache")
+	os.Setenv("GOCACHE", cachePath)
+	defer os.RemoveAll(cachePath)
+
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
 	os.Setenv("CC", abs(os.Getenv("CC")))
