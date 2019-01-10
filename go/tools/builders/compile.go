@@ -146,7 +146,6 @@ func run(args []string) error {
 	if *nogo != "" {
 		var nogoargs []string
 		nogoargs = append(nogoargs, "-p", *packagePath)
-		nogoargs = append(nogoargs, "-vet_tool", goenv.goTool("vet")[0])
 		nogoargs = append(nogoargs, "-importcfg", importcfgName)
 		for _, imp := range stdImports {
 			nogoargs = append(nogoargs, "-stdimport", imp)

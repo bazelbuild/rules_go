@@ -80,7 +80,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:rules/nogo.bzl",
-    _nogo = "nogo",
+    _nogo = "nogo_wrapper",
 )
 
 # Current version or next version to be tagged. Gazelle and other tools may

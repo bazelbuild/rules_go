@@ -62,7 +62,6 @@ func run(args []string) error {
 	stdImports := multiFlag{}
 	flags := flag.NewFlagSet("nogo", flag.ExitOnError)
 	flags.Var(&stdImports, "stdimport", "A standard library import path")
-	vetTool := flags.String("vet_tool", "", "The vet tool")
 	importcfg := flags.String("importcfg", "", "The import configuration file")
 	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
 	xPath := flags.String("x", "", "The file where serialized facts should be written")
@@ -76,20 +75,6 @@ func run(args []string) error {
 	stdImportSet := make(map[string]bool)
 	for _, i := range stdImports {
 		stdImportSet[i] = true
-	}
-
-	if enableVet {
-		vcfgPath, err := buildVetcfgFile(packageFile, importMap, stdImports, srcs)
-		if err != nil {
-			return fmt.Errorf("error creating vet config: %v", err)
-		}
-		defer os.Remove(vcfgPath)
-		findings, err := runVet(*vetTool, vcfgPath)
-		if err != nil {
-			return fmt.Errorf("error running vet:\n%v\n", err)
-		} else if findings != "" {
-			return fmt.Errorf("errors found by vet:\n%s\n", findings)
-		}
 	}
 
 	diagnostics, facts, err := checkPackage(analyzers, *packagePath, packageFile, importMap, stdImportSet, srcs)

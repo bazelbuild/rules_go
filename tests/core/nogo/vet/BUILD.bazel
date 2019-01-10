@@ -36,10 +36,10 @@ bazel_test(
     build = BUILD_ENABLE_VET,
     check = BUILD_FAILED_TMPL.format(
         check_err =
-            CONTAINS_ERR_TMPL.format(err = "has_errors.go:3: +build comment must appear before package clause and be followed by a blank line") +
-            CONTAINS_ERR_TMPL.format(err = "has_errors.go:15: comparison of function F == nil is always false") +
-            CONTAINS_ERR_TMPL.format(err = 'has_errors.go:18: Printf format %b has arg "hi" of wrong type strin') +
-            CONTAINS_ERR_TMPL.format(err = "has_errors.go:19: redundant or: true || true"),
+            CONTAINS_ERR_TMPL.format(err = "has_errors.go:3:1: +build comment must appear before package clause and be followed by a blank line") +
+            CONTAINS_ERR_TMPL.format(err = "has_errors.go:15:5: comparison of function F == nil is always false") +
+            CONTAINS_ERR_TMPL.format(err = 'has_errors.go:18:2: Printf format %b has arg "hi" of wrong type strin') +
+            CONTAINS_ERR_TMPL.format(err = "has_errors.go:19:9: redundant or: true || true"),
     ),
     command = "build",
     nogo = NOGO,
