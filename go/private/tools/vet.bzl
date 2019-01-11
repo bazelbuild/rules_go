@@ -26,10 +26,8 @@ load(
 )
 
 def _go_vet_generate_impl(ctx):
-    print("""
-EXPERIMENTAL: the go_vet_test rule is still very experimental
-Please do not rely on it for production use, but feel free to use it and file issues
-""")
+    print("""DEPRECATED: the go_vet_test rule is deprecated. It will not work
+with Go 1.12+. Please migrate to nogo instead, which supports vet tests.""")
     go = go_context(ctx)
     script_file = go.declare_file(go, ext = ".bash")
     gopath = []
