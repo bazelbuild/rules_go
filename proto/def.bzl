@@ -90,7 +90,7 @@ def _go_proto_library_impl(ctx):
         compilers = ctx.attr.compilers
 
     if ctx.attr.proto:
-        #TODO: print("DEPRECATED: proto attribute on {}, use protos instead".format(ctx.label))
+        #TODO: print("DEPRECATED: proto attribute on {}, use protos attribute instead".format(ctx.label))
         if ctx.attr.protos:
             fail("Either proto or protos (non-empty) argument must be specified, but not both")
         protos = [ctx.attr.proto]
