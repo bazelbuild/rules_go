@@ -49,7 +49,7 @@ def get_imports(attr):
 
     direct = dict()
     for proto in protos:
-        for src in proto.check_deps_sources:
+        for src in proto.check_deps_sources.to_list():
             direct["{}={}".format(proto_path(src, proto), attr.importpath)] = True
 
     deps = getattr(attr, "deps", []) + getattr(attr, "embed", [])

@@ -42,8 +42,14 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
         for src in proto.check_deps_sources.to_list():
             path = proto_path(src, proto)
             if path in proto_paths:
+                if proto_paths[path] != src:
+                    fail("proto files {} and {} have the same import path, {}".format(
+                        src.path,
+                        proto_paths[path].path,
+                        path,
+                    ))
                 continue
-            proto_paths[path] = True
+            proto_paths[path] = src
             out = go.declare_file(
                 go,
                 path = importpath + "/" + src.basename[:-len(".proto")],
