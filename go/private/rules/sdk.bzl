@@ -72,8 +72,8 @@ go_sdk = rule(
         "tools": attr.label_list(
             allow_files = True,
             cfg = "host",
-            doc = ("List of executable files from pkg/tool " +
-                   "built for the execution platform"),
+            doc = ("List of executable files in the SDK built for " +
+                   "the execution platform, excluding the go binary"),
         ),
         "go": attr.label(
             mandatory = True,

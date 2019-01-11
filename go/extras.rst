@@ -5,6 +5,8 @@ Extra rules
 .. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
 .. _`gazelle documentation`: https://github.com/bazelbuild/bazel-gazelle/blob/master/README.rst
 .. _gazelle rule: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
+.. _gomock_rule: https://github.com/jmhodges/bazel_gomock
+.. _golang/mock: github.com/golang/mock
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -22,6 +24,11 @@ gazelle
 -------
 
 This rule has moved. See `gazelle rule`_ in the Gazelle repository.
+
+gomock
+------
+
+This rule allows you to generate mock interfaces with mockgen (from `golang/mock`_) which can be useful for certain testing scenarios. See  `gomock_rule`_ in the gomock repository.
 
 go_embed_data
 -------------

@@ -23,17 +23,15 @@ cc_library(
     hdrs = ["c_version.h"],
 )
 
-# Goes through genrule() to emulate prebuilt .so in srcs of cc_library.
-genrule(
-    name = "copy_c_version",
+# Goes through filegroup() to emulate prebuilt .so in srcs of cc_library.
+filegroup(
+    name = "c_version_so",
     srcs = [":c_version_orig"],
-    outs = ["libc_version.so"],
-    cmd = "cp \"$$(find $(SRCS) -name '*.so')\" $@",
-    output_to_bindir = 1,
+    output_group = "dynamic_library",
 )
 
 cc_library(
     name = "c_version_wrap",
-    srcs = ["libc_version.so"],
+    srcs = [":c_version_so"],
     hdrs = ["c_version.h"],
 )

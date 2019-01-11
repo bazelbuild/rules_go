@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 load(
     "@io_bazel_rules_go//tests/core/nogo:common.bzl",
@@ -15,18 +15,10 @@ nogo(
     name = "nogo",
     deps = [
         ":foofuncname",
-        ":boolreturn",
         ":importfmt",
+        ":visibility",
     ],
     {config}
-    visibility = ["//visibility:public"],
-)
-
-go_tool_library(
-    name = "boolreturn",
-    srcs = ["boolreturn.go"],
-    importpath = "returnboolanalyzer",
-    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
 )
 
@@ -45,12 +37,23 @@ go_tool_library(
     deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
     visibility = ["//visibility:public"],
 )
+
+go_tool_library(
+    name = "visibility",
+    srcs = ["visibility.go"],
+    importpath = "visibilityanalyzer",
+    deps = [
+        "@org_golang_x_tools//go/analysis:go_tool_library",
+        "@org_golang_x_tools//go/ast/inspector:go_tool_library",
+    ],
+    visibility = ["//visibility:public"],
+)
 """
 
 EXTRA_FILES = [
-    ":boolreturn.go",
-    ":importfmt.go",
     ":foofuncname.go",
+    ":importfmt.go",
+    ":visibility.go",
     ":config.json",
 ]
 
@@ -61,9 +64,9 @@ bazel_test(
     build = BUILD_TMPL.format(config = ""),
     check = BUILD_FAILED_TMPL.format(
         check_err =
-            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
-            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not return bool") +
-            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not be named Foo"),
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:.*package fmt must not be imported") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:.*function must not be named Foo") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:.*function D is not visible in this package"),
     ),
     command = "build",
     extra_files = EXTRA_FILES,
@@ -76,9 +79,9 @@ bazel_test(
     build = BUILD_TMPL.format(config = "config = \":config.json\","),
     check = BUILD_FAILED_TMPL.format(
         check_err =
-            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:4:2: package fmt must not be imported") +
-            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not return bool") +
-            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:7:1: function must not be named Foo"),
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:.*package fmt must not be imported") +
+            DOES_NOT_CONTAIN_ERR_TMPL.format(err = "custom/has_errors.go:.*function D is not visible in this package") +
+            CONTAINS_ERR_TMPL.format(err = "custom/has_errors.go:.*function must not be named Foo"),
     ),
     command = "build",
     extra_files = EXTRA_FILES,
@@ -103,10 +106,18 @@ go_library(
     name = "has_errors",
     srcs = ["has_errors.go"],
     importpath = "haserrors",
+    deps = [":dep"],
 )
 
 go_library(
     name = "no_errors",
     srcs = ["no_errors.go"],
     importpath = "noerrors",
+    deps = [":dep"],
+)
+
+go_library(
+    name = "dep",
+    srcs = ["dep.go"],
+    importpath = "dep",
 )

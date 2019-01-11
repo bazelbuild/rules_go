@@ -732,6 +732,12 @@ It does not return anything.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The archive file that should be produced.                                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
+| :param:`out_export`            | :type:`File`                | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| File where extra information about the package may be stored. This is used                       |
+| by nogo to store serialized facts about definitions. In the future, it may                       |
+| be used to store export data (instead of the .a file).                                           |
++--------------------------------+-----------------------------+-----------------------------------+
 | :param:`gc_goopts`             | :type:`string_list`         | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | Additional flags to pass to the compiler.                                                        |

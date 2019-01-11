@@ -133,10 +133,89 @@ argument on the command line:
 Embedding
 ~~~~~~~~~
 
-This is used for things like internal tests, where a library is recompiled with additional sources
-and also code generators where the generated source will be known to have extra dependencies.
+The sources, dependencies, and data of a ``go_library`` may be *embedded*
+within another ``go_library``, ``go_binary``, or ``go_test`` using the ``embed``
+attribute. The embedding package will be compiled into a single archive
+file. The embedded package may still be compiled as a separate target.
 
-**TODO**: More information
+A minimal example of embedding is below. In this example, the command ``bazel
+build :foo_and_bar`` will compile ``foo.go`` and ``bar.go`` into a single
+archive. ``bazel build :bar`` will compile only ``bar.go``. Both libraries must
+have the same ``importpath``.
+
+.. code:: bzl
+
+    go_library(
+        name = "foo_and_bar",
+        srcs = ["foo.go"],
+        embed = [":bar"],
+        importpath = "example.com/foo",
+    )
+
+    go_library(
+        name = "bar",
+        srcs = ["bar.go"],
+        imporpath = "example.com/foo",
+    )
+
+Embedding is most frequently used for tests and binaries. Go supports two
+different kinds of tests. *Internal tests* (e.g., ``package foo``) are compiled
+into the same archive as the library under test and can reference unexported
+definitions in that library. *External tests* (e.g., ``package foo_test``) are
+compiled into separate archives and may depend on exported definitions from the
+internal test archive.
+
+In order to compile the internal test archive, we *embed* the ``go_library``
+under test into a ``go_test`` that contains the test sources. The ``go_test``
+rule can automatically distinguish internal and external test sources, so they
+can be listed together in ``srcs``. The ``go_library`` under test does not
+contain test sources. Other ``go_binary`` and ``go_library`` targets can depend
+on it or embed it.
+
+.. code:: bzl
+
+    go_library(
+        name = "go_default_library",
+        srcs = ["foo.go"],
+        importpath = "example.com/foo",
+    )
+
+    go_binary(
+        name = "foo",
+        embed = [":go_default_library"],
+    )
+
+    go_test(
+        name = "go_default_test",
+        srcs = [
+            "foo_external_test.go",
+            "foo_internal_test.go",
+        ],
+        embed = [":go_default_library"],
+    )
+
+Embedding may also be used to add extra sources sources to a
+``go_proto_library``.
+
+.. code:: bzl
+
+    proto_library(
+        name = "foo_proto",
+        srcs = ["foo.proto"],
+    )
+
+    go_proto_library(
+        name = "foo_go_proto",
+        importpath = "example.com/foo",
+        proto = ":foo_proto",
+    )
+
+    go_library(
+        name = "go_default_library",
+        srcs = ["extra.go"],
+        embed = [":foo_go_proto"],
+        importpath = "example.com/foo",
+    )
 
 API
 ---
@@ -170,7 +249,7 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | The source import path of this library. Other libraries can import this                          |
 | library using this path. This must either be specified in ``go_library`` or                      |
-| inherited from one of the libraries in ``embeds``.                                               |
+| inherited from one of the libraries in ``embed``.                                                |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`importmap`         | :type:`string`              | :value:`""`                           |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -198,10 +277,13 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of Go libraries this test library directly.                                                 |
-| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
-| These can provide both :param:`srcs` and :param:`deps` to this library.                          |
-| See Embedding_ for more information about how and when to use this.                              |
+| List of Go libraries whose sources should be compiled together with this                         |
+| library's sources. Labels listed here must name ``go_library``,                                  |
+| ``go_proto_library``, or other compatible targets with the GoLibrary_ and                        |
+| GoSource_ providers. Embedded libraries must have the same ``importpath`` as                     |
+| the embedding library. At most one embedded library may have ``cgo = True``,                     |
+| and the embedding library may not also have ``cgo = True``. See Embedding_                       |
+| for more information.                                                                            |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -315,11 +397,10 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of Go libraries this library embeds. Embedded sources will be compiled                      |
-| together with this library's sources, and the combined list of dependencies                      |
-| will be available for import. These libraries must be ``go_tool_library``                        |
-| targets to avoid circular dependencies. See Embedding_ for more information                      |
-| about how and when to use this.                                                                  |
+| List of Go libraries whose sources should be compiled together with this                         |
+| library's sources. Labels listed here must name ``go_tool_library`` targets.                     |
+| Embedded libraries must have the same ``importpath`` as the embedding library.                   |
+| See Embedding_ for more information.                                                             |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -382,10 +463,14 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of Go libraries this binary embeds directly.                                                |
-| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
-| These can provide both :param:`srcs` and :param:`deps` to this binary.                           |
-| See Embedding_ for more information about how and when to use this.                              |
+| List of Go libraries whose sources should be compiled together with this                         |
+| binary's sources. Labels listed here must name ``go_library``,                                   |
+| ``go_proto_library``, or other compatible targets with the GoLibrary_ and                        |
+| GoSource_ providers. Embedded libraries must all have the same ``importpath``,                   |
+| which must match the ``importpath`` for this ``go_binary`` if one is                             |
+| specified. At most one embedded library may have ``cgo = True``, and the                         |
+| embedding binary may not also have ``cgo = True``. See Embedding_ for                            |
+| more information.                                                                                |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -578,10 +663,13 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| List of Go libraries this test embeds directly.                                                  |
-| These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
-| These can provide both :param:`srcs` and :param:`deps` to this test.                             |
-| See Embedding_ for more information about how and when to use this.                              |
+| List of Go libraries whose sources should be compiled together with this                         |
+| test's sources. Labels listed here must name ``go_library``,                                     |
+| ``go_proto_library``, or other compatible targets with the GoLibrary_ and                        |
+| GoSource_ providers. Embedded libraries must have the same ``importpath`` as                     |
+| the embedding test, if one is specified. At most one embedded library may                        |
+| have ``cgo = True``, and the embedding test may not also have ``cgo = True``.                    |
+| See Embedding_ for more information.                                                             |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+

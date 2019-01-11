@@ -18,7 +18,7 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
+    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
     "sets",
 )
 load(
@@ -39,10 +39,11 @@ GoProtoImports = provider()
 
 def get_imports(attr):
     direct = []
-    if hasattr(attr, "proto"):
+    if hasattr(attr, "proto") and hasattr(attr.proto, "proto"):
+        proto = attr.proto.proto
         direct = [
-            "{}={}".format(proto_path(src), attr.importpath)
-            for src in attr.proto.proto.direct_sources
+            "{}={}".format(proto_path(src, proto), attr.importpath)
+            for src in proto.check_deps_sources
         ]
     deps = getattr(attr, "deps", []) + getattr(attr, "embed", [])
     transitive = [
@@ -99,21 +100,21 @@ def _go_proto_library_impl(ctx):
         srcs = go_srcs,
     )
     source = go.library_to_source(go, ctx.attr, library, False)
-    if not valid_archive:
-        return [library, source]
-    archive = go.archive(go, source)
-    return [
-        library,
-        source,
-        archive,
-        DefaultInfo(
-            files = depset([archive.data.file]),
-            runfiles = archive.runfiles,
-        ),
-        OutputGroupInfo(
-            compilation_outputs = [archive.data.file],
-        ),
-    ]
+    providers = [library, source]
+    output_groups = {
+        "go_generated_srcs": go_srcs,
+    }
+    if valid_archive:
+        archive = go.archive(go, source)
+        output_groups["compilation_outputs"] = [archive.data.file]
+        providers.extend([
+            archive,
+            DefaultInfo(
+                files = depset([archive.data.file]),
+                runfiles = archive.runfiles,
+            ),
+        ])
+    return providers + [OutputGroupInfo(**output_groups)]
 
 go_proto_library = go_rule(
     _go_proto_library_impl,

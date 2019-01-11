@@ -38,6 +38,7 @@ import (
 	"sync"
 
 	"golang.org/x/tools/go/analysis"
+	"golang.org/x/tools/go/analysis/internal/facts"
 	"golang.org/x/tools/go/gcexportdata"
 )
 
@@ -47,21 +48,34 @@ func init() {
 	}
 }
 
+func main() {
+	log.SetFlags(0) // no timestamp
+	log.SetPrefix("nogo: ")
+	if err := run(os.Args[1:]); err != nil {
+		log.Fatal(err)
+	}
+}
+
 // run returns an error if there is a problem loading the package or if any
 // analysis fails.
 func run(args []string) error {
-	srcs := multiFlag{}
 	stdImports := multiFlag{}
 	flags := flag.NewFlagSet("nogo", flag.ExitOnError)
-	flags.Var(&srcs, "src", "A source file being compiled")
 	flags.Var(&stdImports, "stdimport", "A standard library import path")
 	vetTool := flags.String("vet_tool", "", "The vet tool")
 	importcfg := flags.String("importcfg", "", "The import configuration file")
+	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
+	xPath := flags.String("x", "", "The file where serialized facts should be written")
 	flags.Parse(args)
+	srcs := flags.Args()
 
 	packageFile, importMap, err := readImportCfg(*importcfg)
 	if err != nil {
 		return fmt.Errorf("error parsing importcfg: %v", err)
+	}
+	stdImportSet := make(map[string]bool)
+	for _, i := range stdImports {
+		stdImportSet[i] = true
 	}
 
 	if enableVet {
@@ -77,12 +91,20 @@ func run(args []string) error {
 			return fmt.Errorf("errors found by vet:\n%s\n", findings)
 		}
 	}
-	fset := token.NewFileSet()
-	if d, err := runAnalyzers(analyzers, fset, packageFile, importMap, flags.Args()); err != nil {
+
+	diagnostics, facts, err := checkPackage(analyzers, *packagePath, packageFile, importMap, stdImportSet, srcs)
+	if err != nil {
 		return fmt.Errorf("error running analyzers: %v", err)
-	} else if d != "" {
-		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", d)
 	}
+	if diagnostics != "" {
+		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics)
+	}
+	if *xPath != "" {
+		if err := ioutil.WriteFile(*xPath, facts, 0666); err != nil {
+			return fmt.Errorf("error writing facts: %v", err)
+		}
+	}
+
 	return nil
 }
 
@@ -129,21 +151,16 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 	return packageFile, importMap, nil
 }
 
-// runAnalyzers runs all the given analyzers on the specified package and
+// checkPackage runs all the given analyzers on the specified package and
 // returns the source code diagnostics that the must be printed in the build log.
 // It returns an empty string if no source code diagnostics need to be printed.
 //
 // This implementation was adapted from that of golang.org/x/tools/go/checker/internal/checker.
-func runAnalyzers(analyzers []*analysis.Analyzer, fset *token.FileSet, packageFile, importMap map[string]string, filenames []string) (string, error) {
-	imp := &importer{
-		fset:         fset,
-		importMap:    importMap,
-		packageCache: make(map[string]*types.Package),
-		packageFile:  packageFile,
-	}
-	pkg, err := load(fset, imp, filenames)
+func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFile, importMap map[string]string, stdImports map[string]bool, filenames []string) (string, []byte, error) {
+	imp := newImporter(importMap, packageFile, stdImports)
+	pkg, err := load(packagePath, imp, filenames)
 	if err != nil {
-		return "", fmt.Errorf("error loading package: %v", err)
+		return "", nil, fmt.Errorf("error loading package: %v", err)
 	}
 
 	// Construct the action graph.
@@ -171,7 +188,9 @@ func runAnalyzers(analyzers []*analysis.Analyzer, fset *token.FileSet, packageFi
 	}
 
 	execAll(roots)
-	return checkAnalysisResults(roots, pkg), nil
+	diagnostics := checkAnalysisResults(roots, pkg)
+	facts := pkg.facts.Encode()
+	return diagnostics, facts, nil
 }
 
 // An action represents one unit of analysis work: the application of
@@ -245,10 +264,10 @@ func (act *action) execOnce() {
 		TypesInfo:         act.pkg.typesInfo,
 		ResultOf:          inputs,
 		Report:            func(d analysis.Diagnostic) { act.diagnostics = append(act.diagnostics, d) },
-		ImportPackageFact: importPackageFact,
-		ExportPackageFact: exportPackageFact,
-		ImportObjectFact:  importObjectFact,
-		ExportObjectFact:  exportObjectFact,
+		ImportPackageFact: act.pkg.facts.ImportPackageFact,
+		ExportPackageFact: act.pkg.facts.ExportPackageFact,
+		ImportObjectFact:  act.pkg.facts.ImportObjectFact,
+		ExportObjectFact:  act.pkg.facts.ExportObjectFact,
 	}
 	act.pass = pass
 
@@ -269,19 +288,20 @@ func (act *action) execOnce() {
 }
 
 // load parses and type checks the source code in each file in filenames.
-func load(fset *token.FileSet, imp types.Importer, filenames []string) (*goPackage, error) {
+// load also deserializes facts stored for imported packages.
+func load(packagePath string, imp *importer, filenames []string) (*goPackage, error) {
 	if len(filenames) == 0 {
 		return nil, errors.New("no filenames")
 	}
 	var syntax []*ast.File
 	for _, file := range filenames {
-		s, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
+		s, err := parser.ParseFile(imp.fset, file, nil, parser.ParseComments)
 		if err != nil {
 			return nil, err
 		}
 		syntax = append(syntax, s)
 	}
-	pkg := &goPackage{fset: fset, syntax: syntax}
+	pkg := &goPackage{fset: imp.fset, syntax: syntax}
 
 	config := types.Config{Importer: imp}
 	info := &types.Info{
@@ -290,11 +310,16 @@ func load(fset *token.FileSet, imp types.Importer, filenames []string) (*goPacka
 		Defs:      make(map[*ast.Ident]types.Object),
 		Implicits: make(map[ast.Node]types.Object),
 	}
-	types, err := config.Check(syntax[0].Name.Name, fset, syntax, info)
+	types, err := config.Check(packagePath, pkg.fset, syntax, info)
 	if err != nil {
 		pkg.illTyped, pkg.typeCheckError = true, err
 	}
 	pkg.types, pkg.typesInfo = types, info
+
+	pkg.facts, err = facts.Decode(pkg.types, imp.readFacts)
+	if err != nil {
+		return nil, fmt.Errorf("internal error decoding facts: %v", err)
+	}
 
 	return pkg, nil
 }
@@ -308,6 +333,10 @@ type goPackage struct {
 	syntax []*ast.File
 	// types provides type information for the package.
 	types *types.Package
+	// facts contains information saved by the analysis framework. Passes may
+	// import facts for imported packages and may also export facts for this
+	// package to be consumed by analyses in downstream packages.
+	facts *facts.Set
 	// illTyped indicates whether the package or any dependency contains errors.
 	// It is set only when types is set.
 	illTyped bool
@@ -408,14 +437,6 @@ type config struct {
 	excludeFiles []*regexp.Regexp
 }
 
-func main() {
-	log.SetFlags(0) // no timestamp
-	log.SetPrefix("nogo: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
-}
-
 // importer is an implementation of go/types.Importer that imports type
 // information from the export data in compiled .a files.
 type importer struct {
@@ -423,6 +444,17 @@ type importer struct {
 	importMap    map[string]string         // map import path in source code to package path
 	packageCache map[string]*types.Package // cache of previously imported packages
 	packageFile  map[string]string         // map package path to .a file with export data
+	stdImports   map[string]bool           // imports from the standard library
+}
+
+func newImporter(importMap, packageFile map[string]string, stdImports map[string]bool) *importer {
+	return &importer{
+		fset:         token.NewFileSet(),
+		importMap:    importMap,
+		packageCache: make(map[string]*types.Package),
+		packageFile:  packageFile,
+		stdImports:   stdImports,
+	}
 }
 
 func (i *importer) Import(path string) (*types.Package, error) {
@@ -464,17 +496,22 @@ func (i *importer) Import(path string) (*types.Package, error) {
 	return gcexportdata.Read(r, i.fset, i.packageCache, path)
 }
 
-// Facts are unsupported.
-// TODO(samueltan): support them.
-func importPackageFact(pkg *types.Package, fact analysis.Fact) bool {
-	panic("Facts are not yet supported")
-}
-func exportPackageFact(fact analysis.Fact) {
-	panic("Facts are not yet supported")
-}
-func importObjectFact(obj types.Object, fact analysis.Fact) bool {
-	panic("Facts are not yet supported")
-}
-func exportObjectFact(obj types.Object, fact analysis.Fact) {
-	panic("Facts are not yet supported")
+func (i *importer) readFacts(path string) ([]byte, error) {
+	if i.stdImports[path] {
+		// Standard library packages are built ahead of time and are not analyzed,
+		// so there's no opportunity to store facts. Analyzers are expected to
+		// hard code information about standard library definitions. For example,
+		// "printf" should know fmt.Printf accepts a format string.
+		return nil, nil
+	}
+	archivePath, ok := i.packageFile[path]
+	if !ok {
+		return nil, fmt.Errorf("could not read analysis facts for %q: unknown import", path)
+	}
+	exportPath := strings.TrimSuffix(archivePath, ".a") + ".x"
+	data, err := ioutil.ReadFile(exportPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not read analysis facts for %q: %v", path, err)
+	}
+	return data, nil
 }

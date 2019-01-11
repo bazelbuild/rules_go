@@ -12,7 +12,7 @@ go_register_toolchains()
 # Needed for tests
 git_repository(
     name = "bazel_gazelle",
-    commit = "682c0e396e708a146e28f0796ae08b7913e2d9a9",  # master as of 2018-10-02
+    commit = "455e69320ee92c6f3bfb267aa211a4fa6ebc4e5d",  # master as of 2018-11-27
     remote = "https://github.com/bazelbuild/bazel-gazelle",
 )
 
@@ -50,10 +50,10 @@ llvm_toolchain(
 
 http_archive(
     name = "bazel_toolchains",
-    sha256 = "4ab012a06e80172b1d2cc68a69f12237ba2c4eb47ba34cb8099830d3b8c43dbc",
-    strip_prefix = "bazel-toolchains-646207624ed58c9dc658a135e40e578f8bbabf64",
+    sha256 = "7e85a14821536bc24e04610d309002056f278113c6cc82f1059a609361812431",
+    strip_prefix = "bazel-toolchains-bc0091adceaf4642192a8dcfc46e3ae3e4560ea7",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/646207624ed58c9dc658a135e40e578f8bbabf64.tar.gz",
-        "https://github.com/bazelbuild/bazel-toolchains/archive/646207624ed58c9dc658a135e40e578f8bbabf64.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/bc0091adceaf4642192a8dcfc46e3ae3e4560ea7.tar.gz",
+        "https://github.com/bazelbuild/bazel-toolchains/archive/bc0091adceaf4642192a8dcfc46e3ae3e4560ea7.tar.gz",
     ],
 )

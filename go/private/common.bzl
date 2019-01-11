@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:skylib/lib/dicts.bzl", "dicts")
-load("//go/private:skylib/lib/paths.bzl", "paths")
-load("//go/private:skylib/lib/sets.bzl", "sets")
-load("//go/private:skylib/lib/shell.bzl", "shell")
-load("//go/private:skylib/lib/structs.bzl", "structs")
-load("@io_bazel_rules_go//go/private:mode.bzl", "mode_string")
-
 go_exts = [
     ".go",
 ]

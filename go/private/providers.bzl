@@ -63,8 +63,8 @@ GoSDK = provider(
                  "may not be included."),
         "package_list": ("A file containing a list of importable packages " +
                          "in the standard library."),
-        "tools": ("List of executable files from pkg/tool " +
-                  "built for the execution platform."),
+        "tools": ("List of executable files in the SDK built for " +
+                  "the execution platform, excluding the go binary file"),
         "go": "The go binary file",
     },
 )

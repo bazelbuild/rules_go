@@ -8,6 +8,7 @@ Go rules for Bazel_
 .. |bazelci| image:: https://badge.buildkite.com/7ff4772cf73f716565daee2e0e6f4c8d8dee2b086caf27b6a8.svg
   :target: https://buildkite.com/bazel/golang-rules-go
 .. _gazelle: https://github.com/bazelbuild/bazel-gazelle
+.. _gazelle update-repos: https://github.com/bazelbuild/bazel-gazelle#update-repos
 .. _github.com/bazelbuild/bazel-gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _vendoring: Vendoring.md
 .. _protocol buffers: proto/core.rst
@@ -49,26 +50,22 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
-October 24, 2018
+December 20, 2018
+  Gazelle
+  `0.16.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.16.0>`_
+  is now available.
+December 15, 2018
   Releases
-  `0.16.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.1>`_,
-  `0.15.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.6>`_,
-  and `0.14.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.4>`_
-  are now available.
-October 16, 2018
+  `0.16.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.5>`_,
+  `0.15.10 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.10>`_,
+  and `0.14.8 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.8>`_
+  are now available with support for Go 1.11.4 and 1.10.7.
+December 13, 2018
   Releases
-  `0.16.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.0>`_,
-  `0.15.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.5>`_,
-  and `0.14.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.3>`_
-  are now available. Also, Gazelle
-  `0.15.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.15.0>`_
-  is also available.
-October 3, 2018
-  Releases
-  `0.15.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.4>`_,
-  `0.14.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.2>`_,
-  and `0.13.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.13.2>`_
-  are now available with support for Go 1.11.1.
+  `0.16.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.4>`_,
+  `0.15.9 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.9>`_,
+  and `0.14.7 <https://github.com/bazelbuild/rules_go/releases/tag/0.14.7>`_
+  are now available with support for Go 1.11.3 and 1.10.6.
 
 Contents
 --------
@@ -124,7 +121,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.16.1) requires Bazel ≥ 0.17.2 to work.
+Note: The latest version of these rules (0.16.5) requires Bazel ≥ 0.17.2 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -143,8 +140,8 @@ Setup
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.1/rules_go-0.16.1.tar.gz"],
-        sha256 = "f5127a8f911468cd0b2d7a141f17253db81177523e4429796e14d429f5444f5f",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.5/rules_go-0.16.5.tar.gz"],
+        sha256 = "7be7dc01f1e0afdba6c8eb2b43d2fa01c743be1b9273ab1eaf6c233df078d705",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -192,13 +189,13 @@ build files automatically using gazelle_.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.1/rules_go-0.16.1.tar.gz"],
-        sha256 = "f5127a8f911468cd0b2d7a141f17253db81177523e4429796e14d429f5444f5f",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.5/rules_go-0.16.5.tar.gz"],
+        sha256 = "7be7dc01f1e0afdba6c8eb2b43d2fa01c743be1b9273ab1eaf6c233df078d705",
     )
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.15.0/bazel-gazelle-0.15.0.tar.gz"],
-        sha256 = "6e875ab4b6bf64a38c352887760f21203ab054676d9c1b274963907e0768740d",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
+        sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
     )
     load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -304,11 +301,31 @@ Can I still use the ``go`` tool?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, this setup was deliberately chosen to be compatible with ``go build``.
-Make sure your project appears in ``GOPATH``, and it should work.
+Make sure your project appears in ``GOPATH`` or has a go.mod file, and it should
+work.
 
-Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``, so
-these will be downloaded into ``GOPATH``. You may also need to check in generated
-files.
+Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``,
+so you may want to download your dependencies into your ``GOPATH`` or module
+cache so that your tools are aware of them.  You may also need to check in
+generated files.
+
+Does this work with Go modules?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes, but not directly. Modules are a dependency management feature in cmd/go,
+the build system that ships with the Go SDK. Bazel uses the Go compiler and
+linker in the Go toolchain, but it does not use cmd/go. You need to describe
+your Go packages and executables and their dependencies in ``go_library``,
+``go_binary``, and ``go_test`` rules written in build files, and you need to
+describe your external dependencies in Bazel's WORKSPACE file.
+
+If your project follows normal Go conventions (those required by cmd/go), you
+can generate and update build files using gazelle_. You can import external
+dependencies from your go.mod file with a command like ``gazelle update-repos
+-from_file=go.mod``. This will add `go_repository`_ rules to your WORKSPACE.
+Each `go_repository`_ rule can download a module and generate build files for
+the module's packages using Gazelle. See `gazelle update-repos`_ for more
+information.
 
 What's up with the ``go_default_library`` name?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -553,3 +570,23 @@ especially with gRPC.
 
 See `Overriding dependencies`_ for information and an example of how to
 replace these repositories with different versions.
+
+Can I use a vendored gRPC with go_proto_library?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is not supported. When using `go_proto_library`_ with the
+``@io_bazel_rules_go//proto:go_grpc`` compiler, an implicit dependency is added
+on ``@org_golang_google_grpc//:go_default_library``. If you link another copy of
+the same package from ``//vendor/google.golang.org/grpc:go_default_library``
+or anywhere else, you may experience conflicts at compile or run-time.
+
+If you're using Gazelle with proto rule generation enabled, imports of
+``google.golang.org/grpc`` will be automatically resolved to
+``@org_golang_google_grpc//:go_default_library`` to avoid conflicts. The
+vendored gRPC should be ignored in this case.
+
+If you specifically need to use a vendored gRPC package, it's best to avoid
+using ``go_proto_library`` altogether. You can check in pre-generated .pb.go
+files and build them with ``go_library`` rules. Gazelle will generate these
+rules when proto rule generation is disabled (add ``# gazelle:proto
+disable_global`` to your root build file).

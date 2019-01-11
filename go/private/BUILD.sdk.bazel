@@ -24,7 +24,7 @@ filegroup(
 
 filegroup(
     name = "tools",
-    srcs = glob(["pkg/tool/**"]),
+    srcs = glob(["pkg/tool/**", "bin/gofmt*"])
 )
 
 go_sdk(

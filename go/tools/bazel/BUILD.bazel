@@ -2,7 +2,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["bazel.go"],
+    srcs = [
+        "bazel.go",
+        "runfiledir.go",
+        "runfilemanifest.go",
+        "runfiles.go",
+    ],
     importpath = "github.com/bazelbuild/rules_go/go/tools/bazel",
     visibility = ["//visibility:public"],
 )
@@ -10,7 +15,10 @@ go_library(
 go_test(
     name = "go_default_test",
     size = "small",
-    srcs = ["bazel_test.go"],
+    srcs = [
+        "bazel_test.go",
+        "runfiles_test.go",
+    ],
     data = [
         "README.md",
     ],

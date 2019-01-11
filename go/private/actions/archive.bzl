@@ -13,9 +13,12 @@
 # limitations under the License.
 
 load(
+    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "sets",
+)
+load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "as_tuple",
-    "sets",
     "split_srcs",
 )
 load(
@@ -41,6 +44,11 @@ def emit_archive(go, source = None):
     split = split_srcs(source.srcs)
     lib_name = source.library.importmap + ".a"
     out_lib = go.declare_file(go, path = lib_name)
+    out_export = None
+    if go.nogo:
+        # TODO(#1847): write nogo data into a new section in the .a file instead
+        # of writing a separate file.
+        out_export = go.declare_file(go, path = lib_name[:-len(".a")] + ".x")
     searchpath = out_lib.path[:-len(lib_name)]
     testfilter = getattr(source.library, "testfilter", None)
 
@@ -65,6 +73,7 @@ def emit_archive(go, source = None):
             importpath = source.library.importmap,
             archives = direct,
             out_lib = out_lib,
+            out_export = out_export,
             gc_goopts = source.gc_goopts,
             testfilter = testfilter,
         )
@@ -76,6 +85,7 @@ def emit_archive(go, source = None):
             importpath = source.library.importmap,
             archives = direct,
             out_lib = partial_lib,
+            out_export = out_export,
             gc_goopts = source.gc_goopts,
             testfilter = testfilter,
             asmhdr = asmhdr,
@@ -102,6 +112,7 @@ def emit_archive(go, source = None):
         importmap = source.library.importmap,
         pathtype = source.library.pathtype,
         file = out_lib,
+        export_file = out_export,
         srcs = as_tuple(source.srcs),
         orig_srcs = as_tuple(source.orig_srcs),
         data_files = as_tuple(data_files),

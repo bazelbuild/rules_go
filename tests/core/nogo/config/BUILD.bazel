@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+bazel_test(
+    name = "pure_aspect_test",
+    command = "build",
+    nogo = "@io_bazel_rules_go//:tools_nogo",
+    targets = [":pure_bin"],
+)
+
+go_binary(
+    name = "pure_bin",
+    srcs = ["pure_bin.go"],
+    pure = "on",
+    tags = ["manual"],
+    deps = [":pure_lib"],
+)
+
+go_library(
+    name = "pure_lib",
+    srcs = ["pure_lib.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/nogo/config/pure_lib",
+    tags = ["manual"],
+)

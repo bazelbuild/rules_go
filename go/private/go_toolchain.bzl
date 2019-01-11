@@ -139,5 +139,7 @@ def generate_toolchains(host, sdk):
 
 def generate_toolchain_names():
     # Keep in sync with generate_toolchains
-    return ["go_{}_{}".format(target_goos, target_goarch)
-            for target_goos, target_goarch in GOOS_GOARCH]
+    return [
+        "go_{}_{}".format(target_goos, target_goarch)
+        for target_goos, target_goarch in GOOS_GOARCH
+    ]

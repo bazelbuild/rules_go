@@ -32,9 +32,9 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "org_golang_x_tools",
-        # master, as of 2018-10-22
-        urls = ["https://codeload.github.com/golang/tools/zip/3e7aa9e59977626dc60433e9aeadf1bb63d28295"],
-        strip_prefix = "tools-3e7aa9e59977626dc60433e9aeadf1bb63d28295",
+        # master^1, as of 2018-11-02 (master is currently broken)
+        urls = ["https://codeload.github.com/golang/tools/zip/92b943e6bff73e0dfe9e975d94043d8f31067b06"],
+        strip_prefix = "tools-92b943e6bff73e0dfe9e975d94043d8f31067b06",
         type = "zip",
         patches = [
             "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",
@@ -57,12 +57,25 @@ def go_rules_dependencies():
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/golang/protobuf -proto disable_global
     )
+
+    # bazel_skylib is a dependency of com_google_protobuf.
+    # Nothing in rules_go may depend on bazel_skylib, since it won't be declared
+    # when go/def.bzl is loaded. The vendored copy of skylib in go/private/skylib
+    # may be used instead.
+    _maybe(
+        http_archive,
+        name = "bazel_skylib",
+        sha256 = "54ee22e5b9f0dd2b42eb8a6c1878dee592cfe8eb33223a7dbbc583a383f6ee1a",
+        strip_prefix = "bazel-skylib-0.6.0",
+        urls = ["https://github.com/bazelbuild/bazel-skylib/archive/0.6.0.zip"],
+        type = "zip",
+    )
     _maybe(
         http_archive,
         name = "com_google_protobuf",
-        # v3.6.1, latest as of 2018-09-28
-        urls = ["https://codeload.github.com/google/protobuf/zip/48cb18e5c419ddd23d9badcfe4e9df7bde1979b2"],
-        strip_prefix = "protobuf-48cb18e5c419ddd23d9badcfe4e9df7bde1979b2",
+        strip_prefix = "protobuf-7b28271a61a3da0a37f6fda399b0c4c86464e5b3",
+        sha256 = "d625beb4a43304409429a0466bb4fb44c89f7e7d90aeced972b8a61dbe92c80b",
+        urls = ["https://github.com/google/protobuf/archive/7b28271a61a3da0a37f6fda399b0c4c86464e5b3.zip"],  # 2018-11-16
         type = "zip",
     )
     _maybe(
@@ -123,7 +136,7 @@ def go_rules_dependencies():
         commit = "8dea3dc473e90c8179e519d91302d0597c0ca1d1",  # v1.15.0, latest as of 2018-09-28
         patches = [
             "@io_bazel_rules_go//third_party:org_golang_google_grpc-gazelle.patch",
-            "@io_bazel_rules_go//third_party:org_golang_google_grpc-android.patch",
+            "@io_bazel_rules_go//third_party:org_golang_google_grpc-crosscompile.patch",
         ],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix google.golang.org/grpc -proto disable

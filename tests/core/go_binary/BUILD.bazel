@@ -19,5 +19,14 @@ go_binary(
     srcs = ["custom_bin.go"],
     out = "alt_bin",
 )
-    
+
+go_binary(
+    name = "goos_pure_bin",
+    srcs = [
+        "broken_cgo.go",
+        "hello.go",
+    ],
+    goos = "plan9",
+)
+
 many_deps(name = "many_deps")

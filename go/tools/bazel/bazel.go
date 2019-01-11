@@ -20,43 +20,58 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 const TEST_SRCDIR = "TEST_SRCDIR"
 const TEST_TMPDIR = "TEST_TMPDIR"
 const TEST_WORKSPACE = "TEST_WORKSPACE"
 
-var defaultTestWorkspace = ""
+var (
+	defaultTestWorkspace = ""
+
+	runfileResolver     runfilesResolver
+	runfileResolverErr  error
+	runfileResolverOnce sync.Once
+)
+
+func getRunfilesResolver() (runfilesResolver, error) {
+	runfileResolverOnce.Do(func() {
+		runfileResolver, runfileResolverErr = newRunfilesResolver()
+	})
+	return runfileResolver, runfileResolverErr
+}
 
 // Runfile returns an absolute path to the specified file in the runfiles directory of the running target.
-// It searches the current working directory, RunfilesPath() directory, and RunfilesPath()/TestWorkspace().
-// Returns an error if unable to locate RunfilesPath() or if the file does not exist.
+// It searches the current working directory, the runfiles path, and the workspace subdirectory of runfiles.
+// If a runfiles manifest is present, it will be used to resolve files not present in the working directory.
+// Returns an error if the file could not be found, or if an error occurs trying to find the runfiles env.
 func Runfile(path string) (string, error) {
+	// Search in working directory
 	if _, err := os.Stat(path); err == nil {
-		// absolute path or found in current working directory
 		return path, nil
 	}
 
-	runfiles, err := RunfilesPath()
+	resolver, err := getRunfilesResolver()
 	if err != nil {
 		return "", err
 	}
 
-	filename := filepath.Join(runfiles, path)
-	if _, err := os.Stat(filename); err == nil {
-		// found at RunfilesPath()/path
-		return filename, nil
+	// Search in runfiles.
+	searchPath := []string{path}
+	if workspace, err := TestWorkspace(); err == nil {
+		searchPath = append(searchPath, filepath.Join(workspace, path))
 	}
 
-	workspace, err := TestWorkspace()
-	if err != nil {
-		return "", err
-	}
+	for _, path := range searchPath {
+		filename, ok := resolver.Resolve(path)
+		if !ok {
+			continue
+		}
 
-	filename = filepath.Join(runfiles, workspace, path)
-	if _, err := os.Stat(filename); err == nil {
-		// found at RunfilesPath()/TestWorkspace()/path
-		return filename, nil
+		if _, err := os.Stat(filename); err == nil {
+			return filename, nil
+		}
 	}
 
 	return "", fmt.Errorf("unable to find file %q", path)

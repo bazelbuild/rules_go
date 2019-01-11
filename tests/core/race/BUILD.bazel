@@ -60,7 +60,10 @@ else
   result=0
 fi
 """,
-    command = "test",
+    # NOTE(#1801): we use "coverage" instead of "test" here to verify that
+    # race binaries can link when coverage is enabled. Adding a new
+    # bazel_test, so we piggy-back on this one.
+    command = "coverage",
     targets = [":race_auto_test"],
 )
 

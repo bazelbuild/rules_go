@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -314,7 +315,7 @@ func TestFindRunfiles(t *testing.T) {
 			}
 
 			runfiles, ok := findRunfiles("project", "some/package", "bin", "data-file")
-			if runfiles != d.wantRunfiles || ok != d.wantOk {
+			if filepath.Clean(runfiles) != filepath.Clean(d.wantRunfiles) || ok != d.wantOk {
 				t.Errorf("Got %s, %v; want %s, %v", runfiles, ok, d.wantRunfiles, d.wantOk)
 			}
 		})

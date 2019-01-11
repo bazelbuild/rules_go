@@ -51,7 +51,13 @@ load(
     "as_iterable",
     "goos_to_extension",
     "goos_to_shared_extension",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
     "paths",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/structs.bzl",
     "structs",
 )
 load(
@@ -65,7 +71,15 @@ _GoContextData = provider()
 _COMPILER_OPTIONS_BLACKLIST = {
     "-fcolor-diagnostics": None,
     "-Wall": None,
-    "-g0": None,  # symbols are needed by Go, so keep them
+
+    # Symbols are needed by Go, so keep them
+    "-g0": None,
+
+    # Don't compile generated cgo code with coverage. If we do an internal
+    # link, we may have undefined references to coverage functions.
+    "--coverage": None,
+    "-ftest-coverage": None,
+    "-fprofile-arcs": None,
 }
 
 _LINKER_OPTIONS_BLACKLIST = {
@@ -282,7 +296,11 @@ def go_context(ctx, attr = None):
     if builders:
         builders = builders[GoBuilders]
 
-    nogo = ctx.files._nogo[0] if getattr(ctx.files, "_nogo", None) else None
+    nogo = None
+    if hasattr(attr, "_nogo"):
+        nogo_files = attr._nogo.files.to_list()
+        if nogo_files:
+            nogo = nogo_files[0]
 
     coverdata = getattr(attr, "_coverdata", None)
     if coverdata:
