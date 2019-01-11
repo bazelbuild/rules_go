@@ -50,6 +50,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
                     ))
                 continue
             proto_paths[path] = src
+
             out = go.declare_file(
                 go,
                 path = importpath + "/" + src.basename[:-len(".proto")],
