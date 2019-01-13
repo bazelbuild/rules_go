@@ -162,8 +162,19 @@ Setup
     go_rules_dependencies()
     go_register_toolchains()
 
-  You can add more external dependencies to this file later (see
-  `go_repository`_).
+* You can add more external dependencies to this file later (see
+  `go_repository`_). This rule is in Gazelle and will require you to load it.
+
+  .. code:: bzl
+
+  load("@bazel_gazelle//:deps.bzl", "go_repository")
+
+  go_repository(
+    name = "com_github_pkg_errors",
+    importpath = "github.com/pkg/errors",
+    tag = "v0.8.1",
+  )
+
 
 * Add a file named ``BUILD.bazel`` in the root directory of your
   project. In general, you need one of these files in every directory
