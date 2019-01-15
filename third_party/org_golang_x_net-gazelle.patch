@@ -1,6 +1,6 @@
 diff -urN a/bpf/BUILD.bazel b/bpf/BUILD.bazel
 --- a/bpf/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/bpf/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/bpf/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -38,7 +38,7 @@ diff -urN a/bpf/BUILD.bazel b/bpf/BUILD.bazel
 +)
 diff -urN a/context/BUILD.bazel b/context/BUILD.bazel
 --- a/context/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/context/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/context/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -65,66 +65,25 @@ diff -urN a/context/BUILD.bazel b/context/BUILD.bazel
 +)
 diff -urN a/context/ctxhttp/BUILD.bazel b/context/ctxhttp/BUILD.bazel
 --- a/context/ctxhttp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/context/ctxhttp/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
-@@ -0,0 +1,55 @@
++++ b/context/ctxhttp/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
+@@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "go_default_library",
-+    srcs = [
-+        "ctxhttp.go",
-+        "ctxhttp_pre17.go",
-+    ],
++    srcs = ["ctxhttp.go"],
 +    importpath = "golang.org/x/net/context/ctxhttp",
 +    visibility = ["//visibility:public"],
-+    deps = ["//context:go_default_library"],
 +)
 +
 +go_test(
 +    name = "go_default_test",
-+    srcs = [
-+        "ctxhttp_17_test.go",
-+        "ctxhttp_pre17_test.go",
-+        "ctxhttp_test.go",
-+    ],
++    srcs = ["ctxhttp_test.go"],
 +    embed = [":go_default_library"],
-+    deps = select({
-+        "@io_bazel_rules_go//go/platform:android": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:darwin": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:dragonfly": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:freebsd": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:linux": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:nacl": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:netbsd": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:openbsd": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:solaris": [
-+            "//context:go_default_library",
-+        ],
-+        "@io_bazel_rules_go//go/platform:windows": [
-+            "//context:go_default_library",
-+        ],
-+        "//conditions:default": [],
-+    }),
 +)
 diff -urN a/dict/BUILD.bazel b/dict/BUILD.bazel
 --- a/dict/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/dict/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/dict/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -136,7 +95,7 @@ diff -urN a/dict/BUILD.bazel b/dict/BUILD.bazel
 +)
 diff -urN a/dns/dnsmessage/BUILD.bazel b/dns/dnsmessage/BUILD.bazel
 --- a/dns/dnsmessage/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/dns/dnsmessage/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/dns/dnsmessage/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -157,7 +116,7 @@ diff -urN a/dns/dnsmessage/BUILD.bazel b/dns/dnsmessage/BUILD.bazel
 +)
 diff -urN a/html/atom/BUILD.bazel b/html/atom/BUILD.bazel
 --- a/html/atom/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/html/atom/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/html/atom/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -181,7 +140,7 @@ diff -urN a/html/atom/BUILD.bazel b/html/atom/BUILD.bazel
 +)
 diff -urN a/html/BUILD.bazel b/html/BUILD.bazel
 --- a/html/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/html/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/html/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,36 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -221,7 +180,7 @@ diff -urN a/html/BUILD.bazel b/html/BUILD.bazel
 +)
 diff -urN a/html/charset/BUILD.bazel b/html/charset/BUILD.bazel
 --- a/html/charset/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/html/charset/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/html/charset/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -248,7 +207,7 @@ diff -urN a/html/charset/BUILD.bazel b/html/charset/BUILD.bazel
 +)
 diff -urN a/http/httpguts/BUILD.bazel b/http/httpguts/BUILD.bazel
 --- a/http/httpguts/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/http/httpguts/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/http/httpguts/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -270,7 +229,7 @@ diff -urN a/http/httpguts/BUILD.bazel b/http/httpguts/BUILD.bazel
 +)
 diff -urN a/http/httpproxy/BUILD.bazel b/http/httpproxy/BUILD.bazel
 --- a/http/httpproxy/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/http/httpproxy/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/http/httpproxy/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -293,8 +252,8 @@ diff -urN a/http/httpproxy/BUILD.bazel b/http/httpproxy/BUILD.bazel
 +)
 diff -urN a/http2/BUILD.bazel b/http2/BUILD.bazel
 --- a/http2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/http2/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
-@@ -0,0 +1,71 @@
++++ b/http2/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
+@@ -0,0 +1,56 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -302,25 +261,15 @@ diff -urN a/http2/BUILD.bazel b/http2/BUILD.bazel
 +    srcs = [
 +        "ciphers.go",
 +        "client_conn_pool.go",
-+        "configure_transport.go",
 +        "databuffer.go",
 +        "errors.go",
 +        "flow.go",
 +        "frame.go",
 +        "go111.go",
-+        "go16.go",
-+        "go17.go",
-+        "go17_not18.go",
-+        "go18.go",
-+        "go19.go",
 +        "gotrack.go",
 +        "headermap.go",
 +        "http2.go",
 +        "not_go111.go",
-+        "not_go16.go",
-+        "not_go17.go",
-+        "not_go18.go",
-+        "not_go19.go",
 +        "pipe.go",
 +        "server.go",
 +        "transport.go",
@@ -346,8 +295,6 @@ diff -urN a/http2/BUILD.bazel b/http2/BUILD.bazel
 +        "errors_test.go",
 +        "flow_test.go",
 +        "frame_test.go",
-+        "go18_test.go",
-+        "go19_test.go",
 +        "gotrack_test.go",
 +        "http2_test.go",
 +        "pipe_test.go",
@@ -361,14 +308,11 @@ diff -urN a/http2/BUILD.bazel b/http2/BUILD.bazel
 +    ],
 +    data = glob(["testdata/**"]),
 +    embed = [":go_default_library"],
-+    deps = [
-+        "//context:go_default_library",
-+        "//http2/hpack:go_default_library",
-+    ],
++    deps = ["//http2/hpack:go_default_library"],
 +)
 diff -urN a/http2/h2c/BUILD.bazel b/http2/h2c/BUILD.bazel
 --- a/http2/h2c/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/http2/h2c/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/http2/h2c/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -392,7 +336,7 @@ diff -urN a/http2/h2c/BUILD.bazel b/http2/h2c/BUILD.bazel
 +)
 diff -urN a/http2/h2i/BUILD.bazel b/http2/h2i/BUILD.bazel
 --- a/http2/h2i/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/http2/h2i/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/http2/h2i/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,57 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -402,11 +346,6 @@ diff -urN a/http2/h2i/BUILD.bazel b/http2/h2i/BUILD.bazel
 +    importpath = "golang.org/x/net/http2/h2i",
 +    visibility = ["//visibility:private"],
 +    deps = select({
-+        "@io_bazel_rules_go//go/platform:android": [
-+            "//http2:go_default_library",
-+            "//http2/hpack:go_default_library",
-+            "@org_golang_x_crypto//ssh/terminal:go_default_library",
-+        ],
 +        "@io_bazel_rules_go//go/platform:darwin": [
 +            "//http2:go_default_library",
 +            "//http2/hpack:go_default_library",
@@ -437,6 +376,11 @@ diff -urN a/http2/h2i/BUILD.bazel b/http2/h2i/BUILD.bazel
 +            "//http2/hpack:go_default_library",
 +            "@org_golang_x_crypto//ssh/terminal:go_default_library",
 +        ],
++        "@io_bazel_rules_go//go/platform:solaris": [
++            "//http2:go_default_library",
++            "//http2/hpack:go_default_library",
++            "@org_golang_x_crypto//ssh/terminal:go_default_library",
++        ],
 +        "@io_bazel_rules_go//go/platform:windows": [
 +            "//http2:go_default_library",
 +            "//http2/hpack:go_default_library",
@@ -453,7 +397,7 @@ diff -urN a/http2/h2i/BUILD.bazel b/http2/h2i/BUILD.bazel
 +)
 diff -urN a/http2/hpack/BUILD.bazel b/http2/hpack/BUILD.bazel
 --- a/http2/hpack/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/http2/hpack/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/http2/hpack/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -480,7 +424,7 @@ diff -urN a/http2/hpack/BUILD.bazel b/http2/hpack/BUILD.bazel
 +)
 diff -urN a/icmp/BUILD.bazel b/icmp/BUILD.bazel
 --- a/icmp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/icmp/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/icmp/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,53 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -537,7 +481,7 @@ diff -urN a/icmp/BUILD.bazel b/icmp/BUILD.bazel
 +)
 diff -urN a/idna/BUILD.bazel b/idna/BUILD.bazel
 --- a/idna/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/idna/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/idna/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -570,7 +514,7 @@ diff -urN a/idna/BUILD.bazel b/idna/BUILD.bazel
 +)
 diff -urN a/internal/iana/BUILD.bazel b/internal/iana/BUILD.bazel
 --- a/internal/iana/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/iana/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/internal/iana/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -582,7 +526,7 @@ diff -urN a/internal/iana/BUILD.bazel b/internal/iana/BUILD.bazel
 +)
 diff -urN a/internal/nettest/BUILD.bazel b/internal/nettest/BUILD.bazel
 --- a/internal/nettest/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/nettest/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/internal/nettest/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -604,8 +548,8 @@ diff -urN a/internal/nettest/BUILD.bazel b/internal/nettest/BUILD.bazel
 +)
 diff -urN a/internal/socket/BUILD.bazel b/internal/socket/BUILD.bazel
 --- a/internal/socket/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/socket/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
-@@ -0,0 +1,128 @@
++++ b/internal/socket/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
+@@ -0,0 +1,131 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -617,6 +561,7 @@ diff -urN a/internal/socket/BUILD.bazel b/internal/socket/BUILD.bazel
 +        "cmsghdr_linux_64bit.go",
 +        "cmsghdr_solaris_64bit.go",
 +        "cmsghdr_stub.go",
++        "empty.s",
 +        "error_unix.go",
 +        "error_windows.go",
 +        "iovec_32bit.go",
@@ -646,6 +591,8 @@ diff -urN a/internal/socket/BUILD.bazel b/internal/socket/BUILD.bazel
 +        "sys_bsdvar.go",
 +        "sys_darwin.go",
 +        "sys_dragonfly.go",
++        "sys_go1_11_darwin.go",
++        "sys_go1_12_darwin.go",
 +        "sys_linux.go",
 +        "sys_linux_386.go",
 +        "sys_linux_386.s",
@@ -736,7 +683,7 @@ diff -urN a/internal/socket/BUILD.bazel b/internal/socket/BUILD.bazel
 +)
 diff -urN a/internal/socks/BUILD.bazel b/internal/socks/BUILD.bazel
 --- a/internal/socks/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/socks/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/internal/socks/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -758,7 +705,7 @@ diff -urN a/internal/socks/BUILD.bazel b/internal/socks/BUILD.bazel
 +)
 diff -urN a/internal/sockstest/BUILD.bazel b/internal/sockstest/BUILD.bazel
 --- a/internal/sockstest/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/sockstest/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/internal/sockstest/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -781,7 +728,7 @@ diff -urN a/internal/sockstest/BUILD.bazel b/internal/sockstest/BUILD.bazel
 +)
 diff -urN a/internal/timeseries/BUILD.bazel b/internal/timeseries/BUILD.bazel
 --- a/internal/timeseries/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/timeseries/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/internal/timeseries/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -799,7 +746,7 @@ diff -urN a/internal/timeseries/BUILD.bazel b/internal/timeseries/BUILD.bazel
 +)
 diff -urN a/ipv4/BUILD.bazel b/ipv4/BUILD.bazel
 --- a/ipv4/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/ipv4/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/ipv4/BUILD.bazel	2019-01-15 08:47:30.091721463 -0500
 @@ -0,0 +1,106 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -909,7 +856,7 @@ diff -urN a/ipv4/BUILD.bazel b/ipv4/BUILD.bazel
 +)
 diff -urN a/ipv6/BUILD.bazel b/ipv6/BUILD.bazel
 --- a/ipv6/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/ipv6/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/ipv6/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,104 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1017,7 +964,7 @@ diff -urN a/ipv6/BUILD.bazel b/ipv6/BUILD.bazel
 +)
 diff -urN a/lif/BUILD.bazel b/lif/BUILD.bazel
 --- a/lif/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/lif/BUILD.bazel	2018-09-28 12:54:35.734212202 -0400
++++ b/lif/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1048,7 +995,7 @@ diff -urN a/lif/BUILD.bazel b/lif/BUILD.bazel
 +)
 diff -urN a/nettest/BUILD.bazel b/nettest/BUILD.bazel
 --- a/nettest/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/nettest/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
++++ b/nettest/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1071,7 +1018,7 @@ diff -urN a/nettest/BUILD.bazel b/nettest/BUILD.bazel
 +)
 diff -urN a/netutil/BUILD.bazel b/netutil/BUILD.bazel
 --- a/netutil/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/netutil/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
++++ b/netutil/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1090,8 +1037,8 @@ diff -urN a/netutil/BUILD.bazel b/netutil/BUILD.bazel
 +)
 diff -urN a/proxy/BUILD.bazel b/proxy/BUILD.bazel
 --- a/proxy/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/proxy/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
-@@ -0,0 +1,24 @@
++++ b/proxy/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
+@@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -1114,11 +1061,14 @@ diff -urN a/proxy/BUILD.bazel b/proxy/BUILD.bazel
 +        "proxy_test.go",
 +    ],
 +    embed = [":go_default_library"],
-+    deps = ["//internal/sockstest:go_default_library"],
++    deps = [
++        "//internal/socks:go_default_library",
++        "//internal/sockstest:go_default_library",
++    ],
 +)
 diff -urN a/publicsuffix/BUILD.bazel b/publicsuffix/BUILD.bazel
 --- a/publicsuffix/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/publicsuffix/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
++++ b/publicsuffix/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1142,8 +1092,8 @@ diff -urN a/publicsuffix/BUILD.bazel b/publicsuffix/BUILD.bazel
 +)
 diff -urN a/route/BUILD.bazel b/route/BUILD.bazel
 --- a/route/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/route/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
-@@ -0,0 +1,49 @@
++++ b/route/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
+@@ -0,0 +1,52 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -1151,6 +1101,7 @@ diff -urN a/route/BUILD.bazel b/route/BUILD.bazel
 +    srcs = [
 +        "address.go",
 +        "binary.go",
++        "empty.s",
 +        "interface.go",
 +        "interface_announce.go",
 +        "interface_classic.go",
@@ -1168,6 +1119,8 @@ diff -urN a/route/BUILD.bazel b/route/BUILD.bazel
 +        "sys_netbsd.go",
 +        "sys_openbsd.go",
 +        "syscall.go",
++        "syscall_go1_11_darwin.go",
++        "syscall_go1_12_darwin.go",
 +        "zsys_darwin.go",
 +        "zsys_dragonfly.go",
 +        "zsys_freebsd_386.go",
@@ -1195,8 +1148,8 @@ diff -urN a/route/BUILD.bazel b/route/BUILD.bazel
 +)
 diff -urN a/trace/BUILD.bazel b/trace/BUILD.bazel
 --- a/trace/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/trace/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
-@@ -0,0 +1,27 @@
++++ b/trace/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
+@@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -1205,15 +1158,10 @@ diff -urN a/trace/BUILD.bazel b/trace/BUILD.bazel
 +        "events.go",
 +        "histogram.go",
 +        "trace.go",
-+        "trace_go16.go",
-+        "trace_go17.go",
 +    ],
 +    importpath = "golang.org/x/net/trace",
 +    visibility = ["//visibility:public"],
-+    deps = [
-+        "//context:go_default_library",
-+        "//internal/timeseries:go_default_library",
-+    ],
++    deps = ["//internal/timeseries:go_default_library"],
 +)
 +
 +go_test(
@@ -1226,16 +1174,14 @@ diff -urN a/trace/BUILD.bazel b/trace/BUILD.bazel
 +)
 diff -urN a/webdav/BUILD.bazel b/webdav/BUILD.bazel
 --- a/webdav/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/webdav/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
-@@ -0,0 +1,38 @@
++++ b/webdav/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = [
 +        "file.go",
-+        "file_go1.6.go",
-+        "file_go1.7.go",
 +        "if.go",
 +        "lock.go",
 +        "prop.go",
@@ -1244,10 +1190,7 @@ diff -urN a/webdav/BUILD.bazel b/webdav/BUILD.bazel
 +    ],
 +    importpath = "golang.org/x/net/webdav",
 +    visibility = ["//visibility:public"],
-+    deps = [
-+        "//context:go_default_library",
-+        "//webdav/internal/xml:go_default_library",
-+    ],
++    deps = ["//webdav/internal/xml:go_default_library"],
 +)
 +
 +go_test(
@@ -1261,14 +1204,11 @@ diff -urN a/webdav/BUILD.bazel b/webdav/BUILD.bazel
 +        "xml_test.go",
 +    ],
 +    embed = [":go_default_library"],
-+    deps = [
-+        "//context:go_default_library",
-+        "//webdav/internal/xml:go_default_library",
-+    ],
++    deps = ["//webdav/internal/xml:go_default_library"],
 +)
 diff -urN a/webdav/internal/xml/BUILD.bazel b/webdav/internal/xml/BUILD.bazel
 --- a/webdav/internal/xml/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/webdav/internal/xml/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
++++ b/webdav/internal/xml/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1297,7 +1237,7 @@ diff -urN a/webdav/internal/xml/BUILD.bazel b/webdav/internal/xml/BUILD.bazel
 +)
 diff -urN a/websocket/BUILD.bazel b/websocket/BUILD.bazel
 --- a/websocket/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/websocket/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
++++ b/websocket/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -1327,7 +1267,7 @@ diff -urN a/websocket/BUILD.bazel b/websocket/BUILD.bazel
 +)
 diff -urN a/xsrftoken/BUILD.bazel b/xsrftoken/BUILD.bazel
 --- a/xsrftoken/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/xsrftoken/BUILD.bazel	2018-09-28 12:54:35.738212254 -0400
++++ b/xsrftoken/BUILD.bazel	2019-01-15 08:47:30.095721338 -0500
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
