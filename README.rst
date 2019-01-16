@@ -328,7 +328,7 @@ gazelle_, you can write build files by hand.
     # Add a go repository
     go_repository(
         name = "com_github_pkg_errors",
-        importpath = "github.com/pkg/errors", # Import path you'll use in your .go files
+        importpath = "github.com/pkg/errors", # Import path used in the .go files
         tag = "v0.8.1",                       # Specific tag, commits are also supported
     )
 
