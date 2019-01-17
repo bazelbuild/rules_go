@@ -140,8 +140,10 @@ func extractFiles(archive, dir string, names map[string]struct{}) (files []strin
 			}
 			continue
 		}
-		name = simpleName(name, names)
-		names[name] = struct{}{}
+		name, err = simpleName(name, names)
+		if err != nil {
+			return nil, err
+		}
 		name = filepath.Join(dir, name)
 		if err := extractFile(r, name, size); err != nil {
 			return nil, err
@@ -281,30 +283,36 @@ func isObjectFile(name string) bool {
 
 // simpleName returns a file name which is at most 15 characters
 // and doesn't conflict with other names. If it is not possible to choose
-// such a name, simpleName will truncate the given name to 15 characters
-func simpleName(name string, names map[string]struct{}) string {
+// such a name, simpleName will truncate the given name to 15 characters.
+// The original file extension will be preserved.
+func simpleName(name string, names map[string]struct{}) (string, error) {
 	if _, ok := names[name]; !ok && len(name) < 16 {
-		return name
+		names[name] = struct{}{}
+		return name, nil
 	}
 	var stem, ext string
-	if i := strings.LastIndexByte(name, '.'); i < 0 || len(name)-i >= 10 {
+	if i := strings.LastIndexByte(name, '.'); i < 0 {
 		stem = name
 	} else {
-		stem = name[:i]
+		stem = strings.Replace(name[:i], ".", "_", -1)
 		ext = name[i:]
 	}
-	for n := 0; n < len(names); n++ {
+	for n := 0; n < len(names)+1; n++ {
 		ns := strconv.Itoa(n)
 		stemLen := 15 - len(ext) - len(ns)
+		if stemLen < 0 {
+			break
+		}
 		if stemLen > len(stem) {
 			stemLen = len(stem)
 		}
 		candidate := stem[:stemLen] + ns + ext
 		if _, ok := names[candidate]; !ok {
-			return candidate
+			names[candidate] = struct{}{}
+			return candidate, nil
 		}
 	}
-	return name[:15]
+	return "", fmt.Errorf("cannot shorten file name: %q", name)
 }
 
 func appendFiles(goenv *env, archive string, files []string) error {

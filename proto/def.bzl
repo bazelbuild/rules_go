@@ -38,20 +38,27 @@ load(
 GoProtoImports = provider()
 
 def get_imports(attr):
-    direct = []
+    protos = []
+
     if hasattr(attr, "proto") and hasattr(attr.proto, "proto"):
-        proto = attr.proto.proto
-        direct = [
-            "{}={}".format(proto_path(src, proto), attr.importpath)
-            for src in proto.check_deps_sources
-        ]
+        protos = [attr.proto.proto]
+    elif hasattr(attr, "protos"):
+        for proto in attr.protos:
+            if hasattr(proto, "proto"):
+                protos.append(proto.proto)
+
+    direct = dict()
+    for proto in protos:
+        for src in proto.check_deps_sources.to_list():
+            direct["{}={}".format(proto_path(src, proto), attr.importpath)] = True
+
     deps = getattr(attr, "deps", []) + getattr(attr, "embed", [])
     transitive = [
         dep[GoProtoImports].imports
         for dep in deps
         if GoProtoImports in dep
     ]
-    return depset(direct = direct, transitive = transitive)
+    return depset(direct = direct.keys(), transitive = transitive)
 
 def _go_proto_aspect_impl(target, ctx):
     imports = get_imports(ctx.rule.attr)
@@ -81,8 +88,20 @@ def _go_proto_library_impl(ctx):
         compilers = [ctx.attr.compiler]
     else:
         compilers = ctx.attr.compilers
+
+    if ctx.attr.proto:
+        #TODO: print("DEPRECATED: proto attribute on {}, use protos instead".format(ctx.label))
+        if ctx.attr.protos:
+            fail("Either proto or protos (non-empty) argument must be specified, but not both")
+        protos = [ctx.attr.proto]
+    else:
+        if not ctx.attr.protos:
+            fail("Either proto or protos (non-empty) argument must be specified")
+        protos = ctx.attr.protos
+
     go_srcs = []
     valid_archive = False
+
     for c in compilers:
         compiler = c[GoProtoCompiler]
         if compiler.valid_archive:
@@ -90,7 +109,7 @@ def _go_proto_library_impl(ctx):
         go_srcs.extend(compiler.compile(
             go,
             compiler = compiler,
-            proto = ctx.attr.proto.proto,
+            protos = [proto.proto for proto in protos],
             imports = get_imports(ctx.attr),
             importpath = go.importpath,
         ))
@@ -119,9 +138,10 @@ def _go_proto_library_impl(ctx):
 go_proto_library = go_rule(
     _go_proto_library_impl,
     attrs = {
-        "proto": attr.label(
-            mandatory = True,
+        "proto": attr.label(providers = ["proto"]),
+        "protos": attr.label_list(
             providers = ["proto"],
+            default = [],
         ),
         "deps": attr.label_list(
             providers = [GoLibrary],

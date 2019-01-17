@@ -188,7 +188,6 @@ def _cgo_codegen_impl(ctx):
         mangled_stem, src_ext = _mangle(src, stems)
         gen_file = go.declare_file(go, path = mangled_stem + ".cgo1." + src_ext)
         transformed_go_outs.append(gen_file)
-        transformed_go_map[gen_go_file] = src
         builder_args.add("-src", gen_file.path + "=" + src.path)
     for src in source.c:
         mangled_stem, src_ext = _mangle(src, stems)

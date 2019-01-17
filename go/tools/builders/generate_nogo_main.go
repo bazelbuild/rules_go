@@ -51,8 +51,6 @@ var analyzers = []*analysis.Analyzer{
 {{- end}}
 }
 
-const enableVet = {{.EnableVet}}
-
 // configs maps analysis names to configurations.
 var configs = map[string]config{
 {{- range $name, $config := .Configs}}
@@ -88,7 +86,6 @@ func run(args []string) error {
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
 	flags.Var(&analyzerImportPaths, "analyzer_importpath", "import path of an analyzer library")
 	configFile := flags.String("config", "", "nogo config file")
-	enableVet := flags.Bool("vet", false, "whether to run vet")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -131,12 +128,10 @@ func run(args []string) error {
 	data := struct {
 		Imports    []Import
 		Configs    Configs
-		EnableVet  bool
 		NeedRegexp bool
 	}{
-		Imports:   imports,
-		Configs:   config,
-		EnableVet: *enableVet,
+		Imports: imports,
+		Configs: config,
 	}
 	for _, c := range config {
 		if len(c.OnlyFiles) > 0 || len(c.ExcludeFiles) > 0 {
