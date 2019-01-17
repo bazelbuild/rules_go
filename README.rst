@@ -291,14 +291,15 @@ gazelle_, you can write build files by hand.
         deps = [":go_default_library"],
     )
 
-* For each Go repository, add the go_repository_ rule like the one below.
-  This rule is in Gazelle and will require you to load it. ``gazelle update-repos``
-  can generate or update these rules automatically from a go.mod or Gopkg.lock 
-  file. For more information, read https://github.com/bazelbuild/bazel-gazelle#update-repos.
-  For more documentation on the go_repository_ rule, read 
-  https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository.
+Adding external repositories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  .. code:: bzl
+For each Go repository, add a `go_repository`_ rule like the one below.
+This rule comes from the Gazelle repository, so you will need to load it. 
+`gazelle update-repos`_ can generate or update these rules automatically from
+a go.mod or Gopkg.lock file.
+
+.. code:: bzl
 
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     
@@ -331,9 +332,6 @@ gazelle_, you can write build files by hand.
         importpath = "github.com/pkg/errors", # Import path used in the .go files
         tag = "v0.8.1",                       # Specific tag, commits are also supported
     )
-
-* For instructions on how to depend on external libraries,
-  see _vendoring
 
 FAQ
 ---
