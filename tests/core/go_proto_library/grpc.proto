@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package tests.core.go_proto_library.grpc;
+option go_package = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/grpc";
+
+message HelloRequest {
+}
+
+message HelloReply {
+}
+
+service RPC {
+    rpc Hello (HelloRequest) returns (HelloReply) {}
+}

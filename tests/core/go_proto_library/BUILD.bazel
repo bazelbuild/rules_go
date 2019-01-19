@@ -26,6 +26,11 @@ go_proto_library(
     deps = [":foo_go_proto"],
 )
 
+proto_library(
+    name = "grpc_proto",
+    srcs = ["grpc.proto"],
+)
+
 # embed_test
 go_proto_library(
     name = "embed_go_proto",
@@ -128,6 +133,62 @@ proto_library(
 proto_library(
     name = "protos_b_proto",
     srcs = ["protos_b.proto"],
+)
+
+# gofast test
+go_test(
+    name = "gofast_test",
+    srcs = ["gofast_test.go"],
+    deps = [":gofast_proto"],
+)
+
+go_proto_library(
+    name = "gofast_proto",
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/foo",
+    compilers = ["@io_bazel_rules_go//proto:gofast_proto"],
+    protos = [":foo_proto"],
+)
+
+# gofast gRPC test
+go_test(
+    name = "gofast_grpc_test",
+    srcs = ["gofast_grpc_test.go"],
+    deps = [":gofast_grpc"],
+)
+
+go_proto_library(
+    name = "gofast_grpc",
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/grpc",
+    compilers = ["@io_bazel_rules_go//proto:gofast_grpc"],
+    protos = [":grpc_proto"],
+)
+
+# gogofast test
+go_test(
+    name = "gogofast_test",
+    srcs = ["gogofast_test.go"],
+    deps = [":gogofast_proto"],
+)
+
+go_proto_library(
+    name = "gogofast_proto",
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/foo",
+    compilers = ["@io_bazel_rules_go//proto:gogofast_proto"],
+    protos = [":foo_proto"],
+)
+
+# gogofast gRPC test
+go_test(
+    name = "gogofast_grpc_test",
+    srcs = ["gogofast_grpc_test.go"],
+    deps = [":gogofast_grpc"],
+)
+
+go_proto_library(
+    name = "gogofast_grpc",
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/grpc",
+    compilers = ["@io_bazel_rules_go//proto:gogofast_grpc"],
+    protos = [":grpc_proto"],
 )
 
 # adjusted_import_test
