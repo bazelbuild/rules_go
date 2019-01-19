@@ -731,9 +731,9 @@ def go_binary_c_archive_shared(name, kwargs):
         cc_import_kwargs["shared_library"] = name
     elif linkmode == LINKMODE_C_ARCHIVE:
         cc_import_kwargs["static_library"] = name
+        cc_import_kwargs["alwayslink"] = 1
     native.cc_import(
         name = cc_import_name,
-        alwayslink = 1,
         visibility = ["//visibility:private"],
         tags = tags,
         **cc_import_kwargs
