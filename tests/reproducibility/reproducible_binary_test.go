@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/user"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
@@ -82,7 +83,7 @@ func TestSandboxPath(t *testing.T) {
 // TestUserNameAndHome checks the user name and home directory do not
 // appear in strings from the binary.
 func TestUserNameAndHome(t *testing.T) {
-	if currentUser == nil || len(currentUser.Username) < 4 {
+	if currentUser == nil || len(currentUser.Username) < 4 || strings.Contains(currentUser.Username, "bazel") {
 		t.Skip()
 	}
 	for _, s := range allStrings {

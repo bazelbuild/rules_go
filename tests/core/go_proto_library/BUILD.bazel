@@ -104,6 +104,32 @@ proto_library(
     srcs = ["proxy_b.proto"],
 )
 
+# protos_test (multiple entries in protos argument)
+go_test(
+    name = "protos_test",
+    srcs = ["protos_test.go"],
+    deps = [":protos_go_proto"],
+)
+
+go_proto_library(
+    name = "protos_go_proto",
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/protos",
+    protos = [
+        ":protos_a_proto",
+        ":protos_b_proto",
+    ],
+)
+
+proto_library(
+    name = "protos_a_proto",
+    srcs = ["protos_a.proto"],
+)
+
+proto_library(
+    name = "protos_b_proto",
+    srcs = ["protos_b.proto"],
+)
+
 # adjusted_import_test
 # TODO(#1851): uncomment when Bazel 0.22.0 is the minimum version.
 # go_test(

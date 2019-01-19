@@ -29,7 +29,8 @@ contain disallowed coding patterns. In addition, ``nogo`` may report
 compiler-like errors.
 
 ``nogo`` is a powerful tool for preventing bugs and code anti-patterns early
-in the development process.
+in the development process. It may be used to run the same analyses as `vet`_,
+and you can write new analyses for your own code base.
 
 .. contents:: .
   :depth: 2
@@ -244,10 +245,14 @@ Running vet
 -----------
 
 `vet`_ is a tool that examines Go source code and reports correctness issues not
-caught by Go compilers. It is included in the official Go distribution.
+caught by Go compilers. It is included in the official Go distribution. Vet
+runs analyses built with the Go `analysis`_ framework. nogo uses the
+same framework, which means vet checks can be run with nogo.
 
-You can choose to run `vet`_ alongside the Go compiler by setting the ``vet``
-attribute in your `nogo`_ target:
+You can choose to run a safe subset of vet checks alongside the Go compiler by
+setting ``vet = True`` in your `nogo`_ target. This will only run vet checks
+that are believed to be 100% accurate (the same set run by ``go test`` by
+default).
 
 .. code:: bzl
 
@@ -257,15 +262,10 @@ attribute in your `nogo`_ target:
         visibility = ["//visibility:public"],
     )
 
-In the above example, the generated ``nogo`` program will only run `vet`_.
-`vet`_ can also run alongside ``nogo`` analyzers given by the ``deps``
-attribute.
-
-`vet`_ will print error messages and stop the build if any correctness issues
-are found in the source code being compiled. Only a subset of `vet`_ checks
-which are 100% accurate will be executed. This is the same subset of `vet`_
-checks that are run by the ``go`` tool during ``go test``.
-
+Setting ``vet = True`` is equivalent to adding the ``atomic``, ``bool``,
+``buildtags``, ``nilfunc``, and ``printf`` analyzers from
+``@org_golang_x_tools//go/analysis/passes`` to the ``deps`` list of your
+``nogo`` rule.
 
 API
 ---
@@ -304,7 +304,8 @@ Attributes
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`vet`               | :type:`bool`                | :value:`False`                        |
 +----------------------------+-----------------------------+---------------------------------------+
-| Whether to run the `vet`_ tool.                                                                  |
+| If true, a safe subset of vet checks will be run by nogo (the same subset run                    |
+| by ``go test ``).                                                                                |
 +----------------------------+-----------------------------+---------------------------------------+
 
 Example

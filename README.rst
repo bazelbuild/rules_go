@@ -8,6 +8,7 @@ Go rules for Bazel_
 .. |bazelci| image:: https://badge.buildkite.com/7ff4772cf73f716565daee2e0e6f4c8d8dee2b086caf27b6a8.svg
   :target: https://buildkite.com/bazel/golang-rules-go
 .. _gazelle: https://github.com/bazelbuild/bazel-gazelle
+.. _gazelle update-repos: https://github.com/bazelbuild/bazel-gazelle#update-repos
 .. _github.com/bazelbuild/bazel-gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _vendoring: Vendoring.md
 .. _protocol buffers: proto/core.rst
@@ -290,8 +291,47 @@ gazelle_, you can write build files by hand.
         deps = [":go_default_library"],
     )
 
-* For instructions on how to depend on external libraries,
-  see _vendoring
+Adding external repositories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For each Go repository, add a `go_repository`_ rule like the one below.
+This rule comes from the Gazelle repository, so you will need to load it. 
+`gazelle update-repos`_ can generate or update these rules automatically from
+a go.mod or Gopkg.lock file.
+
+.. code:: bzl
+
+    load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+    
+    # Download the Go rules
+    http_archive(
+        name = "io_bazel_rules_go",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.16.5/rules_go-0.16.5.tar.gz"],
+        sha256 = "7be7dc01f1e0afdba6c8eb2b43d2fa01c743be1b9273ab1eaf6c233df078d705",
+    )
+
+    # Load and call the dependencies
+    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    go_rules_dependencies()
+    go_register_toolchains()
+
+    # Download Gazelle
+    http_archive(
+        name = "bazel_gazelle",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
+        sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
+    )
+
+    # Load and call Gazelle dependencies
+    load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+    gazelle_dependencies()
+
+    # Add a go repository
+    go_repository(
+        name = "com_github_pkg_errors",
+        importpath = "github.com/pkg/errors", # Import path used in the .go files
+        tag = "v0.8.1",                       # Specific tag, commits are also supported
+    )
 
 FAQ
 ---
@@ -300,11 +340,31 @@ Can I still use the ``go`` tool?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, this setup was deliberately chosen to be compatible with ``go build``.
-Make sure your project appears in ``GOPATH``, and it should work.
+Make sure your project appears in ``GOPATH`` or has a go.mod file, and it should
+work.
 
-Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``, so
-these will be downloaded into ``GOPATH``. You may also need to check in generated
-files.
+Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``,
+so you may want to download your dependencies into your ``GOPATH`` or module
+cache so that your tools are aware of them.  You may also need to check in
+generated files.
+
+Does this work with Go modules?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes, but not directly. Modules are a dependency management feature in cmd/go,
+the build system that ships with the Go SDK. Bazel uses the Go compiler and
+linker in the Go toolchain, but it does not use cmd/go. You need to describe
+your Go packages and executables and their dependencies in ``go_library``,
+``go_binary``, and ``go_test`` rules written in build files, and you need to
+describe your external dependencies in Bazel's WORKSPACE file.
+
+If your project follows normal Go conventions (those required by cmd/go), you
+can generate and update build files using gazelle_. You can import external
+dependencies from your go.mod file with a command like ``gazelle update-repos
+-from_file=go.mod``. This will add `go_repository`_ rules to your WORKSPACE.
+Each `go_repository`_ rule can download a module and generate build files for
+the module's packages using Gazelle. See `gazelle update-repos`_ for more
+information.
 
 What's up with the ``go_default_library`` name?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

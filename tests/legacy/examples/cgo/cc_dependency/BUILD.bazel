@@ -13,7 +13,7 @@ cc_library(
     # See also comments in cxx_version.cc.
     deps = select({
         ":darwin": [],
-        "//conditions:default": [":c_version_wrap"],
+        "//conditions:default": [":c_version_import"],
     }),
 )
 
@@ -30,8 +30,9 @@ filegroup(
     output_group = "dynamic_library",
 )
 
-cc_library(
-    name = "c_version_wrap",
-    srcs = [":c_version_so"],
+cc_import(
+    name = "c_version_import",
     hdrs = ["c_version.h"],
+    shared_library = ":c_version_so",
+    tags = ["manual"],
 )

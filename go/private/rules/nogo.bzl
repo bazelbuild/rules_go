@@ -32,7 +32,7 @@ load(
 )
 
 def _nogo_impl(ctx):
-    if not ctx.attr.deps and not ctx.attr.vet:
+    if not ctx.attr.deps:
         # If there aren't any analyzers to run, don't generate a binary.
         # go_context will check for this condition.
         return None
@@ -46,8 +46,6 @@ def _nogo_impl(ctx):
     analyzer_archives = [get_archive(dep) for dep in ctx.attr.deps]
     analyzer_importpaths = [archive.data.importpath for archive in analyzer_archives]
     nogo_args.add_all(analyzer_importpaths, before_each = "-analyzer_importpath")
-    if ctx.attr.vet:
-        nogo_args.add("-vet")
     if ctx.file.config:
         nogo_args.add("-config", ctx.file.config)
         nogo_inputs.append(ctx.file.config)
@@ -98,11 +96,20 @@ nogo = go_rule(
         "config": attr.label(
             allow_single_file = True,
         ),
-        "vet": attr.bool(
-            default = False,
-        ),
         "_nogo_srcs": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:nogo_srcs",
         ),
     },
 )
+
+def nogo_wrapper(**kwargs):
+    if kwargs.get("vet"):
+        kwargs["deps"] = kwargs.get("deps", []) + [
+            "@org_golang_x_tools//go/analysis/passes/atomic:go_tool_library",
+            "@org_golang_x_tools//go/analysis/passes/bools:go_tool_library",
+            "@org_golang_x_tools//go/analysis/passes/buildtag:go_tool_library",
+            "@org_golang_x_tools//go/analysis/passes/nilfunc:go_tool_library",
+            "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
+        ]
+        kwargs = {k: v for k, v in kwargs.items() if k != "vet"}
+    nogo(**kwargs)

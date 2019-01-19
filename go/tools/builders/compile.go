@@ -27,7 +27,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -52,6 +55,7 @@ func run(args []string) error {
 	nogo := flags.String("nogo", "", "The nogo binary")
 	outExport := flags.String("x", "", "Path to nogo that should be written")
 	output := flags.String("o", "", "The output object file to write")
+	asmhdr := flags.String("asmhdr", "", "Path to assembly header file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
 	if err := flags.Parse(builderArgs); err != nil {
@@ -61,6 +65,9 @@ func run(args []string) error {
 		return err
 	}
 	*output = abs(*output)
+	if *asmhdr != "" {
+		*asmhdr = abs(*asmhdr)
+	}
 
 	// Filter sources using build constraints.
 	var matcher func(f *goMetadata) bool
@@ -71,11 +78,11 @@ func run(args []string) error {
 		}
 	case "only":
 		matcher = func(f *goMetadata) bool {
-			return strings.HasSuffix(f.pkg, "_test")
+			return strings.HasSuffix(f.filename, ".go") && strings.HasSuffix(f.pkg, "_test")
 		}
 	case "exclude":
 		matcher = func(f *goMetadata) bool {
-			return !strings.HasSuffix(f.pkg, "_test")
+			return !strings.HasSuffix(f.filename, ".go") || !strings.HasSuffix(f.pkg, "_test")
 		}
 	default:
 		return fmt.Errorf("Invalid test filter %q", *testfilter)
@@ -85,13 +92,22 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	files := []*goMetadata{}
+	var goFiles, sFiles, hFiles []*goMetadata
 	for _, f := range all {
 		if matcher(f) {
-			files = append(files, f)
+			switch path.Ext(f.filename) {
+			case ".go":
+				goFiles = append(goFiles, f)
+			case ".s":
+				sFiles = append(sFiles, f)
+			case ".h":
+				hFiles = append(hFiles, f)
+			default:
+				return fmt.Errorf("unknown file extension: %s", f.filename)
+			}
 		}
 	}
-	if len(files) == 0 {
+	if len(goFiles) == 0 {
 		// We need to run the compiler to create a valid archive, even if there's
 		// nothing in it. GoPack will complain if we try to add assembly or cgo
 		// objects.
@@ -99,16 +115,16 @@ func run(args []string) error {
 		if err := ioutil.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
 			return err
 		}
-		files = append(files, &goMetadata{filename: emptyPath, pkg: "empty"})
+		goFiles = append(goFiles, &goMetadata{filename: emptyPath, pkg: "empty"})
 	}
 
 	if *packagePath == "" {
-		*packagePath = files[0].pkg
+		*packagePath = goFiles[0].pkg
 	}
 
 	// Check that the filtered sources don't import anything outside of
 	// the standard library and the direct dependencies.
-	_, stdImports, err := checkDirectDeps(files, archives, *packageList)
+	_, stdImports, err := checkDirectDeps(goFiles, archives, *packageList)
 	if err != nil {
 		return err
 	}
@@ -120,15 +136,30 @@ func run(args []string) error {
 	}
 	defer os.Remove(importcfgName)
 
+	// If there are assembly files, and this is go1.12+, generate symbol ABIs.
+	symabisName, err := buildSymabisFile(goenv, sFiles, hFiles, *asmhdr)
+	if symabisName != "" {
+		defer os.Remove(symabisName)
+	}
+	if err != nil {
+		return err
+	}
+
 	// Compile the filtered files.
 	goargs := goenv.goTool("compile")
 	goargs = append(goargs, "-p", *packagePath)
 	goargs = append(goargs, "-importcfg", importcfgName)
 	goargs = append(goargs, "-pack", "-o", *output)
+	if symabisName != "" {
+		goargs = append(goargs, "-symabis", symabisName)
+	}
+	if *asmhdr != "" {
+		goargs = append(goargs, "-asmhdr", *asmhdr)
+	}
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, "--")
-	filenames := make([]string, 0, len(files))
-	for _, f := range files {
+	filenames := make([]string, 0, len(goFiles))
+	for _, f := range goFiles {
 		filenames = append(filenames, f.filename)
 	}
 	goargs = append(goargs, filenames...)
@@ -146,7 +177,6 @@ func run(args []string) error {
 	if *nogo != "" {
 		var nogoargs []string
 		nogoargs = append(nogoargs, "-p", *packagePath)
-		nogoargs = append(nogoargs, "-vet_tool", goenv.goTool("vet")[0])
 		nogoargs = append(nogoargs, "-importcfg", importcfgName)
 		for _, imp := range stdImports {
 			nogoargs = append(nogoargs, "-stdimport", imp)
@@ -184,6 +214,78 @@ func main() {
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// TODO(#1891): consolidate this logic when compile and asm are in the
+// same binary.
+func buildSymabisFile(goenv *env, sFiles, hFiles []*goMetadata, asmhdr string) (string, error) {
+	if len(sFiles) == 0 {
+		return "", nil
+	}
+
+	// Check version. The symabis file is only required and can only be built
+	// starting at go1.12.
+	version := runtime.Version()
+	if strings.HasPrefix(version, "go1.") {
+		minor := version[len("go1."):]
+		if i := strings.IndexByte(minor, '.'); i >= 0 {
+			minor = minor[:i]
+		}
+		n, err := strconv.Atoi(minor)
+		if err == nil && n <= 11 {
+			return "", nil
+		}
+		// Fall through if the version can't be parsed. It's probably a newer
+		// development version.
+	}
+
+	// Create an empty go_asm.h file. The compiler will write this later, but
+	// we need one to exist now.
+	asmhdrFile, err := os.Create(asmhdr)
+	if err != nil {
+		return "", err
+	}
+	if err := asmhdrFile.Close(); err != nil {
+		return "", err
+	}
+	asmhdrDir := filepath.Dir(asmhdr)
+
+	// Create a temporary output file. The caller is responsible for deleting it.
+	var symabisName string
+	symabisFile, err := ioutil.TempFile("", "symabis")
+	if err != nil {
+		return "", err
+	}
+	symabisName = symabisFile.Name()
+	symabisFile.Close()
+
+	// Run the assembler.
+	wd, err := os.Getwd()
+	if err != nil {
+		return symabisName, err
+	}
+	asmargs := goenv.goTool("asm")
+	asmargs = append(asmargs, "-trimpath", wd)
+	asmargs = append(asmargs, "-I", wd)
+	asmargs = append(asmargs, "-I", filepath.Join(os.Getenv("GOROOT"), "pkg", "include"))
+	asmargs = append(asmargs, "-I", asmhdrDir)
+	seenHdrDirs := map[string]bool{wd: true, asmhdrDir: true}
+	for _, hFile := range hFiles {
+		hdrDir := filepath.Dir(abs(hFile.filename))
+		if !seenHdrDirs[hdrDir] {
+			asmargs = append(asmargs, "-I", hdrDir)
+			seenHdrDirs[hdrDir] = true
+		}
+	}
+	// TODO(#1894): define GOOS_goos, GOARCH_goarch, both here and in the
+	// GoAsm action.
+	asmargs = append(asmargs, "-gensymabis", "-o", symabisName, "--")
+	for _, sFile := range sFiles {
+		asmargs = append(asmargs, sFile.filename)
+	}
+
+	err = goenv.runCommand(asmargs)
+	return symabisName, err
 }
 
 func checkDirectDeps(files []*goMetadata, archives []archive, packageList string) (depImports, stdImports []string, err error) {

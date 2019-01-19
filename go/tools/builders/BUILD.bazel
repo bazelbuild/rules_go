@@ -71,7 +71,6 @@ go_source(
     srcs = [
         "flags.go",
         "nogo_main.go",
-        "nogo_vet.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
     # Bazel's visibility check than
