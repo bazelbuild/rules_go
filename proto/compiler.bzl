@@ -159,7 +159,7 @@ go_proto_compiler = go_rule(
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
         "valid_archive": attr.bool(default = True),
-        "import_path_option": attr.bool(default = True),
+        "import_path_option": attr.bool(default = False),
         "plugin": attr.label(
             allow_single_file = True,
             executable = True,
