@@ -26,27 +26,12 @@ load(
     _GoSource = "GoSource",
 )
 load(
-    "@io_bazel_rules_go//go/private:repositories.bzl",
-    _go_rules_dependencies = "go_rules_dependencies",
-)
-load(
-    "@io_bazel_rules_go//go/toolchain:toolchains.bzl",
-    _go_register_toolchains = "go_register_toolchains",
-)
-load(
-    "@io_bazel_rules_go//go/private:sdk.bzl",
-    "go_download_sdk",
-    "go_host_sdk",
-    "go_local_sdk",
-    "go_wrap_sdk",
-)
-load(
     "@io_bazel_rules_go//go/private:rules/sdk.bzl",
     _go_sdk = "go_sdk",
 )
 load(
     "@io_bazel_rules_go//go/private:go_toolchain.bzl",
-    "go_toolchain",
+    _go_toolchain = "go_toolchain",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/wrappers.bzl",
@@ -88,12 +73,11 @@ load(
 RULES_GO_VERSION = "0.16.0"
 
 go_context = _go_context
-go_rules_dependencies = _go_rules_dependencies
-go_register_toolchains = _go_register_toolchains
 go_tool_library = _go_tool_library
 nogo = _nogo
 go_embed_data = _go_embed_data
 go_sdk = _go_sdk
+go_toolchain = _go_toolchain
 
 GoLibrary = _GoLibrary
 """See go/providers.rst#GoLibrary for full documentation."""
@@ -140,3 +124,25 @@ go_vet_test = _go_vet_test
 """
     go_vet_test
 """
+
+def go_rules_dependencies():
+    _moved("go_rules_dependencies")
+
+def go_register_toolchains(**kwargs):
+    _moved("go_register_toolchains")
+
+def go_download_sdk(**kwargs):
+    _moved("go_download_sdk")
+
+def go_host_sdk(**kwargs):
+    _moved("go_host_sdk")
+
+def go_local_sdk(**kwargs):
+    _moved("go_local_sdk")
+
+def go_wrap_sdk(**kwargs):
+    _moved("go_wrap_sdK")
+
+def _moved(name):
+    fail(name + " has moved. Please load from " +
+         " @io_bazel_rules_go//go:deps.bzl instead of def.bzl.")

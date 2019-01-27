@@ -49,7 +49,7 @@ build:fetch --fetch=True
 # _basic_workspace is the content appended to all test workspace files
 # it contains the calls required to make the go rules work
 _basic_workspace = """
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 go_rules_dependencies()
 """
 

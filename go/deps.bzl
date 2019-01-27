@@ -12,13 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# deps.bzl loads definitions for use in WORKSPACE files. It's important
+# to keep this file and the .bzl files it loads separate from the files
+# loaded by def.bzl. def.bzl and its dependencies may depend on repositories
+# declared here, but at the time this file is loaded, we can't assume
+# anything has been declared.
+
 load(
-    "@io_bazel_rules_go//go:def.bzl",
+    "@io_bazel_rules_go//go/private:repositories.bzl",
+    _go_rules_dependencies = "go_rules_dependencies",
+)
+load(
+    "@io_bazel_rules_go//go/toolchain:toolchains.bzl",
+    _go_register_toolchains = "go_register_toolchains",
+)
+load(
+    "@io_bazel_rules_go//go/private:sdk.bzl",
     _go_download_sdk = "go_download_sdk",
     _go_host_sdk = "go_host_sdk",
     _go_local_sdk = "go_local_sdk",
-    _go_register_toolchains = "go_register_toolchains",
-    _go_rules_dependencies = "go_rules_dependencies",
     _go_wrap_sdk = "go_wrap_sdk",
 )
 
