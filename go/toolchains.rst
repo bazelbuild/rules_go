@@ -101,7 +101,7 @@ the version of rules_go you're using was released.
 .. code:: bzl
     # WORKSPACE
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
     go_rules_dependencies()
     go_register_toolchains()
@@ -117,7 +117,7 @@ toolchain.
 .. code:: bzl
     # WORKSPACE
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
     go_rules_dependencies()
     go_register_toolchains(go_version="1.10.3")
@@ -133,7 +133,7 @@ but builds won't be reproducible across systems with different SDKs installed.
 .. code:: bzl
     # WORKSPACE
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
     go_rules_dependencies()
     go_register_toolchains(go_version="host")
@@ -149,7 +149,7 @@ temporary limitation that will be removed in the future.
 .. code:: bzl
     # WORKSPACE
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk")
 
     unknown_download_sdk(
         name = "go",
@@ -264,7 +264,7 @@ This downloads a Go SDK for use in toolchains.
 .. code:: bzl
 
     load(
-        "@io_bazel_rules_go//go:def.bzl",
+        "@io_bazel_rules_go//go:deps.bzl",
         "go_download_sdk",
         "go_register_toolchains",
         "go_rules_dependencies",
@@ -347,7 +347,7 @@ rule.
 .. code:: bzl
 
     load(
-        "@io_bazel_rules_go//go:def.bzl",
+        "@io_bazel_rules_go//go:deps.bzl",
         "go_register_toolchains",
         "go_rules_dependencies",
         "go_wrap_sdk",

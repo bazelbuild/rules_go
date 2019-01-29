@@ -72,7 +72,7 @@ Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
 
 .. code:: bzl
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains(nogo="@//:my_nogo") # my_nogo is in the top-level BUILD file of this workspace
 
