@@ -54,6 +54,19 @@ load(
     "MSAN_GOOS_GOARCH",
     "RACE_GOOS_GOARCH",
 )
+load(
+    "@io_bazel_rules_go_compat//:compat.bzl",
+    "CC_PROVIDER_NAME",
+    "cc_compile_flags",
+    "cc_defines",
+    "cc_includes",
+    "cc_libs",
+    "cc_link_flags",
+    "cc_quote_includes",
+    "cc_system_includes",
+    "cc_transitive_headers",
+    "has_cc",
+)
 
 _CgoCodegen = provider()
 _CgoInfo = provider()
@@ -218,17 +231,17 @@ def _cgo_codegen_impl(ctx):
     runfiles = ctx.runfiles(collect_data = True)
     for d in ctx.attr.deps:
         runfiles = runfiles.merge(d.data_runfiles)
-        if hasattr(d, "cc"):
-            inputs = sets.union(inputs, d.cc.transitive_headers)
-            deps = sets.union(deps, d.cc.libs)
-            cppopts.extend(["-D" + define for define in d.cc.defines])
-            for inc in d.cc.include_directories:
+        if has_cc(d):
+            inputs = sets.union(inputs, cc_transitive_headers(d))
+            deps = sets.union(deps, cc_libs(d))
+            cppopts.extend(["-D" + define for define in cc_defines(d)])
+            for inc in cc_includes(d):
                 _include_unique(cppopts, "-I", inc, seen_includes)
-            for inc in d.cc.quote_include_directories:
+            for inc in cc_quote_includes(d):
                 _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
-            for inc in d.cc.system_include_directories:
+            for inc in cc_system_includes(d):
                 _include_unique(cppopts, "-isystem", inc, seen_system_includes)
-            for lib in as_iterable(d.cc.libs):
+            for lib in cc_libs(d):
                 # If both static and dynamic variants are available, Bazel will only give
                 # us the static variant. We'll get one file for each transitive dependency,
                 # so the same file may appear more than once.
@@ -243,7 +256,7 @@ def _cgo_codegen_impl(ctx):
                     linkopts.extend(["-L", lib.dirname, "-l", libname])
                 else:
                     linkopts.append(lib.path)
-            linkopts.extend(d.cc.link_flags)
+            linkopts.extend(cc_link_flags(d))
         elif hasattr(d, "objc"):
             cppopts.extend(["-D" + define for define in d.objc.define.to_list()])
             for inc in d.objc.include.to_list():
@@ -437,7 +450,7 @@ _cgo_collect_info = go_rule(
         "libs": attr.label_list(
             mandatory = True,
             allow_files = True,
-            providers = ["cc"],
+            providers = [CC_PROVIDER_NAME],
         ),
         "cgo_import": attr.label(mandatory = True),
     },

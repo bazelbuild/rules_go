@@ -15,6 +15,7 @@
 # Once nested repositories work, this file should cease to exist.
 
 load("@io_bazel_rules_go//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
+load("@io_bazel_rules_go//go/private:compat/compat_repo.bzl", "go_rules_compat")
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
 load("@io_bazel_rules_go//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
@@ -27,8 +28,13 @@ def go_rules_dependencies():
     if getattr(native, "bazel_version", None):
         versions.check(MINIMUM_BAZEL_VERSION, bazel_version = native.bazel_version)
 
-    # Was needed by Gazelle in the past. Will likely be needed for go/packages
-    # and analysis in the future.
+    # Compatibility layer, needed to support older versions of Bazel.
+    _maybe(
+        go_rules_compat,
+        name = "io_bazel_rules_go_compat",
+    )
+
+    # Needed for nogo vet checks and go/packages.
     _maybe(
         http_archive,
         name = "org_golang_x_tools",
