@@ -21,6 +21,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/gob"
 	"errors"
 	"flag"
 	"fmt"
@@ -142,37 +143,49 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 //
 // This implementation was adapted from that of golang.org/x/tools/go/checker/internal/checker.
 func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFile, importMap map[string]string, stdImports map[string]bool, filenames []string) (string, []byte, error) {
+	// Register fact types and establish dependencies between analyzers.
+	actions := make(map[*analysis.Analyzer]*action)
+	var visit func(a *analysis.Analyzer) *action
+	visit = func(a *analysis.Analyzer) *action {
+		act, ok := actions[a]
+		if !ok {
+			act = &action{a: a}
+			actions[a] = act
+			for _, f := range a.FactTypes {
+				act.usesFacts = true
+				gob.Register(f)
+			}
+			act.deps = make([]*action, len(a.Requires))
+			for i, req := range a.Requires {
+				dep := visit(req)
+				if dep.usesFacts {
+					act.usesFacts = true
+				}
+				act.deps[i] = dep
+			}
+		}
+		return act
+	}
+
+	roots := make([]*action, 0, len(analyzers))
+	for _, a := range analyzers {
+		roots = append(roots, visit(a))
+	}
+
+	// Load the package, including AST, types, and facts.
 	imp := newImporter(importMap, packageFile, stdImports)
 	pkg, err := load(packagePath, imp, filenames)
 	if err != nil {
 		return "", nil, fmt.Errorf("error loading package: %v", err)
 	}
-
-	// Construct the action graph.
-	var roots []*action
-	actions := make(map[*analysis.Analyzer]*action)
-
-	var visit func(a *analysis.Analyzer) *action
-	visit = func(a *analysis.Analyzer) *action {
-		act, ok := actions[a]
-		if !ok {
-			act = &action{a: a, pkg: pkg}
-
-			// Add a dependency on each required analyzers.
-			for _, req := range a.Requires {
-				act.deps = append(act.deps, visit(req))
-			}
-			actions[a] = act
-		}
-		return act
+	for _, act := range actions {
+		act.pkg = pkg
 	}
 
-	for _, analyzer := range analyzers {
-		action := visit(analyzer)
-		roots = append(roots, action)
-	}
-
+	// Execute the analyzers.
 	execAll(roots)
+
+	// Process diagnostics and encode facts for importers of this package.
 	diagnostics := checkAnalysisResults(roots, pkg)
 	facts := pkg.facts.Encode()
 	return diagnostics, facts, nil
@@ -191,6 +204,7 @@ type action struct {
 	inputs      map[*analysis.Analyzer]interface{}
 	result      interface{}
 	diagnostics []analysis.Diagnostic
+	usesFacts   bool
 	err         error
 }
 
@@ -200,13 +214,12 @@ func (act *action) String() string {
 
 func execAll(actions []*action) {
 	var wg sync.WaitGroup
+	wg.Add(len(actions))
 	for _, act := range actions {
-		wg.Add(1)
-		work := func(act *action) {
+		go func(act *action) {
 			act.exec()
 			wg.Done()
-		}
-		go work(act)
+		}(act)
 	}
 	wg.Wait()
 }

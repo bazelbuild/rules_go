@@ -3,7 +3,7 @@ package haserrors
 // +build build_tags_error
 
 import (
-	"fmt"
+	"fmtwrap"
 	"sync/atomic"
 )
 
@@ -15,6 +15,6 @@ func Foo() bool {
 	if F == nil { // nilfunc error.
 		return false
 	}
-	fmt.Printf("%b", "hi") // printf error.
-	return true || true    // redundant boolean error.
+	fmtwrap.Printf("%b", "hi") // printf error.
+	return true || true        // redundant boolean error.
 }
