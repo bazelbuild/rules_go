@@ -39,7 +39,11 @@ _go_rules_compat = repository_rule(
 
 def go_rules_compat(**kwargs):
     v = native.bazel_version
-    if versions.is_at_most("0.21.0", v):
+    if not v:
+        # bazel_version is None in development builds, so we can't do a
+        # version comparison. Use the newest version of the compat file.
+        stem = "v22"
+    elif versions.is_at_most("0.21.0", v):
         stem = "v18"
     else:
         stem = "v22"
