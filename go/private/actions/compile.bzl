@@ -22,7 +22,12 @@ load(
 )
 
 def _archive(v):
-    return "{}={}={}".format(v.data.importpath, v.data.importmap, v.data.file.path)
+    return "{}={}={}={}".format(
+        v.data.importpath,
+        v.data.importmap,
+        v.data.file.path,
+        v.data.export_file.path if v.data.export_file else "",
+    )
 
 def emit_compile(
         go,
@@ -62,7 +67,7 @@ def emit_compile(
         builder_args.add("-nogo", go.nogo)
         builder_args.add("-x", out_export)
         inputs.append(go.nogo)
-        inputs.extend([archive.data.export_file for archive in archives])
+        inputs.extend([archive.data.export_file for archive in archives if archive.data.export_file])
         outputs.append(out_export)
 
     tool_args = go.tool_args(go)

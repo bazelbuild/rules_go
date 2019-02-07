@@ -61,8 +61,10 @@ func main() {
 // analysis fails.
 func run(args []string) error {
 	stdImports := multiFlag{}
+	factMap := factMultiFlag{}
 	flags := flag.NewFlagSet("nogo", flag.ExitOnError)
 	flags.Var(&stdImports, "stdimport", "A standard library import path")
+	flags.Var(&factMap, "fact", "Import path and file containing facts for that library, separated by '=' (may be repeated)'")
 	importcfg := flags.String("importcfg", "", "The import configuration file")
 	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
 	xPath := flags.String("x", "", "The file where serialized facts should be written")
@@ -78,7 +80,7 @@ func run(args []string) error {
 		stdImportSet[i] = true
 	}
 
-	diagnostics, facts, err := checkPackage(analyzers, *packagePath, packageFile, importMap, stdImportSet, srcs)
+	diagnostics, facts, err := checkPackage(analyzers, *packagePath, packageFile, importMap, stdImportSet, factMap, srcs)
 	if err != nil {
 		return fmt.Errorf("error running analyzers: %v", err)
 	}
@@ -142,7 +144,7 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 // It returns an empty string if no source code diagnostics need to be printed.
 //
 // This implementation was adapted from that of golang.org/x/tools/go/checker/internal/checker.
-func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFile, importMap map[string]string, stdImports map[string]bool, filenames []string) (string, []byte, error) {
+func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFile, importMap map[string]string, stdImports map[string]bool, factMap map[string]string, filenames []string) (string, []byte, error) {
 	// Register fact types and establish dependencies between analyzers.
 	actions := make(map[*analysis.Analyzer]*action)
 	var visit func(a *analysis.Analyzer) *action
@@ -173,7 +175,7 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 	}
 
 	// Load the package, including AST, types, and facts.
-	imp := newImporter(importMap, packageFile, stdImports)
+	imp := newImporter(importMap, packageFile, stdImports, factMap)
 	pkg, err := load(packagePath, imp, filenames)
 	if err != nil {
 		return "", nil, fmt.Errorf("error loading package: %v", err)
@@ -443,15 +445,17 @@ type importer struct {
 	packageCache map[string]*types.Package // cache of previously imported packages
 	packageFile  map[string]string         // map package path to .a file with export data
 	stdImports   map[string]bool           // imports from the standard library
+	factMap      map[string]string         // map import path in source code to file containing serialized facts
 }
 
-func newImporter(importMap, packageFile map[string]string, stdImports map[string]bool) *importer {
+func newImporter(importMap, packageFile map[string]string, stdImports map[string]bool, factMap map[string]string) *importer {
 	return &importer{
 		fset:         token.NewFileSet(),
 		importMap:    importMap,
 		packageCache: make(map[string]*types.Package),
 		packageFile:  packageFile,
 		stdImports:   stdImports,
+		factMap:      factMap,
 	}
 }
 
@@ -495,21 +499,38 @@ func (i *importer) Import(path string) (*types.Package, error) {
 }
 
 func (i *importer) readFacts(path string) ([]byte, error) {
-	if i.stdImports[path] {
-		// Standard library packages are built ahead of time and are not analyzed,
-		// so there's no opportunity to store facts. Analyzers are expected to
-		// hard code information about standard library definitions. For example,
-		// "printf" should know fmt.Printf accepts a format string.
+	factPath := i.factMap[path]
+	if factPath == "" {
+		// Packages that were not built with the nogo toolchain will not be
+		// analyzed, so there's no opportunity to store facts. This includes
+		// packages in the standard library and packages built with go_tool_library,
+		// such as coverdata. Analyzers are expected to hard code information
+		// about standard library definitions and must gracefully handle packages
+		// that don't have facts. For example, the "printf" analyzer must know
+		// fmt.Printf accepts a format string.
 		return nil, nil
 	}
-	archivePath, ok := i.packageFile[path]
-	if !ok {
-		return nil, fmt.Errorf("could not read analysis facts for %q: unknown import", path)
-	}
-	exportPath := strings.TrimSuffix(archivePath, ".a") + ".x"
-	data, err := ioutil.ReadFile(exportPath)
+	data, err := ioutil.ReadFile(factPath)
 	if err != nil {
-		return nil, fmt.Errorf("could not read analysis facts for %q: %v", path, err)
+		return nil, fmt.Errorf("could not read analysis facts for %q: %v", factPath, err)
 	}
 	return data, nil
+}
+
+type factMultiFlag map[string]string
+
+func (m *factMultiFlag) String() string {
+	if m == nil || len(*m) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%v", *m)
+}
+
+func (m *factMultiFlag) Set(v string) error {
+	parts := strings.Split(v, "=")
+	if len(parts) != 2 {
+		return fmt.Errorf("badly formatted -fact flag: %s", v)
+	}
+	(*m)[parts[0]] = parts[1]
+	return nil
 }

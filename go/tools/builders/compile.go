@@ -35,7 +35,7 @@ import (
 )
 
 type archive struct {
-	importPath, importMap, file string
+	importPath, importMap, file, xFile string
 }
 
 func run(args []string) error {
@@ -180,6 +180,11 @@ func run(args []string) error {
 		nogoargs = append(nogoargs, "-importcfg", importcfgName)
 		for _, imp := range stdImports {
 			nogoargs = append(nogoargs, "-stdimport", imp)
+		}
+		for _, arc := range archives {
+			if arc.xFile != "" {
+				nogoargs = append(nogoargs, "-fact", fmt.Sprintf("%s=%s", arc.importPath, arc.xFile))
+			}
 		}
 		nogoargs = append(nogoargs, "-x", *outExport)
 		nogoargs = append(nogoargs, filenames...)
@@ -385,14 +390,18 @@ func (m *archiveMultiFlag) String() string {
 
 func (m *archiveMultiFlag) Set(v string) error {
 	parts := strings.Split(v, "=")
-	if len(parts) != 3 {
+	if len(parts) != 4 {
 		return fmt.Errorf("badly formed -arc flag: %s", v)
 	}
-	*m = append(*m, archive{
+	a := archive{
 		importPath: parts[0],
 		importMap:  parts[1],
 		file:       abs(parts[2]),
-	})
+	}
+	if parts[3] != "" {
+		a.xFile = abs(parts[3])
+	}
+	*m = append(*m, a)
 	return nil
 }
 
