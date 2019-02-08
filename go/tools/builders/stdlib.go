@@ -74,8 +74,10 @@ func stdlib(args []string) error {
 	}
 	os.Setenv("PATH", strings.Join(absPaths, string(os.PathListSeparator)))
 
+	sandboxPath := abs(".")
+
 	// Strip path prefix from source files in debug information.
-	os.Setenv("CGO_CFLAGS", os.Getenv("CGO_CFLAGS")+" -fdebug-prefix-map="+abs(".")+string(os.PathSeparator)+"=")
+	os.Setenv("CGO_CFLAGS", os.Getenv("CGO_CFLAGS")+" -fdebug-prefix-map="+sandboxPath+"=. -fdebug-prefix-map="+output+"=.")
 
 	// Build the commands needed to build the std library in the right mode
 	// NOTE: the go command stamps compiled .a files with build ids, which are
@@ -87,9 +89,10 @@ func stdlib(args []string) error {
 	if len(build.Default.BuildTags) > 0 {
 		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, " "))
 	}
+
 	gcflags := []string{}
-	ldflags := []string{"-trimpath", abs(".")}
-	asmflags := []string{"-trimpath", abs(".")}
+	ldflags := []string{"-trimpath", sandboxPath}
+	asmflags := []string{"-trimpath", output}
 	if *race {
 		installArgs = append(installArgs, "-race")
 	}

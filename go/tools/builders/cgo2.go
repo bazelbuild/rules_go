@@ -153,6 +153,8 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, pa
 
 	// Compile C, C++, and assembly code.
 	defaultCFlags := defaultCFlags()
+	defaultCFlags = append(defaultCFlags, "-fdebug-prefix-map="+abs(".")+"=.")
+	defaultCFlags = append(defaultCFlags, "-fdebug-prefix-map="+workDir+"=.")
 	combinedCFlags := append([]string{}, cppFlags...)
 	combinedCFlags = append(combinedCFlags, hdrIncludes...)
 	combinedCFlags = append(combinedCFlags, cFlags...)
