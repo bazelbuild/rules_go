@@ -303,10 +303,12 @@ func load(packagePath string, imp *importer, filenames []string) (*goPackage, er
 
 	config := types.Config{Importer: imp}
 	info := &types.Info{
-		Types:     make(map[ast.Expr]types.TypeAndValue),
-		Uses:      make(map[*ast.Ident]types.Object),
-		Defs:      make(map[*ast.Ident]types.Object),
-		Implicits: make(map[ast.Node]types.Object),
+		Types:      make(map[ast.Expr]types.TypeAndValue),
+		Uses:       make(map[*ast.Ident]types.Object),
+		Defs:       make(map[*ast.Ident]types.Object),
+		Implicits:  make(map[ast.Node]types.Object),
+		Scopes:     make(map[ast.Node]*types.Scope),
+		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
 	types, err := config.Check(packagePath, pkg.fset, syntax, info)
 	if err != nil {
