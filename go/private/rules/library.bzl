@@ -66,7 +66,6 @@ go_library = go_rule(
 go_tool_library = go_rule(
     _go_library_impl,
     bootstrap_attrs = [
-        "_builders",
         "_stdlib",
     ],
     attrs = {

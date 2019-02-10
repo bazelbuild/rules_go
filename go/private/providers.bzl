@@ -71,8 +71,6 @@ GoSDK = provider(
 
 GoStdLib = provider()
 
-GoBuilders = provider()
-
 EXPLICIT_PATH = "explicit"
 
 INFERRED_PATH = "inferred"

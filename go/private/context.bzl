@@ -28,7 +28,6 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
-    "GoBuilders",
     "GoLibrary",
     "GoSource",
     "GoStdLib",
@@ -294,10 +293,6 @@ def go_context(ctx, attr = None):
     if not attr:
         attr = ctx.attr
 
-    builders = getattr(attr, "_builders", None)
-    if builders:
-        builders = builders[GoBuilders]
-
     nogo = None
     if hasattr(attr, "_nogo"):
         nogo_files = attr._nogo.files.to_list()
@@ -364,7 +359,6 @@ def go_context(ctx, attr = None):
         importmap = importmap,
         pathtype = pathtype,
         cgo_tools = context_data.cgo_tools,
-        builders = builders,
         nogo = nogo,
         coverdata = coverdata,
         coverage_enabled = ctx.configuration.coverage_enabled,

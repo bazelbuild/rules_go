@@ -64,8 +64,6 @@ def emit_link(
         fail("archive is a required parameter")
     if executable == None:
         fail("executable is a required parameter")
-    if not go.builders:
-        return _bootstrap_link(go, archive, executable, gc_linkopts)
 
     #TODO: There has to be a better way to work out the rpath
     config_strip = len(go._ctx.configuration.bin_dir.path) + 1
@@ -168,23 +166,6 @@ def emit_link(
         executable = go.toolchain._builder,
         arguments = [builder_args, "--", tool_args],
         env = go.env,
-    )
-
-def _bootstrap_link(go, archive, executable, gc_linkopts):
-    """See go/toolchains.rst#link for full documentation."""
-
-    inputs = [archive.data.file] + go.sdk.libs + go.sdk.tools + [go.go]
-    args = go.actions.args()
-    args.add_all(["tool", "link", "-s", "-linkmode", "internal", "-o", executable])
-    args.add_all(gc_linkopts)
-    args.add(archive.data.file)
-    go.actions.run_shell(
-        inputs = inputs,
-        outputs = [executable],
-        arguments = [args],
-        mnemonic = "GoLink",
-        command = "export GOROOT=\"$(pwd)\"/{} && {} \"$@\"".format(shell.quote(go.root), shell.quote(go.go.path)),
-        env = {"GOROOT_FINAL": "GOROOT"},
     )
 
 def _extract_extldflags(gc_linkopts, extldflags):
