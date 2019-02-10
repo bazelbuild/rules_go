@@ -56,7 +56,7 @@ def emit_compile(
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
     outputs = [out_lib]
 
-    builder_args = go.builder_args(go)
+    builder_args = go.builder_args(go, "compile")
     builder_args.add_all(sources, before_each = "-src")
     builder_args.add_all(archives, before_each = "-arc", map_each = _archive)
     builder_args.add("-o", out_lib)
@@ -94,7 +94,7 @@ def emit_compile(
         inputs = inputs,
         outputs = outputs,
         mnemonic = "GoCompile",
-        executable = go.builders.compile,
+        executable = go.toolchain._builder,
         arguments = [builder_args, "--", tool_args],
         env = go.env,
     )

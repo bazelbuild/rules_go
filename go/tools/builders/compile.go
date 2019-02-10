@@ -38,7 +38,7 @@ type archive struct {
 	importPath, importMap, file, xFile string
 }
 
-func run(args []string) error {
+func compile(args []string) error {
 	// Parse arguments.
 	args, err := readParamsFiles(args)
 	if err != nil {
@@ -211,14 +211,6 @@ func run(args []string) error {
 		fmt.Fprintln(os.Stderr, nogoOutput.String())
 	}
 	return nil
-}
-
-func main() {
-	log.SetFlags(0) // no timestamp
-	log.SetPrefix("GoCompile: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }
 
 // TODO(#1891): consolidate this logic when compile and asm are in the

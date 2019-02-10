@@ -24,6 +24,7 @@ filegroup(
     srcs = [
         "asm.go",
         "builder.go",
+        "compile.go",
         "cover.go",
         "env.go",
         "filter.go",
@@ -36,17 +37,6 @@ filegroup(
         "@bazel_tools//src/conditions:windows": ["path_windows.go"],
         "//conditions:default": ["path.go"],
     }),
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "compile",
-    srcs = [
-        "compile.go",
-        "env.go",
-        "filter.go",
-        "flags.go",
-    ],
     visibility = ["//visibility:public"],
 )
 

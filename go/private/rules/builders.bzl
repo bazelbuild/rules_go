@@ -17,7 +17,6 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoBuilders")
 def _builders_impl(ctx):
     return [
         GoBuilders(
-            compile = ctx.executable._compile,
             link = ctx.executable._link,
             cgo = ctx.executable._cgo,
             nogo_generator = ctx.executable._nogo_generator,
@@ -25,7 +24,6 @@ def _builders_impl(ctx):
         ),
         DefaultInfo(
             files = depset([
-                ctx.executable._compile,
                 ctx.executable._link,
                 ctx.executable._cgo,
                 ctx.executable._nogo_generator,
@@ -37,11 +35,6 @@ def _builders_impl(ctx):
 builders = rule(
     _builders_impl,
     attrs = {
-        "_compile": attr.label(
-            executable = True,
-            cfg = "host",
-            default = "//go/tools/builders:compile",
-        ),
         "_link": attr.label(
             executable = True,
             cfg = "host",
