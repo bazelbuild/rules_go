@@ -25,7 +25,6 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -162,7 +161,7 @@ func main() {
 }
 `
 
-func run(args []string) error {
+func genTestMain(args []string) error {
 	// Prepare our flags
 	args, err := readParamsFiles(args)
 	if err != nil {
@@ -327,12 +326,4 @@ func run(args []string) error {
 		return fmt.Errorf("template.Execute(%v): %v", cases, err)
 	}
 	return nil
-}
-
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoTestGenTest: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }

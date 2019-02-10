@@ -49,6 +49,8 @@ func main() {
 		action = cover
 	case "filterbuildid":
 		action = filterBuildID
+	case "gentestmain":
+		action = genTestMain
 	case "link":
 		action = link
 	case "pack":

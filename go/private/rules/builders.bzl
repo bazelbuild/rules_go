@@ -18,12 +18,10 @@ def _builders_impl(ctx):
     return [
         GoBuilders(
             nogo_generator = ctx.executable._nogo_generator,
-            test_generator = ctx.executable._test_generator,
         ),
         DefaultInfo(
             files = depset([
                 ctx.executable._nogo_generator,
-                ctx.executable._test_generator,
             ]),
         ),
     ]
@@ -35,11 +33,6 @@ builders = rule(
             executable = True,
             cfg = "host",
             default = "//go/tools/builders:generate_nogo_main",
-        ),
-        "_test_generator": attr.label(
-            executable = True,
-            cfg = "host",
-            default = "//go/tools/builders:generate_test_main",
         ),
     },
 )

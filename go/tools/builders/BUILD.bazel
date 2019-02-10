@@ -33,6 +33,7 @@ filegroup(
         "filter.go",
         "filter_buildid.go",
         "flags.go",
+        "generate_test_main.go",
         "importcfg.go",
         "link.go",
         "pack.go",
@@ -78,17 +79,6 @@ go_source(
         "@org_golang_x_tools//go/analysis/internal/facts:go_tool_library",
         "@org_golang_x_tools//go/gcexportdata:go_tool_library",
     ],
-)
-
-go_tool_binary(
-    name = "generate_test_main",
-    srcs = [
-        "env.go",
-        "filter.go",
-        "flags.go",
-        "generate_test_main.go",
-    ],
-    visibility = ["//visibility:public"],
 )
 
 go_tool_binary(

@@ -93,7 +93,7 @@ def _go_test_impl(ctx):
         run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
     main_go = go.declare_file(go, "testmain.go")
-    arguments = go.builder_args(go)
+    arguments = go.builder_args(go, "gentestmain")
     arguments.add("-rundir", run_dir)
     arguments.add("-output", main_go)
     if ctx.configuration.coverage_enabled:
@@ -113,7 +113,7 @@ def _go_test_impl(ctx):
         inputs = go_srcs,
         outputs = [main_go],
         mnemonic = "GoTestGenTest",
-        executable = go.builders.test_generator,
+        executable = go.toolchain._builder,
         arguments = [arguments],
         env = {
             "RUNDIR": ctx.label.package,
