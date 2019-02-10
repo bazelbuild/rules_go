@@ -53,6 +53,8 @@ func main() {
 		action = genTestMain
 	case "link":
 		action = link
+	case "gennogomain":
+		action = genNogoMain
 	case "pack":
 		action = pack
 	case "stdlib":

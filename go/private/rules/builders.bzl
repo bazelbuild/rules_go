@@ -16,23 +16,8 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoBuilders")
 
 def _builders_impl(ctx):
     return [
-        GoBuilders(
-            nogo_generator = ctx.executable._nogo_generator,
-        ),
-        DefaultInfo(
-            files = depset([
-                ctx.executable._nogo_generator,
-            ]),
-        ),
+        GoBuilders(),
+        DefaultInfo(),
     ]
 
-builders = rule(
-    _builders_impl,
-    attrs = {
-        "_nogo_generator": attr.label(
-            executable = True,
-            cfg = "host",
-            default = "//go/tools/builders:generate_nogo_main",
-        ),
-    },
-)
+builders = rule(_builders_impl)

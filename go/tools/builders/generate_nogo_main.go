@@ -23,7 +23,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"os"
 	"regexp"
@@ -31,7 +30,7 @@ import (
 	"text/template"
 )
 
-const codeTpl = `
+const nogoMainTpl = `
 package main
 
 
@@ -80,7 +79,7 @@ var configs = map[string]config{
 }
 `
 
-func run(args []string) error {
+func genNogoMain(args []string) error {
 	analyzerImportPaths := multiFlag{}
 	flags := flag.NewFlagSet("generate_nogo_main", flag.ExitOnError)
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
@@ -140,19 +139,11 @@ func run(args []string) error {
 		}
 	}
 
-	tpl := template.Must(template.New("source").Parse(codeTpl))
+	tpl := template.Must(template.New("source").Parse(nogoMainTpl))
 	if err := tpl.Execute(outFile, data); err != nil {
 		return fmt.Errorf("template.Execute failed: %v", err)
 	}
 	return cErr
-}
-
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoGenNogo: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }
 
 func buildConfig(path string) (Configs, error) {

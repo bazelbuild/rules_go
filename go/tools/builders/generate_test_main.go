@@ -60,7 +60,7 @@ type Cases struct {
 	Coverage   bool
 }
 
-var codeTpl = `
+const testMainTpl = `
 package main
 import (
 	"flag"
@@ -321,7 +321,7 @@ func genTestMain(args []string) error {
 	sort.Slice(cases.Imports, func(i, j int) bool {
 		return cases.Imports[i].Name < cases.Imports[j].Name
 	})
-	tpl := template.Must(template.New("source").Parse(codeTpl))
+	tpl := template.Must(template.New("source").Parse(testMainTpl))
 	if err := tpl.Execute(outFile, &cases); err != nil {
 		return fmt.Errorf("template.Execute(%v): %v", cases, err)
 	}
