@@ -156,30 +156,7 @@ go_binary = go_rule(
 )
 """See go/core.rst#go_binary for full documentation."""
 
-go_tool_binary = go_rule(
-    _go_binary_impl,
-    bootstrap = True,
-    attrs = dict({
-        "deps": attr.label_list(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoLibrary]),
-        "_hostonly": attr.bool(default = True),
-    }.items() + _SHARED_ATTRS.items()),
-    executable = True,
-)
-"""
-This is used instead of `go_binary` for tools that are executed inside
-actions emitted by the go rules. This avoids a bootstrapping problem. This
-is very limited and only supports sources in the main package with no
-dependencies outside the standard library.
-
-See go/core.rst#go_binary for full documentation.
-
-TODO: This can merge with go_binary when toolchains become optional
-We add a bootstrap parameter that defaults to false, set it to true on "tool" binaries
-and it can pick the boostrap toolchain when it sees it.
-"""
-
-def _go_toolchain_binary_impl(ctx):
+def _go_tool_binary_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]
     name = ctx.label.name
     if sdk.goos == "windows":
@@ -208,8 +185,8 @@ def _go_toolchain_binary_impl(ctx):
         executable = out,
     )]
 
-go_toolchain_binary = rule(
-    implementation = _go_toolchain_binary_impl,
+go_tool_binary = rule(
+    implementation = _go_tool_binary_impl,
     attrs = {
         "srcs": attr.label_list(
             allow_files = True,
@@ -224,12 +201,10 @@ go_toolchain_binary = rule(
     executable = True,
     doc = """Used instead of go_binary for executables used in the toolchain.
 
-go_toolchain_binary depends on tools and libraries that are part of the Go SDK.
+go_tool_binary depends on tools and libraries that are part of the Go SDK.
 It does not depend on other toolchains. It can only compile binaries that
 just have a main package and only depend on the standard library and don't
 require build constraints.
-
-This may eventually replace go_tool_binary.
 """,
 )
 

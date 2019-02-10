@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_toolchain_binary")
+load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
 load("@io_bazel_rules_go//go/private:rules/sdk.bzl", "package_list")
 load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "declare_toolchains")
 load("@io_bazel_rules_go//go:def.bzl", "go_sdk")
@@ -41,7 +41,7 @@ go_sdk(
     go = "bin/go{exe}",
 )
 
-go_toolchain_binary(
+go_tool_binary(
     name = "builder",
     srcs = ["@io_bazel_rules_go//go/tools/builders:builder_srcs"],
     sdk = ":go_sdk",

@@ -1,5 +1,4 @@
-load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
-load("@io_bazel_rules_go//go:def.bzl", "go_source", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_source", "go_test")
 
 go_test(
     name = "filter_test",
@@ -47,7 +46,7 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
+go_binary(
     name = "embed",
     srcs = ["embed.go"],
     visibility = ["//visibility:public"],
@@ -73,13 +72,13 @@ go_source(
     ],
 )
 
-go_tool_binary(
+go_binary(
     name = "go_path",
     srcs = ["go_path.go"],
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
+go_binary(
     name = "info",
     srcs = [
         "env.go",
@@ -89,7 +88,7 @@ go_tool_binary(
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
+go_binary(
     name = "md5sum",
     srcs = [
         "md5sum.go",
@@ -97,7 +96,7 @@ go_tool_binary(
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
+go_binary(
     name = "go-protoc",
     srcs = [
         "env.go",
