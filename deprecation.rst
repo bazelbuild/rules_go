@@ -3,6 +3,7 @@ Deprecation schedule
 
 .. _Gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _gazelle fix: https://github.com/bazelbuild/bazel-gazelle#fix-command-transformations
+.. _nogo: /go/nogo.rst
 .. _officially supported: https://golang.org/doc/devel/release.html#policy
 .. _proto rules: /proto/core.rst
 .. _bazelbuild/bazel-bazelle#186: https://github.com/bazelbuild/bazel-gazelle/issues/186
@@ -16,7 +17,24 @@ to be removed.
 Deprecated features
 -------------------
 
-No major features are deprecated right now.
+| **Go 1.9**
+| **Deprecated in:** 0.17.0
+| **To be removed in:** 0.18.0
+| **Rationale:** Go 1.9 is no longer `officially supported`_. Newer versions of
+  the Go toolchain provide different feature sets, and it's difficult to
+  support older versions at the same time.
+| **Migration:** ``go_register_toolchains()`` automatically selects the newest
+  version of Go unless a version is explicitly specified.
+|
+| **go_vet_test rule**
+| **Deprecated in:** 0.17.0
+| **To be removed in:** 0.18.0
+| **Rationale:** `nogo`_ provides vet functionality, integrated into the build.
+  The command ``go tool vet`` no longer works starting in Go 1.12, and
+  ``go_vet_test`` will no longer work.
+| **Migration:** Declare a ``nogo`` rule with ``vet = True``. Add it to the
+  toolchain in the WORKSPACE call to ``go_register_toolchains``. See
+  `nogo`_ for instructions.
 
 Removed features
 ----------------

@@ -72,7 +72,7 @@ Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
 
 .. code:: bzl
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains(nogo="@//:my_nogo") # my_nogo is in the top-level BUILD file of this workspace
 
@@ -262,10 +262,17 @@ default).
         visibility = ["//visibility:public"],
     )
 
-Setting ``vet = True`` is equivalent to adding the ``atomic``, ``bool``,
-``buildtags``, ``nilfunc``, and ``printf`` analyzers from
+Setting ``vet = True`` is equivalent to adding the ``atomic``, ``bools``,
+``buildtag``, ``nilfunc``, and ``printf`` analyzers from
 ``@org_golang_x_tools//go/analysis/passes`` to the ``deps`` list of your
 ``nogo`` rule.
+
+See the full list of available nogo checks:
+
+.. code:: shell
+
+    bazel query 'kind(go_tool_library, @org_golang_x_tools//go/analysis/passes/...)'
+
 
 API
 ---

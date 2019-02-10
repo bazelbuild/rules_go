@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_path", "go_vet_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_path")
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//go/private:rules/nogo.bzl", "nogo")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
@@ -56,6 +56,7 @@ nogo(
         "@org_golang_x_tools//go/analysis/passes/stdmethods:go_tool_library",
         "@org_golang_x_tools//go/analysis/passes/structtag:go_tool_library",
         "@org_golang_x_tools//go/analysis/passes/tests:go_tool_library",
+        "@org_golang_x_tools//go/analysis/passes/unmarshal:go_tool_library",
         "@org_golang_x_tools//go/analysis/passes/unreachable:go_tool_library",
         "@org_golang_x_tools//go/analysis/passes/unsafeptr:go_tool_library",
         "@org_golang_x_tools//go/analysis/passes/unusedresult:go_tool_library",
@@ -105,11 +106,6 @@ go_path(
         "//go/tools/builders:md5sum",
         "//go/tools/fetch_repo",
     ],
-)
-
-go_vet_test(
-    name = "vet",
-    data = [":all_srcs"],
 )
 
 go_info()

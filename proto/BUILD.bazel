@@ -42,7 +42,6 @@ go_proto_compiler(
 
 GOGO_VARIANTS = [
     "combo",
-    "gofast",
     "gogo",
     "gogofast",
     "gogofaster",
@@ -64,6 +63,15 @@ GOGO_VARIANTS = [
     ] + WELL_KNOWN_TYPE_RULES.values(),
 ) for variant in GOGO_VARIANTS]
 
+go_proto_compiler(
+    name = "gofast_proto",
+    plugin = "@com_github_gogo_protobuf//protoc-gen-gofast",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ] + WELL_KNOWN_TYPE_RULES.values(),
+)
+
 [go_proto_compiler(
     name = variant + "_grpc",
     options = ["plugins=grpc"] + GOGO_WELL_KNOWN_TYPE_REMAPS,
@@ -78,6 +86,18 @@ GOGO_VARIANTS = [
         "@org_golang_x_net//context:go_default_library",
     ] + WELL_KNOWN_TYPE_RULES.values(),
 ) for variant in GOGO_VARIANTS]
+
+go_proto_compiler(
+    name = "gofast_grpc",
+    options = ["plugins=grpc"],
+    plugin = "@com_github_gogo_protobuf//protoc-gen-gofast",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ] + WELL_KNOWN_TYPE_RULES.values(),
+)
 
 filegroup(
     name = "all_rules",

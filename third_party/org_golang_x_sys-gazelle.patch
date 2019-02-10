@@ -1,7 +1,7 @@
 diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 --- a/cpu/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/cpu/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
-@@ -0,0 +1,25 @@
++++ b/cpu/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
+@@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -11,6 +11,7 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 +        "cpu_arm.go",
 +        "cpu_arm64.go",
 +        "cpu_gc_x86.go",
++        "cpu_linux.go",
 +        "cpu_mips64x.go",
 +        "cpu_mipsx.go",
 +        "cpu_ppc64x.go",
@@ -29,7 +30,7 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 +)
 diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 --- a/plan9/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/plan9/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/plan9/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -67,8 +68,8 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 +)
 diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 --- a/unix/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/unix/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
-@@ -0,0 +1,233 @@
++++ b/unix/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
+@@ -0,0 +1,250 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -76,6 +77,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +    srcs = [
 +        "affinity_linux.go",
 +        "aliases.go",
++        "asm_aix_ppc64.s",
 +        "asm_darwin_386.s",
 +        "asm_darwin_amd64.s",
 +        "asm_darwin_arm.s",
@@ -116,9 +118,11 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "errors_freebsd_amd64.go",
 +        "errors_freebsd_arm.go",
 +        "fcntl.go",
++        "fcntl_darwin.go",
 +        "fcntl_linux_32bit.go",
 +        "ioctl.go",
 +        "openbsd_pledge.go",
++        "openbsd_unveil.go",
 +        "pagesize_unix.go",
 +        "race.go",
 +        "race0.go",
@@ -132,6 +136,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "syscall_darwin_amd64.go",
 +        "syscall_darwin_arm.go",
 +        "syscall_darwin_arm64.go",
++        "syscall_darwin_libSystem.go",
 +        "syscall_dragonfly.go",
 +        "syscall_dragonfly_amd64.go",
 +        "syscall_freebsd.go",
@@ -162,6 +167,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "syscall_solaris_amd64.go",
 +        "syscall_unix.go",
 +        "syscall_unix_gc.go",
++        "syscall_unix_gc_ppc64x.go",
 +        "timestruct.go",
 +        "xattr_bsd.go",
 +        "zerrors_darwin_386.go",
@@ -194,10 +200,18 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "zptracearm_linux.go",
 +        "zptracemips_linux.go",
 +        "zptracemipsle_linux.go",
++        "zsyscall_darwin_386.1_11.go",
 +        "zsyscall_darwin_386.go",
++        "zsyscall_darwin_386.s",
++        "zsyscall_darwin_amd64.1_11.go",
 +        "zsyscall_darwin_amd64.go",
++        "zsyscall_darwin_amd64.s",
++        "zsyscall_darwin_arm.1_11.go",
 +        "zsyscall_darwin_arm.go",
++        "zsyscall_darwin_arm.s",
++        "zsyscall_darwin_arm64.1_11.go",
 +        "zsyscall_darwin_arm64.go",
++        "zsyscall_darwin_arm64.s",
 +        "zsyscall_dragonfly_amd64.go",
 +        "zsyscall_freebsd_386.go",
 +        "zsyscall_freebsd_amd64.go",
@@ -284,16 +298,20 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +    name = "go_default_test",
 +    srcs = [
 +        "creds_test.go",
++        "darwin_test.go",
 +        "dev_linux_test.go",
-+        "example_test.go",
++        "example_exec_test.go",
++        "example_flock_test.go",
 +        "export_test.go",
 +        "mmap_unix_test.go",
 +        "openbsd_test.go",
++        "sendfile_test.go",
 +        "syscall_bsd_test.go",
 +        "syscall_darwin_test.go",
 +        "syscall_freebsd_test.go",
 +        "syscall_linux_test.go",
 +        "syscall_netbsd_test.go",
++        "syscall_openbsd_test.go",
 +        "syscall_solaris_test.go",
 +        "syscall_test.go",
 +        "syscall_unix_test.go",
@@ -304,7 +322,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +)
 diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 --- a/windows/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/windows/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -346,7 +364,7 @@ diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 +)
 diff -urN a/windows/registry/BUILD.bazel b/windows/registry/BUILD.bazel
 --- a/windows/registry/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/registry/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/windows/registry/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -379,7 +397,7 @@ diff -urN a/windows/registry/BUILD.bazel b/windows/registry/BUILD.bazel
 +)
 diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
 --- a/windows/svc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/windows/svc/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -417,7 +435,7 @@ diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
 +)
 diff -urN a/windows/svc/debug/BUILD.bazel b/windows/svc/debug/BUILD.bazel
 --- a/windows/svc/debug/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/debug/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/windows/svc/debug/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -438,7 +456,7 @@ diff -urN a/windows/svc/debug/BUILD.bazel b/windows/svc/debug/BUILD.bazel
 +)
 diff -urN a/windows/svc/eventlog/BUILD.bazel b/windows/svc/eventlog/BUILD.bazel
 --- a/windows/svc/eventlog/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/eventlog/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/windows/svc/eventlog/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -466,7 +484,7 @@ diff -urN a/windows/svc/eventlog/BUILD.bazel b/windows/svc/eventlog/BUILD.bazel
 +)
 diff -urN a/windows/svc/example/BUILD.bazel b/windows/svc/example/BUILD.bazel
 --- a/windows/svc/example/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/example/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/windows/svc/example/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -499,7 +517,7 @@ diff -urN a/windows/svc/example/BUILD.bazel b/windows/svc/example/BUILD.bazel
 +)
 diff -urN a/windows/svc/mgr/BUILD.bazel b/windows/svc/mgr/BUILD.bazel
 --- a/windows/svc/mgr/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/windows/svc/mgr/BUILD.bazel	2018-09-28 12:57:12.260347022 -0400
++++ b/windows/svc/mgr/BUILD.bazel	2019-01-15 08:50:27.334344740 -0500
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +

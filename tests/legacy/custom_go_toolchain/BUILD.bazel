@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
 load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 
 go_test(
@@ -17,8 +17,8 @@ bazel_test(
     targets = [":go_default_test"],
     workspace = """
 
-load("@io_bazel_rules_go//go:def.bzl", "go_download_sdk")
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies")
+load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies")
 
 go_download_sdk(
     name = "go_sdk",

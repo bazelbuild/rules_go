@@ -105,6 +105,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/shadow:go_default_test", # Needs testdata directory
             "go/analysis/passes/tests:go_default_test", # Needs testdata directory
             "go/analysis/passes/tests/testdata/src/a:go_default_test", # Not a real test
+            "go/analysis/passes/unmarshal:go_default_test", # Needs go list
             "go/analysis/passes/unreachable:go_default_test", # Needs testdata directory
             "go/analysis/passes/unusedresult:go_default_test", # Needs testdata directory
             "go/analysis/passes/unsafeptr:go_default_test", # Needs testdata directory
@@ -112,6 +113,7 @@ POPULAR_REPOS = [
             "go/buildutil:go_default_test", # Needs testdata directory
             "go/callgraph/cha:go_default_test", # Needs testdata directory
             "go/callgraph/rta:go_default_test", # Needs testdata directory
+            "go/expect:go_default_test", # Needs testdata directory
             "go/gccgoexportdata:go_default_test", # Needs testdata directory
             "go/gcexportdata:go_default_test", # Needs testdata directory
             "go/internal/gccgoimporter:go_default_test", # Needs testdata directory
@@ -120,6 +122,7 @@ POPULAR_REPOS = [
             "go/ssa/interp:go_default_test", # Needs testdata directory
             "go/ssa/ssautil:go_default_test", # Needs testdata directory
             "go/ssa:go_default_test", # Needs testdata directory
+            "internal/lsp:go_default_test", # Needs testdata directory
             "refactor/eg:go_default_test", # Needs testdata directory
             "cmd/fiximports:go_default_test", # requires working GOROOT, not present in CI.
             "cmd/godoc:go_default_test", # TODO(#417)

@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_tool_library")
+load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+COVERAGE_BUILD_FILE = """
+load("@io_bazel_rules_go//go:def.bzl", "nogo")
+
+nogo(
+    name = "nogo",
+    deps = ["@org_golang_x_tools//go/analysis/passes/printf:go_tool_library"],
+    visibility = ["//visibility:public"],
+)
+"""
+
+bazel_test(
+    name = "coverage_test",
+    build = COVERAGE_BUILD_FILE,
+    command = "coverage",
+    nogo = "@//:nogo",
+    targets = [":coverage_target"],
+)
+
+go_test(
+    name = "coverage_target",
+    srcs = ["coverage_target_test.go"],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+    deps = [":coverage_target_dep"],
+)
+
+go_tool_library(
+    name = "coverage_target_dep",
+    importmap = "mapped/coverage_target/dep",
+    importpath = "coverage_target/dep",
+)

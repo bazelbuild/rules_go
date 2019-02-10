@@ -46,25 +46,24 @@ cc_import(
     tags = ["manual"],
 )
 
-genrule(
-    name = "darwin_gen_imported_dylib",
+cc_binary(
+    name = "libimported.dylib",
     srcs = ["imported.c"],
-    outs = ["libimported.dylib"],
-    cmd = "$(CC) -shared -install_name @rpath/libimported.dylib $< -o $@",
+    linkopts = ["-install_name @rpath/libimported.dylib"],
+    linkshared = True,
     tags = ["manual"],
 )
 
 cc_import(
     name = "linux_imported_dylib",
-    shared_library = "libimported.so",
+    shared_library = ":libimported.so",
     tags = ["manual"],
 )
 
-genrule(
-    name = "linux_gen_imported_dylib",
+cc_binary(
+    name = "libimported.so",
     srcs = ["imported.c"],
-    outs = ["libimported.so"],
-    cmd = "$(CC) -shared $< -o $@",
+    linkshared = True,
     tags = ["manual"],
 )
 

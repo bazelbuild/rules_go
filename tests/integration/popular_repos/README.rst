@@ -157,9 +157,12 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/digraph:go_default_test
 * @org_golang_x_tools//cmd/getgo:go_default_test
 * @org_golang_x_tools//cmd/go-contrib-init:go_default_test
+* @org_golang_x_tools//cmd/splitdwarf/internal/macho:go_default_test
 * @org_golang_x_tools//cmd/tip:go_default_test
 * @org_golang_x_tools//go/analysis/internal/analysisflags:go_default_test
+* @org_golang_x_tools//go/analysis/multichecker:go_default_test
 * @org_golang_x_tools//go/analysis/passes/tests/testdata/src/divergent:go_default_test
+* @org_golang_x_tools//go/analysis/unitchecker:go_default_test
 * @org_golang_x_tools//go/ast/astutil:go_default_test
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/cfg:go_default_test
@@ -173,6 +176,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/fastwalk:go_default_test
 * @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
+* @org_golang_x_tools//internal/lsp/source:go_default_test
 * @org_golang_x_tools//internal/semver:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
 * @org_golang_x_tools//present:go_default_test
@@ -194,12 +198,15 @@ This runs tests from the repository `google.golang.org/grpc <https://google.gola
 * @org_golang_google_grpc//credentials/alts/internal/conn:go_default_test
 * @org_golang_google_grpc//credentials/alts/internal/handshaker:go_default_test
 * @org_golang_google_grpc//credentials/alts/internal/handshaker/service:go_default_test
+* @org_golang_google_grpc//credentials/internal:go_default_test
 * @org_golang_google_grpc//encoding/proto:go_default_test
 * @org_golang_google_grpc//grpclog:go_default_test
 * @org_golang_google_grpc//health:go_default_test
+* @org_golang_google_grpc//internal/binarylog:go_default_test
 * @org_golang_google_grpc//internal/channelz:go_default_test
 * @org_golang_google_grpc//internal/grpcsync:go_default_test
 * @org_golang_google_grpc//internal/leakcheck:go_default_test
+* @org_golang_google_grpc//internal/testutils:go_default_test
 * @org_golang_google_grpc//metadata:go_default_test
 * @org_golang_google_grpc//naming:go_default_test
 * @org_golang_google_grpc//reflection:go_default_test

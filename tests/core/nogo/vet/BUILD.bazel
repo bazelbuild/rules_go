@@ -63,6 +63,7 @@ go_library(
     name = "has_errors",
     srcs = ["has_errors.go"],
     importpath = "haserrors",
+    deps = [":fmtwrap"],
 )
 
 go_library(
@@ -70,4 +71,10 @@ go_library(
     srcs = ["no_errors.go"],
     cgo = True,
     importpath = "noerrors",
+)
+
+go_library(
+    name = "fmtwrap",
+    srcs = ["fmtwrap.go"],
+    importpath = "fmtwrap",
 )
