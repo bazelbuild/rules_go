@@ -24,9 +24,11 @@ filegroup(
     srcs = [
         "asm.go",
         "builder.go",
+        "cgo.go",
         "compile.go",
         "cover.go",
         "env.go",
+        "extract.go",
         "filter.go",
         "filter_buildid.go",
         "flags.go",
@@ -109,18 +111,6 @@ go_tool_binary(
         "env.go",
         "flags.go",
         "link.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "cgo",
-    srcs = [
-        "cgo.go",
-        "env.go",
-        "extract.go",
-        "filter.go",
-        "flags.go",
     ],
     visibility = ["//visibility:public"],
 )

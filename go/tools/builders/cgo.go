@@ -27,14 +27,13 @@ import (
 	"fmt"
 	"go/build"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
 )
 
-func run(args []string) error {
+func cgo(args []string) error {
 	args, err := readParamsFiles(args)
 	if err != nil {
 		return err
@@ -289,12 +288,4 @@ func fixupLineComments(filename, srcDir string, cFile bool) error {
 		return err
 	}
 	return nil
-}
-
-func main() {
-	log.SetPrefix("CgoCodegen: ")
-	log.SetFlags(0) // don't print timestamps
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }

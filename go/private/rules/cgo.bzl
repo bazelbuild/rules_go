@@ -170,7 +170,7 @@ def _cgo_codegen_impl(ctx):
     cgo_types = go.declare_file(go, path = "_cgo_gotypes.go")
     out_dir = cgo_main.dirname
 
-    builder_args = go.builder_args(go)  # interpreted by builder
+    builder_args = go.builder_args(go, "cgo")  # interpreted by builder
     tool_args = go.tool_args(go)  # interpreted by cgo
     cc_args = go.tool_args(go)  # interpreted by C compiler
 
@@ -289,7 +289,7 @@ def _cgo_codegen_impl(ctx):
         outputs = c_outs + cxx_outs + objc_outs + gen_go_outs + transformed_go_outs + [cgo_main],
         mnemonic = "CGoCodeGen",
         progress_message = "CGoCodeGen %s" % ctx.label,
-        executable = go.builders.cgo,
+        executable = go.toolchain._builder,
         arguments = [builder_args, "--", tool_args, "--", cc_args],
         env = env,
     )
@@ -350,7 +350,7 @@ _cgo_codegen = go_rule(
 def _cgo_import_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, path = "_cgo_import.go")
-    args = go.builder_args(go)
+    args = go.builder_args(go, "cgo")
     args.add("-import")
     args.add("-src", ctx.files.sample_go_srcs[0])
     args.add("--")  # stop builder from processing args
@@ -362,7 +362,7 @@ def _cgo_import_impl(ctx):
             ctx.files.sample_go_srcs[0],
         ] + go.sdk.tools,
         outputs = [out],
-        executable = go.builders.cgo,
+        executable = go.toolchain._builder,
         arguments = [args],
         mnemonic = "CGoImportGen",
     )
