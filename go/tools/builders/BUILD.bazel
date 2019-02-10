@@ -22,6 +22,7 @@ go_test(
 filegroup(
     name = "builder_srcs",
     srcs = [
+        "ar.go",
         "asm.go",
         "builder.go",
         "cgo.go",
@@ -32,6 +33,8 @@ filegroup(
         "filter.go",
         "filter_buildid.go",
         "flags.go",
+        "importcfg.go",
+        "link.go",
         "pack.go",
         "replicate.go",
         "stdlib.go",
@@ -100,17 +103,6 @@ go_tool_binary(
         "env.go",
         "flags.go",
         "info.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "link",
-    srcs = [
-        "ar.go",
-        "env.go",
-        "flags.go",
-        "link.go",
     ],
     visibility = ["//visibility:public"],
 )

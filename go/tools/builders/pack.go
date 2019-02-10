@@ -103,6 +103,8 @@ const (
 	entryLength = 60
 )
 
+var zeroBytes = []byte("0                    ")
+
 func extractFiles(archive, dir string, names map[string]struct{}) (files []string, err error) {
 	f, err := os.Open(archive)
 	if err != nil {

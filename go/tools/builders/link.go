@@ -19,23 +19,16 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
 
-type archive struct {
-	label, pkgPath, file string
-}
-
-func run(args []string) error {
+func link(args []string) error {
 	// Parse arguments.
 	args, err := readParamsFiles(args)
 	if err != nil {
@@ -44,7 +37,7 @@ func run(args []string) error {
 	builderArgs, toolArgs := splitArgs(args)
 	xstamps := multiFlag{}
 	stamps := multiFlag{}
-	archives := archiveMultiFlag{}
+	archives := linkArchiveMultiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
 	main := flags.String("main", "", "Path to the main archive.")
@@ -95,7 +88,7 @@ func run(args []string) error {
 	}
 
 	// Build an importcfg file.
-	importcfgName, err := buildImportcfgFile(archives, *packageList, goenv.installSuffix, filepath.Dir(*outFile))
+	importcfgName, err := buildImportcfgFileForLink(archives, *packageList, goenv.installSuffix, filepath.Dir(*outFile))
 	if err != nil {
 		return err
 	}
@@ -135,89 +128,4 @@ func run(args []string) error {
 	}
 
 	return nil
-}
-
-func buildImportcfgFile(archives []archive, packageList, installSuffix, dir string) (string, error) {
-	buf := &bytes.Buffer{}
-	goroot, ok := os.LookupEnv("GOROOT")
-	if !ok {
-		return "", errors.New("GOROOT not set")
-	}
-	prefix := abs(filepath.Join(goroot, "pkg", installSuffix))
-	packageListFile, err := os.Open(packageList)
-	if err != nil {
-		return "", err
-	}
-	defer packageListFile.Close()
-	scanner := bufio.NewScanner(packageListFile)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-		fmt.Fprintf(buf, "packagefile %s=%s.a\n", line, filepath.Join(prefix, filepath.FromSlash(line)))
-	}
-	if err := scanner.Err(); err != nil {
-		return "", err
-	}
-	depsSeen := map[string]string{}
-	for _, arc := range archives {
-		if conflictLabel, ok := depsSeen[arc.pkgPath]; ok {
-			// TODO(#1327): link.bzl should report this as a failure after 0.11.0.
-			// At this point, we'll prepare an importcfg file and remove logic here.
-			log.Printf(`warning: package %q is provided by more than one rule:
-    %s
-    %s
-Set "importmap" to different paths in each library.
-This will be an error in the future.`, arc.pkgPath, arc.label, conflictLabel)
-			continue
-		}
-		depsSeen[arc.pkgPath] = arc.label
-		fmt.Fprintf(buf, "packagefile %s=%s\n", arc.pkgPath, arc.file)
-	}
-	f, err := ioutil.TempFile(dir, "importcfg")
-	if err != nil {
-		return "", err
-	}
-	filename := f.Name()
-	if _, err := io.Copy(f, buf); err != nil {
-		f.Close()
-		os.Remove(filename)
-		return "", err
-	}
-	if err := f.Close(); err != nil {
-		os.Remove(filename)
-		return "", err
-	}
-	return filename, nil
-}
-
-type archiveMultiFlag []archive
-
-func (m *archiveMultiFlag) String() string {
-	if m == nil || len(*m) == 0 {
-		return ""
-	}
-	return fmt.Sprint(m)
-}
-
-func (m *archiveMultiFlag) Set(v string) error {
-	parts := strings.Split(v, "=")
-	if len(parts) != 3 {
-		return fmt.Errorf("badly formed -arc flag: %s", v)
-	}
-	*m = append(*m, archive{
-		label:   parts[0],
-		pkgPath: parts[1],
-		file:    abs(parts[2]),
-	})
-	return nil
-}
-
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoLink: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }

@@ -79,7 +79,7 @@ def emit_link(
     if go.coverage_enabled:
         extldflags.append("--coverage")
     gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
-    builder_args = go.builder_args(go)
+    builder_args = go.builder_args(go, "link")
     tool_args = go.tool_args(go)
 
     # Add in any mode specific behaviours
@@ -165,7 +165,7 @@ def emit_link(
         ),
         outputs = [executable],
         mnemonic = "GoLink",
-        executable = go.builders.link,
+        executable = go.toolchain._builder,
         arguments = [builder_args, "--", tool_args],
         env = go.env,
     )
