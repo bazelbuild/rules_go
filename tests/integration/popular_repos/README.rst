@@ -160,9 +160,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/splitdwarf/internal/macho:go_default_test
 * @org_golang_x_tools//cmd/tip:go_default_test
 * @org_golang_x_tools//go/analysis/internal/analysisflags:go_default_test
-* @org_golang_x_tools//go/analysis/multichecker:go_default_test
 * @org_golang_x_tools//go/analysis/passes/tests/testdata/src/divergent:go_default_test
-* @org_golang_x_tools//go/analysis/unitchecker:go_default_test
 * @org_golang_x_tools//go/ast/astutil:go_default_test
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/cfg:go_default_test
@@ -214,13 +212,5 @@ This runs tests from the repository `google.golang.org/grpc <https://google.gola
 * @org_golang_google_grpc//stats:go_default_test
 * @org_golang_google_grpc//status:go_default_test
 * @org_golang_google_grpc//test/bufconn:go_default_test
-
-
-com_github_mattn_go_sqlite3
-___________________________
-
-This runs tests from the repository `github.com/mattn/go-sqlite3 <https://github.com/mattn/go-sqlite3>`_
-
-* @com_github_mattn_go_sqlite3//:go_default_test
 
 

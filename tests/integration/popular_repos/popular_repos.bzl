@@ -62,9 +62,3 @@ def popular_repos():
         commit = "3f10311ccf076b6b7cba28273df3290d42e60982",
         build_file_proto_mode = "disable",
     )
-    _maybe(
-        go_repository,
-        name = "com_github_mattn_go_sqlite3",
-        importpath = "github.com/mattn/go-sqlite3",
-        commit = "83772a7051f5e30d8e59746a9e43dfa706b72f3b",
-    )
