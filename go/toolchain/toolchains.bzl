@@ -23,11 +23,24 @@ load(
     "versions",
 )
 
-DEFAULT_VERSION = "1.11.5"
+DEFAULT_VERSION = "1.12rc1"
 
 MIN_SUPPORTED_VERSION = "1.9"
 
 SDK_REPOSITORIES = {
+    "1.12rc1": {
+        "darwin_amd64": ("go1.12rc1.darwin-amd64.tar.gz", "a5d5f0a5bec8edde1c80dba0fe84eaf3eb7b515d6ae52982150c583ce498aa97"),
+        "freebsd_386": ("go1.12rc1.freebsd-386.tar.gz", "c3a2a496aaac1c38477068d2570a7aa8a5dfdf1bd18e855378030422fe22b740"),
+        "freebsd_amd64": ("go1.12rc1.freebsd-amd64.tar.gz", "3b3d9319b3c7fa3a2442ec2371934c89cf3dd9a640c24eec9562801815853b87"),
+        "linux_386": ("go1.12rc1.linux-386.tar.gz", "1d8615576655decbadeefcfaa6d5144b370dbea67fd4b426f58b573deedbd918"),
+        "linux_amd64": ("go1.12rc1.linux-amd64.tar.gz", "e5a03e1f2e065b17b2fbbd3429f18a6f51fe2848e0120586652b9f14ada72c9a"),
+        "linux_arm64": ("go1.12rc1.linux-arm64.tar.gz", "654b90f75902d501e2201a7b438965132fd1242a102f54529e9ff7dbbdf0d4bb"),
+        "linux_arm": ("go1.12rc1.linux-armv6l.tar.gz", "62126e4ca72e2fea9856fe0ec1a0f28cf1b385fb362d32cb56413c39cab318f8"),
+        "linux_ppc64le": ("go1.12rc1.linux-ppc64le.tar.gz", "cb6c7ba83ee8211da1d13d6db148adfdd6b86a790d3974d0c5702d229ca1da40"),
+        "linux_s390x": ("go1.12rc1.linux-s390x.tar.gz", "40208d21fca8469c20054e67250f288ab62d68794690aa2c0324d67018ba99c2"),
+        "windows_386": ("go1.12rc1.windows-386.zip", "d2e3ffd1328bcdd22715c32557e022d231c3c9a2aaf8d7cd9219cd3813b7188f"),
+        "windows_amd64": ("go1.12rc1.windows-amd64.zip", "cf3e163c6106f4f272816fa53d1e01e0cabff8dd797732f46513bbc5ea4f1843"),
+    },
     "1.11.5": {
         "darwin_amd64": ("go1.11.5.darwin-amd64.tar.gz", "b970d8fdd5245193073395ce7b7775dd9deea980d4ce5e68b3b80ee9edcf2afc"),
         "freebsd_386": ("go1.11.5.freebsd-386.tar.gz", "29d208de22cf4561404f4e4866cbb3d937d1043ce65e0a4e4bb88a8c8ac754ea"),
