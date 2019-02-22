@@ -116,35 +116,29 @@ def _c_filter_options(options, blacklist):
         if not any([opt.startswith(prefix) for prefix in blacklist])
     ]
 
-def _select_archive(files):
-    """Selects a single archive from a list of files produced by a
-    static cc_library.
+def _select_archives(libs):
+    """Selects static archives to pack from a list of cc_library targets.
+    Returns at most one file per library.
 
-    In some configurations, cc_library can produce multiple files, and the
-    order isn't guaranteed, so we can't simply pick the first one.
+    Each cc_library may produce several files which are logically the same
+    static library. We prefer files with the extensions .pic.lo, .lo, or .a
+    in that order. If a cc_library is empty, it may not produce any files,
+    so _select_archives may return fewer archives than libs.
     """
-
     # list of file extensions in descending order or preference.
     exts = [".pic.lo", ".lo", ".a"]
-    for ext in exts:
-        for f in as_iterable(files):
-            if f.basename.endswith(ext):
-                return f
-
-def _select_archives(libs):
-    """Selects a one per item in a cc_library, if needed.
-
-    If no archive can be extracted from all the libraries, this will fail.
-    """
-
-    # list of file extensions in descending order or preference.
     outs = []
     for lib in libs:
-        archive = _select_archive(lib.files)
-        if archive:
-            outs.append(archive)
-    if not outs:
-        fail("cc_library(s) did not produce any files")
+        out = None
+        for ext in exts:
+            for f in as_iterable(lib.files):
+                if f.basename.endswith(ext):
+                    out = f
+                    break
+            if out:
+                break
+        if out:
+            outs.append(out)
     return outs
 
 def _include_unique(opts, flag, include, seen):
