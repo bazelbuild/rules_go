@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// asm builds a single .s file with "go tool asm". It is invoked by the
-// Go rules as an action.
 package main
 
 import (
 	"flag"
 	"fmt"
 	"go/build"
-	"log"
 	"os"
 )
 
-func run(args []string) error {
+// asm builds a single .s file with "go tool asm". It is invoked by the
+// Go rules as an action.
+func asm(args []string) error {
 	// Parse arguments.
 	args, err := readParamsFiles(args)
 	if err != nil {
@@ -58,12 +57,4 @@ func run(args []string) error {
 	goargs = append(goargs, source)
 	absArgs(goargs, []string{"-I", "-o", "-trimpath"})
 	return goenv.runCommand(goargs)
-}
-
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoAsm: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }

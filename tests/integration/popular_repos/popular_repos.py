@@ -143,6 +143,8 @@ POPULAR_REPOS = [
             "go/analysis/passes/pkgfact:go_default_test", # requires go list
             "go/packages/packagestest:go_default_test", # requires build cache
             "go/analysis/internal/facts:go_default_test", # loads test package with go/packages, which probably needs go list
+            "go/analysis/unitchecker:go_default_test", # requires go vet
+            "go/analysis/multichecker:go_default_test", # requires go vet
         ],
     ),
 
@@ -165,13 +167,6 @@ POPULAR_REPOS = [
             ":go_default_test",
             "internal/transport:go_default_test", # slow
         ],
-    ),
-
-    dict(
-        name = "com_github_mattn_go_sqlite3",
-        importpath = "github.com/mattn/go-sqlite3",
-        commit = "83772a7051f5e30d8e59746a9e43dfa706b72f3b",
-        excludes = [],
     ),
   ]
 

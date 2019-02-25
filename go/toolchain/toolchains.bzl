@@ -387,7 +387,7 @@ def declare_constraints():
             ],
         )
 
-def declare_toolchains(host, sdk):
+def declare_toolchains(host, sdk, builder):
     # Use the final dictionaries to create all the toolchains
-    for toolchain in generate_toolchains(host, sdk):
+    for toolchain in generate_toolchains(host, sdk, builder):
         go_toolchain(**toolchain)

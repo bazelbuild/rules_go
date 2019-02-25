@@ -1,5 +1,4 @@
-load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
-load("@io_bazel_rules_go//go:def.bzl", "go_source", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_source", "go_test")
 
 go_test(
     name = "filter_test",
@@ -19,50 +18,37 @@ go_test(
     ],
 )
 
-go_tool_binary(
-    name = "asm",
+filegroup(
+    name = "builder_srcs",
     srcs = [
+        "ar.go",
         "asm.go",
-        "env.go",
-        "filter.go",
-        "flags.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "compile",
-    srcs = [
+        "builder.go",
+        "cgo.go",
         "compile.go",
-        "env.go",
-        "filter.go",
-        "flags.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "cover",
-    srcs = [
         "cover.go",
         "env.go",
-        "flags.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "embed",
-    srcs = ["embed.go"],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "generate_nogo_main",
-    srcs = [
+        "extract.go",
+        "filter.go",
+        "filter_buildid.go",
         "flags.go",
         "generate_nogo_main.go",
-    ],
+        "generate_test_main.go",
+        "importcfg.go",
+        "link.go",
+        "pack.go",
+        "replicate.go",
+        "stdlib.go",
+    ] + select({
+        "@bazel_tools//src/conditions:windows": ["path_windows.go"],
+        "//conditions:default": ["path.go"],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+go_binary(
+    name = "embed",
+    srcs = ["embed.go"],
     visibility = ["//visibility:public"],
 )
 
@@ -86,24 +72,13 @@ go_source(
     ],
 )
 
-go_tool_binary(
-    name = "generate_test_main",
-    srcs = [
-        "env.go",
-        "filter.go",
-        "flags.go",
-        "generate_test_main.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
+go_binary(
     name = "go_path",
     srcs = ["go_path.go"],
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
+go_binary(
     name = "info",
     srcs = [
         "env.go",
@@ -113,30 +88,7 @@ go_tool_binary(
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
-    name = "link",
-    srcs = [
-        "ar.go",
-        "env.go",
-        "flags.go",
-        "link.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "cgo",
-    srcs = [
-        "cgo.go",
-        "env.go",
-        "extract.go",
-        "filter.go",
-        "flags.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
+go_binary(
     name = "md5sum",
     srcs = [
         "md5sum.go",
@@ -144,44 +96,12 @@ go_tool_binary(
     visibility = ["//visibility:public"],
 )
 
-go_tool_binary(
-    name = "pack",
-    srcs = [
-        "env.go",
-        "flags.go",
-        "pack.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
+go_binary(
     name = "go-protoc",
     srcs = [
         "env.go",
         "flags.go",
         "protoc.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "stdlib",
-    srcs = [
-        "env.go",
-        "flags.go",
-        "replicate.go",
-        "stdlib.go",
-    ] + select({
-        "@bazel_tools//src/conditions:windows": ["path_windows.go"],
-        "//conditions:default": ["path.go"],
-    }),
-    visibility = ["//visibility:public"],
-)
-
-go_tool_binary(
-    name = "filter_buildid",
-    srcs = [
-        "filter_buildid.go",
     ],
     visibility = ["//visibility:public"],
 )

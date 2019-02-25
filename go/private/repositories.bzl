@@ -169,7 +169,7 @@ def go_rules_dependencies():
             "@io_bazel_rules_go//third_party:go_googleapis-gazelle.patch",
             "@io_bazel_rules_go//third_party:go_googleapis-fix.patch",
         ],
-        patch_args = ["-p1"],
+        patch_args = ["-E", "-p1"],
     )
 
     # Needed for examples

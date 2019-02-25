@@ -28,7 +28,6 @@ platforms:
     - "..."
     - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/stdlib:buildid_test"
-    - "-@com_github_mattn_go_sqlite3//:go_default_test"
   windows:
     build_flags:
     # Go requires a C toolchain that accepts options and emits errors like

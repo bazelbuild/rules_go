@@ -46,17 +46,12 @@ def emit_compile(
     if out_lib == None:
         fail("out_lib is a required parameter")
 
-    if not go.builders:
-        if archives:
-            fail("compile does not accept deps in bootstrap mode")
-        return _bootstrap_compile(go, sources, out_lib, gc_goopts)
-
     inputs = (sources + [go.package_list] +
               [archive.data.file for archive in archives] +
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
     outputs = [out_lib]
 
-    builder_args = go.builder_args(go)
+    builder_args = go.builder_args(go, "compile")
     builder_args.add_all(sources, before_each = "-src")
     builder_args.add_all(archives, before_each = "-arc", map_each = _archive)
     builder_args.add("-o", out_lib)
@@ -94,24 +89,7 @@ def emit_compile(
         inputs = inputs,
         outputs = outputs,
         mnemonic = "GoCompile",
-        executable = go.builders.compile,
+        executable = go.toolchain._builder,
         arguments = [builder_args, "--", tool_args],
         env = go.env,
-    )
-
-def _bootstrap_compile(go, sources, out_lib, gc_goopts):
-    cmd = [shell.quote(go.go.path), "tool", "compile", "-trimpath", "\"$(pwd)\""]
-    args = go.actions.args()
-    args.add("-o", out_lib)
-    args.add_all(gc_goopts)
-    args.add_all(sources)
-    go.actions.run_shell(
-        inputs = sources + go.sdk.libs + go.sdk.tools + [go.go],
-        outputs = [out_lib],
-        arguments = [args],
-        mnemonic = "GoCompile",
-        command = "export GOROOT=\"$(pwd)\"/{} && {} \"$@\"".format(shell.quote(go.root), " ".join(cmd)),
-        env = {
-            "GOROOT_FINAL": "GOROOT",
-        },
     )

@@ -12,14 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// pack copies an .a file and appends a list of .o files to the copy using
-// go tool pack. It is invoked by the Go rules as an action.
-//
-// pack can also append .o files contained in a static library passed in
-// with the -arc option. That archive may be in BSD or SysV / GNU format.
-// pack has a primitive parser for these formats, since cmd/pack can't
-// handle them, and ar may not be available (cpp.ar_executable is libtool
-// on darwin).
 package main
 
 import (
@@ -30,14 +22,21 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-func run(args []string) error {
+// pack copies an .a file and appends a list of .o files to the copy using
+// go tool pack. It is invoked by the Go rules as an action.
+//
+// pack can also append .o files contained in a static library passed in
+// with the -arc option. That archive may be in BSD or SysV / GNU format.
+// pack has a primitive parser for these formats, since cmd/pack can't
+// handle them, and ar may not be available (cpp.ar_executable is libtool
+// on darwin).
+func pack(args []string) error {
 	args, err := readParamsFiles(args)
 	if err != nil {
 		return err
@@ -79,14 +78,6 @@ func run(args []string) error {
 	return appendFiles(goenv, abs(*outArchive), objects)
 }
 
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoPack: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
-}
-
 func copyFile(inPath, outPath string) error {
 	inFile, err := os.Open(inPath)
 	if err != nil {
@@ -111,6 +102,8 @@ const (
 	// in an archive.
 	entryLength = 60
 )
+
+var zeroBytes = []byte("0                    ")
 
 func extractFiles(archive, dir string, names map[string]struct{}) (files []string, err error) {
 	f, err := os.Open(archive)

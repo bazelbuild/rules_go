@@ -33,7 +33,7 @@ def emit_asm(
     out_obj = go.declare_file(go, path = source.basename[:-2], ext = ".o")
     inputs = hdrs + go.sdk.tools + go.sdk.headers + go.stdlib.libs + [source]
 
-    args = go.builder_args(go)
+    args = go.builder_args(go, "asm")
     args.add(source)
     args.add("--")
     includes = ([go.sdk.root_file.dirname + "/pkg/include"] +
@@ -49,7 +49,7 @@ def emit_asm(
         inputs = inputs,
         outputs = [out_obj],
         mnemonic = "GoAsm",
-        executable = go.builders.asm,
+        executable = go.toolchain._builder,
         arguments = [args],
         env = go.env,
     )

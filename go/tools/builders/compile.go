@@ -18,11 +18,9 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"go/build"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -34,11 +32,7 @@ import (
 	"strings"
 )
 
-type archive struct {
-	importPath, importMap, file, xFile string
-}
-
-func run(args []string) error {
+func compile(args []string) error {
 	// Parse arguments.
 	args, err := readParamsFiles(args)
 	if err != nil {
@@ -47,7 +41,7 @@ func run(args []string) error {
 	builderArgs, toolArgs := splitArgs(args)
 	flags := flag.NewFlagSet("GoCompile", flag.ExitOnError)
 	unfiltered := multiFlag{}
-	archives := archiveMultiFlag{}
+	archives := compileArchiveMultiFlag{}
 	goenv := envFlags(flags)
 	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
@@ -130,7 +124,7 @@ func run(args []string) error {
 	}
 
 	// Build an importcfg file for the compiler.
-	importcfgName, err := buildImportcfgFile(archives, stdImports, goenv.installSuffix, filepath.Dir(*output))
+	importcfgName, err := buildImportcfgFileForCompile(archives, stdImports, goenv.installSuffix, filepath.Dir(*output))
 	if err != nil {
 		return err
 	}
@@ -211,14 +205,6 @@ func run(args []string) error {
 		fmt.Fprintln(os.Stderr, nogoOutput.String())
 	}
 	return nil
-}
-
-func main() {
-	log.SetFlags(0) // no timestamp
-	log.SetPrefix("GoCompile: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }
 
 // TODO(#1891): consolidate this logic when compile and asm are in the
@@ -338,71 +324,6 @@ func checkDirectDeps(files []*goMetadata, archives []archive, packageList string
 		return nil, nil, derr
 	}
 	return depImports, stdImports, nil
-}
-
-func buildImportcfgFile(archives []archive, stdImports []string, installSuffix, dir string) (string, error) {
-	buf := &bytes.Buffer{}
-	goroot, ok := os.LookupEnv("GOROOT")
-	if !ok {
-		return "", errors.New("GOROOT not set")
-	}
-	goroot = abs(goroot)
-	// UGLY HACK: The vet tool called by compile program expects the vet.cfg file
-	// passed to it to contain import information for package fmt. Since we use
-	// importcfg to create vet.cfg, ensure that an entry for package fmt exists in
-	// the former.
-	stdImports = append(stdImports, "fmt")
-	for _, imp := range stdImports {
-		path := filepath.Join(goroot, "pkg", installSuffix, filepath.FromSlash(imp))
-		fmt.Fprintf(buf, "packagefile %s=%s.a\n", imp, path)
-	}
-	for _, arc := range archives {
-		if arc.importPath != arc.importMap {
-			fmt.Fprintf(buf, "importmap %s=%s\n", arc.importPath, arc.importMap)
-		}
-		fmt.Fprintf(buf, "packagefile %s=%s\n", arc.importMap, arc.file)
-	}
-	f, err := ioutil.TempFile(dir, "importcfg")
-	if err != nil {
-		return "", err
-	}
-	filename := f.Name()
-	if _, err := io.Copy(f, buf); err != nil {
-		f.Close()
-		os.Remove(filename)
-		return "", err
-	}
-	if err := f.Close(); err != nil {
-		os.Remove(filename)
-		return "", err
-	}
-	return filename, nil
-}
-
-type archiveMultiFlag []archive
-
-func (m *archiveMultiFlag) String() string {
-	if m == nil || len(*m) == 0 {
-		return ""
-	}
-	return fmt.Sprint(*m)
-}
-
-func (m *archiveMultiFlag) Set(v string) error {
-	parts := strings.Split(v, "=")
-	if len(parts) != 4 {
-		return fmt.Errorf("badly formed -arc flag: %s", v)
-	}
-	a := archive{
-		importPath: parts[0],
-		importMap:  parts[1],
-		file:       abs(parts[2]),
-	}
-	if parts[3] != "" {
-		a.xFile = abs(parts[3])
-	}
-	*m = append(*m, a)
-	return nil
 }
 
 type depsError struct {

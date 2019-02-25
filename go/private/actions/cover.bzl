@@ -50,7 +50,7 @@ def emit_cover(go, source):
         covered_src_map[out] = orig
         covered.append(out)
 
-        args = go.builder_args(go)
+        args = go.builder_args(go, "cover")
         args.add("-o", out)
         args.add("-var", cover_var)
         args.add("-src", src)
@@ -61,7 +61,7 @@ def emit_cover(go, source):
             inputs = [src] + go.sdk.tools,
             outputs = [out],
             mnemonic = "GoCover",
-            executable = go.builders.cover,
+            executable = go.toolchain._builder,
             arguments = [args],
             env = go.env,
         )

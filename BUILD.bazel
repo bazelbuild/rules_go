@@ -4,15 +4,9 @@ load("@io_bazel_rules_go//go/private:rules/nogo.bzl", "nogo")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
 load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
-load("@io_bazel_rules_go//go/private:rules/builders.bzl", "builders")
 
 stdlib(
     name = "stdlib",
-    visibility = ["//visibility:public"],
-)
-
-builders(
-    name = "builders",
     visibility = ["//visibility:public"],
 )
 
@@ -91,21 +85,5 @@ lines_sorted_test(
 
 # This could be any file, used as an anchor point for the directory in tests
 exports_files(["AUTHORS"])
-
-go_path(
-    name = "all_srcs",
-    tags = ["manual"],
-    deps = [
-        "//go/tools/builders:asm",
-        "//go/tools/builders:cgo",
-        "//go/tools/builders:compile",
-        "//go/tools/builders:embed",
-        "//go/tools/builders:generate_nogo_main",
-        "//go/tools/builders:generate_test_main",
-        "//go/tools/builders:link",
-        "//go/tools/builders:md5sum",
-        "//go/tools/fetch_repo",
-    ],
-)
 
 go_info()

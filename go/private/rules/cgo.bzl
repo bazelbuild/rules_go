@@ -116,35 +116,29 @@ def _c_filter_options(options, blacklist):
         if not any([opt.startswith(prefix) for prefix in blacklist])
     ]
 
-def _select_archive(files):
-    """Selects a single archive from a list of files produced by a
-    static cc_library.
+def _select_archives(libs):
+    """Selects static archives to pack from a list of cc_library targets.
+    Returns at most one file per library.
 
-    In some configurations, cc_library can produce multiple files, and the
-    order isn't guaranteed, so we can't simply pick the first one.
+    Each cc_library may produce several files which are logically the same
+    static library. We prefer files with the extensions .pic.lo, .lo, or .a
+    in that order. If a cc_library is empty, it may not produce any files,
+    so _select_archives may return fewer archives than libs.
     """
-
     # list of file extensions in descending order or preference.
     exts = [".pic.lo", ".lo", ".a"]
-    for ext in exts:
-        for f in as_iterable(files):
-            if f.basename.endswith(ext):
-                return f
-
-def _select_archives(libs):
-    """Selects a one per item in a cc_library, if needed.
-
-    If no archive can be extracted from all the libraries, this will fail.
-    """
-
-    # list of file extensions in descending order or preference.
     outs = []
     for lib in libs:
-        archive = _select_archive(lib.files)
-        if archive:
-            outs.append(archive)
-    if not outs:
-        fail("cc_library(s) did not produce any files")
+        out = None
+        for ext in exts:
+            for f in as_iterable(lib.files):
+                if f.basename.endswith(ext):
+                    out = f
+                    break
+            if out:
+                break
+        if out:
+            outs.append(out)
     return outs
 
 def _include_unique(opts, flag, include, seen):
@@ -170,7 +164,7 @@ def _cgo_codegen_impl(ctx):
     cgo_types = go.declare_file(go, path = "_cgo_gotypes.go")
     out_dir = cgo_main.dirname
 
-    builder_args = go.builder_args(go)  # interpreted by builder
+    builder_args = go.builder_args(go, "cgo")  # interpreted by builder
     tool_args = go.tool_args(go)  # interpreted by cgo
     cc_args = go.tool_args(go)  # interpreted by C compiler
 
@@ -289,7 +283,7 @@ def _cgo_codegen_impl(ctx):
         outputs = c_outs + cxx_outs + objc_outs + gen_go_outs + transformed_go_outs + [cgo_main],
         mnemonic = "CGoCodeGen",
         progress_message = "CGoCodeGen %s" % ctx.label,
-        executable = go.builders.cgo,
+        executable = go.toolchain._builder,
         arguments = [builder_args, "--", tool_args, "--", cc_args],
         env = env,
     )
@@ -350,7 +344,7 @@ _cgo_codegen = go_rule(
 def _cgo_import_impl(ctx):
     go = go_context(ctx)
     out = go.declare_file(go, path = "_cgo_import.go")
-    args = go.builder_args(go)
+    args = go.builder_args(go, "cgo")
     args.add("-import")
     args.add("-src", ctx.files.sample_go_srcs[0])
     args.add("--")  # stop builder from processing args
@@ -362,7 +356,7 @@ def _cgo_import_impl(ctx):
             ctx.files.sample_go_srcs[0],
         ] + go.sdk.tools,
         outputs = [out],
-        executable = go.builders.cgo,
+        executable = go.toolchain._builder,
         arguments = [args],
         mnemonic = "CGoImportGen",
     )

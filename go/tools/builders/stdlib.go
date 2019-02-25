@@ -12,28 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// stdlib builds the standard library in the appropriate mode into a new goroot.
 package main
 
 import (
 	"flag"
 	"fmt"
 	"go/build"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-func run(args []string) error {
+// stdlib builds the standard library in the appropriate mode into a new goroot.
+func stdlib(args []string) error {
 	// process the args
-	args, err := readParamsFiles(args)
-	if err != nil {
-		return err
-	}
 	flags := flag.NewFlagSet("stdlib", flag.ExitOnError)
 	goenv := envFlags(flags)
-	filterBuildid := flags.String("filter_buildid", "", "Path to filter_buildid tool")
 	out := flags.String("out", "", "Path to output go root")
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
@@ -55,7 +49,7 @@ func run(args []string) error {
 		return err
 	}
 
-	output, err = processPath(output)
+	output, err := processPath(output)
 	if err != nil {
 		return err
 	}
@@ -84,7 +78,12 @@ func run(args []string) error {
 	os.Setenv("CGO_CFLAGS", os.Getenv("CGO_CFLAGS")+" -fdebug-prefix-map="+abs(".")+string(os.PathSeparator)+"=")
 
 	// Build the commands needed to build the std library in the right mode
-	installArgs := goenv.goCmd("install", "-toolexec", abs(*filterBuildid))
+	// NOTE: the go command stamps compiled .a files with build ids, which are
+	// cryptographic sums derived from the inputs. This prevents us from
+	// creating reproducible builds because the build ids are hashed from
+	// CGO_CFLAGS, which frequently contains absolute paths. As a workaround,
+	// we strip the build ids, since they won't be used after this.
+	installArgs := goenv.goCmd("install", "-toolexec", abs(os.Args[0])+" filterbuildid")
 	if len(build.Default.BuildTags) > 0 {
 		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, " "))
 	}
@@ -125,18 +124,10 @@ func run(args []string) error {
 		return fmt.Errorf("error modifying cgo environment to absolute path: %v", err)
 	}
 
-	for _, target := range []string{"std", "runtime/cgo"} {
-		if err := goenv.runCommand(append(installArgs, target)); err != nil {
-			return err
-		}
+	// TODO(#1885): don't install runtime/cgo in pure mode.
+	installArgs = append(installArgs, "std", "runtime/cgo")
+	if err := goenv.runCommand(installArgs); err != nil {
+		return err
 	}
 	return nil
-}
-
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoStdlib: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }

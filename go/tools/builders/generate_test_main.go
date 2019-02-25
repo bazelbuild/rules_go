@@ -25,7 +25,6 @@ import (
 	"go/doc"
 	"go/parser"
 	"go/token"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -61,7 +60,7 @@ type Cases struct {
 	Coverage   bool
 }
 
-var codeTpl = `
+const testMainTpl = `
 package main
 import (
 	"flag"
@@ -162,7 +161,7 @@ func main() {
 }
 `
 
-func run(args []string) error {
+func genTestMain(args []string) error {
 	// Prepare our flags
 	args, err := readParamsFiles(args)
 	if err != nil {
@@ -322,17 +321,9 @@ func run(args []string) error {
 	sort.Slice(cases.Imports, func(i, j int) bool {
 		return cases.Imports[i].Name < cases.Imports[j].Name
 	})
-	tpl := template.Must(template.New("source").Parse(codeTpl))
+	tpl := template.Must(template.New("source").Parse(testMainTpl))
 	if err := tpl.Execute(outFile, &cases); err != nil {
 		return fmt.Errorf("template.Execute(%v): %v", cases, err)
 	}
 	return nil
-}
-
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoTestGenTest: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }

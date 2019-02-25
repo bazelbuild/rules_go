@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// cover transforms a source file with "go tool cover". It is invoked by the
-// Go rules as an action.
 package main
 
 import (
@@ -25,12 +23,12 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
-	"log"
-	"os"
 	"strconv"
 )
 
-func run(args []string) error {
+// cover transforms a source file with "go tool cover". It is invoked by the
+// Go rules as an action.
+func cover(args []string) error {
 	args, err := readParamsFiles(args)
 	if err != nil {
 		return err
@@ -139,12 +137,4 @@ func init() {
 	}
 
 	return nil
-}
-
-func main() {
-	log.SetFlags(0)
-	log.SetPrefix("GoCover: ")
-	if err := run(os.Args[1:]); err != nil {
-		log.Fatal(err)
-	}
 }

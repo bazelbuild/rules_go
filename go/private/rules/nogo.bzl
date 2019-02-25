@@ -41,6 +41,7 @@ def _nogo_impl(ctx):
     go = go_context(ctx)
     nogo_main = go.declare_file(go, "nogo_main.go")
     nogo_args = ctx.actions.args()
+    nogo_args.add("gennogomain")
     nogo_args.add("-output", nogo_main)
     nogo_inputs = []
     analyzer_archives = [get_archive(dep) for dep in ctx.attr.deps]
@@ -53,7 +54,7 @@ def _nogo_impl(ctx):
         inputs = nogo_inputs,
         outputs = [nogo_main],
         mnemonic = "GoGenNogo",
-        executable = go.builders.nogo_generator,
+        executable = go.toolchain._builder,
         arguments = [nogo_args],
     )
 

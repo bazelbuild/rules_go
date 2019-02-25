@@ -32,6 +32,7 @@ load(
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
+    "GoSDK",
 )
 load(
     "@io_bazel_rules_go//go/platform:list.bzl",
@@ -42,6 +43,10 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODES",
     "LINKMODE_NORMAL",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "shell",
 )
 
 _SHARED_ATTRS = {
@@ -151,28 +156,58 @@ go_binary = go_rule(
 )
 """See go/core.rst#go_binary for full documentation."""
 
-go_tool_binary = go_rule(
-    _go_binary_impl,
-    bootstrap = True,
-    attrs = dict({
-        "deps": attr.label_list(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoLibrary]),
-        "_hostonly": attr.bool(default = True),
-    }.items() + _SHARED_ATTRS.items()),
+def _go_tool_binary_impl(ctx):
+    sdk = ctx.attr.sdk[GoSDK]
+    name = ctx.label.name
+    if sdk.goos == "windows":
+        name += ".exe"
+    out = ctx.actions.declare_file(name)
+
+    command_tpl = ("{go} tool compile -o {out}.a -I {goroot} $@ && " +
+                   "{go} tool link -o {out} -L {goroot} {out}.a && " +
+                   "rm {out}.a")
+    command = command_tpl.format(
+        go = shell.quote(sdk.go.path),
+        goroot = shell.quote(sdk.root_file.dirname),
+        out = shell.quote(out.path),
+    )
+    
+    ctx.actions.run_shell(
+        inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
+        outputs = [out],
+        command = command,
+        arguments = [f.path for f in ctx.files.srcs],
+        mnemonic = "GoToolchainBinary",
+    )
+
+    return [DefaultInfo(
+        files = depset([out]),
+        executable = out,
+    )]
+
+go_tool_binary = rule(
+    implementation = _go_tool_binary_impl,
+    attrs = {
+        "srcs": attr.label_list(
+            allow_files = True,
+            doc = "Source files for the binary. Must be in 'package main'.",
+        ),
+        "sdk": attr.label(
+            mandatory = True,
+            providers = [GoSDK],
+            doc = "The SDK containing tools and libraries to build this binary",
+        ),
+    },
     executable = True,
+    doc = """Used instead of go_binary for executables used in the toolchain.
+
+go_tool_binary depends on tools and libraries that are part of the Go SDK.
+It does not depend on other toolchains. It can only compile binaries that
+just have a main package and only depend on the standard library and don't
+require build constraints.
+""",
 )
-"""
-This is used instead of `go_binary` for tools that are executed inside
-actions emitted by the go rules. This avoids a bootstrapping problem. This
-is very limited and only supports sources in the main package with no
-dependencies outside the standard library.
 
-See go/core.rst#go_binary for full documentation.
-
-TODO: This can merge with go_binary when toolchains become optional
-We add a bootstrap parameter that defaults to false, set it to true on "tool" binaries
-and it can pick the boostrap toolchain when it sees it.
-"""
 
 def gc_linkopts(ctx):
     gc_linkopts = [

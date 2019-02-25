@@ -28,7 +28,6 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
-    "GoBuilders",
     "GoLibrary",
     "GoSource",
     "GoStdLib",
@@ -108,10 +107,12 @@ def _new_args(go):
     # TODO(jayconrod): print warning.
     return go.builder_args(go)
 
-def _builder_args(go):
+def _builder_args(go, command = None):
     args = go.actions.args()
     args.use_param_file("-param=%s")
     args.set_param_file_format("multiline")
+    if command:
+        args.add(command)
     args.add("-sdk", go.sdk.root_file.dirname)
     args.add("-installsuffix", installsuffix(go.mode))
     args.add_joined("-tags", go.tags, join_with = ",")
@@ -292,10 +293,6 @@ def go_context(ctx, attr = None):
     if not attr:
         attr = ctx.attr
 
-    builders = getattr(attr, "_builders", None)
-    if builders:
-        builders = builders[GoBuilders]
-
     nogo = None
     if hasattr(attr, "_nogo"):
         nogo_files = attr._nogo.files.to_list()
@@ -362,7 +359,6 @@ def go_context(ctx, attr = None):
         importmap = importmap,
         pathtype = pathtype,
         cgo_tools = context_data.cgo_tools,
-        builders = builders,
         nogo = nogo,
         coverdata = coverdata,
         coverage_enabled = ctx.configuration.coverage_enabled,

@@ -1,6 +1,7 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_sdk")
-load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "declare_toolchains")
+load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_tool_binary")
 load("@io_bazel_rules_go//go/private:rules/sdk.bzl", "package_list")
+load("@io_bazel_rules_go//go/toolchain:toolchains.bzl", "declare_toolchains")
+load("@io_bazel_rules_go//go:def.bzl", "go_sdk")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -40,6 +41,12 @@ go_sdk(
     go = "bin/go{exe}",
 )
 
+go_tool_binary(
+    name = "builder",
+    srcs = ["@io_bazel_rules_go//go/tools/builders:builder_srcs"],
+    sdk = ":go_sdk",
+)
+
 # TODO(jayconrod): Gazelle depends on this file directly. This dependency
 # should be broken, and this rule should be folded into go_sdk.
 package_list(
@@ -52,6 +59,7 @@ package_list(
 declare_toolchains(
     host = "{goos}_{goarch}",
     sdk = ":go_sdk",
+    builder = ":builder",
 )
 
 filegroup(
