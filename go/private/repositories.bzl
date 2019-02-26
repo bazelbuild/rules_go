@@ -56,6 +56,7 @@ def go_rules_dependencies():
         name = "com_github_golang_protobuf",
         remote = "https://github.com/golang/protobuf",
         commit = "aa810b61a9c79d51363740d207bb46cf8e620ed5",  # v1.2.0, as of 2018-09-28
+        shallow_since = "1534281267 -0700",
         patches = [
             "@io_bazel_rules_go//third_party:com_github_golang_protobuf-gazelle.patch",
             "@io_bazel_rules_go//third_party:com_github_golang_protobuf-extras.patch",
@@ -90,6 +91,7 @@ def go_rules_dependencies():
         name = "com_github_mwitkow_go_proto_validators",
         remote = "https://github.com/mwitkow/go-proto-validators",
         commit = "0950a79900071e9f3f5979b78078c599376422fd",  # master, as of 2019-01-15
+        shallow_since = "1522745477 +0100",
         patches = ["@io_bazel_rules_go//third_party:com_github_mwitkow_go_proto_validators-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/mwitkow/go-proto-validators -proto disable
@@ -99,6 +101,7 @@ def go_rules_dependencies():
         name = "com_github_gogo_protobuf",
         remote = "https://github.com/gogo/protobuf",
         commit = "4cbf7e384e768b4e01799441fdf2a706a5635ae7",  # v1.2.0, as of 2019-01-15
+        shallow_since = "1544518200 +0200",
         patches = ["@io_bazel_rules_go//third_party:com_github_gogo_protobuf-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/gogo/protobuf -proto legacy
@@ -114,6 +117,7 @@ def go_rules_dependencies():
         name = "org_golang_x_net",
         remote = "https://github.com/golang/net",
         commit = "915654e7eabcea33ae277abbecf52f0d8b7a9fdc",  # master as of 2019-01-15
+        shallow_since = "1547150550 +0000",
         patches = ["@io_bazel_rules_go//third_party:org_golang_x_net-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix golang.org/x/net
@@ -123,6 +127,7 @@ def go_rules_dependencies():
         name = "org_golang_x_text",
         remote = "https://github.com/golang/text",
         commit = "f21a4dfb5e38f5895301dc265a8def02365cc3d0",  # v0.3.0, latest as of 2019-01-15
+        shallow_since = "1513256923 +0000",
         patches = ["@io_bazel_rules_go//third_party:org_golang_x_text-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix golang.org/x/text
@@ -132,6 +137,7 @@ def go_rules_dependencies():
         name = "org_golang_x_sys",
         remote = "https://github.com/golang/sys",
         commit = "2be51725563103c17124a318f1745b66f2347acb",  # master as of 2019-01-15
+        shallow_since = "1547471016 +0000",
         patches = ["@io_bazel_rules_go//third_party:org_golang_x_sys-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix golang.org/x/sys
@@ -141,6 +147,7 @@ def go_rules_dependencies():
         name = "org_golang_google_grpc",
         remote = "https://github.com/grpc/grpc-go",
         commit = "df014850f6dee74ba2fc94874043a9f3f75fbfd8",  # v1.17.0, latest as of 2019-01-15
+        shallow_since = "1543966913 -0800",
         patches = [
             "@io_bazel_rules_go//third_party:org_golang_google_grpc-gazelle.patch",
             "@io_bazel_rules_go//third_party:org_golang_google_grpc-crosscompile.patch",
@@ -153,6 +160,7 @@ def go_rules_dependencies():
         name = "org_golang_google_genproto",
         remote = "https://github.com/google/go-genproto",
         commit = "db91494dd46c1fdcbbde05e5ff5eb56df8f7d79a",  # master as of 2019-01-15
+        shallow_since = "1547229923 -0800",
         patches = ["@io_bazel_rules_go//third_party:org_golang_google_genproto-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix google.golang.org/genproto -proto disable_global
@@ -178,6 +186,7 @@ def go_rules_dependencies():
         name = "com_github_golang_glog",
         remote = "https://github.com/golang/glog",
         commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",  # master as of 2019-01-15
+        shallow_since = "1453852388 +1100",
         patches = ["@io_bazel_rules_go//third_party:com_github_golang_glog-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/golang/glog
@@ -187,6 +196,7 @@ def go_rules_dependencies():
         name = "com_github_kevinburke_go_bindata",
         remote = "https://github.com/kevinburke/go-bindata",
         commit = "06af60a4461b70d84a2b173d92f9f425d78baf55",  # v3.11.0, latest as of 2019-01-15
+        shallow_since = "1533425175 -0700",
         patches = ["@io_bazel_rules_go//third_party:com_github_kevinburke_go_bindata-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/kevinburke/go-bindata

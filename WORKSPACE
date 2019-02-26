@@ -12,6 +12,7 @@ go_register_toolchains()
 git_repository(
     name = "bazel_gazelle",
     commit = "aa1a9cfe4845bc83482af92addbfcd41f8dc51f0",  # master as of 2019-01-27
+    shallow_since = "1548631399 -0500",
     remote = "https://github.com/bazelbuild/bazel-gazelle",
 )
 
