@@ -51,6 +51,11 @@ Announcements
 -------------
 
 2019-02-27
+  Gazelle
+  `0.17.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.17.0>`_
+  is now available. ``go_repository`` now supports Go 1.12 caching, and
+  there are several improvements to Go and proto rule generation.
+2019-02-27
   ``github.com/golang/protobuf`` has released version 1.3.0. Code generated
   with this version is *not* compatible with 1.2.0 (which rules_go is still
   using). The next major rules_go release will include protobuf 1.3.0.
@@ -193,8 +198,8 @@ build files automatically using gazelle_.
     )
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
-        sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
+        sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
     )
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -317,8 +322,8 @@ a go.mod or Gopkg.lock file.
     # Download Gazelle
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
-        sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
+        sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
     )
 
     # Load and call Gazelle dependencies
