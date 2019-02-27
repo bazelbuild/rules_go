@@ -55,7 +55,7 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_golang_protobuf",
         remote = "https://github.com/golang/protobuf",
-        commit = "aa810b61a9c79d51363740d207bb46cf8e620ed5",  # v1.2.0, as of 2018-09-28
+        commit = "c823c79ea1570fb5ff454033735a8e68575d1d0f",  # v1.3.0, as of 2019-02-26
         patches = [
             "@io_bazel_rules_go//third_party:com_github_golang_protobuf-gazelle.patch",
             "@io_bazel_rules_go//third_party:com_github_golang_protobuf-extras.patch",

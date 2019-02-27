@@ -143,7 +143,7 @@ Gazelle. You can provide the additional patches to `go_repository`_.
     go_repository(
         name = "com_github_golang_protobuf",
         build_file_proto_mode = "disable_global",
-        commit = "7011d38ac0d201eeddff4a4085a657c3da322d75",
+        commit = "c823c79ea1570fb5ff454033735a8e68575d1d0f",
         importpath = "github.com/golang/protobuf",
         patch_args = ["-p1"],
         patches = ["@io_bazel_rules_go//third_party:com_github_golang_protobuf-extras.patch"],
