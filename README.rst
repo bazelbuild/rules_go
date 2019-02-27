@@ -50,6 +50,13 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2019-02-27
+  ``github.com/golang/protobuf`` has released version 1.3.0. Code generated
+  with this version is *not* compatible with 1.2.0 (which rules_go is still
+  using). The next major rules_go release will include protobuf 1.3.0.
+  If you need to upgrade sooner (for example, because a dependency has
+  already generated code with 1.3.0), follow the instructions at
+  `Overriding dependencies`_. 
 2019-02-26
   Releases
   `0.17.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.1>`_
@@ -58,13 +65,6 @@ Announcements
 2019-01-29
   Release `0.17.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.0>`_
   is now available.
-2019-01-23
-  Releases 
-  `0.16.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.6>`_ and
-  `0.15.11 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.11>`_ are
-  now available with support for Go 1.11.5 and 1.10.8. The 0.14 branch is no
-  longer receiving updates, and this is likely the last release on the 0.15
-  branch. 0.17.0 will be out soon.
 
 Contents
 --------
