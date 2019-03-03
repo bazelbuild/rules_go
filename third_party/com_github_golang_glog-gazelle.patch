@@ -1,6 +1,6 @@
 diff -urN a/BUILD.bazel b/BUILD.bazel
 --- a/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/BUILD.bazel	2018-09-28 12:15:51.000198684 -0400
++++ b/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +

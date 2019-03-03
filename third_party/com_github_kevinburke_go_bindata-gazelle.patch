@@ -1,6 +1,6 @@
 diff -urN a/BUILD.bazel b/BUILD.bazel
 --- a/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/BUILD.bazel	2018-09-28 12:18:50.590529000 -0400
++++ b/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
@@ -36,7 +36,7 @@ diff -urN a/BUILD.bazel b/BUILD.bazel
 +)
 diff -urN a/go-bindata/BUILD.bazel b/go-bindata/BUILD.bazel
 --- a/go-bindata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/go-bindata/BUILD.bazel	2018-09-28 12:18:50.590529000 -0400
++++ b/go-bindata/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -59,7 +59,7 @@ diff -urN a/go-bindata/BUILD.bazel b/go-bindata/BUILD.bazel
 +)
 diff -urN a/testdata/assets/BUILD.bazel b/testdata/assets/BUILD.bazel
 --- a/testdata/assets/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/testdata/assets/BUILD.bazel	2018-09-28 12:18:50.590529000 -0400
++++ b/testdata/assets/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,8 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -71,7 +71,7 @@ diff -urN a/testdata/assets/BUILD.bazel b/testdata/assets/BUILD.bazel
 +)
 diff -urN a/testdata/out/BUILD.bazel b/testdata/out/BUILD.bazel
 --- a/testdata/out/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/testdata/out/BUILD.bazel	2018-09-28 12:18:50.590529000 -0400
++++ b/testdata/out/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +

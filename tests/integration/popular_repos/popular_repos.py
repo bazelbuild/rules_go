@@ -105,6 +105,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/shadow:go_default_test", # Needs testdata directory
             "go/analysis/passes/tests:go_default_test", # Needs testdata directory
             "go/analysis/passes/tests/testdata/src/a:go_default_test", # Not a real test
+            "go/analysis/passes/tests/testdata/src/divergent:go_default_test", # Not a real test
             "go/analysis/passes/unmarshal:go_default_test", # Needs go list
             "go/analysis/passes/unreachable:go_default_test", # Needs testdata directory
             "go/analysis/passes/unusedresult:go_default_test", # Needs testdata directory
@@ -123,6 +124,8 @@ POPULAR_REPOS = [
             "go/ssa/ssautil:go_default_test", # Needs testdata directory
             "go/ssa:go_default_test", # Needs testdata directory
             "internal/lsp:go_default_test", # Needs testdata directory
+            "internal/lsp/cmd:go_default_test", # panics?
+            "internal/lsp/testdata/testy:go_default_test", # Is testdata directory
             "refactor/eg:go_default_test", # Needs testdata directory
             "cmd/fiximports:go_default_test", # requires working GOROOT, not present in CI.
             "cmd/godoc:go_default_test", # TODO(#417)
@@ -141,6 +144,8 @@ POPULAR_REPOS = [
             "go/analysis/analysistest:go_default_test", # requires build cache
             "go/analysis/passes/findcall:go_default_test", # requires build cache
             "go/analysis/passes/pkgfact:go_default_test", # requires go list
+            "go/analysis/passes/atomicalign:go_default_test", # requires go list
+            "go/analysis/passes/deepequalerrors:go_default_test", # requires go list
             "go/packages/packagestest:go_default_test", # requires build cache
             "go/analysis/internal/facts:go_default_test", # loads test package with go/packages, which probably needs go list
             "go/analysis/unitchecker:go_default_test", # requires go vet

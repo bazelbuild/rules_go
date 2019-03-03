@@ -49,6 +49,8 @@ func init() {
 	}
 }
 
+var typesSizes = types.SizesFor("gc", os.Getenv("GOARCH"))
+
 func main() {
 	log.SetFlags(0) // no timestamp
 	log.SetPrefix("nogo: ")
@@ -268,6 +270,7 @@ func (act *action) execOnce() {
 		ExportPackageFact: act.pkg.facts.ExportPackageFact,
 		ImportObjectFact:  act.pkg.facts.ImportObjectFact,
 		ExportObjectFact:  act.pkg.facts.ExportObjectFact,
+		TypesSizes:        typesSizes,
 	}
 	act.pass = pass
 

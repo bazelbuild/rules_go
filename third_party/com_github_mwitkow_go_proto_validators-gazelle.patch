@@ -1,6 +1,6 @@
 diff -urN a/BUILD.bazel b/BUILD.bazel
 --- a/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/BUILD.bazel	2018-09-27 16:37:08.400781572 -0400
++++ b/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -19,13 +19,15 @@ diff -urN a/BUILD.bazel b/BUILD.bazel
 +)
 diff -urN a/examples/BUILD.bazel b/examples/BUILD.bazel
 --- a/examples/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/examples/BUILD.bazel	2018-09-27 16:37:08.400781572 -0400
-@@ -0,0 +1,15 @@
++++ b/examples/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = [
++        "enum.pb.go",
++        "enum.validator.pb.go",
 +        "nested.pb.go",
 +        "nested.validator.pb.go",
 +    ],
@@ -38,7 +40,7 @@ diff -urN a/examples/BUILD.bazel b/examples/BUILD.bazel
 +)
 diff -urN a/plugin/BUILD.bazel b/plugin/BUILD.bazel
 --- a/plugin/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/plugin/BUILD.bazel	2018-09-27 16:37:08.400781572 -0400
++++ b/plugin/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,16 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
@@ -58,7 +60,7 @@ diff -urN a/plugin/BUILD.bazel b/plugin/BUILD.bazel
 +)
 diff -urN a/protoc-gen-govalidators/BUILD.bazel b/protoc-gen-govalidators/BUILD.bazel
 --- a/protoc-gen-govalidators/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/protoc-gen-govalidators/BUILD.bazel	2018-09-27 16:37:08.400781572 -0400
++++ b/protoc-gen-govalidators/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
@@ -81,7 +83,7 @@ diff -urN a/protoc-gen-govalidators/BUILD.bazel b/protoc-gen-govalidators/BUILD.
 +)
 diff -urN a/test/gogo/BUILD.bazel b/test/gogo/BUILD.bazel
 --- a/test/gogo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/gogo/BUILD.bazel	2018-09-27 16:37:08.400781572 -0400
++++ b/test/gogo/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,7 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
@@ -92,7 +94,7 @@ diff -urN a/test/gogo/BUILD.bazel b/test/gogo/BUILD.bazel
 +)
 diff -urN a/test/golang/BUILD.bazel b/test/golang/BUILD.bazel
 --- a/test/golang/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/golang/BUILD.bazel	2018-09-27 16:37:08.400781572 -0400
++++ b/test/golang/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,7 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +

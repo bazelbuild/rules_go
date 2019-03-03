@@ -1,6 +1,6 @@
 diff -urN b/internal/channelz/BUILD.bazel c/internal/channelz/BUILD.bazel
---- b/internal/channelz/BUILD.bazel	2019-01-19 17:17:01.290201496 -0500
-+++ c/internal/channelz/BUILD.bazel	2019-01-19 17:19:19.851242924 -0500
+--- b/internal/channelz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ c/internal/channelz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -17,6 +17,15 @@
          "//credentials:go_default_library",
          "//grpclog:go_default_library",
