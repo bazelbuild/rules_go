@@ -52,10 +52,6 @@ load(
     _go_path = "go_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:tools/vet.bzl",
-    _go_vet_test = "go_vet_test",
-)
-load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     _go_rule = "go_rule",
 )
@@ -120,10 +116,8 @@ go_path = _go_path
         "mode": attr.string(default="link", values=["link", "copy"]) # Whether to copy files or produce soft links
 """
 
-go_vet_test = _go_vet_test
-"""
-    go_vet_test
-"""
+def go_vet_test(*args, **kwargs):
+    fail("The go_vet_test rule has been removed. Please migrate to nogo instead, which supports vet tests.")
 
 def go_rules_dependencies():
     _moved("go_rules_dependencies")
