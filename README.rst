@@ -36,6 +36,7 @@ Go rules for Bazel_
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Overriding dependencies: go/workspace.rst#overriding-dependencies
 .. _nogo: go/nogo.rst
+.. _Using rules_go on Windows: windows.rst
 
 .. ;; And now we continue with the actual content
 
@@ -102,6 +103,7 @@ Quick links
 
 * `rules_go and Gazelle roadmap`_
 * `Deprecation schedule`_
+* `Using rules_go on Windows`_
 
 Overview
 --------
