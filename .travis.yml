@@ -42,3 +42,8 @@ script:
 
 notifications:
   email: false
+  
+cache:
+  directories:
+    - $HOME/.bazel_repository_cache
+    - $HOME/.cache
