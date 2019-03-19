@@ -82,7 +82,7 @@ We can set the version in the ``go_library`` rule for this library.
         name = "go_default_library",
         srcs = ["version.go"],
         importpath = "example.com/repo/version",
-        x_defs = {"Version": "0.9"},
+        x_defs = {"version.Version": "0.9"},
     )
 
 Binaries that depend on this library may also set this value.
