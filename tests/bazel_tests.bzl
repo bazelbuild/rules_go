@@ -136,6 +136,10 @@ filegroup(
 
 CURRENT_VERSION = "current"
 
+# BazelTestSettings holds information about the test environment, gathered by
+# the bazel_test_settings rule.
+BazelTestSettings = provider()
+
 def _bazel_test_script_impl(ctx):
     base_label = ctx.label
     if not base_label.workspace_root:
@@ -365,8 +369,6 @@ _test_environment = repository_rule(
     ],
     implementation = _test_environment_impl,
 )
-
-BazelTestSettings = provider()
 
 def _bazel_test_settings_impl(ctx):
     return [BazelTestSettings(
