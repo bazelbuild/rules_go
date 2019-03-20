@@ -30,3 +30,9 @@ many_deps
 Test that a `go_binary`_ with many imports with long names can be linked. This
 makes sure we don't exceed command-line length limits with -I and -L flags.
 Verifies #1637.
+
+stamp_test
+----------
+Test that the `go_binary`_ ``x_defs`` attribute works correctly, both in a
+binary and in an embedded library. Tests regular stamps and stamps that
+depend on values from the workspace status script. Verifies #2000.

@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load(":many_deps.bzl", "many_deps")
 
 test_suite(name = "go_binary")
@@ -30,3 +30,40 @@ go_binary(
 )
 
 many_deps(name = "many_deps")
+
+go_test(
+    name = "stamp_test",
+    srcs = ["stamp_test.go"],
+    data = [":stamp_bin"],
+    rundir = ".",
+    deps = ["@io_bazel_rules_go//go/tools/bazel:go_default_library"],
+)
+
+go_binary(
+    name = "stamp_bin",
+    srcs = ["stamp_bin.go"],
+    embed = [":stamp_embed"],
+    x_defs = {
+        "Bin": "Bin",
+        "example.com/stamp_dep.DepBin": "DepBin",
+    },
+    deps = [":stamp_dep"],
+)
+
+go_library(
+    name = "stamp_embed",
+    srcs = ["stamp_embed.go"],
+    importpath = "example.com/stamp_embed",
+    x_defs = {
+        "Embed": "Embed",
+    },
+)
+
+go_library(
+    name = "stamp_dep",
+    srcs = ["stamp_dep.go"],
+    importpath = "example.com/stamp_dep",
+    x_defs = {
+        "DepSelf": "DepSelf",
+    },
+)
