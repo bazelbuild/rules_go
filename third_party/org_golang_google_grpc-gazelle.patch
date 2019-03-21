@@ -2264,6 +2264,7 @@ diff -urN a/internal/syscall/BUILD.bazel b/internal/syscall/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:darwin": [
 +            "//grpclog:go_default_library",
++            "@org_golang_x_sys//unix:go_default_library",
 +        ],
 +        "@io_bazel_rules_go//go/platform:dragonfly": [
 +            "//grpclog:go_default_library",
