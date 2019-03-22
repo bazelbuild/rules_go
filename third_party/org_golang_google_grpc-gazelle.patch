@@ -2247,7 +2247,7 @@ diff -urN a/internal/leakcheck/BUILD.bazel b/internal/leakcheck/BUILD.bazel
 diff -urN a/internal/syscall/BUILD.bazel b/internal/syscall/BUILD.bazel
 --- a/internal/syscall/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/syscall/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,49 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
