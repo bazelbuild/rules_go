@@ -163,7 +163,7 @@ def _go_tool_binary_impl(ctx):
         name += ".exe"
     out = ctx.actions.declare_file(name)
 
-    command_tpl = ("{go} tool compile -o {out}.a -I {goroot} $@ && " +
+    command_tpl = ("{go} tool compile -o {out}.a -I {goroot} -trimpath=$PWD $@ && " +
                    "{go} tool link -o {out} -L {goroot} {out}.a && " +
                    "rm {out}.a")
     command = command_tpl.format(
