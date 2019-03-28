@@ -45,10 +45,10 @@ def _impl(ctx):
         ]),
         is_executable = True,
     )
-    return struct(runfiles = ctx.runfiles([
+    return [DefaultInfo(runfiles = ctx.runfiles([
         ctx.file.golden,
         ctx.file.actual,
-    ]))
+    ]))]
 
 def _runpath(f):
     """Figures out the proper runfiles path for a file, using voodoo"""

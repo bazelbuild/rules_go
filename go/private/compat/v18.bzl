@@ -78,3 +78,14 @@ def proto_transitive_proto_path(target):
 
 def proto_transitive_sources(target):
     return target.proto.transitive_sources
+
+# Compatibility for --incompatible_disallow_struct_provider
+def providers_with_coverage(ctx, source_attributes, dependency_attributes, extensions, providers):
+    return struct(
+        providers = providers,
+        instrumented_files = struct(
+            extensions = extensions,
+            source_attributes = source_attributes,
+            dependency_attributes = dependency_attributes,
+        ),
+    )
