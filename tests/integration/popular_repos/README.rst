@@ -158,15 +158,12 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/getgo:go_default_test
 * @org_golang_x_tools//cmd/go-contrib-init:go_default_test
 * @org_golang_x_tools//cmd/splitdwarf/internal/macho:go_default_test
-* @org_golang_x_tools//cmd/tip:go_default_test
 * @org_golang_x_tools//go/analysis/internal/analysisflags:go_default_test
-* @org_golang_x_tools//go/analysis/passes/tests/testdata/src/divergent:go_default_test
 * @org_golang_x_tools//go/ast/astutil:go_default_test
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/cfg:go_default_test
 * @org_golang_x_tools//go/types/objectpath:go_default_test
 * @org_golang_x_tools//go/vcs:go_default_test
-* @org_golang_x_tools//godoc/dl:go_default_test
 * @org_golang_x_tools//godoc/redirect:go_default_test
 * @org_golang_x_tools//godoc/vfs:go_default_test
 * @org_golang_x_tools//godoc/vfs/gatefs:go_default_test
@@ -174,8 +171,12 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/fastwalk:go_default_test
 * @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
+* @org_golang_x_tools//internal/lsp/diff:go_default_test
 * @org_golang_x_tools//internal/lsp/source:go_default_test
+* @org_golang_x_tools//internal/lsp/testdata/analyzer:go_default_test
+* @org_golang_x_tools//internal/module:go_default_test
 * @org_golang_x_tools//internal/semver:go_default_test
+* @org_golang_x_tools//internal/txtar:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
 * @org_golang_x_tools//present:go_default_test
 
@@ -187,6 +188,7 @@ This runs tests from the repository `google.golang.org/grpc <https://google.gola
 
 * @org_golang_google_grpc//balancer/grpclb:go_default_test
 * @org_golang_google_grpc//balancer/roundrobin:go_default_test
+* @org_golang_google_grpc//balancer/xds/edsbalancer:go_default_test
 * @org_golang_google_grpc//benchmark:go_default_test
 * @org_golang_google_grpc//benchmark/latency:go_default_test
 * @org_golang_google_grpc//benchmark/primitives:go_default_test
@@ -203,6 +205,7 @@ This runs tests from the repository `google.golang.org/grpc <https://google.gola
 * @org_golang_google_grpc//internal/binarylog:go_default_test
 * @org_golang_google_grpc//internal/channelz:go_default_test
 * @org_golang_google_grpc//internal/grpcsync:go_default_test
+* @org_golang_google_grpc//internal/grpctest:go_default_test
 * @org_golang_google_grpc//internal/leakcheck:go_default_test
 * @org_golang_google_grpc//internal/testutils:go_default_test
 * @org_golang_google_grpc//metadata:go_default_test

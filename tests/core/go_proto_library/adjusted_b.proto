@@ -4,8 +4,6 @@ import "adjusted/adjusted_c.proto";
 
 package adjusted.b;
 
-option go_package = "adjusted/b";
-
 message B {
   adjusted.c.C b = 1;
 }

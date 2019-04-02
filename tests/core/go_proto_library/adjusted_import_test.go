@@ -18,9 +18,9 @@ package adjusted_import_test
 import (
 	"testing"
 
-	"adjusted/a"
-	"adjusted/b"
-	"adjusted/c"
+	a "adjusted/a"
+	b "adjusted/b"
+	c "adjusted/c"
 )
 
 func use(interface{}) {}

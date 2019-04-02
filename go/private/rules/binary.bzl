@@ -163,7 +163,7 @@ def _go_tool_binary_impl(ctx):
         name += ".exe"
     out = ctx.actions.declare_file(name)
 
-    command_tpl = ("{go} tool compile -o {out}.a -I {goroot} $@ && " +
+    command_tpl = ("{go} tool compile -o {out}.a -I {goroot} -trimpath=$PWD $@ && " +
                    "{go} tool link -o {out} -L {goroot} {out}.a && " +
                    "rm {out}.a")
     command = command_tpl.format(
@@ -171,10 +171,11 @@ def _go_tool_binary_impl(ctx):
         goroot = shell.quote(sdk.root_file.dirname),
         out = shell.quote(out.path),
     )
-    
+
     ctx.actions.run_shell(
         inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
         outputs = [out],
+        env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
         command = command,
         arguments = [f.path for f in ctx.files.srcs],
         mnemonic = "GoToolchainBinary",
@@ -207,7 +208,6 @@ just have a main package and only depend on the standard library and don't
 require build constraints.
 """,
 )
-
 
 def gc_linkopts(ctx):
     gc_linkopts = [

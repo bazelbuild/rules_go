@@ -37,16 +37,19 @@ func link(args []string) error {
 	builderArgs, toolArgs := splitArgs(args)
 	xstamps := multiFlag{}
 	stamps := multiFlag{}
+	xdefs := multiFlag{}
 	archives := linkArchiveMultiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
 	main := flags.String("main", "", "Path to the main archive.")
+	packagePath := flags.String("p", "", "Package path of the main archive.")
 	outFile := flags.String("o", "", "Path to output file.")
 	flags.Var(&archives, "arc", "Label, package path, and file name of a dependency, separated by '='")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	buildmode := flags.String("buildmode", "", "Build mode used.")
+	flags.Var(&xdefs, "X", "A string variable to replace in the linked binary (repeated).")
+	flags.Var(&xstamps, "Xstamp", "Like -X but the values are looked up in the -stamp file.")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
-	flags.Var(&xstamps, "Xstamp", "A link xdef that may need stamping.")
 	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
@@ -65,7 +68,7 @@ func link(args []string) error {
 	*main = abs(*main)
 
 	// If we were given any stamp value files, read and parse them
-	stampmap := map[string]string{}
+	stampMap := map[string]string{}
 	for _, stampfile := range stamps {
 		stampbuf, err := ioutil.ReadFile(stampfile)
 		if err != nil {
@@ -79,10 +82,10 @@ func link(args []string) error {
 				// Nothing to do here
 			case 1:
 				// Map to the empty string
-				stampmap[line[0]] = ""
+				stampMap[line[0]] = ""
 			case 2:
 				// Key and value
-				stampmap[line[0]] = line[1]
+				stampMap[line[0]] = line[1]
 			}
 		}
 	}
@@ -97,16 +100,37 @@ func link(args []string) error {
 	// generate any additional link options we need
 	goargs := goenv.goTool("link")
 	goargs = append(goargs, "-importcfg", importcfgName)
+
+	parseXdef := func(xdef string) (pkg, name, value string, err error) {
+		eq := strings.IndexByte(xdef, '=')
+		if eq < 0 {
+			return "", "", "", fmt.Errorf("-X or -Xstamp flag does not contain '=': %s", xdef)
+		}
+		dot := strings.LastIndexByte(xdef[:eq], '.')
+		if dot < 0 {
+			return "", "", "", fmt.Errorf("-X or -Xstamp flag does not contain '.': %s", xdef)
+		}
+		pkg, name, value = xdef[:dot], xdef[dot+1:eq], xdef[eq+1:]
+		if pkg == *packagePath {
+			pkg = "main"
+		}
+		return pkg, name, value, nil
+	}
 	for _, xdef := range xstamps {
-		split := strings.SplitN(xdef, "=", 2)
-		if len(split) != 2 {
-			continue
+		pkg, name, key, err := parseXdef(xdef)
+		if err != nil {
+			return err
 		}
-		name := split[0]
-		key := split[1]
-		if value, found := stampmap[key]; found {
-			goargs = append(goargs, "-X", fmt.Sprintf("%s=%s", name, value))
+		if value, ok := stampMap[key]; ok {
+			goargs = append(goargs, "-X", fmt.Sprintf("%s.%s=%s", pkg, name, value))
 		}
+	}
+	for _, xdef := range xdefs {
+		pkg, name, value, err := parseXdef(xdef)
+		if err != nil {
+			return err
+		}
+		goargs = append(goargs, "-X", fmt.Sprintf("%s.%s=%s", pkg, name, value))
 	}
 
 	if *buildmode != "" {

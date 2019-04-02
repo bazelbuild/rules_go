@@ -136,6 +136,10 @@ filegroup(
 
 CURRENT_VERSION = "current"
 
+# BazelTestSettings holds information about the test environment, gathered by
+# the bazel_test_settings rule.
+BazelTestSettings = provider()
+
 def _bazel_test_script_impl(ctx):
     base_label = ctx.label
     if not base_label.workspace_root:
@@ -176,7 +180,7 @@ def _bazel_test_script_impl(ctx):
         workspace_content += 'local_repository(name="{name}", path="{exec_root}/{root}")\n'.format(
             name = name,
             root = root,
-            exec_root = ctx.attr._settings.exec_root,
+            exec_root = ctx.attr._settings[BazelTestSettings].exec_root,
         )
     if ctx.attr.workspace:
         workspace_content += ctx.attr.workspace
@@ -199,9 +203,9 @@ def _bazel_test_script_impl(ctx):
         logs = [_testlog_path(t) for t in targets]
 
     script_content = _bazel_test_script_template.format(
-        bazelrc = shell.quote(ctx.attr._settings.exec_root + "/" + ctx.file.bazelrc.path),
+        bazelrc = shell.quote(ctx.attr._settings[BazelTestSettings].exec_root + "/" + ctx.file.bazelrc.path),
         config = ctx.attr.config,
-        extra_files = " ".join([shell.quote(paths.join(ctx.attr._settings.exec_root, "execroot", "io_bazel_rules_go", file.path)) for file in ctx.files.extra_files]),
+        extra_files = " ".join([shell.quote(paths.join(ctx.attr._settings[BazelTestSettings].exec_root, "execroot", "io_bazel_rules_go", file.path)) for file in ctx.files.extra_files]),
         command = ctx.attr.command,
         args = " ".join(ctx.attr.args),
         target = " ".join([str(t) for t in targets]),
@@ -210,9 +214,9 @@ def _bazel_test_script_impl(ctx):
         workspace = shell.quote(workspace_file.short_path),
         build = shell.quote(build_file.short_path),
         output = shell.quote(output),
-        bazel = ctx.attr._settings.bazel,
-        work_dir = shell.quote(ctx.attr._settings.scratch_dir + "/" + ctx.attr.config),
-        cache_dir = shell.quote(ctx.attr._settings.scratch_dir + "/cache"),
+        bazel = ctx.attr._settings[BazelTestSettings].bazel,
+        work_dir = shell.quote(ctx.attr._settings[BazelTestSettings].scratch_dir + "/" + ctx.attr.config),
+        cache_dir = shell.quote(ctx.attr._settings[BazelTestSettings].scratch_dir + "/cache"),
         clean_build = "1" if ctx.attr.clean_build else "0",
     )
     ctx.actions.write(output = script_file, is_executable = True, content = script_content)
@@ -367,11 +371,11 @@ _test_environment = repository_rule(
 )
 
 def _bazel_test_settings_impl(ctx):
-    return struct(
+    return [BazelTestSettings(
         bazel = ctx.attr.bazel,
         exec_root = ctx.attr.exec_root,
         scratch_dir = ctx.attr.scratch_dir,
-    )
+    )]
 
 bazel_test_settings = rule(
     _bazel_test_settings_impl,

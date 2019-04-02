@@ -36,6 +36,7 @@ Go rules for Bazel_
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Overriding dependencies: go/workspace.rst#overriding-dependencies
 .. _nogo: go/nogo.rst
+.. _Using rules_go on Windows: windows.rst
 
 .. ;; And now we continue with the actual content
 
@@ -50,20 +51,27 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
-2019-01-29
-  Release `0.17.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.0>`_
-  is now available.
-2019-01-23
-  Releases 
-  `0.16.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.6>`_ and
-  `0.15.11 <https://github.com/bazelbuild/rules_go/releases/tag/0.15.11>`_ are
-  now available with support for Go 1.11.5 and 1.10.8. The 0.14 branch is no
-  longer receiving updates, and this is likely the last release on the 0.15
-  branch. 0.17.0 will be out soon.
-2018-12-20
+2019-03-14
+  Releases
+  `0.18.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.1>`_,
+  `0.17.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.2>`_,
+  and `0.16.8 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.8>`_
+  are now available with support for Go 1.12.1 and 1.11.6.
+2019-03-04
+  Release `0.18.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.0>`_
+  is now available with support for ``github.com/golang/protobuf v1.3.0``.
+2019-02-27
   Gazelle
-  `0.16.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.16.0>`_
-  is now available.
+  `0.17.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.17.0>`_
+  is now available. ``go_repository`` now supports Go 1.12 caching, and
+  there are several improvements to Go and proto rule generation.
+2019-02-27
+  ``github.com/golang/protobuf`` has released version 1.3.0. Code generated
+  with this version is *not* compatible with 1.2.0 (which rules_go is still
+  using). The next major rules_go release will include protobuf 1.3.0.
+  If you need to upgrade sooner (for example, because a dependency has
+  already generated code with 1.3.0), follow the instructions at
+  `Overriding dependencies`_. 
 
 Contents
 --------
@@ -96,6 +104,7 @@ Quick links
 
 * `rules_go and Gazelle roadmap`_
 * `Deprecation schedule`_
+* `Using rules_go on Windows`_
 
 Overview
 --------
@@ -119,7 +128,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.17.0) requires Bazel ≥ 0.18.0 to work.
+Note: The latest version of these rules (0.18.1) requires Bazel ≥ 0.18.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -138,8 +147,8 @@ Setup
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.17.0/rules_go-0.17.0.tar.gz"],
-        sha256 = "492c3ac68ed9dcf527a07e6a1b2dcbf199c6bf8b35517951467ac32e421c06c1",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.1/rules_go-0.18.1.tar.gz"],
+        sha256 = "77dfd303492f2634de7a660445ee2d3de2960cbd52f97d8c0dffa9362d3ddef9",
     )
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -187,13 +196,13 @@ build files automatically using gazelle_.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.17.0/rules_go-0.17.0.tar.gz"],
-        sha256 = "492c3ac68ed9dcf527a07e6a1b2dcbf199c6bf8b35517951467ac32e421c06c1",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.1/rules_go-0.18.1.tar.gz"],
+        sha256 = "77dfd303492f2634de7a660445ee2d3de2960cbd52f97d8c0dffa9362d3ddef9",
     )
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
-        sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
+        sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
     )
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -304,8 +313,8 @@ a go.mod or Gopkg.lock file.
     # Download the Go rules
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.17.0/rules_go-0.17.0.tar.gz"],
-        sha256 = "492c3ac68ed9dcf527a07e6a1b2dcbf199c6bf8b35517951467ac32e421c06c1",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.1/rules_go-0.18.1.tar.gz"],
+        sha256 = "77dfd303492f2634de7a660445ee2d3de2960cbd52f97d8c0dffa9362d3ddef9",
     )
 
     # Load and call the dependencies
@@ -316,8 +325,8 @@ a go.mod or Gopkg.lock file.
     # Download Gazelle
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.16.0/bazel-gazelle-0.16.0.tar.gz"],
-        sha256 = "7949fc6cc17b5b191103e97481cf8889217263acf52e00b560683413af204fcb",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
+        sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
     )
 
     # Load and call Gazelle dependencies

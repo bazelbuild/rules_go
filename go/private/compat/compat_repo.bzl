@@ -42,10 +42,12 @@ def go_rules_compat(**kwargs):
     if not v:
         # bazel_version is None in development builds, so we can't do a
         # version comparison. Use the newest version of the compat file.
-        stem = "v22"
+        stem = "v23"
     elif versions.is_at_most("0.21.0", v):
         stem = "v18"
-    else:
+    elif versions.is_at_most("0.22.0", v):
         stem = "v22"
+    else:
+        stem = "v23"
     impl = "@io_bazel_rules_go//go/private:compat/{}.bzl".format(stem)
     _go_rules_compat(impl = impl, **kwargs)

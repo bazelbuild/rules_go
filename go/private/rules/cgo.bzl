@@ -125,6 +125,7 @@ def _select_archives(libs):
     in that order. If a cc_library is empty, it may not produce any files,
     so _select_archives may return fewer archives than libs.
     """
+
     # list of file extensions in descending order or preference.
     exts = [".pic.lo", ".lo", ".a"]
     outs = []
@@ -360,9 +361,7 @@ def _cgo_import_impl(ctx):
         arguments = [args],
         mnemonic = "CGoImportGen",
     )
-    return struct(
-        files = depset([out]),
-    )
+    return [DefaultInfo(files = depset([out]))]
 
 _cgo_import = go_rule(
     _cgo_import_impl,

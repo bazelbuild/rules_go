@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package adjusted.c;
 
-option go_package = "adjusted/c";
-
 message C {
   int64 c = 1;
 }

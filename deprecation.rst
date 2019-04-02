@@ -17,9 +17,14 @@ to be removed.
 Deprecated features
 -------------------
 
+Nothing currently deprecated.
+
+Removed features
+----------------
+
 | **Go 1.9**
 | **Deprecated in:** 0.17.0
-| **To be removed in:** 0.18.0
+| **Removed in:** 0.18.0
 | **Rationale:** Go 1.9 is no longer `officially supported`_. Newer versions of
   the Go toolchain provide different feature sets, and it's difficult to
   support older versions at the same time.
@@ -35,10 +40,7 @@ Deprecated features
 | **Migration:** Declare a ``nogo`` rule with ``vet = True``. Add it to the
   toolchain in the WORKSPACE call to ``go_register_toolchains``. See
   `nogo`_ for instructions.
-
-Removed features
-----------------
-
+|
 | **Go 1.8**
 | **Deprecated in:** 0.12.0
 | **Removed in:** 0.13.0

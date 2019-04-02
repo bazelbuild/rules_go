@@ -132,7 +132,7 @@ def emit_link(
             builder_args.add("-Xstamp", "%s=%s" % (k, v[1:-1]))
             stamp_x_defs = True
         else:
-            tool_args.add("-X", "%s=%s" % (k, v))
+            builder_args.add("-X", "%s=%s" % (k, v))
 
     # Stamping support
     stamp_inputs = []
@@ -142,6 +142,7 @@ def emit_link(
 
     builder_args.add("-o", executable)
     builder_args.add("-main", archive.data.file)
+    builder_args.add("-p", archive.data.importmap)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
 
