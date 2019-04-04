@@ -82,6 +82,7 @@ def go_rules_dependencies():
         name = "com_google_protobuf",
         remote = "https://github.com/protocolbuffers/protobuf",
         commit = "582743bf40c5d3639a70f98f183914a2c0cd0680",  # v3.7.0, as of 2019-03-03
+        shallow_since = "1551387314 -0800",
     )
     # Workaround for protocolbuffers/protobuf#5472
     # At master, they provide a macro that creates this dependency. We can't
