@@ -92,7 +92,6 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
     force_race = "off" if host_only else "auto"
 
     linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
-    # https://github.com/golang/go/issues/18968 pie forces external linking
     if linkmode in [LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE, LINKMODE_PIE]:
         force_pure = "off"
 
