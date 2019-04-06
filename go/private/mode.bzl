@@ -26,7 +26,7 @@ LINKMODE_C_SHARED = "c-shared"
 
 LINKMODE_C_ARCHIVE = "c-archive"
 
-LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]
+LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE, LINKMODE_PIE]
 
 def new_mode(goos, goarch, static = False, race = False, msan = False, pure = False, link = LINKMODE_NORMAL, debug = False, strip = False):
     return struct(
@@ -92,7 +92,8 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
     force_race = "off" if host_only else "auto"
 
     linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
-    if linkmode in [LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]:
+    # https://github.com/golang/go/issues/18968 pie forces external linking
+    if linkmode in [LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE, LINKMODE_PIE]:
         force_pure = "off"
 
     static = _ternary(
@@ -196,6 +197,20 @@ _LINK_PLUGIN_PLATFORMS = {
     "darwin/amd64": None,
 }
 
+_LINK_PIE_PLATFORMS = {
+    "linux/amd64": None,
+    "linux/arm": None,
+    "linux/arm64": None,
+    "linux/386": None,
+    "linux/s390x": None,
+    "linux/ppc64le": None,
+    "android/amd64": None,
+    "android/arm": None,
+    "android/arm64": None,
+    "android/386": None,
+    "freebsd/amd64": None,
+}
+
 def link_mode_args(mode):
     # based on buildModeInit in cmd/go/internal/work/init.go
     platform = mode.goos + "/" + mode.goarch
@@ -210,6 +225,9 @@ def link_mode_args(mode):
     elif mode.link == LINKMODE_PLUGIN:
         if platform in _LINK_PLUGIN_PLATFORMS:
             args.append("-dynlink")
+    elif mode.link == LINKMODE_PIE:
+        if platform in _LINK_PIE_PLATFORMS:
+          args.append("-shared")
     return args
 
 def extldflags_from_cc_toolchain(go):
@@ -222,7 +240,7 @@ def extldflags_from_cc_toolchain(go):
         return go.cgo_tools.ld_executable_options
 
 def extld_from_cc_toolchain(go):
-    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
+    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_PIE):
         return ["-extld", go.cgo_tools.ld_dynamic_lib_path]
     elif go.mode.link == LINKMODE_C_ARCHIVE:
         if go.mode.goos == "darwin":
