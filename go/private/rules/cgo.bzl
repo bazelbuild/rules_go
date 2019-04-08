@@ -42,6 +42,7 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
+    "LINKMODE_PIE",
     "extldflags_from_cc_toolchain",
     "mode_string",
     "new_mode",
@@ -477,7 +478,7 @@ _cgo_select_embed = go_rule(
 """No-op rule that collects information about cgo rules in all supported
 modes, then builds GoLibrary and GoSource providers for the current mode."""
 
-def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, **common_attrs):
+def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, objc, objcopts, linkmode, **common_attrs):
     """Declares a graph of rules needed to build the cgo part of a go_library.
     The graph is collected into a single rule which may be embedded in a
     regular go_library.
@@ -503,6 +504,8 @@ def setup_cgo_library(name, srcs, cdeps, copts, cxxopts, cppopts, clinkopts, obj
         ]
         for framework in objcopts.get("sdk_frameworks", []):
             clinkopts.append("-framework %s" % framework)
+    if linkmode == LINKMODE_PIE and "-pie" not in clinkopts:
+        clinkopts = clinkopts + ["-pie"]
 
     # Declare cgo rules for each platform and race / msan configuration. We
     # normally propagate mode attributes through an aspect, but we can't create
