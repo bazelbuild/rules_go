@@ -1,7 +1,10 @@
 ---
 platforms:
-  # ubuntu1404 is no longer tested. The default toolchain has a linker that does
-  # not support relocs in go1.12.2. See golang.org/issue/31293.
+  ubuntu1404:
+    build_targets:
+    - "..."
+    test_targets:
+    - "..."
   ubuntu1604:
     build_targets:
     - "..."
