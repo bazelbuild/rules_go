@@ -226,7 +226,7 @@ def link_mode_args(mode):
             args.append("-dynlink")
     elif mode.link == LINKMODE_PIE:
         if platform in _LINK_PIE_PLATFORMS:
-          args.append("-shared")
+            args.append("-shared")
     return args
 
 def extldflags_from_cc_toolchain(go):
