@@ -1,6 +1,6 @@
 // +build darwin
 
-package go_binary
+package test
 
 import (
 	"debug/macho"
