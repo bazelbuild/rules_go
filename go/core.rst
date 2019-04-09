@@ -597,8 +597,8 @@ Attributes
 |                                                                                                  |
 | :value:`normal`                                                                                  |
 |     Builds a normal executable with position-dependent code.                                     |
-| :value:`pie`                                                                               |
-|     Builds a position-independent executable.                                       |
+| :value:`pie`                                                                                     |
+|     Builds a position-independent executable.                                                    |
 | :value:`plugin`                                                                                  |
 |     Builds a shared library that can be loaded as a Go plugin. Only supported                    |
 |     on platforms that support plugins.                                                           |
