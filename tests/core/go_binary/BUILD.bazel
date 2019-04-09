@@ -83,7 +83,10 @@ go_binary(
 
 go_test(
     name = "pie_test",
-    srcs = ["pie_test.go"],
+    srcs = [
+        "pie_test_darwin.go",
+        "pie_test_linux.go",
+    ],
     data = [
         ":hello_nopie_bin",
         ":hello_pie_bin",
