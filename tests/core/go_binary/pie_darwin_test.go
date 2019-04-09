@@ -1,9 +1,7 @@
-// +build linux
-
 package test
 
 import (
-	"debug/elf"
+	"debug/macho"
 	"fmt"
 	"os"
 	"testing"
@@ -11,7 +9,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
-func openELF(dir, bin string) (*elf.File, error) {
+func openMachO(dir, bin string) (*macho.File, error) {
 	bin, ok := bazel.FindBinary(dir, bin)
 	if !ok {
 		return nil, fmt.Errorf("could not find binary: %s", bin)
@@ -22,29 +20,27 @@ func openELF(dir, bin string) (*elf.File, error) {
 		return nil, err
 	}
 
-	return elf.NewFile(f)
+	return macho.NewFile(f)
 }
 
 func TestPIE(t *testing.T) {
-	e, err := openELF("tests/core/go_binary", "hello_pie_bin")
+	m, err := openMachO("tests/core/go_binary", "hello_pie_bin")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// PIE binaries are implemented as shared libraries.
-	if e.Type != elf.ET_DYN {
+	if m.Flags&macho.FlagPIE == 0 {
 		t.Error("ELF binary is not position-independent.")
 	}
 }
 
 func TestNoPIE(t *testing.T) {
-	e, err := openELF("tests/core/go_binary", "hello_nopie_bin")
+	m, err := openMachO("tests/core/go_binary", "hello_nopie_bin")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// PIE binaries are implemented as shared libraries.
-	if e.Type != elf.ET_EXEC {
+	if m.Flags&macho.FlagPIE != 0 {
 		t.Error("ELF binary is not position-dependent.")
 	}
 }

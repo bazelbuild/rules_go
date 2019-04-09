@@ -71,21 +71,21 @@ go_library(
 go_binary(
     name = "hello_pie_bin",
     srcs = ["hello.go"],
-    cgo = "on",
+    cgo = True,
     linkmode = "pie",
 )
 
 go_binary(
     name = "hello_nopie_bin",
     srcs = ["hello.go"],
-    cgo = "on",
+    cgo = True,
 )
 
 go_test(
     name = "pie_test",
     srcs = [
-        "pie_test_darwin.go",
-        "pie_test_linux.go",
+        "pie_darwin_test.go",
+        "pie_linux_test.go",
     ],
     data = [
         ":hello_nopie_bin",
