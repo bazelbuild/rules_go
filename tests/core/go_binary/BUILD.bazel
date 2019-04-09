@@ -67,3 +67,27 @@ go_library(
         "DepSelf": "DepSelf",
     },
 )
+
+go_binary(
+    name = "hello_pie_bin",
+    srcs = ["hello.go"],
+    cgo = "on",
+    linkmode = "pie",
+)
+
+go_binary(
+    name = "hello_nopie_bin",
+    srcs = ["hello.go"],
+    cgo = "on",
+)
+
+go_test(
+    name = "pie_test",
+    srcs = ["pie_test.go"],
+    data = [
+        ":hello_nopie_bin",
+        ":hello_pie_bin",
+    ],
+    rundir = ".",
+    deps = ["@io_bazel_rules_go//go/tools/bazel:go_default_library"],
+)
