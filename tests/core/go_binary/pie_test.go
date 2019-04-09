@@ -43,6 +43,6 @@ func TestNoPIE(t *testing.T) {
 
 	// PIE binaries are implemented as shared libraries.
 	if e.Type != elf.ET_EXEC {
-		t.Error("ELF binary is not position-independent.")
+		t.Error("ELF binary is not position-dependent.")
 	}
 }
