@@ -73,12 +73,14 @@ go_binary(
     srcs = ["hello.go"],
     cgo = True,
     linkmode = "pie",
+    tags = ["manual"],
 )
 
 go_binary(
     name = "hello_nopie_bin",
     srcs = ["hello.go"],
     cgo = True,
+    tags = ["manual"],
 )
 
 go_test(
@@ -87,10 +89,17 @@ go_test(
         "pie_darwin_test.go",
         "pie_linux_test.go",
     ],
-    data = [
-        ":hello_nopie_bin",
-        ":hello_pie_bin",
-    ],
+    data = select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            ":hello_nopie_bin",
+            ":hello_pie_bin",
+        ],
+        "@io_bazel_rules_go//go/platform:linux": [
+            ":hello_nopie_bin",
+            ":hello_pie_bin",
+        ],
+        "//conditions:default": [],
+    }),
     rundir = ".",
     deps = ["@io_bazel_rules_go//go/tools/bazel:go_default_library"],
 )
