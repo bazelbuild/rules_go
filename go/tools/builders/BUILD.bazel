@@ -56,6 +56,7 @@ go_source(
     name = "nogo_srcs",
     srcs = [
         "flags.go",
+        "env.go",
         "nogo_main.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
