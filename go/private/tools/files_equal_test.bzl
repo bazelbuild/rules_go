@@ -109,7 +109,6 @@ eof""",
         name = name,
         srcs = [name + "-src.sh"],
         data = [
-            name + "_src",
             "@bazel_tools//tools/bash/runfiles",
             actual,
             golden,
