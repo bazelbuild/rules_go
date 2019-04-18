@@ -34,7 +34,6 @@ import (
 	"os"
 	"reflect"
 	"regexp"
-	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -91,10 +90,7 @@ func run(args []string) error {
 		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics)
 	}
 	if *xPath != "" {
-		if runtime.GOOS != "darwin" {
-			*xPath = abs(*xPath)
-		}
-		if err := ioutil.WriteFile(*xPath, facts, 0666); err != nil {
+		if err := ioutil.WriteFile(abs(*xPath), facts, 0666); err != nil {
 			return fmt.Errorf("error writing facts: %v", err)
 		}
 	}
