@@ -80,6 +80,9 @@ func compilePkg(args []string) error {
 	for i := range unfilteredSrcs {
 		unfilteredSrcs[i] = abs(unfilteredSrcs[i])
 	}
+	for i := range coverSrcs {
+		coverSrcs[i] = abs(coverSrcs[i])
+	}
 
 	// Filter sources.
 	srcs, err := filterAndSplitFiles(unfilteredSrcs)
