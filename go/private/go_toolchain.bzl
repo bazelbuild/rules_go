@@ -18,7 +18,6 @@ Toolchain rules used by go.
 load(
     "@io_bazel_rules_go//go/platform:list.bzl",
     "GOOS_GOARCH",
-    "generate_toolchain_names",
 )
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoSDK")
 load("@io_bazel_rules_go//go/private:actions/archive.bzl", "emit_archive")

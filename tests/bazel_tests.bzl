@@ -1,14 +1,14 @@
 load(
+    "@io_bazel_rules_go//go/platform:list.bzl",
+    "generate_toolchain_names",
+)
+load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "env_execute",
-)
-load(
-    "@io_bazel_rules_go//go/private:go_toolchain.bzl",
-    "generate_toolchain_names",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
