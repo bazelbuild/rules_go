@@ -19,8 +19,8 @@ functions to declare and define unit tests, and `asserts` which contains the
 assertions used to within tests.
 """
 
-load(":sets.bzl", "sets")
-load(":new_sets.bzl", new_sets = "sets")
+load(":skylib/lib/sets.bzl", "sets")
+load(":skylib/lib/new_sets.bzl", new_sets = "sets")
 
 def _make(impl, attrs = None):
     """Creates a unit test rule from its implementation function.

@@ -26,6 +26,7 @@ load(
     "as_iterable",
     "as_list",
     "as_set",
+    "has_shared_lib_extension",
     "join_srcs",
     "pkg_dir",
     "split_srcs",
@@ -345,13 +346,20 @@ def _cgo_codegen_impl(ctx):
                 # us the static variant. We'll get one file for each transitive dependency,
                 # so the same file may appear more than once.
                 if (lib.basename.startswith("lib") and
-                    any([lib.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])):
+                    has_shared_lib_extension(lib.basename)):
                     # If the loader would be able to find the library using rpaths,
                     # use -L and -l instead of hard coding the path to the library in
                     # the binary. This gives users more flexibility. The linker will add
                     # rpaths later. We can't add them here because they are relative to
                     # the binary location, and we don't know where that is.
-                    libname = lib.basename[len("lib"):lib.basename.rindex(".")]
+
+                    # Try to find the name before ".so[.#]*", in the event this is a versioned
+                    # filename. Otherwise fall back to taking the name before the last dot.
+                    ext_start = lib.basename.rfind(".so")
+                    if ext_start == -1:
+                        ext_start = lib.basename.rindex(".")
+                    libname = lib.basename[len("lib"):ext_start]
+
                     linkopts.extend(["-L", lib.dirname, "-l", libname])
                 else:
                     linkopts.append(lib.path)

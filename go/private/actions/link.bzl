@@ -18,8 +18,8 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "SHARED_LIB_EXTENSIONS",
     "as_iterable",
+    "has_shared_lib_extension",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
@@ -115,7 +115,7 @@ def emit_link(
     cgo_dynamic_deps = [
         d
         for d in archive.cgo_deps.to_list()
-        if any([d.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])
+        if has_shared_lib_extension(d.basename)
     ]
     cgo_rpaths = []
     for d in cgo_dynamic_deps:

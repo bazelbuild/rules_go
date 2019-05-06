@@ -153,6 +153,33 @@ def goos_to_shared_extension(goos):
         "darwin": ".dylib",
     }.get(goos, ".so")
 
+def has_shared_lib_extension(path):
+    """
+    Matches shared libraries with version names in the extension, i.e.
+    libmylib.so.2 or libmylib.so.2.10.
+    """
+    if any([path.endswith(ext) for ext in SHARED_LIB_EXTENSIONS]):
+        return True
+
+    if not path[-1].isdigit():
+        return False
+
+    so_location = path.rfind(".so")
+    last_dot = so_location
+    for i in range(so_location + 3, len(path)):
+        if path[i] == ".":
+            if i - last_dot > 1:
+                last_dot = i
+            else:
+                return False
+        elif not path[i].isdigit():
+            return False
+
+    if last_dot == len(path):
+        return False
+
+    return True
+
 MINIMUM_BAZEL_VERSION = "0.8.0"
 
 def as_list(v):

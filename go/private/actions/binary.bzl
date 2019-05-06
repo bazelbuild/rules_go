@@ -21,7 +21,7 @@ load(
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "ARCHIVE_EXTENSION",
-    "SHARED_LIB_EXTENSIONS",
+    "has_shared_lib_extension",
 )
 
 def emit_binary(
@@ -61,7 +61,7 @@ def emit_binary(
     cgo_dynamic_deps = [
         d
         for d in archive.cgo_deps.to_list()
-        if any([d.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])
+        if has_shared_lib_extension(d.basename)
     ]
     runfiles = go._ctx.runfiles(files = cgo_dynamic_deps).merge(archive.runfiles)
 
