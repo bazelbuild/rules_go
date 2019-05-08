@@ -317,10 +317,11 @@ def _cgo_codegen_impl(ctx):
         objc_outs.append(gen_file)
         builder_args.add("-src", gen_file.path + "=" + src.path)
 
-    # Filter out -lstdc++ in CGO_LDFLAGS if we don't have any C++ code. This
-    # also gets filtered out in link.bzl.
+    # Filter out -lstdc++ in CGO_LDFLAGS if we don't have any C++ code or libstdc++
+    # is statically linked. This also gets filtered out in link.bzl.
     have_cc = len(source.cxx) + len(source.objc) + len(ctx.attr.deps) > 0
-    if not have_cc:
+    static_cc = "-static-libstdc++" in linkopts
+    if not have_cc or static_cc:
         linkopts = [o for o in linkopts if o not in ("-lstdc++", "-lc++")]
 
     tool_args.add("-objdir", out_dir)

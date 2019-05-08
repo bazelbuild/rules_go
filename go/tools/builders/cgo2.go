@@ -61,17 +61,20 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, pa
 	// generated sources. The compiler encodes those flags in the compiled .a
 	// file, and the linker passes them on to the external linker.
 	haveCxx := len(cxxSrcs) > 0
+	staticCxx := false
 	if !haveCxx {
 		for _, f := range ldFlags {
 			if strings.HasSuffix(f, ".a") {
 				// These flags come from cdeps options. Assume C++.
 				haveCxx = true
-				break
+			}
+			if strings.Compare(f, "-static-libstdc++") == 0 {
+				staticCxx = true
 			}
 		}
 	}
 	var combinedLdFlags []string
-	if haveCxx {
+	if haveCxx && !staticCxx {
 		combinedLdFlags = append(combinedLdFlags, ldFlags...)
 	} else {
 		for _, f := range ldFlags {
