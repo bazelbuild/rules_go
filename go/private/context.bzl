@@ -590,5 +590,5 @@ go_context_data = rule(
             default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
-    fragments = ["apple"],
+    fragments = ["apple", "cpp"],
 )
