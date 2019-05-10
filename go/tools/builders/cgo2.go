@@ -56,21 +56,28 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, pa
 	}
 	defer cleanup()
 
-	// Filter out -lstdc++ and -lc++ from ldflags if we don't have C++ sources,
-	// and set CGO_LDFLAGS. These flags get written as special comments into cgo
-	// generated sources. The compiler encodes those flags in the compiled .a
-	// file, and the linker passes them on to the external linker.
+	// Filter out -lstdc++ and -lc++ from ldflags if we don't have C++ sources
+	// or -static-libstdc++ is explicitly specified, and set CGO_LDFLAGS. These
+	// flags get written as special comments into cgo generated sources. The
+	// compiler encodes those flags in the compiled .a file, and the linker
+	// passes them on to the external linker.
 	haveCxx := len(cxxSrcs) > 0
-	staticCxx := false
 	if !haveCxx {
 		for _, f := range ldFlags {
 			if strings.HasSuffix(f, ".a") {
 				// These flags come from cdeps options. Assume C++.
 				haveCxx = true
+				break
 			}
-			if strings.Compare(f, "-static-libstdc++") == 0 {
-				staticCxx = true
-			}
+		}
+	}
+	staticCxx := false
+	for _, f := range ldFlags {
+		// -static-libstdc++ can come from clinkopts or the linkopts of
+		// depended cc_library rules.
+		if strings.Compare(f, "-static-libstdc++") == 0 {
+			staticCxx = true
+			break
 		}
 	}
 	var combinedLdFlags []string
