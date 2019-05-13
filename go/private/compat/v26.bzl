@@ -124,6 +124,7 @@ def providers_with_coverage(ctx, source_attributes, dependency_attributes, exten
 # Compatibility for --incompatible_require_ctx_in_configure_features
 def cc_configure_features(ctx, cc_toolchain, requested_features, unsupported_features):
     return cc_common.configure_features(
+        ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = requested_features,
         unsupported_features = unsupported_features,

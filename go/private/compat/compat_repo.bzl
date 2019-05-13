@@ -38,16 +38,18 @@ _go_rules_compat = repository_rule(
 )
 
 def go_rules_compat(**kwargs):
-    v = native.bazel_version
-    if not v:
+    impls = [18, 22, 23, 26]  # keep sorted
+    if not native.bazel_version:
         # bazel_version is None in development builds, so we can't do a
         # version comparison. Use the newest version of the compat file.
-        stem = "v23"
-    elif versions.is_at_most("0.21.0", v):
-        stem = "v18"
-    elif versions.is_at_most("0.22.0", v):
-        stem = "v22"
+        impl = impls[-1]
     else:
-        stem = "v23"
-    impl = "@io_bazel_rules_go//go/private:compat/{}.bzl".format(stem)
-    _go_rules_compat(impl = impl, **kwargs)
+        bazel_version = versions.parse(native.bazel_version)
+        impl = impls[0]
+        for iv in impls[1:]:
+            next_version = (0, iv, 0)
+            if bazel_version < next_version:
+                break
+            impl = iv
+    impl_label = "@io_bazel_rules_go//go/private:compat/v{}.bzl".format(impl)
+    _go_rules_compat(impl = impl_label, **kwargs)

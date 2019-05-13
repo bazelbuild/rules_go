@@ -25,6 +25,10 @@ load(
     "C_COMPILE_ACTION_NAME",
 )
 load(
+    "@io_bazel_rules_go_compat//:compat.bzl",
+    "cc_configure_features",
+)
+load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
@@ -416,7 +420,7 @@ def _go_context_data_impl(ctx):
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
     # is switched on.
     cc_toolchain = find_cpp_toolchain(ctx)
-    feature_configuration = cc_common.configure_features(
+    feature_configuration = cc_configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
