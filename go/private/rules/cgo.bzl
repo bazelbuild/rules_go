@@ -253,7 +253,7 @@ def _include_unique(opts, flag, include, seen):
     opts.extend([flag, include])
 
 def _encode_cgo_mode(goos, goarch, race, msan):
-    return "_".join((goos, goarch, race, msan))
+    return "_".join((goos, goarch, str(race), str(msan)))
 
 def _cgo_codegen_impl(ctx):
     go = go_context(ctx)
