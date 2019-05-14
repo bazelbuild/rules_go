@@ -594,5 +594,6 @@ go_context_data = rule(
             default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
+    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["apple", "cpp"],
 )
