@@ -14,6 +14,8 @@
 
 # Compatibility for --incompatible_disable_legacy_cc_provider
 
+load("@io_bazel_rules_go//go/private:common.bzl", "as_iterable")
+
 CC_PROVIDER_NAME = CcInfo
 
 def has_cc(target):
@@ -40,7 +42,7 @@ def cc_link_flags(target):
 def cc_libs(target):
     # Copied from get_libs_for_static_executable in migration instructions
     # from bazelbuild/bazel#7036.
-    libraries_to_link = target[CcInfo].linking_context.libraries_to_link
+    libraries_to_link = as_iterable(target[CcInfo].linking_context.libraries_to_link)
     libs = []
     for library_to_link in libraries_to_link:
         if library_to_link.static_library != None:
