@@ -38,7 +38,7 @@ _go_rules_compat = repository_rule(
 )
 
 def go_rules_compat(**kwargs):
-    impls = [18, 22, 23, 26]  # keep sorted
+    impls = [18, 22, 23, 25]  # keep sorted
     if not native.bazel_version:
         # bazel_version is None in development builds, so we can't do a
         # version comparison. Use the newest version of the compat file.
