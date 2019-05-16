@@ -15,7 +15,7 @@
 def _impl(ctx):
     exe = ctx.outputs.out
     ctx.actions.write(
-        output = ctx.outputs.executable,
+        output = exe,
         # The file must not be empty because running an empty .bat file as a
         # subprocess fails on Windows, so we write one space to it.
         content = " ",
