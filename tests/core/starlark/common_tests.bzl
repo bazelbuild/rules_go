@@ -11,7 +11,10 @@ def _versioned_shared_libraries_test(ctx):
     asserts.true(env, has_shared_lib_extension("somelibrary.so.20"))
     asserts.true(env, has_shared_lib_extension("somelibrary.so.20.2"))
     asserts.true(env, has_shared_lib_extension("a/somelibrary.so.2"))
+    asserts.true(env, has_shared_lib_extension("somelibrary✅.so.2"))
+    asserts.true(env, has_shared_lib_extension("somelibrary✅.so.2.1"))
     asserts.false(env, has_shared_lib_extension("somelibrary.so.e"))
+    asserts.false(env, has_shared_lib_extension("xx.1"))
     asserts.false(env, has_shared_lib_extension("somelibrary.so.2e"))
     asserts.false(env, has_shared_lib_extension("somelibrary.so.e2"))
     asserts.false(env, has_shared_lib_extension("somelibrary.so.20.e2"))
@@ -19,6 +22,9 @@ def _versioned_shared_libraries_test(ctx):
     asserts.false(env, has_shared_lib_extension("somelibrary.a..2"))
     asserts.false(env, has_shared_lib_extension("somelibrary.so.2."))
     asserts.false(env, has_shared_lib_extension("somelibrary.so."))
+    asserts.false(env, has_shared_lib_extension("somelibrary.so.2🚫"))
+    asserts.false(env, has_shared_lib_extension("somelibrary.so.🚫2"))
+    asserts.false(env, has_shared_lib_extension("somelibrary.so🚫.2.0"))
 
     return unittest.end(env)
 

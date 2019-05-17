@@ -21,6 +21,7 @@ Contents
 * `race instrumentation <race/README.rst>`_
 * `stdlib functionality <stdlib/README.rst>`_
 * `Basic go_binary functionality <go_binary/README.rst>`_
+* `Starlark unit tests <starlark/README.rst>`_
 * `coverage functionality <coverage/README.rst>`_
 * `Import maps <importmap/README.rst>`_
 * `Basic go_path functionality <go_path/README.rst>`_
