@@ -45,8 +45,8 @@ func compilePkg(args []string) error {
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
 	var testFilter string
-	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, ldFlags quoteMultiFlag
-	fs.Var(&unfilteredSrcs, "src", ".go, .c, or .s file to be filtered and compiled")
+	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
+	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&coverSrcs, "cover", ".go file that should be instrumented for coverage (must also be a -src)")
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	fs.Var(&cgoArchivePaths, "cgoarc", "Path to a C/C++/ObjC archive to repack into the Go archive. May be repeated.")
@@ -57,6 +57,8 @@ func compilePkg(args []string) error {
 	fs.Var(&cppFlags, "cppflags", "C preprocessor flags")
 	fs.Var(&cFlags, "cflags", "C compiler flags")
 	fs.Var(&cxxFlags, "cxxflags", "C++ compiler flags")
+	fs.Var(&objcFlags, "objcflags", "Objective-C compiler flags")
+	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
@@ -131,6 +133,8 @@ func compilePkg(args []string) error {
 		cppFlags,
 		cFlags,
 		cxxFlags,
+		objcFlags,
+		objcxxFlags,
 		ldFlags,
 		nogoPath,
 		packageListPath,
@@ -155,6 +159,8 @@ func compileArchive(
 	cppFlags []string,
 	cFlags []string,
 	cxxFlags []string,
+	objcFlags []string,
+	objcxxFlags []string,
 	ldFlags []string,
 	nogoPath string,
 	packageListPath string,
@@ -198,8 +204,13 @@ func compileArchive(
 	for i, src := range srcs.cxxSrcs {
 		cxxSrcs[i] = src.filename
 	}
-	if len(srcs.mSrcs) > 0 {
-		return errors.New("Objective C sources not supported by GoCompilePkg")
+	objcSrcs := make([]string, len(srcs.objcSrcs))
+	for i, src := range srcs.objcSrcs {
+		objcSrcs[i] = src.filename
+	}
+	objcxxSrcs := make([]string, len(srcs.objcxxSrcs))
+	for i, src := range srcs.objcxxSrcs {
+		objcxxSrcs[i] = src.filename
 	}
 	sSrcs := make([]string, len(srcs.sSrcs))
 	for i, src := range srcs.sSrcs {
@@ -209,7 +220,7 @@ func compileArchive(
 	for i, src := range srcs.hSrcs {
 		hSrcs[i] = src.filename
 	}
-	haveCgo := len(cgoSrcs)+len(cSrcs)+len(cxxSrcs) > 0
+	haveCgo := len(cgoSrcs)+len(cSrcs)+len(cxxSrcs)+len(objcSrcs)+len(objcxxSrcs) > 0
 
 	// Instrument source files for coverage.
 	if coverMode != "" {
@@ -254,7 +265,7 @@ func compileArchive(
 		// If cgo is not enabled or we don't have other cgo sources, don't
 		// compile .S files.
 		var srcDir string
-		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, nil, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, ldFlags, cgoExportHPath)
+		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, nil, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
 		if err != nil {
 			return err
 		}

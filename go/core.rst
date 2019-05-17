@@ -303,8 +303,10 @@ Attributes
 | If :value:`True`, the package uses cgo_.                                                         |
 | The cgo tool permits Go code to call C code and vice-versa.                                      |
 | This does not support calling C++.                                                               |
-| When cgo is set, :param:`srcs` may contain C or assembly files; these files are compiled with    |
-| the normal c compiler and included in the package.                                               |
+| When cgo is set, :param:`srcs` may contain C, C++, Objective-C, Objective-C++,                   |
+| and assembly files. These files will be compiled with the compiler from                          |
+| the configured C/C++ toolchain. The compiled objects are included in                             |
+| the package.                                                                                     |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`cdeps`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -558,8 +560,10 @@ Attributes
 | If :value:`True`, the binary uses cgo_.                                                          |
 | The cgo tool permits Go code to call C code and vice-versa.                                      |
 | This does not support calling C++.                                                               |
-| When cgo is set, :param:`srcs` may contain C or assembly files; these files are compiled with    |
-| the normal c compiler and included in the package.                                               |
+| When cgo is set, :param:`srcs` may contain C, C++, Objective-C, Objective-C++,                   |
+| and assembly files. These files will be compiled with the compiler from                          |
+| the configured C/C++ toolchain. The compiled objects are included in                             |
+| the package.                                                                                     |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`cdeps`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -765,8 +769,10 @@ Attributes
 | If :value:`True`, the binary uses cgo_.                                                          |
 | The cgo tool permits Go code to call C code and vice-versa.                                      |
 | This does not support calling C++.                                                               |
-| When cgo is set, :param:`srcs` may contain C or assembly files; these files are compiled with    |
-| the normal c compiler and included in the package.                                               |
+| When cgo is set, :param:`srcs` may contain C, C++, Objective-C, Objective-C++,                   |
+| and assembly files. These files will be compiled with the compiler from                          |
+| the configured C/C++ toolchain. The compiled objects are included in                             |
+| the package.                                                                                     |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`cdeps`             | :type:`label_list`          | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+

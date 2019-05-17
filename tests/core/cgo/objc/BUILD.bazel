@@ -19,9 +19,8 @@ go_library(
     ],
     cdeps = [":sub"],
     cgo = True,
+    copts = ["-fmodules"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/objc",
-    objc = True,
-    objc_enable_modules = True,
     tags = ["manual"],
 )
 

@@ -85,7 +85,7 @@ def emit_archive(go, source = None):
         if source.cgo and not go.mode.pure:
             cgo = cgo_configure(
                 go,
-                srcs = split.go + split.c + split.asm + split.cxx + split.headers,
+                srcs = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
                 cdeps = source.cdeps,
                 cppopts = cppopts,
                 copts = copts,
@@ -96,7 +96,7 @@ def emit_archive(go, source = None):
             runfiles = runfiles.merge(cgo.runfiles)
             emit_compilepkg(
                 go,
-                sources = split.go + split.c + split.asm + split.cxx + split.headers,
+                sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
                 cover = source.cover,
                 importpath = effective_importpath_pkgpath(source.library)[0],
                 importmap = source.library.importmap,
@@ -109,6 +109,8 @@ def emit_archive(go, source = None):
                 cppopts = cgo.cppopts,
                 copts = cgo.copts,
                 cxxopts = cgo.cxxopts,
+                objcopts = cgo.objcopts,
+                objcxxopts = cgo.objcxxopts,
                 clinkopts = cgo.clinkopts,
                 cgo_archives = source.cgo_archives,
                 testfilter = testfilter,
@@ -117,7 +119,7 @@ def emit_archive(go, source = None):
             cgo_deps = depset()
             emit_compilepkg(
                 go,
-                sources = split.go + split.c + split.asm + split.cxx + split.headers,
+                sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
                 cover = source.cover,
                 importpath = effective_importpath_pkgpath(source.library)[0],
                 importmap = source.library.importmap,

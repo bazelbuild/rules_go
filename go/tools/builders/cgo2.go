@@ -29,12 +29,14 @@ import (
 )
 
 // cgo2 processes a set of mixed source files with cgo.
-func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, packagePath, packageName string, cc string, cppFlags, cFlags, cxxFlags, ldFlags []string, cgoExportHPath string) (srcDir string, allGoSrcs, cObjs []string, err error) {
+func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []string, packagePath, packageName string, cc string, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags []string, cgoExportHPath string) (srcDir string, allGoSrcs, cObjs []string, err error) {
 	// Report an error if the C/C++ toolchain wasn't configured.
 	if cc == "" {
 		err := cgoError(cgoSrcs[:])
 		err = append(err, cSrcs...)
 		err = append(err, cxxSrcs...)
+		err = append(err, objcSrcs...)
+		err = append(err, objcxxSrcs...)
 		err = append(err, sSrcs...)
 		return "", nil, nil, err
 	}
@@ -46,7 +48,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, pa
 	// might miss dependencies like -lstdc++ if they aren't referenced in
 	// some other way.
 	if len(cgoSrcs) == 0 {
-		cObjs, err = compileCSources(goenv, cSrcs, cxxSrcs, sSrcs, hSrcs, cc, cppFlags, cFlags, cxxFlags)
+		cObjs, err = compileCSources(goenv, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags)
 		return ".", nil, cObjs, err
 	}
 
@@ -60,7 +62,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, pa
 	// and set CGO_LDFLAGS. These flags get written as special comments into cgo
 	// generated sources. The compiler encodes those flags in the compiled .a
 	// file, and the linker passes them on to the external linker.
-	haveCxx := len(cxxSrcs) > 0
+	haveCxx := len(cxxSrcs)+len(objcxxSrcs) > 0
 	if !haveCxx {
 		for _, f := range ldFlags {
 			if strings.HasSuffix(f, ".a") {
@@ -151,38 +153,23 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, pa
 	}
 	cgoMainC := filepath.Join(workDir, "_cgo_main.c")
 
-	// Compile C, C++, and assembly code.
-	defaultCFlags := defaultCFlags()
-	defaultCFlags = append(defaultCFlags, "-fdebug-prefix-map="+abs(".")+"=.")
-	defaultCFlags = append(defaultCFlags, "-fdebug-prefix-map="+workDir+"=.")
-	combinedCFlags := append([]string{}, cppFlags...)
-	combinedCFlags = append(combinedCFlags, hdrIncludes...)
-	combinedCFlags = append(combinedCFlags, cFlags...)
-	combinedCFlags = append(combinedCFlags, defaultCFlags...)
-	combinedCxxFlags := append([]string{}, cppFlags...)
-	combinedCxxFlags = append(combinedCxxFlags, hdrIncludes...)
-	combinedCxxFlags = append(combinedCxxFlags, cxxFlags...)
-	combinedCxxFlags = append(combinedCxxFlags, defaultCFlags...)
-
-	compileSrcs := append([]string{}, genCSrcs...)
-	compileSrcs = append(compileSrcs, cSrcs...)
-	compileSrcs = append(compileSrcs, sSrcs...)
-	cxxBegin := len(compileSrcs)
-	compileSrcs = append(compileSrcs, cxxSrcs...)
-
-	cObjs = make([]string, len(compileSrcs))
-	for i := 0; i < len(cObjs); i++ {
-		cObjs[i] = filepath.Join(workDir, fmt.Sprintf("_x%d.o", i))
-	}
-
-	for i, src := range compileSrcs {
-		if i < cxxBegin {
-			err = cCompile(goenv, src, cc, combinedCFlags, cObjs[i])
-		} else {
-			err = cxxCompile(goenv, src, cc, combinedCxxFlags, cObjs[i])
-		}
-		if err != nil {
-			return "", nil, nil, err
+	// Compile C, C++, Objective-C/C++, and assembly code.
+	defaultCFlags := defaultCFlags(workDir)
+	combinedCFlags := combineFlags(cppFlags, hdrIncludes, cFlags, defaultCFlags)
+	for _, lang := range []struct{ srcs, flags []string }{
+		{genCSrcs, combinedCFlags},
+		{cSrcs, combinedCFlags},
+		{cxxSrcs, combineFlags(cppFlags, hdrIncludes, cxxFlags, defaultCFlags)},
+		{objcSrcs, combineFlags(cppFlags, hdrIncludes, objcFlags, defaultCFlags)},
+		{objcxxSrcs, combineFlags(cppFlags, hdrIncludes, objcxxFlags, defaultCFlags)},
+		{sSrcs, nil},
+	} {
+		for _, src := range lang.srcs {
+			obj := filepath.Join(workDir, fmt.Sprintf("_x%d.o", len(cObjs)))
+			cObjs = append(cObjs, obj)
+			if err := cCompile(goenv, src, cc, lang.flags, obj); err != nil {
+				return "", nil, nil, err
+			}
 		}
 	}
 
@@ -221,11 +208,12 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, sSrcs, hSrcs []string, pa
 	return workDir, allGoSrcs, cObjs, nil
 }
 
-// compileCSources compiles a list of C, C++, and assembly sources into .o
-// files to be packed into the archive. It does not run cgo. This is used for
-// packages with "cgo = True" but without any .go files that import "C".
-// The Go command forbids this, but we have historically allowed it.
-func compileCSources(goenv *env, cSrcs, cxxSrcs, sSrcs, hSrcs []string, cc string, cppFlags, cFlags, cxxFlags []string) (cObjs []string, err error) {
+// compileCSources compiles a list of C, C++, Objective-C, Objective-C++,
+// and assembly sources into .o files to be packed into the archive.
+// It does not run cgo. This is used for packages with "cgo = True" but
+// without any .go files that import "C". The Go command forbids this,
+// but we have historically allowed it.
+func compileCSources(goenv *env, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []string, cc string, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags []string) (cObjs []string, err error) {
 	workDir, cleanup, err := goenv.workDir()
 	if err != nil {
 		return nil, err
@@ -242,63 +230,57 @@ func compileCSources(goenv *env, cSrcs, cxxSrcs, sSrcs, hSrcs []string, cc strin
 		}
 	}
 
-	defaultCFlags := defaultCFlags()
-	combinedCFlags := append([]string{}, cppFlags...)
-	combinedCFlags = append(combinedCFlags, hdrIncludes...)
-	combinedCFlags = append(combinedCFlags, cFlags...)
-	combinedCFlags = append(combinedCFlags, defaultCFlags...)
-	combinedCxxFlags := append([]string{}, cxxFlags...)
-	combinedCxxFlags = append(combinedCxxFlags, hdrIncludes...)
-	combinedCxxFlags = append(combinedCxxFlags, cxxFlags...)
-	combinedCxxFlags = append(combinedCxxFlags, defaultCFlags...)
-
-	compileSrcs := append([]string{}, cSrcs...)
-	compileSrcs = append(compileSrcs, sSrcs...)
-	cxxBegin := len(compileSrcs)
-	compileSrcs = append(compileSrcs, cxxSrcs...)
-
-	cObjs = make([]string, len(compileSrcs))
-	for i := 0; i < len(cObjs); i++ {
-		cObjs[i] = filepath.Join(workDir, fmt.Sprintf("_x%d.o", i))
-	}
-
-	for i, src := range compileSrcs {
-		if i < cxxBegin {
-			err = cCompile(goenv, src, cc, combinedCFlags, cObjs[i])
-		} else {
-			err = cxxCompile(goenv, src, cc, combinedCxxFlags, cObjs[i])
-		}
-		if err != nil {
-			return nil, err
+	defaultCFlags := defaultCFlags(workDir)
+	for _, lang := range []struct{ srcs, flags []string }{
+		{cSrcs, combineFlags(cppFlags, hdrIncludes, cFlags, defaultCFlags)},
+		{cxxSrcs, combineFlags(cppFlags, hdrIncludes, cxxFlags, defaultCFlags)},
+		{objcSrcs, combineFlags(cppFlags, hdrIncludes, objcFlags, defaultCFlags)},
+		{objcxxSrcs, combineFlags(cppFlags, hdrIncludes, objcxxFlags, defaultCFlags)},
+		{sSrcs, nil},
+	} {
+		for _, src := range lang.srcs {
+			obj := filepath.Join(workDir, fmt.Sprintf("_x%d.o", len(cObjs)))
+			cObjs = append(cObjs, obj)
+			if err := cCompile(goenv, src, cc, lang.flags, obj); err != nil {
+				return nil, err
+			}
 		}
 	}
-
 	return cObjs, nil
 }
 
-func cCompile(goenv *env, src, cc string, cFlags []string, out string) error {
+func combineFlags(lists ...[]string) []string {
+	n := 0
+	for _, list := range lists {
+		n += len(list)
+	}
+	flags := make([]string, 0, n)
+	for _, list := range lists {
+		flags = append(flags, list...)
+	}
+	return flags
+}
+
+func cCompile(goenv *env, src, cc string, flags []string, out string) error {
 	args := []string{cc}
-	args = append(args, cFlags...)
+	args = append(args, flags...)
 	args = append(args, "-c", src, "-o", out)
 	return goenv.runCommand(args)
 }
 
-func cxxCompile(goenv *env, src, cc string, cxxFlags []string, out string) error {
-	args := []string{cc, "-x", "c++"}
-	args = append(args, cxxFlags...)
-	args = append(args, "-c", src, "-o", out)
-	return goenv.runCommand(args)
-}
-
-func defaultCFlags() []string {
+func defaultCFlags(workDir string) []string {
+	flags := []string{
+		"-fdebug-prefix-map=" + abs(".") + "=.",
+		"-fdebug-prefix-map=" + workDir + "=.",
+	}
 	goos, goarch := os.Getenv("GOOS"), os.Getenv("GOARCH")
 	switch {
 	case goos == "darwin":
-		return nil
+		return flags
 	case goos == "windows" && goarch == "amd64":
-		return []string{"-mthreads"}
+		return append(flags, "-mthreads")
 	default:
-		return []string{"-pthread"}
+		return append(flags, "-pthread")
 	}
 }
 

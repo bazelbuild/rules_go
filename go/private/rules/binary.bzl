@@ -19,10 +19,8 @@ load(
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "asm_exts",
-    "c_exts",
-    "cxx_exts",
+    "cgo_exts",
     "go_exts",
-    "hdr_exts",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/aspect.bzl",
@@ -55,7 +53,7 @@ load(
 _SHARED_ATTRS = {
     "basename": attr.string(),
     "data": attr.label_list(allow_files = True),
-    "srcs": attr.label_list(allow_files = go_exts + asm_exts + hdr_exts + c_exts + cxx_exts),
+    "srcs": attr.label_list(allow_files = go_exts + asm_exts + cgo_exts),
     "gc_goopts": attr.string_list(),
     "gc_linkopts": attr.string_list(),
     "x_defs": attr.string_dict(),

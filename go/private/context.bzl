@@ -23,6 +23,8 @@ load(
     "CPP_LINK_EXECUTABLE_ACTION_NAME",
     "CPP_LINK_STATIC_LIBRARY_ACTION_NAME",
     "C_COMPILE_ACTION_NAME",
+    "OBJC_COMPILE_ACTION_NAME",
+    "OBJCPP_COMPILE_ACTION_NAME",
 )
 load(
     "@io_bazel_rules_go_compat//:compat.bzl",
@@ -567,6 +569,42 @@ def _cgo_context_data_impl(ctx):
         variables = cxx_compile_variables,
     ))
 
+    objc_compile_variables = cc_common.create_compile_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+    )
+    objc_compile_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = OBJC_COMPILE_ACTION_NAME,
+            variables = objc_compile_variables,
+        ),
+        _COMPILER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = OBJC_COMPILE_ACTION_NAME,
+        variables = objc_compile_variables,
+    ))
+
+    objcxx_compile_variables = cc_common.create_compile_variables(
+        feature_configuration = feature_configuration,
+        cc_toolchain = cc_toolchain,
+    )
+    objcxx_compile_options = _filter_options(
+        cc_common.get_memory_inefficient_command_line(
+            feature_configuration = feature_configuration,
+            action_name = OBJCPP_COMPILE_ACTION_NAME,
+            variables = objcxx_compile_variables,
+        ),
+        _COMPILER_OPTIONS_BLACKLIST,
+    )
+    env.update(cc_common.get_environment_variables(
+        feature_configuration = feature_configuration,
+        action_name = OBJCPP_COMPILE_ACTION_NAME,
+        variables = objcxx_compile_variables,
+    ))
+
     ld_executable_variables = cc_common.create_link_variables(
         feature_configuration = feature_configuration,
         cc_toolchain = cc_toolchain,
@@ -638,7 +676,7 @@ def _cgo_context_data_impl(ctx):
         ctx,
         env,
         tags,
-        (c_compile_options, cxx_compile_options),
+        (c_compile_options, cxx_compile_options, objc_compile_options, objcxx_compile_options),
         (ld_executable_options, ld_dynamic_lib_options),
         cc_toolchain.target_gnu_system_name,
     )
@@ -651,6 +689,8 @@ def _cgo_context_data_impl(ctx):
             c_compiler_path = c_compiler_path,
             c_compile_options = c_compile_options,
             cxx_compile_options = cxx_compile_options,
+            objc_compile_options = objc_compile_options,
+            objcxx_compile_options = objcxx_compile_options,
             ld_executable_path = ld_executable_path,
             ld_executable_options = ld_executable_options,
             ld_static_lib_path = ld_static_lib_path,

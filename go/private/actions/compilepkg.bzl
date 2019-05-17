@@ -43,6 +43,8 @@ def emit_compilepkg(
         cppopts = [],
         copts = [],
         cxxopts = [],
+        objcopts = [],
+        objcxxopts = [],
         clinkopts = [],
         cgo_archives = [],
         out_lib = None,
@@ -116,6 +118,10 @@ def emit_compilepkg(
             args.add("-cflags", _quote_opts(copts))
         if cxxopts:
             args.add("-cxxflags", _quote_opts(cxxopts))
+        if objcopts:
+            args.add("-objcflags", _quote_opts(objcopts))
+        if objcxxopts:
+            args.add("-objcxxflags", _quote_opts(objcxxopts))
         if clinkopts:
             args.add("-ldflags", _quote_opts(clinkopts))
 

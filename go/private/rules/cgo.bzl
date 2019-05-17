@@ -93,6 +93,8 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
         cppopts: complete list of preprocessor options
         copts: complete list of C compiler options.
         cxxopts: complete list of C++ compiler options.
+        objcopts: complete list of Objective-C compiler options.
+        objcxxopts: complete list of Objective-C++ compiler options.
         clinkopts: complete list of linker options.
     """
     if not go.cgo_tools:
@@ -104,12 +106,13 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
         cppopts.extend(["-I", base_dir])
     copts = go.cgo_tools.c_compile_options + copts
     cxxopts = go.cgo_tools.cxx_compile_options + cxxopts
+    objcopts = go.cgo_tools.objc_compile_options + copts
+    objcxxopts = go.cgo_tools.objcxx_compile_options + cxxopts
     clinkopts = extldflags_from_cc_toolchain(go) + clinkopts
     if go.mode != LINKMODE_NORMAL:
-        if "-fPIC" not in copts:
-            copts.append("-fPIC")
-        if "-fPIC" not in cxxopts:
-            cxxopts.append("-fPIC")
+        for opt_list in (copts, cxxopts, objcopts, objcxxopts):
+            if "-fPIC" not in opt_list:
+                opt_list.append("-fPIC")
 
     seen_includes = {}
     seen_quote_includes = {}
@@ -125,42 +128,57 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     runfiles = go._ctx.runfiles(collect_data = True)
     for d in cdeps:
         runfiles = runfiles.merge(d.data_runfiles)
-        if not has_cc(d):
-            fail("library has no cc provider: %s" % d.label)
-        inputs_transitive.append(cc_transitive_headers(d))
-        inputs_direct.extend(cc_libs(d))
-        deps_direct.extend(cc_libs(d))
-        cppopts.extend(["-D" + define for define in cc_defines(d)])
-        for inc in cc_includes(d):
-            _include_unique(cppopts, "-I", inc, seen_includes)
-        for inc in cc_quote_includes(d):
-            _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
-        for inc in cc_system_includes(d):
-            _include_unique(cppopts, "-isystem", inc, seen_system_includes)
-        for lib in cc_libs(d):
-            # If both static and dynamic variants are available, Bazel will only give
-            # us the static variant. We'll get one file for each transitive dependency,
-            # so the same file may appear more than once.
-            if (lib.basename.startswith("lib") and
-                has_simple_shared_lib_extension(lib.basename)):
-                # If the loader would be able to find the library using rpaths,
-                # use -L and -l instead of hard coding the path to the library in
-                # the binary. This gives users more flexibility. The linker will add
-                # rpaths later. We can't add them here because they are relative to
-                # the binary location, and we don't know where that is.
-                libname = lib.basename[len("lib"):lib.basename.rindex(".")]
-                clinkopts.extend(["-L", lib.dirname, "-l", libname])
-                inputs_direct.append(lib)
-            elif (lib.basename.startswith("lib") and
-                  has_versioned_shared_lib_extension(lib.basename)):
-                # With a versioned shared library, we must use the full filename,
-                # otherwise the library will not be found by the linker.
-                libname = ":%s" % lib.basename
-                clinkopts.extend(["-L", lib.dirname, "-l", libname])
-                inputs_direct.append(lib)
-            else:
-                lib_opts.append(lib.path)
-        clinkopts.extend(cc_link_flags(d))
+        if has_cc(d):
+            inputs_transitive.append(cc_transitive_headers(d))
+            inputs_direct.extend(cc_libs(d))
+            deps_direct.extend(cc_libs(d))
+            cppopts.extend(["-D" + define for define in cc_defines(d)])
+            for inc in cc_includes(d):
+                _include_unique(cppopts, "-I", inc, seen_includes)
+            for inc in cc_quote_includes(d):
+                _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
+            for inc in cc_system_includes(d):
+                _include_unique(cppopts, "-isystem", inc, seen_system_includes)
+            for lib in cc_libs(d):
+                # If both static and dynamic variants are available, Bazel will only give
+                # us the static variant. We'll get one file for each transitive dependency,
+                # so the same file may appear more than once.
+                if (lib.basename.startswith("lib") and
+                    has_simple_shared_lib_extension(lib.basename)):
+                    # If the loader would be able to find the library using rpaths,
+                    # use -L and -l instead of hard coding the path to the library in
+                    # the binary. This gives users more flexibility. The linker will add
+                    # rpaths later. We can't add them here because they are relative to
+                    # the binary location, and we don't know where that is.
+                    libname = lib.basename[len("lib"):lib.basename.rindex(".")]
+                    clinkopts.extend(["-L", lib.dirname, "-l", libname])
+                    inputs_direct.append(lib)
+                elif (lib.basename.startswith("lib") and
+                      has_versioned_shared_lib_extension(lib.basename)):
+                    # With a versioned shared library, we must use the full filename,
+                    # otherwise the library will not be found by the linker.
+                    libname = ":%s" % lib.basename
+                    clinkopts.extend(["-L", lib.dirname, "-l", libname])
+                    inputs_direct.append(lib)
+                else:
+                    lib_opts.append(lib.path)
+            clinkopts.extend(cc_link_flags(d))
+
+        elif hasattr(d, "objc"):
+            cppopts.extend(["-D" + define for define in d.objc.define.to_list()])
+            for inc in d.objc.include.to_list():
+                _include_unique(cppopts, "-I", inc, seen_includes)
+            for inc in d.objc.iquote.to_list():
+                _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
+            for inc in d.objc.include_system.to_list():
+                _include_unique(cppopts, "-isystem", inc, seen_system_includes)
+
+            # TODO(jayconrod): do we need to link against dynamic libraries or
+            # frameworks? We link against *_fully_linked.a, so maybe not?
+
+        else:
+            fail("unknown library has neither cc nor objc providers: %s" % d.label)
+
     inputs = depset(direct = inputs_direct, transitive = inputs_transitive)
     deps = depset(direct = deps_direct)
 
@@ -177,6 +195,8 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
         cppopts = cppopts,
         copts = copts,
         cxxopts = cxxopts,
+        objcopts = objcopts,
+        objcxxopts = objcxxopts,
         clinkopts = clinkopts,
     )
 

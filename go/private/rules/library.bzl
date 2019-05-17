@@ -15,10 +15,8 @@
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "asm_exts",
-    "c_exts",
-    "cxx_exts",
+    "cgo_exts",
     "go_exts",
-    "hdr_exts",
 )
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
@@ -60,7 +58,7 @@ go_library = go_rule(
     _go_library_impl,
     attrs = {
         "data": attr.label_list(allow_files = True),
-        "srcs": attr.label_list(allow_files = go_exts + asm_exts + hdr_exts + c_exts + cxx_exts),
+        "srcs": attr.label_list(allow_files = go_exts + asm_exts + cgo_exts),
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
         "importmap": attr.string(),

@@ -55,6 +55,20 @@ objc_exts = [
     ".hxx",
 ]
 
+cgo_exts = [
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+    ".inc",
+    ".m",
+    ".mm",
+]
+
 def pkg_dir(workspace_root, package_name):
     """Returns a relative path to a package directory from the root of the
     sandbox. Useful at execution-time or run-time."""

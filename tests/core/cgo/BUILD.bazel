@@ -13,7 +13,13 @@ go_library(
         "add.cpp",
         "add.h",
         "adder.go",
-    ],
+    ] + select({
+        "@io_bazel_rules_go//go/platform:darwin": [
+            "add.m",
+            "add.mm",
+        ],
+        "//conditions:default": [],
+    }),
     cgo = True,
     copts = ["-DRULES_GO_C"],
     cppopts = ["-DRULES_GO_CPP"],
