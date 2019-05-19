@@ -266,27 +266,33 @@ func compileArchive(
 
 	// Check that the filtered sources don't import anything outside of
 	// the standard library and the direct dependencies.
-	_, stdImports, err := checkDirectDeps(srcs.goSrcs, deps, packageListPath)
+	imports, err := checkImports(srcs.goSrcs, deps, packageListPath)
 	if err != nil {
 		return err
 	}
 	if cgoEnabled && len(cgoSrcs) != 0 {
 		// cgo generated code imports some extra packages.
-		cgoStdImports := map[string]struct{}{
-			"runtime/cgo": struct{}{},
-			"syscall":     struct{}{},
-			"unsafe":      struct{}{},
+		imports["runtime/cgo"] = nil
+		imports["syscall"] = nil
+		imports["unsafe"] = nil
+	}
+	if coverMode != "" {
+		const coverdataPath = "github.com/bazelbuild/rules_go/go/tools/coverdata"
+		var coverdata *archive
+		for i := range deps {
+			if deps[i].importPath == coverdataPath {
+				coverdata = &deps[i]
+				break
+			}
 		}
-		for _, imp := range stdImports {
-			delete(cgoStdImports, imp)
+		if coverdata == nil {
+			return errors.New("coverage requested but coverdata dependency not provided")
 		}
-		for imp := range cgoStdImports {
-			stdImports = append(stdImports, imp)
-		}
+		imports[coverdataPath] = coverdata
 	}
 
 	// Build an importcfg file for the compiler.
-	importcfgPath, err := buildImportcfgFileForCompile(deps, stdImports, goenv.installSuffix, filepath.Dir(outPath))
+	importcfgPath, err := buildImportcfgFileForCompile(imports, goenv.installSuffix, filepath.Dir(outPath))
 	if err != nil {
 		return err
 	}
@@ -298,7 +304,7 @@ func compileArchive(
 		ctx, cancel := context.WithCancel(context.Background())
 		nogoChan = make(chan error)
 		go func() {
-			nogoChan <- runNogo(ctx, nogoPath, goSrcs, deps, stdImports, packagePath, importcfgPath, outFactsPath)
+			nogoChan <- runNogo(ctx, nogoPath, goSrcs, deps, packagePath, importcfgPath, outFactsPath)
 		}()
 		defer func() {
 			if nogoChan != nil {
@@ -402,13 +408,10 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath
 	return goenv.runCommand(args)
 }
 
-func runNogo(ctx context.Context, nogoPath string, srcs []string, deps []archive, stdImports []string, packagePath, importcfgPath, outFactsPath string) error {
+func runNogo(ctx context.Context, nogoPath string, srcs []string, deps []archive, packagePath, importcfgPath, outFactsPath string) error {
 	args := []string{nogoPath}
 	args = append(args, "-p", packagePath)
 	args = append(args, "-importcfg", importcfgPath)
-	for _, imp := range stdImports {
-		args = append(args, "-stdimport", imp)
-	}
 	for _, dep := range deps {
 		if dep.xFile != "" {
 			args = append(args, "-fact", fmt.Sprintf("%s=%s", dep.importPath, dep.xFile))

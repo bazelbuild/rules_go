@@ -143,6 +143,7 @@ def _new_library(go, name = None, importpath = None, resolver = None, importable
         label = go._ctx.label,
         importpath = importpath,
         importmap = importmap,
+        importpath_aliases = go.importpath_aliases,
         pathtype = pathtype,
         resolve = resolver,
         testfilter = testfilter,
@@ -279,6 +280,20 @@ def _check_binary_dep(go, dep, edge):
             edge = edge,
         ))
 
+def _check_importpaths(ctx):
+    paths = []
+    p = getattr(ctx.attr, "importpath", "")
+    if p:
+        paths.append(p)
+    p = getattr(ctx.attr, "importmap", "")
+    if p:
+        paths.append(p)
+    paths.extend(getattr(ctx.attr, "importpath_aliases", ()))
+
+    for p in paths:
+        if ":" in p:
+            fail("import path '%s' contains invalid character :" % p)
+
 def _infer_importpath(ctx):
     DEFAULT_LIB = "go_default_library"
     VENDOR_PREFIX = "/vendor/"
@@ -365,7 +380,10 @@ def go_context(ctx, attr = None):
                  toolchain.sdk.libs +
                  toolchain.sdk.tools)
 
+    _check_importpaths(ctx)
     importpath, importmap, pathtype = _infer_importpath(ctx)
+    importpath_aliases = tuple(getattr(attr, "importpath_aliases", ()))
+
     return GoContext(
         # Fields
         toolchain = toolchain,
@@ -384,6 +402,7 @@ def go_context(ctx, attr = None):
         package_list = toolchain.sdk.package_list,
         importpath = importpath,
         importmap = importmap,
+        importpath_aliases = importpath_aliases,
         pathtype = pathtype,
         cgo_tools = context_data.cgo_tools,
         nogo = nogo,

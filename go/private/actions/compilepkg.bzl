@@ -23,7 +23,7 @@ load(
 
 def _archive(v):
     return "{}={}={}={}".format(
-        v.data.importpath,
+        ":".join((v.data.importpath,) + v.data.importpath_aliases),
         v.data.importmap,
         v.data.file.path,
         v.data.export_file.path if v.data.export_file else "",

@@ -64,6 +64,7 @@ go_library = go_rule(
         "deps": attr.label_list(providers = [GoLibrary]),
         "importpath": attr.string(),
         "importmap": attr.string(),
+        "importpath_aliases": attr.string_list(),  # experimental, undocumented
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "x_defs": attr.string_dict(),

@@ -64,6 +64,7 @@ def _nogo_impl(ctx):
         label = go._ctx.label,
         importpath = "nogomain",
         importmap = "nogomain",
+        importpath_aliases = (),
         pathtype = EXPORT_PATH,
         resolve = None,
     )

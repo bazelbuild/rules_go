@@ -133,6 +133,7 @@ def _go_test_impl(ctx):
         label = go._ctx.label,
         importpath = "testmain",
         importmap = "testmain",
+        importpath_aliases = (),
         pathtype = INFERRED_PATH,
         resolve = None,
     )

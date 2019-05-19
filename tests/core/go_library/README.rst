@@ -5,6 +5,7 @@ Basic go_library functionality
 .. #1262: https://github.com/bazelbuild/rules_go/issues/1262
 .. #1520: https://github.com/bazelbuild/rules_go/issues/1520
 .. #1772: https://github.com/bazelbuild/rules_go/issues/1772
+.. #2058: https://github.com/bazelbuild/rules_go/issues/2058
 
 empty
 -----
@@ -29,3 +30,10 @@ package_height
 
 Checks that when a library embeds another library, the embedder's dependencies
 may override the embeddee's dependencies. Verifies `#1772`_.
+
+import_alias_test
+-----------------
+
+Checks that a library may import another library using one of the strings
+listed in ``importpath_aliases``. This is the basic mechanism for minimal
+module compatibility. Verifies `#2058`_.

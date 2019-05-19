@@ -182,6 +182,7 @@ def emit_archive(go, source = None):
         label = source.library.label,
         importpath = source.library.importpath,
         importmap = source.library.importmap,
+        importpath_aliases = source.library.importpath_aliases,
         pathtype = source.library.pathtype,
         file = out_lib,
         export_file = out_export,

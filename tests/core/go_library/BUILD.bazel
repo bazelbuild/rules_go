@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "empty",
@@ -65,4 +65,33 @@ go_library(
     name = "package_height_dep_shallow",
     srcs = ["package_height_dep_shallow.go"],
     importpath = "package_height/dep",
+)
+
+go_test(
+    name = "import_alias_test",
+    srcs = ["import_alias_test.go"],
+    deps = [
+        ":import_alias_a_v2",
+        ":import_alias_b",
+        ":import_alias_b_v2",
+    ],
+)
+
+go_library(
+    name = "import_alias_a_v2",
+    srcs = ["import_alias_a_v2.go"],
+    importpath = "import_alias/a/v2",
+    importpath_aliases = ["import_alias/a"],
+)
+
+go_library(
+    name = "import_alias_b",
+    srcs = ["import_alias_b.go"],
+    importpath = "import_alias/b",
+)
+
+go_library(
+    name = "import_alias_b_v2",
+    importpath = "import_alias/b/v2",
+    importpath_aliases = ["import_alias/b"],
 )

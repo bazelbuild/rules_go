@@ -21,7 +21,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -109,13 +108,13 @@ func compile(args []string) error {
 
 	// Check that the filtered sources don't import anything outside of
 	// the standard library and the direct dependencies.
-	_, stdImports, err := checkDirectDeps(goFiles, archives, *packageList)
+	imports, err := checkImports(goFiles, archives, *packageList)
 	if err != nil {
 		return err
 	}
 
 	// Build an importcfg file for the compiler.
-	importcfgName, err := buildImportcfgFileForCompile(archives, stdImports, goenv.installSuffix, filepath.Dir(*output))
+	importcfgName, err := buildImportcfgFileForCompile(imports, goenv.installSuffix, filepath.Dir(*output))
 	if err != nil {
 		return err
 	}
@@ -163,9 +162,6 @@ func compile(args []string) error {
 		var nogoargs []string
 		nogoargs = append(nogoargs, "-p", *packagePath)
 		nogoargs = append(nogoargs, "-importcfg", importcfgName)
-		for _, imp := range stdImports {
-			nogoargs = append(nogoargs, "-stdimport", imp)
-		}
 		for _, arc := range archives {
 			if arc.xFile != "" {
 				nogoargs = append(nogoargs, "-fact", fmt.Sprintf("%s=%s", arc.importPath, arc.xFile))
@@ -196,84 +192,4 @@ func compile(args []string) error {
 		fmt.Fprintln(os.Stderr, nogoOutput.String())
 	}
 	return nil
-}
-
-func checkDirectDeps(files []fileInfo, archives []archive, packageList string) (depImports, stdImports []string, err error) {
-	packagesTxt, err := ioutil.ReadFile(packageList)
-	if err != nil {
-		log.Fatal(err)
-	}
-	stdlibSet := map[string]bool{}
-	for _, line := range strings.Split(string(packagesTxt), "\n") {
-		line = strings.TrimSpace(line)
-		if line != "" {
-			stdlibSet[line] = true
-		}
-	}
-
-	depSet := map[string]bool{}
-	depList := make([]string, len(archives))
-	for i, arc := range archives {
-		depSet[arc.importPath] = true
-		depList[i] = arc.importPath
-	}
-
-	importSet := map[string]bool{}
-
-	derr := depsError{known: depList}
-	for _, f := range files {
-		for _, path := range f.imports {
-			if path == "C" || isRelative(path) || importSet[path] {
-				// TODO(#1645): Support local (relative) import paths. We don't emit
-				// errors for them here, but they will probably break something else.
-				continue
-			}
-			if stdlibSet[path] {
-				stdImports = append(stdImports, path)
-				continue
-			}
-			if depSet[path] {
-				depImports = append(depImports, path)
-				continue
-			}
-			derr.missing = append(derr.missing, missingDep{f.filename, path})
-		}
-	}
-	if len(derr.missing) > 0 {
-		return nil, nil, derr
-	}
-	return depImports, stdImports, nil
-}
-
-type depsError struct {
-	missing []missingDep
-	known   []string
-}
-
-type missingDep struct {
-	filename, imp string
-}
-
-var _ error = depsError{}
-
-func (e depsError) Error() string {
-	buf := bytes.NewBuffer(nil)
-	fmt.Fprintf(buf, "missing strict dependencies:\n")
-	for _, dep := range e.missing {
-		fmt.Fprintf(buf, "\t%s: import of %q\n", dep.filename, dep.imp)
-	}
-	if len(e.known) == 0 {
-		fmt.Fprintln(buf, "No dependencies were provided.")
-	} else {
-		fmt.Fprintln(buf, "Known dependencies are:")
-		for _, imp := range e.known {
-			fmt.Fprintf(buf, "\t%s\n", imp)
-		}
-	}
-	fmt.Fprint(buf, "Check that imports in Go sources match importpath attributes in deps.")
-	return buf.String()
-}
-
-func isRelative(path string) bool {
-	return strings.HasPrefix(path, "./") || strings.HasPrefix(path, "../")
 }
