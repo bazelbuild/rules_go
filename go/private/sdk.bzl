@@ -18,8 +18,22 @@ load(
     "executable_path",
 )
 load(
+    "@io_bazel_rules_go//go/private:nogo.bzl",
+    "go_register_nogo",
+)
+load(
+    "@io_bazel_rules_go//go/private:sdk_list.bzl",
+    "DEFAULT_VERSION",
+    "MIN_SUPPORTED_VERSION",
+    "SDK_REPOSITORIES",
+)
+load(
     "@io_bazel_rules_go//go/platform:list.bzl",
     "generate_toolchain_names",
+)
+load(
+    "@io_bazel_rules_go//go/private:skylib/lib/versions.bzl",
+    "versions",
 )
 
 def _go_host_sdk_impl(ctx):
@@ -38,14 +52,28 @@ def go_host_sdk(name, **kwargs):
     _register_toolchains(name)
 
 def _go_download_sdk_impl(ctx):
-    sdks = ctx.attr.sdks
+    if ctx.attr.version:
+        if ctx.attr.sdks:
+            fail("version and sdks must not both be set")
+        if ctx.attr.version not in SDK_REPOSITORIES:
+            fail("unknown Go version: {}".format(ctx.attr.version))
+        sdks = SDK_REPOSITORIES[ctx.attr.version]
+    elif ctx.attr.sdks:
+        sdks = ctx.attr.sdks
+    else:
+        sdks = SDK_REPOSITORIES[DEFAULT_VERSION]
+
     if not ctx.attr.goos and not ctx.attr.goarch:
         platform = _detect_host_platform(ctx)
     else:
+        if not ctx.attr.goos:
+            fail("goos set but goarch not set")
+        if not ctx.attr.goarch:
+            fail("goarch set but goos not set")
         platform = ctx.attr.goos + "_" + ctx.attr.goarch
     if platform not in sdks:
-        fail("Unsupported platform {}".format(platform))
-    filename, sha256 = ctx.attr.sdks[platform]
+        fail("unsupported platform {}".format(platform))
+    filename, sha256 = sdks[platform]
     _sdk_build_file(ctx, platform)
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
 
@@ -56,6 +84,7 @@ _go_download_sdk = repository_rule(
         "goarch": attr.string(),
         "sdks": attr.string_list_dict(),
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
+        "version": attr.string(),
         "strip_prefix": attr.string(default = "go"),
     },
 )
@@ -209,3 +238,30 @@ def _detect_sdk_platform(ctx, goroot):
         if f.find("_") >= 0:
             return f
     fail("Could not detect SDK platform")
+
+def go_register_toolchains(go_version = None, nogo = None):
+    """See /go/toolchains.rst#go-register-toolchains for full documentation."""
+    sdk_kinds = ("_go_download_sdk", "_go_host_sdk", "_go_local_sdk", "_go_wrap_sdk")
+    sdk_rules = [r for r in native.existing_rules().values() if r["kind"] in sdk_kinds]
+
+    if go_version and len(sdk_rules) > 0:
+        fail("go_version set after go sdk rule declared ({})".format(", ".join([r["name"] for r in sdk_rules])))
+    if len(sdk_rules) == 0:
+        if not go_version:
+            go_version = DEFAULT_VERSION
+        if go_version == "host":
+            go_host_sdk(name = "go_sdk")
+        else:
+            if not versions.is_at_least(MIN_SUPPORTED_VERSION, go_version):
+                print("DEPRECATED: go_register_toolchains: support for Go versions before {} will be removed soon".format(MIN_SUPPORTED_VERSION))
+            go_download_sdk(
+                name = "go_sdk",
+                version = go_version,
+            )
+
+    if nogo:
+        # Override default definition in go_rules_dependencies().
+        go_register_nogo(
+            name = "io_bazel_rules_nogo",
+            nogo = nogo,
+        )

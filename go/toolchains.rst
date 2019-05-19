@@ -18,6 +18,7 @@ Go toolchains
 .. _GoSDK: providers.rst#gosdk
 .. _go/platform/list.bzl: platform/list.bzl
 .. _Args: https://docs.bazel.build/versions/master/skylark/lib/Args.html
+.. _nogo: nogo.rst#nogo
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -59,11 +60,11 @@ SDKs are declared to Bazel with the `go_sdk`_ rule, which gathers information
 about the SDK into the `GoSDK`_ provider, which may be consumed by other
 rules through `the context`_.
 
-By default, when you call ``go_register_toolchains()``, the Go rules will
-download the most recent official SDK that was available at the last Go rules
-release. If you need a `forked version of Go`_, want to `control the version`_,
-or just use the `installed SDK`_, just declare a Go SDK repository before
-calling ``go_register_toolchains``.
+If you haven't declared an SDK before calling ``go_register_toolchains()``,
+a `go_download_sdk`_ rule will be declared automatically. This is good enough
+in more situations, but if you need a `forked version of Go`_,
+want to `control the version`_, or use the `installed SDK`_, declare
+a Go SDK repository before calling ``go_register_toolchains``.
 
 The toolchain
 ~~~~~~~~~~~~~
@@ -214,50 +215,71 @@ SDK will be used.
 | ``go_register_toolchains``. The default version is the latest version of Go                      |
 | that was released at the time the rules_go release you're using was tagged.                      |
 +--------------------------------+-----------------------------+-----------------------------------+
+| :param:`nogo`                  | :type:`label`               | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The ``nogo`` attribute refers to a nogo_ rule that builds a binary                               |
+| used for static analysis. The ``nogo`` binary will be used alongside the                         |
+| Go compiler when building packages.                                                              |
++--------------------------------+-----------------------------+-----------------------------------+
 
 go_download_sdk
 ~~~~~~~~~~~~~~~
 
 This downloads a Go SDK for use in toolchains.
 
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`name`                  | :type:`string`              | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A unique name for this SDK. This should almost always be :value:`go_sdk` if you want the SDK     |
-| to be used by toolchains.                                                                        |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`urls`                  | :type:`string_list`         | :value:`official distributions`   |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A list of mirror urls to the binary distribution of a Go SDK. These must contain the `{}`        |
-| used to substitute the sdk filename being fetched (using `.format`.                              |
-| It defaults to the official repository :value:`"https://storage.googleapis.com/golang/{}"`.      |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`strip_prefix`          | :type:`string`              | :value:`"go"`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A directory prefix to strip from the extracted files.                                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`sdks`                  | :type:`string_list_dict`    | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This consists of a set of mappings from the host platform tuple to a list of filename and        |
-| sha256 for that file. The filename is combined the :param:`urls` to produce the final download   |
-| urls to use.                                                                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`goos`                  | :type:`string`              | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The operating system the binaries in the SDK are intended to run on.                             |
-| By default, this is detected automatically, but if you're building on                            |
-| an unusual platform, or if you're using remote execution and the execution                       |
-| platform is different than the host, you may need to specify this explictly.                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`goarch`                | :type:`string`              | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The architecture the binaries in the SDK are intended to run on.                                 |
-| By default, this is detected automatically, but if you're building on                            |
-| an unusual platform, or if you're using remote execution and the execution                       |
-| platform is different than the host, you may need to specify this explictly.                     |
-+--------------------------------+-----------------------------+-----------------------------------+
++--------------------------------+-----------------------------+---------------------------------------------+
+| **Name**                       | **Type**                    | **Default value**                           |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`name`                  | :type:`string`              | |mandatory|                                 |
++--------------------------------+-----------------------------+---------------------------------------------+
+| A unique name for this SDK. This should almost always be :value:`go_sdk` if you want the SDK               |
+| to be used by toolchains.                                                                                  |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`goos`                  | :type:`string`              | :value:`None`                               |
++--------------------------------+-----------------------------+---------------------------------------------+
+| The operating system the binaries in the SDK are intended to run on.                                       |
+| By default, this is detected automatically, but if you're building on                                      |
+| an unusual platform, or if you're using remote execution and the execution                                 |
+| platform is different than the host, you may need to specify this explictly.                               |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`goarch`                | :type:`string`              | :value:`None`                               |
++--------------------------------+-----------------------------+---------------------------------------------+
+| The architecture the binaries in the SDK are intended to run on.                                           |
+| By default, this is detected automatically, but if you're building on                                      |
+| an unusual platform, or if you're using remote execution and the execution                                 |
+| platform is different than the host, you may need to specify this explictly.                               |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`version`               | :type:`string`              | :value:`latest Go version`                  |
++--------------------------------+-----------------------------+---------------------------------------------+
+| The version of Go to download, for example ``1.12.5``. If unspecified,                                     |
+| ``go_download_sdk`` will download the latest version of Go that rules_go                                   |
+| supports. Go versions that rules_go doesn't support may not be specified,                                  |
+| since the download SHA-256 sums are not known.                                                             |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}`       |
++--------------------------------+-----------------------------+---------------------------------------------+
+| A list of mirror urls to the binary distribution of a Go SDK. These must contain the `{}`                  |
+| used to substitute the sdk filename being fetched (using `.format`.                                        |
+| It defaults to the official repository :value:`"https://dl.google.com/go/{}"`.                             |
+|                                                                                                            |
+| This attribute is seldom used. It is only needed for downloading Go from                                   |
+| an alternative location (for example, an internal mirror).                                                 |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`strip_prefix`          | :type:`string`              | :value:`"go"`                               |
++--------------------------------+-----------------------------+---------------------------------------------+
+| A directory prefix to strip from the extracted files.                                                      |
+| Used with ``urls``.                                                                                        |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`sdks`                  | :type:`string_list_dict`    | :value:`see description`                    |
++--------------------------------+-----------------------------+---------------------------------------------+
+| This consists of a set of mappings from the host platform tuple to a list of filename and                  |
+| sha256 for that file. The filename is combined the :param:`urls` to produce the final download             |
+| urls to use.                                                                                               |
+|                                                                                                            |
+| This option is seldom used. It is only needed for downloading a modified                                   |
+| Go distribution (with a different SHA-256 sum) or a version of Go                                          |
+| not supported by rules_go (for example, a beta or release candidate).                                      |
++--------------------------------+-----------------------------+---------------------------------------------+
 
 **Example**:
 
@@ -272,12 +294,9 @@ This downloads a Go SDK for use in toolchains.
 
     go_download_sdk(
         name = "go_sdk",
-        sdks = {
-            "linux_amd64":   ("go1.8.1.linux-amd64.tar.gz",
-                "a579ab19d5237e263254f1eac5352efcf1d70b9dacadb6d6bb12b0911ede8994"),
-            "darwin_amd64":      ("go1.8.1.darwin-amd64.tar.gz",
-                "25b026fe2f4de7c80b227f69588b06b93787f5b5f134fbf2d652926c08c04bcd"),
-        },
+        goos = "linux",
+        goarch = "amd64",
+        version = "1.12.5",
     )
 
     go_rules_dependencies()
