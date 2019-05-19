@@ -242,7 +242,11 @@ def _detect_sdk_platform(ctx, goroot):
 def go_register_toolchains(go_version = None, nogo = None):
     """See /go/toolchains.rst#go-register-toolchains for full documentation."""
     sdk_kinds = ("_go_download_sdk", "_go_host_sdk", "_go_local_sdk", "_go_wrap_sdk")
-    sdk_rules = [r for r in native.existing_rules().values() if r["kind"] in sdk_kinds]
+    existing_rules = native.existing_rules()
+    sdk_rules = [r for r in existing_rules.values() if r["kind"] in sdk_kinds]
+    if len(sdk_rules) == 0 and "go_sdk" in existing_rules:
+        # may be local_repository in bazel_tests.
+        sdk_rules.append(existing_rules["go_sdk"])
 
     if go_version and len(sdk_rules) > 0:
         fail("go_version set after go sdk rule declared ({})".format(", ".join([r["name"] for r in sdk_rules])))
