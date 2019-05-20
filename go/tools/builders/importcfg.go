@@ -33,10 +33,11 @@ type archive struct {
 	importPathAliases                            []string
 }
 
-// checkImports parses each .go file in files and checks that each import
-// correspends to a direct dependency or a standard library package.
-// checkImports returns a map from source import paths to nil (indicating
-// a standard library package).
+// checkImports verifies that each import in files refers to a
+// direct dependendency in archives or to a standard library package
+// listed in the file at stdPackageListPath. checkImports returns
+// a map from source import paths to elements of archives or to nil
+// for standard library packages.
 func checkImports(files []fileInfo, archives []archive, stdPackageListPath string) (map[string]*archive, error) {
 	// Read the standard package list.
 	packagesTxt, err := ioutil.ReadFile(stdPackageListPath)
@@ -117,8 +118,7 @@ func buildImportcfgFileForCompile(imports map[string]*archive, installSuffix, di
 	sort.Strings(sortedImports)
 
 	for _, imp := range sortedImports {
-		arc := imports[imp]
-		if arc == nil {
+		if arc := imports[imp]; arc == nil {
 			// std package
 			path := filepath.Join(goroot, "pkg", installSuffix, filepath.FromSlash(imp))
 			fmt.Fprintf(buf, "packagefile %s=%s.a\n", imp, path)

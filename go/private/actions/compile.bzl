@@ -18,8 +18,10 @@ load(
 )
 
 def _archive(v):
+    importpaths = [v.data.importpath]
+    importpaths.extend(v.data.importpath_aliases)
     return "{}={}={}={}".format(
-        ":".join([v.data.importpath] + v.data.importpath_aliases),
+        ":".join(importpaths),
         v.data.importmap,
         v.data.file.path,
         v.data.export_file.path if v.data.export_file else "",
