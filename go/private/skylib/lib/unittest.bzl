@@ -166,10 +166,10 @@ def _end(env):
         "EOF",
         "exit %d" % len(env.failures),
     ])
-    env.ctx.file_action(
+    env.ctx.actions.write(
         output = env.ctx.outputs.executable,
         content = cmd,
-        executable = True,
+        is_executable = True,
     )
 
 def _fail(env, msg):
