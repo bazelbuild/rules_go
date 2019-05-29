@@ -19,8 +19,45 @@ functions to declare and define unit tests, and `asserts` which contains the
 assertions used to within tests.
 """
 
-load(":skylib/lib/sets.bzl", "sets")
-load(":skylib/lib/new_sets.bzl", new_sets = "sets")
+load("@io_bazel_rules_go//go/private:skylib/lib/new_sets.bzl", new_sets = "sets")
+load("@io_bazel_rules_go//go/private:skylib/lib/sets.bzl", "sets")
+
+# The following function should only be called from WORKSPACE files and workspace macros.
+def register_unittest_toolchains():
+    """Registers the toolchains for unittest users."""
+    native.register_toolchains(
+        "@io_bazel_rules_go//go/private/skylib/toolchains/unittest:cmd_toolchain",
+        "@io_bazel_rules_go//go/private/skylib/toolchains/unittest:bash_toolchain",
+    )
+
+TOOLCHAIN_TYPE = "@io_bazel_rules_go//go/private/skylib/toolchains/unittest:toolchain_type"
+
+_UnittestToolchain = provider(
+    doc = "Execution platform information for rules in the bazel_skylib repository.",
+    fields = ["file_ext", "success_templ", "failure_templ", "join_on"],
+)
+
+def _unittest_toolchain_impl(ctx):
+    return [
+        platform_common.ToolchainInfo(
+            unittest_toolchain_info = _UnittestToolchain(
+                file_ext = ctx.attr.file_ext,
+                success_templ = ctx.attr.success_templ,
+                failure_templ = ctx.attr.failure_templ,
+                join_on = ctx.attr.join_on,
+            ),
+        ),
+    ]
+
+unittest_toolchain = rule(
+    implementation = _unittest_toolchain_impl,
+    attrs = {
+        "file_ext": attr.string(mandatory = True),
+        "success_templ": attr.string(mandatory = True),
+        "failure_templ": attr.string(mandatory = True),
+        "join_on": attr.string(mandatory = True),
+    },
+)
 
 def _make(impl, attrs = None):
     """Creates a unit test rule from its implementation function.
@@ -41,7 +78,7 @@ def _make(impl, attrs = None):
 
       # Assert statements go here
 
-      unittest.end(env)
+      return unittest.end(env)
 
     your_test = unittest.make(_your_test)
     ```
@@ -59,7 +96,7 @@ def _make(impl, attrs = None):
     """
 
     # Derive the name of the implementation function for better test feedback.
-    # Skylark currently stringifies a function as "<function NAME>", so we use
+    # Starlark currently stringifies a function as "<function NAME>", so we use
     # that knowledge to parse the "NAME" portion out. If this behavior ever
     # changes, we'll need to update this.
     # TODO(bazel-team): Expose a ._name field on functions to avoid this.
@@ -75,6 +112,7 @@ def _make(impl, attrs = None):
         attrs = attrs,
         _skylark_testable = True,
         test = True,
+        toolchains = [TOOLCHAIN_TYPE],
     )
 
 def _suite(name, *test_rules):
@@ -160,17 +198,20 @@ def _end(env):
     Args:
       env: The test environment returned by `unittest.begin`.
     """
-    cmd = "\n".join([
-        "cat << EOF",
-        "\n".join(env.failures),
-        "EOF",
-        "exit %d" % len(env.failures),
-    ])
+
+    tc = env.ctx.toolchains[TOOLCHAIN_TYPE].unittest_toolchain_info
+    testbin = env.ctx.actions.declare_file(env.ctx.label.name + tc.file_ext)
+    if env.failures:
+        cmd = tc.failure_templ % tc.join_on.join(env.failures)
+    else:
+        cmd = tc.success_templ
+
     env.ctx.actions.write(
-        output = env.ctx.outputs.executable,
+        output = testbin,
         content = cmd,
         is_executable = True,
     )
+    return [DefaultInfo(executable = testbin)]
 
 def _fail(env, msg):
     """Unconditionally causes the current test to fail.
