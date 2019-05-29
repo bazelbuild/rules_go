@@ -8,6 +8,10 @@ go_rules_dependencies()
 
 go_register_toolchains()
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 # Needed for tests
 git_repository(
     name = "bazel_gazelle",

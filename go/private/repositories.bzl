@@ -81,24 +81,9 @@ def go_rules_dependencies():
         git_repository,
         name = "com_google_protobuf",
         remote = "https://github.com/protocolbuffers/protobuf",
-        commit = "582743bf40c5d3639a70f98f183914a2c0cd0680",  # v3.7.0, as of 2019-03-03
-        shallow_since = "1551387314 -0800",
+        commit = "09745575a923640154bcf307fba8aedff47f240a",  # v3.8.0, as of 2019-05-28
+        shallow_since = "1558721209 -0700",
     )
-    # Workaround for protocolbuffers/protobuf#5472
-    # At master, they provide a macro that creates this dependency. We can't
-    # load it from here though.
-    if "net_zlib" not in native.existing_rules():
-        native.bind(
-            name = "zlib",
-            actual = "@net_zlib//:zlib",
-        )
-        http_archive(
-            name = "net_zlib",
-            build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
-            sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
-            strip_prefix = "zlib-1.2.11",
-            urls = ["https://zlib.net/zlib-1.2.11.tar.gz"],
-        )
 
     _maybe(
         git_repository,

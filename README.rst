@@ -150,6 +150,8 @@ Setup
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains()
+    load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+    protobuf_deps()
 
   If you want to use a specific commit (for example, something close to
   ``master``), add the following instead:
@@ -165,6 +167,8 @@ Setup
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains()
+    load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+    protobuf_deps()
 
   You can add more external dependencies to this file later (see
   `go_repository`_).
@@ -204,6 +208,8 @@ build files automatically using gazelle_.
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains()
+    load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+    protobuf_deps()
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
     gazelle_dependencies()
 
@@ -318,6 +324,8 @@ a go.mod or Gopkg.lock file.
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
     go_register_toolchains()
+    load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+    protobuf_deps()
 
     # Download Gazelle
     http_archive(
