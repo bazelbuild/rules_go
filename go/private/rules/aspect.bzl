@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "@bazel_skylib//lib:sets.bzl",
     "sets",
 )
 load(

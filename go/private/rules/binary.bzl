@@ -48,7 +48,7 @@ load(
     "LINKMODE_NORMAL",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "@bazel_skylib//lib:shell.bzl",
     "shell",
 )
 

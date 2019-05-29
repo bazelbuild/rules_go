@@ -9,11 +9,15 @@ go_rules_dependencies()
 go_register_toolchains()
 
 # Needed for tests
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 git_repository(
     name = "bazel_gazelle",
     commit = "aa1a9cfe4845bc83482af92addbfcd41f8dc51f0",  # master as of 2019-01-27
-    shallow_since = "1548631399 -0500",
     remote = "https://github.com/bazelbuild/bazel-gazelle",
+    shallow_since = "1548631399 -0500",
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
@@ -53,8 +57,8 @@ http_archive(
     sha256 = "5962fe677a43226c409316fcb321d668fc4b7fa97cb1f9ef45e7dc2676097b26",
     strip_prefix = "bazel-toolchains-be10bee3010494721f08a0fccd7f57411a1e773e",
     urls = [
-      "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
-      "https://github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
+        "https://github.com/bazelbuild/bazel-toolchains/archive/be10bee3010494721f08a0fccd7f57411a1e773e.tar.gz",
     ],
 )
 

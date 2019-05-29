@@ -13,8 +13,12 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "@bazel_skylib//lib:sets.bzl",
     "sets",
+)
+load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
@@ -27,10 +31,6 @@ load(
     "LINKMODE_PLUGIN",
     "extld_from_cc_toolchain",
     "extldflags_from_cc_toolchain",
-)
-load(
-    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
-    "shell",
 )
 
 def _format_archive(d):
