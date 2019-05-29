@@ -60,7 +60,10 @@ def _uniq(iterable):
       A new list with all unique elements from `iterable`.
     """
     unique_elements = {element: None for element in iterable}
-    return unique_elements.keys()
+
+    # list() used here for python3 compatibility.
+    # TODO(bazel-team): Remove when testing frameworks no longer require python compatibility.
+    return list(unique_elements.keys())
 
 collections = struct(
     after_each = _after_each,

@@ -1,5 +1,7 @@
-This directory is a copy of github.com/bazelbuild/bazel-skylib/lib.
-Version 0.5.0, retrieved on 2018-11-26.
+This directory is a copy of github.com/bazelbuild/bazel-skylib/{lib,toolchains}
+Version 0.8.0, retrieved on 2019-05-29, with the following changes:
+- lib/BUILD is omitted
+- all labels (e.g. in load() statements) are updated for this repository
 
 This is needed only until nested workspaces works.
 It has to be copied in because we use the functionality inside code that 

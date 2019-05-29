@@ -20,7 +20,7 @@
   values in the set can be retrieved using `sets.to_list(my_set)`.
 """
 
-load(":skylib/lib/dicts.bzl", "dicts")
+load("@io_bazel_rules_go//go/private:skylib/lib/dicts.bzl", "dicts")
 
 def _make(elements = None):
     """Creates a new set.

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Skylark module for working with partial function objects.
+"""Starlark module for working with partial function objects.
 
 Partial function objects allow some parameters are bound before the call.
 

@@ -54,7 +54,7 @@ def _with_or(input_dict, no_match_error = ""):
 def _with_or_dict(input_dict):
     """Variation of `with_or` that returns the dict of the `select()`.
 
-    Unlike `select()`, the contents of the dict can be inspected by Skylark
+    Unlike `select()`, the contents of the dict can be inspected by Starlark
     macros.
 
     Args:

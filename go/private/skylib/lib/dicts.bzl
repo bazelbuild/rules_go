@@ -14,7 +14,7 @@
 
 """Skylib module containing functions that operate on dictionaries."""
 
-def _add(*dictionaries):
+def _add(*dictionaries, **kwargs):
     """Returns a new `dict` that has all the entries of the given dictionaries.
 
     If the same key is present in more than one of the input dictionaries, the
@@ -27,6 +27,7 @@ def _add(*dictionaries):
 
     Args:
       *dictionaries: Zero or more dictionaries to be added.
+      **kwargs: Additional dictionary passed as keyword args.
 
     Returns:
       A new `dict` that has all the entries of the given dictionaries.
@@ -34,6 +35,7 @@ def _add(*dictionaries):
     result = {}
     for d in dictionaries:
         result.update(d)
+    result.update(kwargs)
     return result
 
 dicts = struct(
