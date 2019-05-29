@@ -13,13 +13,13 @@
 # limitations under the License.
 
 load(
+    "@bazel_skylib//lib:sets.bzl",
+    "sets",
+)
+load(
     "@io_bazel_rules_go//go:def.bzl",
     "GoLibrary",
     "go_context",
-)
-load(
-    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
-    "sets",
 )
 load(
     "@io_bazel_rules_go//proto:compiler.bzl",

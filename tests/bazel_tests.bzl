@@ -15,11 +15,11 @@ load(
     "go_rule",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
+    "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "@bazel_skylib//lib:shell.bzl",
     "shell",
 )
 

@@ -13,17 +13,17 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "GoLibrary",
-    "go_context",
-)
-load(
-    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "@bazel_skylib//lib:sets.bzl",
     "sets",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
+    "@bazel_skylib//lib:paths.bzl",
     "paths",
+)
+load(
+    "@io_bazel_rules_go//go:def.bzl",
+    "GoLibrary",
+    "go_context",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",

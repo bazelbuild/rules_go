@@ -43,6 +43,10 @@ rbe_autoconfig(
 )
 
 # Needed for tests
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 git_repository(
     name = "bazel_gazelle",
     commit = "aa1a9cfe4845bc83482af92addbfcd41f8dc51f0",  # master as of 2019-01-27
