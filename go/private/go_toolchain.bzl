@@ -31,12 +31,15 @@ load("@io_bazel_rules_go//go/private:actions/stdlib.bzl", "emit_stdlib")
 
 def _go_toolchain_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]
-    cross_compile = ctx.attr.goos != sdk.goos or ctx.attr.goarch != sdk.goarch
+    goos = ctx.attr.goos
+    if goos == "ios":
+        goos = "darwin"
+    cross_compile = goos != sdk.goos or ctx.attr.goarch != sdk.goarch
     return [platform_common.ToolchainInfo(
         # Public fields
         name = ctx.label.name,
         cross_compile = cross_compile,
-        default_goos = ctx.attr.goos,
+        default_goos = goos,
         default_goarch = ctx.attr.goarch,
         actions = struct(
             archive = emit_archive,

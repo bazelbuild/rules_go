@@ -13,8 +13,9 @@
 # limitations under the License.
 
 GOOS = {
-    "android": None,
+    "android": "@bazel_tools//platforms:android",
     "darwin": "@bazel_tools//platforms:osx",
+    "ios": "@bazel_tools//platforms:ios",
     "dragonfly": None,
     "freebsd": "@bazel_tools//platforms:freebsd",
     "linux": "@bazel_tools//platforms:linux",
@@ -52,6 +53,10 @@ GOOS_GOARCH = (
     ("darwin", "amd64"),
     ("darwin", "arm"),
     ("darwin", "arm64"),
+    ("ios", "386"),
+    ("ios", "amd64"),
+    ("ios", "arm"),
+    ("ios", "arm64"),
     ("dragonfly", "amd64"),
     ("freebsd", "386"),
     ("freebsd", "amd64"),
