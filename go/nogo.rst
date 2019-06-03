@@ -211,16 +211,16 @@ configured, it will emit diagnostics for all Go files built by Bazel.
     {
       "importunsafe": {
         "exclude_files": {
-          "src/foo.go": "manually verified that behavior is working-as-intended",
-          "src/bar.go": "see issue #1337"
+          "src/foo\\.go": "manually verified that behavior is working-as-intended",
+          "src/bar\\.go": "see issue #1337"
         }
       },
       "unsafedom": {
         "only_files": {
-          "src/js/*": ""
+          "src/js/.*": ""
         },
         "exclude_files": {
-          "src/(third_party|vendor)/*": "enforce DOM safety requirements only on first-party code"
+          "src/(third_party|vendor)/.*": "enforce DOM safety requirements only on first-party code"
         }
       }
     }
