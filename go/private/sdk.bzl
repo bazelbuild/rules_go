@@ -28,7 +28,7 @@ load(
     "SDK_REPOSITORIES",
 )
 load(
-    "@io_bazel_rules_go//go/platform:list.bzl",
+    "@io_bazel_rules_go//go/private:platforms.bzl",
     "generate_toolchain_names",
 )
 load(

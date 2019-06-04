@@ -442,11 +442,12 @@ usually won't need to declare this rule explicitly.
 go_toolchain
 ~~~~~~~~~~~~
 
-This adds a toolchain of type :value:`"@io_bazel_rules_go//go:toolchain"`.
+This declares a toolchain that may be used with toolchain type
+:value:`"@io_bazel_rules_go//go:toolchain"`.
 
 Normally, ``go_toolchain`` rules are declared and registered in repositories
 configured with `go_download_sdk`_, `go_host_sdk`_, `go_local_sdk`_, or
-`go_wrap_sdk`_. You usually won't need to declare these explicitly
+`go_wrap_sdk`_. You usually won't need to declare these explicitly.
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
@@ -455,19 +456,13 @@ configured with `go_download_sdk`_, `go_host_sdk`_, `go_local_sdk`_, or
 +--------------------------------+-----------------------------+-----------------------------------+
 | A unique name for the toolchain.                                                                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`target`                | :type:`string`              | |mandatory|                       |
+| :param:`goos`                  | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| Specifies the default target platform for this toolchain.                                        |
-|                                                                                                  |
-| It must be of the form ``<goos>_<goarch>`` (for example, ``linux_amd64``).                       |
-| See `go/platform/list.bzl`_ for valid values.                                                    |
+| The target operating system. Must be a standard ``GOOS`` value.                                  |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`host`                  | :type:`string`              | :value:`target`                   |
+| :param:`goarch`                | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| Specifies the host platform for this toolchain.                                                  |
-|                                                                                                  |
-| It must be of the form ``<goos>_<goarch>`` (for example, ``linux_amd64``).                       |
-| See `go/platform/list.bzl`_ for valid values.                                                    |
+| The target architecture. Must be a standard ``GOARCH`` value.                                    |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`sdk`                   | :type:`label`               | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -481,11 +476,6 @@ configured with `go_download_sdk`_, `go_host_sdk`_, `go_local_sdk`_, or
 | :param:`cgo_link_flags`        | :type:`string_list`         | :value:`[]`                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | Flags passed to the external linker (if it is used).                                             |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`constraints`           | :type:`label_list`          | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Additional constraints for the target platform. Bazel will take these into                       |
-| account when selecting the toolchain.                                                            |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 go_context
