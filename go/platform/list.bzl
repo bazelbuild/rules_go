@@ -27,16 +27,32 @@ MSAN_GOOS_GOARCH = _MSAN_GOOS_GOARCH
 GOOS = {p.goos: p.os_constraint for p in PLATFORMS if p.has_default_constraints}
 GOARCH = {p.goarch: p.arch_constraint for p in PLATFORMS if p.has_default_constraints}
 
+def _os_constraint(goos):
+    if goos == "darwin":
+        return "@io_bazel_rules_go//go/toolchain:is_darwin"
+    else:
+        return "@io_bazel_rules_go//go/toolchain:" + goos
+
+def _arch_constraint(goarch):
+    return "@io_bazel_rules_go//go/toolchain:" + goarch
+
 def declare_config_settings():
+    """Generates config_setting targets for each goos, goarch, and valid
+    goos_goarch pair. These targets may be used in select expressions.
+    Each target refers to a corresponding constraint_value in //go/toolchain.
+
+    Note that the "darwin" targets are true when building for either
+    macOS or iOS.
+    """
     for goos in GOOS:
         native.config_setting(
             name = goos,
-            constraint_values = ["@io_bazel_rules_go//go/toolchain:" + goos],
+            constraint_values = [_os_constraint(goos)],
         )
     for goarch in GOARCH:
         native.config_setting(
             name = goarch,
-            constraint_values = ["@io_bazel_rules_go//go/toolchain:" + goarch],
+            constraint_values = [_arch_constraint(goarch)],
         )
     for p in PLATFORMS:
         if not p.has_default_constraints:
@@ -44,7 +60,7 @@ def declare_config_settings():
         native.config_setting(
             name = p.name,
             constraint_values = [
-                p.os_constraint,
-                p.arch_constraint,
+                _os_constraint(p.goos),
+                _arch_constraint(p.goarch),
             ],
         )

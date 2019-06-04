@@ -16,3 +16,12 @@ This builds binaries using `main.go <main.go>`_ in multiple configurations, and 
 test `written in go <cross_test.go>`_.
 The test executes the unix command "file" on the binaries to determine their type, and checks
 they were built for the expected architecture.
+
+ios_select_test
+---------------
+
+Tests that we can cross-compile a library for iOS. We should be able to select
+a dependency using ``@io_bazel_rules_go//go/platform:darwin``, which is true
+when building for iOS (tested by ``ios_select_test``) and macOS
+(tested by ``use_ios_lib``).
+
