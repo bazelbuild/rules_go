@@ -98,10 +98,18 @@ def declare_toolchains(host, sdk, builder):
         impl_name = toolchain_name + "-impl"
         link_flags = []
         cgo_link_flags = []
+        target_constraints = [
+            p.os_constraint,
+            p.arch_constraint,
+        ]
         if host_goos == "darwin":
             cgo_link_flags.extend(["-shared", "-Wl,-all_load"])
         if host_goos == "linux":
             cgo_link_flags.append("-Wl,-whole-archive")
+        if p.goos == "darwin":
+            target_constraints.append("@io_bazel_rules_go//go/toolchain:is_darwin")
+        else:
+            target_constraints.append("@io_bazel_rules_go//go/toolchain:not_darwin")
         go_toolchain(
             name = impl_name,
             goos = p.goos,
@@ -120,9 +128,6 @@ def declare_toolchains(host, sdk, builder):
                 "@io_bazel_rules_go//go/toolchain:" + host_goos,
                 "@io_bazel_rules_go//go/toolchain:" + host_goarch,
             ],
-            target_compatible_with = [
-                p.os_constraint,
-                p.arch_constraint,
-            ],
+            target_compatible_with = target_constraints,
             toolchain = ":" + impl_name,
         )
