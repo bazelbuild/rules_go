@@ -2,7 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_path")
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//go/private:rules/nogo.bzl", "nogo")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
-load("@io_bazel_rules_go//go/private:context.bzl", "go_context_data")
+load("@io_bazel_rules_go//go/private:context.bzl", "cgo_context_data", "go_context_data")
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
 
 stdlib(
@@ -59,6 +59,8 @@ nogo(
     ],
 )
 
+# go_context_data collects build options and is depended on by all Go targets.
+# It may depend on cgo_context_data via go_toolchain.
 go_context_data(
     name = "go_context_data",
     strip = select({
@@ -66,6 +68,13 @@ go_context_data(
         "@io_bazel_rules_go//go/private:strip-sometimes": "sometimes",
         "@io_bazel_rules_go//go/private:strip-never": "never",
     }),
+    visibility = ["//visibility:public"],
+)
+
+# cgo_context_data collects information about the C/C++ toolchain.
+# go_toolchains may depend on this in order to support cgo.
+cgo_context_data(
+    name = "cgo_context_data",
     visibility = ["//visibility:public"],
 )
 

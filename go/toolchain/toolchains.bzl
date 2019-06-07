@@ -96,16 +96,36 @@ def declare_constraints():
         constraint_setting = ":darwin_constraint",
     )
 
+    native.constraint_setting(
+        name = "cgo_constraint",
+        default_constraint_value = ":cgo_on",
+    )
+
+    native.constraint_value(
+        name = "cgo_on",
+        constraint_setting = ":cgo_constraint",
+    )
+
+    native.constraint_value(
+        name = "cgo_off",
+        constraint_setting = ":cgo_constraint",
+    )
+
     for p in PLATFORMS:
-        constraints = [
-            p.os_constraint,
-            p.arch_constraint,
-        ]
-        if p.goos == "darwin":
-            constraints.append(":is_darwin")
-        else:
-            constraints.append(":not_darwin")
-        native.platform(
-            name = p.name,
-            constraint_values = constraints,
-        )
+        for cgo in (True, False):
+            cgo_constraint = ":cgo_on" if cgo else ":cgo_off"
+            constraints = [
+                p.os_constraint,
+                p.arch_constraint,
+                cgo_constraint,
+            ]
+            if p.goos == "darwin":
+                constraints.append(":is_darwin")
+            else:
+                constraints.append(":not_darwin")
+
+            cgo_suffix = "_cgo" if cgo else ""
+            native.platform(
+                name = p.name + cgo_suffix,
+                constraint_values = constraints,
+            )

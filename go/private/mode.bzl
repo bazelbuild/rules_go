@@ -78,17 +78,23 @@ def _ternary(*values):
     fail("_ternary failed to produce a final result from {}".format(values))
 
 def get_mode(ctx, host_only, go_toolchain, go_context_data):
-    goos = getattr(ctx.attr, "goos", None)
-    if goos == None or goos == "auto":
-        goos = go_toolchain.default_goos
-    goarch = getattr(ctx.attr, "goarch", None)
-    if goarch == None or goarch == "auto":
-        goarch = go_toolchain.default_goarch
+    aspect_cross_compile = False
+    goos = go_toolchain.default_goos
+    attr_goos = getattr(ctx.attr, "goos", "auto")
+    if goos != attr_goos and attr_goos != "auto":
+        goos = attr_goos
+        aspect_cross_compile = True
+    goarch = go_toolchain.default_goarch
+    attr_goarch = getattr(ctx.attr, "goarch", "auto")
+    if goarch != attr_goarch and attr_goarch != "auto":
+        goarch = attr_goarch
+        aspect_cross_compile = True
 
-    # We always have to  use the pure stdlib in cross compilation mode
-    cross_compile = (goos != go_toolchain.sdk.goos or
-                     goarch != go_toolchain.sdk.goarch)
-    force_pure = "on" if cross_compile else "auto"
+    # We have to build in pure mode if we don't have a C toolchain.
+    # If we're cross-compiling using the aspect, we might have a C toolchain
+    # for the wrong platform, so also force pure mode then.
+    force_pure = "on" if not go_context_data.cgo_tools or aspect_cross_compile else "auto"
+
     force_race = "off" if host_only else "auto"
 
     linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
@@ -230,7 +236,9 @@ def link_mode_args(mode):
     return args
 
 def extldflags_from_cc_toolchain(go):
-    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
+    if not go.cgo_tools:
+        return []
+    elif go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
         return go.cgo_tools.ld_dynamic_lib_options
     else:
         # NOTE: in c-archive mode, -extldflags are ignored by the linker.
@@ -239,7 +247,9 @@ def extldflags_from_cc_toolchain(go):
         return go.cgo_tools.ld_executable_options
 
 def extld_from_cc_toolchain(go):
-    if go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_PIE):
+    if not go.cgo_tools:
+        return []
+    elif go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_PIE):
         return ["-extld", go.cgo_tools.ld_dynamic_lib_path]
     elif go.mode.link == LINKMODE_C_ARCHIVE:
         if go.mode.goos == "darwin":

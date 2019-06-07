@@ -82,9 +82,7 @@ def emit_archive(go, source = None):
         cxxopts = [f for fs in source.cxxopts for f in fs.split(" ")]
         clinkopts = [f for fs in source.clinkopts for f in fs.split(" ")]
 
-        cgo_inputs = depset()
-        cgo_deps = depset()
-        if source.cgo:
+        if source.cgo and not go.mode.pure:
             cgo = cgo_configure(
                 go,
                 srcs = split.go + split.c + split.asm + split.cxx + split.headers,
@@ -94,33 +92,43 @@ def emit_archive(go, source = None):
                 cxxopts = cxxopts,
                 clinkopts = clinkopts,
             )
-            runfiles = runfiles.merge(cgo.runfiles)
-            cgo_inputs = cgo.inputs
             cgo_deps = cgo.deps
-            cppopts = cgo.cppopts
-            copts = cgo.copts
-            cxxopts = cgo.cxxopts
-            clinkopts = cgo.clinkopts
-
-        emit_compilepkg(
-            go,
-            sources = split.go + split.c + split.asm + split.cxx + split.headers,
-            cover = source.cover,
-            importpath = effective_importpath_pkgpath(source.library)[0],
-            importmap = source.library.importmap,
-            archives = direct,
-            out_lib = out_lib,
-            out_export = out_export,
-            gc_goopts = source.gc_goopts,
-            cgo = source.cgo,
-            cgo_inputs = cgo_inputs,
-            cppopts = cppopts,
-            copts = copts,
-            cxxopts = cxxopts,
-            clinkopts = clinkopts,
-            cgo_archives = source.cgo_archives,
-            testfilter = testfilter,
-        )
+            runfiles = runfiles.merge(cgo.runfiles)
+            emit_compilepkg(
+                go,
+                sources = split.go + split.c + split.asm + split.cxx + split.headers,
+                cover = source.cover,
+                importpath = effective_importpath_pkgpath(source.library)[0],
+                importmap = source.library.importmap,
+                archives = direct,
+                out_lib = out_lib,
+                out_export = out_export,
+                gc_goopts = source.gc_goopts,
+                cgo = True,
+                cgo_inputs = cgo.inputs,
+                cppopts = cgo.cppopts,
+                copts = cgo.copts,
+                cxxopts = cgo.cxxopts,
+                clinkopts = cgo.clinkopts,
+                cgo_archives = source.cgo_archives,
+                testfilter = testfilter,
+            )
+        else:
+            cgo_deps = depset()
+            emit_compilepkg(
+                go,
+                sources = split.go + split.c + split.asm + split.cxx + split.headers,
+                cover = source.cover,
+                importpath = effective_importpath_pkgpath(source.library)[0],
+                importmap = source.library.importmap,
+                archives = direct,
+                out_lib = out_lib,
+                out_export = out_export,
+                gc_goopts = source.gc_goopts,
+                cgo = False,
+                cgo_archives = source.cgo_archives,
+                testfilter = testfilter,
+            )
     else:
         cgo_deps = source.cgo_deps
 
