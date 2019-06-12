@@ -177,6 +177,7 @@ def has_versioned_shared_lib_extension(path):
         return False
 
     so_location = path.rfind(".so")
+
     # Version extensions are only allowed for .so files
     if so_location == -1:
         return False
@@ -195,7 +196,7 @@ def has_versioned_shared_lib_extension(path):
 
     return True
 
-MINIMUM_BAZEL_VERSION = "0.8.0"
+MINIMUM_BAZEL_VERSION = "0.23.0"
 
 def as_list(v):
     if type(v) == "list":

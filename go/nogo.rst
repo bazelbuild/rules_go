@@ -103,7 +103,7 @@ already been run. For example:
     import (
       "strconv"
 
-      "github.com/bazelbuild/rules_go/go/tools/analysis"
+      "golang.org/x/tools/go/analysis"
     )
 
     var Analyzer = &analysis.Analyzer{
