@@ -3,8 +3,6 @@ Go rules for Bazel_
 
 .. All external links are here
 .. _Bazel: https://bazel.build/
-.. |travis| image:: https://travis-ci.org/bazelbuild/rules_go.svg?branch=master
-  :target: https://travis-ci.org/bazelbuild/rules_go
 .. |bazelci| image:: https://badge.buildkite.com/7ff4772cf73f716565daee2e0e6f4c8d8dee2b086caf27b6a8.svg
   :target: https://buildkite.com/bazel/golang-rules-go
 .. _gazelle: https://github.com/bazelbuild/bazel-gazelle
@@ -30,7 +28,6 @@ Go rules for Bazel_
 .. _//tests/core/cross: https://github.com/bazelbuild/rules_go/blob/master/tests/core/cross/BUILD.bazel
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
-.. _Travis configuration file: .travis.yml
 .. _rules_go and Gazelle roadmap: roadmap.rst
 .. _Deprecation schedule: deprecation.rst
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
@@ -40,11 +37,8 @@ Go rules for Bazel_
 
 .. ;; And now we continue with the actual content
 
-======== =========
-Travis   Bazel CI
-======== =========
-|travis| |bazelci|
-======== =========
+
+|bazelci|
 
 Mailing list: `bazel-go-discuss`_
 
@@ -530,7 +524,6 @@ References:
 
 * `Running Bazel Tests on Travis CI`_ by Kevin Burke
 * `korfuri/bazel-travis Use Bazel with Travis CI`_
-* Our own `Travis configuration file`_
 
 In order to run Bazel tests on Travis CI, you'll need to install Bazel in the
 ``before_install`` script. See our configuration file linked above.
