@@ -1,12 +1,12 @@
 ---
 platforms:
-  ubuntu1404:
+  ubuntu1604:
     bazel: 0.18.0 # test minimum supported version of bazel on ubuntu1404 only
     build_targets:
     - "..."
     test_targets:
     - "..."
-  ubuntu1604:
+  ubuntu1804:
     build_targets:
     - "..."
     test_targets:

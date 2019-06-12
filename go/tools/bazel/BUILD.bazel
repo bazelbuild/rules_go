@@ -4,8 +4,6 @@ go_library(
     name = "go_default_library",
     srcs = [
         "bazel.go",
-        "runfiledir.go",
-        "runfilemanifest.go",
         "runfiles.go",
     ],
     importpath = "github.com/bazelbuild/rules_go/go/tools/bazel",
@@ -15,12 +13,9 @@ go_library(
 go_test(
     name = "go_default_test",
     size = "small",
-    srcs = [
-        "bazel_test.go",
-        "runfiles_test.go",
-    ],
-    data = [
-        "README.md",
-    ],
+    srcs = ["bazel_test.go"],
+    data = ["README.md"],
     embed = [":go_default_library"],
 )
+
+# Runfiles functionality in this package is tested by //tests/core/runfiles.

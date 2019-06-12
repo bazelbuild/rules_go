@@ -155,7 +155,7 @@ have the same ``importpath``.
     go_library(
         name = "bar",
         srcs = ["bar.go"],
-        imporpath = "example.com/foo",
+        importpath = "example.com/foo",
     )
 
 Embedding is most frequently used for tests and binaries. Go supports two
