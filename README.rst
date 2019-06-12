@@ -51,6 +51,11 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2019-06-12
+  Releases
+  `0.18.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.6>`_ and
+  `0.17.7 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.7>`_
+  are now available with support for Go 1.12.6 and 1.11.11.
 2019-05-16
   Releases
   `0.18.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.5>`_ and
@@ -62,13 +67,6 @@ Announcements
   `0.17.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.5>`_
   are now available. The 0.16 release branch will no longer be supported
   due to incompatible changes in Bazel.
-2019-04-12
-  Releases
-  `0.18.3 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.3>`_,
-  `0.17.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.4>`_,
-  and `0.16.10 <https://github.com/bazelbuild/rules_go/releases/tag/0.16.10>`_
-  are now available with support for Go 1.12.4 and 1.11.8. Ubuntu 14.04 and
-  Debian Jessie are now supported again.
 
 Contents
 --------
@@ -125,7 +123,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.18.5) requires Bazel ≥ 0.18.0 to work.
+Note: The latest version of these rules (0.18.6) requires Bazel ≥ 0.18.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -144,8 +142,11 @@ Setup
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.5/rules_go-0.18.5.tar.gz"],
-        sha256 = "a82a352bffae6bee4e95f68a8d80a70e87f42c4741e6a448bec11998fcc82329",
+        urls = [
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+        ],
+        sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
     )
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
@@ -193,8 +194,11 @@ build files automatically using gazelle_.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.5/rules_go-0.18.5.tar.gz"],
-        sha256 = "a82a352bffae6bee4e95f68a8d80a70e87f42c4741e6a448bec11998fcc82329",
+        urls = [
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+        ],
+        sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
     )
     http_archive(
         name = "bazel_gazelle",
@@ -310,8 +314,11 @@ a go.mod or Gopkg.lock file.
     # Download the Go rules
     http_archive(
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.5/rules_go-0.18.5.tar.gz"],
-        sha256 = "a82a352bffae6bee4e95f68a8d80a70e87f42c4741e6a448bec11998fcc82329",
+        urls = [
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+        ],
+        sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
     )
 
     # Load and call the dependencies
