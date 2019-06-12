@@ -15,17 +15,18 @@
 load(
     "@io_bazel_rules_go//go/private:platforms.bzl",
     "PLATFORMS",
+    _GOARCH = "GOARCH_CONSTRAINTS",
+    _GOOS = "GOOS_CONSTRAINTS",
     _GOOS_GOARCH = "GOOS_GOARCH",
     _MSAN_GOOS_GOARCH = "MSAN_GOOS_GOARCH",
     _RACE_GOOS_GOARCH = "RACE_GOOS_GOARCH",
 )
 
 GOOS_GOARCH = _GOOS_GOARCH
+GOOS = _GOOS
+GOARCH = _GOARCH
 RACE_GOOS_GOARCH = _RACE_GOOS_GOARCH
 MSAN_GOOS_GOARCH = _MSAN_GOOS_GOARCH
-
-GOOS = {p.goos: p.os_constraint for p in PLATFORMS if p.has_default_constraints}
-GOARCH = {p.goarch: p.arch_constraint for p in PLATFORMS if p.has_default_constraints}
 
 def _os_constraint(goos):
     if goos == "darwin":
@@ -54,13 +55,11 @@ def declare_config_settings():
             name = goarch,
             constraint_values = [_arch_constraint(goarch)],
         )
-    for p in PLATFORMS:
-        if not p.has_default_constraints:
-            continue  # skip special platforms
+    for goos, goarch in GOOS_GOARCH:
         native.config_setting(
-            name = p.name,
+            name = goos + "_" + goarch,
             constraint_values = [
-                _os_constraint(p.goos),
-                _arch_constraint(p.goarch),
+                _os_constraint(goos),
+                _arch_constraint(goarch),
             ],
         )

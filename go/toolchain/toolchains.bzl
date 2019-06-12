@@ -24,6 +24,8 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:platforms.bzl",
+    "GOARCH_CONSTRAINTS",
+    "GOOS_CONSTRAINTS",
     "PLATFORMS",
 )
 load(
@@ -55,8 +57,7 @@ def declare_constraints():
     though users may create their own platforms (and
     @bazel_tools//platforms:default_platform will be used most of the time).
     """
-    goos_constraints = {p.goos: p.os_constraint for p in PLATFORMS if p.has_default_constraints}
-    for goos, constraint in goos_constraints.items():
+    for goos, constraint in GOOS_CONSTRAINTS.items():
         if constraint.startswith("@io_bazel_rules_go//go/toolchain:"):
             native.constraint_value(
                 name = goos,
@@ -68,8 +69,7 @@ def declare_constraints():
                 actual = constraint,
             )
 
-    goarch_constraints = {p.goarch: p.arch_constraint for p in PLATFORMS if p.has_default_constraints}
-    for goarch, constraint in goarch_constraints.items():
+    for goarch, constraint in GOARCH_CONSTRAINTS.items():
         if constraint.startswith("@io_bazel_rules_go//go/toolchain:"):
             native.constraint_value(
                 name = goarch,
@@ -112,20 +112,7 @@ def declare_constraints():
     )
 
     for p in PLATFORMS:
-        for cgo in (True, False):
-            cgo_constraint = ":cgo_on" if cgo else ":cgo_off"
-            constraints = [
-                p.os_constraint,
-                p.arch_constraint,
-                cgo_constraint,
-            ]
-            if p.goos == "darwin":
-                constraints.append(":is_darwin")
-            else:
-                constraints.append(":not_darwin")
-
-            cgo_suffix = "_cgo" if cgo else ""
-            native.platform(
-                name = p.name + cgo_suffix,
-                constraint_values = constraints,
-            )
+        native.platform(
+            name = p.name,
+            constraint_values = p.constraints,
+        )

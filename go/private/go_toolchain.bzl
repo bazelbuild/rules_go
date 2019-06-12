@@ -102,46 +102,35 @@ def declare_toolchains(host, sdk, builder):
     for p in PLATFORMS:
         link_flags = []
         cgo_link_flags = []
-        target_constraints = [
-            p.os_constraint,
-            p.arch_constraint,
-        ]
         if host_goos == "darwin":
             cgo_link_flags.extend(["-shared", "-Wl,-all_load"])
         if host_goos == "linux":
             cgo_link_flags.append("-Wl,-whole-archive")
-        if p.goos == "darwin":
-            target_constraints.append("@io_bazel_rules_go//go/toolchain:is_darwin")
-        else:
-            target_constraints.append("@io_bazel_rules_go//go/toolchain:not_darwin")
 
-        for cgo in (True, False):
-            cgo_suffix = "_cgo" if cgo else ""
-            toolchain_name = "go_" + p.name + cgo_suffix
-            impl_name = toolchain_name + "-impl"
+        toolchain_name = "go_" + p.name
+        impl_name = toolchain_name + "-impl"
 
-            cgo_constraint = "@io_bazel_rules_go//go/toolchain:cgo_" + ("on" if cgo else "off")
-            cgo_context_data = "@io_bazel_rules_go//:cgo_context_data" if cgo else None
+        cgo_context_data = "@io_bazel_rules_go//:cgo_context_data" if p.cgo else None
 
-            go_toolchain(
-                name = impl_name,
-                goos = p.goos,
-                goarch = p.goarch,
-                sdk = sdk,
-                builder = builder,
-                link_flags = link_flags,
-                cgo_link_flags = cgo_link_flags,
-                cgo_context_data = cgo_context_data,
-                tags = ["manual"],
-                visibility = ["//visibility:public"],
-            )
-            native.toolchain(
-                name = toolchain_name,
-                toolchain_type = "@io_bazel_rules_go//go:toolchain",
-                exec_compatible_with = [
-                    "@io_bazel_rules_go//go/toolchain:" + host_goos,
-                    "@io_bazel_rules_go//go/toolchain:" + host_goarch,
-                ],
-                target_compatible_with = target_constraints + [cgo_constraint],
-                toolchain = ":" + impl_name,
-            )
+        go_toolchain(
+            name = impl_name,
+            goos = p.goos,
+            goarch = p.goarch,
+            sdk = sdk,
+            builder = builder,
+            link_flags = link_flags,
+            cgo_link_flags = cgo_link_flags,
+            cgo_context_data = cgo_context_data,
+            tags = ["manual"],
+            visibility = ["//visibility:public"],
+        )
+        native.toolchain(
+            name = toolchain_name,
+            toolchain_type = "@io_bazel_rules_go//go:toolchain",
+            exec_compatible_with = [
+                "@io_bazel_rules_go//go/toolchain:" + host_goos,
+                "@io_bazel_rules_go//go/toolchain:" + host_goarch,
+            ],
+            target_compatible_with = p.constraints,
+            toolchain = ":" + impl_name,
+        )

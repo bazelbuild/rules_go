@@ -16,7 +16,7 @@
 # target platform. This table is used to generate config_settings,
 # constraint_values, platforms, and toolchains.
 
-_goos_constraint_values = {
+BAZEL_GOOS_CONSTRAINTS = {
     "android": "@bazel_tools//platforms:android",
     "darwin": "@bazel_tools//platforms:osx",
     "freebsd": "@bazel_tools//platforms:freebsd",
@@ -24,7 +24,7 @@ _goos_constraint_values = {
     "windows": "@bazel_tools//platforms:windows",
 }
 
-_goarch_constraint_values = {
+BAZEL_GOARCH_CONSTRAINTS = {
     "386": "@bazel_tools//platforms:x86_32",
     "amd64": "@bazel_tools//platforms:x86_64",
     "arm": "@bazel_tools//platforms:arm",
@@ -75,53 +75,116 @@ GOOS_GOARCH = (
     ("js", "wasm"),
 )
 
-RACE_GOOS_GOARCH = (
-    ("darwin", "amd64"),
-    ("freebsd", "amd64"),
-    ("linux", "amd64"),
-    ("windows", "amd64"),
-)
+RACE_GOOS_GOARCH = {
+    ("darwin", "amd64"): None,
+    ("freebsd", "amd64"): None,
+    ("linux", "amd64"): None,
+    ("windows", "amd64"): None,
+}
 
-MSAN_GOOS_GOARCH = (
-    ("linux", "amd64"),
-)
+MSAN_GOOS_GOARCH = {
+    ("linux", "amd64"): None,
+}
+
+CGO_GOOS_GOARCH = {
+    ("aix", "ppc64"): None,
+    ("android", "386"): None,
+    ("android", "amd64"): None,
+    ("android", "arm"): None,
+    ("android", "arm64"): None,
+    ("darwin", "amd64"): None,
+    ("darwin", "arm"): None,
+    ("darwin", "arm64"): None,
+    ("dragonfly", "amd64"): None,
+    ("freebsd", "386"): None,
+    ("freebsd", "amd64"): None,
+    ("freebsd", "arm"): None,
+    ("illumos", "amd64"): None,
+    ("linux", "386"): None,
+    ("linux", "amd64"): None,
+    ("linux", "arm"): None,
+    ("linux", "arm64"): None,
+    ("linux", "mips"): None,
+    ("linux", "mips64"): None,
+    ("linux", "mips64le"): None,
+    ("linux", "mipsle"): None,
+    ("linux", "ppc64le"): None,
+    ("linux", "riscv64"): None,
+    ("linux", "s390x"): None,
+    ("linux", "sparc64"): None,
+    ("netbsd", "386"): None,
+    ("netbsd", "amd64"): None,
+    ("netbsd", "arm"): None,
+    ("netbsd", "arm64"): None,
+    ("openbsd", "386"): None,
+    ("openbsd", "amd64"): None,
+    ("openbsd", "arm"): None,
+    ("openbsd", "arm64"): None,
+    ("solaris", "amd64"): None,
+    ("windows", "386"): None,
+    ("windows", "amd64"): None,
+}
+
+def _generate_constraints(names, bazel_constraints):
+    return {
+        name: bazel_constraints.get(name, "@io_bazel_rules_go//go/toolchain:" + name)
+        for name in names
+    }
+
+GOOS_CONSTRAINTS = _generate_constraints([p[0] for p in GOOS_GOARCH], BAZEL_GOOS_CONSTRAINTS)
+GOARCH_CONSTRAINTS = _generate_constraints([p[1] for p in GOOS_GOARCH], BAZEL_GOARCH_CONSTRAINTS)
 
 def _generate_platforms():
     platforms = []
     for goos, goarch in GOOS_GOARCH:
-        if goos in _goos_constraint_values:
-            os_constraint = _goos_constraint_values[goos]
-        else:
-            os_constraint = "@io_bazel_rules_go//go/toolchain:" + goos
-        if goarch in _goarch_constraint_values:
-            arch_constraint = _goarch_constraint_values[goarch]
-        else:
-            arch_constraint = "@io_bazel_rules_go//go/toolchain:" + goarch
+        constraints = [
+            GOOS_CONSTRAINTS[goos],
+            GOARCH_CONSTRAINTS[goarch],
+        ]
+        constraints.append("@io_bazel_rules_go//go/toolchain:" + ("is_darwin" if goos == "darwin" else "not_darwin"))
         platforms.append(struct(
             name = goos + "_" + goarch,
             goos = goos,
             goarch = goarch,
-            os_constraint = os_constraint,
-            arch_constraint = arch_constraint,
-            has_default_constraints = True,
+            constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_off"],
+            cgo = False,
         ))
+        if (goos, goarch) in CGO_GOOS_GOARCH:
+            platforms.append(struct(
+                name = goos + "_" + goarch + "_cgo",
+                goos = goos,
+                goarch = goarch,
+                constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"],
+                cgo = True,
+            ))
+
     for goarch in ("arm", "arm64", "386", "amd64"):
+        constraints = [
+            "@bazel_tools//platforms:ios",
+            GOARCH_CONSTRAINTS[goarch],
+            "@io_bazel_rules_go//go/toolchain:is_darwin",
+            "@io_bazel_rules_go//go/toolchain:cgo_off",
+        ]
         platforms.append(struct(
             name = "ios_" + goarch,
             goos = "darwin",
-            goarch = goarch,
-            os_constraint = "@bazel_tools//platforms:ios",
-            arch_constraint = _goarch_constraint_values[goarch],
-            has_default_constraints = False,
+            goarch = "goarch",
+            constraints = constraints,
+            cgo = False,
         ))
+        constraints[-1] = "@io_bazel_rules_go//go/toolchain:cgo_on"
+        platforms.append(struct(
+            name = "ios_" + goarch + "_cgo",
+            goos = "darwin",
+            goarch = "goarch",
+            constraints = constraints,
+            cgo = True,
+        ))
+
     return platforms
 
 PLATFORMS = _generate_platforms()
 
 def generate_toolchain_names():
     # keep in sync with declare_toolchains
-    return [
-        "go_" + p.name + cgo_suffix
-        for p in PLATFORMS
-        for cgo_suffix in ("", "_cgo")
-    ]
+    return ["go_" + p.name for p in PLATFORMS]
