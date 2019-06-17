@@ -70,6 +70,8 @@ _GoContextData = provider()
 
 _COMPILER_OPTIONS_BLACKLIST = {
     "-fcolor-diagnostics": None,
+    "-fdiagnostics-color": None,
+    "-fmax-errors=20": None,
     "-Wall": None,
 
     # Symbols are needed by Go, so keep them
