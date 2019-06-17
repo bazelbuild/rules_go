@@ -795,7 +795,10 @@ def setup_cgo_library_for_mode(name, srcs, cdeps, copts, cxxopts, cppopts, clink
         name = cgo_o_name,
         srcs = [select_main_c],
         deps = cdeps + cgo_o_deps,
-        copts = copts + cppopts,
+        copts = copts + cppopts + [
+            # The generated thunks often contain unused variables.
+            "-Wno-unused-variable",
+        ],
         linkopts = clinkopts,
         visibility = ["//visibility:private"],
         **common_attrs
