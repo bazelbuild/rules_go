@@ -25,3 +25,7 @@ a dependency using ``@io_bazel_rules_go//go/platform:darwin``, which is true
 when building for iOS (tested by ``ios_select_test``) and macOS
 (tested by ``use_ios_lib``).
 
+proto_test
+----------
+
+Tests that a ``go_proto_library`` can be cross-compiled with ``--platforms``.

@@ -53,7 +53,6 @@ func run(args []string) error {
 	outPath := flags.String("out_path", "", "The base output path to write to.")
 	plugin := flags.String("plugin", "", "The go plugin to use.")
 	importpath := flags.String("importpath", "", "The importpath for the generated sources.")
-	compilerPath := flags.String("compiler_path", "", "The value for PATH.")
 	flags.Var(&options, "option", "The plugin options.")
 	flags.Var(&descriptors, "descriptor_set", "The descriptor set to read.")
 	flags.Var(&expected, "expected", "The expected output files.")
@@ -85,7 +84,6 @@ func run(args []string) error {
 	}
 	protoc_args = append(protoc_args, flags.Args()...)
 	cmd := exec.Command(*protoc, protoc_args...)
-	cmd.Env = append(os.Environ(), fmt.Sprintf("PATH=%s", *compilerPath))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {

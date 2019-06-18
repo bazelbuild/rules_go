@@ -69,7 +69,6 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     args.add("-plugin", compiler.plugin)
 
     # TODO(jayconrod): can we just use go.env instead?
-    args.add("-compiler_path", go.cgo_tools.c_compiler_path.rpartition("/")[0])
     args.add_all(compiler.options, before_each = "-option")
     if compiler.import_path_option:
         args.add_all([importpath], before_each = "-option", format_each = "import_path=%s")
