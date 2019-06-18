@@ -168,7 +168,7 @@ def _generate_platforms():
         platforms.append(struct(
             name = "ios_" + goarch,
             goos = "darwin",
-            goarch = "goarch",
+            goarch = goarch,
             constraints = constraints,
             cgo = False,
         ))
@@ -176,7 +176,7 @@ def _generate_platforms():
         platforms.append(struct(
             name = "ios_" + goarch + "_cgo",
             goos = "darwin",
-            goarch = "goarch",
+            goarch = goarch,
             constraints = constraints,
             cgo = True,
         ))
