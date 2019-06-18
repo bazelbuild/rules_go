@@ -87,6 +87,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
         mnemonic = "GoProtocGen",
         executable = compiler.go_protoc,
         arguments = [args],
+        env = go.env,
     )
     return go_srcs
 
