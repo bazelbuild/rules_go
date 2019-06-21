@@ -81,7 +81,7 @@ def go_rules_dependencies():
         git_repository,
         name = "com_google_protobuf",
         remote = "https://github.com/protocolbuffers/protobuf",
-        commit = "582743bf40c5d3639a70f98f183914a2c0cd0680",  # v3.7.0, as of 2019-03-03
+        commit = "6973c3a5041636c1d8dc5f7f6c8c1f3c15bc63d6",  # v3.7.1, as of 2019-06-20
         shallow_since = "1551387314 -0800",
     )
     # Workaround for protocolbuffers/protobuf#5472
