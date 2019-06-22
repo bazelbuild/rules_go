@@ -19,3 +19,10 @@ go_test(
 )
 
 # Runfiles functionality in this package is tested by //tests/core/runfiles.
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)

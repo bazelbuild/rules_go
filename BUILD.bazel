@@ -98,3 +98,17 @@ lines_sorted_test(
 exports_files(["AUTHORS"])
 
 go_info()
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = [
+        "BUILD.bazel",
+        "WORKSPACE",
+        "//extras:all_files",
+        "//go:all_files",
+        "//proto:all_files",
+        "//third_party:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)
