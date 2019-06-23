@@ -158,7 +158,7 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 
 	// Find a suitable cache directory. We want something persistent where we
 	// can store a bazel output base across test runs, even for multiple tests.
-	var cacheDir string
+	var cacheDir, outBaseDir string
 	if tmpDir := os.Getenv("TEST_TMPDIR"); tmpDir != "" {
 		// TEST_TMPDIR is set by Bazel's test wrapper. Bazel itself uses this to
 		// detect that it's run by a test. When invoked like this, Bazel sets
@@ -168,7 +168,8 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 		// to bazel in RunBazel.
 		tmpDir = filepath.Clean(tmpDir)
 		if i := strings.Index(tmpDir, string(os.PathSeparator)+"execroot"+string(os.PathSeparator)); i >= 0 {
-			cacheDir = filepath.Join(tmpDir[:i], "bazel_testing")
+			outBaseDir = tmpDir[:i]
+			cacheDir = filepath.Join(outBaseDir, "bazel_testing")
 		} else {
 			cacheDir = filepath.Join(tmpDir, "bazel_testing")
 		}
@@ -250,6 +251,15 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 			info.WorkspaceNames = append(info.WorkspaceNames, name)
 		}
 		sort.Strings(info.WorkspaceNames)
+		if outBaseDir != "" {
+			goSDKPath := filepath.Join(outBaseDir, "external", "go_sdk")
+			rel, err := filepath.Rel(mainDir, goSDKPath)
+			if err != nil {
+				return "", cleanup, fmt.Errorf("could not find relative path from %q to %q for go_sdk", mainDir, goSDKPath)
+			}
+			rel = filepath.ToSlash(rel)
+			info.GoSDKPath = rel
+		}
 		if err := defaultWorkspaceTpl.Execute(w, info); err != nil {
 			return "", cleanup, err
 		}
@@ -270,6 +280,7 @@ func extractTxtar(dir, txt string) error {
 
 type workspaceTemplateInfo struct {
 	WorkspaceNames []string
+	GoSDKPath      string
 }
 
 var defaultWorkspaceTpl = template.Must(template.New("").Parse(`
@@ -280,11 +291,29 @@ local_repository(
 )
 {{end}}
 
+{{if not .GoSDKPath}}
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 go_rules_dependencies()
 
 go_register_toolchains(go_version = "host")
+{{else}}
+local_repository(
+    name = "local_go_sdk",
+    path = "{{.GoSDKPath}}",
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk")
+
+go_rules_dependencies()
+
+go_wrap_sdk(
+    name = "go_sdk",
+    root_file = "@local_go_sdk//:ROOT",
+)
+
+go_register_toolchains()
+{{end}}
 `))
 
 func copyOrLink(dstPath, srcPath string) error {
