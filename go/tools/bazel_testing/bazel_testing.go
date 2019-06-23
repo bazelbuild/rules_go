@@ -176,9 +176,6 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 		// The test is not invoked by Bazel, so just use the user's cache.
 		cacheDir, err = os.UserCacheDir()
 		if err != nil {
-			for _, e := range os.Environ() {
-				fmt.Fprintln(os.Stderr, e)
-			}
 			return "", cleanup, err
 		}
 		cacheDir = filepath.Join(cacheDir, "bazel_testing")
