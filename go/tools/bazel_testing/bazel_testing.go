@@ -30,6 +30,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -56,7 +57,15 @@ type Args struct {
 // instead of running tests.
 const debug = false
 
-// TestMain
+// TestMain should be called by tests using this framework from a function named
+// "TestMain". For example:
+//
+//     func TestMain(m *testing.M) {
+//       os.Exit(bazel_testing.TestMain(m, bazel_testing.Args{...}))
+//     }
+//
+// TestMain constructs a set of workspaces and changes the working directory to
+// the main workspace.
 func TestMain(m *testing.M, args Args) {
 	// Defer os.Exit with the correct code. This ensures other deferred cleanup
 	// functions are run first.
@@ -101,8 +110,13 @@ func TestMain(m *testing.M, args Args) {
 // will be returned which wraps the original *exec.ExitError.
 func RunBazel(args ...string) error {
 	cmd := exec.Command("bazel", args...)
-	for _, s := range []string{"PATH", "USER"} {
-		cmd.Env = append(cmd.Env, s+"="+os.Getenv(s))
+	for _, e := range os.Environ() {
+		// Filter environment variables set by the bazel test wrapper script.
+		// These confuse recursive invocations of Bazel.
+		if strings.HasPrefix(e, "TEST_") || strings.HasPrefix(e, "RUNFILES_") {
+			continue
+		}
+		cmd.Env = append(cmd.Env, e)
 	}
 
 	buf := &bytes.Buffer{}
@@ -150,14 +164,14 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 		// detect that it's run by a test. When invoked like this, Bazel sets
 		// its output base directory to a temporary directory. This wastes a lot
 		// of time (a simple test takes 45s instead of 3s). We use TEST_TMPDIR
-		// to find a persistent location in the execroot, then we unset it.
+		// to find a persistent location in the execroot. We won't pass TEST_TMPDIR
+		// to bazel in RunBazel.
 		tmpDir = filepath.Clean(tmpDir)
 		if i := strings.Index(tmpDir, string(os.PathSeparator)+"execroot"+string(os.PathSeparator)); i >= 0 {
 			cacheDir = filepath.Join(tmpDir[:i], "bazel_testing")
 		} else {
 			cacheDir = filepath.Join(tmpDir, "bazel_testing")
 		}
-		os.Unsetenv("TEST_TMPDIR")
 	} else {
 		// The test is not invoked by Bazel, so just use the user's cache.
 		cacheDir, err = os.UserCacheDir()
@@ -184,28 +198,36 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 	}
 
 	// Copy or data files for rules_go, or whatever was passed in.
+	runfiles, err := bazel.ListRunfiles()
+	if err != nil {
+		return "", cleanup, err
+	}
+	type runfileKey struct{ workspace, short string }
+	runfileMap := make(map[runfileKey]string)
+	for _, rf := range runfiles {
+		runfileMap[runfileKey{rf.Workspace, rf.ShortPath}] = rf.Path
+	}
 	workspaceNames := make(map[string]bool)
 	for _, argPath := range flag.Args() {
-		f := filepath.Clean(argPath)
-		if !strings.HasPrefix(f, "external"+string(os.PathSeparator)) {
+		shortPath := path.Clean(argPath)
+		if !strings.HasPrefix(shortPath, "external/") {
 			return "", cleanup, fmt.Errorf("unexpected file: %s", argPath)
 		}
-		f = f[len("external")+1:]
+		shortPath = shortPath[len("external/"):]
 		var workspace string
-		if i := strings.IndexByte(f, os.PathSeparator); i < 0 {
+		if i := strings.IndexByte(shortPath, '/'); i < 0 {
 			return "", cleanup, fmt.Errorf("unexpected file: %s", argPath)
 		} else {
-			workspace = f[:i]
-			f = f[i+1:]
+			workspace = shortPath[:i]
+			shortPath = shortPath[i+1:]
 		}
 		workspaceNames[workspace] = true
-
-		srcPath, err := bazel.Runfile(argPath)
-		if err != nil {
-			return "", cleanup, err
+		srcPath, ok := runfileMap[runfileKey{workspace, shortPath}]
+		if !ok {
+			return "", cleanup, fmt.Errorf("unknown runfile: %s", argPath)
 		}
 
-		dstPath := filepath.Join(execDir, workspace, f)
+		dstPath := filepath.Join(execDir, workspace, shortPath)
 		if err := copyOrLink(dstPath, srcPath); err != nil {
 			return "", cleanup, err
 		}

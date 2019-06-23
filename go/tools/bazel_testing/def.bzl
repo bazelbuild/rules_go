@@ -14,11 +14,14 @@
 
 load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
-def go_bazel_test(**kwargs):
+def go_bazel_test(rule_files = None, **kwargs):
     """go_bazel_test is a wrapper for go_test that simplifies the use of
     //go/tools/bazel_testing:go_default_library. Tests may be written
     that don't explicitly depend on bazel_testing or rules_go files.
     """
+
+    if not rule_files:
+        rule_files = ["@io_bazel_rules_go//:all_files"]
 
     # Add dependency on bazel_testing library.
     kwargs.setdefault("deps", [])
@@ -27,12 +30,12 @@ def go_bazel_test(**kwargs):
     # Add data dependency on rules_go files. bazel_testing will copy or link
     # these files in an external repo.
     kwargs.setdefault("data", [])
-    kwargs["data"] += ["@io_bazel_rules_go//:all_files"]
+    kwargs["data"] += rule_files
 
     # Add paths to rules_go files to arguments. bazel_testing will copy or link
     # these files.
     kwargs.setdefault("args", [])
-    kwargs["args"] += ["--", "$(locations @io_bazel_rules_go//:all_files)"]
+    kwargs["args"] += ["--"] + ["$(locations {})".format(t) for t in rule_files]
 
     # Set rundir to the workspace root directory to ensure relative paths
     # are interpreted correctly.
