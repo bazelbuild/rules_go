@@ -51,6 +51,10 @@ type Args struct {
 	// cmd/go/internal/txtar. If this archive does not contain a WORKSPACE file,
 	// a default file will be synthesized.
 	Main string
+
+	// WorkspaceSuffix is a string that should be appended to the end
+	// of the default generated WORKSPACE file.
+	WorkspaceSuffix string
 }
 
 // debug may be set to make the test print the test workspace path and stop
@@ -246,7 +250,7 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 				err = cerr
 			}
 		}()
-		info := workspaceTemplateInfo{}
+		info := workspaceTemplateInfo{Suffix: args.WorkspaceSuffix}
 		for name := range workspaceNames {
 			info.WorkspaceNames = append(info.WorkspaceNames, name)
 		}
@@ -281,6 +285,7 @@ func extractTxtar(dir, txt string) error {
 type workspaceTemplateInfo struct {
 	WorkspaceNames []string
 	GoSDKPath      string
+	Suffix         string
 }
 
 var defaultWorkspaceTpl = template.Must(template.New("").Parse(`
@@ -314,6 +319,7 @@ go_wrap_sdk(
 
 go_register_toolchains()
 {{end}}
+{{.Suffix}}
 `))
 
 func copyOrLink(dstPath, srcPath string) error {
