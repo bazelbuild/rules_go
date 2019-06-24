@@ -105,3 +105,10 @@ filegroup(
     srcs = glob(["*.bzl"]) + ["//proto/wkt:all_rules"],
     visibility = ["//:__subpackages__"],
 )
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]) + ["//proto/wkt:all_files"],
+    testonly = True,
+    visibility = ["//:__subpackages__"],
+)

@@ -69,7 +69,15 @@ GoContext = provider()
 _GoContextData = provider()
 
 _COMPILER_OPTIONS_BLACKLIST = {
+    # cgo parses the error messages from the compiler.  It can't handle colors.
+    # Ignore both variants of the diagnostics color flag.
     "-fcolor-diagnostics": None,
+    "-fdiagnostics-color": None,
+
+    # cgo also wants to see all the errors when it is testing the compiler.
+    # fmax-errors limits that and causes build failures.
+    "-fmax-errors=": None,
+
     "-Wall": None,
 
     # Symbols are needed by Go, so keep them
@@ -86,8 +94,18 @@ _LINKER_OPTIONS_BLACKLIST = {
     "-Wl,--gc-sections": None,
 }
 
+def _match_option(option, pattern):
+    if pattern.endswith("="):
+        return option.startswith(pattern)
+    else:
+        return option == pattern
+
 def _filter_options(options, blacklist):
-    return [option for option in options if option not in blacklist]
+    return [
+        option
+        for option in options
+        if not any([_match_option(option, pattern) for pattern in blacklist])
+    ]
 
 def _child_name(go, path, ext, name):
     childname = mode_string(go.mode) + "/"

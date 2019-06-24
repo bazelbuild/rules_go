@@ -1,4 +1,16 @@
 filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]) + [
+        "//go/platform:all_files",
+        "//go/toolchain:all_files",
+        "//go/tools:all_files",
+        "//go/private:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "all_rules",
     srcs = glob(["*.bzl"]) + ["//go/private:all_rules"],
     visibility = ["//visibility:public"],
