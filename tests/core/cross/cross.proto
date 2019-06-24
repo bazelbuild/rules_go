@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package cross;
-
-option go_package = "github.com/bazelbuild/rules_go/tests/core/cross";
-
-message Foo {
-  int64 x = 1;
-}
