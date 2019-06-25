@@ -27,6 +27,13 @@
 load("@io_bazel_rules_go//go/private:skylib/lib/versions.bzl", "versions")
 
 def _go_rules_compat_impl(ctx):
+    darwin_tpl_path = ctx.path(Label("@io_bazel_rules_go//go/private:compat/darwin.bzl.tpl"))
+    if "mac" in ctx.os.name:
+        default_darwin_constraint_value = "@io_bazel_rules_go//go/toolchain:is_darwin"
+    else:
+        default_darwin_constraint_value = "@io_bazel_rules_go//go/toolchain:not_darwin"
+    ctx.template("darwin.bzl", darwin_tpl_path, {"{default_darwin_constraint_value}": default_darwin_constraint_value})
+
     ctx.file("BUILD.bazel")
     ctx.symlink(ctx.attr.impl, "compat.bzl")
 
@@ -38,7 +45,7 @@ _go_rules_compat = repository_rule(
 )
 
 def go_rules_compat(**kwargs):
-    impls = [18, 22, 23, 25]  # keep sorted
+    impls = [23, 25]  # keep sorted
     if not native.bazel_version:
         # bazel_version is None in development builds, so we can't do a
         # version comparison. Use the newest version of the compat file.

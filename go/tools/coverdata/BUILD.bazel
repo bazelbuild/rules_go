@@ -6,3 +6,10 @@ go_tool_library(
     importpath = "github.com/bazelbuild/rules_go/go/tools/coverdata",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)

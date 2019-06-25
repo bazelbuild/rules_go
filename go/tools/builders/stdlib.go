@@ -63,6 +63,11 @@ func stdlib(args []string) error {
 	os.Setenv("GOCACHE", cachePath)
 	defer os.RemoveAll(cachePath)
 
+	// Disable modules for the 'go install' command. Depending on the sandboxing
+	// mode, there may be a go.mod file in a parent directory which will turn
+	// modules on in "auto" mode.
+	os.Setenv("GO111MODULE", "off")
+
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
 	os.Setenv("CC", abs(os.Getenv("CC")))

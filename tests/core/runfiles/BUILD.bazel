@@ -1,0 +1,48 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+package(default_visibility = ["//visibility:public"])
+
+test_suite(
+    name = "runfiles_tests",
+    tests = [
+        ":local_test",
+        "@runfiles_remote_test//:remote_test",
+    ],
+)
+
+go_test(
+    name = "local_test",
+    srcs = ["runfiles_test.go"],
+    deps = [":check_runfiles"],
+)
+
+go_binary(
+    name = "local_cmd",
+    srcs = ["runfiles_cmd.go"],
+    deps = [":check_runfiles"],
+)
+
+go_binary(
+    name = "local_bin",
+    srcs = ["empty_bin.go"],
+)
+
+go_library(
+    name = "check_runfiles",
+    srcs = ["check_runfiles.go"],
+    data = [
+        "local_file.txt",
+        ":local_bin",
+        ":local_group",
+        "@runfiles_remote_test//:remote_bin",
+        "@runfiles_remote_test//:remote_file.txt",
+        "@runfiles_remote_test//:remote_group",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/runfiles/check",
+    deps = ["//go/tools/bazel:go_default_library"],
+)
+
+filegroup(
+    name = "local_group",
+    srcs = ["local_group.txt"],
+)

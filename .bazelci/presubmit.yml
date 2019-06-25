@@ -1,11 +1,12 @@
 ---
 platforms:
-  ubuntu1404:
+  ubuntu1604:
+    bazel: 0.23.0 # test minimum supported version of bazel on ubuntu1404 only
     build_targets:
     - "..."
     test_targets:
     - "..."
-  ubuntu1604:
+  ubuntu1804:
     build_targets:
     - "..."
     test_targets:
@@ -165,9 +166,12 @@ platforms:
     - "-@test_chdir_remote//sub:go_default_test"
     - "-//tests/core/cgo:dylib_client"
     - "-//tests/core/cgo:dylib_test"
+    - "-//tests/core/cgo:versioned_dylib_client"
+    - "-//tests/core/cgo:versioned_dylib_test"
     - "-//tests/core/coverage:coverage_test_test"
     - "-//tests/core/coverage:cross_cover_test_test"
     - "-//tests/core/cross:cross_test"
+    - "-//tests/core/cross:ios_select_test"
     - "-//tests/core/go_binary:go_default_test"
     - "-//tests/core/go_path:go_path"
     - "-//tests/core/go_path:go_path_test"
@@ -262,7 +266,6 @@ platforms:
     - "-//tests/legacy/go_embed_data:embedded_zip"
     - "-//tests/legacy/go_embed_data:embedded_tar"
     - "-//tests/legacy/info:info"
-    - "-//tests/legacy/no_prefix:no_prefix"
     - "-//tests/legacy/proto_ignore_go_package_option:a_go_proto"
     - "-//tests/legacy/proto_ignore_go_package_option:a_proto"
     - "-//tests/legacy/proto_ignore_go_package_option:b_go_proto"
@@ -279,6 +282,9 @@ platforms:
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
     - '--action_env=PATH=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
+    # On Windows CI, bazel (bazelisk) needs %LocalAppData% to find the cache directory.
+    # We invoke bazel in tests, so the tests need this, too.
+    - "--test_env=LOCALAPPDATA"
     test_targets:
     - "--"
     - "..."
@@ -323,6 +329,8 @@ platforms:
     - "-//tests/core/cgo:opts"
     - "-//tests/core/cgo:dylib_test"
     - "-//tests/core/cgo:dylib_client"
+    - "-//tests/core/cgo:versioned_dylib_test"
+    - "-//tests/core/cgo:versioned_dylib_client"
     - "-//tests/core/cgo:cc_libs_test"
     - "-//tests/core/cgo:pure"
     - "-//tests/core/cgo:cc_srcs"
@@ -333,6 +341,7 @@ platforms:
     - "-//tests/core/coverage:coverage_test_test"
     - "-//tests/core/coverage:cross_cover_test_test"
     - "-//tests/core/cross:cross_test"
+    - "-//tests/core/cross:ios_select_test"
     - "-//tests/core/go_binary:go_default_test"
     - "-//tests/core/go_binary:stamp_test"
     - "-//tests/core/go_path:go_path"
@@ -395,7 +404,6 @@ platforms:
     - "-//tests/legacy/go_embed_data:embedded_zip"
     - "-//tests/legacy/go_embed_data:embedded_tar"
     - "-//tests/legacy/info:info"
-    - "-//tests/legacy/no_prefix:no_prefix"
     - "-//tests/legacy/test_chdir:go_default_test"
     - "-//tests/legacy/test_filter_test:test_filter_test"
     - "-//tests/legacy/test_rundir:go_default_test"

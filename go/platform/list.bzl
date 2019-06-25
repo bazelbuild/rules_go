@@ -12,113 +12,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GOOS = {
-    "android": None,
-    "darwin": "@bazel_tools//platforms:osx",
-    "dragonfly": None,
-    "freebsd": "@bazel_tools//platforms:freebsd",
-    "linux": "@bazel_tools//platforms:linux",
-    "nacl": None,
-    "netbsd": None,
-    "openbsd": None,
-    "plan9": None,
-    "solaris": None,
-    "windows": "@bazel_tools//platforms:windows",
-    "js": None,
-}
-
-GOARCH = {
-    "386": "@bazel_tools//platforms:x86_32",
-    "amd64": "@bazel_tools//platforms:x86_64",
-    "amd64p32": None,
-    "arm": "@bazel_tools//platforms:arm",
-    "arm64": "@bazel_tools//platforms:aarch64",
-    "mips": None,
-    "mips64": None,
-    "mips64le": None,
-    "mipsle": None,
-    "ppc64": None,
-    "ppc64le": "@bazel_tools//platforms:ppc",
-    "s390x": "@bazel_tools//platforms:s390x",
-    "wasm": None,
-}
-
-GOOS_GOARCH = (
-    ("android", "386"),
-    ("android", "amd64"),
-    ("android", "arm"),
-    ("android", "arm64"),
-    ("darwin", "386"),
-    ("darwin", "amd64"),
-    ("darwin", "arm"),
-    ("darwin", "arm64"),
-    ("dragonfly", "amd64"),
-    ("freebsd", "386"),
-    ("freebsd", "amd64"),
-    ("freebsd", "arm"),
-    ("linux", "386"),
-    ("linux", "amd64"),
-    ("linux", "arm"),
-    ("linux", "arm64"),
-    ("linux", "mips"),
-    ("linux", "mips64"),
-    ("linux", "mips64le"),
-    ("linux", "mipsle"),
-    ("linux", "ppc64"),
-    ("linux", "ppc64le"),
-    ("linux", "s390x"),
-    ("nacl", "386"),
-    ("nacl", "amd64p32"),
-    ("nacl", "arm"),
-    ("netbsd", "386"),
-    ("netbsd", "amd64"),
-    ("netbsd", "arm"),
-    ("openbsd", "386"),
-    ("openbsd", "amd64"),
-    ("openbsd", "arm"),
-    ("plan9", "386"),
-    ("plan9", "amd64"),
-    ("plan9", "arm"),
-    ("solaris", "amd64"),
-    ("windows", "386"),
-    ("windows", "amd64"),
-    ("js", "wasm"),
+load(
+    "@io_bazel_rules_go//go/private:platforms.bzl",
+    "PLATFORMS",
+    _GOARCH = "GOARCH_CONSTRAINTS",
+    _GOOS = "GOOS_CONSTRAINTS",
+    _GOOS_GOARCH = "GOOS_GOARCH",
+    _MSAN_GOOS_GOARCH = "MSAN_GOOS_GOARCH",
+    _RACE_GOOS_GOARCH = "RACE_GOOS_GOARCH",
 )
 
-RACE_GOOS_GOARCH = (
-    ("darwin", "amd64"),
-    ("freebsd", "amd64"),
-    ("linux", "amd64"),
-    ("windows", "amd64"),
-)
+GOOS_GOARCH = _GOOS_GOARCH
+GOOS = _GOOS
+GOARCH = _GOARCH
+RACE_GOOS_GOARCH = _RACE_GOOS_GOARCH
+MSAN_GOOS_GOARCH = _MSAN_GOOS_GOARCH
 
-MSAN_GOOS_GOARCH = (
-    ("linux", "amd64"),
-)
+def _os_constraint(goos):
+    if goos == "darwin":
+        return "@io_bazel_rules_go//go/toolchain:is_darwin"
+    else:
+        return "@io_bazel_rules_go//go/toolchain:" + goos
+
+def _arch_constraint(goarch):
+    return "@io_bazel_rules_go//go/toolchain:" + goarch
 
 def declare_config_settings():
+    """Generates config_setting targets for each goos, goarch, and valid
+    goos_goarch pair. These targets may be used in select expressions.
+    Each target refers to a corresponding constraint_value in //go/toolchain.
+
+    Note that the "darwin" targets are true when building for either
+    macOS or iOS.
+    """
     for goos in GOOS:
         native.config_setting(
             name = goos,
-            constraint_values = ["//go/toolchain:" + goos],
+            constraint_values = [_os_constraint(goos)],
         )
     for goarch in GOARCH:
         native.config_setting(
             name = goarch,
-            constraint_values = ["//go/toolchain:" + goarch],
+            constraint_values = [_arch_constraint(goarch)],
         )
     for goos, goarch in GOOS_GOARCH:
         native.config_setting(
             name = goos + "_" + goarch,
             constraint_values = [
-                "//go/toolchain:" + goos,
-                "//go/toolchain:" + goarch,
+                _os_constraint(goos),
+                _arch_constraint(goarch),
             ],
         )
-
-def generate_toolchain_names():
-    # Keep in sync with generate_toolchains
-    return [
-        "go_{}_{}".format(target_goos, target_goarch)
-        for target_goos, target_goarch in GOOS_GOARCH
-    ]

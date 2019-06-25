@@ -16,75 +16,13 @@
 package bazel
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
-	"sync"
 )
 
 const TEST_SRCDIR = "TEST_SRCDIR"
 const TEST_TMPDIR = "TEST_TMPDIR"
 const TEST_WORKSPACE = "TEST_WORKSPACE"
-
-var (
-	defaultTestWorkspace = ""
-
-	runfileResolver     runfilesResolver
-	runfileResolverErr  error
-	runfileResolverOnce sync.Once
-)
-
-func getRunfilesResolver() (runfilesResolver, error) {
-	runfileResolverOnce.Do(func() {
-		runfileResolver, runfileResolverErr = newRunfilesResolver()
-	})
-	return runfileResolver, runfileResolverErr
-}
-
-// Runfile returns an absolute path to the specified file in the runfiles directory of the running target.
-// It searches the current working directory, the runfiles path, and the workspace subdirectory of runfiles.
-// If a runfiles manifest is present, it will be used to resolve files not present in the working directory.
-// Returns an error if the file could not be found, or if an error occurs trying to find the runfiles env.
-func Runfile(path string) (string, error) {
-	// Search in working directory
-	if _, err := os.Stat(path); err == nil {
-		return path, nil
-	}
-
-	resolver, err := getRunfilesResolver()
-	if err != nil {
-		return "", err
-	}
-
-	// Search in runfiles.
-	searchPath := []string{path}
-	if workspace, err := TestWorkspace(); err == nil {
-		searchPath = append(searchPath, filepath.Join(workspace, path))
-	}
-
-	for _, path := range searchPath {
-		filename, ok := resolver.Resolve(path)
-		if !ok {
-			continue
-		}
-
-		if _, err := os.Stat(filename); err == nil {
-			return filename, nil
-		}
-	}
-
-	return "", fmt.Errorf("unable to find file %q", path)
-}
-
-// RunfilesPath return the path to the run files tree for this test.
-// It returns an error if TEST_SRCDIR does not exist.
-func RunfilesPath() (string, error) {
-	if src, ok := os.LookupEnv(TEST_SRCDIR); ok {
-		return src, nil
-	}
-	return "", fmt.Errorf("environment variable %q is not defined, are you running with bazel test", TEST_SRCDIR)
-}
 
 // NewTmpDir creates a new temporary directory in TestTmpDir().
 func NewTmpDir(prefix string) (string, error) {
@@ -98,91 +36,4 @@ func TestTmpDir() string {
 		return tmp
 	}
 	return os.TempDir()
-}
-
-// TestWorkspace returns the name of the Bazel workspace for this test.
-// If TEST_WORKSPACE is not defined, it returns an error.
-func TestWorkspace() (string, error) {
-	if ws, ok := os.LookupEnv(TEST_WORKSPACE); ok {
-		return ws, nil
-	}
-	if defaultTestWorkspace != "" {
-		return defaultTestWorkspace, nil
-	}
-	return "", fmt.Errorf("Unable to find environment variable TEST_WORKSPACE")
-}
-
-// SetDefaultTestWorkspace allows you to set a fake value for the
-// environment variable TEST_WORKSPACE if it is not defined. This is useful
-// when running tests on the command line and not through Bazel.
-func SetDefaultTestWorkspace(w string) {
-	defaultTestWorkspace = w
-}
-
-// getCandidates returns the list of all possible "prefix/suffix" paths where there might be an
-// optional component in-between the two pieces.
-//
-// This function exists to cope with issues #1239 because we cannot tell where the built Go
-// binaries are located upfront.
-func getCandidates(prefix string, suffix string) []string {
-	candidates := []string{filepath.Join(prefix, suffix)}
-	if entries, err := ioutil.ReadDir(prefix); err == nil {
-		for _, entry := range entries {
-			candidate := filepath.Join(prefix, entry.Name(), suffix)
-			candidates = append(candidates, candidate)
-		}
-	}
-	return candidates
-}
-
-// FindBinary locates the given executable within bazel-bin or the current directory.
-//
-// "pkg" indicates the relative path to the build package that contains the binary target, and
-// "binary" indicates the basename of the binary searched for.
-func FindBinary(pkg string, binary string) (string, bool) {
-	candidates := getCandidates(filepath.Join("bazel-bin", pkg), binary)
-	candidates = append(candidates, getCandidates(pkg, binary)...)
-
-	for _, candidate := range candidates {
-		// Following symlinks here is intentional because Bazel generates symlinks in
-		// general and we don't care about that.
-		if fileInfo, err := os.Stat(candidate); err == nil {
-			if fileInfo.Mode()&os.ModeType == 0 && fileInfo.Mode()&0100 != 0 {
-				return candidate, true
-			}
-		}
-	}
-	return "", false
-}
-
-// findRunfiles locates the directory under which a built binary can find its data dependencies
-// using relative paths.
-func findRunfiles(workspace string, pkg string, binary string, cookie string) (string, bool) {
-	candidates := getCandidates(filepath.Join("bazel-bin", pkg), filepath.Join(binary+".runfiles", workspace))
-	candidates = append(candidates, ".")
-
-	for _, candidate := range candidates {
-		if _, err := os.Stat(filepath.Join(candidate, cookie)); err == nil {
-			return candidate, true
-		}
-	}
-	return "", false
-}
-
-// EnterRunfiles locates the directory under which a built binary can find its data dependencies
-// using relative paths, and enters that directory.
-//
-// "workspace" indicates the name of the current project, "pkg" indicates the relative path to the
-// build package that contains the binary target, "binary" indicates the basename of the binary
-// searched for, and "cookie" indicates an arbitrary data file that we expect to find within the
-// runfiles tree.
-func EnterRunfiles(workspace string, pkg string, binary string, cookie string) error {
-	runfiles, ok := findRunfiles(workspace, pkg, binary, cookie)
-	if !ok {
-		return fmt.Errorf("cannot find runfiles tree")
-	}
-	if err := os.Chdir(runfiles); err != nil {
-		return fmt.Errorf("cannot enter runfiles tree: %v", err)
-	}
-	return nil
 }

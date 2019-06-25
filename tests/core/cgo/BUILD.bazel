@@ -68,6 +68,42 @@ cc_binary(
 )
 
 go_test(
+    name = "versioned_dylib_test",
+    srcs = ["dylib_test.go"],
+    embed = [":versioned_dylib_client"],
+    rundir = ".",
+)
+
+go_library(
+    name = "versioned_dylib_client",
+    srcs = ["dylib_client.go"],
+    cdeps = select({
+        # This test exists just for versioned `.so`s on Linux,
+        # but we can reuse the above test's dylib so it passes on darwin,
+        # where filename suffixes are not used for library version.
+        "@io_bazel_rules_go//go/platform:darwin": [":darwin_imported_dylib"],
+        "//conditions:default": [":linux_imported_versioned_dylib"],
+        # TODO(jayconrod): Support windows, skip others.
+    }),
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/dylib",
+)
+
+cc_library(
+    name = "linux_imported_versioned_dylib",
+    srcs = [":libimported.so.2"],
+    linkstatic = False,
+    tags = ["manual"],
+)
+
+cc_binary(
+    name = "libimported.so.2",
+    srcs = ["imported.c"],
+    linkshared = True,
+    tags = ["manual"],
+)
+
+go_test(
     name = "cc_libs_test",
     srcs = [
         "cc_libs_darwin_test.go",

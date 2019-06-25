@@ -30,6 +30,7 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
+    "CgoContextData",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
     "GoLibrary",
@@ -56,23 +57,27 @@ load(
     "goos_to_shared_extension",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
-    "paths",
-)
-load(
-    "@io_bazel_rules_go//go/private:skylib/lib/structs.bzl",
-    "structs",
-)
-load(
     "@io_bazel_rules_go//go/platform:apple.bzl",
     "apple_ensure_options",
+)
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 
 GoContext = provider()
 _GoContextData = provider()
 
 _COMPILER_OPTIONS_BLACKLIST = {
+    # cgo parses the error messages from the compiler.  It can't handle colors.
+    # Ignore both variants of the diagnostics color flag.
     "-fcolor-diagnostics": None,
+    "-fdiagnostics-color": None,
+
+    # cgo also wants to see all the errors when it is testing the compiler.
+    # fmax-errors limits that and causes build failures.
+    "-fmax-errors=": None,
+
     "-Wall": None,
 
     # Symbols are needed by Go, so keep them
@@ -89,8 +94,18 @@ _LINKER_OPTIONS_BLACKLIST = {
     "-Wl,--gc-sections": None,
 }
 
+def _match_option(option, pattern):
+    if pattern.endswith("="):
+        return option.startswith(pattern)
+    else:
+        return option == pattern
+
 def _filter_options(options, blacklist):
-    return [option for option in options if option not in blacklist]
+    return [
+        option
+        for option in options
+        if not any([_match_option(option, pattern) for pattern in blacklist])
+    ]
 
 def _child_name(go, path, ext, name):
     childname = mode_string(go.mode) + "/"
@@ -434,6 +449,66 @@ def go_context(ctx, attr = None):
     )
 
 def _go_context_data_impl(ctx):
+    go_toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+    if go_toolchain._cgo_context_data:
+        crosstool = go_toolchain._cgo_context_data.crosstool
+        env = dict(go_toolchain._cgo_context_data.env)
+        tags = go_toolchain._cgo_context_data.tags
+        cgo_tools = go_toolchain._cgo_context_data.cgo_tools
+        tool_paths = [
+            cgo_tools.c_compiler_path,
+            cgo_tools.ld_executable_path,
+            cgo_tools.ld_static_lib_path,
+            cgo_tools.ld_dynamic_lib_path,
+        ]
+    else:
+        crosstool = []
+        env = {}
+        tags = ctx.var["gotags"].split(",") if "gotags" in ctx.var else []
+        cgo_tools = None
+        tool_paths = []
+
+    # Add C toolchain directories to PATH.
+    # On ARM, go tool link uses some features of gcc to complete its work,
+    # so PATH is needed on ARM.
+    path_set = {}
+    if "PATH" in env:
+        for p in env["PATH"].split(ctx.configuration.host_path_separator):
+            path_set[p] = None
+    for tool_path in tool_paths:
+        tool_dir, _, _ = tool_path.rpartition("/")
+        path_set[tool_dir] = None
+    paths = sorted(path_set.keys())
+    if ctx.configuration.host_path_separator == ":":
+        # HACK: ":" is a proxy for a UNIX-like host.
+        # The tools returned above may be bash scripts that reference commands
+        # in directories we might not otherwise include. For example,
+        # on macOS, wrapped_ar calls dirname.
+        if "/bin" not in path_set:
+            paths.append("/bin")
+        if "/usr/bin" not in path_set:
+            paths.append("/usr/bin")
+    env["PATH"] = ctx.configuration.host_path_separator.join(paths)
+
+    return [_GoContextData(
+        strip = ctx.attr.strip,
+        crosstool = crosstool,
+        tags = tags,
+        env = env,
+        cgo_tools = cgo_tools,
+    )]
+
+go_context_data = rule(
+    _go_context_data_impl,
+    attrs = {
+        "strip": attr.string(mandatory = True),
+    },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    doc = """go_context_data gathers information about the build configuration.
+It is a common dependency of all Go targets.""",
+)
+
+def _cgo_context_data_impl(ctx):
     # TODO(jayconrod): find a way to get a list of files that comprise the
     # toolchain (to be inputs into actions that need it).
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
@@ -565,30 +640,7 @@ def _go_context_data_impl(ctx):
         cc_toolchain.target_gnu_system_name,
     )
 
-    # Add C toolchain directories to PATH.
-    # On ARM, go tool link uses some features of gcc to complete its work,
-    # so PATH is needed on ARM.
-    path_set = {}
-    if "PATH" in env:
-        for p in env["PATH"].split(ctx.configuration.host_path_separator):
-            path_set[p] = None
-    for tool_path in [c_compiler_path, ld_executable_path, ld_static_lib_path, ld_dynamic_lib_path]:
-        tool_dir, _, _ = tool_path.rpartition("/")
-        path_set[tool_dir] = None
-    paths = sorted(path_set.keys())
-    if ctx.configuration.host_path_separator == ":":
-        # HACK: ":" is a proxy for a UNIX-like host.
-        # The tools returned above may be bash scripts that reference commands
-        # in directories we might not otherwise include. For example,
-        # on macOS, wrapped_ar calls dirname.
-        if "/bin" not in path_set:
-            paths.append("/bin")
-        if "/usr/bin" not in path_set:
-            paths.append("/usr/bin")
-    env["PATH"] = ctx.configuration.host_path_separator.join(paths)
-
-    return [_GoContextData(
-        strip = ctx.attr.strip,
+    return [CgoContextData(
         crosstool = ctx.files._cc_toolchain,
         tags = tags,
         env = env,
@@ -604,10 +656,9 @@ def _go_context_data_impl(ctx):
         ),
     )]
 
-go_context_data = rule(
-    _go_context_data_impl,
+cgo_context_data = rule(
+    implementation = _cgo_context_data_impl,
     attrs = {
-        "strip": attr.string(mandatory = True),
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
             default = "@bazel_tools//tools/osx:current_xcode_config",
@@ -615,4 +666,5 @@ go_context_data = rule(
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["apple", "cpp"],
+    provides = [CgoContextData],
 )

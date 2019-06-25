@@ -15,11 +15,8 @@
 Toolchain rules used by go.
 """
 
-load(
-    "@io_bazel_rules_go//go/platform:list.bzl",
-    "GOOS_GOARCH",
-)
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoSDK")
+load("@io_bazel_rules_go//go/private:platforms.bzl", "PLATFORMS")
+load("@io_bazel_rules_go//go/private:providers.bzl", "CgoContextData", "GoSDK")
 load("@io_bazel_rules_go//go/private:actions/archive.bzl", "emit_archive")
 load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
 load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
@@ -57,9 +54,10 @@ def _go_toolchain_impl(ctx):
 
         # Internal fields -- may be read by emit functions.
         _builder = ctx.executable.builder,
+        _cgo_context_data = ctx.attr.cgo_context_data[CgoContextData] if ctx.attr.cgo_context_data else None,
     )]
 
-_go_toolchain = rule(
+go_toolchain = rule(
     _go_toolchain_impl,
     attrs = {
         # Minimum requirements to specify a toolchain
@@ -83,6 +81,10 @@ _go_toolchain = rule(
             doc = "The SDK this toolchain is based on",
         ),
         # Optional extras to a toolchain
+        "cgo_context_data": attr.label(
+            providers = [CgoContextData],
+            doc = "A target that collects information about the C/C++ toolchain.",
+        ),
         "link_flags": attr.string_list(
             doc = "Flags passed to the Go internal linker",
         ),
@@ -94,66 +96,41 @@ _go_toolchain = rule(
     provides = [platform_common.ToolchainInfo],
 )
 
-def go_toolchain(name, target, sdk, host = None, constraints = [], **kwargs):
-    """See go/toolchains.rst#go-toolchain for full documentation."""
-
-    if not host:
-        host = target
-    goos, _, goarch = target.partition("_")
-    target_constraints = constraints + [
-        "@io_bazel_rules_go//go/toolchain:" + goos,
-        "@io_bazel_rules_go//go/toolchain:" + goarch,
-    ]
+def declare_toolchains(host, sdk, builder):
+    # keep in sync with generate_toolchain_names
     host_goos, _, host_goarch = host.partition("_")
-    exec_constraints = [
-        "@io_bazel_rules_go//go/toolchain:" + host_goos,
-        "@io_bazel_rules_go//go/toolchain:" + host_goarch,
-    ]
-
-    impl_name = name + "-impl"
-    _go_toolchain(
-        name = impl_name,
-        goos = goos,
-        goarch = goarch,
-        sdk = sdk,
-        tags = ["manual"],
-        visibility = ["//visibility:public"],
-        **kwargs
-    )
-    native.toolchain(
-        name = name,
-        toolchain_type = "@io_bazel_rules_go//go:toolchain",
-        exec_compatible_with = exec_constraints,
-        target_compatible_with = target_constraints,
-        toolchain = ":" + impl_name,
-    )
-
-def generate_toolchains(host, sdk, builder):
-    host_goos, _, host_goarch = host.partition("_")
-    toolchains = []
-    for target_goos, target_goarch in GOOS_GOARCH:
-        target = "{}_{}".format(target_goos, target_goarch)
-        toolchain_name = "go_" + target
+    for p in PLATFORMS:
         link_flags = []
         cgo_link_flags = []
-        if "darwin" in host:
+        if host_goos == "darwin":
             cgo_link_flags.extend(["-shared", "-Wl,-all_load"])
-        if "linux" in host:
+        if host_goos == "linux":
             cgo_link_flags.append("-Wl,-whole-archive")
 
-        # Add the primary toolchain
-        toolchains.append(dict(
-            name = toolchain_name,
-            host = host,
-            target = target,
+        toolchain_name = "go_" + p.name
+        impl_name = toolchain_name + "-impl"
+
+        cgo_context_data = "@io_bazel_rules_go//:cgo_context_data" if p.cgo else None
+
+        go_toolchain(
+            name = impl_name,
+            goos = p.goos,
+            goarch = p.goarch,
             sdk = sdk,
             builder = builder,
             link_flags = link_flags,
             cgo_link_flags = cgo_link_flags,
-        ))
-    return toolchains
-
-def declare_toolchains(host, sdk, builder):
-    # Use the final dictionaries to create all the toolchains
-    for toolchain in generate_toolchains(host, sdk, builder):
-        go_toolchain(**toolchain)
+            cgo_context_data = cgo_context_data,
+            tags = ["manual"],
+            visibility = ["//visibility:public"],
+        )
+        native.toolchain(
+            name = toolchain_name,
+            toolchain_type = "@io_bazel_rules_go//go:toolchain",
+            exec_compatible_with = [
+                "@io_bazel_rules_go//go/toolchain:" + host_goos,
+                "@io_bazel_rules_go//go/toolchain:" + host_goarch,
+            ],
+            target_compatible_with = p.constraints,
+            toolchain = ":" + impl_name,
+        )

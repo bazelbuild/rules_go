@@ -14,6 +14,12 @@ Checks that Go binaries can link against dynamic C libraries. Some libraries
 (especially those provided with ``cc_import``) may only have dynamic versions,
 and we should be able to link against them and find them at run-time.
 
+dylib_test
+----------
+
+Checks that Go binaries can link against dynamic C libraries that are only
+available as a versioned shared library, like ``libfoo.so.1``.
+
 cc_libs_test
 ------------
 

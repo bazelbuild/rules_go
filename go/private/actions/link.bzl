@@ -13,13 +13,17 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "@bazel_skylib//lib:sets.bzl",
     "sets",
 )
 load(
+    "@bazel_skylib//lib:shell.bzl",
+    "shell",
+)
+load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "SHARED_LIB_EXTENSIONS",
     "as_iterable",
+    "has_shared_lib_extension",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
@@ -27,10 +31,6 @@ load(
     "LINKMODE_PLUGIN",
     "extld_from_cc_toolchain",
     "extldflags_from_cc_toolchain",
-)
-load(
-    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
-    "shell",
 )
 
 def _format_archive(d):
@@ -115,7 +115,7 @@ def emit_link(
     cgo_dynamic_deps = [
         d
         for d in archive.cgo_deps.to_list()
-        if any([d.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])
+        if has_shared_lib_extension(d.basename)
     ]
     cgo_rpaths = []
     for d in cgo_dynamic_deps:

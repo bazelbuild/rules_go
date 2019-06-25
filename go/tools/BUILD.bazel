@@ -1,0 +1,10 @@
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = [
+        "//go/tools/bazel:all_files",
+        "//go/tools/builders:all_files",
+        "//go/tools/coverdata:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)

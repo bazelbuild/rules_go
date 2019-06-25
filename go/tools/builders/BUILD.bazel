@@ -57,8 +57,8 @@ go_binary(
 go_source(
     name = "nogo_srcs",
     srcs = [
-        "flags.go",
         "env.go",
+        "flags.go",
         "nogo_main.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
@@ -120,4 +120,11 @@ filegroup(
     testonly = True,
     srcs = glob(["*.go"]),
     visibility = ["//:__subpackages__"],
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
 )

@@ -71,6 +71,8 @@ GoSDK = provider(
 
 GoStdLib = provider()
 
+CgoContextData = provider()
+
 EXPLICIT_PATH = "explicit"
 
 INFERRED_PATH = "inferred"

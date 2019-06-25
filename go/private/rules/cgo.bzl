@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/sets.bzl",
+    "@bazel_skylib//lib:sets.bzl",
     "sets",
 )
 load(
@@ -22,10 +22,11 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "SHARED_LIB_EXTENSIONS",
     "as_iterable",
     "as_list",
     "as_set",
+    "has_simple_shared_lib_extension",
+    "has_versioned_shared_lib_extension",
     "join_srcs",
     "pkg_dir",
     "split_srcs",
@@ -141,13 +142,20 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
             # us the static variant. We'll get one file for each transitive dependency,
             # so the same file may appear more than once.
             if (lib.basename.startswith("lib") and
-                any([lib.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])):
+                has_simple_shared_lib_extension(lib.basename)):
                 # If the loader would be able to find the library using rpaths,
                 # use -L and -l instead of hard coding the path to the library in
                 # the binary. This gives users more flexibility. The linker will add
                 # rpaths later. We can't add them here because they are relative to
                 # the binary location, and we don't know where that is.
                 libname = lib.basename[len("lib"):lib.basename.rindex(".")]
+                clinkopts.extend(["-L", lib.dirname, "-l", libname])
+                inputs_direct.append(lib)
+            elif (lib.basename.startswith("lib") and
+                  has_versioned_shared_lib_extension(lib.basename)):
+                # With a versioned shared library, we must use the full filename,
+                # otherwise the library will not be found by the linker.
+                libname = ":%s" % lib.basename
                 clinkopts.extend(["-L", lib.dirname, "-l", libname])
                 inputs_direct.append(lib)
             else:
@@ -345,13 +353,19 @@ def _cgo_codegen_impl(ctx):
                 # us the static variant. We'll get one file for each transitive dependency,
                 # so the same file may appear more than once.
                 if (lib.basename.startswith("lib") and
-                    any([lib.basename.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])):
+                    has_simple_shared_lib_extension(lib.basename)):
                     # If the loader would be able to find the library using rpaths,
                     # use -L and -l instead of hard coding the path to the library in
                     # the binary. This gives users more flexibility. The linker will add
                     # rpaths later. We can't add them here because they are relative to
                     # the binary location, and we don't know where that is.
                     libname = lib.basename[len("lib"):lib.basename.rindex(".")]
+                    linkopts.extend(["-L", lib.dirname, "-l", libname])
+                elif (lib.basename.startswith("lib") and
+                      has_versioned_shared_lib_extension(lib.basename)):
+                    # With a versioned shared library, we must use the full filename,
+                    # otherwise the library will not be found by the linker.
+                    libname = ":%s" % lib.basename
                     linkopts.extend(["-L", lib.dirname, "-l", libname])
                 else:
                     linkopts.append(lib.path)
@@ -781,7 +795,10 @@ def setup_cgo_library_for_mode(name, srcs, cdeps, copts, cxxopts, cppopts, clink
         name = cgo_o_name,
         srcs = [select_main_c],
         deps = cdeps + cgo_o_deps,
-        copts = copts + cppopts,
+        copts = copts + cppopts + [
+            # The generated thunks often contain unused variables.
+            "-Wno-unused-variable",
+        ],
         linkopts = clinkopts,
         visibility = ["//visibility:private"],
         **common_attrs

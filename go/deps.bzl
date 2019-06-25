@@ -23,14 +23,11 @@ load(
     _go_rules_dependencies = "go_rules_dependencies",
 )
 load(
-    "@io_bazel_rules_go//go/toolchain:toolchains.bzl",
-    _go_register_toolchains = "go_register_toolchains",
-)
-load(
     "@io_bazel_rules_go//go/private:sdk.bzl",
     _go_download_sdk = "go_download_sdk",
     _go_host_sdk = "go_host_sdk",
     _go_local_sdk = "go_local_sdk",
+    _go_register_toolchains = "go_register_toolchains",
     _go_wrap_sdk = "go_wrap_sdk",
 )
 

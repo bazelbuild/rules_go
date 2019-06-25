@@ -1,5 +1,5 @@
 load(
-    "@io_bazel_rules_go//go/platform:list.bzl",
+    "@io_bazel_rules_go//go/private:platforms.bzl",
     "generate_toolchain_names",
 )
 load(
@@ -15,11 +15,11 @@ load(
     "go_rule",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/paths.bzl",
+    "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/shell.bzl",
+    "@bazel_skylib//lib:shell.bzl",
     "shell",
 )
 

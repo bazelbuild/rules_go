@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
+
+package(default_visibility = ["//visibility:public"])
+
+go_test(
+    name = "remote_test",
+    srcs = ["@io_bazel_rules_go//tests/core/runfiles:runfiles_test.go"],
+    deps = ["@io_bazel_rules_go//tests/core/runfiles:check_runfiles"],
+)
+
+go_binary(
+    name = "remote_cmd",
+    srcs = ["@io_bazel_rules_go//tests/core/runfiles:runfiles_cmd.go"],
+    deps = ["@io_bazel_rules_go//tests/core/runfiles:check_runfiles"],
+)
+
+go_binary(
+    name = "remote_bin",
+    srcs = ["@io_bazel_rules_go//tests/core/runfiles:empty_bin.go"],
+)
+
+filegroup(
+    name = "remote_group",
+    srcs = ["remote_group.txt"],
+)
+
+exports_files(["remote_file.txt"])
