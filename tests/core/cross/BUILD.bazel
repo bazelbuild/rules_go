@@ -51,35 +51,9 @@ go_test(
     deps = ["//go/tools/bazel:go_default_library"],
 )
 
-bazel_test(
+go_bazel_test(
     name = "ios_select_test",
-    args = ["--platforms=@io_bazel_rules_go//go/toolchain:ios_amd64"],
-    command = "build",
-    targets = [":ios_lib"],
-)
-
-go_library(
-    name = "use_ios_lib",
-    importpath = "github.com/bazelbuild/rules_go/tests/core/cross/use_ios_lib",
-    deps = select({
-        ":is_osx": [":ios_lib"],
-        "//conditions:default": [],
-    }),
-)
-
-config_setting(
-    name = "is_osx",
-    constraint_values = ["@bazel_tools//platforms:osx"],
-)
-
-go_library(
-    name = "ios_lib",
-    srcs = select({
-        "@io_bazel_rules_go//go/platform:darwin": ["ios_good.go"],
-        "//conditions:default": ["ios_bad.go"],
-    }),
-    importpath = "github.com/bazelbuild/rules_go/tests/core/cross/ios_lib",
-    tags = ["manual"],
+    srcs = ["ios_select_test.go"],
 )
 
 go_bazel_test(

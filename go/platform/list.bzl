@@ -28,38 +28,45 @@ GOARCH = _GOARCH
 RACE_GOOS_GOARCH = _RACE_GOOS_GOARCH
 MSAN_GOOS_GOARCH = _MSAN_GOOS_GOARCH
 
-def _os_constraint(goos):
-    if goos == "darwin":
-        return "@io_bazel_rules_go//go/toolchain:is_darwin"
-    else:
-        return "@io_bazel_rules_go//go/toolchain:" + goos
-
-def _arch_constraint(goarch):
-    return "@io_bazel_rules_go//go/toolchain:" + goarch
-
 def declare_config_settings():
     """Generates config_setting targets for each goos, goarch, and valid
     goos_goarch pair. These targets may be used in select expressions.
     Each target refers to a corresponding constraint_value in //go/toolchain.
-
-    Note that the "darwin" targets are true when building for either
-    macOS or iOS.
     """
     for goos in GOOS:
         native.config_setting(
             name = goos,
-            constraint_values = [_os_constraint(goos)],
+            constraint_values = ["@io_bazel_rules_go//go/toolchain:" + goos],
         )
     for goarch in GOARCH:
         native.config_setting(
             name = goarch,
-            constraint_values = [_arch_constraint(goarch)],
+            constraint_values = ["@io_bazel_rules_go//go/toolchain:" + goarch],
         )
     for goos, goarch in GOOS_GOARCH:
         native.config_setting(
             name = goos + "_" + goarch,
             constraint_values = [
-                _os_constraint(goos),
-                _arch_constraint(goarch),
+                "@io_bazel_rules_go//go/toolchain:" + goos,
+                "@io_bazel_rules_go//go/toolchain:" + goarch,
             ],
+        )
+
+    # Additional settings for ios. Unfortunately, we cannot have a "darwin"
+    # setting that covers both operating systems, so "darwin" here means macOS.
+    # The "darwin" build tag will be true for both during execution; this only
+    # matters when evaluating select expressions.
+    native.config_setting(
+        name = "ios",
+        constraint_values = [
+            "@bazel_tools//platforms:ios",
+        ],
+    )
+    for goarch in ("arm", "arm64", "386", "amd64"):
+        native.config_setting(
+            name = "ios_" + goarch,
+            constraint_values = [
+                "@bazel_tools//platforms:ios",
+                "@io_bazel_rules_go//go/toolchain:" + goarch,
+            ]
         )

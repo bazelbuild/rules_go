@@ -28,10 +28,6 @@ load(
     "GOOS_CONSTRAINTS",
     "PLATFORMS",
 )
-load(
-    "@io_bazel_rules_go_compat//:darwin.bzl",
-    "DEFAULT_DARWIN_CONSTRAINT_VALUE",
-)
 
 # These symbols should be loaded from sdk.bzl or deps.bzl instead of here..
 DEFAULT_VERSION = _DEFAULT_VERSION
@@ -47,10 +43,6 @@ def declare_constraints():
     @bazel_tools//platforms:os and @bazel_tools//platforms:cpu, respectively.
     To avoid redundancy, if there is an equivalent value in @bazel_tools,
     we define an alias here instead of another constraint_value.
-
-    There is a special constraint_setting for Darwin, "darwin_constraint".
-    The value is "is_darwin" when the target is macOS or iOS and "not_darwin"
-    otherwise.
 
     Each platform defined here selects a goos and goarch constraint value.
     These platforms may be used with --platforms for cross-compilation,
@@ -82,23 +74,7 @@ def declare_constraints():
             )
 
     native.constraint_setting(
-        name = "darwin_constraint",
-        default_constraint_value = DEFAULT_DARWIN_CONSTRAINT_VALUE,
-    )
-
-    native.constraint_value(
-        name = "is_darwin",
-        constraint_setting = ":darwin_constraint",
-    )
-
-    native.constraint_value(
-        name = "not_darwin",
-        constraint_setting = ":darwin_constraint",
-    )
-
-    native.constraint_setting(
         name = "cgo_constraint",
-        default_constraint_value = ":cgo_on",
     )
 
     native.constraint_value(

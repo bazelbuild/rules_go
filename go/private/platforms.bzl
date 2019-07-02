@@ -141,7 +141,6 @@ def _generate_platforms():
             GOOS_CONSTRAINTS[goos],
             GOARCH_CONSTRAINTS[goarch],
         ]
-        constraints.append("@io_bazel_rules_go//go/toolchain:" + ("is_darwin" if goos == "darwin" else "not_darwin"))
         platforms.append(struct(
             name = goos + "_" + goarch,
             goos = goos,
@@ -162,22 +161,19 @@ def _generate_platforms():
         constraints = [
             "@bazel_tools//platforms:ios",
             GOARCH_CONSTRAINTS[goarch],
-            "@io_bazel_rules_go//go/toolchain:is_darwin",
-            "@io_bazel_rules_go//go/toolchain:cgo_off",
         ]
         platforms.append(struct(
             name = "ios_" + goarch,
             goos = "darwin",
             goarch = goarch,
-            constraints = constraints,
+            constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_off"],
             cgo = False,
         ))
-        constraints[-1] = "@io_bazel_rules_go//go/toolchain:cgo_on"
         platforms.append(struct(
             name = "ios_" + goarch + "_cgo",
             goos = "darwin",
             goarch = goarch,
-            constraints = constraints,
+            constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"],
             cgo = True,
         ))
 

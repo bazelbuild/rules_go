@@ -112,6 +112,17 @@ def declare_toolchains(host, sdk, builder):
 
         cgo_context_data = "@io_bazel_rules_go//:cgo_context_data" if p.cgo else None
 
+        constraints = p.constraints
+        if p.goos != host_goos or p.goarch != host_goarch:
+            # When cross-compiling, don't require cgo_off.
+            # It won't be set on a custom platform outside of //go/toolchain.
+            constraints = [c for c in constraints if c != "@io_bazel_rules_go//go/toolchain:cgo_off"]
+        else:
+            # When compiling for the host platform, don't require cgo_on.
+            # It won't be set on @bazel_tools//platforms:target_platform,
+            # which is probably the target.
+            constraints = [c for c in constraints if c != "@io_bazel_rules_go//go/toolchain:cgo_on"]
+
         go_toolchain(
             name = impl_name,
             goos = p.goos,
@@ -131,6 +142,6 @@ def declare_toolchains(host, sdk, builder):
                 "@io_bazel_rules_go//go/toolchain:" + host_goos,
                 "@io_bazel_rules_go//go/toolchain:" + host_goarch,
             ],
-            target_compatible_with = p.constraints,
+            target_compatible_with = constraints,
             toolchain = ":" + impl_name,
         )
