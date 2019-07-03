@@ -209,3 +209,18 @@ go_binary(
     cgo = True,
     pure = "off",
 )
+
+go_test(
+    name = "cgo_link_test",
+    srcs = [
+        "cgo_link_test.go",
+        "cgo_ref.go",
+    ],
+    cgo = True,
+    cdeps = [":cgo_link_dep"],
+)
+
+cc_library(
+    name = "cgo_link_dep",
+    srcs = ["cgo_link_dep.c"],
+)

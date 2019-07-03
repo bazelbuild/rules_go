@@ -1,3 +1,5 @@
+.. _#2067: https://github.com/bazelbuild/rules_go/issues/2067
+
 Basic cgo functionality
 =======================
 
@@ -44,3 +46,9 @@ tag_test
 Checks that sources with ``// +build cgo`` are built when cgo is enabled
 (whether or not ``cgo = True`` is set), and sources with ``// +build !cgo``
 are only built in pure mode.
+
+cdeps_link_test
+---------------
+
+Checks that libraries in ``cdeps`` are linked into the generated ``_cgo_.o``
+executable used to produce ``_cgo_imports.go``. Verifies `#2067`_.
