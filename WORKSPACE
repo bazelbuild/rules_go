@@ -8,6 +8,21 @@ go_rules_dependencies()
 
 go_register_toolchains()
 
+git_repository(
+    name = "com_google_protobuf",
+    commit = "09745575a923640154bcf307fba8aedff47f240a",
+    remote = "https://github.com/protocolbuffers/protobuf",
+    shallow_since = "1558721209 -0700",
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+load("@io_bazel_rules_go//extras:embed_data_deps.bzl", "go_embed_data_dependencies")
+
+go_embed_data_dependencies()
+
 # For manual testing against an LLVM toolchain.
 # Use --crosstool_top=@llvm_toolchain//:toolchain
 http_archive(
@@ -49,9 +64,10 @@ bazel_skylib_workspace()
 
 git_repository(
     name = "bazel_gazelle",
-    commit = "aa1a9cfe4845bc83482af92addbfcd41f8dc51f0",  # master as of 2019-01-27
+    # master as of 2019-07-08
+    commit = "7c3b97b8e8bf4699353fcdf7437c195e2cdcef3b",
     remote = "https://github.com/bazelbuild/bazel-gazelle",
-    shallow_since = "1548631399 -0500",
+    shallow_since = "1562699102 -0400",
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
@@ -69,6 +85,10 @@ test_chdir_remote()
 load("@io_bazel_rules_go//tests/integration/popular_repos:popular_repos.bzl", "popular_repos")
 
 popular_repos()
+
+load("@io_bazel_rules_go//tests:grpc_repos.bzl", "grpc_dependencies")
+
+grpc_dependencies()
 
 local_repository(
     name = "runfiles_remote_test",

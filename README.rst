@@ -31,6 +31,8 @@ Go rules for Bazel_
 .. _rules_go and Gazelle roadmap: roadmap.rst
 .. _Deprecation schedule: deprecation.rst
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
+.. _Proto dependencies: go/workspace.rst#proto-dependencies
+.. _gRPC dependencies: go/workspace.rst#grpc-dependencies
 .. _Overriding dependencies: go/workspace.rst#overriding-dependencies
 .. _nogo: go/nogo.rst
 .. _Using rules_go on Windows: windows.rst
@@ -623,15 +625,21 @@ How do I avoid conflicts with protocol buffers?
 
 See `Avoiding conflicts`_ in the proto documentation.
 
-How do I use a specific version of gRPC or golang.org/x/...?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How do I build proto libraries and gRPC?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The `go_rules_dependencies`_ macro declares several external repositories
-at specific versions. These are needed for `go_proto_library`_ to work,
-especially with gRPC.
+The `go_rules_dependencies`_ macro used to declare all dependencies needed
+to generate and compile protocol buffers. Managing this got too complicated,
+and the declarations caused confusion in workspaces that declared different
+versions of the same repositories, so these dependencies are no longer
+declared in ``go_rules_dependencies``. They must be declared separately.
 
-See `Overriding dependencies`_ for information and an example of how to
-replace these repositories with different versions.
+In order to build anything that uses ``protoc`` (including ``proto_library``),
+you must declare a repository rule for ``com_google_protobuf``. See
+`Proto dependencies`_ for an example.
+
+In order to build anything that uses gRPC, several additional repositories
+must be declared. See `gRPC dependencies`_ for instructions and an example.
 
 Can I use a vendored gRPC with go_proto_library?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

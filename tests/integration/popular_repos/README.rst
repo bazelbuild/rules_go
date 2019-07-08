@@ -69,17 +69,13 @@ This runs tests from the repository `golang.org/x/net <https://golang.org/x/net>
 * @org_golang_x_net//dns/dnsmessage:go_default_test
 * @org_golang_x_net//html:go_default_test
 * @org_golang_x_net//html/atom:go_default_test
-* @org_golang_x_net//http/httpguts:go_default_test
-* @org_golang_x_net//http/httpproxy:go_default_test
-* @org_golang_x_net//http2/h2c:go_default_test
 * @org_golang_x_net//http2/hpack:go_default_test
 * @org_golang_x_net//idna:go_default_test
 * @org_golang_x_net//internal/socket:go_default_test
-* @org_golang_x_net//internal/socks:go_default_test
-* @org_golang_x_net//internal/sockstest:go_default_test
 * @org_golang_x_net//internal/timeseries:go_default_test
 * @org_golang_x_net//ipv4:go_default_test
 * @org_golang_x_net//ipv6:go_default_test
+* @org_golang_x_net//lex/httplex:go_default_test
 * @org_golang_x_net//netutil:go_default_test
 * @org_golang_x_net//proxy:go_default_test
 * @org_golang_x_net//publicsuffix:go_default_test
@@ -113,7 +109,6 @@ This runs tests from the repository `golang.org/x/text <https://golang.org/x/tex
 * @org_golang_x_text//collate:go_default_test
 * @org_golang_x_text//collate/build:go_default_test
 * @org_golang_x_text//currency:go_default_test
-* @org_golang_x_text//date:go_default_test
 * @org_golang_x_text//encoding:go_default_test
 * @org_golang_x_text//encoding/htmlindex:go_default_test
 * @org_golang_x_text//encoding/ianaindex:go_default_test
@@ -122,7 +117,6 @@ This runs tests from the repository `golang.org/x/text <https://golang.org/x/tex
 * @org_golang_x_text//internal/catmsg:go_default_test
 * @org_golang_x_text//internal/colltab:go_default_test
 * @org_golang_x_text//internal/export/idna:go_default_test
-* @org_golang_x_text//internal/format:go_default_test
 * @org_golang_x_text//internal/number:go_default_test
 * @org_golang_x_text//internal/stringset:go_default_test
 * @org_golang_x_text//internal/tag:go_default_test
@@ -131,8 +125,6 @@ This runs tests from the repository `golang.org/x/text <https://golang.org/x/tex
 * @org_golang_x_text//language:go_default_test
 * @org_golang_x_text//language/display:go_default_test
 * @org_golang_x_text//message:go_default_test
-* @org_golang_x_text//message/catalog:go_default_test
-* @org_golang_x_text//number:go_default_test
 * @org_golang_x_text//runes:go_default_test
 * @org_golang_x_text//search:go_default_test
 * @org_golang_x_text//secure/bidirule:go_default_test
@@ -159,6 +151,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/go-contrib-init:go_default_test
 * @org_golang_x_tools//cmd/splitdwarf/internal/macho:go_default_test
 * @org_golang_x_tools//go/analysis/internal/analysisflags:go_default_test
+* @org_golang_x_tools//go/analysis/passes/errorsas:go_default_test
 * @org_golang_x_tools//go/ast/astutil:go_default_test
 * @org_golang_x_tools//go/callgraph/static:go_default_test
 * @org_golang_x_tools//go/cfg:go_default_test
@@ -172,48 +165,34 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
 * @org_golang_x_tools//internal/lsp/diff:go_default_test
-* @org_golang_x_tools//internal/lsp/source:go_default_test
+* @org_golang_x_tools//internal/lsp/fuzzy:go_default_test
+* @org_golang_x_tools//internal/lsp/snippet:go_default_test
 * @org_golang_x_tools//internal/lsp/testdata/analyzer:go_default_test
+* @org_golang_x_tools//internal/memoize:go_default_test
 * @org_golang_x_tools//internal/module:go_default_test
 * @org_golang_x_tools//internal/semver:go_default_test
+* @org_golang_x_tools//internal/span:go_default_test
 * @org_golang_x_tools//internal/txtar:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
 * @org_golang_x_tools//present:go_default_test
 
 
-org_golang_google_grpc
+com_github_golang_glog
 ______________________
 
-This runs tests from the repository `google.golang.org/grpc <https://google.golang.org/grpc>`_
+This runs tests from the repository `github.com/golang/glog <https://github.com/golang/glog>`_
 
-* @org_golang_google_grpc//balancer/grpclb:go_default_test
-* @org_golang_google_grpc//balancer/roundrobin:go_default_test
-* @org_golang_google_grpc//balancer/xds/edsbalancer:go_default_test
-* @org_golang_google_grpc//benchmark:go_default_test
-* @org_golang_google_grpc//benchmark/latency:go_default_test
-* @org_golang_google_grpc//benchmark/primitives:go_default_test
-* @org_golang_google_grpc//channelz/service:go_default_test
-* @org_golang_google_grpc//codes:go_default_test
-* @org_golang_google_grpc//credentials/alts/internal/authinfo:go_default_test
-* @org_golang_google_grpc//credentials/alts/internal/conn:go_default_test
-* @org_golang_google_grpc//credentials/alts/internal/handshaker:go_default_test
-* @org_golang_google_grpc//credentials/alts/internal/handshaker/service:go_default_test
-* @org_golang_google_grpc//credentials/internal:go_default_test
-* @org_golang_google_grpc//encoding/proto:go_default_test
-* @org_golang_google_grpc//grpclog:go_default_test
-* @org_golang_google_grpc//health:go_default_test
-* @org_golang_google_grpc//internal/binarylog:go_default_test
-* @org_golang_google_grpc//internal/channelz:go_default_test
-* @org_golang_google_grpc//internal/grpcsync:go_default_test
-* @org_golang_google_grpc//internal/grpctest:go_default_test
-* @org_golang_google_grpc//internal/leakcheck:go_default_test
-* @org_golang_google_grpc//internal/testutils:go_default_test
-* @org_golang_google_grpc//metadata:go_default_test
-* @org_golang_google_grpc//naming:go_default_test
-* @org_golang_google_grpc//reflection:go_default_test
-* @org_golang_google_grpc//resolver/dns:go_default_test
-* @org_golang_google_grpc//stats:go_default_test
-* @org_golang_google_grpc//status:go_default_test
-* @org_golang_google_grpc//test/bufconn:go_default_test
+* @com_github_golang_glog//:go_default_test
+
+
+org_golang_x_sync
+_________________
+
+This runs tests from the repository `golang.org/x/sync <https://golang.org/x/sync>`_
+
+* @org_golang_x_sync//errgroup:go_default_test
+* @org_golang_x_sync//semaphore:go_default_test
+* @org_golang_x_sync//singleflight:go_default_test
+* @org_golang_x_sync//syncmap:go_default_test
 
 

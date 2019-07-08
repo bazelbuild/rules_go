@@ -819,7 +819,7 @@ diff -urN a/protoc-gen-gogo/plugin/BUILD.bazel b/protoc-gen-gogo/plugin/BUILD.ba
 diff -urN a/protoc-gen-gogo/testdata/BUILD.bazel b/protoc-gen-gogo/testdata/BUILD.bazel
 --- a/protoc-gen-gogo/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/protoc-gen-gogo/testdata/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,16 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
 +go_test(
@@ -834,7 +834,6 @@ diff -urN a/protoc-gen-gogo/testdata/BUILD.bazel b/protoc-gen-gogo/testdata/BUIL
 +        "//protoc-gen-gogo/testdata/extension_user:go_default_library",
 +        "//protoc-gen-gogo/testdata/imports:go_default_library",
 +        "//protoc-gen-gogo/testdata/my_test:go_default_library",
-+        "@com_github_gogo_protobuf//protoc-gen-gogo/testdata/multi:go_default_library",
 +    ],
 +)
 diff -urN a/protoc-gen-gogo/testdata/deprecated/BUILD.bazel b/protoc-gen-gogo/testdata/deprecated/BUILD.bazel
@@ -1161,7 +1160,7 @@ diff -urN a/protoc-gen-gogo/testdata/multi/BUILD.bazel b/protoc-gen-gogo/testdat
 diff -urN a/protoc-gen-gogo/testdata/my_test/BUILD.bazel b/protoc-gen-gogo/testdata/my_test/BUILD.bazel
 --- a/protoc-gen-gogo/testdata/my_test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/protoc-gen-gogo/testdata/my_test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +filegroup(
@@ -1175,10 +1174,7 @@ diff -urN a/protoc-gen-gogo/testdata/my_test/BUILD.bazel b/protoc-gen-gogo/testd
 +    srcs = ["test.pb.go"],
 +    importpath = "github.com/gogo/protobuf/protoc-gen-gogo/testdata/my_test",
 +    visibility = ["//visibility:public"],
-+    deps = [
-+        "//proto:go_default_library",
-+        "@com_github_gogo_protobuf//protoc-gen-gogo/testdata/multi:go_default_library",
-+    ],
++    deps = ["//proto:go_default_library"],
 +)
 diff -urN a/protoc-gen-gogo/testdata/proto3/BUILD.bazel b/protoc-gen-gogo/testdata/proto3/BUILD.bazel
 --- a/protoc-gen-gogo/testdata/proto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -1340,37 +1336,6 @@ diff -urN a/sortkeys/BUILD.bazel b/sortkeys/BUILD.bazel
 +    importpath = "github.com/gogo/protobuf/sortkeys",
 +    visibility = ["//visibility:public"],
 +)
-diff -urN a/test/asymetric-issue125/BUILD.bazel b/test/asymetric-issue125/BUILD.bazel
---- a/test/asymetric-issue125/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/asymetric-issue125/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,27 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-+
-+filegroup(
-+    name = "go_default_library_protos",
-+    srcs = ["asym.proto"],
-+    visibility = ["//visibility:public"],
-+)
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = [
-+        "asym.pb.go",
-+        "pop.go",
-+    ],
-+    importpath = "github.com/gogo/protobuf/test/asymetric-issue125",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//gogoproto:go_default_library",
-+        "//proto:go_default_library",
-+    ],
-+)
-+
-+go_test(
-+    name = "go_default_test",
-+    srcs = ["asym_test.go"],
-+    embed = [":go_default_library"],
-+)
 diff -urN a/test/BUILD.bazel b/test/BUILD.bazel
 --- a/test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -1416,6 +1381,37 @@ diff -urN a/test/BUILD.bazel b/test/BUILD.bazel
 +        "//jsonpb:go_default_library",
 +        "//proto:go_default_library",
 +    ],
++)
+diff -urN a/test/asymetric-issue125/BUILD.bazel b/test/asymetric-issue125/BUILD.bazel
+--- a/test/asymetric-issue125/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/asymetric-issue125/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["asym.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_library(
++    name = "go_default_library",
++    srcs = [
++        "asym.pb.go",
++        "pop.go",
++    ],
++    importpath = "github.com/gogo/protobuf/test/asymetric-issue125",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//gogoproto:go_default_library",
++        "//proto:go_default_library",
++    ],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["asym_test.go"],
++    embed = [":go_default_library"],
 +)
 diff -urN a/test/cachedsize/BUILD.bazel b/test/cachedsize/BUILD.bazel
 --- a/test/cachedsize/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -1910,6 +1906,18 @@ diff -urN a/test/custom/BUILD.bazel b/test/custom/BUILD.bazel
 +    srcs = ["custom_test.go"],
 +    embed = [":go_default_library"],
 +)
+diff -urN a/test/custom-dash-type/BUILD.bazel b/test/custom-dash-type/BUILD.bazel
+--- a/test/custom-dash-type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/custom-dash-type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,8 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["customdash.go"],
++    importpath = "github.com/gogo/protobuf/test/custom-dash-type",
++    visibility = ["//visibility:public"],
++)
 diff -urN a/test/custombytesnonstruct/BUILD.bazel b/test/custombytesnonstruct/BUILD.bazel
 --- a/test/custombytesnonstruct/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/test/custombytesnonstruct/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -1940,18 +1948,6 @@ diff -urN a/test/custombytesnonstruct/BUILD.bazel b/test/custombytesnonstruct/BU
 +    name = "go_default_test",
 +    srcs = ["custombytesnonstruct_test.go"],
 +    embed = [":go_default_library"],
-+)
-diff -urN a/test/custom-dash-type/BUILD.bazel b/test/custom-dash-type/BUILD.bazel
---- a/test/custom-dash-type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/custom-dash-type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,8 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["customdash.go"],
-+    importpath = "github.com/gogo/protobuf/test/custom-dash-type",
-+    visibility = ["//visibility:public"],
 +)
 diff -urN a/test/dashfilename/BUILD.bazel b/test/dashfilename/BUILD.bazel
 --- a/test/dashfilename/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -2844,6 +2840,24 @@ diff -urN a/test/issue262/BUILD.bazel b/test/issue262/BUILD.bazel
 +        "//types:go_default_library",
 +    ],
 +)
+diff -urN a/test/issue270/BUILD.bazel b/test/issue270/BUILD.bazel
+--- a/test/issue270/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/test/issue270/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "go_default_library",
++    srcs = ["doc.go"],
++    importpath = "github.com/gogo/protobuf/test/issue270",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "go_default_test",
++    srcs = ["issue270_test.go"],
++    embed = [":go_default_library"],
++)
 diff -urN a/test/issue270/a/BUILD.bazel b/test/issue270/a/BUILD.bazel
 --- a/test/issue270/a/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/test/issue270/a/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -2864,24 +2878,6 @@ diff -urN a/test/issue270/b/BUILD.bazel b/test/issue270/b/BUILD.bazel
 +    name = "go_default_library_protos",
 +    srcs = ["b.proto"],
 +    visibility = ["//visibility:public"],
-+)
-diff -urN a/test/issue270/BUILD.bazel b/test/issue270/BUILD.bazel
---- a/test/issue270/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/test/issue270/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,14 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["doc.go"],
-+    importpath = "github.com/gogo/protobuf/test/issue270",
-+    visibility = ["//visibility:public"],
-+)
-+
-+go_test(
-+    name = "go_default_test",
-+    srcs = ["issue270_test.go"],
-+    embed = [":go_default_library"],
 +)
 diff -urN a/test/issue312/BUILD.bazel b/test/issue312/BUILD.bazel
 --- a/test/issue312/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500

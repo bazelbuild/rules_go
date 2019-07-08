@@ -33,8 +33,21 @@ This rule allows you to generate mock interfaces with mockgen (from `golang/mock
 go_embed_data
 -------------
 
-go_embed_data generates a .go file that contains data from a file or a list of files.
-It should be consumed in the srcs list of one of the `core go rules`_.
+``go_embed_data`` generates a .go file that contains data from a file or a
+list of files. It should be consumed in the srcs list of one of the
+`core go rules`_.
+
+Before using ``go_embed_data``, you must add the following snippet to your
+WORKSPACE:
+
+.. code:: bzl
+
+    load("@io_bazel_rules_go//extras:embed_data_deps.bzl", "go_embed_data_dependencies")
+
+    go_embed_data_dependencies()
+
+
+``go_embed_data`` accepts the attributes listed below.
 
 +----------------------------+-----------------------------+---------------------------------------+
 | **Name**                   | **Type**                    | **Default value**                     |

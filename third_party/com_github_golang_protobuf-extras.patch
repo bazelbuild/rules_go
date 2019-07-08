@@ -1,18 +1,3 @@
-diff -urN b/conformance/internal/conformance_proto/BUILD.bazel c/conformance/internal/conformance_proto/BUILD.bazel
---- b/conformance/internal/conformance_proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ c/conformance/internal/conformance_proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -1,5 +1,11 @@
- load("@io_bazel_rules_go//go:def.bzl", "go_library")
- 
-+filegroup(
-+    name = "go_default_library_protos",
-+    srcs = ["conformance.proto"],
-+    visibility = ["//conformance:__subpackages__"],
-+)
-+
- go_library(
-     name = "go_default_library",
-     srcs = ["conformance.pb.go"],
 diff -urN b/descriptor/BUILD.bazel c/descriptor/BUILD.bazel
 --- b/descriptor/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 +++ c/descriptor/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -405,21 +390,6 @@ diff -urN b/protoc-gen-go/testdata/proto3/BUILD.bazel c/protoc-gen-go/testdata/p
  go_library(
      name = "go_default_library",
      srcs = ["proto3.pb.go"],
-diff -urN b/ptypes/any/BUILD.bazel c/ptypes/any/BUILD.bazel
---- b/ptypes/any/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ c/ptypes/any/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -1,5 +1,11 @@
- load("@io_bazel_rules_go//go:def.bzl", "go_library")
- 
-+filegroup(
-+    name = "go_default_library_protos",
-+    srcs = ["any.proto"],
-+    visibility = ["//visibility:public"],
-+)
-+
- go_library(
-     name = "go_default_library",
-     srcs = ["any.pb.go"],
 diff -urN b/ptypes/BUILD.bazel c/ptypes/BUILD.bazel
 --- b/ptypes/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 +++ c/ptypes/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -448,6 +418,21 @@ diff -urN b/ptypes/BUILD.bazel c/ptypes/BUILD.bazel
  go_test(
      name = "go_default_test",
      srcs = [
+diff -urN b/ptypes/any/BUILD.bazel c/ptypes/any/BUILD.bazel
+--- b/ptypes/any/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ c/ptypes/any/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -1,5 +1,11 @@
+ load("@io_bazel_rules_go//go:def.bzl", "go_library")
+ 
++filegroup(
++    name = "go_default_library_protos",
++    srcs = ["any.proto"],
++    visibility = ["//visibility:public"],
++)
++
+ go_library(
+     name = "go_default_library",
+     srcs = ["any.pb.go"],
 diff -urN b/ptypes/duration/BUILD.bazel c/ptypes/duration/BUILD.bazel
 --- b/ptypes/duration/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 +++ c/ptypes/duration/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000

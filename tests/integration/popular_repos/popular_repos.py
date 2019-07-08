@@ -68,7 +68,6 @@ POPULAR_REPOS = [
             "encoding/traditionalchinese:go_default_test", # Needs testdata directory
             "encoding/unicode/utf32:go_default_test", # Needs testdata directory
             "encoding/unicode:go_default_test", # Needs testdata directory
-            "internal/cldrtree:go_default_test", # Needs testdata directory
         ],
     ),
 
@@ -105,6 +104,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/shadow:go_default_test", # Needs testdata directory
             "go/analysis/passes/tests:go_default_test", # Needs testdata directory
             "go/analysis/passes/tests/testdata/src/a:go_default_test", # Not a real test
+            "go/analysis/passes/tests/testdata/src/b_x_test:go_default_test", # Not a real test
             "go/analysis/passes/tests/testdata/src/divergent:go_default_test", # Not a real test
             "go/analysis/passes/unmarshal:go_default_test", # Needs go list
             "go/analysis/passes/unreachable:go_default_test", # Needs testdata directory
@@ -123,7 +123,10 @@ POPULAR_REPOS = [
             "go/ssa/interp:go_default_test", # Needs testdata directory
             "go/ssa/ssautil:go_default_test", # Needs testdata directory
             "go/ssa:go_default_test", # Needs testdata directory
+            "internal/apidiff:go_default_test", # Needs testdata directory
+            "internal/imports:go_default_test", # Needs testdata directory
             "internal/lsp:go_default_test", # Needs testdata directory
+            "internal/lsp/source:go_default_test", # Needs testdata directory
             "internal/lsp/cmd:go_default_test", # panics?
             "internal/lsp/testdata/testy:go_default_test", # Is testdata directory
             "refactor/eg:go_default_test", # Needs testdata directory
@@ -139,7 +142,6 @@ POPULAR_REPOS = [
             "godoc:go_default_test", # requires GOROOT and GOPATH
             "godoc/static:go_default_test", # requires data files
             "godoc/vfs/zipfs:go_default_test", # requires GOROOT
-            "imports:go_default_test", # probably needs GOROOT
             "go/types/typeutil:go_default_test", # requires GOROOT
             "go/analysis/analysistest:go_default_test", # requires build cache
             "go/analysis/passes/findcall:go_default_test", # requires build cache
@@ -154,24 +156,15 @@ POPULAR_REPOS = [
     ),
 
     dict(
-        name = "org_golang_google_grpc",
-        importpath = "google.golang.org/grpc",
-        commit = "3f10311ccf076b6b7cba28273df3290d42e60982",
+        name = "com_github_golang_glog",
+        importpath = "github.com/golang/glog",
+        commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
+    ),
 
-        # GRPC has already-generated protobuf definitions, and we don't currently
-        # register any protobuf toolchains in this WORKSPACE.  As such, the build
-        # should fail if we try to generate protobuf rules, but succeed if we
-        # disable generation.
-        build_file_proto_mode = "disable",
-        excludes = [
-            "test:go_default_test",
-            "examples/route_guide/mock_routeguide:go_default_test",
-            "examples/helloworld/mock_helloworld:go_default_test",
-            "credentials:go_default_test",
-            "credentials/alts:go_default_test", # not supported on darwin
-            ":go_default_test",
-            "internal/transport:go_default_test", # slow
-        ],
+    dict(
+        name = "org_golang_x_sync",
+        importpath = "golang.org/x/sync",
+        commit = "112230192c580c3556b8cee6403af37a4fc5f28c",
     ),
   ]
 

@@ -57,8 +57,13 @@ def popular_repos():
     )
     _maybe(
         go_repository,
-        name = "org_golang_google_grpc",
-        importpath = "google.golang.org/grpc",
-        commit = "3f10311ccf076b6b7cba28273df3290d42e60982",
-        build_file_proto_mode = "disable",
+        name = "com_github_golang_glog",
+        importpath = "github.com/golang/glog",
+        commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
+    )
+    _maybe(
+        go_repository,
+        name = "org_golang_x_sync",
+        importpath = "golang.org/x/sync",
+        commit = "112230192c580c3556b8cee6403af37a4fc5f28c",
     )
