@@ -45,6 +45,13 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2019-07-09
+  Releases
+  `0.18.7 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.7>`_ and
+  `0.17.8 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.8>`_
+  are now available with support for Go 1.12.7 and 1.11.12. The 0.19.0 release
+  branch will be cut soon with additional Bazel compatibility improvements
+  for cross-compilation.
 2019-06-12
   Releases
   `0.18.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.6>`_ and
@@ -55,12 +62,6 @@ Announcements
   `0.18.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.5>`_ and
   `0.17.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.6>`_
   are now available with compatibility for future Bazel releases.
-2019-05-08
-  Releases
-  `0.18.4 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.4>`_ and
-  `0.17.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.5>`_
-  are now available. The 0.16 release branch will no longer be supported
-  due to incompatible changes in Bazel.
 
 Contents
 --------
@@ -117,7 +118,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.18.6) requires Bazel ≥ 0.18.0 to work.
+Note: The latest version of these rules (0.18.7) requires Bazel ≥ 0.18.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -134,16 +135,20 @@ Setup
   .. code:: bzl
 
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
         ],
-        sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
+        sha256 = "45409e6c4f748baa9e05f8f6ab6efaa05739aa064e3ab94e5a1a09849c51806a",
     )
+
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+
     go_rules_dependencies()
+
     go_register_toolchains()
 
   If you want to use a specific commit (for example, something close to
@@ -152,13 +157,17 @@ Setup
   .. code:: bzl
 
     load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
     git_repository(
         name = "io_bazel_rules_go",
         remote = "https://github.com/bazelbuild/rules_go.git",
         commit = "f5cfc31d4e8de28bf19d0fb1da2ab8f4be0d2cde",
     )
+
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+
     go_rules_dependencies()
+
     go_register_toolchains()
 
   You can add more external dependencies to this file later (see
@@ -186,23 +195,30 @@ build files automatically using gazelle_.
   .. code:: bzl
 
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
         ],
-        sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
+        sha256 = "45409e6c4f748baa9e05f8f6ab6efaa05739aa064e3ab94e5a1a09849c51806a",
     )
+
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+
+    go_rules_dependencies()
+
+    go_register_toolchains()
+
     http_archive(
         name = "bazel_gazelle",
         urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
         sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
     )
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-    go_rules_dependencies()
-    go_register_toolchains()
+
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
     gazelle_dependencies()
 
 * Add the code below to the BUILD or BUILD.bazel file in the root directory
@@ -309,15 +325,17 @@ a go.mod or Gopkg.lock file.
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
         ],
-        sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
+        sha256 = "45409e6c4f748baa9e05f8f6ab6efaa05739aa064e3ab94e5a1a09849c51806a",
     )
 
     # Load and call the dependencies
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+
     go_rules_dependencies()
+
     go_register_toolchains()
 
     # Download Gazelle
@@ -329,6 +347,7 @@ a go.mod or Gopkg.lock file.
 
     # Load and call Gazelle dependencies
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
     gazelle_dependencies()
 
     # Add a go repository
