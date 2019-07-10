@@ -23,6 +23,8 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_C_ARCHIVE",
+    "LINKMODE_C_SHARED",
     "mode_string",
 )
 load(
@@ -58,6 +60,7 @@ def emit_archive(go, source = None):
         out_export = None
     searchpath = out_lib.path[:-len(lib_name)]
     testfilter = getattr(source.library, "testfilter", None)
+    out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
 
     direct = [get_archive(dep) for dep in source.deps]
     runfiles = source.runfiles
@@ -92,6 +95,8 @@ def emit_archive(go, source = None):
                 cxxopts = cxxopts,
                 clinkopts = clinkopts,
             )
+            if go.mode.link in (LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE):
+                out_cgo_export_h = go.declare_file(go, path = "_cgo_install.h")
             cgo_deps = cgo.deps
             runfiles = runfiles.merge(cgo.runfiles)
             emit_compilepkg(
@@ -103,6 +108,7 @@ def emit_archive(go, source = None):
                 archives = direct,
                 out_lib = out_lib,
                 out_export = out_export,
+                out_cgo_export_h = out_cgo_export_h,
                 gc_goopts = source.gc_goopts,
                 cgo = True,
                 cgo_inputs = cgo.inputs,
@@ -204,6 +210,10 @@ def emit_archive(go, source = None):
     x_defs = dict(source.x_defs)
     for a in direct:
         x_defs.update(a.x_defs)
+    cgo_exports = list(source.cgo_exports)
+    if out_cgo_export_h:
+        cgo_exports.append(out_cgo_export_h)
+    cgo_exports = sets.union(cgo_exports, *[a.cgo_exports for a in direct])
     return GoArchive(
         source = source,
         data = data,
@@ -213,7 +223,7 @@ def emit_archive(go, source = None):
         transitive = sets.union([data], *[a.transitive for a in direct]),
         x_defs = x_defs,
         cgo_deps = sets.union(cgo_deps, *[a.cgo_deps for a in direct]),
-        cgo_exports = sets.union(source.cgo_exports, *[a.cgo_exports for a in direct]),
+        cgo_exports = cgo_exports,
         runfiles = runfiles,
         mode = go.mode,
     )

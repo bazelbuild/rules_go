@@ -49,6 +49,7 @@ def emit_compilepkg(
         cgo_archives = [],
         out_lib = None,
         out_export = None,
+        out_cgo_export_h = None,
         gc_goopts = [],
         testfilter = None):  # TODO: remove when test action compiles packages
     if sources == None:
@@ -84,6 +85,9 @@ def emit_compilepkg(
         inputs.append(go.nogo)
         inputs.extend([archive.data.export_file for archive in archives if archive.data.export_file])
         outputs.append(out_export)
+    if out_cgo_export_h:
+        args.add("-cgoexport", out_cgo_export_h)
+        outputs.append(out_cgo_export_h)
     if testfilter:
         args.add("-testfilter", testfilter)
 
