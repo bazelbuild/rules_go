@@ -159,7 +159,7 @@ def emit_link(
         archive.cgo_deps,
         as_set(go.crosstool),
         as_set(go.sdk.tools),
-        as_set(go.sdk.libs),
+        as_set(go.stdlib.libs),
     ]
     inputs = depset(direct = inputs_direct, transitive = inputs_transitive)
 
