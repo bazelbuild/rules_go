@@ -13,16 +13,13 @@
 # limitations under the License.
 
 load(
-    "@bazel_skylib//lib:sets.bzl",
-    "sets",
-)
-load(
     "@bazel_skylib//lib:shell.bzl",
     "shell",
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "as_iterable",
+    "as_set",
     "has_shared_lib_extension",
 )
 load(
@@ -100,6 +97,8 @@ def emit_link(
         map_each = _map_archive,
     )
     builder_args.add_all(test_archives, before_each = "-arc", map_each = _format_archive)
+    if go.coverage_enabled and go.coverdata:
+        builder_args.add("-arc", _format_archive(go.coverdata.data))
     builder_args.add("-package_list", go.package_list)
 
     # Build a list of rpaths for dynamic libraries we need to find.
@@ -152,16 +151,20 @@ def emit_link(
         tool_args.add("-w")
     tool_args.add_joined("-extldflags", extldflags, join_with = " ")
 
+    inputs_direct = stamp_inputs + [go.sdk.package_list]
+    if go.coverage_enabled:
+        inputs_direct.append(go.coverdata.data.file)
+    inputs_transitive = [
+        archive.libs,
+        archive.cgo_deps,
+        as_set(go.crosstool),
+        as_set(go.sdk.tools),
+        as_set(go.sdk.libs),
+    ]
+    inputs = depset(direct = inputs_direct, transitive = inputs_transitive)
+
     go.actions.run(
-        inputs = sets.union(
-            archive.libs,
-            archive.cgo_deps,
-            go.crosstool,
-            stamp_inputs,
-            go.sdk.tools,
-            [go.sdk.package_list],
-            go.stdlib.libs,
-        ),
+        inputs = inputs,
         outputs = [executable],
         mnemonic = "GoLink",
         executable = go.toolchain._builder,

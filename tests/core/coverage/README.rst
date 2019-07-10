@@ -1,3 +1,5 @@
+.. _#2127: https://github.com/bazelbuild/rules_go/issues/2127
+
 coverage functionality
 ======================
 
@@ -14,3 +16,14 @@ coverdata_aspect_test_test
 
 Checks that the ``coverdata`` library is compiled in the same mode as the
 test that depends on it.
+
+binary_coverage_test
+--------------------
+
+Checks that ``bazel build --collect_code_coverage`` can instrument a
+``go_binary``. ``bazel coverage`` should also work, though it should fail
+with status 4 since the binary is not a test.
+
+This functionality isn't really complete. The generate test main package
+gathers and writes coverage data, and that's not present. This is just
+a regression test for a link error (`#2127`_).
