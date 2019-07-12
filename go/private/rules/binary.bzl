@@ -71,7 +71,7 @@ def _go_binary_impl(ctx):
     """go_binary_impl emits actions for compiling and linking a go executable."""
     go = go_context(ctx)
 
-    library = go.new_library(go, importable = False)
+    library = go.new_library(go, importable = False, is_main = True)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     name = ctx.attr.basename
     if not name:

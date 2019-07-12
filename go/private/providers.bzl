@@ -108,6 +108,8 @@ def effective_importpath_pkgpath(lib):
       A tuple of effective import path and effective package path. Both are ""
       for synthetic archives (e.g., generated testmain).
     """
+    if lib.is_main:
+        return "main", "main"
     if lib.pathtype not in (EXPLICIT_PATH, EXPORT_PATH):
         return "", ""
     importpath = lib.importpath

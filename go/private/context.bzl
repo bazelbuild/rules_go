@@ -145,7 +145,7 @@ def _tool_args(go):
     args.set_param_file_format("multiline")
     return args
 
-def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, **kwargs):
+def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, is_main = False, **kwargs):
     if not importpath:
         importpath = go.importpath
         importmap = go.importmap
@@ -164,6 +164,7 @@ def _new_library(go, name = None, importpath = None, resolver = None, importable
         pathtype = pathtype,
         resolve = resolver,
         testfilter = testfilter,
+        is_main = is_main,
         **kwargs
     )
 
