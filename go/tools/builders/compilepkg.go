@@ -357,7 +357,6 @@ func compileArchive(
 			includes = append(includes, inc)
 		}
 		sort.Strings(includes)
-		asmFlags := make([]string, 0, len(includeSet)*2)
 		for _, inc := range includes {
 			asmFlags = append(asmFlags, "-I", inc)
 		}
