@@ -21,6 +21,26 @@ cc_test(
 )
 
 go_binary(
+    name = "c-archive_empty_hdr",
+    srcs = ["empty.go"],
+    cgo = True,
+    linkmode = "c-archive",
+    tags = ["manual"],
+)
+
+cc_test(
+    name = "c-archive_empty_hdr_test",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:windows": ["skip.c"],
+        "//conditions:default": ["c-archive_empty_hdr_test.c"],
+    }),
+    deps = select({
+        "@io_bazel_rules_go//go/platform:windows": [],
+        "//conditions:default": [":c-archive_empty_hdr.cc"],
+    }),
+)
+
+go_binary(
     name = "adder_shared",
     srcs = ["add.go"],
     cgo = True,

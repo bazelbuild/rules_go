@@ -276,6 +276,11 @@ func compileArchive(
 
 		gcFlags = append(gcFlags, "-trimpath="+srcDir)
 	} else {
+		if cgoExportHPath != "" {
+			if err := ioutil.WriteFile(cgoExportHPath, nil, 0666); err != nil {
+				return err
+			}
+		}
 		gcFlags = append(gcFlags, "-trimpath=.")
 	}
 

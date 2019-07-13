@@ -2,28 +2,34 @@ c-archive / c-shared linkmodes
 ==============================
 
 .. _go_binary: /go/core.rst#go_binary
+.. _#2132: https://github.com/bazelbuild/rules_go/issues/2132
+.. _#2138: https://github.com/bazelbuild/rules_go/issues/2138
 
 Tests to ensure that c-archive link mode is working as expected.
 
 .. contents::
 
-add_test_archive.c
-------------------
+c-archive_test
+--------------
 
-Test that calls a CGo exported `GoAdd` method from C and check that the return
-value is correct. This is a `cc_test` that links statically against a
-`go_binary`.
+Checks that a ``go_binary`` can be built in ``c-archive`` mode and linked into
+a C/C++ binary as a dependency.
 
-add_test_shared.c
------------------
+c-archive_empty_hdr_test
+------------------------
 
-Test that calls a CGo exported `GoAdd` method from C and check that the return
-value is correct. This is a `cc_test` that links dynamically against a
-`go_binary`.
+Checks that a ``go_binary`` built with in ``c-archive`` mode without cgo code
+still produces an empty header file. Verifies `#2132`_.
 
-crypto_test_dl.c
------------------------
+c-shared_test
+-------------
 
-Test that calls a CGo exported `GoFn` method that depends on a function from
-golang.org/x/crypto. This is a `cc_test` that loads the CGo shared library
-dynamically.
+Checks that a ``go_binary`` can be built in ``c-shared`` mode and linked into
+a C/C++ binary as a dependency.
+
+c-shared_dl_test
+----------------
+
+Checks that a ``go_binary`` can be built in ``c-shared`` mode and loaded
+dynamically from a C/C++ binary. The binary depends on a package in
+``org_golang_x_crypto`` with a fair amount of assembly code. Verifies `#2138`_.
