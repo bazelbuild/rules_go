@@ -21,6 +21,7 @@ load(
     "LINKMODE_NORMAL",
     "extldflags_from_cc_toolchain",
     "link_mode_args",
+    "mode_string",
 )
 
 def emit_stdlib(go):

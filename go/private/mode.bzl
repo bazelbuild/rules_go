@@ -99,6 +99,8 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
 
     linkmode = getattr(ctx.attr, "linkmode", LINKMODE_NORMAL)
     if linkmode in [LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE, LINKMODE_PIE]:
+        if not go_context_data.cgo_tools:
+            fail("linkmode is {}, but no C/C++ toolchain is configured".format(linkmode))
         force_pure = "off"
 
     static = _ternary(
