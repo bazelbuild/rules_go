@@ -243,7 +243,11 @@ func compileArchive(
 				srcName = path.Join(importPath, filepath.Base(origSrc))
 			}
 
-			coverVar := fmt.Sprintf("Cover_%s_%s", sanitizePathForIdentifier(importPath), sanitizePathForIdentifier(origSrc[:len(origSrc)-len(".go")]))
+			stem := filepath.Base(origSrc)
+			if ext := filepath.Ext(stem); ext != "" {
+				stem = stem[:len(stem)-len(ext)]
+			}
+			coverVar := fmt.Sprintf("Cover_%s_%d_%s", sanitizePathForIdentifier(importPath), i, sanitizePathForIdentifier(stem))
 			coverSrc := filepath.Join(workDir, fmt.Sprintf("cover_%d.go", i))
 			if err := instrumentForCoverage(goenv, origSrc, srcName, coverVar, coverMode, coverSrc); err != nil {
 				return err
@@ -448,6 +452,13 @@ func runNogo(ctx context.Context, nogoPath string, srcs []string, deps []archive
 }
 
 func sanitizePathForIdentifier(path string) string {
-	r := strings.NewReplacer("/", "_", "-", "_", ".", "_")
-	return r.Replace(path)
+	return strings.Map(func(r rune) rune {
+		if 'A' <= r && r <= 'Z' ||
+			'a' <= r && r <= 'z' ||
+			'0' <= r && r <= '9' ||
+			r == '_' {
+			return r
+		}
+		return '_'
+	}, path)
 }
