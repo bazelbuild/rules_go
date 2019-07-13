@@ -102,8 +102,9 @@ an input to the `library_to_source`_ helper method, which produces GoSource_.
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`is_main`               | :type:`bool`                                                    |
 +--------------------------------+-----------------------------------------------------------------+
-| Defines wether the library is supposed to be used as `main` package, despite not having `main`   |
-| as its `importpath`.                                                                             |
+| Indicates whether the library should be compiled as a `main` package.                            |
+| `main` packages may have arbitrary `importpath` and `importmap` values,                          |
+| but the compiler and linker must see them as `main`.                                             |
 +--------------------------------+-----------------------------------------------------------------+
 
 GoSource

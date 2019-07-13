@@ -133,6 +133,7 @@ def _go_test_impl(ctx):
         importmap = "testmain",
         importpath_aliases = (),
         pathtype = INFERRED_PATH,
+        is_main = True,
         resolve = None,
     )
     test_deps = external_archive.direct + [external_archive]
