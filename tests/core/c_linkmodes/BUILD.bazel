@@ -39,3 +39,32 @@ cc_test(
         "//conditions:default": [":adder_shared.cc"],
     }),
 )
+
+go_binary(
+    name = "crypto",
+    srcs = [":crypto.go"],
+    cgo = True,
+    linkmode = "c-shared",
+    tags = ["manual"],
+    deps = ["@org_golang_x_crypto//nacl/box:go_default_library"],
+)
+
+cc_test(
+    name = "c-shared_dl_test",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:windows": ["skip.c"],
+        "//conditions:default": ["crypto_test_dl.c"],
+    }),
+    copts = select({
+        "@io_bazel_rules_go//go/platform:windows": [],
+        "//conditions:default": ['-DSO=\\"$(rootpath :crypto)\\"'],
+    }),
+    data = select({
+        "@io_bazel_rules_go//go/platform:windows": [],
+        "//conditions:default": [":crypto"],
+    }),
+    linkopts = select({
+        "@io_bazel_rules_go//go/platform:windows": [],
+        "//conditions:default": ["-ldl"],
+    }),
+)

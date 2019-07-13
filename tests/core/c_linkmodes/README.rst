@@ -20,3 +20,10 @@ add_test_shared.c
 Test that calls a CGo exported `GoAdd` method from C and check that the return
 value is correct. This is a `cc_test` that links dynamically against a
 `go_binary`.
+
+crypto_test_dl.c
+-----------------------
+
+Test that calls a CGo exported `GoFn` method that depends on a function from
+golang.org/x/crypto. This is a `cc_test` that loads the CGo shared library
+dynamically.
