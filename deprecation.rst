@@ -17,7 +17,33 @@ to be removed.
 Deprecated features
 -------------------
 
-Nothing currently deprecated.
+| **objc = True and related attributes**
+| **Deprecated in:** 0.19.0
+| **To be removed in:** 0.20.0
+| **Rationale:** rules_go has been rewritten to build each Go package
+  in a single action. This makes rules_go more efficient on remote
+  configurations. Maintenance is considerably simpler. C, C++, Objective-C, and
+  Objective-C++ files are compiled as part of this action, so ``objc = True``
+  should no longer be necessary in most cases. In 0.19.0, this triggers
+  a legacy path where .m and .mm files are built in an ``objc_library``.
+  In 0.20.0, this legacy path and the ``objc_library`` target will be removed.
+  Attributes specific to ``objc_library`` like ``module_map`` will no longer
+  be accepted.
+| **Migration:** Remove ``objc = True`` and attributes specific to
+  ``objc_library`` from Go rules. If you need to embed Go code within a
+  larger Objective C binary, build a ``go_binary`` with
+  ``linkmode = "c-archive"``, then depend on the ``.cc`` target in the ``deps``
+  attribute of a ``objc_library`` or similar rule. For example, if the
+  ``go_binary`` is named ``"foo"``, you can add ``"foo.cc"`` to ``deps``.
+|
+| **Go 1.10**
+| **Deprecated in:** 0.19.0
+| **To be removed in:** 0.20.0
+| **Rationale:** Go 1.10 is no longer `officially supported`_. Newer versions of
+  the Go toolchain provide different feature sets, and it's difficult to
+  support older versions at the same time.
+| **Migration:** ``go_register_toolchains()`` automatically selects the newest
+  version of Go unless a version is explicitly specified.
 
 Removed features
 ----------------
@@ -33,7 +59,7 @@ Removed features
 |
 | **go_vet_test rule**
 | **Deprecated in:** 0.17.0
-| **To be removed in:** 0.18.0
+| **Removed in:** 0.18.0
 | **Rationale:** `nogo`_ provides vet functionality, integrated into the build.
   The command ``go tool vet`` no longer works starting in Go 1.12, and
   ``go_vet_test`` will no longer work.
