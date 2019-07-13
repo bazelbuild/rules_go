@@ -27,16 +27,16 @@ go_embed_data_dependencies()
 # Use --crosstool_top=@llvm_toolchain//:toolchain
 http_archive(
     name = "com_grail_bazel_toolchain",
-    sha256 = "aafea89b6abe75205418c0d2127252948afe6c7f2287a79b67aab3e0c3676c4f",
-    strip_prefix = "bazel-toolchain-d0a5b0af3102c7c607f2cf098421fcdbaeaaaf19",
-    urls = ["https://github.com/grailbio/bazel-toolchain/archive/d0a5b0af3102c7c607f2cf098421fcdbaeaaaf19.tar.gz"],
+    sha256 = "d312c8e3a19ff843fce3065bb9ff40964401e8525674c842a5724b939cb6e1ac",
+    strip_prefix = "bazel-toolchain-0.4.4",
+    urls = ["https://github.com/grailbio/bazel-toolchain/archive/0.4.4.tar.gz"],
 )
 
-load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_version = "6.0.0",
+    llvm_version = "8.0.0",
 )
 
 http_archive(
