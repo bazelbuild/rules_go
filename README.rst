@@ -47,6 +47,12 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2019-07-13
+  Release
+  `0.19.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.19.0>`_
+  is now available. It has better support for cross-compilation with newer
+  versions of Bazel, improved rules for building packages, updated dependencies,
+  and more.
 2019-07-09
   Releases
   `0.18.7 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.7>`_ and
@@ -59,11 +65,6 @@ Announcements
   `0.18.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.6>`_ and
   `0.17.7 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.7>`_
   are now available with support for Go 1.12.6 and 1.11.11.
-2019-05-16
-  Releases
-  `0.18.5 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.5>`_ and
-  `0.17.6 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.6>`_
-  are now available with compatibility for future Bazel releases.
 
 Contents
 --------
@@ -101,7 +102,7 @@ Quick links
 Overview
 --------
 
-The rules are in the alpha stage of development. They support:
+The rules are in the beta stage of development. They support:
 
 * `libraries <go_library_>`_
 * `binaries <go_binary_>`_
@@ -120,7 +121,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.18.7) requires Bazel ≥ 0.18.0 to work.
+Note: The latest version of these rules (0.19.0) requires Bazel ≥ 0.23.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -141,10 +142,10 @@ Setup
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
         ],
-        sha256 = "45409e6c4f748baa9e05f8f6ab6efaa05739aa064e3ab94e5a1a09849c51806a",
+        sha256 = "9fb16af4d4836c8222142e54c9efa0bb5fc562ffc893ce2abeac3e25daead144",
     )
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -201,10 +202,10 @@ build files automatically using gazelle_.
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
         ],
-        sha256 = "45409e6c4f748baa9e05f8f6ab6efaa05739aa064e3ab94e5a1a09849c51806a",
+        sha256 = "9fb16af4d4836c8222142e54c9efa0bb5fc562ffc893ce2abeac3e25daead144",
     )
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -327,10 +328,10 @@ a go.mod or Gopkg.lock file.
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.18.7/rules_go-0.18.7.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
         ],
-        sha256 = "45409e6c4f748baa9e05f8f6ab6efaa05739aa064e3ab94e5a1a09849c51806a",
+        sha256 = "9fb16af4d4836c8222142e54c9efa0bb5fc562ffc893ce2abeac3e25daead144",
     )
 
     # Load and call the dependencies
