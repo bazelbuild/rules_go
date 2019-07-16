@@ -98,13 +98,10 @@ def emit_compilepkg(
     asm_flags = []
     if go.mode.race:
         gc_flags.append("-race")
-        asm_flags.append("-race")
     if go.mode.msan:
         gc_flags.append("-msan")
-        asm_flags.append("-msan")
     if go.mode.debug:
         gc_flags.extend(["-N", "-l"])
-        asm_flags.extend(["-N", "-l"])
     gc_flags.extend(go.toolchain.flags.compile)
     gc_flags.extend(link_mode_args(go.mode))
     asm_flags.extend(link_mode_args(go.mode))
