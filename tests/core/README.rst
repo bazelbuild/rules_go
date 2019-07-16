@@ -23,7 +23,7 @@ Contents
 * `stdlib functionality <stdlib/README.rst>`_
 * `Basic go_binary functionality <go_binary/README.rst>`_
 * `Starlark unit tests <starlark/README.rst>`_
-* `coverage functionality <coverage/README.rst>`_
+* `.. _#2127: https://github.com/bazelbuild/rules_go/issues/2127 <coverage/README.rst>`_
 * `Import maps <importmap/README.rst>`_
 * `Basic go_path functionality <go_path/README.rst>`_
 

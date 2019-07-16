@@ -52,6 +52,10 @@ type Args struct {
 	// a default file will be synthesized.
 	Main string
 
+	// Nogo is the nogo target to pass to go_register_toolchains. By default,
+	// nogo is not used.
+	Nogo string
+
 	// WorkspaceSuffix is a string that should be appended to the end
 	// of the default generated WORKSPACE file.
 	WorkspaceSuffix string
@@ -250,7 +254,10 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 				err = cerr
 			}
 		}()
-		info := workspaceTemplateInfo{Suffix: args.WorkspaceSuffix}
+		info := workspaceTemplateInfo{
+			Suffix: args.WorkspaceSuffix,
+			Nogo:   args.Nogo,
+		}
 		for name := range workspaceNames {
 			info.WorkspaceNames = append(info.WorkspaceNames, name)
 		}
@@ -285,6 +292,7 @@ func extractTxtar(dir, txt string) error {
 type workspaceTemplateInfo struct {
 	WorkspaceNames []string
 	GoSDKPath      string
+	Nogo           string
 	Suffix         string
 }
 
@@ -317,7 +325,7 @@ go_wrap_sdk(
     root_file = "@local_go_sdk//:ROOT",
 )
 
-go_register_toolchains()
+go_register_toolchains({{if .Nogo}}nogo = "{{.Nogo}}"{{end}})
 {{end}}
 {{.Suffix}}
 `))
