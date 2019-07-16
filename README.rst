@@ -47,6 +47,11 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2019-07-16
+  Gazelle release
+  `0.18.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.18.0>`_
+  is now available. It has better support for modules in `go_repository`_ and
+  new features for managing repository rules declared in macros.
 2019-07-13
   Release
   `0.19.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.19.0>`_
@@ -216,8 +221,11 @@ build files automatically using gazelle_.
 
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
-        sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
+        urls = [
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/0.18.0/bazel-gazelle-0.18.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.0/bazel-gazelle-0.18.0.tar.gz",
+        ],
+        sha256 = "887c6e7764463d2a39cecbebfdb7ca73ad9cb628e5c4d08cf64d1195300bea62",
     )
 
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
@@ -344,8 +352,11 @@ a go.mod or Gopkg.lock file.
     # Download Gazelle
     http_archive(
         name = "bazel_gazelle",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
-        sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
+        urls = [
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/0.18.0/bazel-gazelle-0.18.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.0/bazel-gazelle-0.18.0.tar.gz",
+        ],
+        sha256 = "887c6e7764463d2a39cecbebfdb7ca73ad9cb628e5c4d08cf64d1195300bea62",
     )
 
     # Load and call Gazelle dependencies
@@ -356,8 +367,9 @@ a go.mod or Gopkg.lock file.
     # Add a go repository
     go_repository(
         name = "com_github_pkg_errors",
-        importpath = "github.com/pkg/errors", # Import path used in the .go files
-        tag = "v0.8.1",                       # Specific tag, commits are also supported
+        importpath = "github.com/pkg/errors",
+        sum = "h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=",
+        version = "v0.8.1",
     )
 
 FAQ
