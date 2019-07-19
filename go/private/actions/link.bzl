@@ -33,19 +33,15 @@ load(
 def _format_archive(d):
     return "{}={}={}".format(d.label, d.importmap, d.file.path)
 
-def _map_archive(x):
+def _transitive_archives_without_test_archives(archive, test_archives):
     # Build the set of transitive dependencies. Currently, we tolerate multiple
     # archives with the same importmap (though this will be an error in the
     # future), but there is a special case which is difficult to avoid:
     # If a go_test has internal and external archives, and the external test
     # transitively depends on the library under test, we need to exclude the
     # library under test and use the internal test archive instead.
-    deps = depset(transitive = [d.transitive for d in x.archive.direct])
-    return [
-        _format_archive(d)
-        for d in deps.to_list()
-        if not any([d.importmap == t.importmap for t in x.test_archives])
-    ]
+    deps = depset(transitive = [d.transitive for d in archive.direct])
+    return [d for d in deps.to_list() if not any([d.importmap == t.importmap for t in test_archives])]
 
 def emit_link(
         go,
@@ -91,14 +87,12 @@ def emit_link(
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
 
-    builder_args.add_all(
-        [struct(archive = archive, test_archives = test_archives)],
-        before_each = "-arc",
-        map_each = _map_archive,
-    )
-    builder_args.add_all(test_archives, before_each = "-arc", map_each = _format_archive)
-    if go.coverage_enabled and go.coverdata:
-        builder_args.add("-arc", _format_archive(go.coverdata.data))
+    arcs = _transitive_archives_without_test_archives(archive, test_archives)
+    arcs.extend(test_archives)
+    if (go.coverage_enabled and go.coverdata and
+        not any([arc.importmap == go.coverdata.data.importmap for arc in arcs])):
+        arcs.append(go.coverdata.data)
+    builder_args.add_all(arcs, before_each = "-arc", map_each = _format_archive)
     builder_args.add("-package_list", go.package_list)
 
     # Build a list of rpaths for dynamic libraries we need to find.
