@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "@bazel_skylib//lib:old_sets.bzl",
-    "sets",
-)
-load(
     "@io_bazel_rules_go//go/private:common.bzl",
     "as_tuple",
     "split_srcs",
@@ -146,19 +142,19 @@ def emit_archive(go, source = None):
     x_defs = dict(source.x_defs)
     for a in direct:
         x_defs.update(a.x_defs)
-    cgo_exports = list(source.cgo_exports)
+    cgo_exports_direct = list(source.cgo_exports)
     if out_cgo_export_h:
-        cgo_exports.append(out_cgo_export_h)
-    cgo_exports = sets.union(cgo_exports, *[a.cgo_exports for a in direct])
+        cgo_exports_direct.append(out_cgo_export_h)
+    cgo_exports = depset(direct = cgo_exports_direct, transitive = [a.cgo_exports for a in direct])
     return GoArchive(
         source = source,
         data = data,
         direct = direct,
-        searchpaths = sets.union([searchpath], *[a.searchpaths for a in direct]),
-        libs = sets.union([out_lib], *[a.libs for a in direct]),
-        transitive = sets.union([data], *[a.transitive for a in direct]),
+        searchpaths = depset(direct = [searchpath], transitive = [a.searchpaths for a in direct]),
+        libs = depset(direct = [out_lib], transitive = [a.libs for a in direct]),
+        transitive = depset([data], transitive = [a.transitive for a in direct]),
         x_defs = x_defs,
-        cgo_deps = sets.union(cgo_deps, *[a.cgo_deps for a in direct]),
+        cgo_deps = depset(transitive = [cgo_deps] + [a.cgo_deps for a in direct]),
         cgo_exports = cgo_exports,
         runfiles = runfiles,
         mode = go.mode,

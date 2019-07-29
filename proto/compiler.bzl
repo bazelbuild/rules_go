@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "@bazel_skylib//lib:old_sets.bzl",
-    "sets",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
@@ -77,11 +73,14 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     args.add_all(imports, before_each = "-import")
     args.add_all(proto_paths.keys())
     go.actions.run(
-        inputs = sets.union([
-            compiler.go_protoc,
-            compiler.protoc,
-            compiler.plugin,
-        ], transitive_descriptor_sets),
+        inputs = depset(
+            direct = [
+                compiler.go_protoc,
+                compiler.protoc,
+                compiler.plugin,
+            ],
+            transitive = [transitive_descriptor_sets],
+        ),
         outputs = go_srcs,
         progress_message = "Generating into %s" % go_srcs[0].dirname,
         mnemonic = "GoProtocGen",
