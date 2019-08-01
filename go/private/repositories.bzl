@@ -41,6 +41,7 @@ def go_rules_dependencies():
         # master, as of 2019-01-15
         urls = ["https://codeload.github.com/golang/tools/zip/bf090417da8b6150dcfe96795325f5aa78fff718"],
         strip_prefix = "tools-bf090417da8b6150dcfe96795325f5aa78fff718",
+        sha256 = "11629171a39a1cb4d426760005be6f7cb9b4182e4cb2756b7f1c5c2b6ae869fe",
         type = "zip",
         patches = [
             "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",
