@@ -70,6 +70,8 @@ def emit_archive(go, source = None):
         if a.source.mode != go.mode:
             fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
 
+    importmap = "main" if source.library.is_main else source.library.importmap
+            
     if not source.cgo_archives:
         # TODO(jayconrod): We still need to support the legacy cgo path when
         # Objective C sources are present, since the Objective C toolchain
@@ -86,7 +88,6 @@ def emit_archive(go, source = None):
         clinkopts = [f for fs in source.clinkopts for f in fs.split(" ")]
 
         importpath, _ = effective_importpath_pkgpath(source.library)
-        importmap = "main" if source.library.is_main else source.library.importmap
         if source.cgo and not go.mode.pure:
             cgo = cgo_configure(
                 go,
