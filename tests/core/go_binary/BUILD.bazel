@@ -103,3 +103,30 @@ go_test(
     rundir = ".",
     deps = ["@io_bazel_rules_go//go/tools/bazel:go_default_library"],
 )
+
+go_test(
+    name = "static_test",
+    srcs = ["static_test.go"],
+    data = select({
+        "@io_bazel_rules_go//go/platform:linux": [
+            ":static_cgo_bin",
+            ":static_pure_bin",
+        ],
+        "//conditions:default": [],
+    }),
+    rundir = ".",
+    deps = ["//go/tools/bazel:go_default_library"],
+)
+
+go_binary(
+    name = "static_cgo_bin",
+    srcs = ["static_cgo_bin.go"],
+    cgo = True,
+    static = "on",
+)
+
+go_binary(
+    name = "static_pure_bin",
+    srcs = ["static_pure_bin.go"],
+    static = "on",
+)

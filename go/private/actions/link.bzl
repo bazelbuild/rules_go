@@ -79,11 +79,12 @@ def emit_link(
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
+    if go.mode.static or go.mode.link != LINKMODE_NORMAL:
+        tool_args.add("-linkmode", "external")
     if go.mode.static:
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
         builder_args.add("-buildmode", go.mode.link)
-        tool_args.add("-linkmode", "external")
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
 
