@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+
+go_binary(
+    name = "gopackagesdriver",
+    srcs = ["gopackagesdriver.go"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/tools/gopackagesdriver/proto/build_event_stream:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@org_golang_x_tools//go/packages:go_default_library",
+    ],
+)

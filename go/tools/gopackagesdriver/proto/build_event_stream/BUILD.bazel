@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["build_event_stream.pb.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver/proto/build_event_stream",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/tools/gopackagesdriver/proto/command_line:go_default_library",
+        "//go/tools/gopackagesdriver/proto/invocation_policy:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+)

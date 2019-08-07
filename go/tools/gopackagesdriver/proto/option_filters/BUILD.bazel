@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["option_filters.pb.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver/proto/option_filters",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_golang_protobuf//proto:go_default_library"],
+)
