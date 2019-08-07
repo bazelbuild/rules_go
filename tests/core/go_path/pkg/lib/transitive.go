@@ -1,0 +1,5 @@
+package transitive
+
+var (
+	_ = ""
+)

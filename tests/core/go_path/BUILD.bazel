@@ -27,6 +27,14 @@ go_path(
     deps = ["//tests/core/go_path/pkg/lib:go_default_library"],
 )
 
+go_path(
+    name = "notransitive_path",
+    testonly = True,
+    include_transitive = False,
+    mode = "copy",
+    deps = ["//tests/core/go_path/pkg/lib:go_default_library"],
+)
+
 go_test(
     name = "go_path_test",
     srcs = ["go_path_test.go"],
@@ -35,12 +43,14 @@ go_test(
         "-copy_path=$(location :copy_path)",
         "-link_path=tests/core/go_path/link_path",  # can't use location; not a single file
         "-nodata_path=$(location :nodata_path)",
+        "-notransitive_path=$(location :notransitive_path)",
     ],
     data = [
         ":archive_path",
         ":copy_path",
         ":link_path",
         ":nodata_path",
+        ":notransitive_path",
     ],
     deps = ["//go/tools/bazel:go_default_library"],
     rundir = ".",

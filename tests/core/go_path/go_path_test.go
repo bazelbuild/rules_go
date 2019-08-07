@@ -29,7 +29,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
-var copyPath, linkPath, archivePath, nodataPath string
+var copyPath, linkPath, archivePath, nodataPath, notransitivePath string
 
 var defaultMode = runtime.GOOS + "_" + runtime.GOARCH
 
@@ -58,6 +58,7 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&linkPath, "link_path", "", "path to symlinked go_path")
 	flag.StringVar(&archivePath, "archive_path", "", "path to archive go_path")
 	flag.StringVar(&nodataPath, "nodata_path", "", "path to go_path without data")
+	flag.StringVar(&notransitivePath, "notransitive_path", "", "path to go_path without transitive dependencies")
 	flag.Parse()
 	os.Exit(m.Run())
 }
@@ -131,6 +132,16 @@ func TestNoDataPath(t *testing.T) {
 		"-src/example.com/repo/pkg/lib/data.txt",
 	}
 	checkPath(t, nodataPath, files)
+}
+
+func TestNoTransitivePath(t *testing.T) {
+	if notransitivePath == "" {
+		t.Fatal("-notransitive_path not set")
+	}
+	files := []string{
+		"-src/example.com/repo/pkg/lib/transitive/transitive.go",
+	}
+	checkPath(t, notransitivePath, files)
 }
 
 // checkPath checks that dir contains a list of files. files is a list of

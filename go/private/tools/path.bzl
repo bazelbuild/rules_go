@@ -38,7 +38,9 @@ def _go_path_impl(ctx):
     mode_to_archive = {}
     for mode, archives in mode_to_deps.items():
         direct = [a.data for a in archives]
-        transitive = [a.transitive for a in archives]
+        transitive = []
+        if ctx.attr.include_transitive:
+            transitive = [a.transitive for a in archives]
         mode_to_archive[mode] = depset(direct = direct, transitive = transitive)
 
     # Collect sources and data files from archives. Merge archives into packages.
@@ -163,6 +165,7 @@ go_path = rule(
         ),
         "include_data": attr.bool(default = True),
         "include_pkg": attr.bool(default = False),
+        "include_transitive": attr.bool(default = True),
         "_go_path": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:go_path",
             executable = True,

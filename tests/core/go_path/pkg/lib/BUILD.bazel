@@ -8,6 +8,7 @@ go_library(
         "data.txt",
         "testdata/testdata.txt",
     ],
+    deps = [":transitive_lib"],
     importpath = "example.com/repo/pkg/lib",
     visibility = ["//visibility:public"],
 )
@@ -40,5 +41,12 @@ go_library(
     srcs = ["vendored.go"],
     importpath = "example.com/repo2",
     importmap = "example.com/repo/vendor/example.com/repo2",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "transitive_lib",
+    srcs = ["transitive.go"],
+    importpath = "example.com/repo/pkg/lib/transitive",
     visibility = ["//visibility:public"],
 )
