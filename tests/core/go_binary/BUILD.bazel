@@ -123,10 +123,12 @@ go_binary(
     srcs = ["static_cgo_bin.go"],
     cgo = True,
     static = "on",
+    tags = ["manual"],
 )
 
 go_binary(
     name = "static_pure_bin",
     srcs = ["static_pure_bin.go"],
     static = "on",
+    tags = ["manual"],
 )
