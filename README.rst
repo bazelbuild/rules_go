@@ -47,6 +47,11 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2019-08-13
+  Releases
+  `0.19.2 <https://github.com/bazelbuild/rules_go/releases/tag/0.19.2>`_ and
+  `0.18.8 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.8>`_ are
+  now available with support for Go 1.12.8 and 1.11.13.
 2019-07-19
   Release
   `0.19.1 <https://github.com/bazelbuild/rules_go/releases/tag/0.19.1>`_
@@ -56,19 +61,6 @@ Announcements
   `0.18.1 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/0.18.1>`_
   is now available. It has better support for modules in `go_repository`_ and
   new features for managing repository rules declared in macros.
-2019-07-13
-  Release
-  `0.19.0 <https://github.com/bazelbuild/rules_go/releases/tag/0.19.0>`_
-  is now available. It has better support for cross-compilation with newer
-  versions of Bazel, improved rules for building packages, updated dependencies,
-  and more.
-2019-07-09
-  Releases
-  `0.18.7 <https://github.com/bazelbuild/rules_go/releases/tag/0.18.7>`_ and
-  `0.17.8 <https://github.com/bazelbuild/rules_go/releases/tag/0.17.8>`_
-  are now available with support for Go 1.12.7 and 1.11.12. The 0.19.0 release
-  branch will be cut soon with additional Bazel compatibility improvements
-  for cross-compilation.
 
 Contents
 --------
@@ -125,7 +117,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (0.19.1) requires Bazel ≥ 0.23.0 to work.
+Note: The latest version of these rules (0.19.2) requires Bazel ≥ 0.23.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -146,10 +138,10 @@ Setup
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.2/rules_go-0.19.2.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.19.2/rules_go-0.19.2.tar.gz",
         ],
-        sha256 = "8df59f11fb697743cbb3f26cfb8750395f30471e9eabde0d174c3aebc7a1cd39",
+        sha256 = "96b1f81de5acc7658e1f5a86d7dc9e1b89bc935d83799b711363a748652c471a",
     )
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -206,10 +198,10 @@ build files automatically using gazelle_.
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.2/rules_go-0.19.2.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.19.2/rules_go-0.19.2.tar.gz",
         ],
-        sha256 = "8df59f11fb697743cbb3f26cfb8750395f30471e9eabde0d174c3aebc7a1cd39",
+        sha256 = "96b1f81de5acc7658e1f5a86d7dc9e1b89bc935d83799b711363a748652c471a",
     )
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -335,10 +327,10 @@ a go.mod or Gopkg.lock file.
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.2/rules_go-0.19.2.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/0.19.2/rules_go-0.19.2.tar.gz",
         ],
-        sha256 = "8df59f11fb697743cbb3f26cfb8750395f30471e9eabde0d174c3aebc7a1cd39",
+        sha256 = "96b1f81de5acc7658e1f5a86d7dc9e1b89bc935d83799b711363a748652c471a",
     )
 
     # Load and call the dependencies
