@@ -144,6 +144,7 @@ POPULAR_REPOS = [
             "godoc/vfs/zipfs:go_default_test", # requires GOROOT
             "go/types/typeutil:go_default_test", # requires GOROOT
             "go/analysis/analysistest:go_default_test", # requires build cache
+            "go/analysis/passes/errorsas:go_default_test", # requires go list and testdata
             "go/analysis/passes/findcall:go_default_test", # requires build cache
             "go/analysis/passes/pkgfact:go_default_test", # requires go list
             "go/analysis/passes/atomicalign:go_default_test", # requires go list
