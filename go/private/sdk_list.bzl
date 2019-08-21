@@ -12,11 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT_VERSION = "1.12.9"
+DEFAULT_VERSION = "1.13rc1"
 
 MIN_SUPPORTED_VERSION = "1.10"
 
 SDK_REPOSITORIES = {
+    "1.13rc1": {
+        "darwin_amd64": ("go1.13rc1.darwin-amd64.tar.gz", "b895cf067934f09f4eacfcb66aca84b6235dbb497906473111332532c3b8ec2f"),
+        "linux_amd64": ("go1.13rc1.linux-amd64.tar.gz", "0b45d086aefcfb9d0ebe7fc9ffbe470e45f9c104a6a97ea275512152cdbfead1"),
+        "windows_amd64": ("go1.13rc1.windows-amd64.zip", "54ff506157d767135e775188e4ecdb44d34ba215463ec69674f4ac38cb20f10b"),
+    },
     "1.12.9": {
         "darwin_amd64": ("go1.12.9.darwin-amd64.tar.gz", "4f189102b15de0be1852d03a764acb7ac5ea2c67672a6ad3a340bd18d0e04bb4"),
         "freebsd_386": ("go1.12.9.freebsd-386.tar.gz", "d0d57f404c9741a92c8da35e8c1845461f11e8b6981892cd4f8713fef25e11fd"),
