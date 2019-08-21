@@ -134,10 +134,10 @@ func main() {
 		}
 	}
 
+	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, examples)
+
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
-		if f := flag.Lookup("test.run"); f != nil {
-			f.Value.Set(filter)
-		}
+		flag.Lookup("test.run").Value.Set(filter)
 	}
 
 	{{if .Coverage}}
@@ -151,7 +151,6 @@ func main() {
 	}
 	{{end}}
 
-	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, examples)
 	{{if not .TestMain}}
 	os.Exit(m.Run())
 	{{else}}

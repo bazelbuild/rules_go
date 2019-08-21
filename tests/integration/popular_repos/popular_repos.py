@@ -39,6 +39,7 @@ POPULAR_REPOS = [
             "html/charset:go_default_test", # Needs testdata directory
             "http2:go_default_test", # Needs testdata directory
             "icmp:go_default_test", # icmp requires adjusting kernel options.
+            "ipv4:go_default_test", # 1877 (but new in go1.13): conflicting package heights
             "nettest:go_default_test", #
             "lif:go_default_test",
         ],
@@ -144,6 +145,7 @@ POPULAR_REPOS = [
             "godoc/vfs/zipfs:go_default_test", # requires GOROOT
             "go/types/typeutil:go_default_test", # requires GOROOT
             "go/analysis/analysistest:go_default_test", # requires build cache
+            "go/analysis/passes/errorsas:go_default_test", # requires go list and testdata
             "go/analysis/passes/findcall:go_default_test", # requires build cache
             "go/analysis/passes/pkgfact:go_default_test", # requires go list
             "go/analysis/passes/atomicalign:go_default_test", # requires go list
