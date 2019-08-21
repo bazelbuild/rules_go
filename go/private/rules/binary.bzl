@@ -44,6 +44,8 @@ load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODES",
     "LINKMODE_NORMAL",
+    "LINKMODE_PLUGIN",
+    "LINKMODE_SHARED",
 )
 load(
     "@bazel_skylib//lib:shell.bzl",
@@ -71,7 +73,8 @@ def _go_binary_impl(ctx):
     """go_binary_impl emits actions for compiling and linking a go executable."""
     go = go_context(ctx)
 
-    library = go.new_library(go, importable = False, is_main = True)
+    is_main = go.mode.link not in (LINKMODE_SHARED, LINKMODE_PLUGIN)
+    library = go.new_library(go, importable = False, is_main = is_main)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     name = ctx.attr.basename
     if not name:
