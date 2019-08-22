@@ -39,6 +39,7 @@ POPULAR_REPOS = [
             "html/charset:go_default_test", # Needs testdata directory
             "http2:go_default_test", # Needs testdata directory
             "icmp:go_default_test", # icmp requires adjusting kernel options.
+            "ipv4:go_default_test", # 1877 (but new in go1.13): conflicting package heights
             "nettest:go_default_test", #
             "lif:go_default_test",
         ],
