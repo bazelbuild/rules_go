@@ -43,7 +43,7 @@ func compilePkg(args []string) error {
 	var unfilteredSrcs, coverSrcs multiFlag
 	var deps compileArchiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
-	var outPath, outFactsPath, cgoExportHPath string
+	var outPath, linkObjPath, outFactsPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
@@ -63,6 +63,7 @@ func compilePkg(args []string) error {
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
 	fs.StringVar(&outPath, "o", "", "The output archive file to write")
+	fs.StringVar(&linkObjPath, "linkobj", "", "The output link archive file to write")
 	fs.StringVar(&outFactsPath, "x", "", "The nogo facts file to write")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
@@ -137,6 +138,7 @@ func compilePkg(args []string) error {
 		nogoPath,
 		packageListPath,
 		outPath,
+		linkObjPath,
 		outFactsPath,
 		cgoExportHPath)
 }
@@ -162,6 +164,7 @@ func compileArchive(
 	nogoPath string,
 	packageListPath string,
 	outPath string,
+	linkObjPath string,
 	outFactsPath string,
 	cgoExportHPath string) error {
 
@@ -345,7 +348,7 @@ func compileArchive(
 	}
 
 	// Compile the filtered .go files.
-	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, asmHdrPath, symabisPath, gcFlags, outPath); err != nil {
+	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, asmHdrPath, symabisPath, gcFlags, outPath, linkObjPath); err != nil {
 		return err
 	}
 
@@ -378,7 +381,11 @@ func compileArchive(
 	// Pack .o files into the archive. These may come from cgo generated code,
 	// cgo dependencies (cdeps), or assembly.
 	if len(objFiles) > 0 {
-		if err := appendFiles(goenv, outPath, objFiles); err != nil {
+			appendTo := outPath
+			if linkObjPath != "" {
+				appendTo = linkObjPath
+			}
+			if err := appendFiles(goenv, appendTo, objFiles); err != nil {
 			return err
 		}
 	}
@@ -395,7 +402,7 @@ func compileArchive(
 	return nil
 }
 
-func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath, symabisPath string, gcFlags []string, outPath string) error {
+func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath, symabisPath string, gcFlags []string, outPath, linkObjPath string) error {
 	args := goenv.goTool("compile")
 	args = append(args, "-p", packagePath, "-importcfg", importcfgPath, "-pack")
 	if asmHdrPath != "" {
@@ -406,6 +413,9 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath
 	}
 	args = append(args, gcFlags...)
 	args = append(args, "-o", outPath)
+	if linkObjPath != "" {
+		args = append(args, "-linkobj", linkObjPath)
+	}
 	args = append(args, "--")
 	args = append(args, srcs...)
 	absArgs(args, []string{"-I", "-o", "-trimpath", "-importcfg"})

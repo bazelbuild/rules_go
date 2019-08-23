@@ -31,7 +31,10 @@ load(
 )
 
 def _format_archive(d):
-    return "{}={}={}".format(d.label, d.importmap, d.file.path)
+    archive = d.file.path
+    if d.linkfile:
+        archive = d.linkfile.path
+    return "{}={}={}".format(d.label, d.importmap, archive)
 
 def _transitive_archives_without_test_archives(archive, test_archives):
     # Build the set of transitive dependencies. Currently, we tolerate multiple
@@ -85,6 +88,11 @@ def emit_link(
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
         builder_args.add("-buildmode", go.mode.link)
+
+    main_archive_file = archive.data.file
+    if go.mode.linkobj:
+        main_archive_file = archive.data.linkfile
+
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
 
@@ -135,7 +143,7 @@ def emit_link(
         builder_args.add_all(stamp_inputs, before_each = "-stamp")
 
     builder_args.add("-o", executable)
-    builder_args.add("-main", archive.data.file)
+    builder_args.add("-main", main_archive_file)
     builder_args.add("-p", archive.data.importmap)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)

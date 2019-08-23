@@ -47,6 +47,7 @@ def emit_compilepkg(
         objcxxopts = [],
         clinkopts = [],
         out_lib = None,
+        out_linklib = None,
         out_export = None,
         out_cgo_export_h = None,
         gc_goopts = [],
@@ -77,6 +78,11 @@ def emit_compilepkg(
     args.add("-package_list", go.package_list)
 
     args.add("-o", out_lib)
+
+    if go.mode.linkobj:
+        outputs.append(out_linklib)
+        args.add("-linkobj", out_linklib)
+
     if go.nogo:
         args.add("-nogo", go.nogo)
         args.add("-x", out_export)

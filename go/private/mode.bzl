@@ -28,7 +28,7 @@ LINKMODE_C_ARCHIVE = "c-archive"
 
 LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE, LINKMODE_PIE]
 
-def new_mode(goos, goarch, static = False, race = False, msan = False, pure = False, link = LINKMODE_NORMAL, debug = False, strip = False):
+def new_mode(goos, goarch, static = False, race = False, msan = False, pure = False, link = LINKMODE_NORMAL, debug = False, strip = False, linkobj = False):
     return struct(
         static = static,
         race = race,
@@ -39,6 +39,7 @@ def new_mode(goos, goarch, static = False, race = False, msan = False, pure = Fa
         strip = strip,
         goos = goos,
         goarch = goarch,
+        linkobj = linkobj,
     )
 
 def mode_string(mode):
@@ -55,6 +56,8 @@ def mode_string(mode):
         result.append("debug")
     if mode.strip:
         result.append("stripped")
+    if mode.linkobj:
+        result.append("linkobj")
     if not result or not mode.link == LINKMODE_NORMAL:
         result.append(mode.link)
     return "_".join(result)
@@ -125,6 +128,7 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
         # You are not allowed to compile in race mode with pure enabled
         race = False
     debug = ctx.var["COMPILATION_MODE"] == "dbg"
+    linkobj = ctx.var.get("go.linkobj", "") == "1"
     strip_mode = "sometimes"
     if go_context_data:
         strip_mode = go_context_data.strip
@@ -144,6 +148,7 @@ def get_mode(ctx, host_only, go_toolchain, go_context_data):
         strip = strip,
         goos = goos,
         goarch = goarch,
+        linkobj = linkobj,
     )
 
 def installsuffix(mode):

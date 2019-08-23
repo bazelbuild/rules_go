@@ -48,6 +48,11 @@ def emit_archive(go, source = None):
     split = split_srcs(source.srcs)
     lib_name = source.library.importmap + ".a"
     out_lib = go.declare_file(go, path = lib_name)
+    out_archives = [out_lib]
+    out_linklib = None
+    if go.mode.linkobj:
+        out_linklib = go.declare_file(go, path = source.library.importmap + ".link.a")
+        out_archives.append(out_linklib)
     if go.nogo:
         # TODO(#1847): write nogo data into a new section in the .a file instead
         # of writing a separate file.
@@ -96,6 +101,7 @@ def emit_archive(go, source = None):
             importmap = importmap,
             archives = direct,
             out_lib = out_lib,
+            out_linklib = out_linklib,
             out_export = out_export,
             out_cgo_export_h = out_cgo_export_h,
             gc_goopts = source.gc_goopts,
@@ -119,6 +125,7 @@ def emit_archive(go, source = None):
             importmap = importmap,
             archives = direct,
             out_lib = out_lib,
+            out_linklib = out_linklib,
             out_export = out_export,
             gc_goopts = source.gc_goopts,
             cgo = False,
@@ -133,6 +140,7 @@ def emit_archive(go, source = None):
         importpath_aliases = source.library.importpath_aliases,
         pathtype = source.library.pathtype,
         file = out_lib,
+        linkfile = out_linklib,
         export_file = out_export,
         srcs = as_tuple(source.srcs),
         orig_srcs = as_tuple(source.orig_srcs),
@@ -151,7 +159,7 @@ def emit_archive(go, source = None):
         data = data,
         direct = direct,
         searchpaths = depset(direct = [searchpath], transitive = [a.searchpaths for a in direct]),
-        libs = depset(direct = [out_lib], transitive = [a.libs for a in direct]),
+        libs = depset(direct = out_archives, transitive = [a.libs for a in direct]),
         transitive = depset([data], transitive = [a.transitive for a in direct]),
         x_defs = x_defs,
         cgo_deps = depset(transitive = [cgo_deps] + [a.cgo_deps for a in direct]),
