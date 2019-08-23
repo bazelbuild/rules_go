@@ -71,13 +71,6 @@ http_archive(
     ],
 )
 
-git_repository(
-    name = "bazel_gazelle",
-    commit = "ac6c8b7d294409099e382b872a5415d38fe95af4",
-    remote = "https://github.com/bazelbuild/bazel-gazelle",
-    shallow_since = "1566426109 -0400",
-)
-
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
 gazelle_dependencies()
