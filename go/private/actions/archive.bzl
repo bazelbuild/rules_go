@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@bazel_skylib//lib:sets.bzl",
+    "@bazel_skylib//lib:old_sets.bzl",
     "sets",
 )
 load(

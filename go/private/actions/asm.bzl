@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "@bazel_skylib//lib:sets.bzl",
-    "sets",
-)
-load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "link_mode_args",
 )
