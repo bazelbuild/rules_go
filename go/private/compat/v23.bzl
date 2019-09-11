@@ -55,31 +55,6 @@ def cc_libs(target):
             libs.append(library_to_link.dynamic_library)
     return libs
 
-def cc_compile_flags(target):
-    # Copied from get_compile_flags in migration instructions from
-    # bazelbuild/bazel#7036.
-    options = []
-    compilation_context = target[CcInfo].compilation_context
-    for define in compilation_context.defines.to_list():
-        options.append("-D{}".format(define))
-
-    for system_include in compilation_context.system_includes.to_list():
-        if len(system_include) == 0:
-            system_include = "."
-        options.append("-isystem {}".format(system_include))
-
-    for include in compilation_context.includes.to_list():
-        if len(include) == 0:
-            include = "."
-        options.append("-I {}".format(include))
-
-    for quote_include in compilation_context.quote_includes.to_list():
-        if len(quote_include) == 0:
-            quote_include = "."
-        options.append("-iquote {}".format(quote_include))
-
-    return options
-
 def cc_toolchain_all_files(ctx):
     return ctx.files._cc_toolchain
 
@@ -96,26 +71,8 @@ def get_proto(target):
 def proto_check_deps_sources(target):
     return target[ProtoInfo].check_deps_sources
 
-def proto_direct_descriptor_set(target):
-    return target[ProtoInfo].direct_descriptor_set
-
-def proto_direct_sources(target):
-    return target[ProtoInfo].direct_sources
-
 def proto_source_root(target):
     return target[ProtoInfo].proto_source_root
-
-def proto_transitive_descriptor_sets(target):
-    return target[ProtoInfo].transitive_descriptor_sets
-
-def proto_transitive_imports(target):
-    return target[ProtoInfo].transitive_imports
-
-def proto_transitive_proto_path(target):
-    return target[ProtoInfo].transitive_proto_path
-
-def proto_transitive_sources(target):
-    return target[ProtoInfo].transitive_sources
 
 # Compatibility for --incompatible_disallow_struct_provider
 def providers_with_coverage(ctx, source_attributes, dependency_attributes, extensions, providers):

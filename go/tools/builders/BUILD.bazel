@@ -9,28 +9,17 @@ go_test(
     ],
 )
 
-go_test(
-    name = "extract_test",
-    size = "small",
-    srcs = [
-        "extract.go",
-        "extract_test.go",
-    ],
-)
-
 filegroup(
     name = "builder_srcs",
     srcs = [
         "ar.go",
         "asm.go",
         "builder.go",
-        "cgo.go",
         "cgo2.go",
         "compile.go",
         "compilepkg.go",
         "cover.go",
         "env.go",
-        "extract.go",
         "filter.go",
         "filter_buildid.go",
         "flags.go",

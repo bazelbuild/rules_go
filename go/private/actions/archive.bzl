@@ -71,130 +71,63 @@ def emit_archive(go, source = None):
             fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
 
     importmap = "main" if source.library.is_main else source.library.importmap
-            
-    if not source.cgo_archives:
-        # TODO(jayconrod): We still need to support the legacy cgo path when
-        # Objective C sources are present, since the Objective C toolchain
-        # isn't exposed to Starlark. The legacy path runs cgo as a separate
-        # action, then builds generated code with cc_library / objc_library.
-        # A go_library compiles generated Go code and packs the other
-        # objects from cgo_archives. "cgo_archives" is not supported on
-        # the new path because we do all that in one action.
+    importpath, _ = effective_importpath_pkgpath(source.library)
 
+    if source.cgo and not go.mode.pure:
         # TODO(jayconrod): do we need to do full Bourne tokenization here?
         cppopts = [f for fs in source.cppopts for f in fs.split(" ")]
         copts = [f for fs in source.copts for f in fs.split(" ")]
         cxxopts = [f for fs in source.cxxopts for f in fs.split(" ")]
         clinkopts = [f for fs in source.clinkopts for f in fs.split(" ")]
-
-        importpath, _ = effective_importpath_pkgpath(source.library)
-        if source.cgo and not go.mode.pure:
-            cgo = cgo_configure(
-                go,
-                srcs = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
-                cdeps = source.cdeps,
-                cppopts = cppopts,
-                copts = copts,
-                cxxopts = cxxopts,
-                clinkopts = clinkopts,
-            )
-            if go.mode.link in (LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE):
-                out_cgo_export_h = go.declare_file(go, path = "_cgo_install.h")
-            cgo_deps = cgo.deps
-            runfiles = runfiles.merge(cgo.runfiles)
-            emit_compilepkg(
-                go,
-                sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
-                cover = source.cover,
-                importpath = importpath,
-                importmap = importmap,
-                archives = direct,
-                out_lib = out_lib,
-                out_export = out_export,
-                out_cgo_export_h = out_cgo_export_h,
-                gc_goopts = source.gc_goopts,
-                cgo = True,
-                cgo_inputs = cgo.inputs,
-                cppopts = cgo.cppopts,
-                copts = cgo.copts,
-                cxxopts = cgo.cxxopts,
-                objcopts = cgo.objcopts,
-                objcxxopts = cgo.objcxxopts,
-                clinkopts = cgo.clinkopts,
-                cgo_archives = source.cgo_archives,
-                testfilter = testfilter,
-            )
-        else:
-            cgo_deps = depset()
-            emit_compilepkg(
-                go,
-                sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
-                cover = source.cover,
-                importpath = importpath,
-                importmap = importmap,
-                archives = direct,
-                out_lib = out_lib,
-                out_export = out_export,
-                gc_goopts = source.gc_goopts,
-                cgo = False,
-                cgo_archives = source.cgo_archives,
-                testfilter = testfilter,
-            )
+        cgo = cgo_configure(
+            go,
+            srcs = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
+            cdeps = source.cdeps,
+            cppopts = cppopts,
+            copts = copts,
+            cxxopts = cxxopts,
+            clinkopts = clinkopts,
+        )
+        if go.mode.link in (LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE):
+            out_cgo_export_h = go.declare_file(go, path = "_cgo_install.h")
+        cgo_deps = cgo.deps
+        runfiles = runfiles.merge(cgo.runfiles)
+        emit_compilepkg(
+            go,
+            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
+            cover = source.cover,
+            importpath = importpath,
+            importmap = importmap,
+            archives = direct,
+            out_lib = out_lib,
+            out_export = out_export,
+            out_cgo_export_h = out_cgo_export_h,
+            gc_goopts = source.gc_goopts,
+            cgo = True,
+            cgo_inputs = cgo.inputs,
+            cppopts = cgo.cppopts,
+            copts = cgo.copts,
+            cxxopts = cgo.cxxopts,
+            objcopts = cgo.objcopts,
+            objcxxopts = cgo.objcxxopts,
+            clinkopts = cgo.clinkopts,
+            testfilter = testfilter,
+        )
     else:
-        cgo_deps = source.cgo_deps
-
-        if bool(go.cover and go.coverdata and source.cover):
-            source = go.cover(go, source)
-            direct.append(go.coverdata)
-
-        asmhdr = None
-        if split.asm:
-            asmhdr = go.declare_file(go, "go_asm.h")
-
-        if len(split.asm) == 0 and not source.cgo_archives:
-            go.compile(
-                go,
-                sources = split.go,
-                importpath = importmap,
-                archives = direct,
-                out_lib = out_lib,
-                out_export = out_export,
-                gc_goopts = source.gc_goopts,
-                testfilter = testfilter,
-            )
-        else:
-            # Assembly files must be passed to the compiler as sources. We need
-            # to run the assembler to produce a symabis file that gets passed to
-            # the compiler. The compiler builder does all this so it doesn't
-            # need to be a separate action (but individual .o files are still
-            # produced with separate actions).
-            partial_lib = go.declare_file(go, path = lib_name + "~partial", ext = ".a")
-            go.compile(
-                go,
-                sources = split.go + split.asm + split.headers,
-                importpath = importmap,
-                archives = direct,
-                out_lib = partial_lib,
-                out_export = out_export,
-                gc_goopts = source.gc_goopts,
-                testfilter = testfilter,
-                asmhdr = asmhdr,
-            )
-
-            # include other .s as inputs, since they may be #included.
-            # This may result in multiple copies of symbols defined in included
-            # files, but go build allows it, so we do, too.
-            asm_headers = split.headers + split.asm + [asmhdr]
-            extra_objects = []
-            for src in split.asm:
-                extra_objects.append(go.asm(go, source = src, hdrs = asm_headers))
-            go.pack(
-                go,
-                in_lib = partial_lib,
-                out_lib = out_lib,
-                objects = extra_objects,
-                archives = source.cgo_archives,
-            )
+        cgo_deps = depset()
+        emit_compilepkg(
+            go,
+            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
+            cover = source.cover,
+            importpath = importpath,
+            importmap = importmap,
+            archives = direct,
+            out_lib = out_lib,
+            out_export = out_export,
+            gc_goopts = source.gc_goopts,
+            cgo = False,
+            testfilter = testfilter,
+        )
 
     data = GoArchiveData(
         name = source.library.name,

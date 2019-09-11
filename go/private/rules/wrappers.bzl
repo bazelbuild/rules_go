@@ -12,84 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(
-    "@io_bazel_rules_go//go/private:mode.bzl",
-    "LINKMODE_NORMAL",
-)
 load("@io_bazel_rules_go//go/private:rules/binary.bzl", "go_binary")
 load("@io_bazel_rules_go//go/private:rules/library.bzl", "go_library")
 load("@io_bazel_rules_go//go/private:rules/test.bzl", "go_test")
 load(
     "@io_bazel_rules_go//go/private:rules/cgo.bzl",
     "go_binary_c_archive_shared",
-    "setup_cgo_library",
 )
 
-_CGO_ATTRS = {
-    "srcs": None,
-    "cdeps": [],
-    "copts": [],
-    "cxxopts": [],
-    "cppopts": [],
-    "clinkopts": [],
-    "objc": False,
-}
-
-_OBJC_CGO_ATTRS = {
-    "hdrs": None,
-    "defines": None,
-    "enable_modules": None,
-    "includes": None,
-    "module_map": None,
-    "non_arc_srcs": None,
-    "pch": None,
-    "sdk_dylibs": None,
-    "sdk_frameworks": None,
-    "sdk_includes": None,
-    "textual_hdrs": None,
-    "weak_sdk_frameworks": None,
-}
-
-_COMMON_ATTRS = {
-    "tags": ["manual"],
-    "restricted_to": None,
-    "compatible_with": None,
-    "linkmode": LINKMODE_NORMAL,
-}
-
-def _deprecate(attr, name, ruletype, kwargs, message):
-    value = kwargs.pop(attr, None)
-    if value and native.repository_name() == "@":
-        print("DEPRECATED: //{}:{} : the {} attribute on {} is deprecated. {}".format(native.package_name(), name, attr, ruletype, message))
-    return value
-
-def _objc(name, kwargs):
-    objcopts = {}
-    for key in kwargs.keys():
-        if key.startswith("objc_"):
-            arg = key[len("objc_"):]
-            if arg not in _OBJC_CGO_ATTRS:
-                fail("Forbidden CGo objc_library parameter: " + arg)
-            value = kwargs.pop(key)
-            objcopts[arg] = value
-    return objcopts
-
 def _cgo(name, kwargs):
-    if not kwargs.get("cgo", False) or not kwargs.get("objc", False):
-        return
-
-    kwargs.pop("cgo")
-    linkmode = kwargs.get("linkmode", None)
-    cgo_attrs = {"name": name}
-    for key, default in _CGO_ATTRS.items():
-        cgo_attrs[key] = kwargs.pop(key, default)
-    for key, default in _COMMON_ATTRS.items():
-        cgo_attrs[key] = kwargs.get(key, default)
-    if "manual" not in cgo_attrs["tags"]:
-        cgo_attrs["tags"] = cgo_attrs["tags"] + ["manual"]
-    cgo_attrs["objcopts"] = _objc(name, kwargs)
-    cgo_embed = setup_cgo_library(**cgo_attrs)
-    kwargs["embed"] = kwargs.get("embed", []) + [cgo_embed]
+    if "objc" in kwargs:
+        fail("//{}:{}: the objc attribute has been removed. .m sources may be included in srcs or may be extracted into a separated objc_library listed in cdeps.".format(native.package_name(), name))
 
 def go_library_macro(name, **kwargs):
     """See go/core.rst#go_library for full documentation."""

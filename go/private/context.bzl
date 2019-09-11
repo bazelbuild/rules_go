@@ -188,10 +188,6 @@ def _merge_embed(source, embed):
     source["clinkopts"] = source["clinkopts"] or s.clinkopts
     source["cgo_deps"] = source["cgo_deps"] + s.cgo_deps
     source["cgo_exports"] = source["cgo_exports"] + s.cgo_exports
-    if s.cgo_archives:
-        if source["cgo_archives"]:
-            fail("multiple libraries with cgo_archives embedded")
-        source["cgo_archives"] = s.cgo_archives
 
 def _dedup_deps(deps):
     """Returns a list of targets without duplicate import paths.
@@ -237,7 +233,6 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "copts": getattr(attr, "copts", []),
         "cxxopts": getattr(attr, "cxxopts", []),
         "clinkopts": getattr(attr, "clinkopts", []),
-        "cgo_archives": [],
         "cgo_deps": [],
         "cgo_exports": [],
     }

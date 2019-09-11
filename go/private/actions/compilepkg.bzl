@@ -46,7 +46,6 @@ def emit_compilepkg(
         objcopts = [],
         objcxxopts = [],
         clinkopts = [],
-        cgo_archives = [],
         out_lib = None,
         out_export = None,
         out_cgo_export_h = None,
@@ -59,7 +58,6 @@ def emit_compilepkg(
 
     inputs = (sources + [go.package_list] +
               [archive.data.file for archive in archives] +
-              cgo_archives +
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
     outputs = [out_lib]
     env = go.env

@@ -41,8 +41,6 @@ func main() {
 	switch verb {
 	case "asm":
 		action = asm
-	case "cgo":
-		action = cgo
 	case "compile":
 		action = compile
 	case "compilepkg":
