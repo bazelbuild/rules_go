@@ -112,11 +112,10 @@ func TestMain(m *testing.M, args Args) {
 	code = m.Run()
 }
 
-// RunBazel invokes a bazel command with a list of arguments.
-//
-// If the command starts but exits with a non-zero status, a *StderrExitError
-// will be returned which wraps the original *exec.ExitError.
-func RunBazel(args ...string) error {
+// BazelCmd prepares a bazel command for execution. It chooses the correct
+// bazel binary based on the environment and sanitizes the environment to
+// hide that this code is executing inside a bazel test.
+func BazelCmd(args ...string) *exec.Cmd {
 	cmd := exec.Command("bazel", args...)
 	for _, e := range os.Environ() {
 		// Filter environment variables set by the bazel test wrapper script.
@@ -126,6 +125,15 @@ func RunBazel(args ...string) error {
 		}
 		cmd.Env = append(cmd.Env, e)
 	}
+	return cmd
+}
+
+// RunBazel invokes a bazel command with a list of arguments.
+//
+// If the command starts but exits with a non-zero status, a *StderrExitError
+// will be returned which wraps the original *exec.ExitError.
+func RunBazel(args ...string) error {
+	cmd := BazelCmd(args...)
 
 	buf := &bytes.Buffer{}
 	cmd.Stderr = buf
@@ -135,6 +143,25 @@ func RunBazel(args ...string) error {
 		err = &StderrExitError{Err: eErr}
 	}
 	return err
+}
+
+// BazelOutput invokes a bazel command with a list of arguments and returns
+// the content of stdout.
+//
+// If the command starts but exits with a non-zero status, a *StderrExitError
+// will be returned which wraps the original *exec.ExitError.
+func BazelOutput(args ...string) ([]byte, error) {
+	cmd := BazelCmd(args...)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	err := cmd.Run()
+	if eErr, ok := err.(*exec.ExitError); ok {
+		eErr.Stderr = stderr.Bytes()
+		err = &StderrExitError{Err: eErr}
+	}
+	return stdout.Bytes(), err
 }
 
 // StderrExitError wraps *exec.ExitError and prints the complete stderr output
