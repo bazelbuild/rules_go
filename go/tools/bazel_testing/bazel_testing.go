@@ -86,9 +86,32 @@ func TestMain(m *testing.M, args Args) {
 		os.Exit(code)
 	}()
 
+	var files []string
+	beginFiles, endFiles := -1, -1
+	for i, arg := range os.Args {
+		if arg == "-begin_files" {
+			beginFiles = i
+		} else if arg == "-end_files" {
+			endFiles = i
+			break
+		} else if arg == "--" {
+			break
+		}
+	}
+	if beginFiles >= 0 && endFiles < 0 ||
+		beginFiles < 0 && endFiles >= 0 ||
+		beginFiles >= 0 && beginFiles >= endFiles {
+		fmt.Fprintf(os.Stderr, "error: -begin_files, -end_files not set together or in order\n")
+		return
+	}
+	if beginFiles >= 0 {
+		files = os.Args[beginFiles+1 : endFiles-1]
+		os.Args = append(os.Args[:beginFiles], os.Args[endFiles+1:]...)
+	}
+
 	flag.Parse()
 
-	workspaceDir, cleanup, err := setupWorkspace(args)
+	workspaceDir, cleanup, err := setupWorkspace(args, files)
 	defer cleanup()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
@@ -177,7 +200,7 @@ func (e *StderrExitError) Error() string {
 	return sb.String()
 }
 
-func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
+func setupWorkspace(args Args, files []string) (dir string, cleanup func(), err error) {
 	var cleanups []func()
 	cleanup = func() {
 		for i := len(cleanups) - 1; i >= 0; i-- {
@@ -244,7 +267,7 @@ func setupWorkspace(args Args) (dir string, cleanup func(), err error) {
 		runfileMap[runfileKey{rf.Workspace, rf.ShortPath}] = rf.Path
 	}
 	workspaceNames := make(map[string]bool)
-	for _, argPath := range flag.Args() {
+	for _, argPath := range files {
 		shortPath := path.Clean(argPath)
 		if !strings.HasPrefix(shortPath, "external/") {
 			return "", cleanup, fmt.Errorf("unexpected file: %s", argPath)
