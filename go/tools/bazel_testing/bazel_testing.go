@@ -112,7 +112,14 @@ func TestMain(m *testing.M, args Args) {
 	flag.Parse()
 
 	workspaceDir, cleanup, err := setupWorkspace(args, files)
-	defer cleanup()
+	defer func() {
+		if err := cleanup(); err != nil {
+			fmt.Fprintf(os.Stderr, "cleanup error: %v\n", err)
+			if code == 0 {
+				code = 1
+			}
+		}
+	}()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		return
@@ -200,17 +207,21 @@ func (e *StderrExitError) Error() string {
 	return sb.String()
 }
 
-func setupWorkspace(args Args, files []string) (dir string, cleanup func(), err error) {
-	var cleanups []func()
-	cleanup = func() {
+func setupWorkspace(args Args, files []string) (dir string, cleanup func() error, err error) {
+	var cleanups []func() error
+	cleanup = func() error {
+		var firstErr error
 		for i := len(cleanups) - 1; i >= 0; i-- {
-			cleanups[i]()
+			if err := cleanups[i](); err != nil && firstErr == nil {
+				firstErr = err
+			}
 		}
+		return firstErr
 	}
 	defer func() {
 		if err != nil {
 			cleanup()
-			cleanup = nil
+			cleanup = func() error { return nil }
 		}
 	}()
 
@@ -245,7 +256,7 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func(), err 
 	if err := os.RemoveAll(execDir); err != nil {
 		return "", cleanup, err
 	}
-	cleanups = append(cleanups, func() { os.RemoveAll(execDir) })
+	cleanups = append(cleanups, func() error { return os.RemoveAll(execDir) })
 
 	// Extract test files for the main workspace.
 	mainDir := filepath.Join(execDir, "main")
