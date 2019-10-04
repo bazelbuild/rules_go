@@ -24,7 +24,7 @@ import (
 )
 
 func TestStatic(t *testing.T) {
-	for _, name := range []string{"static_cgo_bin", "static_pure_bin"} {
+	for _, name := range []string{"static_bin", "static_cgo_bin", "static_pure_bin"} {
 		t.Run(name, func(t *testing.T) {
 			path, ok := bazel.FindBinary("tests/core/go_binary", name)
 			if !ok {
