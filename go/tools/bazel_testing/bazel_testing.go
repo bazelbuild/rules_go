@@ -115,9 +115,9 @@ func TestMain(m *testing.M, args Args) {
 	defer func() {
 		if err := cleanup(); err != nil {
 			fmt.Fprintf(os.Stderr, "cleanup error: %v\n", err)
-			if code == 0 {
-				code = 1
-			}
+			// Don't fail the test on a cleanup error.
+			// Some operating systems (windows, maybe also darwin) can't reliably
+			// delete executable files after they're run.
 		}
 	}()
 	if err != nil {
