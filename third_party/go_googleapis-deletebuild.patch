@@ -1,5 +1,5 @@
 diff -urN a/BUILD.bazel b/BUILD.bazel
---- a/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/BUILD.bazel	2019-10-05 15:54:12.232357139 -0400
 +++ b/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,129 +0,0 @@
 -load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
@@ -132,9 +132,9 @@ diff -urN a/BUILD.bazel b/BUILD.bazel
 -    ]
 -)
 diff -urN a/google/api/BUILD.bazel b/google/api/BUILD.bazel
---- a/google/api/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/api/BUILD.bazel	2019-10-05 15:54:12.508350040 -0400
 +++ b/google/api/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,526 +0,0 @@
+@@ -1,669 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -454,8 +454,6 @@ diff -urN a/google/api/BUILD.bazel b/google/api/BUILD.bazel
 -    importpath = "google.golang.org/genproto/googleapis/api",
 -    protos = [
 -        ":launch_stage_proto",
--        "//google/api/experimental:authorization_config_proto",
--        "//google/api/experimental:experimental_proto",
 -    ],
 -    deps = [
 -        ":annotations_go_proto",
@@ -661,62 +659,160 @@ diff -urN a/google/api/BUILD.bazel b/google/api/BUILD.bazel
 -    name = "usage_cc_proto",
 -    deps = [":usage_proto"],
 -)
-diff -urN a/google/api/experimental/BUILD.bazel b/google/api/experimental/BUILD.bazel
---- a/google/api/experimental/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ b/google/api/experimental/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,43 +0,0 @@
--# This is an API workspace, having public visibility by default makes perfect sense.
--package(default_visibility = ["//visibility:public"])
 -
 -##############################################################################
--# Common
+-# Python
 -##############################################################################
--proto_library(
--    name = "authorization_config_proto",
--    srcs = [
--        "authorization_config.proto",
--    ],
--    deps = [],
+-load("@com_google_googleapis_imports//:imports.bzl", "py_proto_library")
+-
+-py_proto_library(
+-    name = "annotations_py_proto",
+-    deps = [":annotations_proto"],
 -)
 -
--proto_library(
--    name = "experimental_proto",
--    srcs = [
--        "experimental.proto",
--    ],
--    deps = [
--        ":authorization_config_proto",
--        "//google/api:annotations_proto",
--    ],
+-py_proto_library(
+-    name = "auth_py_proto",
+-    deps = [":auth_proto"],
 -)
 -
--##############################################################################
--# Java
--##############################################################################
--load("@com_google_googleapis_imports//:imports.bzl", "java_proto_library")
--
--java_proto_library(
--    name = "experimental_java_proto",
--    deps = [
--        ":authorization_config_proto",
--        ":experimental_proto",
--    ],
+-py_proto_library(
+-    name = "backend_py_proto",
+-    deps = [":backend_proto"],
 -)
 -
--##############################################################################
--# Go
--##############################################################################
+-py_proto_library(
+-    name = "billing_py_proto",
+-    deps = [":billing_proto"],
+-)
 -
--#":authorization_config_proto" and ":experimental_proto" belong to //google/api:api_go_proto
+-py_proto_library(
+-    name = "client_py_proto",
+-    deps = [":client_proto"],
+-)
+-
+-py_proto_library(
+-    name = "config_change_py_proto",
+-    deps = [":config_change_proto"],
+-)
+-
+-py_proto_library(
+-    name = "consumer_py_proto",
+-    deps = [":consumer_proto"],
+-)
+-
+-py_proto_library(
+-    name = "context_py_proto",
+-    deps = [":context_proto"],
+-)
+-
+-py_proto_library(
+-    name = "control_py_proto",
+-    deps = [":control_proto"],
+-)
+-
+-py_proto_library(
+-    name = "distribution_py_proto",
+-    deps = [":distribution_proto"],
+-)
+-
+-py_proto_library(
+-    name = "documentation_py_proto",
+-    deps = [":documentation_proto"],
+-)
+-
+-py_proto_library(
+-    name = "endpoint_py_proto",
+-    deps = [":endpoint_proto"],
+-)
+-
+-py_proto_library(
+-    name = "field_behavior_py_proto",
+-    deps = [":field_behavior_proto"],
+-)
+-
+-py_proto_library(
+-    name = "http_py_proto",
+-    deps = [":http_proto"],
+-)
+-
+-py_proto_library(
+-    name = "httpbody_py_proto",
+-    deps = [":httpbody_proto"],
+-)
+-
+-py_proto_library(
+-    name = "label_py_proto",
+-    deps = [":label_proto"],
+-)
+-
+-py_proto_library(
+-    name = "launch_stage_py_proto",
+-    deps = [":launch_stage_proto"],
+-)
+-
+-py_proto_library(
+-    name = "log_py_proto",
+-    deps = [":log_proto"],
+-)
+-
+-py_proto_library(
+-    name = "logging_py_proto",
+-    deps = [":logging_proto"],
+-)
+-
+-py_proto_library(
+-    name = "metric_py_proto",
+-    deps = [":metric_proto"],
+-)
+-
+-py_proto_library(
+-    name = "monitored_resource_py_proto",
+-    deps = [":monitored_resource_proto"],
+-)
+-
+-py_proto_library(
+-    name = "monitoring_py_proto",
+-    deps = ["monitoring_proto"],
+-)
+-
+-py_proto_library(
+-    name = "quota_py_proto",
+-    deps = ["quota_proto"],
+-)
+-
+-py_proto_library(
+-    name = "resource_py_proto",
+-    deps = [":resource_proto"],
+-)
+-
+-py_proto_library(
+-    name = "service_py_proto",
+-    deps = [":service_proto"],
+-)
+-
+-py_proto_library(
+-    name = "source_info_py_proto",
+-    deps = [":source_info_proto"],
+-)
+-
+-py_proto_library(
+-    name = "system_parameter_py_proto",
+-    deps = [":system_parameter_proto"],
+-)
+-
+-py_proto_library(
+-    name = "usage_py_proto",
+-    deps = [":usage_proto"],
+-)
 diff -urN a/google/api/expr/BUILD.bazel b/google/api/expr/BUILD.bazel
---- a/google/api/expr/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/api/expr/BUILD.bazel	2019-10-05 15:54:12.508350040 -0400
 +++ b/google/api/expr/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/api/expr/v1alpha1/BUILD.bazel b/google/api/expr/v1alpha1/BUILD.bazel
---- a/google/api/expr/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/api/expr/v1alpha1/BUILD.bazel	2019-10-05 15:54:12.508350040 -0400
 +++ b/google/api/expr/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,265 +0,0 @@
+@@ -1,297 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -942,8 +1038,9 @@ diff -urN a/google/api/expr/v1alpha1/BUILD.bazel b/google/api/expr/v1alpha1/BUIL
 -cc_grpc_library(
 -    name = "cel_service_cc_grpc",
 -    srcs = [":cel_service_proto"],
--    deps = [":cel_service_cc_proto"],
+-    generate_mocks = True,
 -    grpc_only = True,
+-    deps = [":cel_service_cc_proto"],
 -)
 -
 -cc_proto_library(
@@ -959,8 +1056,9 @@ diff -urN a/google/api/expr/v1alpha1/BUILD.bazel b/google/api/expr/v1alpha1/BUIL
 -cc_grpc_library(
 -    name = "conformance_service_cc_grpc",
 -    srcs = [":conformance_service_proto"],
--    deps = [":conformance_service_cc_proto"],
+-    generate_mocks = True,
 -    grpc_only = True,
+-    deps = [":conformance_service_cc_proto"],
 -)
 -
 -cc_proto_library(
@@ -982,8 +1080,38 @@ diff -urN a/google/api/expr/v1alpha1/BUILD.bazel b/google/api/expr/v1alpha1/BUIL
 -    name = "value_cc_proto",
 -    deps = [":value_proto"],
 -)
+-
+-##############################################################################
+-# Python
+-##############################################################################
+-load("@com_google_googleapis_imports//:imports.bzl", "py_proto_library")
+-
+-py_proto_library(
+-    name = "checked_py_proto",
+-    deps = [":checked_proto"],
+-)
+-
+-py_proto_library(
+-    name = "eval_py_proto",
+-    deps = [":eval_proto"],
+-)
+-
+-py_proto_library(
+-    name = "explain_py_proto",
+-    deps = [":explain_proto"],
+-)
+-
+-py_proto_library(
+-    name = "syntax_py_proto",
+-    deps = [":syntax_proto"],
+-)
+-
+-py_proto_library(
+-    name = "value_py_proto",
+-    deps = [":value_proto"],
+-)
 diff -urN a/google/api/expr/v1beta1/BUILD.bazel b/google/api/expr/v1beta1/BUILD.bazel
---- a/google/api/expr/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/api/expr/v1beta1/BUILD.bazel	2019-10-05 15:54:12.508350040 -0400
 +++ b/google/api/expr/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,89 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -1075,20 +1203,14 @@ diff -urN a/google/api/expr/v1beta1/BUILD.bazel b/google/api/expr/v1beta1/BUILD.
 -    name = "value_cc_proto",
 -    deps = [":value_proto"],
 -)
-diff -urN a/google/bigtable/BUILD.bazel b/google/bigtable/BUILD.bazel
---- a/google/bigtable/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ b/google/bigtable/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1 +0,0 @@
--exports_files(glob(["*.yaml"]))
-\ No newline at end of file
 diff -urN a/google/bigtable/admin/BUILD.bazel b/google/bigtable/admin/BUILD.bazel
---- a/google/bigtable/admin/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/bigtable/admin/BUILD.bazel	2019-10-05 15:54:12.512349936 -0400
 +++ b/google/bigtable/admin/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/bigtable/admin/v2/BUILD.bazel b/google/bigtable/admin/v2/BUILD.bazel
---- a/google/bigtable/admin/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/bigtable/admin/v2/BUILD.bazel	2019-10-05 15:54:12.512349936 -0400
 +++ b/google/bigtable/admin/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,161 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -1252,8 +1374,14 @@ diff -urN a/google/bigtable/admin/v2/BUILD.bazel b/google/bigtable/admin/v2/BUIL
 -        ":bigtableadmin_go_proto",
 -    ],
 -)
+diff -urN a/google/bigtable/BUILD.bazel b/google/bigtable/BUILD.bazel
+--- a/google/bigtable/BUILD.bazel	2019-10-05 15:54:12.512349936 -0400
++++ b/google/bigtable/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-exports_files(glob(["*.yaml"]))
+\ No newline at end of file
 diff -urN a/google/bigtable/v2/BUILD.bazel b/google/bigtable/v2/BUILD.bazel
---- a/google/bigtable/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/bigtable/v2/BUILD.bazel	2019-10-05 15:54:12.512349936 -0400
 +++ b/google/bigtable/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,144 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -1401,13 +1529,13 @@ diff -urN a/google/bigtable/v2/BUILD.bazel b/google/bigtable/v2/BUILD.bazel
 -    ],
 -)
 diff -urN a/google/cloud/asset/BUILD.bazel b/google/cloud/asset/BUILD.bazel
---- a/google/cloud/asset/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/asset/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/asset/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/asset/v1beta1/BUILD.bazel b/google/cloud/asset/v1beta1/BUILD.bazel
---- a/google/cloud/asset/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/asset/v1beta1/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/asset/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,150 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -1561,13 +1689,13 @@ diff -urN a/google/cloud/asset/v1beta1/BUILD.bazel b/google/cloud/asset/v1beta1/
 -    ],
 -)
 diff -urN a/google/cloud/automl/BUILD.bazel b/google/cloud/automl/BUILD.bazel
---- a/google/cloud/automl/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/automl/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/automl/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/automl/v1beta1/BUILD.bazel b/google/cloud/automl/v1beta1/BUILD.bazel
---- a/google/cloud/automl/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/automl/v1beta1/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/automl/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,186 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -1729,7 +1857,7 @@ diff -urN a/google/cloud/automl/v1beta1/BUILD.bazel b/google/cloud/automl/v1beta
 -    name = "automl_go_gapic",
 -    src = ":automl_proto_with_info",
 -    gapic_yaml = "automl_gapic.yaml",
--    importpath = "cloud.google.com/go/cloud/automl/apiv1beta1",
+-    importpath = "cloud.google.com/go/automl/apiv1beta1",
 -    service_yaml = "//google/cloud/automl:automl_v1beta1.yaml",
 -    deps = [
 -        ":automl_go_proto",
@@ -1743,7 +1871,7 @@ diff -urN a/google/cloud/automl/v1beta1/BUILD.bazel b/google/cloud/automl/v1beta
 -    name = "automl_go_gapic_test",
 -    srcs = [":automl_go_gapic_srcjar_test"],
 -    embed = [":automl_go_gapic"],
--    importpath = "cloud.google.com/go/cloud/automl/apiv1beta1",
+-    importpath = "cloud.google.com/go/automl/apiv1beta1",
 -)
 -
 -# Opensource Packages
@@ -1757,13 +1885,13 @@ diff -urN a/google/cloud/automl/v1beta1/BUILD.bazel b/google/cloud/automl/v1beta
 -    ],
 -)
 diff -urN a/google/cloud/bigquery/datatransfer/BUILD.bazel b/google/cloud/bigquery/datatransfer/BUILD.bazel
---- a/google/cloud/bigquery/datatransfer/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/bigquery/datatransfer/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/bigquery/datatransfer/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/bigquery/datatransfer/v1/BUILD.bazel b/google/cloud/bigquery/datatransfer/v1/BUILD.bazel
---- a/google/cloud/bigquery/datatransfer/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/bigquery/datatransfer/v1/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/bigquery/datatransfer/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,156 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -1923,15 +2051,15 @@ diff -urN a/google/cloud/bigquery/datatransfer/v1/BUILD.bazel b/google/cloud/big
 -    ],
 -)
 diff -urN a/google/cloud/bigquery/storage/BUILD.bazel b/google/cloud/bigquery/storage/BUILD.bazel
---- a/google/cloud/bigquery/storage/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/bigquery/storage/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/bigquery/storage/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/bigquery/storage/v1beta1/BUILD.bazel b/google/cloud/bigquery/storage/v1beta1/BUILD.bazel
---- a/google/cloud/bigquery/storage/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/bigquery/storage/v1beta1/BUILD.bazel	2019-10-05 15:54:12.516349834 -0400
 +++ b/google/cloud/bigquery/storage/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,148 +0,0 @@
+@@ -1,172 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -1943,6 +2071,7 @@ diff -urN a/google/cloud/bigquery/storage/v1beta1/BUILD.bazel b/google/cloud/big
 -proto_library(
 -    name = "bigquerystorage_proto",
 -    srcs = [
+-        "arrow.proto",
 -        "avro.proto",
 -        "read_options.proto",
 -        "storage.proto",
@@ -1950,6 +2079,7 @@ diff -urN a/google/cloud/bigquery/storage/v1beta1/BUILD.bazel b/google/cloud/big
 -    ],
 -    deps = [
 -        "//google/api:annotations_proto",
+-        "//google/api:client_proto",
 -        "//google/api:resource_proto",
 -        "@com_google_protobuf//:empty_proto",
 -        "@com_google_protobuf//:timestamp_proto",
@@ -2080,10 +2210,32 @@ diff -urN a/google/cloud/bigquery/storage/v1beta1/BUILD.bazel b/google/cloud/big
 -        ":bigquerystorage_go_proto",
 -    ],
 -)
+-
+-##############################################################################
+-# C++
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "cc_grpc_library",
+-    "cc_proto_library",
+-)
+-
+-cc_proto_library(
+-    name = "bigquerystorage_cc_proto",
+-    deps = [":bigquerystorage_proto"],
+-)
+-
+-cc_grpc_library(
+-    name = "bigquerystorage_cc_grpc",
+-    srcs = [":bigquerystorage_proto"],
+-    generate_mocks = True,
+-    grpc_only = True,
+-    deps = [":bigquerystorage_cc_proto"],
+-)
 diff -urN a/google/cloud/dataproc/v1/BUILD.bazel b/google/cloud/dataproc/v1/BUILD.bazel
---- a/google/cloud/dataproc/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/dataproc/v1/BUILD.bazel	2019-10-05 15:54:12.520349730 -0400
 +++ b/google/cloud/dataproc/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,159 +0,0 @@
+@@ -1,160 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -2095,6 +2247,7 @@ diff -urN a/google/cloud/dataproc/v1/BUILD.bazel b/google/cloud/dataproc/v1/BUIL
 -proto_library(
 -    name = "dataproc_proto",
 -    srcs = [
+-        "autoscaling_policies.proto",
 -        "clusters.proto",
 -        "jobs.proto",
 -        "operations.proto",
@@ -2244,7 +2397,7 @@ diff -urN a/google/cloud/dataproc/v1/BUILD.bazel b/google/cloud/dataproc/v1/BUIL
 -    ],
 -)
 diff -urN a/google/cloud/dataproc/v1beta2/BUILD.bazel b/google/cloud/dataproc/v1beta2/BUILD.bazel
---- a/google/cloud/dataproc/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/dataproc/v1beta2/BUILD.bazel	2019-10-05 15:54:12.520349730 -0400
 +++ b/google/cloud/dataproc/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,160 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -2408,15 +2561,14 @@ diff -urN a/google/cloud/dataproc/v1beta2/BUILD.bazel b/google/cloud/dataproc/v1
 -    ],
 -)
 diff -urN a/google/cloud/dialogflow/BUILD.bazel b/google/cloud/dialogflow/BUILD.bazel
---- a/google/cloud/dialogflow/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/dialogflow/BUILD.bazel	2019-10-05 15:54:12.520349730 -0400
 +++ b/google/cloud/dialogflow/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
-\ No newline at end of file
 diff -urN a/google/cloud/dialogflow/v2/BUILD.bazel b/google/cloud/dialogflow/v2/BUILD.bazel
---- a/google/cloud/dialogflow/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/dialogflow/v2/BUILD.bazel	2019-10-05 15:54:12.520349730 -0400
 +++ b/google/cloud/dialogflow/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,241 +0,0 @@
+@@ -1,327 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -2440,6 +2592,7 @@ diff -urN a/google/cloud/dialogflow/v2/BUILD.bazel b/google/cloud/dialogflow/v2/
 -    deps = [
 -        "//google/api:annotations_proto",
 -        "//google/api:client_proto",
+-        "//google/api:field_behavior_proto",
 -        "//google/api:resource_proto",
 -        "//google/longrunning:operations_proto",
 -        "//google/rpc:status_proto",
@@ -2495,7 +2648,7 @@ diff -urN a/google/cloud/dialogflow/v2/BUILD.bazel b/google/cloud/dialogflow/v2/
 -    name = "dialogflow_java_gapic",
 -    src = ":dialogflow_proto_with_info",
 -    gapic_yaml = "dialogflow_gapic.yaml",
--    service_yaml = "//google/cloud/dialogflow:dialogflow_v2.yaml",
+-    service_yaml = ":dialogflow_v2.yaml",
 -    test_deps = [":dialogflow_java_grpc"],
 -    deps = [
 -        ":dialogflow_java_proto",
@@ -2563,7 +2716,7 @@ diff -urN a/google/cloud/dialogflow/v2/BUILD.bazel b/google/cloud/dialogflow/v2/
 -    src = ":dialogflow_proto_with_info",
 -    gapic_yaml = "dialogflow_gapic.yaml",
 -    importpath = "cloud.google.com/go/dialogflow/apiv2",
--    service_yaml = "//google/cloud/dialogflow:dialogflow_v2.yaml",
+-    service_yaml = ":dialogflow_v2.yaml",
 -    deps = [
 -        ":dialogflow_go_proto",
 -        "//google/longrunning:longrunning_go_gapic",
@@ -2617,7 +2770,7 @@ diff -urN a/google/cloud/dialogflow/v2/BUILD.bazel b/google/cloud/dialogflow/v2/
 -    name = "dialogflow_php_gapic",
 -    src = ":dialogflow_proto_with_info",
 -    gapic_yaml = "dialogflow_gapic.yaml",
--    service_yaml = "//google/cloud/dialogflow:dialogflow_v2.yaml",
+-    service_yaml = ":dialogflow_v2.yaml",
 -    deps = [
 -        ":dialogflow_php_grpc",
 -        ":dialogflow_php_proto",
@@ -2647,7 +2800,7 @@ diff -urN a/google/cloud/dialogflow/v2/BUILD.bazel b/google/cloud/dialogflow/v2/
 -    name = "dialogflow_nodejs_gapic",
 -    src = ":dialogflow_proto_with_info",
 -    gapic_yaml = "dialogflow_gapic.yaml",
--    service_yaml = "//google/cloud/dialogflow:dialogflow_v2.yaml",
+-    service_yaml = ":dialogflow_v2.yaml",
 -    deps = [],
 -)
 -
@@ -2658,10 +2811,95 @@ diff -urN a/google/cloud/dialogflow/v2/BUILD.bazel b/google/cloud/dialogflow/v2/
 -        ":dialogflow_proto",
 -    ],
 -)
+-
+-##############################################################################
+-# Ruby
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "ruby_proto_library",
+-    "ruby_grpc_library",
+-    "ruby_gapic_library",
+-    "ruby_gapic_assembly_pkg",
+-)
+-
+-ruby_proto_library(
+-    name = "dialogflow_ruby_proto",
+-    deps = [":dialogflow_proto"],
+-)
+-
+-ruby_grpc_library(
+-    name = "dialogflow_ruby_grpc",
+-    srcs = [":dialogflow_proto"],
+-    deps = [":dialogflow_ruby_proto"],
+-)
+-
+-ruby_gapic_library(
+-    name = "dialogflow_ruby_gapic",
+-    src = ":dialogflow_proto_with_info",
+-    gapic_yaml = "dialogflow_gapic.yaml",
+-    service_yaml = ":dialogflow_v2.yaml",
+-    deps = [
+-        ":dialogflow_ruby_grpc",
+-        ":dialogflow_ruby_proto",
+-    ],
+-)
+-
+-ruby_gapic_assembly_pkg(
+-    name = "google-cloud-dialogflow-v2-ruby",
+-    deps = [
+-        ":dialogflow_ruby_gapic",
+-        ":dialogflow_ruby_grpc",
+-        ":dialogflow_ruby_proto",
+-    ],
+-)
+-
+-##############################################################################
+-# C#
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "csharp_proto_library",
+-    "csharp_grpc_library",
+-    "csharp_gapic_library",
+-    "csharp_gapic_assembly_pkg",
+-)
+-
+-csharp_proto_library(
+-    name = "dialogflow_csharp_proto",
+-    deps = [":dialogflow_proto"],
+-)
+-
+-csharp_grpc_library(
+-    name = "dialogflow_csharp_grpc",
+-    srcs = [":dialogflow_proto"],
+-    deps = [":dialogflow_csharp_proto"],
+-)
+-
+-csharp_gapic_library(
+-    name = "dialogflow_csharp_gapic",
+-    src = ":dialogflow_proto_with_info",
+-    gapic_yaml = "dialogflow_gapic.yaml",
+-    service_yaml = ":dialogflow_v2.yaml",
+-    deps = [
+-        ":dialogflow_csharp_grpc",
+-        ":dialogflow_csharp_proto",
+-    ],
+-)
+-
+-# Opensource Packages
+-csharp_gapic_assembly_pkg(
+-    name = "google-cloud-dialogflow-v2-csharp",
+-    deps = [
+-        ":dialogflow_csharp_gapic",
+-        ":dialogflow_csharp_grpc",
+-        ":dialogflow_csharp_proto",
+-    ],
+-)
 diff -urN a/google/cloud/dialogflow/v2beta1/BUILD.bazel b/google/cloud/dialogflow/v2beta1/BUILD.bazel
---- a/google/cloud/dialogflow/v2beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/dialogflow/v2beta1/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
 +++ b/google/cloud/dialogflow/v2beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,177 +0,0 @@
+@@ -1,180 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -2678,10 +2916,12 @@ diff -urN a/google/cloud/dialogflow/v2beta1/BUILD.bazel b/google/cloud/dialogflo
 -        "context.proto",
 -        "document.proto",
 -        "entity_type.proto",
+-        "gcs.proto",
 -        "intent.proto",
 -        "knowledge_base.proto",
 -        "session.proto",
 -        "session_entity_type.proto",
+-        "validation_result.proto",
 -        "webhook.proto",
 -    ],
 -    deps = [
@@ -2691,6 +2931,7 @@ diff -urN a/google/cloud/dialogflow/v2beta1/BUILD.bazel b/google/cloud/dialogflo
 -        "//google/longrunning:operations_proto",
 -        "//google/rpc:status_proto",
 -        "//google/type:latlng_proto",
+-        "//google/api:field_behavior_proto",
 -        "@com_google_protobuf//:duration_proto",
 -        "@com_google_protobuf//:empty_proto",
 -        "@com_google_protobuf//:field_mask_proto",
@@ -2742,7 +2983,7 @@ diff -urN a/google/cloud/dialogflow/v2beta1/BUILD.bazel b/google/cloud/dialogflo
 -    name = "dialogflow_java_gapic",
 -    src = ":dialogflow_proto_with_info",
 -    gapic_yaml = "dialogflow_gapic.yaml",
--    service_yaml = "//google/cloud/dialogflow:dialogflow_v2beta1.yaml",
+-    service_yaml = ":dialogflow_v2beta1.yaml",
 -    test_deps = [":dialogflow_java_grpc"],
 -    deps = [
 -        ":dialogflow_java_proto",
@@ -2812,7 +3053,7 @@ diff -urN a/google/cloud/dialogflow/v2beta1/BUILD.bazel b/google/cloud/dialogflo
 -    src = ":dialogflow_proto_with_info",
 -    gapic_yaml = "dialogflow_gapic.yaml",
 -    importpath = "cloud.google.com/go/cloud/dialogflow/apiv2beta1",
--    service_yaml = "//google/cloud/dialogflow:dialogflow_v2beta1.yaml",
+-    service_yaml = ":dialogflow_v2beta1.yaml",
 -    deps = [
 -        ":dialogflow_go_proto",
 -        "//google/longrunning:longrunning_go_gapic",
@@ -2839,14 +3080,19 @@ diff -urN a/google/cloud/dialogflow/v2beta1/BUILD.bazel b/google/cloud/dialogflo
 -        ":dialogflow_go_proto",
 -    ],
 -)
+diff -urN a/google/cloud/document/BUILD.bazel b/google/cloud/document/BUILD.bazel
+--- a/google/cloud/document/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
++++ b/google/cloud/document/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-exports_files(glob(["*.yaml"]))
 diff -urN a/google/cloud/iot/BUILD.bazel b/google/cloud/iot/BUILD.bazel
---- a/google/cloud/iot/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/iot/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
 +++ b/google/cloud/iot/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/iot/v1/BUILD.bazel b/google/cloud/iot/v1/BUILD.bazel
---- a/google/cloud/iot/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/iot/v1/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
 +++ b/google/cloud/iot/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,156 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -3006,13 +3252,13 @@ diff -urN a/google/cloud/iot/v1/BUILD.bazel b/google/cloud/iot/v1/BUILD.bazel
 -    ],
 -)
 diff -urN a/google/cloud/kms/BUILD.bazel b/google/cloud/kms/BUILD.bazel
---- a/google/cloud/kms/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/kms/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
 +++ b/google/cloud/kms/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/kms/v1/BUILD.bazel b/google/cloud/kms/v1/BUILD.bazel
---- a/google/cloud/kms/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/kms/v1/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
 +++ b/google/cloud/kms/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,162 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -3178,14 +3424,14 @@ diff -urN a/google/cloud/kms/v1/BUILD.bazel b/google/cloud/kms/v1/BUILD.bazel
 -    ],
 -)
 diff -urN a/google/cloud/language/BUILD.bazel b/google/cloud/language/BUILD.bazel
---- a/google/cloud/language/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/language/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
 +++ b/google/cloud/language/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/cloud/language/v1/BUILD.bazel b/google/cloud/language/v1/BUILD.bazel
---- a/google/cloud/language/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/language/v1/BUILD.bazel	2019-10-05 15:54:12.524349628 -0400
 +++ b/google/cloud/language/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,196 +0,0 @@
+@@ -1,281 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -3342,7 +3588,7 @@ diff -urN a/google/cloud/language/v1/BUILD.bazel b/google/cloud/language/v1/BUIL
 -    gapic_yaml = "language_gapic.yaml",
 -    service_yaml = "//google/cloud/language:language_v1.yaml",
 -    deps = [
--        ":langauge_php_grpc",
+-        ":language_php_grpc",
 -        ":language_php_proto",
 -    ],
 -)
@@ -3382,8 +3628,94 @@ diff -urN a/google/cloud/language/v1/BUILD.bazel b/google/cloud/language/v1/BUIL
 -    ],
 -)
 -
+-##############################################################################
+-# Ruby
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "ruby_proto_library",
+-    "ruby_grpc_library",
+-    "ruby_gapic_library",
+-    "ruby_gapic_assembly_pkg",
+-)
+-
+-ruby_proto_library(
+-    name = "language_ruby_proto",
+-    deps = [":language_proto"],
+-)
+-
+-ruby_grpc_library(
+-    name = "language_ruby_grpc",
+-    srcs = [":language_proto"],
+-    deps = [":language_ruby_proto"],
+-)
+-
+-ruby_gapic_library(
+-    name = "language_ruby_gapic",
+-    src = ":language_proto_with_info",
+-    gapic_yaml = "language_gapic.yaml",
+-    service_yaml = "//google/cloud/language:language_v1.yaml",
+-    deps = [
+-        ":langauge_ruby_grpc",
+-        ":language_ruby_proto",
+-    ],
+-)
+-
+-# Opensource Packages
+-ruby_gapic_assembly_pkg(
+-    name = "google-cloud-language-v1-ruby",
+-    deps = [
+-        ":language_ruby_gapic",
+-        ":language_ruby_grpc",
+-        ":language_ruby_proto",
+-    ],
+-)
+-
+-##############################################################################
+-# C#
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "csharp_proto_library",
+-    "csharp_grpc_library",
+-    "csharp_gapic_library",
+-    "csharp_gapic_assembly_pkg",
+-)
+-
+-csharp_proto_library(
+-    name = "language_csharp_proto",
+-    deps = [":language_proto"],
+-)
+-
+-csharp_grpc_library(
+-    name = "language_csharp_grpc",
+-    srcs = [":language_proto"],
+-    deps = [":language_csharp_proto"],
+-)
+-
+-csharp_gapic_library(
+-    name = "language_csharp_gapic",
+-    src = ":language_proto_with_info",
+-    gapic_yaml = "language_gapic.yaml",
+-    service_yaml = "//google/cloud/language:language_v1.yaml",
+-    deps = [
+-        ":langauge_csharp_grpc",
+-        ":language_csharp_proto",
+-    ],
+-)
+-
+-# Opensource Packages
+-csharp_gapic_assembly_pkg(
+-    name = "google-cloud-language-v1-csharp",
+-    deps = [
+-        ":language_csharp_gapic",
+-        ":language_csharp_grpc",
+-        ":language_csharp_proto",
+-    ],
+-)
+\ No newline at end of file
 diff -urN a/google/cloud/language/v1beta2/BUILD.bazel b/google/cloud/language/v1beta2/BUILD.bazel
---- a/google/cloud/language/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/language/v1beta2/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/language/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,132 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -3519,12 +3851,12 @@ diff -urN a/google/cloud/language/v1beta2/BUILD.bazel b/google/cloud/language/v1
 -    ],
 -)
 diff -urN a/google/cloud/oslogin/BUILD.bazel b/google/cloud/oslogin/BUILD.bazel
---- a/google/cloud/oslogin/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/oslogin/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/oslogin/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/cloud/oslogin/common/BUILD.bazel b/google/cloud/oslogin/common/BUILD.bazel
---- a/google/cloud/oslogin/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/oslogin/common/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/oslogin/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,61 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -3589,7 +3921,7 @@ diff -urN a/google/cloud/oslogin/common/BUILD.bazel b/google/cloud/oslogin/commo
 -    deps = ["//google/api:annotations_go_proto"],
 -)
 diff -urN a/google/cloud/oslogin/v1/BUILD.bazel b/google/cloud/oslogin/v1/BUILD.bazel
---- a/google/cloud/oslogin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/oslogin/v1/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/oslogin/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,165 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -3758,7 +4090,7 @@ diff -urN a/google/cloud/oslogin/v1/BUILD.bazel b/google/cloud/oslogin/v1/BUILD.
 -    ],
 -)
 diff -urN a/google/cloud/oslogin/v1beta/BUILD.bazel b/google/cloud/oslogin/v1beta/BUILD.bazel
---- a/google/cloud/oslogin/v1beta/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/oslogin/v1beta/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/oslogin/v1beta/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,165 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -3927,15 +4259,15 @@ diff -urN a/google/cloud/oslogin/v1beta/BUILD.bazel b/google/cloud/oslogin/v1bet
 -    ],
 -)
 diff -urN a/google/cloud/redis/BUILD.bazel b/google/cloud/redis/BUILD.bazel
---- a/google/cloud/redis/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/redis/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/redis/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/redis/v1/BUILD.bazel b/google/cloud/redis/v1/BUILD.bazel
---- a/google/cloud/redis/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/redis/v1/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/redis/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,153 +0,0 @@
+@@ -1,154 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -3952,6 +4284,7 @@ diff -urN a/google/cloud/redis/v1/BUILD.bazel b/google/cloud/redis/v1/BUILD.baze
 -    deps = [
 -        "//google/api:annotations_proto",
 -        "//google/api:client_proto",
+-        "//google/api:field_behavior_proto",
 -        "//google/api:resource_proto",
 -        "//google/longrunning:operations_proto",
 -        "@com_google_protobuf//:field_mask_proto",
@@ -4090,9 +4423,9 @@ diff -urN a/google/cloud/redis/v1/BUILD.bazel b/google/cloud/redis/v1/BUILD.baze
 -    ],
 -)
 diff -urN a/google/cloud/redis/v1beta1/BUILD.bazel b/google/cloud/redis/v1beta1/BUILD.bazel
---- a/google/cloud/redis/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/redis/v1beta1/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/redis/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,155 +0,0 @@
+@@ -1,156 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -4109,6 +4442,7 @@ diff -urN a/google/cloud/redis/v1beta1/BUILD.bazel b/google/cloud/redis/v1beta1/
 -    deps = [
 -        "//google/api:annotations_proto",
 -        "//google/api:client_proto",
+-        "//google/api:field_behavior_proto",
 -        "//google/api:resource_proto",
 -        "//google/longrunning:operations_proto",
 -        "//google/rpc:status_proto",
@@ -4249,13 +4583,13 @@ diff -urN a/google/cloud/redis/v1beta1/BUILD.bazel b/google/cloud/redis/v1beta1/
 -    ],
 -)
 diff -urN a/google/cloud/scheduler/BUILD.bazel b/google/cloud/scheduler/BUILD.bazel
---- a/google/cloud/scheduler/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/scheduler/BUILD.bazel	2019-10-05 15:54:12.528349524 -0400
 +++ b/google/cloud/scheduler/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/scheduler/v1beta1/BUILD.bazel b/google/cloud/scheduler/v1beta1/BUILD.bazel
---- a/google/cloud/scheduler/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/scheduler/v1beta1/BUILD.bazel	2019-10-05 15:54:12.532349422 -0400
 +++ b/google/cloud/scheduler/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,149 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -4408,13 +4742,13 @@ diff -urN a/google/cloud/scheduler/v1beta1/BUILD.bazel b/google/cloud/scheduler/
 -    ],
 -)
 diff -urN a/google/cloud/securitycenter/BUILD.bazel b/google/cloud/securitycenter/BUILD.bazel
---- a/google/cloud/securitycenter/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/securitycenter/BUILD.bazel	2019-10-05 15:54:12.532349422 -0400
 +++ b/google/cloud/securitycenter/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/securitycenter/v1beta1/BUILD.bazel b/google/cloud/securitycenter/v1beta1/BUILD.bazel
---- a/google/cloud/securitycenter/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/securitycenter/v1beta1/BUILD.bazel	2019-10-05 15:54:12.532349422 -0400
 +++ b/google/cloud/securitycenter/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,163 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -4581,13 +4915,13 @@ diff -urN a/google/cloud/securitycenter/v1beta1/BUILD.bazel b/google/cloud/secur
 -    ],
 -)
 diff -urN a/google/cloud/speech/BUILD.bazel b/google/cloud/speech/BUILD.bazel
---- a/google/cloud/speech/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/speech/BUILD.bazel	2019-10-05 15:54:12.532349422 -0400
 +++ b/google/cloud/speech/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/speech/v1/BUILD.bazel b/google/cloud/speech/v1/BUILD.bazel
---- a/google/cloud/speech/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/speech/v1/BUILD.bazel	2019-10-05 15:54:12.532349422 -0400
 +++ b/google/cloud/speech/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,155 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -4746,7 +5080,7 @@ diff -urN a/google/cloud/speech/v1/BUILD.bazel b/google/cloud/speech/v1/BUILD.ba
 -    ],
 -)
 diff -urN a/google/cloud/speech/v1p1beta1/BUILD.bazel b/google/cloud/speech/v1p1beta1/BUILD.bazel
---- a/google/cloud/speech/v1p1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/speech/v1p1beta1/BUILD.bazel	2019-10-05 15:54:12.532349422 -0400
 +++ b/google/cloud/speech/v1p1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,155 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -4904,16 +5238,20 @@ diff -urN a/google/cloud/speech/v1p1beta1/BUILD.bazel b/google/cloud/speech/v1p1
 -        ":speech_go_proto",
 -    ],
 -)
+diff -urN a/google/cloud/talent/BUILD.bazel b/google/cloud/talent/BUILD.bazel
+--- a/google/cloud/talent/BUILD.bazel	2019-10-05 15:54:12.532349422 -0400
++++ b/google/cloud/talent/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-exports_files(glob(["*.yaml"]))
 diff -urN a/google/cloud/tasks/BUILD.bazel b/google/cloud/tasks/BUILD.bazel
---- a/google/cloud/tasks/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/tasks/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/tasks/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
-\ No newline at end of file
 diff -urN a/google/cloud/tasks/v2beta2/BUILD.bazel b/google/cloud/tasks/v2beta2/BUILD.bazel
---- a/google/cloud/tasks/v2beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/tasks/v2beta2/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/tasks/v2beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,161 +0,0 @@
+@@ -1,164 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -4932,6 +5270,9 @@ diff -urN a/google/cloud/tasks/v2beta2/BUILD.bazel b/google/cloud/tasks/v2beta2/
 -    ],
 -    deps = [
 -        "//google/api:annotations_proto",
+-        "//google/api:client_proto",
+-        "//google/api:field_behavior_proto",
+-        "//google/api:resource_proto",
 -        "//google/iam/v1:iam_policy_proto",
 -        "//google/iam/v1:policy_proto",
 -        "//google/rpc:code_proto",
@@ -5076,9 +5417,9 @@ diff -urN a/google/cloud/tasks/v2beta2/BUILD.bazel b/google/cloud/tasks/v2beta2/
 -    ],
 -)
 diff -urN a/google/cloud/tasks/v2beta3/BUILD.bazel b/google/cloud/tasks/v2beta3/BUILD.bazel
---- a/google/cloud/tasks/v2beta3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/tasks/v2beta3/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/tasks/v2beta3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,162 +0,0 @@
+@@ -1,164 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -5097,6 +5438,8 @@ diff -urN a/google/cloud/tasks/v2beta3/BUILD.bazel b/google/cloud/tasks/v2beta3/
 -    ],
 -    deps = [
 -        "//google/api:annotations_proto",
+-        "//google/api:client_proto",
+-        "//google/api:field_behavior_proto",
 -        "//google/api:resource_proto",
 -        "//google/iam/v1:iam_policy_proto",
 -        "//google/iam/v1:policy_proto",
@@ -5242,13 +5585,13 @@ diff -urN a/google/cloud/tasks/v2beta3/BUILD.bazel b/google/cloud/tasks/v2beta3/
 -    ],
 -)
 diff -urN a/google/cloud/texttospeech/BUILD.bazel b/google/cloud/texttospeech/BUILD.bazel
---- a/google/cloud/texttospeech/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/texttospeech/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/texttospeech/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/texttospeech/v1/BUILD.bazel b/google/cloud/texttospeech/v1/BUILD.bazel
---- a/google/cloud/texttospeech/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/texttospeech/v1/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/texttospeech/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,127 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -5379,7 +5722,7 @@ diff -urN a/google/cloud/texttospeech/v1/BUILD.bazel b/google/cloud/texttospeech
 -    ],
 -)
 diff -urN a/google/cloud/texttospeech/v1beta1/BUILD.bazel b/google/cloud/texttospeech/v1beta1/BUILD.bazel
---- a/google/cloud/texttospeech/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/texttospeech/v1beta1/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/texttospeech/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,127 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -5510,14 +5853,14 @@ diff -urN a/google/cloud/texttospeech/v1beta1/BUILD.bazel b/google/cloud/texttos
 -    ],
 -)
 diff -urN a/google/cloud/videointelligence/BUILD.bazel b/google/cloud/videointelligence/BUILD.bazel
---- a/google/cloud/videointelligence/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/videointelligence/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/videointelligence/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/cloud/videointelligence/v1/BUILD.bazel b/google/cloud/videointelligence/v1/BUILD.bazel
---- a/google/cloud/videointelligence/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/videointelligence/v1/BUILD.bazel	2019-10-05 15:54:12.536349318 -0400
 +++ b/google/cloud/videointelligence/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,153 +0,0 @@
+@@ -1,154 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -5533,6 +5876,7 @@ diff -urN a/google/cloud/videointelligence/v1/BUILD.bazel b/google/cloud/videoin
 -    ],
 -    deps = [
 -        "//google/api:annotations_proto",
+-        "//google/api:client_proto",
 -        "//google/longrunning:operations_proto",
 -        "//google/rpc:status_proto",
 -        "@com_google_protobuf//:duration_proto",
@@ -5672,7 +6016,7 @@ diff -urN a/google/cloud/videointelligence/v1/BUILD.bazel b/google/cloud/videoin
 -    ],
 -)
 diff -urN a/google/cloud/videointelligence/v1beta1/BUILD.bazel b/google/cloud/videointelligence/v1beta1/BUILD.bazel
---- a/google/cloud/videointelligence/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/videointelligence/v1beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/videointelligence/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,152 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -5828,7 +6172,7 @@ diff -urN a/google/cloud/videointelligence/v1beta1/BUILD.bazel b/google/cloud/vi
 -    ],
 -)
 diff -urN a/google/cloud/videointelligence/v1beta2/BUILD.bazel b/google/cloud/videointelligence/v1beta2/BUILD.bazel
---- a/google/cloud/videointelligence/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/videointelligence/v1beta2/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/videointelligence/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,153 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -5985,7 +6329,7 @@ diff -urN a/google/cloud/videointelligence/v1beta2/BUILD.bazel b/google/cloud/vi
 -    ],
 -)
 diff -urN a/google/cloud/videointelligence/v1p1beta1/BUILD.bazel b/google/cloud/videointelligence/v1p1beta1/BUILD.bazel
---- a/google/cloud/videointelligence/v1p1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/videointelligence/v1p1beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/videointelligence/v1p1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,153 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -6142,7 +6486,7 @@ diff -urN a/google/cloud/videointelligence/v1p1beta1/BUILD.bazel b/google/cloud/
 -    ],
 -)
 diff -urN a/google/cloud/videointelligence/v1p2beta1/BUILD.bazel b/google/cloud/videointelligence/v1p2beta1/BUILD.bazel
---- a/google/cloud/videointelligence/v1p2beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/videointelligence/v1p2beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/videointelligence/v1p2beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,153 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -6299,7 +6643,7 @@ diff -urN a/google/cloud/videointelligence/v1p2beta1/BUILD.bazel b/google/cloud/
 -    ],
 -)
 diff -urN a/google/cloud/videointelligence/v1p3beta1/BUILD.bazel b/google/cloud/videointelligence/v1p3beta1/BUILD.bazel
---- a/google/cloud/videointelligence/v1p3beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/videointelligence/v1p3beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/videointelligence/v1p3beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,154 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -6457,14 +6801,14 @@ diff -urN a/google/cloud/videointelligence/v1p3beta1/BUILD.bazel b/google/cloud/
 -    ],
 -)
 diff -urN a/google/cloud/vision/BUILD.bazel b/google/cloud/vision/BUILD.bazel
---- a/google/cloud/vision/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/vision/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/vision/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/cloud/vision/v1/BUILD.bazel b/google/cloud/vision/v1/BUILD.bazel
---- a/google/cloud/vision/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/vision/v1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/vision/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,195 +0,0 @@
+@@ -1,197 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -6485,6 +6829,7 @@ diff -urN a/google/cloud/vision/v1/BUILD.bazel b/google/cloud/vision/v1/BUILD.ba
 -    ],
 -    deps = [
 -        "//google/api:annotations_proto",
+-        "//google/api:client_proto",
 -        "//google/longrunning:operations_proto",
 -        "//google/rpc:status_proto",
 -        "//google/type:color_proto",
@@ -6647,8 +6992,9 @@ diff -urN a/google/cloud/vision/v1/BUILD.bazel b/google/cloud/vision/v1/BUILD.ba
 -cc_grpc_library(
 -    name = "vision_cc_grpc",
 -    srcs = [":vision_proto"],
--    deps = [":vision_cc_proto"],
+-    generate_mocks = True,
 -    grpc_only = True,
+-    deps = [":vision_cc_proto"],
 -)
 -
 -cc_gapic_library(
@@ -6660,9 +7006,8 @@ diff -urN a/google/cloud/vision/v1/BUILD.bazel b/google/cloud/vision/v1/BUILD.ba
 -        ":vision_cc_proto",
 -    ],
 -)
-\ No newline at end of file
 diff -urN a/google/cloud/vision/v1p1beta1/BUILD.bazel b/google/cloud/vision/v1p1beta1/BUILD.bazel
---- a/google/cloud/vision/v1p1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/vision/v1p1beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/vision/v1p1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,158 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -6824,7 +7169,7 @@ diff -urN a/google/cloud/vision/v1p1beta1/BUILD.bazel b/google/cloud/vision/v1p1
 -    ],
 -)
 diff -urN a/google/cloud/vision/v1p2beta1/BUILD.bazel b/google/cloud/vision/v1p2beta1/BUILD.bazel
---- a/google/cloud/vision/v1p2beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/vision/v1p2beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/vision/v1p2beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,159 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -6987,7 +7332,7 @@ diff -urN a/google/cloud/vision/v1p2beta1/BUILD.bazel b/google/cloud/vision/v1p2
 -    ],
 -)
 diff -urN a/google/cloud/vision/v1p3beta1/BUILD.bazel b/google/cloud/vision/v1p3beta1/BUILD.bazel
---- a/google/cloud/vision/v1p3beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/vision/v1p3beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/vision/v1p3beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,163 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -7154,7 +7499,7 @@ diff -urN a/google/cloud/vision/v1p3beta1/BUILD.bazel b/google/cloud/vision/v1p3
 -    ],
 -)
 diff -urN a/google/cloud/vision/v1p4beta1/BUILD.bazel b/google/cloud/vision/v1p4beta1/BUILD.bazel
---- a/google/cloud/vision/v1p4beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/vision/v1p4beta1/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/vision/v1p4beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,163 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -7321,13 +7666,13 @@ diff -urN a/google/cloud/vision/v1p4beta1/BUILD.bazel b/google/cloud/vision/v1p4
 -    ],
 -)
 diff -urN a/google/cloud/websecurityscanner/BUILD.bazel b/google/cloud/websecurityscanner/BUILD.bazel
---- a/google/cloud/websecurityscanner/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/websecurityscanner/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/websecurityscanner/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/cloud/websecurityscanner/v1alpha/BUILD.bazel b/google/cloud/websecurityscanner/v1alpha/BUILD.bazel
---- a/google/cloud/websecurityscanner/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/cloud/websecurityscanner/v1alpha/BUILD.bazel	2019-10-05 15:54:12.540349216 -0400
 +++ b/google/cloud/websecurityscanner/v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,147 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -7478,12 +7823,12 @@ diff -urN a/google/cloud/websecurityscanner/v1alpha/BUILD.bazel b/google/cloud/w
 -    ],
 -)
 diff -urN a/google/container/BUILD.bazel b/google/container/BUILD.bazel
---- a/google/container/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/container/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/container/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/container/v1/BUILD.bazel b/google/container/v1/BUILD.bazel
---- a/google/container/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/container/v1/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/container/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,126 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -7613,13 +7958,13 @@ diff -urN a/google/container/v1/BUILD.bazel b/google/container/v1/BUILD.bazel
 -    ],
 -)
 diff -urN a/google/datastore/BUILD.bazel b/google/datastore/BUILD.bazel
---- a/google/datastore/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/datastore/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/datastore/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/datastore/v1/BUILD.bazel b/google/datastore/v1/BUILD.bazel
---- a/google/datastore/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/datastore/v1/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/datastore/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,151 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -7774,13 +8119,13 @@ diff -urN a/google/datastore/v1/BUILD.bazel b/google/datastore/v1/BUILD.bazel
 -    ],
 -)
 diff -urN a/google/devtools/clouddebugger/BUILD.bazel b/google/devtools/clouddebugger/BUILD.bazel
---- a/google/devtools/clouddebugger/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/clouddebugger/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/devtools/clouddebugger/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/devtools/clouddebugger/v2/BUILD.bazel b/google/devtools/clouddebugger/v2/BUILD.bazel
---- a/google/devtools/clouddebugger/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/clouddebugger/v2/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/devtools/clouddebugger/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,153 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -7937,13 +8282,13 @@ diff -urN a/google/devtools/clouddebugger/v2/BUILD.bazel b/google/devtools/cloud
 -    ],
 -)
 diff -urN a/google/devtools/clouderrorreporting/BUILD.bazel b/google/devtools/clouderrorreporting/BUILD.bazel
---- a/google/devtools/clouderrorreporting/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/clouderrorreporting/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/devtools/clouderrorreporting/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel b/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel
---- a/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel	2019-10-05 15:54:12.544349112 -0400
 +++ b/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,151 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -8098,13 +8443,13 @@ diff -urN a/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel b/google/dev
 -    ],
 -)
 diff -urN a/google/devtools/cloudtrace/BUILD.bazel b/google/devtools/cloudtrace/BUILD.bazel
---- a/google/devtools/cloudtrace/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/cloudtrace/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/cloudtrace/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/devtools/cloudtrace/v1/BUILD.bazel b/google/devtools/cloudtrace/v1/BUILD.bazel
---- a/google/devtools/cloudtrace/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/cloudtrace/v1/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/cloudtrace/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,140 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -8248,9 +8593,9 @@ diff -urN a/google/devtools/cloudtrace/v1/BUILD.bazel b/google/devtools/cloudtra
 -    ],
 -)
 diff -urN a/google/devtools/cloudtrace/v2/BUILD.bazel b/google/devtools/cloudtrace/v2/BUILD.bazel
---- a/google/devtools/cloudtrace/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/cloudtrace/v2/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/cloudtrace/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,167 +0,0 @@
+@@ -1,168 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -8415,17 +8760,149 @@ diff -urN a/google/devtools/cloudtrace/v2/BUILD.bazel b/google/devtools/cloudtra
 -cc_grpc_library(
 -    name = "trace_cc_grpc",
 -    srcs = [":trace_proto"],
--    deps = [":trace_cc_proto"],
+-    generate_mocks = True,
 -    grpc_only = True,
+-    deps = [":trace_cc_proto"],
 -)
 diff -urN a/google/devtools/containeranalysis/BUILD.bazel b/google/devtools/containeranalysis/BUILD.bazel
---- a/google/devtools/containeranalysis/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
+diff -urN a/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel
+--- a/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
++++ b/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1,60 +0,0 @@
+-# This is an API workspace, having public visibility by default makes perfect sense.
+-package(default_visibility = ["//visibility:public"])
+-
+-##############################################################################
+-# Common
+-##############################################################################
+-load("@com_google_googleapis_imports//:imports.bzl", "proto_library_with_info")
+-
+-proto_library(
+-    name = "attestation_proto",
+-    srcs = [
+-        "attestation.proto",
+-    ],
+-    deps = [],
+-)
+-
+-proto_library_with_info(
+-    name = "attestation_proto_with_info",
+-    deps = [":attestation_proto"],
+-)
+-
+-##############################################################################
+-# Java
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "java_grpc_library",
+-    "java_proto_library",
+-    "java_resource_name_proto_library",
+-)
+-
+-java_proto_library(
+-    name = "attestation_java_proto",
+-    deps = [":attestation_proto"],
+-)
+-
+-java_grpc_library(
+-    name = "attestation_java_grpc",
+-    srcs = [":attestation_proto"],
+-    deps = [":attestation_java_proto"],
+-)
+-
+-java_resource_name_proto_library(
+-    name = "attestation_resource_name_java_proto",
+-    gapic_yaml = "//google/devtools/containeranalysis/v1beta1:containeranalysis_gapic.yaml",
+-    deps = [":attestation_proto"],
+-)
+-
+-##############################################################################
+-# Go
+-##############################################################################
+-load("@com_google_googleapis_imports//:imports.bzl", "go_proto_library")
+-
+-go_proto_library(
+-    name = "attestation_go_proto",
+-    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+-    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/attestation",
+-    protos = [":attestation_proto"],
+-    deps = [],
+-)
+diff -urN a/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel
+--- a/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
++++ b/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1,63 +0,0 @@
+-# This is an API workspace, having public visibility by default makes perfect sense.
+-package(default_visibility = ["//visibility:public"])
+-
+-##############################################################################
+-# Common
+-##############################################################################
+-load("@com_google_googleapis_imports//:imports.bzl", "proto_library_with_info")
+-
+-proto_library(
+-    name = "build_proto",
+-    srcs = [
+-        "build.proto",
+-    ],
+-    deps = [
+-        "//google/devtools/containeranalysis/v1beta1/provenance:provenance_proto",
+-    ],
+-)
+-
+-proto_library_with_info(
+-    name = "build_proto_with_info",
+-    deps = [":build_proto"],
+-)
+-
+-##############################################################################
+-# Java
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "java_grpc_library",
+-    "java_resource_name_proto_library",
+-)
+-
+-java_proto_library(
+-    name = "build_java_proto",
+-    deps = [":build_proto"],
+-)
+-
+-java_grpc_library(
+-    name = "build_java_grpc",
+-    srcs = [":build_proto"],
+-    deps = [":build_java_proto"],
+-)
+-
+-java_resource_name_proto_library(
+-    name = "build_resource_name_java_proto",
+-    gapic_yaml = "//google/devtools/containeranalysis/v1beta1:containeranalysis_gapic.yaml",
+-    deps = [":build_proto"],
+-)
+-
+-##############################################################################
+-# Go
+-##############################################################################
+-load("@com_google_googleapis_imports//:imports.bzl", "go_proto_library")
+-
+-go_proto_library(
+-    name = "build_go_proto",
+-    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+-    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/build",
+-    protos = [":build_proto"],
+-    deps = [
+-        "//google/devtools/containeranalysis/v1beta1/provenance:provenance_go_proto",
+-    ],
+-)
 diff -urN a/google/devtools/containeranalysis/v1beta1/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,233 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -8661,139 +9138,8 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/BUILD.bazel b/google/devto
 -        "//google/devtools/containeranalysis/v1beta1/vulnerability:vulnerability_go_proto",
 -    ],
 -)
-diff -urN a/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ b/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,60 +0,0 @@
--# This is an API workspace, having public visibility by default makes perfect sense.
--package(default_visibility = ["//visibility:public"])
--
--##############################################################################
--# Common
--##############################################################################
--load("@com_google_googleapis_imports//:imports.bzl", "proto_library_with_info")
--
--proto_library(
--    name = "attestation_proto",
--    srcs = [
--        "attestation.proto",
--    ],
--    deps = [],
--)
--
--proto_library_with_info(
--    name = "attestation_proto_with_info",
--    deps = [":attestation_proto"],
--)
--
--##############################################################################
--# Java
--##############################################################################
--load(
--    "@com_google_googleapis_imports//:imports.bzl",
--    "java_grpc_library",
--    "java_proto_library",
--    "java_resource_name_proto_library",
--)
--
--java_proto_library(
--    name = "attestation_java_proto",
--    deps = [":attestation_proto"],
--)
--
--java_grpc_library(
--    name = "attestation_java_grpc",
--    srcs = [":attestation_proto"],
--    deps = [":attestation_java_proto"],
--)
--
--java_resource_name_proto_library(
--    name = "attestation_resource_name_java_proto",
--    gapic_yaml = "//google/devtools/containeranalysis/v1beta1:containeranalysis_gapic.yaml",
--    deps = [":attestation_proto"],
--)
--
--##############################################################################
--# Go
--##############################################################################
--load("@com_google_googleapis_imports//:imports.bzl", "go_proto_library")
--
--go_proto_library(
--    name = "attestation_go_proto",
--    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
--    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/attestation",
--    protos = [":attestation_proto"],
--    deps = [],
--)
-diff -urN a/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ b/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,63 +0,0 @@
--# This is an API workspace, having public visibility by default makes perfect sense.
--package(default_visibility = ["//visibility:public"])
--
--##############################################################################
--# Common
--##############################################################################
--load("@com_google_googleapis_imports//:imports.bzl", "proto_library_with_info")
--
--proto_library(
--    name = "build_proto",
--    srcs = [
--        "build.proto",
--    ],
--    deps = [
--        "//google/devtools/containeranalysis/v1beta1/provenance:provenance_proto",
--    ],
--)
--
--proto_library_with_info(
--    name = "build_proto_with_info",
--    deps = [":build_proto"],
--)
--
--##############################################################################
--# Java
--##############################################################################
--load(
--    "@com_google_googleapis_imports//:imports.bzl",
--    "java_grpc_library",
--    "java_resource_name_proto_library",
--)
--
--java_proto_library(
--    name = "build_java_proto",
--    deps = [":build_proto"],
--)
--
--java_grpc_library(
--    name = "build_java_grpc",
--    srcs = [":build_proto"],
--    deps = [":build_java_proto"],
--)
--
--java_resource_name_proto_library(
--    name = "build_resource_name_java_proto",
--    gapic_yaml = "//google/devtools/containeranalysis/v1beta1:containeranalysis_gapic.yaml",
--    deps = [":build_proto"],
--)
--
--##############################################################################
--# Go
--##############################################################################
--load("@com_google_googleapis_imports//:imports.bzl", "go_proto_library")
--
--go_proto_library(
--    name = "build_go_proto",
--    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
--    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/build",
--    protos = [":build_proto"],
--    deps = [
--        "//google/devtools/containeranalysis/v1beta1/provenance:provenance_go_proto",
--    ],
--)
 diff -urN a/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,60 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -8857,7 +9203,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel b/googl
 -    deps = [],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,61 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -8922,7 +9268,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel b/g
 -    deps = [],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,66 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -8992,7 +9338,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel b/go
 -    ],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,86 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9082,7 +9428,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel b/goog
 -    ],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,59 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9145,7 +9491,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel b/google
 -    deps = [],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,60 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9209,7 +9555,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel b/goog
 -    deps = [],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,65 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9278,7 +9624,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel b/g
 -    ],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,60 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9342,7 +9688,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel b/googl
 -    deps = [],
 -)
 diff -urN a/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel b/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel
---- a/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel	2019-10-05 15:54:12.548349011 -0400
 +++ b/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,66 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9412,7 +9758,7 @@ diff -urN a/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel 
 -    ],
 -)
 diff -urN a/google/devtools/source/v1/BUILD.bazel b/google/devtools/source/v1/BUILD.bazel
---- a/google/devtools/source/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/devtools/source/v1/BUILD.bazel	2019-10-05 15:54:12.552348907 -0400
 +++ b/google/devtools/source/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,58 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9474,12 +9820,12 @@ diff -urN a/google/devtools/source/v1/BUILD.bazel b/google/devtools/source/v1/BU
 -    ],
 -)
 diff -urN a/google/example/library/BUILD.bazel b/google/example/library/BUILD.bazel
---- a/google/example/library/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/example/library/BUILD.bazel	2019-10-05 15:54:12.552348907 -0400
 +++ b/google/example/library/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/example/library/v1/BUILD.bazel b/google/example/library/v1/BUILD.bazel
---- a/google/example/library/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/example/library/v1/BUILD.bazel	2019-10-05 15:54:12.552348907 -0400
 +++ b/google/example/library/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,140 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9623,13 +9969,13 @@ diff -urN a/google/example/library/v1/BUILD.bazel b/google/example/library/v1/BU
 -    ],
 -)
 diff -urN a/google/firestore/BUILD.bazel b/google/firestore/BUILD.bazel
---- a/google/firestore/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/firestore/BUILD.bazel	2019-10-05 15:54:12.552348907 -0400
 +++ b/google/firestore/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/firestore/v1beta1/BUILD.bazel b/google/firestore/v1beta1/BUILD.bazel
---- a/google/firestore/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/firestore/v1beta1/BUILD.bazel	2019-10-05 15:54:12.552348907 -0400
 +++ b/google/firestore/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,154 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9786,14 +10132,53 @@ diff -urN a/google/firestore/v1beta1/BUILD.bazel b/google/firestore/v1beta1/BUIL
 -        ":firestore_go_proto",
 -    ],
 -)
-diff -urN a/google/iam/BUILD.bazel b/google/iam/BUILD.bazel
---- a/google/iam/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ b/google/iam/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1 +0,0 @@
--exports_files(glob(["*.yaml"]))
-\ No newline at end of file
+diff -urN a/google/geo/type/BUILD.bazel b/google/geo/type/BUILD.bazel
+--- a/google/geo/type/BUILD.bazel	2019-10-05 15:54:12.552348907 -0400
++++ b/google/geo/type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1,41 +0,0 @@
+-load("@com_google_googleapis_imports//:imports.bzl", "java_proto_library", "go_proto_library","cc_proto_library")
+-
+-package(default_visibility = ["//visibility:public"])
+-
+-##############################################################################
+-# Common
+-##############################################################################
+-proto_library(
+-    name = "viewport_proto",
+-    srcs = ["viewport.proto"],
+-    deps = ["//google/type:latlng_proto"],
+-)
+-
+-
+-##############################################################################
+-# Java
+-##############################################################################
+-java_proto_library(
+-    name = "viewport_java_proto",
+-    deps = [
+-        ":viewport_proto",
+-    ],
+-)
+-
+-##############################################################################
+-# Go
+-##############################################################################
+-go_proto_library(
+-    name = "viewport_go_proto",
+-    importpath = "google.golang.org/genproto/googleapis/geo/type",
+-    protos = [":viewport_proto"],
+-    deps = ["//google/type:latlng_go_proto"],
+-)
+-
+-##############################################################################
+-# C++
+-##############################################################################
+-cc_proto_library(
+-    name = "viewport_cc_proto",
+-    deps = [":viewport_proto"],
+-)
 diff -urN a/google/iam/admin/v1/BUILD.bazel b/google/iam/admin/v1/BUILD.bazel
---- a/google/iam/admin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/iam/admin/v1/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/iam/admin/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,78 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -9874,14 +10259,20 @@ diff -urN a/google/iam/admin/v1/BUILD.bazel b/google/iam/admin/v1/BUILD.bazel
 -        ":iam_admin_go_proto",
 -    ],
 -)
+diff -urN a/google/iam/BUILD.bazel b/google/iam/BUILD.bazel
+--- a/google/iam/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
++++ b/google/iam/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-exports_files(glob(["*.yaml"]))
+\ No newline at end of file
 diff -urN a/google/iam/credentials/BUILD.bazel b/google/iam/credentials/BUILD.bazel
---- a/google/iam/credentials/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/iam/credentials/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/iam/credentials/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/iam/credentials/v1/BUILD.bazel b/google/iam/credentials/v1/BUILD.bazel
---- a/google/iam/credentials/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/iam/credentials/v1/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/iam/credentials/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,141 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -10026,9 +10417,9 @@ diff -urN a/google/iam/credentials/v1/BUILD.bazel b/google/iam/credentials/v1/BU
 -    ],
 -)
 diff -urN a/google/iam/v1/BUILD.bazel b/google/iam/v1/BUILD.bazel
---- a/google/iam/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/iam/v1/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/iam/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,83 +0,0 @@
+@@ -1,95 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -10041,8 +10432,10 @@ diff -urN a/google/iam/v1/BUILD.bazel b/google/iam/v1/BUILD.bazel
 -    name = "iam_policy_proto",
 -    srcs = ["iam_policy.proto"],
 -    deps = [
+-        ":options_proto",
 -        ":policy_proto",
 -        "//google/api:annotations_proto",
+-        "//google/api:client_proto",
 -        "//google/api:resource_proto",
 -    ],
 -)
@@ -10056,10 +10449,19 @@ diff -urN a/google/iam/v1/BUILD.bazel b/google/iam/v1/BUILD.bazel
 -    ],
 -)
 -
+-proto_library(
+-    name = "options_proto",
+-    srcs = ["options.proto"],
+-    deps = [
+-        "//google/api:annotations_proto",
+-    ],
+-)
+-
 -proto_library_with_info(
 -    name = "iam_proto_with_info",
 -    deps = [
 -        ":iam_policy_proto",
+-        ":options_proto",
 -        ":policy_proto",
 -    ],
 -)
@@ -10098,6 +10500,7 @@ diff -urN a/google/iam/v1/BUILD.bazel b/google/iam/v1/BUILD.bazel
 -    importpath = "google.golang.org/genproto/googleapis/iam/v1",
 -    protos = [
 -        ":iam_policy_proto",
+-        ":options_proto",
 -        ":policy_proto",
 -    ],
 -    deps = [
@@ -10113,7 +10516,7 @@ diff -urN a/google/iam/v1/BUILD.bazel b/google/iam/v1/BUILD.bazel
 -    ],
 -)
 diff -urN a/google/iam/v1/logging/BUILD.bazel b/google/iam/v1/logging/BUILD.bazel
---- a/google/iam/v1/logging/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/iam/v1/logging/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/iam/v1/logging/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,60 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -10177,13 +10580,13 @@ diff -urN a/google/iam/v1/logging/BUILD.bazel b/google/iam/v1/logging/BUILD.baze
 -    ],
 -)
 diff -urN a/google/logging/BUILD.bazel b/google/logging/BUILD.bazel
---- a/google/logging/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/logging/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/logging/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/logging/type/BUILD.bazel b/google/logging/type/BUILD.bazel
---- a/google/logging/type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/logging/type/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/logging/type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,74 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -10261,9 +10664,9 @@ diff -urN a/google/logging/type/BUILD.bazel b/google/logging/type/BUILD.bazel
 -    deps = ["//google/api:annotations_go_proto"],
 -)
 diff -urN a/google/logging/v2/BUILD.bazel b/google/logging/v2/BUILD.bazel
---- a/google/logging/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/logging/v2/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/logging/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,187 +0,0 @@
+@@ -1,209 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -10451,8 +10854,30 @@ diff -urN a/google/logging/v2/BUILD.bazel b/google/logging/v2/BUILD.bazel
 -        "//google/logging/type:ltype_go_proto",
 -    ],
 -)
+-
+-##############################################################################
+-# C++
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "cc_grpc_library",
+-    "cc_proto_library",
+-)
+-
+-cc_proto_library(
+-    name = "logging_cc_proto",
+-    deps = [":logging_proto"],
+-)
+-
+-cc_grpc_library(
+-    name = "logging_cc_grpc",
+-    srcs = [":logging_proto"],
+-    generate_mocks = True,
+-    grpc_only = True,
+-    deps = [":logging_cc_proto"],
+-)
 diff -urN a/google/longrunning/BUILD.bazel b/google/longrunning/BUILD.bazel
---- a/google/longrunning/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/longrunning/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/longrunning/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,112 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -10568,15 +10993,15 @@ diff -urN a/google/longrunning/BUILD.bazel b/google/longrunning/BUILD.bazel
 -    grpc_only = True,
 -)
 diff -urN a/google/monitoring/BUILD.bazel b/google/monitoring/BUILD.bazel
---- a/google/monitoring/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/monitoring/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/monitoring/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/monitoring/v3/BUILD.bazel b/google/monitoring/v3/BUILD.bazel
---- a/google/monitoring/v3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/monitoring/v3/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/monitoring/v3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,202 +0,0 @@
+@@ -1,204 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -10605,6 +11030,7 @@ diff -urN a/google/monitoring/v3/BUILD.bazel b/google/monitoring/v3/BUILD.bazel
 -    ],
 -    deps = [
 -        "//google/api:annotations_proto",
+-        "//google/api:client_proto",
 -        "//google/api:distribution_proto",
 -        "//google/api:label_proto",
 -        "//google/api:metric_proto",
@@ -10776,17 +11202,18 @@ diff -urN a/google/monitoring/v3/BUILD.bazel b/google/monitoring/v3/BUILD.bazel
 -cc_grpc_library(
 -    name = "monitoring_cc_grpc",
 -    srcs = [":monitoring_proto"],
--    deps = [":monitoring_cc_proto"],
+-    generate_mocks = True,
 -    grpc_only = True,
+-    deps = [":monitoring_cc_proto"],
 -)
 diff -urN a/google/privacy/dlp/BUILD.bazel b/google/privacy/dlp/BUILD.bazel
---- a/google/privacy/dlp/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/privacy/dlp/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/privacy/dlp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/privacy/dlp/v2/BUILD.bazel b/google/privacy/dlp/v2/BUILD.bazel
---- a/google/privacy/dlp/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/privacy/dlp/v2/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/privacy/dlp/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,159 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -10949,14 +11376,14 @@ diff -urN a/google/privacy/dlp/v2/BUILD.bazel b/google/privacy/dlp/v2/BUILD.baze
 -    ],
 -)
 diff -urN a/google/pubsub/BUILD.bazel b/google/pubsub/BUILD.bazel
---- a/google/pubsub/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/pubsub/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/pubsub/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 diff -urN a/google/pubsub/v1/BUILD.bazel b/google/pubsub/v1/BUILD.bazel
---- a/google/pubsub/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/pubsub/v1/BUILD.bazel	2019-10-05 15:54:12.556348805 -0400
 +++ b/google/pubsub/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,219 +0,0 @@
+@@ -1,326 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -10970,7 +11397,7 @@ diff -urN a/google/pubsub/v1/BUILD.bazel b/google/pubsub/v1/BUILD.bazel
 -    srcs = ["pubsub.proto"],
 -    deps = [
 -        "//google/api:annotations_proto",
--        "//google/api:resource_proto",
+-        "//google/api:client_proto",
 -        "@com_google_protobuf//:duration_proto",
 -        "@com_google_protobuf//:empty_proto",
 -        "@com_google_protobuf//:field_mask_proto",
@@ -11176,10 +11603,117 @@ diff -urN a/google/pubsub/v1/BUILD.bazel b/google/pubsub/v1/BUILD.bazel
 -        ":pubsub_proto",
 -    ],
 -)
+-
+-##############################################################################
+-# Ruby
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "ruby_proto_library",
+-    "ruby_grpc_library",
+-    "ruby_gapic_library",
+-    "ruby_gapic_assembly_pkg",
+-)
+-
+-ruby_proto_library(
+-    name = "pubsub_ruby_proto",
+-    deps = [":pubsub_proto"],
+-)
+-
+-ruby_grpc_library(
+-    name = "pubsub_ruby_grpc",
+-    srcs = [":pubsub_proto"],
+-    deps = [":pubsub_ruby_proto"],
+-)
+-
+-ruby_gapic_library(
+-    name = "pubsub_ruby_gapic",
+-    src = ":pubsub_proto_with_info",
+-    gapic_yaml = "pubsub_gapic.yaml",
+-    service_yaml = "//google/pubsub:pubsub.yaml",
+-    deps = [
+-        ":pubsub_ruby_grpc",
+-        ":pubsub_ruby_proto",
+-    ],
+-)
+-
+-# Opensource Packages
+-ruby_gapic_assembly_pkg(
+-    name = "google-cloud-pubsub-v1-ruby",
+-    deps = [
+-        ":pubsub_ruby_gapic",
+-        ":pubsub_ruby_grpc",
+-        ":pubsub_ruby_proto",
+-    ],
+-)
+-
+-##############################################################################
+-# C#
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "csharp_proto_library",
+-    "csharp_grpc_library",
+-    "csharp_gapic_library",
+-    "csharp_gapic_assembly_pkg",
+-)
+-
+-csharp_proto_library(
+-    name = "pubsub_csharp_proto",
+-    deps = [":pubsub_proto"],
+-)
+-
+-csharp_grpc_library(
+-    name = "pubsub_csharp_grpc",
+-    srcs = [":pubsub_proto"],
+-    deps = [":pubsub_csharp_proto"],
+-)
+-
+-csharp_gapic_library(
+-    name = "pubsub_csharp_gapic",
+-    src = ":pubsub_proto_with_info",
+-    gapic_yaml = "pubsub_gapic.yaml",
+-    service_yaml = "//google/pubsub:pubsub.yaml",
+-    deps = [
+-        ":pubsub_csharp_grpc",
+-        ":pubsub_csharp_proto",
+-    ],
+-)
+-
+-# Opensource Packages
+-csharp_gapic_assembly_pkg(
+-    name = "google-cloud-pubsub-v1-csharp",
+-    deps = [
+-        ":pubsub_csharp_gapic",
+-        ":pubsub_csharp_grpc",
+-        ":pubsub_csharp_proto",
+-    ],
+-)
+-
+-##############################################################################
+-# C++
+-##############################################################################
+-load(
+-    "@com_google_googleapis_imports//:imports.bzl",
+-    "cc_grpc_library",
+-    "cc_proto_library",
+-)
+-
+-cc_proto_library(
+-    name = "pubsub_cc_proto",
+-    deps = [":pubsub_proto"],
+-)
+-
+-cc_grpc_library(
+-    name = "pubsub_cc_grpc",
+-    srcs = [":pubsub_proto"],
+-    grpc_only = True,
+-    deps = [":pubsub_cc_proto"],
+-)
 diff -urN a/google/rpc/BUILD.bazel b/google/rpc/BUILD.bazel
---- a/google/rpc/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/rpc/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
 +++ b/google/rpc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1,87 +0,0 @@
+@@ -1,108 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
 -package(default_visibility = ["//visibility:public"])
 -
@@ -11267,20 +11801,35 @@ diff -urN a/google/rpc/BUILD.bazel b/google/rpc/BUILD.bazel
 -    name = "status_cc_proto",
 -    deps = [":status_proto"],
 -)
-diff -urN a/google/spanner/BUILD.bazel b/google/spanner/BUILD.bazel
---- a/google/spanner/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-+++ b/google/spanner/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-@@ -1 +0,0 @@
--exports_files(glob(["*.yaml"]))
-\ No newline at end of file
+-
+-##############################################################################
+-# Python
+-##############################################################################
+-load("@com_google_googleapis_imports//:imports.bzl", "py_proto_library")
+-
+-py_proto_library(
+-    name = "code_py_proto",
+-    deps = [":code_proto"],
+-)
+-
+-py_proto_library(
+-    name = "error_details_py_proto",
+-    deps = [":error_details_proto"],
+-)
+-
+-py_proto_library(
+-    name = "status_py_proto",
+-    deps = [":status_proto"],
+-)
+-
 diff -urN a/google/spanner/admin/database/BUILD.bazel b/google/spanner/admin/database/BUILD.bazel
---- a/google/spanner/admin/database/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/spanner/admin/database/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
 +++ b/google/spanner/admin/database/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/spanner/admin/database/v1/BUILD.bazel b/google/spanner/admin/database/v1/BUILD.bazel
---- a/google/spanner/admin/database/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/spanner/admin/database/v1/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
 +++ b/google/spanner/admin/database/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,169 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -11453,13 +12002,13 @@ diff -urN a/google/spanner/admin/database/v1/BUILD.bazel b/google/spanner/admin/
 -    ],
 -)
 diff -urN a/google/spanner/admin/instance/BUILD.bazel b/google/spanner/admin/instance/BUILD.bazel
---- a/google/spanner/admin/instance/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/spanner/admin/instance/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
 +++ b/google/spanner/admin/instance/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1 +0,0 @@
 -exports_files(glob(["*.yaml"]))
 \ No newline at end of file
 diff -urN a/google/spanner/admin/instance/v1/BUILD.bazel b/google/spanner/admin/instance/v1/BUILD.bazel
---- a/google/spanner/admin/instance/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/spanner/admin/instance/v1/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
 +++ b/google/spanner/admin/instance/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,157 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -11619,8 +12168,14 @@ diff -urN a/google/spanner/admin/instance/v1/BUILD.bazel b/google/spanner/admin/
 -        ":spanner_admin_instance_go_proto",
 -    ],
 -)
+diff -urN a/google/spanner/BUILD.bazel b/google/spanner/BUILD.bazel
+--- a/google/spanner/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
++++ b/google/spanner/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-exports_files(glob(["*.yaml"]))
+\ No newline at end of file
 diff -urN a/google/spanner/v1/BUILD.bazel b/google/spanner/v1/BUILD.bazel
---- a/google/spanner/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/spanner/v1/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
 +++ b/google/spanner/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,154 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.
@@ -11778,7 +12333,7 @@ diff -urN a/google/spanner/v1/BUILD.bazel b/google/spanner/v1/BUILD.bazel
 -    ],
 -)
 diff -urN a/google/type/BUILD.bazel b/google/type/BUILD.bazel
---- a/google/type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+--- a/google/type/BUILD.bazel	2019-10-05 15:54:12.560348701 -0400
 +++ b/google/type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 @@ -1,219 +0,0 @@
 -# This is an API workspace, having public visibility by default makes perfect sense.

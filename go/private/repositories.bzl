@@ -47,13 +47,17 @@ def go_rules_dependencies():
     )
 
     # Needed by rules_go implementation and tests.
+    # We can't call bazel_skylib_workspace from here. At the moment, it's only
+    # used to register unittest toolchains, which rules_go does not need.
+    # NOTE(bazelbuild/bazel-skylib#199): release archive does not contain
+    # toolschains/unittest. Use git_repository instead.
     _maybe(
         git_repository,
         name = "bazel_skylib",
         remote = "https://github.com/bazelbuild/bazel-skylib",
-        # 0.8.0, latest as of 2019-07-08
-        commit = "3721d32c14d3639ff94320c780a60a6e658fb033",
-        shallow_since = "1553102012 +0100",
+        # 1.0.0 (latest) as of 2019-10-05
+        commit = "e5cf5398cd3e01d5552ed1056aafc06f92adb374",
+        shallow_since = "1570215359 -0400",
     )
 
     # Needed for nogo vet checks and go/packages.
@@ -61,14 +65,15 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_x_tools",
         remote = "https://go.googlesource.com/tools",
-        # "latest", as of 2019-07-08
-        commit = "c8855242db9c1762032abe33c2dff50de3ec9d05",
-        shallow_since = "1562618051 +0000",
+        # master (latest) as of 2019-10-05
+        commit = "c9f9432ec4b21a28c4d47f172513698febb68e9c",
         patches = [
+            "@io_bazel_rules_go//third_party:org_golang_x_tools-deletegopls.patch",
             "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",
             "@io_bazel_rules_go//third_party:org_golang_x_tools-extras.patch",
         ],
         patch_args = ["-p1"],
+        shallow_since = "1570239844 +0000",
         # gazelle args: -go_prefix golang.org/x/tools
     )
 
@@ -93,9 +98,9 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_golang_protobuf",
         remote = "https://github.com/golang/protobuf",
-        # v1.3.1 is "latest" as of 2019-07-08
-        commit = "b5d812f8a3706043e23a9cd5babf2e5423744d30",
-        shallow_since = "1551367169 -0800",
+        # v1.3.1 (latest) as of 2019-10-05
+        commit = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7",
+        shallow_since = "1562005321 -0700",
         patches = [
             "@io_bazel_rules_go//third_party:com_github_golang_protobuf-gazelle.patch",
             "@io_bazel_rules_go//third_party:com_github_golang_protobuf-extras.patch",
@@ -110,9 +115,9 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_mwitkow_go_proto_validators",
         remote = "https://github.com/mwitkow/go-proto-validators",
-        # "latest" as of 2019-07-08
-        commit = "fbdcedf3a5550890154208a722600dd6af252902",
-        shallow_since = "1562622466 +0100",
+        # v0.2.0 (latest) as of 2019-10-05
+        commit = "d70d97bb65387105677cb21cee7318e4feb7b4b0",
+        shallow_since = "1568733758 +0100",
         patches = ["@io_bazel_rules_go//third_party:com_github_mwitkow_go_proto_validators-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/mwitkow/go-proto-validators -proto disable
@@ -124,9 +129,9 @@ def go_rules_dependencies():
         git_repository,
         name = "com_github_gogo_protobuf",
         remote = "https://github.com/gogo/protobuf",
-        # v1.2.1, "latest" as of 20190-07-08
-        commit = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c",
-        shallow_since = "1550471403 +0200",
+        # v1.3.0 (latest) as of 2019-10-05
+        commit = "0ca988a254f991240804bf9821f3450d87ccbb1b",
+        shallow_since = "1567336231 +0200",
         patches = ["@io_bazel_rules_go//third_party:com_github_gogo_protobuf-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix github.com/gogo/protobuf -proto legacy
@@ -145,9 +150,8 @@ def go_rules_dependencies():
         git_repository,
         name = "org_golang_google_genproto",
         remote = "https://github.com/google/go-genproto",
-        # "latest" as of 2019-07-08
-        commit = "3bdd9d9f5532d75d09efb230bd767d265245cfe5",
-        shallow_since = "1562600220 -0600",
+        # master (latest) as of 2019-10-05
+        commit = "c459b9ce5143dd819763d9329ff92a8e35e61bd9",
         patches = ["@io_bazel_rules_go//third_party:org_golang_google_genproto-gazelle.patch"],
         patch_args = ["-p1"],
         # gazelle args: -go_prefix google.golang.org/genproto -proto disable_global
@@ -162,14 +166,13 @@ def go_rules_dependencies():
         git_repository,
         name = "go_googleapis",
         remote = "https://github.com/googleapis/googleapis",
-        # "latest" as of 2019-07-09
-        commit = "b4c73face84fefb967ef6c72f0eae64faf67895f",
-        shallow_since = "1562194577 -0700",
+        # master (latest) as of 2019-10-05
+        commit = "ceb8e2fb12f048cc94caae532ef0b4cf026a78f3",
+        shallow_since = "1570228637 -0700",
         patches = [
             "@io_bazel_rules_go//third_party:go_googleapis-deletebuild.patch",
             "@io_bazel_rules_go//third_party:go_googleapis-directives.patch",
             "@io_bazel_rules_go//third_party:go_googleapis-gazelle.patch",
-            "@io_bazel_rules_go//third_party:go_googleapis-fix.patch",
         ],
         patch_args = ["-E", "-p1"],
     )

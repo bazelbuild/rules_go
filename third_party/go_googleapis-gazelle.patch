@@ -1,6 +1,6 @@
 diff -urN c/google/ads/googleads/v1/common/BUILD.bazel d/google/ads/googleads/v1/common/BUILD.bazel
 --- c/google/ads/googleads/v1/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/ads/googleads/v1/common/BUILD.bazel	2019-10-05 15:58:13.862119692 -0400
 @@ -0,0 +1,51 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -55,7 +55,7 @@ diff -urN c/google/ads/googleads/v1/common/BUILD.bazel d/google/ads/googleads/v1
 +)
 diff -urN c/google/ads/googleads/v1/enums/BUILD.bazel d/google/ads/googleads/v1/enums/BUILD.bazel
 --- c/google/ads/googleads/v1/enums/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/enums/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/ads/googleads/v1/enums/BUILD.bazel	2019-10-05 15:58:13.862119692 -0400
 @@ -0,0 +1,219 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -278,7 +278,7 @@ diff -urN c/google/ads/googleads/v1/enums/BUILD.bazel d/google/ads/googleads/v1/
 +)
 diff -urN c/google/ads/googleads/v1/errors/BUILD.bazel d/google/ads/googleads/v1/errors/BUILD.bazel
 --- c/google/ads/googleads/v1/errors/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/errors/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/ads/googleads/v1/errors/BUILD.bazel	2019-10-05 15:58:13.862119692 -0400
 @@ -0,0 +1,127 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -409,7 +409,7 @@ diff -urN c/google/ads/googleads/v1/errors/BUILD.bazel d/google/ads/googleads/v1
 +)
 diff -urN c/google/ads/googleads/v1/resources/BUILD.bazel d/google/ads/googleads/v1/resources/BUILD.bazel
 --- c/google/ads/googleads/v1/resources/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/resources/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/ads/googleads/v1/resources/BUILD.bazel	2019-10-05 15:58:13.862119692 -0400
 @@ -0,0 +1,125 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -538,7 +538,7 @@ diff -urN c/google/ads/googleads/v1/resources/BUILD.bazel d/google/ads/googleads
 +)
 diff -urN c/google/ads/googleads/v1/services/BUILD.bazel d/google/ads/googleads/v1/services/BUILD.bazel
 --- c/google/ads/googleads/v1/services/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/services/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/ads/googleads/v1/services/BUILD.bazel	2019-10-05 15:58:13.862119692 -0400
 @@ -0,0 +1,135 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -677,7 +677,7 @@ diff -urN c/google/ads/googleads/v1/services/BUILD.bazel d/google/ads/googleads/
 +)
 diff -urN c/google/ads/googleads/v2/common/BUILD.bazel d/google/ads/googleads/v2/common/BUILD.bazel
 --- c/google/ads/googleads/v2/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v2/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/ads/googleads/v2/common/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,51 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -732,8 +732,8 @@ diff -urN c/google/ads/googleads/v2/common/BUILD.bazel d/google/ads/googleads/v2
 +)
 diff -urN c/google/ads/googleads/v2/enums/BUILD.bazel d/google/ads/googleads/v2/enums/BUILD.bazel
 --- c/google/ads/googleads/v2/enums/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v2/enums/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,224 @@
++++ d/google/ads/googleads/v2/enums/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
+@@ -0,0 +1,228 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -848,10 +848,12 @@ diff -urN c/google/ads/googleads/v2/enums/BUILD.bazel d/google/ads/googleads/v2/
 +        "google_ads_field_data_type.proto",
 +        "hotel_date_selection_type.proto",
 +        "hotel_placeholder_field.proto",
++        "hotel_price_bucket.proto",
 +        "hotel_rate_type.proto",
 +        "income_range_type.proto",
 +        "interaction_event_type.proto",
 +        "interaction_type.proto",
++        "invoice_type.proto",
 +        "job_placeholder_field.proto",
 +        "keyword_match_type.proto",
 +        "keyword_plan_competition_level.proto",
@@ -906,6 +908,8 @@ diff -urN c/google/ads/googleads/v2/enums/BUILD.bazel d/google/ads/googleads/v2/
 +        "promotion_placeholder_field.proto",
 +        "proximity_radius_units.proto",
 +        "quality_score_bucket.proto",
++        "reach_plan_ad_length.proto",
++        "reach_plan_age_range.proto",
 +        "real_estate_placeholder_field.proto",
 +        "recommendation_type.proto",
 +        "search_engine_results_page_type.proto",
@@ -960,8 +964,8 @@ diff -urN c/google/ads/googleads/v2/enums/BUILD.bazel d/google/ads/googleads/v2/
 +)
 diff -urN c/google/ads/googleads/v2/errors/BUILD.bazel d/google/ads/googleads/v2/errors/BUILD.bazel
 --- c/google/ads/googleads/v2/errors/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v2/errors/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,129 @@
++++ d/google/ads/googleads/v2/errors/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
+@@ -0,0 +1,131 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -1029,6 +1033,7 @@ diff -urN c/google/ads/googleads/v2/errors/BUILD.bazel d/google/ads/googleads/v2
 +        "id_error.proto",
 +        "image_error.proto",
 +        "internal_error.proto",
++        "invoice_error.proto",
 +        "keyword_plan_ad_group_error.proto",
 +        "keyword_plan_campaign_error.proto",
 +        "keyword_plan_error.proto",
@@ -1058,6 +1063,7 @@ diff -urN c/google/ads/googleads/v2/errors/BUILD.bazel d/google/ads/googleads/v2
 +        "query_error.proto",
 +        "quota_error.proto",
 +        "range_error.proto",
++        "reach_plan_error.proto",
 +        "recommendation_error.proto",
 +        "region_code_error.proto",
 +        "request_error.proto",
@@ -1093,8 +1099,8 @@ diff -urN c/google/ads/googleads/v2/errors/BUILD.bazel d/google/ads/googleads/v2
 +)
 diff -urN c/google/ads/googleads/v2/resources/BUILD.bazel d/google/ads/googleads/v2/resources/BUILD.bazel
 --- c/google/ads/googleads/v2/resources/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v2/resources/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,128 @@
++++ d/google/ads/googleads/v2/resources/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
+@@ -0,0 +1,130 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -1166,6 +1172,7 @@ diff -urN c/google/ads/googleads/v2/resources/BUILD.bazel d/google/ads/googleads
 +        "group_placement_view.proto",
 +        "hotel_group_view.proto",
 +        "hotel_performance_view.proto",
++        "invoice.proto",
 +        "keyword_plan.proto",
 +        "keyword_plan_ad_group.proto",
 +        "keyword_plan_campaign.proto",
@@ -1213,6 +1220,7 @@ diff -urN c/google/ads/googleads/v2/resources/BUILD.bazel d/google/ads/googleads
 +
 +go_proto_library(
 +    name = "resources_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
 +    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v2/resources",
 +    proto = ":resources_proto",
 +    visibility = ["//visibility:public"],
@@ -1225,8 +1233,8 @@ diff -urN c/google/ads/googleads/v2/resources/BUILD.bazel d/google/ads/googleads
 +)
 diff -urN c/google/ads/googleads/v2/services/BUILD.bazel d/google/ads/googleads/v2/services/BUILD.bazel
 --- c/google/ads/googleads/v2/services/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v2/services/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,139 @@
++++ d/google/ads/googleads/v2/services/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
+@@ -0,0 +1,141 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -1301,6 +1309,7 @@ diff -urN c/google/ads/googleads/v2/services/BUILD.bazel d/google/ads/googleads/
 +        "group_placement_view_service.proto",
 +        "hotel_group_view_service.proto",
 +        "hotel_performance_view_service.proto",
++        "invoice_service.proto",
 +        "keyword_plan_ad_group_service.proto",
 +        "keyword_plan_campaign_service.proto",
 +        "keyword_plan_idea_service.proto",
@@ -1324,6 +1333,7 @@ diff -urN c/google/ads/googleads/v2/services/BUILD.bazel d/google/ads/googleads/
 +        "payments_account_service.proto",
 +        "product_bidding_category_constant_service.proto",
 +        "product_group_view_service.proto",
++        "reach_plan_service.proto",
 +        "recommendation_service.proto",
 +        "remarketing_action_service.proto",
 +        "search_term_view_service.proto",
@@ -1368,7 +1378,7 @@ diff -urN c/google/ads/googleads/v2/services/BUILD.bazel d/google/ads/googleads/
 +)
 diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 --- c/google/api/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/api/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/api/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,182 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1552,39 +1562,10 @@ diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 +        ":monitoredres_go_proto",
 +    ],
 +)
-diff -urN c/google/api/experimental/BUILD.bazel d/google/api/experimental/BUILD.bazel
---- c/google/api/experimental/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/api/experimental/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "api_proto",
-+    srcs = [
-+        "authorization_config.proto",
-+        "experimental.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/api:annotations_proto",
-+        "//google/api:api_proto",
-+    ],
-+)
-+
-+go_proto_library(
-+    name = "api_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/api",
-+    proto = ":api_proto",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/api:annotations_go_proto",
-+        "//google/api:api_go_proto",
-+    ],
-+)
 diff -urN c/google/api/expr/v1alpha1/BUILD.bazel d/google/api/expr/v1alpha1/BUILD.bazel
 --- c/google/api/expr/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/api/expr/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
++++ d/google/api/expr/v1alpha1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
+@@ -0,0 +1,36 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -1600,6 +1581,7 @@ diff -urN c/google/api/expr/v1alpha1/BUILD.bazel d/google/api/expr/v1alpha1/BUIL
 +    ],
 +    visibility = ["//visibility:public"],
 +    deps = [
++        "//google/api:annotations_proto",
 +        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:duration_proto",
@@ -1615,11 +1597,14 @@ diff -urN c/google/api/expr/v1alpha1/BUILD.bazel d/google/api/expr/v1alpha1/BUIL
 +    importpath = "google.golang.org/genproto/googleapis/api/expr/v1alpha1",
 +    proto = ":expr_proto",
 +    visibility = ["//visibility:public"],
-+    deps = ["//google/rpc:status_go_proto"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/rpc:status_go_proto",
++    ],
 +)
 diff -urN c/google/api/expr/v1beta1/BUILD.bazel d/google/api/expr/v1beta1/BUILD.bazel
 --- c/google/api/expr/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/api/expr/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/api/expr/v1beta1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1649,7 +1634,7 @@ diff -urN c/google/api/expr/v1beta1/BUILD.bazel d/google/api/expr/v1beta1/BUILD.
 +)
 diff -urN c/google/api/servicecontrol/v1/BUILD.bazel d/google/api/servicecontrol/v1/BUILD.bazel
 --- c/google/api/servicecontrol/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/api/servicecontrol/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/api/servicecontrol/v1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1691,7 +1676,7 @@ diff -urN c/google/api/servicecontrol/v1/BUILD.bazel d/google/api/servicecontrol
 +)
 diff -urN c/google/api/servicemanagement/v1/BUILD.bazel d/google/api/servicemanagement/v1/BUILD.bazel
 --- c/google/api/servicemanagement/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/api/servicemanagement/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/api/servicemanagement/v1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1733,7 +1718,7 @@ diff -urN c/google/api/servicemanagement/v1/BUILD.bazel d/google/api/servicemana
 +)
 diff -urN c/google/appengine/legacy/BUILD.bazel d/google/appengine/legacy/BUILD.bazel
 --- c/google/appengine/legacy/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/appengine/legacy/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/appengine/legacy/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1751,7 +1736,7 @@ diff -urN c/google/appengine/legacy/BUILD.bazel d/google/appengine/legacy/BUILD.
 +)
 diff -urN c/google/appengine/logging/v1/BUILD.bazel d/google/appengine/logging/v1/BUILD.bazel
 --- c/google/appengine/logging/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/appengine/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/appengine/logging/v1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1775,7 +1760,7 @@ diff -urN c/google/appengine/logging/v1/BUILD.bazel d/google/appengine/logging/v
 +)
 diff -urN c/google/appengine/v1/BUILD.bazel d/google/appengine/v1/BUILD.bazel
 --- c/google/appengine/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/appengine/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/appengine/v1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1821,7 +1806,7 @@ diff -urN c/google/appengine/v1/BUILD.bazel d/google/appengine/v1/BUILD.bazel
 +)
 diff -urN c/google/assistant/embedded/v1alpha1/BUILD.bazel d/google/assistant/embedded/v1alpha1/BUILD.bazel
 --- c/google/assistant/embedded/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/assistant/embedded/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/assistant/embedded/v1alpha1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1848,7 +1833,7 @@ diff -urN c/google/assistant/embedded/v1alpha1/BUILD.bazel d/google/assistant/em
 +)
 diff -urN c/google/assistant/embedded/v1alpha2/BUILD.bazel d/google/assistant/embedded/v1alpha2/BUILD.bazel
 --- c/google/assistant/embedded/v1alpha2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/assistant/embedded/v1alpha2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/assistant/embedded/v1alpha2/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1875,7 +1860,7 @@ diff -urN c/google/assistant/embedded/v1alpha2/BUILD.bazel d/google/assistant/em
 +)
 diff -urN c/google/bigtable/admin/cluster/v1/BUILD.bazel d/google/bigtable/admin/cluster/v1/BUILD.bazel
 --- c/google/bigtable/admin/cluster/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/bigtable/admin/cluster/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/bigtable/admin/cluster/v1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1908,7 +1893,7 @@ diff -urN c/google/bigtable/admin/cluster/v1/BUILD.bazel d/google/bigtable/admin
 +)
 diff -urN c/google/bigtable/admin/table/v1/BUILD.bazel d/google/bigtable/admin/table/v1/BUILD.bazel
 --- c/google/bigtable/admin/table/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/bigtable/admin/table/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/bigtable/admin/table/v1/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1941,7 +1926,7 @@ diff -urN c/google/bigtable/admin/table/v1/BUILD.bazel d/google/bigtable/admin/t
 +)
 diff -urN c/google/bigtable/admin/v2/BUILD.bazel d/google/bigtable/admin/v2/BUILD.bazel
 --- c/google/bigtable/admin/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/bigtable/admin/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/bigtable/admin/v2/BUILD.bazel	2019-10-05 15:58:13.866119587 -0400
 @@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -1980,7 +1965,7 @@ diff -urN c/google/bigtable/admin/v2/BUILD.bazel d/google/bigtable/admin/v2/BUIL
 +)
 diff -urN c/google/bigtable/v1/BUILD.bazel d/google/bigtable/v1/BUILD.bazel
 --- c/google/bigtable/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/bigtable/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/bigtable/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2012,7 +1997,7 @@ diff -urN c/google/bigtable/v1/BUILD.bazel d/google/bigtable/v1/BUILD.bazel
 +)
 diff -urN c/google/bigtable/v2/BUILD.bazel d/google/bigtable/v2/BUILD.bazel
 --- c/google/bigtable/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/bigtable/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/bigtable/v2/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2043,7 +2028,7 @@ diff -urN c/google/bigtable/v2/BUILD.bazel d/google/bigtable/v2/BUILD.bazel
 +)
 diff -urN c/google/bytestream/BUILD.bazel d/google/bytestream/BUILD.bazel
 --- c/google/bytestream/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/bytestream/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/bytestream/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2067,7 +2052,7 @@ diff -urN c/google/bytestream/BUILD.bazel d/google/bytestream/BUILD.bazel
 +)
 diff -urN c/google/cloud/asset/v1/BUILD.bazel d/google/cloud/asset/v1/BUILD.bazel
 --- c/google/cloud/asset/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/asset/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/asset/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2102,7 +2087,7 @@ diff -urN c/google/cloud/asset/v1/BUILD.bazel d/google/cloud/asset/v1/BUILD.baze
 +)
 diff -urN c/google/cloud/asset/v1beta1/BUILD.bazel d/google/cloud/asset/v1beta1/BUILD.bazel
 --- c/google/cloud/asset/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/asset/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/asset/v1beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2135,9 +2120,46 @@ diff -urN c/google/cloud/asset/v1beta1/BUILD.bazel d/google/cloud/asset/v1beta1/
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/asset/v1p2beta1/BUILD.bazel d/google/cloud/asset/v1p2beta1/BUILD.bazel
+--- c/google/cloud/asset/v1p2beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/asset/v1p2beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "asset_proto",
++    srcs = [
++        "asset_service.proto",
++        "assets.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/iam/v1:iam_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:any_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:struct_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "asset_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/asset/v1p2beta1",
++    proto = ":asset_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/iam/v1:iam_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++    ],
++)
 diff -urN c/google/cloud/audit/BUILD.bazel d/google/cloud/audit/BUILD.bazel
 --- c/google/cloud/audit/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/audit/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/audit/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2164,9 +2186,55 @@ diff -urN c/google/cloud/audit/BUILD.bazel d/google/cloud/audit/BUILD.bazel
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/automl/v1/BUILD.bazel d/google/cloud/automl/v1/BUILD.bazel
+--- c/google/cloud/automl/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/automl/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
+@@ -0,0 +1,42 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "automl_proto",
++    srcs = [
++        "annotation_payload.proto",
++        "data_items.proto",
++        "dataset.proto",
++        "io.proto",
++        "model.proto",
++        "model_evaluation.proto",
++        "operations.proto",
++        "prediction_service.proto",
++        "service.proto",
++        "translation.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "//google/rpc:status_proto",
++        "@com_google_protobuf//:any_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:struct_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "automl_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/automl/v1",
++    proto = ":automl_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++        "//google/rpc:status_go_proto",
++    ],
++)
 diff -urN c/google/cloud/automl/v1beta1/BUILD.bazel d/google/cloud/automl/v1beta1/BUILD.bazel
 --- c/google/cloud/automl/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/automl/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/automl/v1beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,60 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2230,7 +2298,7 @@ diff -urN c/google/cloud/automl/v1beta1/BUILD.bazel d/google/cloud/automl/v1beta
 +)
 diff -urN c/google/cloud/bigquery/datatransfer/v1/BUILD.bazel d/google/cloud/bigquery/datatransfer/v1/BUILD.bazel
 --- c/google/cloud/bigquery/datatransfer/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/bigquery/datatransfer/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/bigquery/datatransfer/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2267,7 +2335,7 @@ diff -urN c/google/cloud/bigquery/datatransfer/v1/BUILD.bazel d/google/cloud/big
 +)
 diff -urN c/google/cloud/bigquery/logging/v1/BUILD.bazel d/google/cloud/bigquery/logging/v1/BUILD.bazel
 --- c/google/cloud/bigquery/logging/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/bigquery/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/bigquery/logging/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2295,7 +2363,7 @@ diff -urN c/google/cloud/bigquery/logging/v1/BUILD.bazel d/google/cloud/bigquery
 +)
 diff -urN c/google/cloud/bigquery/storage/v1beta1/BUILD.bazel d/google/cloud/bigquery/storage/v1beta1/BUILD.bazel
 --- c/google/cloud/bigquery/storage/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/bigquery/storage/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/bigquery/storage/v1beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2326,13 +2394,14 @@ diff -urN c/google/cloud/bigquery/storage/v1beta1/BUILD.bazel d/google/cloud/big
 +)
 diff -urN c/google/cloud/bigquery/v2/BUILD.bazel d/google/cloud/bigquery/v2/BUILD.bazel
 --- c/google/cloud/bigquery/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/bigquery/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,26 @@
++++ d/google/cloud/bigquery/v2/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
+@@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
 +    name = "bigquery_proto",
 +    srcs = [
++        "encryption_config.proto",
 +        "model.proto",
 +        "model_reference.proto",
 +        "standard_sql.proto",
@@ -2356,7 +2425,7 @@ diff -urN c/google/cloud/bigquery/v2/BUILD.bazel d/google/cloud/bigquery/v2/BUIL
 +)
 diff -urN c/google/cloud/billing/v1/BUILD.bazel d/google/cloud/billing/v1/BUILD.bazel
 --- c/google/cloud/billing/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/billing/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/billing/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2377,7 +2446,7 @@ diff -urN c/google/cloud/billing/v1/BUILD.bazel d/google/cloud/billing/v1/BUILD.
 +)
 diff -urN c/google/cloud/binaryauthorization/v1beta1/BUILD.bazel d/google/cloud/binaryauthorization/v1beta1/BUILD.bazel
 --- c/google/cloud/binaryauthorization/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/binaryauthorization/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/binaryauthorization/v1beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2403,16 +2472,37 @@ diff -urN c/google/cloud/binaryauthorization/v1beta1/BUILD.bazel d/google/cloud/
 +    visibility = ["//visibility:public"],
 +    deps = ["//google/api:annotations_go_proto"],
 +)
+diff -urN c/google/cloud/BUILD.bazel d/google/cloud/BUILD.bazel
+--- c/google/cloud/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "cloud_proto",
++    srcs = ["common_resources.proto"],
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_proto"],
++)
++
++go_proto_library(
++    name = "cloud_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/cloud",
++    proto = ":cloud_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
++)
 diff -urN c/google/cloud/datacatalog/v1beta1/BUILD.bazel d/google/cloud/datacatalog/v1beta1/BUILD.bazel
 --- c/google/cloud/datacatalog/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/datacatalog/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,33 @@
++++ d/google/cloud/datacatalog/v1beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
 +    name = "datacatalog_proto",
 +    srcs = [
 +        "datacatalog.proto",
++        "gcs_fileset_spec.proto",
 +        "schema.proto",
 +        "search.proto",
 +        "table_spec.proto",
@@ -2442,7 +2532,7 @@ diff -urN c/google/cloud/datacatalog/v1beta1/BUILD.bazel d/google/cloud/datacata
 +)
 diff -urN c/google/cloud/datalabeling/v1beta1/BUILD.bazel d/google/cloud/datalabeling/v1beta1/BUILD.bazel
 --- c/google/cloud/datalabeling/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/datalabeling/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/datalabeling/v1beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,40 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2486,13 +2576,14 @@ diff -urN c/google/cloud/datalabeling/v1beta1/BUILD.bazel d/google/cloud/datalab
 +)
 diff -urN c/google/cloud/dataproc/v1/BUILD.bazel d/google/cloud/dataproc/v1/BUILD.bazel
 --- c/google/cloud/dataproc/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/dataproc/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,33 @@
++++ d/google/cloud/dataproc/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
 +    name = "dataproc_proto",
 +    srcs = [
++        "autoscaling_policies.proto",
 +        "clusters.proto",
 +        "jobs.proto",
 +        "operations.proto",
@@ -2523,7 +2614,7 @@ diff -urN c/google/cloud/dataproc/v1/BUILD.bazel d/google/cloud/dataproc/v1/BUIL
 +)
 diff -urN c/google/cloud/dataproc/v1beta2/BUILD.bazel d/google/cloud/dataproc/v1beta2/BUILD.bazel
 --- c/google/cloud/dataproc/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/dataproc/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/dataproc/v1beta2/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2561,7 +2652,7 @@ diff -urN c/google/cloud/dataproc/v1beta2/BUILD.bazel d/google/cloud/dataproc/v1
 +)
 diff -urN c/google/cloud/dialogflow/v2/BUILD.bazel d/google/cloud/dialogflow/v2/BUILD.bazel
 --- c/google/cloud/dialogflow/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/dialogflow/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/dialogflow/v2/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,40 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2605,8 +2696,8 @@ diff -urN c/google/cloud/dialogflow/v2/BUILD.bazel d/google/cloud/dialogflow/v2/
 +)
 diff -urN c/google/cloud/dialogflow/v2beta1/BUILD.bazel d/google/cloud/dialogflow/v2beta1/BUILD.bazel
 --- c/google/cloud/dialogflow/v2beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/dialogflow/v2beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,42 @@
++++ d/google/cloud/dialogflow/v2beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
+@@ -0,0 +1,45 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -2617,10 +2708,12 @@ diff -urN c/google/cloud/dialogflow/v2beta1/BUILD.bazel d/google/cloud/dialogflo
 +        "context.proto",
 +        "document.proto",
 +        "entity_type.proto",
++        "gcs.proto",
 +        "intent.proto",
 +        "knowledge_base.proto",
 +        "session.proto",
 +        "session_entity_type.proto",
++        "validation_result.proto",
 +        "webhook.proto",
 +    ],
 +    visibility = ["//visibility:public"],
@@ -2633,6 +2726,7 @@ diff -urN c/google/cloud/dialogflow/v2beta1/BUILD.bazel d/google/cloud/dialogflo
 +        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:struct_proto",
++        "@com_google_protobuf//:timestamp_proto",
 +    ],
 +)
 +
@@ -2649,9 +2743,45 @@ diff -urN c/google/cloud/dialogflow/v2beta1/BUILD.bazel d/google/cloud/dialogflo
 +        "//google/type:latlng_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/document/v1beta1/BUILD.bazel d/google/cloud/document/v1beta1/BUILD.bazel
+--- c/google/cloud/document/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/document/v1beta1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
+@@ -0,0 +1,32 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "document_proto",
++    srcs = [
++        "document.proto",
++        "document_understanding.proto",
++        "geometry.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "//google/rpc:status_proto",
++        "//google/type:color_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "document_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/document/v1beta1",
++    proto = ":document_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++        "//google/rpc:status_go_proto",
++        "//google/type:color_go_proto",
++    ],
++)
 diff -urN c/google/cloud/functions/v1beta2/BUILD.bazel d/google/cloud/functions/v1beta2/BUILD.bazel
 --- c/google/cloud/functions/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/functions/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/functions/v1beta2/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2686,7 +2816,7 @@ diff -urN c/google/cloud/functions/v1beta2/BUILD.bazel d/google/cloud/functions/
 +)
 diff -urN c/google/cloud/iot/v1/BUILD.bazel d/google/cloud/iot/v1/BUILD.bazel
 --- c/google/cloud/iot/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/iot/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/iot/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2722,7 +2852,7 @@ diff -urN c/google/cloud/iot/v1/BUILD.bazel d/google/cloud/iot/v1/BUILD.bazel
 +)
 diff -urN c/google/cloud/irm/v1alpha2/BUILD.bazel d/google/cloud/irm/v1alpha2/BUILD.bazel
 --- c/google/cloud/irm/v1alpha2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/irm/v1alpha2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/irm/v1alpha2/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2751,7 +2881,7 @@ diff -urN c/google/cloud/irm/v1alpha2/BUILD.bazel d/google/cloud/irm/v1alpha2/BU
 +)
 diff -urN c/google/cloud/kms/v1/BUILD.bazel d/google/cloud/kms/v1/BUILD.bazel
 --- c/google/cloud/kms/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/kms/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/kms/v1/BUILD.bazel	2019-10-05 15:58:13.870119486 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2780,7 +2910,7 @@ diff -urN c/google/cloud/kms/v1/BUILD.bazel d/google/cloud/kms/v1/BUILD.bazel
 +)
 diff -urN c/google/cloud/language/v1/BUILD.bazel d/google/cloud/language/v1/BUILD.bazel
 --- c/google/cloud/language/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/language/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/language/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2801,7 +2931,7 @@ diff -urN c/google/cloud/language/v1/BUILD.bazel d/google/cloud/language/v1/BUIL
 +)
 diff -urN c/google/cloud/language/v1beta1/BUILD.bazel d/google/cloud/language/v1beta1/BUILD.bazel
 --- c/google/cloud/language/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/language/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/language/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2822,8 +2952,8 @@ diff -urN c/google/cloud/language/v1beta1/BUILD.bazel d/google/cloud/language/v1
 +)
 diff -urN c/google/cloud/language/v1beta2/BUILD.bazel d/google/cloud/language/v1beta2/BUILD.bazel
 --- c/google/cloud/language/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/language/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,26 @@
++++ d/google/cloud/language/v1beta2/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -2832,8 +2962,6 @@ diff -urN c/google/cloud/language/v1beta2/BUILD.bazel d/google/cloud/language/v1
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
-+        "//google/longrunning:longrunning_proto",
-+        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
 +)
@@ -2844,15 +2972,11 @@ diff -urN c/google/cloud/language/v1beta2/BUILD.bazel d/google/cloud/language/v1
 +    importpath = "google.golang.org/genproto/googleapis/cloud/language/v1beta2",
 +    proto = ":language_proto",
 +    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/api:annotations_go_proto",
-+        "//google/longrunning:longrunning_go_proto",
-+        "//google/rpc:status_go_proto",
-+    ],
++    deps = ["//google/api:annotations_go_proto"],
 +)
 diff -urN c/google/cloud/location/BUILD.bazel d/google/cloud/location/BUILD.bazel
 --- c/google/cloud/location/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/location/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/location/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2876,7 +3000,7 @@ diff -urN c/google/cloud/location/BUILD.bazel d/google/cloud/location/BUILD.baze
 +)
 diff -urN c/google/cloud/ml/v1/BUILD.bazel d/google/cloud/ml/v1/BUILD.bazel
 --- c/google/cloud/ml/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/ml/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/ml/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2915,7 +3039,7 @@ diff -urN c/google/cloud/ml/v1/BUILD.bazel d/google/cloud/ml/v1/BUILD.bazel
 +)
 diff -urN c/google/cloud/oslogin/common/BUILD.bazel d/google/cloud/oslogin/common/BUILD.bazel
 --- c/google/cloud/oslogin/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/oslogin/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/oslogin/common/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,16 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2935,7 +3059,7 @@ diff -urN c/google/cloud/oslogin/common/BUILD.bazel d/google/cloud/oslogin/commo
 +)
 diff -urN c/google/cloud/oslogin/v1/BUILD.bazel d/google/cloud/oslogin/v1/BUILD.bazel
 --- c/google/cloud/oslogin/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/oslogin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/oslogin/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2964,7 +3088,7 @@ diff -urN c/google/cloud/oslogin/v1/BUILD.bazel d/google/cloud/oslogin/v1/BUILD.
 +)
 diff -urN c/google/cloud/oslogin/v1alpha/BUILD.bazel d/google/cloud/oslogin/v1alpha/BUILD.bazel
 --- c/google/cloud/oslogin/v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/oslogin/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/oslogin/v1alpha/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2993,7 +3117,7 @@ diff -urN c/google/cloud/oslogin/v1alpha/BUILD.bazel d/google/cloud/oslogin/v1al
 +)
 diff -urN c/google/cloud/oslogin/v1beta/BUILD.bazel d/google/cloud/oslogin/v1beta/BUILD.bazel
 --- c/google/cloud/oslogin/v1beta/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/oslogin/v1beta/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/oslogin/v1beta/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3022,7 +3146,7 @@ diff -urN c/google/cloud/oslogin/v1beta/BUILD.bazel d/google/cloud/oslogin/v1bet
 +)
 diff -urN c/google/cloud/phishingprotection/v1beta1/BUILD.bazel d/google/cloud/phishingprotection/v1beta1/BUILD.bazel
 --- c/google/cloud/phishingprotection/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/phishingprotection/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/phishingprotection/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3043,7 +3167,7 @@ diff -urN c/google/cloud/phishingprotection/v1beta1/BUILD.bazel d/google/cloud/p
 +)
 diff -urN c/google/cloud/recaptchaenterprise/v1beta1/BUILD.bazel d/google/cloud/recaptchaenterprise/v1beta1/BUILD.bazel
 --- c/google/cloud/recaptchaenterprise/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/recaptchaenterprise/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/recaptchaenterprise/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3067,7 +3191,7 @@ diff -urN c/google/cloud/recaptchaenterprise/v1beta1/BUILD.bazel d/google/cloud/
 +)
 diff -urN c/google/cloud/recommender/v1beta1/BUILD.bazel d/google/cloud/recommender/v1beta1/BUILD.bazel
 --- c/google/cloud/recommender/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/recommender/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/recommender/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3102,7 +3226,7 @@ diff -urN c/google/cloud/recommender/v1beta1/BUILD.bazel d/google/cloud/recommen
 +)
 diff -urN c/google/cloud/redis/v1/BUILD.bazel d/google/cloud/redis/v1/BUILD.bazel
 --- c/google/cloud/redis/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/redis/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/redis/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3131,7 +3255,7 @@ diff -urN c/google/cloud/redis/v1/BUILD.bazel d/google/cloud/redis/v1/BUILD.baze
 +)
 diff -urN c/google/cloud/redis/v1beta1/BUILD.bazel d/google/cloud/redis/v1beta1/BUILD.bazel
 --- c/google/cloud/redis/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/redis/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/redis/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3160,7 +3284,7 @@ diff -urN c/google/cloud/redis/v1beta1/BUILD.bazel d/google/cloud/redis/v1beta1/
 +)
 diff -urN c/google/cloud/resourcemanager/v2/BUILD.bazel d/google/cloud/resourcemanager/v2/BUILD.bazel
 --- c/google/cloud/resourcemanager/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/resourcemanager/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/resourcemanager/v2/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3191,7 +3315,7 @@ diff -urN c/google/cloud/resourcemanager/v2/BUILD.bazel d/google/cloud/resourcem
 +)
 diff -urN c/google/cloud/runtimeconfig/v1beta1/BUILD.bazel d/google/cloud/runtimeconfig/v1beta1/BUILD.bazel
 --- c/google/cloud/runtimeconfig/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/runtimeconfig/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/runtimeconfig/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3226,7 +3350,7 @@ diff -urN c/google/cloud/runtimeconfig/v1beta1/BUILD.bazel d/google/cloud/runtim
 +)
 diff -urN c/google/cloud/scheduler/v1/BUILD.bazel d/google/cloud/scheduler/v1/BUILD.bazel
 --- c/google/cloud/scheduler/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/scheduler/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/scheduler/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3262,7 +3386,7 @@ diff -urN c/google/cloud/scheduler/v1/BUILD.bazel d/google/cloud/scheduler/v1/BU
 +)
 diff -urN c/google/cloud/scheduler/v1beta1/BUILD.bazel d/google/cloud/scheduler/v1beta1/BUILD.bazel
 --- c/google/cloud/scheduler/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/scheduler/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/scheduler/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3298,7 +3422,7 @@ diff -urN c/google/cloud/scheduler/v1beta1/BUILD.bazel d/google/cloud/scheduler/
 +)
 diff -urN c/google/cloud/securitycenter/v1/BUILD.bazel d/google/cloud/securitycenter/v1/BUILD.bazel
 --- c/google/cloud/securitycenter/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/securitycenter/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/securitycenter/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3340,7 +3464,7 @@ diff -urN c/google/cloud/securitycenter/v1/BUILD.bazel d/google/cloud/securityce
 +)
 diff -urN c/google/cloud/securitycenter/v1beta1/BUILD.bazel d/google/cloud/securitycenter/v1beta1/BUILD.bazel
 --- c/google/cloud/securitycenter/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/securitycenter/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/securitycenter/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,37 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3381,8 +3505,8 @@ diff -urN c/google/cloud/securitycenter/v1beta1/BUILD.bazel d/google/cloud/secur
 +)
 diff -urN c/google/cloud/speech/v1/BUILD.bazel d/google/cloud/speech/v1/BUILD.bazel
 --- c/google/cloud/speech/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/speech/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,27 @@
++++ d/google/cloud/speech/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -3393,6 +3517,7 @@ diff -urN c/google/cloud/speech/v1/BUILD.bazel d/google/cloud/speech/v1/BUILD.ba
 +        "//google/api:annotations_proto",
 +        "//google/longrunning:longrunning_proto",
 +        "//google/rpc:status_proto",
++        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
@@ -3412,8 +3537,8 @@ diff -urN c/google/cloud/speech/v1/BUILD.bazel d/google/cloud/speech/v1/BUILD.ba
 +)
 diff -urN c/google/cloud/speech/v1p1beta1/BUILD.bazel d/google/cloud/speech/v1p1beta1/BUILD.bazel
 --- c/google/cloud/speech/v1p1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/speech/v1p1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
++++ d/google/cloud/speech/v1p1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -3426,7 +3551,6 @@ diff -urN c/google/cloud/speech/v1p1beta1/BUILD.bazel d/google/cloud/speech/v1p1
 +        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:duration_proto",
-+        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
 +)
@@ -3445,7 +3569,7 @@ diff -urN c/google/cloud/speech/v1p1beta1/BUILD.bazel d/google/cloud/speech/v1p1
 +)
 diff -urN c/google/cloud/support/BUILD.bazel d/google/cloud/support/BUILD.bazel
 --- c/google/cloud/support/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/support/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/support/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3468,7 +3592,7 @@ diff -urN c/google/cloud/support/BUILD.bazel d/google/cloud/support/BUILD.bazel
 +)
 diff -urN c/google/cloud/support/v1alpha1/BUILD.bazel d/google/cloud/support/v1alpha1/BUILD.bazel
 --- c/google/cloud/support/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/support/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/support/v1alpha1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3497,8 +3621,8 @@ diff -urN c/google/cloud/support/v1alpha1/BUILD.bazel d/google/cloud/support/v1a
 +)
 diff -urN c/google/cloud/talent/v4beta1/BUILD.bazel d/google/cloud/talent/v4beta1/BUILD.bazel
 --- c/google/cloud/talent/v4beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/talent/v4beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,58 @@
++++ d/google/cloud/talent/v4beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,59 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -3532,6 +3656,7 @@ diff -urN c/google/cloud/talent/v4beta1/BUILD.bazel d/google/cloud/talent/v4beta
 +        "//google/type:money_proto",
 +        "//google/type:postaladdress_proto",
 +        "//google/type:timeofday_proto",
++        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
@@ -3559,8 +3684,8 @@ diff -urN c/google/cloud/talent/v4beta1/BUILD.bazel d/google/cloud/talent/v4beta
 +)
 diff -urN c/google/cloud/tasks/v2/BUILD.bazel d/google/cloud/tasks/v2/BUILD.bazel
 --- c/google/cloud/tasks/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/tasks/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,36 @@
++++ d/google/cloud/tasks/v2/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -3575,7 +3700,6 @@ diff -urN c/google/cloud/tasks/v2/BUILD.bazel d/google/cloud/tasks/v2/BUILD.baze
 +    deps = [
 +        "//google/api:annotations_proto",
 +        "//google/iam/v1:iam_proto",
-+        "//google/rpc:code_proto",
 +        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
@@ -3593,14 +3717,13 @@ diff -urN c/google/cloud/tasks/v2/BUILD.bazel d/google/cloud/tasks/v2/BUILD.baze
 +    deps = [
 +        "//google/api:annotations_go_proto",
 +        "//google/iam/v1:iam_go_proto",
-+        "//google/rpc:code_go_proto",
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
 diff -urN c/google/cloud/tasks/v2beta2/BUILD.bazel d/google/cloud/tasks/v2beta2/BUILD.bazel
 --- c/google/cloud/tasks/v2beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/tasks/v2beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,36 @@
++++ d/google/cloud/tasks/v2beta2/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -3615,7 +3738,6 @@ diff -urN c/google/cloud/tasks/v2beta2/BUILD.bazel d/google/cloud/tasks/v2beta2/
 +    deps = [
 +        "//google/api:annotations_proto",
 +        "//google/iam/v1:iam_proto",
-+        "//google/rpc:code_proto",
 +        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
@@ -3633,14 +3755,13 @@ diff -urN c/google/cloud/tasks/v2beta2/BUILD.bazel d/google/cloud/tasks/v2beta2/
 +    deps = [
 +        "//google/api:annotations_go_proto",
 +        "//google/iam/v1:iam_go_proto",
-+        "//google/rpc:code_go_proto",
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
 diff -urN c/google/cloud/tasks/v2beta3/BUILD.bazel d/google/cloud/tasks/v2beta3/BUILD.bazel
 --- c/google/cloud/tasks/v2beta3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/tasks/v2beta3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,36 @@
++++ d/google/cloud/tasks/v2beta3/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -3655,7 +3776,6 @@ diff -urN c/google/cloud/tasks/v2beta3/BUILD.bazel d/google/cloud/tasks/v2beta3/
 +    deps = [
 +        "//google/api:annotations_proto",
 +        "//google/iam/v1:iam_proto",
-+        "//google/rpc:code_proto",
 +        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
@@ -3673,13 +3793,12 @@ diff -urN c/google/cloud/tasks/v2beta3/BUILD.bazel d/google/cloud/tasks/v2beta3/
 +    deps = [
 +        "//google/api:annotations_go_proto",
 +        "//google/iam/v1:iam_go_proto",
-+        "//google/rpc:code_go_proto",
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
 diff -urN c/google/cloud/texttospeech/v1/BUILD.bazel d/google/cloud/texttospeech/v1/BUILD.bazel
 --- c/google/cloud/texttospeech/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/texttospeech/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/texttospeech/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3700,7 +3819,7 @@ diff -urN c/google/cloud/texttospeech/v1/BUILD.bazel d/google/cloud/texttospeech
 +)
 diff -urN c/google/cloud/texttospeech/v1beta1/BUILD.bazel d/google/cloud/texttospeech/v1beta1/BUILD.bazel
 --- c/google/cloud/texttospeech/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/texttospeech/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/texttospeech/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3719,9 +3838,37 @@ diff -urN c/google/cloud/texttospeech/v1beta1/BUILD.bazel d/google/cloud/texttos
 +    visibility = ["//visibility:public"],
 +    deps = ["//google/api:annotations_go_proto"],
 +)
+diff -urN c/google/cloud/translate/v3/BUILD.bazel d/google/cloud/translate/v3/BUILD.bazel
+--- c/google/cloud/translate/v3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/translate/v3/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "translate_proto",
++    srcs = ["translation_service.proto"],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "translate_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/translate/v3",
++    proto = ":translate_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++    ],
++)
 diff -urN c/google/cloud/translate/v3beta1/BUILD.bazel d/google/cloud/translate/v3beta1/BUILD.bazel
 --- c/google/cloud/translate/v3beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/translate/v3beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/translate/v3beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3749,7 +3896,7 @@ diff -urN c/google/cloud/translate/v3beta1/BUILD.bazel d/google/cloud/translate/
 +)
 diff -urN c/google/cloud/videointelligence/v1/BUILD.bazel d/google/cloud/videointelligence/v1/BUILD.bazel
 --- c/google/cloud/videointelligence/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/videointelligence/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/videointelligence/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3780,7 +3927,7 @@ diff -urN c/google/cloud/videointelligence/v1/BUILD.bazel d/google/cloud/videoin
 +)
 diff -urN c/google/cloud/videointelligence/v1beta1/BUILD.bazel d/google/cloud/videointelligence/v1beta1/BUILD.bazel
 --- c/google/cloud/videointelligence/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/videointelligence/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/videointelligence/v1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3810,7 +3957,7 @@ diff -urN c/google/cloud/videointelligence/v1beta1/BUILD.bazel d/google/cloud/vi
 +)
 diff -urN c/google/cloud/videointelligence/v1beta2/BUILD.bazel d/google/cloud/videointelligence/v1beta2/BUILD.bazel
 --- c/google/cloud/videointelligence/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/videointelligence/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/videointelligence/v1beta2/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3841,7 +3988,7 @@ diff -urN c/google/cloud/videointelligence/v1beta2/BUILD.bazel d/google/cloud/vi
 +)
 diff -urN c/google/cloud/videointelligence/v1p1beta1/BUILD.bazel d/google/cloud/videointelligence/v1p1beta1/BUILD.bazel
 --- c/google/cloud/videointelligence/v1p1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/videointelligence/v1p1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/videointelligence/v1p1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3872,7 +4019,7 @@ diff -urN c/google/cloud/videointelligence/v1p1beta1/BUILD.bazel d/google/cloud/
 +)
 diff -urN c/google/cloud/videointelligence/v1p2beta1/BUILD.bazel d/google/cloud/videointelligence/v1p2beta1/BUILD.bazel
 --- c/google/cloud/videointelligence/v1p2beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/videointelligence/v1p2beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/videointelligence/v1p2beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3903,7 +4050,7 @@ diff -urN c/google/cloud/videointelligence/v1p2beta1/BUILD.bazel d/google/cloud/
 +)
 diff -urN c/google/cloud/videointelligence/v1p3beta1/BUILD.bazel d/google/cloud/videointelligence/v1p3beta1/BUILD.bazel
 --- c/google/cloud/videointelligence/v1p3beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/videointelligence/v1p3beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/videointelligence/v1p3beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3934,7 +4081,7 @@ diff -urN c/google/cloud/videointelligence/v1p3beta1/BUILD.bazel d/google/cloud/
 +)
 diff -urN c/google/cloud/vision/v1/BUILD.bazel d/google/cloud/vision/v1/BUILD.bazel
 --- c/google/cloud/vision/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/vision/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/vision/v1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,39 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3977,7 +4124,7 @@ diff -urN c/google/cloud/vision/v1/BUILD.bazel d/google/cloud/vision/v1/BUILD.ba
 +)
 diff -urN c/google/cloud/vision/v1p1beta1/BUILD.bazel d/google/cloud/vision/v1p1beta1/BUILD.bazel
 --- c/google/cloud/vision/v1p1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/vision/v1p1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/vision/v1p1beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4013,7 +4160,7 @@ diff -urN c/google/cloud/vision/v1p1beta1/BUILD.bazel d/google/cloud/vision/v1p1
 +)
 diff -urN c/google/cloud/vision/v1p2beta1/BUILD.bazel d/google/cloud/vision/v1p2beta1/BUILD.bazel
 --- c/google/cloud/vision/v1p2beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/vision/v1p2beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/vision/v1p2beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4052,7 +4199,7 @@ diff -urN c/google/cloud/vision/v1p2beta1/BUILD.bazel d/google/cloud/vision/v1p2
 +)
 diff -urN c/google/cloud/vision/v1p3beta1/BUILD.bazel d/google/cloud/vision/v1p3beta1/BUILD.bazel
 --- c/google/cloud/vision/v1p3beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/vision/v1p3beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/vision/v1p3beta1/BUILD.bazel	2019-10-05 15:58:13.874119382 -0400
 @@ -0,0 +1,39 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4095,7 +4242,7 @@ diff -urN c/google/cloud/vision/v1p3beta1/BUILD.bazel d/google/cloud/vision/v1p3
 +)
 diff -urN c/google/cloud/vision/v1p4beta1/BUILD.bazel d/google/cloud/vision/v1p4beta1/BUILD.bazel
 --- c/google/cloud/vision/v1p4beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/vision/v1p4beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/vision/v1p4beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,39 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4138,7 +4285,7 @@ diff -urN c/google/cloud/vision/v1p4beta1/BUILD.bazel d/google/cloud/vision/v1p4
 +)
 diff -urN c/google/cloud/webrisk/v1beta1/BUILD.bazel d/google/cloud/webrisk/v1beta1/BUILD.bazel
 --- c/google/cloud/webrisk/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/webrisk/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/webrisk/v1beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4162,7 +4309,7 @@ diff -urN c/google/cloud/webrisk/v1beta1/BUILD.bazel d/google/cloud/webrisk/v1be
 +)
 diff -urN c/google/cloud/websecurityscanner/v1alpha/BUILD.bazel d/google/cloud/websecurityscanner/v1alpha/BUILD.bazel
 --- c/google/cloud/websecurityscanner/v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/websecurityscanner/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/websecurityscanner/v1alpha/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4196,7 +4343,7 @@ diff -urN c/google/cloud/websecurityscanner/v1alpha/BUILD.bazel d/google/cloud/w
 +)
 diff -urN c/google/cloud/websecurityscanner/v1beta/BUILD.bazel d/google/cloud/websecurityscanner/v1beta/BUILD.bazel
 --- c/google/cloud/websecurityscanner/v1beta/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/websecurityscanner/v1beta/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/cloud/websecurityscanner/v1beta/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4233,7 +4380,7 @@ diff -urN c/google/cloud/websecurityscanner/v1beta/BUILD.bazel d/google/cloud/we
 +)
 diff -urN c/google/container/v1/BUILD.bazel d/google/container/v1/BUILD.bazel
 --- c/google/container/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/container/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/container/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4257,7 +4404,7 @@ diff -urN c/google/container/v1/BUILD.bazel d/google/container/v1/BUILD.bazel
 +)
 diff -urN c/google/container/v1alpha1/BUILD.bazel d/google/container/v1alpha1/BUILD.bazel
 --- c/google/container/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/container/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/container/v1alpha1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4281,7 +4428,7 @@ diff -urN c/google/container/v1alpha1/BUILD.bazel d/google/container/v1alpha1/BU
 +)
 diff -urN c/google/container/v1beta1/BUILD.bazel d/google/container/v1beta1/BUILD.bazel
 --- c/google/container/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/container/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/container/v1beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4309,7 +4456,7 @@ diff -urN c/google/container/v1beta1/BUILD.bazel d/google/container/v1beta1/BUIL
 +)
 diff -urN c/google/datastore/admin/v1/BUILD.bazel d/google/datastore/admin/v1/BUILD.bazel
 --- c/google/datastore/admin/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/datastore/admin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/datastore/admin/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4340,7 +4487,7 @@ diff -urN c/google/datastore/admin/v1/BUILD.bazel d/google/datastore/admin/v1/BU
 +)
 diff -urN c/google/datastore/admin/v1beta1/BUILD.bazel d/google/datastore/admin/v1beta1/BUILD.bazel
 --- c/google/datastore/admin/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/datastore/admin/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/datastore/admin/v1beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4368,7 +4515,7 @@ diff -urN c/google/datastore/admin/v1beta1/BUILD.bazel d/google/datastore/admin/
 +)
 diff -urN c/google/datastore/v1/BUILD.bazel d/google/datastore/v1/BUILD.bazel
 --- c/google/datastore/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/datastore/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/datastore/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4402,7 +4549,7 @@ diff -urN c/google/datastore/v1/BUILD.bazel d/google/datastore/v1/BUILD.bazel
 +)
 diff -urN c/google/datastore/v1beta3/BUILD.bazel d/google/datastore/v1beta3/BUILD.bazel
 --- c/google/datastore/v1beta3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/datastore/v1beta3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/datastore/v1beta3/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4436,7 +4583,7 @@ diff -urN c/google/datastore/v1beta3/BUILD.bazel d/google/datastore/v1beta3/BUIL
 +)
 diff -urN c/google/devtools/build/v1/BUILD.bazel d/google/devtools/build/v1/BUILD.bazel
 --- c/google/devtools/build/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/build/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/build/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4467,8 +4614,8 @@ diff -urN c/google/devtools/build/v1/BUILD.bazel d/google/devtools/build/v1/BUIL
 +)
 diff -urN c/google/devtools/cloudbuild/v1/BUILD.bazel d/google/devtools/cloudbuild/v1/BUILD.bazel
 --- c/google/devtools/cloudbuild/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/cloudbuild/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
++++ d/google/devtools/cloudbuild/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
+@@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -4477,12 +4624,9 @@ diff -urN c/google/devtools/cloudbuild/v1/BUILD.bazel d/google/devtools/cloudbui
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
-+        "//google/api:httpbody_proto",
-+        "//google/cloud/audit:audit_proto",
 +        "//google/longrunning:longrunning_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
-+        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
 +)
@@ -4495,14 +4639,12 @@ diff -urN c/google/devtools/cloudbuild/v1/BUILD.bazel d/google/devtools/cloudbui
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_go_proto",
-+        "//google/api:httpbody_go_proto",
-+        "//google/cloud/audit:audit_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
 diff -urN c/google/devtools/clouddebugger/v2/BUILD.bazel d/google/devtools/clouddebugger/v2/BUILD.bazel
 --- c/google/devtools/clouddebugger/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/clouddebugger/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/clouddebugger/v2/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4537,7 +4679,7 @@ diff -urN c/google/devtools/clouddebugger/v2/BUILD.bazel d/google/devtools/cloud
 +)
 diff -urN c/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel d/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel
 --- c/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4571,7 +4713,7 @@ diff -urN c/google/devtools/clouderrorreporting/v1beta1/BUILD.bazel d/google/dev
 +)
 diff -urN c/google/devtools/cloudprofiler/v2/BUILD.bazel d/google/devtools/cloudprofiler/v2/BUILD.bazel
 --- c/google/devtools/cloudprofiler/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/cloudprofiler/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/cloudprofiler/v2/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4597,7 +4739,7 @@ diff -urN c/google/devtools/cloudprofiler/v2/BUILD.bazel d/google/devtools/cloud
 +)
 diff -urN c/google/devtools/cloudtrace/v1/BUILD.bazel d/google/devtools/cloudtrace/v1/BUILD.bazel
 --- c/google/devtools/cloudtrace/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/cloudtrace/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/cloudtrace/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4622,7 +4764,7 @@ diff -urN c/google/devtools/cloudtrace/v1/BUILD.bazel d/google/devtools/cloudtra
 +)
 diff -urN c/google/devtools/cloudtrace/v2/BUILD.bazel d/google/devtools/cloudtrace/v2/BUILD.bazel
 --- c/google/devtools/cloudtrace/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/cloudtrace/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/cloudtrace/v2/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4655,7 +4797,7 @@ diff -urN c/google/devtools/cloudtrace/v2/BUILD.bazel d/google/devtools/cloudtra
 +)
 diff -urN c/google/devtools/containeranalysis/v1/BUILD.bazel d/google/devtools/containeranalysis/v1/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4683,7 +4825,7 @@ diff -urN c/google/devtools/containeranalysis/v1/BUILD.bazel d/google/devtools/c
 +)
 diff -urN c/google/devtools/containeranalysis/v1alpha1/BUILD.bazel d/google/devtools/containeranalysis/v1alpha1/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1alpha1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4723,9 +4865,47 @@ diff -urN c/google/devtools/containeranalysis/v1alpha1/BUILD.bazel d/google/devt
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
+diff -urN c/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel
+--- c/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "attestation_proto",
++    srcs = ["attestation.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_proto_library(
++    name = "attestation_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/attestation",
++    proto = ":attestation_proto",
++    visibility = ["//visibility:public"],
++)
+diff -urN c/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel
+--- c/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "build_proto",
++    srcs = ["build.proto"],
++    visibility = ["//visibility:public"],
++    deps = ["//google/devtools/containeranalysis/v1beta1/provenance:provenance_proto"],
++)
++
++go_proto_library(
++    name = "build_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/build",
++    proto = ":build_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/devtools/containeranalysis/v1beta1/provenance:provenance_go_proto"],
++)
 diff -urN c/google/devtools/containeranalysis/v1beta1/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4751,47 +4931,9 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/BUILD.bazel d/google/devto
 +        "//google/iam/v1:iam_go_proto",
 +    ],
 +)
-diff -urN c/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel
---- c/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,14 @@
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "attestation_proto",
-+    srcs = ["attestation.proto"],
-+    visibility = ["//visibility:public"],
-+)
-+
-+go_proto_library(
-+    name = "attestation_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/attestation",
-+    proto = ":attestation_proto",
-+    visibility = ["//visibility:public"],
-+)
-diff -urN c/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel
---- c/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,16 @@
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "build_proto",
-+    srcs = ["build.proto"],
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/devtools/containeranalysis/v1beta1/provenance:provenance_proto"],
-+)
-+
-+go_proto_library(
-+    name = "build_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1/build",
-+    proto = ":build_proto",
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/devtools/containeranalysis/v1beta1/provenance:provenance_go_proto"],
-+)
 diff -urN c/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4809,7 +4951,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel d/googl
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4828,7 +4970,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/deployment/BUILD.bazel d/g
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4855,7 +4997,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/discovery/BUILD.bazel d/go
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4901,7 +5043,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/grafeas/BUILD.bazel d/goog
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4919,7 +5061,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/image/BUILD.bazel d/google
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4937,7 +5079,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/package/BUILD.bazel d/goog
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4960,7 +5102,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/provenance/BUILD.bazel d/g
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4978,7 +5120,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/source/BUILD.bazel d/googl
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5004,7 +5146,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel 
 +)
 diff -urN c/google/devtools/remoteexecution/v1test/BUILD.bazel d/google/devtools/remoteexecution/v1test/BUILD.bazel
 --- c/google/devtools/remoteexecution/v1test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/remoteexecution/v1test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/remoteexecution/v1test/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5034,8 +5176,8 @@ diff -urN c/google/devtools/remoteexecution/v1test/BUILD.bazel d/google/devtools
 +)
 diff -urN c/google/devtools/remoteworkers/v1test2/BUILD.bazel d/google/devtools/remoteworkers/v1test2/BUILD.bazel
 --- c/google/devtools/remoteworkers/v1test2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/remoteworkers/v1test2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,33 @@
++++ d/google/devtools/remoteworkers/v1test2/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
+@@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -5052,7 +5194,6 @@ diff -urN c/google/devtools/remoteworkers/v1test2/BUILD.bazel d/google/devtools/
 +        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:duration_proto",
-+        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
@@ -5071,8 +5212,8 @@ diff -urN c/google/devtools/remoteworkers/v1test2/BUILD.bazel d/google/devtools/
 +)
 diff -urN c/google/devtools/resultstore/v2/BUILD.bazel d/google/devtools/resultstore/v2/BUILD.bazel
 --- c/google/devtools/resultstore/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/resultstore/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,38 @@
++++ d/google/devtools/resultstore/v2/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
+@@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
@@ -5084,7 +5225,9 @@ diff -urN c/google/devtools/resultstore/v2/BUILD.bazel d/google/devtools/results
 +        "configured_target.proto",
 +        "coverage.proto",
 +        "coverage_summary.proto",
++        "download_metadata.proto",
 +        "file.proto",
++        "file_processing_error.proto",
 +        "file_set.proto",
 +        "invocation.proto",
 +        "resultstore_download.proto",
@@ -5092,11 +5235,13 @@ diff -urN c/google/devtools/resultstore/v2/BUILD.bazel d/google/devtools/results
 +        "resultstore_upload.proto",
 +        "target.proto",
 +        "test_suite.proto",
++        "upload_metadata.proto",
 +    ],
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
 +        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +        "@com_google_protobuf//:wrappers_proto",
@@ -5113,7 +5258,7 @@ diff -urN c/google/devtools/resultstore/v2/BUILD.bazel d/google/devtools/results
 +)
 diff -urN c/google/devtools/source/v1/BUILD.bazel d/google/devtools/source/v1/BUILD.bazel
 --- c/google/devtools/source/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/source/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/source/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,16 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5133,7 +5278,7 @@ diff -urN c/google/devtools/source/v1/BUILD.bazel d/google/devtools/source/v1/BU
 +)
 diff -urN c/google/devtools/sourcerepo/v1/BUILD.bazel d/google/devtools/sourcerepo/v1/BUILD.bazel
 --- c/google/devtools/sourcerepo/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/devtools/sourcerepo/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/devtools/sourcerepo/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5161,7 +5306,7 @@ diff -urN c/google/devtools/sourcerepo/v1/BUILD.bazel d/google/devtools/sourcere
 +)
 diff -urN c/google/example/library/v1/BUILD.bazel d/google/example/library/v1/BUILD.bazel
 --- c/google/example/library/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/example/library/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/example/library/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5185,7 +5330,7 @@ diff -urN c/google/example/library/v1/BUILD.bazel d/google/example/library/v1/BU
 +)
 diff -urN c/google/firebase/fcm/connection/v1alpha1/BUILD.bazel d/google/firebase/fcm/connection/v1alpha1/BUILD.bazel
 --- c/google/firebase/fcm/connection/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/firebase/fcm/connection/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/firebase/fcm/connection/v1alpha1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5209,7 +5354,7 @@ diff -urN c/google/firebase/fcm/connection/v1alpha1/BUILD.bazel d/google/firebas
 +)
 diff -urN c/google/firestore/admin/v1/BUILD.bazel d/google/firestore/admin/v1/BUILD.bazel
 --- c/google/firestore/admin/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/firestore/admin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/firestore/admin/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5247,7 +5392,7 @@ diff -urN c/google/firestore/admin/v1/BUILD.bazel d/google/firestore/admin/v1/BU
 +)
 diff -urN c/google/firestore/admin/v1beta1/BUILD.bazel d/google/firestore/admin/v1beta1/BUILD.bazel
 --- c/google/firestore/admin/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/firestore/admin/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/firestore/admin/v1beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5282,7 +5427,7 @@ diff -urN c/google/firestore/admin/v1beta1/BUILD.bazel d/google/firestore/admin/
 +)
 diff -urN c/google/firestore/admin/v1beta2/BUILD.bazel d/google/firestore/admin/v1beta2/BUILD.bazel
 --- c/google/firestore/admin/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/firestore/admin/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/firestore/admin/v1beta2/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5317,7 +5462,7 @@ diff -urN c/google/firestore/admin/v1beta2/BUILD.bazel d/google/firestore/admin/
 +)
 diff -urN c/google/firestore/v1/BUILD.bazel d/google/firestore/v1/BUILD.bazel
 --- c/google/firestore/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/firestore/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/firestore/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5356,7 +5501,7 @@ diff -urN c/google/firestore/v1/BUILD.bazel d/google/firestore/v1/BUILD.bazel
 +)
 diff -urN c/google/firestore/v1beta1/BUILD.bazel d/google/firestore/v1beta1/BUILD.bazel
 --- c/google/firestore/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/firestore/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/firestore/v1beta1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5395,7 +5540,7 @@ diff -urN c/google/firestore/v1beta1/BUILD.bazel d/google/firestore/v1beta1/BUIL
 +)
 diff -urN c/google/genomics/v1/BUILD.bazel d/google/genomics/v1/BUILD.bazel
 --- c/google/genomics/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/genomics/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/genomics/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,46 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5445,7 +5590,7 @@ diff -urN c/google/genomics/v1/BUILD.bazel d/google/genomics/v1/BUILD.bazel
 +)
 diff -urN c/google/genomics/v1alpha2/BUILD.bazel d/google/genomics/v1alpha2/BUILD.bazel
 --- c/google/genomics/v1alpha2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/genomics/v1alpha2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/genomics/v1alpha2/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5475,9 +5620,29 @@ diff -urN c/google/genomics/v1alpha2/BUILD.bazel d/google/genomics/v1alpha2/BUIL
 +        "//google/rpc:code_go_proto",
 +    ],
 +)
+diff -urN c/google/geo/type/BUILD.bazel d/google/geo/type/BUILD.bazel
+--- c/google/geo/type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/geo/type/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
+@@ -0,0 +1,16 @@
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "viewport_proto",
++    srcs = ["viewport.proto"],
++    visibility = ["//visibility:public"],
++    deps = ["//google/type:latlng_proto"],
++)
++
++go_proto_library(
++    name = "viewport_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/geo/type/viewport",
++    proto = ":viewport_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/type:latlng_go_proto"],
++)
 diff -urN c/google/home/graph/v1/BUILD.bazel d/google/home/graph/v1/BUILD.bazel
 --- c/google/home/graph/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/home/graph/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/home/graph/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5505,7 +5670,7 @@ diff -urN c/google/home/graph/v1/BUILD.bazel d/google/home/graph/v1/BUILD.bazel
 +)
 diff -urN c/google/iam/admin/v1/BUILD.bazel d/google/iam/admin/v1/BUILD.bazel
 --- c/google/iam/admin/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/iam/admin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/iam/admin/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5535,7 +5700,7 @@ diff -urN c/google/iam/admin/v1/BUILD.bazel d/google/iam/admin/v1/BUILD.bazel
 +)
 diff -urN c/google/iam/credentials/v1/BUILD.bazel d/google/iam/credentials/v1/BUILD.bazel
 --- c/google/iam/credentials/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/iam/credentials/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/iam/credentials/v1/BUILD.bazel	2019-10-05 15:58:13.878119278 -0400
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5563,7 +5728,7 @@ diff -urN c/google/iam/credentials/v1/BUILD.bazel d/google/iam/credentials/v1/BU
 +)
 diff -urN c/google/iam/v1/BUILD.bazel d/google/iam/v1/BUILD.bazel
 --- c/google/iam/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/iam/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/iam/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5594,7 +5759,7 @@ diff -urN c/google/iam/v1/BUILD.bazel d/google/iam/v1/BUILD.bazel
 +)
 diff -urN c/google/iam/v1/logging/BUILD.bazel d/google/iam/v1/logging/BUILD.bazel
 --- c/google/iam/v1/logging/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/iam/v1/logging/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/iam/v1/logging/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5620,7 +5785,7 @@ diff -urN c/google/iam/v1/logging/BUILD.bazel d/google/iam/v1/logging/BUILD.baze
 +)
 diff -urN c/google/logging/type/BUILD.bazel d/google/logging/type/BUILD.bazel
 --- c/google/logging/type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/logging/type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/logging/type/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5646,7 +5811,7 @@ diff -urN c/google/logging/type/BUILD.bazel d/google/logging/type/BUILD.bazel
 +)
 diff -urN c/google/logging/v2/BUILD.bazel d/google/logging/v2/BUILD.bazel
 --- c/google/logging/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/logging/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/logging/v2/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5692,7 +5857,7 @@ diff -urN c/google/logging/v2/BUILD.bazel d/google/logging/v2/BUILD.bazel
 +)
 diff -urN c/google/longrunning/BUILD.bazel d/google/longrunning/BUILD.bazel
 --- c/google/longrunning/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/longrunning/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/longrunning/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5723,7 +5888,7 @@ diff -urN c/google/longrunning/BUILD.bazel d/google/longrunning/BUILD.bazel
 +)
 diff -urN c/google/monitoring/v3/BUILD.bazel d/google/monitoring/v3/BUILD.bazel
 --- c/google/monitoring/v3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/monitoring/v3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/monitoring/v3/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,52 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5779,7 +5944,7 @@ diff -urN c/google/monitoring/v3/BUILD.bazel d/google/monitoring/v3/BUILD.bazel
 +)
 diff -urN c/google/privacy/dlp/v2/BUILD.bazel d/google/privacy/dlp/v2/BUILD.bazel
 --- c/google/privacy/dlp/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/privacy/dlp/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/privacy/dlp/v2/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,36 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5819,7 +5984,7 @@ diff -urN c/google/privacy/dlp/v2/BUILD.bazel d/google/privacy/dlp/v2/BUILD.baze
 +)
 diff -urN c/google/pubsub/v1/BUILD.bazel d/google/pubsub/v1/BUILD.bazel
 --- c/google/pubsub/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/pubsub/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/pubsub/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5846,7 +6011,7 @@ diff -urN c/google/pubsub/v1/BUILD.bazel d/google/pubsub/v1/BUILD.bazel
 +)
 diff -urN c/google/pubsub/v1beta2/BUILD.bazel d/google/pubsub/v1beta2/BUILD.bazel
 --- c/google/pubsub/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/pubsub/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/pubsub/v1beta2/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,16 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5866,7 +6031,7 @@ diff -urN c/google/pubsub/v1beta2/BUILD.bazel d/google/pubsub/v1beta2/BUILD.baze
 +)
 diff -urN c/google/rpc/BUILD.bazel d/google/rpc/BUILD.bazel
 --- c/google/rpc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/rpc/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/rpc/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5912,7 +6077,7 @@ diff -urN c/google/rpc/BUILD.bazel d/google/rpc/BUILD.bazel
 +)
 diff -urN c/google/spanner/admin/database/v1/BUILD.bazel d/google/spanner/admin/database/v1/BUILD.bazel
 --- c/google/spanner/admin/database/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/spanner/admin/database/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/spanner/admin/database/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5943,7 +6108,7 @@ diff -urN c/google/spanner/admin/database/v1/BUILD.bazel d/google/spanner/admin/
 +)
 diff -urN c/google/spanner/admin/instance/v1/BUILD.bazel d/google/spanner/admin/instance/v1/BUILD.bazel
 --- c/google/spanner/admin/instance/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/spanner/admin/instance/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/spanner/admin/instance/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5975,7 +6140,7 @@ diff -urN c/google/spanner/admin/instance/v1/BUILD.bazel d/google/spanner/admin/
 +)
 diff -urN c/google/spanner/v1/BUILD.bazel d/google/spanner/v1/BUILD.bazel
 --- c/google/spanner/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/spanner/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/spanner/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -6014,7 +6179,7 @@ diff -urN c/google/spanner/v1/BUILD.bazel d/google/spanner/v1/BUILD.bazel
 +)
 diff -urN c/google/storagetransfer/v1/BUILD.bazel d/google/storagetransfer/v1/BUILD.bazel
 --- c/google/storagetransfer/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/storagetransfer/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/storagetransfer/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -6052,7 +6217,7 @@ diff -urN c/google/storagetransfer/v1/BUILD.bazel d/google/storagetransfer/v1/BU
 +)
 diff -urN c/google/streetview/publish/v1/BUILD.bazel d/google/streetview/publish/v1/BUILD.bazel
 --- c/google/streetview/publish/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/streetview/publish/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/streetview/publish/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -6088,7 +6253,7 @@ diff -urN c/google/streetview/publish/v1/BUILD.bazel d/google/streetview/publish
 +)
 diff -urN c/google/type/BUILD.bazel d/google/type/BUILD.bazel
 --- c/google/type/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/type/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,145 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -6237,7 +6402,7 @@ diff -urN c/google/type/BUILD.bazel d/google/type/BUILD.bazel
 +)
 diff -urN c/google/watcher/v1/BUILD.bazel d/google/watcher/v1/BUILD.bazel
 --- c/google/watcher/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/watcher/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/google/watcher/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -6262,7 +6427,7 @@ diff -urN c/google/watcher/v1/BUILD.bazel d/google/watcher/v1/BUILD.bazel
 +)
 diff -urN c/grafeas/v1/BUILD.bazel d/grafeas/v1/BUILD.bazel
 --- c/grafeas/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/grafeas/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/grafeas/v1/BUILD.bazel	2019-10-05 15:58:13.882119175 -0400
 @@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +

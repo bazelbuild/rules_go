@@ -252,6 +252,10 @@ func (act *action) execOnce() {
 	}
 
 	// Run the analysis.
+	factFilter := make(map[reflect.Type]bool)
+	for _, f := range act.a.FactTypes {
+		factFilter[reflect.TypeOf(f)] = true
+	}
 	pass := &analysis.Pass{
 		Analyzer:          act.a,
 		Fset:              act.pkg.fset,
@@ -264,6 +268,8 @@ func (act *action) execOnce() {
 		ExportPackageFact: act.pkg.facts.ExportPackageFact,
 		ImportObjectFact:  act.pkg.facts.ImportObjectFact,
 		ExportObjectFact:  act.pkg.facts.ExportObjectFact,
+		AllPackageFacts:   func() []analysis.PackageFact { return act.pkg.facts.AllPackageFacts(factFilter) },
+		AllObjectFacts:    func() []analysis.ObjectFact { return act.pkg.facts.AllObjectFacts(factFilter) },
 		TypesSizes:        typesSizes,
 	}
 	act.pass = pass

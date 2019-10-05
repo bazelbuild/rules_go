@@ -1,0 +1,1349 @@
+diff -urN a/gopls/doc/acme.md b/gopls/doc/acme.md
+--- a/gopls/doc/acme.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/acme.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,7 +0,0 @@
+-# Acme
+-
+-Use the experimental [`acme-lsp`], simply follow the [install steps]
+-
+-[`acme-lsp`]: https://github.com/fhs/acme-lsp
+-[install steps]: https://github.com/fhs/acme-lsp#gopls
+-
+diff -urN a/gopls/doc/command-line.md b/gopls/doc/command-line.md
+--- a/gopls/doc/command-line.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/command-line.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,15 +0,0 @@
+-# Command line
+-
+-## Flags
+-
+-## Commands
+-
+-### Serve
+-
+-### Check
+-
+-### Format
+-
+-<!--- TODO: command line
+-detailed command line instructions, use cases and flags
+---->
+\ No newline at end of file
+diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
+--- a/gopls/doc/contributing.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/contributing.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,25 +0,0 @@
+-# Documentation for contributors
+-
+-Contributions are welcome, but since development is so active, we request that you file an issue and claim it before starting to work on something. Otherwise, it is likely that we might already be working on a fix for your issue.
+-
+-## Finding issues
+-
+-All `gopls` issues are labeled as such (see the [`gopls` label][issue-gopls]). Issues that are suitable for contributors are additionally tagged with the [`help-wanted` label][issue-wanted].
+-
+-Before you begin working on an issue, please leave a comment that you are claiming it.
+-
+-## Getting started
+-
+-<!--- TODO: getting started
+-Provide information to get contributors up and running here
+---->
+-
+-## Debugging
+-
+-<!--- TODO: debugging
+-actual debugging steps
+-viewing telemetry
+---->
+-
+-[issue-gopls]: https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Agopls "gopls issues"
+-[issue-wanted]: https://github.com/golang/go/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Agopls+label%3A"help+wanted" "help wanted"
+\ No newline at end of file
+diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
+--- a/gopls/doc/design.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/design.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,400 +0,0 @@
+-# gopls design documentation
+-
+-## Goals
+-
+-* `gopls` should **become the default editor backend** for the major editors used by Go programmers, fully supported by the Go team.
+-* `gopls` will be a **full implementation of LSP**, as described in the [LSP specification], to standardize as many of its features as possible.
+-* `gopls` will be **clean and extensible** so that it can encompass additional features in the future, allowing Go tooling to become best in class once more.
+-* `gopls` will **support alternate build systems and file layouts**, allowing Go development to be simpler and more powerful in any environment.
+-
+-
+-## Context
+-
+-While Go has a number of excellent and useful command-line tools that enhance the developer experience, it has become clear that integrating these tools with IDEs can pose challenges.
+-
+-Support of these tools has relied on the goodwill of community members, and they have been put under a large burden of support at times as the language, toolchain and environments change. As a result many tools have ceased to work, have had support problems, or become confusing with forks and replacements, or provided an experience that is not as good as it could be.
+-See the section below on [existing solutions](#existing-solutions) for more problems and details.
+-
+-This is fine for tools used occasionally, but for core IDE features, this is not acceptable.
+-Autocompletion, jump to definition, formatting, and other such features should always work, as they are key for Go development.
+-
+-The Go team will create an editor backend that works in any build system.
+-It will also be able to improve upon the latency of Go tools, since each tool will no longer have to individually run the type-checker on each invocation, instead there will be a long-running process and data can be shared between the definitions, completions, diagnostics, and other features.
+-
+-By taking ownership of these tools and packaging them together in the form of gopls, the Go team will ensure that the Go development experience isn’t unnecessarily complicated for Go users.
+-Having one editor backend will simplify the lives of Go developers, the Go team, and the maintainers of Go editor plugins.
+-
+-See Rebecca's excellent GopherCon keynote [talk] and [slides] for some more context.
+-
+-## Non-Goals
+-
+-* Command line speed
+-
+-  Although gopls will have a command line mode, it will be optimized for long running and not command responsiveness, as such it may not be the right tool for things like CI systems.
+-  In such cases there will have to be an alternate tool using the same underlying libraries for consistency that can be used instead.
+-
+-* Low memory environments
+-
+-  In order to do a good job of processing large projects with very low latencies gopls will be holding a lot of information in memory.
+-  It is presumed that developers are normally working on systems with significant RAM and this will not be a problem.
+-  In general this is upheld by the large memory usage of existing IDE solutions (like IntelliJ)
+-
+-* Syntax highlighting
+-
+-  At the moment there is no editor that hands this across to a separate binary to do, and no standard way of doing it.
+-
+-## Existing solutions
+-
+-Every year the Go team conducts a survey, asking developers about their experiences with the language.
+-
+-One question that is asked is “How do you feel about your editor?”.
+-
+-The responses told a very negative story. Some categorized quotes:
+-
+-* Setup
+-  * "Hard to install and configure"
+-  * "Inadequate documentation"
+-* Performance
+-  * "Performance is very poor"
+-  * "Pretty slow in large projects"
+-* Reliability
+-  * "Features work one day, but not the next"
+-  * "Tooling is not updated with new language features"
+-
+-Each editor has its own plugin that shells out to a variety of tools, many of which break with new Go releases or because they are no longer maintained.
+-
+-The individual tools each have to do the work to understand the code and all its transitive dependencies.
+-
+-Each feature is a different tool, with a different set of patterns for its command line, a different way to accept input and parse output, a different way of specifying source code locations.
+-To support its existing feature set, VSCode installed 24 different command line tools, many of which have options or forks to configure. When looking at the set of tools that needed to be migrated to modules, across all the editors, there were 63 separate tools.
+-
+-All these tools need to understand the code, and they use the same standard libraries to do it. Those libraries are optimized for these kinds of tools, but even so processing that much code takes a lot of time time. Almost none of the tools are capable of returning results within 100ms.
+-As developers type in their editor, multiple of these features need to activate, which means they are not just paying the cost once, but many times. The overall effect is an editing experience that feels sluggish, and features that are either not enabled or sometimes produce results that appear so slowly they are no longer useful when they arrive. This is a problem that increases with the size of the code base, which means it is getting worse over time, and is especially bad for the kinds of large code bases companies are dealing with as they use Go for more major tasks.
+-
+-## Requirements
+-
+-### Complete feature set
+-
+-For gopls to be considered a success it has to implement the full feature set discussed [below](#Features).
+-This is the set of features that users need in order to feel as productive as they were with the tooling it is replacing. It does not include every feature of previous implementations, there are some features that are almost never used that should be dropped (like guru's pointer analysis) and some other features that do not easily fit and will have to be worked around (replacing the save hook/linter).
+-
+-### Equivalent or better experience
+-
+-For all of those features, the user experience must match or exceed the current one available in all editors.
+-This is an easy statement to make, but a hard one to validate or measure. Many of the possible measures fail to capture the experience.
+-
+-For instance, if an attempt was made to measure the latency of a jump to definition call, the results would be fairly consistent from the old godef tool. From the gopls implementation there may be a much larger range of latencies, with the best being orders of magnitude faster, and the worse slightly worse, because gopls attempts to do far more work, but manages to cache it across calls.
+-
+-Or for a completion call, it might be slower but produce a better first match such that users accept it more often, resulting in an overall better experience.
+-
+-For the most part this has to rely on user reports. If users are refusing to switch because the experience is not better, it is clearly not done, if they are switching but most people are complaining, there are probably enough areas that are better to make the switch compelling but other areas which are worse. If most people are switching and either staying silent or being positive, it is probably done. When writing tools, the user is all that matters.
+-
+-### Solid community of contributors
+-
+-The scope and scale of the problem gopls is trying to solve is untenable for the core Go team, it is going to require a strong community to make it all happen.
+-
+-This implies the code must be easy to contribute to, and easy for many developers to work on in parallel. The functionality needs to be well decoupled, and have a thorough testing story.
+-
+-### Latencies that fall within user tolerance
+-
+-There has been a lot of research on acceptable latencies for user actions.
+-<!-- TODO: research links -->
+-The main result that affects gopls is that feedback in direct response to continuous user actions needs to be under 100ms to be imperceptible, and anything above 200ms aggravates the user.
+-This means in general the aim has to be <100ms for anything that happens as the developer types.
+-There will always be cases where gopls fails to meet this deadline, and there needs to be ways to make the user experience okay in those cases, but in general the point of this deadline is to inform the basic architecture design, any solution that cannot theoretically meet this goal in the long term is the wrong answer.
+-
+-### Easy to configure
+-
+-Developers are very particular, and have very differing desires in their coding experience. gopls is going to have to support a significant amount of flexibility, in order to meet those desires.
+-The default settings however with no configuration at all must be the one that is best experience for most users, and where possible the features must be flexible without configuration so that the client can easily make the choices about treatment without changing its communication with gopls.
+-
+-## Difficulties
+-
+-### Volume of data
+-
+-<!-- TODO: project sizes -->
+-* Small:
+-* Medium:
+-* Large:
+-* Corporate mono-repo: Much much bigger
+-
+-Parsing and type checking large amounts of code is quite expensive, and the converted forms use a lot of space. As gopls has to keep updating this information while the developer types, it needs to manage how it caches the converted forms very carefully to balance memory use vs speed.
+-
+-### Cache invalidation
+-
+-The basic unit of operation for the type checking is the package, but the basic unit of operation for an editor is the file.
+-gopls needs to be able to map files to packages efficiently, so that when files change it knows which packages need to be updated (along with any other packages that transitively depended on them).
+-This is made especially difficult by the fact that changing the content of a file can modify which packages it is considered part of (either by changing the package declaration or the build tags), a file can be in more than one package, and changes can be made to files without using the editor, in which case it will not notify us of the changes.
+-
+-### Inappropriate core functionality
+-
+-The base libraries for Go (things like [go/token], [go/ast] and [go/types]) are all designed for compiler-like applications.
+-They tend to worry more about throughput than memory use, they have structures that are intended to grow and then be thrown away at program exit, and they are not designed to keep going in the presence of errors in the source they are handling.
+-They also have no abilities to do incremental changes.
+-
+-Making a long running service work well with those libraries is a very large challenge, but writing new libraries would be far more work, and cause a significant long term cost as both sets of libraries would have to be maintained. Right now it is more important to get a working tool into the hands of users. In the long term this decision may have to be revisited, new low level libraries may be the only way to keep pushing the capabilities forwards.
+-
+-### Build system capabilities
+-
+-gopls is supposed to be build system agnostic, but it must use the build system to discover how files map to packages. When it tries to do so, even when the functionality is the same, the costs (in time, CPU and memory) are very different, and can significantly impact the user experience. Designing how gopls interacts with the build system to try to minimize or hide these differences is hard.
+-
+-### Build tags
+-
+-The build tag system in Go is quite powerful, and has many use cases. Source files can exclude themselves using powerful boolean logic on the set of active tags.
+-It is however designed for specifying the set of active tags on the command line, and the libraries are all designed to cope with only one valid combination at a time. There is also no way to work out the set of valid combinations.
+-
+-Type checking a file requires knowledge of all the other files in the same package, and that set of files is modified by the build tags. The set of exported identifiers of a package is also affected by which files are in the package, and thus its build tags.
+-
+-This means that even for files or packages that have no build tag controls it is not possible to produce correct results without knowing the set of build tags to consider.
+-This makes it very hard to produce useful results when viewing a file.
+-
+-### Features not supported by LSP
+-
+-There are some things it would be good to be able to do that do not fit easily into the existing LSP protocol.
+-For instance, displaying control flow information, automatic struct tags, complex refactoring...
+-
+-Each feature will have to be considered carefully, and either propose a change to LSP, or add a way to have gopls specific extensions to the protocol that are still easy to use in all the editor plugins.
+-
+-To avoid these at the start, only core LSP features will be implemented, as they are sufficient to meet the baseline requirements anyway, but the potential features need to be kept in mind in the core architecture.
+-
+-### Distribution
+-
+-Making sure that users are using the right version of gopls is going to be a problem. Each editor plugin is probably going to install the tools in its own way, some will choose to install it system wide, some will keep their own copy.
+-
+-Because it is a brand new tool, it will be changing rapidly. If users are not informed they are on an old version they will be experiencing problems that have already been fixed, which is worse for them, and then probably reporting them, which wastes time for the gopls team. There needs to be a mechanism for gopls to check if is up to date, and a recommended way to install an up to date version.
+-
+-### Debugging user problems
+-
+-gopls is essentially a very stateful long running server on the developer's machine. Its basic operation is affected by many things, from the users environment to the contents of the local build cache. The data it is operating on is often a confidential code base that cannot be shared.
+-All of these things make it hard for users to report a bug usefully, or create a minimal reproduction.
+-
+-There needs to be easy ways for users to report what information they can, and ways to attempt to reproduce problems without their entire state. This is also needed to produce regression tests.
+-
+-
+-## Basic design decisions
+-
+-There are some fundamental architecture decisions that affect much of the rest of the design of the tool, making fundamental trade offs that impact the user experience.
+-
+-### Process lifetime: *managed by the editor*
+-
+-Processing a large code base to fully type check and then analyze it within the latency requirements is not feasible, and is one of the primary problems with the existing solutions. This remains true even if the computed information was cached  on disk, as running analyzers and type checkers ends up requiring the full AST of all files in the dependency graph.
+-It is theoretically possible to do better, but only with a major re-write of the existing parsing and type checking libraries, something that is not feasible at this time.
+-
+-This implies that gopls should be a long running process, that is able to cache and pre-calculate results in memory so that when a request arrives it can produce the answer much faster.
+-
+-It could run as a daemon on the user's machine, but there are a lot of issues with managing a daemon. It may well be the right choice in the long term, and it should be allowed for in the fundamental architecture design, but to start with it will instead have a process that lasts as long as the editor that starts it, and that can easily be restarted.
+-
+-### Caching: *in memory*
+-
+-Persistent disk caches are very expensive to maintain, and require solving a lot of extra problems.
+-Although building the information required is expensive compared to the latencies required of the requests, it is fairly minor compared to the startup times of an editor, so it is expected that rebuilding the information when gopls is restarted will be acceptable.
+-
+-The advantage gained from this is that gopls becomes stateless across restarts which means if it has issues or gets its state confused, a simple restart will often fix the problem.
+-It also means that when users report problems, the entire state of the on disk cache is not needed to diagnose and reproduce the issue.
+-
+-### Communication: *stdin/stdout JSON*
+-
+-The LSP specification defines the JSON messages that are normally used, but it does not define how those message should be sent, and there are implementations of the LSP that do not use JSON (for instance, Protocol buffers are an option).
+-
+-The constraints on gopls are that it must be easy to integrate into *every editor* on *all operating systems*, and that it should not have large external dependencies.
+-
+-JSON is part of the Go standard library, and is also the native language of LSP, so it makes the most sense. By far the best supported communication mechanism is the standard input and output of a process, and the common client implementations all have ways of using [JSON rpc 2] in this mode.  There were no complete and low dependency implementations of this protocol in Go, but it is a fairly small protocol on top of the JSON library that can be implemented with a moderate effort, and would be a generally useful library to have anyway.
+-
+-In the future it is expected to run in separated client server mode, so writing it in a way that could use sockets instead of stdin/stdout from the start was the best way to make sure it remained possible. It was also a huge debugging aid to be able to run the gopls server by hand and watch/debug it outside the editor.
+-
+-### Running other tools: *no*
+-
+-<!--- TODO: subprocess discuss --->
+-
+-## Features
+-
+-There is a set of features that gopls needs to expose to be a comprehensive IDE solution.
+-The following is the minimum set of features, along with their existing solutions and how they should map to the LSP.
+-
+-### Introspection
+-
+-Introspection features tell developers information about their code while they work. They do not make or suggest changes.
+-
+----
+-Diagnostics | Static analysis results of the code, including compilation and lint errors
+------------ | ---
+-Requires    | Full go/analysis run, which needs full AST, type and SSA information
+-LSP         | [`textDocument/publishDiagnostics`]
+-Previous    | `go build`, `go vet`, `golint`, [errcheck], [staticcheck] <!-- TODO: and all the rest -->
+-|           | This is one of the most important IDE features, allowing fast turn around without having to run compilers and checkers in the shell. Often used to power problem lists, gutter markers and squiggle underlines in the IDE. <br/> There is some complicated design work to do in order to let users customize the set of checks being run, preferably without having to recompile the main LSP binary.
+-
+----
+-Hover    | Information about the code under the cursor.
+--------- | ---
+-Requires | AST and type information for the file and all dependencies
+-LSP      | [`textDocument/hover`]
+-Previous | [godoc], [gogetdoc]
+-|        | Used when reading code to display information known to the compiler but not always obvious from the code. For instance it may return the types of identifiers, or the documentation.
+-
+----
+-Signature help | Function parameter information and documentation
+--------------- | ---
+-Requires       | AST and type information for the file and all dependencies
+-LSP            | [`textDocument/signatureHelp`]
+-Previous       | [gogetdoc]
+-|              | As a function call is being typed into code, it is helpful to know the parameters of that call to enable the developer to call it correctly.
+-
+-
+-### Navigation
+-
+-Navigation features are designed to make it easier for a developer to find their way round a code base.
+-
+----
+-Definition | Select an identifier, and jump to the code where that identifier was defined.
+----------- | ---
+-Requires   | Full type information for file and all dependencies
+-LSP        | [`textDocument/declaration`]
+-|          | [`textDocument/definition`]
+-|          | [`textDocument/typeDefinition`]
+-Previous   | [godef] |
+-|          | Asking the editor to open the place where a symbol was defined is one of the most commonly used code navigation tools inside an IDE when available. It is especially valuable when exploring an unfamiliar code base.<br/>Due to a limitation of the compiler output, it is not possible to use the binary data for this task (specifically it does not know column information) and thus it must parse from source.
+-
+----
+-Implementation | Reports the types that implement an interface
+--------------- | ---
+-Requires       | Full workspace type knowledge
+-LSP            | [`textDocument/implementation`]
+-Previous       | [impl]
+-|              | This feature is hard to scale up to large code bases, and is going to take thought to get right. It may be feasible to implemented a more limited form in the meantime.
+-
+----
+-Document symbols | Provides the set of top level symbols in the current file.
+----------------- | ---
+-Requires         | AST of the current file only
+-LSP              | [`textDocument/documentSymbol`]
+-Previous         | [go-outline], [go-symbols]
+-|                | Used to drive things like outline mode.
+-
+----
+-References | Find all references to the symbol under the cursor.
+----------- | ---
+-Requires   | AST and type information for the **reverse** transitive closure
+-LSP        | [`textDocument/references`]
+-Previous   | [guru]
+-|          | This requires knowledge of every package that could possible depend on any packages the current file is part of. In the past this has been implemented either by global knowledge, which does not scale, or by specifying a "scope" which confused users to the point where they just did not use the tools. gopls is probably going to need a more powerful solution in the long term, but to start with automatically limiting the scope may produce acceptable results. This would probably be the module if known, or some sensible parent directory otherwise.
+-
+-
+----
+-Folding  | Report logical hierarchies of blocks
+--------- | ---
+-Requires | AST of the current file only
+-LSP      | [`textDocument/foldingRange`]
+-Previous | [go-outline]
+-|        | This is normally used to provide expand and collapse behavior in editors.
+-
+----
+-Selection | Report regions of logical selection around the cursor
+---------- | ---
+-Requires  | AST of the current file only
+-LSP       | [`textDocument/selectionRange`]
+-Previous  | [guru]
+-|         | Used in editor features like expand selection.
+-
+-
+-### Edit assistance
+-
+-These features suggest or apply edits to the code for the user, including refactoring features, for which there are many potential use cases.
+-Refactoring is one of the places where Go tools could potentially be very strong, but have not been so far, and thus there is huge potential for improvements in the developer experience.
+-There is not yet a clear understanding of the kinds of refactoring people need or how they should express them however, and there are weaknesses in the LSP protocol around this.
+-This means it may be  much more of a research project.
+-
+-
+----
+-Format   | Fix the formatting of the file
+--------- | ---
+-Requires | AST of current file
+-LSP      | [`textDocument/formatting`]
+-|        | [`textDocument/rangeFormatting`]
+-|        | [`textDocument/onTypeFormatting`]
+-Previous | [gofmt], [goimports], [goreturns]
+-|        | It will use the standard format package. <br/> Current limitations are that it does not work on malformed code. It may need some very careful changes to the formatter to allow for formatting an invalid AST or changes to force the AST to a valid mode. These changes would improve range and file mode as well, but are basically vital to onTypeFormatting
+-
+-
+----
+-Imports  | Rewrite the imports block automatically to match the symbols used.
+--------- | ---
+-Requires | AST of the current file and full symbol knowledge for all candidate packages.
+-LSP      | [`textDocument/codeAction`]
+-Previous | [goimports], [goreturns]
+-|        | This needs knowledge of packages that are not yet in use, and the ability to find those packages by name. <br/> It also needs exported symbol information for all the packages it discovers. <br/> It should be implemented using the standard imports package, but there may need to be exposed a more fine grained API than just a file rewrite for some of the interactions.
+-
+-
+----
+-Autocompletion | Makes suggestions to complete the entity currently being typed.
+--------------- | ---
+-Requires       | AST and type information for the file and all dependencies<br/> Also full exported symbol knowledge for all packages.
+-LSP            | [`textDocument/completion`]
+-|              | [`completionItem/resolve`]
+-Previous       | [gocode]
+-|              | Autocomplete is one of the most complicated features, and the more it knows the better its suggestions can be. For instance it can autocomplete into packages that are not yet being imported if it has their public symbols. It can make better suggestions of options if it knows what kind of program you are writing. It can suggest better arguments if it knows how you normally call a function. It can suggest entire patterns of code if it knows they are common. Unlike many other features, which have a specific task, and once it is doing that task the feature is done, autocomplete will never be finished. Balancing and improving both the candidates and how they are ranked will be a research problem for a long time to come.
+-
+----
+-Rename   | Rename an identifier
+--------- | ---
+-Requires | AST and type information for the **reverse** transitive closure
+-LSP      | [`textDocument/rename`]
+-|        | [`textDocument/prepareRename`]
+-Previous | [gorename]
+-|        | This uses the same information that find references does, with all the same problems and limitations. It is slightly worse because the changes it suggests make it intolerant of incorrect results. It is also dangerous using it to change the public API of a package.
+-
+----
+-Suggested fixes | Suggestions that can be manually or automatically accepted to change the code
+---------------- | ---
+-Requires        | Full go/analysis run, which needs full AST, type and SSA information
+-LSP             | [`textDocument/codeAction`]
+-Previous        | N/A
+-|               | This is a brand new feature powered by the new go/analysis engine, and it should allow a huge amount of automated refactoring.
+-
+-
+-[LSP specification]: https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/
+-[talk]: TODO
+-[slides]: https://github.com/gophercon/2019-talks/blob/master/RebeccaStambler-GoPleaseStopBreakingMyEditor/slides.pdf "Go, please stop breaking my editor!"
+-[JSON rpc 2]: https://www.jsonrpc.org/specification
+-
+-[errcheck]: https://github.com/kisielk/errcheck
+-[go-outline]: https://github.com/lukehoban/go-outline
+-[go-symbols]: https://github.com/acroca/go-symbols
+-[gocode]: https://github.com/stamblerre/gocode
+-[godef]: https://github.com/rogpeppe/godef
+-[godoc]: https://golang.org/cmd/godoc
+-[gofmt]: https://golang.org/cmd/gofmt
+-[gogetdoc]: https://github.com/zmb3/gogetdoc
+-[goimports]: https://godoc.org/golang.org/x/tools/cmd/goimports
+-[gorename]: https://godoc.org/golang.org/x/tools/cmd/gorename
+-[goreturns]: https://github.com/sqs/goreturns
+-[gotags]: https://github.com/jstemmer/gotags
+-[guru]: https://godoc.org/golang.org/x/tools/cmd/guru
+-[impl]: https://github.com/josharian/impl
+-[staticcheck]: https://staticcheck.io/docs/
+-[go/types]: https://golang.org/pkg/go/types/
+-[go/ast]: https://golang.org/pkg/go/ast/
+-[go/token]: https://golang.org/pkg/go/token/
+-
+-
+-[`completionItem/resolve`]:https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#completionItem_resolve
+-[`textDocument/codeAction`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_codeAction
+-[`textDocument/completion`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_completion
+-[`textDocument/declaration`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_declaration
+-[`textDocument/definition`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_definition
+-[`textDocument/documentLink`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_documentLink
+-[`textDocument/documentSymbol`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_documentSymbol
+-[`textDocument/foldingRange`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_foldingRange
+-[`textDocument/formatting`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_formatting
+-[`textDocument/highlight`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_highlight
+-[`textDocument/hover`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_hover
+-[`textDocument/implementation`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_implementation
+-[`textDocument/onTypeFormatting`]:https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_onTypeFormatting
+-[`textDocument/prepareRename`]:https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_prepareRename
+-[`textDocument/publishDiagnostics`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_publishDiagnostics
+-[`textDocument/rangeFormatting`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_rangeFormatting
+-[`textDocument/references`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_references
+-[`textDocument/rename`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_rename
+-[`textDocument/selectionRange`]:https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_selectionRange
+-[`textDocument/signatureHelp`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_signatureHelp
+-[`textDocument/typeDefinition`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_typeDefinition
+-[`workspace/didChangeWatchedFiles`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#workspace_didChangeWatchedFiles
+diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
+--- a/gopls/doc/emacs.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/emacs.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,29 +0,0 @@
+-# Emacs
+-
+-Use [lsp-mode]. gopls is built in now as a client, so no special config is necessary. You first must install `gopls` and put it somewhere in your `PATH`. Here is an example (assuming you are using [use-package]) to get you started:
+-
+-```lisp
+-(use-package lsp-mode
+-  :commands (lsp lsp-deferred))
+-
+-(add-hook 'go-mode-hook #'lsp-deferred)
+-
+-;; optional - provides fancier overlays
+-(use-package lsp-ui
+-  :commands lsp-ui-mode)
+-
+-;; if you use company-mode for completion (otherwise, complete-at-point works out of the box):
+-(use-package company-lsp
+-  :commands company-lsp)
+-```
+-
+-Common errors:
+-- When prompted by Emacs for your project folder, if you are using modules you must select the module's root folder (i.e. the directory with the "go.mod"). If you are using GOPATH, select your $GOPATH as your folder.
+-- Emacs must have your environment set properly (PATH, GOPATH, etc). You can run `M-x getenv <RET> PATH <RET>` to see if your PATH is set in Emacs. If not, you can try starting Emacs from your terminal, using [this package][exec-path-from-shell], or moving your shell config from .bashrc into .bashenv (or .zshenv).
+-- Make sure `lsp-mode`, `lsp-ui` and `company-lsp` are up-to-date, and make sure `lsp-go` is _not_ installed.
+-
+-To troubleshoot, look in the `*lsp-log*` buffer for errors.
+-
+-[lsp-mode]: https://github.com/emacs-lsp/lsp-mode
+-[use-package]: https://github.com/jwiegley/use-package
+-[exec-path-from-shell]: https://github.com/purcell/exec-path-from-shell
+\ No newline at end of file
+diff -urN a/gopls/doc/faq.md b/gopls/doc/faq.md
+--- a/gopls/doc/faq.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/faq.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,7 +0,0 @@
+-# gopls FAQ
+-
+-## Why is it called gopls?
+-
+-Since gopls works both as a language server and as a command line tool, we wanted a name that could be used as a verb. For example, gopls check should read as "go please check." See: [cl/158197].
+-
+-[cl/158197]: https://golang.org/cl/158197
+\ No newline at end of file
+diff -urN a/gopls/doc/implementation.md b/gopls/doc/implementation.md
+--- a/gopls/doc/implementation.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/implementation.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,49 +0,0 @@
+-# gopls implementation documentation
+-
+-This is not intended as a complete description of the implementation, for the most the part the package godoc, code comments and the code itself hold that.
+-Instead this is meant to be a guide into finding parts of the implementation, and understanding some core concepts used throughout the implementation.
+-
+-## View/Session/Cache
+-
+-Throughout the code there are references to these three concepts, and they build on each other.
+-
+-At the base is the *Cache*. This is the level at which we hold information that is global in nature, for instance information about the file system and its contents.
+-
+-Above that is the *Session*, which holds information for a connection to an editor. This layer hold things like the edited files (referred to as overlays).
+-
+-The top layer is called the *View*. This holds the configuration, and the mapping to configured packages.
+-
+-The purpose of this layering is to allow a single editor session to have multiple views active whilst still sharing as much information as possible for efficiency.
+-In theory if only the View layer existed, the results would be identical, but slower and using more memory.
+-
+-## Code location
+-
+-gopls will be developed in the [x/tools] Go repository; the core packages are in [internal/lsp], and the binary and integration tests are located in [golsp].
+-
+-Below is a list of the core packages of gopls, and their primary purpose:
+-
+-Package | Description
+---- | ---
+-[gopls] | the main binary, plugins and integration tests
+-[internal/lsp] | the core message handling package
+-[internal/lsp/cache] | the cache layer
+-[internal/lsp/cmd] | the gopls command line layer
+-[internal/lsp/debug] | features to aid in debugging gopls
+-[internal/lsp/protocol] | the lsp protocol layer and wire format
+-[internal/lsp/source] | the core feature implementations
+-[internal/span] | a package for dealing with source file locations
+-[internal/memoize] | a function invocation cache used to reduce the work done
+-[internal/jsonrpc2] | an implementation of the JSON RPC2 specification
+-
+-[gopls]: https://github.com/golang/tools/tree/master/gopls
+-[internal/jsonrpc2]: https://github.com/golang/tools/tree/master/internal/jsonrpc2
+-[internal/lsp]: https://github.com/golang/tools/tree/master/internal/lsp
+-[internal/lsp/cache]: https://github.com/golang/tools/tree/master/internal/lsp/cache
+-[internal/lsp/cmd]: https://github.com/golang/tools/tree/master/internal/lsp/cmd
+-[internal/lsp/debug]: https://github.com/golang/tools/tree/master/internal/lsp/debug
+-[internal/lsp/protocol]: https://github.com/golang/tools/tree/master/internal/lsp/protocol
+-[internal/lsp/source]: https://github.com/golang/tools/tree/master/internal/lsp/source
+-[internal/memoize]: https://github.com/golang/tools/tree/master/internal/memoize
+-[internal/span]: https://github.com/golang/tools/tree/master/internal/span
+-[x/tools]: https://github.com/golang/tools
+-
+diff -urN a/gopls/doc/integrating.md b/gopls/doc/integrating.md
+--- a/gopls/doc/integrating.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/integrating.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,91 +0,0 @@
+-# Documentation for plugin authors
+-
+-If you are integrating `gopls` into an editor by writing an editor plugin, there are quite a few semantics of the communication between the editor and `gopls` that are not specified by the [LSP specification].
+-
+-We attempt to document those details along with any other information that has been helpful to other plugin authors here.
+-
+-If you are implementing a plugin yourself and have questions this page does not answer, please reach out to us to ask, and then also contribute your findings back to this page.
+-
+-## Supported features
+-
+-For the most part you should look at the [list](status.md#supported-features) in the current status document to know if gopls supports a feature.
+-For a truly authoritative answer you should check the [result][InitializeResult] of the [initialize] request, where gopls enumerates its support in the [ServerCapabilities].
+-
+-
+-## Positions and ranges
+-
+-Many LSP requests pass position or range information. This is described in the [LSP specification][lsp-text-documents]:
+-
+-> A position inside a document (see Position definition below) is expressed as a zero-based line and character offset. The offsets are based on a UTF-16 string representation. So a string of the form a𐐀b the character offset of the character a is 0, the character offset of 𐐀 is 1 and the character offset of b is 3 since 𐐀 is represented using two code units in UTF-16.
+-
+-This means that integrators will need to calculate UTF-16 based column offsets.
+-
+-[`golang.org/x/tools/internal/span`] has the code to do this in go.
+-[#31080] tracks making `span` and other useful packages non-internal.
+-
+-## Edits
+-
+-In order to deliver changes from gopls to the editor, the LSP supports arrays of [`TextEdit`][lsp-textedit]s in responses.
+-The spec specifies exactly how these should be applied:
+-
+-> All text edits ranges refer to positions in the original document. Text edits ranges must never overlap, that means no part of the original document must be manipulated by more than one edit. However, it is possible that multiple edits have the same start position: multiple inserts, or any number of inserts followed by a single remove or replace edit. If multiple inserts have the same position, the order in the array defines the order in which the inserted strings appear in the resulting text.
+-
+-All `[]TextEdit` are sorted such that applying the array of deltas received in reverse order achieves the desired result that holds with the spec.
+-
+-## Errors
+-
+-Various error codes are described in the [LSP specification][lsp-response]. We are still determining what it means for a method to return an error; are errors only for low-level LSP/transport issues or can other conditions cause errors to be returned? See some of this discussion on [#31526].
+-
+-The method chosen is currently influenced by the exact treatment in the currently popular editor integrations. It may well change, and ideally would become more coherent across requests.
+-
+-* [`textDocument/codeAction`]: Return error if there was an error computing code actions.
+-* [`textDocument/completion`]: Log errors, return empty result list.
+-* [`textDocument/definition`]: Return error if there was an error computing the definition for the position.
+-* [`textDocument/typeDefinition`]: Return error if there was an error computing the type definition for the position.
+-* [`textDocument/formatting`]: Return error if there was an error formatting the file.
+-* [`textDocument/highlight`]: Log errors, return empty result.
+-* [`textDocument/hover`]: Return empty result.
+-* [`textDocument/documentLink`]: Log errors, return nil result.
+-* [`textDocument/publishDiagnostics`]: Log errors if there were any while computing diagnostics.
+-* [`textDocument/references`]: Log errors, return empty result.
+-* [`textDocument/rename`]: Return error if there was an error computing renames.
+-* [`textDocument/signatureHelp`]: Log errors, return nil result.
+-* [`textDocument/documentSymbols`]: Return error if there was an error computing document symbols.
+-
+-## Watching files
+-
+-It is fairly normal for files that affect `gopls` to be modified outside of the editor it is associated with.
+-
+-For instance, files that are needed to do correct type checking are modified by switching branches in git, or updated by a code generator.
+-
+-Monitoring files inside gopls directly has a lot of awkward problems, but the [LSP specification] has methods that allow gopls to request that the client notify it of file system changes, specifically [`workspace/didChangeWatchedFiles`].
+-This is currently being added to gopls by a community member, and tracked in [#31553]
+-
+-[InitializeResult]: https://godoc.org/golang.org/x/tools/internal/lsp/protocol#InitializeResult
+-[ServerCapabilities]: https://godoc.org/golang.org/x/tools/internal/lsp/protocol#ServerCapabilities
+-[`golang.org/x/tools/internal/span`]: https://godoc.org/golang.org/x/tools/internal/span#NewPoint
+-
+-[LSP specification]: https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/
+-[lsp-response]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#response-message
+-[initialize]: https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#initialize
+-[lsp-text-documents]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#text-documents
+-[lsp-textedit]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textedit
+-
+-[`textDocument/codeAction`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_codeAction
+-[`textDocument/completion`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_completion
+-[`textDocument/definition`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_definition
+-[`textDocument/typeDefinition`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_typeDefinition
+-[`textDocument/formatting`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_formatting
+-[`textDocument/highlight`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_highlight
+-[`textDocument/hover`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_hover
+-[`textDocument/documentLink`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_documentLink
+-[`textDocument/publishDiagnostics`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_publishDiagnostics
+-[`textDocument/references`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_references
+-[`textDocument/rename`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_rename
+-[`textDocument/signatureHelp`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_signatureHelp
+-[`textDocument/documentSymbols`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_documentSymbols
+-[`workspace/didChangeWatchedFiles`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#workspace_didChangeWatchedFiles
+-
+-[#31080]: https://github.com/golang/go/issues/31080
+-[#31553]: https://github.com/golang/go/issues/31553
+-[#31526]: https://github.com/golang/go/issues/31526
+\ No newline at end of file
+diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
+--- a/gopls/doc/settings.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/settings.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,92 +0,0 @@
+-# Settings
+-
+-<!--TODO: Generate this file from the documentation in golang/org/x/tools/internal/lsp/source/options.go.-->
+-
+-This document describes the global settings for `gopls` inside the editor. The settings block will be called `"gopls"` and contains a collection of controls for `gopls` that the editor is not expected to understand or control. These settings can also be configured differently per workspace folder.
+-
+-In VSCode, this would be a section in your `settings.json` file that might look like this:
+-
+-```json5
+-  "gopls": {
+-    "usePlaceholders": true,
+-    "completeUnimported": true
+-  },
+-```
+-
+-## Officially supported
+-
+-Below is the list of settings that are officially supported for `gopls`.
+-
+-### **buildFlags** *array of strings*
+-
+-This is the set of flags passed on to the build system when invoked. It is applied to queries like `go list`, which is used when discovering files. The most common use is to set `-tags`.
+-
+-### **env** *map of string to value*
+-
+-This can be used to add environment variables. These will not affect `gopls` itself, but will be used for any external commands it invokes.
+-
+-### **hoverKind** *string*
+-
+-This controls the information that appears in the hover text.
+-It must be one of:
+-* `"NoDocumentation"`
+-* `"SynopsisDocumentation"`
+-* `"FullDocumentation"`
+-
+-Authors of editor clients may wish to handle hover text differently, and so might use different settings. The options below are not intended for use by anyone other than the authors of editor plugins.
+-
+-* `"SingleLine"`
+-* `"Structured"`
+-
+-Default: `"SynopsisDocumentation"`.
+-
+-## **usePlaceholders** *boolean*
+-
+-If true, then completion responses may contain placeholders for function parameters or struct fields.
+-
+-Default: `false`.
+-
+-## Experimental
+-
+-The below settings are considered experimental. They may be deprecated or changed in the future. They are typically used to test experimental opt-in features or to disable features.
+-
+-### **experimentalDisabledAnalyses** *array of strings*
+-
+-A list of the names of analysis passes that should be disabled. You can use this to turn off analyses that you feel are not useful in the editor.
+-
+-### **staticcheck** *boolean*
+-
+-If true, it enables the use of the staticcheck.io analyzers.
+-
+-### **completionDocumentation** *boolean*
+-
+-If false, indicates that the user does not want documentation with completion results.
+-
+-Default value: `true`.
+-
+-**completeUnimported** *boolean*
+-
+-If true, the completion engine is allowed to make suggestions for packages that you do not currently import.
+-
+-Default: `false`.
+-
+-### **deepCompletion** *boolean*
+-
+-If true, this turns on the ability to return completions from deep inside relevant entities, rather than just the locally accessible ones. Consider this example:
+-
+-```go
+-package main
+-
+-import "fmt"
+-
+-type wrapString struct {
+-    str string
+-}
+-
+-func main() {
+-    x := wrapString{"hello world"}
+-    fmt.Printf(<>)
+-}
+-```
+-
+-At the location of the `<>` in this program, deep completion would suggest the result `x.str`.
+diff -urN a/gopls/doc/status.md b/gopls/doc/status.md
+--- a/gopls/doc/status.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/status.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,46 +0,0 @@
+-# Status
+-
+-gopls is currently in **alpha**, so it is **not stable**.
+-
+-gopls is currently under active development by the Go team. The code is in the [x/tools] repository, in [golang.org/x/tools/internal/lsp] and [golang.org/x/tools/gopls].
+-
+-## Supported features
+-
+-<!--- TODO: supported features
+-details and status for the features
+-missing features
+---->
+-
+-### Autocompletion
+-### Jump to definition
+-### Signature help
+-### Hover
+-### Document symbols
+-### References
+-### Rename
+-
+-## Known issues
+-
+-1. Cursor resets to the beginning or end of file on format: [#31937]
+-1. Editing multiple modules in one editor window: [#32394]
+-1. Language features do not work with cgo: [#32898]
+-1. Does not work with build tags: [#29202]
+-1. Find references and rename only work in a single package: [#32869], [#32877]
+-1. Completion does not work well after go or defer statements: [#29313]
+-1. Changes in files outside of the editor are not yet tracked: [#31553]
+-
+-[x/tools]: https://github.com/golang/tools
+-[golang.org/x/tools/gopls]: https://github.com/golang/tools/tree/master/gopls
+-[golang.org/x/tools/internal/lsp]: https://github.com/golang/tools/tree/master/internal/lsp
+-
+-
+-[#31937]: https://github.com/golang/go/issues/31937
+-[#32394]: https://github.com/golang/go/issues/32394
+-[#32898]: https://github.com/golang/go/issues/32898
+-[#29202]: https://github.com/golang/go/issues/29202
+-[#32869]: https://github.com/golang/go/issues/32869
+-[#32877]: https://github.com/golang/go/issues/32877
+-[#29313]: https://github.com/golang/go/issues/29313
+-[#31553]: https://github.com/golang/go/issues/31553
+-
+-
+diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
+--- a/gopls/doc/subl.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/subl.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,11 +0,0 @@
+-# Sublime Text
+-
+-Use the [LSP] package. After installing it using Package Control, do the following:
+-
+-* Open the **Command Palette**
+-* Find and run the command **LSP: Enable Language Server Globally**
+-* Select the **gopls** item. Be careful not to select the similarly named *golsp* by mistake.
+-
+-Finally, you should familiarise yourself with the LSP package's *Settings* and *Key Bindings*. Find them under the menu item **Preferences > Package Settings > LSP**.
+-
+-[LSP]: https://packagecontrol.io/packages/LSP
+diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
+--- a/gopls/doc/troubleshooting.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/troubleshooting.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,44 +0,0 @@
+-# Troubleshooting
+-
+-If you see a gopls error or crash, or gopls just stops working, please follow the troubleshooting steps below.
+-
+-## Steps
+-
+-<!--- TODO: troubleshooting
+-describe more basic and optional trouble shooting steps
+-  like checking you opened the module root
+-  and using the debug pages
+---->
+-
+-1. Make sure your `gopls` is [up to date](user.md#installing).
+-1. Check the [known issues](status.md#known-issues).
+-1. [Report the issue](file-an-issue).
+-
+-## File an issue
+-
+-You can use:
+-* Your editor's bug submission integration (if available). For instance, `:GoReportGitHubIssue` in [`vim-go`](vim.md#vim-go).
+-* `gopls bug` on the command line.
+-* The [Go issue tracker](https://github.com/golang/go/issues/new?title=x%2Ftools%2Fgopls%3A%20%3Cfill%20this%20in%3E).
+-
+-Along with an explanation of the issue, please share the information listed here:
+-
+-1. Your editor and any settings you have configured (for example, your VSCode `settings.json` file).
+-1. A sample program that reproduces the issue, if possible.
+-1. The output of `gopls version` on the command line.
+-1. The output of `gopls -rpc.trace -v check /path/to/file.go`.
+-1. gopls logs from when the issue occurred, as well as a timestamp for when the issue began to occur. See the [instructions](#capturing-gopls-logs) for information on how to capture gopls logs.
+-
+-Much of this information is filled in for you if you use `gopls bug` to file the issue.
+-
+-### Capturing logs
+-
+-For VSCode users, the gopls log can be found by going to `"View: Debug Console" -> "Output" -> "Tasks" -> "gopls"`. For other editors, you may have to directly pass a `-logfile` flag to gopls.
+-
+-To increase the level of detail in your logs, start `gopls` with the `-rpc.trace` flag. To start a debug server that will allow you to see profiles and memory usage, start `gopls` with `serve --debug=localhost:6060`.
+-
+-If you are unsure of how to pass a flag to `gopls` through your editor, please see the [documentation for your editor](user.md#editors).
+-
+-### Restart your editor
+-
+-Once you have filed an issue, you can then try to restart your `gopls` instance by restarting your editor. In many cases, this will correct the problem. In VSCode, the easiest way to restart the language server is by opening the command palette (Ctrl + Shift + P) and selecting `"Go: Restart Language Server"`. You can also reload the VSCode instance by selecting `"Developer: Reload Window"`.
+diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
+--- a/gopls/doc/user.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/user.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,93 +0,0 @@
+-# User guide
+-
+-##### If you're having issues with `gopls`, please see the [troubleshooting guide](troubleshooting.md).
+-
+-This document focuses on VSCode, as at the time of writing, VSCode is the most popular Go editor. However, most of the features described here work in any editor. The settings should be easy to translate to those of another editor's LSP client. The differences will be in the place where you define the settings and the syntax with which you declare them.
+-
+-## Editors
+-
+-The following is the list of editors with known integrations.
+-If you use `gopls` with an editor that is not on this list, please let us know by [filing an issue](#new-issue) or [modifying this documentation](#contribute).
+-
+-* [VSCode](vscode.md)
+-* [Vim / Neovim](vim.md)
+-* [Emacs](emacs.md)
+-* [Acme](acme.md)
+-* [Sublime Text](subl.md)
+-
+-## Installation
+-
+-For the most part, you should not need to install or update `gopls`. Your editor should handle that step for you.
+-
+-If you do want to get the latest stable version of `gopls`, change to any directory that is both outside of your `GOPATH` and outside of a module (a temp directory is fine), and run
+-
+-```sh
+-go get golang.org/x/tools/gopls@latest
+-```
+-
+-**Do not** use the `-u` flag, as it will update your dependencies to incompatible versions.
+-
+-If you see this error:
+-
+-```sh
+-$ go get golang.org/x/tools/gopls@latest
+-go: cannot use path@version syntax in GOPATH mode
+-```
+-then run
+-```sh
+-GO111MODULE=on go get golang.org/x/tools/gopls@latest
+-```
+-
+-
+-## Configurations
+-
+-### Environment variables
+-
+-These are often inherited from the editor that launches `gopls`, and sometimes the editor has a way to add or replace values before launching. For example, VSCode allows you to configure `go.toolsEnvVars`.
+-
+-Configuring your environment correctly is important, as `gopls` relies on the `go` command.
+-
+-### Command line flags
+-
+-See the [command line page](command-line.md) for more information about the flags you might specify.
+-All editors support some way of adding flags to `gopls`, for the most part you should not need to do this unless you have very unusual requirements or are trying to [troubleshoot](troubleshooting.md#steps) `gopls` behavior.
+-
+-### Editor settings
+-
+-For the most part these will be settings that control how the editor interacts with or uses the results of `gopls`, not modifications to `gopls` itself. This means they are not standardized across editors, and you will have to look at the specific instructions for your editor integration to change them.
+-
+-#### The set of workspace folders
+-
+-This is one of the most important pieces of configuration. It is the set of folders that gopls considers to be "roots" that it should consider files to be a part of.
+-
+-If you are using modules there should be one of these per go.mod that you are working on.
+-If you do not open the right folders, very little will work. **This is the most common misconfiguration of `gopls` that we see**.
+-
+-#### Global configuration
+-
+-There should be a way of declaring global settings for `gopls` inside the editor. The settings block will be called `"gopls"` and contains a collection of controls for `gopls` that the editor is not expected to understand or control.
+-
+-In VSCode, this would be a section in your settings file that might look like this:
+-
+-```json5
+-  "gopls": {
+-    "usePlaceholders": true,
+-    "completeUnimported": true
+-  },
+-```
+-
+-See [Settings](settings.md) for more information about the available configurations.
+-
+-#### Workspace folder configuration
+-
+-This contains exactly the same set of values that are in the global configuration, but it is fetched for every workspace folder separately. The editor can choose to respond with different values per-folder.
+-
+-## Command line support
+-
+-Much of the functionality of `gopls` is available through a command line interface.
+-
+-There are two main reasons for this. The first is that we do not want users to rely on separate command line tools when they wish to do some task outside of an editor. The second is that the CLI assists in debugging. It is easier to reproduce behavior via single command.
+-
+-It is not a goal of `gopls` to be a high performance command line tool. Its command line is intended for single file/package user interaction speeds, not bulk processing.
+-
+-For more information, see the `gopls` [command line page](command-line.md).
+diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
+--- a/gopls/doc/vim.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/vim.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,106 +0,0 @@
+-# Vim / Neovim
+-
+-## vim-go
+-
+-Use [vim-go] ver 1.20+, with the following configuration:
+-
+-```
+-let g:go_def_mode='gopls'
+-let g:go_info_mode='gopls'
+-```
+-
+-## LanguageClient-neovim
+-
+-Use [LanguageClient-neovim], with the following configuration:
+-
+-```
+-" Launch gopls when Go files are in use
+-let g:LanguageClient_serverCommands = {
+-       \ 'go': ['gopls']
+-       \ }
+-" Run gofmt on save
+-autocmd BufWritePre *.go :call LanguageClient#textDocument_formatting_sync()
+-```
+-
+-## Ale
+-
+-Use [ale]:
+-
+-```vim
+-let g:ale_linters = {
+-	\ 'go': ['gopls'],
+-	\}
+-```
+-
+-see [this issue][ale-issue-2179]
+-
+-## vim-lsp
+-
+-Use [prabirshrestha/vim-lsp], with the following configuration:
+-
+-```vim
+-augroup LspGo
+-  au!
+-  autocmd User lsp_setup call lsp#register_server({
+-      \ 'name': 'go-lang',
+-      \ 'cmd': {server_info->['gopls']},
+-      \ 'whitelist': ['go'],
+-      \ })
+-  autocmd FileType go setlocal omnifunc=lsp#complete
+-  "autocmd FileType go nmap <buffer> gd <plug>(lsp-definition)
+-  "autocmd FileType go nmap <buffer> ,n <plug>(lsp-next-error)
+-  "autocmd FileType go nmap <buffer> ,p <plug>(lsp-previous-error)
+-augroup END
+-```
+-
+-## vim-lsc
+-
+-Use [natebosch/vim-lsc], with the following configuration:
+-
+-```vim
+-let g:lsc_server_commands = {
+-\  "go": {
+-\    "command": "gopls serve",
+-\    "log_level": -1,
+-\    "suppress_stderr": v:true,
+-\  },
+-\}
+-```
+-
+-The `log_level` and `suppress_stderr` parts are needed to prevent breakage from logging. See
+-[natebosch/vim-lsc#180] and [natebosch/vim-lsc#213].
+-
+-## coc.nvim
+-
+-Use [coc.nvim], with the following `coc-settings.json` configuration:
+-
+-```json
+-  "languageserver": {
+-    "golang": {
+-      "command": "gopls",
+-      "rootPatterns": ["go.mod", ".vim/", ".git/", ".hg/"],
+-      "filetypes": ["go"]
+-    }
+-  }
+-```
+-
+-The `editor.action.organizeImport` code action will auto-format code and add missing imports. To run this automatically on save, add the following line to your `init.vim`:
+-
+-```vim
+-autocmd BufWritePre *.go :call CocAction('runCommand', 'editor.action.organizeImport')
+-```
+-
+-## govim
+-
+-In vim classic only, use the experimental [`govim`], simply follow the [install steps][govim-install].
+-
+-[vim-go]: https://github.com/fatih/vim-go
+-[LanguageClient-neovim]: https://github.com/autozimu/LanguageClient-neovim
+-[ale]: https://github.com/w0rp/ale
+-[ale-issue-2179]: https://github.com/w0rp/ale/issues/2179
+-[prabirshrestha/vim-lsp]: https://github.com/prabirshrestha/vim-lsp/
+-[natebosch/vim-lsc]: https://github.com/natebosch/vim-lsc/
+-[natebosch/vim-lsc#180]: https://github.com/natebosch/vim-lsc/issues/180
+-[coc.nvim]: https://github.com/neoclide/coc.nvim/
+-[`govim`]: https://github.com/myitcv/govim
+-[govim-install]: https://github.com/myitcv/govim/blob/master/README.md#govim---go-development-plugin-for-vim8
+diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
+--- a/gopls/doc/vscode.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/doc/vscode.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,58 +0,0 @@
+-# VSCode
+-
+-Use the [VSCode-Go] plugin, with the following configuration:
+-
+-```json5
+-"go.useLanguageServer": true,
+-"[go]": {
+-    "editor.snippetSuggestions": "none",
+-    "editor.formatOnSave": true,
+-    "editor.codeActionsOnSave": {
+-        "source.organizeImports": true,
+-    }
+-},
+-"gopls": {
+-    "usePlaceholders": true, // add parameter placeholders when completing a function
+-
+-    // Experimental settings
+-    "completeUnimported": true, // autocomplete unimported packages
+-    "watchChangedFiles": true,  // watch file changes outside of the editor
+-    "deepCompletion": true,     // enable deep completion
+-},
+-"files.eol": "\n", // formatting only supports LF line endings
+-```
+-
+-VSCode will complain about the `"gopls"` settings, but they will still work. Once we have a consistent set of settings, we will make the changes in the VSCode plugin necessary to remove the errors.
+-
+-If you encounter problems with import organization, please try setting a higher code action timeout (any value greater than 750ms), for example:
+-
+-```json5
+-"[go]": {
+-  "editor.codeActionsOnSaveTimeout": 3000
+-}
+-```
+-
+-To enable more detailed debug information, add the following to your VSCode settings:
+-
+-```json5
+-"go.languageServerFlags": [
+-    "-rpc.trace", // for more detailed debug logging
+-    "serve",
+-    "--debug=localhost:6060", // to investigate memory usage, see profiles
+-],
+-```
+-
+-See the section on [command line](command-line.md) arguments for more information about what these do, along with other things like `--logfile=auto` that you might want to use.
+-
+-You can disable features through the `"go.languageServerExperimentalFeatures"` section of the config. An example of a feature you may want to disable is `"documentLink"`, which opens [`godoc.org`](https://godoc.org) links when you click on import statements in your file.
+-
+-
+-[VSCode-Go]: https://github.com/microsoft/vscode-go
+-
+-# VSCode Remote Development with gopls
+-
+-You can also make use of `gopls` with the [VSCode Remote Development](https://code.visualstudio.com/docs/remote/remote-overview) extensions to enable full-featured Go development on a lightweight client machine, while connected to a more powerful server machine.
+-
+-First, install the Remote Development extension of your choice, such as the [Remote - SSH](https://code.visualstudio.com/docs/remote/ssh) extension. Once you open a remote session in a new window, open the Extensions pane (Ctrl+Shift+X) and you will see several different sections listed. In the "Local - Installed" section, navigate to the Go extension and click "Install in SSH: hostname".
+-
+-Once you have reloaded VSCode, you will be prompted to install `gopls` and other Go-related tools. After one more reload, you should be ready to develop remotely with VSCode and the Go extension.
+diff -urN a/gopls/go.mod b/gopls/go.mod
+--- a/gopls/go.mod	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/go.mod	1969-12-31 19:00:00.000000000 -0500
+@@ -1,10 +0,0 @@
+-module golang.org/x/tools/gopls
+-
+-go 1.11
+-
+-require (
+-	golang.org/x/tools v0.0.0-20190918214516-5a1a30219888
+-	honnef.co/go/tools v0.0.1-2019.2.3
+-)
+-
+-replace golang.org/x/tools => ../
+diff -urN a/gopls/go.sum b/gopls/go.sum
+--- a/gopls/go.sum	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/go.sum	1969-12-31 19:00:00.000000000 -0500
+@@ -1,24 +0,0 @@
+-github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
+-github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+-github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
+-github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
+-github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
+-github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
+-github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+-github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
+-golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+-golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
+-golang.org/x/mod v0.0.0-20190513183733-4bf6d317e70e/go.mod h1:mXi4GBBbnImb6dmsKGUJ2LatrhH/nqhxcFungHvyanc=
+-golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
+-golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+-golang.org/x/sync v0.0.0-20190423024810-112230192c58 h1:8gQV6CLnAEikrhgkHFbMAEhagSSnXWGV915qUMm9mrU=
+-golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+-golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+-golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+-golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+-golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7 h1:9zdDQZ7Thm29KFXgAX/+yaf3eVbP7djjWp/dXAppNCc=
+-golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+-gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+-gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
+-honnef.co/go/tools v0.0.1-2019.2.3 h1:3JgtbtFHMiCmsznwGVTUWbgGov+pVqnlf1dEJTNAXeM=
+-honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
+diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
+--- a/gopls/internal/hooks/analysis.go	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/internal/hooks/analysis.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,28 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-package hooks
+-
+-import (
+-	"golang.org/x/tools/go/analysis"
+-	"golang.org/x/tools/internal/lsp/source"
+-	"honnef.co/go/tools/simple"
+-	"honnef.co/go/tools/staticcheck"
+-	"honnef.co/go/tools/stylecheck"
+-)
+-
+-func updateAnalyzers(v source.View, analyzers []*analysis.Analyzer) []*analysis.Analyzer {
+-	if v.Options().StaticCheck {
+-		for _, a := range simple.Analyzers {
+-			analyzers = append(analyzers, a)
+-		}
+-		for _, a := range staticcheck.Analyzers {
+-			analyzers = append(analyzers, a)
+-		}
+-		for _, a := range stylecheck.Analyzers {
+-			analyzers = append(analyzers, a)
+-		}
+-	}
+-	return analyzers
+-}
+diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
+--- a/gopls/internal/hooks/hooks.go	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/internal/hooks/hooks.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,19 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-// Package hooks adds all the standard gopls implementations.
+-// This can be used in tests without needing to use the gopls main, and is
+-// also the place to edit for custom builds of gopls.
+-package hooks // import "golang.org/x/tools/gopls/internal/hooks"
+-
+-import (
+-	"context"
+-
+-	"golang.org/x/tools/internal/lsp/cache"
+-)
+-
+-func Install(ctx context.Context) context.Context {
+-	cache.UpdateAnalyzers = updateAnalyzers
+-	return ctx
+-}
+diff -urN a/gopls/main.go b/gopls/main.go
+--- a/gopls/main.go	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/main.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,24 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-// The gopls command is an LSP server for Go.
+-// The Language Server Protocol allows any text editor
+-// to be extended with IDE-like features;
+-// see https://langserver.org/ for details.
+-package main // import "golang.org/x/tools/gopls"
+-
+-import (
+-	"context"
+-	"os"
+-
+-	"golang.org/x/tools/gopls/internal/hooks"
+-	"golang.org/x/tools/internal/lsp/cmd"
+-	"golang.org/x/tools/internal/tool"
+-)
+-
+-func main() {
+-	ctx := context.Background()
+-	ctx = hooks.Install(ctx)
+-	tool.Main(ctx, cmd.New("gopls", "", nil), os.Args[1:])
+-}
+diff -urN a/gopls/README.md b/gopls/README.md
+--- a/gopls/README.md	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/README.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,39 +0,0 @@
+-# gopls documentation
+-
+-gopls (pronounced: "go please") is the official [language server] for the Go language.
+-
+-It is currently in **alpha**, so it is **not stable**. You can see more information about the status of gopls and its supported features [here](doc/status.md).
+-
+-In general you should not need to know anything about gopls, it should be integrated into your editor for you.
+-
+-See the [installing](doc/user.md) section of the user guide if you need to install or update gopls by hand.
+-
+-## Issues
+-
+-If you are having issues with gopls, please first check the [known issues](doc/status.md#known-issues) before following the [troubleshooting](doc/troubleshooting.md#steps) guide.
+-If that does not give you the information you need, reach out to us.
+-
+-You can chat with us on:
+-* the golang-tools [mailing list]
+-* the #gopls [slack channel] on the gophers slack
+-
+-If you think you have an issue that needs fixing, or a feature suggestion, then please make sure you follow the steps to [file an issue](doc/troubleshooting.md#file-an-issue) with the right information to allow us to address it.
+-
+-If you need to talk to us directly (for instance to file an issue with confidential information in it) you can reach out directly to [@stamblerre] or [@ianthehat].
+-
+-## More information
+-
+-If you want to know more about it, have an unusual use case, or want to contribute, please read the following documents
+-
+-* [Using gopls](doc/user.md)
+-* [Troubleshooting and reporting issues](doc/troubleshooting.md)
+-* [Integrating gopls with an editor](doc/integrating.md)
+-* [Contributing to gopls](doc/contributing.md)
+-* [Design requirements and decisions](doc/design.md)
+-* [Implementation details](doc/implementation.md)
+-
+-[language server]: https://langserver.org
+-[mailing list]: https://groups.google.com/forum/#!forum/golang-tools
+-[slack channel]: https://gophers.slack.com/messages/CJZH85XCZ
+-[@stamblerre]: https://github.com/stamblerre "Rebecca Stambler"
+-[@ianthehat]: https://github.com/ianthehat "Ian Cottrell"
+\ No newline at end of file
+diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
+--- a/gopls/test/gopls_test.go	2019-10-05 15:31:08.989587605 -0400
++++ b/gopls/test/gopls_test.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,38 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-package gopls_test
+-
+-import (
+-	"context"
+-	"os"
+-	"testing"
+-
+-	"golang.org/x/tools/go/packages/packagestest"
+-	"golang.org/x/tools/gopls/internal/hooks"
+-	cmdtest "golang.org/x/tools/internal/lsp/cmd/test"
+-	"golang.org/x/tools/internal/lsp/tests"
+-	"golang.org/x/tools/internal/testenv"
+-)
+-
+-func TestMain(m *testing.M) {
+-	testenv.ExitIfSmallMachine()
+-	os.Exit(m.Run())
+-}
+-
+-func TestCommandLine(t *testing.T) {
+-	packagestest.TestAll(t, testCommandLine)
+-}
+-
+-func testCommandLine(t *testing.T, exporter packagestest.Exporter) {
+-	const testdata = "../../internal/lsp/testdata"
+-	if stat, err := os.Stat(testdata); err != nil || !stat.IsDir() {
+-		t.Skip("testdata directory not present")
+-	}
+-	ctx := context.Background()
+-	hooks.Install(ctx)
+-	data := tests.Load(t, exporter, testdata)
+-	defer data.Exported.Cleanup()
+-	tests.Run(t, cmdtest.NewRunner(exporter, data, tests.Context(t)), data)
+-}

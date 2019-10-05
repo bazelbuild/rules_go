@@ -1,21 +1,26 @@
 diff -urN b/BUILD.bazel c/BUILD.bazel
 --- b/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ c/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ c/BUILD.bazel	2019-10-05 15:56:53.144207383 -0400
 @@ -0,0 +1,4 @@
 +# gazelle:proto package
 +# gazelle:proto_group go_package
 +# gazelle:exclude gapic
 +# gazelle:exclude third_party
+diff -urN b/google/BUILD.bazel c/google/BUILD.bazel
+--- b/google/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ c/google/BUILD.bazel	2019-10-05 15:56:53.148207279 -0400
+@@ -0,0 +1 @@
++# gazelle:prefix google.golang.org/genproto/googleapis
 diff -urN b/WORKSPACE c/WORKSPACE
---- b/WORKSPACE	2000-01-01 00:00:00.000000000 -0000
-+++ c/WORKSPACE	2000-01-01 00:00:00.000000000 -0000
+--- b/WORKSPACE	2019-10-05 15:54:17.960209744 -0400
++++ c/WORKSPACE	2019-10-05 15:56:53.148207279 -0400
 @@ -1,4 +1,4 @@
 -workspace(name = "com_google_googleapis")
 +workspace(name = "go_googleapis")
  
  load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
  
-@@ -90,7 +90,7 @@
+@@ -150,7 +150,7 @@
      url = "https://github.com/bazelbuild/rules_go/releases/download/0.18.5/rules_go-0.18.5.tar.gz",
  )
  
@@ -24,8 +29,3 @@ diff -urN b/WORKSPACE c/WORKSPACE
  
  go_rules_dependencies()
  
-diff -urN b/google/BUILD.bazel c/google/BUILD.bazel
---- b/google/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ c/google/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1 @@
-+# gazelle:prefix google.golang.org/genproto/googleapis
