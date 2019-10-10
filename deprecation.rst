@@ -17,9 +17,14 @@ to be removed.
 Deprecated features
 -------------------
 
+Nothing currently deprecated.
+
+Removed features
+----------------
+
 | **objc = True and related attributes**
 | **Deprecated in:** 0.19.0
-| **To be removed in:** 0.20.0
+| **Removed in:** 0.20.0
 | **Rationale:** rules_go has been rewritten to build each Go package
   in a single action. This makes rules_go more efficient on remote
   configurations. Maintenance is considerably simpler. C, C++, Objective-C, and
@@ -38,16 +43,13 @@ Deprecated features
 |
 | **Go 1.10**
 | **Deprecated in:** 0.19.0
-| **To be removed in:** 0.20.0
+| **Removed in:** 0.20.0
 | **Rationale:** Go 1.10 is no longer `officially supported`_. Newer versions of
   the Go toolchain provide different feature sets, and it's difficult to
   support older versions at the same time.
 | **Migration:** ``go_register_toolchains()`` automatically selects the newest
   version of Go unless a version is explicitly specified.
-
-Removed features
-----------------
-
+|
 | **Go 1.9**
 | **Deprecated in:** 0.17.0
 | **Removed in:** 0.18.0
