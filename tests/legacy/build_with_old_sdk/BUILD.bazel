@@ -18,7 +18,7 @@ bazel_test(
     externals = [
         "@org_golang_x_tools//go/vcs:go_default_library",
     ],
-    go_version = "1.10.1",
+    go_version = "1.11.13",
     tags = ["dev"],
     targets = [":go_default_test"],
 )
