@@ -21,6 +21,7 @@ load("@io_bazel_rules_go//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nog
 load("@io_bazel_rules_go//go/platform:list.bzl", "GOOS_GOARCH")
 load("@io_bazel_rules_go//proto:gogo.bzl", "gogo_special_proto")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def go_rules_dependencies():
     """Declares workspaces the Go rules depend on. Workspaces that use
@@ -49,15 +50,14 @@ def go_rules_dependencies():
     # Needed by rules_go implementation and tests.
     # We can't call bazel_skylib_workspace from here. At the moment, it's only
     # used to register unittest toolchains, which rules_go does not need.
-    # NOTE(bazelbuild/bazel-skylib#199): release archive does not contain
-    # toolschains/unittest. Use git_repository instead.
     _maybe(
-        git_repository,
+        http_archive,
         name = "bazel_skylib",
-        remote = "https://github.com/bazelbuild/bazel-skylib",
-        # 1.0.0 (latest) as of 2019-10-05
-        commit = "e5cf5398cd3e01d5552ed1056aafc06f92adb374",
-        shallow_since = "1570215359 -0400",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+        ],
+        sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
     )
 
     # Needed for nogo vet checks and go/packages.
