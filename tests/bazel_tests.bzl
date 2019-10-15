@@ -44,6 +44,8 @@ test --nocache_test_results
 
 build:isolate --
 build:fetch --fetch=True
+
+query:isolate --
 """.format(strategy = strategy)
 
 # _basic_workspace is the content appended to all test workspace files
@@ -71,14 +73,14 @@ if [ "${{#extra_files[@]}}" -ne 0 ]; then
 fi
 cd {work_dir}
 
-output_base_arg=""
+output_user_root_arg=""
 if (( {clean_build} )); then
-  tmp_output_base="$(mktemp -d)"
-  output_base_arg="--output_base=${{tmp_output_base}}"
+  tmp_output_user_root="$(mktemp -d)"
+  output_user_root_arg="--output_user_root=${{tmp_output_user_root}}"
 fi
 
 cmd=(
-{bazel} --bazelrc {bazelrc} ${{output_base_arg}} {command}
+{bazel} --bazelrc {bazelrc} ${{output_user_root_arg}} {command}
 --experimental_repository_cache={cache_dir} --config {config} {args}
 {target}
 )
@@ -101,8 +103,8 @@ function at_exit {{
     fi
   done
   if (( {clean_build} )); then
-    {bazel} --bazelrc {bazelrc} ${{output_base_arg}} clean &> /dev/null
-    {bazel} --bazelrc {bazelrc} ${{output_base_arg}} shutdown &> /dev/null
+    {bazel} --bazelrc {bazelrc} ${{output_user_root_arg}} clean &> /dev/null
+    {bazel} --bazelrc {bazelrc} ${{output_user_root_arg}} shutdown &> /dev/null
   fi
 }}
 trap at_exit EXIT
