@@ -37,7 +37,7 @@ go_library(
 
 config_setting(
     name = "is_osx",
-    constraint_values = ["@bazel_tools//platforms:osx"],
+    constraint_values = ["@platforms//os:osx"],
 )
 
 go_library(
