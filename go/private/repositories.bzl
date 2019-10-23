@@ -47,6 +47,17 @@ def go_rules_dependencies():
         name = "io_bazel_rules_go_compat",
     )
 
+    _maybe(
+        http_archive,
+        name = "platforms",
+        strip_prefix = "platforms-441afe1bfdadd6236988e9cac159df6b5a9f5a98",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/platforms/archive/441afe1bfdadd6236988e9cac159df6b5a9f5a98.zip",
+            "https://github.com/bazelbuild/platforms/archive/441afe1bfdadd6236988e9cac159df6b5a9f5a98.zip",
+        ],
+        sha256 = "a07fe5e75964361885db725039c2ba673f0ee0313d971ae4f50c9b18cd28b0b5",
+    )
+
     # Needed by rules_go implementation and tests.
     # We can't call bazel_skylib_workspace from here. At the moment, it's only
     # used to register unittest toolchains, which rules_go does not need.
