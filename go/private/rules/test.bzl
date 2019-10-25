@@ -37,6 +37,7 @@ load(
     "GoLibrary",
     "INFERRED_PATH",
     "get_archive",
+    "GoAspectProviders",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/aspect.bzl",
@@ -173,6 +174,9 @@ def _go_test_impl(ctx):
                 files = depset([executable]),
                 runfiles = runfiles,
                 executable = executable,
+            ),
+            GoAspectProviders(
+                archive = internal_archive,
             ),
             OutputGroupInfo(
                 compilation_outputs = [internal_archive.data.file],
