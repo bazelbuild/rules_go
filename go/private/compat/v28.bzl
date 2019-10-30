@@ -99,7 +99,7 @@ def cc_configure_features(ctx, cc_toolchain, requested_features, unsupported_fea
 # Compatibility for --incompatible_use_platforms_repo_for_constraints
 
 def platforms_os_constraint_value(value):
-    return "@bazel_tools//:" + value
+    return "@platforms//os:" + value
 
 def platforms_cpu_constraint_value(value):
-    return "@bazel_tools//:" + value
+    return "@platforms//cpu:" + value

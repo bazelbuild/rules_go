@@ -25,6 +25,7 @@ func TestMain(m *testing.M) {
 		Main: `
 -- BUILD.bazel --
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go_compat//:compat.bzl", "platforms_os_constraint_value")
 
 go_library(
     name = "use_ios_lib",
@@ -37,7 +38,7 @@ go_library(
 
 config_setting(
     name = "is_osx",
-    constraint_values = ["@platforms//os:osx"],
+    constraint_values = [platforms_os_constraint_value("ios")],
 )
 
 go_library(

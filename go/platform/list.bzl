@@ -21,6 +21,7 @@ load(
     _MSAN_GOOS_GOARCH = "MSAN_GOOS_GOARCH",
     _RACE_GOOS_GOARCH = "RACE_GOOS_GOARCH",
 )
+load("@io_bazel_rules_go_compat//:compat.bzl", "platforms_os_constraint_value")
 
 GOOS_GOARCH = _GOOS_GOARCH
 GOOS = _GOOS
@@ -59,14 +60,14 @@ def declare_config_settings():
     native.config_setting(
         name = "ios",
         constraint_values = [
-            "@platforms//os:ios",
+            platforms_os_constraint_value("ios"),
         ],
     )
     for goarch in ("arm", "arm64", "386", "amd64"):
         native.config_setting(
             name = "ios_" + goarch,
             constraint_values = [
-                "@platforms//os:ios",
+                platforms_os_constraint_value("ios"),
                 "@io_bazel_rules_go//go/toolchain:" + goarch,
             ],
         )

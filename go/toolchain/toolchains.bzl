@@ -28,6 +28,7 @@ load(
     "GOOS_CONSTRAINTS",
     "PLATFORMS",
 )
+load("@io_bazel_rules_go_compat//:compat.bzl", "platforms_os_constraint_value", "platforms_cpu_constraint_value")
 
 # These symbols should be loaded from sdk.bzl or deps.bzl instead of here..
 DEFAULT_VERSION = _DEFAULT_VERSION
@@ -53,7 +54,7 @@ def declare_constraints():
         if constraint.startswith("@io_bazel_rules_go//go/toolchain:"):
             native.constraint_value(
                 name = goos,
-                constraint_setting = "@platforms//os:os",
+                constraint_setting = platforms_os_constraint_value("os"),
             )
         else:
             native.alias(
@@ -65,7 +66,7 @@ def declare_constraints():
         if constraint.startswith("@io_bazel_rules_go//go/toolchain:"):
             native.constraint_value(
                 name = goarch,
-                constraint_setting = "@platforms//cpu:cpu",
+                constraint_setting = platforms_cpu_constraint_value("cpu"),
             )
         else:
             native.alias(

@@ -16,21 +16,23 @@
 # target platform. This table is used to generate config_settings,
 # constraint_values, platforms, and toolchains.
 
+load("@io_bazel_rules_go_compat//:compat.bzl", "platforms_os_constraint_value", "platforms_cpu_constraint_value")
+
 BAZEL_GOOS_CONSTRAINTS = {
-    "android": "@platforms//os:android",
-    "darwin": "@platforms//os:osx",
-    "freebsd": "@platforms//os:freebsd",
-    "linux": "@platforms//os:linux",
-    "windows": "@platforms//os:windows",
+    "android": platforms_os_constraint_value("android"),
+    "darwin": platforms_os_constraint_value("osx"),
+    "freebsd": platforms_os_constraint_value("freebsd"),
+    "linux": platforms_os_constraint_value("linux"),
+    "windows": platforms_os_constraint_value("windows"),
 }
 
 BAZEL_GOARCH_CONSTRAINTS = {
-    "386": "@platforms//cpu:x86_32",
-    "amd64": "@platforms//cpu:x86_64",
-    "arm": "@platforms//cpu:arm",
-    "arm64": "@platforms//cpu:aarch64",
-    "ppc64le": "@platforms//cpu:ppc",
-    "s390x": "@platforms//cpu:s390x",
+    "386": platforms_cpu_constraint_value("x86_32"),
+    "amd64": platforms_cpu_constraint_value("x86_64"),
+    "arm": platforms_cpu_constraint_value("arm"),
+    "arm64": platforms_cpu_constraint_value("aarch64"),
+    "ppc64le": platforms_cpu_constraint_value("ppc"),
+    "s390x": platforms_cpu_constraint_value("s390x"),
 }
 
 GOOS_GOARCH = (
@@ -159,7 +161,7 @@ def _generate_platforms():
 
     for goarch in ("arm", "arm64", "386", "amd64"):
         constraints = [
-            "@platforms//os:ios",
+            platforms_os_constraint_value("ios"),
             GOARCH_CONSTRAINTS[goarch],
         ]
         platforms.append(struct(
