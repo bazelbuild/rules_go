@@ -25,7 +25,10 @@ def go_bazel_test(rule_files = None, **kwargs):
 
     # Add dependency on bazel_testing library.
     kwargs.setdefault("deps", [])
-    kwargs["deps"] += ["@io_bazel_rules_go//go/tools/bazel_testing:go_default_library"]
+    
+    bazel_testing_library = "@io_bazel_rules_go//go/tools/bazel_testing:go_default_library"
+    if bazel_testing_library not in kwargs["deps"]:
+        kwargs["deps"] += []
 
     # Add data dependency on rules_go files. bazel_testing will copy or link
     # these files in an external repo.
