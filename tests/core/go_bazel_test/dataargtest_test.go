@@ -28,7 +28,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	bazel_testing.TestMain(m, bazel_testing.Args{})
+	bazel_testing.TestMain(m, bazel_testing.Args{
+		Main: `
+-- root.txt --
+Hello world!
+-- nested/file.txt --
+Hello world!`,
+	})
 }
 
 // Tests that go_bazel_test keeps includes data files correctly and doesn't mess
@@ -38,8 +44,17 @@ func TestGoldenPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to get the runfile path %#v: %s", *binaryPath, err)
 	}
-	_, err = os.Stat(bp)
-	if err != nil {
-		t.Fatalf("unable to stat Go binary file: %s", err)
+
+	tests := map[string]string{
+		"Go binary file":          bp,
+		"Text file in root":       "root.txt",
+		"Text file in nested dir": "nested/file.txt",
+	}
+
+	for name, f := range tests {
+		_, err = os.Stat(f)
+		if err != nil {
+			t.Fatalf("unable to stat %s file (%q): %s", name, f, err)
+		}
 	}
 }

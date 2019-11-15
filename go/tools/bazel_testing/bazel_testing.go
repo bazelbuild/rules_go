@@ -343,6 +343,11 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 func extractTxtar(dir, txt string) error {
 	ar := txtar.Parse([]byte(txt))
 	for _, f := range ar.Files {
+		if parentDir := filepath.Dir(f.Name); parentDir != "." {
+			if err := os.MkdirAll(filepath.Join(dir, parentDir), 0755); err != nil {
+				return err
+			}
+		}
 		if err := ioutil.WriteFile(filepath.Join(dir, f.Name), f.Data, 0666); err != nil {
 			return err
 		}
