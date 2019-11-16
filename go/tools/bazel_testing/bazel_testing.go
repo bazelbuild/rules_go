@@ -59,6 +59,12 @@ type Args struct {
 	// WorkspaceSuffix is a string that should be appended to the end
 	// of the default generated WORKSPACE file.
 	WorkspaceSuffix string
+
+	// SetUp is a function that is executed inside the context of the testing
+	// workspace. It is executed once and only once before the beginning of
+	// all tests. If SetUp returns a non-nil error, execution is halted and
+	// tests cases are not executed.
+	SetUp func() error
 }
 
 // debug may be set to make the test print the test workspace path and stop
@@ -138,6 +144,13 @@ func TestMain(m *testing.M, args Args) {
 		return
 	}
 	defer exec.Command("bazel", "shutdown").Run()
+
+	if args.SetUp != nil {
+		if err := args.SetUp(); err != nil {
+			fmt.Fprintf(os.Stderr, "test provided SetUp method returned error: %v\n", err)
+			return
+		}
+	}
 
 	code = m.Run()
 }

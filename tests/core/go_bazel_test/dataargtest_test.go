@@ -25,10 +25,16 @@ import (
 
 var (
 	binaryPath = flag.String("binaryPath", "", "")
+	setUpRan   = false
 )
 
 func TestMain(m *testing.M) {
-	bazel_testing.TestMain(m, bazel_testing.Args{})
+	bazel_testing.TestMain(m, bazel_testing.Args{
+		SetUp: func() error {
+			setUpRan = true
+			return nil
+		},
+	})
 }
 
 // Tests that go_bazel_test keeps includes data files correctly and doesn't mess
@@ -41,5 +47,9 @@ func TestGoldenPath(t *testing.T) {
 	_, err = os.Stat(bp)
 	if err != nil {
 		t.Fatalf("unable to stat Go binary file: %s", err)
+	}
+
+	if setUpRan == false {
+		t.Fatal("setUp should have been executed but was not")
 	}
 }
