@@ -32,6 +32,7 @@ import (
 	"os/signal"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -280,36 +281,60 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		return "", cleanup, fmt.Errorf("building main workspace: %v", err)
 	}
 
-	// Copy or data files for rules_go, or whatever was passed in.
+	// If some of the path arguments are missing an explicit workspace,
+	// read the workspace name from WORKSPACE. We need this to map arguments
+	// to runfiles in specific workspaces.
+	haveDefaultWorkspace := false
+	var defaultWorkspaceName string
+	for _, argPath := range files {
+		workspace, _, err := parseLocationArg(argPath)
+		if err == nil && workspace == "" {
+			haveDefaultWorkspace = true
+			cleanPath := path.Clean(argPath)
+			if cleanPath == "WORKSPACE" {
+				defaultWorkspaceName, err = loadWorkspaceName(cleanPath)
+				if err != nil {
+					return "", cleanup, fmt.Errorf("could not load default workspace name: %v", err)
+				}
+				break
+			}
+		}
+	}
+	if haveDefaultWorkspace && defaultWorkspaceName == "" {
+		return "", cleanup, fmt.Errorf("found files from default workspace, but not WORKSPACE")
+	}
+
+	// Index runfiles by workspace and short path. We need this to determine
+	// destination paths when we copy or link files.
 	runfiles, err := bazel.ListRunfiles()
 	if err != nil {
 		return "", cleanup, err
 	}
+
 	type runfileKey struct{ workspace, short string }
 	runfileMap := make(map[runfileKey]string)
 	for _, rf := range runfiles {
 		runfileMap[runfileKey{rf.Workspace, rf.ShortPath}] = rf.Path
 	}
+
+	// Copy or link file arguments from runfiles into fake workspace dirctories.
+	// Keep track of the workspace names we see, since we'll generate a WORKSPACE
+	// with local_repository rules later.
 	workspaceNames := make(map[string]bool)
 	for _, argPath := range files {
-		shortPath := path.Clean(argPath)
-		if !strings.HasPrefix(shortPath, "external/") {
-			return "", cleanup, fmt.Errorf("unexpected file (missing 'external/' prefix): %s", argPath)
+		workspace, shortPath, err := parseLocationArg(argPath)
+		if err != nil {
+			return "", cleanup, err
 		}
-		shortPath = shortPath[len("external/"):]
-		var workspace string
-		if i := strings.IndexByte(shortPath, '/'); i < 0 {
-			return "", cleanup, fmt.Errorf("unexpected file (missing '/' anywhere): %s", argPath)
-		} else {
-			workspace = shortPath[:i]
-			shortPath = shortPath[i+1:]
+		if workspace == "" {
+			workspace = defaultWorkspaceName
 		}
 		workspaceNames[workspace] = true
+
 		srcPath, ok := runfileMap[runfileKey{workspace, shortPath}]
 		if !ok {
 			return "", cleanup, fmt.Errorf("unknown runfile: %s", argPath)
 		}
-
 		dstPath := filepath.Join(execDir, workspace, shortPath)
 		if err := copyOrLink(dstPath, srcPath); err != nil {
 			return "", cleanup, err
@@ -366,6 +391,38 @@ func extractTxtar(dir, txt string) error {
 		}
 	}
 	return nil
+}
+
+func parseLocationArg(arg string) (workspace, shortPath string, err error) {
+	cleanPath := path.Clean(arg)
+	if !strings.HasPrefix(cleanPath, "external/") {
+		return "", cleanPath, nil
+	}
+	i := strings.IndexByte(arg[len("external/"):], '/')
+	if i < 0 {
+		return "", "", fmt.Errorf("unexpected file (missing / after external/): %s", arg)
+	}
+	i += len("external/")
+	workspace = cleanPath[len("external/"):i]
+	shortPath = cleanPath[i+1:]
+	return workspace, shortPath, nil
+}
+
+func loadWorkspaceName(workspacePath string) (string, error) {
+	workspaceData, err := ioutil.ReadFile(workspacePath)
+	if err != nil {
+		return "", err
+	}
+	nameRe := regexp.MustCompile(`(?m)^workspace\(\s*name\s*=\s*("[^"]*"|'[^']*')\s*,?\s*\)$`)
+	match := nameRe.FindSubmatchIndex(workspaceData)
+	if match == nil {
+		return "", fmt.Errorf("%s: workspace name not set", workspacePath)
+	}
+	name := string(workspaceData[match[2]+1 : match[3]-1])
+	if name == "" {
+		return "", fmt.Errorf("%s: workspace name is empty", workspacePath)
+	}
+	return name, nil
 }
 
 type workspaceTemplateInfo struct {
