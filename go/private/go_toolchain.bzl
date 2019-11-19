@@ -62,7 +62,7 @@ go_toolchain = rule(
         # Minimum requirements to specify a toolchain
         "builder": attr.label(
             mandatory = True,
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             doc = "Tool used to execute most Go actions",
         ),
@@ -77,6 +77,7 @@ go_toolchain = rule(
         "sdk": attr.label(
             mandatory = True,
             providers = [GoSDK],
+            cfg = "exec",
             doc = "The SDK this toolchain is based on",
         ),
         # Optional extras to a toolchain
