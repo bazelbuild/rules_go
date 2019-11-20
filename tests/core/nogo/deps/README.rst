@@ -9,8 +9,8 @@ run in the correct order.
 
 .. contents::
 
-dep_graph
-----------------------------
+deps_test
+---------
 Given the following dependency graph of analyzers:
 
     a ----+
