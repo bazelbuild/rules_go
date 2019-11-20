@@ -139,6 +139,7 @@ platforms:
     - "-//tests/core/cgo:dylib_test"
     - "-//tests/core/cgo:versioned_dylib_client"
     - "-//tests/core/cgo:versioned_dylib_test"
+    - "-//tests/core/coverage:coverage_test"
     - "-//tests/core/cross:cross_test"
     - "-//tests/core/go_binary:go_default_test"
     - "-//tests/core/go_path:go_path"
@@ -281,6 +282,7 @@ platforms:
     - "-//tests/core/cgo:c_srcs"
     - "-//tests/core/cgo:bar_dep"
     - "-//tests/core/cgo:tag_test" # TODO(#2031): FindBinary does not work
+    - "-//tests/core/coverage:coverage_test"
     - "-//tests/core/cross:cross_test"
     - "-//tests/core/go_binary:go_default_test"
     - "-//tests/core/go_binary:stamp_test"
