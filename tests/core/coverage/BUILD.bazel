@@ -1,103 +1,11 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
-load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
+
+# load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
 load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 
-bazel_test(
-    name = "coverage_test_test",
-    args = ["--instrumentation_filter=-coverage:b"],
-    check = """
-if ! grep -q '^coverage: 50.0% of statements' "bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/test.log"; then
-  echo "error: no coverage output found in test log file" >&2
-  exit 1
-fi
-
-data_file=bazel-testlogs/$RULES_GO_OUTPUT/coverage_test/coverage.dat
-if [ ! -e "$data_file" ]; then
-  echo "error: $data_file: does not exist" >&2
-  exit 1
-fi
-if [ ! -s "$data_file" ]; then
-  echo "warning: $data_file: has size zero. Bazel may have trashed it with lcov." >&2
-  echo "skipping rest of test" >&2
-  exit 0
-fi
-
-function check_file_included {
-  if ! grep -q "$1" "$data_file"; then
-    echo "error: coverage data not found for $1" >&2
-    exit 1
-  fi
-}
-function check_file_excluded {
-  if grep -q "$1" "$data_file"; then
-    echo "error: coverage data found for $1, but it should be excluded" >&2
-    exit 1
-  fi
-}
-
-included_files=(
-  'github.com/bazelbuild/rules_go/tests/core/coverage/a/a.go:'
-  'github.com/bazelbuild/rules_go/tests/core/coverage/c/c.go:'
-)
-excluded_files=(
-  'github.com/bazelbuild/rules_go/tests/core/coverage/b/b.go:'
-)
-for i in "${included_files[@]}"; do
-  check_file_included "$i"
-done
-for i in "${excluded_files[@]}"; do
-  check_file_excluded "$i"
-done
-    """,
-    command = "coverage",
-    targets = [":coverage_test"],
-)
-
-go_test(
+go_bazel_test(
     name = "coverage_test",
     srcs = ["coverage_test.go"],
-    embed = [":a"],
-    tags = ["manual"],
-)
-
-go_library(
-    name = "a",
-    srcs = ["a.go"],
-    importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/a",
-    deps = [":b"],
-)
-
-go_library(
-    name = "b",
-    srcs = ["b.go"],
-    importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/b",
-    deps = [":c"],
-)
-
-go_library(
-    name = "c",
-    srcs = ["c.go"],
-    importpath = "github.com/bazelbuild/rules_go/tests/core/coverage/c",
-)
-
-bazel_test(
-    name = "cross_cover_test_test",
-    args = [
-        "--collect_code_coverage",
-        "--instrumentation_filter=-coverage:b",
-    ],
-    command = "build",
-    targets = [":cross_cover_test"],
-)
-
-go_test(
-    name = "cross_cover_test",
-    srcs = ["coverage_test.go"],
-    embed = [":a"],
-    goarch = "386",
-    goos = "linux",
-    pure = "on",
-    tags = ["manual"],
 )
 
 go_bazel_test(
