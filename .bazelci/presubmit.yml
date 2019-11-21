@@ -293,6 +293,7 @@ platforms:
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
     - "-//tests/core/nogo/coverage:coverage_test"
+    - "-//tests/core/nogo/vet:vet_test"
     - "-//tests/core/output_groups:compilation_outputs_test"
     - "-//tests/core/race:race_auto_test"
     - "-//tests/core/race:race_bin"
