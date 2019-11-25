@@ -47,7 +47,6 @@ platforms:
     # TODO(#1787): There is a cc_import target in //tests/core/cgo that
     # doesn't set the interface_library attribute. This causes an
     # analysis failure.
-    # BUG(#1788): There are link errors in several targets in //tests/core/race.
     # TODO(#1789): go_path tests that require symlinks fail. These should
     # be skipped automatically.
     # TODO(#1790): Tests that require data should use bazel.Runfile.
@@ -173,9 +172,6 @@ platforms:
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
     - "-//tests/core/output_groups:compilation_outputs_test"
-    - "-//tests/core/race:race_bin"
-    - "-//tests/core/race:race_feature_test"
-    - "-//tests/core/race:race_on_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
     - "-//tests/integration/googleapis:color_service"
@@ -295,10 +291,6 @@ platforms:
     - "-//tests/core/nogo/coverage:coverage_test"
     - "-//tests/core/nogo/vet:vet_test"
     - "-//tests/core/output_groups:compilation_outputs_test"
-    - "-//tests/core/race:race_auto_test"
-    - "-//tests/core/race:race_bin"
-    - "-//tests/core/race:race_feature_test"
-    - "-//tests/core/race:race_on_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
     - "-//tests/integration/googleapis:color_service_test"
