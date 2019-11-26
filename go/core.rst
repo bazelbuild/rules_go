@@ -106,7 +106,7 @@ by spaces, one per line. For example:
 
 .. code:: bash
 
-    #!/bin/bash
+    #!/usr/bin/env bash
 
     echo STABLE_GIT_COMMIT $(git rev-parse HEAD)
 
