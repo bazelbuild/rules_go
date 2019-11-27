@@ -71,3 +71,8 @@ data_test
 Checks that data dependencies, including those inherited from ``deps`` and
 ``embed``, are visible to tests at run-time. Source files should not be
 visible at run-time.
+
+test_filter_test
+----------------
+
+Checks that ``--test_filter`` actually filters out test cases.
