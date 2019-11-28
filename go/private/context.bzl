@@ -383,6 +383,14 @@ def go_context(ctx, attr = None):
         "GOROOT": goroot,
         "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",
+
+        # If we use --action_env=GOPATH, or in other cases where environment
+        # variables are passed through to this builder, the SDK build will try
+        # to write to that GOPATH (e.g. for x/net/nettest). This will fail if
+        # the GOPATH is on a read-only mount, and is generally a bad idea.
+        # Explicitly clear this environment variable to ensure that doesn't
+        # happen. See #2291 for more information.
+        "GOPATH": "",
     })
 
     # TODO(jayconrod): remove this. It's way too broad. Everything should
