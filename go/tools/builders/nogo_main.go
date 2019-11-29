@@ -215,8 +215,8 @@ func execAll(actions []*action) {
 	wg.Add(len(actions))
 	for _, act := range actions {
 		go func(act *action) {
+			defer wg.Done()
 			act.exec()
-			wg.Done()
 		}(act)
 	}
 	wg.Wait()
