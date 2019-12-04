@@ -189,6 +189,30 @@ func RunBazel(args ...string) error {
 	return err
 }
 
+// BazelInfo collects the workspace attributes and returns them.
+//
+// If the command starts but exits with a non-zero status, a *StderrExitError
+// will be returned which wraps the original *exec.ExitError.
+func BazelInfo() (map[string]string, error) {
+	out, err := BazelOutput("info")
+	return parseInfo(out), err
+}
+
+func parseInfo(in []byte) map[string]string {
+	ret := map[string]string{}
+
+	lines := bytes.Split(in, []byte("\n"))
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+		res := bytes.SplitN(line, []byte(": "), 2)
+		ret[string(res[0])] = string(res[1])
+	}
+
+	return ret
+}
+
 // BazelOutput invokes a bazel command with a list of arguments and returns
 // the content of stdout.
 //
