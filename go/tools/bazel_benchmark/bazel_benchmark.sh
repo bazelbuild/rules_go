@@ -16,7 +16,12 @@
 
 set -euo pipefail
 
-rules_go_dir=$(mktemp --directory --tmpdir rules_go.XXXXXX)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    rules_go_dir=$(mktemp -d -t rules_go)
+else
+    rules_go_dir=$(mktemp --directory --tmpdir rules_go.XXXXXX)
+fi
+
 function cleanup {
   rm -rf "$rules_go_dir"
 }
@@ -26,4 +31,3 @@ git clone --depth=1 --single-branch --no-tags \
   https://github.com/bazelbuild/rules_go "$rules_go_dir"
 cd "$rules_go_dir"
 bazel run //go/tools/bazel_benchmark -- -rules_go_dir "$rules_go_dir" "$@"
-
