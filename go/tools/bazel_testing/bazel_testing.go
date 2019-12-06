@@ -72,6 +72,12 @@ type Args struct {
 // instead of running tests.
 const debug = false
 
+// outputUserRoot is set to the directory where Bazel should put its internal files.
+// Since Bazel 2.0.0, this needs to be set explicitly to avoid it defaulting to a
+// deeply nested directory within the test, which runs into Windows path length limits.
+// We try to detect the original value in setupWorkspace and set it to that.
+var outputUserRoot string
+
 // TestMain should be called by tests using this framework from a function named
 // "TestMain". For example:
 //
@@ -160,7 +166,11 @@ func TestMain(m *testing.M, args Args) {
 // bazel binary based on the environment and sanitizes the environment to
 // hide that this code is executing inside a bazel test.
 func BazelCmd(args ...string) *exec.Cmd {
-	cmd := exec.Command("bazel", args...)
+	cmd := exec.Command("bazel")
+	if outputUserRoot != "" {
+		cmd.Args = append(cmd.Args, "--output_user_root="+outputUserRoot)
+	}
+	cmd.Args = append(cmd.Args, args...)
 	for _, e := range os.Environ() {
 		// Filter environment variables set by the bazel test wrapper script.
 		// These confuse recursive invocations of Bazel.
@@ -252,6 +262,7 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		tmpDir = filepath.Clean(tmpDir)
 		if i := strings.Index(tmpDir, string(os.PathSeparator)+"execroot"+string(os.PathSeparator)); i >= 0 {
 			outBaseDir = tmpDir[:i]
+			outputUserRoot = filepath.Dir(outBaseDir)
 			cacheDir = filepath.Join(outBaseDir, "bazel_testing")
 		} else {
 			cacheDir = filepath.Join(tmpDir, "bazel_testing")
@@ -409,6 +420,10 @@ func parseLocationArg(arg string) (workspace, shortPath string, err error) {
 }
 
 func loadWorkspaceName(workspacePath string) (string, error) {
+	runfilePath, err := bazel.Runfile(workspacePath)
+	if err == nil {
+		workspacePath = runfilePath
+	}
 	workspaceData, err := ioutil.ReadFile(workspacePath)
 	if err != nil {
 		return "", err
