@@ -69,12 +69,13 @@ _go_rules_compat = repository_rule(
 
 def go_rules_compat(**kwargs):
     bzl_impl_labels = (
-        ((0, 23, 0), "@io_bazel_rules_go//go/private:compat/v23.bzl"),
-        ((0, 25, 0), "@io_bazel_rules_go//go/private:compat/v25.bzl"),
+        ((0, 23, 0), "@io_bazel_rules_go//go/private:compat/v0_23.bzl"),
+        ((0, 25, 0), "@io_bazel_rules_go//go/private:compat/v0_25.bzl"),
+        ((1, 0, 0), "@io_bazel_rules_go//go/private:compat/v1_0.bzl"),
     )
     platforms_build_labels = (
-        ((0, 23, 0), "@io_bazel_rules_go//go/private:compat/BUILD.platforms.v23.bzl"),
-        ((0, 28, 0), "@io_bazel_rules_go//go/private:compat/BUILD.platforms.v28.bzl"),
+        ((0, 23, 0), "@io_bazel_rules_go//go/private:compat/BUILD.platforms.v0_23.bzl"),
+        ((0, 28, 0), "@io_bazel_rules_go//go/private:compat/BUILD.platforms.v0_28.bzl"),
     )
     _go_rules_compat(
         impl = _choose(bzl_impl_labels),

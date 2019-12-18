@@ -32,7 +32,6 @@ _single_output_test = rule(
     test = True,
 )
 
-
 def single_output_test(name, dep, **kwargs):
     """Checks that a dependency produces a single output file.
 

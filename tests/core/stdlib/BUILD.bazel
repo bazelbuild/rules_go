@@ -4,8 +4,8 @@ load(":stdlib_files.bzl", "stdlib_files")
 go_test(
     name = "buildid_test",
     srcs = ["buildid_test.go"],
-    rundir = ".",
     data = [":stdlib_files"],
+    rundir = ".",
 )
 
 stdlib_files(name = "stdlib_files")

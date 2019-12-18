@@ -24,20 +24,23 @@ filegroup(
 
 filegroup(
     name = "tools",
-    srcs = glob(["pkg/tool/**", "bin/gofmt*"])
+    srcs = glob([
+        "pkg/tool/**",
+        "bin/gofmt*",
+    ]),
 )
 
 go_sdk(
     name = "go_sdk",
-    goos = "{goos}",
-    goarch = "{goarch}",
-    root_file = "ROOT",
-    package_list = ":package_list",
-    libs = [":libs"],
-    headers = [":headers"],
     srcs = [":srcs"],
-    tools = [":tools"],
     go = "bin/go{exe}",
+    goarch = "{goarch}",
+    goos = "{goos}",
+    headers = [":headers"],
+    libs = [":libs"],
+    package_list = ":package_list",
+    root_file = "ROOT",
+    tools = [":tools"],
 )
 
 go_tool_binary(
@@ -51,14 +54,14 @@ go_tool_binary(
 package_list(
     name = "package_list",
     srcs = [":srcs"],
-    root_file = "ROOT",
     out = "packages.txt",
+    root_file = "ROOT",
 )
 
 declare_toolchains(
+    builder = ":builder",
     host = "{goos}_{goarch}",
     sdk = ":go_sdk",
-    builder = ":builder",
 )
 
 filegroup(

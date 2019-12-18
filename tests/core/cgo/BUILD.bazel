@@ -216,8 +216,8 @@ go_test(
         "cgo_link_test.go",
         "cgo_ref.go",
     ],
-    cgo = True,
     cdeps = [":cgo_link_dep"],
+    cgo = True,
 )
 
 cc_library(
