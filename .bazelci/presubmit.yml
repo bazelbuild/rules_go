@@ -9,16 +9,51 @@ platforms:
   ubuntu1804:
     build_targets:
     - "..."
+    build_flags:
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
     test_targets:
     - "..."
+    test_flags:
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
   macos:
     build_targets:
     - "..."
+    build_flags:
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
     test_targets:
     - "..."
+    test_flags:
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
   rbe_ubuntu1604:
     build_targets:
     - "..."
+    build_flags:
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
     test_flags:
     # Some tests depend on this feature being disabled. However, because it's
     # enabled by default in the rbe_ubuntu1604 platform, we cannot simply remove
@@ -28,6 +63,12 @@ platforms:
     # installed. It appears bazel is no longer in PATH on the host machines
     # in this configuration either.
     - "--test_tag_filters=-local"
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
     test_targets:
     - "--"
     - "..."
@@ -40,6 +81,12 @@ platforms:
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
     - '--action_env=PATH=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
     build_targets:
     # BUG(bazelbuild/bazel#6485): Bazel 0.18.0 crashes when loading
     # @com_google_protobuf//:protobuf. We have to exclude everything that
@@ -236,6 +283,12 @@ platforms:
     # On Windows CI, bazel (bazelisk) needs %LocalAppData% to find the cache directory.
     # We invoke bazel in tests, so the tests need this, too.
     - "--test_env=LOCALAPPDATA"
+    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_no_implicit_file_export"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_use_platforms_repo_for_constraints"
     test_targets:
     - "--"
     - "..."
