@@ -20,7 +20,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -33,7 +32,6 @@ func main() {
 }
 
 func run(args []string) error {
-	fmt.Println(args)
 	fs := flag.NewFlagSet("GoGendefs", flag.ExitOnError)
 	goenv := envFlags(fs)
 	var srcs, hdrs, outs multiFlag
@@ -58,6 +56,14 @@ func run(args []string) error {
 		outs[i] = abs(outs[i])
 	}
 
+	if err := generateGodefs(goenv, srcs, hdrs, outs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generateGodefs(goenv *env, srcs, hdrs, outs []string) error {
 	workDir, cleanup, err := goenv.workDir()
 	if err != nil {
 		return err

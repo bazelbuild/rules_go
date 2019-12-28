@@ -24,7 +24,3 @@ go_gendefs(
         "bar/bar.go",
     ],
 )
-
-
-
-

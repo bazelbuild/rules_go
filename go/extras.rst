@@ -101,7 +101,7 @@ go_gendefs
 files with the C package names replaced by real values and types in Go 
 syntax. It should be consumed in the srcs list of one of the `core go rules`_.
 
-``go_embed_data`` accepts the attributes listed below.
+``go_gendefs`` accepts the attributes listed below.
 
 +----------------------------+-----------------------------+---------------------------------------+
 | **Name**                   | **Type**                    | **Default value**                     |

@@ -4,7 +4,7 @@ import "testing"
 
 func TestMultipleHeaders(t *testing.T) {
 	if MyFoo != 2 {
-		t.Errorf("MyBar was incorrect, got: %d, want: %d.", MyFoo, 2)
+		t.Errorf("MyFoo was incorrect, got: %d, want: %d.", MyFoo, 2)
 	}
 
 	bar := Bar{Bar1: 1, Bar2: 2}

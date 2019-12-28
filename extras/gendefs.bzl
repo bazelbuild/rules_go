@@ -18,7 +18,6 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "as_tuple",
     "split_srcs",
 )
 load(
