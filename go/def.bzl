@@ -49,6 +49,10 @@ load(
     _go_embed_data = "go_embed_data",
 )
 load(
+    "@io_bazel_rules_go//extras:gendefs.bzl",
+    _go_gendefs = "go_gendefs",
+)
+load(
     "@io_bazel_rules_go//go/private:tools/path.bzl",
     _go_path = "go_path",
 )
@@ -72,6 +76,7 @@ RULES_GO_VERSION = "0.20.0"
 declare_toolchains = _declare_toolchains
 go_context = _go_context
 go_embed_data = _go_embed_data
+go_gendefs = _go_gendefs
 go_sdk = _go_sdk
 go_tool_library = _go_tool_library
 go_toolchain = _go_toolchain

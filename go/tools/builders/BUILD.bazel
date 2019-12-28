@@ -43,6 +43,16 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
+go_binary(
+    name = "gendefs",
+    srcs = [
+        "gendefs.go",
+        "env.go",
+        "flags.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 go_source(
     name = "nogo_srcs",
     srcs = [
