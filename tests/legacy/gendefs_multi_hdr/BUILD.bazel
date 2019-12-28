@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_gendefs", "go_library", "go_test")
+
+go_test(
+    name = "go_default_test",
+    srcs = ["gendefs_multi_hdr_test.go"],
+    size = "small",
+    embed = [":go_default_library"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [":multi_hdr"],
+    importpath = "github.com/bazelbuild/rules_go/tests/gendefs_multi_hdr",
+    visibility = ["//visibility:public"],
+)
+
+go_gendefs(
+    name = "multi_hdr",
+    srcs = [
+        "foo.go",
+        "foo.h",
+        "bar.h",
+    ],
+)
+
+
+
