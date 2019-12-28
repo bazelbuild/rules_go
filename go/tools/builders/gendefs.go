@@ -13,13 +13,14 @@
 // limitations under the License.
 
 // gendefs takes a list of .go files containing C package names and generates
-// .go files with the C package names replaced with real values and types in Go
+// .go files with the C package names replaced by real values and types in Go
 // syntax.
 
 package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -32,6 +33,7 @@ func main() {
 }
 
 func run(args []string) error {
+	fmt.Println(args)
 	fs := flag.NewFlagSet("GoGendefs", flag.ExitOnError)
 	goenv := envFlags(fs)
 	var srcs, hdrs, outs multiFlag
