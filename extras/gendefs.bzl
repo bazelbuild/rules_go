@@ -27,21 +27,18 @@ load(
 )
 
 def _go_gendefs_impl(ctx):
+    go = go_context(ctx)\
+
     srcs = ctx.files.srcs
-
-    for f in srcs:
-        if f.extension not in ("go", "h"):
-            fail("unexpected source {} ".format(f.path))
-
-    go = go_context(ctx)
-    args = go.builder_args(go)
     split = split_srcs(srcs)
+    
+    args = go.builder_args(go)
     args.add_all(split.headers, before_each = "-hdr")
 
     inputs = (srcs + go.sdk.tools + go.crosstool)
     outputs = []
     for goSrc in split.go:
-        out = go.declare_file(go, ext = ".go")
+        out = go.declare_file(go, path = goSrc.dirname, ext = ".gen.go", name = goSrc.basename)
         outputs.append(out)
         args.add("-src", goSrc)
         args.add("-o", out)
@@ -68,7 +65,7 @@ def _go_gendefs_impl(ctx):
 go_gendefs = go_rule(
     _go_gendefs_impl,
     attrs = {
-        "srcs": attr.label_list(allow_files = True),
+        "srcs": attr.label_list(allow_files = [".go", ".h"]),
         "_gendefs": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:gendefs",
             executable = True,
