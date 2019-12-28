@@ -37,7 +37,8 @@ def _go_gendefs_impl(ctx):
     inputs = (srcs + go.sdk.tools + go.crosstool)
     outputs = []
     for goSrc in split.go:
-        out = go.declare_file(go, path = goSrc.dirname, ext = ".gen.go", name = goSrc.basename)
+        # remove trailing ".go" from File path
+        out = go.declare_file(go, path = goSrc.path[:-3], ext = ".gen.go")
         outputs.append(out)
         args.add("-src", goSrc)
         args.add("-o", out)
