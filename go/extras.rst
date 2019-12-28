@@ -98,7 +98,7 @@ go_gendefs
 ----------
 
 ``go_gendefs`` takes .go files containing C package names and generates .go 
-files with the C package names replaced with real values and types in Go 
+files with the C package names replaced by real values and types in Go 
 syntax. It should be consumed in the srcs list of one of the `core go rules`_.
 
 ``go_embed_data`` accepts the attributes listed below.
@@ -106,9 +106,13 @@ syntax. It should be consumed in the srcs list of one of the `core go rules`_.
 +----------------------------+-----------------------------+---------------------------------------+
 | **Name**                   | **Type**                    | **Default value**                     |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`name`              | :type:`string`              | |mandatory|                           |
++----------------------------+-----------------------------+---------------------------------------+
+| A unique name for this rule.                                                                     |
++----------------------------+-----------------------------+---------------------------------------+
 | :param:`srcs`              | :type:`string`              | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+
-| A list of files to generate definitions from. Only :value:`.go, .h` files are permitted.         |
-| The :value:`.h` files are used as includes for the :value:`.go` files which should contain C     |
-| package names.                                                                                   |
+| A list of files to generate definitions from. Only :value:`.go` and :value:`.h` files are        |
+| permitted. The :value:`.h` files are used as includes for the :value:`.go` files which should    |
+| contain C package names.                                                                         |
 +----------------------------+-----------------------------+---------------------------------------+
