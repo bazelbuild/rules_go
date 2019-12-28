@@ -3,11 +3,11 @@ package gendefs
 import "testing"
 
 func TestMultipleDirs(t *testing.T) {
-	if MyFoo != 2 {
-		t.Errorf("MyFoo was incorrect, got: %d, want: %d.", MyFoo, 2)
+	if MyFooA != 3 {
+		t.Errorf("MyFooA was incorrect, got: %d, want: %d.", MyFooA, 3)
 	}
 
-	if MyBar != 3 {
-		t.Errorf("MyBar was incorrect, got: %d, want: %d.", MyBar, 3)
+	if MyFooB != 3 {
+		t.Errorf("MyFooB was incorrect, got: %d, want: %d.", MyFooB, 3)
 	}
 }

@@ -18,9 +18,8 @@ go_library(
 go_gendefs(
     name = "multi_dir",
     srcs = [
-        "foo/foo.h",
-        "foo/foo.go",
-        "bar/bar.h",
-        "bar/bar.go",
+        "foo.h",
+        "a/foo.go",
+        "b/foo.go",
     ],
 )
