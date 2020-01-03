@@ -1,14 +1,14 @@
 diff -urN b/BUILD.bazel c/BUILD.bazel
 --- b/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ c/BUILD.bazel	2020-01-03 14:45:53.000000000 -0500
++++ c/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,4 @@
 +# gazelle:proto package
 +# gazelle:proto_group go_package
 +# gazelle:exclude gapic
 +# gazelle:exclude third_party
 diff -urN b/WORKSPACE c/WORKSPACE
---- b/WORKSPACE	2020-01-03 14:44:06.000000000 -0500
-+++ c/WORKSPACE	2020-01-03 14:45:53.000000000 -0500
+--- b/WORKSPACE	2000-01-01 00:00:00.000000000 -0000
++++ c/WORKSPACE	2000-01-01 00:00:00.000000000 -0000
 @@ -1,4 +1,4 @@
 -workspace(name = "com_google_googleapis")
 +workspace(name = "go_googleapis")
@@ -17,6 +17,6 @@ diff -urN b/WORKSPACE c/WORKSPACE
  
 diff -urN b/google/BUILD.bazel c/google/BUILD.bazel
 --- b/google/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ c/google/BUILD.bazel	2020-01-03 14:45:53.000000000 -0500
++++ c/google/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1 @@
 +# gazelle:prefix google.golang.org/genproto/googleapis
