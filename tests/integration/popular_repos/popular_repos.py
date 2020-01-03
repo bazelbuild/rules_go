@@ -149,7 +149,13 @@ POPULAR_REPOS = [
             "godoc:go_default_test", # requires GOROOT and GOPATH
             "internal/apidiff:go_default_test", # Needs testdata directory
             "internal/imports:go_default_test", # Needs testdata directory
+            "internal/lsp/cache:go_default_test", # has additional deps
             "internal/lsp/cmd:go_default_test", # panics?
+            "internal/lsp/diff/difftest:go_default_test", # has additional deps
+            "internal/lsp/diff/myers:go_default_test", # has additional deps
+            "internal/lsp/diff:go_default_test", # has additional deps
+            "internal/lsp/fuzzy:go_default_test", # has additional deps
+            "internal/lsp/snippet:go_default_test", # has additional deps
             "internal/lsp/source:go_default_test", # Needs testdata directory
             "internal/lsp/testdata/analyzer:go_default_test", # not a real test
             "internal/lsp/testdata/rename/testy:go_default_test", # not a real test

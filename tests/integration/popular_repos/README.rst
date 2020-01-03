@@ -149,6 +149,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/getgo:go_default_test
 * @org_golang_x_tools//cmd/go-contrib-init:go_default_test
 * @org_golang_x_tools//cmd/splitdwarf/internal/macho:go_default_test
+* @org_golang_x_tools//cover:go_default_test
 * @org_golang_x_tools//go/analysis/internal/analysisflags:go_default_test
 * @org_golang_x_tools//go/ast/astutil:go_default_test
 * @org_golang_x_tools//go/callgraph/static:go_default_test
@@ -162,18 +163,17 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/fastwalk:go_default_test
 * @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
-* @org_golang_x_tools//internal/lsp/diff:go_default_test
-* @org_golang_x_tools//internal/lsp/diff/myers:go_default_test
-* @org_golang_x_tools//internal/lsp/fuzzy:go_default_test
-* @org_golang_x_tools//internal/lsp/snippet:go_default_test
+* @org_golang_x_tools//internal/lsp/testdata/implementation/other:go_default_test
 * @org_golang_x_tools//internal/memoize:go_default_test
 * @org_golang_x_tools//internal/module:go_default_test
 * @org_golang_x_tools//internal/semver:go_default_test
 * @org_golang_x_tools//internal/span:go_default_test
 * @org_golang_x_tools//internal/telemetry/export/ocagent:go_default_test
-* @org_golang_x_tools//internal/txtar:go_default_test
+* @org_golang_x_tools//internal/telemetry/export/ocagent/wire:go_default_test
+* @org_golang_x_tools//internal/telemetry/log:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
 * @org_golang_x_tools//present:go_default_test
+* @org_golang_x_tools//txtar:go_default_test
 
 
 com_github_golang_glog
