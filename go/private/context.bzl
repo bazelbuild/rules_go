@@ -27,11 +27,6 @@ load(
     "OBJC_COMPILE_ACTION_NAME",
 )
 load(
-    "@io_bazel_rules_go_compat//:compat.bzl",
-    "cc_configure_features",
-    "cc_toolchain_all_files",
-)
-load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "CgoContextData",
     "EXPLICIT_PATH",
@@ -523,7 +518,7 @@ def _cgo_context_data_impl(ctx):
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
     # is switched on.
     cc_toolchain = find_cpp_toolchain(ctx)
-    feature_configuration = cc_configure_features(
+    feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
@@ -686,7 +681,7 @@ def _cgo_context_data_impl(ctx):
     )
 
     return [CgoContextData(
-        crosstool = cc_toolchain_all_files(ctx),
+        crosstool = find_cpp_toolchain(ctx).all_files.to_list(),
         tags = tags,
         env = env,
         cgo_tools = struct(

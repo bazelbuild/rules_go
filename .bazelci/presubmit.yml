@@ -1,7 +1,7 @@
 ---
 platforms:
   ubuntu1604:
-    bazel: 0.23.0 # test minimum supported version of bazel on ubuntu1404 only
+    bazel: 1.2.0 # test minimum supported version of bazel on ubuntu1604 only
     build_targets:
     - "..."
     test_targets:

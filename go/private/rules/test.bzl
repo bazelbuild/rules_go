@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go_compat//:compat.bzl",
-    "providers_with_coverage",
-)
-load(
     "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
@@ -154,31 +150,27 @@ def _go_test_impl(ctx):
     )
 
     # Bazel only looks for coverage data if the test target has an
-    # InstrumentedFilesProvider. The coverage_common module can create
-    # this provider, but it was introduced in v23, and we can't use
-    # the legacy syntax anymore. We use the compatibility layer to
-    # support old versions of Bazel.
-    #
-    # If the provider is found and at least one source file is present, Bazel
-    # will set the COVERAGE_OUTPUT_FILE environment variable during tests
-    # and will save that file to the build events + test outputs.
-    return providers_with_coverage(
-        ctx,
-        extensions = ["go"],
-        source_attributes = ["srcs"],
-        dependency_attributes = ["deps", "embed"],
-        providers = [
-            test_archive,
-            DefaultInfo(
-                files = depset([executable]),
-                runfiles = runfiles,
-                executable = executable,
-            ),
-            OutputGroupInfo(
-                compilation_outputs = [internal_archive.data.file],
-            ),
-        ],
-    )
+    # InstrumentedFilesProvider. If the provider is found and at least one
+    # source file is present, Bazel will set the COVERAGE_OUTPUT_FILE
+    # environment variable during tests and will save that file to the build
+    # events + test outputs.
+    return [
+        test_archive,
+        DefaultInfo(
+            files = depset([executable]),
+            runfiles = runfiles,
+            executable = executable,
+        ),
+        OutputGroupInfo(
+            compilation_outputs = [internal_archive.data.file],
+        ),
+        coverage_common.instrumented_files_info(
+            ctx,
+            source_attributes = ["srcs"],
+            dependency_attributes = ["deps", "embed"],
+            extensions = ["go"],
+        ),
+    ]
 
 go_test = go_rule(
     _go_test_impl,

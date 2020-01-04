@@ -210,7 +210,7 @@ def has_versioned_shared_lib_extension(path):
 
     return True
 
-MINIMUM_BAZEL_VERSION = "0.23.0"
+MINIMUM_BAZEL_VERSION = "1.2.0"
 
 def as_list(v):
     if type(v) == "list":
