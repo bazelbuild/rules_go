@@ -20,6 +20,8 @@ def _gogo_special_proto_impl(ctx):
         "github.com/gogo/protobuf/gogoproto/gogo.proto",
     )
     ctx.file("github.com/gogo/protobuf/gogoproto/BUILD.bazel", """
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
 proto_library(
     name = "gogoproto",
     srcs = [":gogo.proto"],

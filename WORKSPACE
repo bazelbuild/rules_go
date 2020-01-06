@@ -23,6 +23,17 @@ load("@io_bazel_rules_go//extras:embed_data_deps.bzl", "go_embed_data_dependenci
 
 go_embed_data_dependencies()
 
+http_archive(
+    name = "rules_proto",
+    sha256 = "73ebe9d15ba42401c785f9d0aeebccd73bd80bf6b8ac78f74996d31f2c0ad7a6",
+    strip_prefix = "rules_proto-2c0468366367d7ed97a1f702f9cd7155ab3f73c5",
+    # master, as of 2020-01-06
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/2c0468366367d7ed97a1f702f9cd7155ab3f73c5.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/2c0468366367d7ed97a1f702f9cd7155ab3f73c5.tar.gz",
+    ],
+)
+
 # For manual testing against an LLVM toolchain.
 # Use --crosstool_top=@llvm_toolchain//:toolchain
 http_archive(
