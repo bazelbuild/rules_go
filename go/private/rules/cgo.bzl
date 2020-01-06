@@ -25,6 +25,11 @@ load(
     "LINKMODE_NORMAL",
     "extldflags_from_cc_toolchain",
 )
+load(
+    "@rules_cc//cc:defs.bzl",
+    "cc_import",
+    "cc_library",
+)
 
 def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     """cgo_configure returns the inputs and compile / link options
@@ -229,13 +234,13 @@ def go_binary_c_archive_shared(name, kwargs):
     elif linkmode == LINKMODE_C_ARCHIVE:
         cc_import_kwargs["static_library"] = name
         cc_import_kwargs["alwayslink"] = 1
-    native.cc_import(
+    cc_import(
         name = cc_import_name,
         visibility = ["//visibility:private"],
         tags = tags,
         **cc_import_kwargs
     )
-    native.cc_library(
+    cc_library(
         name = cc_library_name,
         hdrs = [c_hdrs],
         deps = [cc_import_name],

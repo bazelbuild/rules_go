@@ -7,6 +7,11 @@ platforms:
     test_targets:
     - "..."
   ubuntu1804:
+    # enable some unflipped incompatible flags on this platform to ensure we don't regress.
+    build_flags:
+    - "--incompatible_load_cc_rules_from_bzl"
+    test_flags:
+    - "--incompatible_load_cc_rules_from_bzl"
     build_targets:
     - "..."
     test_targets:

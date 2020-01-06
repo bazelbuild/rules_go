@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
 
 go_test(
     name = "opts_test",
@@ -216,8 +217,8 @@ go_test(
         "cgo_link_test.go",
         "cgo_ref.go",
     ],
-    cgo = True,
     cdeps = [":cgo_link_dep"],
+    cgo = True,
 )
 
 cc_library(

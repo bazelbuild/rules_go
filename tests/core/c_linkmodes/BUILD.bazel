@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_test")
 
 go_binary(
     name = "adder_archive",

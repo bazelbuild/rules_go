@@ -94,6 +94,17 @@ def go_rules_dependencies():
         patch_args = ["-p1"],
     )
 
+    # Needed for additional targets declared around binaries with c-archive
+    # and c-shared link modes.
+    _maybe(
+        git_repository,
+        name = "rules_cc",
+        remote = "https://github.com/bazelbuild/rules_cc",
+        # master, as of 2020-01-06
+        commit = "7e650b11fe6d49f70f2ca7a1c4cb8bcc4a1fe239",
+        shallow_since = "1578064657 -0800",
+    )
+
     # Proto dependencies
     # These are limited as much as possible. In most cases, users need to
     # declare these on their own (probably via go_repository rules generated
