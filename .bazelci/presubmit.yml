@@ -12,10 +12,12 @@ platforms:
     - "--incompatible_load_cc_rules_from_bzl"
     - "--incompatible_load_proto_rules_from_bzl"
     - "--incompatible_restrict_string_escapes"
+    - "--incompatible_enable_cc_toolchain_resolution"
     test_flags:
     - "--incompatible_load_cc_rules_from_bzl"
     - "--incompatible_load_proto_rules_from_bzl"
     - "--incompatible_restrict_string_escapes"
+    - "--incompatible_enable_cc_toolchain_resolution"
     build_targets:
     - "..."
     test_targets:
@@ -49,6 +51,12 @@ platforms:
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
     - '--action_env=PATH=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
+    # NOTE(bazelbuild/bazel#10529): bazel doesn't register the mingw toolchain automatically.
+    # We also need the host and target platforms to have the mingw constraint value.
+    - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
+    - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--incompatible_enable_cc_toolchain_resolution"
     build_targets:
     # BUG(bazelbuild/bazel#6485): Bazel 0.18.0 crashes when loading
     # @com_google_protobuf//:protobuf. We have to exclude everything that
@@ -242,6 +250,10 @@ platforms:
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
     - '--action_env=PATH=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
+    - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
+    - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--incompatible_enable_cc_toolchain_resolution"
     # On Windows CI, bazel (bazelisk) needs %LocalAppData% to find the cache directory.
     # We invoke bazel in tests, so the tests need this, too.
     - "--test_env=LOCALAPPDATA"

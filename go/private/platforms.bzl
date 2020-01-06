@@ -149,11 +149,14 @@ def _generate_platforms():
             cgo = False,
         ))
         if (goos, goarch) in CGO_GOOS_GOARCH:
+            # On Windows, Bazel will pick an MSVC toolchain unless we
+            # specifically request mingw or msys.
+            mingw = ["@bazel_tools//tools/cpp:mingw"] if goos == "windows" else []
             platforms.append(struct(
                 name = goos + "_" + goarch + "_cgo",
                 goos = goos,
                 goarch = goarch,
-                constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"],
+                constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"] + mingw,
                 cgo = True,
             ))
 
