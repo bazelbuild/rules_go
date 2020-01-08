@@ -38,7 +38,7 @@ def go_rule(implementation, attrs = None, toolchains = None, bootstrap = False, 
     toolchains = toolchains + ["@io_bazel_rules_go//go:toolchain"]
 
     if "_nogo" in bootstrap_attrs:
-        attrs["_nogo"] = attr.label(default = Label("@io_bazel_rules_nogo//:nogo"), cfg = "host")
+        attrs["_nogo"] = attr.label(default = Label("@io_bazel_rules_nogo//:nogo"), cfg = "exec")
     if "_coverdata" in bootstrap_attrs:
         attrs["_coverdata"] = attr.label(default = "@io_bazel_rules_go//go/tools/coverdata", aspects = aspects)
     if "_stdlib" in bootstrap_attrs:

@@ -43,7 +43,7 @@ _go_info = go_rule(
     attrs = {
         "_go_info": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = "@io_bazel_rules_go//go/tools/builders:info",
         ),
     },

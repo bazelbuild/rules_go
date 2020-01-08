@@ -170,7 +170,7 @@ go_path = rule(
         "_go_path": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:go_path",
             executable = True,
-            cfg = "host",
+            cfg = "exec",
         ),
     },
 )

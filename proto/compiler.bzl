@@ -162,17 +162,17 @@ go_proto_compiler = go_rule(
         "plugin": attr.label(
             allow_single_file = True,
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = "@com_github_golang_protobuf//protoc-gen-go",
         ),
         "_go_protoc": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = "@io_bazel_rules_go//go/tools/builders:go-protoc",
         ),
         "_protoc": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = "@com_google_protobuf//:protoc",
         ),
     },
