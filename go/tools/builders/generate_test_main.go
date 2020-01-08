@@ -313,9 +313,13 @@ func genTestMain(args []string) error {
 			}
 		}
 	}
-	// Add only the imports we found tests for
-	for pkg := range pkgs {
-		cases.Imports = append(cases.Imports, importMap[pkg])
+
+	for name := range importMap {
+		// Set the names for all unused imports to "_"
+		if !pkgs[name] {
+			importMap[name].Name = "_"
+		}
+		cases.Imports = append(cases.Imports, importMap[name])
 	}
 	sort.Slice(cases.Imports, func(i, j int) bool {
 		return cases.Imports[i].Name < cases.Imports[j].Name

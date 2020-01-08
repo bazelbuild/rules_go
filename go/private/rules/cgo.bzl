@@ -14,6 +14,7 @@
 
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
+    "as_iterable",
     "has_simple_shared_lib_extension",
     "has_versioned_shared_lib_extension",
 )
@@ -25,15 +26,9 @@ load(
     "extldflags_from_cc_toolchain",
 )
 load(
-    "@io_bazel_rules_go_compat//:compat.bzl",
-    "cc_defines",
-    "cc_includes",
-    "cc_libs",
-    "cc_link_flags",
-    "cc_quote_includes",
-    "cc_system_includes",
-    "cc_transitive_headers",
-    "has_cc",
+    "@rules_cc//cc:defs.bzl",
+    "cc_import",
+    "cc_library",
 )
 
 def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
@@ -91,23 +86,30 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     deps_direct = []
     lib_opts = []
     runfiles = go._ctx.runfiles(collect_data = True)
+
     # Always include the sandbox as part of the build. Bazel does this, but it
     # doesn't appear in the CompilationContext.
     _include_unique(cppopts, "-iquote", ".", seen_quote_includes)
     for d in cdeps:
         runfiles = runfiles.merge(d.data_runfiles)
-        if has_cc(d):
-            inputs_transitive.append(cc_transitive_headers(d))
-            inputs_direct.extend(cc_libs(d))
-            deps_direct.extend(cc_libs(d))
-            cppopts.extend(["-D" + define for define in cc_defines(d)])
-            for inc in cc_includes(d):
+        if CcInfo in d:
+            cc_transitive_headers = d[CcInfo].compilation_context.headers
+            inputs_transitive.append(cc_transitive_headers)
+            cc_libs = _cc_libs(d)
+            inputs_direct.extend(cc_libs)
+            deps_direct.extend(cc_libs)
+            cc_defines = d[CcInfo].compilation_context.defines.to_list()
+            cppopts.extend(["-D" + define for define in cc_defines])
+            cc_includes = d[CcInfo].compilation_context.includes.to_list()
+            for inc in cc_includes:
                 _include_unique(cppopts, "-I", inc, seen_includes)
-            for inc in cc_quote_includes(d):
+            cc_quote_includes = d[CcInfo].compilation_context.quote_includes.to_list()
+            for inc in cc_quote_includes:
                 _include_unique(cppopts, "-iquote", inc, seen_quote_includes)
-            for inc in cc_system_includes(d):
+            cc_system_includes = d[CcInfo].compilation_context.system_includes.to_list()
+            for inc in cc_system_includes:
                 _include_unique(cppopts, "-isystem", inc, seen_system_includes)
-            for lib in cc_libs(d):
+            for lib in cc_libs:
                 # If both static and dynamic variants are available, Bazel will only give
                 # us the static variant. We'll get one file for each transitive dependency,
                 # so the same file may appear more than once.
@@ -130,7 +132,8 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
                     inputs_direct.append(lib)
                 else:
                     lib_opts.append(lib.path)
-            clinkopts.extend(cc_link_flags(d))
+            cc_link_flags = d[CcInfo].linking_context.user_link_flags
+            clinkopts.extend(cc_link_flags)
 
         elif hasattr(d, "objc"):
             cppopts.extend(["-D" + define for define in d.objc.define.to_list()])
@@ -167,6 +170,22 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
         objcxxopts = objcxxopts,
         clinkopts = clinkopts,
     )
+
+def _cc_libs(target):
+    # Copied from get_libs_for_static_executable in migration instructions
+    # from bazelbuild/bazel#7036.
+    libraries_to_link = as_iterable(target[CcInfo].linking_context.libraries_to_link)
+    libs = []
+    for library_to_link in libraries_to_link:
+        if library_to_link.static_library != None:
+            libs.append(library_to_link.static_library)
+        elif library_to_link.pic_static_library != None:
+            libs.append(library_to_link.pic_static_library)
+        elif library_to_link.interface_library != None:
+            libs.append(library_to_link.interface_library)
+        elif library_to_link.dynamic_library != None:
+            libs.append(library_to_link.dynamic_library)
+    return libs
 
 _DEFAULT_PLATFORM_COPTS = select({
     "@io_bazel_rules_go//go/platform:darwin": [],
@@ -215,13 +234,13 @@ def go_binary_c_archive_shared(name, kwargs):
     elif linkmode == LINKMODE_C_ARCHIVE:
         cc_import_kwargs["static_library"] = name
         cc_import_kwargs["alwayslink"] = 1
-    native.cc_import(
+    cc_import(
         name = cc_import_name,
         visibility = ["//visibility:private"],
         tags = tags,
         **cc_import_kwargs
     )
-    native.cc_library(
+    cc_library(
         name = cc_library_name,
         hdrs = [c_hdrs],
         deps = [cc_import_name],

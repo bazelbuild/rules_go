@@ -17,20 +17,20 @@
 # constraint_values, platforms, and toolchains.
 
 BAZEL_GOOS_CONSTRAINTS = {
-    "android": "@io_bazel_rules_go_compat//platforms:android",
-    "darwin": "@io_bazel_rules_go_compat//platforms:osx",
-    "freebsd": "@io_bazel_rules_go_compat//platforms:freebsd",
-    "linux": "@io_bazel_rules_go_compat//platforms:linux",
-    "windows": "@io_bazel_rules_go_compat//platforms:windows",
+    "android": "@platforms//os:android",
+    "darwin": "@platforms//os:osx",
+    "freebsd": "@platforms//os:freebsd",
+    "linux": "@platforms//os:linux",
+    "windows": "@platforms//os:windows",
 }
 
 BAZEL_GOARCH_CONSTRAINTS = {
-    "386": "@io_bazel_rules_go_compat//platforms:x86_32",
-    "amd64": "@io_bazel_rules_go_compat//platforms:x86_64",
-    "arm": "@io_bazel_rules_go_compat//platforms:arm",
-    "arm64": "@io_bazel_rules_go_compat//platforms:aarch64",
-    "ppc64le": "@io_bazel_rules_go_compat//platforms:ppc",
-    "s390x": "@io_bazel_rules_go_compat//platforms:s390x",
+    "386": "@platforms//cpu:x86_32",
+    "amd64": "@platforms//cpu:x86_64",
+    "arm": "@platforms//cpu:arm",
+    "arm64": "@platforms//cpu:aarch64",
+    "ppc64le": "@platforms//cpu:ppc",
+    "s390x": "@platforms//cpu:s390x",
 }
 
 GOOS_GOARCH = (
@@ -149,17 +149,20 @@ def _generate_platforms():
             cgo = False,
         ))
         if (goos, goarch) in CGO_GOOS_GOARCH:
+            # On Windows, Bazel will pick an MSVC toolchain unless we
+            # specifically request mingw or msys.
+            mingw = ["@bazel_tools//tools/cpp:mingw"] if goos == "windows" else []
             platforms.append(struct(
                 name = goos + "_" + goarch + "_cgo",
                 goos = goos,
                 goarch = goarch,
-                constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"],
+                constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"] + mingw,
                 cgo = True,
             ))
 
     for goarch in ("arm", "arm64", "386", "amd64"):
         constraints = [
-            "@io_bazel_rules_go_compat//platforms:ios",
+            "@platforms//os:ios",
             GOARCH_CONSTRAINTS[goarch],
         ]
         platforms.append(struct(

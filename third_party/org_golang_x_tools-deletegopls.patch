@@ -1,5 +1,80 @@
+diff -urN a/gopls/README.md b/gopls/README.md
+--- a/gopls/README.md	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/README.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,71 +0,0 @@
+-# gopls documentation
+-
+-gopls (pronounced: "go please") is the official [language server] for the Go language.
+-
+-## Status
+-
+-It is currently in **alpha**, so it is **not stable**.
+-
+-You can see more information about the status of gopls and its supported features [here](doc/status.md).
+-
+-## Roadmap
+-
+-The current goal is a fully stable build with the existing feature set, aiming
+-for the first half of 2020, with release candidates earlier in the year.
+-
+-This will be the first build that we recommend people use, and will be tagged as the 1.0 version.
+-You can see the set of things being worked on in the [1.0 milestone], in general
+-we are focused on stability, specifically, making sure we have a reliable service that produces an experience in module mode that is not a retrograde step from the old tools in GOPATH mode.
+-
+-There is also considerable effort being put into testing in order to make sure that we both have a stable service and also that we do not regress after launch.
+-
+-While we may continue to accept contributions for new features, they may be turned off behind a configuration flag if they are not yet stable. See the [gopls unplanned] milestone for deprioritized features.
+-
+-This is just a milestone for gopls itself. We work with editor integrators to make sure they can use the latest builds of gopls, and will help them use the 1.0 version as soon as it is ready, but that does not imply anything about the stability, supported features or version of the plugins.
+-
+-## Using
+-
+-In general you should not need to know anything about gopls, it should be integrated into your editor for you.
+-
+-To install for your specific editor you can follow the following instructions
+-
+-* [VSCode](doc/vscode.md)
+-* [Vim / Neovim](doc/vim.md)
+-* [Emacs](doc/emacs.md)
+-* [Acme](doc/acme.md)
+-* [Sublime Text](doc/subl.md)
+-* [Atom](doc/atom.md)
+-
+-See the [user guide](doc/user.md) for more information, including the how to install gopls by hand if you need.
+-
+-## Issues
+-
+-If you are having issues with gopls, please first check the [known issues](doc/status.md#known-issues) before following the [troubleshooting](doc/troubleshooting.md#steps) guide.
+-If that does not give you the information you need, reach out to us.
+-
+-You can chat with us on:
+-* the golang-tools [mailing list]
+-* the #gopls [slack channel] on the gophers slack
+-
+-If you think you have an issue that needs fixing, or a feature suggestion, then please make sure you follow the steps to [file an issue](doc/troubleshooting.md#file-an-issue) with the right information to allow us to address it.
+-
+-If you need to talk to us directly (for instance to file an issue with confidential information in it) you can reach out directly to [@stamblerre] or [@ianthehat].
+-
+-## More information
+-
+-If you want to know more about it, have an unusual use case, or want to contribute, please read the following documents
+-
+-* [Using gopls](doc/user.md)
+-* [Troubleshooting and reporting issues](doc/troubleshooting.md)
+-* [Integrating gopls with an editor](doc/integrating.md)
+-* [Contributing to gopls](doc/contributing.md)
+-* [Design requirements and decisions](doc/design.md)
+-* [Implementation details](doc/implementation.md)
+-
+-[language server]: https://langserver.org
+-[mailing list]: https://groups.google.com/forum/#!forum/golang-tools
+-[slack channel]: https://gophers.slack.com/messages/CJZH85XCZ
+-[@stamblerre]: https://github.com/stamblerre "Rebecca Stambler"
+-[@ianthehat]: https://github.com/ianthehat "Ian Cottrell"
+-[1.0 milestone]: https://github.com/golang/go/milestone/112
+-[gopls unplanned]: https://github.com/golang/go/milestone/124
 diff -urN a/gopls/doc/acme.md b/gopls/doc/acme.md
---- a/gopls/doc/acme.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/acme.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/acme.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,7 +0,0 @@
 -# Acme
@@ -9,8 +84,19 @@ diff -urN a/gopls/doc/acme.md b/gopls/doc/acme.md
 -[`acme-lsp`]: https://github.com/fhs/acme-lsp
 -[install steps]: https://github.com/fhs/acme-lsp#gopls
 -
+diff -urN a/gopls/doc/atom.md b/gopls/doc/atom.md
+--- a/gopls/doc/atom.md	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/doc/atom.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,7 +0,0 @@
+-# Atom
+-
+-Install the [`ide-gopls`] package.
+-You will also need to install the [`atom-ide-ui`] package.
+-
+-[`ide-gopls`]: https://github.com/MordFustang21/ide-gopls
+-[`atom-ide-ui`]: https://github.com/facebookarchive/atom-ide-ui
 diff -urN a/gopls/doc/command-line.md b/gopls/doc/command-line.md
---- a/gopls/doc/command-line.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/command-line.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/command-line.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,15 +0,0 @@
 -# Command line
@@ -30,7 +116,7 @@ diff -urN a/gopls/doc/command-line.md b/gopls/doc/command-line.md
 ---->
 \ No newline at end of file
 diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
---- a/gopls/doc/contributing.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/contributing.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/contributing.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,25 +0,0 @@
 -# Documentation for contributors
@@ -60,7 +146,7 @@ diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
 -[issue-wanted]: https://github.com/golang/go/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Agopls+label%3A"help+wanted" "help wanted"
 \ No newline at end of file
 diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
---- a/gopls/doc/design.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/design.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/design.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,400 +0,0 @@
 -# gopls design documentation
@@ -242,7 +328,7 @@ diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 -
 -### Process lifetime: *managed by the editor*
 -
--Processing a large code base to fully type check and then analyze it within the latency requirements is not feasible, and is one of the primary problems with the existing solutions. This remains true even if the computed information was cached  on disk, as running analyzers and type checkers ends up requiring the full AST of all files in the dependency graph.
+-Processing a large code base to fully type check and then analyze it within the latency requirements is not feasible, and is one of the primary problems with the existing solutions. This remains true even if the computed information was cached on disk, as running analyzers and type checkers ends up requiring the full AST of all files in the dependency graph.
 -It is theoretically possible to do better, but only with a major re-write of the existing parsing and type checking libraries, something that is not feasible at this time.
 -
 -This implies that gopls should be a long running process, that is able to cache and pre-calculate results in memory so that when a request arrives it can produce the answer much faster.
@@ -366,7 +452,7 @@ diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 -These features suggest or apply edits to the code for the user, including refactoring features, for which there are many potential use cases.
 -Refactoring is one of the places where Go tools could potentially be very strong, but have not been so far, and thus there is huge potential for improvements in the developer experience.
 -There is not yet a clear understanding of the kinds of refactoring people need or how they should express them however, and there are weaknesses in the LSP protocol around this.
--This means it may be  much more of a research project.
+-This means it may be much more of a research project.
 -
 -
 ----
@@ -464,41 +550,87 @@ diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 -[`textDocument/typeDefinition`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_typeDefinition
 -[`workspace/didChangeWatchedFiles`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#workspace_didChangeWatchedFiles
 diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
---- a/gopls/doc/emacs.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/emacs.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/emacs.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,29 +0,0 @@
+@@ -1,76 +0,0 @@
 -# Emacs
 -
--Use [lsp-mode]. gopls is built in now as a client, so no special config is necessary. You first must install `gopls` and put it somewhere in your `PATH`. Here is an example (assuming you are using [use-package]) to get you started:
+-Use [lsp-mode]. gopls is built in as a client. You first must install `gopls` and put it somewhere in your `PATH`. Here is a basic config to get you started (assuming you are using [use-package]):
 -
 -```lisp
 -(use-package lsp-mode
--  :commands (lsp lsp-deferred))
+-  :ensure t
+-  :commands (lsp lsp-deferred)
+-  :hook (go-mode . lsp-deferred))
 -
--(add-hook 'go-mode-hook #'lsp-deferred)
+-;; Set up before-save hooks to format buffer and add/delete imports.
+-;; Make sure you don't have other gofmt/goimports hooks enabled.
+-(defun lsp-go-install-save-hooks ()
+-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 -
--;; optional - provides fancier overlays
+-;; Optional - provides fancier overlays.
 -(use-package lsp-ui
+-  :ensure t
 -  :commands lsp-ui-mode)
 -
--;; if you use company-mode for completion (otherwise, complete-at-point works out of the box):
+-;; Company mode is a standard completion package that works well with lsp-mode.
+-(use-package company
+-  :ensure t
+-  :config
+-  ;; Optionally enable completion-as-you-type behavior.
+-  (setq company-idle-delay 0)
+-  (setq company-minimum-prefix-length 1))
+-
+-;; company-lsp integrates company mode completion with lsp-mode.
+-;; completion-at-point also works out of the box but doesn't support snippets.
 -(use-package company-lsp
+-  :ensure t
 -  :commands company-lsp)
+-
+-;; Optional - provides snippet support.
+-(use-package yasnippet
+-  :ensure t
+-  :commands yas-minor-mode
+-  :hook (go-mode . yas-minor-mode))
 -```
+-
+-lsp-mode integrates with xref. By default `lsp-find-definition` is bound to `M-.`. To go back, use `M-,`. Explore other `lsp-*` commands (not everything is supported by gopls).
+-
+-## Gopls Configuration
+-
+-Stable gopls settings have first-class support in [lsp-mode]. For example, `(setq lsp-gopls-use-placeholders nil)` will disable placeholders in completion snippets. See [lsp-go] for a list of available variables.
+-
+-Experimental settings can be configured via `lsp-register-custom-settings`:
+-
+-```lisp
+-(lsp-register-custom-settings
+- '(("gopls.completeUnimported" t t)
+-   ("gopls.staticcheck" t t)))
+-```
+-
+-See [settings] for information about gopls settings.
+-
+-Note that after changing settings you must restart gopls using e.g. `M-x lsp-restart-workspace`.
+-
+-## Troubleshooting
 -
 -Common errors:
 -- When prompted by Emacs for your project folder, if you are using modules you must select the module's root folder (i.e. the directory with the "go.mod"). If you are using GOPATH, select your $GOPATH as your folder.
 -- Emacs must have your environment set properly (PATH, GOPATH, etc). You can run `M-x getenv <RET> PATH <RET>` to see if your PATH is set in Emacs. If not, you can try starting Emacs from your terminal, using [this package][exec-path-from-shell], or moving your shell config from .bashrc into .bashenv (or .zshenv).
 -- Make sure `lsp-mode`, `lsp-ui` and `company-lsp` are up-to-date, and make sure `lsp-go` is _not_ installed.
--
--To troubleshoot, look in the `*lsp-log*` buffer for errors.
+-- Look for errors in the `*lsp-log*` buffer.
+-- Ask for help in the #emacs channel on the [Gophers slack].
 -
 -[lsp-mode]: https://github.com/emacs-lsp/lsp-mode
 -[use-package]: https://github.com/jwiegley/use-package
 -[exec-path-from-shell]: https://github.com/purcell/exec-path-from-shell
-\ No newline at end of file
+-[settings]: settings.md
+-[lsp-go]: https://github.com/emacs-lsp/lsp-mode/blob/master/lsp-go.el
+-[Gophers slack]: https://invite.slack.golangbridge.org/
 diff -urN a/gopls/doc/faq.md b/gopls/doc/faq.md
---- a/gopls/doc/faq.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/faq.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/faq.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,7 +0,0 @@
 -# gopls FAQ
@@ -510,7 +642,7 @@ diff -urN a/gopls/doc/faq.md b/gopls/doc/faq.md
 -[cl/158197]: https://golang.org/cl/158197
 \ No newline at end of file
 diff -urN a/gopls/doc/implementation.md b/gopls/doc/implementation.md
---- a/gopls/doc/implementation.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/implementation.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/implementation.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,49 +0,0 @@
 -# gopls implementation documentation
@@ -563,7 +695,7 @@ diff -urN a/gopls/doc/implementation.md b/gopls/doc/implementation.md
 -[x/tools]: https://github.com/golang/tools
 -
 diff -urN a/gopls/doc/integrating.md b/gopls/doc/integrating.md
---- a/gopls/doc/integrating.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/integrating.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/integrating.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,91 +0,0 @@
 -# Documentation for plugin authors
@@ -659,9 +791,9 @@ diff -urN a/gopls/doc/integrating.md b/gopls/doc/integrating.md
 -[#31526]: https://github.com/golang/go/issues/31526
 \ No newline at end of file
 diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
---- a/gopls/doc/settings.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/settings.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/settings.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,92 +0,0 @@
+@@ -1,112 +0,0 @@
 -# Settings
 -
 -<!--TODO: Generate this file from the documentation in golang/org/x/tools/internal/lsp/source/options.go.-->
@@ -704,11 +836,21 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -Default: `"SynopsisDocumentation"`.
 -
--## **usePlaceholders** *boolean*
+-### **usePlaceholders** *boolean*
 -
 -If true, then completion responses may contain placeholders for function parameters or struct fields.
 -
 -Default: `false`.
+-
+-### **linkTarget** *string*
+-
+-This controls where points documentation for given package in `textDocument/documentLink`.
+-It might be one of:
+-* `"godoc.org"`   
+-* `"pkg.go.dev"`
+-If company chooses to use its own `godoc.org`, it's address can be used as well.
+-
+-Default: `"pkg.go.dev"`.
 -
 -## Experimental
 -
@@ -728,7 +870,7 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -Default value: `true`.
 -
--**completeUnimported** *boolean*
+-### **completeUnimported** *boolean*
 -
 -If true, the completion engine is allowed to make suggestions for packages that you do not currently import.
 -
@@ -736,7 +878,11 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -### **deepCompletion** *boolean*
 -
--If true, this turns on the ability to return completions from deep inside relevant entities, rather than just the locally accessible ones. Consider this example:
+-If true, this turns on the ability to return completions from deep inside relevant entities, rather than just the locally accessible ones.
+-
+-Default: `true`.
+-
+-Consider this example:
 -
 -```go
 -package main
@@ -754,8 +900,14 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -```
 -
 -At the location of the `<>` in this program, deep completion would suggest the result `x.str`.
+-
+-### **fuzzyMatching** *boolean*
+-
+-If true, this enables server side fuzzy matching of completion candidates.
+-
+-Default: `true`.
 diff -urN a/gopls/doc/status.md b/gopls/doc/status.md
---- a/gopls/doc/status.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/status.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/status.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,46 +0,0 @@
 -# Status
@@ -805,7 +957,7 @@ diff -urN a/gopls/doc/status.md b/gopls/doc/status.md
 -
 -
 diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
---- a/gopls/doc/subl.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/subl.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/subl.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,11 +0,0 @@
 -# Sublime Text
@@ -820,7 +972,7 @@ diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
 -
 -[LSP]: https://packagecontrol.io/packages/LSP
 diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
---- a/gopls/doc/troubleshooting.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/troubleshooting.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/troubleshooting.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,44 +0,0 @@
 -# Troubleshooting
@@ -868,9 +1020,9 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 -
 -Once you have filed an issue, you can then try to restart your `gopls` instance by restarting your editor. In many cases, this will correct the problem. In VSCode, the easiest way to restart the language server is by opening the command palette (Ctrl + Shift + P) and selecting `"Go: Restart Language Server"`. You can also reload the VSCode instance by selecting `"Developer: Reload Window"`.
 diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
---- a/gopls/doc/user.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/user.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/user.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,93 +0,0 @@
+@@ -1,94 +0,0 @@
 -# User guide
 -
 -##### If you're having issues with `gopls`, please see the [troubleshooting guide](troubleshooting.md).
@@ -887,6 +1039,7 @@ diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 -* [Emacs](emacs.md)
 -* [Acme](acme.md)
 -* [Sublime Text](subl.md)
+-* [Atom](atom.md)
 -
 -## Installation
 -
@@ -965,9 +1118,9 @@ diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 -
 -For more information, see the `gopls` [command line page](command-line.md).
 diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
---- a/gopls/doc/vim.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/vim.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/vim.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,106 +0,0 @@
+@@ -1,112 +0,0 @@
 -# Vim / Neovim
 -
 -## vim-go
@@ -1038,7 +1191,8 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 -```
 -
 -The `log_level` and `suppress_stderr` parts are needed to prevent breakage from logging. See
--[natebosch/vim-lsc#180] and [natebosch/vim-lsc#213].
+-issues [#180](https://github.com/natebosch/vim-lsc/issues/180) and
+-[#213](https://github.com/natebosch/vim-lsc/issues/213).
 -
 -## coc.nvim
 -
@@ -1049,10 +1203,15 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 -    "golang": {
 -      "command": "gopls",
 -      "rootPatterns": ["go.mod", ".vim/", ".git/", ".hg/"],
--      "filetypes": ["go"]
+-      "filetypes": ["go"],
+-      "initializationOptions": {
+-        "usePlaceholders": true
+-      }
 -    }
 -  }
 -```
+-
+-Other [settings](settings.md) can be added in `initializationOptions` too.
 -
 -The `editor.action.organizeImport` code action will auto-format code and add missing imports. To run this automatically on save, add the following line to your `init.vim`:
 -
@@ -1075,9 +1234,9 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 -[`govim`]: https://github.com/myitcv/govim
 -[govim-install]: https://github.com/myitcv/govim/blob/master/README.md#govim---go-development-plugin-for-vim8
 diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
---- a/gopls/doc/vscode.md	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/doc/vscode.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/vscode.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,58 +0,0 @@
+@@ -1,56 +0,0 @@
 -# VSCode
 -
 -Use the [VSCode-Go] plugin, with the following configuration:
@@ -1096,10 +1255,8 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 -
 -    // Experimental settings
 -    "completeUnimported": true, // autocomplete unimported packages
--    "watchChangedFiles": true,  // watch file changes outside of the editor
 -    "deepCompletion": true,     // enable deep completion
--},
--"files.eol": "\n", // formatting only supports LF line endings
+-}
 -```
 -
 -VSCode will complain about the `"gopls"` settings, but they will still work. Once we have a consistent set of settings, we will make the changes in the VSCode plugin necessary to remove the errors.
@@ -1137,34 +1294,51 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 -
 -Once you have reloaded VSCode, you will be prompted to install `gopls` and other Go-related tools. After one more reload, you should be ready to develop remotely with VSCode and the Go extension.
 diff -urN a/gopls/go.mod b/gopls/go.mod
---- a/gopls/go.mod	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/go.mod	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.mod	1969-12-31 19:00:00.000000000 -0500
-@@ -1,10 +0,0 @@
+@@ -1,13 +0,0 @@
 -module golang.org/x/tools/gopls
 -
 -go 1.11
 -
 -require (
--	golang.org/x/tools v0.0.0-20190918214516-5a1a30219888
+-	github.com/sergi/go-diff v1.0.0
+-	github.com/stretchr/testify v1.4.0 // indirect
+-	golang.org/x/tools v0.0.0-20191017151554-a3bc800455d5
 -	honnef.co/go/tools v0.0.1-2019.2.3
+-	mvdan.cc/xurls/v2 v2.1.0
 -)
 -
 -replace golang.org/x/tools => ../
 diff -urN a/gopls/go.sum b/gopls/go.sum
---- a/gopls/go.sum	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/go.sum	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.sum	1969-12-31 19:00:00.000000000 -0500
-@@ -1,24 +0,0 @@
+@@ -1,44 +0,0 @@
 -github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 -github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+-github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
+-github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 -github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 -github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
+-github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 -github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 -github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
+-github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 -github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+-github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+-github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 -github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
+-github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=
+-github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
+-github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+-github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
+-github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 -golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 -golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
+-golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 -golang.org/x/mod v0.0.0-20190513183733-4bf6d317e70e/go.mod h1:mXi4GBBbnImb6dmsKGUJ2LatrhH/nqhxcFungHvyanc=
+-golang.org/x/mod v0.1.1-0.20191105210325-c90efee705ee h1:WG0RUwxtNT4qqaXX3DPA8zHFNm/D9xaBpxzHt1WcA/E=
+-golang.org/x/mod v0.1.1-0.20191105210325-c90efee705ee/go.mod h1:QqPTAvyqsEbceGzBzNggFXnrqF1CaUcvgkdR5Ot7KZg=
 -golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 -golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 -golang.org/x/sync v0.0.0-20190423024810-112230192c58 h1:8gQV6CLnAEikrhgkHFbMAEhagSSnXWGV915qUMm9mrU=
@@ -1172,16 +1346,1268 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 -golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 -golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
--golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7 h1:9zdDQZ7Thm29KFXgAX/+yaf3eVbP7djjWp/dXAppNCc=
--golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+-golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 h1:/atklqdjdhuosWIl6AIbOeHJjicWYPqR9bpxqxYG2pA=
+-golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+-gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+-gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 h1:qIbj1fsPNlZgppZ+VLlY7N33q108Sa+fhmuc+sWQYwY=
 -gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 -gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
+-gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
+-gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 -honnef.co/go/tools v0.0.1-2019.2.3 h1:3JgtbtFHMiCmsznwGVTUWbgGov+pVqnlf1dEJTNAXeM=
 -honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
+-mvdan.cc/xurls/v2 v2.1.0 h1:KaMb5GLhlcSX+e+qhbRJODnUUBvlw01jt4yrjFIHAuA=
+-mvdan.cc/xurls/v2 v2.1.0/go.mod h1:5GrSd9rOnKOpZaji1OZLYL/yeAAtGDlo/cFe+8K5n8E=
+diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerfile
+--- a/gopls/integration/govim/Dockerfile	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/govim/Dockerfile	1969-12-31 19:00:00.000000000 -0500
+@@ -1,16 +0,0 @@
+-# Copyright 2019 The Go Authors. All rights reserved.
+-# Use of this source code is governed by a BSD-style
+-# license that can be found in the LICENSE file.
+-
+-# govim requires a more recent version of vim than is available in most
+-# distros, so we build from their base image.
+-FROM govim/govim:go1.13.5_vim_v8.1.2414_v1
+-
+-# Get a copy of govim in order to run its integration tests. We use a pinned
+-# version so that this build is repeatable, and so that we're not sensitive to
+-# test breakages in govim.
+-# TODO(findleyr): Once a version of govim has been tagged containing
+-# https://github.com/govim/govim/pull/629, switch this to @latest.
+-ENV GOPROXY=https://proxy.golang.org GOPATH=/go VIM_FLAVOR=vim
+-WORKDIR /src/mod
+-RUN go mod init mod && go get -t github.com/govim/govim@v0.0.27-0.20191220164001-63ce556bb69e
+diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.md
+--- a/gopls/integration/govim/README.md	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/govim/README.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,27 +0,0 @@
+-# govim integration tests
+-
+-Files in this directory configure Cloud Build to run [govim] integration tests
+-against a gopls binary built from source.
+-
+-## Running on GCP
+-
+-To run these integration tests in Cloud Build (assuming the `gcloud` command is
+-configured for a valid GCP project):
+-
+-- `cd` to the root directory of the tools project.
+-- (at least once per GCP project) Build the test harness:  
+-```
+-$ gcloud builds submit --config=gopls/integration/govim/cloudbuild.harness.yaml
+-```
+-- Run the integration tests:  
+-```
+-$ gcloud builds submit --config=gopls/integration/govim/cloudbuild.yaml
+-```
+-
+-## Running locally
+-
+-Run `gopls/integration/govim/run_local.sh`. This may take a while the first
+-time it is run, as it will require building the test harness. Currently this
+-script assumes that docker may be executed without `sudo`.
+-
+-[govim]: https://github.com/govim/govim
+diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/govim/cloudbuild.harness.yaml
+--- a/gopls/integration/govim/cloudbuild.harness.yaml	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/govim/cloudbuild.harness.yaml	1969-12-31 19:00:00.000000000 -0500
+@@ -1,17 +0,0 @@
+-# Copyright 2019 The Go Authors. All rights reserved.
+-# Use of this source code is governed by a BSD-style
+-# license that can be found in the LICENSE file.
+-
+-# Build the govim test harness that will be used to run govim integration tests
+-# for gopls. See README.md for instructions on how to use this.
+-steps:
+-  - name: 'gcr.io/cloud-builders/docker'
+-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/govim-harness',
+-      # It is assumed that this build is running from the root directory of the
+-      # tools repository.
+-      '-f', 'gopls/integration/govim/Dockerfile',
+-      # Use the integration test directory as build context: the test harness
+-      # doesn't actually require any local files.
+-      'gopls/integration/govim']
+-images:
+-  - gcr.io/$PROJECT_ID/govim-harness
+diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cloudbuild.yaml
+--- a/gopls/integration/govim/cloudbuild.yaml	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/govim/cloudbuild.yaml	1969-12-31 19:00:00.000000000 -0500
+@@ -1,23 +0,0 @@
+-# Copyright 2019 The Go Authors. All rights reserved.
+-# Use of this source code is governed by a BSD-style
+-# license that can be found in the LICENSE file.
+-
+-# Build gopls, and run the govim integration tests.  See README.md for
+-# instructions on how to use this.
+-steps:
+-  - name: 'golang:1.13'
+-    env: ['GOPROXY=https://proxy.golang.org']
+-    dir: 'gopls'
+-    args: ['go', 'build']
+-  - name: 'gcr.io/$PROJECT_ID/govim-harness'
+-    # Work in the dummy module created in the test harness, that requires a
+-    # pinned version of github.com/govim/govim.
+-    dir: '/src/mod'
+-    # The below setting currently causes too much noise on STDERR.
+-    # TODO(findleyr): look into govim changes that make it easier to capture
+-    # individual logs as build artifacts.
+-    # env: ['GOVIM_TESTSCRIPT_STDERR=true']
+-    args: ['go', 'test',
+-      'github.com/govim/govim/cmd/govim',
+-      # Specify the path to the gopls binary built in step 0.
+-      '-gopls', '/workspace/gopls/gopls']
+diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_local.sh
+--- a/gopls/integration/govim/run_local.sh	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/govim/run_local.sh	1969-12-31 19:00:00.000000000 -0500
+@@ -1,31 +0,0 @@
+-#!/bin/bash -e
+-
+-# Run govim integration tests against a local gopls.
+-# TODO(findleyr): this script assumes that docker may be run without sudo.
+-# Update it to escalate privileges if and only if necessary.
+-
+-# Find the tools root, so that this script can be run from any directory.
+-script_dir=$(dirname "$(readlink -f "$0")")
+-tools_dir=$(readlink -f "${script_dir}/../../..")
+-
+-# Build gopls.
+-cd "${tools_dir}/gopls"
+-temp_gopls=$(mktemp -p "$PWD")
+-trap "rm -f \"${temp_gopls}\"" EXIT
+-go build -o "${temp_gopls}"
+-
+-# Build the test harness. Here we are careful to pass in a very limited build
+-# context so as to optimize caching.
+-cd "${tools_dir}"
+-docker build -t gopls-govim-harness -f gopls/integration/govim/Dockerfile \
+-  gopls/integration/govim
+-
+-# Run govim integration tests.
+-echo "running govim integration tests using ${temp_gopls}"
+-temp_gopls_name=$(basename "${temp_gopls}")
+-docker run --rm -t \
+-  -v "${tools_dir}:/src/tools" \
+-  -w "/src/mod" \
+-  gopls-govim-harness \
+-  go test github.com/govim/govim/cmd/govim \
+-    -gopls "/src/tools/gopls/${temp_gopls_name}"
+diff -urN a/gopls/integration/parse/parse.go b/gopls/integration/parse/parse.go
+--- a/gopls/integration/parse/parse.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/parse/parse.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,230 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-// Package parse provides functions to parse LSP logs.
+-// Fully processed logs are returned by ToRLog().
+-package parse
+-
+-import (
+-	"bufio"
+-	"encoding/json"
+-	"errors"
+-	"fmt"
+-	"log"
+-	"os"
+-	"regexp"
+-	"strings"
+-)
+-
+-// MsgType is the type of message.
+-type MsgType int
+-
+-const (
+-	// ClRequest from client to server has method and id
+-	ClRequest MsgType = iota
+-	// ClResponse from server to client
+-	ClResponse
+-	// SvRequest from server to client, has method and id
+-	SvRequest
+-	// SvResponse from client to server
+-	SvResponse
+-	// ToServer notification has method, but no id
+-	ToServer
+-	// ToClient notification
+-	ToClient
+-	// ReportErr is an error message
+-	ReportErr // errors have method and id
+-)
+-
+-// Logmsg is the type of a parsed log entry.
+-type Logmsg struct {
+-	Type    MsgType
+-	Method  string
+-	ID      string      // for requests/responses. Client and server request ids overlap
+-	Elapsed string      // for responses
+-	Hdr     string      // header. do we need to keep all these strings?
+-	Rest    string      // the unparsed result, with newlines or not
+-	Body    interface{} // the parsed result
+-}
+-
+-// ReadLogs from a file. Most users should use ToRlog().
+-func ReadLogs(fname string) ([]*Logmsg, error) {
+-	byid := make(map[string]int)
+-	msgs := []*Logmsg{}
+-	fd, err := os.Open(fname)
+-	if err != nil {
+-		return nil, err
+-	}
+-	defer fd.Close()
+-	logrdr := bufio.NewScanner(fd)
+-	logrdr.Buffer(nil, 1<<25) //  a large buffer, for safety
+-	logrdr.Split(scanLogs)
+-	for i := 0; logrdr.Scan(); i++ {
+-		flds := strings.SplitN(logrdr.Text(), "\n", 2)
+-		if len(flds) == 1 {
+-			flds = append(flds, "") // for Errors
+-		}
+-		msg, err := parselog(flds[0], flds[1])
+-		if err != nil {
+-			return nil, fmt.Errorf("failed to parse %q: %v", logrdr.Text(), err)
+-		}
+-		switch msg.Type {
+-		case ClRequest, SvRequest:
+-			v, err := msg.unmarshal(Requests(msg.Method))
+-			if err != nil {
+-				return nil, fmt.Errorf("%v for %s, %T", err, msg.Method, Requests(msg.Method))
+-			}
+-			msg.Body = v
+-		case ClResponse, SvResponse:
+-			v, err := msg.doresponse()
+-			if err != nil {
+-				return nil, fmt.Errorf("%v %s", err, msg.Method)
+-			}
+-			msg.Body = v
+-		case ToServer, ToClient:
+-			v, err := msg.unmarshal(Notifs(msg.Method))
+-			if err != nil && Notifs(msg.Method) != nil {
+-				return nil, fmt.Errorf("%s/%T: %v", msg.Method, Notifs(msg.Method), err)
+-			}
+-			msg.Body = v
+-		case ReportErr:
+-			msg.Body = msg.Rest // save cause
+-		}
+-		byid[msg.ID]++
+-		msgs = append(msgs, msg)
+-	}
+-	if err = logrdr.Err(); err != nil {
+-		return msgs, err
+-	}
+-	return msgs, nil
+-}
+-
+-// parse a single log message, given first line, and the rest
+-func parselog(first, rest string) (*Logmsg, error) {
+-	if strings.HasPrefix(rest, "Params: ") {
+-		rest = rest[8:]
+-	} else if strings.HasPrefix(rest, "Result: ") {
+-		rest = rest[8:]
+-	}
+-	msg := &Logmsg{Hdr: first, Rest: rest}
+-	fixid := func(s string) string {
+-		// emacs does (n)., gopls does (n)'.
+-		s = strings.Trim(s, "()'.{)")
+-		return s
+-	}
+-	flds := strings.Fields(first)
+-	chk := func(s string, n int) bool { return strings.Contains(first, s) && len(flds) == n }
+-	// gopls and emacs differ in how they report elapsed time
+-	switch {
+-	case chk("Sending request", 9):
+-		msg.Type = ClRequest
+-		msg.Method = flds[6][1:]
+-		msg.ID = fixid(flds[8][:len(flds[8])-2])
+-	case chk("Received response", 11):
+-		msg.Type = ClResponse
+-		msg.Method = flds[6][1:]
+-		msg.ID = fixid(flds[8])
+-		msg.Elapsed = flds[10]
+-	case chk("Received request", 9):
+-		msg.Type = SvRequest
+-		msg.Method = flds[6][1:]
+-		msg.ID = fixid(flds[8])
+-	case chk("Sending response", 11), // gopls
+-		chk("Sending response", 13): // emacs
+-		msg.Type = SvResponse
+-		msg.Method = flds[6][1:]
+-		msg.ID = fixid(flds[8][:len(flds[8])-1])
+-		msg.Elapsed = flds[10]
+-	case chk("Sending notification", 7):
+-		msg.Type = ToServer
+-		msg.Method = strings.Trim(flds[6], ".'")
+-		if len(flds) == 9 {
+-			log.Printf("len=%d method=%s %q", len(flds), msg.Method, first)
+-		}
+-	case chk("Received notification", 7):
+-		msg.Type = ToClient
+-		msg.Method = flds[6][1 : len(flds[6])-2]
+-	case strings.HasPrefix(first, "[Error - "):
+-		msg.Type = ReportErr
+-		both := flds[5]
+-		idx := strings.Index(both, "#") // relies on ID.Number
+-		msg.Method = both[:idx]
+-		msg.ID = fixid(both[idx+1:])
+-		msg.Rest = strings.Join(flds[6:], " ")
+-		msg.Rest = `"` + msg.Rest + `"`
+-	default:
+-		return nil, fmt.Errorf("surprise, first=%q with %d flds", first, len(flds))
+-	}
+-	return msg, nil
+-}
+-
+-// unmarshal into a proposed type
+-func (l *Logmsg) unmarshal(p interface{}) (interface{}, error) {
+-	r := []byte(l.Rest)
+-	if err := json.Unmarshal(r, p); err != nil {
+-		// need general alternatives, but for now
+-		// if p is *[]foo and rest is {}, return an empty p (or *p?)
+-		// or, cheat:
+-		if l.Rest == "{}" {
+-			return nil, nil
+-		}
+-		return nil, err
+-	}
+-	return p, nil
+-}
+-
+-func (l *Logmsg) doresponse() (interface{}, error) {
+-	for _, x := range Responses(l.Method) {
+-		v, err := l.unmarshal(x)
+-		if err == nil {
+-			return v, nil
+-		}
+-		if x == nil {
+-			return new(interface{}), nil
+-		}
+-	}
+-	// failure!
+-	rr := Responses(l.Method)
+-	for _, x := range rr {
+-		log.Printf("tried %T", x)
+-	}
+-	log.Fatalf("(%d) doresponse failed for %s %q", len(rr), l.Method, l.Rest)
+-	return nil, nil
+-}
+-
+-// be a little forgiving in separating log records
+-var recSep = regexp.MustCompile("\n\n\n|\r\n\r\n\r\n")
+-
+-// return offset of start of next record, contents of record, error
+-func scanLogs(b []byte, atEOF bool) (int, []byte, error) { //bufio.SplitFunc
+-	got := recSep.FindIndex(b)
+-	if got == nil {
+-		if atEOF && len(b) > 0 {
+-			return 0, nil, errors.New("malformed log: all logs should end with a separator")
+-		}
+-		return 0, nil, nil
+-	}
+-	return got[1], b[:got[0]], nil
+-}
+-
+-// String returns a user-useful versin of a Direction
+-func (d MsgType) String() string {
+-	switch d {
+-	case ClRequest:
+-		return "clrequest"
+-	case ClResponse:
+-		return "clresponse"
+-	case SvRequest:
+-		return "svrequest"
+-	case SvResponse:
+-		return "svresponse"
+-	case ToServer:
+-		return "toserver"
+-	case ToClient:
+-		return "toclient"
+-	case ReportErr:
+-		return "reporterr"
+-	}
+-	return fmt.Sprintf("dirname: %d unknown", d)
+-}
+diff -urN a/gopls/integration/parse/protocol.go b/gopls/integration/parse/protocol.go
+--- a/gopls/integration/parse/protocol.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/parse/protocol.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,310 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-package parse
+-
+-import (
+-	"log"
+-
+-	p "golang.org/x/tools/internal/lsp/protocol"
+-)
+-
+-// Requests and notifications are fixed types
+-// Responses may be one of several types
+-
+-// Requests returns a pointer to a type suitable for Unmarshal
+-func Requests(m string) interface{} {
+-	// these are in the documentation's order
+-	switch m {
+-	case "initialize":
+-		return new(p.InitializeParams)
+-	case "shutdown":
+-		return new(struct{})
+-	case "window/showMessgeRequest":
+-		return new(p.ShowMessageRequestParams)
+-	case "client/registerCapability":
+-		return new(p.RegistrationParams)
+-	case "client/unregisterCapability":
+-		return new(p.UnregistrationParams)
+-	case "workspace/workspaceFolders":
+-		return nil
+-	case "workspace/configuration":
+-		return new(p.ConfigurationParams)
+-	case "workspace/symbol":
+-		return new(p.WorkspaceSymbolParams)
+-	case "workspace/executeCommand":
+-		return new(p.ExecuteCommandParams)
+-	case "workspace/applyEdit":
+-		return new(p.ApplyWorkspaceEditParams)
+-	case "textDocument/willSaveWaitUntil":
+-		return new(p.WillSaveTextDocumentParams)
+-	case "textDocument/completion":
+-		return new(p.CompletionParams)
+-	case "completionItem/resolve":
+-		return new(p.CompletionItem)
+-	case "textDocument/hover":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/signatureHelp":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/declaration":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/definition":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/typeDefinition":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/implementation":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/references":
+-		return new(p.ReferenceParams)
+-	case "textDocument/documentHighlight":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/documentSymbol":
+-		return new(p.DocumentSymbolParams)
+-	case "textDocument/codeAction":
+-		return new(p.CodeActionParams)
+-	case "textDocument/codeLens":
+-		return new(p.CodeLensParams)
+-	case "codeLens/resolve":
+-		return new(p.CodeLens)
+-	case "textDocument/documentLink":
+-		return new(p.DocumentLinkParams)
+-	case "documentLink/resolve":
+-		return new(p.DocumentLink)
+-	case "textDocument/documentColor":
+-		return new(p.DocumentColorParams)
+-	case "textDocument/colorPressentation":
+-		return new(p.ColorPresentationParams)
+-	case "textDocument/formatting":
+-		return new(p.DocumentFormattingParams)
+-	case "textDocument/rangeFormatting":
+-		return new(p.DocumentRangeFormattingParams)
+-	case "textDocument/typeFormatting":
+-		return new(p.DocumentOnTypeFormattingParams)
+-	case "textDocument/rename":
+-		return new(p.RenameParams)
+-	case "textDocument/prepareRename":
+-		return new(p.TextDocumentPositionParams)
+-	case "textDocument/foldingRange":
+-		return new(p.FoldingRangeParams)
+-	}
+-	log.Fatalf("request(%s) undefined", m)
+-	return ""
+-}
+-
+-// Notifs returns a pointer to a type suitable for Unmarshal
+-func Notifs(m string) interface{} {
+-	switch m {
+-	case "$/cancelRequest":
+-		return new(p.CancelParams)
+-	case "$/setTraceNotification":
+-		return new(struct{ Value string })
+-	case "client/registerCapability": // why is this a notification? (serer->client rpc)
+-		return new(p.RegistrationParams)
+-	case "initialized":
+-		return new(p.InitializedParams)
+-	case "exit":
+-		return nil
+-	case "window/showMessage":
+-		return new(p.ShowMessageParams)
+-	case "window/logMessage":
+-		return new(p.LogMessageParams)
+-	case "telemetry/event":
+-		return new(interface{}) // any
+-	case "workspace/didChangeWorkspaceFolders":
+-		return new(p.DidChangeWorkspaceFoldersParams)
+-	case "workspace/didChangeConfiguration":
+-		return new(p.DidChangeConfigurationParams)
+-	case "workspace/didChangeWatchedFiles":
+-		return new(p.DidChangeWatchedFilesParams)
+-	case "textDocument/didOpen":
+-		return new(p.DidOpenTextDocumentParams)
+-	case "textDocument/didChange":
+-		return new(p.DidChangeTextDocumentParams)
+-	case "textDocument/willSave":
+-		return new(p.WillSaveTextDocumentParams)
+-	case "textDocument/didSave":
+-		return new(p.DidSaveTextDocumentParams)
+-	case "textDocument/didClose":
+-		return new(p.DidCloseTextDocumentParams)
+-	case "textDocument/willClose":
+-		return new(p.DidCloseTextDocumentParams)
+-	case "textDocument/publishDiagnostics":
+-		return new(p.PublishDiagnosticsParams)
+-	}
+-	log.Fatalf("notif(%s) undefined", m)
+-	return ""
+-}
+-
+-// Responses returns a slice of types, one of which should be
+-// suitable for Unmarshal
+-func Responses(m string) []interface{} {
+-	switch m {
+-	case "initialize":
+-		return []interface{}{new(p.InitializeResult)}
+-	case "shutdown":
+-		return []interface{}{nil}
+-	case "window/showMessageRequest":
+-		return []interface{}{new(p.MessageActionItem), nil}
+-	case "client/registerCapability":
+-		return []interface{}{nil}
+-	case "client/unregisterCapability":
+-		return []interface{}{nil}
+-	case "workspace/workspaceFolder":
+-		return []interface{}{new([]p.WorkspaceFolder), nil}
+-	case "workspace/configuration":
+-		return []interface{}{new([]interface{}), new(interface{})}
+-	case "workspace/symbol":
+-		return []interface{}{new([]p.SymbolInformation), nil}
+-	case "workspace/executeCommand":
+-		return []interface{}{new(interface{}), nil}
+-	case "workspace/applyEdit":
+-		return []interface{}{new(p.ApplyWorkspaceEditResponse)}
+-	case "textDocument/willSaveWaitUntil":
+-		return []interface{}{new([]p.TextEdit), nil}
+-	case "textDocument/completion":
+-		return []interface{}{new(p.CompletionList), new([]p.CompletionItem), nil}
+-	case "completionItem/resolve":
+-		return []interface{}{new(p.CompletionItem)}
+-	case "textDocument/hover":
+-		return []interface{}{new(p.Hover), nil}
+-	case "textDocument/signatureHelp":
+-		return []interface{}{new(p.SignatureHelp), nil}
+-	case "textDocument/declaration":
+-		return []interface{}{new(p.Location), new([]p.Location), new([]p.LocationLink), nil}
+-	case "textDocument/definition":
+-		return []interface{}{new([]p.Location), new([]p.Location), new([]p.LocationLink), nil}
+-	case "textDocument/typeDefinition":
+-		return []interface{}{new([]p.Location), new([]p.LocationLink), new(p.Location), nil}
+-	case "textDocument/implementation":
+-		return []interface{}{new(p.Location), new([]p.Location), new([]p.LocationLink), nil}
+-	case "textDocument/references":
+-		return []interface{}{new([]p.Location), nil}
+-	case "textDocument/documentHighlight":
+-		return []interface{}{new([]p.DocumentHighlight), nil}
+-	case "textDocument/documentSymbol":
+-		return []interface{}{new([]p.DocumentSymbol), new([]p.SymbolInformation), nil}
+-	case "textDocument/codeAction":
+-		return []interface{}{new([]p.CodeAction), new(p.Command), nil}
+-	case "textDocument/codeLens":
+-		return []interface{}{new([]p.CodeLens), nil}
+-	case "codelens/resolve":
+-		return []interface{}{new(p.CodeLens)}
+-	case "textDocument/documentLink":
+-		return []interface{}{new([]p.DocumentLink), nil}
+-	case "documentLink/resolve":
+-		return []interface{}{new(p.DocumentLink)}
+-	case "textDocument/documentColor":
+-		return []interface{}{new([]p.ColorInformation)}
+-	case "textDocument/colorPresentation":
+-		return []interface{}{new([]p.ColorPresentation)}
+-	case "textDocument/formatting":
+-		return []interface{}{new([]p.TextEdit), nil}
+-	case "textDocument/rangeFormatting":
+-		return []interface{}{new([]p.TextEdit), nil}
+-	case "textDocument/onTypeFormatting":
+-		return []interface{}{new([]p.TextEdit), nil}
+-	case "textDocument/rename":
+-		return []interface{}{new(p.WorkspaceEdit), nil}
+-	case "textDocument/prepareRename":
+-		return []interface{}{new(p.Range), nil}
+-	case "textDocument/foldingRange":
+-		return []interface{}{new([]p.FoldingRange), nil}
+-	}
+-	log.Fatalf("responses(%q) undefined", m)
+-	return nil
+-}
+-
+-// Msgtype given method names. Note that mSrv|mCl is possible
+-type Msgtype int
+-
+-const (
+-	// Mnot for notifications
+-	Mnot Msgtype = 1
+-	// Mreq for requests
+-	Mreq Msgtype = 2
+-	// Msrv for messages from the server
+-	Msrv Msgtype = 4
+-	// Mcl for messages from the client
+-	Mcl Msgtype = 8
+-)
+-
+-// IsNotify says if the message is a notification
+-func IsNotify(msg string) bool {
+-	m, ok := fromMethod[msg]
+-	if !ok {
+-		log.Fatalf("%q", msg)
+-	}
+-	return m&Mnot != 0
+-}
+-
+-// FromServer says if the message is from the server
+-func FromServer(msg string) bool {
+-	m, ok := fromMethod[msg]
+-	if !ok {
+-		log.Fatalf("%q", msg)
+-	}
+-	return m&Msrv != 0
+-}
+-
+-// FromClient says if the message is from the client
+-func FromClient(msg string) bool {
+-	m, ok := fromMethod[msg]
+-	if !ok {
+-		log.Fatalf("%q", msg)
+-	}
+-	return m&Mcl != 0
+-}
+-
+-// rpc name to message type
+-var fromMethod = map[string]Msgtype{
+-	"$/cancelRequest":             Mnot | Msrv | Mcl,
+-	"initialize":                  Mreq | Msrv,
+-	"initialized":                 Mnot | Mcl,
+-	"shutdown":                    Mreq | Mcl,
+-	"exit":                        Mnot | Mcl,
+-	"window/showMessage":          Mreq | Msrv,
+-	"window/logMessage":           Mnot | Msrv,
+-	"telemetry'event":             Mnot | Msrv,
+-	"client/registerCapability":   Mreq | Msrv,
+-	"client/unregisterCapability": Mreq | Msrv,
+-	"workspace/workspaceFolders":  Mreq | Msrv,
+-	"workspace/workspaceDidChangeWorkspaceFolders": Mnot | Mcl,
+-	"workspace/didChangeConfiguration":             Mnot | Mcl,
+-	"workspace/configuration":                      Mreq | Msrv,
+-	"workspace/didChangeWatchedFiles":              Mnot | Mcl,
+-	"workspace/symbol":                             Mreq | Mcl,
+-	"workspace/executeCommand":                     Mreq | Mcl,
+-	"workspace/applyEdit":                          Mreq | Msrv,
+-	"textDocument/didOpen":                         Mnot | Mcl,
+-	"textDocument/didChange":                       Mnot | Mcl,
+-	"textDocument/willSave":                        Mnot | Mcl,
+-	"textDocument/willSaveWaitUntil":               Mreq | Mcl,
+-	"textDocument/didSave":                         Mnot | Mcl,
+-	"textDocument/didClose":                        Mnot | Mcl,
+-	"textDocument/publishDiagnostics":              Mnot | Msrv,
+-	"textDocument/completion":                      Mreq | Mcl,
+-	"completionItem/resolve":                       Mreq | Mcl,
+-	"textDocument/hover":                           Mreq | Mcl,
+-	"textDocument/signatureHelp":                   Mreq | Mcl,
+-	"textDocument/declaration":                     Mreq | Mcl,
+-	"textDocument/definition":                      Mreq | Mcl,
+-	"textDocument/typeDefinition":                  Mreq | Mcl,
+-	"textDocument/implementation":                  Mreq | Mcl,
+-	"textDocument/references":                      Mreq | Mcl,
+-	"textDocument/documentHighlight":               Mreq | Mcl,
+-	"textDocument/documentSymbol":                  Mreq | Mcl,
+-	"textDocument/codeAction":                      Mreq | Mcl,
+-	"textDocument/codeLens":                        Mreq | Mcl,
+-	"codeLens/resolve":                             Mreq | Mcl,
+-	"textDocument/documentLink":                    Mreq | Mcl,
+-	"documentLink/resolve":                         Mreq | Mcl,
+-	"textDocument/documentColor":                   Mreq | Mcl,
+-	"textDocument/colorPresentation":               Mreq | Mcl,
+-	"textDocument/formatting":                      Mreq | Mcl,
+-	"textDocument/rangeFormatting":                 Mreq | Mcl,
+-	"textDocument/onTypeFormatting":                Mreq | Mcl,
+-	"textDocument/rename":                          Mreq | Mcl,
+-	"textDocument/prepareRename":                   Mreq | Mcl,
+-	"textDocument/foldingRange":                    Mreq | Mcl,
+-}
+diff -urN a/gopls/integration/parse/rlog.go b/gopls/integration/parse/rlog.go
+--- a/gopls/integration/parse/rlog.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/parse/rlog.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,126 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-package parse
+-
+-import (
+-	"fmt"
+-	"log"
+-	"strings"
+-)
+-
+-// Rlog contains the processed logs
+-type Rlog struct {
+-	Logs         []*Logmsg          // In the order in the log file
+-	ServerCall   map[string]*Logmsg // ID->Request, client->server
+-	ServerReply  map[string]*Logmsg // ID->Response, server->client (includes Errors)
+-	ClientCall   map[string]*Logmsg
+-	ClientReply  map[string]*Logmsg
+-	ClientNotifs []*Logmsg
+-	ServerNotifs []*Logmsg
+-	Histogram    *LogHist
+-}
+-
+-func newRlog(x []*Logmsg) *Rlog {
+-	return &Rlog{Logs: x,
+-		ServerCall:   make(map[string]*Logmsg),
+-		ServerReply:  make(map[string]*Logmsg),
+-		ClientCall:   make(map[string]*Logmsg),
+-		ClientReply:  make(map[string]*Logmsg),
+-		ClientNotifs: []*Logmsg{},
+-		ServerNotifs: []*Logmsg{},
+-		Histogram:    &LogHist{},
+-	}
+-}
+-
+-// Counts returns a one-line summary of an Rlog
+-func (r *Rlog) Counts() string {
+-	return fmt.Sprintf("logs:%d srvC:%d srvR:%d clC:%d clR:%d clN:%d srvN:%d",
+-		len(r.Logs),
+-		len(r.ServerCall), len(r.ServerReply), len(r.ClientCall), len(r.ClientReply),
+-		len(r.ClientNotifs), len(r.ServerNotifs))
+-}
+-
+-// ToRlog reads a log file and returns a *Rlog
+-func ToRlog(fname string) (*Rlog, error) {
+-	x, err := ReadLogs(fname)
+-	if err != nil {
+-		return nil, err
+-	}
+-	ans := newRlog(x)
+-	for _, l := range x {
+-		switch l.Type {
+-		case ClRequest:
+-			ans.ServerCall[l.ID] = l
+-		case ClResponse:
+-			ans.ServerReply[l.ID] = l
+-			if l.Type != ReportErr {
+-				n := 0
+-				fmt.Sscanf(l.Elapsed, "%d", &n)
+-				ans.Histogram.add(n)
+-			}
+-		case SvRequest:
+-			ans.ClientCall[l.ID] = l
+-		case SvResponse:
+-			ans.ClientReply[l.ID] = l
+-		case ToClient:
+-			ans.ClientNotifs = append(ans.ClientNotifs, l)
+-		case ToServer:
+-			ans.ServerNotifs = append(ans.ServerNotifs, l)
+-		case ReportErr:
+-			ans.ServerReply[l.ID] = l
+-			l.Method = ans.ServerCall[l.ID].Method // Method not in log message
+-		default:
+-			log.Fatalf("eh? %s/%s (%s)", l.Type, l.Method, l.ID)
+-		}
+-	}
+-	return ans, nil
+-}
+-
+-// LogHist gets ints, and puts them into buckets:
+-// <=10, <=30, 100, 300, 1000, ...
+-// It produces a historgram of elapsed times in milliseconds
+-type LogHist struct {
+-	cnts []int
+-}
+-
+-func (l *LogHist) add(n int) {
+-	if n < 0 {
+-		n = 0
+-	}
+-	bucket := 0
+-	for ; n > 0; n /= 10 {
+-		if n < 10 {
+-			break
+-		}
+-		if n < 30 {
+-			bucket++
+-			break
+-		}
+-		bucket += 2
+-	}
+-	if len(l.cnts) <= bucket {
+-		for j := len(l.cnts); j < bucket+10; j++ {
+-			l.cnts = append(l.cnts, 0)
+-		}
+-	}
+-	l.cnts[bucket]++
+-}
+-
+-// String returns a string describing a histogram
+-func (l *LogHist) String() string {
+-	top := len(l.cnts) - 1
+-	for ; top > 0 && l.cnts[top] == 0; top-- {
+-	}
+-	labs := []string{"10", "30"}
+-	out := strings.Builder{}
+-	out.WriteByte('[')
+-	for i := 0; i <= top; i++ {
+-		label := labs[i%2]
+-		labs[i%2] += "0"
+-		fmt.Fprintf(&out, "%s:%d ", label, l.cnts[i])
+-	}
+-	out.WriteByte(']')
+-	return out.String()
+-}
+diff -urN a/gopls/integration/replay/README.md b/gopls/integration/replay/README.md
+--- a/gopls/integration/replay/README.md	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/replay/README.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,79 +0,0 @@
+-# Replaying Logs
+-
+-The LSP log replayer takes a log from a gopls session, starts up an instance of gopls,
+-and tries to replay the session. It produces a log from the replayed session and reports
+-some comparative statistics of the two logs.
+-
+-```replay -log <logfile>```
+-
+-The `logfile` should be the log produced by gopls. It will have a name like
+-`/tmp/gopls-89775` or, on a Mac, `$TMPDIR/gopls-29388`.
+-
+-If `replay` cannot find a copy of gopls to execute, use `-cmd <path to gopls>`.
+-It looks in the same places where `go install` would put its output,
+-namely `$GOBIN/gopls`, `$GOPATH/bin/gopls`, `$HOME/go/bin/gopls`.
+-
+-The log for the replayed session is saved in `/tmp/seen`.
+-
+-There is aloso a boolean argument `-cmp` which compares the log file
+-with `/tmp/seen` without invoking gopls and rerunning the session.
+-
+-The output is fairly cryptic, and generated by logging. Ideas for better output would be welcome.
+-Here's an example, with intermingled comments:
+-
+-```
+-main.go:50: old 1856, hist:[10:177 30:1 100:0 300:3 1000:4 ]
+-```
+-This says that the original log had 1856 records in it. The histogram is
+-counting how long RPCs took, in milliseconds. In this case 177 took no more
+-than 10ms, and 4 took between 300ms and 1000ms.
+-```
+-main.go:53: calling mimic
+-main.go:293: mimic 1856
+-```
+-This is a reminder that it's replaying in a new session, with a log file
+-containing 1856 records
+-```
+-main.go:61: new 1846, hist:[10:181 30:1 100:1 300:1 1000:1 ]
+-```
+-The new session produced 1846 log records (that's 10 fewer),
+-and a vaguely similar histogram.
+-```
+-main.go:96: old: clrequest:578 clresponse:185 svrequest:2 svresponse:2 toserver:244 toclient:460 reporterr:385
+-main.go:96: new: clrequest:571 clresponse:185 svrequest:2 svresponse:2 toserver:241 toclient:460 reporterr:385
+-```
+-The first line is for the original log, the second for the new log. The new log has 7 fewer RPC requests
+-from the client *clrequest* (578 vs 571), the same number of client responses *clresponse*, 3 fewer
+-notifications *toserver* from the client, the same number from the server *toclient* to the client, and
+-the same number of errors *reporterr*. (That's mysterious, but a look at the ends of the log files shows
+-that the original session ended with several RPCs that don't show up, for whatever reason, in the new session.)
+-
+-Finally, there are counts of the various notifications seen, in the new log and the old log, and
+-which direction they went. (The 3 fewer notifications in the summary above can be seen here to be from cancels
+-and a didChange.)
+-```
+-main.go:107: counts of notifications
+-main.go:110:  '$/cancelRequest'. new toserver 1
+-main.go:110:  '$/cancelRequest'. old toserver 3
+-main.go:110:  'initialized'. new toserver 1
+-main.go:110:  'initialized'. old toserver 1
+-main.go:110:  'textDocument/didChange'. new toserver 231
+-main.go:110:  'textDocument/didChange'. old toserver 232
+-main.go:110:  'textDocument/didOpen'. new toserver 1
+-main.go:110:  'textDocument/didOpen'. old toserver 1
+-main.go:110:  'textDocument/didSave'. new toserver 7
+-main.go:110:  'textDocument/didSave'. old toserver 7
+-main.go:110:  'textDocument/publishDiagnostics'. new toclient 182
+-main.go:110:  'textDocument/publishDiagnostics'. old toclient 182
+-main.go:110:  'window/logMessage'. new toclient 278
+-main.go:110:  'window/logMessage'. old toclient 278
+-```
+-### Caveats
+-Replay cannot restore the exact environment gopls saw for the original session.
+-For instance, the first didOpen message in the new session will see the file
+-as it was left by the original session.
+-
+-Gopls invokes various tools, and the environment they see could have changed too.
+-
+-Replay will use the gopls it finds (or is given). It has no way of using
+-the same version that created the original session.
+diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
+--- a/gopls/integration/replay/main.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/replay/main.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,347 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-// Replay logs. See README.md
+-package main
+-
+-import (
+-	"bufio"
+-	"context"
+-	"encoding/json"
+-	"flag"
+-	"fmt"
+-	"log"
+-	"os"
+-	"os/exec"
+-	"sort"
+-	"strconv"
+-	"strings"
+-
+-	"golang.org/x/tools/gopls/integration/parse"
+-	"golang.org/x/tools/internal/jsonrpc2"
+-	p "golang.org/x/tools/internal/lsp/protocol"
+-)
+-
+-var (
+-	command = flag.String("cmd", "", "location of server to send to, looks for gopls")
+-	cmp     = flag.Bool("cmp", false, "only compare log and /tmp/seen")
+-	logrdr  *bufio.Scanner
+-	msgs    []*parse.Logmsg
+-	// requests and responses/errors, by id
+-	clreq  = make(map[string]*parse.Logmsg)
+-	clresp = make(map[string]*parse.Logmsg)
+-	svreq  = make(map[string]*parse.Logmsg)
+-	svresp = make(map[string]*parse.Logmsg)
+-)
+-
+-func main() {
+-	log.SetFlags(log.Lshortfile)
+-	flag.Usage = func() {
+-		fmt.Fprintln(flag.CommandLine.Output(), "replay [options] <logfile>")
+-		flag.PrintDefaults()
+-	}
+-	flag.Parse()
+-	if flag.NArg() != 1 {
+-		flag.Usage()
+-		os.Exit(2)
+-	}
+-	logf := flag.Arg(0)
+-
+-	orig, err := parse.ToRlog(logf)
+-	if err != nil {
+-		log.Fatalf("error parsing logfile %q: %v", logf, err)
+-	}
+-	ctx := context.Background()
+-	msgs = orig.Logs
+-	log.Printf("old %d, hist:%s", len(msgs), orig.Histogram)
+-
+-	if !*cmp {
+-		log.Print("calling mimic")
+-		mimic(ctx)
+-	}
+-	seen, err := parse.ToRlog("/tmp/seen")
+-	if err != nil {
+-		log.Fatal(err)
+-	}
+-	newMsgs := seen.Logs
+-	log.Printf("new %d, hist:%s", len(newMsgs), seen.Histogram)
+-
+-	ok := make(map[string]int)
+-	f := func(x []*parse.Logmsg, label string, diags map[string][]p.Diagnostic) {
+-		counts := make(map[parse.MsgType]int)
+-		for _, l := range x {
+-			if l.Method == "window/logMessage" {
+-				// don't care
+-				//continue
+-			}
+-			if l.Method == "textDocument/publishDiagnostics" {
+-				v, ok := l.Body.(*p.PublishDiagnosticsParams)
+-				if !ok {
+-					log.Fatalf("got %T expected PublishDiagnosticsParams", l.Body)
+-				}
+-				diags[v.URI] = v.Diagnostics
+-			}
+-			counts[l.Type]++
+-			// notifications only
+-			if l.Type != parse.ToServer && l.Type != parse.ToClient {
+-				continue
+-			}
+-			s := fmt.Sprintf("%s %s %s", strings.Replace(l.Hdr, "\r", "", -1), label, l.Type)
+-			if i := strings.Index(s, "notification"); i != -1 {
+-				s = s[i+12:]
+-			}
+-			if len(s) > 120 {
+-				s = s[:120]
+-			}
+-			ok[s]++
+-		}
+-		msg := ""
+-		for i := parse.ClRequest; i <= parse.ReportErr; i++ {
+-			msg += fmt.Sprintf("%s:%d ", i, counts[i])
+-		}
+-		log.Printf("%s: %s", label, msg)
+-	}
+-	mdiags := make(map[string][]p.Diagnostic)
+-	f(msgs, "old", mdiags)
+-	vdiags := make(map[string][]p.Diagnostic)
+-	f(newMsgs, "new", vdiags)
+-	buf := []string{}
+-	for k := range ok {
+-		buf = append(buf, fmt.Sprintf("%s %d", k, ok[k]))
+-	}
+-	if len(buf) > 0 {
+-		log.Printf("counts of notifications")
+-		sort.Strings(buf)
+-		for _, k := range buf {
+-			log.Print(k)
+-		}
+-	}
+-	buf = buf[0:0]
+-	for k, v := range mdiags {
+-		va := vdiags[k]
+-		if len(v) != len(va) {
+-			buf = append(buf, fmt.Sprintf("new has %d, old has %d for %s",
+-				len(va), len(v), k))
+-		}
+-	}
+-	for ka := range vdiags {
+-		if _, ok := mdiags[ka]; !ok {
+-			buf = append(buf, fmt.Sprintf("new diagnostics, but no old ones, for %s",
+-				ka))
+-		}
+-	}
+-	if len(buf) > 0 {
+-		log.Print("diagnostics differ:")
+-		for _, s := range buf {
+-			log.Print(s)
+-		}
+-	}
+-}
+-
+-func msgType(c *p.Combined) parse.MsgType {
+-	// Method, Params, ID => request
+-	// Method, Params, no-ID => notification
+-	// Error => error response
+-	// Result, ID => response
+-	if c.Error != nil {
+-		return parse.ReportErr
+-	}
+-	if c.Params != nil && c.ID != nil {
+-		// $/cancel could be either, cope someday
+-		if parse.FromServer(c.Method) {
+-			return parse.SvRequest
+-		}
+-		return parse.ClRequest
+-	}
+-	if c.Params != nil {
+-		// we're receiving it, so it must be ToClient
+-		return parse.ToClient
+-	}
+-	if c.Result == nil {
+-		if c.ID != nil {
+-			return parse.ClResponse
+-		}
+-		log.Printf("%+v", *c)
+-		panic("couldn't determine direction")
+-	}
+-	// we've received it, so it must be ClResponse
+-	return parse.ClResponse
+-}
+-
+-func send(ctx context.Context, l *parse.Logmsg, stream jsonrpc2.Stream, id *jsonrpc2.ID) {
+-	x, err := json.Marshal(l.Body)
+-	if err != nil {
+-		log.Fatal(err)
+-	}
+-	y := json.RawMessage(x)
+-	if id == nil {
+-		// need to use the number version of ID
+-		n, err := strconv.Atoi(l.ID)
+-		if err != nil {
+-			n = 0
+-		}
+-		id = &jsonrpc2.ID{Number: int64(n)}
+-	}
+-	var r interface{}
+-	switch l.Type {
+-	case parse.ClRequest:
+-		r = jsonrpc2.WireRequest{
+-			ID:     id,
+-			Method: l.Method,
+-			Params: &y,
+-		}
+-	case parse.SvResponse:
+-		r = jsonrpc2.WireResponse{
+-			ID:     id,
+-			Result: &y,
+-		}
+-	case parse.ToServer:
+-		r = jsonrpc2.WireRequest{
+-			Method: l.Method,
+-			Params: &y,
+-		}
+-	default:
+-		log.Fatalf("sending %s", l.Type)
+-	}
+-	data, err := json.Marshal(r)
+-	if err != nil {
+-		log.Fatal(err)
+-	}
+-	stream.Write(ctx, data)
+-}
+-
+-func strID(x *jsonrpc2.ID) string {
+-	if x.Name != "" {
+-		log.Printf("strID returns %s", x.Name)
+-		return x.Name
+-	}
+-	return strconv.Itoa(int(x.Number))
+-}
+-
+-func respond(ctx context.Context, c *p.Combined, stream jsonrpc2.Stream) {
+-	// c is a server request
+-	// pick out the id, and look for the response in msgs
+-	id := strID(c.ID)
+-	for _, l := range msgs {
+-		if l.ID == id && l.Type == parse.SvResponse {
+-			// check that the methods match?
+-			// need to send back the same ID we got.
+-			send(ctx, l, stream, c.ID)
+-			return
+-		}
+-	}
+-	log.Fatalf("no response found %q %+v %+v", c.Method, c.ID, c)
+-}
+-
+-func findgopls() string {
+-	totry := [][]string{{"GOBIN", "/gopls"}, {"GOPATH", "/bin/gopls"}, {"HOME", "/go/bin/gopls"}}
+-	// looks in the places go install would install:
+-	// GOBIN, else GOPATH/bin, else HOME/go/bin
+-	ok := func(s string) bool {
+-		fd, err := os.Open(s)
+-		if err != nil {
+-			return false
+-		}
+-		fi, err := fd.Stat()
+-		if err != nil {
+-			return false
+-		}
+-		return fi.Mode()&0111 != 0
+-	}
+-	for _, t := range totry {
+-		g := os.Getenv(t[0])
+-		if g != "" && ok(g+t[1]) {
+-			gopls := g + t[1]
+-			log.Printf("using gopls at %s", gopls)
+-			return gopls
+-		}
+-	}
+-	log.Fatal("could not find gopls")
+-	return ""
+-}
+-
+-func mimic(ctx context.Context) {
+-	log.Printf("mimic %d", len(msgs))
+-	if *command == "" {
+-		*command = findgopls()
+-	}
+-	cmd := exec.Command(*command, "-logfile", "/tmp/seen", "-rpc.trace")
+-	toServer, err := cmd.StdinPipe()
+-	if err != nil {
+-		log.Fatal(err)
+-	}
+-	fromServer, err := cmd.StdoutPipe()
+-	if err != nil {
+-		log.Fatal(err)
+-	}
+-	err = cmd.Start()
+-	if err != nil {
+-		log.Fatal(err)
+-	}
+-	stream := jsonrpc2.NewHeaderStream(fromServer, toServer)
+-	rchan := make(chan *p.Combined, 10) // do we need buffering?
+-	rdr := func() {
+-		for {
+-			buf, _, err := stream.Read(ctx)
+-			if err != nil {
+-				rchan <- nil // close it instead?
+-				return
+-			}
+-			msg := &p.Combined{}
+-			if err := json.Unmarshal(buf, msg); err != nil {
+-				log.Fatal(err)
+-			}
+-			rchan <- msg
+-		}
+-	}
+-	go rdr()
+-	// send as many as possible: all clrequests and toservers up to a clresponse
+-	// and loop
+-	seenids := make(map[string]bool) // id's that have been responded to:
+-big:
+-	for _, l := range msgs {
+-		switch l.Type {
+-		case parse.ToServer: // just send these as we get to them
+-			send(ctx, l, stream, nil)
+-		case parse.ClRequest:
+-			send(ctx, l, stream, nil) // for now, wait for a response, to make sure code is ok
+-			fallthrough
+-		case parse.ClResponse, parse.ReportErr: // don't go past these until they're received
+-			if seenids[l.ID] {
+-				break // onward, as it has been received already
+-			}
+-		done:
+-			for {
+-				x := <-rchan
+-				if x == nil {
+-					break big
+-				}
+-				// if it's svrequest, do something
+-				// if it's clresponse or reporterr, add to seenids, and if it
+-				// is l.id, break out of the loop, and continue the outer loop
+-				switch mt := msgType(x); mt {
+-				case parse.SvRequest:
+-					respond(ctx, x, stream)
+-					continue done // still waiting
+-				case parse.ClResponse, parse.ReportErr:
+-					id := strID(x.ID)
+-					seenids[id] = true
+-					if id == l.ID {
+-						break done
+-					}
+-				case parse.ToClient:
+-					continue
+-				default:
+-					log.Fatalf("%s", mt)
+-				}
+-			}
+-		case parse.SvRequest: // not ours to send
+-			continue
+-		case parse.SvResponse: // sent by us, if the request arrives
+-			continue
+-		case parse.ToClient: // we don't send these
+-			continue
+-		}
+-	}
+-}
 diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
---- a/gopls/internal/hooks/analysis.go	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/internal/hooks/analysis.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/analysis.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,28 +0,0 @@
+@@ -1,26 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -1189,31 +2615,83 @@ diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 -package hooks
 -
 -import (
--	"golang.org/x/tools/go/analysis"
 -	"golang.org/x/tools/internal/lsp/source"
 -	"honnef.co/go/tools/simple"
 -	"honnef.co/go/tools/staticcheck"
 -	"honnef.co/go/tools/stylecheck"
 -)
 -
--func updateAnalyzers(v source.View, analyzers []*analysis.Analyzer) []*analysis.Analyzer {
--	if v.Options().StaticCheck {
+-func updateAnalyzers(options *source.Options) {
+-	if options.StaticCheck {
 -		for _, a := range simple.Analyzers {
--			analyzers = append(analyzers, a)
+-			options.Analyzers[a.Name] = a
 -		}
 -		for _, a := range staticcheck.Analyzers {
--			analyzers = append(analyzers, a)
+-			options.Analyzers[a.Name] = a
 -		}
 -		for _, a := range stylecheck.Analyzers {
--			analyzers = append(analyzers, a)
+-			options.Analyzers[a.Name] = a
 -		}
 -	}
--	return analyzers
+-}
+diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
+--- a/gopls/internal/hooks/diff.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/internal/hooks/diff.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,30 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-package hooks
+-
+-import (
+-	"github.com/sergi/go-diff/diffmatchpatch"
+-	"golang.org/x/tools/internal/lsp/diff"
+-	"golang.org/x/tools/internal/span"
+-)
+-
+-func ComputeEdits(uri span.URI, before, after string) []diff.TextEdit {
+-	diffs := diffmatchpatch.New().DiffMain(before, after, true)
+-	edits := make([]diff.TextEdit, 0, len(diffs))
+-	offset := 0
+-	for _, d := range diffs {
+-		start := span.NewPoint(0, 0, offset)
+-		switch d.Type {
+-		case diffmatchpatch.DiffDelete:
+-			offset += len(d.Text)
+-			edits = append(edits, diff.TextEdit{Span: span.New(uri, start, span.NewPoint(0, 0, offset))})
+-		case diffmatchpatch.DiffEqual:
+-			offset += len(d.Text)
+-		case diffmatchpatch.DiffInsert:
+-			edits = append(edits, diff.TextEdit{Span: span.New(uri, start, span.Point{}), NewText: d.Text})
+-		}
+-	}
+-	return edits
+-}
+diff -urN a/gopls/internal/hooks/diff_test.go b/gopls/internal/hooks/diff_test.go
+--- a/gopls/internal/hooks/diff_test.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/internal/hooks/diff_test.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,16 +0,0 @@
+-// Copyright 2019 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-package hooks_test
+-
+-import (
+-	"testing"
+-
+-	"golang.org/x/tools/gopls/internal/hooks"
+-	"golang.org/x/tools/internal/lsp/diff/difftest"
+-)
+-
+-func TestDiff(t *testing.T) {
+-	difftest.DiffTest(t, hooks.ComputeEdits)
 -}
 diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
---- a/gopls/internal/hooks/hooks.go	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/internal/hooks/hooks.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/hooks.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,19 +0,0 @@
+@@ -1,21 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -1224,19 +2702,21 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 -package hooks // import "golang.org/x/tools/gopls/internal/hooks"
 -
 -import (
--	"context"
--
--	"golang.org/x/tools/internal/lsp/cache"
+-	"golang.org/x/tools/internal/lsp/source"
+-	"mvdan.cc/xurls/v2"
 -)
 -
--func Install(ctx context.Context) context.Context {
--	cache.UpdateAnalyzers = updateAnalyzers
--	return ctx
+-func Options(options *source.Options) {
+-	if options.GoDiff {
+-		options.ComputeEdits = ComputeEdits
+-	}
+-	options.URLRegexp = xurls.Relaxed()
+-	updateAnalyzers(options)
 -}
 diff -urN a/gopls/main.go b/gopls/main.go
---- a/gopls/main.go	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/main.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/main.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,24 +0,0 @@
+@@ -1,23 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -1258,57 +2738,12 @@ diff -urN a/gopls/main.go b/gopls/main.go
 -
 -func main() {
 -	ctx := context.Background()
--	ctx = hooks.Install(ctx)
--	tool.Main(ctx, cmd.New("gopls", "", nil), os.Args[1:])
+-	tool.Main(ctx, cmd.New("gopls", "", nil, hooks.Options), os.Args[1:])
 -}
-diff -urN a/gopls/README.md b/gopls/README.md
---- a/gopls/README.md	2019-10-05 15:31:08.989587605 -0400
-+++ b/gopls/README.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,39 +0,0 @@
--# gopls documentation
--
--gopls (pronounced: "go please") is the official [language server] for the Go language.
--
--It is currently in **alpha**, so it is **not stable**. You can see more information about the status of gopls and its supported features [here](doc/status.md).
--
--In general you should not need to know anything about gopls, it should be integrated into your editor for you.
--
--See the [installing](doc/user.md) section of the user guide if you need to install or update gopls by hand.
--
--## Issues
--
--If you are having issues with gopls, please first check the [known issues](doc/status.md#known-issues) before following the [troubleshooting](doc/troubleshooting.md#steps) guide.
--If that does not give you the information you need, reach out to us.
--
--You can chat with us on:
--* the golang-tools [mailing list]
--* the #gopls [slack channel] on the gophers slack
--
--If you think you have an issue that needs fixing, or a feature suggestion, then please make sure you follow the steps to [file an issue](doc/troubleshooting.md#file-an-issue) with the right information to allow us to address it.
--
--If you need to talk to us directly (for instance to file an issue with confidential information in it) you can reach out directly to [@stamblerre] or [@ianthehat].
--
--## More information
--
--If you want to know more about it, have an unusual use case, or want to contribute, please read the following documents
--
--* [Using gopls](doc/user.md)
--* [Troubleshooting and reporting issues](doc/troubleshooting.md)
--* [Integrating gopls with an editor](doc/integrating.md)
--* [Contributing to gopls](doc/contributing.md)
--* [Design requirements and decisions](doc/design.md)
--* [Implementation details](doc/implementation.md)
--
--[language server]: https://langserver.org
--[mailing list]: https://groups.google.com/forum/#!forum/golang-tools
--[slack channel]: https://gophers.slack.com/messages/CJZH85XCZ
--[@stamblerre]: https://github.com/stamblerre "Rebecca Stambler"
--[@ianthehat]: https://github.com/ianthehat "Ian Cottrell"
-\ No newline at end of file
 diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
---- a/gopls/test/gopls_test.go	2019-10-05 15:31:08.989587605 -0400
+--- a/gopls/test/gopls_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/test/gopls_test.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,38 +0,0 @@
+@@ -1,42 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -1316,13 +2751,13 @@ diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 -package gopls_test
 -
 -import (
--	"context"
 -	"os"
 -	"testing"
 -
 -	"golang.org/x/tools/go/packages/packagestest"
 -	"golang.org/x/tools/gopls/internal/hooks"
 -	cmdtest "golang.org/x/tools/internal/lsp/cmd/test"
+-	"golang.org/x/tools/internal/lsp/source"
 -	"golang.org/x/tools/internal/lsp/tests"
 -	"golang.org/x/tools/internal/testenv"
 -)
@@ -1336,14 +2771,18 @@ diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 -	packagestest.TestAll(t, testCommandLine)
 -}
 -
+-func commandLineOptions(options *source.Options) {
+-	options.StaticCheck = true
+-	options.GoDiff = false
+-	hooks.Options(options)
+-}
+-
 -func testCommandLine(t *testing.T, exporter packagestest.Exporter) {
 -	const testdata = "../../internal/lsp/testdata"
 -	if stat, err := os.Stat(testdata); err != nil || !stat.IsDir() {
 -		t.Skip("testdata directory not present")
 -	}
--	ctx := context.Background()
--	hooks.Install(ctx)
 -	data := tests.Load(t, exporter, testdata)
 -	defer data.Exported.Cleanup()
--	tests.Run(t, cmdtest.NewRunner(exporter, data, tests.Context(t)), data)
+-	tests.Run(t, cmdtest.NewRunner(exporter, data, tests.Context(t), commandLineOptions), data)
 -}

@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 
 test_suite(
     name = "go_test",
@@ -136,4 +137,18 @@ go_library(
     srcs = ["data_test_embed.go"],
     data = ["z"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/data_test_dep",
+)
+
+go_bazel_test(
+    name = "test_filter_test",
+    srcs = ["test_filter_test.go"],
+)
+
+go_test(
+    name = "testmain_import_test",
+    srcs = [
+        "testmain_import_indirect_test.go",
+        "testmain_import_main_test.go",
+    ],
+    importpath = "example.com/imports/test_main",
 )

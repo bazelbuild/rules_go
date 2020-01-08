@@ -1,22 +1,20 @@
 Using rules_go on Windows
 =========================
 
-This is a list of notes from the last time I ran rules_go on Windows. This
-is not complete documentation yet, but will be expanded some time in the
-future. Bazel's support for Windows is changing and improving over time, so
-these instructions may be out of date.
+.. _--incompatible_enable_cc_toolchain_resolution: https://github.com/bazelbuild/bazel/issues/7260
+.. _Installing Bazel on Windows: https://docs.bazel.build/versions/master/install-windows.html
 
-Preparation
------------
+This document provides a list of instructions for setting up Bazel to build
+Go code on a Windows computer.
 
-These steps are completely optional.
+Most of the difficulty here is installing a compatible C/C++ toolchain. Cgo
+only works with GCC and clang toolchains, so MSVC cannot be used. This is a
+Go limitation, not a Bazel or rules_go problem: cgo determines types of
+definitions by parsing error messages that GCC emits when compiling generated
+files.
 
-* Consider disabling Windows Defender, at least temporarily. Defender will
-  block the Bazel download for 20+ minutes, presumably because
-  some signature is not in place. This can be done in Windows Defender
-  Security Center > App & Browser control > Check apps and files: Off.
-* Install VSCode. It has pretty good support for Go and a good terminal
-  emulator.
+See also `Installing Bazel on Windows`_, the official instructions for
+installing Bazel.
 
 Install and configure dependencies
 ----------------------------------
@@ -59,8 +57,84 @@ Install bazel
 * Move the binary to ``%APPDATA%\bin\bazel.exe``.
 * Add that directory to ``PATH``.
 * Confirm ``bazel version`` works.
-* Confirm you can run a C binary with
-  ``bazel run --cpu=x64_windows --compiler=mingw-gcc //:target``.
+
+Confirm C/C++ works
+-------------------
+
+Create a workspace with a simple ``cc_binary`` target.
+
+.. code::
+
+    -- WORKSPACE --
+    load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+    git_repository(
+        name = "rules_cc",
+        commit = "7e650b11fe6d49f70f2ca7a1c4cb8bcc4a1fe239",
+        remote = "https://github.com/bazelbuild/rules_cc",
+        shallow_since = "1578064657 -0800",
+    )
+
+    -- BUILD.bazel --
+    load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+    cc_binary(
+        name = "hello",
+        srcs = ["hello.c"],
+    )
+
+    -- hello.c --
+    #include <stdio.h>
+
+    int main() {
+      printf("hello\n");
+      return 0;
+    }
+
+To build with MinGW, run the command below. Add the ``-s`` flag to print
+commands executed by Bazel to confirm MinGW is actually used.
+
+.. code::
+
+    bazel build --cpu=x64_windows --compiler=mingw-gcc //:hello
+
+Future versions of Bazel will select a C/C++ toolchain using the same platform
+and toolchain system used by other rules. This will be the default after the
+`--incompatible_enable_cc_toolchain_resolution`_ flag is flipped. To ensure
+that the MinGW toolchain is registered, either build against a ``platform``
+target with the ``@bazel_tools//tools/cpp:mingw`` constraint such as
+``@io_bazel_rules_go//go/toolchain:windows_amd64_cgo``, or define your own
+target explicitly, as below:
+
+.. code::
+
+    platform(
+        name = "windows_amd64_mingw",
+        constraint_values = [
+            "@bazel_tools//tools/cpp:mingw",
+            "@platforms//cpu:x86_64",
+            "@platforms//os:windows",
+        ],
+    )
+
+You can build with the command below. This also ensures the MinGW toolchain is
+registered (it is not, by default).
+
+.. code::
+
+    bazel build --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw --host_platform=//:windows_amd64_mingw --platforms=//:windows_amd64_mingw --incompatible_enable_cc_toolchain_resolution //:hello
+
+You may want to add these flags to a ``.bazelrc`` file in your project root
+directory or in your home directory.
+
+.. code::
+
+    build --cpu=x64_windows
+    build --compiler=mingw-gcc
+    build --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw
+    build --host_platform=//:windows_amd64_mingw
+    build --platforms=//:windows_amd64_mingw
+    build --incompatible_enable_cc_toolchain_resolution
 
 Confirm Go works
 ----------------
@@ -68,7 +142,5 @@ Confirm Go works
 * Copy boilerplate from rules_go.
 * Confirm that you can run a pure Go "hello world" binary with
   ``bazel run //:target``
-* Confirm you can run a cgo binary with
-  ``bazel run --cpu=x64_windows --compiler=mingw-gcc //:target``
-* You may want to add ``build --cpu=x64_windows --compiler=mingw-gcc`` to
-  a ``.bazelrc`` file in your project or in your home directory.
+* Confirm you can run a cgo binary with the same set of flags and platforms
+  used to build a C target above.

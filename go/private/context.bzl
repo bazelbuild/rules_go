@@ -27,11 +27,6 @@ load(
     "OBJC_COMPILE_ACTION_NAME",
 )
 load(
-    "@io_bazel_rules_go_compat//:compat.bzl",
-    "cc_configure_features",
-    "cc_toolchain_all_files",
-)
-load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "CgoContextData",
     "EXPLICIT_PATH",
@@ -383,6 +378,14 @@ def go_context(ctx, attr = None):
         "GOROOT": goroot,
         "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",
+
+        # If we use --action_env=GOPATH, or in other cases where environment
+        # variables are passed through to this builder, the SDK build will try
+        # to write to that GOPATH (e.g. for x/net/nettest). This will fail if
+        # the GOPATH is on a read-only mount, and is generally a bad idea.
+        # Explicitly clear this environment variable to ensure that doesn't
+        # happen. See #2291 for more information.
+        "GOPATH": "",
     })
 
     # TODO(jayconrod): remove this. It's way too broad. Everything should
@@ -515,7 +518,7 @@ def _cgo_context_data_impl(ctx):
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
     # is switched on.
     cc_toolchain = find_cpp_toolchain(ctx)
-    feature_configuration = cc_configure_features(
+    feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
@@ -678,7 +681,7 @@ def _cgo_context_data_impl(ctx):
     )
 
     return [CgoContextData(
-        crosstool = cc_toolchain_all_files(ctx),
+        crosstool = find_cpp_toolchain(ctx).all_files.to_list(),
         tags = tags,
         env = env,
         cgo_tools = struct(

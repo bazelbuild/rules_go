@@ -17,7 +17,19 @@ to be removed.
 Deprecated features
 -------------------
 
-Nothing currently deprecated.
+| **`go_rule` wrapper**
+| **Deprecated in:** 0.21.0
+| **To be removed in:** TBD. Not earlier than 0.22.0.
+| **Rationale:** A Bazel compatibility change, possibly
+  ``--incompatible_remap_main_repo``, changed how default labels are interpreted
+  in rule definitions. Labels without explicit workspace names are now
+  considered to be inside the workspace of the file containing the call
+  to ``rule``. When ``go_rule`` is used, that's ``@io_bazel_rules_go``, which
+  is probably unexpected and unwanted for most users.
+| **Migration:** TBD. Ideally ``go_rule`` can be replaced with ``rule`` and
+  a toolchain dependency of type ``@io_bazel_rules_go//go:toolchain`` can be
+  added. A implicit dependency on ``@io_bazel_rules_go//:go_context_data``
+  may also be needed.
 
 Removed features
 ----------------

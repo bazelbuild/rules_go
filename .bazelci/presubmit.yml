@@ -1,12 +1,23 @@
 ---
 platforms:
   ubuntu1604:
-    bazel: 0.23.0 # test minimum supported version of bazel on ubuntu1404 only
+    bazel: 1.2.0 # test minimum supported version of bazel on ubuntu1604 only
     build_targets:
     - "..."
     test_targets:
     - "..."
   ubuntu1804:
+    # enable some unflipped incompatible flags on this platform to ensure we don't regress.
+    build_flags:
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_enable_cc_toolchain_resolution"
+    test_flags:
+    - "--incompatible_load_cc_rules_from_bzl"
+    - "--incompatible_load_proto_rules_from_bzl"
+    - "--incompatible_restrict_string_escapes"
+    - "--incompatible_enable_cc_toolchain_resolution"
     build_targets:
     - "..."
     test_targets:
@@ -40,6 +51,12 @@ platforms:
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
     - '--action_env=PATH=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
+    # NOTE(bazelbuild/bazel#10529): bazel doesn't register the mingw toolchain automatically.
+    # We also need the host and target platforms to have the mingw constraint value.
+    - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
+    - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--incompatible_enable_cc_toolchain_resolution"
     build_targets:
     # BUG(bazelbuild/bazel#6485): Bazel 0.18.0 crashes when loading
     # @com_google_protobuf//:protobuf. We have to exclude everything that
@@ -47,7 +64,6 @@ platforms:
     # TODO(#1787): There is a cc_import target in //tests/core/cgo that
     # doesn't set the interface_library attribute. This causes an
     # analysis failure.
-    # BUG(#1788): There are link errors in several targets in //tests/core/race.
     # TODO(#1789): go_path tests that require symlinks fail. These should
     # be skipped automatically.
     # TODO(#1790): Tests that require data should use bazel.Runfile.
@@ -139,8 +155,7 @@ platforms:
     - "-//tests/core/cgo:dylib_test"
     - "-//tests/core/cgo:versioned_dylib_client"
     - "-//tests/core/cgo:versioned_dylib_test"
-    - "-//tests/core/coverage:coverage_test_test"
-    - "-//tests/core/coverage:cross_cover_test_test"
+    - "-//tests/core/coverage:coverage_test"
     - "-//tests/core/cross:cross_test"
     - "-//tests/core/go_binary:go_default_test"
     - "-//tests/core/go_path:go_path"
@@ -173,26 +188,13 @@ platforms:
     - "-//tests/core/go_proto_library:wrap_lib"
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
-    - "-//tests/core/nogo/custom:custom_analyzers_custom_config"
-    - "-//tests/core/nogo/custom:custom_analyzers_default_config"
-    - "-//tests/core/nogo/custom:custom_analyzers_no_errors"
-    - "-//tests/core/nogo/deps:dep_graph"
-    - "-//tests/core/nogo/vet:vet_default"
-    - "-//tests/core/nogo/vet:vet_enabled_has_errors"
-    - "-//tests/core/nogo/vet:vet_enabled_no_errors"
     - "-//tests/core/output_groups:compilation_outputs_test"
-    - "-//tests/core/race:race_bin"
-    - "-//tests/core/race:race_feature_test"
-    - "-//tests/core/race:race_on_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
     - "-//tests/integration/googleapis:color_service"
     - "-//tests/integration/googleapis:color_service_go_proto"
     - "-//tests/integration/googleapis:color_service_proto"
     - "-//tests/integration/googleapis:color_service_test"
-    - "-//tests/legacy/build_with_old_sdk:build_with_old_sdk"
-    - "-//tests/legacy/cgo_library_root_dir:cgo_library_root_dir"
-    - "-//tests/legacy/custom_go_toolchain:custom_go_toolchain"
     - "-//tests/legacy/examples/cgo/example_command:example_command_test"
     - "-//tests/legacy/examples/cgo/example_command:example_command_script"
     - "-//tests/legacy/examples/cgo/example_command:example_command"
@@ -240,17 +242,18 @@ platforms:
     - "-//tests/legacy/proto_ignore_go_package_option:b_go_proto"
     - "-//tests/legacy/proto_ignore_go_package_option:b_proto"
     - "-//tests/legacy/test_chdir:go_default_test"
-    - "-//tests/legacy/test_filter_test:test_filter_test"
     - "-//tests/legacy/test_rundir:go_default_test"
     - "-//tests/legacy/transitive_data:go_default_test"
-    - "-//tests/reproducibility:go_default_test"
-    - "-//tests/reproducibility:reproducibility"
     test_flags:
     # Go requires a C toolchain that accepts options and emits errors like
     # gcc or clang. The Go SDK does not support MSVC.
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
     - '--action_env=PATH=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
+    - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
+    - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
+    - "--incompatible_enable_cc_toolchain_resolution"
     # On Windows CI, bazel (bazelisk) needs %LocalAppData% to find the cache directory.
     # We invoke bazel in tests, so the tests need this, too.
     - "--test_env=LOCALAPPDATA"
@@ -283,8 +286,7 @@ platforms:
     - "-//tests/core/cgo:c_srcs"
     - "-//tests/core/cgo:bar_dep"
     - "-//tests/core/cgo:tag_test" # TODO(#2031): FindBinary does not work
-    - "-//tests/core/coverage:coverage_test_test"
-    - "-//tests/core/coverage:cross_cover_test_test"
+    - "-//tests/core/coverage:coverage_test"
     - "-//tests/core/cross:cross_test"
     - "-//tests/core/go_binary:go_default_test"
     - "-//tests/core/go_binary:stamp_test"
@@ -301,26 +303,13 @@ platforms:
     - "-//tests/core/go_proto_library:transitive_test"
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
-    - "-//tests/core/nogo/config:pure_aspect_test"
     - "-//tests/core/nogo/coverage:coverage_test"
-    - "-//tests/core/nogo/custom:custom_analyzers_custom_config"
-    - "-//tests/core/nogo/custom:custom_analyzers_default_config"
-    - "-//tests/core/nogo/custom:custom_analyzers_no_errors"
-    - "-//tests/core/nogo/deps:dep_graph"
-    - "-//tests/core/nogo/vet:vet_default"
-    - "-//tests/core/nogo/vet:vet_enabled_has_errors"
-    - "-//tests/core/nogo/vet:vet_enabled_no_errors"
+    - "-//tests/core/nogo/vet:vet_test"
     - "-//tests/core/output_groups:compilation_outputs_test"
-    - "-//tests/core/race:race_auto_test"
-    - "-//tests/core/race:race_bin"
-    - "-//tests/core/race:race_feature_test"
-    - "-//tests/core/race:race_on_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
     - "-//tests/integration/googleapis:color_service_test"
-    - "-//tests/legacy/build_with_old_sdk:build_with_old_sdk"
-    - "-//tests/legacy/cgo_library_root_dir:cgo_library_root_dir"
-    - "-//tests/legacy/custom_go_toolchain:custom_go_toolchain"
+    - "-//tests/integration/reproducibility:reproducibility_test"
     - "-//tests/legacy/examples/cgo/example_command:example_command_test"
     - "-//tests/legacy/examples/cgo/example_command:example_command_script"
     - "-//tests/legacy/examples/cgo/example_command:example_command"
@@ -349,8 +338,5 @@ platforms:
     - "-//tests/legacy/go_embed_data:embedded_tar"
     - "-//tests/legacy/info:info"
     - "-//tests/legacy/test_chdir:go_default_test"
-    - "-//tests/legacy/test_filter_test:test_filter_test"
     - "-//tests/legacy/test_rundir:go_default_test"
     - "-//tests/legacy/transitive_data:go_default_test"
-    - "-//tests/reproducibility:go_default_test"
-    - "-//tests/reproducibility:reproducibility"

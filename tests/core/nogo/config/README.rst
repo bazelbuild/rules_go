@@ -8,7 +8,8 @@ Tests that verify nogo_ works on targets compiled in non-default configurations.
 
 .. contents::
 
-pure_aspect_test
-----------------
-Verifies that a `go_binary`_ with ``pure = "on"`` (compiled with the aspect)
-builds successfully with nogo. Verifies #1850.
+config_test
+-----------
+
+Verifies that a `go_binary`_ can be built in non-default configurations with
+nogo. Verifies #1850.

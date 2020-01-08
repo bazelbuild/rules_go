@@ -15,6 +15,7 @@ Contents
 .. Child list start
 
 * `Popular repository tests <popular_repos/README.rst>`_
+* `Reproducibility <reproducibility/README.rst>`_
 * `Functionality related to @go_googleapis <googleapis/README.rst>`_
 
 .. Child list end

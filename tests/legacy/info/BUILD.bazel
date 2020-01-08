@@ -1,5 +1,3 @@
-load("@io_bazel_rules_go//tests:bazel_tests.bzl", "bazel_test")
-
 sh_test(
     name = "info",
     srcs = ["info_test.sh"],

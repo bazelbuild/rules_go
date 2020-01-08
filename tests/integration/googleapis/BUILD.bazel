@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 proto_library(
     name = "color_service_proto",
@@ -23,8 +24,8 @@ go_proto_library(
 
 go_library(
     name = "color_service",
-    importpath = "github.com/bazelbuild/rules_go/tests/integration/googleapis/color_service",
     srcs = ["color_service.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/integration/googleapis/color_service",
     deps = [
         ":color_service_go_proto",
         "@go_googleapis//google/rpc:code_go_proto",

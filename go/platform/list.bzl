@@ -59,14 +59,14 @@ def declare_config_settings():
     native.config_setting(
         name = "ios",
         constraint_values = [
-            "@io_bazel_rules_go_compat//platforms:ios",
+            "@platforms//os:ios",
         ],
     )
     for goarch in ("arm", "arm64", "386", "amd64"):
         native.config_setting(
             name = "ios_" + goarch,
             constraint_values = [
-                "@io_bazel_rules_go_compat//platforms:ios",
+                "@platforms//os:ios",
                 "@io_bazel_rules_go//go/toolchain:" + goarch,
             ],
         )
