@@ -47,6 +47,11 @@ Announcements
   Release
   `v0.21.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.0>`_ is
   now available.
+2020-01-09
+  Releases
+  `v0.20.4 <https://github.com/bazelbuild/rules_go/releases/tag/v0.20.4>`_ and
+  `v0.19.10 <https://github.com/bazelbuild/rules_go/releases/tag/v0.19.10>`_ are
+  now available with support for Go 1.13.6 and 1.12.15.
 2019-12-05
   Releases
   `v0.20.3 <https://github.com/bazelbuild/rules_go/releases/tag/v0.20.3>`_ and
