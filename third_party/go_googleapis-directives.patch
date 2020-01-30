@@ -6,15 +6,6 @@ diff -urN b/BUILD.bazel c/BUILD.bazel
 +# gazelle:proto_group go_package
 +# gazelle:exclude gapic
 +# gazelle:exclude third_party
-diff -urN b/WORKSPACE c/WORKSPACE
---- b/WORKSPACE	2000-01-01 00:00:00.000000000 -0000
-+++ c/WORKSPACE	2000-01-01 00:00:00.000000000 -0000
-@@ -1,4 +1,4 @@
--workspace(name = "com_google_googleapis")
-+workspace(name = "go_googleapis")
- 
- load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
- 
 diff -urN b/google/BUILD.bazel c/google/BUILD.bazel
 --- b/google/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ c/google/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
