@@ -51,6 +51,7 @@ def emit_compilepkg(
         out_cgo_export_h = None,
         gc_goopts = [],
         testfilter = None):  # TODO: remove when test action compiles packages
+    """Compiles a complete Go package."""
     if sources == None:
         fail("sources is a required parameter")
     if out_lib == None:

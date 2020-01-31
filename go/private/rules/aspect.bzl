@@ -17,19 +17,13 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
-    "split_srcs",
-)
-load(
     "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODES",
     "LINKMODE_NORMAL",
-    "mode_string",
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoArchive",
-    "GoArchiveData",
     "GoAspectProviders",
     "GoLibrary",
     "GoSource",

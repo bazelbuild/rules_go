@@ -14,7 +14,6 @@
 
 load(
     "@io_bazel_rules_go//go/private:platforms.bzl",
-    "PLATFORMS",
     _GOARCH = "GOARCH_CONSTRAINTS",
     _GOOS = "GOOS_CONSTRAINTS",
     _GOOS_GOARCH = "GOOS_GOARCH",
@@ -29,9 +28,12 @@ RACE_GOOS_GOARCH = _RACE_GOOS_GOARCH
 MSAN_GOOS_GOARCH = _MSAN_GOOS_GOARCH
 
 def declare_config_settings():
-    """Generates config_setting targets for each goos, goarch, and valid
-    goos_goarch pair. These targets may be used in select expressions.
-    Each target refers to a corresponding constraint_value in //go/toolchain.
+    """Generates config_setting targets.
+
+    declare_config_settings declares a config_setting target for each goos,
+    goarch, and valid goos_goarch pair. These targets may be used in select
+    expressions. Each target refers to a corresponding constraint_value in
+    //go/toolchain.
     """
     for goos in GOOS:
         native.config_setting(

@@ -1,4 +1,3 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_path")
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//go/private:rules/nogo.bzl", "nogo")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")

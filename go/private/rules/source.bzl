@@ -49,4 +49,4 @@ go_source = go_rule(
         "gc_goopts": attr.string_list(),
     },
 )
-"""See go/core.rst#go_source for full documentation."""
+# See go/core.rst#go_source for full documentation.

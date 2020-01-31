@@ -17,15 +17,12 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
-    "EXPORT_PATH",
-)
-load(
     "@io_bazel_rules_go//go/private:rules/rule.bzl",
     "go_rule",
 )
 load(
     "@io_bazel_rules_go//go/private:providers.bzl",
+    "EXPORT_PATH",
     "GoArchive",
     "GoLibrary",
     "get_archive",

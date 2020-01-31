@@ -271,6 +271,7 @@ platforms:
     - "-@org_golang_x_tools//cmd/splitdwarf/internal/macho:go_default_test"
     - "-@org_golang_x_tools//go/packages/packagestest:go_default_test"
     - "-@test_chdir_remote//sub:go_default_test"
+    - "-//tests:buildifier_test" # requires bash
     - "-//tests/core/cgo/objc:objc_test"
     - "-//tests/core/cgo:race_test"
     - "-//tests/core/cgo:opts_test"

@@ -164,7 +164,7 @@ go_binary = go_rule(
     }.items() + _SHARED_ATTRS.items()),
     executable = True,
 )
-"""See go/core.rst#go_binary for full documentation."""
+# See go/core.rst#go_binary for full documentation.
 
 def _go_tool_binary_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]

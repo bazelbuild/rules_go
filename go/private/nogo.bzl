@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:common.bzl", "env_execute")
-
 DEFAULT_NOGO = "@io_bazel_rules_go//:default_nogo"
 
 def _go_register_nogo_impl(ctx):

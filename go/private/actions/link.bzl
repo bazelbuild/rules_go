@@ -13,12 +13,7 @@
 # limitations under the License.
 
 load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
-)
-load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "as_iterable",
     "as_set",
     "has_shared_lib_extension",
 )

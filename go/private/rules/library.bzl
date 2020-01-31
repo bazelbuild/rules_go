@@ -74,7 +74,7 @@ go_library = go_rule(
         "clinkopts": attr.string_list(),
     },
 )
-"""See go/core.rst#go_library for full documentation."""
+# See go/core.rst#go_library for full documentation.
 
 go_tool_library = go_rule(
     _go_library_impl,
@@ -92,10 +92,8 @@ go_tool_library = go_rule(
         "x_defs": attr.string_dict(),
     },
 )
-"""
-This is used instead of `go_library` for dependencies of the `nogo` rule and
-packages that are depended on implicitly by code generated within the Go rules.
-This avoids a bootstrapping problem.
+# This is used instead of `go_library` for dependencies of the `nogo` rule and
+# packages that are depended on implicitly by code generated within the Go rules.
+# This avoids a bootstrapping problem.
 
-See go/core.rst#go_tool_library for full documentation.
-"""
+# See go/core.rst#go_tool_library for full documentation.

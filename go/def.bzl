@@ -12,6 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Public definitions for Go rules.
+
+All public Go rules, providers, and other definitions are imported and
+re-exported in this file. This allows the real location of definitions
+to change for easier maintenance.
+
+Definitions outside this file are private unless otherwise noted, and
+may change without notice.
+"""
+
 load(
     "@io_bazel_rules_go//go/private:context.bzl",
     _go_context = "go_context",
@@ -77,46 +87,41 @@ go_tool_library = _go_tool_library
 go_toolchain = _go_toolchain
 nogo = _nogo
 
+# See go/providers.rst#GoLibrary for full documentation.
 GoLibrary = _GoLibrary
-"""See go/providers.rst#GoLibrary for full documentation."""
 
+# See go/providers.rst#GoSource for full documentation.
 GoSource = _GoSource
-"""See go/providers.rst#GoSource for full documentation."""
 
+# See go/providers.rst#GoPath for full documentation.
 GoPath = _GoPath
-"""See go/providers.rst#GoPath for full documentation."""
 
+# See go/providers.rst#GoArchive for full documentation.
 GoArchive = _GoArchive
-"""See go/providers.rst#GoArchive for full documentation."""
 
+# See go/providers.rst#GoArchiveData for full documentation.
 GoArchiveData = _GoArchiveData
-"""See go/providers.rst#GoArchiveData for full documentation."""
 
+# See go/providers.rst#GoSDK for full documentation.
 GoSDK = _GoSDK
-"""See go/providers.rst#GoSDK for full documentation."""
 
+# See go/core.rst#go_library for full documentation.
 go_library = _go_library_macro
-"""See go/core.rst#go_library for full documentation."""
 
+# See go/core.rst#go_binary for full documentation.
 go_binary = _go_binary_macro
-"""See go/core.rst#go_binary for full documentation."""
 
+# See go/core.rst#go_test for full documentation.
 go_test = _go_test_macro
-"""See go/core.rst#go_test for full documentation."""
 
+# See go/core.rst#go_test for full documentation.
 go_source = _go_source
-"""See go/core.rst#go_test for full documentation."""
 
+# See go/core.rst#go_rule for full documentation.
 go_rule = _go_rule
-"""See go/core.rst#go_rule for full documentation."""
 
+# See go/core.rst#go_path for full documentation.
 go_path = _go_path
-"""
-    go_path is a rule for creating `go build` compatible file layouts from a set of Bazel.
-    targets.
-        "deps": attr.label_list(providers=[GoLibrary]), # The set of go libraries to include the export
-        "mode": attr.string(default="link", values=["link", "copy"]) # Whether to copy files or produce soft links
-"""
 
 def go_vet_test(*args, **kwargs):
     fail("The go_vet_test rule has been removed. Please migrate to nogo instead, which supports vet tests.")

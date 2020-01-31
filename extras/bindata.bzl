@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""bindata.bzl provides the bindata rule for embedding data in .go files"""
+
 load(
     "@io_bazel_rules_go//go:def.bzl",
     "go_context",

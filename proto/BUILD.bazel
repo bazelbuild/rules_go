@@ -1,5 +1,4 @@
 load("//proto:compiler.bzl", "go_proto_compiler")
-load("//proto:gogo.bzl", "gogo_special_proto")
 load("//proto/wkt:well_known_types.bzl", "GOGO_WELL_KNOWN_TYPE_REMAPS", "WELL_KNOWN_TYPE_RULES")
 
 go_proto_compiler(

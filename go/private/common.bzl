@@ -70,8 +70,7 @@ cgo_exts = [
 ]
 
 def pkg_dir(workspace_root, package_name):
-    """Returns a relative path to a package directory from the root of the
-    sandbox. Useful at execution-time or run-time."""
+    """Returns a path to a package directory from the root of the sandbox."""
     if workspace_root and package_name:
         return workspace_root + "/" + package_name
     if workspace_root:
@@ -81,6 +80,7 @@ def pkg_dir(workspace_root, package_name):
     return "."
 
 def split_srcs(srcs):
+    """Returns a struct of sources, divided by extension."""
     sources = struct(
         go = [],
         asm = [],
@@ -112,12 +112,13 @@ def split_srcs(srcs):
     return sources
 
 def join_srcs(source):
+    """Combines source from a split_srcs struct into a single list."""
     return source.go + source.headers + source.asm + source.c + source.cxx + source.objc
 
 def env_execute(ctx, arguments, environment = {}, **kwargs):
-    """env_executes a command in a repository context. It prepends "env -i"
-    to "arguments" before calling "ctx.execute".
+    """Executes a command in for a repository rule.
 
+    It prepends "env -i" to "arguments" before calling "ctx.execute".
     Variables that aren't explicitly mentioned in "environment"
     are removed from the environment. This should be preferred to "ctx.execute"
     in most situations.
@@ -183,10 +184,7 @@ def has_simple_shared_lib_extension(path):
     return False
 
 def has_versioned_shared_lib_extension(path):
-    """
-    Matches shared libraries with version names in the extension, i.e.
-    libmylib.so.2 or libmylib.so.2.10.
-    """
+    """Returns whether the path appears to be an .so file."""
     if not path[-1].isdigit():
         return False
 
@@ -213,6 +211,7 @@ def has_versioned_shared_lib_extension(path):
 MINIMUM_BAZEL_VERSION = "1.2.0"
 
 def as_list(v):
+    """Returns a list, tuple, or depset as a list."""
     if type(v) == "list":
         return v
     if type(v) == "tuple":
@@ -222,6 +221,7 @@ def as_list(v):
     fail("as_list failed on {}".format(v))
 
 def as_iterable(v):
+    """Returns a list, tuple, or depset as something iterable."""
     if type(v) == "list":
         return v
     if type(v) == "tuple":
@@ -231,6 +231,7 @@ def as_iterable(v):
     fail("as_iterator failed on {}".format(v))
 
 def as_tuple(v):
+    """Returns a list, tuple, or depset as a tuple."""
     if type(v) == "tuple":
         return v
     if type(v) == "list":
@@ -240,6 +241,7 @@ def as_tuple(v):
     fail("as_tuple failed on {}".format(v))
 
 def as_set(v):
+    """Returns a list, tuple, or depset as a depset."""
     if type(v) == "depset":
         return v
     if type(v) == "list":

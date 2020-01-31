@@ -32,7 +32,6 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoLibrary",
     "INFERRED_PATH",
-    "get_archive",
 )
 load(
     "@io_bazel_rules_go//go/private:rules/aspect.bzl",
@@ -247,4 +246,4 @@ go_test = go_rule(
     executable = True,
     test = True,
 )
-"""See go/core.rst#go_test for full documentation."""
+# See go/core.rst#go_test for full documentation.

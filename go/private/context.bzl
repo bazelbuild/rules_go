@@ -27,35 +27,30 @@ load(
     "OBJC_COMPILE_ACTION_NAME",
 )
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
+    ":providers.bzl",
     "CgoContextData",
     "EXPLICIT_PATH",
     "EXPORT_PATH",
     "GoLibrary",
     "GoSource",
-    "GoStdLib",
     "INFERRED_PATH",
     "get_archive",
     "get_source",
 )
 load(
-    "@io_bazel_rules_go//go/platform:list.bzl",
-    "GOOS_GOARCH",
-)
-load(
-    "@io_bazel_rules_go//go/private:mode.bzl",
+    ":mode.bzl",
     "get_mode",
     "installsuffix",
     "mode_string",
 )
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
+    ":common.bzl",
     "as_iterable",
     "goos_to_extension",
     "goos_to_shared_extension",
 )
 load(
-    "@io_bazel_rules_go//go/platform:apple.bzl",
+    "//go/platform:apple.bzl",
     "apple_ensure_options",
 )
 load(
@@ -259,8 +254,9 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     return GoSource(**source)
 
 def _collect_runfiles(go, data, deps):
-    """Builds a set of runfiles from the deps and data attributes. srcs and
-    their runfiles are not included."""
+    """Builds a set of runfiles from the deps and data attributes.
+
+    srcs and their runfiles are not included."""
     files = depset(transitive = [t[DefaultInfo].files for t in data])
     runfiles = go._ctx.runfiles(transitive_files = files)
     for t in data:
@@ -338,6 +334,9 @@ def _infer_importpath(ctx):
     return importpath, importpath, INFERRED_PATH
 
 def go_context(ctx, attr = None):
+    """Returns an API used to build Go code.
+
+    See /go/toolchains.rst#go-context"""
     toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
 
     if not attr:

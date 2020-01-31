@@ -36,8 +36,7 @@ def _apple_env(ctx, platform):
     return apple_common.target_apple_env(xcode_config, platform)
 
 def apple_ensure_options(ctx, env, tags, compiler_option_lists, linker_option_lists, target_gnu_system_name):
-    """apple_ensure_options ensures that, when building an Apple target, the
-    proper environment, compiler flags and Go tags are correctly set."""
+    """Returns environment, flags, and Go tags for Apple targets."""
     platform, platform_type = _PLATFORMS.get(target_gnu_system_name, (None, None))
     if not platform:
         return

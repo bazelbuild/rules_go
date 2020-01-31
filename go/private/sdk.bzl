@@ -14,7 +14,6 @@
 
 load(
     "@io_bazel_rules_go//go/private:common.bzl",
-    "env_execute",
     "executable_path",
 )
 load(

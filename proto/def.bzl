@@ -30,6 +30,10 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "INFERRED_PATH",
 )
+load(
+    "@rules_proto//proto:defs.bzl",
+    "ProtoInfo",
+)
 
 GoProtoImports = provider()
 
@@ -154,10 +158,8 @@ go_proto_library = go_rule(
         ),
     },
 )
-"""
-go_proto_library is a rule that takes a proto_library (in the proto
-attribute) and produces a go library for it.
-"""
+# go_proto_library is a rule that takes a proto_library (in the proto
+# attribute) and produces a go library for it.
 
 def go_grpc_library(**kwargs):
     # TODO: Deprecate once gazelle generates just go_proto_library

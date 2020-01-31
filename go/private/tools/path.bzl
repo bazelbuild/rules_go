@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:context.bzl",
-    "go_context",
-)
-load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "GoArchive",
     "GoPath",
