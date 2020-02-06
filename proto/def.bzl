@@ -30,10 +30,6 @@ load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "INFERRED_PATH",
 )
-load(
-    "@rules_proto//proto:defs.bzl",
-    "ProtoInfo",
-)
 
 GoProtoImports = provider()
 
