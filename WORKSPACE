@@ -39,8 +39,9 @@ http_archive(
 # in CI, in particular, --incompatible_load_proto_rules_from_bzl.
 git_repository(
     name = "com_github_bazelbuild_buildtools",
+    commit = "f630fda6c1db92241fee1ff66ca07018b2c7a5f3",  # master as of 2020-02-03
     remote = "https://github.com/bazelbuild/buildtools",
-    commit = "f630fda6c1db92241fee1ff66ca07018b2c7a5f3", # master as of 2020-02-03
+    shallow_since = "1580754619 +0100",
 )
 
 # For manual testing against an LLVM toolchain.
