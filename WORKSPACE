@@ -1,6 +1,5 @@
 workspace(name = "io_bazel_rules_go")
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
@@ -32,16 +31,6 @@ http_archive(
         "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/2c0468366367d7ed97a1f702f9cd7155ab3f73c5.tar.gz",
         "https://github.com/bazelbuild/rules_proto/archive/2c0468366367d7ed97a1f702f9cd7155ab3f73c5.tar.gz",
     ],
-)
-
-# Used by //tests:buildifier_test.
-# Latest release is not compatible with the incompatible bazel flags we use
-# in CI, in particular, --incompatible_load_proto_rules_from_bzl.
-git_repository(
-    name = "com_github_bazelbuild_buildtools",
-    commit = "f630fda6c1db92241fee1ff66ca07018b2c7a5f3",  # master as of 2020-02-03
-    remote = "https://github.com/bazelbuild/buildtools",
-    shallow_since = "1580754619 +0100",
 )
 
 # For manual testing against an LLVM toolchain.
