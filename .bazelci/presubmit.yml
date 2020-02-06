@@ -150,6 +150,7 @@ platforms:
     - "-//proto/wkt:timestamp_go_proto"
     - "-//proto/wkt:type_go_proto"
     - "-//proto/wkt:wrappers_go_proto"
+    - "-//tests:buildifier_test" # transitively requires proto, doesn't build in CI
     - "-@test_chdir_remote//sub:go_default_test"
     - "-//tests/core/cgo:dylib_client"
     - "-//tests/core/cgo:dylib_test"
