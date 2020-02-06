@@ -43,6 +43,10 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2020-02-06
+  Gazelle
+  `v0.20.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.20.0>`_
+  is now available.
 2020-02-03
   Releases
   `v0.21.2 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.2>`_ and
@@ -53,15 +57,6 @@ Announcements
   `v0.21.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.1>`_ and
   `v0.20.5 <https://github.com/bazelbuild/rules_go/releases/tag/v0.20.5>`_ are
   now available with support for Go 1.13.7 and 1.12.16.
-2020-01-10
-  Release
-  `v0.21.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.0>`_ is
-  now available.
-2020-01-09
-  Releases
-  `v0.20.4 <https://github.com/bazelbuild/rules_go/releases/tag/v0.20.4>`_ and
-  `v0.19.10 <https://github.com/bazelbuild/rules_go/releases/tag/v0.19.10>`_ are
-  now available with support for Go 1.13.6 and 1.12.15.
 
 Contents
 --------
@@ -214,10 +209,10 @@ build files automatically using gazelle_.
     http_archive(
         name = "bazel_gazelle",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.1/bazel-gazelle-v0.19.1.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.1/bazel-gazelle-v0.19.1.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.20.0/bazel-gazelle-v0.20.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.20.0/bazel-gazelle-v0.20.0.tar.gz",
         ],
-        sha256 = "86c6d481b3f7aedc1d60c1c211c6f76da282ae197c3b3160f54bd3a8f847896f",
+        sha256 = "d8c45ee70ec39a57e7a05e5027c32b1576cc7f16d9dd37135b0eddde45cf1b10",
     )
 
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
@@ -345,10 +340,10 @@ a go.mod or Gopkg.lock file.
     http_archive(
         name = "bazel_gazelle",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.1/bazel-gazelle-v0.19.1.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.19.1/bazel-gazelle-v0.19.1.tar.gz",
+            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/v0.20.0/bazel-gazelle-v0.20.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.20.0/bazel-gazelle-v0.20.0.tar.gz",
         ],
-        sha256 = "86c6d481b3f7aedc1d60c1c211c6f76da282ae197c3b3160f54bd3a8f847896f",
+        sha256 = "d8c45ee70ec39a57e7a05e5027c32b1576cc7f16d9dd37135b0eddde45cf1b10",
     )
 
     # Load and call Gazelle dependencies
