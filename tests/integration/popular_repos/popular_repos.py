@@ -75,7 +75,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
-        commit = "92b943e6bff73e0dfe9e975d94043d8f31067b06",
+        commit = "11eff242d136374289f76e9313c76e9312391172",
         excludes = [
             "cmd/bundle:go_default_test", # Needs testdata directory
             "cmd/callgraph/testdata/src/pkg:go_default_test", # is testdata
@@ -118,6 +118,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/sortslice:go_default_test", # Needs 'go list'
             "go/analysis/passes/stdmethods:go_default_test", # Needs testdata directory
             "go/analysis/passes/structtag:go_default_test", # Needs testdata directory
+            "go/analysis/passes/testinggoroutine:go_default_test", # Need 'go env'
             "go/analysis/passes/tests/testdata/src/a:go_default_test", # Not a real test
             "go/analysis/passes/tests/testdata/src/b_x_test:go_default_test", # Not a real test
             "go/analysis/passes/tests/testdata/src/divergent:go_default_test", # Not a real test
@@ -149,18 +150,25 @@ POPULAR_REPOS = [
             "godoc:go_default_test", # requires GOROOT and GOPATH
             "internal/apidiff:go_default_test", # Needs testdata directory
             "internal/imports:go_default_test", # Needs testdata directory
+            "internal/lsp:go_default_test", # Needs testdata directory
             "internal/lsp/cache:go_default_test", # has additional deps
             "internal/lsp/cmd:go_default_test", # panics?
             "internal/lsp/diff/difftest:go_default_test", # has additional deps
             "internal/lsp/diff/myers:go_default_test", # has additional deps
             "internal/lsp/diff:go_default_test", # has additional deps
+            "internal/lsp/fake:go_default_test", # has additional deps
             "internal/lsp/fuzzy:go_default_test", # has additional deps
+            "internal/lsp/lsprpc:go_default_test", # has additional deps
+            "internal/lsp/mod:go_default_test", # has additional deps
             "internal/lsp/snippet:go_default_test", # has additional deps
             "internal/lsp/source:go_default_test", # Needs testdata directory
-            "internal/lsp/testdata/analyzer:go_default_test", # not a real test
-            "internal/lsp/testdata/rename/testy:go_default_test", # not a real test
-            "internal/lsp/testdata/testy:go_default_test", # Is testdata directory
-            "internal/lsp:go_default_test", # Needs testdata directory
+            "internal/lsp/testdata/lsp/primarymod/analyzer:go_default_test", # not a real test
+            "internal/lsp/testdata/lsp/primarymod/godef/a:go_default_test", # not a real test
+            "internal/lsp/testdata/lsp/primarymod/implementation/other:go_default_test", # not a real test
+            "internal/lsp/testdata/lsp/primarymod/references:go_default_test", # not a real test
+            "internal/lsp/testdata/lsp/primarymod/rename/testy:go_default_test", # not a real test
+            "internal/lsp/testdata/lsp/primarymod/testy:go_default_test", # not a real test
+            "internal/lsp/testdata/lsp/primarymod/unimported:go_default_test", # not a real test
             "refactor/eg:go_default_test", # Needs testdata directory
             "refactor/importgraph:go_default_test", # TODO(#417)
             "refactor/rename:go_default_test", # TODO(#417)
