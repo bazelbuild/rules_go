@@ -4,7 +4,7 @@ diff -urN c/go/analysis/BUILD.bazel d/go/analysis/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -11,3 +11,15 @@
@@ -29,13 +29,13 @@ diff -urN c/go/analysis/internal/facts/BUILD.bazel d/go/analysis/internal/facts/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -14,6 +14,23 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -62,13 +62,13 @@ diff -urN c/go/analysis/passes/asmdecl/BUILD.bazel d/go/analysis/passes/asmdecl/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -11,6 +11,17 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["asmdecl.go"],
@@ -89,13 +89,13 @@ diff -urN c/go/analysis/passes/assign/BUILD.bazel d/go/analysis/passes/assign/BU
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["assign.go"],
@@ -118,13 +118,13 @@ diff -urN c/go/analysis/passes/atomic/BUILD.bazel d/go/analysis/passes/atomic/BU
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["atomic.go"],
@@ -147,13 +147,13 @@ diff -urN c/go/analysis/passes/atomicalign/BUILD.bazel d/go/analysis/passes/atom
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
-@@ -12,6 +12,18 @@
+@@ -12,6 +12,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["atomicalign.go"],
@@ -162,6 +162,7 @@ diff -urN c/go/analysis/passes/atomicalign/BUILD.bazel d/go/analysis/passes/atom
 +    deps = [
 +        "//go/analysis:go_tool_library",
 +        "//go/analysis/passes/inspect:go_tool_library",
++        "//go/analysis/passes/internal/analysisutil:go_tool_library",
 +        "//go/ast/inspector:go_tool_library",
 +    ],
 +)
@@ -175,13 +176,13 @@ diff -urN c/go/analysis/passes/bools/BUILD.bazel d/go/analysis/passes/bools/BUIL
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["bools.go"],
@@ -204,13 +205,13 @@ diff -urN c/go/analysis/passes/buildssa/BUILD.bazel d/go/analysis/passes/buildss
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -11,6 +11,17 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["buildssa.go"],
@@ -231,13 +232,13 @@ diff -urN c/go/analysis/passes/buildtag/BUILD.bazel d/go/analysis/passes/buildta
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -11,6 +11,17 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["buildtag.go"],
@@ -258,13 +259,13 @@ diff -urN c/go/analysis/passes/cgocall/BUILD.bazel d/go/analysis/passes/cgocall/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -11,6 +11,17 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["cgocall.go"],
@@ -285,13 +286,13 @@ diff -urN c/go/analysis/passes/composite/BUILD.bazel d/go/analysis/passes/compos
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -15,6 +15,21 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -316,13 +317,13 @@ diff -urN c/go/analysis/passes/copylock/BUILD.bazel d/go/analysis/passes/copyloc
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["copylock.go"],
@@ -345,13 +346,13 @@ diff -urN c/go/analysis/passes/ctrlflow/BUILD.bazel d/go/analysis/passes/ctrlflo
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -14,6 +14,20 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["ctrlflow.go"],
@@ -375,13 +376,13 @@ diff -urN c/go/analysis/passes/deepequalerrors/BUILD.bazel d/go/analysis/passes/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["deepequalerrors.go"],
@@ -404,13 +405,13 @@ diff -urN c/go/analysis/passes/errorsas/BUILD.bazel d/go/analysis/passes/errorsa
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["errorsas.go"],
@@ -433,13 +434,13 @@ diff -urN c/go/analysis/passes/findcall/BUILD.bazel d/go/analysis/passes/findcal
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -8,6 +8,14 @@
      deps = ["//go/analysis:go_default_library"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["findcall.go"],
@@ -457,13 +458,13 @@ diff -urN c/go/analysis/passes/httpresponse/BUILD.bazel d/go/analysis/passes/htt
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
-@@ -12,6 +12,18 @@
+@@ -12,6 +12,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["httpresponse.go"],
@@ -472,6 +473,7 @@ diff -urN c/go/analysis/passes/httpresponse/BUILD.bazel d/go/analysis/passes/htt
 +    deps = [
 +        "//go/analysis:go_tool_library",
 +        "//go/analysis/passes/inspect:go_tool_library",
++        "//go/analysis/passes/internal/analysisutil:go_tool_library",
 +        "//go/ast/inspector:go_tool_library",
 +    ],
 +)
@@ -485,7 +487,7 @@ diff -urN c/go/analysis/passes/inspect/BUILD.bazel d/go/analysis/passes/inspect/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -10,3 +10,14 @@
@@ -509,7 +511,7 @@ diff -urN c/go/analysis/passes/internal/analysisutil/BUILD.bazel d/go/analysis/p
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -6,3 +6,10 @@
@@ -529,13 +531,13 @@ diff -urN c/go/analysis/passes/loopclosure/BUILD.bazel d/go/analysis/passes/loop
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["loopclosure.go"],
@@ -557,13 +559,13 @@ diff -urN c/go/analysis/passes/lostcancel/BUILD.bazel d/go/analysis/passes/lostc
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -14,6 +14,20 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["lostcancel.go"],
@@ -587,13 +589,13 @@ diff -urN c/go/analysis/passes/nilfunc/BUILD.bazel d/go/analysis/passes/nilfunc/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["nilfunc.go"],
@@ -615,13 +617,13 @@ diff -urN c/go/analysis/passes/nilness/BUILD.bazel d/go/analysis/passes/nilness/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["nilness.go"],
@@ -643,13 +645,13 @@ diff -urN c/go/analysis/passes/pkgfact/BUILD.bazel d/go/analysis/passes/pkgfact/
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -8,6 +8,14 @@
      deps = ["//go/analysis:go_default_library"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["pkgfact.go"],
@@ -667,13 +669,13 @@ diff -urN c/go/analysis/passes/printf/BUILD.bazel d/go/analysis/passes/printf/BU
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -17,6 +17,23 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -700,13 +702,13 @@ diff -urN c/go/analysis/passes/shadow/BUILD.bazel d/go/analysis/passes/shadow/BU
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["shadow.go"],
@@ -728,13 +730,13 @@ diff -urN c/go/analysis/passes/shift/BUILD.bazel d/go/analysis/passes/shift/BUIL
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -16,6 +16,22 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -760,13 +762,13 @@ diff -urN c/go/analysis/passes/sortslice/BUILD.bazel d/go/analysis/passes/sortsl
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["analyzer.go"],
@@ -789,13 +791,13 @@ diff -urN c/go/analysis/passes/stdmethods/BUILD.bazel d/go/analysis/passes/stdme
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["stdmethods.go"],
@@ -817,13 +819,13 @@ diff -urN c/go/analysis/passes/structtag/BUILD.bazel d/go/analysis/passes/struct
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["structtag.go"],
@@ -845,13 +847,13 @@ diff -urN c/go/analysis/passes/tests/BUILD.bazel d/go/analysis/passes/tests/BUIL
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -8,6 +8,14 @@
      deps = ["//go/analysis:go_default_library"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["tests.go"],
@@ -869,13 +871,13 @@ diff -urN c/go/analysis/passes/unmarshal/BUILD.bazel d/go/analysis/passes/unmars
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,9 +13,23 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["unmarshal.go"],
@@ -902,13 +904,13 @@ diff -urN c/go/analysis/passes/unreachable/BUILD.bazel d/go/analysis/passes/unre
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["unreachable.go"],
@@ -930,13 +932,13 @@ diff -urN c/go/analysis/passes/unsafeptr/BUILD.bazel d/go/analysis/passes/unsafe
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["unsafeptr.go"],
@@ -958,13 +960,13 @@ diff -urN c/go/analysis/passes/unusedresult/BUILD.bazel d/go/analysis/passes/unu
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -13,6 +13,19 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["unusedresult.go"],
@@ -987,13 +989,13 @@ diff -urN c/go/ast/astutil/BUILD.bazel d/go/ast/astutil/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -12,6 +12,18 @@
      visibility = ["//visibility:public"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -1015,13 +1017,13 @@ diff -urN c/go/ast/inspector/BUILD.bazel d/go/ast/inspector/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -10,6 +10,16 @@
      visibility = ["//visibility:public"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -1041,13 +1043,13 @@ diff -urN c/go/cfg/BUILD.bazel d/go/cfg/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -10,6 +10,16 @@
      visibility = ["//visibility:public"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -1067,13 +1069,13 @@ diff -urN c/go/gcexportdata/BUILD.bazel d/go/gcexportdata/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -11,6 +11,17 @@
      deps = ["//go/internal/gcimporter:go_default_library"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -1094,13 +1096,13 @@ diff -urN c/go/internal/gcimporter/BUILD.bazel d/go/internal/gcimporter/BUILD.ba
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -16,6 +16,22 @@
      visibility = ["//go:__subpackages__"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -1126,13 +1128,13 @@ diff -urN c/go/ssa/BUILD.bazel d/go/ssa/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -33,6 +33,39 @@
      ],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
@@ -1175,13 +1177,13 @@ diff -urN c/go/types/objectpath/BUILD.bazel d/go/types/objectpath/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -7,6 +7,13 @@
      visibility = ["//visibility:public"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = ["objectpath.go"],
@@ -1198,13 +1200,13 @@ diff -urN c/go/types/typeutil/BUILD.bazel d/go/types/typeutil/BUILD.bazel
 @@ -1,4 +1,4 @@
 -load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
- 
+
  go_library(
      name = "go_default_library",
 @@ -14,6 +14,20 @@
      deps = ["//go/ast/astutil:go_default_library"],
  )
- 
+
 +go_tool_library(
 +    name = "go_tool_library",
 +    srcs = [
