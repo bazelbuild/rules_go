@@ -182,7 +182,7 @@ diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 -* Command line speed
 -
 -  Although gopls will have a command line mode, it will be optimized for long running and not command responsiveness, as such it may not be the right tool for things like CI systems.
--  In such cases there will have to be an alternate tool using the same underlying libraries for consistency that can be used instead.
+-  For such cases there will have to be an alternate tool using the same underlying libraries for consistency.
 -
 -* Low memory environments
 -
@@ -192,7 +192,7 @@ diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 -
 -* Syntax highlighting
 -
--  At the moment there is no editor that hands this across to a separate binary to do, and no standard way of doing it.
+-  At the moment there is no editor that delegates this functionality to a separate binary, and no standard way of doing it.
 -
 -## Existing solutions
 -
@@ -665,7 +665,7 @@ diff -urN a/gopls/doc/implementation.md b/gopls/doc/implementation.md
 -
 -## Code location
 -
--gopls will be developed in the [x/tools] Go repository; the core packages are in [internal/lsp], and the binary and integration tests are located in [golsp].
+-gopls will be developed in the [x/tools] Go repository; the core packages are in [internal/lsp], and the binary and integration tests are located in [gopls].
 -
 -Below is a list of the core packages of gopls, and their primary purpose:
 -
@@ -848,7 +848,7 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -It might be one of:
 -* `"godoc.org"`   
 -* `"pkg.go.dev"`
--If company chooses to use its own `godoc.org`, it's address can be used as well.
+-If company chooses to use its own `godoc.org`, its address can be used as well.
 -
 -Default: `"pkg.go.dev"`.
 -
@@ -974,7 +974,7 @@ diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
 diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 --- a/gopls/doc/troubleshooting.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/troubleshooting.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,44 +0,0 @@
+@@ -1,70 +0,0 @@
 -# Troubleshooting
 -
 -If you see a gopls error or crash, or gopls just stops working, please follow the troubleshooting steps below.
@@ -989,7 +989,7 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 -
 -1. Make sure your `gopls` is [up to date](user.md#installing).
 -1. Check the [known issues](status.md#known-issues).
--1. [Report the issue](file-an-issue).
+-1. [Report the issue](#file-an-issue).
 -
 -## File an issue
 -
@@ -1010,9 +1010,35 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 -
 -### Capturing logs
 -
--For VSCode users, the gopls log can be found by going to `"View: Debug Console" -> "Output" -> "Tasks" -> "gopls"`. For other editors, you may have to directly pass a `-logfile` flag to gopls.
+-#### VS Code
 -
--To increase the level of detail in your logs, start `gopls` with the `-rpc.trace` flag. To start a debug server that will allow you to see profiles and memory usage, start `gopls` with `serve --debug=localhost:6060`.
+-For VSCode users, the gopls log can be found by navigating to `View` -> `Output` (or `Ctrl+K Ctrl+H`). There will be a drop-down menu titled `Tasks` in the top-right corner. Select the `gopls` item, which will contain the `gopls` logs.
+-
+-To increase the level of detail in your logs, add the following to your VS Code settings:
+-
+-```json5
+-"go.languageServerFlags": [
+-  "-rpc.trace"
+-]
+-```
+-
+-To start a debug server that will allow you to see profiles and memory usage, add the following to your VS Code settings:
+-
+-```json5
+-"go.languageServerFlags": [
+-  "serve",
+-  "-rpc.trace",
+-  "--debug=localhost:6060",
+-],
+-```
+-
+-You will then be able to view debug information by navigating to `localhost:6060`.
+-
+-#### Other editors
+-
+-For other editors, you may have to directly pass a `-logfile` flag to gopls.
+-
+-To increase the level of detail in your logs, start `gopls` with the `-rpc.trace` flag. To start a debug server that will allow you to see profiles and memory usage, start `gopls` with `serve --debug=localhost:6060`. You will then be able to view debug information by navigating to `localhost:6060`.
 -
 -If you are unsure of how to pass a flag to `gopls` through your editor, please see the [documentation for your editor](user.md#editors).
 -
@@ -1022,7 +1048,7 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 --- a/gopls/doc/user.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/user.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,94 +0,0 @@
+@@ -1,107 +0,0 @@
 -# User guide
 -
 -##### If you're having issues with `gopls`, please see the [troubleshooting guide](troubleshooting.md).
@@ -1064,6 +1090,19 @@ diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 -GO111MODULE=on go get golang.org/x/tools/gopls@latest
 -```
 -
+-### Unstable versions
+-
+-`go get` doesn't honor the `replace` directive in the `go.mod` of
+-`gopls` when you are outside of the `gopls` module, so a simple `go get`
+-with `@master` could fail.  To actually update your `gopls` to the
+-latest **unstable** version, use:
+-
+-```sh
+-$ go get golang.org/x/tools/gopls@master golang.org/x/tools@master
+-```
+-
+-In general, you should use `@latest` instead, to prevent frequent
+-breakages.
 -
 -## Configurations
 -
@@ -1236,7 +1275,7 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 --- a/gopls/doc/vscode.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/vscode.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,56 +0,0 @@
+@@ -1,58 +0,0 @@
 -# VSCode
 -
 -Use the [VSCode-Go] plugin, with the following configuration:
@@ -1244,18 +1283,20 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 -```json5
 -"go.useLanguageServer": true,
 -"[go]": {
--    "editor.snippetSuggestions": "none",
 -    "editor.formatOnSave": true,
 -    "editor.codeActionsOnSave": {
 -        "source.organizeImports": true,
--    }
+-    },
+-    // Optional: Disable snippets, as they conflict with completion ranking.
+-    "editor.snippetSuggestions": "none",
 -},
 -"gopls": {
--    "usePlaceholders": true, // add parameter placeholders when completing a function
+-     // Add parameter placeholders when completing a function.
+-    "usePlaceholders": true,
 -
--    // Experimental settings
--    "completeUnimported": true, // autocomplete unimported packages
--    "deepCompletion": true,     // enable deep completion
+-    // If true, enable additional analyses with staticcheck.
+-    // Warning: This will significantly increase memory usage.
+-    "staticcheck": false,
 -}
 -```
 -
@@ -1361,7 +1402,7 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerfile
 --- a/gopls/integration/govim/Dockerfile	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/Dockerfile	1969-12-31 19:00:00.000000000 -0500
-@@ -1,16 +0,0 @@
+@@ -1,20 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
 -# license that can be found in the LICENSE file.
@@ -1370,18 +1411,22 @@ diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerf
 -# distros, so we build from their base image.
 -FROM govim/govim:go1.13.5_vim_v8.1.2414_v1
 -
--# Get a copy of govim in order to run its integration tests. We use a pinned
--# version so that this build is repeatable, and so that we're not sensitive to
--# test breakages in govim.
+-# We use a pinned version of govim so that this build is repeatable, and so
+-# that we're not sensitive to test breakages in govim.
 -# TODO(findleyr): Once a version of govim has been tagged containing
 -# https://github.com/govim/govim/pull/629, switch this to @latest.
 -ENV GOPROXY=https://proxy.golang.org GOPATH=/go VIM_FLAVOR=vim
--WORKDIR /src/mod
--RUN go mod init mod && go get -t github.com/govim/govim@v0.0.27-0.20191220164001-63ce556bb69e
+-WORKDIR /src
+-
+-# Clone govim. In order to use the go command for resolving latest, we download
+-# a redundant copy of govim to the build cache using `go mod download`.
+-RUN GOVIM_VERSION=$(go mod download -json github.com/govim/govim@latest | jq -r .Version) && \
+-    git clone https://github.com/govim/govim /src/govim && cd /src/govim && \
+-    git checkout $GOVIM_VERSION
 diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.md
 --- a/gopls/integration/govim/README.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/README.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,27 +0,0 @@
+@@ -1,45 +0,0 @@
 -# govim integration tests
 -
 -Files in this directory configure Cloud Build to run [govim] integration tests
@@ -1389,18 +1434,36 @@ diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.m
 -
 -## Running on GCP
 -
--To run these integration tests in Cloud Build (assuming the `gcloud` command is
--configured for a valid GCP project):
+-To run these integration tests in Cloud Build, use the following steps.  Here
+-we assume that `$PROJECT_ID` is a valid GCP project and `$BUCKET` is a cloud
+-storage bucket owned by that project.
 -
 -- `cd` to the root directory of the tools project.
--- (at least once per GCP project) Build the test harness:  
+-- (at least once per GCP project) Build the test harness:
 -```
--$ gcloud builds submit --config=gopls/integration/govim/cloudbuild.harness.yaml
+-$ gcloud builds submit \
+-	--project="${PROJECT_ID}" \
+-	--config=gopls/integration/govim/cloudbuild.harness.yaml \
+-	--substitutions=_RESULT_BUCKET="${BUCKET}"
 -```
--- Run the integration tests:  
+-- Run the integration tests:
 -```
--$ gcloud builds submit --config=gopls/integration/govim/cloudbuild.yaml
+-$ gcloud builds submit \
+-	--project="${PROJECT_ID}" \
+-	--config=gopls/integration/govim/cloudbuild.yaml \
+-	--substitutions=_RESULT_BUCKET="${BUCKET}"
 -```
+-
+-## Fetching Artifacts
+-
+-Assuming the artifacts bucket is world readable, you can fetch integration from
+-GCS. They are located at:
+-
+-- logs: `https://storage.googleapis.com/${BUCKET}/log-${EVALUATION_ID}.txt`
+-- artifact tarball: `https://storage.googleapis.com/${BUCKET}/govim/${EVALUATION_ID}/artifacts.tar.gz`
+-
+-The `artifacts.go` command can be used to fetch both artifacts using an
+-evaluation id.
 -
 -## Running locally
 -
@@ -1409,10 +1472,81 @@ diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.m
 -script assumes that docker may be executed without `sudo`.
 -
 -[govim]: https://github.com/govim/govim
+diff -urN a/gopls/integration/govim/artifacts.go b/gopls/integration/govim/artifacts.go
+--- a/gopls/integration/govim/artifacts.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/govim/artifacts.go	1969-12-31 19:00:00.000000000 -0500
+@@ -1,67 +0,0 @@
+-// Copyright 2020 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-
+-package main
+-
+-import (
+-	"flag"
+-	"fmt"
+-	"io/ioutil"
+-	"net/http"
+-	"os"
+-	"path"
+-)
+-
+-var bucket = flag.String("bucket", "golang-gopls_integration_tests", "GCS bucket holding test artifacts.")
+-
+-const usage = `
+-artifacts [--bucket=<bucket ID>] <cloud build evaluation ID>
+-
+-Fetch artifacts from an integration test run. Evaluation ID should be extracted
+-from the cloud build notification.
+-
+-In order for this to work, the GCS bucket that artifacts were written to must
+-be publicly readable. By default, this fetches from the
+-golang-gopls_integration_tests bucket.
+-`
+-
+-func main() {
+-	flag.Usage = func() {
+-		fmt.Fprintf(flag.CommandLine.Output(), usage)
+-	}
+-	flag.Parse()
+-	if flag.NArg() != 1 {
+-		flag.Usage()
+-		os.Exit(2)
+-	}
+-	evalID := flag.Arg(0)
+-	logURL := fmt.Sprintf("https://storage.googleapis.com/%s/log-%s.txt", *bucket, evalID)
+-	if err := download(logURL); err != nil {
+-		fmt.Fprintf(os.Stderr, "downloading logs: %v", err)
+-	}
+-	tarURL := fmt.Sprintf("https://storage.googleapis.com/%s/govim/%s/artifacts.tar.gz", *bucket, evalID)
+-	if err := download(tarURL); err != nil {
+-		fmt.Fprintf(os.Stderr, "downloading artifact tarball: %v", err)
+-	}
+-}
+-
+-func download(artifactURL string) error {
+-	name := path.Base(artifactURL)
+-	resp, err := http.Get(artifactURL)
+-	if err != nil {
+-		return fmt.Errorf("fetching from GCS: %v", err)
+-	}
+-	defer resp.Body.Close()
+-	if resp.StatusCode != http.StatusOK {
+-		return fmt.Errorf("got status code %d from GCS", resp.StatusCode)
+-	}
+-	data, err := ioutil.ReadAll(resp.Body)
+-	if err != nil {
+-		return fmt.Errorf("reading result: %v", err)
+-	}
+-	if err := ioutil.WriteFile(name, data, 0644); err != nil {
+-		return fmt.Errorf("writing artifact: %v", err)
+-	}
+-	return nil
+-}
 diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/govim/cloudbuild.harness.yaml
 --- a/gopls/integration/govim/cloudbuild.harness.yaml	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/cloudbuild.harness.yaml	1969-12-31 19:00:00.000000000 -0500
-@@ -1,17 +0,0 @@
+@@ -1,21 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
 -# license that can be found in the LICENSE file.
@@ -1421,7 +1555,11 @@ diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/
 -# for gopls. See README.md for instructions on how to use this.
 -steps:
 -  - name: 'gcr.io/cloud-builders/docker'
--    args: ['build', '-t', 'gcr.io/$PROJECT_ID/govim-harness',
+-    args: ['build',
+-      # To allow for breaking changes to this test harness, tag with a major
+-      # version number.
+-      '-t', 'gcr.io/$PROJECT_ID/govim-harness:latest',
+-      '-t', 'gcr.io/$PROJECT_ID/govim-harness:3',
 -      # It is assumed that this build is running from the root directory of the
 -      # tools repository.
 -      '-f', 'gopls/integration/govim/Dockerfile',
@@ -1433,35 +1571,61 @@ diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/
 diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cloudbuild.yaml
 --- a/gopls/integration/govim/cloudbuild.yaml	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/cloudbuild.yaml	1969-12-31 19:00:00.000000000 -0500
-@@ -1,23 +0,0 @@
+@@ -1,45 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
 -# license that can be found in the LICENSE file.
 -
 -# Build gopls, and run the govim integration tests.  See README.md for
 -# instructions on how to use this.
+-
+-substitutions:
+-  # This bucket must be owned by the the GCP project executing the build. If
+-  # you are running this from your own project, override using --substitutions.
+-  _RESULT_BUCKET: 'golang-gopls_integration_tests'
+-
 -steps:
+-  # Build gopls from source, to use with the govim integration tests.
 -  - name: 'golang:1.13'
 -    env: ['GOPROXY=https://proxy.golang.org']
 -    dir: 'gopls'
 -    args: ['go', 'build']
--  - name: 'gcr.io/$PROJECT_ID/govim-harness'
--    # Work in the dummy module created in the test harness, that requires a
--    # pinned version of github.com/govim/govim.
--    dir: '/src/mod'
--    # The below setting currently causes too much noise on STDERR.
--    # TODO(findleyr): look into govim changes that make it easier to capture
--    # individual logs as build artifacts.
--    # env: ['GOVIM_TESTSCRIPT_STDERR=true']
--    args: ['go', 'test',
--      'github.com/govim/govim/cmd/govim',
--      # Specify the path to the gopls binary built in step 0.
--      '-gopls', '/workspace/gopls/gopls']
+-
+-  # Run the tests. Note that the script in this step does not return the exit
+-  # code from `go test`, but rather saves it for use in the final step after
+-  # uploading artifacts.
+-  - name: 'gcr.io/$PROJECT_ID/govim-harness:3'
+-    dir: '/src/govim'
+-    env:
+-      - GOVIM_TESTSCRIPT_WORKDIR_ROOT=/workspace/artifacts
+-      - VIM_FLAVOR=vim
+-    args: ['/workspace/gopls/integration/govim/run_tests_for_cloudbuild.sh']
+-
+-  # The govim tests produce a large number of artifacts; tarball/gzip to reduce
+-  # roundtrips and save space.
+-  - name: 'ubuntu'
+-    args: ['tar', '-czf', 'artifacts.tar.gz', 'artifacts']
+-
+-  # Upload artifacts to GCS.
+-  - name: 'gcr.io/cloud-builders/gsutil'
+-    args: ['cp', 'artifacts.tar.gz', 'gs://${_RESULT_BUCKET}/govim/${BUILD_ID}/artifacts.tar.gz']
+-
+-  # Exit with the actual exit code of the integration tests.
+-  - name: 'ubuntu'
+-    args: ['bash', 'govim_test_result.sh']
+-
+-# Write build logs to the same bucket as artifacts, so they can be more easily
+-# shared.
+-logsBucket: 'gs://${_RESULT_BUCKET}'
 diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_local.sh
 --- a/gopls/integration/govim/run_local.sh	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/run_local.sh	1969-12-31 19:00:00.000000000 -0500
-@@ -1,31 +0,0 @@
+@@ -1,35 +0,0 @@
 -#!/bin/bash -e
+-
+-# Copyright 2019 The Go Authors. All rights reserved.
+-# Use of this source code is governed by a BSD-style
+-# license that can be found in the LICENSE file.
 -
 -# Run govim integration tests against a local gopls.
 -# TODO(findleyr): this script assumes that docker may be run without sudo.
@@ -1488,10 +1652,42 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -temp_gopls_name=$(basename "${temp_gopls}")
 -docker run --rm -t \
 -  -v "${tools_dir}:/src/tools" \
--  -w "/src/mod" \
+-  -w "/src/govim" \
 -  gopls-govim-harness \
--  go test github.com/govim/govim/cmd/govim \
+-  go test ./cmd/govim \
 -    -gopls "/src/tools/gopls/${temp_gopls_name}"
+diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integration/govim/run_tests_for_cloudbuild.sh
+--- a/gopls/integration/govim/run_tests_for_cloudbuild.sh	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/integration/govim/run_tests_for_cloudbuild.sh	1969-12-31 19:00:00.000000000 -0500
+@@ -1,28 +0,0 @@
+-#!/bin/bash
+-
+-# Copyright 2020 The Go Authors. All rights reserved.
+-# Use of this source code is governed by a BSD-style
+-# license that can be found in the LICENSE file.
+-
+-# This script runs govim integration tests but always succeeds, instead writing
+-# their result to a file so that any test failure can be deferred to a later
+-# build step. We do this so that we can capture govim test artifacts regardless
+-# of the test results.
+-
+-# Substitute the locally built gopls binary for use in govim integration tests.
+-go test ./cmd/govim -gopls /workspace/gopls/gopls
+-
+-# Stash the error, for use in a later build step.
+-echo "exit $?" > /workspace/govim_test_result.sh
+-
+-# Clean up unnecessary artifacts. This is based on govim/_scripts/tidyUp.bash.
+-# Since we're fetching govim using the go command, we won't have this non-go
+-# source directory available to us.
+-if [[ -n "$GOVIM_TESTSCRIPT_WORKDIR_ROOT" ]]; then
+-  echo "Cleaning up build artifacts..."
+-  # Make artifacts writable so that rm -rf doesn't complain.
+-  chmod -R u+w "$GOVIM_TESTSCRIPT_WORKDIR_ROOT"
+-
+-  # Remove directories we don't care about.
+-  find "$GOVIM_TESTSCRIPT_WORKDIR_ROOT" -type d \( -name .vim -o -name gopath \) -prune -exec rm -rf '{}' \;
+-fi
 diff -urN a/gopls/integration/parse/parse.go b/gopls/integration/parse/parse.go
 --- a/gopls/integration/parse/parse.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/parse/parse.go	1969-12-31 19:00:00.000000000 -0500
@@ -2607,7 +2803,7 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 --- a/gopls/internal/hooks/analysis.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/analysis.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,26 +0,0 @@
+@@ -1,36 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2615,6 +2811,7 @@ diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 -package hooks
 -
 -import (
+-	"golang.org/x/tools/go/analysis/passes/nilness"
 -	"golang.org/x/tools/internal/lsp/source"
 -	"honnef.co/go/tools/simple"
 -	"honnef.co/go/tools/staticcheck"
@@ -2627,11 +2824,20 @@ diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 -			options.Analyzers[a.Name] = a
 -		}
 -		for _, a := range staticcheck.Analyzers {
+-			// This check conflicts with the vet printf check (golang/go#34494).
+-			if a.Name == "SA5009" {
+-				continue
+-			}
 -			options.Analyzers[a.Name] = a
 -		}
 -		for _, a := range stylecheck.Analyzers {
 -			options.Analyzers[a.Name] = a
 -		}
+-		// Add the nilness analyzer only for users who have enabled staticcheck.
+-		// The assumption here is that a user who has enabled staticcheck will
+-		// be fine with gopls using significantly more memory. nilness requires
+-		// SSA, which makes it expensive.
+-		options.Analyzers[nilness.Analyzer.Name] = nilness.Analyzer
 -	}
 -}
 diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
@@ -2716,7 +2922,7 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 diff -urN a/gopls/main.go b/gopls/main.go
 --- a/gopls/main.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/main.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,23 +0,0 @@
+@@ -1,26 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2725,6 +2931,9 @@ diff -urN a/gopls/main.go b/gopls/main.go
 -// The Language Server Protocol allows any text editor
 -// to be extended with IDE-like features;
 -// see https://langserver.org/ for details.
+-//
+-// See https://github.com/golang/tools/tree/master/gopls
+-// for the most up-to-date information on the gopls status.
 -package main // import "golang.org/x/tools/gopls"
 -
 -import (
@@ -2743,7 +2952,7 @@ diff -urN a/gopls/main.go b/gopls/main.go
 diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 --- a/gopls/test/gopls_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/test/gopls_test.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,42 +0,0 @@
+@@ -1,54 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2756,7 +2965,10 @@ diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 -
 -	"golang.org/x/tools/go/packages/packagestest"
 -	"golang.org/x/tools/gopls/internal/hooks"
+-	"golang.org/x/tools/internal/jsonrpc2/servertest"
+-	"golang.org/x/tools/internal/lsp/cache"
 -	cmdtest "golang.org/x/tools/internal/lsp/cmd/test"
+-	"golang.org/x/tools/internal/lsp/lsprpc"
 -	"golang.org/x/tools/internal/lsp/source"
 -	"golang.org/x/tools/internal/lsp/tests"
 -	"golang.org/x/tools/internal/testenv"
@@ -2783,6 +2995,15 @@ diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 -		t.Skip("testdata directory not present")
 -	}
 -	data := tests.Load(t, exporter, testdata)
--	defer data.Exported.Cleanup()
--	tests.Run(t, cmdtest.NewRunner(exporter, data, tests.Context(t), commandLineOptions), data)
+-	ctx := tests.Context(t)
+-	cache := cache.New(commandLineOptions)
+-	ss := lsprpc.NewStreamServer(cache, false)
+-	ts := servertest.NewServer(ctx, ss)
+-	for _, data := range data {
+-		defer data.Exported.Cleanup()
+-		t.Run(data.Folder, func(t *testing.T) {
+-			t.Helper()
+-			tests.Run(t, cmdtest.NewRunner(exporter, data, tests.Context(t), ts.Addr, commandLineOptions), data)
+-		})
+-	}
 -}
