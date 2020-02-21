@@ -25,13 +25,13 @@ const mainFiles = `
 load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_library")
 
 go_library(
-	name = "stamp",
-	srcs = ["stamp.go"],
-	importpath = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
-	visibility = ["//visibility:public"],
-	x_defs = {
-			"XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
-	},
+    name = "stamp",
+    srcs = ["stamp.go"],
+    importpath = "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp",
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "XdefBuildTimestamp": "{BUILD_TIMESTAMP}",
+    },
 )
 
 go_test(
@@ -49,8 +49,7 @@ go_test(
 -- stamp.go --
 package stamp
 
-var NOT_A_TIMESTAMP = "fail"
-var BUILD_TIMESTAMP = NOT_A_TIMESTAMP
+var BUILD_TIMESTAMP = "fail"
 
 // an xdef should set this to ""
 var PassIfEmpty = "fail"
@@ -74,7 +73,7 @@ func TestStampedBin(t *testing.T) {
 	// If we use an x_def when linking to override BUILD_TIMESTAMP but fail to
 	// pass through the workspace status value, it'll be set to empty string -
 	// overridden but still wrong. Check for that case too.
-	if stamp.BUILD_TIMESTAMP == stamp.NOT_A_TIMESTAMP || stamp.BUILD_TIMESTAMP == "" {
+	if stamp.BUILD_TIMESTAMP == "fail" || stamp.BUILD_TIMESTAMP == "" {
 		t.Errorf("Expected timestamp to have been modified, got %s.", stamp.BUILD_TIMESTAMP)
 	}
 	if stamp.XdefBuildTimestamp == "" {
