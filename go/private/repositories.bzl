@@ -101,6 +101,7 @@ def go_rules_dependencies():
         remote = "https://github.com/bazelbuild/rules_cc",
         # master, as of 2020-02-21
         commit = "726dd8157557f1456b3656e26ab21a1646653405",
+        shallow_since = "1582107762 -0800",
     )
 
     # Proto dependencies
