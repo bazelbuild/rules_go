@@ -863,6 +863,34 @@ diff -urN c/go/analysis/passes/stdmethods/BUILD.bazel d/go/analysis/passes/stdme
  go_test(
      name = "go_default_test",
      srcs = ["stdmethods_test.go"],
+diff -urN c/go/analysis/passes/stringintconv/BUILD.bazel d/go/analysis/passes/stringintconv/BUILD.bazel
+--- c/go/analysis/passes/stringintconv/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ d/go/analysis/passes/stringintconv/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -1,4 +1,4 @@
+-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_tool_library")
+ 
+ go_library(
+     name = "go_default_library",
+@@ -12,6 +12,18 @@
+     ],
+ )
+ 
++go_tool_library(
++    name = "go_tool_library",
++    srcs = ["string.go"],
++    importpath = "golang.org/x/tools/go/analysis/passes/stringintconv",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//go/analysis:go_tool_library",
++        "//go/analysis/passes/inspect:go_tool_library",
++        "//go/ast/inspector:go_tool_library",
++    ],
++)
++
+ go_test(
+     name = "go_default_test",
+     srcs = ["string_test.go"],
 diff -urN c/go/analysis/passes/structtag/BUILD.bazel d/go/analysis/passes/structtag/BUILD.bazel
 --- c/go/analysis/passes/structtag/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 +++ d/go/analysis/passes/structtag/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000

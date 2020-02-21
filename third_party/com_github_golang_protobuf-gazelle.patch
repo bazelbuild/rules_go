@@ -83,7 +83,7 @@ diff -urN a/jsonpb/jsonpb_test_proto/BUILD.bazel b/jsonpb/jsonpb_test_proto/BUIL
 diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 --- a/proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,55 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -131,8 +131,10 @@ diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 +    ],
 +    embed = [":go_default_library"],
 +    deps = [
++        "//jsonpb:go_default_library",
 +        "//proto/proto3_proto:go_default_library",
 +        "//proto/test_proto:go_default_library",
++        "//protoc-gen-go/descriptor:go_default_library",
 +        "//ptypes:go_default_library",
 +        "//ptypes/any:go_default_library",
 +    ],

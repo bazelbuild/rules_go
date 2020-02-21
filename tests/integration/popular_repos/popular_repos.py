@@ -117,6 +117,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/shift:go_default_test", # Needs testdata directory
             "go/analysis/passes/sortslice:go_default_test", # Needs 'go list'
             "go/analysis/passes/stdmethods:go_default_test", # Needs testdata directory
+            "go/analysis/passes/stringintconv:go_default_test", # Needs 'go list'
             "go/analysis/passes/structtag:go_default_test", # Needs testdata directory
             "go/analysis/passes/testinggoroutine:go_default_test", # Need 'go env'
             "go/analysis/passes/tests/testdata/src/a:go_default_test", # Not a real test
@@ -160,6 +161,7 @@ POPULAR_REPOS = [
             "internal/lsp/fuzzy:go_default_test", # has additional deps
             "internal/lsp/lsprpc:go_default_test", # has additional deps
             "internal/lsp/mod:go_default_test", # has additional deps
+            "internal/lsp/regtest:go_default_test", # has additional deps
             "internal/lsp/snippet:go_default_test", # has additional deps
             "internal/lsp/source:go_default_test", # Needs testdata directory
             "internal/lsp/testdata/lsp/primarymod/analyzer:go_default_test", # not a real test
