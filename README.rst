@@ -43,6 +43,13 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2020-02-26
+  Releases
+  `v0.22.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.22.0>`_ and
+  `v0.21.4 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.4>`_ are
+  now available with support for Go 1.14. ``v0.22.0`` also updates dependencies
+  including ``com_github_golang_protobuf``, which is needed by newer versions
+  of ``com_google_cloud_go``.
 2020-02-13
   Releases
   `v0.21.3 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.3>`_ and
@@ -52,16 +59,6 @@ Announcements
   Gazelle
   `v0.20.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.20.0>`_
   is now available.
-2020-02-03
-  Releases
-  `v0.21.2 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.2>`_ and
-  `v0.20.6 <https://github.com/bazelbuild/rules_go/releases/tag/v0.20.6>`_ are
-  now available with a compatibility fix for Bazel at HEAD.
-2020-01-28
-  Releases
-  `v0.21.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.1>`_ and
-  `v0.20.5 <https://github.com/bazelbuild/rules_go/releases/tag/v0.20.5>`_ are
-  now available with support for Go 1.13.7 and 1.12.16.
 
 Contents
 --------
@@ -118,7 +115,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (v0.21.3) requires Bazel ≥ 1.2.0 to work.
+Note: The latest version of these rules (v0.22.0) requires Bazel ≥ 1.2.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -139,10 +136,10 @@ Setup
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.21.3/rules_go-v0.21.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.21.3/rules_go-v0.21.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.0/rules_go-v0.22.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.0/rules_go-v0.22.0.tar.gz",
         ],
-        sha256 = "af04c969321e8f428f63ceb73463d6ea817992698974abeff0161e069cd08bd6",
+        sha256 = "94f90feaa65c9cdc840cd21f67d967870b5943d684966a47569da8073e42063d",
     )
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -199,10 +196,10 @@ build files automatically using gazelle_.
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.21.3/rules_go-v0.21.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.21.3/rules_go-v0.21.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.0/rules_go-v0.22.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.0/rules_go-v0.22.0.tar.gz",
         ],
-        sha256 = "af04c969321e8f428f63ceb73463d6ea817992698974abeff0161e069cd08bd6",
+        sha256 = "94f90feaa65c9cdc840cd21f67d967870b5943d684966a47569da8073e42063d",
     )
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -328,10 +325,10 @@ a go.mod or Gopkg.lock file.
     http_archive(
         name = "io_bazel_rules_go",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.21.3/rules_go-v0.21.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.21.3/rules_go-v0.21.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.0/rules_go-v0.22.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.0/rules_go-v0.22.0.tar.gz",
         ],
-        sha256 = "af04c969321e8f428f63ceb73463d6ea817992698974abeff0161e069cd08bd6",
+        sha256 = "94f90feaa65c9cdc840cd21f67d967870b5943d684966a47569da8073e42063d",
     )
 
     # Load and call the dependencies
