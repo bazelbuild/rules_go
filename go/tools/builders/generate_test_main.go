@@ -135,7 +135,8 @@ func main() {
 	// TEST_SRCDIR and TEST_WORKSPACE are set by the Bazel test runner, so that makes a decent proxy.
 	testSrcdir := os.Getenv("TEST_SRCDIR")
 	testWorkspace := os.Getenv("TEST_WORKSPACE")
-	if testSrcdir != "" && testWorkspace != "" {
+	testTempDir := os.Getenv("TEST_TMPDIR")
+	if testSrcdir != "" && testWorkspace != "" && testTempDir != "" {
 		abs := filepath.Join(testSrcdir, testWorkspace, {{printf "%q" .RunDir}})
 		err := os.Chdir(abs)
 		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
@@ -146,6 +147,7 @@ func main() {
 		if err == nil {
 			os.Setenv("PWD", abs)
 		}
+		os.Setenv("TMPDIR", testTempDir)
 	}
 
 	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, examples)
