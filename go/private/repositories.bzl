@@ -170,6 +170,8 @@ def go_rules_dependencies():
         patches = [
             # gazelle args: -repo_root . -go_prefix github.com/gogo/protobuf -proto legacy
             "@io_bazel_rules_go//third_party:com_github_gogo_protobuf-gazelle.patch",
+            # additional targets may depend on generated code for well known types
+            "@io_bazel_rules_go//third_party:com_github_gogo_protobuf-extras.patch",
         ],
         patch_args = ["-p1"],
     )

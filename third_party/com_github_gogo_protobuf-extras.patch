@@ -1,0 +1,5 @@
+--- a/proto/BUILD.bazel  1969-12-31 19:00:00.000000000 -0500
++++ b/proto/BUILD.bazel  2000-01-01 00:00:00.000000000 -0000
+@@ -20,0 +20,2 @@
++        "pointer_reflect.go",
++        "pointer_reflect_gogo.go",
