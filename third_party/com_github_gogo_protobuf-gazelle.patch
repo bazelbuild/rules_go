@@ -505,7 +505,7 @@ diff -urN a/plugin/unmarshal/BUILD.bazel b/plugin/unmarshal/BUILD.bazel
 diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 --- a/proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,72 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -528,6 +528,8 @@ diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 +        "message_set.go",
 +        "pointer_unsafe.go",
 +        "pointer_unsafe_gogo.go",
++        "pointer_reflect.go",
++        "pointer_reflect_gogo.go",
 +        "properties.go",
 +        "properties_gogo.go",
 +        "skip_gogo.go",
