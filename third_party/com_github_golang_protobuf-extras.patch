@@ -263,12 +263,5 @@ diff -urN b/ptypes/wrappers/BUILD.bazel c/ptypes/wrappers/BUILD.bazel
 diff -urN b/proto/BUILD.bazel c/proto/BUILD.bazel
 --- b/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 +++ c/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -12,7 +12,8 @@
-         "extensions.go",
-         "lib.go",
-         "message_set.go",
-         "pointer_unsafe.go",
+@@ -15,0 +15,1 @@
 +        "pointer_reflect.go",
-         "properties.go",
-         "table_marshal.go",
-         "table_merge.go",
