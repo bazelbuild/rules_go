@@ -260,8 +260,15 @@ diff -urN b/ptypes/wrappers/BUILD.bazel c/ptypes/wrappers/BUILD.bazel
  go_library(
      name = "go_default_library",
      srcs = ["wrappers.pb.go"],
-diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
---- a/proto/BUILD.bazel  1969-12-31 19:00:00.000000000 -0500
-+++ b/proto/BUILD.bazel  2000-01-01 00:00:00.000000000 -0000
-@@ -15,0 +15,1 @@
+diff -urN b/proto/BUILD.bazel c/proto/BUILD.bazel
+--- b/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
++++ c/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -12,7 +12,8 @@
+         "extensions.go",
+         "lib.go",
+         "message_set.go",
+         "pointer_unsafe.go",
 +        "pointer_reflect.go",
+         "properties.go",
+         "table_marshal.go",
+         "table_merge.go",
