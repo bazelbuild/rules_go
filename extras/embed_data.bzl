@@ -66,8 +66,8 @@ def _go_embed_data_impl(ctx):
         args.add("-multi")
     args.add_all(srcs)
 
-    library = go.new_library(go, srcs = srcs)
-    source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+    library = go.new_library(go, srcs = [out])
+    source = go.library_to_source(go, {}, library, ctx.coverage_instrumented())
 
     ctx.actions.run(
         outputs = [out],

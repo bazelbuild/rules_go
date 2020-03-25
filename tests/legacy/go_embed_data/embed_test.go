@@ -30,6 +30,12 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestCgo(t *testing.T) {
+	if len(cgo) == 0 {
+		t.Fatalf("cgo is empty")
+	}
+}
+
 func TestEmpty(t *testing.T) {
 	if len(empty) != 0 {
 		t.Fatalf("empty is not empty")

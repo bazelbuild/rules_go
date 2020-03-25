@@ -9,13 +9,14 @@ go_test(
         "//:AUTHORS",
         "@com_google_protobuf//:LICENSE",
     ],
-    deps = ["//go/tools/bazel:go_default_library"],
     embed = [":go_default_library"],
+    deps = ["//go/tools/bazel:go_default_library"],
 )
 
 go_library(
     name = "go_default_library",
     srcs = [
+        ":cgo",
         ":empty",
         ":ext",
         ":flat",
@@ -25,6 +26,13 @@ go_library(
         ":unpack",
     ],
     importpath = "github.com/bazelbuild/rules_go/tests/go_embed_data",
+)
+
+go_embed_data(
+    name = "cgo",
+    srcs = ["error.c"],
+    package = "go_embed_data",
+    var = "cgo",
 )
 
 go_embed_data(
