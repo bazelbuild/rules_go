@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl", "lines_sorted_test")
 load("@io_bazel_rules_go//go/private:rules/nogo.bzl", "nogo")
+load("@io_bazel_rules_go//go:def.bzl", "TOOLS_NOGO")
 load("@io_bazel_rules_go//go/private:rules/info.bzl", "go_info")
 load("@io_bazel_rules_go//go/private:context.bzl", "cgo_context_data", "go_context_data")
 load("@io_bazel_rules_go//go/private:rules/stdlib.bzl", "stdlib")
@@ -24,43 +25,7 @@ nogo(
 nogo(
     name = "tools_nogo",
     visibility = ["//visibility:public"],
-    deps = [
-        "@org_golang_x_tools//go/analysis/passes/asmdecl:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/assign:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/atomic:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/atomicalign:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/bools:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/buildssa:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/buildtag:go_tool_library",
-        # TODO(#2396): pass raw cgo sources to cgocall and re-enable.
-        # "@org_golang_x_tools//go/analysis/passes/cgocall:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/composite:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/copylock:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/ctrlflow:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/deepequalerrors:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/errorsas:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/findcall:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/httpresponse:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/inspect:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/loopclosure:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/lostcancel:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/nilfunc:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/nilness:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/pkgfact:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/shadow:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/shift:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/sortslice:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/stdmethods:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/stringintconv:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/structtag:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/testinggoroutine:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/tests:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/unmarshal:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/unreachable:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/unsafeptr:go_tool_library",
-        "@org_golang_x_tools//go/analysis/passes/unusedresult:go_tool_library",
-    ],
+    deps = TOOLS_NOGO,
 )
 
 # go_context_data collects build options and is depended on by all Go targets.

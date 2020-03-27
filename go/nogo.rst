@@ -74,7 +74,7 @@ Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
     go_rules_dependencies()
-    go_register_toolchains(nogo="@//:my_nogo") # my_nogo is in the top-level BUILD file of this workspace
+    go_register_toolchains(nogo = "@//:my_nogo") # my_nogo is in the top-level BUILD file of this workspace
 
 **NOTE**: You must include ``"@//"`` prefix when referring to targets in the local
 workspace.
@@ -85,6 +85,38 @@ compiler when building any Go target (e.g. `go_library`_) within your workspace,
 even if the target is imported from an external repository. However, ``nogo``
 will not run when targets from the current repository are imported into other
 workspaces and built there.
+
+To run all the ``golang.org/x/tools`` analyzers, use ``@io_bazel_rules_go//:tools_nogo``.
+
+.. code:: bzl
+
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+    go_rules_dependencies()
+    go_register_toolchains(nogo = "@io_bazel_rules_go//:tools_nogo")
+
+To run the analyzers from ``tools_nogo`` together with your own analyzers, use
+the ``TOOLS_NOGO`` list of dependencies.
+
+.. code:: bzl
+
+    load("@io_bazel_rules_go//go:def.bzl", "nogo", "TOOLS_NOGO")
+
+    nogo(
+        name = "my_nogo",
+        deps = TOOLS_NOGO + [
+            # analyzer from the local repository
+            ":importunsafe",
+        ],
+        visibility = ["//visibility:public"], # must have public visibility
+    )
+
+    go_tool_library(
+        name = "importunsafe",
+        srcs = ["importunsafe.go"],
+        importpath = "importunsafe",
+        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+        visibility = ["//visibility:public"],
+    )
 
 Writing and registering analyzers
 ---------------------------------

@@ -75,6 +75,48 @@ load(
     _nogo = "nogo_wrapper",
 )
 
+# TOOLS_NOGO is a list of all analysis passes in
+# golang.org/x/tools/go/analysis/passes.
+# This is not backward compatible, so use caution when depending on this --
+# new analyses may discover issues in existing builds.
+TOOLS_NOGO = [
+    "@org_golang_x_tools//go/analysis/passes/asmdecl:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/assign:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/atomic:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/atomicalign:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/bools:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/buildssa:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/buildtag:go_tool_library",
+    # TODO(#2396): pass raw cgo sources to cgocall and re-enable.
+    # "@org_golang_x_tools//go/analysis/passes/cgocall:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/composite:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/copylock:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/ctrlflow:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/deepequalerrors:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/errorsas:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/findcall:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/httpresponse:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/inspect:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/loopclosure:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/lostcancel:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/nilfunc:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/nilness:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/pkgfact:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/shadow:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/shift:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/sortslice:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/stdmethods:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/stringintconv:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/structtag:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/testinggoroutine:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/tests:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/unmarshal:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/unreachable:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/unsafeptr:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/unusedresult:go_tool_library",
+]
+
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
 RULES_GO_VERSION = "0.22.0"
