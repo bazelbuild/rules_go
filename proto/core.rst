@@ -190,7 +190,7 @@ Attributes
 | :param:`protos`     | :type:`label`        | |mandatory|                                     |
 +---------------------+----------------------+-------------------------------------------------+
 | List of ``proto_library`` targets containing the .proto sources this rule should generate    |
-| code from. This argument should be used instead of ``proto`` argument.                  |
+| code from. This argument should be used instead of ``proto`` argument.                       |
 +---------------------+----------------------+-------------------------------------------------+
 | :param:`deps`       | :type:`label_list`   | :value:`[]`                                     |
 +---------------------+----------------------+-------------------------------------------------+
