@@ -68,6 +68,10 @@ def _build_stdlib(go):
     args.add_all(link_mode_args(go.mode))
     go.actions.write(root_file, "")
     env = go.env
+    inputs = (go.sdk.srcs +
+              go.sdk.headers +
+              go.sdk.tools +
+              [go.sdk.go, go.sdk.package_list, go.sdk.root_file])
     if go.mode.pure:
         env.update({"CGO_ENABLED": "0"})
     else:
@@ -77,11 +81,7 @@ def _build_stdlib(go):
             "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
             "CGO_LDFLAGS": " ".join(extldflags_from_cc_toolchain(go)),
         })
-    inputs = (go.sdk.srcs +
-              go.sdk.headers +
-              go.sdk.tools +
-              [go.sdk.go, go.sdk.package_list, go.sdk.root_file] +
-              go.crosstool)
+        inputs.extend(go.crosstool)
     outputs = [pkg, src]
     go.actions.run(
         inputs = inputs,
