@@ -43,6 +43,11 @@ Mailing list: `bazel-go-discuss`_
 Announcements
 -------------
 
+2020-04-14
+  Releases
+  `v0.22.4 <https://github.com/bazelbuild/rules_go/releases/tag/v0.22.4>`_ and
+  `v0.21.7 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.7>`_ are
+  now available with a few bug fixes.
 2020-04-09
   Releases
   `v0.22.3 <https://github.com/bazelbuild/rules_go/releases/tag/v0.22.3>`_ and
@@ -53,11 +58,6 @@ Announcements
   `v0.22.2 <https://github.com/bazelbuild/rules_go/releases/tag/v0.22.2>`_ and
   `v0.21.5 <https://github.com/bazelbuild/rules_go/releases/tag/v0.21.5>`_ are
   now available with support for Go 1.14.1 and 1.13.9.
-2020-02-26
-  Release
-  `v0.22.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.22.1>`_ is
-  now available with a fix for an issue with generated rules in
-  ``@go_googleapis``.
 
 Contents
 --------
@@ -114,7 +114,7 @@ They currently do not support (in order of importance):
 * C/C++ interoperation except cgo (swig etc.)
 * coverage
 
-Note: The latest version of these rules (v0.22.3) requires Bazel ≥ 1.2.0 to work.
+Note: The latest version of these rules (v0.22.4) requires Bazel ≥ 1.2.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -134,10 +134,10 @@ Setup
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "db2b2d35293f405430f553bc7a865a8749a8ef60c30287e90d2b278c32771afe",
+        sha256 = "7b9bbe3ea1fccb46dcfa6c3f3e29ba7ec740d8733370e21cdc8937467b4a4349",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.3/rules_go-v0.22.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.3/rules_go-v0.22.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
         ],
     )
 
@@ -194,10 +194,10 @@ build files automatically using gazelle_.
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "db2b2d35293f405430f553bc7a865a8749a8ef60c30287e90d2b278c32771afe",
+        sha256 = "7b9bbe3ea1fccb46dcfa6c3f3e29ba7ec740d8733370e21cdc8937467b4a4349",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.3/rules_go-v0.22.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.3/rules_go-v0.22.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
         ],
     )
 
@@ -323,10 +323,10 @@ a go.mod or Gopkg.lock file.
     # Download the Go rules
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "db2b2d35293f405430f553bc7a865a8749a8ef60c30287e90d2b278c32771afe",
+        sha256 = "7b9bbe3ea1fccb46dcfa6c3f3e29ba7ec740d8733370e21cdc8937467b4a4349",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.3/rules_go-v0.22.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.3/rules_go-v0.22.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
         ],
     )
 
