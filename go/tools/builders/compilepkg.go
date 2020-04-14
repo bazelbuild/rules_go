@@ -40,6 +40,7 @@ func compilePkg(args []string) error {
 
 	fs := flag.NewFlagSet("GoCompilePkg", flag.ExitOnError)
 	goenv := envFlags(fs)
+	goenv.verbose = true
 	var unfilteredSrcs, coverSrcs multiFlag
 	var deps compileArchiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
