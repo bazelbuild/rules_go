@@ -1,7 +1,7 @@
 package cgo_pure
 
 /*
-const int value;
+extern const int value;
 */
 import "C"
 
