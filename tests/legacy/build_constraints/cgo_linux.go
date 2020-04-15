@@ -2,8 +2,8 @@ package build_constraints
 
 /*
 const char* cgoGo = "linux";
-const char* cgoC;
-const char* cgoCGroup;
+extern const char* cgoC;
+extern const char* cgoCGroup;
 */
 import "C"
 

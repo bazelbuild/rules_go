@@ -4,8 +4,8 @@ package build_constraints
 
 /*
 const char* cgoGo = "unknown";
-const char* cgoC;
-const char* cgoCGroup;
+const const char* cgoC;
+const const char* cgoCGroup;
 */
 import "C"
 

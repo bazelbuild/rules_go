@@ -1,7 +1,7 @@
 package cgo
 
 /*
-const int value;
+extern const int value;
 */
 import "C"
 
