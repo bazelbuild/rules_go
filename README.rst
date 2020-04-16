@@ -26,7 +26,7 @@ Go rules for Bazel_
 .. _//tests/core/cross: https://github.com/bazelbuild/rules_go/blob/master/tests/core/cross/BUILD.bazel
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
-.. _rules_go and Gazelle roadmap: roadmap.rst
+.. _rules_go and Gazelle roadmap: https://github.com/bazelbuild/rules_go/wiki/Roadmap
 .. _Deprecation schedule: deprecation.rst
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Proto dependencies: go/workspace.rst#proto-dependencies
