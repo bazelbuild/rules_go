@@ -26,7 +26,7 @@ Go rules for Bazel_
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _rules_go and Gazelle roadmap: https://github.com/bazelbuild/rules_go/wiki/Roadmap
-.. _Deprecation schedule: deprecation.rst
+.. _Deprecation schedule: https://github.com/bazelbuild/rules_go/wiki/Deprecation-schedule
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Proto dependencies: go/workspace.rst#proto-dependencies
 .. _gRPC dependencies: go/workspace.rst#grpc-dependencies
