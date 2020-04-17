@@ -1,29 +1,29 @@
-Core go rules
+Core Go rules
 =============
 
-.. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
-.. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
-.. _Gazelle: https://github.com/bazelbuild/bazel-gazelle
-.. _GoLibrary: providers.rst#GoLibrary
-.. _GoSource: providers.rst#GoSource
-.. _GoArchive: providers.rst#GoArchive
-.. _GoPath: providers.rst#GoPath
-.. _cgo: http://golang.org/cmd/cgo/
 .. _"Make variable": https://docs.bazel.build/versions/master/be/make-variables.html
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
-.. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
-.. _cc library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
-.. _shard_count: https://docs.bazel.build/versions/master/be/common-definitions.html#test.shard_count
-.. _pure: modes.rst#pure
-.. _static: modes.rst#static
-.. _goos: modes.rst#goos
-.. _goarch: modes.rst#goarch
-.. _mode attributes: modes.rst#mode-attributes
-.. _write a CROSSTOOL file: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
+.. _Gazelle: https://github.com/bazelbuild/bazel-gazelle
+.. _GoArchive: providers.rst#GoArchive
+.. _GoLibrary: providers.rst#GoLibrary
+.. _GoPath: providers.rst#GoPath
+.. _GoSource: providers.rst#GoSource
 .. _build constraints: https://golang.org/pkg/go/build/#hdr-Build_Constraints
-.. _select: https://docs.bazel.build/versions/master/be/functions.html#select
+.. _cc library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
+.. _cgo: http://golang.org/cmd/cgo/
 .. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
+.. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
+.. _goarch: modes.rst#goarch
+.. _goos: modes.rst#goos
+.. _mode attributes: modes.rst#mode-attributes
 .. _nogo: nogo.rst#nogo
+.. _pure: modes.rst#pure
+.. _select: https://docs.bazel.build/versions/master/be/functions.html#select
+.. _shard_count: https://docs.bazel.build/versions/master/be/common-definitions.html#test.shard_count
+.. _static: modes.rst#static
+.. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
+.. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
+.. _write a CROSSTOOL file: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -37,8 +37,27 @@ The intent is that theses rules are sufficient to match the capabilities of the 
 
 -----
 
-Design
-------
+Introduction
+------------
+
+Three core rules may be used to build most projects: `go_library`_, `go_binary`_,
+and `go_test`_.
+
+`go_library`_ builds a single package. It has a list of source files
+(specified with ``srcs``) and may depend on other packages (with ``deps``).
+Each `go_library`_ has an ``importpath``, which is the name used to import it
+in Go source files.
+
+`go_binary`_ also builds a single ``main`` package and links it into an
+executable. It may embed the content of a `go_library`_ using the ``embed``
+attribute. Embedded sources are compiled together in the same package.
+Binaries can be built for alternative platforms and configurations by setting
+``goos``, ``goarch``, and other attributes.
+
+`go_test`_ builds a test executable. Like tests produced by ``go test``, this
+consists of three packages: an internal test package compiled together with
+the library being tested (specified with ``embed``), an external test package
+compiled separately, and a generated test main package.
 
 Defines and stamping
 ~~~~~~~~~~~~~~~~~~~~
@@ -218,8 +237,8 @@ Embedding may also be used to add extra sources sources to a
         importpath = "example.com/foo",
     )
 
-API
----
+Rules
+-----
 
 go_library
 ~~~~~~~~~~
@@ -1000,13 +1019,6 @@ Attributes
 | included in the output directory. Files listed in the :param:`data` attribute                    |
 | for this rule will be included regardless of this attribute.                                     |
 +----------------------------+-----------------------------+---------------------------------------+
-
-go_rule
-~~~~~~~
-
-This is a wrapper around the normal rule function.
-It modifies the attrs and toolchains attributes to make sure everything needed to build a go_context
-is present.
 
 Cross compilation
 -----------------
