@@ -157,3 +157,12 @@ go_test(
     ],
     importpath = "example.com/imports/test_main",
 )
+
+go_test(
+    name = "tags_test",
+    srcs = [
+        "tags_bad_test.go",
+        "tags_good_test.go",
+    ],
+    gotags = ["good"],
+)

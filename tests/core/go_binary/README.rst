@@ -51,3 +51,8 @@ produce static binaries. Verifies `#2168`_.
 
 This test only runs on Linux. The darwin external linker cannot produce
 static binaries since there is no static version of C runtime libraries.
+
+tags_bin
+--------
+Checks that setting ``gotags`` affects source filtering. This binary won't build
+without a specific tag being set.

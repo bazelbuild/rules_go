@@ -522,14 +522,19 @@ Attributes
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
 | code for data race detection. It may be :value:`on`, :value:`off`, or                            |
 | :value:`auto`. In most cases, it's better to enable race detection globally                      |
-| with ``--features=race`` on the command line.                                                    |
+| with ``--@io_bazel_rules_go//go/config:race`` on the command line.                               |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`msan`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
 | code for memory santization. It may be :value:`on`, :value:`off`, or                             |
 | :value:`auto`. In most cases, it's better to enable memory sanitization                          |
-| globally with ``--features=msan`` on the command line.                                           |
+| globally with ``--@io_bazel_rules_go//go/config:msan`` on the command line.                      |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`gotags`            | :type:`string_list`         : :value:`[]`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls which build tags are                         |
+| enabled when evaluating build constraints. Useful for conditional compilation.                   |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`goos`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -733,14 +738,19 @@ Attributes
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
 | code for data race detection. It may be :value:`on`, :value:`off`, or                            |
 | :value:`auto`. In most cases, it's better to enable race detection globally                      |
-| with ``--features=race`` on the command line.                                                    |
+| with ``--@io_bazel_rules_go//go/config:race`` on the command line.                               |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`msan`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
 | code for memory santization. It may be :value:`on`, :value:`off`, or                             |
 | :value:`auto`. In most cases, it's better to enable memory sanitization                          |
-| globally with ``--features=msan`` on the command line.                                           |
+| globally with ``--@io_bazel_rules_go//go/config:msan`` on the command line.                      |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`gotags`            | :type:`string_list`         : :value:`[]`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| This is one of the `mode attributes`_ that controls which build tags are                         |
+| enabled when evaluating build constraints. Useful for conditional compilation.                   |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`goos`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+

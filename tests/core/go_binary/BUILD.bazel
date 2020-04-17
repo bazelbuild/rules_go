@@ -144,3 +144,22 @@ go_binary(
     static = "on",
     tags = ["manual"],
 )
+
+go_binary(
+    name = "tags_bin",
+    srcs = [
+        "tags_main_bad.go",
+        "tags_main_good.go",
+    ],
+    gotags = ["good"],
+    deps = [":tags_lib"],
+)
+
+go_library(
+    name = "tags_lib",
+    srcs = [
+        "tags_lib_bad.go",
+        "tags_lib_good.go",
+    ],
+    importpath = "tags_lib",
+)

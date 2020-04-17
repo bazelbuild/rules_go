@@ -54,7 +54,7 @@ def go_transition_wrapper(kind, transition_kind, name, **kwargs):
     regular rule. This prevents targets from being rebuilt for an alternative
     configuration identical to the default configuration.
     """
-    transition_keys = ("goos", "goarch", "pure", "static", "msan", "race", "linkmode")
+    transition_keys = ("goos", "goarch", "pure", "static", "msan", "race", "gotags", "linkmode")
     need_transition = any([key in kwargs for key in transition_keys])
     if need_transition:
         transition_kind(name = name, **kwargs)
@@ -89,6 +89,7 @@ def go_transition_rule(**kwargs):
             default = "auto",
             values = ["auto", "on", "off"],
         ),
+        "gotags": attr.string_list(default = []),
         "linkmode": attr.string(
             default = "auto",
             values = ["auto"] + LINKMODES,
@@ -126,6 +127,11 @@ def _go_transition_impl(settings, attr):
     _set_ternary(settings, attr, "race")
     _set_ternary(settings, attr, "msan")
 
+    tags = getattr(attr, "gotags", [])
+    if tags:
+        tags_label = _filter_transition_label("@io_bazel_rules_go//go/config:tags")
+        settings[tags_label] = tags
+
     linkmode = getattr(attr, "linkmode", "auto")
     if linkmode != "auto":
         if linkmode not in LINKMODES:
@@ -143,6 +149,7 @@ go_transition = transition(
         "@io_bazel_rules_go//go/config:msan",
         "@io_bazel_rules_go//go/config:race",
         "@io_bazel_rules_go//go/config:pure",
+        "@io_bazel_rules_go//go/config:tags",
         "@io_bazel_rules_go//go/config:linkmode",
     ]],
     outputs = [_filter_transition_label(label) for label in [
@@ -151,6 +158,7 @@ go_transition = transition(
         "@io_bazel_rules_go//go/config:msan",
         "@io_bazel_rules_go//go/config:race",
         "@io_bazel_rules_go//go/config:pure",
+        "@io_bazel_rules_go//go/config:tags",
         "@io_bazel_rules_go//go/config:linkmode",
     ]],
 )
