@@ -6,7 +6,6 @@ Go rules for Bazel_
 .. _gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _gazelle update-repos: https://github.com/bazelbuild/bazel-gazelle#update-repos
 .. _github.com/bazelbuild/bazel-gazelle: https://github.com/bazelbuild/bazel-gazelle
-.. _vendoring: Vendoring.md
 .. _protocol buffers: proto/core.rst
 .. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
 .. _go_library: go/core.rst#go_library
@@ -100,7 +99,7 @@ The rules are in the beta stage of development. They support:
 * `libraries <go_library_>`_
 * `binaries <go_binary_>`_
 * `tests <go_test_>`_
-* vendoring_
+* vendoring
 * cgo
 * cross compilation
 * auto generating BUILD files via gazelle_
