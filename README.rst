@@ -317,7 +317,7 @@ are listed in the ``deps`` attribute using `Bazel labels`_ that refer to
 corresponding `go_library`_ rules. The library's import path must be specified
 with the ``importpath`` attribute.
 
-  .. code:: bzl
+.. code:: bzl
 
     go_library(
         name = "go_default_library",
@@ -435,28 +435,12 @@ To generate code from protocol buffers, you'll need to add a dependency on
 You'll need a C/C++ toolchain registered for the execution platform (the
 platform where Bazel runs actions) to build protoc.
 
-You'll also need to add a dependency on ``rules_proto`` for the
-``proto_library`` rule.
-
-.. code:: bzl
-
-    load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
-    git_repository(
-        name = "rules_proto",
-        commit = "8b81c3ccfdd0e915e46ffa888d3cdb6116db6fa5",
-        remote = "https://github.com/bazelbuild/rules_proto",
-    )
-
-    load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
-
-    rules_proto_dependencies()
-
-protoc-gen-go, the Go proto compiler plugin, is provided by the repository
-``com_github_golang_protobuf``. This is registered by `go_rules_dependencies`_
-and used by default. You won't need to declare an explicit dependency unless you
-specifically want to use a different version. See `Overriding dependencies`_ for
-instructions on using a different version.
+The `proto_library`_ rule is provided by the ``rules_proto`` repository.
+``protoc-gen-go``, the Go proto compiler plugin, is provided by the
+``com_github_golang_protobuf`` repository. Both are declared by
+`go_rules_dependencies`_. You won't need to declare an explicit dependency
+unless you specifically want to use a different version. See `Overriding
+dependencies`_ for instructions on using a different version.
 
 gRPC dependencies are not declared by default (there are too many). You can
 declare them in WORKSPACE using `go_repository`_. You may want to use

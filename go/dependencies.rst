@@ -20,17 +20,20 @@ Go workspace rules
 .. _nogo: nogo.rst#nogo
 .. _normal go logic: https://golang.org/cmd/go/#hdr-Remote_import_paths
 .. _repositories.bzl: https://github.com/bazelbuild/rules_go/blob/master/go/private/repositories.bzl
+.. _rules_proto: https://github.com/bazelbuild/rules_proto
 .. _third_party: https://github.com/bazelbuild/rules_go/tree/master/third_party
 .. _toolchains: toolchains.rst
 
 .. Go rules
 .. _go_library: core.rst#go_library
+.. _go_proto_library: https://github.com/bazelbuild/rules_go/blob/master/proto/core.rst#go-proto-library
 .. _go_register_toolchains: toolchains.rst#go_register_toolchains
 .. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
 .. _go_toolchain: toolchains.rst#go_toolchain
 
 .. Other rules
 .. _git_repository: https://github.com/bazelbuild/bazel/blob/master/tools/build_defs/repo/git.bzl
+.. _proto_library: https://github.com/bazelbuild/rules_proto
 
 .. Issues
 .. _#1986: https://github.com/bazelbuild/rules_go/issues/1986
@@ -115,7 +118,7 @@ It also declares some internal repositories not described here.
 Proto dependencies
 ------------------
 
-In order to build ``proto_library`` and ``go_proto_library`` rules, you must
+In order to build `proto_library`_ and `go_proto_library`_ rules, you must
 add a dependency on ``com_google_protobuf`` (perhaps on a newer version)
 in order to build the ``protoc`` compiler. You'll need a C/C++ toolchain for
 the execution platform, too.
@@ -134,27 +137,12 @@ the execution platform, too.
 
     protobuf_deps()
 
-You'll also need ``rules_proto`` for the ``proto_library`` rule.
-
-.. code:: bzl
-
-    load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
-    git_repository(
-        name = "rules_proto",
-        commit = "8b81c3ccfdd0e915e46ffa888d3cdb6116db6fa5",
-        remote = "https://github.com/bazelbuild/rules_proto",
-    )
-
-    load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
-
-    rules_proto_dependencies()
-
-protoc-gen-go, the Go proto compiler plugin, is provided by the repository
-``com_github_golang_protobuf``. This is registered by `go_rules_dependencies`_
-and used by default. You won't need to declare an explicit dependency unless you
-specifically want to use a different version. See `Overriding dependencies`_ for
-instructions on using a different version.
+The `proto_library`_ rule is provided by the `rules_proto`_
+repository. ``protoc-gen-go``, the Go proto compiler plugin, is provided by the
+repository ``com_github_golang_protobuf``. Both are declared by
+`go_rules_dependencies`_  by default. You won't need to declare an
+explicit dependency unless you specifically want to use a different version. See
+`Overriding dependencies`_ for instructions on using a different version.
 
 gRPC dependencies
 -----------------
@@ -241,15 +229,8 @@ For example, this is how you would override ``com_github_golang_protobuf``:
         urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.4.zip"],
     )
 
-    git_repository(
-        name = "rules_proto",
-        commit = "8b81c3ccfdd0e915e46ffa888d3cdb6116db6fa5",
-        remote = "https://github.com/bazelbuild/rules_proto",
-    )
-
     load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
-    load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
     load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
     go_repository(
@@ -267,8 +248,6 @@ For example, this is how you would override ``com_github_golang_protobuf``:
     go_register_toolchains()
 
     gazelle_dependencies()
-
-    rules_proto_dependencies()
 
     protobuf_deps()
 

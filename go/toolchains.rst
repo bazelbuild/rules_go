@@ -99,6 +99,7 @@ against. This will download and use the latest Go SDK that was available when
 the version of rules_go you're using was released.
 
 .. code:: bzl
+
     # WORKSPACE
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -116,6 +117,7 @@ You can select the version of the Go SDK to use by specifying it when you call
 toolchain.
 
 .. code:: bzl
+
     # WORKSPACE
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -133,6 +135,7 @@ This may result in faster builds, since there's no need to download an SDK,
 but builds won't be reproducible across systems with different SDKs installed.
 
 .. code:: bzl
+
     # WORKSPACE
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -150,6 +153,7 @@ it with ``go_wrap_sdk``. It must still be named ``go_sdk``, but this is a
 temporary limitation that will be removed in the future.
 
 .. code:: bzl
+
     # WORKSPACE
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk")
