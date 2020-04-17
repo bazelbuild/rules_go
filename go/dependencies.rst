@@ -2,18 +2,20 @@ Go workspace rules
 ==================
 
 .. _#1986: https://github.com/bazelbuild/rules_go/issues/1986
-.. _gazelle: tools/gazelle/README.rst
+
 .. _git_repository: https://github.com/bazelbuild/bazel/blob/master/tools/build_defs/repo/git.bzl
+.. _go_library: core.rst#go_library
+.. _go_register_toolchains: toolchains.rst#go_register_toolchains
+.. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
+.. _go_toolchain: toolchains.rst#go_toolchain
+
+.. _gazelle: tools/gazelle/README.rst
 .. _github.com/bazelbuild/bazel-skylib: https://github.com/bazelbuild/bazel-skylib
 .. _github.com/gogo/protobuf: https://github.com/gogo/protobuf
 .. _github.com/golang/protobuf: https://github.com/golang/protobuf/
 .. _github.com/google/protobuf: https://github.com/google/protobuf/
 .. _github.com/googleapis/googleapis: https://github.com/googleapis/googleapis
 .. _github.com/mwitkow/go-proto-validators: https://github.com/mwitkow/go-proto-validators
-.. _go_library: core.rst#go_library
-.. _go_register_toolchains: toolchains.rst#go_register_toolchains
-.. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
-.. _go_toolchain: toolchains.rst#go_toolchain
 .. _golang.org/x/net: https://github.com/golang/net/
 .. _golang.org/x/sys: https://github.com/golang/sys/
 .. _golang.org/x/text: https://github.com/golang/text/
@@ -27,11 +29,6 @@ Go workspace rules
 .. _repositories.bzl: https://github.com/bazelbuild/rules_go/blob/master/go/private/repositories.bzl
 .. _third_party: https://github.com/bazelbuild/rules_go/tree/master/third_party
 .. _toolchains: toolchains.rst
-
-.. _go_prefix_faq: /README.rst#whats-up-with-the-go_default_library-name
-.. |go_prefix_faq| replace:: FAQ
-
-.. |build_file_generation| replace:: :param:`build_file_generation`
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
