@@ -1096,25 +1096,3 @@ OS-architecture pair. For a full list, run this command:
     $ bazel query 'kind(config_setting, @io_bazel_rules_go//go/platform:all)'
 
 `Gazelle`_ will generate dependencies in this format automatically.
-
-Note on goos and goarch attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-It is possible to cross-compile ``go_binary`` and ``go_test`` targets by
-setting the ``goos`` and ``goarch`` attributes to the target platform. These
-attributes were added for projects that cross-compile binaries for multiple
-platforms in the same build, then package the resulting executables.
-
-Bazel does not have a native understanding of the ``goos`` and ``goarch``
-attributes, so values do not affect `select`_ expressions. This means if you use
-these attributes with a target that has any transitive platform-specific
-dependencies, ``select`` may choose the wrong set of dependencies. Consequently,
-if you use ``goos`` or ``goarch`` attributes, you will not be able to safely
-generate build files with Gazelle or ``go_repository``.
-
-Additionally, setting ``goos`` and ``goarch`` will not automatically disable
-cgo. You should almost always set ``pure = "on"`` together with these
-attributes.
-
-Because of these limitations, it's almost always better to cross-compile by
-setting ``--platforms`` on the command line instead.

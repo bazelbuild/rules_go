@@ -15,10 +15,12 @@ Go rules for Bazel_
 .. _Overriding dependencies: go/dependencies.rst#overriding-dependencies
 .. _Proto dependencies: go/dependencies.rst#proto-dependencies
 .. _Proto rules: proto/core.rst
+.. _Protocol buffers: proto/core.rst
 .. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
 .. _Toolchains: go/toolchains.rst
 .. _Using rules_go on Windows: windows.rst
 .. _bazel-go-discuss: https://groups.google.com/forum/#!forum/bazel-go-discuss
+.. _configuration transition: https://docs.bazel.build/versions/master/skylark/lib/transition.html
 .. _gRPC dependencies: go/dependencies.rst#grpc-dependencies
 .. _gazelle update-repos: https://github.com/bazelbuild/bazel-gazelle#update-repos
 .. _gazelle: https://github.com/bazelbuild/bazel-gazelle
@@ -27,7 +29,6 @@ Go rules for Bazel_
 .. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
 .. _nogo build-time static analysis: go/nogo.rst
 .. _nogo: go/nogo.rst
-.. _Protocol buffers: proto/core.rst
 .. _rules_go and Gazelle roadmap: https://github.com/bazelbuild/rules_go/wiki/Roadmap
 
 .. Go rules
@@ -599,13 +600,12 @@ dependencies with ``select`` expressions (Gazelle does this automatically).
       }),
   )
 
-rules_go can generate pure Go binaries for any platform the Go SDK supports.
-
-In some cases, you may want to set the ``goos`` and ``goarch`` attributes of
-``go_binary``. This will cross-compile a binary for a specific platform.
-This is necessary when you need to produce multiple binaries for different
-platforms in a single build. However, note that ``select`` expressions will
-not work correctly when using these attributes.
+To build a specific `go_binary`_ or `go_test`_ target for a target platform,
+set the ``goos`` and ``goarch`` attributes on that rule. This is useful for
+producing multiple binaries for different platforms in a single build.
+You can equivalently depend on a `go_binary`_ or `go_test`_ rule through
+a Bazel `configuration transition`_ on ``//command_line_option:platforms``
+(there are problems with this approach prior to rules_go 0.23.0).
 
 How do I use different versions of dependencies?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
