@@ -14,7 +14,7 @@ go_test(
     name = "go_default_test",
     size = "small",
     srcs = ["bazel_test.go"],
-    data = ["README.md"],
+    data = ["empty.txt"],
     embed = [":go_default_library"],
 )
 
