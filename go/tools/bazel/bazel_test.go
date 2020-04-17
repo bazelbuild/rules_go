@@ -71,7 +71,7 @@ func createPaths(paths []string) error {
 }
 
 func TestRunfile(t *testing.T) {
-	file := "go/tools/bazel/README.md"
+	file := "go/tools/bazel/empty.txt"
 	runfile, err := Runfile(file)
 	if err != nil {
 		t.Errorf("When reading file %s got error %s", file, err)
