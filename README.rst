@@ -1,44 +1,68 @@
 Go rules for Bazel_
 =====================
 
-.. All external links are here
-.. _Bazel: https://bazel.build/
-.. _gazelle: https://github.com/bazelbuild/bazel-gazelle
-.. _gazelle update-repos: https://github.com/bazelbuild/bazel-gazelle#update-repos
-.. _github.com/bazelbuild/bazel-gazelle: https://github.com/bazelbuild/bazel-gazelle
-.. _vendoring: Vendoring.md
-.. _protocol buffers: proto/core.rst
-.. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
-.. _go_library: go/core.rst#go_library
-.. _go_binary: go/core.rst#go_binary
-.. _go_test: go/core.rst#go_test
-.. _go_download_sdk: go/toolchains.rst#go_download_sdk
-.. _go_rules_dependencies: go/workspace.rst#go_rules_dependencies
-.. _go_register_toolchains: go/toolchains.rst#go_register_toolchains
-.. _go_proto_library: proto/core.rst#go_proto_library
-.. _go_proto_compiler: proto/core.rst#go_proto_compiler
-.. _bazel-go-discuss: https://groups.google.com/forum/#!forum/bazel-go-discuss
+.. Links to external sites and pages
+.. _//tests/core/cross: https://github.com/bazelbuild/rules_go/blob/master/tests/core/cross/BUILD.bazel
+.. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
+.. _Bazel: https://bazel.build/
+.. _Build modes: go/modes.rst
+.. _Core rules: go/core.rst
+.. _Dependencies: go/dependencies.rst
+.. _Deprecation schedule: https://github.com/bazelbuild/rules_go/wiki/Deprecation-schedule
+.. _Editor and tool integration: https://github.com/bazelbuild/rules_go/wiki/Editor-and-tool-integration
+.. _Gopher Slack: https://invite.slack.golangbridge.org/
+.. _Overriding dependencies: go/dependencies.rst#overriding-dependencies
+.. _Proto dependencies: go/dependencies.rst#proto-dependencies
+.. _Proto rules: proto/core.rst
+.. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
+.. _Toolchains: go/toolchains.rst
+.. _Using rules_go on Windows: windows.rst
+.. _bazel-go-discuss: https://groups.google.com/forum/#!forum/bazel-go-discuss
+.. _gRPC dependencies: go/dependencies.rst#grpc-dependencies
+.. _gazelle update-repos: https://github.com/bazelbuild/bazel-gazelle#update-repos
+.. _gazelle: https://github.com/bazelbuild/bazel-gazelle
+.. _github.com/bazelbuild/bazel-gazelle: https://github.com/bazelbuild/bazel-gazelle
+.. _github.com/bazelbuild/rules_go/go/tools/bazel: https://pkg.go.dev/github.com/bazelbuild/rules_go/go/tools/bazel?tab=doc
+.. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
+.. _nogo build-time static analysis: go/nogo.rst
+.. _nogo: go/nogo.rst
+.. _Protocol buffers: proto/core.rst
+.. _rules_go and Gazelle roadmap: https://github.com/bazelbuild/rules_go/wiki/Roadmap
+
+.. Go rules
+.. _go_binary: go/core.rst#go_binary
+.. _go_context: go/toolchains.rst#go_context
+.. _go_download_sdk: go/toolchains.rst#go_download_sdk
+.. _go_embed_data: go/extras.rst#go_embed_data
+.. _go_host_sdk: go/toolchains.rst#go_host_sdk
+.. _go_library: go/core.rst#go_library
+.. _go_local_sdk: go/toolchains.rst#go_local_sdk
+.. _go_path: go/core.rst#go_path
+.. _go_proto_compiler: proto/core.rst#go_proto_compiler
+.. _go_proto_library: proto/core.rst#go_proto_library
+.. _go_register_toolchains: go/toolchains.rst#go_register_toolchains
+.. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
+.. _go_rules_dependencies: go/dependencies.rst#go_rules_dependencies
+.. _go_source: go/core.rst#go_source
+.. _go_test: go/core.rst#go_test
+.. _go_toolchain: go/toolchains.rst#go_toolchain
+.. _go_wrap_sdk: go/toolchains.rst#go_wrap_sdk
+
+.. External rules
+.. _git_repository: https://docs.bazel.build/versions/master/repo/git.html
+.. _http_archive: https://docs.bazel.build/versions/master/repo/http.html#http_archive
+.. _proto_library: https://github.com/bazelbuild/rules_proto
+
+.. Issues
 .. _#265: https://github.com/bazelbuild/rules_go/issues/265
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
 .. _#1199: https://github.com/bazelbuild/rules_go/issues/1199
-.. _//tests/core/cross: https://github.com/bazelbuild/rules_go/blob/master/tests/core/cross/BUILD.bazel
-.. _Running Bazel Tests on Travis CI: https://kev.inburke.com/kevin/bazel-tests-on-travis-ci/
-.. _korfuri/bazel-travis Use Bazel with Travis CI: https://github.com/korfuri/bazel-travis
-.. _rules_go and Gazelle roadmap: roadmap.rst
-.. _Deprecation schedule: deprecation.rst
-.. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
-.. _Proto dependencies: go/workspace.rst#proto-dependencies
-.. _gRPC dependencies: go/workspace.rst#grpc-dependencies
-.. _Overriding dependencies: go/workspace.rst#overriding-dependencies
-.. _nogo: go/nogo.rst
-.. _Using rules_go on Windows: windows.rst
-
-.. ;; And now we continue with the actual content
 
 
 Mailing list: `bazel-go-discuss`_
+Slack: #bazel on `Gopher Slack`_
 
 Announcements
 -------------
@@ -62,27 +86,46 @@ Announcements
 Contents
 --------
 
-.. contents:: .
-  :depth: 2
+* `Overview`_
+* `Setup`_
+* `FAQ`_
 
 Documentation
 ~~~~~~~~~~~~~
 
-* `Core API <go/core.rst>`_
+* `Core rules`_
 
   * `go_binary`_
   * `go_library`_
   * `go_test`_
+  * `go_source`_
+  * `go_path`_
 
-* `Workspace rules <go/workspace.rst>`_
-* `Protobuf rules <proto/core.rst>`_
+* `Proto rules`_
 
   * `go_proto_library`_
   * `go_proto_compiler`_
 
-* `Toolchains <go/toolchains.rst>`_
+* `Dependencies`_
+
+  * `go_rules_dependencies`_
+  * `go_repository`_ (Gazelle)
+
+* `Toolchains`_
+
+  * `go_register_toolchains`_
+  * `go_download_sdk`_
+  * `go_host_sdk`_
+  * `go_local_sdk`_
+  * `go_wrap_sdk`_
+  * `go_toolchain`_
+  * `go_context`_
+
 * `Extra rules <go/extras.rst>`_
-* `nogo build-time code analysis <go/nogo.rst>`_
+
+  * `go_embed_data`_
+
+* `nogo build-time static analysis`_
 * `Build modes <go/modes.rst>`_
 
 Quick links
@@ -97,22 +140,30 @@ Overview
 
 The rules are in the beta stage of development. They support:
 
-* `libraries <go_library_>`_
-* `binaries <go_binary_>`_
-* `tests <go_test_>`_
-* vendoring_
+* Building libraries, binaries, and tests (`go_library`_, `go_binary`_,
+  `go_test`_)
+* Vendoring
 * cgo
-* cross compilation
-* auto generating BUILD files via gazelle_
-* build-time code analysis via nogo_
-* `protocol buffers`_
+* Cross-compilation
+* Generating BUILD files via gazelle_
+* Build-time code analysis via nogo_
+* `Protocol buffers`_
+* Remote execution
 
-They currently do not support (in order of importance):
+They currently do not support or have limited support for:
 
-* bazel-style auto generating BUILD (where the library name is other than
-  go_default_library)
-* C/C++ interoperation except cgo (swig etc.)
-* coverage
+* `Editor and tool integration`_
+* Coverage
+* Debugging
+* C/C++ integration other than cgo (SWIG)
+
+The Go rules are tested and supported on the following host platforms:
+
+* Linux, macOS, Windows
+* amd64
+
+Users have reported success on several other platforms, but the rules are
+only tested on those listed above.
 
 Note: The latest version of these rules (v0.22.4) requires Bazel ≥ 1.2.0 to work.
 
@@ -122,13 +173,30 @@ The ``master`` branch is only guaranteed to work with the latest version of Baze
 Setup
 -----
 
-* Create a file at the top of your repository named WORKSPACE and add one
-  of the snippets below, verbatim. This will let Bazel fetch necessary
-  dependencies from this repository and a few others.
+System setup
+~~~~~~~~~~~~
 
-  If you want to use the latest stable release, add the following:
+To build Go code with Bazel, you will need:
 
-  .. code:: bzl
+* A recent version of Bazel.
+* A C/C++ toolchain (if using cgo). Bazel will attempt to configure the
+  toolchain automatically.
+* Bash, ``patch``, ``cat``, and a handful of other Unix tools in ``PATH``.
+
+You normally won't need a Go toolchain installed. Bazel will download one.
+
+See `Using rules_go on Windows`_ for Windows-specific setup instructions.
+Several additional tools need to be installed and configured.
+
+Initial project setup
+~~~~~~~~~~~~~~~~~~~~~
+
+Create a file at the top of your repository named ``WORKSPACE``, and add the
+snippet below (or add to your existing ``WORKSPACE``). This tells Bazel to
+fetch rules_go and its dependencies. Bazel will download a recent supported
+Go toolchain and register it for use.
+
+.. code:: bzl
 
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -147,37 +215,24 @@ Setup
 
     go_register_toolchains()
 
-  If you want to use a specific commit (for example, something close to
-  ``master``), add the following instead:
+You can use rules_go at ``master`` by using `git_repository`_ instead of
+`http_archive`_ and pointing to a recent commit.
 
-  .. code:: bzl
+Add a file named ``BUILD.bazel`` in the root directory of your project.
+You'll need a build file in each directory with Go code, but you'll also need
+one in the root directory, even if your project doesn't have Go code there.
+For a "Hello, world" binary, the file should look like this:
 
-    load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+.. code:: bzl
 
-    git_repository(
-        name = "io_bazel_rules_go",
-        remote = "https://github.com/bazelbuild/rules_go.git",
-        commit = "f5cfc31d4e8de28bf19d0fb1da2ab8f4be0d2cde",
+    load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+
+    go_binary(
+        name = "hello",
+        srcs = ["hello.go"],
     )
 
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-
-    go_rules_dependencies()
-
-    go_register_toolchains()
-
-  You can add more external dependencies to this file later (see
-  `go_repository`_).
-
-* Add a file named ``BUILD.bazel`` in the root directory of your
-  project. In general, you need one of these files in every directory
-  with Go code, but you need one in the root directory even if your project
-  doesn't have any Go code there.
-
-* If your project can be built with ``go build``, you can
-  `generate your build files <Generating build files_>`_ using Gazelle. If your
-  project isn't compatible with `go build` or if you prefer not to use Gazelle,
-  you can `write build files by hand <Writing build files by hand_>`_.
+You can build this target with ``bazel build //:hello``.
 
 Generating build files
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -185,8 +240,8 @@ Generating build files
 If your project can be built with ``go build``, you can generate and update your
 build files automatically using gazelle_.
 
-* Add the ``bazel_gazelle`` repository and its dependencies to your WORKSPACE
-  file before ``go_rules_dependencies`` is called. It should look like this:
+Add the ``bazel_gazelle`` repository and its dependencies to your
+``WORKSPACE``. It should look like this:
 
   .. code:: bzl
 
@@ -220,27 +275,28 @@ build files automatically using gazelle_.
 
     gazelle_dependencies()
 
-* Add the code below to the BUILD or BUILD.bazel file in the root directory
-  of your repository. Replace the string after ``prefix`` with the prefix you
-  chose for your project earlier.
+Add the code below to the ``BUILD.bazel`` file in your project's root directory.
+Replace the string after ``prefix`` with an import path prefix that matches your
+project. It should be the same as your module path, if you have a ``go.mod``
+file.
 
-  .. code:: bzl
+.. code:: bzl
 
     load("@bazel_gazelle//:def.bzl", "gazelle")
 
     # gazelle:prefix github.com/example/project
     gazelle(name = "gazelle")
 
-* After adding the ``gazelle`` rule, run the command below:
+This declares a ``gazelle`` binary rule, which you can run using the command
+below:
 
-  ::
-
+.. code::
     bazel run //:gazelle
 
-
-  This will generate a ``BUILD.bazel`` file for each Go package in your
-  repository.  You can run the same command in the future to update existing
-  build files with new source files, dependencies, and options.
+This will generate a ``BUILD.bazel`` file with `go_library`_, `go_binary`_, and
+`go_test`_ targets for each package in your project. You can run the same
+command in the future to update exisitng build files with new source files,
+dependencies, and options.
 
 Writing build files by hand
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -248,73 +304,69 @@ Writing build files by hand
 If your project doesn't follow ``go build`` conventions or you prefer not to use
 gazelle_, you can write build files by hand.
 
-* In each directory that contains Go code, create a file named ``BUILD.bazel``
-* Add a ``load`` statement at the top of the file for the rules you use.
+In each directory that contains Go code, create a file named ``BUILD.bazel``
+Add a ``load`` statement at the top of the file for the rules you use.
 
-  .. code:: bzl
+.. code:: bzl
 
     load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
-* For each library, add a go_library_ rule like the one below.
-  Source files are listed in ``srcs``. Other packages you import are listed in
-  ``deps`` using `Bazel labels`_
-  that refer to other go_library_ rules. The library's import path should
-  be specified with ``importpath``.
+For each library, add a `go_library`_ rule like the one below.  Source files are
+listed in the ``srcs`` attribute. Imported packages outside the standard library
+are listed in the ``deps`` attribute using `Bazel labels`_ that refer to
+corresponding `go_library`_ rules. The library's import path must be specified
+with the ``importpath`` attribute.
 
-  .. code:: bzl
+.. code:: bzl
 
     go_library(
         name = "go_default_library",
         srcs = [
-            "foo.go",
-            "bar.go",
+            "a.go",
+            "b.go",
         ],
+        importpath = "github.com/example/project/foo",
         deps = [
             "//tools:go_default_library",
             "@org_golang_x_utils//stuff:go_default_library",
         ],
-        importpath = "github.com/example/project/foo",
         visibility = ["//visibility:public"],
     )
 
-* For each test, add a go_test_ rule like either of the ones below.
-  You'll need separate go_test_ rules for internal and external tests.
+For tests, add a `go_test`_ rule like the one below. The library being tested
+should be listed in an ``embed`` attribute.
 
-  .. code:: bzl
+.. code:: bzl
 
-    # Internal test
     go_test(
         name = "go_default_test",
-        srcs = ["foo_test.go"],
-        importpath = "github.com/example/project/foo",
+        srcs = [
+            "a_test.go",
+            "b_test.go",
+        ],
         embed = [":go_default_library"],
+        deps = [
+            "//testtools:go_default_library",
+            "@org_golang_x_utils//morestuff:go_default_library",
+        ],
     )
 
-    # External test
-    go_test(
-        name = "go_default_xtest",
-        srcs = ["bar_test.go"],
-        deps = [":go_default_library"],
-        importpath = "github.com/example/project/foo",
-    )
+For binaries, add a `go_binary`_ rule like the one below.
 
-* For each binary, add a go_binary_ rule like the one below.
-
-  .. code:: bzl
+.. code:: bzl
 
     go_binary(
         name = "foo",
         srcs = ["main.go"],
-        deps = [":go_default_library"],
     )
 
 Adding external repositories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For each Go repository, add a `go_repository`_ rule like the one below.
-This rule comes from the Gazelle repository, so you will need to load it.
-`gazelle update-repos`_ can generate or update these rules automatically from
-a go.mod or Gopkg.lock file.
+For each Go repository, add a `go_repository`_ rule to ``WORKSPACE`` like the
+one below.  This rule comes from the Gazelle repository, so you will need to
+load it. `gazelle update-repos`_ can generate or update these rules
+automatically from a go.mod or Gopkg.lock file.
 
 .. code:: bzl
 
@@ -360,38 +412,97 @@ a go.mod or Gopkg.lock file.
         version = "v0.8.1",
     )
 
+protobuf and gRPC
+~~~~~~~~~~~~~~~~~
+
+To generate code from protocol buffers, you'll need to add a dependency on
+``com_google_protobuf`` to your ``WORKSPACE``.
+
+.. code:: bzl
+
+    load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+    http_archive(
+        name = "com_google_protobuf",
+        sha256 = "9748c0d90e54ea09e5e75fb7fac16edce15d2028d4356f32211cfa3c0e956564",
+        urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.4.zip"],
+    )
+
+    load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+    protobuf_deps()
+
+You'll need a C/C++ toolchain registered for the execution platform (the
+platform where Bazel runs actions) to build protoc.
+
+The `proto_library`_ rule is provided by the ``rules_proto`` repository.
+``protoc-gen-go``, the Go proto compiler plugin, is provided by the
+``com_github_golang_protobuf`` repository. Both are declared by
+`go_rules_dependencies`_. You won't need to declare an explicit dependency
+unless you specifically want to use a different version. See `Overriding
+dependencies`_ for instructions on using a different version.
+
+gRPC dependencies are not declared by default (there are too many). You can
+declare them in WORKSPACE using `go_repository`_. You may want to use
+`gazelle update-repos`_ to import them from ``go.mod``.
+
+See `Proto dependencies`_, `gRPC dependencies`_ for more information. See also
+`Avoiding conflicts`_.
+
+Once all dependencies have been registered, you can declare `proto_library`_
+and `go_proto_library`_ rules.
+
+.. code:: bzl
+
+    load("@rules_proto//proto:defs.bzl", "proto_library")
+    load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+    proto_library(
+        name = "foo_proto",
+        srcs = ["foo.proto"],
+        deps = ["//bar:bar_proto"],
+        visibility = ["//visibility:public"],
+    )
+
+    go_proto_library(
+        name = "foo_go_proto",
+        importpath = "github.com/example/protos/foo_proto",
+        proto = ":foo_proto",
+        visibility = ["//visibility:public"],
+    )
+
+
 FAQ
 ---
 
-Can I still use the ``go`` tool?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Can I still use the ``go`` command?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes, this setup was deliberately chosen to be compatible with ``go build``.
-Make sure your project appears in ``GOPATH`` or has a go.mod file, and it should
-work.
+Yes, but not directly.
 
-Note that ``go build`` won't be aware of dependencies listed in ``WORKSPACE``,
-so you may want to download your dependencies into your ``GOPATH`` or module
-cache so that your tools are aware of them.  You may also need to check in
-generated files.
+rules_go invokes the Go compiler and linker directly, based on the targets
+described with `go_binary`_ and other rules. Bazel and rules_go together
+fill the same role as the ``go`` command, so it's not necessary to use the
+``go`` command in a Bazel workspace.
+
+That said, it's usually still a good idea to follow conventions required by
+the ``go`` command (e.g., one package per directory, package paths match
+directory paths). Tools that aren't compatible with Bazel will still work,
+and your project can be depended on by non-Bazel projects.
 
 Does this work with Go modules?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes, but not directly. Modules are a dependency management feature in cmd/go,
-the build system that ships with the Go SDK. Bazel uses the Go compiler and
-linker in the Go toolchain, but it does not use cmd/go. You need to describe
-your Go packages and executables and their dependencies in ``go_library``,
-``go_binary``, and ``go_test`` rules written in build files, and you need to
-describe your external dependencies in Bazel's WORKSPACE file.
+Yes, but not directly. Bazel ignores ``go.mod`` files, and all package
+dependencies must be expressed through ``deps`` attributes in targets
+described with `go_library`_ and other rules.
 
-If your project follows normal Go conventions (those required by cmd/go), you
-can generate and update build files using gazelle_. You can import external
-dependencies from your go.mod file with a command like ``gazelle update-repos
--from_file=go.mod``. This will add `go_repository`_ rules to your WORKSPACE.
-Each `go_repository`_ rule can download a module and generate build files for
-the module's packages using Gazelle. See `gazelle update-repos`_ for more
-information.
+You can download a Go module at a specific version as an external repository
+using `go_repository`_, a workspace rule provided by gazelle_. This will also
+generate build files using gazelle_.
+
+You can import `go_repository`_ rules from a ``go.mod`` file using
+`gazelle update-repos`_.
 
 What's up with the ``go_default_library`` name?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -442,6 +553,11 @@ Gazelle will automatically add a ``data`` attribute like the one above if you
 have a ``testdata`` directory *unless* it contains buildable .go files or
 build files, in which case, ``testdata`` is treated as a normal package.
 
+Note that on Windows, data files are not directly available to tests, since test
+data files rely on symbolic links, and by default, Windows doesn't let
+unprivileged users create symbolic links. You can use the
+`github.com/bazelbuild/rules_go/go/tools/bazel`_ library to access data files.
+
 How do I cross-compile?
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -483,20 +599,19 @@ dependencies with ``select`` expressions (Gazelle does this automatically).
       }),
   )
 
-rules_go can generate pure Go binaries for any platform the Go SDK supports. If
-your project includes cgo code, has C/C++ dependencies, or requires external
-linking, you'll need to `write a CROSSTOOL file
-<https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial>`_
-for your toolchain and set the ``--cpu`` flag on the command line, in addition
-to setting ``--platforms``. You'll also need to set ``pure = "off"`` on your
-``go_binary``. We don't fully support this yet, but people have gotten this to
-work in some cases.
+rules_go can generate pure Go binaries for any platform the Go SDK supports.
 
 In some cases, you may want to set the ``goos`` and ``goarch`` attributes of
 ``go_binary``. This will cross-compile a binary for a specific platform.
 This is necessary when you need to produce multiple binaries for different
 platforms in a single build. However, note that ``select`` expressions will
 not work correctly when using these attributes.
+
+How do I use different versions of dependencies?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See `Overriding dependencies`_ for instructions on overriding repositories
+declared in `go_rules_dependencies`_.
 
 How do I access ``go_binary`` executables from ``go_test``?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -623,32 +738,10 @@ must be named ``go_sdk``, and it must come *before* the call to
   go_register_toolchains()
 
 
-How do I get information about the Go SDK used by rules_go?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can run: ``bazel build @io_bazel_rules_go//:go_info`` which outputs
-``go_info_report`` with information like the used Golang version.
-
 How do I avoid conflicts with protocol buffers?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 See `Avoiding conflicts`_ in the proto documentation.
-
-How do I build proto libraries and gRPC?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The `go_rules_dependencies`_ macro used to declare all dependencies needed
-to generate and compile protocol buffers. Managing this got too complicated,
-and the declarations caused confusion in workspaces that declared different
-versions of the same repositories, so these dependencies are no longer
-declared in ``go_rules_dependencies``. They must be declared separately.
-
-In order to build anything that uses ``protoc`` (including ``proto_library``),
-you must declare a repository rule for ``com_google_protobuf``. See
-`Proto dependencies`_ for an example.
-
-In order to build anything that uses gRPC, several additional repositories
-must be declared. See `gRPC dependencies`_ for instructions and an example.
 
 Can I use a vendored gRPC with go_proto_library?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
