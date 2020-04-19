@@ -86,13 +86,15 @@ def _go_binary_impl(ctx):
 
     if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
         cgo_exports = ctx.actions.declare_file("%s.h" % name)
-        ctx.actions.run_shell(
+        concat_args = ctx.actions.args()
+        concat_args.add("concat")
+        concat_args.add("-out", cgo_exports)
+        concat_args.add_all(archive.cgo_exports)
+        go.actions.run(
             inputs = archive.cgo_exports,
             outputs = [cgo_exports],
-            command = "cat $@ > {out}".format(
-                out = cgo_exports.path
-            ),
-            arguments = [f.path for f in archive.cgo_exports.to_list()],
+            executable = go.toolchain._builder,
+            arguments = [concat_args],
         )
         cc_import_kwargs = {
             "hdrs": depset([cgo_exports]),
