@@ -23,6 +23,10 @@ load(
     "go_exts",
 )
 load(
+    ":cc.bzl",
+    "new_cc_import",
+)
+load(
     "//go/private:providers.bzl",
     "GoLibrary",
     "GoSDK",
@@ -33,6 +37,8 @@ load(
 )
 load(
     "//go/private:mode.bzl",
+    "LINKMODE_C_ARCHIVE",
+    "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
     "LINKMODE_SHARED",
 )
@@ -62,7 +68,8 @@ def _go_binary_impl(ctx):
         info_file = ctx.info_file,
         executable = executable,
     )
-    return [
+
+    providers = [
         library,
         source,
         archive,
@@ -76,6 +83,28 @@ def _go_binary_impl(ctx):
             executable = executable,
         ),
     ]
+
+    if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
+        cgo_exports = ctx.actions.declare_file("%s.h" % name)
+        ctx.actions.run_shell(
+            inputs = archive.cgo_exports,
+            outputs = [cgo_exports],
+            command = "cat $@ > {out}".format(
+                out = cgo_exports.path
+            ),
+            arguments = [f.path for f in archive.cgo_exports.to_list()],
+        )
+        cc_import_kwargs = {
+            "hdrs": depset([cgo_exports]),
+        }
+        if go.mode.link == LINKMODE_C_SHARED:
+            cc_import_kwargs["dynamic_library"] = executable
+        elif go.mode.link == LINKMODE_C_ARCHIVE:
+            cc_import_kwargs["static_library"] = executable
+            cc_import_kwargs["alwayslink"] = True
+        providers.append(new_cc_import(go, **cc_import_kwargs))
+
+    return providers
 
 _go_binary_kwargs = {
     "implementation": _go_binary_impl,

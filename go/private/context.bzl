@@ -706,10 +706,12 @@ def _cgo_context_data_impl(ctx):
     )
 
     return [CgoContextInfo(
-        crosstool = find_cpp_toolchain(ctx).all_files.to_list(),
+        crosstool = cc_toolchain.all_files.to_list(),
         tags = tags,
         env = env,
         cgo_tools = struct(
+            cc_toolchain = cc_toolchain,
+            feature_configuration = feature_configuration,
             c_compiler_path = c_compiler_path,
             c_compile_options = c_compile_options,
             cxx_compile_options = cxx_compile_options,
