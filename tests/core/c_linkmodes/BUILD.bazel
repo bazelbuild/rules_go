@@ -17,7 +17,7 @@ cc_test(
     }),
     deps = select({
         "@io_bazel_rules_go//go/platform:windows": [],
-        "//conditions:default": [":adder_archive.cc"],
+        "//conditions:default": [":adder_archive"],
     }),
 )
 
@@ -37,7 +37,7 @@ cc_test(
     }),
     deps = select({
         "@io_bazel_rules_go//go/platform:windows": [],
-        "//conditions:default": [":c-archive_empty_hdr.cc"],
+        "//conditions:default": [":c-archive_empty_hdr"],
     }),
 )
 
@@ -57,7 +57,7 @@ cc_test(
     }),
     deps = select({
         "@io_bazel_rules_go//go/platform:windows": [],
-        "//conditions:default": [":adder_shared.cc"],
+        "//conditions:default": [":adder_shared"],
     }),
 )
 
