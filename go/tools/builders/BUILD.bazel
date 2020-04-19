@@ -19,6 +19,7 @@ filegroup(
         "cgo2.go",
         "compile.go",
         "compilepkg.go",
+        "concat.go",
         "cover.go",
         "env.go",
         "filter.go",
