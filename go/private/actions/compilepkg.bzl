@@ -78,6 +78,7 @@ def emit_compilepkg(
     if go._ctx.label.name in ("tags_bin", "tags_test"):
         print("compilepkg: %s: tags %s, mode tags %s" % (go._ctx.label.name, ",".join(go.tags), ",".join(go.mode.tags)))
     if go.mode.tags:
+        print("compilepkg: %s: added tags: %s" % (go._ctx.label.name, ",".join(go.mode.tags)))
         args.add("-tags", ",".join(go.mode.tags))
     args.add("-package_list", go.package_list)
 
@@ -129,6 +130,7 @@ def emit_compilepkg(
         if clinkopts:
             args.add("-ldflags", _quote_opts(clinkopts))
 
+    args.add("-v")
     go.actions.run(
         inputs = inputs,
         outputs = outputs,
