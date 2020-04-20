@@ -100,8 +100,6 @@ def _go_test_impl(ctx):
         "l_test=" + external_source.library.importpath,
     )
     arguments.add("-pkgname", internal_source.library.importpath)
-    if go.mode.tags:
-        arguments.add("-tags", ",".join(go.mode.tags))
     arguments.add_all(go_srcs, before_each = "-src", format_each = "l=%s")
     ctx.actions.run(
         inputs = go_srcs,

@@ -132,9 +132,9 @@ def _builder_args(go, command = None):
     args.add("-installsuffix", installsuffix(go.mode))
     if go._ctx.label.name in ("tags_bin", "tags_test"):
         print("_builder_args: %s: tags %s" % (go._ctx.label.name, ",".join(go.tags)))
-        args.add("-tags", "good")
+        args.add("-gotags", "good")
     else:
-        args.add_joined("-tags", go.tags, join_with = ",")
+        args.add_joined("-gotags", go.tags, join_with = ",")
     return args
 
 def _tool_args(go):
