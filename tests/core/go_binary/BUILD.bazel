@@ -162,4 +162,5 @@ go_library(
         "tags_lib_good.go",
     ],
     importpath = "tags_lib",
+    tags = ["manual"],
 )
