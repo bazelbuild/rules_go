@@ -131,7 +131,7 @@ def _builder_args(go, command = None):
     args.add("-sdk", go.sdk.root_file.dirname)
     args.add("-installsuffix", installsuffix(go.mode))
     if go._ctx.label.name in ("tags_bin", "tags_test"):
-        print("_builder_args: %s: tags %s" % (",".join(go.tags)))
+        print("_builder_args: %s: tags %s" % (go._ctx.label.name, ",".join(go.tags)))
     args.add("-tags", ",".join(go.tags))
     return args
 
