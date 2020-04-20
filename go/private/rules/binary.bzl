@@ -23,10 +23,6 @@ load(
     "go_exts",
 )
 load(
-    ":cc.bzl",
-    "new_cc_import",
-)
-load(
     "//go/private:providers.bzl",
     "GoLibrary",
     "GoSDK",
@@ -37,8 +33,6 @@ load(
 )
 load(
     "//go/private:mode.bzl",
-    "LINKMODE_C_ARCHIVE",
-    "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
     "LINKMODE_SHARED",
 )
@@ -59,7 +53,7 @@ def _go_binary_impl(ctx):
         # directly, Bazel warns them not to use the same name as the rule, which is
         # the common case with go_binary.
         executable = ctx.actions.declare_file(ctx.attr.out)
-    archive, executable, runfiles = go.binary(
+    archive, executable, runfiles, ccinfo = go.binary(
         go,
         name = name,
         source = source,
@@ -84,31 +78,8 @@ def _go_binary_impl(ctx):
         ),
     ]
 
-    if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
-        cgo_exports = ctx.actions.declare_file("%s.h" % name)
-        concat_args = ctx.actions.args()
-        concat_args.add("concat")
-        concat_args.add("-out", cgo_exports)
-        concat_args.add_all(archive.cgo_exports)
-        go.actions.run(
-            inputs = archive.cgo_exports,
-            outputs = [cgo_exports],
-            executable = go.toolchain._builder,
-            arguments = [concat_args],
-        )
-        cc_import_kwargs = {
-            "hdrs": depset([cgo_exports]),
-            "linkopts": {
-                "darwin": [],
-                "windows": ["-mthreads"],
-            }.get(go.mode.goos, ["-pthreads"]),
-        }
-        if go.mode.link == LINKMODE_C_SHARED:
-            cc_import_kwargs["dynamic_library"] = executable
-        elif go.mode.link == LINKMODE_C_ARCHIVE:
-            cc_import_kwargs["static_library"] = executable
-            cc_import_kwargs["alwayslink"] = True
-        providers.append(new_cc_import(go, **cc_import_kwargs))
+    if ccinfo:
+        providers.append(ccinfo)
 
     return providers
 
