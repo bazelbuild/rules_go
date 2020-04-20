@@ -369,6 +369,9 @@ def go_context(ctx, attr = None):
     tags = mode.tags
     binary = toolchain.sdk.go
 
+    if ctx.label.name in ("tags_bin", "tags_test"):
+        print("go_context: %s: tags from config: %s" % (ctx.label.name, ",".join(go_config_info.tags)))
+        print("go_context: %s: tags from mode: %s" % (ctx.label.name, ",".join(mode.tags)))
     if stdlib:
         goroot = stdlib.root_file.dirname
     else:
@@ -746,6 +749,7 @@ cgo_context_data_proxy = rule(
 )
 
 def _go_config_impl(ctx):
+    print("go_config: tags: %s\n" % ",".join(ctx.attr.gotags[BuildSettingInfo].value))
     return [GoConfigInfo(
         static = ctx.attr.static[BuildSettingInfo].value,
         race = ctx.attr.race[BuildSettingInfo].value,

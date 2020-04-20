@@ -56,6 +56,8 @@ def go_transition_wrapper(kind, transition_kind, name, **kwargs):
     """
     transition_keys = ("goos", "goarch", "pure", "static", "msan", "race", "gotags", "linkmode")
     need_transition = any([key in kwargs for key in transition_keys])
+    if name in ("tags_bin", "tags_test"):
+        print("go_transition_wrapper: %s: need_transition %s" % (name, need_transition))
     if need_transition:
         transition_kind(name = name, **kwargs)
     else:
