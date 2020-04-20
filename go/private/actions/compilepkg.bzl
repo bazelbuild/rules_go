@@ -75,8 +75,6 @@ def emit_compilepkg(
         args.add("-importpath", importpath)
     if importmap:
         args.add("-p", importmap)
-    if go._ctx.label.name in ("tags_bin", "tags_test"):
-        print("compilepkg: %s: tags %s, mode tags %s" % (go._ctx.label.name, ",".join(go.tags), ",".join(go.mode.tags)))
     args.add("-package_list", go.package_list)
 
     args.add("-o", out_lib)

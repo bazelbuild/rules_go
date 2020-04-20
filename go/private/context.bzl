@@ -130,11 +130,7 @@ def _builder_args(go, command = None):
         args.add(command)
     args.add("-sdk", go.sdk.root_file.dirname)
     args.add("-installsuffix", installsuffix(go.mode))
-    if go._ctx.label.name in ("tags_bin", "tags_test"):
-        print("_builder_args: %s: tags %s" % (go._ctx.label.name, ",".join(go.tags)))
-        args.add("-gotags", "good")
-    else:
-        args.add_joined("-gotags", go.tags, join_with = ",")
+    args.add_joined("-tags", go.tags, join_with = ",")
     return args
 
 def _tool_args(go):
@@ -373,9 +369,6 @@ def go_context(ctx, attr = None):
     tags = mode.tags
     binary = toolchain.sdk.go
 
-    if ctx.label.name in ("tags_bin", "tags_test"):
-        print("go_context: %s: tags from config: %s" % (ctx.label.name, ",".join(go_config_info.tags)))
-        print("go_context: %s: tags from mode: %s" % (ctx.label.name, ",".join(mode.tags)))
     if stdlib:
         goroot = stdlib.root_file.dirname
     else:
@@ -753,7 +746,6 @@ cgo_context_data_proxy = rule(
 )
 
 def _go_config_impl(ctx):
-    print("go_config: tags: %s\n" % ",".join(ctx.attr.gotags[BuildSettingInfo].value))
     return [GoConfigInfo(
         static = ctx.attr.static[BuildSettingInfo].value,
         race = ctx.attr.race[BuildSettingInfo].value,

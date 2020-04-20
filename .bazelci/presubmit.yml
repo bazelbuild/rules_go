@@ -4,8 +4,14 @@ platforms:
     bazel: 2.2.0 # test minimum supported version of bazel on ubuntu1604 only
     build_targets:
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
     test_targets:
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
   ubuntu1804:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     build_flags:
@@ -20,16 +26,31 @@ platforms:
     - "--incompatible_enable_cc_toolchain_resolution"
     build_targets:
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
     test_targets:
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
   macos:
     build_targets:
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
     test_targets:
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
   rbe_ubuntu1604:
     build_targets:
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
     test_flags:
     # Some tests depend on this feature being disabled. However, because it's
     # enabled by default in the rbe_ubuntu1604 platform, we cannot simply remove
@@ -44,6 +65,8 @@ platforms:
     - "..."
     - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/stdlib:buildid_test"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
   windows:
     build_flags:
     # Go requires a C toolchain that accepts options and emits errors like
@@ -69,6 +92,9 @@ platforms:
     # TODO(#1790): Tests that require data should use bazel.Runfile.
     - "--"
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
     - "-@com_github_golang_protobuf//ptypes:go_default_library_gen"
     - "-@com_google_protobuf//:any_proto"
     - "-@com_google_protobuf//:api_proto"
@@ -261,6 +287,9 @@ platforms:
     test_targets:
     - "--"
     - "..."
+    - "--"
+    - "-//tests/core/go_binary:tags_bin" # TODO(#2449): only fails in CI.
+    - "-//tests/core/go_binary:tags_test" # TODO(#2449): only fails in CI.
     - "-//go/tools/bazel:go_default_test"
     - "-@org_golang_x_crypto//ed25519:go_default_test"
     - "-@org_golang_x_crypto//sha3:go_default_test"
