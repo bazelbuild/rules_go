@@ -265,10 +265,6 @@ rule.  Instead, it's referenced in the ``data`` field of GoArchive_.
 | Data files that should be available at runtime to binaries and tests built                       |
 | from this archive.                                                                               |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`searchpath`            | :type:`string`                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| **Deprecated:** The search path entry under which the :param:`lib` would be found.               |
-+--------------------------------+-----------------------------------------------------------------+
 
 GoArchive
 ~~~~~~~~~
@@ -294,10 +290,6 @@ which is available through the :param:`data` field.
 | :param:`direct`                | :type:`list of GoArchive`                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | The direct dependencies of this archive.                                                         |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`searchpaths`           | :type:`depset of string`                                        |
-+--------------------------------+-----------------------------------------------------------------+
-| **Deprecated:** The transitive set of search paths needed to link with this archive.             |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`libs`                  | :type:`depset of File`                                          |
 +--------------------------------+-----------------------------------------------------------------+

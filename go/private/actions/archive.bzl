@@ -54,7 +54,6 @@ def emit_archive(go, source = None):
         out_export = go.declare_file(go, path = lib_name[:-len(".a")] + ".x")
     else:
         out_export = None
-    searchpath = out_lib.path[:-len(lib_name)]
     testfilter = getattr(source.library, "testfilter", None)
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
 
@@ -137,7 +136,6 @@ def emit_archive(go, source = None):
         srcs = as_tuple(source.srcs),
         orig_srcs = as_tuple(source.orig_srcs),
         data_files = as_tuple(data_files),
-        searchpath = searchpath,
     )
     x_defs = dict(source.x_defs)
     for a in direct:
@@ -150,7 +148,6 @@ def emit_archive(go, source = None):
         source = source,
         data = data,
         direct = direct,
-        searchpaths = depset(direct = [searchpath], transitive = [a.searchpaths for a in direct]),
         libs = depset(direct = [out_lib], transitive = [a.libs for a in direct]),
         transitive = depset([data], transitive = [a.transitive for a in direct]),
         x_defs = x_defs,
