@@ -44,7 +44,6 @@ load(
     ":mode.bzl",
     "get_mode",
     "installsuffix",
-    "mode_string",
 )
 load(
     ":common.bzl",
@@ -104,13 +103,15 @@ def _filter_options(options, blacklist):
     ]
 
 def _child_name(go, path, ext, name):
-    childname = mode_string(go.mode) + "/"
-    childname += name if name else go._ctx.label.name
+    if not name:
+        name = go._ctx.label.name
     if path:
-        childname += "%/" + path
+        # The '_' avoids collisions with another file matching the label name.
+        # For example, hello and hello/testmain.go.
+        name += "_/" + path
     if ext:
-        childname += ext
-    return childname
+        name += ext
+    return name
 
 def _declare_file(go, path = "", ext = "", name = ""):
     return go.actions.declare_file(_child_name(go, path, ext, name))
@@ -465,6 +466,7 @@ def go_context(ctx, attr = None):
         env = env,
         tags = tags,
         stamp = mode.stamp,
+
         # Action generators
         archive = toolchain.actions.archive,
         asm = toolchain.actions.asm,

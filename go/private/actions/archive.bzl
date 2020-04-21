@@ -46,15 +46,21 @@ def emit_archive(go, source = None):
         fail("source is a required parameter")
 
     split = split_srcs(source.srcs)
-    lib_name = source.library.importmap + ".a"
-    out_lib = go.declare_file(go, path = lib_name)
+    testfilter = getattr(source.library, "testfilter", None)
+    pre_ext = ""
+    if go.mode.link == LINKMODE_C_ARCHIVE:
+        pre_ext = "_"  # avoid collision with go_binary output file with .a extension
+    elif testfilter == "exclude":
+        pre_ext = ".internal"
+    elif testfilter == "only":
+        pre_ext = ".external"
+    out_lib = go.declare_file(go, ext = pre_ext + ".a")
     if go.nogo:
         # TODO(#1847): write nogo data into a new section in the .a file instead
         # of writing a separate file.
-        out_export = go.declare_file(go, path = lib_name[:-len(".a")] + ".x")
+        out_export = go.declare_file(go, ext = pre_ext + ".x")
     else:
         out_export = None
-    testfilter = getattr(source.library, "testfilter", None)
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
 
     direct = [get_archive(dep) for dep in source.deps]

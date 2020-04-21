@@ -23,7 +23,7 @@ load(
 
 def _go_info_impl(ctx):
     go = go_context(ctx)
-    report = go.declare_file(go, "go_info_report")
+    report = go.declare_file(go, ext = ".txt")
     args = go.builder_args(go)
     args.add("-out", report)
     go.actions.run(

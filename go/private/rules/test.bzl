@@ -83,7 +83,7 @@ def _go_test_impl(ctx):
     else:
         run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
 
-    main_go = go.declare_file(go, "testmain.go")
+    main_go = go.declare_file(go, path = "testmain.go")
     arguments = go.builder_args(go, "gentestmain")
     arguments.add("-rundir", run_dir)
     arguments.add("-output", main_go)

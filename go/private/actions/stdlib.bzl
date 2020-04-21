@@ -58,9 +58,9 @@ def _sdk_stdlib(go):
     )
 
 def _build_stdlib(go):
-    pkg = go.declare_directory(go, "pkg")
-    src = go.declare_directory(go, "src")
-    root_file = go.declare_file(go, "ROOT")
+    pkg = go.declare_directory(go, path = "pkg")
+    src = go.declare_directory(go, path = "src")
+    root_file = go.declare_file(go, path = "ROOT")
     args = go.builder_args(go, "stdlib")
     args.add("-out", root_file.dirname)
     if go.mode.race:
