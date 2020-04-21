@@ -24,9 +24,9 @@ func TestCompilationOutputs(t *testing.T) {
 	expectedFiles := map[string]bool{
 		"compilation_outputs_test" + exe: true, // test binary; not relevant
 
-		"lib.a":               true, // :lib archive
-		"lib_test.internal.a": true, // :lib_test archive
-		"bin.a":               true, // :bin archive
+		"lib.a":               false, // :lib archive
+		"lib_test.internal.a": false, // :lib_test archive
+		"bin.a":               false, // :bin archive
 	}
 	for _, rf := range runfiles {
 		info, err := os.Stat(rf.Path)
@@ -38,20 +38,22 @@ func TestCompilationOutputs(t *testing.T) {
 			continue
 		}
 
-		base := strings.TrimSuffix(filepath.Base(rf.Path), ".exe")
-		if expectedFiles[base] {
-			delete(expectedFiles, base)
-		} else {
-			t.Errorf("unexpected runfile: %s", rf.Path)
+		base := filepath.Base(rf.Path)
+		if seen, ok := expectedFiles[base]; !ok {
+			t.Errorf("unexpected runfile: %s %s", rf.Path, base)
+		} else if !seen {
+			expectedFiles[base] = true
 		}
 	}
 
-	if len(expectedFiles) != 0 {
-		var missingFiles []string
-		for path := range expectedFiles {
+	missingFiles := make([]string, 0, len(expectedFiles))
+	for path, seen := range expectedFiles {
+		if !seen {
 			missingFiles = append(missingFiles, path)
 		}
-		sort.Strings(missingFiles)
-		t.Errorf("Could find expected files: %s", strings.Join(missingFiles, " "))
+	}
+	sort.Strings(missingFiles)
+	if len(missingFiles) > 0 {
+		t.Errorf("did not find expected files: %s", strings.Join(missingFiles, " "))
 	}
 }

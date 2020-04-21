@@ -99,7 +99,7 @@ func FindBinary(pkg, name string) (string, bool) {
 			if path.Base(entry.ShortPath) != name {
 				continue
 			}
-			pkgDir := path.Dir(path.Dir(entry.ShortPath))
+			pkgDir := path.Dir(entry.ShortPath)
 			if pkgDir == "." {
 				pkgDir = ""
 			}
