@@ -1,33 +1,35 @@
 load("//proto:compiler.bzl", "go_proto_compiler")
 load("//proto/wkt:well_known_types.bzl", "GOGO_WELL_KNOWN_TYPE_REMAPS", "WELL_KNOWN_TYPE_RULES")
 
+PROTO_RUNTIME_DEPS = [
+    "@com_github_golang_protobuf//proto:go_default_library",
+    "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
+    "@org_golang_google_protobuf//runtime/protoiface:go_default_library",
+    "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
+]
+
 go_proto_compiler(
     name = "go_proto_bootstrap",
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
-    ],
+    deps = PROTO_RUNTIME_DEPS,
 )
 
 go_proto_compiler(
     name = "go_proto",
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
-    ] + WELL_KNOWN_TYPE_RULES.values(),
+    deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPE_RULES.values(),
 )
 
 go_proto_compiler(
     name = "go_grpc",
     options = ["plugins=grpc"],
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
+    deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPE_RULES.values() + [
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_x_net//context:go_default_library",
-    ] + WELL_KNOWN_TYPE_RULES.values(),
+    ],
 )
 
 go_proto_compiler(

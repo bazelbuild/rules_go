@@ -120,19 +120,39 @@ def go_rules_dependencies(is_rules_go = False):
     # * Most proto repos are updated more frequently than rules_go, and
     #   we can't keep up.
 
-    # Go protoc plugin and runtime library
+    # Go protobuf runtime library and utilities.
+    _maybe(
+        http_archive,
+        name = "org_golang_google_protobuf",
+        sha256 = "22c82408718787bfa0453563a83681fc3905126040d6901eb1ce399795292937",
+        # v1.21.0, latest as of 2020-04-22
+        urls = [
+            "https://mirror.bazel.build/github.com/protocolbuffers/protobuf-go/archive/v1.21.0.zip",
+            "https://github.com/protocolbuffers/protobuf-go/archive/v1.21.0.zip",
+        ],
+        strip_prefix = "protobuf-go-1.21.0",
+        patches = [
+            # gazelle args: -repo_root . -go_prefix google.golang.org/protobuf -proto disable_global
+            "@io_bazel_rules_go//third_party:org_golang_google_protobuf-gazelle.patch",
+        ],
+        patch_args = ["-p1"],
+    )
+
+    # Legacy protobuf compiler, runtime, and utilities.
+    # We still use protoc-gen-go because the new one doesn't support gRPC, and
+    # the gRPC compiler doesn't exist yet.
     # We need to apply a patch to enable both go_proto_library and
     # go_library with pre-generated sources.
     _maybe(
         http_archive,
         name = "com_github_golang_protobuf",
-        # v1.3.3, latest as of 2020-02-21
+        # v1.4.0, latest as of 2020-02-21
         urls = [
-            "https://mirror.bazel.build/github.com/golang/protobuf/archive/v1.3.3.zip",
-            "https://github.com/golang/protobuf/archive/v1.3.3.zip",
+            "https://mirror.bazel.build/github.com/golang/protobuf/archive/v1.4.0.zip",
+            "https://github.com/golang/protobuf/archive/v1.4.0.zip",
         ],
-        sha256 = "3b1ab4c27a3a3ea02fcd5d701d4680cf724e0b7499c67f520f1f1dd03ef0bc45",
-        strip_prefix = "protobuf-1.3.3",
+        sha256 = "9f74fe5ee107c75523d0d5ab1100a18e3e1e7d24f870b460083ab0a20966b910",
+        strip_prefix = "protobuf-1.4.0",
         patches = [
             # gazelle args: -repo_root . -go_prefix github.com/golang/protobuf -proto disable_global
             "@io_bazel_rules_go//third_party:com_github_golang_protobuf-gazelle.patch",
