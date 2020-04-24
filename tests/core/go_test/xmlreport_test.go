@@ -18,6 +18,7 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -77,60 +78,86 @@ func TestSubtests(t *testing.T) {
 	})
 }
 
+// test execution time attributes will vary per testrun, so we must parse the
+// xml to inspect a subset of testresults
+type xmlTestSuite struct {
+	XMLName  xml.Name `xml:"testsuite"`
+	Errors   int      `xml:"errors,attr"`
+	Failures int      `xml:"failures,attr"`
+	Skipped  int      `xml:"skipped,attr"`
+	Tests    int      `xml:"tests,attr"`
+	Name     string   `xml:"name,attr"`
+}
+type xmlTestSuites struct {
+	XMLName xml.Name       `xml:"testsuites"`
+	Suites  []xmlTestSuite `xml:"testsuite"`
+}
+
 func Test(t *testing.T) {
-	err := bazel_testing.RunBazel("test", "//:xml_test")
-	if err == nil {
-		t.Fatal("expected bazel test to have failed")
-	}
-	if xerr, ok := err.(*bazel_testing.StderrExitError); !ok || xerr.Err.ExitCode() != 3 {
-		t.Fatalf("expected bazel tests to fail with exit code 3 (TESTS_FAILED), got: %s", err)
+	tests := []struct {
+		name     string
+		args     []string
+		expected xmlTestSuites
+	}{
+		{
+			name: "default",
+			args: []string{"test", "//:xml_test"},
+			expected: xmlTestSuites{
+				XMLName: xml.Name{Local: "testsuites"},
+				Suites: []xmlTestSuite{{
+					XMLName:  xml.Name{Local: "testsuite"},
+					Name:     "github.com/bazelbuild/rules_go/tests/core/go_test/xml_test",
+					Errors:   0,
+					Failures: 3,
+					Tests:    3,
+				}},
+			},
+		},
+		{
+			name: "verbose",
+			args: []string{"test", "--test_env=GO_TEST_WRAP_TESTV=1", "//:xml_test"},
+			expected: xmlTestSuites{
+				XMLName: xml.Name{Local: "testsuites"},
+				Suites: []xmlTestSuite{{
+					XMLName:  xml.Name{Local: "testsuite"},
+					Name:     "github.com/bazelbuild/rules_go/tests/core/go_test/xml_test",
+					Errors:   0,
+					Failures: 3,
+					Skipped:  1,
+					Tests:    7,
+				}},
+			},
+		},
 	}
 
-	p, err := bazel_testing.BazelOutput("info", "bazel-testlogs")
-	if err != nil {
-		t.Fatal("could not find testlog root: %s", err)
-	}
-	path := filepath.Join(strings.TrimSpace(string(p)), "xml_test/test.xml")
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		t.Fatalf("could not read generated xml file: %s", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := bazel_testing.RunBazel(tt.args...)
+			if err == nil {
+				t.Fatal("expected bazel test to have failed")
+			}
+			if xerr, ok := err.(*bazel_testing.StderrExitError); !ok || xerr.Err.ExitCode() != 3 {
+				t.Fatalf("expected bazel tests to fail with exit code 3 (TESTS_FAILED), got: %s", err)
+			}
 
-	// test execution time attributes will vary per testrun, so we must parse the
-	// xml to inspect a subset of testresults
-	type xmlTestSuite struct {
-		XMLName  xml.Name `xml:"testsuite"`
-		Errors   int      `xml:"errors,attr"`
-		Failures int      `xml:"failures,attr"`
-		Skipped  int      `xml:"skipped,attr"`
-		Tests    int      `xml:"tests,attr"`
-		Name     string   `xml:"name,attr"`
-	}
-	type xmlTestSuites struct {
-		XMLName xml.Name       `xml:"testsuites"`
-		Suites  []xmlTestSuite `xml:"testsuite"`
-	}
-	var suites xmlTestSuites
-	if err := xml.Unmarshal(b, &suites); err != nil {
-		t.Fatalf("could not unmarshall generated xml: %s", err)
-	}
-	if len(suites.Suites) != 1 {
-		t.Fatalf("expected 1 testsuite in the xml, got: %d", len(suites.Suites))
-	}
-	suite := suites.Suites[0]
-	if suite.Errors != 0 {
-		t.Errorf("expected suite.Errors to be 0, got %d", suite.Errors)
-	}
-	if suite.Failures != 3 {
-		t.Errorf("expected suite.Failures to be 3, got %d", suite.Failures)
-	}
-	if suite.Tests != 7 {
-		t.Errorf("expected suite.Tests to be 7, got %d", suite.Tests)
-	}
-	if suite.Skipped != 1 {
-		t.Errorf("expected suite.Skipped to be 1, got %d", suite.Skipped)
-	}
-	if suite.Name != "github.com/bazelbuild/rules_go/tests/core/go_test/xml_test" {
-		t.Errorf("expected suite.Name to be github.com/bazelbuild/rules_go/tests/core/go_test/xml_test, got %s", suite.Name)
+			p, err := bazel_testing.BazelOutput("info", "bazel-testlogs")
+			if err != nil {
+				t.Fatal("could not find testlog root: %s", err)
+			}
+			path := filepath.Join(strings.TrimSpace(string(p)), "xml_test/test.xml")
+			b, err := ioutil.ReadFile(path)
+			if err != nil {
+				t.Fatalf("could not read generated xml file: %s", err)
+			}
+
+			var suites xmlTestSuites
+			if err := xml.Unmarshal(b, &suites); err != nil {
+				t.Fatalf("could not unmarshall generated xml: %s", err)
+			}
+
+			if !reflect.DeepEqual(suites, tt.expected) {
+				t.Fatalf("expected %#v, got: %#v", tt.expected, suites)
+			}
+		})
 	}
 }

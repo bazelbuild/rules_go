@@ -42,11 +42,28 @@ func shouldWrap() bool {
 	return ok
 }
 
+// shouldAddTestV indicates if the test wrapper should prepend a -test.v flag to
+// the test args. This is required to get information about passing tests from
+// test2json for complete XML reports.
+func shouldAddTestV() bool {
+	if wrapEnv, ok := os.LookupEnv("GO_TEST_WRAP_TESTV"); ok {
+		wrap, err := strconv.ParseBool(wrapEnv)
+		if err != nil {
+			log.Fatalf("invalid value for GO_TEST_WRAP_TESTV: %q", wrapEnv)
+		}
+		return wrap
+	}
+	return false
+}
+
 func wrap(pkg string) error {
 	var jsonBuffer bytes.Buffer
 	jsonConverter := NewConverter(&jsonBuffer, pkg, Timestamp)
 
-	args := append([]string{"-test.v"}, os.Args[1:]...)
+	args := os.Args[1:]
+	if shouldAddTestV() {
+		args = append([]string{"-test.v"}, args...)
+	}
 	cmd := exec.Command(os.Args[0], args...)
 	cmd.Env = append(os.Environ(), "GO_TEST_WRAP=0")
 	cmd.Stderr = os.Stderr
