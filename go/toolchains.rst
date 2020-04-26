@@ -149,7 +149,7 @@ Registering a custom SDK
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you download the SDK through another repository rule, you can configure
-it with ``go_wrap_sdk``. It must still be named ``go_sdk``, but this is a 
+it with ``go_wrap_sdk``. It must still be named ``go_sdk``, but this is a
 temporary limitation that will be removed in the future.
 
 .. code:: bzl
@@ -268,7 +268,7 @@ This downloads a Go SDK for use in toolchains.
 | supports. Go versions that rules_go doesn't support may not be specified,                                  |
 | since the download SHA-256 sums are not known.                                                             |
 +--------------------------------+-----------------------------+---------------------------------------------+
-| :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}`       |
+| :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}]`       |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | A list of mirror urls to the binary distribution of a Go SDK. These must contain the `{}`                  |
 | used to substitute the sdk filename being fetched (using `.format`.                                        |
@@ -467,7 +467,7 @@ The context object
 ~~~~~~~~~~~~~~~~~~
 
 ``GoContext`` is never returned by a rule, instead you build one using
-``go_context(ctx)`` in the top of any custom skylark rule that wants to interact
+``go_context(ctx)`` in the top of any custom starlark rule that wants to interact
 with the go rules.  It provides all the information needed to create go actions,
 and create or interact with the other go providers.
 
