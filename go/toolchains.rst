@@ -268,7 +268,7 @@ This downloads a Go SDK for use in toolchains.
 | supports. Go versions that rules_go doesn't support may not be specified,                                  |
 | since the download SHA-256 sums are not known.                                                             |
 +--------------------------------+-----------------------------+---------------------------------------------+
-| :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}]`       |
+| :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}]`      |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | A list of mirror urls to the binary distribution of a Go SDK. These must contain the `{}`                  |
 | used to substitute the sdk filename being fetched (using `.format`.                                        |
