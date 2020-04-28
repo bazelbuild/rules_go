@@ -24,11 +24,10 @@ load(
 def _archive(v):
     importpaths = [v.data.importpath]
     importpaths.extend(v.data.importpath_aliases)
-    return "{}={}={}={}".format(
+    return "{}={}={}".format(
         ":".join(importpaths),
         v.data.importmap,
-        v.data.file.path,
-        v.data.export_file.path if v.data.export_file else "",
+        v.data.export_file.path if v.data.export_file else v.data.file.path,
     )
 
 def emit_compilepkg(
@@ -58,15 +57,15 @@ def emit_compilepkg(
         fail("out_lib is a required parameter")
 
     inputs = (sources + [go.package_list] +
-              [archive.data.file for archive in archives] +
+              [archive.data.export_file for archive in archives] +
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
-    outputs = [out_lib]
+    outputs = [out_lib, out_export]
     env = go.env
 
     args = go.builder_args(go, "compilepkg")
     args.add_all(sources, before_each = "-src")
     if cover and go.coverdata:
-        inputs.append(go.coverdata.data.file)
+        inputs.append(go.coverdata.data.export_file)
         args.add("-arc", _archive(go.coverdata))
         if go.mode.race:
             args.add("-cover_mode", "atomic")
@@ -81,12 +80,10 @@ def emit_compilepkg(
     args.add("-package_list", go.package_list)
 
     args.add("-o", out_lib)
+    args.add("-x", out_export)
     if go.nogo:
         args.add("-nogo", go.nogo)
-        args.add("-x", out_export)
         inputs.append(go.nogo)
-        inputs.extend([archive.data.export_file for archive in archives if archive.data.export_file])
-        outputs.append(out_export)
     if out_cgo_export_h:
         args.add("-cgoexport", out_cgo_export_h)
         outputs.append(out_cgo_export_h)

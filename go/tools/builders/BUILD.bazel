@@ -50,6 +50,7 @@ go_source(
         "env.go",
         "flags.go",
         "nogo_main.go",
+        "pack.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
     # Bazel's visibility check than

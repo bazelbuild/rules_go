@@ -57,12 +57,9 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
     if _recompile_suffix:
         pre_ext += _recompile_suffix
     out_lib = go.declare_file(go, ext = pre_ext + ".a")
-    if go.nogo:
-        # TODO(#1847): write nogo data into a new section in the .a file instead
-        # of writing a separate file.
-        out_export = go.declare_file(go, ext = pre_ext + ".x")
-    else:
-        out_export = None
+
+    # store __.PKGDEF and nogo facts in .x
+    out_export = go.declare_file(go, ext = pre_ext + ".x")
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
 
     direct = [get_archive(dep) for dep in source.deps]

@@ -31,6 +31,8 @@ import (
 	"strings"
 )
 
+const pkgDef = "__.PKGDEF"
+
 func compilePkg(args []string) error {
 	// Parse arguments.
 	args, err := readParamsFiles(args)
@@ -62,8 +64,8 @@ func compilePkg(args []string) error {
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
-	fs.StringVar(&outPath, "o", "", "The output archive file to write")
-	fs.StringVar(&outFactsPath, "x", "", "The nogo facts file to write")
+	fs.StringVar(&outPath, "o", "", "The output archive file to write compiled code")
+	fs.StringVar(&outFactsPath, "x", "", "The output archive file to write export data and nogo facts")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
 	if err := fs.Parse(args); err != nil {
@@ -162,7 +164,7 @@ func compileArchive(
 	nogoPath string,
 	packageListPath string,
 	outPath string,
-	outFactsPath string,
+	outXPath string,
 	cgoExportHPath string) error {
 
 	workDir, cleanup, err := goenv.workDir()
@@ -320,11 +322,12 @@ func compileArchive(
 
 	// Run nogo concurrently.
 	var nogoChan chan error
+	factOut := strings.TrimSuffix(outXPath, filepath.Ext(outXPath)) + ".fact"
 	if nogoPath != "" {
 		ctx, cancel := context.WithCancel(context.Background())
 		nogoChan = make(chan error)
 		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcs, deps, packagePath, importcfgPath, outFactsPath)
+			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcs, deps, packagePath, importcfgPath, factOut)
 		}()
 		defer func() {
 			if nogoChan != nil {
@@ -386,6 +389,10 @@ func compileArchive(
 		}
 	}
 
+	pkgDefFile := filepath.Join(filepath.Dir(outPath), pkgDef)
+	if err = extractPkgDef(outPath, pkgDefFile); err != nil {
+		return fmt.Errorf("failed to extract %s from %s: %v", pkgDef, outPath, err)
+	}
 	// Check results from nogo.
 	if nogoChan != nil {
 		err := <-nogoChan
@@ -393,9 +400,13 @@ func compileArchive(
 		if err != nil {
 			return err
 		}
+		// TODO is it possible for factOut not created in this case?
+		err = appendFiles(goenv, outXPath, []string{pkgDefFile, factOut})
+	} else {
+		err = appendFiles(goenv, outXPath, []string{pkgDefFile})
 	}
 
-	return nil
+	return err
 }
 
 func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath, symabisPath string, gcFlags []string, outPath string) error {
@@ -420,13 +431,10 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 	args = append(args, "-p", packagePath)
 	args = append(args, "-importcfg", importcfgPath)
 	for _, dep := range deps {
-		if dep.xFile != "" {
-			args = append(args, "-fact", fmt.Sprintf("%s=%s", dep.importPath, dep.xFile))
-		}
+		args = append(args, "-fact", fmt.Sprintf("%s=%s", dep.importPath, dep.xFile))
 	}
 	args = append(args, "-x", outFactsPath)
 	args = append(args, srcs...)
-
 	paramFile := filepath.Join(workDir, "nogo.param")
 	params := strings.Join(args[1:], "\n")
 	if err := ioutil.WriteFile(paramFile, []byte(params), 0666); err != nil {
@@ -463,4 +471,16 @@ func sanitizePathForIdentifier(path string) string {
 		}
 		return '_'
 	}, path)
+}
+
+func extractPkgDef(fromArchive, toFile string) error {
+	data, err := readFileInArchive(func(name string) bool {
+		return name == pkgDef
+	}, fromArchive)
+	if err != nil {
+		return fmt.Errorf("error reading %s: %v", pkgDef, err)
+	} else if len(data) == 0 {
+		return fmt.Errorf("%s is empty", pkgDef)
+	}
+	return ioutil.WriteFile(toFile, data, 0644)
 }

@@ -72,7 +72,7 @@ func run(args []string) error {
 	flags.Var(&factMap, "fact", "Import path and file containing facts for that library, separated by '=' (may be repeated)'")
 	importcfg := flags.String("importcfg", "", "The import configuration file")
 	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
-	xPath := flags.String("x", "", "The file where serialized facts should be written")
+	xPath := flags.String("x", "", "The archive file where serialized facts should be written")
 	flags.Parse(args)
 	srcs := flags.Args()
 
@@ -513,8 +513,8 @@ func (i *importer) Import(path string) (*types.Package, error) {
 }
 
 func (i *importer) readFacts(path string) ([]byte, error) {
-	factPath := i.factMap[path]
-	if factPath == "" {
+	archive := i.factMap[path]
+	if archive == "" {
 		// Packages that were not built with the nogo toolchain will not be
 		// analyzed, so there's no opportunity to store facts. This includes
 		// packages in the standard library and packages built with go_tool_library,
@@ -524,11 +524,17 @@ func (i *importer) readFacts(path string) ([]byte, error) {
 		// fmt.Printf accepts a format string.
 		return nil, nil
 	}
-	data, err := ioutil.ReadFile(factPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not read analysis facts for %q: %v", factPath, err)
+	data, err := readFileInArchive(func(name string) bool {
+		return strings.HasSuffix(name, ".fact")
+	}, archive)
+	if err == fileNotFound {
+		// Packages that were not built with the nogo toolchain will not be
+		// analyzed, so there's no opportunity to store facts. This includes
+		// packages in the standard library and packages built with go_tool_library,
+		// such as coverdata.
+		return nil, nil
 	}
-	return data, nil
+	return data, err
 }
 
 type factMultiFlag map[string]string

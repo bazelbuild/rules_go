@@ -42,8 +42,8 @@ func compile(args []string) error {
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
 	flags.Var(&archives, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	nogo := flags.String("nogo", "", "The nogo binary")
-	outExport := flags.String("x", "", "Path to nogo that should be written")
-	output := flags.String("o", "", "The output object file to write")
+	outExport := flags.String("x", "", "The output archive file to write export data and nogo facts")
+	output := flags.String("o", "", "The output archive file to write compiled code")
 	asmhdr := flags.String("asmhdr", "", "Path to assembly header file to write")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	testfilter := flags.String("testfilter", "off", "Controls test package filtering")
@@ -158,16 +158,15 @@ func compile(args []string) error {
 	// Run nogo concurrently.
 	var nogoOutput bytes.Buffer
 	nogoFailed := false
+	factOut := strings.TrimSuffix(*outExport, filepath.Ext(*outExport)) + ".fact"
 	if *nogo != "" {
 		var nogoargs []string
 		nogoargs = append(nogoargs, "-p", *packagePath)
 		nogoargs = append(nogoargs, "-importcfg", importcfgName)
 		for _, arc := range archives {
-			if arc.xFile != "" {
-				nogoargs = append(nogoargs, "-fact", fmt.Sprintf("%s=%s", arc.importPath, arc.xFile))
-			}
+			nogoargs = append(nogoargs, "-fact", fmt.Sprintf("%s=%s", arc.importPath, arc.xFile))
 		}
-		nogoargs = append(nogoargs, "-x", *outExport)
+		nogoargs = append(nogoargs, "-x", factOut)
 		nogoargs = append(nogoargs, filenames...)
 		nogoCmd := exec.Command(*nogo, nogoargs...)
 		nogoCmd.Stdout, nogoCmd.Stderr = &nogoOutput, &nogoOutput
@@ -184,12 +183,22 @@ func compile(args []string) error {
 	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("error running compiler: %v", err)
 	}
+	pkgDefFile := filepath.Join(filepath.Dir(*output), pkgDef)
+	if err = extractPkgDef(*output, pkgDefFile); err != nil {
+		return err
+	}
 	// Only print the output of nogo if compilation succeeds.
 	if nogoFailed {
 		return fmt.Errorf("%s", nogoOutput.String())
 	}
 	if nogoOutput.Len() != 0 {
 		fmt.Fprintln(os.Stderr, nogoOutput.String())
+	}
+	if *nogo != "" {
+		// TODO is it possible for factOut not created in this case?
+		appendFiles(goenv, *outExport, []string{pkgDefFile, factOut})
+	} else {
+		appendFiles(goenv, *outExport, []string{pkgDefFile})
 	}
 	return nil
 }

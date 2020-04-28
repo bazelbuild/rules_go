@@ -123,17 +123,11 @@ const (
 var zeroBytes = []byte("0                    ")
 
 func extractFiles(archive, dir string, names map[string]struct{}) (files []string, err error) {
-	f, err := os.Open(archive)
+	r, closer, err := openArchive(archive)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-	r := bufio.NewReader(f)
-
-	header := make([]byte, len(arHeader))
-	if _, err := io.ReadFull(r, header); err != nil || string(header) != arHeader {
-		return nil, fmt.Errorf("%s: bad header", archive)
-	}
+	defer closer.Close()
 
 	var nameData []byte
 	for {
@@ -162,6 +156,19 @@ func extractFiles(archive, dir string, names map[string]struct{}) (files []strin
 	}
 }
 
+func openArchive(archive string) (*bufio.Reader, io.Closer, error) {
+	f, err := os.Open(archive)
+	if err != nil {
+		return nil, nil, err
+	}
+	r := bufio.NewReader(f)
+	header := make([]byte, len(arHeader))
+	if _, err := io.ReadFull(r, header); err != nil || string(header) != arHeader {
+		f.Close()
+		return nil, nil, fmt.Errorf("%s: bad header", archive)
+	}
+	return r, f, nil
+}
 // readMetadata reads the relevant fields of an entry. Before calling,
 // r must be positioned at the beginning of an entry. Afterward, r will
 // be positioned at the beginning of the file data. io.EOF is returned if
@@ -329,4 +336,37 @@ func appendFiles(goenv *env, archive string, files []string) error {
 	args := goenv.goTool("pack", "r", archive)
 	args = append(args, files...)
 	return goenv.runCommand(args)
+}
+
+type fileMatcher func(name string) bool
+var fileNotFound = errors.New("file not found in archive")
+
+func readFileInArchive(match fileMatcher, archive string) ([]byte, error) {
+	r, closer, err := openArchive(archive)
+	if err != nil {
+		return nil, err
+	}
+	defer closer.Close()
+
+	var nameData []byte
+	for {
+		name, size, err := readMetadata(r, &nameData)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if match(name) {
+			bodyData := make([]byte, size)
+			if _, err := io.ReadFull(r, bodyData); err != nil {
+				return nil, fmt.Errorf("could not read %s from %q: %v", name, archive, err)
+			}
+			return bodyData, nil
+		}
+		if err := skipFile(r, size); err != nil {
+			return nil, err
+		}
+	}
+	return nil, fileNotFound
 }

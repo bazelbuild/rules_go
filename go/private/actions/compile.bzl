@@ -20,11 +20,10 @@ load(
 def _archive(v):
     importpaths = [v.data.importpath]
     importpaths.extend(v.data.importpath_aliases)
-    return "{}={}={}={}".format(
+    return "{}={}={}".format(
         ":".join(importpaths),
         v.data.importmap,
-        v.data.file.path,
-        v.data.export_file.path if v.data.export_file else "",
+        v.data.export_file.path if v.data.export_file else v.data.file.path,
     )
 
 def emit_compile(
@@ -45,23 +44,21 @@ def emit_compile(
         fail("out_lib is a required parameter")
 
     inputs = (sources + [go.package_list] +
-              [archive.data.file for archive in archives] +
+              [archive.data.export_file for archive in archives] +
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
-    outputs = [out_lib]
+    outputs = [out_lib, out_export]
 
     builder_args = go.builder_args(go, "compile")
     builder_args.add_all(sources, before_each = "-src")
     builder_args.add_all(archives, before_each = "-arc", map_each = _archive)
     builder_args.add("-o", out_lib)
+    builder_args.add("-x", out_export)
     builder_args.add("-package_list", go.package_list)
     if testfilter:
         builder_args.add("-testfilter", testfilter)
     if go.nogo:
         builder_args.add("-nogo", go.nogo)
-        builder_args.add("-x", out_export)
         inputs.append(go.nogo)
-        inputs.extend([archive.data.export_file for archive in archives if archive.data.export_file])
-        outputs.append(out_export)
 
     tool_args = go.tool_args(go)
     if asmhdr:

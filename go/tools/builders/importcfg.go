@@ -28,6 +28,7 @@ import (
 )
 
 type archive struct {
+	//TODO merge aFile and xFile because compile only needs xFile and link only needs aFile
 	label, importPath, packagePath, aFile, xFile string
 	importPathAliases                            []string
 }
@@ -125,7 +126,7 @@ func buildImportcfgFileForCompile(imports map[string]*archive, installSuffix, di
 			if imp != arc.packagePath {
 				fmt.Fprintf(buf, "importmap %s=%s\n", imp, arc.packagePath)
 			}
-			fmt.Fprintf(buf, "packagefile %s=%s\n", arc.packagePath, arc.aFile)
+			fmt.Fprintf(buf, "packagefile %s=%s\n", arc.packagePath, arc.xFile)
 		}
 	}
 
@@ -244,7 +245,7 @@ func (m *compileArchiveMultiFlag) String() string {
 
 func (m *compileArchiveMultiFlag) Set(v string) error {
 	parts := strings.Split(v, "=")
-	if len(parts) != 4 {
+	if len(parts) != 3 {
 		return fmt.Errorf("badly formed -arc flag: %s", v)
 	}
 	importPaths := strings.Split(parts[0], ":")
@@ -252,10 +253,7 @@ func (m *compileArchiveMultiFlag) Set(v string) error {
 		importPath:        importPaths[0],
 		importPathAliases: importPaths[1:],
 		packagePath:       parts[1],
-		aFile:             abs(parts[2]),
-	}
-	if parts[3] != "" {
-		a.xFile = abs(parts[3])
+		xFile:             abs(parts[2]),
 	}
 	*m = append(*m, a)
 	return nil
