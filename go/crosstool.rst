@@ -2,24 +2,32 @@ Configuring a custom C toolchain
 ================================
 
 .. External links are here
-.. _Configuring CROSSTOOL: https://docs.bazel.build/versions/master/tutorial/crosstool.html
-.. _Understanding CROSSTOOL: https://docs.bazel.build/versions/master/crosstool-reference.html
-.. _Yet Another CROSSTOOL Writing Tutorial: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
+.. _Configuring CROSSTOOL: https://docs.bazel.build/versions/0.23.0/tutorial/crosstool.html
+.. _Understanding CROSSTOOL: https://docs.bazel.build/versions/0.23.0/crosstool-reference.html
+.. _Configuring C++ toolchains: https://docs.bazel.build/versions/master/tutorial/cc-toolchain-config.html
 .. _cc_library: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
 .. _crosstool_config.proto: https://github.com/bazelbuild/bazel/blob/master/src/main/protobuf/crosstool_config.proto
 .. _go_binary: go/core.rst#go_binary
 .. _go_library: go/core.rst#go_library
 .. _toolchain: https://docs.bazel.build/versions/master/be/platform.html#toolchain
+.. _#1642: https://github.com/bazelbuild/rules_go/issues/1642
 
 References
 ----------
 
 * `Configuring CROSSTOOL`_
 * `Understanding CROSSTOOL`_
-* `Yet Another CROSSTOOL Writing Tutorial`_
+* `Configuring C++ toolchains`_
 
 Introduction
 ------------
+
+.. warning:
+    This documentation is out of date. Some of the linked Bazel documentation
+    has been deleted in later versions, and there are a number of TODOs.
+    In particular, building and configuring a cross-compiling C++ toolchain
+    and testing it with cgo should be covered. `#1642`_ tracks progress
+    on this.
 
 The Go toolchain sometimes needs access to a working C/C++ toolchain in order to
 produce binaries that contain cgo code or require external linking. rules_go
