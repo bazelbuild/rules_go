@@ -22,12 +22,10 @@ References
 Introduction
 ------------
 
-.. warning:
-    This documentation is out of date. Some of the linked Bazel documentation
-    has been deleted in later versions, and there are a number of TODOs.
-    In particular, building and configuring a cross-compiling C++ toolchain
-    and testing it with cgo should be covered. `#1642`_ tracks progress
-    on this.
+**WARNING:** This documentation is out of date. Some of the linked Bazel
+documentation has been deleted in later versions, and there are a number of
+TODOs. In particular, building and configuring a cross-compiling C++ toolchain
+and testing it with cgo should be covered. `#1642`_ tracks progress on this.
 
 The Go toolchain sometimes needs access to a working C/C++ toolchain in order to
 produce binaries that contain cgo code or require external linking. rules_go
