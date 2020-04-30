@@ -435,11 +435,11 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 	cmd.Stdout, cmd.Stderr = out, out
 	if err := cmd.Run(); err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
-			if len(exitErr.Stderr) > 0 {
-				fmt.Fprintln(os.Stderr, string(exitErr.Stderr))
+			if !exitErr.Exited() {
+				cmdLine := strings.Join(args, " ")
+				return fmt.Errorf("nogo command '%s' exited unexpectedly: %s", cmdLine, exitErr.String())
 			}
-			cmdLine := strings.Join(args, " ")
-			return fmt.Errorf("nogo command '%s' exited unexpectedly: %s", cmdLine, exitErr.String())
+			return errors.New(out.String())
 		} else {
 			if out.Len() != 0 {
 				fmt.Fprintln(os.Stderr, out.String())
