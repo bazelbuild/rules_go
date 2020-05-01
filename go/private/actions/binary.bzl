@@ -48,7 +48,7 @@ def emit_binary(
             extension = ARCHIVE_EXTENSION
         elif go.mode.link == LINKMODE_PLUGIN:
             extension = go.shared_extension
-        executable = go.declare_file(go, name = name, ext = extension)
+        executable = go.declare_file(go, path = name, ext = extension)
     go.link(
         go,
         archive = archive,

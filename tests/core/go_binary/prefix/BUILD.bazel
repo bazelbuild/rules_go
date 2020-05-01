@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "prefix",
+    srcs = ["prefix.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_binary/prefix",
+    visibility = ["//tests/core/go_binary:__pkg__"],
+)

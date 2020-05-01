@@ -164,3 +164,8 @@ go_library(
     importpath = "tags_lib",
     tags = ["manual"],
 )
+
+go_binary(
+    name = "prefix",
+    embed = ["//tests/core/go_binary/prefix"],
+)

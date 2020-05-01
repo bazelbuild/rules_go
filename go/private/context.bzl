@@ -105,10 +105,12 @@ def _filter_options(options, blacklist):
 def _child_name(go, path, ext, name):
     if not name:
         name = go._ctx.label.name
+        if path or not ext:
+            # The '_' avoids collisions with another file matching the label name.
+            # For example, hello and hello/testmain.go.
+            name += "_"
     if path:
-        # The '_' avoids collisions with another file matching the label name.
-        # For example, hello and hello/testmain.go.
-        name += "_/" + path
+        name += "/" + path
     if ext:
         name += ext
     return name
