@@ -6,7 +6,7 @@ Extra rules
 .. _`gazelle documentation`: https://github.com/bazelbuild/bazel-gazelle/blob/master/README.rst
 .. _gazelle rule: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
 .. _gomock_rule: https://github.com/jmhodges/bazel_gomock
-.. _golang/mock: github.com/golang/mock
+.. _golang/mock: https://github.com/golang/mock
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
