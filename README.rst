@@ -291,7 +291,8 @@ file.
 This declares a ``gazelle`` binary rule, which you can run using the command
 below:
 
-.. code::
+.. code:: bash
+
     bazel run //:gazelle
 
 This will generate a ``BUILD.bazel`` file with `go_library`_, `go_binary`_, and
