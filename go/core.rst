@@ -31,7 +31,7 @@ Core Go rules
 .. |mandatory| replace:: **mandatory value**
 
 These are the core go rules, required for basic operation.
-The intent is that theses rules are sufficient to match the capabilities of the normal go tools.
+The intent is that these rules are sufficient to match the capabilities of the normal go tools.
 
 .. contents:: :depth: 2
 
@@ -76,7 +76,7 @@ and values are the string to use. Keys may be names of variables in the package
 being compiled, or they may be fully qualified names of variables in another
 package.
 
-These mappings are collected up across the entire transitive dependancies of a
+These mappings are collected up across the entire transitive dependencies of a
 binary. This means you can set a value using :param:`x_defs` in a
 ``go_library``, and any binary that links that library will be stamped with that
 value. You can also override stamp values from libraries using :param:`x_defs`
@@ -527,7 +527,7 @@ Attributes
 | :param:`msan`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
-| code for memory santization. It may be :value:`on`, :value:`off`, or                             |
+| code for memory sanitization. It may be :value:`on`, :value:`off`, or                             |
 | :value:`auto`. In most cases, it's better to enable memory sanitization                          |
 | globally with ``--@io_bazel_rules_go//go/config:msan`` on the command line.                      |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -743,7 +743,7 @@ Attributes
 | :param:`msan`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
-| code for memory santization. It may be :value:`on`, :value:`off`, or                             |
+| code for memory sanitization. It may be :value:`on`, :value:`off`, or                             |
 | :value:`auto`. In most cases, it's better to enable memory sanitization                          |
 | globally with ``--@io_bazel_rules_go//go/config:msan`` on the command line.                      |
 +----------------------------+-----------------------------+---------------------------------------+
