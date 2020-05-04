@@ -19,10 +19,6 @@
 .. footer:: The ``nogo`` logo was derived from the Go gopher, which was designed by Renee French. (http://reneefrench.blogspot.com/) The design is licensed under the Creative Commons 3.0 Attributions license. Read this article for more details: http://blog.golang.org/gopher
 
 
-**WARNING**: This functionality is experimental, so its API might change.
-Please do not rely on it for production use, but feel free to use it and file
-issues.
-
 ``nogo`` is a tool that analyzes the source code of Go programs. It runs
 alongside the Go compiler in the Bazel Go rules and rejects programs that
 contain disallowed coding patterns. In addition, ``nogo`` may report
@@ -67,17 +63,19 @@ want to run.
         visibility = ["//visibility:public"],
     )
 
-Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
-``WORKSPACE`` file.
+To build with this ``nogo`` target, use the
+``--@io_bazel_rules_go//go/config:nogo`` command line flag.
 
-.. code:: bzl
+.. code::
 
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-    go_rules_dependencies()
-    go_register_toolchains(nogo = "@//:my_nogo") # my_nogo is in the top-level BUILD file of this workspace
+    bazel build --@io_bazel_rules_go//go/config:nogo=//:my_nogo //:my_binary
 
-**NOTE**: You must include ``"@//"`` prefix when referring to targets in the local
-workspace.
+For convenience, you can add this to your workspace's ``.bazelrc`` file to
+avoid having to type this out for every command.
+
+.. code::
+
+    build --@io_bazel_rules_go//go/config:nogo=//:my_nogo
 
 The `nogo`_ rule will generate a program that executes all the supplied
 analyzers at build-time. The generated ``nogo`` program will run alongside the
@@ -86,13 +84,13 @@ even if the target is imported from an external repository. However, ``nogo``
 will not run when targets from the current repository are imported into other
 workspaces and built there.
 
-To run all the ``golang.org/x/tools`` analyzers, use ``@io_bazel_rules_go//:tools_nogo``.
+The target ``@io_bazel_rules_go//:tools_nogo`` contains the analyzers from
+``golang.org/x/tools``. This is the same set of analyzers that ``go vet`` uses.
+You can use this instead of declaring your own ``nogo`` target.
 
-.. code:: bzl
+.. code::
 
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-    go_rules_dependencies()
-    go_register_toolchains(nogo = "@io_bazel_rules_go//:tools_nogo")
+    build --@io_bazel_rules_go//go/config:nogo=@io_bazel_rules_go//:tools_nogo
 
 To run the analyzers from ``tools_nogo`` together with your own analyzers, use
 the ``TOOLS_NOGO`` list of dependencies.

@@ -9,6 +9,7 @@ Contents
 .. Child list start
 
 * `Vet check <vet/README.rst>`_
+* `Nogo flags <flag/README.rst>`_
 * `Nogo configuration <config/README.rst>`_
 * `nogo analyzers with dependencies <deps/README.rst>`_
 * `Custom nogo analyzers <custom/README.rst>`_

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT_NOGO = "@io_bazel_rules_go//:default_nogo"
-
 def _go_register_nogo_impl(ctx):
     ctx.template(
         "BUILD.bazel",
@@ -31,6 +29,6 @@ def _go_register_nogo_impl(ctx):
 go_register_nogo = repository_rule(
     _go_register_nogo_impl,
     attrs = {
-        "nogo": attr.string(mandatory = True),
+        "nogo": attr.string(default = "@io_bazel_rules_go//:default_nogo"),
     },
 )

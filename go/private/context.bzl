@@ -491,7 +491,12 @@ def go_context(ctx, attr = None):
 
 def _go_context_data_impl(ctx):
     coverdata = ctx.attr.coverdata[GoArchive]
-    nogo = ctx.files.nogo[0] if ctx.files.nogo else None
+    nogo = None
+    if ctx.attr.nogo and DefaultInfo in ctx.attr.nogo:
+        # TODO: may need multiple files and runfiles.
+        nogo_files = ctx.attr.nogo[DefaultInfo].files.to_list()
+        if nogo_files:
+            nogo = nogo_files[0]
     providers = [
         GoContextInfo(
             coverdata = ctx.attr.coverdata[GoArchive],
@@ -517,7 +522,6 @@ go_context_data = rule(
             providers = [GoConfigInfo],
         ),
         "nogo": attr.label(
-            mandatory = True,
             cfg = "exec",
         ),
         "stdlib": attr.label(

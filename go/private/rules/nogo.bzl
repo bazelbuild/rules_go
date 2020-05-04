@@ -17,11 +17,57 @@ load(
     "go_context",
 )
 load(
+    "@io_bazel_rules_go//go/private:mode.bzl",
+    "LINKMODE_NORMAL",
+)
+load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "EXPORT_PATH",
     "GoArchive",
     "GoLibrary",
     "get_archive",
+)
+load(
+    "@io_bazel_rules_go//go/private:rules/transition.bzl",
+    "filter_transition_label",
+)
+
+_nogo_transition_dict = {
+    "@io_bazel_rules_go//go/config:static": False,
+    "@io_bazel_rules_go//go/config:msan": False,
+    "@io_bazel_rules_go//go/config:race": False,
+    "@io_bazel_rules_go//go/config:pure": False,
+    "@io_bazel_rules_go//go/config:strip": False,
+    "@io_bazel_rules_go//go/config:debug": False,
+    "@io_bazel_rules_go//go/config:linkmode": LINKMODE_NORMAL,
+    "@io_bazel_rules_go//go/config:tags": [],
+    "@io_bazel_rules_go//go/private:need_nogo_flag": False,
+}
+
+_nogo_transition_keys = sorted([filter_transition_label(label) for label in _nogo_transition_dict.keys()])
+
+def _nogo_transition_impl(settings, attr):
+    """Ensures nogo is built in a safe configuration without a dependency cycle.
+
+    nogo_transition sets all of the //go/config settings to their default
+    values. The nogo binary shouldn't depend on the link mode or tags of the
+    binary being checked. This transition doesn't explicitly change the
+    platform (goos, goarch), but nogo dependencies should have `cfg = "exec"`,
+    so nogo binaries should be built for the execution platform.
+    """
+    # TODO(bazelbuild/bazel#11291): When this bug is resolved, instead of
+    # setting //go/private:need_nogo_flag, we should set //go/config:nogo to
+    # //:default_nogo.
+
+    settings = dict(settings)
+    for label, value in _nogo_transition_dict.items():
+        settings[filter_transition_label(label)] = value
+    return settings
+
+nogo_transition = transition(
+    implementation = _nogo_transition_impl,
+    inputs = _nogo_transition_keys,
+    outputs = _nogo_transition_keys,
 )
 
 def _nogo_impl(ctx):
@@ -94,8 +140,12 @@ nogo = rule(
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
         "_go_config": attr.label(default = "//:go_config"),
         "_stdlib": attr.label(default = "//:stdlib"),
+        "_whitelist_function_transition": attr.label(
+            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        ),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    cfg = nogo_transition,
 )
 
 def nogo_wrapper(**kwargs):
@@ -109,3 +159,10 @@ def nogo_wrapper(**kwargs):
         ]
         kwargs = {k: v for k, v in kwargs.items() if k != "vet"}
     nogo(**kwargs)
+
+def _default_nogo_impl(ctx):
+    pass
+
+default_nogo = rule(
+    implementation = _default_nogo_impl,
+)
