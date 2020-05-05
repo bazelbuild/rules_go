@@ -62,7 +62,7 @@ alias(
     name = "nogo_alias",
     actual = select({
         "//go/private:need_nogo": "//go/config:nogo",
-        "//conditions:default": None,
+        "//conditions:default": "//:default_nogo",
     }),
 )
 
