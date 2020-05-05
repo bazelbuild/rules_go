@@ -527,7 +527,7 @@ Attributes
 | :param:`msan`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
-| code for memory sanitization. It may be :value:`on`, :value:`off`, or                             |
+| code for memory sanitization. It may be :value:`on`, :value:`off`, or                            |
 | :value:`auto`. In most cases, it's better to enable memory sanitization                          |
 | globally with ``--@io_bazel_rules_go//go/config:msan`` on the command line.                      |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -743,7 +743,7 @@ Attributes
 | :param:`msan`              | :type:`string`              | :value:`auto`                         |
 +----------------------------+-----------------------------+---------------------------------------+
 | This is one of the `mode attributes`_ that controls whether to instrument                        |
-| code for memory sanitization. It may be :value:`on`, :value:`off`, or                             |
+| code for memory sanitization. It may be :value:`on`, :value:`off`, or                            |
 | :value:`auto`. In most cases, it's better to enable memory sanitization                          |
 | globally with ``--@io_bazel_rules_go//go/config:msan`` on the command line.                      |
 +----------------------------+-----------------------------+---------------------------------------+
