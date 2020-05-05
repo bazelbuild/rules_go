@@ -137,9 +137,7 @@ nogo = rule(
         "_nogo_srcs": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:nogo_srcs",
         ),
-        "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
-        "_go_config": attr.label(default = "//:go_config"),
-        "_stdlib": attr.label(default = "//:stdlib"),
+        "_go_context_data": attr.label(default = "//:go_context_data"),
         "_whitelist_function_transition": attr.label(
             default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
         ),
@@ -151,11 +149,11 @@ nogo = rule(
 def nogo_wrapper(**kwargs):
     if kwargs.get("vet"):
         kwargs["deps"] = kwargs.get("deps", []) + [
-            "@org_golang_x_tools//go/analysis/passes/atomic:go_tool_library",
-            "@org_golang_x_tools//go/analysis/passes/bools:go_tool_library",
-            "@org_golang_x_tools//go/analysis/passes/buildtag:go_tool_library",
-            "@org_golang_x_tools//go/analysis/passes/nilfunc:go_tool_library",
-            "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
+            "@org_golang_x_tools//go/analysis/passes/atomic:go_default_library",
+            "@org_golang_x_tools//go/analysis/passes/bools:go_default_library",
+            "@org_golang_x_tools//go/analysis/passes/buildtag:go_default_library",
+            "@org_golang_x_tools//go/analysis/passes/nilfunc:go_default_library",
+            "@org_golang_x_tools//go/analysis/passes/printf:go_default_library",
         ]
         kwargs = {k: v for k, v in kwargs.items() if k != "vet"}
     nogo(**kwargs)

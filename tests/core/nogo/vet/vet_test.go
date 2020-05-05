@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
 		Main: `
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library", "nogo")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "nogo")
 
 nogo(
     name = "nogo",

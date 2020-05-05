@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		Nogo: "@//:nogo",
 		Main: `
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library", "nogo")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "nogo")
 
 nogo(
     name = "nogo",
@@ -44,29 +44,29 @@ nogo(
     visibility = ["//visibility:public"],
 )
 
-go_tool_library(
+go_library(
     name = "importfmt",
     srcs = ["importfmt.go"],
     importpath = "importfmtanalyzer",
-    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+    deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
     visibility = ["//visibility:public"],
 )
 
-go_tool_library(
+go_library(
     name = "foofuncname",
     srcs = ["foofuncname.go"],
     importpath = "foofuncanalyzer",
-    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+    deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
     visibility = ["//visibility:public"],
 )
 
-go_tool_library(
+go_library(
     name = "visibility",
     srcs = ["visibility.go"],
     importpath = "visibilityanalyzer",
     deps = [
-        "@org_golang_x_tools//go/analysis:go_tool_library",
-        "@org_golang_x_tools//go/ast/inspector:go_tool_library",
+        "@org_golang_x_tools//go/analysis:go_default_library",
+        "@org_golang_x_tools//go/ast/inspector:go_default_library",
     ],
     visibility = ["//visibility:public"],
 )

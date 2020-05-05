@@ -3,7 +3,6 @@
 
 .. _nogo: nogo.rst#nogo
 .. _go_library: core.rst#go_library
-.. _go_tool_library: core.rst#go_tool_library
 .. _analysis: https://godoc.org/golang.org/x/tools/go/analysis
 .. _Analyzer: https://godoc.org/golang.org/x/tools/go/analysis#Analyzer
 .. _GoLibrary: providers.rst#GoLibrary
@@ -50,16 +49,16 @@ want to run.
             # analyzer from the local repository
             ":importunsafe",
             # analyzer from a remote repository
-            "@org_golang_x_tools//go/analysis/passes/printf:go_tool_library",
+            "@org_golang_x_tools//go/analysis/passes/printf:go_default_library",
         ],
         visibility = ["//visibility:public"], # must have public visibility
     )
 
-    go_tool_library(
+    go_library(
         name = "importunsafe",
         srcs = ["importunsafe.go"],
         importpath = "importunsafe",
-        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+        deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
         visibility = ["//visibility:public"],
     )
 
@@ -97,7 +96,7 @@ the ``TOOLS_NOGO`` list of dependencies.
 
 .. code:: bzl
 
-    load("@io_bazel_rules_go//go:def.bzl", "nogo", "TOOLS_NOGO")
+    load("@io_bazel_rules_go//go:def.bzl", "go_library", "nogo", "TOOLS_NOGO")
 
     nogo(
         name = "my_nogo",
@@ -108,11 +107,11 @@ the ``TOOLS_NOGO`` list of dependencies.
         visibility = ["//visibility:public"], # must have public visibility
     )
 
-    go_tool_library(
+    go_library(
         name = "importunsafe",
         srcs = ["importunsafe.go"],
         importpath = "importunsafe",
-        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+        deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
         visibility = ["//visibility:public"],
     )
 
@@ -157,39 +156,34 @@ already been run. For example:
 Any diagnostics reported by the analyzer will stop the build. Do not emit
 diagnostics unless they are severe enough to warrant stopping the build.
 
-Each analyzer must be written as a `go_tool_library`_ rule and must import
-`@org_golang_x_tools//go/analysis:go_tool_library`, the `go_tool_library`_
-version of the package `analysis`_ target.
+Each analyzer must be written as a `go_library`_ rule and should import
+`@org_golang_x_tools//go/analysis:go_default_library`, the package anaysis
+framework.
 
 For example:
 
 .. code:: bzl
 
-    load("@io_bazel_rules_go//go:def.bzl", "go_tool_library")
+    load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
-    go_tool_library(
+    go_library(
         name = "importunsafe",
         srcs = ["importunsafe.go"],
         importpath = "importunsafe",
-        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+        deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
         visibility = ["//visibility:public"],
     )
 
-    go_tool_library(
+    go_library(
         name = "unsafedom",
         srcs = [
             "check_dom.go",
             "dom_utils.go",
         ],
         importpath = "unsafedom",
-        deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+        deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
         visibility = ["//visibility:public"],
     )
-
-**NOTE**: `go_tool_library`_ is a limited variant of ``go_library`` which avoids
-a circular dependency: `go_library`_ implicitly depends on `nogo`_, which
-depends on analyzer libraries, which must not depend on `nogo`_.
-`go_tool_library`_ does not have the same implicit dependency.
 
 Pass labels for these targets to the ``deps`` attribute of your `nogo`_ target,
 as described in the `Setup`_ section.
@@ -301,7 +295,7 @@ See the full list of available nogo checks:
 
 .. code:: shell
 
-    bazel query 'kind(go_tool_library, @org_golang_x_tools//go/analysis/passes/...)'
+    bazel query 'kind(go_library, @org_golang_x_tools//go/analysis/passes/...)'
 
 
 API
@@ -330,10 +324,6 @@ Attributes
 |                                                                                                  |
 | These libraries must declare an ``analysis.Analyzer`` variable named `Analyzer` to ensure that   |
 | the analyzers they implement are called by nogo.                                                 |
-|                                                                                                  |
-| To avoid bootstrapping problems, these libraries must be `go_tool_library`_ targets, and must    |
-| import `@org_golang_x_tools//go/analysis:go_tool_library`, the `go_tool_library`_ version of     |
-| the package `analysis`_ target.                                                                  |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`config`            | :type:`label`               | :value:`None`                         |
 +----------------------------+-----------------------------+---------------------------------------+

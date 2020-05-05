@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 		Nogo: "@//:nogo",
 		Main: `
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library", "nogo")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "nogo")
 
 nogo(
     name = "nogo",
@@ -39,44 +39,44 @@ nogo(
     visibility = ["//visibility:public"],
 )
 
-go_tool_library(
+go_library(
     name = "a",
     srcs = ["a.go"],
     importpath = "a",
     deps = [
         ":c",
-        "@org_golang_x_tools//go/analysis:go_tool_library"
+        "@org_golang_x_tools//go/analysis:go_default_library"
     ],
     visibility = ["//visibility:public"],
 )
 
-go_tool_library(
+go_library(
     name = "b",
     srcs = ["b.go"],
     importpath = "b",
     deps = [
         ":c",
-        "@org_golang_x_tools//go/analysis:go_tool_library"
+        "@org_golang_x_tools//go/analysis:go_default_library"
     ],
     visibility = ["//visibility:public"],
 )
 
-go_tool_library(
+go_library(
     name = "c",
     srcs = ["c.go"],
     importpath = "c",
     deps = [
         ":d",
-        "@org_golang_x_tools//go/analysis:go_tool_library"
+        "@org_golang_x_tools//go/analysis:go_default_library"
     ],
     visibility = ["//visibility:public"],
 )
 
-go_tool_library(
+go_library(
     name = "d",
     srcs = ["d.go"],
     importpath = "d",
-    deps = ["@org_golang_x_tools//go/analysis:go_tool_library"],
+    deps = ["@org_golang_x_tools//go/analysis:go_default_library"],
     visibility = ["//visibility:public"],
 )
 
