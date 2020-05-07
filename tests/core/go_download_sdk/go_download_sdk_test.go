@@ -64,11 +64,11 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
 
 go_download_sdk(
     name = "go_sdk",
-    version = "1.12.13",
+    version = "1.13",
 )
 
 `,
-			wantVersion: "go1.12.13",
+			wantVersion: "go1.13",
 		}, {
 			desc: "custom_archives",
 			rule: `
@@ -77,13 +77,13 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
 go_download_sdk(
     name = "go_sdk",
     sdks = {
-        "darwin_amd64":      ("go1.12.13.darwin-amd64.tar.gz", "6d3de6f7d7c0e8162aaa009128839fa5afcba578dcbd6ff034a82419d82480e9"),
-        "linux_amd64":       ("go1.12.13.linux-amd64.tar.gz", "da036454cb3353f9f507f0ceed4048feac611065e4e1818b434365eb32ac9bdc"),
-        "windows_amd64":     ("go1.12.13.windows-amd64.zip", "c441a298e8b510d3cdabfd361885cd6762e33eaceb27cbb0eabe6757f9d1f07d"),
+        "darwin_amd64": ("go1.13.darwin-amd64.tar.gz", "234ebbba1fbed8474340f79059cfb3af2a0f8b531c4ff0785346e0710e4003dd"),
+        "linux_amd64": ("go1.13.linux-amd64.tar.gz", "68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856"),
+        "windows_amd64": ("go1.13.windows-amd64.zip", "7d162b83157d3171961f8e05a55b7da8476244df3fac28a5da1c9e215acfea89"),
     },
 )
 `,
-			wantVersion: "go1.12.13",
+			wantVersion: "go1.13",
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
