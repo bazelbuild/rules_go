@@ -14,6 +14,7 @@ Contents
 
 .. Child list start
 
+* `Gazelle functionality <gazelle/README.rst>`_
 * `Popular repository tests <popular_repos/README.rst>`_
 * `Reproducibility <reproducibility/README.rst>`_
 * `Functionality related to @go_googleapis <googleapis/README.rst>`_

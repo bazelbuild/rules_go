@@ -10,3 +10,10 @@ go_library(
         "//go/tools/internal/txtar:go_default_library",
     ],
 )
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
