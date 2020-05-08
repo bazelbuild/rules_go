@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
 		Main: `
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "nogo")
+load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_tool_library", "nogo")
 
 go_test(
     name = "coverage_target",
@@ -32,7 +32,7 @@ go_test(
     deps = [":coverage_target_dep"],
 )
 
-go_library(
+go_tool_library(
     name = "coverage_target_dep",
     importmap = "mapped/coverage_target/dep",
     importpath = "coverage_target/dep",

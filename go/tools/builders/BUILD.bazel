@@ -50,12 +50,17 @@ go_source(
         "flags.go",
         "nogo_main.go",
     ],
+    # //go/tools/builders:nogo_srcs is considered a different target by
+    # Bazel's visibility check than
+    # @io_bazel_rules_go//go/tools/builders:nogo_srcs. Only the latter is
+    # allowed to depend on
+    # @org_golang_x_tools//go/analysis/internal/facts:go_tool_library.
     tags = ["manual"],
     visibility = ["//visibility:public"],
     deps = [
-        "@org_golang_x_tools//go/analysis:go_default_library",
-        "@org_golang_x_tools//go/analysis/internal/facts:go_default_library",
-        "@org_golang_x_tools//go/gcexportdata:go_default_library",
+        "@org_golang_x_tools//go/analysis:go_tool_library",
+        "@org_golang_x_tools//go/analysis/internal/facts:go_tool_library",
+        "@org_golang_x_tools//go/gcexportdata:go_tool_library",
     ],
 )
 

@@ -24,7 +24,6 @@ Core Go rules
 .. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
 .. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
 .. _write a CROSSTOOL file: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
-.. _Deprecation schedule: https://github.com/bazelbuild/rules_go/wiki/Deprecation-schedule
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -386,11 +385,9 @@ the same package.
 
 This rule is a limited variant of ``go_library`` which may be used to
 bootstrap tools used by rules_go. This avoids a circular dependency.
-
-**DEPRECATED:** This rule should no longer be used. ``go_library`` should be
-used instead. This was previously needed for ``nogo`` to avoid a circular
-dependency, but it's no longer necessary. See `Deprecation schedule`_ for more
-information.
+If you are building analyzers to be linked into a `nogo`_ binary, you'll
+need to use ``go_tool_library`` since ``go_library`` depends on `nogo`_
+implicitly.
 
 Providers
 ^^^^^^^^^
