@@ -26,7 +26,7 @@ load(
     "IS_RULES_GO",
 )
 
-def filter_transition_label(label):
+def _filter_transition_label(label):
     """Transforms transition labels for the current workspace.
 
     This is a workaround for bazelbuild/bazel#10499. If a transition refers to
@@ -120,7 +120,7 @@ def _go_transition_impl(settings, attr):
         platform = "@io_bazel_rules_go//go/toolchain:{}_{}{}".format(goos, goarch, "_cgo" if cgo else "")
         settings["//command_line_option:platforms"] = platform
     if pure != "auto":
-        pure_label = filter_transition_label("@io_bazel_rules_go//go/config:pure")
+        pure_label = _filter_transition_label("@io_bazel_rules_go//go/config:pure")
         settings[pure_label] = pure == "on"
 
     _set_ternary(settings, attr, "static")
@@ -129,21 +129,21 @@ def _go_transition_impl(settings, attr):
 
     tags = getattr(attr, "gotags", [])
     if tags:
-        tags_label = filter_transition_label("@io_bazel_rules_go//go/config:tags")
+        tags_label = _filter_transition_label("@io_bazel_rules_go//go/config:tags")
         settings[tags_label] = tags
 
     linkmode = getattr(attr, "linkmode", "auto")
     if linkmode != "auto":
         if linkmode not in LINKMODES:
             fail("linkmode: invalid mode {}; want one of {}".format(linkmode, ", ".join(LINKMODES)))
-        linkmode_label = filter_transition_label("@io_bazel_rules_go//go/config:linkmode")
+        linkmode_label = _filter_transition_label("@io_bazel_rules_go//go/config:linkmode")
         settings[linkmode_label] = linkmode
 
     return settings
 
 go_transition = transition(
     implementation = _go_transition_impl,
-    inputs = [filter_transition_label(label) for label in [
+    inputs = [_filter_transition_label(label) for label in [
         "//command_line_option:platforms",
         "@io_bazel_rules_go//go/config:static",
         "@io_bazel_rules_go//go/config:msan",
@@ -152,7 +152,7 @@ go_transition = transition(
         "@io_bazel_rules_go//go/config:tags",
         "@io_bazel_rules_go//go/config:linkmode",
     ]],
-    outputs = [filter_transition_label(label) for label in [
+    outputs = [_filter_transition_label(label) for label in [
         "//command_line_option:platforms",
         "@io_bazel_rules_go//go/config:static",
         "@io_bazel_rules_go//go/config:msan",
@@ -171,5 +171,5 @@ def _set_ternary(settings, attr, name):
     value = getattr(attr, name, "auto")
     _check_ternary(name, value)
     if value != "auto":
-        label = filter_transition_label("@io_bazel_rules_go//go/config:{}".format(name))
+        label = _filter_transition_label("@io_bazel_rules_go//go/config:{}".format(name))
         settings[label] = value == "on"

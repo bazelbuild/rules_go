@@ -1,5 +1,3 @@
-load("@bazel_skylib//rules:common_settings.bzl", "bool_setting")
-
 filegroup(
     name = "all_rules",
     srcs = glob(["**/*.bzl"]),
@@ -31,22 +29,4 @@ config_setting(
 config_setting(
     name = "stamp",
     values = {"stamp": "true"},
-)
-
-# need_nogo_flag is set to false by nogo's incoming edge transition. It's used
-# to control whether //:nogo_alias depends on //go/config:nogo to break
-# a dependency cycle.
-# TODO(bazelbuild/bazel#11291): the cycle shouldn't exist if transitions
-# are taken into account, so this should be removed at some point.
-bool_setting(
-    name = "need_nogo_flag",
-    build_setting_default = True,
-)
-
-config_setting(
-    name = "need_nogo",
-    flag_values = {
-        ":need_nogo_flag": "True",
-    },
-    visibility = ["//:__pkg__"],
 )

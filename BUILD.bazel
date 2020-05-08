@@ -4,7 +4,6 @@ load(
 )
 load(
     "@io_bazel_rules_go//go/private:rules/nogo.bzl",
-    "default_nogo",
     "nogo",
 )
 load(
@@ -39,7 +38,7 @@ stdlib(
 # default_nogo is the nogo target that nogo references by default. It
 # does not analyze anything, which means no binary is built or run
 # at compile time.
-default_nogo(
+nogo(
     name = "default_nogo",
     visibility = ["//visibility:public"],
 )
@@ -54,18 +53,6 @@ nogo(
     deps = TOOLS_NOGO,
 )
 
-# nogo_alias points to the nogo flag which points to the active nogo binary
-# when nogo is enabled.
-# TODO(bazelbuild/bazel#11291): This exists to avoid a dependency cycle, but
-# the cycle shouldn't exist when transitions are taken into account.
-alias(
-    name = "nogo_alias",
-    actual = select({
-        "//go/private:need_nogo": "//go/config:nogo",
-        "//conditions:default": "//:default_nogo",
-    }),
-)
-
 # go_context_data collects build options and is depended on by all Go targets.
 # It may depend on cgo_context_data if CGo isn't disabled.
 go_context_data(
@@ -76,7 +63,7 @@ go_context_data(
     }),
     coverdata = "//go/tools/coverdata",
     go_config = ":go_config",
-    nogo = ":nogo_alias",
+    nogo = "@io_bazel_rules_nogo//:nogo",
     stdlib = ":stdlib",
     visibility = ["//visibility:public"],
 )

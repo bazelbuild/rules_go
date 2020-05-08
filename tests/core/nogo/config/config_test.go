@@ -28,35 +28,35 @@ func TestMain(m *testing.M) {
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_binary(
-    name = "shared_bin",
-    srcs = ["shared_bin.go"],
-    linkmode = "c-shared",
-    deps = [":shared_lib"],
+    name = "pure_bin",
+    srcs = ["pure_bin.go"],
+    pure = "on",
+    deps = [":pure_lib"],
 )
 
 go_library(
-    name = "shared_lib",
-    srcs = ["shared_lib.go"],
-    importpath = "example.com/nogo/config/shared_lib",
+    name = "pure_lib",
+    srcs = ["pure_lib.go"],
+    importpath = "example.com/nogo/config/pure_lib",
 )    
 
--- shared_bin.go --
+-- pure_bin.go --
 package main
 
-import _ "example.com/nogo/config/shared_lib"
+import _ "example.com/nogo/config/pure_lib"
 
 func main() {
 }
 
--- shared_lib.go --
-package shared_lib
+-- pure_lib.go --
+package pure_lib
 
 `,
 	})
 }
 
-func TestShared(t *testing.T) {
-	if err := bazel_testing.RunBazel("build", "//:shared_bin"); err != nil {
+func TestPureAspect(t *testing.T) {
+	if err := bazel_testing.RunBazel("build", "//:pure_bin"); err != nil {
 		t.Fatal(err)
 	}
 }

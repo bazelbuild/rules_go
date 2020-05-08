@@ -1,7 +1,0 @@
-load("//go/tools/bazel_testing:def.bzl", "go_bazel_test")
-
-go_bazel_test(
-    name = "flag_test",
-    size = "large",
-    srcs = ["flag_test.go"],
-)
