@@ -386,7 +386,13 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 		}
 		// Discard diagnostics based on the analyzer configuration.
 		for _, d := range act.diagnostics {
-			filename := pkg.fset.File(d.Pos).Name()
+			// NOTE(golang.org/issue/31008): nilness does not set positions,
+			// so don't assume the position is valid.
+			f := pkg.fset.File(d.Pos)
+			filename := "-"
+			if f != nil {
+				filename = f.Name()
+			}
 			include := true
 			if len(config.onlyFiles) > 0 {
 				// This analyzer emits diagnostics for only a set of files.
