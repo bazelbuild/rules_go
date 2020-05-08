@@ -320,6 +320,7 @@ platforms:
     - "-//tests/core/nogo/vet:vet_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
+    - "-//tests/integration/gazelle:gazelle_test"
     - "-//tests/integration/googleapis:color_service_test"
     - "-//tests/integration/reproducibility:reproducibility_test"
     - "-//tests/legacy/examples/cgo/example_command:example_command_test"
