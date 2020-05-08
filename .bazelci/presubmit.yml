@@ -316,6 +316,7 @@ platforms:
     - "-//tests/core/go_proto_library:transitive_test"
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
+    - "-//tests/core/nogo/config:config_test"
     - "-//tests/core/nogo/coverage:coverage_test"
     - "-//tests/core/nogo/vet:vet_test"
     - "-//tests/core/stdlib:buildid_test"
