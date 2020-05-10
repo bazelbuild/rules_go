@@ -36,10 +36,6 @@ load(
     "LINKMODE_PLUGIN",
     "LINKMODE_SHARED",
 )
-load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
-)
 
 def _go_binary_impl(ctx):
     """go_binary_impl emits actions for compiling and linking a go executable."""
@@ -118,23 +114,50 @@ def _go_tool_binary_impl(ctx):
     name = ctx.label.name
     if sdk.goos == "windows":
         name += ".exe"
+
+    cout = ctx.actions.declare_file(name + ".a")
+    if sdk.goos == "windows":
+        cmd = "@echo off\n {go} tool compile -o {cout} -trimpath=%cd% {srcs}".format(
+            go = sdk.go.path.replace('/', '\\'),
+            cout = cout.path,
+            srcs = ' '.join([f.path for f in ctx.files.srcs]),
+        )
+        bat = ctx.actions.declare_file(name + ".bat")
+        ctx.actions.write(
+            output = bat,
+            content = cmd,
+        )
+        ctx.actions.run(
+            executable = bat,
+            inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
+            outputs = [cout],
+            env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
+            mnemonic = "GoToolchainBinaryCompile",
+        )
+    else:
+        cmd = "{go} tool compile -o {cout} -trimpath=$PWD {srcs}".format(
+            go = sdk.go.path,
+            cout = cout.path,
+            srcs = ' '.join([f.path for f in ctx.files.srcs]),
+        )
+        ctx.actions.run_shell(
+            command = cmd,
+            inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
+            outputs = [cout],
+            env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
+            mnemonic = "GoToolchainBinaryCompile",
+        )
+
     out = ctx.actions.declare_file(name)
-
-    command_tpl = ("{go} tool compile -o {out}.a -I {goroot} -trimpath=$PWD $@ && " +
-                   "{go} tool link -o {out} -L {goroot} {out}.a && " +
-                   "rm {out}.a")
-    command = command_tpl.format(
-        go = shell.quote(sdk.go.path),
-        goroot = shell.quote(sdk.root_file.dirname),
-        out = shell.quote(out.path),
-    )
-
-    ctx.actions.run_shell(
-        inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
+    largs = ctx.actions.args()
+    largs.add_all(["tool", "link"])
+    largs.add("-o", out)
+    largs.add(cout)
+    ctx.actions.run(
+        executable = sdk.go,
+        arguments = [largs],
+        inputs = sdk.libs + sdk.headers + sdk.tools + [cout],
         outputs = [out],
-        env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
-        command = command,
-        arguments = [f.path for f in ctx.files.srcs],
         mnemonic = "GoToolchainBinary",
     )
 
