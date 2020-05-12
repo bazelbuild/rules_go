@@ -420,6 +420,7 @@ func compileArchive(
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", pkgDefPath, err)
 	}
+	defer pkgDefFile.Close()
 	if size, err := io.Copy(pkgDefFile, pkgDefReader); err != nil {
 		return fmt.Errorf("error writing %s: %v", pkgDefPath, err)
 	} else if size == 0 {
