@@ -118,9 +118,9 @@ def _go_tool_binary_impl(ctx):
     cout = ctx.actions.declare_file(name + ".a")
     if sdk.goos == "windows":
         cmd = "@echo off\n {go} tool compile -o {cout} -trimpath=%cd% {srcs}".format(
-            go = sdk.go.path.replace('/', '\\'),
+            go = sdk.go.path.replace("/", "\\"),
             cout = cout.path,
-            srcs = ' '.join([f.path for f in ctx.files.srcs]),
+            srcs = " ".join([f.path for f in ctx.files.srcs]),
         )
         bat = ctx.actions.declare_file(name + ".bat")
         ctx.actions.write(
@@ -138,7 +138,7 @@ def _go_tool_binary_impl(ctx):
         cmd = "{go} tool compile -o {cout} -trimpath=$PWD {srcs}".format(
             go = sdk.go.path,
             cout = cout.path,
-            srcs = ' '.join([f.path for f in ctx.files.srcs]),
+            srcs = " ".join([f.path for f in ctx.files.srcs]),
         )
         ctx.actions.run_shell(
             command = cmd,
