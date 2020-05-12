@@ -143,7 +143,6 @@ __________________
 This runs tests from the repository `golang.org/x/tools <https://golang.org/x/tools>`_
 
 * @org_golang_x_tools//benchmark/parse:go_default_test
-* @org_golang_x_tools//blog:go_default_test
 * @org_golang_x_tools//cmd/benchcmp:go_default_test
 * @org_golang_x_tools//cmd/digraph:go_default_test
 * @org_golang_x_tools//cmd/getgo:go_default_test
@@ -160,17 +159,21 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//godoc/vfs:go_default_test
 * @org_golang_x_tools//godoc/vfs/gatefs:go_default_test
 * @org_golang_x_tools//godoc/vfs/mapfs:go_default_test
+* @org_golang_x_tools//internal/event:go_default_test
+* @org_golang_x_tools//internal/event/export:go_default_test
+* @org_golang_x_tools//internal/event/export/ocagent:go_default_test
+* @org_golang_x_tools//internal/event/export/ocagent/wire:go_default_test
+* @org_golang_x_tools//internal/event/label:go_default_test
 * @org_golang_x_tools//internal/fastwalk:go_default_test
+* @org_golang_x_tools//internal/gocommand:go_default_test
 * @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2/servertest:go_default_test
+* @org_golang_x_tools//internal/lsp/debug:go_default_test
 * @org_golang_x_tools//internal/memoize:go_default_test
+* @org_golang_x_tools//internal/proxydir:go_default_test
 * @org_golang_x_tools//internal/span:go_default_test
-* @org_golang_x_tools//internal/telemetry/export/ocagent:go_default_test
-* @org_golang_x_tools//internal/telemetry/export/ocagent/wire:go_default_test
-* @org_golang_x_tools//internal/telemetry/log:go_default_test
 * @org_golang_x_tools//playground/socket:go_default_test
-* @org_golang_x_tools//present:go_default_test
 * @org_golang_x_tools//txtar:go_default_test
 
 

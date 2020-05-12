@@ -93,6 +93,7 @@ def go_rules_dependencies(is_rules_go = False):
         patch_args = ["-p1"],
     )
 
+    # Needed by golang.org/x/tools/go/packages
     _maybe(
         http_archive,
         name = "org_golang_x_xerrors",
