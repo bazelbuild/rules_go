@@ -36,7 +36,7 @@ diff -urN a/cmd/protoc-gen-go/BUILD.bazel b/cmd/protoc-gen-go/BUILD.bazel
 diff -urN a/cmd/protoc-gen-go/internal_gengo/BUILD.bazel b/cmd/protoc-gen-go/internal_gengo/BUILD.bazel
 --- a/cmd/protoc-gen-go/internal_gengo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/internal_gengo/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -60,6 +60,7 @@ diff -urN a/cmd/protoc-gen-go/internal_gengo/BUILD.bazel b/cmd/protoc-gen-go/int
 +        "//reflect/protoreflect:go_default_library",
 +        "//runtime/protoimpl:go_default_library",
 +        "//types/descriptorpb:go_default_library",
++        "//types/pluginpb:go_default_library",
 +    ],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/BUILD.bazel b/cmd/protoc-gen-go/testdata/BUILD.bazel
@@ -1240,7 +1241,7 @@ diff -urN a/internal/fuzz/textfuzz/BUILD.bazel b/internal/fuzz/textfuzz/BUILD.ba
 diff -urN a/internal/fuzz/wirefuzz/BUILD.bazel b/internal/fuzz/wirefuzz/BUILD.bazel
 --- a/internal/fuzz/wirefuzz/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/fuzz/wirefuzz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -1252,6 +1253,7 @@ diff -urN a/internal/fuzz/wirefuzz/BUILD.bazel b/internal/fuzz/wirefuzz/BUILD.ba
 +        "//internal/impl:go_default_library",
 +        "//internal/testprotos/fuzz:go_default_library",
 +        "//proto:go_default_library",
++        "//reflect/protoregistry:go_default_library",
 +        "//runtime/protoiface:go_default_library",
 +    ],
 +)
@@ -1749,8 +1751,8 @@ diff -urN a/internal/testprotos/fieldtrack/BUILD.bazel b/internal/testprotos/fie
 +    deps = [
 +        "//internal/testprotos/annotation:go_default_library",
 +        "//internal/testprotos/test:go_default_library",
++        "//proto:go_default_library",
 +        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
 +        "//runtime/protoimpl:go_default_library",
 +    ],
 +)
@@ -2088,7 +2090,7 @@ diff -urN a/internal/testprotos/required/BUILD.bazel b/internal/testprotos/requi
 diff -urN a/internal/testprotos/test/BUILD.bazel b/internal/testprotos/test/BUILD.bazel
 --- a/internal/testprotos/test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -2102,6 +2104,7 @@ diff -urN a/internal/testprotos/test/BUILD.bazel b/internal/testprotos/test/BUIL
 +    importpath = "google.golang.org/protobuf/internal/testprotos/test",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
++        "//proto:go_default_library",
 +        "//reflect/protoreflect:go_default_library",
 +        "//runtime/protoiface:go_default_library",
 +        "//runtime/protoimpl:go_default_library",
@@ -2142,13 +2145,14 @@ diff -urN a/internal/testprotos/test/weak2/BUILD.bazel b/internal/testprotos/tes
 diff -urN a/internal/testprotos/test3/BUILD.bazel b/internal/testprotos/test3/BUILD.bazel
 --- a/internal/testprotos/test3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/test3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
 +    name = "go_default_library",
 +    srcs = [
 +        "test.pb.go",
++        "test_extension.pb.go",
 +        "test_import.pb.go",
 +    ],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/test3",
@@ -2156,6 +2160,7 @@ diff -urN a/internal/testprotos/test3/BUILD.bazel b/internal/testprotos/test3/BU
 +    deps = [
 +        "//reflect/protoreflect:go_default_library",
 +        "//runtime/protoimpl:go_default_library",
++        "//types/descriptorpb:go_default_library",
 +    ],
 +)
 diff -urN a/internal/testprotos/textpb2/BUILD.bazel b/internal/testprotos/textpb2/BUILD.bazel

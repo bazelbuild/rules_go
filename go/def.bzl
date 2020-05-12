@@ -96,6 +96,7 @@ TOOLS_NOGO = [
     "@org_golang_x_tools//go/analysis/passes/errorsas:go_tool_library",
     "@org_golang_x_tools//go/analysis/passes/findcall:go_tool_library",
     "@org_golang_x_tools//go/analysis/passes/httpresponse:go_tool_library",
+    "@org_golang_x_tools//go/analysis/passes/ifaceassert:go_tool_library",
     "@org_golang_x_tools//go/analysis/passes/inspect:go_tool_library",
     "@org_golang_x_tools//go/analysis/passes/loopclosure:go_tool_library",
     "@org_golang_x_tools//go/analysis/passes/lostcancel:go_tool_library",

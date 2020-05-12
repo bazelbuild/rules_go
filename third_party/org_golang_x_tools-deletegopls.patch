@@ -84,6 +84,501 @@ diff -urN a/gopls/doc/acme.md b/gopls/doc/acme.md
 -[`acme-lsp`]: https://github.com/fhs/acme-lsp
 -[install steps]: https://github.com/fhs/acme-lsp#gopls
 -
+diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
+--- a/gopls/doc/analyzers.md	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/doc/analyzers.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,491 +0,0 @@
+-# Analyzers
+-
+-<!--TODO: Generate this file from the documentation in golang/org/x/tools/go/analysis/passes and golang/org/x/tools/go/lsp/source/options.go.-->
+-
+-This document describes the analyzers that `gopls` uses inside the editor.
+-
+-A value of `true` means that the analyzer is enabled by default and a value of `false` means it is disabled by default.
+-
+-Details about how to enable/disable these analyses can be found [here](settings.md#analyses).
+-
+-## Go vet suite
+-
+-Below is the list of general analyzers that are used in `go vet`.
+-
+-### **asmdecl**
+-
+-report mismatches between assembly files and Go declarations
+-
+-Default value: `true`.
+-
+-### **assign**
+-
+-check for useless assignments
+-
+-This checker reports assignments of the form `x = x` or `a[i] = a[i]`.
+-These are almost always useless, and even when they aren't they are
+-usually a mistake.
+-
+-Default value: `true`.
+-
+-### **atomic**
+-
+-check for common mistakes using the sync/atomic package
+-
+-The atomic checker looks for assignment statements of the form:
+-
+-`x = atomic.AddUint64(&x, 1)`
+-
+-which are not atomic.
+-
+-Default value: `true`.
+-
+-### **atomicalign**
+-
+-check for non-64-bits-aligned arguments to sync/atomic functions
+-
+-Default value: `true`.
+-
+-### **bools**
+-
+-check for common mistakes involving boolean operators
+-
+-Default value: `true`.
+-
+-### **buildtag**
+-
+-check that +build tags are well-formed and correctly located
+-
+-Default value: `true`.
+-
+-### **cgocall**
+-
+-detect some violations of the cgo pointer passing rules
+-
+-Check for invalid cgo pointer passing.
+-This looks for code that uses cgo to call C code passing values
+-whose types are almost always invalid according to the cgo pointer
+-sharing rules.
+-Specifically, it warns about attempts to pass a Go chan, map, func,
+-or slice to C, either directly, or via a pointer, array, or struct.
+-
+-Default value: `true`.
+-
+-### **composite**
+-
+-check for unkeyed composite literals
+-
+-This analyzer reports a diagnostic for composite literals of struct
+-types imported from another package that do not use the field-keyed
+-syntax. Such literals are fragile because the addition of a new field
+-(even if unexported) to the struct will cause compilation to fail.
+-
+-As an example,
+-`err = &net.DNSConfigError{err}`
+-
+-should be replaced by:
+-`err = &net.DNSConfigError{Err: err}`
+-
+-Default value: `true`.
+-
+-### **copylock**
+-
+-check for locks erroneously passed by value
+-
+-Inadvertently copying a value containing a lock, such as sync.Mutex or
+-sync.WaitGroup, may cause both copies to malfunction. Generally such
+-values should be referred to through a pointer.
+-
+-Default value: `true`.
+-
+-### **errorsas**
+-
+-report passing non-pointer or non-error values to errors.As
+-
+-The errorsas analysis reports calls to errors.As where the type
+-of the second argument is not a pointer to a type implementing error.
+-
+-Default value: `true`.
+-
+-### **httpresponse**
+-
+-check for mistakes using HTTP responses
+-
+-A common mistake when using the net/http package is to defer a function
+-call to close the http.Response Body before checking the error that
+-determines whether the response is valid:
+-
+-```go
+-resp, err := http.Head(url)
+-defer resp.Body.Close()
+-if err != nil {
+-  log.Fatal(err)
+-}
+-// (defer statement belongs here)
+-```
+-
+-This checker helps uncover latent nil dereference bugs by reporting a
+-diagnostic for such mistakes.
+-
+-Default value: `true`.
+-
+-### **loopclosure**
+-
+-check references to loop variables from within nested functions
+-
+-This analyzer checks for references to loop variables from within a
+-function literal inside the loop body. It checks only instances where
+-the function literal is called in a defer or go statement that is the
+-last statement in the loop body, as otherwise we would need whole
+-program analysis.
+-
+-For example:
+-```go
+-for i, v := range s {
+-  go func() {
+-    println(i, v) // not what you might expect
+-  }()
+-}
+-```
+-
+-See: https://golang.org/doc/go_faq.html#closures_and_goroutines
+-
+-Default value: `true`.
+-
+-### **lostcancel**
+-
+-check cancel func returned by context.WithCancel is called
+-
+-The cancellation function returned by context.WithCancel, WithTimeout,
+-and WithDeadline must be called or the new context will remain live
+-until its parent context is cancelled.
+-(The background context is never cancelled.)
+-
+-Default value: `true`.
+-
+-### **nilfunc**
+-
+-check for useless comparisons between functions and nil
+-
+-A useless comparison is one like f == nil as opposed to f() == nil.
+-
+-Default value: `true`.
+-
+-### **printf**
+-
+-check consistency of Printf format strings and arguments
+-
+-The check applies to known functions (for example, those in package fmt)
+-as well as any detected wrappers of known functions.
+-
+-A function that wants to avail itself of printf checking but is not
+-found by this analyzer's heuristics (for example, due to use of
+-dynamic calls) can insert a bogus call:
+-
+-```go
+-if false {
+-  _ = fmt.Sprintf(format, args...) // enable printf checking
+-}
+-```
+-
+-The -funcs flag specifies a comma-separated list of names of additional
+-known formatting functions or methods. If the name contains a period,
+-it must denote a specific function using one of the following forms:
+-
+-```
+-	dir/pkg.Function
+-	dir/pkg.Type.Method
+-	(*dir/pkg.Type).Method
+-```
+-
+-Otherwise the name is interpreted as a case-insensitive unqualified
+-identifier such as "errorf". Either way, if a listed name ends in f, the
+-function is assumed to be Printf-like, taking a format string before the
+-argument list. Otherwise it is assumed to be Print-like, taking a list
+-of arguments with no format string.
+-
+-Default value: `true`.
+-
+-### **shift**
+-
+-check for shifts that equal or exceed the width of the integer
+-
+-Default value: `true`.
+-
+-### **stdmethods**
+-
+-check signature of methods of well-known interfaces
+-
+-Sometimes a type may be intended to satisfy an interface but may fail to
+-do so because of a mistake in its method signature.
+-For example, the result of this WriteTo method should be (int64, error),
+-not error, to satisfy io.WriterTo:
+-
+-```go
+-	type myWriterTo struct{...}
+-        func (myWriterTo) WriteTo(w io.Writer) error { ... }
+-```
+-
+-This check ensures that each method whose name matches one of several
+-well-known interface methods from the standard library has the correct
+-signature for that interface.
+-
+-Checked method names include:
+-	Format GobEncode GobDecode MarshalJSON MarshalXML
+-	Peek ReadByte ReadFrom ReadRune Scan Seek
+-	UnmarshalJSON UnreadByte UnreadRune WriteByte
+-	WriteTo
+-
+-Default value: `true`.
+-
+-### **structtag**
+-
+-check that struct field tags conform to reflect.StructTag.Get
+-
+-Also report certain struct tags (json, xml) used with unexported fields.
+-
+-Default value: `true`.
+-
+-### **tests**
+-
+-check for common mistaken usages of tests and examples
+-
+-The tests checker walks Test, Benchmark and Example functions checking
+-malformed names, wrong signatures and examples documenting non-existent
+-identifiers.
+-
+-Please see the documentation for package testing in golang.org/pkg/testing
+-for the conventions that are enforced for Tests, Benchmarks, and Examples.
+-
+-Default value: `true`.
+-
+-### **unmarshal**
+-
+-report passing non-pointer or non-interface values to unmarshal
+-
+-The unmarshal analysis reports calls to functions such as json.Unmarshal
+-in which the argument type is not a pointer or an interface.
+-
+-Default value: `true`.
+-
+-### **unreachable**
+-
+-check for unreachable code
+-
+-The unreachable analyzer finds statements that execution can never reach
+-because they are preceded by an return statement, a call to panic, an
+-infinite loop, or similar constructs.
+-
+-Default value: `true`.
+-
+-### **unsafeptr**
+-
+-check for invalid conversions of uintptr to unsafe.Pointer
+-
+-The unsafeptr analyzer reports likely incorrect uses of unsafe.Pointer
+-to convert integers to pointers. A conversion from uintptr to
+-unsafe.Pointer is invalid if it implies that there is a uintptr-typed
+-word in memory that holds a pointer value, because that word will be
+-invisible to stack copying and to the garbage collector.
+-
+-Default value: `true`.
+-
+-### **unusedresult**
+-
+-check for unused results of calls to some functions
+-
+-Some functions like fmt.Errorf return a result and have no side effects,
+-so it is always a mistake to discard the result. This analyzer reports
+-calls to certain functions in which the result of the call is ignored.
+-
+-The set of functions may be controlled using flags.
+-
+-Default value: `true`.
+-
+-## gopls suite
+-
+-Below is the list of analyzers that are used by `gopls`.
+-
+-### **deepequalerrors**
+-
+-check for calls of reflect.DeepEqual on error values
+-
+-The deepequalerrors checker looks for calls of the form:
+-
+-```go
+-    reflect.DeepEqual(err1, err2)
+-```
+-
+-where err1 and err2 are errors. Using reflect.DeepEqual to compare
+-errors is discouraged.
+-
+-Default value: `true`.
+-
+-### **fillreturns**
+-
+-suggested fixes for "wrong number of return values (want %d, got %d)"
+-
+-This checker provides suggested fixes for type errors of the
+-type "wrong number of return values (want %d, got %d)". For example:
+-```go
+-func m() (int, string, *bool, error) {
+-  return
+-}
+-```
+-will turn into
+-```go
+-func m() (int, string, *bool, error) {
+-  return 0, "", nil, nil
+-}
+-```
+-
+-This functionality is similar to [goreturns](https://github.com/sqs/goreturns).
+-
+-Default value: `false`.
+-
+-### **nonewvars**
+-
+-suggested fixes for "no new vars on left side of :="
+-
+-This checker provides suggested fixes for type errors of the
+-type "no new vars on left side of :=". For example:
+-```go
+-z := 1
+-z := 2
+-```
+-will turn into
+-```go
+-z := 1
+-z = 2
+-```
+-
+-Default value: `false`.
+-
+-### **noresultvalues**
+-
+-suggested fixes for "no result values expected"
+-
+-This checker provides suggested fixes for type errors of the
+-type "no result values expected". For example:
+-```go
+-func z() { return nil }
+-```
+-will turn into
+-```go
+-func z() { return }
+-```
+-
+-Default value: `true`.
+-
+-### **simplifycompositelit**
+-
+-check for composite literal simplifications
+-
+-An array, slice, or map composite literal of the form:
+-```go
+-[]T{T{}, T{}}
+-```
+-will be simplified to:
+-```go
+-[]T{{}, {}}
+-```
+-
+-This is one of the simplifications that "gofmt -s" applies.
+-
+-Default value: `true`.
+-
+-### **simplifyrange**
+-
+-check for range statement simplifications
+-
+-A range of the form:
+-```go
+-for x, _ = range v {...}
+-```
+-will be simplified to:
+-```go
+-for x = range v {...}
+-```
+-
+-A range of the form:
+-```go
+-for _ = range v {...}
+-```
+-will be simplified to:
+-```go
+-for range v {...}
+-```
+-
+-This is one of the simplifications that "gofmt -s" applies.
+-
+-Default value: `true`.
+-
+-### **simplifyslice**
+-
+-check for slice simplifications
+-
+-A slice expression of the form:
+-```go
+-s[a:len(s)]
+-```
+-will be simplified to:
+-```go
+-s[a:]
+-```
+-
+-This is one of the simplifications that "gofmt -s" applies.
+-
+-Default value: `true`.
+-
+-### **sortslice**
+-
+-check the argument type of sort.Slice
+-
+-sort.Slice requires an argument of a slice type. Check that
+-the interface{} value passed to sort.Slice is actually a slice.
+-
+-Default value: `true`.
+-
+-### **testinggoroutine**
+-
+-report calls to (*testing.T).Fatal from goroutines started by a test.
+-
+-Functions that abruptly terminate a test, such as the Fatal, Fatalf, FailNow, and
+-Skip{,f,Now} methods of *testing.T, must be called from the test goroutine itself.
+-This checker detects calls to these functions that occur within a goroutine
+-started by the test. For example:
+-
+-```go
+-func TestFoo(t *testing.T) {
+-    go func() {
+-        t.Fatal("oops") // error: (*T).Fatal called from non-test goroutine
+-    }()
+-}
+-```
+-
+-Default value: `true`.
+-
+-### **undeclaredname**
+-
+-suggested fixes for "undeclared name: <>"
+-
+-This checker provides suggested fixes for type errors of the
+-type `undeclared name: <>`. It will insert a new statement:
+-`<> := `.
+-
+-Default value: `false`.
+-
+-### **unusedparams**
+-
+-check for unused parameters of functions
+-
+-The unusedparams analyzer checks functions to see if there are
+-any parameters that are not being used.
+-
+-To reduce false positives it ignores:
+-- methods
+-- parameters that do not have a name or are underscored
+-- functions in test files
+-- functions with empty bodies or those with just a return stmt
+-
+-Default value: `false`.
 diff -urN a/gopls/doc/atom.md b/gopls/doc/atom.md
 --- a/gopls/doc/atom.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/atom.md	1969-12-31 19:00:00.000000000 -0500
@@ -145,6 +640,182 @@ diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
 -[issue-gopls]: https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Agopls "gopls issues"
 -[issue-wanted]: https://github.com/golang/go/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Agopls+label%3A"help+wanted" "help wanted"
 \ No newline at end of file
+diff -urN a/gopls/doc/daemon.md b/gopls/doc/daemon.md
+--- a/gopls/doc/daemon.md	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/doc/daemon.md	1969-12-31 19:00:00.000000000 -0500
+@@ -1,172 +0,0 @@
+-# Running gopls as a daemon
+-
+-**Note: this feature is new. If you encounter bugs, please [file an
+-issue](troubleshooting.md#file-an-issue).**
+-
+-If you just want to try this out, skip ahead to the [quickstart](#quickstart).
+-
+-## Background: gopls execution modes
+-
+-Gopls was originally implemented as an LSP sidecar: a process started by
+-editors or editor plugins, and communicated with using jsonrpc 2.0 over
+-stdin/stdout. By executing as a stateful process, gopls can maintain a
+-significant amount of cache and can eagerly perform analysis on the source code
+-being edited.
+-
+-This execution mode does not work as well when there are many separate editor
+-processes or when editor processes are short-lived, as is often the case for
+-users of non-IDE editors such as Vim or Emacs. Having many processes means
+-having many caches, consuming a significant amount of system resources. Using
+-short-lived sessions means paying a start-up cost each time a session is
+-created.
+-
+-To support these types of workflows, a new mode of gopls execution is supported
+-wherein a single, persistent, shared gopls "daemon" process is responsible for
+-managing all gopls sessions. In this mode, editors still start a gopls sidecar,
+-but this sidecar merely acts as a thin "forwarder", responsible for forwarding
+-the LSP to the shared gopls instance and recording metrics, logs, and rpc
+-traces.
+-
+-## Quickstart
+-
+-To use a shared gopls instance you must either manage the daemon process
+-yourself, or let the gopls forwarder processes start the shared daemon as
+-needed.
+-
+-### Running with `-remote=auto`
+-
+-Automatic management of the daemon is easiest, and can be done by passing the
+-flag `-remote=auto` to the gopls process started by your editor. This will
+-cause this process to auto-start the gopls daemon if needed, connect to it, and
+-forward the LSP. For example, here is a reasonable gopls invocation, that sets
+-some additional flags for easier [debugging](#debugging):
+-```
+-$ gopls -remote=auto -logfile=auto -debug=:0 -remote.debug=:0 -rpc.trace
+-```
+-
+-Note that the shared gopls process will automatically shut down after one
+-minute with no connected clients.
+-
+-### Managing the daemon manually
+-
+-To manage the gopls daemon process via external means rather than having the
+-forwarders manage it, you must start a gopls daemon process with the
+-`-listen=<addr>` flag, and then pass `-remote=<addr>` to the gopls processes
+-started by your editor.
+-
+-For example, to host the daemon on the TCP port `37374`, do:
+-```
+-$ gopls -listen=:37374 -logfile=auto -debug=:0
+-```
+-
+-And then from the editor, run
+-```
+-$ gopls -remote=:37374 -logfile=auto -debug=:0 -rpc.trace
+-```
+-
+-If you are on a POSIX system, you can also use unix domain sockets by prefixing
+-the flag values with `unix;`. For example:
+-```
+-$ gopls -listen="unix;/tmp/gopls-daemon-socket" -logfile=auto -debug=:0
+-```
+-And connect via:
+-```
+-$ gopls -remote="unix;/tmp/gopls-daemon-socket" -logfile=auto -debug=:0 -rpc.trace
+-```
+-
+-(Note that these flag values MUST be enclosed in quotes, because ';' is a
+-special shell character. For this reason, this syntax is subject to change in
+-the future.)
+-
+-## Debugging
+-
+-Debugging a shared gopls session is more complicated than a singleton session,
+-because there are now two gopls processes involved with handling the LSP. Here
+-are some tips:
+-
+-### Finding logfiles and debug addresses
+-
+-When running in daemon mode, you can use the `gopls inspect sessions` command
+-to find the logfile and debug port for your gopls daemon instance (as well as
+-for all its connected clients). By default, this inspects the default daemon
+-(i.e. `-remote=auto`). To inspect a different daemon, use the `-remote` flag
+-explicitly: `gopls -remote=localhost:12345 inspect sessions`.
+-
+-This works whether or not you have enabled `-remote.debug`.
+-
+-### Traversing debug pages
+-
+-When `-debug=:0` is passed to gopls, it runs a webserver that serves stateful
+-debug pages (see [troubleshooting.md](troubleshooting.md)). You can find the
+-actual port hosting these pages by either using the `gopls inspect sessions`
+-command, or by checking the start of the logfile -- it will be one of the first
+-log messages. For example, if using `-logfile=auto`, find the debug address by
+-checking `head /tmp/gopls-<pid>.log`.
+-
+-By default, the gopls daemon is not started with `-debug`. To enable it, set
+-the `-remote.debug` flag on the forwarder instance, so that it invokes gopls
+-with `-debug` when starting the daemon.
+-
+-The debug pages of the forwarder process will have a link to the debug pages of
+-the daemon server process. Correspondingly, the debug pages of the daemon
+-process will have a link to each of its clients.
+-
+-This can help you find metrics, traces, and log files for all of the various
+-servers and clients.
+-
+-### Using logfiles
+-
+-The gopls daemon is started with `-logfile=auto` by default. To customize this,
+-pass `-remote.logfile` to the gopls forwarder.
+-
+-By default, the gopls daemon is not started with the `-rpc.trace` flag, so its
+-logfile will only contain actual debug logs from the gopls process.
+-
+-It is recommended to start the forwarder gopls process with `-rpc.trace`, so
+-that its logfile will contain rpc trace logs specific to the LSP session.
+-
+-## Using multiple shared gopls instances
+-
+-There may be environments where it is desirable to have more than one shared
+-gopls instance. If managing the daemon manually, this can be done by simply
+-choosing different `-listen` addresses for each distinct daemon process.
+-
+-On POSIX systems, there is also support for automatic management of distinct
+-shared gopls processes: distinct daemons can be selected by passing
+-`-remote="auto;<id>"`. Any gopls forwarder passing the same value for `<id>`
+-will use the same shared daemon.
+-
+-## FAQ
+-
+-**Q: Why am I not saving as much memory as I expected when using a shared gopls?**
+-
+-A: As described in [implementation.md](implementation.md), gopls has a concept
+-of view/session/cache. Each session and view map onto exactly one editor
+-session (because they contain things like edited but unsaved buffers). The
+-cache contains things that are independent of any editor session, and can
+-therefore be shared.
+-
+-When, for example, three editor session are sharing a single gopls process,
+-they will share the cache but will each have their own session and view. The
+-memory savings in this mode, when compared to three separate gopls processes,
+-corresponds to the amount of cache overlap across sessions.
+-
+-Because this hasn't mattered much in the past, it is likely that there is state
+-that can be moved out of the session/view, and into the cache, thereby
+-increasing the amount of memory savings in the shared mode.
+-
+-**Q: How do I customize the daemon instance when using `-remote=auto`?**
+-
+-The daemon may be customized using flags of the form `-remote.*` on the
+-forwarder gopls. This causes the forwarder to invoke gopls with these settings
+-when starting the daemon. As of writing, we expose the following configuration:
+-
+-* `-remote.logfile`: the location of the daemon logfile
+-* `-remote.debug`: the daemon's debug address
+-* `-remote.listen.timeout`: the amount of time the daemon should wait for new
+-  connections while there are no current connections, before shutting down. If
+-  `0`, listen indefinitely.
+-
+-Note that once the daemon is already running, setting these flags will not
+-change its configuration. These flags only matter for the forwarder process
+-that actually starts the daemon.
 diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 --- a/gopls/doc/design.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/design.md	1969-12-31 19:00:00.000000000 -0500
@@ -552,7 +1223,7 @@ diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
 --- a/gopls/doc/emacs.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/emacs.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,76 +0,0 @@
+@@ -1,70 +0,0 @@
 -# Emacs
 -
 -Use [lsp-mode]. gopls is built in as a client. You first must install `gopls` and put it somewhere in your `PATH`. Here is a basic config to get you started (assuming you are using [use-package]):
@@ -582,12 +1253,6 @@ diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
 -  ;; Optionally enable completion-as-you-type behavior.
 -  (setq company-idle-delay 0)
 -  (setq company-minimum-prefix-length 1))
--
--;; company-lsp integrates company mode completion with lsp-mode.
--;; completion-at-point also works out of the box but doesn't support snippets.
--(use-package company-lsp
--  :ensure t
--  :commands company-lsp)
 -
 -;; Optional - provides snippet support.
 -(use-package yasnippet
@@ -619,7 +1284,7 @@ diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
 -Common errors:
 -- When prompted by Emacs for your project folder, if you are using modules you must select the module's root folder (i.e. the directory with the "go.mod"). If you are using GOPATH, select your $GOPATH as your folder.
 -- Emacs must have your environment set properly (PATH, GOPATH, etc). You can run `M-x getenv <RET> PATH <RET>` to see if your PATH is set in Emacs. If not, you can try starting Emacs from your terminal, using [this package][exec-path-from-shell], or moving your shell config from .bashrc into .bashenv (or .zshenv).
--- Make sure `lsp-mode`, `lsp-ui` and `company-lsp` are up-to-date, and make sure `lsp-go` is _not_ installed.
+-- Make sure `lsp-mode` and `lsp-ui` are up-to-date, also make sure `lsp-go` and `company-lsp` are _not_ installed.
 -- Look for errors in the `*lsp-log*` buffer.
 -- Ask for help in the #emacs channel on the [Gophers slack].
 -
@@ -793,7 +1458,7 @@ diff -urN a/gopls/doc/integrating.md b/gopls/doc/integrating.md
 diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 --- a/gopls/doc/settings.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/settings.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,112 +0,0 @@
+@@ -1,161 +0,0 @@
 -# Settings
 -
 -<!--TODO: Generate this file from the documentation in golang/org/x/tools/internal/lsp/source/options.go.-->
@@ -846,23 +1511,48 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -This controls where points documentation for given package in `textDocument/documentLink`.
 -It might be one of:
--* `"godoc.org"`   
+-* `"godoc.org"`
 -* `"pkg.go.dev"`
 -If company chooses to use its own `godoc.org`, its address can be used as well.
 -
 -Default: `"pkg.go.dev"`.
 -
+-### **local** string
+-
+-This is the equivalent of the `goimports -local` flag, which puts imports beginning with this string after 3rd-party packages.
+-It should be the prefix of the import path whose imports should be grouped separately.
+-
+-Default: `""`.
+-
 -## Experimental
 -
 -The below settings are considered experimental. They may be deprecated or changed in the future. They are typically used to test experimental opt-in features or to disable features.
 -
--### **experimentalDisabledAnalyses** *array of strings*
+-### **analyses** *map[string]bool*
 -
--A list of the names of analysis passes that should be disabled. You can use this to turn off analyses that you feel are not useful in the editor.
+-Analyses specify analyses that the user would like to enable or disable.
+-A map of the names of analysis passes that should be enabled/disabled.
+-A full list of analyzers that gopls uses can be found [here](analyzers.md)
 -
--### **staticcheck** *boolean*
+-Example Usage:
+-```json5
+-...
+-"analyses": {
+-  "unreachable": false, // Disable the unreachable analyzer.
+-  "unusedparams": true  // Enable the unusedparams analyzer.
+-}
+-...
+-```
 -
--If true, it enables the use of the staticcheck.io analyzers.
+-### **codelens** *map[string]bool*
+-
+-Overrides the enabled/disabled state of various code lenses. Currently, we
+-support two code lenses:
+-
+-* `generate`: run `go generate` as specified by a `//go:generate` directive.
+-* `upgrade.dependency`: upgrade a dependency listed in a `go.mod` file.
+-
+-By default, both of these code lenses are enabled.
 -
 -### **completionDocumentation** *boolean*
 -
@@ -906,10 +1596,34 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -If true, this enables server side fuzzy matching of completion candidates.
 -
 -Default: `true`.
+-
+-### **staticcheck** *boolean*
+-
+-If true, it enables the use of the staticcheck.io analyzers.
+-
+-### **matcher** *string*
+-
+-Defines the algorithm that is used when calculating completion candidates. Must be one of:
+-
+-* `"fuzzy"`
+-* `"caseSensitive"`
+-* `"caseInsensitive"`
+-
+-Default: `"caseInsensitive"`.
+-
+-### **symbolMatcher** *string*
+-
+-Defines the algorithm that is used when calculating workspace symbol results. Must be one of:
+-
+-* `"fuzzy"`
+-* `"caseSensitive"`
+-* `"caseInsensitive"`
+-
+-Default: `"caseInsensitive"`.
 diff -urN a/gopls/doc/status.md b/gopls/doc/status.md
 --- a/gopls/doc/status.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/status.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,46 +0,0 @@
+@@ -1,37 +0,0 @@
 -# Status
 -
 -gopls is currently in **alpha**, so it is **not stable**.
@@ -933,29 +1647,20 @@ diff -urN a/gopls/doc/status.md b/gopls/doc/status.md
 -
 -## Known issues
 -
--1. Cursor resets to the beginning or end of file on format: [#31937]
 -1. Editing multiple modules in one editor window: [#32394]
--1. Language features do not work with cgo: [#32898]
+-1. Type checking does not work in cgo packages: [#35721]
 -1. Does not work with build tags: [#29202]
--1. Find references and rename only work in a single package: [#32869], [#32877]
--1. Completion does not work well after go or defer statements: [#29313]
--1. Changes in files outside of the editor are not yet tracked: [#31553]
+-1. Find references and rename only work in a single package: [#32877]
 -
 -[x/tools]: https://github.com/golang/tools
 -[golang.org/x/tools/gopls]: https://github.com/golang/tools/tree/master/gopls
 -[golang.org/x/tools/internal/lsp]: https://github.com/golang/tools/tree/master/internal/lsp
 -
 -
--[#31937]: https://github.com/golang/go/issues/31937
 -[#32394]: https://github.com/golang/go/issues/32394
--[#32898]: https://github.com/golang/go/issues/32898
+-[#35721]: https://github.com/golang/go/issues/35721
 -[#29202]: https://github.com/golang/go/issues/29202
--[#32869]: https://github.com/golang/go/issues/32869
 -[#32877]: https://github.com/golang/go/issues/32877
--[#29313]: https://github.com/golang/go/issues/29313
--[#31553]: https://github.com/golang/go/issues/31553
--
--
 diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
 --- a/gopls/doc/subl.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/subl.md	1969-12-31 19:00:00.000000000 -0500
@@ -1159,7 +1864,7 @@ diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 --- a/gopls/doc/vim.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/vim.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,112 +0,0 @@
+@@ -1,118 +0,0 @@
 -# Vim / Neovim
 -
 -## vim-go
@@ -1262,6 +1967,10 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 -
 -In vim classic only, use the experimental [`govim`], simply follow the [install steps][govim-install].
 -
+-## nvim-lsp
+-
+-To use the new builtin lsp client from neovim, using `nvim-lsp`, follow the install steps [neovim/nvim-lsp] and check the gopls [configuration][nvim-lsp-config].
+-
 -[vim-go]: https://github.com/fatih/vim-go
 -[LanguageClient-neovim]: https://github.com/autozimu/LanguageClient-neovim
 -[ale]: https://github.com/w0rp/ale
@@ -1272,10 +1981,12 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 -[coc.nvim]: https://github.com/neoclide/coc.nvim/
 -[`govim`]: https://github.com/myitcv/govim
 -[govim-install]: https://github.com/myitcv/govim/blob/master/README.md#govim---go-development-plugin-for-vim8
+-[neovim/nvim-lsp]: https://github.com/neovim/nvim-lsp#install
+-[nvim-lsp-config]: https://github.com/neovim/nvim-lsp#gopls
 diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 --- a/gopls/doc/vscode.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/vscode.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,58 +0,0 @@
+@@ -1,74 +0,0 @@
 -# VSCode
 -
 -Use the [VSCode-Go] plugin, with the following configuration:
@@ -1289,6 +2000,12 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 -    },
 -    // Optional: Disable snippets, as they conflict with completion ranking.
 -    "editor.snippetSuggestions": "none",
+-},
+-"[go.mod]": {
+-    "editor.formatOnSave": true,
+-    "editor.codeActionsOnSave": {
+-        "source.organizeImports": true,
+-    },
 -},
 -"gopls": {
 -     // Add parameter placeholders when completing a function.
@@ -1322,7 +2039,17 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 -
 -See the section on [command line](command-line.md) arguments for more information about what these do, along with other things like `--logfile=auto` that you might want to use.
 -
--You can disable features through the `"go.languageServerExperimentalFeatures"` section of the config. An example of a feature you may want to disable is `"documentLink"`, which opens [`godoc.org`](https://godoc.org) links when you click on import statements in your file.
+-You can disable features through the `"go.languageServerExperimentalFeatures"` section of the config. An example of a feature you may want to disable is `"documentLink"`, which opens [`pkg.go.dev`](https://pkg.go.dev) links when you click on import statements in your file.
+-
+-### Build tags
+-
+-build tags will not be picked from `go.buildTags` configuration section, instead they should be specified as part of the`GOFLAGS` environment variable:
+-
+-```json5
+-"go.toolsEnvVars": {
+-    "GOFLAGS": "-tags=<yourtag>"
+-}
+-```
 -
 -
 -[VSCode-Go]: https://github.com/microsoft/vscode-go
@@ -1337,16 +2064,15 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 diff -urN a/gopls/go.mod b/gopls/go.mod
 --- a/gopls/go.mod	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.mod	1969-12-31 19:00:00.000000000 -0500
-@@ -1,13 +0,0 @@
+@@ -1,12 +0,0 @@
 -module golang.org/x/tools/gopls
 -
 -go 1.11
 -
 -require (
--	github.com/sergi/go-diff v1.0.0
--	github.com/stretchr/testify v1.4.0 // indirect
+-	github.com/sergi/go-diff v1.1.0
 -	golang.org/x/tools v0.0.0-20191130070609-6e064ea0cf2d
--	honnef.co/go/tools v0.0.1-2020.1.2
+-	honnef.co/go/tools v0.0.1-2020.1.3
 -	mvdan.cc/xurls/v2 v2.1.0
 -)
 -
@@ -1354,11 +2080,12 @@ diff -urN a/gopls/go.mod b/gopls/go.mod
 diff -urN a/gopls/go.sum b/gopls/go.sum
 --- a/gopls/go.sum	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.sum	1969-12-31 19:00:00.000000000 -0500
-@@ -1,44 +0,0 @@
+@@ -1,49 +0,0 @@
 -github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 -github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
--github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 -github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+-github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+-github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 -github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 -github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 -github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
@@ -1369,34 +2096,38 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 -github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 -github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
--github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=
--github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
+-github.com/sergi/go-diff v1.1.0 h1:we8PVUC3FE2uYfodKH/nBHMSetSfHDR6scGdBi+erh0=
+-github.com/sergi/go-diff v1.1.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNXdaHfM=
 -github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 -github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 -github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
+-github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 -golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 -golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 -golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 -golang.org/x/mod v0.0.0-20190513183733-4bf6d317e70e/go.mod h1:mXi4GBBbnImb6dmsKGUJ2LatrhH/nqhxcFungHvyanc=
--golang.org/x/mod v0.1.1-0.20191105210325-c90efee705ee h1:WG0RUwxtNT4qqaXX3DPA8zHFNm/D9xaBpxzHt1WcA/E=
--golang.org/x/mod v0.1.1-0.20191105210325-c90efee705ee/go.mod h1:QqPTAvyqsEbceGzBzNggFXnrqF1CaUcvgkdR5Ot7KZg=
+-golang.org/x/mod v0.2.0 h1:KU7oHjnv3XNWfa5COkzUifxZmxp1TyI7ImMXqFxLwvQ=
+-golang.org/x/mod v0.2.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 -golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
--golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
--golang.org/x/sync v0.0.0-20190423024810-112230192c58 h1:8gQV6CLnAEikrhgkHFbMAEhagSSnXWGV915qUMm9mrU=
--golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+-golang.org/x/net v0.0.0-20200226121028-0de0cce0169b/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+-golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e h1:vcxGaoTs7kV8m5Np9uUNQin4BrLOthgV7252N8V+FwY=
+-golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 -golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 -golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 -golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
--golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 h1:/atklqdjdhuosWIl6AIbOeHJjicWYPqR9bpxqxYG2pA=
 -golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+-golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
+-golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 -gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
--gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 h1:qIbj1fsPNlZgppZ+VLlY7N33q108Sa+fhmuc+sWQYwY=
 -gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+-gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=
+-gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 -gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
--gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 -gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
--honnef.co/go/tools v0.0.1-2020.1.2 h1:8w2Ud1JmaU9M5os2j8aKMpPs4guVq+RMUN5phK2najE=
--honnef.co/go/tools v0.0.1-2020.1.2/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
+-gopkg.in/yaml.v2 v2.2.4 h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=
+-gopkg.in/yaml.v2 v2.2.4/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+-honnef.co/go/tools v0.0.1-2020.1.3 h1:sXmLre5bzIR6ypkjXCDI3jHPssRhc8KD/Ome589sc3U=
+-honnef.co/go/tools v0.0.1-2020.1.3/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
 -mvdan.cc/xurls/v2 v2.1.0 h1:KaMb5GLhlcSX+e+qhbRJODnUUBvlw01jt4yrjFIHAuA=
 -mvdan.cc/xurls/v2 v2.1.0/go.mod h1:5GrSd9rOnKOpZaji1OZLYL/yeAAtGDlo/cFe+8K5n8E=
 diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerfile
@@ -1409,7 +2140,7 @@ diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerf
 -
 -# govim requires a more recent version of vim than is available in most
 -# distros, so we build from their base image.
--FROM govim/govim:go1.13.5_vim_v8.1.2414_v1
+-FROM govim/govim:latest-vim
 -
 -# We use a pinned version of govim so that this build is repeatable, and so
 -# that we're not sensitive to test breakages in govim.
@@ -1426,7 +2157,7 @@ diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerf
 diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.md
 --- a/gopls/integration/govim/README.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/README.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,45 +0,0 @@
+@@ -1,47 +0,0 @@
 -# govim integration tests
 -
 -Files in this directory configure Cloud Build to run [govim] integration tests
@@ -1443,8 +2174,7 @@ diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.m
 -```
 -$ gcloud builds submit \
 -	--project="${PROJECT_ID}" \
--	--config=gopls/integration/govim/cloudbuild.harness.yaml \
--	--substitutions=_RESULT_BUCKET="${BUCKET}"
+-	--config=gopls/integration/govim/cloudbuild.harness.yaml
 -```
 -- Run the integration tests:
 -```
@@ -1468,8 +2198,11 @@ diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.m
 -## Running locally
 -
 -Run `gopls/integration/govim/run_local.sh`. This may take a while the first
--time it is run, as it will require building the test harness. Currently this
--script assumes that docker may be executed without `sudo`.
+-time it is run, as it will require building the test harness. This script
+-accepts two flags to modify its behavior:
+-
+-**--sudo**: run docker with `sudo`
+-**--short**: run `go test -short`
 -
 -[govim]: https://github.com/govim/govim
 diff -urN a/gopls/integration/govim/artifacts.go b/gopls/integration/govim/artifacts.go
@@ -1506,7 +2239,7 @@ diff -urN a/gopls/integration/govim/artifacts.go b/gopls/integration/govim/artif
 -
 -func main() {
 -	flag.Usage = func() {
--		fmt.Fprintf(flag.CommandLine.Output(), usage)
+-		fmt.Fprint(flag.CommandLine.Output(), usage)
 -	}
 -	flag.Parse()
 -	if flag.NArg() != 1 {
@@ -1571,7 +2304,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/
 diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cloudbuild.yaml
 --- a/gopls/integration/govim/cloudbuild.yaml	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/cloudbuild.yaml	1969-12-31 19:00:00.000000000 -0500
-@@ -1,45 +0,0 @@
+@@ -1,51 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
 -# license that can be found in the LICENSE file.
@@ -1586,7 +2319,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cl
 -
 -steps:
 -  # Build gopls from source, to use with the govim integration tests.
--  - name: 'golang:1.13'
+-  - name: 'golang:1.14'
 -    env: ['GOPROXY=https://proxy.golang.org']
 -    dir: 'gopls'
 -    args: ['go', 'build']
@@ -1596,15 +2329,21 @@ diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cl
 -  # uploading artifacts.
 -  - name: 'gcr.io/$PROJECT_ID/govim-harness:3'
 -    dir: '/src/govim'
+-    volumes:
+-      - name: artifacts
+-        path: /artifacts
 -    env:
--      - GOVIM_TESTSCRIPT_WORKDIR_ROOT=/workspace/artifacts
+-      - GOVIM_TESTSCRIPT_WORKDIR_ROOT=/artifacts
 -      - VIM_FLAVOR=vim
 -    args: ['/workspace/gopls/integration/govim/run_tests_for_cloudbuild.sh']
 -
 -  # The govim tests produce a large number of artifacts; tarball/gzip to reduce
 -  # roundtrips and save space.
 -  - name: 'ubuntu'
--    args: ['tar', '-czf', 'artifacts.tar.gz', 'artifacts']
+-    volumes:
+-      - name: artifacts
+-        path: /artifacts
+-    args: ['tar', '-czf', 'artifacts.tar.gz', '/artifacts']
 -
 -  # Upload artifacts to GCS.
 -  - name: 'gcr.io/cloud-builders/gsutil'
@@ -1620,7 +2359,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cl
 diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_local.sh
 --- a/gopls/integration/govim/run_local.sh	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/run_local.sh	1969-12-31 19:00:00.000000000 -0500
-@@ -1,35 +0,0 @@
+@@ -1,65 +0,0 @@
 -#!/bin/bash -e
 -
 -# Copyright 2019 The Go Authors. All rights reserved.
@@ -1628,8 +2367,37 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -# license that can be found in the LICENSE file.
 -
 -# Run govim integration tests against a local gopls.
--# TODO(findleyr): this script assumes that docker may be run without sudo.
--# Update it to escalate privileges if and only if necessary.
+-
+-usage() {
+-  cat <<EOUSAGE
+-Usage: $0 [--sudo] [--short]
+-
+-Run govim tests against HEAD using local docker. If --sudo is set, run docker
+-with sudo. If --short is set, run `go test` with `-short`.
+-EOUSAGE
+-}
+-
+-SUDO_IF_NEEDED=
+-TEST_SHORT=
+-while [[ $# -gt 0 ]]; do
+-  case "$1" in
+-    "-h" | "--help" | "help")
+-      usage
+-      exit 0
+-      ;;
+-    "--sudo")
+-      SUDO_IF_NEEDED="sudo "
+-      shift
+-      ;;
+-    "--short")
+-      TEST_SHORT="-short"
+-      shift
+-      ;;
+-    *)
+-      usage
+-      exit 1
+-  esac
+-done
 -
 -# Find the tools root, so that this script can be run from any directory.
 -script_dir=$(dirname "$(readlink -f "$0")")
@@ -1644,17 +2412,18 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -# Build the test harness. Here we are careful to pass in a very limited build
 -# context so as to optimize caching.
 -cd "${tools_dir}"
--docker build -t gopls-govim-harness -f gopls/integration/govim/Dockerfile \
+-${SUDO_IF_NEEDED}docker build -t gopls-govim-harness -f gopls/integration/govim/Dockerfile \
 -  gopls/integration/govim
 -
 -# Run govim integration tests.
 -echo "running govim integration tests using ${temp_gopls}"
 -temp_gopls_name=$(basename "${temp_gopls}")
--docker run --rm -t \
+-${SUDO_IF_NEEDED}docker run --rm -t \
 -  -v "${tools_dir}:/src/tools" \
 -  -w "/src/govim" \
+-  --ulimit memlock=-1:-1 \
 -  gopls-govim-harness \
--  go test ./cmd/govim \
+-  go test ${TEST_SHORT} ./cmd/govim \
 -    -gopls "/src/tools/gopls/${temp_gopls_name}"
 diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integration/govim/run_tests_for_cloudbuild.sh
 --- a/gopls/integration/govim/run_tests_for_cloudbuild.sh	2000-01-01 00:00:00.000000000 -0000
@@ -1672,7 +2441,7 @@ diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integrat
 -# of the test results.
 -
 -# Substitute the locally built gopls binary for use in govim integration tests.
--go test ./cmd/govim -gopls /workspace/gopls/gopls
+-go test -short ./cmd/govim -gopls /workspace/gopls/gopls
 -
 -# Stash the error, for use in a later build step.
 -echo "exit $?" > /workspace/govim_test_result.sh
@@ -2452,7 +3221,7 @@ diff -urN a/gopls/integration/replay/README.md b/gopls/integration/replay/README
 diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 --- a/gopls/integration/replay/main.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/replay/main.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,347 +0,0 @@
+@@ -1,290 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2463,7 +3232,6 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 -import (
 -	"bufio"
 -	"context"
--	"encoding/json"
 -	"flag"
 -	"fmt"
 -	"log"
@@ -2594,99 +3362,48 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 -	}
 -}
 -
--func msgType(c *p.Combined) parse.MsgType {
--	// Method, Params, ID => request
--	// Method, Params, no-ID => notification
--	// Error => error response
--	// Result, ID => response
--	if c.Error != nil {
--		return parse.ReportErr
--	}
--	if c.Params != nil && c.ID != nil {
--		// $/cancel could be either, cope someday
--		if parse.FromServer(c.Method) {
--			return parse.SvRequest
--		}
--		return parse.ClRequest
--	}
--	if c.Params != nil {
--		// we're receiving it, so it must be ToClient
--		return parse.ToClient
--	}
--	if c.Result == nil {
--		if c.ID != nil {
--			return parse.ClResponse
--		}
--		log.Printf("%+v", *c)
--		panic("couldn't determine direction")
--	}
--	// we've received it, so it must be ClResponse
--	return parse.ClResponse
--}
--
 -func send(ctx context.Context, l *parse.Logmsg, stream jsonrpc2.Stream, id *jsonrpc2.ID) {
--	x, err := json.Marshal(l.Body)
--	if err != nil {
--		log.Fatal(err)
--	}
--	y := json.RawMessage(x)
 -	if id == nil {
 -		// need to use the number version of ID
 -		n, err := strconv.Atoi(l.ID)
 -		if err != nil {
 -			n = 0
 -		}
--		id = &jsonrpc2.ID{Number: int64(n)}
+-		nid := jsonrpc2.NewIntID(int64(n))
+-		id = &nid
 -	}
--	var r interface{}
+-	var msg jsonrpc2.Message
+-	var err error
 -	switch l.Type {
 -	case parse.ClRequest:
--		r = jsonrpc2.WireRequest{
--			ID:     id,
--			Method: l.Method,
--			Params: &y,
--		}
+-		msg, err = jsonrpc2.NewCall(*id, l.Method, l.Body)
 -	case parse.SvResponse:
--		r = jsonrpc2.WireResponse{
--			ID:     id,
--			Result: &y,
--		}
+-		msg, err = jsonrpc2.NewResponse(*id, l.Body, nil)
 -	case parse.ToServer:
--		r = jsonrpc2.WireRequest{
--			Method: l.Method,
--			Params: &y,
--		}
+-		msg, err = jsonrpc2.NewNotification(l.Method, l.Body)
 -	default:
 -		log.Fatalf("sending %s", l.Type)
 -	}
--	data, err := json.Marshal(r)
 -	if err != nil {
 -		log.Fatal(err)
 -	}
--	stream.Write(ctx, data)
+-	stream.Write(ctx, msg)
 -}
 -
--func strID(x *jsonrpc2.ID) string {
--	if x.Name != "" {
--		log.Printf("strID returns %s", x.Name)
--		return x.Name
--	}
--	return strconv.Itoa(int(x.Number))
--}
--
--func respond(ctx context.Context, c *p.Combined, stream jsonrpc2.Stream) {
+-func respond(ctx context.Context, c *jsonrpc2.Call, stream jsonrpc2.Stream) {
 -	// c is a server request
 -	// pick out the id, and look for the response in msgs
--	id := strID(c.ID)
+-	id := c.ID()
+-	idstr := fmt.Sprint(id)
 -	for _, l := range msgs {
--		if l.ID == id && l.Type == parse.SvResponse {
+-		if l.ID == idstr && l.Type == parse.SvResponse {
 -			// check that the methods match?
 -			// need to send back the same ID we got.
--			send(ctx, l, stream, c.ID)
+-			send(ctx, l, stream, &id)
 -			return
 -		}
 -	}
--	log.Fatalf("no response found %q %+v %+v", c.Method, c.ID, c)
+-	log.Fatalf("no response found %q %+v %+v", c.Method(), c.ID(), c)
 -}
 -
 -func findgopls() string {
@@ -2735,17 +3452,13 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 -		log.Fatal(err)
 -	}
 -	stream := jsonrpc2.NewHeaderStream(fromServer, toServer)
--	rchan := make(chan *p.Combined, 10) // do we need buffering?
+-	rchan := make(chan jsonrpc2.Message, 10) // do we need buffering?
 -	rdr := func() {
 -		for {
--			buf, _, err := stream.Read(ctx)
+-			msg, _, err := stream.Read(ctx)
 -			if err != nil {
 -				rchan <- nil // close it instead?
 -				return
--			}
--			msg := &p.Combined{}
--			if err := json.Unmarshal(buf, msg); err != nil {
--				log.Fatal(err)
 -			}
 -			rchan <- msg
 -		}
@@ -2768,27 +3481,26 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 -			}
 -		done:
 -			for {
--				x := <-rchan
--				if x == nil {
+-				msg := <-rchan
+-				if msg == nil {
 -					break big
 -				}
 -				// if it's svrequest, do something
 -				// if it's clresponse or reporterr, add to seenids, and if it
 -				// is l.id, break out of the loop, and continue the outer loop
--				switch mt := msgType(x); mt {
--				case parse.SvRequest:
--					respond(ctx, x, stream)
--					continue done // still waiting
--				case parse.ClResponse, parse.ReportErr:
--					id := strID(x.ID)
+-
+-				switch msg := msg.(type) {
+-				case *jsonrpc2.Call:
+-					if parse.FromServer(msg.Method()) {
+-						respond(ctx, msg, stream)
+-						continue done // still waiting
+-					}
+-				case *jsonrpc2.Response:
+-					id := fmt.Sprint(msg.ID())
 -					seenids[id] = true
 -					if id == l.ID {
 -						break done
 -					}
--				case parse.ToClient:
--					continue
--				default:
--					log.Fatalf("%s", mt)
 -				}
 -			}
 -		case parse.SvRequest: // not ours to send
@@ -2803,7 +3515,7 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 --- a/gopls/internal/hooks/analysis.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/analysis.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,30 +0,0 @@
+@@ -1,34 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2820,17 +3532,21 @@ diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 -func updateAnalyzers(options *source.Options) {
 -	if options.StaticCheck {
 -		for _, a := range simple.Analyzers {
--			options.Analyzers[a.Name] = a
+-			options.AddDefaultAnalyzer(a)
 -		}
 -		for _, a := range staticcheck.Analyzers {
--			// This check conflicts with the vet printf check (golang/go#34494).
--			if a.Name == "SA5009" {
--				continue
+-			switch a.Name {
+-			case "SA5009":
+-				// This check conflicts with the vet printf check (golang/go#34494).
+-			case "SA5011":
+-				// This check relies on facts from dependencies, which
+-				// we don't currently compute.
+-			default:
+-				options.AddDefaultAnalyzer(a)
 -			}
--			options.Analyzers[a.Name] = a
 -		}
 -		for _, a := range stylecheck.Analyzers {
--			options.Analyzers[a.Name] = a
+-			options.AddDefaultAnalyzer(a)
 -		}
 -	}
 -}
@@ -2946,7 +3662,7 @@ diff -urN a/gopls/main.go b/gopls/main.go
 diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 --- a/gopls/test/gopls_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/test/gopls_test.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,54 +0,0 @@
+@@ -1,36 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2959,12 +3675,8 @@ diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 -
 -	"golang.org/x/tools/go/packages/packagestest"
 -	"golang.org/x/tools/gopls/internal/hooks"
--	"golang.org/x/tools/internal/jsonrpc2/servertest"
--	"golang.org/x/tools/internal/lsp/cache"
 -	cmdtest "golang.org/x/tools/internal/lsp/cmd/test"
--	"golang.org/x/tools/internal/lsp/lsprpc"
 -	"golang.org/x/tools/internal/lsp/source"
--	"golang.org/x/tools/internal/lsp/tests"
 -	"golang.org/x/tools/internal/testenv"
 -)
 -
@@ -2974,30 +3686,16 @@ diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 -}
 -
 -func TestCommandLine(t *testing.T) {
--	packagestest.TestAll(t, testCommandLine)
+-	packagestest.TestAll(t,
+-		cmdtest.TestCommandLine(
+-			"../../internal/lsp/testdata",
+-			commandLineOptions,
+-		),
+-	)
 -}
 -
 -func commandLineOptions(options *source.Options) {
 -	options.StaticCheck = true
 -	options.GoDiff = false
 -	hooks.Options(options)
--}
--
--func testCommandLine(t *testing.T, exporter packagestest.Exporter) {
--	const testdata = "../../internal/lsp/testdata"
--	if stat, err := os.Stat(testdata); err != nil || !stat.IsDir() {
--		t.Skip("testdata directory not present")
--	}
--	data := tests.Load(t, exporter, testdata)
--	ctx := tests.Context(t)
--	cache := cache.New(commandLineOptions)
--	ss := lsprpc.NewStreamServer(cache, false)
--	ts := servertest.NewTCPServer(ctx, ss)
--	for _, data := range data {
--		defer data.Exported.Cleanup()
--		t.Run(data.Folder, func(t *testing.T) {
--			t.Helper()
--			tests.Run(t, cmdtest.NewRunner(exporter, data, tests.Context(t), ts.Addr, commandLineOptions), data)
--		})
--	}
 -}
