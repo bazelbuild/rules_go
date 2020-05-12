@@ -165,7 +165,6 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/event/export/ocagent/wire:go_default_test
 * @org_golang_x_tools//internal/event/label:go_default_test
 * @org_golang_x_tools//internal/fastwalk:go_default_test
-* @org_golang_x_tools//internal/gocommand:go_default_test
 * @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2/servertest:go_default_test

@@ -154,6 +154,7 @@ POPULAR_REPOS = [
             "godoc/vfs/zipfs:go_default_test", # requires GOROOT
             "godoc:go_default_test", # requires GOROOT and GOPATH
             "internal/apidiff:go_default_test", # Needs testdata directory
+            "internal/gocommand:go_default_test", # Needs go tool
             "internal/imports:go_default_test", # Needs testdata directory
             "internal/lsp/analysis/fillreturns:go_default_test", # Needs go tool
             "internal/lsp/analysis/nonewvars:go_default_test", # Needs GOROOT
