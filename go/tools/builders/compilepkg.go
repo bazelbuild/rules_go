@@ -22,6 +22,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -30,8 +31,6 @@ import (
 	"sort"
 	"strings"
 )
-
-const pkgDef = "__.PKGDEF"
 
 func compilePkg(args []string) error {
 	// Parse arguments.
@@ -322,12 +321,12 @@ func compileArchive(
 
 	// Run nogo concurrently.
 	var nogoChan chan error
-	factOut := strings.TrimSuffix(outXPath, filepath.Ext(outXPath)) + ".fact"
+	outFactPath := filepath.Join(filepath.Dir(outXPath), nogoFact)
 	if nogoPath != "" {
 		ctx, cancel := context.WithCancel(context.Background())
 		nogoChan = make(chan error)
 		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcs, deps, packagePath, importcfgPath, factOut)
+			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcs, deps, packagePath, importcfgPath, outFactPath)
 		}()
 		defer func() {
 			if nogoChan != nil {
@@ -389,24 +388,44 @@ func compileArchive(
 		}
 	}
 
-	pkgDefFile := filepath.Join(filepath.Dir(outPath), pkgDef)
-	if err = extractPkgDef(outPath, pkgDefFile); err != nil {
-		return fmt.Errorf("failed to extract %s from %s: %v", pkgDef, outPath, err)
-	}
-	// Check results from nogo.
+	// Check results from nogo and create .x file
+	nogoStatus := nogoNotRun
 	if nogoChan != nil {
 		err := <-nogoChan
 		nogoChan = nil // no cancellation needed
 		if err != nil {
+			nogoStatus = nogoFailed
+			// TODO: should we still create the .x file without nogo facts in this case?
 			return err
 		}
-		// TODO is it possible for factOut not created in this case?
-		err = appendFiles(goenv, outXPath, []string{pkgDefFile, factOut})
-	} else {
-		err = appendFiles(goenv, outXPath, []string{pkgDefFile})
+		nogoStatus = nogoSucceeded
 	}
 
-	return err
+	// Extract the export data file and pack it in an .x archive together with the
+	// nogo facts file (if there is one). This allows compile actions to depend
+	// on .x files only, so we don't need to recompile a package when one of its
+	// imports changes in a way that doesn't affect export data.
+	// TODO(golang/go#33820): Ideally, we would use -linkobj to tell the compiler
+	// to create separate .a and .x files for compiled code and export data, then
+	// copy the nogo facts into the .x file. Unfortunately, when building a plugin,
+	// the linker needs export data in the .a file. To work around this, we copy
+	// the export data into the .x file ourselves.
+	pkgDefReader, err := readFileInArchive(pkgDef, outPath)
+	if err != nil {
+		return fmt.Errorf("error reading %s from %s: %v", pkgDef, outPath, err)
+	}
+	defer pkgDefReader.Close()
+	pkgDefPath := filepath.Join(filepath.Dir(outPath), pkgDef)
+	pkgDefFile, err := os.OpenFile(pkgDefPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	if size, err := io.Copy(pkgDefFile, pkgDefReader); err != nil {
+		return fmt.Errorf("error writing %s: %v", pkgDefPath, err)
+	} else if size == 0 {
+		return fmt.Errorf("%s is empty in %s", pkgDef, outPath)
+	}
+	if nogoStatus == nogoSucceeded {
+		return appendFiles(goenv, outXPath, []string{pkgDefPath, outFactPath})
+	}
+	return appendFiles(goenv, outXPath, []string{pkgDefPath})
 }
 
 func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath, symabisPath string, gcFlags []string, outPath string) error {
@@ -471,16 +490,4 @@ func sanitizePathForIdentifier(path string) string {
 		}
 		return '_'
 	}, path)
-}
-
-func extractPkgDef(fromArchive, toFile string) error {
-	data, err := readFileInArchive(func(name string) bool {
-		return name == pkgDef
-	}, fromArchive)
-	if err != nil {
-		return fmt.Errorf("error reading %s: %v", pkgDef, err)
-	} else if len(data) == 0 {
-		return fmt.Errorf("%s is empty", pkgDef)
-	}
-	return ioutil.WriteFile(toFile, data, 0644)
 }

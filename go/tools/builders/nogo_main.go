@@ -524,17 +524,17 @@ func (i *importer) readFacts(path string) ([]byte, error) {
 		// fmt.Printf accepts a format string.
 		return nil, nil
 	}
-	data, err := readFileInArchive(func(name string) bool {
-		return strings.HasSuffix(name, ".fact")
-	}, archive)
-	if err == fileNotFound {
+	factReader, err := readFileInArchive(nogoFact, archive)
+	if os.IsNotExist(err) {
 		// Packages that were not built with the nogo toolchain will not be
 		// analyzed, so there's no opportunity to store facts. This includes
 		// packages in the standard library and packages built with go_tool_library,
 		// such as coverdata.
 		return nil, nil
+	} else if err != nil {
+		return nil, err
 	}
-	return data, err
+	return ioutil.ReadAll(factReader)
 }
 
 type factMultiFlag map[string]string

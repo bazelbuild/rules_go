@@ -118,20 +118,34 @@ const (
 	// entryLength is the size in bytes of the metadata preceding each file
 	// in an archive.
 	entryLength = 60
+
+	// pkgDef is the name of the export data file within an archive
+	pkgDef = "__.PKGDEF"
+
+	// nogoFact is the name of the nogo fact file
+	nogoFact = "nogo.out"
 )
 
 var zeroBytes = []byte("0                    ")
 
+type readerWithCloser struct {
+	io.Reader
+	c io.Closer
+}
+
+func (rc *readerWithCloser) Close() error { return rc.c.Close() }
+
 func extractFiles(archive, dir string, names map[string]struct{}) (files []string, err error) {
-	r, closer, err := openArchive(archive)
+	rc, err := openArchive(archive)
 	if err != nil {
 		return nil, err
 	}
-	defer closer.Close()
+	defer rc.Close()
 
 	var nameData []byte
+	bufReader := rc.Reader.(*bufio.Reader)
 	for {
-		name, size, err := readMetadata(r, &nameData)
+		name, size, err := readMetadata(bufReader, &nameData)
 		if err == io.EOF {
 			return files, nil
 		}
@@ -139,7 +153,7 @@ func extractFiles(archive, dir string, names map[string]struct{}) (files []strin
 			return nil, err
 		}
 		if !isObjectFile(name) {
-			if err := skipFile(r, size); err != nil {
+			if err := skipFile(bufReader, size); err != nil {
 				return nil, err
 			}
 			continue
@@ -149,26 +163,27 @@ func extractFiles(archive, dir string, names map[string]struct{}) (files []strin
 			return nil, err
 		}
 		name = filepath.Join(dir, name)
-		if err := extractFile(r, name, size); err != nil {
+		if err := extractFile(bufReader, name, size); err != nil {
 			return nil, err
 		}
 		files = append(files, name)
 	}
 }
 
-func openArchive(archive string) (*bufio.Reader, io.Closer, error) {
+func openArchive(archive string) (*readerWithCloser, error) {
 	f, err := os.Open(archive)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	r := bufio.NewReader(f)
 	header := make([]byte, len(arHeader))
 	if _, err := io.ReadFull(r, header); err != nil || string(header) != arHeader {
 		f.Close()
-		return nil, nil, fmt.Errorf("%s: bad header", archive)
+		return nil, fmt.Errorf("%s: bad header", archive)
 	}
-	return r, f, nil
+	return &readerWithCloser{r, f}, nil
 }
+
 // readMetadata reads the relevant fields of an entry. Before calling,
 // r must be positioned at the beginning of an entry. Afterward, r will
 // be positioned at the beginning of the file data. io.EOF is returned if
@@ -338,35 +353,34 @@ func appendFiles(goenv *env, archive string, files []string) error {
 	return goenv.runCommand(args)
 }
 
-type fileMatcher func(name string) bool
-var fileNotFound = errors.New("file not found in archive")
-
-func readFileInArchive(match fileMatcher, archive string) ([]byte, error) {
-	r, closer, err := openArchive(archive)
+func readFileInArchive(fileName, archive string) (io.ReadCloser, error) {
+	rc, err := openArchive(archive)
 	if err != nil {
 		return nil, err
 	}
-	defer closer.Close()
-
 	var nameData []byte
-	for {
-		name, size, err := readMetadata(r, &nameData)
-		if err == io.EOF {
+	bufReader := rc.Reader.(*bufio.Reader)
+	for err == nil {
+		// avoid shadowing err in the loop it can be returned correctly in the end
+		var (
+			name string
+			size int64
+		)
+		name, size, err = readMetadata(bufReader, &nameData)
+		if err != nil {
 			break
 		}
-		if err != nil {
-			return nil, err
+		if name == fileName {
+			return &readerWithCloser{
+				Reader: io.LimitReader(rc, size),
+				c: rc,
+			}, nil
 		}
-		if match(name) {
-			bodyData := make([]byte, size)
-			if _, err := io.ReadFull(r, bodyData); err != nil {
-				return nil, fmt.Errorf("could not read %s from %q: %v", name, archive, err)
-			}
-			return bodyData, nil
-		}
-		if err := skipFile(r, size); err != nil {
-			return nil, err
-		}
+		err = skipFile(bufReader, size)
 	}
-	return nil, fileNotFound
+	if err == io.EOF {
+		err = os.ErrNotExist
+	}
+	rc.Close()
+	return nil, err
 }
