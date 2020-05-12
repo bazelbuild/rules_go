@@ -416,7 +416,10 @@ func compileArchive(
 	}
 	defer pkgDefReader.Close()
 	pkgDefPath := filepath.Join(filepath.Dir(outPath), pkgDef)
-	pkgDefFile, err := os.OpenFile(pkgDefPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	pkgDefFile, err := os.Create(pkgDefPath)
+	if err != nil {
+		return fmt.Errorf("error creating %s: %v", pkgDefPath, err)
+	}
 	if size, err := io.Copy(pkgDefFile, pkgDefReader); err != nil {
 		return fmt.Errorf("error writing %s: %v", pkgDefPath, err)
 	} else if size == 0 {
