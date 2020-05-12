@@ -534,6 +534,7 @@ func (i *importer) readFacts(path string) ([]byte, error) {
 	} else if err != nil {
 		return nil, err
 	}
+	defer factReader.Close()
 	return ioutil.ReadAll(factReader)
 }
 

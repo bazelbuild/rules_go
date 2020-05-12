@@ -321,12 +321,12 @@ func compileArchive(
 
 	// Run nogo concurrently.
 	var nogoChan chan error
-	outFactPath := filepath.Join(filepath.Dir(outXPath), nogoFact)
+	outFactsPath := filepath.Join(filepath.Dir(outXPath), nogoFact)
 	if nogoPath != "" {
 		ctx, cancel := context.WithCancel(context.Background())
 		nogoChan = make(chan error)
 		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcs, deps, packagePath, importcfgPath, outFactPath)
+			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcs, deps, packagePath, importcfgPath, outFactsPath)
 		}()
 		defer func() {
 			if nogoChan != nil {
@@ -388,7 +388,7 @@ func compileArchive(
 		}
 	}
 
-	// Check results from nogo and create .x file
+	// Check results from nogo.
 	nogoStatus := nogoNotRun
 	if nogoChan != nil {
 		err := <-nogoChan
@@ -423,7 +423,7 @@ func compileArchive(
 		return fmt.Errorf("%s is empty in %s", pkgDef, outPath)
 	}
 	if nogoStatus == nogoSucceeded {
-		return appendFiles(goenv, outXPath, []string{pkgDefPath, outFactPath})
+		return appendFiles(goenv, outXPath, []string{pkgDefPath, outFactsPath})
 	}
 	return appendFiles(goenv, outXPath, []string{pkgDefPath})
 }
@@ -454,6 +454,7 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 	}
 	args = append(args, "-x", outFactsPath)
 	args = append(args, srcs...)
+
 	paramFile := filepath.Join(workDir, "nogo.param")
 	params := strings.Join(args[1:], "\n")
 	if err := ioutil.WriteFile(paramFile, []byte(params), 0666); err != nil {
