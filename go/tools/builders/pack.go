@@ -373,7 +373,7 @@ func readFileInArchive(fileName, archive string) (io.ReadCloser, error) {
 		if name == fileName {
 			return &readerWithCloser{
 				Reader: io.LimitReader(rc, size),
-				c: rc,
+				c:      rc,
 			}, nil
 		}
 		err = skipFile(bufReader, size)

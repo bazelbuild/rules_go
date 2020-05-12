@@ -37,7 +37,7 @@ func compile(args []string) error {
 	builderArgs, toolArgs := splitArgs(args)
 	flags := flag.NewFlagSet("GoCompile", flag.ExitOnError)
 	unfiltered := multiFlag{}
-	archives := compileArchiveMultiFlag{}
+	archives := archiveMultiFlag{}
 	goenv := envFlags(flags)
 	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
 	flags.Var(&unfiltered, "src", "A source file to be filtered and compiled")
@@ -165,7 +165,7 @@ func compile(args []string) error {
 		nogoargs = append(nogoargs, "-p", *packagePath)
 		nogoargs = append(nogoargs, "-importcfg", importcfgName)
 		for _, arc := range archives {
-			nogoargs = append(nogoargs, "-fact", fmt.Sprintf("%s=%s", arc.importPath, arc.xFile))
+			nogoargs = append(nogoargs, "-fact", fmt.Sprintf("%s=%s", arc.importPath, arc.file))
 		}
 		nogoargs = append(nogoargs, "-x", outFact)
 		nogoargs = append(nogoargs, filenames...)

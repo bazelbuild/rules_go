@@ -42,7 +42,7 @@ func compilePkg(args []string) error {
 	fs := flag.NewFlagSet("GoCompilePkg", flag.ExitOnError)
 	goenv := envFlags(fs)
 	var unfilteredSrcs, coverSrcs multiFlag
-	var deps compileArchiveMultiFlag
+	var deps archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
 	var testFilter string
@@ -450,7 +450,7 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 	args = append(args, "-p", packagePath)
 	args = append(args, "-importcfg", importcfgPath)
 	for _, dep := range deps {
-		args = append(args, "-fact", fmt.Sprintf("%s=%s", dep.importPath, dep.xFile))
+		args = append(args, "-fact", fmt.Sprintf("%s=%s", dep.importPath, dep.file))
 	}
 	args = append(args, "-x", outFactsPath)
 	args = append(args, srcs...)

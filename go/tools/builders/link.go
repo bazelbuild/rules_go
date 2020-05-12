@@ -39,7 +39,7 @@ func link(args []string) error {
 	xstamps := multiFlag{}
 	stamps := multiFlag{}
 	xdefs := multiFlag{}
-	archives := linkArchiveMultiFlag{}
+	archives := archiveMultiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
 	main := flags.String("main", "", "Path to the main archive.")
