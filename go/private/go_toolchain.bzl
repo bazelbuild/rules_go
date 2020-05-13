@@ -54,6 +54,8 @@ def _go_toolchain_impl(ctx):
 
         # Internal fields -- may be read by emit functions.
         _builder = ctx.executable.builder,
+        # TODO(yannic): Make this configurable.
+        _importpath_conflict_is_error = False,
     )]
 
 go_toolchain = rule(

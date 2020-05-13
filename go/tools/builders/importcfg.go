@@ -147,7 +147,7 @@ func buildImportcfgFileForCompile(imports map[string]*archive, installSuffix, di
 	return filename, nil
 }
 
-func buildImportcfgFileForLink(archives []archive, stdPackageListPath, installSuffix, dir string) (string, error) {
+func buildImportcfgFileForLink(archives []archive, stdPackageListPath, installSuffix, dir string, importPathConflictIsError bool) (string, error) {
 	buf := &bytes.Buffer{}
 	goroot, ok := os.LookupEnv("GOROOT")
 	if !ok {
@@ -173,13 +173,18 @@ func buildImportcfgFileForLink(archives []archive, stdPackageListPath, installSu
 	depsSeen := map[string]string{}
 	for _, arc := range archives {
 		if conflictLabel, ok := depsSeen[arc.packagePath]; ok {
-			// TODO(#1327): link.bzl should report this as a failure after 0.11.0.
-			// At this point, we'll prepare an importcfg file and remove logic here.
-			log.Printf(`warning: package %q is provided by more than one rule:
+			msg := fmt.Sprintf(`warning: package %q is provided by more than one rule:
     %s
     %s
 Set "importmap" to different paths in each library.
 This will be an error in the future.`, arc.packagePath, arc.label, conflictLabel)
+
+			// TODO(#1374): link.bzl should report this as a failure after 0.11.0.
+			// At this point, we'll prepare an importcfg file and remove logic here.
+			if importPathConflictIsError {
+				return "", errors.New(msg)
+			}
+			log.Print(msg)
 			continue
 		}
 		depsSeen[arc.packagePath] = arc.label
