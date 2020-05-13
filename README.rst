@@ -68,7 +68,7 @@ Slack: #bazel on `Gopher Slack`_
 Announcements
 -------------
 
-2020-05-12
+2020-05-13
   Release
   `v0.23.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.0>`_ is
   now available with support for the new protobuf API and support for
