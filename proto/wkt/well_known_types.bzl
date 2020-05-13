@@ -18,6 +18,17 @@ WELL_KNOWN_TYPE_PACKAGES = {
     "wrappers": ("github.com/golang/protobuf/ptypes/wrappers", []),
 }
 
+WELL_KNOWN_TYPE_ALIAS_RULES = {
+    "any": "@com_github_golang_protobuf//ptypes/any:go_default_library",
+    "compiler_plugin": "@com_github_golang_protobuf//protoc-gen-go/plugin:go_default_library",
+    "descriptor": "@com_github_golang_protobuf//protoc-gen-go/descriptor:go_default_library",
+    "duration": "@com_github_golang_protobuf//ptypes/duration:go_default_library",
+    "empty": "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+    "struct": "@com_github_golang_protobuf//ptypes/struct:go_default_library",
+    "timestamp": "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+    "wrappers": "@com_github_golang_protobuf//ptypes/wrappers:go_default_library",
+}
+
 GOGO_WELL_KNOWN_TYPE_REMAPS = [
     "Mgoogle/protobuf/{}.proto=github.com/gogo/protobuf/types".format(wkt)
     for wkt, (go_package, _) in WELL_KNOWN_TYPE_PACKAGES.items()
@@ -35,11 +46,18 @@ WELL_KNOWN_TYPE_RULES = {
 def gen_well_known_types():
     for wkt, rule in WELL_KNOWN_TYPE_RULES.items():
         (go_package, deps) = WELL_KNOWN_TYPE_PACKAGES[wkt]
-        go_proto_library(
-            name = rule.rsplit(":", 1)[1],
-            compilers = ["@io_bazel_rules_go//proto:go_proto_bootstrap"],
-            importpath = go_package,
-            proto = "@com_google_protobuf//:{}_{}".format(wkt, _proto_library_suffix),
-            visibility = ["//visibility:public"],
-            deps = [WELL_KNOWN_TYPE_RULES[dep] for dep in deps],
-        )
+        if wkt in WELL_KNOWN_TYPE_ALIAS_RULES.keys():
+            native.alias(
+                name = rule.rsplit(":", 1)[1],
+                actual = WELL_KNOWN_TYPE_ALIAS_RULES[wkt],
+                visibility = ["//visibility:public"],
+            )
+        else:
+            go_proto_library(
+                name = rule.rsplit(":", 1)[1],
+                compilers = ["@io_bazel_rules_go//proto:go_proto_bootstrap"],
+                importpath = go_package,
+                proto = "@com_google_protobuf//:{}_{}".format(wkt, _proto_library_suffix),
+                visibility = ["//visibility:public"],
+                deps = [WELL_KNOWN_TYPE_RULES[dep] for dep in deps],
+            )
