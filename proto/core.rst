@@ -202,14 +202,15 @@ Attributes
 | default compiler implicitly adds dependencies on the ``go_proto_library``                    |
 | rules for the Well Known Types.                                                              |
 +---------------------+----------------------+-------------------------------------------------+
-| :param:`importpath` | :type:`string`       | :value:`""`                                     |
+| :param:`importpath` | :type:`string`       | |mandatory|                                     |
 +---------------------+----------------------+-------------------------------------------------+
-| The Go import path of this library. If unspecified, this will be inferred                    |
-| from the rule's location in the repository.                                                  |
+| The source import path of this library. Other libraries can import this                      |
+| library using this path. This must be specified in ``go_proto_library`` or                   |
+| inherited from one of the targets in ``embed``.                                              |
 |                                                                                              |
-| If `option go_package` is declared in the .proto sources, this string                        |
-| should match. However, this takes attribute precedence if the option does                    |
-| not match.                                                                                   |
+| ``importpath`` must match the import path specified in ``.proto`` files using                |
+| ``option go_package``. The option determines how ``.pb.go`` files generated                  |
+| for protos importing this proto will import this package.                                    |
 +---------------------+----------------------+-------------------------------------------------+
 | :param:`importmap`  | :type:`string`       | :value:`""`                                     |
 +---------------------+----------------------+-------------------------------------------------+
