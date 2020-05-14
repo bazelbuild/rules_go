@@ -294,6 +294,9 @@ func compileArchive(
 		imports["unsafe"] = nil
 	}
 	if coverMode != "" {
+		if coverMode == "atomic" {
+			imports["sync/atomic"] = nil
+		}
 		const coverdataPath = "github.com/bazelbuild/rules_go/go/tools/coverdata"
 		var coverdata *archive
 		for i := range deps {

@@ -55,6 +55,7 @@ def emit_cover(go, source):
         args.add("-var", cover_var)
         args.add("-src", src)
         args.add("-srcname", srcname)
+        # TODO: should we set this to atomic by default?
         args.add("-mode", "set")
         go.actions.run(
             inputs = [src] + go.sdk.tools,
