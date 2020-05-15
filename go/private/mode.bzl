@@ -65,8 +65,6 @@ def _ternary(*values):
     fail("_ternary failed to produce a final result from {}".format(values))
 
 def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
-    # TODO(jayconrod): check for invalid or contradictory settings.
-    # Double-check defaults that imply other defaults (no cgo implies pure).
     static = _ternary(
         "on" if "static" in ctx.features else "auto",
         go_config_info.static,
@@ -77,11 +75,11 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         go_config_info.pure,
     )
     race = _ternary(
-        "on" if "race" in ctx.features else "auto",
+        "on" if ("race" in ctx.features and not pure) else "auto",
         go_config_info.race,
     )
     msan = _ternary(
-        "on" if "msan" in ctx.features else "auto",
+        "on" if ("msan" in ctx.features and not pure) else "auto",
         go_config_info.msan,
     )
     strip = go_config_info.strip
@@ -90,6 +88,12 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     linkmode = go_config_info.linkmode
     goos = go_toolchain.default_goos
     goarch = go_toolchain.default_goarch
+
+    # TODO(jayconrod): check for more invalid and contradictory settings.
+    if pure and race:
+        fail("race instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
+    if pure and msan:
+        fail("msan instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
 
     tags = list(go_config_info.tags)
     if "gotags" in ctx.var:

@@ -16,7 +16,9 @@ package race_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -63,6 +65,19 @@ go_test(
     name = "racy_test_race_mode",
     srcs = ["racy_test.go"],
     embed = [":racy"],
+    race = "on",
+)
+
+go_binary(
+    name = "pure_bin",
+    srcs = ["pure_bin.go"],
+    pure = "on",
+)
+
+go_binary(
+    name = "pure_race_bin",
+    srcs = ["pure_bin.go"],
+    pure = "on",
     race = "on",
 )
 
@@ -128,14 +143,21 @@ func TestRace(t *testing.T) {
 }
 
 -- empty.s --
+-- pure_bin.go --
+// +build !race
+
+// pure_bin will not build in race mode, since its sources will be excluded.
+package main
+
+func main() {}
 `,
 	})
 }
 
 func Test(t *testing.T) {
 	for _, test := range []struct {
-		desc, cmd, target     string
-		featureFlag, wantRace bool
+		desc, cmd, target                    string
+		featureFlag, wantRace, wantBuildFail bool
 	}{
 		{
 			desc:   "cmd_auto",
@@ -167,30 +189,61 @@ func Test(t *testing.T) {
 			target:      "//:racy_test",
 			featureFlag: true,
 			wantRace:    true,
+		}, {
+			desc:        "pure_bin",
+			cmd:         "build",
+			target:      "//:pure_bin",
+			featureFlag: true,
+		}, {
+			desc:          "pure_race_bin",
+			cmd:           "build",
+			target:        "//:pure_race_bin",
+			wantBuildFail: true,
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
 			args := []string{test.cmd}
 			if test.featureFlag {
-				args = append(args, "--feature=race")
+				args = append(args, "--features=race")
 			}
 			args = append(args, test.target)
 			if test.cmd == "test" {
 				args = append(args, fmt.Sprintf("--test_arg=-wantrace=%v", test.wantRace))
-			} else {
+			} else if test.cmd == "run" {
 				args = append(args, "--", fmt.Sprintf("-wantrace=%v", test.wantRace))
 			}
 			cmd := bazel_testing.BazelCmd(args...)
 			stderr := &bytes.Buffer{}
 			cmd.Stderr = stderr
+			t.Logf("running: bazel %s", strings.Join(args, " "))
 			if err := cmd.Run(); err != nil {
-				if bytes.Contains(stderr.Bytes(), []byte("!!!")) {
-					t.Fatalf("error running %s:\n%s", strings.Join(cmd.Args, " "), stderr.Bytes())
-				} else if !test.wantRace {
-					t.Fatalf("error running %s without race enabled\n%s", strings.Join(cmd.Args, " "), stderr.Bytes())
+				var xerr *exec.ExitError
+				if !errors.As(err, &xerr) {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				if xerr.ExitCode() == bazel_testing.BUILD_FAILURE {
+					if !test.wantBuildFail {
+						t.Fatalf("unexpected build failure: %v\nstderr:\n%s", err, stderr.Bytes())
+					}
+					return
+				} else if xerr.ExitCode() == bazel_testing.TESTS_FAILED {
+					if bytes.Contains(stderr.Bytes(), []byte("!!!")) {
+						t.Fatalf("error running %s:\n%s", strings.Join(cmd.Args, " "), stderr.Bytes())
+					} else if !test.wantRace {
+						t.Fatalf("error running %s without race enabled\n%s", strings.Join(cmd.Args, " "), stderr.Bytes())
+					}
+				} else if test.wantRace {
+					if !bytes.Contains(stderr.Bytes(), []byte("WARNING: DATA RACE")) {
+						t.Fatalf("wanted data race; command failed with: %v\nstderr:\n%s", err, stderr.Bytes())
+					}
+					return
+				} else {
+					t.Fatalf("unexpected error: %v\nstderr:\n%s", err, stderr.Bytes())
 				}
 			} else if test.wantRace {
 				t.Fatalf("command %s with race enabled did not fail", strings.Join(cmd.Args, " "))
+			} else if test.wantBuildFail {
+				t.Fatalf("target %s did not fail to build", test.target)
 			}
 		})
 	}
