@@ -751,6 +751,7 @@ cgo_context_data_proxy = rule(
 
 def _go_config_impl(ctx):
     return [GoConfigInfo(
+        package_conflict_is_error = ctx.attr.package_conflict_is_error[BuildSettingInfo].value,
         static = ctx.attr.static[BuildSettingInfo].value,
         race = ctx.attr.race[BuildSettingInfo].value,
         msan = ctx.attr.msan[BuildSettingInfo].value,
@@ -765,6 +766,10 @@ def _go_config_impl(ctx):
 go_config = rule(
     implementation = _go_config_impl,
     attrs = {
+        "package_conflict_is_error": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
         "static": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],

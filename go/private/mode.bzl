@@ -90,6 +90,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     linkmode = go_config_info.linkmode
     goos = go_toolchain.default_goos
     goarch = go_toolchain.default_goarch
+    package_conflict_is_error = go_config_info.package_conflict_is_error
 
     tags = list(go_config_info.tags)
     if "gotags" in ctx.var:
@@ -113,6 +114,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         goos = goos,
         goarch = goarch,
         tags = tags,
+        package_conflict_is_error = package_conflict_is_error,
     )
 
 def installsuffix(mode):

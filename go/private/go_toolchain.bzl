@@ -25,7 +25,6 @@ load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
 load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
 load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
 load("@io_bazel_rules_go//go/private:actions/stdlib.bzl", "emit_stdlib")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 def _go_toolchain_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]
@@ -55,7 +54,6 @@ def _go_toolchain_impl(ctx):
 
         # Internal fields -- may be read by emit functions.
         _builder = ctx.executable.builder,
-        _package_conflict_is_error = ctx.attr._package_conflict_is_error[BuildSettingInfo].value,
     )]
 
 go_toolchain = rule(
@@ -88,9 +86,6 @@ go_toolchain = rule(
         ),
         "cgo_link_flags": attr.string_list(
             doc = "Flags passed to the external linker (if it is used)",
-        ),
-        "_package_conflict_is_error": attr.label(
-            default = "//go/config:incompatible_package_conflict_is_error",
         ),
     },
     doc = "Defines a Go toolchain based on an SDK",

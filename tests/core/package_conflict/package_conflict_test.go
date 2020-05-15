@@ -15,8 +15,6 @@
 package reproducibility_test
 
 import (
-	"bytes"
-	"fmt"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel_testing"
@@ -118,7 +116,7 @@ func main() {
 func runTest(t *testing.T, expectError bool, extraArgs ...string) {
 	args := append([]string{"build", "//:main"}, extraArgs...)
 
-	err := RunBazel(args...)
+	err := bazel_testing.RunBazel(args...)
 	if expectError {
 		if err == nil {
 			t.Fatal("Expected error")
