@@ -50,7 +50,7 @@ func link(args []string) error {
 	flags.Var(&xdefs, "X", "A string variable to replace in the linked binary (repeated).")
 	flags.Var(&xstamps, "Xstamp", "Like -X but the values are looked up in the -stamp file.")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
-	importPathConflictIsError := flags.Bool("importpath-conflict-is-error", false, "Whether importpath conflicts are errors.")
+	packageConflictIsError := flags.Bool("package_conflict_is_error", false, "Whether importpath conflicts are errors.")
 	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func link(args []string) error {
 	}
 
 	// Build an importcfg file.
-	importcfgName, err := buildImportcfgFileForLink(archives, *packageList, goenv.installSuffix, filepath.Dir(*outFile), *importPathConflictIsError)
+	importcfgName, err := buildImportcfgFileForLink(archives, *packageList, goenv.installSuffix, filepath.Dir(*outFile), *packageConflictIsError)
 	if err != nil {
 		return err
 	}

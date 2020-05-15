@@ -141,8 +141,8 @@ def emit_link(
         tool_args.add("-w")
     tool_args.add_joined("-extldflags", extldflags, join_with = " ")
 
-    if go.toolchain._importpath_conflict_is_error:
-        builder_args.add("-importpath-conflict-is-error")
+    if go.toolchain._package_conflict_is_error:
+        builder_args.add("-package_conflict_is_error")
 
     inputs_direct = stamp_inputs + [go.sdk.package_list]
     if go.coverage_enabled and go.coverdata:
