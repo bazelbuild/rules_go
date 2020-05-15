@@ -179,8 +179,7 @@ func buildImportcfgFileForLink(archives []archive, stdPackageListPath, installSu
 Set "importmap" to different paths in each library.
 This will be an error in the future.`, arc.packagePath, arc.label, conflictLabel)
 
-			// TODO(#1374): link.bzl should report this as a failure after 0.11.0.
-			// At this point, we'll prepare an importcfg file and remove logic here.
+			// TODO(#1374): Always make this an error.
 			if packageConflictIsError {
 				return "", errors.New(msg)
 			}

@@ -118,14 +118,7 @@ func main() {
 func runTest(t *testing.T, expectError bool, extraArgs ...string) {
 	args := append([]string{"build", "//:main"}, extraArgs...)
 
-	cmd := bazel_testing.BazelCmd(args...)
-	buf := &bytes.Buffer{}
-	cmd.Stdout = buf
-	cmd.Stderr = buf
-
-	err := cmd.Run()
-
-	fmt.Println(string(buf.Bytes()))
+	err := RunBazel(args...)
 	if expectError {
 		if err == nil {
 			t.Fatal("Expected error")
