@@ -81,6 +81,18 @@ go_binary(
     race = "on",
 )
 
+go_library(
+		name = "coverrace",
+		srcs = ["coverrace.go"],
+		importpath = "example.com/coverrace",
+)
+
+go_test(
+		name = "coverrace_test",
+		srcs = ["coverrace_test.go"],
+		embed = [":coverrace"],
+    race = "on",
+)
 -- race_off.go --
 // +build !race
 
@@ -150,6 +162,36 @@ func TestRace(t *testing.T) {
 package main
 
 func main() {}
+
+-- coverrace.go --
+package coverrace
+// copied from https://hermanschaaf.com/running-the-go-race-detector-with-cover/
+func add100() int {
+	total := 0
+	c := make(chan int, 1)
+	for i := 0; i < 100; i++ {
+		go func(chan int) {
+			c <- 1
+		}(c)
+	}
+	for u := 0; u < 100; u++ {
+		total += <-c
+	}
+	return total
+}
+
+-- coverrace_test.go --
+package coverrace
+// copied from https://hermanschaaf.com/running-the-go-race-detector-with-cover/
+
+import "testing"
+
+func TestCoverRace(t *testing.T) {
+	got := add100()
+	if got != 100 {
+		t.Errorf("got %d, want %d", got, 100)
+	}
+}
 `,
 	})
 }
@@ -199,6 +241,10 @@ func Test(t *testing.T) {
 			cmd:           "build",
 			target:        "//:pure_race_bin",
 			wantBuildFail: true,
+		}, {
+			desc:   "cover_race",
+			cmd:    "coverage",
+			target: "//:coverrace_test",
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
