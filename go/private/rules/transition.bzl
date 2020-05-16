@@ -102,10 +102,36 @@ def go_transition_rule(**kwargs):
     return rule(**kwargs)
 
 def _go_transition_impl(settings, attr):
+    # NOTE(bazelbuild/bazel#11409): Calling fail here for invalid combinations
+    # of flags reports an error but does not stop the build.
+    # In any case, get_mode should mainly be responsible for reporting
+    # invalid modes, since it also takes --features flags into account.
+
     settings = dict(settings)
+
+    _set_ternary(settings, attr, "static")
+    race = _set_ternary(settings, attr, "race")
+    msan = _set_ternary(settings, attr, "msan")
+    pure = _set_ternary(settings, attr, "pure")
+    if race == "on":
+        if pure == "on":
+            fail('race = "on" cannot be set when pure = "on" is set. race requires cgo.')
+        pure = "off"
+        settings[filter_transition_label("@io_bazel_rules_go//go/config:pure")] = False
+    if msan == "on":
+        if pure == "on":
+            fail('msan = "on" cannot be set when msan = "on" is set. msan requires cgo.')
+        pure = "off"
+        settings[filter_transition_label("@io_bazel_rules_go//go/config:pure")] = False
+    if pure == "on":
+        race = "off"
+        settings[filter_transition_label("@io_bazel_rules_go//go/config:race")] = False
+        msan = "off"
+        settings[filter_transition_label("@io_bazel_rules_go//go/config:msan")] = False
+    cgo = pure == "off"
+
     goos = getattr(attr, "goos", "auto")
     goarch = getattr(attr, "goarch", "auto")
-    pure = getattr(attr, "pure", "auto")
     _check_ternary("pure", pure)
     if goos != "auto" or goarch != "auto":
         if goos == "auto":
@@ -114,18 +140,10 @@ def _go_transition_impl(settings, attr):
             fail("goarch must be set if goos is set")
         if (goos, goarch) not in GOOS_GOARCH:
             fail("invalid goos, goarch pair: {}, {}".format(goos, goarch))
-        cgo = pure == "off"
         if cgo and (goos, goarch) not in CGO_GOOS_GOARCH:
             fail('pure is "off" but cgo is not supported on {} {}'.format(goos, goarch))
         platform = "@io_bazel_rules_go//go/toolchain:{}_{}{}".format(goos, goarch, "_cgo" if cgo else "")
         settings["//command_line_option:platforms"] = platform
-    if pure != "auto":
-        pure_label = filter_transition_label("@io_bazel_rules_go//go/config:pure")
-        settings[pure_label] = pure == "on"
-
-    _set_ternary(settings, attr, "static")
-    _set_ternary(settings, attr, "race")
-    _set_ternary(settings, attr, "msan")
 
     tags = getattr(attr, "gotags", [])
     if tags:
@@ -173,3 +191,4 @@ def _set_ternary(settings, attr, name):
     if value != "auto":
         label = filter_transition_label("@io_bazel_rules_go//go/config:{}".format(name))
         settings[label] = value == "on"
+    return value
