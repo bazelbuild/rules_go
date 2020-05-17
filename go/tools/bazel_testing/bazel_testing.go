@@ -184,6 +184,14 @@ func BazelCmd(args ...string) *exec.Cmd {
 	if outputUserRoot != "" {
 		cmd.Args = append(cmd.Args, "--output_user_root="+outputUserRoot)
 	}
+	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
+		cmd.Args = append(cmd.Args, args[0])
+		args = args[1:]
+	}
+	if flagsStr := os.Getenv("GO_BAZEL_TEST_BAZELFLAGS"); flagsStr != "" {
+		flags := strings.Fields(flagsStr)
+		cmd.Args = append(cmd.Args, flags...)
+	}
 	cmd.Args = append(cmd.Args, args...)
 	for _, e := range os.Environ() {
 		// Filter environment variables set by the bazel test wrapper script.

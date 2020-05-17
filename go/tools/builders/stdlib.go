@@ -44,6 +44,12 @@ func stdlib(args []string) error {
 	}
 	output := abs(*out)
 
+	// Fail fast if cgo is required but a toolchain is not configured.
+	if os.Getenv("CGO_ENABLED") == "1" && filepath.Base(os.Getenv("CC")) == "vc_installation_error.bat" {
+		return fmt.Errorf(`cgo is required, but a C toolchain has not been configured.
+You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
+	}
+
 	// Link in the bare minimum needed to the new GOROOT
 	if err := replicate(goroot, output, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
 		return err
