@@ -16,8 +16,14 @@ Useful as a primitive smoke test -- if this doesn't build, nothing will.
 out_test
 --------
 
-Test that a `go_binary`_ rule can write its executable file with a custom name
+Tests that a `go_binary`_ rule can write its executable file with a custom name
 in the package directory (not the mode directory).
+
+package_conflict_test
+---------------------
+
+Tests that linking multiple packages with the same path (`importmap`) is an
+error.
 
 goos_pure_bin
 -------------

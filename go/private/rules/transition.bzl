@@ -145,7 +145,6 @@ go_transition = transition(
     implementation = _go_transition_impl,
     inputs = [filter_transition_label(label) for label in [
         "//command_line_option:platforms",
-        "@io_bazel_rules_go//go/config:incompatible_package_conflict_is_error",
         "@io_bazel_rules_go//go/config:static",
         "@io_bazel_rules_go//go/config:msan",
         "@io_bazel_rules_go//go/config:race",
@@ -155,7 +154,6 @@ go_transition = transition(
     ]],
     outputs = [filter_transition_label(label) for label in [
         "//command_line_option:platforms",
-        "@io_bazel_rules_go//go/config:incompatible_package_conflict_is_error",
         "@io_bazel_rules_go//go/config:static",
         "@io_bazel_rules_go//go/config:msan",
         "@io_bazel_rules_go//go/config:race",

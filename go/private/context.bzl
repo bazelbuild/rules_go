@@ -488,7 +488,10 @@ def go_context(ctx, attr = None):
         declare_directory = _declare_directory,
 
         # Private
-        _ctx = ctx,  # TODO: All uses of this should be removed
+        # TODO: All uses of this should be removed
+        _ctx = ctx,
+        # TODO(#1374): Remove in v0.25.
+        _package_conflict_is_error = go_config_info._package_conflict_is_error,
     )
 
 def _go_context_data_impl(ctx):
@@ -751,7 +754,6 @@ cgo_context_data_proxy = rule(
 
 def _go_config_impl(ctx):
     return [GoConfigInfo(
-        package_conflict_is_error = ctx.attr.package_conflict_is_error[BuildSettingInfo].value,
         static = ctx.attr.static[BuildSettingInfo].value,
         race = ctx.attr.race[BuildSettingInfo].value,
         msan = ctx.attr.msan[BuildSettingInfo].value,
@@ -761,15 +763,14 @@ def _go_config_impl(ctx):
         linkmode = ctx.attr.linkmode[BuildSettingInfo].value,
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
+
+        # TODO(#1374): Remove in v0.25.
+        _package_conflict_is_error = ctx.attr._package_conflict_is_error[BuildSettingInfo].value,
     )]
 
 go_config = rule(
     implementation = _go_config_impl,
     attrs = {
-        "package_conflict_is_error": attr.label(
-            mandatory = True,
-            providers = [BuildSettingInfo],
-        ),
         "static": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
@@ -803,6 +804,9 @@ go_config = rule(
             providers = [BuildSettingInfo],
         ),
         "stamp": attr.bool(mandatory = True),
+        "_package_conflict_is_error": attr.label(
+            default = "//go/config:incompatible_package_conflict_is_error",
+        ),
     },
     provides = [GoConfigInfo],
     doc = """Collects information about build settings in the current

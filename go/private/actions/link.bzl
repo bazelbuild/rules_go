@@ -141,7 +141,7 @@ def emit_link(
         tool_args.add("-w")
     tool_args.add_joined("-extldflags", extldflags, join_with = " ")
 
-    if go.mode.package_conflict_is_error:
+    if go._package_conflict_is_error:
         builder_args.add("-package_conflict_is_error")
 
     inputs_direct = stamp_inputs + [go.sdk.package_list]

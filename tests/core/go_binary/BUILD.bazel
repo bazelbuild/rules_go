@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 load(":many_deps.bzl", "many_deps")
 
 test_suite(name = "go_binary")
@@ -13,6 +14,11 @@ go_test(
     name = "go_default_test",
     srcs = ["out_test.go"],
     data = [":custom_bin"],
+)
+
+go_bazel_test(
+    name = "package_conflict_test",
+    srcs = ["package_conflict_test.go"],
 )
 
 go_binary(

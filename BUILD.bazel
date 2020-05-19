@@ -96,7 +96,6 @@ go_config(
     gotags = "//go/config:tags",
     linkmode = "//go/config:linkmode",
     msan = "//go/config:msan",
-    package_conflict_is_error = "//go/config:incompatible_package_conflict_is_error",
     pure = "//go/config:pure",
     race = "//go/config:race",
     stamp = select({
