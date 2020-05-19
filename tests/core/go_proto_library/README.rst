@@ -46,3 +46,10 @@ proto_package_test
 Checks that `go_proto_library`_ generates files with a package name based on
 the proto package, not ``importpath`` when ``option go_package`` is not given.
 Verifies `#1596`_.
+
+wkt_wrapper_test
+----------------
+
+Checks that most of the well known types in ``//proto/wkt`` are wrappers
+for packages in ``@org_golang_google_protobuf``. The proto types should be
+type aliases.

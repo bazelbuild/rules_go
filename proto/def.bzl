@@ -13,8 +13,9 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go:def.bzl",
+    "//go:def.bzl",
     "GoLibrary",
+    "GoSource",
     "go_context",
 )
 load(
@@ -74,10 +75,12 @@ _go_proto_aspect = aspect(
 
 def _proto_library_to_source(go, attr, source, merge):
     if attr.compiler:
-        merge(source, attr.compiler)
-        return
-    for compiler in attr.compilers:
-        merge(source, compiler)
+        compilers = [attr.compiler]
+    else:
+        compilers = attr.compilers
+    for compiler in compilers:
+        if GoSource in compiler:
+            merge(source, compiler[GoSource])
 
 def _go_proto_library_impl(ctx):
     go = go_context(ctx)

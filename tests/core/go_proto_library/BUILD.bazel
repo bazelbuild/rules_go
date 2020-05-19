@@ -276,3 +276,26 @@ go_test(
     srcs = ["proto_package_test.go"],
     deps = [":no_go_package_go_proto"],
 )
+
+go_test(
+    name = "wkt_wrapper_test",
+    srcs = ["wkt_wrapper_test.go"],
+    deps = [
+        "//proto/wkt:any_go_proto",
+        "//proto/wkt:compiler_plugin_go_proto",
+        "//proto/wkt:descriptor_go_proto",
+        "//proto/wkt:duration_go_proto",
+        "//proto/wkt:empty_go_proto",
+        "//proto/wkt:struct_go_proto",
+        "//proto/wkt:timestamp_go_proto",
+        "//proto/wkt:wrappers_go_proto",
+        "@org_golang_google_protobuf//types/descriptorpb:go_default_library",
+        "@org_golang_google_protobuf//types/known/anypb:go_default_library",
+        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
+        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
+        "@org_golang_google_protobuf//types/known/structpb:go_default_library",
+        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
+        "@org_golang_google_protobuf//types/known/wrapperspb:go_default_library",
+        "@org_golang_google_protobuf//types/pluginpb:go_default_library",
+    ],
+)

@@ -1,12 +1,13 @@
-load("//proto:compiler.bzl", "go_proto_compiler")
-load("//proto/wkt:well_known_types.bzl", "GOGO_WELL_KNOWN_TYPE_REMAPS", "WELL_KNOWN_TYPE_RULES")
-
-PROTO_RUNTIME_DEPS = [
-    "@com_github_golang_protobuf//proto:go_default_library",
-    "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
-    "@org_golang_google_protobuf//runtime/protoiface:go_default_library",
-    "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-]
+load(
+    "//proto:compiler.bzl",
+    "go_proto_compiler",
+)
+load(
+    "//proto/wkt:well_known_types.bzl",
+    "GOGO_WELL_KNOWN_TYPE_REMAPS",
+    "PROTO_RUNTIME_DEPS",
+    "WELL_KNOWN_TYPE_RULES",
+)
 
 go_proto_compiler(
     name = "go_proto_bootstrap",

@@ -1,6 +1,167 @@
-load("//proto/wkt:well_known_types.bzl", "gen_well_known_types")
+load(":well_known_types.bzl", "go_proto_wrapper")
+load("//proto:def.bzl", "go_proto_library")
 
-gen_well_known_types()
+# Several of the well-known types have pre-generated code checked into to both
+# github.com/golang/protobuf (APIv1) and google.golang.org/protobuf (APIv2).
+# The APIv1 packages are just wrappers for the APIv2 packages. We're using
+# the APIv1 compiler, but it won't generate these wrappers for us automatically.
+# If we use it, and a program also imports the APIv2 packages, we'll end up
+# with a registration conflict. Instead, we'll use the pre-generated APIv1
+# code, but we'll wrap it up in a go_proto_library.
+go_proto_wrapper(
+    name = "any_wrapper",
+    library = "@com_github_golang_protobuf//ptypes/any:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "any_go_proto",
+    compilers = [":any_wrapper"],
+    importpath = "github.com/golang/protobuf/ptypes/any",
+    protos = ["@com_google_protobuf//:any_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "compiler_plugin_wrapper",
+    library = "@com_github_golang_protobuf//protoc-gen-go/plugin:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "compiler_plugin_go_proto",
+    compilers = [":compiler_plugin_wrapper"],
+    importpath = "github.com/golang/protobuf/protoc-gen-go/plugin",
+    protos = ["@com_google_protobuf//:compiler_plugin_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "descriptor_wrapper",
+    library = "@com_github_golang_protobuf//protoc-gen-go/descriptor:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "descriptor_go_proto",
+    compilers = [":descriptor_wrapper"],
+    importpath = "github.com/golang/protobuf/protoc-gen-go/descriptor",
+    protos = ["@com_google_protobuf//:descriptor_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "duration_wrapper",
+    library = "@com_github_golang_protobuf//ptypes/duration:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "duration_go_proto",
+    compilers = [":duration_wrapper"],
+    importpath = "github.com/golang/protobuf/ptypes/duration",
+    protos = ["@com_google_protobuf//:duration_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "empty_wrapper",
+    library = "@com_github_golang_protobuf//ptypes/empty:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "empty_go_proto",
+    compilers = [":empty_wrapper"],
+    importpath = "github.com/golang/protobuf/ptypes/empty",
+    protos = ["@com_google_protobuf//:empty_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "struct_wrapper",
+    library = "@com_github_golang_protobuf//ptypes/struct:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "struct_go_proto",
+    compilers = [":struct_wrapper"],
+    importpath = "github.com/golang/protobuf/ptypes/struct",
+    protos = ["@com_google_protobuf//:struct_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "timestamp_wrapper",
+    library = "@com_github_golang_protobuf//ptypes/timestamp:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "timestamp_go_proto",
+    compilers = [":timestamp_wrapper"],
+    importpath = "github.com/golang/protobuf/ptypes/timestamp",
+    protos = ["@com_google_protobuf//:timestamp_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "wrappers_wrapper",
+    library = "@com_github_golang_protobuf//ptypes/wrappers:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "wrappers_go_proto",
+    compilers = [":wrappers_wrapper"],
+    importpath = "github.com/golang/protobuf/ptypes/wrappers",
+    protos = ["@com_google_protobuf//:wrappers_proto"],
+    visibility = ["//visibility:public"],
+)
+
+# Protos below this point don't have duplicate libraries, so we generate .pb.go
+# files at build time as usual. The only difference is we use
+# go_proto_bootstrap, which has an empty set of implicit dependencies.
+go_proto_library(
+    name = "api_go_proto",
+    compilers = ["//proto:go_proto_bootstrap"],
+    importpath = "google.golang.org/genproto/protobuf/api",
+    protos = ["@com_google_protobuf//:api_proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":source_context_go_proto",
+        ":type_go_proto",
+    ],
+)
+
+go_proto_library(
+    name = "field_mask_go_proto",
+    compilers = ["//proto:go_proto_bootstrap"],
+    importpath = "google.golang.org/genproto/protobuf/field_mask",
+    protos = ["@com_google_protobuf//:field_mask_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "source_context_go_proto",
+    compilers = ["//proto:go_proto_bootstrap"],
+    importpath = "google.golang.org/genproto/protobuf/source_context",
+    protos = ["@com_google_protobuf//:source_context_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "type_go_proto",
+    compilers = ["//proto:go_proto_bootstrap"],
+    importpath = "google.golang.org/genproto/protobuf/ptype",
+    protos = ["@com_google_protobuf//:type_proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":any_go_proto",
+        ":source_context_go_proto",
+    ],
+)
 
 filegroup(
     name = "all_rules",
