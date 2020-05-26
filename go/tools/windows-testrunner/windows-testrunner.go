@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -13,40 +15,57 @@ import (
 func main() {
 	log.SetFlags(0)
 	log.SetPrefix("testrunner: ")
-	if err := run(os.Args[1:]); err != nil {
+
+	var configPath string
+	flag.StringVar(&configPath, "config", "", "location of presubmit.yml")
+	flag.Parse()
+	if configPath == "" {
+		var err error
+		configPath, err = findConfigPath()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if err := run(configPath, flag.Args()); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("want 1 arg; got %d", len(args))
-	}
-
-	testPath := args[0]
-	testData, err := ioutil.ReadFile(testPath)
+func run(configPath string, args []string) error {
+	configData, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return err
 	}
 	var config interface{}
-	if err := yaml.Unmarshal(testData, &config); err != nil {
+	if err := yaml.Unmarshal(configData, &config); err != nil {
 		return err
 	}
 
 	platform := config.(map[interface{}]interface{})["platforms"].(map[interface{}]interface{})["windows"].(map[interface{}]interface{})
-	var flags, buildTargets, testTargets []string
+	var buildFlags []string
 	for _, f := range platform["build_flags"].([]interface{}) {
-		flags = append(flags, f.(string))
+		buildFlags = append(buildFlags, f.(string))
 	}
-	for _, t := range platform["build_targets"].([]interface{}) {
-		buildTargets = append(buildTargets, t.(string))
+	testFlags := buildFlags
+	for _, f := range platform["test_flags"].([]interface{}) {
+		testFlags = append(testFlags, f.(string))
 	}
-	for _, t := range platform["test_targets"].([]interface{}) {
-		testTargets = append(testTargets, t.(string))
+	var buildTargets, testTargets []string
+	if len(args) == 0 {
+		for _, t := range platform["build_targets"].([]interface{}) {
+			buildTargets = append(buildTargets, t.(string))
+		}
+		for _, t := range platform["test_targets"].([]interface{}) {
+			testTargets = append(testTargets, t.(string))
+		}
+	} else {
+		buildTargets = args
+		testTargets = args
 	}
 
 	buildCmd := exec.Command("bazel", "build")
-	buildCmd.Args = append(buildCmd.Args, flags...)
+	buildCmd.Args = append(buildCmd.Args, buildFlags...)
 	buildCmd.Args = append(buildCmd.Args, buildTargets...)
 	buildCmd.Stdout = os.Stdout
 	buildCmd.Stderr = os.Stderr
@@ -55,7 +74,7 @@ func run(args []string) error {
 	}
 
 	testCmd := exec.Command("bazel", "test")
-	testCmd.Args = append(testCmd.Args, flags...)
+	testCmd.Args = append(testCmd.Args, testFlags...)
 	testCmd.Args = append(testCmd.Args, testTargets...)
 	testCmd.Stdout = os.Stdout
 	testCmd.Stderr = os.Stderr
@@ -64,4 +83,23 @@ func run(args []string) error {
 	}
 
 	return nil
+}
+
+func findConfigPath() (string, error) {
+	d, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	for {
+		configPath := filepath.Join(d, ".bazelci/presubmit.yml")
+		_, err := os.Stat(configPath)
+		if !os.IsNotExist(err) {
+			return configPath, nil
+		}
+		parent := filepath.Dir(d)
+		if parent == d {
+			return "", fmt.Errorf("could not find presubmit.yml")
+		}
+		d = parent
+	}
 }
