@@ -50,7 +50,7 @@ platforms:
     # gcc or clang. The Go SDK does not support MSVC.
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
-    - "--action_env=PATH"
+    - "--action_env=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite"
     # NOTE(bazelbuild/bazel#10529): bazel doesn't register the mingw toolchain automatically.
     # We also need the host and target platforms to have the mingw constraint value.
     - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
@@ -157,6 +157,7 @@ platforms:
     - "-//tests/core/cgo:dylib_test"
     - "-//tests/core/cgo:versioned_dylib_client"
     - "-//tests/core/cgo:versioned_dylib_test"
+    - "-//tests/core/cross:proto_test"
     # - "-//tests/core/coverage:coverage_test"
     # - "-//tests/core/cross:cross_test"
     # - "-//tests/core/go_binary:go_default_test"
@@ -243,7 +244,7 @@ platforms:
     # gcc or clang. The Go SDK does not support MSVC.
     - "--cpu=x64_windows"
     - "--compiler=mingw-gcc"
-    - "--action_env=PATH"
+    - "--action_env=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite"
     - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
     - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
     - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
@@ -286,6 +287,7 @@ platforms:
     # - "-//tests/core/cgo:tag_test" # TODO(#2031): FindBinary does not work
     - "-//tests/core/coverage:coverage_test"
     # - "-//tests/core/cross:cross_test"
+    - "-//tests/core/cross:proto_test"
     - "-//tests/core/go_binary:go_default_test"
     # - "-//tests/core/go_binary:stamp_test"
     - "-//tests/core/go_embed_data:go_default_test"
@@ -318,7 +320,7 @@ platforms:
     # - "-//tests/core/race:race_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
-    # - "-//tests/integration/gazelle:gazelle_test"
+    - "-//tests/integration/gazelle:gazelle_test" # exceeds command line length limit
     - "-//tests/integration/googleapis:color_service_test"
     - "-//tests/integration/reproducibility:reproducibility_test"
     - "-//tests/legacy/examples/cgo/example_command:example_command_test"
