@@ -46,7 +46,6 @@ platforms:
     - "-//tests/core/stdlib:buildid_test"
   windows:
     build_flags:
-    - "-k" # DO NOT SUBMIT
     # Go requires a C toolchain that accepts options and emits errors like
     # gcc or clang. The Go SDK does not support MSVC.
     - "--cpu=x64_windows"
@@ -192,9 +191,6 @@ platforms:
     - "-//tests/core/go_proto_library_importmap:foo_go_proto"
     - "-//tests/core/go_proto_library_importmap:foo_proto"
     - "-//tests/core/go_proto_library_importmap:importmap_test"
-    - "-//tests/core/go_proto_library:transitive_go_proto"
-    - "-//tests/core/go_proto_library:transitive_test"
-    - "-//tests/core/go_proto_library:wrap_lib"
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
     - "-//tests/core/race:race_test"
@@ -312,9 +308,8 @@ platforms:
     - "-//tests/core/go_plugin:go_plugin"
     - "-//tests/core/go_plugin:go_default_test"
     - "-//tests/core/go_plugin:plugin"
-    - "-//tests/core/go_proto_library:embed_test"
+    - "-//tests/core/go_proto_library:all"
     - "-//tests/core/go_proto_library_importmap:importmap_test"
-    - "-//tests/core/go_proto_library:transitive_test"
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
     # - "-//tests/core/nogo/config:config_test"
