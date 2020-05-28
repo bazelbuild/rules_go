@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -248,6 +249,10 @@ func Test(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
+			// TODO(#2518): fix coverage tests on Windows
+			if test.cmd == "coverage" && runtime.GOOS == "windows" {
+				t.Skip("TODO(#2518): fix and enable coverage tests on Windows")
+			}
 			args := []string{test.cmd}
 			if test.featureFlag {
 				args = append(args, "--features=race")
