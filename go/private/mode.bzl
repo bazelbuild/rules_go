@@ -67,25 +67,24 @@ def _ternary(*values):
 def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     static = _ternary(
         "on" if "static" in ctx.features else "auto",
-        go_config_info.static,
-        "off",
+        go_config_info.static if go_config_info else "off",
     )
     pure = _ternary(
         "on" if not cgo_context_info else "auto",
-        go_config_info.pure,
+        go_config_info.pure if go_config_info else "off",
     )
     race = _ternary(
         "on" if ("race" in ctx.features and not pure) else "auto",
-        go_config_info.race,
+        go_config_info.race if go_config_info else "off",
     )
     msan = _ternary(
         "on" if ("msan" in ctx.features and not pure) else "auto",
-        go_config_info.msan,
+        go_config_info.msan if go_config_info else "off",
     )
-    strip = go_config_info.strip
-    stamp = go_config_info.stamp
-    debug = go_config_info.debug
-    linkmode = go_config_info.linkmode
+    strip = go_config_info.strip if go_config_info else False
+    stamp = go_config_info.stamp if go_config_info else False
+    debug = go_config_info.debug if go_config_info else False
+    linkmode = go_config_info.linkmode if go_config_info else LINKMODE_NORMAL
     goos = go_toolchain.default_goos
     goarch = go_toolchain.default_goarch
 
@@ -95,7 +94,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     if pure and msan:
         fail("msan instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
 
-    tags = list(go_config_info.tags)
+    tags = list(go_config_info.tags) if go_config_info else []
     if "gotags" in ctx.var:
         tags.extend(ctx.var["gotags"].split(","))
     if cgo_context_info:

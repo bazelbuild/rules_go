@@ -3,6 +3,7 @@ Cross compilation
 
 .. _go_binary: /go/core.rst#go_binary
 .. _go_library: /go/core.rst#go_library
+.. _#2523: https://github.com/bazelbuild/rules_go/issues/2523
 
 Tests to ensure that cross compilation is working as expected.
 
@@ -41,3 +42,10 @@ proto_test
 ----------
 
 Tests that a ``go_proto_library`` can be cross-compiled with ``--platforms``.
+
+no_context_info
+---------------
+
+Tests that a rule that uses ``@io_bazel_rules_go//go:toolchain`` but does not
+depend on any other target can call ``go_context`` without error. Verifies
+`#2523`_.

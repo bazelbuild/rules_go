@@ -491,7 +491,7 @@ def go_context(ctx, attr = None):
         # TODO: All uses of this should be removed
         _ctx = ctx,
         # TODO(#1374): Remove in v0.25.
-        _package_conflict_is_error = go_config_info._package_conflict_is_error,
+        _package_conflict_is_error = go_config_info._package_conflict_is_error if go_config_info else True,
     )
 
 def _go_context_data_impl(ctx):
