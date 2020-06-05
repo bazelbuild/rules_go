@@ -41,6 +41,7 @@ go_proto_compiler(
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_mwitkow_go_proto_validators//:validators_golang",
     ],
 )
 
