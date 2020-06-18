@@ -15,11 +15,18 @@
 load(
     ":mode.bzl",
     "LINKMODES",
+    "LINKMODE_NORMAL",
 )
 load(
     ":platforms.bzl",
     "CGO_GOOS_GOARCH",
     "GOOS_GOARCH",
+)
+load(
+    ":providers.bzl",
+    "GoArchive",
+    "GoLibrary",
+    "GoSource",
 )
 load(
     "@io_bazel_rules_go_name_hack//:def.bzl",
@@ -179,6 +186,81 @@ go_transition = transition(
         "@io_bazel_rules_go//go/config:tags",
         "@io_bazel_rules_go//go/config:linkmode",
     ]],
+)
+
+_reset_transition_dict = {
+    "@io_bazel_rules_go//go/config:static": False,
+    "@io_bazel_rules_go//go/config:msan": False,
+    "@io_bazel_rules_go//go/config:race": False,
+    "@io_bazel_rules_go//go/config:pure": False,
+    "@io_bazel_rules_go//go/config:strip": False,
+    "@io_bazel_rules_go//go/config:debug": False,
+    "@io_bazel_rules_go//go/config:linkmode": LINKMODE_NORMAL,
+    "@io_bazel_rules_go//go/config:tags": [],
+}
+
+_reset_transition_keys = sorted([filter_transition_label(label) for label in _reset_transition_dict.keys()])
+
+def _go_reset_transition_impl(settings, attr):
+    """Sets Go settings to default values so tools can be built safely.
+
+    go_reset_transition sets all of the //go/config settings to their default
+    values. This is used for tool binaries like nogo. Tool binaries shouldn't
+    depend on the link mode or tags of the target configuration. This transition
+    doesn't change the platform (goos, goarch), but tool binaries should also
+    have `cfg = "exec"` so tool binaries should be built for the execution
+    platform.
+    """
+    settings = dict(settings)
+    for label, value in _reset_transition_dict.items():
+        settings[filter_transition_label(label)] = value
+    return settings
+
+go_reset_transition = transition(
+    implementation = _go_reset_transition_impl,
+    inputs = _reset_transition_keys,
+    outputs = _reset_transition_keys,
+)
+
+def _go_reset_target_impl(ctx):
+    t = ctx.attr.dep[0]  # [0] seems to be necessary with the transition
+    providers = [t[p] for p in [GoLibrary, GoSource, GoArchive]]
+
+    # We can't pass DefaultInfo through as-is, since Bazel forbids executable
+    # if it's a file declared in a different target. The caller must assume
+    # that the first file is executable.
+    default_info = t[DefaultInfo]
+    default_info = DefaultInfo(
+        files = default_info.files,
+        data_runfiles = default_info.data_runfiles,
+        default_runfiles = default_info.default_runfiles,
+        executable = None,
+    )
+    providers.append(default_info)
+    return providers
+
+go_reset_target = rule(
+    implementation = _go_reset_target_impl,
+    attrs = {
+        "dep": attr.label(
+            mandatory = True,
+            cfg = go_reset_transition,
+        ),
+        "_whitelist_function_transition": attr.label(
+            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        ),
+    },
+    doc = """Forwards providers from a target and applies go_reset_transition.
+
+go_reset_target depends on a single target, built using go_reset_transition.
+It forwards Go providers and DefaultInfo.
+
+This is used to work around a problem with building tools: tools should be
+built with 'cfg = "exec"' so they work on the execution platform, but we also
+need to apply go_reset_transition, so for example, a tool isn't built as a
+shared library with race instrumentation. This acts as an intermediately rule
+so we can apply both transitions.
+""",
 )
 
 def _check_ternary(name, value):

@@ -41,7 +41,8 @@ when building for iOS (tested by ``ios_select_test``) and macOS
 proto_test
 ----------
 
-Tests that a ``go_proto_library`` can be cross-compiled with ``--platforms``.
+Tests that a ``go_proto_library`` can be cross-compiled, both with
+``--platforms`` and with mode attributes.
 
 no_context_info
 ---------------

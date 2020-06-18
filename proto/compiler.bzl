@@ -17,16 +17,39 @@ load(
     "paths",
 )
 load(
-    "@io_bazel_rules_go//go:def.bzl",
+    "//go:def.bzl",
     "GoLibrary",
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/rule.bzl",
-    "go_rule",
+    "//go/private:rules/transition.bzl",
+    "go_reset_target",
 )
 
-GoProtoCompiler = provider()
+GoProtoCompiler = provider(
+    doc = "Information and dependencies needed to generate Go code from protos",
+    fields = {
+        "compile": """A function with the signature:
+
+    def compile(go, compiler, protos, imports, importpath)
+
+where go is the go_context object, compiler is this GoProtoCompiler, protos
+is a list of ProtoInfo providers for protos to compile, imports is a depset
+of strings mapping proto import paths to Go import paths, and importpath is
+the import path of the Go library being generated.
+
+The function should declare output .go files and actions to generate them.
+It should return a list of .go Files to be compiled by the Go compiler.
+""",
+        "deps": """List of targets providing GoLibrary, GoSource, and GoArchive.
+These are added as implicit dependencies for any go_proto_library using this
+compiler. Typically, these are Well Known Types and proto runtime libraries.""",
+        "valid_archive": """A Boolean indicating whether the .go files produced
+by this compiler are buildable on their own. Compilers that just add methods
+to structs produced by other compilers will set this to False.""",
+        "internal": "Opaque value containing data used by compile.",
+    },
+)
 
 def go_proto_compile(go, compiler, protos, imports, importpath):
     """Invokes protoc to generate Go sources for a given set of protos
@@ -63,7 +86,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
             out = go.declare_file(
                 go,
                 path = importpath + "/" + src.basename[:-len(".proto")],
-                ext = compiler.suffix,
+                ext = compiler.internal.suffix,
             )
             go_srcs.append(out)
             if outpath == None:
@@ -72,14 +95,14 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     transitive_descriptor_sets = depset(direct = [], transitive = desc_sets)
 
     args = go.actions.args()
-    args.add("-protoc", compiler.protoc)
+    args.add("-protoc", compiler.internal.protoc)
     args.add("-importpath", importpath)
     args.add("-out_path", outpath)
-    args.add("-plugin", compiler.plugin)
+    args.add("-plugin", compiler.internal.plugin)
 
     # TODO(jayconrod): can we just use go.env instead?
-    args.add_all(compiler.options, before_each = "-option")
-    if compiler.import_path_option:
+    args.add_all(compiler.internal.options, before_each = "-option")
+    if compiler.internal.import_path_option:
         args.add_all([importpath], before_each = "-option", format_each = "import_path=%s")
     args.add_all(transitive_descriptor_sets, before_each = "-descriptor_set")
     args.add_all(go_srcs, before_each = "-expected")
@@ -88,16 +111,16 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     go.actions.run(
         inputs = depset(
             direct = [
-                compiler.go_protoc,
-                compiler.protoc,
-                compiler.plugin,
+                compiler.internal.go_protoc,
+                compiler.internal.protoc,
+                compiler.internal.plugin,
             ],
             transitive = [transitive_descriptor_sets],
         ),
         outputs = go_srcs,
         progress_message = "Generating into %s" % go_srcs[0].dirname,
         mnemonic = "GoProtocGen",
-        executable = compiler.go_protoc,
+        executable = compiler.internal.go_protoc,
         arguments = [args],
         env = go.env,
         # We may need the shell environment (potentially augmented with --action_env)
@@ -153,24 +176,28 @@ def _go_proto_compiler_impl(ctx):
     go = go_context(ctx)
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+    plugin = ctx.file.plugin
+    go_protoc = ctx.file._go_protoc
     return [
         GoProtoCompiler(
             deps = ctx.attr.deps,
             compile = go_proto_compile,
-            options = ctx.attr.options,
-            suffix = ctx.attr.suffix,
-            go_protoc = ctx.executable._go_protoc,
-            protoc = ctx.executable._protoc,
-            plugin = ctx.executable.plugin,
             valid_archive = ctx.attr.valid_archive,
-            import_path_option = ctx.attr.import_path_option,
+            internal = struct(
+                options = ctx.attr.options,
+                suffix = ctx.attr.suffix,
+                protoc = ctx.executable._protoc,
+                go_protoc = ctx.file._go_protoc,
+                plugin = ctx.file.plugin,
+                import_path_option = ctx.attr.import_path_option,
+            ),
         ),
         library,
         source,
     ]
 
-go_proto_compiler = go_rule(
-    _go_proto_compiler_impl,
+_go_proto_compiler = rule(
+    implementation = _go_proto_compiler_impl,
     attrs = {
         "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
@@ -179,19 +206,36 @@ go_proto_compiler = go_rule(
         "import_path_option": attr.bool(default = False),
         "plugin": attr.label(
             allow_single_file = True,
-            executable = True,
             cfg = "exec",
-            default = "@com_github_golang_protobuf//protoc-gen-go",
+            mandatory = True,
         ),
         "_go_protoc": attr.label(
-            executable = True,
+            allow_single_file = True,
             cfg = "exec",
-            default = "@io_bazel_rules_go//go/tools/builders:go-protoc",
+            default = "//go/tools/builders:go-protoc",
         ),
         "_protoc": attr.label(
             executable = True,
             cfg = "exec",
             default = "@com_google_protobuf//:protoc",
         ),
+        "_go_context_data": attr.label(
+            default = "//:go_context_data",
+        ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
+
+def go_proto_compiler(name, **kwargs):
+    plugin = kwargs.pop("plugin", "@com_github_golang_protobuf//protoc-gen-go")
+    reset_plugin_name = name + "_reset_plugin_"
+    go_reset_target(
+        name = reset_plugin_name,
+        dep = plugin,
+        visibility = ["//visibility:private"],
+    )
+    _go_proto_compiler(
+        name = name,
+        plugin = reset_plugin_name,
+        **kwargs
+    )

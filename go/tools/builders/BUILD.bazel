@@ -1,4 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_source", "go_test")
+load("//go:def.bzl", "go_binary", "go_source", "go_test")
+load("//go/private:rules/transition.bzl", "go_reset_target")
 
 go_test(
     name = "filter_test",
@@ -89,12 +90,18 @@ go_binary(
 )
 
 go_binary(
-    name = "go-protoc",
+    name = "go-protoc-bin",
     srcs = [
         "env.go",
         "flags.go",
         "protoc.go",
     ],
+    visibility = ["//visibility:private"],
+)
+
+go_reset_target(
+    name = "go-protoc",
+    dep = ":go-protoc-bin",
     visibility = ["//visibility:public"],
 )
 
