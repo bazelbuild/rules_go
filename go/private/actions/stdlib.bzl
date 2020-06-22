@@ -71,11 +71,18 @@ def _build_stdlib(go):
     if go.mode.pure:
         env.update({"CGO_ENABLED": "0"})
     else:
+        # NOTE(#2545): avoid unnecessary dynamic link
+        # go std library doesn't use C++, so should not have -lstdc++
+        ldflags = [
+            option
+            for option in extldflags_from_cc_toolchain(go)
+            if option not in ("-lstdc++", "-lc++")
+        ]
         env.update({
             "CGO_ENABLED": "1",
             "CC": go.cgo_tools.c_compiler_path,
             "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
-            "CGO_LDFLAGS": " ".join(extldflags_from_cc_toolchain(go)),
+            "CGO_LDFLAGS": " ".join(ldflags),
         })
     inputs = (go.sdk.srcs +
               go.sdk.headers +

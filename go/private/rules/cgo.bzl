@@ -69,6 +69,15 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     objcopts = go.cgo_tools.objc_compile_options + copts
     objcxxopts = go.cgo_tools.objcxx_compile_options + cxxopts
     clinkopts = extldflags_from_cc_toolchain(go) + clinkopts
+
+    # NOTE(#2545): avoid unnecessary dynamic link
+    if "-static-libstdc++" in clinkopts:
+        clinkopts = [
+            option
+            for option in clinkopts
+            if option not in ("-lstdc++", "-lc++")
+        ]
+
     if go.mode != LINKMODE_NORMAL:
         for opt_list in (copts, cxxopts, objcopts, objcxxopts):
             if "-fPIC" not in opt_list:
