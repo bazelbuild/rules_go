@@ -19,6 +19,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -51,11 +52,16 @@ func link(args []string) error {
 	flags.Var(&xstamps, "Xstamp", "Like -X but the values are looked up in the -stamp file.")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
 	packageConflictIsError := flags.Bool("package_conflict_is_error", false, "Whether importpath conflicts are errors.")
+	conflictErrMsg := flags.String("conflict_err", "", "Error message about conflicts to report if there's a link error.")
 	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
 	if err := goenv.checkFlags(); err != nil {
 		return err
+	}
+
+	if *packageConflictIsError && *conflictErrMsg != "" {
+		return errors.New(*conflictErrMsg)
 	}
 
 	// On Windows, take the absolute path of the output file and main file.
@@ -92,7 +98,7 @@ func link(args []string) error {
 	}
 
 	// Build an importcfg file.
-	importcfgName, err := buildImportcfgFileForLink(archives, *packageList, goenv.installSuffix, filepath.Dir(*outFile), *packageConflictIsError)
+	importcfgName, err := buildImportcfgFileForLink(archives, *packageList, goenv.installSuffix, filepath.Dir(*outFile))
 	if err != nil {
 		return err
 	}
@@ -143,7 +149,15 @@ func link(args []string) error {
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, *main)
 	if err := goenv.runCommand(goargs); err != nil {
+		if *conflictErrMsg != "" {
+			// TODO(#1374): this should always be reported above.
+			err = fmt.Errorf("%v\n%s", err, *conflictErrMsg)
+		}
 		return err
+	}
+	if *conflictErrMsg != "" {
+		// TODO(#1374): this should always be reported above.
+		fmt.Fprintf(os.Stderr, "%s\nThis will be an error in the future.\n", *conflictErrMsg)
 	}
 
 	if *buildmode == "c-archive" {

@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -147,7 +146,7 @@ func buildImportcfgFileForCompile(imports map[string]*archive, installSuffix, di
 	return filename, nil
 }
 
-func buildImportcfgFileForLink(archives []archive, stdPackageListPath, installSuffix, dir string, packageConflictIsError bool) (string, error) {
+func buildImportcfgFileForLink(archives []archive, stdPackageListPath, installSuffix, dir string) (string, error) {
 	buf := &bytes.Buffer{}
 	goroot, ok := os.LookupEnv("GOROOT")
 	if !ok {
@@ -172,18 +171,11 @@ func buildImportcfgFileForLink(archives []archive, stdPackageListPath, installSu
 	}
 	depsSeen := map[string]string{}
 	for _, arc := range archives {
-		if conflictLabel, ok := depsSeen[arc.packagePath]; ok {
-			msg := fmt.Sprintf(`package %q is provided by more than one rule:
-    %s
-    %s
-Set "importmap" to different paths in each library.
-This will be an error in the future.`, arc.packagePath, arc.label, conflictLabel)
-
-			// TODO(#1374): Always make this an error.
-			if packageConflictIsError {
-				return "", errors.New(msg)
-			}
-			log.Print(msg)
+		if _, ok := depsSeen[arc.packagePath]; ok {
+			// If this is detected during analysis, the -conflict_err flag will be set.
+			// We'll report that error if -package_conflict_is_error is set or if
+			// the link command fails.
+			// TODO(#1374): This should always be an error. Panic.
 			continue
 		}
 		depsSeen[arc.packagePath] = arc.label
