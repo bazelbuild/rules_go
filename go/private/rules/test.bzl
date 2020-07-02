@@ -112,6 +112,11 @@ def _go_test_impl(ctx):
         },
     )
 
+    test_gc_linkopts = gc_linkopts(ctx)
+    if not go.mode.debug:
+        # Disable symbol table and DWARF generation for test binaries.
+        test_gc_linkopts.extend(["-s", "-w"])
+
     # Now compile the test binary itself
     test_library = GoLibrary(
         name = go._ctx.label.name + "~testmain",
@@ -135,7 +140,7 @@ def _go_test_impl(ctx):
         name = ctx.label.name,
         source = test_source,
         test_archives = [internal_archive.data],
-        gc_linkopts = gc_linkopts(ctx),
+        gc_linkopts = test_gc_linkopts,
         version_file = ctx.version_file,
         info_file = ctx.info_file,
     )
