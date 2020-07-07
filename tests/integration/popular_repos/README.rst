@@ -114,7 +114,6 @@ This runs tests from the repository `golang.org/x/text <https://golang.org/x/tex
 * @org_golang_x_text//feature/plural:go_default_test
 * @org_golang_x_text//internal:go_default_test
 * @org_golang_x_text//internal/catmsg:go_default_test
-* @org_golang_x_text//internal/colltab:go_default_test
 * @org_golang_x_text//internal/export/idna:go_default_test
 * @org_golang_x_text//internal/number:go_default_test
 * @org_golang_x_text//internal/stringset:go_default_test
@@ -128,7 +127,6 @@ This runs tests from the repository `golang.org/x/text <https://golang.org/x/tex
 * @org_golang_x_text//search:go_default_test
 * @org_golang_x_text//secure/bidirule:go_default_test
 * @org_golang_x_text//secure/precis:go_default_test
-* @org_golang_x_text//transform:go_default_test
 * @org_golang_x_text//unicode/bidi:go_default_test
 * @org_golang_x_text//unicode/cldr:go_default_test
 * @org_golang_x_text//unicode/norm:go_default_test
@@ -156,14 +154,12 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//go/types/objectpath:go_default_test
 * @org_golang_x_tools//go/vcs:go_default_test
 * @org_golang_x_tools//godoc/redirect:go_default_test
-* @org_golang_x_tools//godoc/vfs:go_default_test
 * @org_golang_x_tools//godoc/vfs/gatefs:go_default_test
 * @org_golang_x_tools//godoc/vfs/mapfs:go_default_test
 * @org_golang_x_tools//internal/event:go_default_test
 * @org_golang_x_tools//internal/event/export:go_default_test
 * @org_golang_x_tools//internal/event/export/ocagent:go_default_test
 * @org_golang_x_tools//internal/event/export/ocagent/wire:go_default_test
-* @org_golang_x_tools//internal/event/label:go_default_test
 * @org_golang_x_tools//internal/fastwalk:go_default_test
 * @org_golang_x_tools//internal/gopathwalk:go_default_test
 * @org_golang_x_tools//internal/jsonrpc2:go_default_test
