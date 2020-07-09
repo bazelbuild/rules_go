@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -159,6 +160,8 @@ func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
 	if verbose {
 		formatCommand(os.Stderr, cmd)
 	}
+	cleanup := passLongArgsInResponseFiles(cmd)
+	defer cleanup()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running subcommand: %v", err)
 	}
@@ -298,4 +301,66 @@ func formatCommand(w io.Writer, cmd *exec.Cmd) {
 		sep = " "
 	}
 	fmt.Fprint(w, "\n")
+}
+
+
+// passLongArgsInResponseFiles modifies cmd such that, for
+// certain programs, long arguments are passed in "response files", a
+// file on disk with the arguments, with one arg per line. An actual
+// argument starting with '@' means that the rest of the argument is
+// a filename of arguments to expand.
+//
+// See https://github.com/golang/go/issues/18468 (Windows) and
+// https://github.com/golang/go/issues/37768 (Darwin).
+func passLongArgsInResponseFiles(cmd *exec.Cmd) (cleanup func()) {
+	cleanup = func() {} // no cleanup by default
+	var argLen int
+	for _, arg := range cmd.Args {
+		argLen += len(arg)
+	}
+	// If we're not approaching 32KB of args, just pass args normally.
+	// (use 30KB instead to be conservative; not sure how accounting is done)
+	if !useResponseFile(cmd.Path, argLen) {
+		return
+	}
+	tf, err := ioutil.TempFile("", "args")
+	if err != nil {
+		log.Fatalf("error writing long arguments to response file: %v", err)
+	}
+	cleanup = func() { os.Remove(tf.Name()) }
+	var buf bytes.Buffer
+	for _, arg := range cmd.Args[1:] {
+		fmt.Fprintf(&buf, "%s\n", arg)
+	}
+	if _, err := tf.Write(buf.Bytes()); err != nil {
+		tf.Close()
+		cleanup()
+		log.Fatalf("error writing long arguments to response file: %v", err)
+	}
+	if err := tf.Close(); err != nil {
+		cleanup()
+		log.Fatalf("error writing long arguments to response file: %v", err)
+	}
+	cmd.Args = []string{cmd.Args[0], "@" + tf.Name()}
+	return cleanup
+}
+
+func useResponseFile(path string, argLen int) bool {
+	// Unless the program uses objabi.Flagparse, which understands
+	// response files, don't use response files.
+	// TODO: do we need more commands? asm? cgo? For now, no.
+	prog := strings.TrimSuffix(filepath.Base(path), ".exe")
+	switch prog {
+	case "compile", "link":
+	default:
+		return false
+	}
+	// Windows has a limit of 32 KB arguments. To be conservative and not
+	// worry about whether that includes spaces or not, just use 30 KB.
+	// Darwin's limit is less clear. The OS claims 256KB, but we've seen
+	// failures with arglen as small as 50KB.
+	if argLen > (30 << 10) {
+		return true
+	}
+	return false
 }
