@@ -63,6 +63,7 @@ Go rules for Bazel_
 
 
 Mailing list: `bazel-go-discuss`_
+
 Slack: #bazel on `Gopher Slack`_
 
 Announcements
@@ -91,6 +92,7 @@ Contents
 
 * `Overview`_
 * `Setup`_
+* `protobuf and gRPC`_
 * `FAQ`_
 
 Documentation
@@ -417,7 +419,7 @@ automatically from a go.mod or Gopkg.lock file.
     )
 
 protobuf and gRPC
-~~~~~~~~~~~~~~~~~
+-----------------
 
 To generate code from protocol buffers, you'll need to add a dependency on
 ``com_google_protobuf`` to your ``WORKSPACE``.
@@ -455,7 +457,8 @@ See `Proto dependencies`_, `gRPC dependencies`_ for more information. See also
 `Avoiding conflicts`_.
 
 Once all dependencies have been registered, you can declare `proto_library`_
-and `go_proto_library`_ rules.
+and `go_proto_library`_ rules to generate and compile Go code from .proto
+files.
 
 .. code:: bzl
 
@@ -476,12 +479,40 @@ and `go_proto_library`_ rules.
         visibility = ["//visibility:public"],
     )
 
+A ``go_proto_library`` target may be imported and depended on like a normal
+``go_library``.
+
+Note that recent versions of rules_go support both APIv1
+(``github.com/golang/protobuf``) and APIv2 (``google.golang.org/protobuf``).
+By default, code is generated with
+``github.com/golang/protobuf/cmd/protoc-gen-gen`` for compatibility with both
+interfaces. Client code may import use either runtime library or both.
 
 FAQ
 ---
 
-Can I still use the ``go`` command?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Go**
+
+* `Can I still use the go command?`_
+* `Does this work with Go modules?`_
+* `What's up with the go_default_library name?`_
+* `How do I cross-compile?`_
+* `How do I access testdata?`_
+* `How do I access go_binary executables from go_test?`_
+
+**Protocol buffers**
+
+* `How do I avoid conflicts with protocol buffers?`_
+* `Can I use a vendored gRPC with go_proto_library?`_
+
+**Dependencies and testing**
+
+* `How do I use different versions of dependencies?`_
+* `How do I run Bazel on Travis CI?`_
+* `How do I test a beta version of the Go SDK?`_
+
+Can I still use the go command?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Yes, but not directly.
 
@@ -509,8 +540,8 @@ generate build files using gazelle_.
 You can import `go_repository`_ rules from a ``go.mod`` file using
 `gazelle update-repos`_.
 
-What's up with the ``go_default_library`` name?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+What's up with the go_default_library name?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This was used to keep import paths consistent in libraries that can be built
 with ``go build`` before the ``importpath`` attribute was available.
@@ -531,37 +562,6 @@ the import path would not include it. So for the library
 Since ``go_prefix`` was removed and the ``importpath`` attribute became
 mandatory (see `#721`_), the ``go_default_library`` name no longer serves any
 purpose. We may decide to stop using it in the future (see `#265`_).
-
-How do I access testdata?
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Bazel executes tests in a sandbox, which means tests don't automatically have
-access to files. You must include test files using the ``data`` attribute.
-For example, if you want to include everything in the ``testdata`` directory:
-
-.. code:: bzl
-
-  go_test(
-      name = "go_default_test",
-      srcs = ["foo_test.go"],
-      data = glob(["testdata/**"]),
-      importpath = "github.com/example/project/foo",
-  )
-
-By default, tests are run in the directory of the build file that defined them.
-Note that this follows the Go testing convention, not the Bazel convention
-followed by other languages, which run in the repository root. This means
-that you can access test files using relative paths. You can change the test
-directory using the ``rundir`` attribute. See go_test_.
-
-Gazelle will automatically add a ``data`` attribute like the one above if you
-have a ``testdata`` directory *unless* it contains buildable .go files or
-build files, in which case, ``testdata`` is treated as a normal package.
-
-Note that on Windows, data files are not directly available to tests, since test
-data files rely on symbolic links, and by default, Windows doesn't let
-unprivileged users create symbolic links. You can use the
-`github.com/bazelbuild/rules_go/go/tools/bazel`_ library to access data files.
 
 How do I cross-compile?
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -611,14 +611,39 @@ You can equivalently depend on a `go_binary`_ or `go_test`_ rule through
 a Bazel `configuration transition`_ on ``//command_line_option:platforms``
 (there are problems with this approach prior to rules_go 0.23.0).
 
-How do I use different versions of dependencies?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How do I access testdata?
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See `Overriding dependencies`_ for instructions on overriding repositories
-declared in `go_rules_dependencies`_.
+Bazel executes tests in a sandbox, which means tests don't automatically have
+access to files. You must include test files using the ``data`` attribute.
+For example, if you want to include everything in the ``testdata`` directory:
 
-How do I access ``go_binary`` executables from ``go_test``?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code:: bzl
+
+  go_test(
+      name = "go_default_test",
+      srcs = ["foo_test.go"],
+      data = glob(["testdata/**"]),
+      importpath = "github.com/example/project/foo",
+  )
+
+By default, tests are run in the directory of the build file that defined them.
+Note that this follows the Go testing convention, not the Bazel convention
+followed by other languages, which run in the repository root. This means
+that you can access test files using relative paths. You can change the test
+directory using the ``rundir`` attribute. See go_test_.
+
+Gazelle will automatically add a ``data`` attribute like the one above if you
+have a ``testdata`` directory *unless* it contains buildable .go files or
+build files, in which case, ``testdata`` is treated as a normal package.
+
+Note that on Windows, data files are not directly available to tests, since test
+data files rely on symbolic links, and by default, Windows doesn't let
+unprivileged users create symbolic links. You can use the
+`github.com/bazelbuild/rules_go/go/tools/bazel`_ library to access data files.
+
+How do I access go_binary executables from go_test?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The location where ``go_binary`` writes its executable file is not stable across
 rules_go versions and should not be depended upon. The parent directory includes
@@ -665,6 +690,38 @@ changing configurations.
       srcs = ["cmd_test.go"],
       data = [":cmd"],
   )
+
+How do I avoid conflicts with protocol buffers?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See `Avoiding conflicts`_ in the proto documentation.
+
+Can I use a vendored gRPC with go_proto_library?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is not supported. When using `go_proto_library`_ with the
+``@io_bazel_rules_go//proto:go_grpc`` compiler, an implicit dependency is added
+on ``@org_golang_google_grpc//:go_default_library``. If you link another copy of
+the same package from ``//vendor/google.golang.org/grpc:go_default_library``
+or anywhere else, you may experience conflicts at compile or run-time.
+
+If you're using Gazelle with proto rule generation enabled, imports of
+``google.golang.org/grpc`` will be automatically resolved to
+``@org_golang_google_grpc//:go_default_library`` to avoid conflicts. The
+vendored gRPC should be ignored in this case.
+
+If you specifically need to use a vendored gRPC package, it's best to avoid
+using ``go_proto_library`` altogether. You can check in pre-generated .pb.go
+files and build them with ``go_library`` rules. Gazelle will generate these
+rules when proto rule generation is disabled (add ``# gazelle:proto
+disable_global`` to your root build file).
+
+How do I use different versions of dependencies?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See `Overriding dependencies`_ for instructions on overriding repositories
+declared in `go_rules_dependencies`_.
+
 
 How do I run Bazel on Travis CI?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -740,29 +797,3 @@ must be named ``go_sdk``, and it must come *before* the call to
   )
 
   go_register_toolchains()
-
-
-How do I avoid conflicts with protocol buffers?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-See `Avoiding conflicts`_ in the proto documentation.
-
-Can I use a vendored gRPC with go_proto_library?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is not supported. When using `go_proto_library`_ with the
-``@io_bazel_rules_go//proto:go_grpc`` compiler, an implicit dependency is added
-on ``@org_golang_google_grpc//:go_default_library``. If you link another copy of
-the same package from ``//vendor/google.golang.org/grpc:go_default_library``
-or anywhere else, you may experience conflicts at compile or run-time.
-
-If you're using Gazelle with proto rule generation enabled, imports of
-``google.golang.org/grpc`` will be automatically resolved to
-``@org_golang_google_grpc//:go_default_library`` to avoid conflicts. The
-vendored gRPC should be ignored in this case.
-
-If you specifically need to use a vendored gRPC package, it's best to avoid
-using ``go_proto_library`` altogether. You can check in pre-generated .pb.go
-files and build them with ``go_library`` rules. Gazelle will generate these
-rules when proto rule generation is disabled (add ``# gazelle:proto
-disable_global`` to your root build file).
