@@ -207,10 +207,10 @@ Go toolchain and register it for use.
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "a8d6b1b354d371a646d2f7927319974e0f9e52f73a2452d2b3877118169eb6bb",
+        sha256 = "13cad3959bccc3b0e7b227a86132054b91dbcf58717194b949ad80ee5ed510e6",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.7/rules_go-v0.22.7.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.7/rules_go-v0.22.7.tar.gz",
         ],
     )
 
@@ -254,10 +254,10 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "a8d6b1b354d371a646d2f7927319974e0f9e52f73a2452d2b3877118169eb6bb",
+        sha256 = "13cad3959bccc3b0e7b227a86132054b91dbcf58717194b949ad80ee5ed510e6",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.7/rules_go-v0.22.7.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.7/rules_go-v0.22.7.tar.gz",
         ],
     )
 
@@ -381,10 +381,10 @@ automatically from a go.mod or Gopkg.lock file.
     # Download the Go rules
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "a8d6b1b354d371a646d2f7927319974e0f9e52f73a2452d2b3877118169eb6bb",
+        sha256 = "13cad3959bccc3b0e7b227a86132054b91dbcf58717194b949ad80ee5ed510e6",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.23.3/rules_go-v0.23.3.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.7/rules_go-v0.22.7.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.7/rules_go-v0.22.7.tar.gz",
         ],
     )
 
