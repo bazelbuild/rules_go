@@ -166,3 +166,26 @@ go_test(
     ],
     gotags = ["good"],
 )
+
+go_test(
+    name = "indirect_import_test",
+    srcs = [
+        "indirect_import_i_test.go",
+        "indirect_import_x_test.go",
+    ],
+    embed = [":indirect_import_lib"],
+    deps = [":indirect_import_dep"],
+)
+
+go_library(
+    name = "indirect_import_lib",
+    srcs = ["indirect_import_lib.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/indirect_import",
+)
+
+go_library(
+    name = "indirect_import_dep",
+    srcs = ["indirect_import_dep.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/indirect_import_dep",
+    deps = [":indirect_import_lib"],
+)

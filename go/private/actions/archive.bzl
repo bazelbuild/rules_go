@@ -39,7 +39,7 @@ load(
     "emit_compilepkg",
 )
 
-def emit_archive(go, source = None):
+def emit_archive(go, source = None, _recompile_suffix = ""):
     """See go/toolchains.rst#archive for full documentation."""
 
     if source == None:
@@ -54,6 +54,8 @@ def emit_archive(go, source = None):
         pre_ext = ".internal"
     elif testfilter == "only":
         pre_ext = ".external"
+    if _recompile_suffix:
+        pre_ext += _recompile_suffix
     out_lib = go.declare_file(go, ext = pre_ext + ".a")
     if go.nogo:
         # TODO(#1847): write nogo data into a new section in the .a file instead
@@ -131,18 +133,42 @@ def emit_archive(go, source = None):
         )
 
     data = GoArchiveData(
+        # TODO(#2578): reconsider the provider API. There's a lot of redundant
+        # information here. Some fields are tuples instead of lists or dicts
+        # since GoArchiveData is stored in a depset, and no value in a depset
+        # may be mutable. For now, new copied fields are private (named with
+        # a leading underscore) since they may change in the future.
+
+        # GoLibrary fields
         name = source.library.name,
         label = source.library.label,
         importpath = source.library.importpath,
         importmap = source.library.importmap,
         importpath_aliases = source.library.importpath_aliases,
         pathtype = source.library.pathtype,
-        dep_labels = tuple([d.data.label for d in direct]),
-        dep_importmaps = tuple([d.data.importmap for d in direct]),
-        file = out_lib,
-        export_file = out_export,
+
+        # GoSource fields
         srcs = as_tuple(source.srcs),
         orig_srcs = as_tuple(source.orig_srcs),
+        _orig_src_map = tuple([source.orig_src_map.get(src, src) for src in source.srcs]),
+        _cover = as_tuple(source.cover),
+        _x_defs = tuple(source.x_defs.items()),
+        _gc_goopts = as_tuple(source.gc_goopts),
+        _cgo = source.cgo,
+        _cdeps = as_tuple(source.cdeps),
+        _cppopts = as_tuple(source.cppopts),
+        _copts = as_tuple(source.copts),
+        _cxxopts = as_tuple(source.cxxopts),
+        _clinkopts = as_tuple(source.clinkopts),
+        _cgo_exports = as_tuple(source.cgo_exports),
+
+        # Information on dependencies
+        _dep_labels = tuple([d.data.label for d in direct]),
+        _dep_importmaps = tuple([d.data.importmap for d in direct]),
+
+        # Information needed by dependents
+        file = out_lib,
+        export_file = out_export,
         data_files = as_tuple(data_files),
     )
     x_defs = dict(source.x_defs)

@@ -39,7 +39,6 @@ POPULAR_REPOS = [
             "html/charset:go_default_test", # Needs testdata directory
             "http2:go_default_test", # Needs testdata directory
             "icmp:go_default_test", # icmp requires adjusting kernel options.
-            "ipv4:go_default_test", # 1877 (but new in go1.13): conflicting package heights
             "nettest:go_default_test", #
             "lif:go_default_test",
         ],
@@ -69,8 +68,6 @@ POPULAR_REPOS = [
             "encoding/traditionalchinese:go_default_test", # Needs testdata directory
             "encoding/unicode/utf32:go_default_test", # Needs testdata directory
             "encoding/unicode:go_default_test", # Needs testdata directory
-            "internal/colltab:go_default_test", # external indirectly imports internal
-            "transform:go_default_test", # external indirectly imports internal
         ],
     ),
 
@@ -153,12 +150,10 @@ POPULAR_REPOS = [
             "go/ssa:go_default_test", # Needs testdata directory
             "go/types/typeutil:go_default_test", # requires GOROOT
             "godoc/static:go_default_test", # requires data files
-            "godoc/vfs:go_default_test", # external indirectly imports internal
             "godoc/vfs/zipfs:go_default_test", # requires GOROOT
             "godoc:go_default_test", # requires GOROOT and GOPATH
             "internal/apidiff:go_default_test", # Needs testdata directory
             "internal/gocommand:go_default_test", # Needs go tool
-            "internal/event/label:go_default_test", # External indirectly imports internal
             "internal/imports:go_default_test", # Needs testdata directory
             "internal/lsp/analysis/fillreturns:go_default_test", # Needs go tool
             "internal/lsp/analysis/nonewvars:go_default_test", # Needs GOROOT

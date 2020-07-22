@@ -2,6 +2,7 @@ Basic go_test functionality
 ===========================
 
 .. _go_test: /go/core.rst#_go_test
+.. _#1877: https://github.com/bazelbuild/rules_go/issues/1877
 
 Tests to ensure that basic features of `go_test`_ are working as expected.
 
@@ -89,3 +90,10 @@ tags_test
 
 Checks that setting ``gotags`` affects source filtering. The test will fail
 unless a specific tag is set.
+
+indirect_import_test
+--------------------
+
+Checks that an external test can import another package that imports the library
+under test. The other package should be compiled against the internal test
+package, not the library under test. Verifies `#1877`_.

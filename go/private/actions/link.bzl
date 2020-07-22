@@ -213,7 +213,7 @@ package with this path is linked.""".format(
             )
         importmap_to_label[arc.importmap] = arc.label
     for arc in arcs:
-        for dep_importmap, dep_label in zip(arc.dep_importmaps, arc.dep_labels):
+        for dep_importmap, dep_label in zip(arc._dep_importmaps, arc._dep_labels):
             if dep_importmap not in importmap_to_label:
                 return "package conflict error: {}: package needed by {} was not passed to linker".format(
                     dep_importmap,
