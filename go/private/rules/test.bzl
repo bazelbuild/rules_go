@@ -44,6 +44,10 @@ load(
     ":mode.bzl",
     "LINKMODE_NORMAL",
 )
+load(
+    "@bazel_skylib//lib:structs.bzl",
+    "structs",
+)
 
 def _testmain_library_to_source(go, attr, source, merge):
     source["deps"] = source["deps"] + [attr.library]
@@ -348,7 +352,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     # can't import anything that imports itself.
     internal_source = internal_archive.source
     internal_deps = [dep for dep in internal_source.deps if not need_recompile[get_archive(dep).data.label]]
-    attrs = {key: getattr(internal_source, key) for key in dir(internal_source)}
+    attrs = structs.to_dict(internal_source)
     attrs["deps"] = internal_deps
     internal_source = GoSource(**attrs)
     internal_archive = go.archive(go, internal_source, _recompile_suffix = ".recompileinternal")
@@ -427,6 +431,6 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
 
     # Finally, we need to replace external_source.deps with the recompiled
     # archives.
-    attrs = {key: getattr(external_source, key) for key in dir(external_source)}
+    attrs = structs.to_dict(external_source)
     attrs["deps"] = [label_to_archive[get_archive(dep).data.label] for dep in external_source.deps]
     return GoSource(**attrs), internal_archive
