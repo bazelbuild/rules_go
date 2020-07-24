@@ -128,8 +128,6 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
                     inputs_direct.append(lib_file)
                     deps_direct.append(lib_file)
 
-                    print(type(lib_file))
-
                     # If both static and dynamic variants are available, Bazel will only give
                     # us the static variant. We'll get one file for each transitive dependency,
                     # so the same file may appear more than once.
