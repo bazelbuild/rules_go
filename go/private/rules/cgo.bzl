@@ -31,6 +31,13 @@ load(
     "cc_library",
 )
 
+_WHOLE_ARCHIVE_FLAGS_BY_GOOS = {
+    "darwin": ("-Wl,-force_load", ""),
+    "js": ("", ""),
+    "linux": ("-Wl,--whole-archive", "-Wl,--no-whole-archive"),
+    "windows": ("-Wl,--whole-archive", "-Wl,--no-whole-archive"),
+}
+
 def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     """cgo_configure returns the inputs and compile / link options
     that are required to build a cgo archive.
@@ -104,7 +111,7 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
         if CcInfo in d:
             cc_transitive_headers = d[CcInfo].compilation_context.headers
             inputs_transitive.append(cc_transitive_headers)
-            cc_libs = _cc_libs(d)
+            cc_libs = _cc_libs_for_target(d)
             inputs_direct.extend(cc_libs)
             deps_direct.extend(cc_libs)
             cc_defines = d[CcInfo].compilation_context.defines.to_list()
@@ -118,29 +125,34 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
             cc_system_includes = d[CcInfo].compilation_context.system_includes.to_list()
             for inc in cc_system_includes:
                 _include_unique(cppopts, "-isystem", inc, seen_system_includes)
-            for lib in cc_libs:
-                # If both static and dynamic variants are available, Bazel will only give
-                # us the static variant. We'll get one file for each transitive dependency,
-                # so the same file may appear more than once.
-                if (lib.basename.startswith("lib") and
-                    has_simple_shared_lib_extension(lib.basename)):
-                    # If the loader would be able to find the library using rpaths,
-                    # use -L and -l instead of hard coding the path to the library in
-                    # the binary. This gives users more flexibility. The linker will add
-                    # rpaths later. We can't add them here because they are relative to
-                    # the binary location, and we don't know where that is.
-                    libname = lib.basename[len("lib"):lib.basename.rindex(".")]
-                    clinkopts.extend(["-L", lib.dirname, "-l", libname])
-                    inputs_direct.append(lib)
-                elif (lib.basename.startswith("lib") and
-                      has_versioned_shared_lib_extension(lib.basename)):
-                    # With a versioned shared library, we must use the full filename,
-                    # otherwise the library will not be found by the linker.
-                    libname = ":%s" % lib.basename
-                    clinkopts.extend(["-L", lib.dirname, "-l", libname])
-                    inputs_direct.append(lib)
-                else:
-                    lib_opts.append(lib.path)
+            for library_to_link in _cc_libraries_to_link(d):
+                for lib in _cc_libs(library_to_link):
+                    # If both static and dynamic variants are available, Bazel will only give
+                    # us the static variant. We'll get one file for each transitive dependency,
+                    # so the same file may appear more than once.
+                    if (lib.basename.startswith("lib") and
+                        has_simple_shared_lib_extension(lib.basename)):
+                        # If the loader would be able to find the library using rpaths,
+                        # use -L and -l instead of hard coding the path to the library in
+                        # the binary. This gives users more flexibility. The linker will add
+                        # rpaths later. We can't add them here because they are relative to
+                        # the binary location, and we don't know where that is.
+                        libname = lib.basename[len("lib"):lib.basename.rindex(".")]
+                        clinkopts.extend(["-L", lib.dirname, "-l", libname])
+                        inputs_direct.append(lib)
+                    elif (lib.basename.startswith("lib") and
+                          has_versioned_shared_lib_extension(lib.basename)):
+                        # With a versioned shared library, we must use the full filename,
+                        # otherwise the library will not be found by the linker.
+                        libname = ":%s" % lib.basename
+                        clinkopts.extend(["-L", lib.dirname, "-l", libname])
+                        inputs_direct.append(lib)
+                    else:
+                        if library_to_link.alwayslink:
+                            lib_opts.append(_WHOLE_ARCHIVE_FLAGS_BY_GOOS[go.mode.goos][0])
+                        lib_opts.append(lib.path)
+                        if library_to_link.alwayslink:
+                            lib_opts.append(_WHOLE_ARCHIVE_FLAGS_BY_GOOS[go.mode.goos][1])
             cc_link_flags = d[CcInfo].linking_context.user_link_flags
             clinkopts.extend(cc_link_flags)
 
@@ -180,20 +192,29 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
         clinkopts = clinkopts,
     )
 
-def _cc_libs(target):
+def _cc_libraries_to_link(target):
+    libraries_to_link = as_iterable(target[CcInfo].linking_context.libraries_to_link)
+    return libraries_to_link
+
+def _cc_libs_for_target(target):
     # Copied from get_libs_for_static_executable in migration instructions
     # from bazelbuild/bazel#7036.
-    libraries_to_link = as_iterable(target[CcInfo].linking_context.libraries_to_link)
+    libraries_to_link = _cc_libraries_to_link(target)
     libs = []
     for library_to_link in libraries_to_link:
-        if library_to_link.static_library != None:
-            libs.append(library_to_link.static_library)
-        elif library_to_link.pic_static_library != None:
-            libs.append(library_to_link.pic_static_library)
-        elif library_to_link.interface_library != None:
-            libs.append(library_to_link.interface_library)
-        elif library_to_link.dynamic_library != None:
-            libs.append(library_to_link.dynamic_library)
+        libs.extend(_cc_libs(library_to_link))
+    return libs
+
+def _cc_libs(library_to_link):
+    libs = []
+    if library_to_link.static_library != None:
+        libs.append(library_to_link.static_library)
+    elif library_to_link.pic_static_library != None:
+        libs.append(library_to_link.pic_static_library)
+    elif library_to_link.interface_library != None:
+        libs.append(library_to_link.interface_library)
+    elif library_to_link.dynamic_library != None:
+        libs.append(library_to_link.dynamic_library)
     return libs
 
 _DEFAULT_PLATFORM_COPTS = select({
