@@ -128,13 +128,11 @@ const (
 
 var zeroBytes = []byte("0                    ")
 
-// TODO(zplin): explain why this is needed.
-type readerWithCloser struct {
-	io.Reader
-	c io.Closer
+type bufioReaderWithCloser struct {
+	// bufio.Reader is needed to skip bytes in archives
+	*bufio.Reader
+	io.Closer
 }
-
-func (rc *readerWithCloser) Close() error { return rc.c.Close() }
 
 func extractFiles(archive, dir string, names map[string]struct{}) (files []string, err error) {
 	rc, err := openArchive(archive)
@@ -144,7 +142,7 @@ func extractFiles(archive, dir string, names map[string]struct{}) (files []strin
 	defer rc.Close()
 
 	var nameData []byte
-	bufReader := rc.Reader.(*bufio.Reader)
+	bufReader := rc.Reader
 	for {
 		name, size, err := readMetadata(bufReader, &nameData)
 		if err == io.EOF {
@@ -171,18 +169,18 @@ func extractFiles(archive, dir string, names map[string]struct{}) (files []strin
 	}
 }
 
-func openArchive(archive string) (*readerWithCloser, error) {
+func openArchive(archive string) (bufioReaderWithCloser, error) {
 	f, err := os.Open(archive)
 	if err != nil {
-		return nil, err
+		return bufioReaderWithCloser{}, err
 	}
 	r := bufio.NewReader(f)
 	header := make([]byte, len(arHeader))
 	if _, err := io.ReadFull(r, header); err != nil || string(header) != arHeader {
 		f.Close()
-		return nil, fmt.Errorf("%s: bad header", archive)
+		return bufioReaderWithCloser{}, fmt.Errorf("%s: bad header", archive)
 	}
-	return &readerWithCloser{r, f}, nil
+	return bufioReaderWithCloser{r, f}, nil
 }
 
 // readMetadata reads the relevant fields of an entry. Before calling,
@@ -354,13 +352,18 @@ func appendFiles(goenv *env, archive string, files []string) error {
 	return goenv.runCommand(args)
 }
 
+type readWithCloser struct {
+	io.Reader
+	io.Closer
+}
+
 func readFileInArchive(fileName, archive string) (io.ReadCloser, error) {
 	rc, err := openArchive(archive)
 	if err != nil {
 		return nil, err
 	}
 	var nameData []byte
-	bufReader := rc.Reader.(*bufio.Reader)
+	bufReader := rc.Reader
 	for err == nil {
 		// avoid shadowing err in the loop it can be returned correctly in the end
 		var (
@@ -372,9 +375,9 @@ func readFileInArchive(fileName, archive string) (io.ReadCloser, error) {
 			break
 		}
 		if name == fileName {
-			return &readerWithCloser{
+			return readWithCloser{
 				Reader: io.LimitReader(rc, size),
-				c:      rc,
+				Closer: rc,
 			}, nil
 		}
 		err = skipFile(bufReader, size)
