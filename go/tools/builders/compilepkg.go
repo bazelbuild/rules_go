@@ -426,6 +426,9 @@ func compileArchive(
 	} else if size == 0 {
 		return fmt.Errorf("%s is empty in %s", pkgDef, outPath)
 	}
+	if err = pkgDefFile.Sync(); err != nil {
+		return fmt.Errorf("error flushing %s: %v", pkgDefPath, err)
+	}
 	if nogoStatus == nogoSucceeded {
 		return appendFiles(goenv, outXPath, []string{pkgDefPath, outFactsPath})
 	}

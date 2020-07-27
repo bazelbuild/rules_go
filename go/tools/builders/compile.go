@@ -221,6 +221,9 @@ func compile(args []string) error {
 	} else if size == 0 {
 		return fmt.Errorf("%s is empty in %s", pkgDef, *output)
 	}
+	if err = pkgDefFile.Sync(); err != nil {
+		return fmt.Errorf("error flushing %s: %v", pkgDefPath, err)
+	}
 	if nogoStatus == nogoSucceeded {
 		return appendFiles(goenv, *outExport, []string{pkgDefPath, outFact})
 	}
