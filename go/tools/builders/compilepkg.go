@@ -420,14 +420,16 @@ func compileArchive(
 	if err != nil {
 		return fmt.Errorf("error creating %s: %v", pkgDefPath, err)
 	}
-	defer pkgDefFile.Close()
 	if size, err := io.Copy(pkgDefFile, pkgDefReader); err != nil {
+		pkgDefFile.Close()
 		return fmt.Errorf("error writing %s: %v", pkgDefPath, err)
 	} else if size == 0 {
+		pkgDefFile.Close()
 		return fmt.Errorf("%s is empty in %s", pkgDef, outPath)
 	}
-	if err = pkgDefFile.Sync(); err != nil {
-		return fmt.Errorf("error flushing %s: %v", pkgDefPath, err)
+	// pkgDefFile needs to be closed before appending it to another archive
+	if err = pkgDefFile.Close(); err != nil {
+		return fmt.Errorf("error closing %s: %v", pkgDefPath, err)
 	}
 	if nogoStatus == nogoSucceeded {
 		return appendFiles(goenv, outXPath, []string{pkgDefPath, outFactsPath})
