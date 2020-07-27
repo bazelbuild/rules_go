@@ -128,6 +128,7 @@ const (
 
 var zeroBytes = []byte("0                    ")
 
+// TODO(zplin): explain why this is needed
 type readerWithCloser struct {
 	io.Reader
 	c io.Closer
