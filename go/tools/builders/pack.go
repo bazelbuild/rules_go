@@ -411,13 +411,20 @@ func extractFileFromArchive(archive, dir, name string) (err error) {
 			err = fmt.Errorf("error closing %q: %v", outPath, e)
 		}
 	}()
-	if size, err := io.Copy(outFile, archiveReader); err != nil {
+	size, err := io.Copy(outFile, archiveReader)
+	if err != nil {
 		return fmt.Errorf("error writing %s: %v", outPath, err)
-	} else if size == 0 {
+	}
+	if size == 0 {
 		return fmt.Errorf("%s is empty in %s", name, archive)
 	}
-	if err = outFile.Sync(); err != nil {
-		return fmt.Errorf("error persisting %s: %v", outPath, err)
+	// debugging Windows
+	content, err := ioutil.ReadFile(outPath)
+	if err != nil {
+		return fmt.Errorf("error reading %s: %v", outPath, err)
+	}
+	if len(content) != int(size) {
+		return fmt.Errorf("wrote %d to %s, read %d", size, outPath, len(content))
 	}
 	return err
 }
