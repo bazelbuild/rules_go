@@ -388,3 +388,33 @@ func readFileInArchive(fileName, archive string) (io.ReadCloser, error) {
 	rc.Close()
 	return nil, err
 }
+
+func extractFileFromArchive(archive, dir, name string) (err error) {
+	archiveReader, err := readFileInArchive(name, archive)
+	if err != nil {
+		return fmt.Errorf("error reading %s from %s: %v", name, archive, err)
+	}
+	defer func() {
+		e := archiveReader.Close()
+		if e != nil && err == nil {
+			err = fmt.Errorf("error closing %q: %v", archive, e)
+		}
+	}()
+	outPath := filepath.Join(dir, pkgDef)
+	outFile, err := os.Create(outPath)
+	if err != nil {
+		return fmt.Errorf("error creating %s: %v", outPath, err)
+	}
+	defer func() {
+		e := outFile.Close()
+		if e != nil && err == nil {
+			err = fmt.Errorf("error closing %q: %v", outPath, e)
+		}
+	}()
+	if size, err := io.Copy(outFile, archiveReader); err != nil {
+		return fmt.Errorf("error writing %s: %v", outPath, err)
+	} else if size == 0 {
+		return fmt.Errorf("%s is empty in %s", name, archive)
+	}
+	return err
+}

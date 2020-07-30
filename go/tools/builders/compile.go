@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -205,27 +204,11 @@ func compile(args []string) error {
 	// copy the nogo facts into the .x file. Unfortunately, when building a plugin,
 	// the linker needs export data in the .a file. To work around this, we copy
 	// the export data into the .x file ourselves.
-	pkgDefReader, err := readFileInArchive(pkgDef, *output)
-	if err != nil {
-		return fmt.Errorf("error reading %s from %s: %v", pkgDef, *output, err)
+	dir := filepath.Dir(*output)
+	if err = extractFileFromArchive(*output, dir, pkgDef); err != nil {
+		return err
 	}
-	defer pkgDefReader.Close()
-	pkgDefPath := filepath.Join(filepath.Dir(*output), pkgDef)
-	pkgDefFile, err := os.Create(pkgDefPath)
-	if err != nil {
-		return fmt.Errorf("error creating %s: %v", pkgDefPath, err)
-	}
-	if size, err := io.Copy(pkgDefFile, pkgDefReader); err != nil {
-		pkgDefFile.Close()
-		return fmt.Errorf("error writing %s: %v", pkgDefPath, err)
-	} else if size == 0 {
-		pkgDefFile.Close()
-		return fmt.Errorf("%s is empty in %s", pkgDef, *output)
-	}
-	// pkgDefFile needs to be closed before appending it to another archive
-	if err = pkgDefFile.Close(); err != nil {
-		return fmt.Errorf("error closing %s: %v", pkgDefPath, err)
-	}
+	pkgDefPath := filepath.Join(dir, pkgDef)
 	if nogoStatus == nogoSucceeded {
 		return appendFiles(goenv, *outExport, []string{pkgDefPath, outFact})
 	}
