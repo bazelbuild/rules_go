@@ -165,7 +165,7 @@ func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
 	cleanup := passLongArgsInResponseFiles(cmd)
 	defer cleanup()
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running subcommand '%s': %v", buffer.String(), err)
+		return fmt.Errorf("error running subcommand %q: %v", buffer.String(), err)
 	}
 	return nil
 }
