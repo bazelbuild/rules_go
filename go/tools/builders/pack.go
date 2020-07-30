@@ -416,5 +416,8 @@ func extractFileFromArchive(archive, dir, name string) (err error) {
 	} else if size == 0 {
 		return fmt.Errorf("%s is empty in %s", name, archive)
 	}
+	if err = outFile.Sync(); err != nil {
+		return fmt.Errorf("error persisting %s: %v", outPath, err)
+	}
 	return err
 }
