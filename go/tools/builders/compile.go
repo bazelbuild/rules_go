@@ -155,10 +155,16 @@ func compile(args []string) error {
 		return fmt.Errorf("error starting compiler: %v", err)
 	}
 
+	// tempdir to store nogo facts and pkgdef for packaging later
+	xTempDir, err := ioutil.TempDir(filepath.Dir(*outExport), "x_files")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(xTempDir)
 	// Run nogo concurrently.
 	var nogoOutput bytes.Buffer
 	nogoStatus := nogoNotRun
-	outFact := filepath.Join(filepath.Dir(*outExport), nogoFact)
+	outFact := filepath.Join(xTempDir, nogoFact)
 	if *nogo != "" {
 		var nogoargs []string
 		nogoargs = append(nogoargs, "-p", *packagePath)
@@ -204,11 +210,10 @@ func compile(args []string) error {
 	// copy the nogo facts into the .x file. Unfortunately, when building a plugin,
 	// the linker needs export data in the .a file. To work around this, we copy
 	// the export data into the .x file ourselves.
-	dir := filepath.Dir(*output)
-	if err = extractFileFromArchive(*output, dir, pkgDef); err != nil {
+	if err = extractFileFromArchive(*output, xTempDir, pkgDef); err != nil {
 		return err
 	}
-	pkgDefPath := filepath.Join(dir, pkgDef)
+	pkgDefPath := filepath.Join(xTempDir, pkgDef)
 	if nogoStatus == nogoSucceeded {
 		return appendFiles(goenv, *outExport, []string{pkgDefPath, outFact})
 	}
