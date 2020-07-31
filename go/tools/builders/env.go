@@ -157,15 +157,13 @@ func absEnv(envNameList []string, argList []string) error {
 }
 
 func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
-	var buffer bytes.Buffer
-	formatCommand(&buffer, cmd)
 	if verbose {
-		io.Copy(os.Stderr, &buffer)
+		formatCommand(os.Stderr, cmd)
 	}
 	cleanup := passLongArgsInResponseFiles(cmd)
 	defer cleanup()
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running the following subcommand: %v\n%s", err, buffer.String())
+		return fmt.Errorf("error running subcommand: %v", err)
 	}
 	return nil
 }
