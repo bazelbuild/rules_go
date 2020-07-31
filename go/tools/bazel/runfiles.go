@@ -331,11 +331,11 @@ func initRunfiles() {
 			}
 			e := bytes.SplitN(line, []byte(" "), 2)
 			if len(e) < 2 {
-				runfiles.err = fmt.Errorf("error parsing runfiles manifest: %s:%d: no space", manifest, lineno)
-				return
+				entry := RunfileEntry{ShortPath: string(e[0]), Path: string(e[0])}
+			} else {
+				entry := RunfileEntry{ShortPath: string(e[0]), Path: string(e[1])}
 			}
 
-			entry := RunfileEntry{ShortPath: string(e[0]), Path: string(e[1])}
 			if i := strings.IndexByte(entry.ShortPath, '/'); i >= 0 {
 				entry.Workspace = entry.ShortPath[:i]
 				entry.ShortPath = entry.ShortPath[i+1:]
