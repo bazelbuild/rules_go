@@ -25,14 +25,14 @@ def go_rules_dependencies(is_rules_go = False):
     """Declares workspaces the Go rules depend on. Workspaces that use
     rules_go should call this.
 
-    See https://github.com/bazelbuild/rules_go/blob/master/go/workspace.rst#overriding-dependencies
+    See https://github.com/bazelbuild/rules_go/blob/master/go/dependencies.rst#overriding-dependencies
     for information on each dependency.
 
     Instructions for updating this file are in
     https://github.com/bazelbuild/rules_go/wiki/Updating-dependencies.
 
     PRs updating dependencies are NOT ACCEPTED. See
-    https://github.com/bazelbuild/rules_go/blob/master/go/workspace.rst#overriding-dependencies
+    https://github.com/bazelbuild/rules_go/blob/master/go/dependencies.rst#overriding-dependencies
     for information on choosing different versions of these repositories
     in your own project.
     """
