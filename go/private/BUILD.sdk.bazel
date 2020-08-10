@@ -69,3 +69,10 @@ filegroup(
         "pkg/**",
     ]),
 )
+
+filegroup(
+    name = "zoneinfo",
+    srcs = [
+        "lib/time/zoneinfo.zip",
+    ],
+)
