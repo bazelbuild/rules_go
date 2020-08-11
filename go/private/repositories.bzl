@@ -185,13 +185,13 @@ def go_rules_dependencies(is_rules_go = False):
     _maybe(
         http_archive,
         name = "com_github_mwitkow_go_proto_validators",
-        # v0.3.0, latest as of 2020-05-12
+        # v0.3.1, latest as of 2020-08-11
         urls = [
-            "https://mirror.bazel.build/github.com/mwitkow/go-proto-validators/archive/v0.3.0.zip",
-            "https://github.com/mwitkow/go-proto-validators/archive/v0.3.0.zip",
+            "https://mirror.bazel.build/github.com/mwitkow/go-proto-validators/archive/v0.3.1.zip",
+            "https://github.com/mwitkow/go-proto-validators/archive/v0.3.1.zip",
         ],
-        sha256 = "0b5d4bbbdc45d26040a44fca05e84de2a7fa21ea3ad4418e0748fc9befaaa50c",
-        strip_prefix = "go-proto-validators-0.3.0",
+        sha256 = "eb8ed7900990031bb5d2c8c8f621532ae723d4c6f8ba709667804c4795589e9e",
+        strip_prefix = "go-proto-validators-0.3.1",
         # Bazel support added in v0.3.0, so no patches needed.
     )
 
