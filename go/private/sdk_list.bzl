@@ -12,11 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT_VERSION = "1.14.7"
+DEFAULT_VERSION = "1.15"
 
 MIN_SUPPORTED_VERSION = "1.13"
 
 SDK_REPOSITORIES = {
+    "1.15": {
+        "darwin_amd64": ("go1.15.darwin-amd64.tar.gz", "8a5fb9c8587854a84957a79b9616070b63d8842d4001c3c7d86f261cd7b5ffb6"),
+        "freebsd_386": ("go1.15.freebsd-386.tar.gz", "b4591dec28b4eaf170885c6e4063970db5a4faf8bba20de6e22f1e25478ad5a9"),
+        "freebsd_amd64": ("go1.15.freebsd-amd64.tar.gz", "5f607802e77bf14d148c3defe11b56a3e9447c2246ed96adceb8eb4bb4c1a3d6"),
+        "linux_386": ("go1.15.linux-386.tar.gz", "68ce979083126694ceef60233f69efe870f54af24d81a120f76265107a9e9aab"),
+        "linux_amd64": ("go1.15.linux-amd64.tar.gz", "2d75848ac606061efe52a8068d0e647b35ce487a15bb52272c427df485193602"),
+        "linux_arm64": ("go1.15.linux-arm64.tar.gz", "7e18d92f61ddf480a4f9a57db09389ae7b9dadf68470d0cb9c00d734a0c57f8d"),
+        "linux_arm": ("go1.15.linux-armv6l.tar.gz", "6d8914ddd25f85f2377c269ccfb359acf53adf71a42cdbf53434a7c76fa7a9bd"),
+        "linux_ppc64le": ("go1.15.linux-ppc64le.tar.gz", "4603736a158b3d8ac52b9245f39bf715936c801e05bb5ad7c44b1edd6d5ef6a2"),
+        "linux_s390x": ("go1.15.linux-s390x.tar.gz", "8825f93caaf87465e32f298408c48b98d4180f3ddb885bd027f2926e711d23e8"),
+        "windows_386": ("go1.15.windows-386.zip", "e0c747610a73030cadba6f6ac319bca33cfff19b1f58c010727ea55fb2b0cab1"),
+        "windows_amd64": ("go1.15.windows-amd64.zip", "dc491314dff5b87ad50bf1cf56715de8f8c54489be30f3e19239bc2ad1af25e3"),
+    },
     "1.14.7": {
         "darwin_amd64": ("go1.14.7.darwin-amd64.tar.gz", "9a71abeb3de60ed33c0f90368be814d140bc868963e90fbb98ea665335ffbf9a"),
         "freebsd_386": ("go1.14.7.freebsd-386.tar.gz", "a834a20cc925fb8c1d00a7ac4b704a238902a5d23d29b3cc064d056f2eef3234"),
