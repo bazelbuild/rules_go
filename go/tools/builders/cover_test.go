@@ -33,8 +33,9 @@ const ntz32Const = 0x04d7651f
 	}
 	expectedContent := `package lzma
 
-import coverdata "github.com/bazelbuild/rules_go/go/tools/coverdata"
+import coverdata "github.com/bazelbuild/rules_go/go/tools/coverdata" /* Naming conventions follows the CodeReviewComments in the Go Wiki. */
 
+// ntz32Const is used by the functions NTZ and NLZ.
 const ntz32Const = 0x04d7651f
 
 func init() {
@@ -46,6 +47,6 @@ func init() {
 `
 	contentString := string(content)
 	if contentString != expectedContent {
-		t.Errorf("expected:\n%v\ngot:\n%v", expectedContent, contentString)
+		t.Errorf("expected:\n%v\ngot:\n%v", []byte(expectedContent), []byte(contentString))
 	}
 }

@@ -82,7 +82,7 @@ func instrumentForCoverage(goenv *env, srcPath, srcName, coverVar, mode, outPath
 func registerCoverage(coverSrc, varName, srcName string) error {
 	// Parse the file.
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, coverSrc, nil, 0)
+	f, err := parser.ParseFile(fset, coverSrc, nil, parser.ParseComments)
 	if err != nil {
 		return nil // parse error: proceed and let the compiler fail
 	}
@@ -151,14 +151,18 @@ func addNamedImport(fset *token.FileSet, f *ast.File, name, path string) {
 	// Our new import, preceded by a blank line,  goes after the package declaration
 	// and after the comment, if any, that starts on the same line as the
 	// package declaration.
-	impDecl.TokPos = f.Package
+	impDecl.TokPos = f.Name.End() + 2 // +2 for a blank line
 	file := fset.File(f.Package)
 	pkgLine := file.Line(f.Package)
+	importLength := impDecl.End() - impDecl.Pos() + 1
 	for _, c := range f.Comments {
-		if file.Line(c.Pos()) > pkgLine {
-			break
+		if file.Line(c.Pos()) <= pkgLine {
+			// +2 for a blank line
+			impDecl.TokPos = c.End() + 2
+		} else {
+			for _, comment := range c.List {
+				comment.Slash += importLength
+			}
 		}
-		// +2 for a blank line
-		impDecl.TokPos = c.End() + 2
 	}
 }
