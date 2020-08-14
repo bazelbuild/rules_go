@@ -125,3 +125,13 @@ filegroup(
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
 )
+
+go_test(
+    name = "cover_test",
+    srcs = [
+        "cover.go",
+        "cover_test.go",
+        "env.go",
+        "flags.go",
+    ],
+)

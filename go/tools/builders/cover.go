@@ -82,7 +82,7 @@ func instrumentForCoverage(goenv *env, srcPath, srcName, coverVar, mode, outPath
 func registerCoverage(coverSrc, varName, srcName string) error {
 	// Parse the file.
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, coverSrc, nil, parser.ParseComments)
+	f, err := parser.ParseFile(fset, coverSrc, nil, 0)
 	if err != nil {
 		return nil // parse error: proceed and let the compiler fail
 	}
