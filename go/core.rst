@@ -514,12 +514,6 @@ Attributes
 | To interoperate cleanly with Gazelle_ right now this should be :value:`go_default_test` for      |
 | internal tests and :value:`go_default_xtest` for external tests.                                 |
 +----------------------------+-----------------------------+---------------------------------------+
-| :param:`importpath`        | :type:`string`              | :value:`""`                           |
-+----------------------------+-----------------------------+---------------------------------------+
-| The import path of this test. Tests can't actually be imported, but this                         |
-| may be used by `go_path`_ and other tools to report the location of source                       |
-| files. This may be inferred from embedded libraries.                                             |
-+----------------------------+-----------------------------+---------------------------------------+
 | :param:`srcs`              | :type:`label_list`          | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | The list of Go source files that are compiled to create the package.                             |
