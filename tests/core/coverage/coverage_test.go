@@ -65,6 +65,16 @@ go_library(
     importpath = "example.com/coverage/c",
 )
 
+go_library(
+	name = "d",
+	srcs = ["d.go"],
+	importpath = "example.com/coverage/d",
+)
+
+go_test(
+	name = "d_test",
+	embed = [":d"],
+)
 -- a_test.go --
 package a
 
@@ -111,6 +121,13 @@ func CDead() int {
 	return 34
 }
 
+-- d.go --
+package lzma
+
+/* Naming conventions follows the CodeReviewComments in the Go Wiki. */
+
+// ntz32Const is used by the functions NTZ and NLZ.
+const ntz32Const = 0x04d7651f
 `,
 	})
 }
@@ -144,6 +161,12 @@ func TestCoverage(t *testing.T) {
 
 func TestCrossBuild(t *testing.T) {
 	if err := bazel_testing.RunBazel("build", "--collect_code_coverage", "--instrumentation_filter=-//:b", "//:a_test_cross"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCoverageWithComments(t *testing.T)  {
+	if err := bazel_testing.RunBazel("coverage", ":d_test"); err != nil {
 		t.Fatal(err)
 	}
 }
