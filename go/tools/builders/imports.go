@@ -1,3 +1,9 @@
+// Copyright 2013 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found at
+//
+// https://github.com/golang/tools/blob/master/LICENSE
+
 package main
 
 import (
@@ -7,7 +13,7 @@ import (
 	"strings"
 )
 
-// Copied from golang.org/x/tools/go/ast/astutil.AddNamedImport
+// Adapted from golang.org/x/tools/go/ast/astutil.AddNamedImport
 func addNamedImport(fset *token.FileSet, f *ast.File, name, path string) bool {
 	newImport := &ast.ImportSpec{
 		Path: &ast.BasicLit{
@@ -169,6 +175,7 @@ func addNamedImport(fset *token.FileSet, f *ast.File, name, path string) bool {
 	return true
 }
 
+// This function is copied from golang.org/x/tools/go/ast/astutil.isThirdParty
 func isThirdParty(importPath string) bool {
 	// Third party package import path usually contains "." (".com", ".org", ...)
 	// This logic is taken from golang.org/x/tools/imports package.
@@ -177,6 +184,7 @@ func isThirdParty(importPath string) bool {
 
 // importPath returns the unquoted import path of s,
 // or "" if the path is not properly quoted.
+// This function is copied from golang.org/x/tools/go/ast/astutil.importPath
 func importPath(s *ast.ImportSpec) string {
 	t, err := strconv.Unquote(s.Path.Value)
 	if err != nil {
@@ -186,6 +194,7 @@ func importPath(s *ast.ImportSpec) string {
 }
 
 // declImports reports whether gen contains an import of path.
+// This function is copied from golang.org/x/tools/go/ast/astutil.declImports
 func declImports(gen *ast.GenDecl, path string) bool {
 	if gen.Tok != token.IMPORT {
 		return false
@@ -200,6 +209,7 @@ func declImports(gen *ast.GenDecl, path string) bool {
 }
 
 // matchLen returns the length of the longest path segment prefix shared by x and y.
+// This function is copied from golang.org/x/tools/go/ast/astutil.matchLen
 func matchLen(x, y string) int {
 	n := 0
 	for i := 0; i < len(x) && i < len(y) && x[i] == y[i]; i++ {

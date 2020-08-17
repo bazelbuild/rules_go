@@ -165,7 +165,7 @@ func TestCrossBuild(t *testing.T) {
 	}
 }
 
-func TestCoverageWithComments(t *testing.T)  {
+func TestCoverageWithComments(t *testing.T) {
 	if err := bazel_testing.RunBazel("coverage", ":d_test"); err != nil {
 		t.Fatal(err)
 	}
