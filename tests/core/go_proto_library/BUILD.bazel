@@ -117,9 +117,16 @@ go_test(
     deps = [":protos_go_proto"],
 )
 
+go_test(
+    name = "protos_alias_test",
+    srcs = ["protos_alias_test.go"],
+    deps = [":protos_go_proto"],
+)
+
 go_proto_library(
     name = "protos_go_proto",
     importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/protos",
+    importpath_aliases = ["myalias/protos"],
     protos = [
         ":protos_a_proto",
         ":protos_b_proto",
