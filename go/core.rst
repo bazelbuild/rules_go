@@ -863,6 +863,11 @@ Attributes
 | included in the output directory. Files listed in the :param:`data` attribute                    |
 | for this rule will be included regardless of this attribute.                                     |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`include_pkg`       | :type:`bool`                | :value:`False`                        |
++----------------------------+-----------------------------+---------------------------------------+
+| When true, a `pkg` subdirectory containing the compiled libraries will be created in the         |
+| generated `GOPATH` containing compiled libraries.                                                |
++----------------------------+-----------------------------+---------------------------------------+
 
 Defines and stamping
 --------------------
