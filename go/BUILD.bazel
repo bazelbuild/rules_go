@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 filegroup(
     name = "all_files",
     testonly = True,
@@ -19,6 +21,13 @@ filegroup(
         "//go/toolchain:all_rules",
     ],
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "go_lib",
+    srcs = [":all_rules"],
+    visibility = ["//visibility:public"],
+    deps = ["//proto:proto_lib"],
 )
 
 toolchain_type(

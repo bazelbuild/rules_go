@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//proto:compiler.bzl",
     "go_proto_compiler",
@@ -112,9 +113,15 @@ go_proto_compiler(
 
 filegroup(
     name = "all_rules",
-    testonly = True,
     srcs = glob(["*.bzl"]) + ["//proto/wkt:all_rules"],
     visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
+    name = "proto_lib",
+    srcs = [":all_rules"],
+    visibility = ["//visibility:public"],
+    deps = [],
 )
 
 filegroup(
