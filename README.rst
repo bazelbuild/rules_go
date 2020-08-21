@@ -212,7 +212,7 @@ Go toolchain and register it for use.
         ],
     )
 
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
     go_rules_dependencies()
 
@@ -259,12 +259,6 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
         ],
     )
 
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-
-    go_rules_dependencies()
-
-    go_register_toolchains()
-
     http_archive(
         name = "bazel_gazelle",
         sha256 = "cdb02a887a7187ea4d5a27452311a75ed8637379a1287d8eeb952138ea485f7d",
@@ -274,7 +268,12 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
         ],
     )
 
+    load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+    go_rules_dependencies()
+
+    go_register_toolchains()
 
     gazelle_dependencies()
 
@@ -376,7 +375,7 @@ automatically from a go.mod or Gopkg.lock file.
 
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-    # Download the Go rules
+    # Download the Go rules.
     http_archive(
         name = "io_bazel_rules_go",
         sha256 = "2697f6bc7c529ee5e6a2d9799870b9ec9eaeb3ee7d70ed50b87a2c2c97e13d9e",
@@ -386,14 +385,7 @@ automatically from a go.mod or Gopkg.lock file.
         ],
     )
 
-    # Load and call the dependencies
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-
-    go_rules_dependencies()
-
-    go_register_toolchains()
-
-    # Download Gazelle
+    # Download Gazelle.
     http_archive(
         name = "bazel_gazelle",
         sha256 = "cdb02a887a7187ea4d5a27452311a75ed8637379a1287d8eeb952138ea485f7d",
@@ -403,18 +395,25 @@ automatically from a go.mod or Gopkg.lock file.
         ],
     )
 
-    # Load and call Gazelle dependencies
+    # Load macros and repository rules.
+    load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
     load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+    # Declare Go direct dependencies.
+    go_repository(
+        name = "org_golang_x_net",
+        importpath = "golang.org/x/net",
+        sum = "h1:zK/HqS5bZxDptfPJNq8v7vJfXtkU7r9TLIoSr1bXaP4=",
+        version = "v0.0.0-20200813134508-3edf25e44fcc",
+    )
+
+    # Declare indirect dependencies and register toolchains.
+    go_rules_dependencies()
+
+    go_register_toolchains()
 
     gazelle_dependencies()
 
-    # Add a go repository
-    go_repository(
-        name = "com_github_pkg_errors",
-        importpath = "github.com/pkg/errors",
-        sum = "h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=",
-        version = "v0.8.1",
-    )
 
 protobuf and gRPC
 -----------------
