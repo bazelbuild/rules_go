@@ -203,7 +203,6 @@ def _library_args(go, lib_file, alwayslink):
         return [lib_file.path]
 
     cc_basename = go.cgo_tools.c_compiler_path.rpartition("/")[-1]
-    print(cc_basename)
     if cc_basename == "clang":
         return ["-Wl,-force_load", lib_file.path]
     else:
