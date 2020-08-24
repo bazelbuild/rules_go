@@ -67,3 +67,9 @@ def popular_repos():
         importpath = "golang.org/x/sync",
         commit = "112230192c580c3556b8cee6403af37a4fc5f28c",
     )
+    _maybe(
+        go_repository,
+        name = "org_golang_x_mod",
+        importpath = "golang.org/x/mod",
+        commit = "c0d644d00ab849f4506f17a98a5740bf0feff020",
+    )

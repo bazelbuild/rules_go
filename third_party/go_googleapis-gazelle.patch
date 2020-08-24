@@ -65,688 +65,6 @@ diff -urN c/google/ads/admob/v1/BUILD.bazel d/google/ads/admob/v1/BUILD.bazel
 +        "//google/type:date_go_proto",
 +    ],
 +)
-diff -urN c/google/ads/googleads/v1/common/BUILD.bazel d/google/ads/googleads/v1/common/BUILD.bazel
---- c/google/ads/googleads/v1/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,52 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "common_proto",
-+    srcs = [
-+        "ad_asset.proto",
-+        "ad_type_infos.proto",
-+        "asset_types.proto",
-+        "bidding.proto",
-+        "click_location.proto",
-+        "criteria.proto",
-+        "criterion_category_availability.proto",
-+        "custom_parameter.proto",
-+        "dates.proto",
-+        "explorer_auto_optimizer_setting.proto",
-+        "extensions.proto",
-+        "feed_common.proto",
-+        "final_app_url.proto",
-+        "frequency_cap.proto",
-+        "keyword_plan_common.proto",
-+        "matching_function.proto",
-+        "metrics.proto",
-+        "policy.proto",
-+        "real_time_bidding_setting.proto",
-+        "segments.proto",
-+        "simulation.proto",
-+        "tag_snippet.proto",
-+        "targeting_setting.proto",
-+        "text_label.proto",
-+        "url_collection.proto",
-+        "user_lists.proto",
-+        "value.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/enums:enums_proto",
-+        "//google/api:annotations_proto",
-+        "@com_google_protobuf//:wrappers_proto",
-+    ],
-+)
-+
-+go_proto_library(
-+    name = "common_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v1/common",
-+    proto = ":common_proto",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/enums:enums_go_proto",
-+        "//google/api:annotations_go_proto",
-+    ],
-+)
-diff -urN c/google/ads/googleads/v1/enums/BUILD.bazel d/google/ads/googleads/v1/enums/BUILD.bazel
---- c/google/ads/googleads/v1/enums/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/enums/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,220 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "enums_proto",
-+    srcs = [
-+        "access_reason.proto",
-+        "account_budget_proposal_status.proto",
-+        "account_budget_proposal_type.proto",
-+        "account_budget_status.proto",
-+        "ad_customizer_placeholder_field.proto",
-+        "ad_group_ad_rotation_mode.proto",
-+        "ad_group_ad_status.proto",
-+        "ad_group_criterion_approval_status.proto",
-+        "ad_group_criterion_status.proto",
-+        "ad_group_status.proto",
-+        "ad_group_type.proto",
-+        "ad_network_type.proto",
-+        "ad_serving_optimization_status.proto",
-+        "ad_strength.proto",
-+        "ad_type.proto",
-+        "advertising_channel_sub_type.proto",
-+        "advertising_channel_type.proto",
-+        "affiliate_location_feed_relationship_type.proto",
-+        "affiliate_location_placeholder_field.proto",
-+        "age_range_type.proto",
-+        "app_campaign_app_store.proto",
-+        "app_campaign_bidding_strategy_goal_type.proto",
-+        "app_payment_model_type.proto",
-+        "app_placeholder_field.proto",
-+        "app_store.proto",
-+        "app_url_operating_system_type.proto",
-+        "asset_type.proto",
-+        "attribution_model.proto",
-+        "bid_modifier_source.proto",
-+        "bidding_source.proto",
-+        "bidding_strategy_status.proto",
-+        "bidding_strategy_type.proto",
-+        "billing_setup_status.proto",
-+        "brand_safety_suitability.proto",
-+        "budget_delivery_method.proto",
-+        "budget_period.proto",
-+        "budget_status.proto",
-+        "budget_type.proto",
-+        "call_conversion_reporting_state.proto",
-+        "call_placeholder_field.proto",
-+        "callout_placeholder_field.proto",
-+        "campaign_criterion_status.proto",
-+        "campaign_draft_status.proto",
-+        "campaign_experiment_status.proto",
-+        "campaign_experiment_traffic_split_type.proto",
-+        "campaign_experiment_type.proto",
-+        "campaign_serving_status.proto",
-+        "campaign_shared_set_status.proto",
-+        "campaign_status.proto",
-+        "change_status_operation.proto",
-+        "change_status_resource_type.proto",
-+        "click_type.proto",
-+        "content_label_type.proto",
-+        "conversion_action_category.proto",
-+        "conversion_action_counting_type.proto",
-+        "conversion_action_status.proto",
-+        "conversion_action_type.proto",
-+        "conversion_adjustment_type.proto",
-+        "conversion_attribution_event_type.proto",
-+        "conversion_lag_bucket.proto",
-+        "conversion_or_adjustment_lag_bucket.proto",
-+        "criterion_category_channel_availability_mode.proto",
-+        "criterion_category_locale_availability_mode.proto",
-+        "criterion_system_serving_status.proto",
-+        "criterion_type.proto",
-+        "custom_interest_member_type.proto",
-+        "custom_interest_status.proto",
-+        "custom_interest_type.proto",
-+        "custom_placeholder_field.proto",
-+        "customer_match_upload_key_type.proto",
-+        "customer_pay_per_conversion_eligibility_failure_reason.proto",
-+        "data_driven_model_status.proto",
-+        "day_of_week.proto",
-+        "device.proto",
-+        "display_ad_format_setting.proto",
-+        "display_upload_product_type.proto",
-+        "dsa_page_feed_criterion_field.proto",
-+        "education_placeholder_field.proto",
-+        "extension_setting_device.proto",
-+        "extension_type.proto",
-+        "external_conversion_source.proto",
-+        "feed_attribute_type.proto",
-+        "feed_item_quality_approval_status.proto",
-+        "feed_item_quality_disapproval_reason.proto",
-+        "feed_item_status.proto",
-+        "feed_item_target_device.proto",
-+        "feed_item_target_type.proto",
-+        "feed_item_validation_status.proto",
-+        "feed_link_status.proto",
-+        "feed_mapping_criterion_type.proto",
-+        "feed_mapping_status.proto",
-+        "feed_origin.proto",
-+        "feed_status.proto",
-+        "flight_placeholder_field.proto",
-+        "frequency_cap_event_type.proto",
-+        "frequency_cap_level.proto",
-+        "frequency_cap_time_unit.proto",
-+        "gender_type.proto",
-+        "geo_target_constant_status.proto",
-+        "geo_targeting_restriction.proto",
-+        "geo_targeting_type.proto",
-+        "google_ads_field_category.proto",
-+        "google_ads_field_data_type.proto",
-+        "hotel_date_selection_type.proto",
-+        "hotel_placeholder_field.proto",
-+        "hotel_rate_type.proto",
-+        "income_range_type.proto",
-+        "interaction_event_type.proto",
-+        "interaction_type.proto",
-+        "job_placeholder_field.proto",
-+        "keyword_match_type.proto",
-+        "keyword_plan_competition_level.proto",
-+        "keyword_plan_forecast_interval.proto",
-+        "keyword_plan_network.proto",
-+        "label_status.proto",
-+        "legacy_app_install_ad_app_store.proto",
-+        "listing_custom_attribute_index.proto",
-+        "listing_group_type.proto",
-+        "local_placeholder_field.proto",
-+        "location_extension_targeting_criterion_field.proto",
-+        "location_group_radius_units.proto",
-+        "location_placeholder_field.proto",
-+        "manager_link_status.proto",
-+        "matching_function_context_type.proto",
-+        "matching_function_operator.proto",
-+        "media_type.proto",
-+        "merchant_center_link_status.proto",
-+        "message_placeholder_field.proto",
-+        "mime_type.proto",
-+        "minute_of_hour.proto",
-+        "mobile_device_type.proto",
-+        "month_of_year.proto",
-+        "mutate_job_status.proto",
-+        "negative_geo_target_type.proto",
-+        "operating_system_version_operator_type.proto",
-+        "page_one_promoted_strategy_goal.proto",
-+        "parental_status_type.proto",
-+        "payment_mode.proto",
-+        "placeholder_type.proto",
-+        "placement_type.proto",
-+        "policy_approval_status.proto",
-+        "policy_review_status.proto",
-+        "policy_topic_entry_type.proto",
-+        "policy_topic_evidence_destination_mismatch_url_type.proto",
-+        "policy_topic_evidence_destination_not_working_device.proto",
-+        "positive_geo_target_type.proto",
-+        "preferred_content_type.proto",
-+        "price_extension_price_qualifier.proto",
-+        "price_extension_price_unit.proto",
-+        "price_extension_type.proto",
-+        "price_placeholder_field.proto",
-+        "product_bidding_category_level.proto",
-+        "product_bidding_category_status.proto",
-+        "product_channel.proto",
-+        "product_channel_exclusivity.proto",
-+        "product_condition.proto",
-+        "product_type_level.proto",
-+        "promotion_extension_discount_modifier.proto",
-+        "promotion_extension_occasion.proto",
-+        "promotion_placeholder_field.proto",
-+        "proximity_radius_units.proto",
-+        "quality_score_bucket.proto",
-+        "real_estate_placeholder_field.proto",
-+        "recommendation_type.proto",
-+        "search_engine_results_page_type.proto",
-+        "search_term_match_type.proto",
-+        "search_term_targeting_status.proto",
-+        "served_asset_field_type.proto",
-+        "shared_set_status.proto",
-+        "shared_set_type.proto",
-+        "simulation_modification_method.proto",
-+        "simulation_type.proto",
-+        "sitelink_placeholder_field.proto",
-+        "slot.proto",
-+        "spending_limit_type.proto",
-+        "structured_snippet_placeholder_field.proto",
-+        "system_managed_entity_source.proto",
-+        "target_cpa_opt_in_recommendation_goal.proto",
-+        "target_impression_share_location.proto",
-+        "targeting_dimension.proto",
-+        "time_type.proto",
-+        "tracking_code_page_format.proto",
-+        "tracking_code_type.proto",
-+        "travel_placeholder_field.proto",
-+        "user_interest_taxonomy_type.proto",
-+        "user_list_access_status.proto",
-+        "user_list_closing_reason.proto",
-+        "user_list_combined_rule_operator.proto",
-+        "user_list_crm_data_source_type.proto",
-+        "user_list_date_rule_item_operator.proto",
-+        "user_list_logical_rule_operator.proto",
-+        "user_list_membership_status.proto",
-+        "user_list_number_rule_item_operator.proto",
-+        "user_list_prepopulation_status.proto",
-+        "user_list_rule_type.proto",
-+        "user_list_size_range.proto",
-+        "user_list_string_rule_item_operator.proto",
-+        "user_list_type.proto",
-+        "vanity_pharma_display_url_mode.proto",
-+        "vanity_pharma_text.proto",
-+        "webpage_condition_operand.proto",
-+        "webpage_condition_operator.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_proto"],
-+)
-+
-+go_proto_library(
-+    name = "enums_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v1/enums",
-+    proto = ":enums_proto",
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_go_proto"],
-+)
-diff -urN c/google/ads/googleads/v1/errors/BUILD.bazel d/google/ads/googleads/v1/errors/BUILD.bazel
---- c/google/ads/googleads/v1/errors/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/errors/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,128 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "errors_proto",
-+    srcs = [
-+        "account_budget_proposal_error.proto",
-+        "ad_customizer_error.proto",
-+        "ad_error.proto",
-+        "ad_group_ad_error.proto",
-+        "ad_group_bid_modifier_error.proto",
-+        "ad_group_criterion_error.proto",
-+        "ad_group_error.proto",
-+        "ad_group_feed_error.proto",
-+        "ad_parameter_error.proto",
-+        "ad_sharing_error.proto",
-+        "adx_error.proto",
-+        "asset_error.proto",
-+        "authentication_error.proto",
-+        "authorization_error.proto",
-+        "bidding_error.proto",
-+        "bidding_strategy_error.proto",
-+        "billing_setup_error.proto",
-+        "campaign_budget_error.proto",
-+        "campaign_criterion_error.proto",
-+        "campaign_draft_error.proto",
-+        "campaign_error.proto",
-+        "campaign_experiment_error.proto",
-+        "campaign_feed_error.proto",
-+        "campaign_shared_set_error.proto",
-+        "change_status_error.proto",
-+        "collection_size_error.proto",
-+        "context_error.proto",
-+        "conversion_action_error.proto",
-+        "conversion_adjustment_upload_error.proto",
-+        "conversion_upload_error.proto",
-+        "country_code_error.proto",
-+        "criterion_error.proto",
-+        "custom_interest_error.proto",
-+        "customer_client_link_error.proto",
-+        "customer_error.proto",
-+        "customer_feed_error.proto",
-+        "customer_manager_link_error.proto",
-+        "database_error.proto",
-+        "date_error.proto",
-+        "date_range_error.proto",
-+        "distinct_error.proto",
-+        "enum_error.proto",
-+        "errors.proto",
-+        "extension_feed_item_error.proto",
-+        "extension_setting_error.proto",
-+        "feed_attribute_reference_error.proto",
-+        "feed_error.proto",
-+        "feed_item_error.proto",
-+        "feed_item_target_error.proto",
-+        "feed_item_validation_error.proto",
-+        "feed_mapping_error.proto",
-+        "field_error.proto",
-+        "field_mask_error.proto",
-+        "function_error.proto",
-+        "function_parsing_error.proto",
-+        "geo_target_constant_suggestion_error.proto",
-+        "header_error.proto",
-+        "id_error.proto",
-+        "image_error.proto",
-+        "internal_error.proto",
-+        "keyword_plan_ad_group_error.proto",
-+        "keyword_plan_campaign_error.proto",
-+        "keyword_plan_error.proto",
-+        "keyword_plan_idea_error.proto",
-+        "keyword_plan_keyword_error.proto",
-+        "keyword_plan_negative_keyword_error.proto",
-+        "label_error.proto",
-+        "language_code_error.proto",
-+        "list_operation_error.proto",
-+        "manager_link_error.proto",
-+        "media_bundle_error.proto",
-+        "media_file_error.proto",
-+        "media_upload_error.proto",
-+        "multiplier_error.proto",
-+        "mutate_error.proto",
-+        "mutate_job_error.proto",
-+        "new_resource_creation_error.proto",
-+        "not_empty_error.proto",
-+        "not_whitelisted_error.proto",
-+        "null_error.proto",
-+        "operation_access_denied_error.proto",
-+        "operator_error.proto",
-+        "partial_failure_error.proto",
-+        "policy_finding_error.proto",
-+        "policy_validation_parameter_error.proto",
-+        "policy_violation_error.proto",
-+        "query_error.proto",
-+        "quota_error.proto",
-+        "range_error.proto",
-+        "recommendation_error.proto",
-+        "region_code_error.proto",
-+        "request_error.proto",
-+        "resource_access_denied_error.proto",
-+        "resource_count_limit_exceeded_error.proto",
-+        "setting_error.proto",
-+        "shared_criterion_error.proto",
-+        "shared_set_error.proto",
-+        "size_limit_error.proto",
-+        "string_format_error.proto",
-+        "string_length_error.proto",
-+        "url_field_error.proto",
-+        "user_list_error.proto",
-+        "youtube_video_registration_error.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/common:common_proto",
-+        "//google/api:annotations_proto",
-+        "@com_google_protobuf//:wrappers_proto",
-+    ],
-+)
-+
-+go_proto_library(
-+    name = "errors_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v1/errors",
-+    proto = ":errors_proto",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/common:common_go_proto",
-+        "//google/api:annotations_go_proto",
-+    ],
-+)
-diff -urN c/google/ads/googleads/v1/resources/BUILD.bazel d/google/ads/googleads/v1/resources/BUILD.bazel
---- c/google/ads/googleads/v1/resources/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/resources/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,126 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "resources_proto",
-+    srcs = [
-+        "account_budget.proto",
-+        "account_budget_proposal.proto",
-+        "ad.proto",
-+        "ad_group.proto",
-+        "ad_group_ad.proto",
-+        "ad_group_ad_label.proto",
-+        "ad_group_audience_view.proto",
-+        "ad_group_bid_modifier.proto",
-+        "ad_group_criterion.proto",
-+        "ad_group_criterion_label.proto",
-+        "ad_group_criterion_simulation.proto",
-+        "ad_group_extension_setting.proto",
-+        "ad_group_feed.proto",
-+        "ad_group_label.proto",
-+        "ad_group_simulation.proto",
-+        "ad_parameter.proto",
-+        "ad_schedule_view.proto",
-+        "age_range_view.proto",
-+        "asset.proto",
-+        "bidding_strategy.proto",
-+        "billing_setup.proto",
-+        "campaign.proto",
-+        "campaign_audience_view.proto",
-+        "campaign_bid_modifier.proto",
-+        "campaign_budget.proto",
-+        "campaign_criterion.proto",
-+        "campaign_criterion_simulation.proto",
-+        "campaign_draft.proto",
-+        "campaign_experiment.proto",
-+        "campaign_extension_setting.proto",
-+        "campaign_feed.proto",
-+        "campaign_label.proto",
-+        "campaign_shared_set.proto",
-+        "carrier_constant.proto",
-+        "change_status.proto",
-+        "click_view.proto",
-+        "conversion_action.proto",
-+        "custom_interest.proto",
-+        "customer.proto",
-+        "customer_client.proto",
-+        "customer_client_link.proto",
-+        "customer_extension_setting.proto",
-+        "customer_feed.proto",
-+        "customer_label.proto",
-+        "customer_manager_link.proto",
-+        "customer_negative_criterion.proto",
-+        "detail_placement_view.proto",
-+        "display_keyword_view.proto",
-+        "domain_category.proto",
-+        "dynamic_search_ads_search_term_view.proto",
-+        "expanded_landing_page_view.proto",
-+        "extension_feed_item.proto",
-+        "feed.proto",
-+        "feed_item.proto",
-+        "feed_item_target.proto",
-+        "feed_mapping.proto",
-+        "feed_placeholder_view.proto",
-+        "gender_view.proto",
-+        "geo_target_constant.proto",
-+        "geographic_view.proto",
-+        "google_ads_field.proto",
-+        "group_placement_view.proto",
-+        "hotel_group_view.proto",
-+        "hotel_performance_view.proto",
-+        "keyword_plan.proto",
-+        "keyword_plan_ad_group.proto",
-+        "keyword_plan_campaign.proto",
-+        "keyword_plan_keyword.proto",
-+        "keyword_plan_negative_keyword.proto",
-+        "keyword_view.proto",
-+        "label.proto",
-+        "landing_page_view.proto",
-+        "language_constant.proto",
-+        "location_view.proto",
-+        "managed_placement_view.proto",
-+        "media_file.proto",
-+        "merchant_center_link.proto",
-+        "mobile_app_category_constant.proto",
-+        "mobile_device_constant.proto",
-+        "mutate_job.proto",
-+        "operating_system_version_constant.proto",
-+        "paid_organic_search_term_view.proto",
-+        "parental_status_view.proto",
-+        "payments_account.proto",
-+        "product_bidding_category_constant.proto",
-+        "product_group_view.proto",
-+        "recommendation.proto",
-+        "remarketing_action.proto",
-+        "search_term_view.proto",
-+        "shared_criterion.proto",
-+        "shared_set.proto",
-+        "shopping_performance_view.proto",
-+        "topic_constant.proto",
-+        "topic_view.proto",
-+        "user_interest.proto",
-+        "user_list.proto",
-+        "video.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/common:common_proto",
-+        "//google/ads/googleads/v1/enums:enums_proto",
-+        "//google/ads/googleads/v1/errors:errors_proto",
-+        "//google/api:annotations_proto",
-+        "@com_google_protobuf//:wrappers_proto",
-+    ],
-+)
-+
-+go_proto_library(
-+    name = "resources_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v1/resources",
-+    proto = ":resources_proto",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/common:common_go_proto",
-+        "//google/ads/googleads/v1/enums:enums_go_proto",
-+        "//google/ads/googleads/v1/errors:errors_go_proto",
-+        "//google/api:annotations_go_proto",
-+    ],
-+)
-diff -urN c/google/ads/googleads/v1/services/BUILD.bazel d/google/ads/googleads/v1/services/BUILD.bazel
---- c/google/ads/googleads/v1/services/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/ads/googleads/v1/services/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,136 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "services_proto",
-+    srcs = [
-+        "account_budget_proposal_service.proto",
-+        "account_budget_service.proto",
-+        "ad_group_ad_label_service.proto",
-+        "ad_group_ad_service.proto",
-+        "ad_group_audience_view_service.proto",
-+        "ad_group_bid_modifier_service.proto",
-+        "ad_group_criterion_label_service.proto",
-+        "ad_group_criterion_service.proto",
-+        "ad_group_criterion_simulation_service.proto",
-+        "ad_group_extension_setting_service.proto",
-+        "ad_group_feed_service.proto",
-+        "ad_group_label_service.proto",
-+        "ad_group_service.proto",
-+        "ad_group_simulation_service.proto",
-+        "ad_parameter_service.proto",
-+        "ad_schedule_view_service.proto",
-+        "age_range_view_service.proto",
-+        "asset_service.proto",
-+        "bidding_strategy_service.proto",
-+        "billing_setup_service.proto",
-+        "campaign_audience_view_service.proto",
-+        "campaign_bid_modifier_service.proto",
-+        "campaign_budget_service.proto",
-+        "campaign_criterion_service.proto",
-+        "campaign_criterion_simulation_service.proto",
-+        "campaign_draft_service.proto",
-+        "campaign_experiment_service.proto",
-+        "campaign_extension_setting_service.proto",
-+        "campaign_feed_service.proto",
-+        "campaign_label_service.proto",
-+        "campaign_service.proto",
-+        "campaign_shared_set_service.proto",
-+        "carrier_constant_service.proto",
-+        "change_status_service.proto",
-+        "click_view_service.proto",
-+        "conversion_action_service.proto",
-+        "conversion_adjustment_upload_service.proto",
-+        "conversion_upload_service.proto",
-+        "custom_interest_service.proto",
-+        "customer_client_link_service.proto",
-+        "customer_client_service.proto",
-+        "customer_extension_setting_service.proto",
-+        "customer_feed_service.proto",
-+        "customer_label_service.proto",
-+        "customer_manager_link_service.proto",
-+        "customer_negative_criterion_service.proto",
-+        "customer_service.proto",
-+        "detail_placement_view_service.proto",
-+        "display_keyword_view_service.proto",
-+        "domain_category_service.proto",
-+        "dynamic_search_ads_search_term_view_service.proto",
-+        "expanded_landing_page_view_service.proto",
-+        "extension_feed_item_service.proto",
-+        "feed_item_service.proto",
-+        "feed_item_target_service.proto",
-+        "feed_mapping_service.proto",
-+        "feed_placeholder_view_service.proto",
-+        "feed_service.proto",
-+        "gender_view_service.proto",
-+        "geo_target_constant_service.proto",
-+        "geographic_view_service.proto",
-+        "google_ads_field_service.proto",
-+        "google_ads_service.proto",
-+        "group_placement_view_service.proto",
-+        "hotel_group_view_service.proto",
-+        "hotel_performance_view_service.proto",
-+        "keyword_plan_ad_group_service.proto",
-+        "keyword_plan_campaign_service.proto",
-+        "keyword_plan_idea_service.proto",
-+        "keyword_plan_keyword_service.proto",
-+        "keyword_plan_negative_keyword_service.proto",
-+        "keyword_plan_service.proto",
-+        "keyword_view_service.proto",
-+        "label_service.proto",
-+        "landing_page_view_service.proto",
-+        "language_constant_service.proto",
-+        "location_view_service.proto",
-+        "managed_placement_view_service.proto",
-+        "media_file_service.proto",
-+        "merchant_center_link_service.proto",
-+        "mobile_app_category_constant_service.proto",
-+        "mobile_device_constant_service.proto",
-+        "mutate_job_service.proto",
-+        "operating_system_version_constant_service.proto",
-+        "paid_organic_search_term_view_service.proto",
-+        "parental_status_view_service.proto",
-+        "payments_account_service.proto",
-+        "product_bidding_category_constant_service.proto",
-+        "product_group_view_service.proto",
-+        "recommendation_service.proto",
-+        "remarketing_action_service.proto",
-+        "search_term_view_service.proto",
-+        "shared_criterion_service.proto",
-+        "shared_set_service.proto",
-+        "shopping_performance_view_service.proto",
-+        "topic_constant_service.proto",
-+        "topic_view_service.proto",
-+        "user_interest_service.proto",
-+        "user_list_service.proto",
-+        "video_service.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/common:common_proto",
-+        "//google/ads/googleads/v1/enums:enums_proto",
-+        "//google/ads/googleads/v1/resources:resources_proto",
-+        "//google/api:annotations_proto",
-+        "//google/longrunning:longrunning_proto",
-+        "//google/rpc:status_proto",
-+        "@com_google_protobuf//:empty_proto",
-+        "@com_google_protobuf//:field_mask_proto",
-+        "@com_google_protobuf//:wrappers_proto",
-+    ],
-+)
-+
-+go_proto_library(
-+    name = "services_go_proto",
-+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
-+    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v1/services",
-+    proto = ":services_proto",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/ads/googleads/v1/common:common_go_proto",
-+        "//google/ads/googleads/v1/enums:enums_go_proto",
-+        "//google/ads/googleads/v1/resources:resources_go_proto",
-+        "//google/api:annotations_go_proto",
-+        "//google/longrunning:longrunning_go_proto",
-+        "//google/rpc:status_go_proto",
-+    ],
-+)
 diff -urN c/google/ads/googleads/v2/common/BUILD.bazel d/google/ads/googleads/v2/common/BUILD.bazel
 --- c/google/ads/googleads/v2/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/ads/googleads/v2/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -2175,6 +1493,797 @@ diff -urN c/google/ads/googleads/v3/services/BUILD.bazel d/google/ads/googleads/
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
+diff -urN c/google/ads/googleads/v4/common/BUILD.bazel d/google/ads/googleads/v4/common/BUILD.bazel
+--- c/google/ads/googleads/v4/common/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/ads/googleads/v4/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,53 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "common_proto",
++    srcs = [
++        "ad_asset.proto",
++        "ad_type_infos.proto",
++        "asset_types.proto",
++        "bidding.proto",
++        "click_location.proto",
++        "criteria.proto",
++        "criterion_category_availability.proto",
++        "custom_parameter.proto",
++        "dates.proto",
++        "explorer_auto_optimizer_setting.proto",
++        "extensions.proto",
++        "feed_common.proto",
++        "final_app_url.proto",
++        "frequency_cap.proto",
++        "keyword_plan_common.proto",
++        "matching_function.proto",
++        "metrics.proto",
++        "offline_user_data.proto",
++        "policy.proto",
++        "real_time_bidding_setting.proto",
++        "segments.proto",
++        "simulation.proto",
++        "tag_snippet.proto",
++        "targeting_setting.proto",
++        "text_label.proto",
++        "url_collection.proto",
++        "user_lists.proto",
++        "value.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/enums:enums_proto",
++        "//google/api:annotations_proto",
++        "@com_google_protobuf//:wrappers_proto",
++    ],
++)
++
++go_proto_library(
++    name = "common_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v4/common",
++    proto = ":common_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/enums:enums_go_proto",
++        "//google/api:annotations_go_proto",
++    ],
++)
+diff -urN c/google/ads/googleads/v4/enums/BUILD.bazel d/google/ads/googleads/v4/enums/BUILD.bazel
+--- c/google/ads/googleads/v4/enums/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/ads/googleads/v4/enums/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,240 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "enums_proto",
++    srcs = [
++        "access_reason.proto",
++        "access_role.proto",
++        "account_budget_proposal_status.proto",
++        "account_budget_proposal_type.proto",
++        "account_budget_status.proto",
++        "account_link_status.proto",
++        "ad_customizer_placeholder_field.proto",
++        "ad_group_ad_rotation_mode.proto",
++        "ad_group_ad_status.proto",
++        "ad_group_criterion_approval_status.proto",
++        "ad_group_criterion_status.proto",
++        "ad_group_status.proto",
++        "ad_group_type.proto",
++        "ad_network_type.proto",
++        "ad_serving_optimization_status.proto",
++        "ad_strength.proto",
++        "ad_type.proto",
++        "advertising_channel_sub_type.proto",
++        "advertising_channel_type.proto",
++        "affiliate_location_feed_relationship_type.proto",
++        "affiliate_location_placeholder_field.proto",
++        "age_range_type.proto",
++        "app_campaign_app_store.proto",
++        "app_campaign_bidding_strategy_goal_type.proto",
++        "app_payment_model_type.proto",
++        "app_placeholder_field.proto",
++        "app_store.proto",
++        "app_url_operating_system_type.proto",
++        "asset_field_type.proto",
++        "asset_performance_label.proto",
++        "asset_type.proto",
++        "attribution_model.proto",
++        "batch_job_status.proto",
++        "bid_modifier_source.proto",
++        "bidding_source.proto",
++        "bidding_strategy_status.proto",
++        "bidding_strategy_type.proto",
++        "billing_setup_status.proto",
++        "brand_safety_suitability.proto",
++        "budget_delivery_method.proto",
++        "budget_period.proto",
++        "budget_status.proto",
++        "budget_type.proto",
++        "call_conversion_reporting_state.proto",
++        "call_placeholder_field.proto",
++        "callout_placeholder_field.proto",
++        "campaign_criterion_status.proto",
++        "campaign_draft_status.proto",
++        "campaign_experiment_status.proto",
++        "campaign_experiment_traffic_split_type.proto",
++        "campaign_experiment_type.proto",
++        "campaign_serving_status.proto",
++        "campaign_shared_set_status.proto",
++        "campaign_status.proto",
++        "change_status_operation.proto",
++        "change_status_resource_type.proto",
++        "click_type.proto",
++        "content_label_type.proto",
++        "conversion_action_category.proto",
++        "conversion_action_counting_type.proto",
++        "conversion_action_status.proto",
++        "conversion_action_type.proto",
++        "conversion_adjustment_type.proto",
++        "conversion_attribution_event_type.proto",
++        "conversion_lag_bucket.proto",
++        "conversion_or_adjustment_lag_bucket.proto",
++        "criterion_category_channel_availability_mode.proto",
++        "criterion_category_locale_availability_mode.proto",
++        "criterion_system_serving_status.proto",
++        "criterion_type.proto",
++        "custom_interest_member_type.proto",
++        "custom_interest_status.proto",
++        "custom_interest_type.proto",
++        "custom_placeholder_field.proto",
++        "customer_match_upload_key_type.proto",
++        "customer_pay_per_conversion_eligibility_failure_reason.proto",
++        "data_driven_model_status.proto",
++        "day_of_week.proto",
++        "device.proto",
++        "display_ad_format_setting.proto",
++        "display_upload_product_type.proto",
++        "distance_bucket.proto",
++        "dsa_page_feed_criterion_field.proto",
++        "education_placeholder_field.proto",
++        "extension_setting_device.proto",
++        "extension_type.proto",
++        "external_conversion_source.proto",
++        "feed_attribute_type.proto",
++        "feed_item_quality_approval_status.proto",
++        "feed_item_quality_disapproval_reason.proto",
++        "feed_item_status.proto",
++        "feed_item_target_device.proto",
++        "feed_item_target_status.proto",
++        "feed_item_target_type.proto",
++        "feed_item_validation_status.proto",
++        "feed_link_status.proto",
++        "feed_mapping_criterion_type.proto",
++        "feed_mapping_status.proto",
++        "feed_origin.proto",
++        "feed_status.proto",
++        "flight_placeholder_field.proto",
++        "frequency_cap_event_type.proto",
++        "frequency_cap_level.proto",
++        "frequency_cap_time_unit.proto",
++        "gender_type.proto",
++        "geo_target_constant_status.proto",
++        "geo_targeting_restriction.proto",
++        "geo_targeting_type.proto",
++        "google_ads_field_category.proto",
++        "google_ads_field_data_type.proto",
++        "hotel_date_selection_type.proto",
++        "hotel_placeholder_field.proto",
++        "hotel_price_bucket.proto",
++        "hotel_rate_type.proto",
++        "income_range_type.proto",
++        "interaction_event_type.proto",
++        "interaction_type.proto",
++        "invoice_type.proto",
++        "job_placeholder_field.proto",
++        "keyword_match_type.proto",
++        "keyword_plan_competition_level.proto",
++        "keyword_plan_forecast_interval.proto",
++        "keyword_plan_network.proto",
++        "label_status.proto",
++        "legacy_app_install_ad_app_store.proto",
++        "linked_account_type.proto",
++        "listing_group_type.proto",
++        "local_placeholder_field.proto",
++        "location_extension_targeting_criterion_field.proto",
++        "location_group_radius_units.proto",
++        "location_placeholder_field.proto",
++        "location_source_type.proto",
++        "manager_link_status.proto",
++        "matching_function_context_type.proto",
++        "matching_function_operator.proto",
++        "media_type.proto",
++        "merchant_center_link_status.proto",
++        "message_placeholder_field.proto",
++        "mime_type.proto",
++        "minute_of_hour.proto",
++        "mobile_app_vendor.proto",
++        "mobile_device_type.proto",
++        "month_of_year.proto",
++        "negative_geo_target_type.proto",
++        "offline_user_data_job_failure_reason.proto",
++        "offline_user_data_job_status.proto",
++        "offline_user_data_job_type.proto",
++        "operating_system_version_operator_type.proto",
++        "optimization_goal_type.proto",
++        "page_one_promoted_strategy_goal.proto",
++        "parental_status_type.proto",
++        "payment_mode.proto",
++        "placeholder_type.proto",
++        "placement_type.proto",
++        "policy_approval_status.proto",
++        "policy_review_status.proto",
++        "policy_topic_entry_type.proto",
++        "policy_topic_evidence_destination_mismatch_url_type.proto",
++        "policy_topic_evidence_destination_not_working_device.proto",
++        "policy_topic_evidence_destination_not_working_dns_error_type.proto",
++        "positive_geo_target_type.proto",
++        "preferred_content_type.proto",
++        "price_extension_price_qualifier.proto",
++        "price_extension_price_unit.proto",
++        "price_extension_type.proto",
++        "price_placeholder_field.proto",
++        "product_bidding_category_level.proto",
++        "product_bidding_category_status.proto",
++        "product_channel.proto",
++        "product_channel_exclusivity.proto",
++        "product_condition.proto",
++        "product_custom_attribute_index.proto",
++        "product_type_level.proto",
++        "promotion_extension_discount_modifier.proto",
++        "promotion_extension_occasion.proto",
++        "promotion_placeholder_field.proto",
++        "proximity_radius_units.proto",
++        "quality_score_bucket.proto",
++        "reach_plan_ad_length.proto",
++        "reach_plan_age_range.proto",
++        "reach_plan_network.proto",
++        "real_estate_placeholder_field.proto",
++        "recommendation_type.proto",
++        "search_engine_results_page_type.proto",
++        "search_term_match_type.proto",
++        "search_term_targeting_status.proto",
++        "served_asset_field_type.proto",
++        "shared_set_status.proto",
++        "shared_set_type.proto",
++        "simulation_modification_method.proto",
++        "simulation_type.proto",
++        "sitelink_placeholder_field.proto",
++        "slot.proto",
++        "spending_limit_type.proto",
++        "structured_snippet_placeholder_field.proto",
++        "summary_row_setting.proto",
++        "system_managed_entity_source.proto",
++        "target_cpa_opt_in_recommendation_goal.proto",
++        "target_impression_share_location.proto",
++        "targeting_dimension.proto",
++        "time_type.proto",
++        "tracking_code_page_format.proto",
++        "tracking_code_type.proto",
++        "travel_placeholder_field.proto",
++        "user_interest_taxonomy_type.proto",
++        "user_list_access_status.proto",
++        "user_list_closing_reason.proto",
++        "user_list_combined_rule_operator.proto",
++        "user_list_crm_data_source_type.proto",
++        "user_list_date_rule_item_operator.proto",
++        "user_list_logical_rule_operator.proto",
++        "user_list_membership_status.proto",
++        "user_list_number_rule_item_operator.proto",
++        "user_list_prepopulation_status.proto",
++        "user_list_rule_type.proto",
++        "user_list_size_range.proto",
++        "user_list_string_rule_item_operator.proto",
++        "user_list_type.proto",
++        "vanity_pharma_display_url_mode.proto",
++        "vanity_pharma_text.proto",
++        "webpage_condition_operand.proto",
++        "webpage_condition_operator.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_proto"],
++)
++
++go_proto_library(
++    name = "enums_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v4/enums",
++    proto = ":enums_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
++)
+diff -urN c/google/ads/googleads/v4/errors/BUILD.bazel d/google/ads/googleads/v4/errors/BUILD.bazel
+--- c/google/ads/googleads/v4/errors/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/ads/googleads/v4/errors/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,139 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "errors_proto",
++    srcs = [
++        "access_invitation_error.proto",
++        "account_budget_proposal_error.proto",
++        "account_link_error.proto",
++        "ad_customizer_error.proto",
++        "ad_error.proto",
++        "ad_group_ad_error.proto",
++        "ad_group_bid_modifier_error.proto",
++        "ad_group_criterion_error.proto",
++        "ad_group_error.proto",
++        "ad_group_feed_error.proto",
++        "ad_parameter_error.proto",
++        "ad_sharing_error.proto",
++        "adx_error.proto",
++        "asset_error.proto",
++        "asset_link_error.proto",
++        "authentication_error.proto",
++        "authorization_error.proto",
++        "batch_job_error.proto",
++        "bidding_error.proto",
++        "bidding_strategy_error.proto",
++        "billing_setup_error.proto",
++        "campaign_budget_error.proto",
++        "campaign_criterion_error.proto",
++        "campaign_draft_error.proto",
++        "campaign_error.proto",
++        "campaign_experiment_error.proto",
++        "campaign_feed_error.proto",
++        "campaign_shared_set_error.proto",
++        "change_status_error.proto",
++        "collection_size_error.proto",
++        "context_error.proto",
++        "conversion_action_error.proto",
++        "conversion_adjustment_upload_error.proto",
++        "conversion_upload_error.proto",
++        "country_code_error.proto",
++        "criterion_error.proto",
++        "currency_code_error.proto",
++        "custom_interest_error.proto",
++        "customer_client_link_error.proto",
++        "customer_error.proto",
++        "customer_feed_error.proto",
++        "customer_manager_link_error.proto",
++        "database_error.proto",
++        "date_error.proto",
++        "date_range_error.proto",
++        "distinct_error.proto",
++        "enum_error.proto",
++        "errors.proto",
++        "extension_feed_item_error.proto",
++        "extension_setting_error.proto",
++        "feed_attribute_reference_error.proto",
++        "feed_error.proto",
++        "feed_item_error.proto",
++        "feed_item_target_error.proto",
++        "feed_item_validation_error.proto",
++        "feed_mapping_error.proto",
++        "field_error.proto",
++        "field_mask_error.proto",
++        "function_error.proto",
++        "function_parsing_error.proto",
++        "geo_target_constant_suggestion_error.proto",
++        "header_error.proto",
++        "id_error.proto",
++        "image_error.proto",
++        "internal_error.proto",
++        "invoice_error.proto",
++        "keyword_plan_ad_group_error.proto",
++        "keyword_plan_ad_group_keyword_error.proto",
++        "keyword_plan_campaign_error.proto",
++        "keyword_plan_campaign_keyword_error.proto",
++        "keyword_plan_error.proto",
++        "keyword_plan_idea_error.proto",
++        "label_error.proto",
++        "language_code_error.proto",
++        "list_operation_error.proto",
++        "manager_link_error.proto",
++        "media_bundle_error.proto",
++        "media_file_error.proto",
++        "media_upload_error.proto",
++        "multiplier_error.proto",
++        "mutate_error.proto",
++        "new_resource_creation_error.proto",
++        "not_empty_error.proto",
++        "not_whitelisted_error.proto",
++        "null_error.proto",
++        "offline_user_data_job_error.proto",
++        "operation_access_denied_error.proto",
++        "operator_error.proto",
++        "partial_failure_error.proto",
++        "payments_account_error.proto",
++        "policy_finding_error.proto",
++        "policy_validation_parameter_error.proto",
++        "policy_violation_error.proto",
++        "query_error.proto",
++        "quota_error.proto",
++        "range_error.proto",
++        "reach_plan_error.proto",
++        "recommendation_error.proto",
++        "region_code_error.proto",
++        "request_error.proto",
++        "resource_access_denied_error.proto",
++        "resource_count_limit_exceeded_error.proto",
++        "setting_error.proto",
++        "shared_criterion_error.proto",
++        "shared_set_error.proto",
++        "size_limit_error.proto",
++        "string_format_error.proto",
++        "string_length_error.proto",
++        "third_party_app_analytics_link_error.proto",
++        "time_zone_error.proto",
++        "url_field_error.proto",
++        "user_data_error.proto",
++        "user_list_error.proto",
++        "youtube_video_registration_error.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/common:common_proto",
++        "//google/api:annotations_proto",
++        "@com_google_protobuf//:wrappers_proto",
++    ],
++)
++
++go_proto_library(
++    name = "errors_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v4/errors",
++    proto = ":errors_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/common:common_go_proto",
++        "//google/api:annotations_go_proto",
++    ],
++)
+diff -urN c/google/ads/googleads/v4/resources/BUILD.bazel d/google/ads/googleads/v4/resources/BUILD.bazel
+--- c/google/ads/googleads/v4/resources/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/ads/googleads/v4/resources/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,135 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "resources_proto",
++    srcs = [
++        "account_budget.proto",
++        "account_budget_proposal.proto",
++        "account_link.proto",
++        "ad.proto",
++        "ad_group.proto",
++        "ad_group_ad.proto",
++        "ad_group_ad_asset_view.proto",
++        "ad_group_ad_label.proto",
++        "ad_group_audience_view.proto",
++        "ad_group_bid_modifier.proto",
++        "ad_group_criterion.proto",
++        "ad_group_criterion_label.proto",
++        "ad_group_criterion_simulation.proto",
++        "ad_group_extension_setting.proto",
++        "ad_group_feed.proto",
++        "ad_group_label.proto",
++        "ad_group_simulation.proto",
++        "ad_parameter.proto",
++        "ad_schedule_view.proto",
++        "age_range_view.proto",
++        "asset.proto",
++        "batch_job.proto",
++        "bidding_strategy.proto",
++        "billing_setup.proto",
++        "campaign.proto",
++        "campaign_audience_view.proto",
++        "campaign_bid_modifier.proto",
++        "campaign_budget.proto",
++        "campaign_criterion.proto",
++        "campaign_criterion_simulation.proto",
++        "campaign_draft.proto",
++        "campaign_experiment.proto",
++        "campaign_extension_setting.proto",
++        "campaign_feed.proto",
++        "campaign_label.proto",
++        "campaign_shared_set.proto",
++        "carrier_constant.proto",
++        "change_status.proto",
++        "click_view.proto",
++        "conversion_action.proto",
++        "currency_constant.proto",
++        "custom_interest.proto",
++        "customer.proto",
++        "customer_client.proto",
++        "customer_client_link.proto",
++        "customer_extension_setting.proto",
++        "customer_feed.proto",
++        "customer_label.proto",
++        "customer_manager_link.proto",
++        "customer_negative_criterion.proto",
++        "detail_placement_view.proto",
++        "display_keyword_view.proto",
++        "distance_view.proto",
++        "domain_category.proto",
++        "dynamic_search_ads_search_term_view.proto",
++        "expanded_landing_page_view.proto",
++        "extension_feed_item.proto",
++        "feed.proto",
++        "feed_item.proto",
++        "feed_item_target.proto",
++        "feed_mapping.proto",
++        "feed_placeholder_view.proto",
++        "gender_view.proto",
++        "geo_target_constant.proto",
++        "geographic_view.proto",
++        "google_ads_field.proto",
++        "group_placement_view.proto",
++        "hotel_group_view.proto",
++        "hotel_performance_view.proto",
++        "income_range_view.proto",
++        "invoice.proto",
++        "keyword_plan.proto",
++        "keyword_plan_ad_group.proto",
++        "keyword_plan_ad_group_keyword.proto",
++        "keyword_plan_campaign.proto",
++        "keyword_plan_campaign_keyword.proto",
++        "keyword_view.proto",
++        "label.proto",
++        "landing_page_view.proto",
++        "language_constant.proto",
++        "location_view.proto",
++        "managed_placement_view.proto",
++        "media_file.proto",
++        "merchant_center_link.proto",
++        "mobile_app_category_constant.proto",
++        "mobile_device_constant.proto",
++        "offline_user_data_job.proto",
++        "operating_system_version_constant.proto",
++        "paid_organic_search_term_view.proto",
++        "parental_status_view.proto",
++        "payments_account.proto",
++        "product_bidding_category_constant.proto",
++        "product_group_view.proto",
++        "recommendation.proto",
++        "remarketing_action.proto",
++        "search_term_view.proto",
++        "shared_criterion.proto",
++        "shared_set.proto",
++        "shopping_performance_view.proto",
++        "third_party_app_analytics_link.proto",
++        "topic_constant.proto",
++        "topic_view.proto",
++        "user_interest.proto",
++        "user_list.proto",
++        "user_location_view.proto",
++        "video.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/common:common_proto",
++        "//google/ads/googleads/v4/enums:enums_proto",
++        "//google/ads/googleads/v4/errors:errors_proto",
++        "//google/api:annotations_proto",
++        "@com_google_protobuf//:wrappers_proto",
++    ],
++)
++
++go_proto_library(
++    name = "resources_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v4/resources",
++    proto = ":resources_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/common:common_go_proto",
++        "//google/ads/googleads/v4/enums:enums_go_proto",
++        "//google/ads/googleads/v4/errors:errors_go_proto",
++        "//google/api:annotations_go_proto",
++    ],
++)
+diff -urN c/google/ads/googleads/v4/services/BUILD.bazel d/google/ads/googleads/v4/services/BUILD.bazel
+--- c/google/ads/googleads/v4/services/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/ads/googleads/v4/services/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,148 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "services_proto",
++    srcs = [
++        "account_budget_proposal_service.proto",
++        "account_budget_service.proto",
++        "account_link_service.proto",
++        "ad_group_ad_asset_view_service.proto",
++        "ad_group_ad_label_service.proto",
++        "ad_group_ad_service.proto",
++        "ad_group_audience_view_service.proto",
++        "ad_group_bid_modifier_service.proto",
++        "ad_group_criterion_label_service.proto",
++        "ad_group_criterion_service.proto",
++        "ad_group_criterion_simulation_service.proto",
++        "ad_group_extension_setting_service.proto",
++        "ad_group_feed_service.proto",
++        "ad_group_label_service.proto",
++        "ad_group_service.proto",
++        "ad_group_simulation_service.proto",
++        "ad_parameter_service.proto",
++        "ad_schedule_view_service.proto",
++        "ad_service.proto",
++        "age_range_view_service.proto",
++        "asset_service.proto",
++        "batch_job_service.proto",
++        "bidding_strategy_service.proto",
++        "billing_setup_service.proto",
++        "campaign_audience_view_service.proto",
++        "campaign_bid_modifier_service.proto",
++        "campaign_budget_service.proto",
++        "campaign_criterion_service.proto",
++        "campaign_criterion_simulation_service.proto",
++        "campaign_draft_service.proto",
++        "campaign_experiment_service.proto",
++        "campaign_extension_setting_service.proto",
++        "campaign_feed_service.proto",
++        "campaign_label_service.proto",
++        "campaign_service.proto",
++        "campaign_shared_set_service.proto",
++        "carrier_constant_service.proto",
++        "change_status_service.proto",
++        "click_view_service.proto",
++        "conversion_action_service.proto",
++        "conversion_adjustment_upload_service.proto",
++        "conversion_upload_service.proto",
++        "currency_constant_service.proto",
++        "custom_interest_service.proto",
++        "customer_client_link_service.proto",
++        "customer_client_service.proto",
++        "customer_extension_setting_service.proto",
++        "customer_feed_service.proto",
++        "customer_label_service.proto",
++        "customer_manager_link_service.proto",
++        "customer_negative_criterion_service.proto",
++        "customer_service.proto",
++        "detail_placement_view_service.proto",
++        "display_keyword_view_service.proto",
++        "distance_view_service.proto",
++        "domain_category_service.proto",
++        "dynamic_search_ads_search_term_view_service.proto",
++        "expanded_landing_page_view_service.proto",
++        "extension_feed_item_service.proto",
++        "feed_item_service.proto",
++        "feed_item_target_service.proto",
++        "feed_mapping_service.proto",
++        "feed_placeholder_view_service.proto",
++        "feed_service.proto",
++        "gender_view_service.proto",
++        "geo_target_constant_service.proto",
++        "geographic_view_service.proto",
++        "google_ads_field_service.proto",
++        "google_ads_service.proto",
++        "group_placement_view_service.proto",
++        "hotel_group_view_service.proto",
++        "hotel_performance_view_service.proto",
++        "income_range_view_service.proto",
++        "invoice_service.proto",
++        "keyword_plan_ad_group_keyword_service.proto",
++        "keyword_plan_ad_group_service.proto",
++        "keyword_plan_campaign_keyword_service.proto",
++        "keyword_plan_campaign_service.proto",
++        "keyword_plan_idea_service.proto",
++        "keyword_plan_service.proto",
++        "keyword_view_service.proto",
++        "label_service.proto",
++        "landing_page_view_service.proto",
++        "language_constant_service.proto",
++        "location_view_service.proto",
++        "managed_placement_view_service.proto",
++        "media_file_service.proto",
++        "merchant_center_link_service.proto",
++        "mobile_app_category_constant_service.proto",
++        "mobile_device_constant_service.proto",
++        "offline_user_data_job_service.proto",
++        "operating_system_version_constant_service.proto",
++        "paid_organic_search_term_view_service.proto",
++        "parental_status_view_service.proto",
++        "payments_account_service.proto",
++        "product_bidding_category_constant_service.proto",
++        "product_group_view_service.proto",
++        "reach_plan_service.proto",
++        "recommendation_service.proto",
++        "remarketing_action_service.proto",
++        "search_term_view_service.proto",
++        "shared_criterion_service.proto",
++        "shared_set_service.proto",
++        "shopping_performance_view_service.proto",
++        "third_party_app_analytics_link_service.proto",
++        "topic_constant_service.proto",
++        "topic_view_service.proto",
++        "user_data_service.proto",
++        "user_interest_service.proto",
++        "user_list_service.proto",
++        "user_location_view_service.proto",
++        "video_service.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/common:common_proto",
++        "//google/ads/googleads/v4/enums:enums_proto",
++        "//google/ads/googleads/v4/resources:resources_proto",
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "//google/rpc:status_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:wrappers_proto",
++    ],
++)
++
++go_proto_library(
++    name = "services_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/ads/googleads/v4/services",
++    proto = ":services_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/ads/googleads/v4/common:common_go_proto",
++        "//google/ads/googleads/v4/enums:enums_go_proto",
++        "//google/ads/googleads/v4/resources:resources_go_proto",
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++        "//google/rpc:status_go_proto",
++    ],
++)
+diff -urN c/google/analytics/admin/v1alpha/BUILD.bazel d/google/analytics/admin/v1alpha/BUILD.bazel
+--- c/google/analytics/admin/v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/analytics/admin/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,27 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "admin_proto",
++    srcs = [
++        "analytics_admin.proto",
++        "resources.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:timestamp_proto",
++        "@com_google_protobuf//:wrappers_proto",
++    ],
++)
++
++go_proto_library(
++    name = "admin_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/analytics/admin/v1alpha",
++    proto = ":admin_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
++)
+diff -urN c/google/analytics/data/v1alpha/BUILD.bazel d/google/analytics/data/v1alpha/BUILD.bazel
+--- c/google/analytics/data/v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/analytics/data/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,21 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "data_proto",
++    srcs = [
++        "analytics_data_api.proto",
++        "data.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_proto"],
++)
++
++go_proto_library(
++    name = "data_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/analytics/data/v1alpha",
++    proto = ":data_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
++)
 diff -urN c/google/analytics/management/v1alpha/BUILD.bazel d/google/analytics/management/v1alpha/BUILD.bazel
 --- c/google/analytics/management/v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/analytics/management/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -2490,6 +2599,7 @@ diff -urN c/google/api/servicecontrol/v1/BUILD.bazel d/google/api/servicecontrol
 +    srcs = [
 +        "check_error.proto",
 +        "distribution.proto",
++        "http_request.proto",
 +        "log_entry.proto",
 +        "metric_value.proto",
 +        "operation.proto",
@@ -2501,8 +2611,8 @@ diff -urN c/google/api/servicecontrol/v1/BUILD.bazel d/google/api/servicecontrol
 +        "//google/api:annotations_proto",
 +        "//google/logging/type:ltype_proto",
 +        "//google/rpc:status_proto",
-+        "//google/type:money_proto",
 +        "@com_google_protobuf//:any_proto",
++        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:struct_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
@@ -2518,7 +2628,6 @@ diff -urN c/google/api/servicecontrol/v1/BUILD.bazel d/google/api/servicecontrol
 +        "//google/api:annotations_go_proto",
 +        "//google/logging/type:ltype_go_proto",
 +        "//google/rpc:status_go_proto",
-+        "//google/type:money_go_proto",
 +    ],
 +)
 diff -urN c/google/api/servicemanagement/v1/BUILD.bazel d/google/api/servicemanagement/v1/BUILD.bazel
@@ -2566,7 +2675,7 @@ diff -urN c/google/api/servicemanagement/v1/BUILD.bazel d/google/api/servicemana
 diff -urN c/google/appengine/legacy/BUILD.bazel d/google/appengine/legacy/BUILD.bazel
 --- c/google/appengine/legacy/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/appengine/legacy/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,17 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2574,6 +2683,7 @@ diff -urN c/google/appengine/legacy/BUILD.bazel d/google/appengine/legacy/BUILD.
 +    name = "legacy_proto",
 +    srcs = ["audit_data.proto"],
 +    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_proto"],
 +)
 +
 +go_proto_library(
@@ -2581,6 +2691,7 @@ diff -urN c/google/appengine/legacy/BUILD.bazel d/google/appengine/legacy/BUILD.
 +    importpath = "google.golang.org/genproto/googleapis/appengine/legacy",
 +    proto = ":legacy_proto",
 +    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
 +)
 diff -urN c/google/appengine/logging/v1/BUILD.bazel d/google/appengine/logging/v1/BUILD.bazel
 --- c/google/appengine/logging/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -2610,7 +2721,7 @@ diff -urN c/google/appengine/logging/v1/BUILD.bazel d/google/appengine/logging/v
 diff -urN c/google/appengine/v1/BUILD.bazel d/google/appengine/v1/BUILD.bazel
 --- c/google/appengine/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/appengine/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,45 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -2621,9 +2732,15 @@ diff -urN c/google/appengine/v1/BUILD.bazel d/google/appengine/v1/BUILD.bazel
 +        "appengine.proto",
 +        "application.proto",
 +        "audit_data.proto",
++        "certificate.proto",
 +        "deploy.proto",
++        "deployed_files.proto",
++        "domain.proto",
++        "domain_mapping.proto",
++        "firewall.proto",
 +        "instance.proto",
 +        "location.proto",
++        "network_settings.proto",
 +        "operation.proto",
 +        "service.proto",
 +        "version.proto",
@@ -2631,9 +2748,7 @@ diff -urN c/google/appengine/v1/BUILD.bazel d/google/appengine/v1/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
-+        "//google/iam/v1:iam_proto",
 +        "//google/longrunning:longrunning_proto",
-+        "//google/type:latlng_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
@@ -2649,9 +2764,56 @@ diff -urN c/google/appengine/v1/BUILD.bazel d/google/appengine/v1/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_go_proto",
-+        "//google/iam/v1:iam_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
-+        "//google/type:latlng_go_proto",
++    ],
++)
+diff -urN c/google/appengine/v1beta/BUILD.bazel d/google/appengine/v1beta/BUILD.bazel
+--- c/google/appengine/v1beta/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/appengine/v1beta/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,45 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "appengine_proto",
++    srcs = [
++        "app_yaml.proto",
++        "appengine.proto",
++        "application.proto",
++        "audit_data.proto",
++        "certificate.proto",
++        "deploy.proto",
++        "deployed_files.proto",
++        "domain.proto",
++        "domain_mapping.proto",
++        "firewall.proto",
++        "instance.proto",
++        "location.proto",
++        "network_settings.proto",
++        "operation.proto",
++        "service.proto",
++        "version.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "appengine_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/appengine/v1beta",
++    proto = ":appengine_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
 diff -urN c/google/assistant/embedded/v1alpha1/BUILD.bazel d/google/assistant/embedded/v1alpha1/BUILD.bazel
@@ -2992,7 +3154,7 @@ diff -urN c/google/cloud/accessapproval/v1/BUILD.bazel d/google/cloud/accessappr
 diff -urN c/google/cloud/asset/v1/BUILD.bazel d/google/cloud/asset/v1/BUILD.bazel
 --- c/google/cloud/asset/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/asset/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,42 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3009,8 +3171,9 @@ diff -urN c/google/cloud/asset/v1/BUILD.bazel d/google/cloud/asset/v1/BUILD.baze
 +        "//google/iam/v1:iam_proto",
 +        "//google/identity/accesscontextmanager/v1:accesscontextmanager_proto",
 +        "//google/longrunning:longrunning_proto",
++        "//google/rpc:code_proto",
 +        "//google/type:expr_proto",
-+        "@com_google_protobuf//:any_proto",
++        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:struct_proto",
@@ -3030,6 +3193,7 @@ diff -urN c/google/cloud/asset/v1/BUILD.bazel d/google/cloud/asset/v1/BUILD.baze
 +        "//google/iam/v1:iam_go_proto",
 +        "//google/identity/accesscontextmanager/v1:accesscontextmanager_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
++        "//google/rpc:code_go_proto",
 +        "//google/type:expr_go_proto",
 +    ],
 +)
@@ -3174,6 +3338,44 @@ diff -urN c/google/cloud/asset/v1p4beta1/BUILD.bazel d/google/cloud/asset/v1p4be
 +        "//google/rpc:code_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/asset/v1p5beta1/BUILD.bazel d/google/cloud/asset/v1p5beta1/BUILD.bazel
+--- c/google/cloud/asset/v1p5beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/asset/v1p5beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,34 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "asset_proto",
++    srcs = [
++        "asset_service.proto",
++        "assets.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/cloud/orgpolicy/v1:orgpolicy_proto",
++        "//google/iam/v1:iam_proto",
++        "//google/identity/accesscontextmanager/v1:accesscontextmanager_proto",
++        "@com_google_protobuf//:any_proto",
++        "@com_google_protobuf//:struct_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "asset_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/asset/v1p5beta1",
++    proto = ":asset_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/cloud/orgpolicy/v1:orgpolicy_go_proto",
++        "//google/iam/v1:iam_go_proto",
++        "//google/identity/accesscontextmanager/v1:accesscontextmanager_go_proto",
++    ],
++)
 diff -urN c/google/cloud/audit/BUILD.bazel d/google/cloud/audit/BUILD.bazel
 --- c/google/cloud/audit/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/audit/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -3186,8 +3388,8 @@ diff -urN c/google/cloud/audit/BUILD.bazel d/google/cloud/audit/BUILD.bazel
 +    srcs = ["audit_log.proto"],
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//google/api:annotations_proto",
 +        "//google/rpc:status_proto",
++        "//google/rpc/context:attribute_context_proto",
 +        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:struct_proto",
 +    ],
@@ -3199,8 +3401,8 @@ diff -urN c/google/cloud/audit/BUILD.bazel d/google/cloud/audit/BUILD.bazel
 +    proto = ":audit_proto",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//google/api:annotations_go_proto",
 +        "//google/rpc:status_go_proto",
++        "//google/rpc/context:attribute_context_go_proto",
 +    ],
 +)
 diff -urN c/google/cloud/automl/v1/BUILD.bazel d/google/cloud/automl/v1/BUILD.bazel
@@ -3434,7 +3636,7 @@ diff -urN c/google/cloud/bigquery/logging/v1/BUILD.bazel d/google/cloud/bigquery
 +    srcs = ["audit_data.proto"],
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//google/api:annotations_proto",
++        "//google/iam/v1:iam_proto",
 +        "//google/rpc:status_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:timestamp_proto",
@@ -3447,7 +3649,7 @@ diff -urN c/google/cloud/bigquery/logging/v1/BUILD.bazel d/google/cloud/bigquery
 +    proto = ":logging_proto",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//google/api:annotations_go_proto",
++        "//google/iam/v1:iam_go_proto",
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
@@ -3677,7 +3879,7 @@ diff -urN c/google/cloud/bigquery/v2/BUILD.bazel d/google/cloud/bigquery/v2/BUIL
 diff -urN c/google/cloud/billing/budgets/v1alpha1/BUILD.bazel d/google/cloud/billing/budgets/v1alpha1/BUILD.bazel
 --- c/google/cloud/billing/budgets/v1alpha1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/billing/budgets/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,30 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3693,6 +3895,7 @@ diff -urN c/google/cloud/billing/budgets/v1alpha1/BUILD.bazel d/google/cloud/bil
 +        "//google/type:money_proto",
 +        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:struct_proto",
 +    ],
 +)
 +
@@ -3710,7 +3913,7 @@ diff -urN c/google/cloud/billing/budgets/v1alpha1/BUILD.bazel d/google/cloud/bil
 diff -urN c/google/cloud/billing/budgets/v1beta1/BUILD.bazel d/google/cloud/billing/budgets/v1beta1/BUILD.bazel
 --- c/google/cloud/billing/budgets/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/billing/budgets/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,30 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3726,6 +3929,7 @@ diff -urN c/google/cloud/billing/budgets/v1beta1/BUILD.bazel d/google/cloud/bill
 +        "//google/type:money_proto",
 +        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:struct_proto",
 +    ],
 +)
 +
@@ -4009,6 +4213,60 @@ diff -urN c/google/cloud/dataproc/v1beta2/BUILD.bazel d/google/cloud/dataproc/v1
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel d/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel
+--- c/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,50 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "cx_proto",
++    srcs = [
++        "agent.proto",
++        "audio_config.proto",
++        "entity_type.proto",
++        "environment.proto",
++        "flow.proto",
++        "fulfillment.proto",
++        "gcs.proto",
++        "intent.proto",
++        "ivr.proto",
++        "page.proto",
++        "response_message.proto",
++        "session.proto",
++        "session_entity_type.proto",
++        "transition_route_group.proto",
++        "version.proto",
++        "webhook.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "//google/rpc:status_proto",
++        "//google/type:latlng_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:struct_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "cx_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/dialogflow/cx/v3beta1",
++    proto = ":cx_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++        "//google/rpc:status_go_proto",
++        "//google/type:latlng_go_proto",
++    ],
++)
 diff -urN c/google/cloud/dialogflow/v2/BUILD.bazel d/google/cloud/dialogflow/v2/BUILD.bazel
 --- c/google/cloud/dialogflow/v2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/dialogflow/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -4182,10 +4440,10 @@ diff -urN c/google/cloud/documentai/v1beta2/BUILD.bazel d/google/cloud/documenta
 +        "//google/type:color_go_proto",
 +    ],
 +)
-diff -urN c/google/cloud/functions/v1beta2/BUILD.bazel d/google/cloud/functions/v1beta2/BUILD.bazel
---- c/google/cloud/functions/v1beta2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/functions/v1beta2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,30 @@
+diff -urN c/google/cloud/functions/v1/BUILD.bazel d/google/cloud/functions/v1/BUILD.bazel
+--- c/google/cloud/functions/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/functions/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,33 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4198,9 +4456,11 @@ diff -urN c/google/cloud/functions/v1beta2/BUILD.bazel d/google/cloud/functions/
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
++        "//google/iam/v1:iam_proto",
 +        "//google/longrunning:longrunning_proto",
 +        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
 +)
@@ -4208,8 +4468,50 @@ diff -urN c/google/cloud/functions/v1beta2/BUILD.bazel d/google/cloud/functions/
 +go_proto_library(
 +    name = "functions_go_proto",
 +    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
-+    importpath = "google.golang.org/genproto/googleapis/cloud/functions/v1beta2",
++    importpath = "google.golang.org/genproto/googleapis/cloud/functions/v1",
 +    proto = ":functions_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/iam/v1:iam_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++    ],
++)
+diff -urN c/google/cloud/gaming/v1/BUILD.bazel d/google/cloud/gaming/v1/BUILD.bazel
+--- c/google/cloud/gaming/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/gaming/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,37 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "gaming_proto",
++    srcs = [
++        "common.proto",
++        "game_server_clusters.proto",
++        "game_server_clusters_service.proto",
++        "game_server_configs.proto",
++        "game_server_configs_service.proto",
++        "game_server_deployments.proto",
++        "game_server_deployments_service.proto",
++        "realms.proto",
++        "realms_service.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "gaming_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/gaming/v1",
++    proto = ":gaming_proto",
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_go_proto",
@@ -4293,40 +4595,10 @@ diff -urN c/google/cloud/iot/v1/BUILD.bazel d/google/cloud/iot/v1/BUILD.bazel
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
-diff -urN c/google/cloud/irm/v1alpha2/BUILD.bazel d/google/cloud/irm/v1alpha2/BUILD.bazel
---- c/google/cloud/irm/v1alpha2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ d/google/cloud/irm/v1alpha2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,26 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "irm_proto",
-+    srcs = [
-+        "incidents.proto",
-+        "incidents_service.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/api:annotations_proto",
-+        "@com_google_protobuf//:empty_proto",
-+        "@com_google_protobuf//:field_mask_proto",
-+        "@com_google_protobuf//:timestamp_proto",
-+    ],
-+)
-+
-+go_proto_library(
-+    name = "irm_go_proto",
-+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
-+    importpath = "google.golang.org/genproto/googleapis/cloud/irm/v1alpha2",
-+    proto = ":irm_proto",
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_go_proto"],
-+)
 diff -urN c/google/cloud/kms/v1/BUILD.bazel d/google/cloud/kms/v1/BUILD.bazel
 --- c/google/cloud/kms/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/kms/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,27 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -4342,6 +4614,7 @@ diff -urN c/google/cloud/kms/v1/BUILD.bazel d/google/cloud/kms/v1/BUILD.bazel
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:timestamp_proto",
++        "@com_google_protobuf//:wrappers_proto",
 +    ],
 +)
 +
@@ -4571,6 +4844,36 @@ diff -urN c/google/cloud/memcache/v1beta2/BUILD.bazel d/google/cloud/memcache/v1
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/metastore/v1alpha/BUILD.bazel d/google/cloud/metastore/v1alpha/BUILD.bazel
+--- c/google/cloud/metastore/v1alpha/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/metastore/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,26 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "metastore_proto",
++    srcs = ["metastore.proto"],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "metastore_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/metastore/v1alpha",
++    proto = ":metastore_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++    ],
++)
 diff -urN c/google/cloud/ml/v1/BUILD.bazel d/google/cloud/ml/v1/BUILD.bazel
 --- c/google/cloud/ml/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/ml/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -4608,6 +4911,39 @@ diff -urN c/google/cloud/ml/v1/BUILD.bazel d/google/cloud/ml/v1/BUILD.bazel
 +        "//google/api:annotations_go_proto",
 +        "//google/api:httpbody_go_proto",
 +        "//google/api:serviceconfig_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++    ],
++)
+diff -urN c/google/cloud/notebooks/v1beta1/BUILD.bazel d/google/cloud/notebooks/v1beta1/BUILD.bazel
+--- c/google/cloud/notebooks/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/notebooks/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,29 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "notebooks_proto",
++    srcs = [
++        "environment.proto",
++        "instance.proto",
++        "service.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "notebooks_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/notebooks/v1beta1",
++    proto = ":notebooks_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
@@ -4935,6 +5271,41 @@ diff -urN c/google/cloud/policytroubleshooter/v1/BUILD.bazel d/google/cloud/poli
 +        "//google/type:expr_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/pubsublite/v1/BUILD.bazel d/google/cloud/pubsublite/v1/BUILD.bazel
+--- c/google/cloud/pubsublite/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/pubsublite/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,31 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "pubsublite_proto",
++    srcs = [
++        "admin.proto",
++        "common.proto",
++        "cursor.proto",
++        "publisher.proto",
++        "subscriber.proto",
++        "topic_stats.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "pubsublite_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/pubsublite/v1",
++    proto = ":pubsublite_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
++)
 diff -urN c/google/cloud/recaptchaenterprise/v1/BUILD.bazel d/google/cloud/recaptchaenterprise/v1/BUILD.bazel
 --- c/google/cloud/recaptchaenterprise/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/recaptchaenterprise/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -5056,7 +5427,7 @@ diff -urN c/google/cloud/recommendationengine/v1beta1/BUILD.bazel d/google/cloud
 diff -urN c/google/cloud/recommender/logging/v1/BUILD.bazel d/google/cloud/recommender/logging/v1/BUILD.bazel
 --- c/google/cloud/recommender/logging/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/recommender/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,23 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5064,7 +5435,10 @@ diff -urN c/google/cloud/recommender/logging/v1/BUILD.bazel d/google/cloud/recom
 +    name = "logging_proto",
 +    srcs = ["action_log.proto"],
 +    visibility = ["//visibility:public"],
-+    deps = ["//google/cloud/recommender/v1:recommender_proto"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/cloud/recommender/v1:recommender_proto",
++    ],
 +)
 +
 +go_proto_library(
@@ -5072,7 +5446,10 @@ diff -urN c/google/cloud/recommender/logging/v1/BUILD.bazel d/google/cloud/recom
 +    importpath = "google.golang.org/genproto/googleapis/cloud/recommender/logging/v1",
 +    proto = ":logging_proto",
 +    visibility = ["//visibility:public"],
-+    deps = ["//google/cloud/recommender/v1:recommender_go_proto"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/cloud/recommender/v1:recommender_go_proto",
++    ],
 +)
 diff -urN c/google/cloud/recommender/logging/v1beta1/BUILD.bazel d/google/cloud/recommender/logging/v1beta1/BUILD.bazel
 --- c/google/cloud/recommender/logging/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -5104,13 +5481,14 @@ diff -urN c/google/cloud/recommender/logging/v1beta1/BUILD.bazel d/google/cloud/
 diff -urN c/google/cloud/recommender/v1/BUILD.bazel d/google/cloud/recommender/v1/BUILD.bazel
 --- c/google/cloud/recommender/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/recommender/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,31 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
 +    name = "recommender_proto",
 +    srcs = [
++        "insight.proto",
 +        "recommendation.proto",
 +        "recommender_service.proto",
 +    ],
@@ -5438,6 +5816,41 @@ diff -urN c/google/cloud/secrets/v1beta1/BUILD.bazel d/google/cloud/secrets/v1be
 +        "//google/iam/v1:iam_go_proto",
 +    ],
 +)
+diff -urN c/google/cloud/security/privateca/v1beta1/BUILD.bazel d/google/cloud/security/privateca/v1beta1/BUILD.bazel
+--- c/google/cloud/security/privateca/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/security/privateca/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,31 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "privateca_proto",
++    srcs = [
++        "resources.proto",
++        "service.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:timestamp_proto",
++        "@com_google_protobuf//:wrappers_proto",
++    ],
++)
++
++go_proto_library(
++    name = "privateca_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/security/privateca/v1beta1",
++    proto = ":privateca_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
++    ],
++)
 diff -urN c/google/cloud/securitycenter/settings/v1beta1/BUILD.bazel d/google/cloud/securitycenter/settings/v1beta1/BUILD.bazel
 --- c/google/cloud/securitycenter/settings/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/securitycenter/settings/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -5475,7 +5888,7 @@ diff -urN c/google/cloud/securitycenter/settings/v1beta1/BUILD.bazel d/google/cl
 diff -urN c/google/cloud/securitycenter/v1/BUILD.bazel d/google/cloud/securitycenter/v1/BUILD.bazel
 --- c/google/cloud/securitycenter/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/securitycenter/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,42 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5487,6 +5900,7 @@ diff -urN c/google/cloud/securitycenter/v1/BUILD.bazel d/google/cloud/securityce
 +        "notification_config.proto",
 +        "notification_message.proto",
 +        "organization_settings.proto",
++        "resource.proto",
 +        "run_asset_discovery_response.proto",
 +        "security_marks.proto",
 +        "securitycenter_service.proto",
@@ -5563,7 +5977,7 @@ diff -urN c/google/cloud/securitycenter/v1beta1/BUILD.bazel d/google/cloud/secur
 diff -urN c/google/cloud/securitycenter/v1p1beta1/BUILD.bazel d/google/cloud/securitycenter/v1p1beta1/BUILD.bazel
 --- c/google/cloud/securitycenter/v1p1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/cloud/securitycenter/v1p1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,42 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5575,6 +5989,7 @@ diff -urN c/google/cloud/securitycenter/v1p1beta1/BUILD.bazel d/google/cloud/sec
 +        "notification_config.proto",
 +        "notification_message.proto",
 +        "organization_settings.proto",
++        "resource.proto",
 +        "run_asset_discovery_response.proto",
 +        "security_marks.proto",
 +        "securitycenter_service.proto",
@@ -6046,6 +6461,35 @@ diff -urN c/google/cloud/translate/v3beta1/BUILD.bazel d/google/cloud/translate/
 +        "//google/api:annotations_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
++)
+diff -urN c/google/cloud/video/transcoder/v1beta1/BUILD.bazel d/google/cloud/video/transcoder/v1beta1/BUILD.bazel
+--- c/google/cloud/video/transcoder/v1beta1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/cloud/video/transcoder/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,25 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "transcoder_proto",
++    srcs = [
++        "resources.proto",
++        "services.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:empty_proto",
++    ],
++)
++
++go_proto_library(
++    name = "transcoder_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/video/transcoder/v1beta1",
++    proto = ":transcoder_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
 +)
 diff -urN c/google/cloud/videointelligence/v1/BUILD.bazel d/google/cloud/videointelligence/v1/BUILD.bazel
 --- c/google/cloud/videointelligence/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -7350,7 +7794,7 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/vulnerability/BUILD.bazel 
 diff -urN c/google/devtools/remoteworkers/v1test2/BUILD.bazel d/google/devtools/remoteworkers/v1test2/BUILD.bazel
 --- c/google/devtools/remoteworkers/v1test2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/devtools/remoteworkers/v1test2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,32 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -7359,7 +7803,6 @@ diff -urN c/google/devtools/remoteworkers/v1test2/BUILD.bazel d/google/devtools/
 +    srcs = [
 +        "bots.proto",
 +        "command.proto",
-+        "tasks.proto",
 +        "worker.proto",
 +    ],
 +    visibility = ["//visibility:public"],
@@ -7480,6 +7923,31 @@ diff -urN c/google/devtools/sourcerepo/v1/BUILD.bazel d/google/devtools/sourcere
 +        "//google/api:annotations_go_proto",
 +        "//google/iam/v1:iam_go_proto",
 +    ],
++)
+diff -urN c/google/example/endpointsapis/v1/BUILD.bazel d/google/example/endpointsapis/v1/BUILD.bazel
+--- c/google/example/endpointsapis/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/example/endpointsapis/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,21 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "v1_proto",
++    srcs = ["workspace.proto"],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "@com_google_protobuf//:empty_proto",
++    ],
++)
++
++go_proto_library(
++    name = "v1_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/example/endpointsapis/v1",
++    proto = ":v1_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
 +)
 diff -urN c/google/example/library/v1/BUILD.bazel d/google/example/library/v1/BUILD.bazel
 --- c/google/example/library/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -7859,13 +8327,16 @@ diff -urN c/google/home/graph/v1/BUILD.bazel d/google/home/graph/v1/BUILD.bazel
 diff -urN c/google/iam/admin/v1/BUILD.bazel d/google/iam/admin/v1/BUILD.bazel
 --- c/google/iam/admin/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/iam/admin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,30 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
 +    name = "admin_proto",
-+    srcs = ["iam.proto"],
++    srcs = [
++        "audit_data.proto",
++        "iam.proto",
++    ],
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
@@ -8329,7 +8800,7 @@ diff -urN c/google/maps/unity/BUILD.bazel d/google/maps/unity/BUILD.bazel
 diff -urN c/google/monitoring/dashboard/v1/BUILD.bazel d/google/monitoring/dashboard/v1/BUILD.bazel
 --- c/google/monitoring/dashboard/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/monitoring/dashboard/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,39 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -8351,6 +8822,7 @@ diff -urN c/google/monitoring/dashboard/v1/BUILD.bazel d/google/monitoring/dashb
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
++        "//google/api:distribution_proto",
 +        "@com_google_protobuf//:duration_proto",
 +        "@com_google_protobuf//:empty_proto",
 +        "@com_google_protobuf//:field_mask_proto",
@@ -8363,7 +8835,10 @@ diff -urN c/google/monitoring/dashboard/v1/BUILD.bazel d/google/monitoring/dashb
 +    importpath = "google.golang.org/genproto/googleapis/monitoring/dashboard/v1",
 +    proto = ":dashboard_proto",
 +    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_go_proto"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/api:distribution_go_proto",
++    ],
 +)
 diff -urN c/google/monitoring/v3/BUILD.bazel d/google/monitoring/v3/BUILD.bazel
 --- c/google/monitoring/v3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -8568,7 +9043,7 @@ diff -urN c/google/rpc/BUILD.bazel d/google/rpc/BUILD.bazel
 diff -urN c/google/rpc/context/BUILD.bazel d/google/rpc/context/BUILD.bazel
 --- c/google/rpc/context/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ d/google/rpc/context/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,20 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -8577,6 +9052,7 @@ diff -urN c/google/rpc/context/BUILD.bazel d/google/rpc/context/BUILD.bazel
 +    srcs = ["attribute_context.proto"],
 +    visibility = ["//visibility:public"],
 +    deps = [
++        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:struct_proto",
 +        "@com_google_protobuf//:timestamp_proto",
 +    ],
@@ -8586,6 +9062,25 @@ diff -urN c/google/rpc/context/BUILD.bazel d/google/rpc/context/BUILD.bazel
 +    name = "attribute_context_go_proto",
 +    importpath = "google.golang.org/genproto/googleapis/rpc/context/attribute_context",
 +    proto = ":attribute_context_proto",
++    visibility = ["//visibility:public"],
++)
+diff -urN c/google/search/partnerdataingestion/logging/v1/BUILD.bazel d/google/search/partnerdataingestion/logging/v1/BUILD.bazel
+--- c/google/search/partnerdataingestion/logging/v1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ d/google/search/partnerdataingestion/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,15 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "logging_proto",
++    srcs = ["platformlog.proto"],
++    visibility = ["//visibility:public"],
++)
++
++go_proto_library(
++    name = "logging_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/search/partnerdataingestion/logging/v1",
++    proto = ":logging_proto",
 +    visibility = ["//visibility:public"],
 +)
 diff -urN c/google/spanner/admin/database/v1/BUILD.bazel d/google/spanner/admin/database/v1/BUILD.bazel

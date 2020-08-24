@@ -161,7 +161,7 @@ diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 -
 -Default value: `true`.
 -
--### **composite**
+-### **composites**
 -
 -check for unkeyed composite literals
 -
@@ -643,7 +643,7 @@ diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
 diff -urN a/gopls/doc/daemon.md b/gopls/doc/daemon.md
 --- a/gopls/doc/daemon.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/daemon.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,172 +0,0 @@
+@@ -1,176 +0,0 @@
 -# Running gopls as a daemon
 -
 -**Note: this feature is new. If you encounter bugs, please [file an
@@ -762,11 +762,15 @@ diff -urN a/gopls/doc/daemon.md b/gopls/doc/daemon.md
 -
 -### Using logfiles
 -
--The gopls daemon is started with `-logfile=auto` by default. To customize this,
--pass `-remote.logfile` to the gopls forwarder.
+-The gopls daemon is started with logging disabled by default. To customize
+-this, pass `-remote.logfile` to the gopls forwarder. Using
+-`-remote.logfile=auto`, the daemon will log to a default location (on posix
+-systems: `/tmp/gopls-daemon-<pid>.log`).
 -
--By default, the gopls daemon is not started with the `-rpc.trace` flag, so its
--logfile will only contain actual debug logs from the gopls process.
+-The gopls daemon does not log session-scoped messages: those are instead
+-reflected back to the forwarder so that they can be accessed by the editor.
+-Daemon logs will only contain global messages, for example logs when sessions
+-connect and disconnect.
 -
 -It is recommended to start the forwarder gopls process with `-rpc.trace`, so
 -that its logfile will contain rpc trace logs specific to the LSP session.
@@ -1458,7 +1462,7 @@ diff -urN a/gopls/doc/integrating.md b/gopls/doc/integrating.md
 diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 --- a/gopls/doc/settings.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/settings.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,161 +0,0 @@
+@@ -1,191 +0,0 @@
 -# Settings
 -
 -<!--TODO: Generate this file from the documentation in golang/org/x/tools/internal/lsp/source/options.go.-->
@@ -1511,18 +1515,27 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -This controls where points documentation for given package in `textDocument/documentLink`.
 -It might be one of:
+-
 -* `"godoc.org"`
 -* `"pkg.go.dev"`
 -If company chooses to use its own `godoc.org`, its address can be used as well.
 -
 -Default: `"pkg.go.dev"`.
 -
--### **local** string
+-### **local** *string*
 -
 -This is the equivalent of the `goimports -local` flag, which puts imports beginning with this string after 3rd-party packages.
 -It should be the prefix of the import path whose imports should be grouped separately.
 -
 -Default: `""`.
+-
+-### **expandWorkspaceToModule** *boolean*
+-
+-This is true if `gopls` should expand the scope of the workspace to include the
+-modules containing the workspace folders. Set this to false to avoid loading
+-your entire module. This is particularly useful for those working in a monorepo.
+-
+-Default: `true`.
 -
 -## Experimental
 -
@@ -1547,13 +1560,24 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -### **codelens** *map[string]bool*
 -
 -Overrides the enabled/disabled state of various code lenses. Currently, we
--support two code lenses:
+-support several code lenses:
 -
--* `generate`: run `go generate` as specified by a `//go:generate` directive.
--* `upgrade.dependency`: upgrade a dependency listed in a `go.mod` file.
+-* `generate`: [default: enabled] run `go generate` as specified by a `//go:generate` directive.
+-* `upgrade_dependency`: [default: enabled] upgrade a dependency listed in a `go.mod` file.
+-* `test`: [default: disabled] run `go test -run` for a test func.
+-* `gc_details`: [default: disabled] Show the gc compiler's choices for inline analysis and escaping.
 -
--By default, both of these code lenses are enabled.
--
+-Example Usage:
+-```json5
+-"gopls": {
+-...
+-  "codelens": {
+-    "generate": false,  // Don't run `go generate`.
+-    "gc_details": true  // Show a code lens toggling the display of gc's choices.
+-  }
+-...
+-}
+-```
 -### **completionDocumentation** *boolean*
 -
 -If false, indicates that the user does not want documentation with completion results.
@@ -1597,10 +1621,6 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -Default: `true`.
 -
--### **staticcheck** *boolean*
--
--If true, it enables the use of the staticcheck.io analyzers.
--
 -### **matcher** *string*
 -
 -Defines the algorithm that is used when calculating completion candidates. Must be one of:
@@ -1609,7 +1629,21 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -* `"caseSensitive"`
 -* `"caseInsensitive"`
 -
--Default: `"caseInsensitive"`.
+-Default: `"caseInsensitive"`
+-
+-### **annotations** *map[string]bool*
+-
+-**noBounds** suppresses gc_details diagnostics about bounds checking.
+-
+-**noEscape** suppresses gc_details diagnostics about escape analysis.
+-
+-**noInline** suppresses gc_details diagnostics about inlining.
+-
+-**noNilcheck** suppresses gc_details diagnostics about generated nil checks.
+-
+-### **staticcheck** *boolean*
+-
+-If true, it enables the use of the staticcheck.io analyzers.
 -
 -### **symbolMatcher** *string*
 -
@@ -1717,7 +1751,7 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 -
 -#### VS Code
 -
--For VSCode users, the gopls log can be found by navigating to `View` -> `Output` (or `Ctrl+K Ctrl+H`). There will be a drop-down menu titled `Tasks` in the top-right corner. Select the `gopls` item, which will contain the `gopls` logs.
+-For VSCode users, the gopls log can be found by navigating to `View` -> `Output` (or `Ctrl+K Ctrl+H`). There will be a drop-down menu titled `Tasks` in the top-right corner. Select the `gopls (server)` item, which will contain the `gopls` logs.
 -
 -To increase the level of detail in your logs, add the following to your VS Code settings:
 -
@@ -1753,7 +1787,7 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 --- a/gopls/doc/user.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/user.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,107 +0,0 @@
+@@ -1,116 +0,0 @@
 -# User guide
 -
 -##### If you're having issues with `gopls`, please see the [troubleshooting guide](troubleshooting.md).
@@ -1783,6 +1817,15 @@ diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 -```
 -
 -**Do not** use the `-u` flag, as it will update your dependencies to incompatible versions.
+-
+-To get a specific version of `gopls` (for example, to test a prerelease
+-version), run:
+-
+-```sh
+-go get golang.org/x/tools/gopls@vX.Y.Z
+-```
+-
+-Where `vX.Y.Z` is the desired version.
 -
 -If you see this error:
 -
@@ -2052,7 +2095,7 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 -```
 -
 -
--[VSCode-Go]: https://github.com/microsoft/vscode-go
+-[VSCode-Go]: https://github.com/golang/vscode-go
 -
 -# VSCode Remote Development with gopls
 -
@@ -2064,28 +2107,31 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 diff -urN a/gopls/go.mod b/gopls/go.mod
 --- a/gopls/go.mod	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.mod	1969-12-31 19:00:00.000000000 -0500
-@@ -1,12 +0,0 @@
+@@ -1,13 +0,0 @@
 -module golang.org/x/tools/gopls
 -
--go 1.11
+-go 1.13
 -
 -require (
 -	github.com/sergi/go-diff v1.1.0
--	golang.org/x/tools v0.0.0-20191130070609-6e064ea0cf2d
--	honnef.co/go/tools v0.0.1-2020.1.3
--	mvdan.cc/xurls/v2 v2.1.0
+-	golang.org/x/tools v0.0.0-20200626171337-aa94e735be7f
+-	honnef.co/go/tools v0.0.1-2020.1.4
+-	mvdan.cc/gofumpt v0.0.0-20200709182408-4fd085cb6d5f
+-	mvdan.cc/xurls/v2 v2.2.0
 -)
 -
 -replace golang.org/x/tools => ../
 diff -urN a/gopls/go.sum b/gopls/go.sum
 --- a/gopls/go.sum	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.sum	1969-12-31 19:00:00.000000000 -0500
-@@ -1,49 +0,0 @@
+@@ -1,57 +0,0 @@
 -github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 -github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 -github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 -github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 -github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+-github.com/google/go-cmp v0.5.0 h1:/QaMHBdZ26BB3SSst0Iwl10Epc+xhTquomWX0oZEB6w=
+-github.com/google/go-cmp v0.5.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 -github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 -github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 -github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
@@ -2096,24 +2142,28 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 -github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 -github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
+-github.com/rogpeppe/go-internal v1.5.2/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
+-github.com/rogpeppe/go-internal v1.6.0/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 -github.com/sergi/go-diff v1.1.0 h1:we8PVUC3FE2uYfodKH/nBHMSetSfHDR6scGdBi+erh0=
 -github.com/sergi/go-diff v1.1.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNXdaHfM=
 -github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 -github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 -github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
--github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
+-github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 -golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 -golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 -golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
+-golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 -golang.org/x/mod v0.0.0-20190513183733-4bf6d317e70e/go.mod h1:mXi4GBBbnImb6dmsKGUJ2LatrhH/nqhxcFungHvyanc=
--golang.org/x/mod v0.2.0 h1:KU7oHjnv3XNWfa5COkzUifxZmxp1TyI7ImMXqFxLwvQ=
--golang.org/x/mod v0.2.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
+-golang.org/x/mod v0.3.0 h1:RM4zey1++hCTbCVQfnWeKs9/IEsaBLA8vTkd0WVtmH4=
+-golang.org/x/mod v0.3.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 -golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
--golang.org/x/net v0.0.0-20200226121028-0de0cce0169b/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
--golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e h1:vcxGaoTs7kV8m5Np9uUNQin4BrLOthgV7252N8V+FwY=
--golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+-golang.org/x/net v0.0.0-20200625001655-4c5254603344/go.mod h1:/O7V0waA8r7cgGh81Ro3o1hOxt32SMVPicZroKQ2sZA=
+-golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 h1:qwRHBd0NqMbJxfbotnDhm2ByMI1Shq4Y6oRJo21SGJA=
+-golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 -golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 -golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+-golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 -golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 -golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 -golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
@@ -2126,14 +2176,16 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 -gopkg.in/yaml.v2 v2.2.4 h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=
 -gopkg.in/yaml.v2 v2.2.4/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
--honnef.co/go/tools v0.0.1-2020.1.3 h1:sXmLre5bzIR6ypkjXCDI3jHPssRhc8KD/Ome589sc3U=
--honnef.co/go/tools v0.0.1-2020.1.3/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
--mvdan.cc/xurls/v2 v2.1.0 h1:KaMb5GLhlcSX+e+qhbRJODnUUBvlw01jt4yrjFIHAuA=
--mvdan.cc/xurls/v2 v2.1.0/go.mod h1:5GrSd9rOnKOpZaji1OZLYL/yeAAtGDlo/cFe+8K5n8E=
+-honnef.co/go/tools v0.0.1-2020.1.4 h1:UoveltGrhghAA7ePc+e+QYDHXrBps2PqFZiHkGR/xK8=
+-honnef.co/go/tools v0.0.1-2020.1.4/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
+-mvdan.cc/gofumpt v0.0.0-20200709182408-4fd085cb6d5f h1:gi7cb8HTDZ6q8VqsUpkdoFi3vxwHMneQ6+Q5Ap5hjPE=
+-mvdan.cc/gofumpt v0.0.0-20200709182408-4fd085cb6d5f/go.mod h1:9VQ397fNXEnF84t90W4r4TRCQK+pg9f8ugVfyj+S26w=
+-mvdan.cc/xurls/v2 v2.2.0 h1:NSZPykBXJFCetGZykLAxaL6SIpvbVy/UFEniIfHAa8A=
+-mvdan.cc/xurls/v2 v2.2.0/go.mod h1:EV1RMtya9D6G5DMYPGD8zTQzaHet6Jh8gFlRgGRJeO8=
 diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerfile
 --- a/gopls/integration/govim/Dockerfile	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/Dockerfile	1969-12-31 19:00:00.000000000 -0500
-@@ -1,20 +0,0 @@
+@@ -1,16 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
 -# license that can be found in the LICENSE file.
@@ -2141,19 +2193,15 @@ diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerf
 -# govim requires a more recent version of vim than is available in most
 -# distros, so we build from their base image.
 -FROM govim/govim:latest-vim
+-ARG GOVIM_REF
 -
--# We use a pinned version of govim so that this build is repeatable, and so
--# that we're not sensitive to test breakages in govim.
--# TODO(findleyr): Once a version of govim has been tagged containing
--# https://github.com/govim/govim/pull/629, switch this to @latest.
 -ENV GOPROXY=https://proxy.golang.org GOPATH=/go VIM_FLAVOR=vim
 -WORKDIR /src
 -
 -# Clone govim. In order to use the go command for resolving latest, we download
 -# a redundant copy of govim to the build cache using `go mod download`.
--RUN GOVIM_VERSION=$(go mod download -json github.com/govim/govim@latest | jq -r .Version) && \
--    git clone https://github.com/govim/govim /src/govim && cd /src/govim && \
--    git checkout $GOVIM_VERSION
+-RUN git clone https://github.com/govim/govim /src/govim && cd /src/govim && \
+-    git checkout $GOVIM_REF
 diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.md
 --- a/gopls/integration/govim/README.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/README.md	1969-12-31 19:00:00.000000000 -0500
@@ -2359,7 +2407,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cl
 diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_local.sh
 --- a/gopls/integration/govim/run_local.sh	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/run_local.sh	1969-12-31 19:00:00.000000000 -0500
-@@ -1,65 +0,0 @@
+@@ -1,96 +0,0 @@
 -#!/bin/bash -e
 -
 -# Copyright 2019 The Go Authors. All rights reserved.
@@ -2370,15 +2418,22 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -
 -usage() {
 -  cat <<EOUSAGE
--Usage: $0 [--sudo] [--short]
+-Usage: $0 [--sudo] [--short] [--version (semver|latest)]
 -
--Run govim tests against HEAD using local docker. If --sudo is set, run docker
--with sudo. If --short is set, run `go test` with `-short`.
+-Args:
+-  --sudo     run docker with sudo
+-  --short    run `go test` with `-short`
+-  --version  run on the specific tagged Go version (or latest) rather
+-             than the default branch
+-
+-Run govim tests against HEAD using local docker.
 -EOUSAGE
 -}
 -
 -SUDO_IF_NEEDED=
 -TEST_SHORT=
+-DOCKERFILE=gopls/integration/govim/Dockerfile
+-GOVIM_REF=main
 -while [[ $# -gt 0 ]]; do
 -  case "$1" in
 -    "-h" | "--help" | "help")
@@ -2392,6 +2447,20 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -    "--short")
 -      TEST_SHORT="-short"
 -      shift
+-      ;;
+-    "--version")
+-      if [[ -z "$2" ]]; then
+-        usage
+-        exit 1
+-      fi
+-      GOVIM_REF=$2
+-      if [[ "${GOVIM_REF}" == "latest" ]]; then
+-        TMPGOPATH=$(mktemp -d)
+-        trap "GOPATH=${TMPGOPATH} go clean -modcache && rm -r ${TMPGOPATH}" EXIT
+-        GOVIM_REF=$(GOPATH=${TMPGOPATH} go mod download -json \
+-          github.com/govim/govim@latest | jq -r .Version)
+-      fi
+-      shift 2
 -      ;;
 -    *)
 -      usage
@@ -2407,12 +2476,22 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -cd "${tools_dir}/gopls"
 -temp_gopls=$(mktemp -p "$PWD")
 -trap "rm -f \"${temp_gopls}\"" EXIT
--go build -o "${temp_gopls}"
+-# For consistency across environments, use golang docker to build rather than
+-# the local go command.
+-${SUDO_IF_NEEDED}docker run --rm -t \
+-  -v "${tools_dir}:/src/tools" \
+-  -w "/src/tools/gopls" \
+-  golang:latest \
+-  go build -o $(basename ${temp_gopls})
 -
 -# Build the test harness. Here we are careful to pass in a very limited build
 -# context so as to optimize caching.
+-echo "Checking out govim@${GOVIM_REF}"
 -cd "${tools_dir}"
--${SUDO_IF_NEEDED}docker build -t gopls-govim-harness -f gopls/integration/govim/Dockerfile \
+-${SUDO_IF_NEEDED}docker build \
+-  --build-arg GOVIM_REF="${GOVIM_REF}" \
+-  -t gopls-govim-harness:${GOVIM_REF} \
+-  -f gopls/integration/govim/Dockerfile \
 -  gopls/integration/govim
 -
 -# Run govim integration tests.
@@ -2422,7 +2501,7 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -  -v "${tools_dir}:/src/tools" \
 -  -w "/src/govim" \
 -  --ulimit memlock=-1:-1 \
--  gopls-govim-harness \
+-  gopls-govim-harness:${GOVIM_REF} \
 -  go test ${TEST_SHORT} ./cmd/govim \
 -    -gopls "/src/tools/gopls/${temp_gopls_name}"
 diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integration/govim/run_tests_for_cloudbuild.sh
@@ -2694,7 +2773,7 @@ diff -urN a/gopls/integration/parse/parse.go b/gopls/integration/parse/parse.go
 diff -urN a/gopls/integration/parse/protocol.go b/gopls/integration/parse/protocol.go
 --- a/gopls/integration/parse/protocol.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/parse/protocol.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,310 +0,0 @@
+@@ -1,320 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2784,6 +2863,10 @@ diff -urN a/gopls/integration/parse/protocol.go b/gopls/integration/parse/protoc
 -		return new(p.TextDocumentPositionParams)
 -	case "textDocument/foldingRange":
 -		return new(p.FoldingRangeParams)
+-	case "textDocument/incomingCalls":
+-		return new(p.CallHierarchyIncomingCallsParams)
+-	case "textDocument/outgoingCalls":
+-		return new(p.CallHierarchyOutgoingCallsParams)
 -	}
 -	log.Fatalf("request(%s) undefined", m)
 -	return ""
@@ -2907,6 +2990,10 @@ diff -urN a/gopls/integration/parse/protocol.go b/gopls/integration/parse/protoc
 -		return []interface{}{new(p.Range), nil}
 -	case "textDocument/foldingRange":
 -		return []interface{}{new([]p.FoldingRange), nil}
+-	case "callHierarchy/incomingCalls":
+-		return []interface{}{new([]p.CallHierarchyIncomingCall), nil}
+-	case "callHierarchy/outgoingCalls":
+-		return []interface{}{new([]p.CallHierarchyOutgoingCall), nil}
 -	}
 -	log.Fatalf("responses(%q) undefined", m)
 -	return nil
@@ -3004,6 +3091,8 @@ diff -urN a/gopls/integration/parse/protocol.go b/gopls/integration/parse/protoc
 -	"textDocument/rename":                          Mreq | Mcl,
 -	"textDocument/prepareRename":                   Mreq | Mcl,
 -	"textDocument/foldingRange":                    Mreq | Mcl,
+-	"callHierarchy/incomingCalls":                  Mreq | Mcl,
+-	"callHierarchy/outgoingCalls":                  Mreq | Mcl,
 -}
 diff -urN a/gopls/integration/parse/rlog.go b/gopls/integration/parse/rlog.go
 --- a/gopls/integration/parse/rlog.go	2000-01-01 00:00:00.000000000 -0000
@@ -3156,7 +3245,7 @@ diff -urN a/gopls/integration/replay/README.md b/gopls/integration/replay/README
 -
 -The log for the replayed session is saved in `/tmp/seen`.
 -
--There is aloso a boolean argument `-cmp` which compares the log file
+-There is also a boolean argument `-cmp` which compares the log file
 -with `/tmp/seen` without invoking gopls and rerunning the session.
 -
 -The output is fairly cryptic, and generated by logging. Ideas for better output would be welcome.
@@ -3221,7 +3310,7 @@ diff -urN a/gopls/integration/replay/README.md b/gopls/integration/replay/README
 diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 --- a/gopls/integration/replay/main.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/replay/main.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,290 +0,0 @@
+@@ -1,292 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -3242,6 +3331,7 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 -	"strings"
 -
 -	"golang.org/x/tools/gopls/integration/parse"
+-	"golang.org/x/tools/internal/fakenet"
 -	"golang.org/x/tools/internal/jsonrpc2"
 -	p "golang.org/x/tools/internal/lsp/protocol"
 -)
@@ -3451,7 +3541,8 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 -	if err != nil {
 -		log.Fatal(err)
 -	}
--	stream := jsonrpc2.NewHeaderStream(fromServer, toServer)
+-	conn := fakenet.NewConn("stdio", fromServer, toServer)
+-	stream := jsonrpc2.NewHeaderStream(conn)
 -	rchan := make(chan jsonrpc2.Message, 10) // do we need buffering?
 -	rdr := func() {
 -		for {
@@ -3607,7 +3698,7 @@ diff -urN a/gopls/internal/hooks/diff_test.go b/gopls/internal/hooks/diff_test.g
 diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 --- a/gopls/internal/hooks/hooks.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/hooks.go	1969-12-31 19:00:00.000000000 -0500
-@@ -1,21 +0,0 @@
+@@ -1,35 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -3618,7 +3709,11 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 -package hooks // import "golang.org/x/tools/gopls/internal/hooks"
 -
 -import (
+-	"context"
+-	"regexp"
+-
 -	"golang.org/x/tools/internal/lsp/source"
+-	"mvdan.cc/gofumpt/format"
 -	"mvdan.cc/xurls/v2"
 -)
 -
@@ -3626,8 +3721,18 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 -	if options.GoDiff {
 -		options.ComputeEdits = ComputeEdits
 -	}
--	options.URLRegexp = xurls.Relaxed()
+-	options.URLRegexp = urlRegexp()
+-	options.GofumptFormat = func(ctx context.Context, src []byte) ([]byte, error) {
+-		return format.Source(src, format.Options{})
+-	}
 -	updateAnalyzers(options)
+-}
+-
+-func urlRegexp() *regexp.Regexp {
+-	// Ensure links are matched as full words, not anywhere.
+-	re := regexp.MustCompile(`\b(` + xurls.Relaxed().String() + `)\b`)
+-	re.Longest()
+-	return re
 -}
 diff -urN a/gopls/main.go b/gopls/main.go
 --- a/gopls/main.go	2000-01-01 00:00:00.000000000 -0000

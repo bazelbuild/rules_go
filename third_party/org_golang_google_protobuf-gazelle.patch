@@ -5,63 +5,69 @@ diff -urN a/cmd/protoc-gen-go/BUILD.bazel b/cmd/protoc-gen-go/BUILD.bazel
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protoc-gen-go_lib",
 +    srcs = ["main.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go",
 +    visibility = ["//visibility:private"],
 +    deps = [
-+        "//cmd/protoc-gen-go/internal_gengo:go_default_library",
-+        "//compiler/protogen:go_default_library",
-+        "//internal/version:go_default_library",
++        "//cmd/protoc-gen-go/internal_gengo",
++        "//compiler/protogen",
++        "//internal/version",
 +    ],
 +)
 +
 +go_binary(
 +    name = "protoc-gen-go",
-+    embed = [":go_default_library"],
++    embed = [":protoc-gen-go_lib"],
 +    visibility = ["//visibility:public"],
 +)
 +
 +go_test(
-+    name = "go_default_test",
++    name = "protoc-gen-go_test",
 +    srcs = ["annotation_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":protoc-gen-go_lib"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//internal/fieldnum:go_default_library",
-+        "//proto:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/prototext",
++        "//internal/genid",
++        "//proto",
++        "//types/descriptorpb",
 +    ],
 +)
 diff -urN a/cmd/protoc-gen-go/internal_gengo/BUILD.bazel b/cmd/protoc-gen-go/internal_gengo/BUILD.bazel
 --- a/cmd/protoc-gen-go/internal_gengo/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/internal_gengo/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "internal_gengo",
 +    srcs = [
 +        "init.go",
 +        "main.go",
 +        "reflect.go",
++        "well_known_types.go",
 +    ],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/internal_gengo",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//compiler/protogen:go_default_library",
-+        "//encoding/protowire:go_default_library",
-+        "//internal/encoding/messageset:go_default_library",
-+        "//internal/encoding/tag:go_default_library",
-+        "//internal/fieldnum:go_default_library",
-+        "//internal/genname:go_default_library",
-+        "//internal/version:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/descriptorpb:go_default_library",
-+        "//types/pluginpb:go_default_library",
++        "//compiler/protogen",
++        "//encoding/protowire",
++        "//internal/encoding/messageset",
++        "//internal/encoding/tag",
++        "//internal/genid",
++        "//internal/version",
++        "//proto",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++        "//types/descriptorpb",
++        "//types/pluginpb",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":internal_gengo",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/BUILD.bazel b/cmd/protoc-gen-go/testdata/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -70,60 +76,66 @@ diff -urN a/cmd/protoc-gen-go/testdata/BUILD.bazel b/cmd/protoc-gen-go/testdata/
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
 +go_test(
-+    name = "go_default_test",
++    name = "testdata_test",
 +    srcs = [
 +        "gen_test.go",
 +        "registry_test.go",
 +    ],
 +    deps = [
-+        "//cmd/protoc-gen-go/testdata/annotations:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/comments:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/extensions/base:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/extensions/ext:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/extensions/extra:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/extensions/proto3:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/fieldnames:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/import_public:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/import_public/sub:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/import_public/sub2:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports/fmt:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports/test_a_1:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports/test_a_2:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports/test_b_1:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/issue780_oneof_conflict:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/nopackage:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/proto2:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/proto3:go_default_library",
-+        "//internal/filedesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//cmd/protoc-gen-go/testdata/annotations",
++        "//cmd/protoc-gen-go/testdata/comments",
++        "//cmd/protoc-gen-go/testdata/extensions/base",
++        "//cmd/protoc-gen-go/testdata/extensions/ext",
++        "//cmd/protoc-gen-go/testdata/extensions/extra",
++        "//cmd/protoc-gen-go/testdata/extensions/proto3",
++        "//cmd/protoc-gen-go/testdata/fieldnames",
++        "//cmd/protoc-gen-go/testdata/import_public",
++        "//cmd/protoc-gen-go/testdata/import_public/sub",
++        "//cmd/protoc-gen-go/testdata/import_public/sub2",
++        "//cmd/protoc-gen-go/testdata/imports",
++        "//cmd/protoc-gen-go/testdata/imports/fmt",
++        "//cmd/protoc-gen-go/testdata/imports/test_a_1",
++        "//cmd/protoc-gen-go/testdata/imports/test_a_2",
++        "//cmd/protoc-gen-go/testdata/imports/test_b_1",
++        "//cmd/protoc-gen-go/testdata/issue780_oneof_conflict",
++        "//cmd/protoc-gen-go/testdata/nopackage",
++        "//cmd/protoc-gen-go/testdata/proto2",
++        "//cmd/protoc-gen-go/testdata/proto3",
++        "//internal/filedesc",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/annotations/BUILD.bazel b/cmd/protoc-gen-go/testdata/annotations/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/annotations/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/annotations/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "annotations",
 +    srcs = ["annotations.pb.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/annotations",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":annotations",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/comments/BUILD.bazel b/cmd/protoc-gen-go/testdata/comments/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/comments/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/comments/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "comments",
 +    srcs = [
 +        "comments.pb.go",
 +        "deprecated.pb.go",
@@ -131,104 +143,140 @@ diff -urN a/cmd/protoc-gen-go/testdata/comments/BUILD.bazel b/cmd/protoc-gen-go/
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/comments",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":comments",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/extensions/base/BUILD.bazel b/cmd/protoc-gen-go/testdata/extensions/base/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/extensions/base/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/extensions/base/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "base",
 +    srcs = ["base.pb.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/extensions/base",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":base",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/extensions/ext/BUILD.bazel b/cmd/protoc-gen-go/testdata/extensions/ext/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/extensions/ext/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/extensions/ext/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "ext",
 +    srcs = ["ext.pb.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/extensions/ext",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//cmd/protoc-gen-go/testdata/extensions/base:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/extensions/extra:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//cmd/protoc-gen-go/testdata/extensions/base",
++        "//cmd/protoc-gen-go/testdata/extensions/extra",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":ext",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/extensions/extra/BUILD.bazel b/cmd/protoc-gen-go/testdata/extensions/extra/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/extensions/extra/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/extensions/extra/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["extra.pb.go"],
-+    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/extensions/extra",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
-+)
-diff -urN a/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel b/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel
---- a/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["ext3.pb.go"],
-+    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/extensions/proto3",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/descriptorpb:go_default_library",
-+    ],
-+)
-diff -urN a/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel b/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel
---- a/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["fieldnames.pb.go"],
-+    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/fieldnames",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
-+)
-diff -urN a/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel b/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel
---- a/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
++    name = "extra",
++    srcs = ["extra.pb.go"],
++    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/extensions/extra",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
 +    name = "go_default_library",
++    actual = ":extra",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel b/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel
+--- a/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/protoc-gen-go/testdata/extensions/proto3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "proto3",
++    srcs = ["ext3.pb.go"],
++    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/extensions/proto3",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++        "//types/descriptorpb",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel b/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel
+--- a/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/protoc-gen-go/testdata/fieldnames/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "fieldnames",
++    srcs = ["fieldnames.pb.go"],
++    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/fieldnames",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":fieldnames",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel b/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel
+--- a/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "import_public",
 +    srcs = [
 +        "a.pb.go",
 +        "b.pb.go",
@@ -237,20 +285,26 @@ diff -urN a/cmd/protoc-gen-go/testdata/import_public/BUILD.bazel b/cmd/protoc-ge
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/import_public",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//cmd/protoc-gen-go/testdata/import_public/sub:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/import_public/sub2:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//cmd/protoc-gen-go/testdata/import_public/sub",
++        "//cmd/protoc-gen-go/testdata/import_public/sub2",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":import_public",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/import_public/sub/BUILD.bazel b/cmd/protoc-gen-go/testdata/import_public/sub/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/import_public/sub/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/import_public/sub/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "sub",
 +    srcs = [
 +        "a.pb.go",
 +        "b.pb.go",
@@ -258,36 +312,48 @@ diff -urN a/cmd/protoc-gen-go/testdata/import_public/sub/BUILD.bazel b/cmd/proto
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/import_public/sub",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//cmd/protoc-gen-go/testdata/import_public/sub2:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//cmd/protoc-gen-go/testdata/import_public/sub2",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":sub",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/import_public/sub2/BUILD.bazel b/cmd/protoc-gen-go/testdata/import_public/sub2/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/import_public/sub2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/import_public/sub2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "sub2",
 +    srcs = ["a.pb.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/import_public/sub2",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":sub2",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/imports/BUILD.bazel b/cmd/protoc-gen-go/testdata/imports/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/imports/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/imports/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "imports",
 +    srcs = [
 +        "test_import_a1m1.pb.go",
 +        "test_import_a1m2.pb.go",
@@ -296,38 +362,50 @@ diff -urN a/cmd/protoc-gen-go/testdata/imports/BUILD.bazel b/cmd/protoc-gen-go/t
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/imports",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//cmd/protoc-gen-go/testdata/imports/fmt:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports/test_a_1:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports/test_a_2:go_default_library",
-+        "//cmd/protoc-gen-go/testdata/imports/test_b_1:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//cmd/protoc-gen-go/testdata/imports/fmt",
++        "//cmd/protoc-gen-go/testdata/imports/test_a_1",
++        "//cmd/protoc-gen-go/testdata/imports/test_a_2",
++        "//cmd/protoc-gen-go/testdata/imports/test_b_1",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":imports",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/imports/fmt/BUILD.bazel b/cmd/protoc-gen-go/testdata/imports/fmt/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/imports/fmt/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/imports/fmt/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "fmt",
 +    srcs = ["m.pb.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/imports/fmt",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":fmt",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel b/cmd/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "test_a_1",
 +    srcs = [
 +        "m1.pb.go",
 +        "m2.pb.go",
@@ -335,18 +413,24 @@ diff -urN a/cmd/protoc-gen-go/testdata/imports/test_a_1/BUILD.bazel b/cmd/protoc
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/imports/test_a_1",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":test_a_1",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel b/cmd/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "test_a_2",
 +    srcs = [
 +        "m3.pb.go",
 +        "m4.pb.go",
@@ -354,18 +438,24 @@ diff -urN a/cmd/protoc-gen-go/testdata/imports/test_a_2/BUILD.bazel b/cmd/protoc
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/imports/test_a_2",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":test_a_2",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel b/cmd/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "test_b_1",
 +    srcs = [
 +        "m1.pb.go",
 +        "m2.pb.go",
@@ -373,50 +463,68 @@ diff -urN a/cmd/protoc-gen-go/testdata/imports/test_b_1/BUILD.bazel b/cmd/protoc
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/imports/test_b_1",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":test_b_1",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/issue780_oneof_conflict/BUILD.bazel b/cmd/protoc-gen-go/testdata/issue780_oneof_conflict/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/issue780_oneof_conflict/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/issue780_oneof_conflict/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "issue780_oneof_conflict",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/issue780_oneof_conflict",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":issue780_oneof_conflict",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/nopackage/BUILD.bazel b/cmd/protoc-gen-go/testdata/nopackage/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/nopackage/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/nopackage/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "nopackage",
 +    srcs = ["nopackage.pb.go"],
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/nopackage",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":nopackage",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/proto2/BUILD.bazel b/cmd/protoc-gen-go/testdata/proto2/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/proto2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/proto2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2",
 +    srcs = [
 +        "enum.pb.go",
 +        "fields.pb.go",
@@ -426,18 +534,24 @@ diff -urN a/cmd/protoc-gen-go/testdata/proto2/BUILD.bazel b/cmd/protoc-gen-go/te
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/proto2",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/cmd/protoc-gen-go/testdata/proto3/BUILD.bazel b/cmd/protoc-gen-go/testdata/proto3/BUILD.bazel
 --- a/cmd/protoc-gen-go/testdata/proto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/cmd/protoc-gen-go/testdata/proto3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3",
 +    srcs = [
 +        "enum.pb.go",
 +        "fields.pb.go",
@@ -445,43 +559,55 @@ diff -urN a/cmd/protoc-gen-go/testdata/proto3/BUILD.bazel b/cmd/protoc-gen-go/te
 +    importpath = "google.golang.org/protobuf/cmd/protoc-gen-go/testdata/proto3",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/compiler/protogen/BUILD.bazel b/compiler/protogen/BUILD.bazel
 --- a/compiler/protogen/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/compiler/protogen/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protogen",
 +    srcs = ["protogen.go"],
 +    importpath = "google.golang.org/protobuf/compiler/protogen",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//internal/fieldnum:go_default_library",
-+        "//internal/strs:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//types/descriptorpb:go_default_library",
-+        "//types/pluginpb:go_default_library",
++        "//encoding/prototext",
++        "//internal/genid",
++        "//internal/strs",
++        "//proto",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//types/descriptorpb",
++        "//types/pluginpb",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":protogen",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "protogen_test",
 +    srcs = ["protogen_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":protogen"],
 +    deps = [
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//types/descriptorpb:go_default_library",
-+        "//types/pluginpb:go_default_library",
++        "//proto",
++        "//reflect/protoreflect",
++        "//types/descriptorpb",
++        "//types/pluginpb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
@@ -492,23 +618,23 @@ diff -urN a/encoding/BUILD.bazel b/encoding/BUILD.bazel
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
 +go_test(
-+    name = "go_default_test",
++    name = "encoding_test",
 +    srcs = ["bench_test.go"],
 +    deps = [
-+        "//encoding/protojson:go_default_library",
-+        "//encoding/prototext:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//encoding/protojson",
++        "//encoding/prototext",
++        "//internal/testprotos/test",
++        "//reflect/protoreflect",
 +    ],
 +)
 diff -urN a/encoding/protojson/BUILD.bazel b/encoding/protojson/BUILD.bazel
 --- a/encoding/protojson/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/encoding/protojson/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,62 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protojson",
 +    srcs = [
 +        "decode.go",
 +        "doc.go",
@@ -518,58 +644,63 @@ diff -urN a/encoding/protojson/BUILD.bazel b/encoding/protojson/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/encoding/protojson",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//internal/detectknown:go_default_library",
-+        "//internal/encoding/json:go_default_library",
-+        "//internal/encoding/messageset:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/fieldnum:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//internal/set:go_default_library",
-+        "//internal/strs:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//internal/encoding/json",
++        "//internal/encoding/messageset",
++        "//internal/errors",
++        "//internal/flags",
++        "//internal/genid",
++        "//internal/pragma",
++        "//internal/set",
++        "//internal/strs",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":protojson",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "protojson_test",
 +    srcs = [
 +        "bench_test.go",
 +        "decode_test.go",
 +        "encode_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":protojson"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/testprotos/fieldmaskpb:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/test/weak1:go_default_library",
-+        "//internal/testprotos/textpb2:go_default_library",
-+        "//internal/testprotos/textpb3:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//testing/protopack:go_default_library",
-+        "//types/known/anypb:go_default_library",
-+        "//types/known/durationpb:go_default_library",
-+        "//types/known/emptypb:go_default_library",
-+        "//types/known/structpb:go_default_library",
-+        "//types/known/timestamppb:go_default_library",
-+        "//types/known/wrapperspb:go_default_library",
++        "//internal/detrand",
++        "//internal/errors",
++        "//internal/flags",
++        "//internal/testprotos/test",
++        "//internal/testprotos/test/weak1",
++        "//internal/testprotos/textpb2",
++        "//internal/testprotos/textpb3",
++        "//proto",
++        "//reflect/protoregistry",
++        "//testing/protopack",
++        "//types/known/anypb",
++        "//types/known/durationpb",
++        "//types/known/emptypb",
++        "//types/known/fieldmaskpb",
++        "//types/known/structpb",
++        "//types/known/timestamppb",
++        "//types/known/wrapperspb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/encoding/prototext/BUILD.bazel b/encoding/prototext/BUILD.bazel
 --- a/encoding/prototext/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/encoding/prototext/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,61 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "prototext",
 +    srcs = [
 +        "decode.go",
 +        "doc.go",
@@ -578,66 +709,79 @@ diff -urN a/encoding/prototext/BUILD.bazel b/encoding/prototext/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/encoding/prototext",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/encoding/messageset:go_default_library",
-+        "//internal/encoding/text:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/fieldnum:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/mapsort:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//internal/set:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//encoding/protowire",
++        "//internal/encoding/messageset",
++        "//internal/encoding/text",
++        "//internal/errors",
++        "//internal/flags",
++        "//internal/genid",
++        "//internal/mapsort",
++        "//internal/pragma",
++        "//internal/set",
++        "//internal/strs",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":prototext",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "prototext_test",
 +    srcs = [
 +        "decode_test.go",
 +        "encode_test.go",
 +        "other_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":prototext"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/test/weak1:go_default_library",
-+        "//internal/testprotos/textpb2:go_default_library",
-+        "//internal/testprotos/textpb3:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//testing/protopack:go_default_library",
-+        "//types/known/anypb:go_default_library",
-+        "//types/known/durationpb:go_default_library",
-+        "//types/known/emptypb:go_default_library",
-+        "//types/known/structpb:go_default_library",
-+        "//types/known/timestamppb:go_default_library",
-+        "//types/known/wrapperspb:go_default_library",
++        "//internal/detrand",
++        "//internal/flags",
++        "//internal/testprotos/test",
++        "//internal/testprotos/test/weak1",
++        "//internal/testprotos/textpb2",
++        "//internal/testprotos/textpb3",
++        "//proto",
++        "//reflect/protoregistry",
++        "//testing/protopack",
++        "//types/known/anypb",
++        "//types/known/durationpb",
++        "//types/known/emptypb",
++        "//types/known/structpb",
++        "//types/known/timestamppb",
++        "//types/known/wrapperspb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/encoding/protowire/BUILD.bazel b/encoding/protowire/BUILD.bazel
 --- a/encoding/protowire/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/encoding/protowire/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protowire",
 +    srcs = ["wire.go"],
 +    importpath = "google.golang.org/protobuf/encoding/protowire",
 +    visibility = ["//visibility:public"],
-+    deps = ["//internal/errors:go_default_library"],
++    deps = ["//internal/errors"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":protowire",
++    visibility = ["//visibility:public"],
 +)
 +
 +go_test(
-+    name = "go_default_test",
++    name = "protowire_test",
 +    srcs = ["wire_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":protowire"],
 +)
 diff -urN a/internal/benchmarks/BUILD.bazel b/internal/benchmarks/BUILD.bazel
 --- a/internal/benchmarks/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -646,20 +790,20 @@ diff -urN a/internal/benchmarks/BUILD.bazel b/internal/benchmarks/BUILD.bazel
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
 +go_test(
-+    name = "go_default_test",
++    name = "benchmarks_test",
 +    srcs = ["bench_test.go"],
 +    deps = [
-+        "//encoding/protojson:go_default_library",
-+        "//encoding/prototext:go_default_library",
-+        "//internal/testprotos/benchmarks:go_default_library",
-+        "//internal/testprotos/benchmarks/datasets/google_message1/proto2:go_default_library",
-+        "//internal/testprotos/benchmarks/datasets/google_message1/proto3:go_default_library",
-+        "//internal/testprotos/benchmarks/datasets/google_message2:go_default_library",
-+        "//internal/testprotos/benchmarks/datasets/google_message3:go_default_library",
-+        "//internal/testprotos/benchmarks/datasets/google_message4:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//encoding/protojson",
++        "//encoding/prototext",
++        "//internal/testprotos/benchmarks",
++        "//internal/testprotos/benchmarks/datasets/google_message1/proto2",
++        "//internal/testprotos/benchmarks/datasets/google_message1/proto3",
++        "//internal/testprotos/benchmarks/datasets/google_message2",
++        "//internal/testprotos/benchmarks/datasets/google_message3",
++        "//internal/testprotos/benchmarks/datasets/google_message4",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
 +)
 diff -urN a/internal/benchmarks/micro/BUILD.bazel b/internal/benchmarks/micro/BUILD.bazel
@@ -669,15 +813,15 @@ diff -urN a/internal/benchmarks/micro/BUILD.bazel b/internal/benchmarks/micro/BU
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
 +go_test(
-+    name = "go_default_test",
++    name = "micro_test",
 +    srcs = ["micro_test.go"],
 +    deps = [
-+        "//internal/impl:go_default_library",
-+        "//internal/testprotos/benchmarks/micro:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//proto:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//types/known/emptypb:go_default_library",
++        "//internal/impl",
++        "//internal/testprotos/benchmarks/micro",
++        "//internal/testprotos/test",
++        "//proto",
++        "//runtime/protoiface",
++        "//types/known/emptypb",
 +    ],
 +)
 diff -urN a/internal/cmd/generate-corpus/BUILD.bazel b/internal/cmd/generate-corpus/BUILD.bazel
@@ -687,46 +831,45 @@ diff -urN a/internal/cmd/generate-corpus/BUILD.bazel b/internal/cmd/generate-cor
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "generate-corpus_lib",
 +    srcs = ["main.go"],
 +    importpath = "google.golang.org/protobuf/internal/cmd/generate-corpus",
 +    visibility = ["//visibility:private"],
 +    deps = [
-+        "//encoding/protojson:go_default_library",
-+        "//encoding/prototext:go_default_library",
-+        "//internal/testprotos/fuzz:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//proto:go_default_library",
++        "//encoding/protojson",
++        "//encoding/prototext",
++        "//internal/testprotos/fuzz",
++        "//internal/testprotos/test",
++        "//proto",
 +    ],
 +)
 +
 +go_binary(
 +    name = "generate-corpus",
-+    embed = [":go_default_library"],
++    embed = [":generate-corpus_lib"],
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/cmd/generate-protos/BUILD.bazel b/internal/cmd/generate-protos/BUILD.bazel
 --- a/internal/cmd/generate-protos/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/cmd/generate-protos/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "generate-protos_lib",
 +    srcs = ["main.go"],
 +    importpath = "google.golang.org/protobuf/internal/cmd/generate-protos",
 +    visibility = ["//visibility:private"],
 +    deps = [
-+        "//cmd/protoc-gen-go/internal_gengo:go_default_library",
-+        "//compiler/protogen:go_default_library",
-+        "//internal/detrand:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//cmd/protoc-gen-go/internal_gengo",
++        "//compiler/protogen",
++        "//internal/detrand",
 +    ],
 +)
 +
 +go_binary(
 +    name = "generate-protos",
-+    embed = [":go_default_library"],
++    embed = [":generate-protos_lib"],
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/cmd/generate-types/BUILD.bazel b/internal/cmd/generate-types/BUILD.bazel
@@ -736,7 +879,7 @@ diff -urN a/internal/cmd/generate-types/BUILD.bazel b/internal/cmd/generate-type
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "generate-types_lib",
 +    srcs = [
 +        "impl.go",
 +        "main.go",
@@ -748,7 +891,7 @@ diff -urN a/internal/cmd/generate-types/BUILD.bazel b/internal/cmd/generate-type
 +
 +go_binary(
 +    name = "generate-types",
-+    embed = [":go_default_library"],
++    embed = [":generate-types_lib"],
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/cmd/pbdump/BUILD.bazel b/internal/cmd/pbdump/BUILD.bazel
@@ -758,36 +901,36 @@ diff -urN a/internal/cmd/pbdump/BUILD.bazel b/internal/cmd/pbdump/BUILD.bazel
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "pbdump_lib",
 +    srcs = ["pbdump.go"],
 +    importpath = "google.golang.org/protobuf/internal/cmd/pbdump",
 +    visibility = ["//visibility:private"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//testing/protopack:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/protowire",
++        "//internal/errors",
++        "//proto",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//testing/protopack",
++        "//types/descriptorpb",
 +    ],
 +)
 +
 +go_binary(
 +    name = "pbdump",
-+    embed = [":go_default_library"],
++    embed = [":pbdump_lib"],
 +    visibility = ["//:__subpackages__"],
 +)
 +
 +go_test(
-+    name = "go_default_test",
++    name = "pbdump_test",
 +    srcs = ["pbdump_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":pbdump_lib"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/prototext",
++        "//proto",
++        "//reflect/protoreflect",
++        "//types/descriptorpb",
 +    ],
 +)
 diff -urN a/internal/conformance/BUILD.bazel b/internal/conformance/BUILD.bazel
@@ -797,135 +940,128 @@ diff -urN a/internal/conformance/BUILD.bazel b/internal/conformance/BUILD.bazel
 +load("@io_bazel_rules_go//go:def.bzl", "go_test")
 +
 +go_test(
-+    name = "go_default_test",
++    name = "conformance_test",
 +    srcs = ["conformance_test.go"],
 +    deps = [
-+        "//encoding/protojson:go_default_library",
-+        "//encoding/prototext:go_default_library",
-+        "//internal/testprotos/conformance:go_default_library",
-+        "//proto:go_default_library",
++        "//encoding/protojson",
++        "//encoding/prototext",
++        "//internal/testprotos/conformance",
++        "//proto",
 +    ],
 +)
 diff -urN a/internal/descfmt/BUILD.bazel b/internal/descfmt/BUILD.bazel
 --- a/internal/descfmt/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/descfmt/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "descfmt",
 +    srcs = ["stringer.go"],
 +    importpath = "google.golang.org/protobuf/internal/descfmt",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/detrand",
++        "//internal/pragma",
++        "//reflect/protoreflect",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":descfmt",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "descfmt_test",
 +    srcs = ["desc_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":descfmt"],
 +)
 diff -urN a/internal/descopts/BUILD.bazel b/internal/descopts/BUILD.bazel
 --- a/internal/descopts/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/descopts/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "descopts",
 +    srcs = ["options.go"],
 +    importpath = "google.golang.org/protobuf/internal/descopts",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//reflect/protoreflect:go_default_library"],
++    deps = ["//reflect/protoreflect"],
 +)
-diff -urN a/internal/detectknown/BUILD.bazel b/internal/detectknown/BUILD.bazel
---- a/internal/detectknown/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/detectknown/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,27 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
-+go_library(
++alias(
 +    name = "go_default_library",
-+    srcs = ["detect.go"],
-+    importpath = "google.golang.org/protobuf/internal/detectknown",
++    actual = ":descopts",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//reflect/protoreflect:go_default_library"],
-+)
-+
-+go_test(
-+    name = "go_default_test",
-+    srcs = ["detect_test.go"],
-+    embed = [":go_default_library"],
-+    deps = [
-+        "//internal/testprotos/fieldmaskpb:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//types/descriptorpb:go_default_library",
-+        "//types/known/anypb:go_default_library",
-+        "//types/known/durationpb:go_default_library",
-+        "//types/known/emptypb:go_default_library",
-+        "//types/known/structpb:go_default_library",
-+        "//types/known/timestamppb:go_default_library",
-+        "//types/known/wrapperspb:go_default_library",
-+        "//types/pluginpb:go_default_library",
-+    ],
 +)
 diff -urN a/internal/detrand/BUILD.bazel b/internal/detrand/BUILD.bazel
 --- a/internal/detrand/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/detrand/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "detrand",
 +    srcs = ["rand.go"],
 +    importpath = "google.golang.org/protobuf/internal/detrand",
 +    visibility = ["//:__subpackages__"],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":detrand",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "detrand_test",
 +    srcs = ["rand_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":detrand"],
 +)
 diff -urN a/internal/encoding/defval/BUILD.bazel b/internal/encoding/defval/BUILD.bazel
 --- a/internal/encoding/defval/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/encoding/defval/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "defval",
 +    srcs = ["default.go"],
 +    importpath = "google.golang.org/protobuf/internal/encoding/defval",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/encoding/text:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/encoding/text",
++        "//internal/errors",
++        "//reflect/protoreflect",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":defval",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "defval_test",
 +    srcs = ["default_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":defval"],
 +    deps = [
-+        "//internal/filedesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/filedesc",
++        "//reflect/protoreflect",
 +    ],
 +)
 diff -urN a/internal/encoding/json/BUILD.bazel b/internal/encoding/json/BUILD.bazel
 --- a/internal/encoding/json/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/encoding/json/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,40 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "json",
 +    srcs = [
 +        "decode.go",
 +        "decode_number.go",
@@ -936,22 +1072,28 @@ diff -urN a/internal/encoding/json/BUILD.bazel b/internal/encoding/json/BUILD.ba
 +    importpath = "google.golang.org/protobuf/internal/encoding/json",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/strs:go_default_library",
++        "//internal/detrand",
++        "//internal/errors",
++        "//internal/strs",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":json",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "json_test",
 +    srcs = [
 +        "bench_test.go",
 +        "decode_test.go",
 +        "encode_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":json"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
++        "//internal/detrand",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
 +    ],
@@ -959,59 +1101,71 @@ diff -urN a/internal/encoding/json/BUILD.bazel b/internal/encoding/json/BUILD.ba
 diff -urN a/internal/encoding/messageset/BUILD.bazel b/internal/encoding/messageset/BUILD.bazel
 --- a/internal/encoding/messageset/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/encoding/messageset/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "messageset",
 +    srcs = ["messageset.go"],
 +    importpath = "google.golang.org/protobuf/internal/encoding/messageset",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//encoding/protowire",
++        "//internal/errors",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":messageset",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/encoding/tag/BUILD.bazel b/internal/encoding/tag/BUILD.bazel
 --- a/internal/encoding/tag/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/encoding/tag/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,32 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "tag",
 +    srcs = ["tag.go"],
 +    importpath = "google.golang.org/protobuf/internal/encoding/tag",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/encoding/defval:go_default_library",
-+        "//internal/filedesc:go_default_library",
-+        "//internal/strs:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/encoding/defval",
++        "//internal/filedesc",
++        "//internal/strs",
++        "//reflect/protoreflect",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":tag",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "tag_test",
 +    srcs = ["tag_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":tag"],
 +    deps = [
-+        "//internal/filedesc:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/filedesc",
++        "//proto",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
 +    ],
 +)
 diff -urN a/internal/encoding/text/BUILD.bazel b/internal/encoding/text/BUILD.bazel
 --- a/internal/encoding/text/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/encoding/text/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,41 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "text",
 +    srcs = [
 +        "decode.go",
 +        "decode_number.go",
@@ -1023,34 +1177,40 @@ diff -urN a/internal/encoding/text/BUILD.bazel b/internal/encoding/text/BUILD.ba
 +    importpath = "google.golang.org/protobuf/internal/encoding/text",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/strs:go_default_library",
++        "//internal/detrand",
++        "//internal/errors",
++        "//internal/flags",
++        "//internal/strs",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":text",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "text_test",
 +    srcs = [
 +        "decode_test.go",
 +        "encode_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":text"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/flags:go_default_library",
++        "//internal/detrand",
++        "//internal/flags",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/internal/errors/BUILD.bazel b/internal/errors/BUILD.bazel
 --- a/internal/errors/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/errors/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "errors",
 +    srcs = [
 +        "errors.go",
 +        "is_go112.go",
@@ -1058,60 +1218,47 @@ diff -urN a/internal/errors/BUILD.bazel b/internal/errors/BUILD.bazel
 +    ],
 +    importpath = "google.golang.org/protobuf/internal/errors",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/detrand:go_default_library"],
++    deps = ["//internal/detrand"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":errors",
++    visibility = ["//:__subpackages__"],
 +)
 +
 +go_test(
-+    name = "go_default_test",
++    name = "errors_test",
 +    srcs = ["errors_test.go"],
-+    embed = [":go_default_library"],
-+)
-diff -urN a/internal/fieldnum/BUILD.bazel b/internal/fieldnum/BUILD.bazel
---- a/internal/fieldnum/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/fieldnum/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,21 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = [
-+        "any_gen.go",
-+        "api_gen.go",
-+        "descriptor_gen.go",
-+        "doc.go",
-+        "duration_gen.go",
-+        "empty_gen.go",
-+        "field_mask_gen.go",
-+        "source_context_gen.go",
-+        "struct_gen.go",
-+        "timestamp_gen.go",
-+        "type_gen.go",
-+        "wrappers_gen.go",
-+    ],
-+    importpath = "google.golang.org/protobuf/internal/fieldnum",
-+    visibility = ["//:__subpackages__"],
++    embed = [":errors"],
 +)
 diff -urN a/internal/fieldsort/BUILD.bazel b/internal/fieldsort/BUILD.bazel
 --- a/internal/fieldsort/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/fieldsort/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "fieldsort",
 +    srcs = ["fieldsort.go"],
 +    importpath = "google.golang.org/protobuf/internal/fieldsort",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//reflect/protoreflect:go_default_library"],
++    deps = ["//reflect/protoreflect"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":fieldsort",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/filedesc/BUILD.bazel b/internal/filedesc/BUILD.bazel
 --- a/internal/filedesc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/filedesc/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,54 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "filedesc",
 +    srcs = [
 +        "build.go",
 +        "desc.go",
@@ -1124,65 +1271,77 @@ diff -urN a/internal/filedesc/BUILD.bazel b/internal/filedesc/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/internal/filedesc",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/descfmt:go_default_library",
-+        "//internal/descopts:go_default_library",
-+        "//internal/encoding/defval:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/fieldnum:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//internal/strs:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//encoding/protowire",
++        "//internal/descfmt",
++        "//internal/descopts",
++        "//internal/encoding/defval",
++        "//internal/errors",
++        "//internal/genid",
++        "//internal/pragma",
++        "//internal/strs",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":filedesc",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "filedesc_test",
 +    srcs = [
 +        "build_test.go",
 +        "desc_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":filedesc"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/test/weak1:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//internal/detrand",
++        "//internal/testprotos/test",
++        "//internal/testprotos/test/weak1",
++        "//proto",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//types/descriptorpb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/internal/filetype/BUILD.bazel b/internal/filetype/BUILD.bazel
 --- a/internal/filetype/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/filetype/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "filetype",
 +    srcs = ["build.go"],
 +    importpath = "google.golang.org/protobuf/internal/filetype",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/descopts:go_default_library",
-+        "//internal/filedesc:go_default_library",
-+        "//internal/impl:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//internal/descopts",
++        "//internal/filedesc",
++        "//internal/impl",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":filetype",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/flags/BUILD.bazel b/internal/flags/BUILD.bazel
 --- a/internal/flags/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/flags/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,11 @@
+@@ -0,0 +1,17 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "flags",
 +    srcs = [
 +        "flags.go",
 +        "proto_legacy_disable.go",
@@ -1190,112 +1349,165 @@ diff -urN a/internal/flags/BUILD.bazel b/internal/flags/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/internal/flags",
 +    visibility = ["//:__subpackages__"],
 +)
++
++alias(
++    name = "go_default_library",
++    actual = ":flags",
++    visibility = ["//:__subpackages__"],
++)
 diff -urN a/internal/fuzz/jsonfuzz/BUILD.bazel b/internal/fuzz/jsonfuzz/BUILD.bazel
 --- a/internal/fuzz/jsonfuzz/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/fuzz/jsonfuzz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "jsonfuzz",
 +    srcs = ["fuzz.go"],
 +    importpath = "google.golang.org/protobuf/internal/fuzz/jsonfuzz",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//encoding/protojson:go_default_library",
-+        "//internal/testprotos/fuzz:go_default_library",
-+        "//proto:go_default_library",
++        "//encoding/protojson",
++        "//internal/testprotos/fuzz",
++        "//proto",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":jsonfuzz",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "jsonfuzz_test",
 +    srcs = ["fuzz_test.go"],
-+    embed = [":go_default_library"],
-+    deps = ["//internal/fuzztest:go_default_library"],
++    embed = [":jsonfuzz"],
++    deps = ["//internal/fuzztest"],
 +)
 diff -urN a/internal/fuzz/textfuzz/BUILD.bazel b/internal/fuzz/textfuzz/BUILD.bazel
 --- a/internal/fuzz/textfuzz/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/fuzz/textfuzz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "textfuzz",
 +    srcs = ["fuzz.go"],
 +    importpath = "google.golang.org/protobuf/internal/fuzz/textfuzz",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//internal/testprotos/fuzz:go_default_library",
-+        "//proto:go_default_library",
++        "//encoding/prototext",
++        "//internal/testprotos/fuzz",
++        "//proto",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":textfuzz",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "textfuzz_test",
 +    srcs = ["fuzz_test.go"],
-+    embed = [":go_default_library"],
-+    deps = ["//internal/fuzztest:go_default_library"],
++    embed = [":textfuzz"],
++    deps = ["//internal/fuzztest"],
 +)
 diff -urN a/internal/fuzz/wirefuzz/BUILD.bazel b/internal/fuzz/wirefuzz/BUILD.bazel
 --- a/internal/fuzz/wirefuzz/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/fuzz/wirefuzz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "wirefuzz",
 +    srcs = ["fuzz.go"],
 +    importpath = "google.golang.org/protobuf/internal/fuzz/wirefuzz",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/impl:go_default_library",
-+        "//internal/testprotos/fuzz:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//runtime/protoiface:go_default_library",
++        "//internal/impl",
++        "//internal/testprotos/fuzz",
++        "//proto",
++        "//reflect/protoregistry",
++        "//runtime/protoiface",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":wirefuzz",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "wirefuzz_test",
 +    srcs = ["fuzz_test.go"],
-+    embed = [":go_default_library"],
-+    deps = ["//internal/fuzztest:go_default_library"],
++    embed = [":wirefuzz"],
++    deps = ["//internal/fuzztest"],
 +)
 diff -urN a/internal/fuzztest/BUILD.bazel b/internal/fuzztest/BUILD.bazel
 --- a/internal/fuzztest/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/fuzztest/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "fuzztest",
 +    srcs = ["fuzztest.go"],
 +    importpath = "google.golang.org/protobuf/internal/fuzztest",
 +    visibility = ["//:__subpackages__"],
 +)
-diff -urN a/internal/genname/BUILD.bazel b/internal/genname/BUILD.bazel
---- a/internal/genname/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/genname/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,8 @@
++
++alias(
++    name = "go_default_library",
++    actual = ":fuzztest",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/internal/genid/BUILD.bazel b/internal/genid/BUILD.bazel
+--- a/internal/genid/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/genid/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
++    name = "genid",
++    srcs = [
++        "any_gen.go",
++        "api_gen.go",
++        "descriptor_gen.go",
++        "doc.go",
++        "duration_gen.go",
++        "empty_gen.go",
++        "field_mask_gen.go",
++        "goname.go",
++        "map_entry.go",
++        "source_context_gen.go",
++        "struct_gen.go",
++        "timestamp_gen.go",
++        "type_gen.go",
++        "wrappers.go",
++        "wrappers_gen.go",
++    ],
++    importpath = "google.golang.org/protobuf/internal/genid",
++    visibility = ["//:__subpackages__"],
++    deps = ["//reflect/protoreflect"],
++)
++
++alias(
 +    name = "go_default_library",
-+    srcs = ["name.go"],
-+    importpath = "google.golang.org/protobuf/internal/genname",
++    actual = ":genid",
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/impl/BUILD.bazel b/internal/impl/BUILD.bazel
 --- a/internal/impl/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/impl/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,109 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "impl",
 +    srcs = [
 +        "api_export.go",
 +        "checkinit.go",
@@ -1334,27 +1546,33 @@ diff -urN a/internal/impl/BUILD.bazel b/internal/impl/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/internal/impl",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//encoding/protowire:go_default_library",
-+        "//internal/descopts:go_default_library",
-+        "//internal/encoding/messageset:go_default_library",
-+        "//internal/encoding/tag:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/fieldsort:go_default_library",
-+        "//internal/filedesc:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/genname:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//internal/strs:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//runtime/protoiface:go_default_library",
++        "//encoding/prototext",
++        "//encoding/protowire",
++        "//internal/descopts",
++        "//internal/encoding/messageset",
++        "//internal/encoding/tag",
++        "//internal/errors",
++        "//internal/fieldsort",
++        "//internal/filedesc",
++        "//internal/flags",
++        "//internal/genid",
++        "//internal/pragma",
++        "//internal/strs",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//runtime/protoiface",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":impl",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "impl_test",
 +    srcs = [
 +        "enum_test.go",
 +        "extension_test.go",
@@ -1365,32 +1583,32 @@ diff -urN a/internal/impl/BUILD.bazel b/internal/impl/BUILD.bazel
 +        "legacy_test.go",
 +        "message_reflect_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":impl"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//internal/protobuild:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20160225_2fc053c5:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20160519_a4ab9ec5:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20180125_92554152:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20180430_b4deda09:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20180814_aa810b61:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20190205_c823c79e:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20160225_2fc053c5:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20160519_a4ab9ec5:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20180125_92554152:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20180430_b4deda09:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20180814_aa810b61:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20190205_c823c79e:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//testing/protocmp:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/prototext",
++        "//internal/flags",
++        "//internal/pragma",
++        "//internal/protobuild",
++        "//internal/testprotos/legacy/proto2_20160225_2fc053c5",
++        "//internal/testprotos/legacy/proto2_20160519_a4ab9ec5",
++        "//internal/testprotos/legacy/proto2_20180125_92554152",
++        "//internal/testprotos/legacy/proto2_20180430_b4deda09",
++        "//internal/testprotos/legacy/proto2_20180814_aa810b61",
++        "//internal/testprotos/legacy/proto2_20190205_c823c79e",
++        "//internal/testprotos/legacy/proto3_20160225_2fc053c5",
++        "//internal/testprotos/legacy/proto3_20160519_a4ab9ec5",
++        "//internal/testprotos/legacy/proto3_20180125_92554152",
++        "//internal/testprotos/legacy/proto3_20180430_b4deda09",
++        "//internal/testprotos/legacy/proto3_20180814_aa810b61",
++        "//internal/testprotos/legacy/proto3_20190205_c823c79e",
++        "//internal/testprotos/test",
++        "//proto",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//runtime/protoiface",
++        "//testing/protocmp",
++        "//types/descriptorpb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
 +    ],
@@ -1398,139 +1616,175 @@ diff -urN a/internal/impl/BUILD.bazel b/internal/impl/BUILD.bazel
 diff -urN a/internal/mapsort/BUILD.bazel b/internal/mapsort/BUILD.bazel
 --- a/internal/mapsort/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/mapsort/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "mapsort",
 +    srcs = ["mapsort.go"],
 +    importpath = "google.golang.org/protobuf/internal/mapsort",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//reflect/protoreflect:go_default_library"],
++    deps = ["//reflect/protoreflect"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":mapsort",
++    visibility = ["//:__subpackages__"],
 +)
 +
 +go_test(
-+    name = "go_default_test",
++    name = "mapsort_test",
 +    srcs = ["mapsort_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":mapsort"],
 +    deps = [
-+        "//internal/testprotos/test:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/testprotos/test",
++        "//reflect/protoreflect",
 +    ],
 +)
 diff -urN a/internal/msgfmt/BUILD.bazel b/internal/msgfmt/BUILD.bazel
 --- a/internal/msgfmt/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/msgfmt/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,43 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "msgfmt",
 +    srcs = ["format.go"],
 +    importpath = "google.golang.org/protobuf/internal/msgfmt",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/detectknown:go_default_library",
-+        "//internal/detrand:go_default_library",
-+        "//internal/mapsort:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//encoding/protowire",
++        "//internal/detrand",
++        "//internal/genid",
++        "//internal/mapsort",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":msgfmt",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "msgfmt_test",
 +    srcs = ["format_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":msgfmt"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/textpb2:go_default_library",
-+        "//proto:go_default_library",
-+        "//testing/protocmp:go_default_library",
-+        "//testing/protopack:go_default_library",
-+        "//types/dynamicpb:go_default_library",
-+        "//types/known/anypb:go_default_library",
-+        "//types/known/durationpb:go_default_library",
-+        "//types/known/timestamppb:go_default_library",
-+        "//types/known/wrapperspb:go_default_library",
++        "//internal/detrand",
++        "//internal/testprotos/test",
++        "//internal/testprotos/textpb2",
++        "//proto",
++        "//testing/protocmp",
++        "//testing/protopack",
++        "//types/dynamicpb",
++        "//types/known/anypb",
++        "//types/known/durationpb",
++        "//types/known/timestamppb",
++        "//types/known/wrapperspb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/internal/pragma/BUILD.bazel b/internal/pragma/BUILD.bazel
 --- a/internal/pragma/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/pragma/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "pragma",
 +    srcs = ["pragma.go"],
 +    importpath = "google.golang.org/protobuf/internal/pragma",
++    visibility = ["//:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":pragma",
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/protobuild/BUILD.bazel b/internal/protobuild/BUILD.bazel
 --- a/internal/protobuild/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/protobuild/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protobuild",
 +    srcs = ["build.go"],
 +    importpath = "google.golang.org/protobuf/internal/protobuild",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":protobuild",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/protolegacy/BUILD.bazel b/internal/protolegacy/BUILD.bazel
 --- a/internal/protolegacy/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/protolegacy/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protolegacy",
 +    srcs = ["proto.go"],
 +    importpath = "google.golang.org/protobuf/internal/protolegacy",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":protolegacy",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/set/BUILD.bazel b/internal/set/BUILD.bazel
 --- a/internal/set/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/set/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "set",
 +    srcs = ["ints.go"],
 +    importpath = "google.golang.org/protobuf/internal/set",
 +    visibility = ["//:__subpackages__"],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":set",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "set_test",
 +    srcs = ["ints_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":set"],
 +)
 diff -urN a/internal/strs/BUILD.bazel b/internal/strs/BUILD.bazel
 --- a/internal/strs/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/strs/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "strs",
 +    srcs = [
 +        "strings.go",
 +        "strings_unsafe.go",
@@ -1538,105 +1792,141 @@ diff -urN a/internal/strs/BUILD.bazel b/internal/strs/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/internal/strs",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/flags:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/flags",
++        "//reflect/protoreflect",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":strs",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "strs_test",
 +    srcs = ["strings_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":strs"],
 +)
 diff -urN a/internal/testprotos/annotation/BUILD.bazel b/internal/testprotos/annotation/BUILD.bazel
 --- a/internal/testprotos/annotation/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/annotation/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "annotation",
 +    srcs = ["annotation.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/annotation",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++        "//types/descriptorpb",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":annotation",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/benchmarks/BUILD.bazel b/internal/testprotos/benchmarks/BUILD.bazel
 --- a/internal/testprotos/benchmarks/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/benchmarks/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "benchmarks",
 +    srcs = ["benchmarks.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/benchmarks",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":benchmarks",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/benchmarks/datasets/google_message1/proto2/BUILD.bazel b/internal/testprotos/benchmarks/datasets/google_message1/proto2/BUILD.bazel
 --- a/internal/testprotos/benchmarks/datasets/google_message1/proto2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/benchmarks/datasets/google_message1/proto2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2",
 +    srcs = ["benchmark_message1_proto2.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/benchmarks/datasets/google_message1/proto2",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/benchmarks/datasets/google_message1/proto3/BUILD.bazel b/internal/testprotos/benchmarks/datasets/google_message1/proto3/BUILD.bazel
 --- a/internal/testprotos/benchmarks/datasets/google_message1/proto3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/benchmarks/datasets/google_message1/proto3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3",
 +    srcs = ["benchmark_message1_proto3.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/benchmarks/datasets/google_message1/proto3",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/benchmarks/datasets/google_message2/BUILD.bazel b/internal/testprotos/benchmarks/datasets/google_message2/BUILD.bazel
 --- a/internal/testprotos/benchmarks/datasets/google_message2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/benchmarks/datasets/google_message2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "google_message2",
 +    srcs = ["benchmark_message2.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/benchmarks/datasets/google_message2",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":google_message2",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/benchmarks/datasets/google_message3/BUILD.bazel b/internal/testprotos/benchmarks/datasets/google_message3/BUILD.bazel
 --- a/internal/testprotos/benchmarks/datasets/google_message3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/benchmarks/datasets/google_message3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "google_message3",
 +    srcs = [
 +        "benchmark_message3.pb.go",
 +        "benchmark_message3_1.pb.go",
@@ -1651,19 +1941,25 @@ diff -urN a/internal/testprotos/benchmarks/datasets/google_message3/BUILD.bazel 
 +    importpath = "google.golang.org/protobuf/internal/testprotos/benchmarks/datasets/google_message3",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":google_message3",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/benchmarks/datasets/google_message4/BUILD.bazel b/internal/testprotos/benchmarks/datasets/google_message4/BUILD.bazel
 --- a/internal/testprotos/benchmarks/datasets/google_message4/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/benchmarks/datasets/google_message4/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "google_message4",
 +    srcs = [
 +        "benchmark_message4.pb.go",
 +        "benchmark_message4_1.pb.go",
@@ -1673,35 +1969,47 @@ diff -urN a/internal/testprotos/benchmarks/datasets/google_message4/BUILD.bazel 
 +    importpath = "google.golang.org/protobuf/internal/testprotos/benchmarks/datasets/google_message4",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":google_message4",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/benchmarks/micro/BUILD.bazel b/internal/testprotos/benchmarks/micro/BUILD.bazel
 --- a/internal/testprotos/benchmarks/micro/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/benchmarks/micro/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "micro",
 +    srcs = ["micro.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/benchmarks/micro",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":micro",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/conformance/BUILD.bazel b/internal/testprotos/conformance/BUILD.bazel
 --- a/internal/testprotos/conformance/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/conformance/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "conformance",
 +    srcs = [
 +        "conformance.pb.go",
 +        "test_messages_proto2.pb.go",
@@ -1710,78 +2018,80 @@ diff -urN a/internal/testprotos/conformance/BUILD.bazel b/internal/testprotos/co
 +    importpath = "google.golang.org/protobuf/internal/testprotos/conformance",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/testprotos/fieldmaskpb:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/known/anypb:go_default_library",
-+        "//types/known/durationpb:go_default_library",
-+        "//types/known/structpb:go_default_library",
-+        "//types/known/timestamppb:go_default_library",
-+        "//types/known/wrapperspb:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
++        "//types/known/anypb",
++        "//types/known/durationpb",
++        "//types/known/fieldmaskpb",
++        "//types/known/structpb",
++        "//types/known/timestamppb",
++        "//types/known/wrapperspb",
 +    ],
 +)
-diff -urN a/internal/testprotos/fieldmaskpb/BUILD.bazel b/internal/testprotos/fieldmaskpb/BUILD.bazel
---- a/internal/testprotos/fieldmaskpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/testprotos/fieldmaskpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
-+go_library(
++alias(
 +    name = "go_default_library",
-+    srcs = ["field_mask.pb.go"],
-+    importpath = "google.golang.org/protobuf/internal/testprotos/fieldmaskpb",
++    actual = ":conformance",
 +    visibility = ["//:__subpackages__"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
 +)
 diff -urN a/internal/testprotos/fieldtrack/BUILD.bazel b/internal/testprotos/fieldtrack/BUILD.bazel
 --- a/internal/testprotos/fieldtrack/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/fieldtrack/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "fieldtrack",
 +    srcs = ["fieldtrack.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/fieldtrack",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/testprotos/annotation:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//internal/testprotos/annotation",
++        "//internal/testprotos/test",
++        "//proto",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":fieldtrack",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/fuzz/BUILD.bazel b/internal/testprotos/fuzz/BUILD.bazel
 --- a/internal/testprotos/fuzz/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/fuzz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "fuzz",
 +    srcs = ["fuzz.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/fuzz",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/test3:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//internal/testprotos/test",
++        "//internal/testprotos/test3",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":fuzz",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/irregular/BUILD.bazel b/internal/testprotos/irregular/BUILD.bazel
 --- a/internal/testprotos/irregular/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/irregular/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "irregular",
 +    srcs = [
 +        "irregular.go",
 +        "test.pb.go",
@@ -1789,312 +2099,432 @@ diff -urN a/internal/testprotos/irregular/BUILD.bazel b/internal/testprotos/irre
 +    importpath = "google.golang.org/protobuf/internal/testprotos/irregular",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/prototext",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
++        "//types/descriptorpb",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":irregular",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/BUILD.bazel b/internal/testprotos/legacy/BUILD.bazel
 --- a/internal/testprotos/legacy/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "legacy",
 +    srcs = ["legacy.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/testprotos/legacy/proto2_20160225_2fc053c5:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20160519_a4ab9ec5:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20180125_92554152:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20180430_b4deda09:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20180814_aa810b61:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20190205_c823c79e:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20160225_2fc053c5:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20160519_a4ab9ec5:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20180125_92554152:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20180430_b4deda09:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20180814_aa810b61:go_default_library",
-+        "//internal/testprotos/legacy/proto3_20190205_c823c79e:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//internal/testprotos/legacy/proto2_20160225_2fc053c5",
++        "//internal/testprotos/legacy/proto2_20160519_a4ab9ec5",
++        "//internal/testprotos/legacy/proto2_20180125_92554152",
++        "//internal/testprotos/legacy/proto2_20180430_b4deda09",
++        "//internal/testprotos/legacy/proto2_20180814_aa810b61",
++        "//internal/testprotos/legacy/proto2_20190205_c823c79e",
++        "//internal/testprotos/legacy/proto3_20160225_2fc053c5",
++        "//internal/testprotos/legacy/proto3_20160519_a4ab9ec5",
++        "//internal/testprotos/legacy/proto3_20180125_92554152",
++        "//internal/testprotos/legacy/proto3_20180430_b4deda09",
++        "//internal/testprotos/legacy/proto3_20180814_aa810b61",
++        "//internal/testprotos/legacy/proto3_20190205_c823c79e",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":legacy",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/bug1052/BUILD.bazel b/internal/testprotos/legacy/bug1052/BUILD.bazel
 --- a/internal/testprotos/legacy/bug1052/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/bug1052/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "bug1052",
 +    srcs = ["bug1052.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/bug1052",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/protolegacy:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//internal/protolegacy",
++        "//types/descriptorpb",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":bug1052",
++    visibility = ["//:__subpackages__"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "bug1052_test",
 +    srcs = ["bug1052_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":bug1052"],
 +)
 diff -urN a/internal/testprotos/legacy/proto2_20160225_2fc053c5/BUILD.bazel b/internal/testprotos/legacy/proto2_20160225_2fc053c5/BUILD.bazel
 --- a/internal/testprotos/legacy/proto2_20160225_2fc053c5/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto2_20160225_2fc053c5/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2_20160225_2fc053c5",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto2_20160225_2fc053c5",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2_20160225_2fc053c5",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto2_20160519_a4ab9ec5/BUILD.bazel b/internal/testprotos/legacy/proto2_20160519_a4ab9ec5/BUILD.bazel
 --- a/internal/testprotos/legacy/proto2_20160519_a4ab9ec5/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto2_20160519_a4ab9ec5/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2_20160519_a4ab9ec5",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto2_20160519_a4ab9ec5",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2_20160519_a4ab9ec5",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto2_20180125_92554152/BUILD.bazel b/internal/testprotos/legacy/proto2_20180125_92554152/BUILD.bazel
 --- a/internal/testprotos/legacy/proto2_20180125_92554152/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto2_20180125_92554152/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2_20180125_92554152",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto2_20180125_92554152",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2_20180125_92554152",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto2_20180430_b4deda09/BUILD.bazel b/internal/testprotos/legacy/proto2_20180430_b4deda09/BUILD.bazel
 --- a/internal/testprotos/legacy/proto2_20180430_b4deda09/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto2_20180430_b4deda09/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2_20180430_b4deda09",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto2_20180430_b4deda09",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2_20180430_b4deda09",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto2_20180814_aa810b61/BUILD.bazel b/internal/testprotos/legacy/proto2_20180814_aa810b61/BUILD.bazel
 --- a/internal/testprotos/legacy/proto2_20180814_aa810b61/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto2_20180814_aa810b61/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2_20180814_aa810b61",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto2_20180814_aa810b61",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2_20180814_aa810b61",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto2_20190205_c823c79e/BUILD.bazel b/internal/testprotos/legacy/proto2_20190205_c823c79e/BUILD.bazel
 --- a/internal/testprotos/legacy/proto2_20190205_c823c79e/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto2_20190205_c823c79e/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto2_20190205_c823c79e",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto2_20190205_c823c79e",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto2_20190205_c823c79e",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto3_20160225_2fc053c5/BUILD.bazel b/internal/testprotos/legacy/proto3_20160225_2fc053c5/BUILD.bazel
 --- a/internal/testprotos/legacy/proto3_20160225_2fc053c5/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto3_20160225_2fc053c5/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3_20160225_2fc053c5",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto3_20160225_2fc053c5",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3_20160225_2fc053c5",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto3_20160519_a4ab9ec5/BUILD.bazel b/internal/testprotos/legacy/proto3_20160519_a4ab9ec5/BUILD.bazel
 --- a/internal/testprotos/legacy/proto3_20160519_a4ab9ec5/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto3_20160519_a4ab9ec5/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3_20160519_a4ab9ec5",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto3_20160519_a4ab9ec5",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3_20160519_a4ab9ec5",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto3_20180125_92554152/BUILD.bazel b/internal/testprotos/legacy/proto3_20180125_92554152/BUILD.bazel
 --- a/internal/testprotos/legacy/proto3_20180125_92554152/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto3_20180125_92554152/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3_20180125_92554152",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto3_20180125_92554152",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3_20180125_92554152",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto3_20180430_b4deda09/BUILD.bazel b/internal/testprotos/legacy/proto3_20180430_b4deda09/BUILD.bazel
 --- a/internal/testprotos/legacy/proto3_20180430_b4deda09/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto3_20180430_b4deda09/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3_20180430_b4deda09",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto3_20180430_b4deda09",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3_20180430_b4deda09",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto3_20180814_aa810b61/BUILD.bazel b/internal/testprotos/legacy/proto3_20180814_aa810b61/BUILD.bazel
 --- a/internal/testprotos/legacy/proto3_20180814_aa810b61/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto3_20180814_aa810b61/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3_20180814_aa810b61",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto3_20180814_aa810b61",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3_20180814_aa810b61",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/legacy/proto3_20190205_c823c79e/BUILD.bazel b/internal/testprotos/legacy/proto3_20190205_c823c79e/BUILD.bazel
 --- a/internal/testprotos/legacy/proto3_20190205_c823c79e/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/legacy/proto3_20190205_c823c79e/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,15 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto3_20190205_c823c79e",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/legacy/proto3_20190205_c823c79e",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/protolegacy:go_default_library"],
++    deps = ["//internal/protolegacy"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":proto3_20190205_c823c79e",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/messageset/messagesetpb/BUILD.bazel b/internal/testprotos/messageset/messagesetpb/BUILD.bazel
 --- a/internal/testprotos/messageset/messagesetpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/messageset/messagesetpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["message_set.pb.go"],
-+    importpath = "google.golang.org/protobuf/internal/testprotos/messageset/messagesetpb",
-+    visibility = ["//:__subpackages__"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
-+)
-diff -urN a/internal/testprotos/messageset/msetextpb/BUILD.bazel b/internal/testprotos/messageset/msetextpb/BUILD.bazel
---- a/internal/testprotos/messageset/msetextpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/testprotos/messageset/msetextpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["msetextpb.pb.go"],
-+    importpath = "google.golang.org/protobuf/internal/testprotos/messageset/msetextpb",
-+    visibility = ["//:__subpackages__"],
-+    deps = [
-+        "//internal/testprotos/messageset/messagesetpb:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
-+)
-diff -urN a/internal/testprotos/order/BUILD.bazel b/internal/testprotos/order/BUILD.bazel
---- a/internal/testprotos/order/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/testprotos/order/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["order.pb.go"],
-+    importpath = "google.golang.org/protobuf/internal/testprotos/order",
-+    visibility = ["//:__subpackages__"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
-+)
-diff -urN a/internal/testprotos/registry/BUILD.bazel b/internal/testprotos/registry/BUILD.bazel
---- a/internal/testprotos/registry/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/testprotos/registry/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["test.pb.go"],
-+    importpath = "google.golang.org/protobuf/internal/testprotos/registry",
-+    visibility = ["//:__subpackages__"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
-+)
-diff -urN a/internal/testprotos/required/BUILD.bazel b/internal/testprotos/required/BUILD.bazel
---- a/internal/testprotos/required/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/testprotos/required/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "go_default_library",
-+    srcs = ["required.pb.go"],
-+    importpath = "google.golang.org/protobuf/internal/testprotos/required",
-+    visibility = ["//:__subpackages__"],
-+    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+    ],
-+)
-diff -urN a/internal/testprotos/test/BUILD.bazel b/internal/testprotos/test/BUILD.bazel
---- a/internal/testprotos/test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
-+++ b/internal/testprotos/test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
++    name = "messagesetpb",
++    srcs = ["message_set.pb.go"],
++    importpath = "google.golang.org/protobuf/internal/testprotos/messageset/messagesetpb",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
 +    name = "go_default_library",
++    actual = ":messagesetpb",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/internal/testprotos/messageset/msetextpb/BUILD.bazel b/internal/testprotos/messageset/msetextpb/BUILD.bazel
+--- a/internal/testprotos/messageset/msetextpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/testprotos/messageset/msetextpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "msetextpb",
++    srcs = ["msetextpb.pb.go"],
++    importpath = "google.golang.org/protobuf/internal/testprotos/messageset/msetextpb",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//internal/testprotos/messageset/messagesetpb",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":msetextpb",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/internal/testprotos/order/BUILD.bazel b/internal/testprotos/order/BUILD.bazel
+--- a/internal/testprotos/order/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/testprotos/order/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "order",
++    srcs = ["order.pb.go"],
++    importpath = "google.golang.org/protobuf/internal/testprotos/order",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":order",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/internal/testprotos/registry/BUILD.bazel b/internal/testprotos/registry/BUILD.bazel
+--- a/internal/testprotos/registry/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/testprotos/registry/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "registry",
++    srcs = ["test.pb.go"],
++    importpath = "google.golang.org/protobuf/internal/testprotos/registry",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":registry",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/internal/testprotos/required/BUILD.bazel b/internal/testprotos/required/BUILD.bazel
+--- a/internal/testprotos/required/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/testprotos/required/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "required",
++    srcs = ["required.pb.go"],
++    importpath = "google.golang.org/protobuf/internal/testprotos/required",
++    visibility = ["//:__subpackages__"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":required",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/internal/testprotos/test/BUILD.bazel b/internal/testprotos/test/BUILD.bazel
+--- a/internal/testprotos/test/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/internal/testprotos/test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "test",
 +    srcs = [
 +        "ext.pb.go",
 +        "test.pb.go",
@@ -2104,52 +2534,70 @@ diff -urN a/internal/testprotos/test/BUILD.bazel b/internal/testprotos/test/BUIL
 +    importpath = "google.golang.org/protobuf/internal/testprotos/test",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//proto",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":test",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/test/weak1/BUILD.bazel b/internal/testprotos/test/weak1/BUILD.bazel
 --- a/internal/testprotos/test/weak1/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/test/weak1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "weak1",
 +    srcs = ["test_weak.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/test/weak1",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":weak1",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/test/weak2/BUILD.bazel b/internal/testprotos/test/weak2/BUILD.bazel
 --- a/internal/testprotos/test/weak2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/test/weak2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "weak2",
 +    srcs = ["test_weak.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/test/weak2",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":weak2",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/test3/BUILD.bazel b/internal/testprotos/test3/BUILD.bazel
 --- a/internal/testprotos/test3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/test3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "test3",
 +    srcs = [
 +        "test.pb.go",
 +        "test_extension.pb.go",
@@ -2158,83 +2606,113 @@ diff -urN a/internal/testprotos/test3/BUILD.bazel b/internal/testprotos/test3/BU
 +    importpath = "google.golang.org/protobuf/internal/testprotos/test3",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++        "//types/descriptorpb",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":test3",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/textpb2/BUILD.bazel b/internal/testprotos/textpb2/BUILD.bazel
 --- a/internal/testprotos/textpb2/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/textpb2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,26 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "textpb2",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/textpb2",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//internal/testprotos/fieldmaskpb:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/known/anypb:go_default_library",
-+        "//types/known/durationpb:go_default_library",
-+        "//types/known/emptypb:go_default_library",
-+        "//types/known/structpb:go_default_library",
-+        "//types/known/timestamppb:go_default_library",
-+        "//types/known/wrapperspb:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
++        "//types/known/anypb",
++        "//types/known/durationpb",
++        "//types/known/emptypb",
++        "//types/known/fieldmaskpb",
++        "//types/known/structpb",
++        "//types/known/timestamppb",
++        "//types/known/wrapperspb",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":textpb2",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/testprotos/textpb3/BUILD.bazel b/internal/testprotos/textpb3/BUILD.bazel
 --- a/internal/testprotos/textpb3/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/testprotos/textpb3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "textpb3",
 +    srcs = ["test.pb.go"],
 +    importpath = "google.golang.org/protobuf/internal/testprotos/textpb3",
 +    visibility = ["//:__subpackages__"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":textpb3",
++    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/version/BUILD.bazel b/internal/version/BUILD.bazel
 --- a/internal/version/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/version/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "version",
 +    srcs = ["version.go"],
 +    importpath = "google.golang.org/protobuf/internal/version",
++    visibility = ["//:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":version",
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/internal/weakdeps/BUILD.bazel b/internal/weakdeps/BUILD.bazel
 --- a/internal/weakdeps/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/internal/weakdeps/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,14 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "weakdeps",
 +    srcs = ["doc.go"],
 +    importpath = "google.golang.org/protobuf/internal/weakdeps",
++    visibility = ["//:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":weakdeps",
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 --- a/proto/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,94 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "proto",
 +    srcs = [
 +        "checkinit.go",
 +        "decode.go",
@@ -2256,22 +2734,29 @@ diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/proto",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/encoding/messageset:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/fieldsort:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/mapsort:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//internal/strs:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//runtime/protoiface:go_default_library",
++        "//encoding/protowire",
++        "//internal/encoding/messageset",
++        "//internal/errors",
++        "//internal/fieldsort",
++        "//internal/flags",
++        "//internal/genid",
++        "//internal/mapsort",
++        "//internal/pragma",
++        "//internal/strs",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//runtime/protoiface",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":proto",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "proto_test",
 +    srcs = [
 +        "bench_test.go",
 +        "checkinit_test.go",
@@ -2289,43 +2774,43 @@ diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 +        "validate_test.go",
 +        "weak_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":proto"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//encoding/protowire:go_default_library",
-+        "//internal/filedesc:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/impl:go_default_library",
-+        "//internal/protobuild:go_default_library",
-+        "//internal/testprotos/legacy:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20160225_2fc053c5:go_default_library",
-+        "//internal/testprotos/messageset/messagesetpb:go_default_library",
-+        "//internal/testprotos/messageset/msetextpb:go_default_library",
-+        "//internal/testprotos/order:go_default_library",
-+        "//internal/testprotos/required:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/test/weak1:go_default_library",
-+        "//internal/testprotos/test3:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//testing/protocmp:go_default_library",
-+        "//testing/protopack:go_default_library",
-+        "//types/descriptorpb:go_default_library",
-+        "//types/dynamicpb:go_default_library",
++        "//encoding/prototext",
++        "//encoding/protowire",
++        "//internal/filedesc",
++        "//internal/flags",
++        "//internal/impl",
++        "//internal/protobuild",
++        "//internal/testprotos/legacy",
++        "//internal/testprotos/legacy/proto2_20160225_2fc053c5",
++        "//internal/testprotos/messageset/messagesetpb",
++        "//internal/testprotos/messageset/msetextpb",
++        "//internal/testprotos/order",
++        "//internal/testprotos/required",
++        "//internal/testprotos/test",
++        "//internal/testprotos/test/weak1",
++        "//internal/testprotos/test3",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
++        "//testing/protocmp",
++        "//testing/protopack",
++        "//types/descriptorpb",
++        "//types/dynamicpb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/reflect/protodesc/BUILD.bazel b/reflect/protodesc/BUILD.bazel
 --- a/reflect/protodesc/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/reflect/protodesc/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,48 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protodesc",
 +    srcs = [
 +        "desc.go",
 +        "desc_init.go",
@@ -2336,41 +2821,48 @@ diff -urN a/reflect/protodesc/BUILD.bazel b/reflect/protodesc/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/reflect/protodesc",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/encoding/defval:go_default_library",
-+        "//internal/errors:go_default_library",
-+        "//internal/filedesc:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//internal/pragma:go_default_library",
-+        "//internal/strs:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/protowire",
++        "//internal/encoding/defval",
++        "//internal/errors",
++        "//internal/filedesc",
++        "//internal/flags",
++        "//internal/genid",
++        "//internal/pragma",
++        "//internal/strs",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//types/descriptorpb",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":protodesc",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "protodesc_test",
 +    srcs = ["file_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":protodesc"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//internal/flags:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/prototext",
++        "//internal/flags",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//types/descriptorpb",
 +    ],
 +)
 diff -urN a/reflect/protoreflect/BUILD.bazel b/reflect/protoreflect/BUILD.bazel
 --- a/reflect/protoreflect/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/reflect/protoreflect/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protoreflect",
 +    srcs = [
 +        "methods.go",
 +        "proto.go",
@@ -2383,47 +2875,59 @@ diff -urN a/reflect/protoreflect/BUILD.bazel b/reflect/protoreflect/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/reflect/protoreflect",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/pragma:go_default_library",
++        "//encoding/protowire",
++        "//internal/pragma",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":protoreflect",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "protoreflect_test",
 +    srcs = [
 +        "proto_test.go",
 +        "value_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":protoreflect"],
 +)
 diff -urN a/reflect/protoregistry/BUILD.bazel b/reflect/protoregistry/BUILD.bazel
 --- a/reflect/protoregistry/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/reflect/protoregistry/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protoregistry",
 +    srcs = ["registry.go"],
 +    importpath = "google.golang.org/protobuf/reflect/protoregistry",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//internal/errors:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/errors",
++        "//reflect/protoreflect",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":protoregistry",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "protoregistry_test",
 +    srcs = ["registry_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":protoregistry"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//internal/impl:go_default_library",
-+        "//internal/testprotos/registry:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/prototext",
++        "//internal/impl",
++        "//internal/testprotos/registry",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//types/descriptorpb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
 +    ],
@@ -2431,11 +2935,11 @@ diff -urN a/reflect/protoregistry/BUILD.bazel b/reflect/protoregistry/BUILD.baze
 diff -urN a/runtime/protoiface/BUILD.bazel b/runtime/protoiface/BUILD.bazel
 --- a/runtime/protoiface/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/runtime/protoiface/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,21 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protoiface",
 +    srcs = [
 +        "legacy.go",
 +        "methods.go",
@@ -2443,18 +2947,24 @@ diff -urN a/runtime/protoiface/BUILD.bazel b/runtime/protoiface/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/runtime/protoiface",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//internal/pragma:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//internal/pragma",
++        "//reflect/protoreflect",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":protoiface",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/runtime/protoimpl/BUILD.bazel b/runtime/protoimpl/BUILD.bazel
 --- a/runtime/protoimpl/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/runtime/protoimpl/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protoimpl",
 +    srcs = [
 +        "impl.go",
 +        "version.go",
@@ -2462,20 +2972,26 @@ diff -urN a/runtime/protoimpl/BUILD.bazel b/runtime/protoimpl/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/runtime/protoimpl",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//internal/filedesc:go_default_library",
-+        "//internal/filetype:go_default_library",
-+        "//internal/impl:go_default_library",
-+        "//internal/version:go_default_library",
++        "//internal/filedesc",
++        "//internal/filetype",
++        "//internal/impl",
++        "//internal/version",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":protoimpl",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/testing/protocmp/BUILD.bazel b/testing/protocmp/BUILD.bazel
 --- a/testing/protocmp/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/testing/protocmp/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,52 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protocmp",
 +    srcs = [
 +        "reflect.go",
 +        "util.go",
@@ -2484,264 +3000,499 @@ diff -urN a/testing/protocmp/BUILD.bazel b/testing/protocmp/BUILD.bazel
 +    importpath = "google.golang.org/protobuf/testing/protocmp",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//internal/msgfmt:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//encoding/protowire",
++        "//internal/genid",
++        "//internal/msgfmt",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":protocmp",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "protocmp_test",
 +    srcs = [
 +        "reflect_test.go",
 +        "util_test.go",
 +        "xform_test.go",
 +    ],
-+    embed = [":go_default_library"],
++    embed = [":protocmp"],
 +    deps = [
-+        "//internal/detrand:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/textpb2:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//testing/protopack:go_default_library",
-+        "//types/dynamicpb:go_default_library",
-+        "//types/known/anypb:go_default_library",
-+        "//types/known/wrapperspb:go_default_library",
++        "//internal/detrand",
++        "//internal/testprotos/test",
++        "//internal/testprotos/textpb2",
++        "//proto",
++        "//reflect/protoreflect",
++        "//testing/protopack",
++        "//types/dynamicpb",
++        "//types/known/anypb",
++        "//types/known/wrapperspb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/testing/protopack/BUILD.bazel b/testing/protopack/BUILD.bazel
 --- a/testing/protopack/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/testing/protopack/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "protopack",
 +    srcs = ["pack.go"],
 +    importpath = "google.golang.org/protobuf/testing/protopack",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/protowire:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
++        "//encoding/protowire",
++        "//reflect/protoreflect",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":protopack",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "protopack_test",
 +    srcs = ["pack_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":protopack"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//reflect/protodesc:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//encoding/prototext",
++        "//reflect/protodesc",
++        "//reflect/protoreflect",
++        "//types/descriptorpb",
 +        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN a/testing/prototest/BUILD.bazel b/testing/prototest/BUILD.bazel
 --- a/testing/prototest/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/testing/prototest/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
-+    srcs = ["prototest.go"],
++    name = "prototest",
++    srcs = [
++        "enum.go",
++        "prototest.go",
++    ],
 +    importpath = "google.golang.org/protobuf/testing/prototest",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//encoding/prototext:go_default_library",
-+        "//encoding/protowire:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
++        "//encoding/prototext",
++        "//encoding/protowire",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":prototest",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "prototest_test",
 +    srcs = ["prototest_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":prototest"],
 +    deps = [
-+        "//internal/flags:go_default_library",
-+        "//internal/testprotos/irregular:go_default_library",
-+        "//internal/testprotos/legacy:go_default_library",
-+        "//internal/testprotos/legacy/proto2_20160225_2fc053c5:go_default_library",
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/test/weak1:go_default_library",
-+        "//internal/testprotos/test/weak2:go_default_library",
-+        "//internal/testprotos/test3:go_default_library",
-+        "//proto:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//internal/flags",
++        "//internal/testprotos/irregular",
++        "//internal/testprotos/legacy",
++        "//internal/testprotos/legacy/proto2_20160225_2fc053c5",
++        "//internal/testprotos/test",
++        "//internal/testprotos/test/weak1",
++        "//internal/testprotos/test/weak2",
++        "//internal/testprotos/test3",
++        "//proto",
++        "//runtime/protoimpl",
 +    ],
 +)
 diff -urN a/types/descriptorpb/BUILD.bazel b/types/descriptorpb/BUILD.bazel
 --- a/types/descriptorpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/descriptorpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "descriptorpb",
 +    srcs = ["descriptor.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/descriptorpb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":descriptorpb",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/types/dynamicpb/BUILD.bazel b/types/dynamicpb/BUILD.bazel
 --- a/types/dynamicpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/dynamicpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "dynamicpb",
 +    srcs = ["dynamic.go"],
 +    importpath = "google.golang.org/protobuf/types/dynamicpb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//internal/errors:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoiface:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//internal/errors",
++        "//reflect/protoreflect",
++        "//runtime/protoiface",
++        "//runtime/protoimpl",
 +    ],
 +)
 +
++alias(
++    name = "go_default_library",
++    actual = ":dynamicpb",
++    visibility = ["//visibility:public"],
++)
++
 +go_test(
-+    name = "go_default_test",
++    name = "dynamicpb_test",
 +    srcs = ["dynamic_test.go"],
-+    embed = [":go_default_library"],
++    embed = [":dynamicpb"],
 +    deps = [
-+        "//internal/testprotos/test:go_default_library",
-+        "//internal/testprotos/test3:go_default_library",
-+        "//proto:go_default_library",
-+        "//reflect/protoreflect:go_default_library",
-+        "//reflect/protoregistry:go_default_library",
-+        "//testing/prototest:go_default_library",
++        "//internal/testprotos/test",
++        "//internal/testprotos/test3",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//testing/prototest",
 +    ],
 +)
 diff -urN a/types/known/anypb/BUILD.bazel b/types/known/anypb/BUILD.bazel
 --- a/types/known/anypb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/known/anypb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "anypb",
 +    srcs = ["any.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/known/anypb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//proto",
++        "//reflect/protoreflect",
++        "//reflect/protoregistry",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":anypb",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "anypb_test",
++    srcs = ["any_test.go"],
++    embed = [":anypb"],
++    deps = [
++        "//internal/testprotos/test",
++        "//proto",
++        "//reflect/protoreflect",
++        "//testing/protocmp",
++        "//types/known/emptypb",
++        "//types/known/wrapperspb",
++        "@com_github_google_go_cmp//cmp:go_default_library",
++    ],
++)
+diff -urN a/types/known/apipb/BUILD.bazel b/types/known/apipb/BUILD.bazel
+--- a/types/known/apipb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/types/known/apipb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "apipb",
++    srcs = ["api.pb.go"],
++    importpath = "google.golang.org/protobuf/types/known/apipb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++        "//types/known/sourcecontextpb",
++        "//types/known/typepb",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":apipb",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/types/known/durationpb/BUILD.bazel b/types/known/durationpb/BUILD.bazel
 --- a/types/known/durationpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/known/durationpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "durationpb",
 +    srcs = ["duration.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/known/durationpb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":durationpb",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "durationpb_test",
++    srcs = ["duration_test.go"],
++    embed = [":durationpb"],
++    deps = [
++        "//internal/detrand",
++        "//testing/protocmp",
++        "@com_github_google_go_cmp//cmp:go_default_library",
++        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
 +    ],
 +)
 diff -urN a/types/known/emptypb/BUILD.bazel b/types/known/emptypb/BUILD.bazel
 --- a/types/known/emptypb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/known/emptypb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "emptypb",
 +    srcs = ["empty.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/known/emptypb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":emptypb",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/types/known/fieldmaskpb/BUILD.bazel b/types/known/fieldmaskpb/BUILD.bazel
+--- a/types/known/fieldmaskpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/types/known/fieldmaskpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "fieldmaskpb",
++    srcs = ["field_mask.pb.go"],
++    importpath = "google.golang.org/protobuf/types/known/fieldmaskpb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//proto",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":fieldmaskpb",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "fieldmaskpb_test",
++    srcs = ["field_mask_test.go"],
++    embed = [":fieldmaskpb"],
++    deps = [
++        "//internal/testprotos/test",
++        "//proto",
++        "@com_github_google_go_cmp//cmp:go_default_library",
++        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
++    ],
++)
+diff -urN a/types/known/sourcecontextpb/BUILD.bazel b/types/known/sourcecontextpb/BUILD.bazel
+--- a/types/known/sourcecontextpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/types/known/sourcecontextpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "sourcecontextpb",
++    srcs = ["source_context.pb.go"],
++    importpath = "google.golang.org/protobuf/types/known/sourcecontextpb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":sourcecontextpb",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/types/known/structpb/BUILD.bazel b/types/known/structpb/BUILD.bazel
 --- a/types/known/structpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/known/structpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "structpb",
 +    srcs = ["struct.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/known/structpb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//encoding/protojson",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":structpb",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "structpb_test",
++    srcs = ["struct_test.go"],
++    embed = [":structpb"],
++    deps = [
++        "//reflect/protoreflect",
++        "//testing/protocmp",
++        "@com_github_google_go_cmp//cmp:go_default_library",
++        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
 +    ],
 +)
 diff -urN a/types/known/timestamppb/BUILD.bazel b/types/known/timestamppb/BUILD.bazel
 --- a/types/known/timestamppb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/known/timestamppb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "timestamppb",
 +    srcs = ["timestamp.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/known/timestamppb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":timestamppb",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "timestamppb_test",
++    srcs = ["timestamp_test.go"],
++    embed = [":timestamppb"],
++    deps = [
++        "//internal/detrand",
++        "//testing/protocmp",
++        "@com_github_google_go_cmp//cmp:go_default_library",
++        "@com_github_google_go_cmp//cmp/cmpopts:go_default_library",
++    ],
++)
+diff -urN a/types/known/typepb/BUILD.bazel b/types/known/typepb/BUILD.bazel
+--- a/types/known/typepb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
++++ b/types/known/typepb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "typepb",
++    srcs = ["type.pb.go"],
++    importpath = "google.golang.org/protobuf/types/known/typepb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++        "//types/known/anypb",
++        "//types/known/sourcecontextpb",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":typepb",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/types/known/wrapperspb/BUILD.bazel b/types/known/wrapperspb/BUILD.bazel
 --- a/types/known/wrapperspb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/known/wrapperspb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "wrapperspb",
 +    srcs = ["wrappers.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/known/wrapperspb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":wrapperspb",
++    visibility = ["//visibility:public"],
 +)
 diff -urN a/types/pluginpb/BUILD.bazel b/types/pluginpb/BUILD.bazel
 --- a/types/pluginpb/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/types/pluginpb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
-+    name = "go_default_library",
++    name = "pluginpb",
 +    srcs = ["plugin.pb.go"],
 +    importpath = "google.golang.org/protobuf/types/pluginpb",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//reflect/protoreflect:go_default_library",
-+        "//runtime/protoimpl:go_default_library",
-+        "//types/descriptorpb:go_default_library",
++        "//reflect/protoreflect",
++        "//runtime/protoimpl",
++        "//types/descriptorpb",
 +    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":pluginpb",
++    visibility = ["//visibility:public"],
 +)
