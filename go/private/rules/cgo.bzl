@@ -31,13 +31,6 @@ load(
     "cc_library",
 )
 
-_WHOLE_ARCHIVE_FLAGS_BY_GOOS = {
-    "darwin": ("-Wl,-force_load", ""),
-    "js": ("", ""),
-    "linux": ("-Wl,--whole-archive", "-Wl,--no-whole-archive"),
-    "windows": ("-Wl,--whole-archive", "-Wl,--no-whole-archive"),
-}
-
 def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     """cgo_configure returns the inputs and compile / link options
     that are required to build a cgo archive.
@@ -147,11 +140,7 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
                         libname = ":%s" % lib_file.basename
                         clinkopts.extend(["-L", lib_file.dirname, "-l", libname])
                     else:
-                        if library_to_link.alwayslink:
-                            lib_opts.append(_WHOLE_ARCHIVE_FLAGS_BY_GOOS[go.mode.goos][0])
-                        lib_opts.append(lib_file.path)
-                        if library_to_link.alwayslink:
-                            lib_opts.append(_WHOLE_ARCHIVE_FLAGS_BY_GOOS[go.mode.goos][1])
+                        lib_opts.extend(_library_args(go, lib_file, library_to_link.alwayslink))
             cc_link_flags = d[CcInfo].linking_context.user_link_flags
             clinkopts.extend(cc_link_flags)
 
@@ -196,7 +185,7 @@ def _cc_libraries_to_link(target):
     libraries_to_link = as_iterable(target[CcInfo].linking_context.libraries_to_link)
     return libraries_to_link
 
-# Returns the library path to link for the given LibraryToLink.
+# Returns the library File to link for the given LibraryToLink.
 def _cc_lib_file(library_to_link):
     if library_to_link.static_library != None:
         return library_to_link.static_library
@@ -207,6 +196,18 @@ def _cc_lib_file(library_to_link):
     elif library_to_link.dynamic_library != None:
         return library_to_link.dynamic_library
     return None
+
+# Returns the linker flags to link the given static library File.
+def _library_args(go, lib_file, alwayslink):
+    if not alwayslink:
+        return [lib_file.path]
+
+    cc_basename = go.cgo_tools.c_compiler_path.rpartition("/")[-1]
+    print(cc_basename)
+    if cc_basename == "clang":
+        return ["-Wl,-force_load", lib_file.path]
+    else:
+        return ["-Wl,--whole-archive", lib_file.path, "-Wl,--no-whole-archive"]
 
 _DEFAULT_PLATFORM_COPTS = select({
     "@io_bazel_rules_go//go/platform:darwin": [],
