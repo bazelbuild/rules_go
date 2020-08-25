@@ -208,7 +208,5 @@ This runs tests from the repository `golang.org/x/mod <https://golang.org/x/mod>
 * @org_golang_x_mod//sumdb/dirhash:go_default_test
 * @org_golang_x_mod//sumdb/note:go_default_test
 * @org_golang_x_mod//sumdb/storage:go_default_test
-* @org_golang_x_mod//sumdb/tlog:go_default_test
-* @org_golang_x_mod//zip:go_default_test
 
 

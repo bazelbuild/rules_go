@@ -209,6 +209,10 @@ POPULAR_REPOS = [
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
         commit = "c0d644d00ab849f4506f17a98a5740bf0feff020",
+        excludes = [
+            "sumdb/tlog:go_default_test", # Needs network, not available on RBE
+            "zip:go_default_test", # Needs vcs tools, not available on RBE
+        ],            
     ),
   ]
 
