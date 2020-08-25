@@ -1,4 +1,5 @@
 .. _#2067: https://github.com/bazelbuild/rules_go/issues/2067
+.. _#2622: https://github.com/bazelbuild/rules_go/issues/2622
 
 Basic cgo functionality
 =======================
@@ -52,3 +53,10 @@ cdeps_link_test
 
 Checks that libraries in ``cdeps`` are linked into the generated ``_cgo_.o``
 executable used to produce ``_cgo_imports.go``. Verifies `#2067`_.
+
+split_import_test
+-----------------
+
+Checks that when a package with ``cdeps`` is recompiled due to a split test,
+the input files from ``cdeps`` are included in the recompilation and are passed
+to the linker. Verifies `#2622`_.

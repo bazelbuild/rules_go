@@ -167,6 +167,7 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
         file = out_lib,
         export_file = out_export,
         data_files = as_tuple(data_files),
+        _cgo_deps = as_tuple(cgo_deps),
     )
     x_defs = dict(source.x_defs)
     for a in direct:
