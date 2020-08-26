@@ -118,7 +118,6 @@ platforms:
     - "-@org_golang_x_sys//windows/svc/eventlog:go_default_test"
     - "-@org_golang_x_sys//windows/svc:go_default_test"
     - "-@org_golang_x_text//language:go_default_test"
-    - "-@org_golang_x_tools//go/packages/packagestest:go_default_test"
     - "-//proto:combo_grpc"
     - "-//proto:combo_proto"
     - "-//proto:gofast_grpc"
@@ -263,8 +262,7 @@ platforms:
     - "-@org_golang_x_sys//windows/svc/eventlog:go_default_test"
     - "-@org_golang_x_sys//windows/svc:go_default_test"
     - "-@org_golang_x_text//language:go_default_test"
-    - "-@org_golang_x_tools//cmd/splitdwarf/internal/macho:go_default_test"
-    - "-@org_golang_x_tools//go/packages/packagestest:go_default_test"
+    - "-@org_golang_x_tools//cmd/splitdwarf/internal/macho:macho_test"
     - "-@test_chdir_remote//sub:go_default_test"
     - "-//tests:buildifier_test" # requires bash
     - "-//tests/core/cgo:dylib_test"
