@@ -74,7 +74,9 @@ def emit_link(
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
-    if (go.mode.static and not go.mode.pure) or go.mode.link != LINKMODE_NORMAL:
+    if ((go.mode.static and not go.mode.pure) or
+        go.mode.link != LINKMODE_NORMAL or
+        go.mode.goos == "windows" and (go.mode.race or go.mode.msan)):
         tool_args.add("-linkmode", "external")
     if go.mode.static:
         extldflags.append("-static")
