@@ -38,16 +38,6 @@ http_archive(
     ],
 )
 
-# Used by //tests:buildifier_test.
-# Latest release is not compatible with the incompatible bazel flags we use
-# in CI, in particular, --incompatible_load_proto_rules_from_bzl.
-git_repository(
-    name = "com_github_bazelbuild_buildtools",
-    commit = "f630fda6c1db92241fee1ff66ca07018b2c7a5f3",  # master as of 2020-02-03
-    remote = "https://github.com/bazelbuild/buildtools",
-    shallow_since = "1580754619 +0100",
-)
-
 # For manual testing against an LLVM toolchain.
 # Use --crosstool_top=@llvm_toolchain//:toolchain
 http_archive(
@@ -87,13 +77,11 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
-http_archive(
+git_repository(
     name = "bazel_gazelle",
-    sha256 = "d8c45ee70ec39a57e7a05e5027c32b1576cc7f16d9dd37135b0eddde45cf1b10",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.20.0/bazel-gazelle-v0.20.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.20.0/bazel-gazelle-v0.20.0.tar.gz",
-    ],
+    commit = "91bbcd937d38c317f63db4cb1c606d49c9e351e0",
+    remote = "https://github.com/bazelbuild/bazel-gazelle",
+    shallow_since = "1598462983 -0400",
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")

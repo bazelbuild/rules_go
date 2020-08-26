@@ -25,6 +25,21 @@ load(
     "@io_bazel_rules_go//go/private:rules/stdlib.bzl",
     "stdlib",
 )
+load(
+    "@bazel_gazelle//:def.bzl",
+    "gazelle",
+)
+
+# gazelle:prefix github.com/bazelbuild/rules_go
+# gazelle:exclude tests
+# gazelle:exclude third_party
+# gazelle:exclude go/tools/builders
+# gazelle:exclude go/tools/coverdata
+# gazelle:exclude go/tools/fetch_repo
+# gazelle:exclude go/tools/windows-testrunner
+# gazelle:exclude go/tools/testwrapper
+# gazelle:go_naming_convention import_alias
+gazelle(name = "gazelle")
 
 stdlib(
     name = "stdlib",

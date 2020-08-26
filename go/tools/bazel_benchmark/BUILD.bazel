@@ -1,6 +1,14 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_binary(
     name = "bazel_benchmark",
+    embed = [":bazel_benchmark_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "bazel_benchmark_lib",
     srcs = ["bazel_benchmark.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/bazel_benchmark",
+    visibility = ["//visibility:private"],
 )
