@@ -25,10 +25,6 @@ load(
     "@io_bazel_rules_go//go/private:rules/stdlib.bzl",
     "stdlib",
 )
-load(
-    "@bazel_gazelle//:def.bzl",
-    "gazelle",
-)
 
 # gazelle:prefix github.com/bazelbuild/rules_go
 # gazelle:exclude tests
@@ -39,7 +35,10 @@ load(
 # gazelle:exclude go/tools/windows-testrunner
 # gazelle:exclude go/tools/testwrapper
 # gazelle:go_naming_convention import_alias
-gazelle(name = "gazelle")
+
+# TODO(jayconrod): add a gazelle rule so gazelle can be run automatically.
+# It can't go here though, because it would break anything that depends on
+# rules_go but not Gazelle, including our own go_bazel_tests.
 
 stdlib(
     name = "stdlib",
