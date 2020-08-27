@@ -62,7 +62,7 @@ gazelle(
 )
 
 go_library(
-    name = "go_default_library",
+    name = "g",
     srcs = ["hello.go"],
     importpath = "example.com/g",
     visibility = ["//visibility:public"],
