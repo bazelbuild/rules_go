@@ -120,7 +120,7 @@ TOOLS_NOGO = [
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.23.0"
+RULES_GO_VERSION = "0.24.0"
 
 declare_toolchains = _declare_toolchains
 go_context = _go_context
