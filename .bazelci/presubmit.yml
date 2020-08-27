@@ -94,7 +94,7 @@ platforms:
     - "-@go_googleapis//google/rpc:status_proto"
     - "-@go_googleapis//google/type:color_go_proto"
     - "-@gogo_special_proto//github.com/gogo/protobuf/gogoproto:gogoproto"
-    - "-//go/tools/bazel:go_default_test"
+    - "-//go/tools/bazel:bazel_test"
     - "-@io_bazel_rules_go//proto:gogofaster_proto"
     - "-@io_bazel_rules_go//proto:go_grpc"
     - "-@io_bazel_rules_go//proto:go_proto"
@@ -254,7 +254,7 @@ platforms:
     test_targets:
     - "--"
     - "..."
-    - "-//go/tools/bazel:go_default_test"
+    - "-//go/tools/bazel:bazel_test"
     - "-@org_golang_x_crypto//ed25519:go_default_test"
     - "-@org_golang_x_crypto//sha3:go_default_test"
     - "-@org_golang_x_net//ipv4:go_default_test"
