@@ -69,7 +69,11 @@ go_source(
 
 go_binary(
     name = "go_path",
-    srcs = ["go_path.go"],
+    srcs = [
+        "env.go",
+        "flags.go",
+        "go_path.go"
+    ],
     visibility = ["//visibility:public"],
 )
 

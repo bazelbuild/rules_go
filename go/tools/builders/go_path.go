@@ -125,7 +125,7 @@ func archivePath(out string, manifest []manifestEntry) (err error) {
 	outZip := zip.NewWriter(outFile)
 
 	for _, entry := range manifest {
-		srcFile, err := os.Open(entry.Src)
+		srcFile, err := os.Open(abs(filepath.FromSlash(entry.Src)))
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func copyPath(out string, manifest []manifestEntry) error {
 		if err := os.MkdirAll(filepath.Dir(dst), 0777); err != nil {
 			return err
 		}
-		srcFile, err := os.Open(entry.Src)
+		srcFile, err := os.Open(abs(filepath.FromSlash(entry.Src)))
 		if err != nil {
 			return err
 		}
