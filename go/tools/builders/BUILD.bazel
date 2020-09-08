@@ -72,7 +72,7 @@ go_binary(
     srcs = [
         "env.go",
         "flags.go",
-        "go_path.go"
+        "go_path.go",
     ],
     visibility = ["//visibility:public"],
 )
