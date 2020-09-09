@@ -319,7 +319,11 @@ func compileArchive(
 	defer os.Remove(importcfgPath)
 
 	// tempdir to store nogo facts and pkgdef for packaging later
-	xTempDir, err := ioutil.TempDir(filepath.Dir(outXPath), "x_files")
+	absOutXPathDir, err := filepath.Abs(filepath.Dir(outXPath))
+	if err != nil {
+		return err
+	}
+	xTempDir, err := ioutil.TempDir(absOutXPathDir, "x_files")
 	if err != nil {
 		return err
 	}
