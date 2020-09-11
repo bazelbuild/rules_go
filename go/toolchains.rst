@@ -201,7 +201,9 @@ dependencies.
         implementation = _my_rule_impl,
         attrs = {
             ...
-            "_go_context_data": attr.label("@io_bazel_rules_go//:go_context_data"),
+            "_go_context_data": attr.label(
+                default = "@io_bazel_rules_go//:go_context_data",
+            ),
         },
         toolchains = ["@io_bazel_rules_go//go:toolchain"],
     )
