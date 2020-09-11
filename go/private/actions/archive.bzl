@@ -56,10 +56,10 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
         pre_ext = ".external"
     if _recompile_suffix:
         pre_ext += _recompile_suffix
-    out_lib = go.declare_file(go, ext = pre_ext + ".a")
+    out_lib = go.declare_file(go, name = source.library.name, ext = pre_ext + ".a")
 
     # store __.PKGDEF and nogo facts in .x
-    out_export = go.declare_file(go, ext = pre_ext + ".x")
+    out_export = go.declare_file(go, name = source.library.name, ext = pre_ext + ".x")
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
 
     direct = [get_archive(dep) for dep in source.deps]
