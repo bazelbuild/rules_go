@@ -70,9 +70,7 @@ filegroup(
     ]),
 )
 
-filegroup(
-    name = "zoneinfo",
-    srcs = [
-        "lib/time/zoneinfo.zip",
-    ],
+exports_files(
+    ["lib/time/zoneinfo.zip"],
+    visibility = ["//visibility:public"],
 )
