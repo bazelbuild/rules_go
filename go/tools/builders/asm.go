@@ -30,7 +30,7 @@ import (
 // Go rules as an action.
 func asm(args []string) error {
 	// Parse arguments.
-	args, err := readParamsFiles(args)
+	args, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}

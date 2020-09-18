@@ -24,7 +24,7 @@ import (
 )
 
 func run(args []string) error {
-	args, err := readParamsFiles(args)
+	args, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}

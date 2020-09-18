@@ -62,7 +62,7 @@ func main() {
 // run returns an error if there is a problem loading the package or if any
 // analysis fails.
 func run(args []string) error {
-	args, err := readParamsFiles(args)
+	args, err := expandParamsFiles(args)
 	if err != nil {
 		return fmt.Errorf("error reading paramfiles: %v", err)
 	}

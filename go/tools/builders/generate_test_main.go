@@ -175,7 +175,7 @@ func main() {
 
 func genTestMain(args []string) error {
 	// Prepare our flags
-	args, err := readParamsFiles(args)
+	args, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}

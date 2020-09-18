@@ -28,7 +28,7 @@ func main() {
 	log.SetFlags(0)
 	log.SetPrefix("builder: ")
 
-	args, err := readParamsFiles(os.Args[1:])
+	args, err := expandParamsFiles(os.Args[1:])
 	if err != nil {
 		log.Fatal(err)
 	}

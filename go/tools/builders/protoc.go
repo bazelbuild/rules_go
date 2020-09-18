@@ -40,7 +40,7 @@ type genFileInfo struct {
 
 func run(args []string) error {
 	// process the args
-	args, err := readParamsFiles(args)
+	args, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}

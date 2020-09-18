@@ -169,11 +169,10 @@ func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
 	return nil
 }
 
-// readParamsFile looks for arguments in args of the form
+// expandParamsFiles looks for arguments in args of the form
 // "-param=filename". When it finds these arguments it reads the file "filename"
-// and replaces the argument with its content (each argument must be on a
-// separate line; blank lines are ignored).
-func readParamsFiles(args []string) ([]string, error) {
+// and replaces the argument with its content.
+func expandParamsFiles(args []string) ([]string, error) {
 	var paramsIndices []int
 	for i, arg := range args {
 		if strings.HasPrefix(arg, "-param=") {
@@ -190,19 +189,61 @@ func readParamsFiles(args []string) ([]string, error) {
 		last = pi + 1
 
 		fileName := args[pi][len("-param="):]
-		content, err := ioutil.ReadFile(fileName)
+		fileArgs, err := readParamsFile(fileName)
 		if err != nil {
 			return nil, err
-		}
-		fileArgs := strings.Split(string(content), "\n")
-		if len(fileArgs) >= 0 && fileArgs[len(fileArgs)-1] == "" {
-			// Ignore final empty line.
-			fileArgs = fileArgs[:len(fileArgs)-1]
 		}
 		expandedArgs = append(expandedArgs, fileArgs...)
 	}
 	expandedArgs = append(expandedArgs, args[last:]...)
 	return expandedArgs, nil
+}
+
+// readParamsFiles parses a Bazel params file in "shell" format. The file
+// should contain one argument per line. Arguments may be quoted with single
+// quotes. Quoted strings may contain newlines, which don't break arguments.
+// Quotes, backslashes, and newlines may be escaped with backslashes.
+func readParamsFile(name string) ([]string, error) {
+	data, err := ioutil.ReadFile(name)
+	if err != nil {
+		return nil, err
+	}
+
+	var args []string
+	var arg []byte
+	quote := false
+	escape := false
+	for p := 0; p < len(data); p++ {
+		b := data[p]
+		switch {
+		case escape:
+			arg = append(arg, b)
+			escape = false
+
+		case b == '\\':
+			escape = true
+
+		case b == '\'':
+			quote = !quote
+
+		case !quote && b == '\n':
+			args = append(args, string(arg))
+			arg = arg[:0]
+
+		default:
+			arg = append(arg, b)
+		}
+	}
+	if quote {
+		return nil, fmt.Errorf("unterminated quote")
+	}
+	if escape {
+		return nil, fmt.Errorf("unterminated escape")
+	}
+	if len(arg) > 0 {
+		args = append(args, string(arg))
+	}
+	return args, nil
 }
 
 // splitArgs splits a list of command line arguments into two parts: arguments
