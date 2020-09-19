@@ -433,7 +433,8 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath
 	args = append(args, "--")
 	args = append(args, srcs...)
 	absArgs(args, []string{"-I", "-o", "-trimpath", "-importcfg"})
-	return goenv.runCommand(args)
+	// "go tool compile" writes syntax errors to stdout. Redirecting them to stderr
+	return goenv.runCommandToFile(os.Stderr, args)
 }
 
 func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string, deps []archive, packagePath, importcfgPath, outFactsPath string) error {
