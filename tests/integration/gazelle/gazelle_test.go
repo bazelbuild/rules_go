@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 -- BUILD.bazel --
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix example.com/g
+# gazelle:prefix example.com/hello
 gazelle(
     name = "gazelle",
 )
@@ -56,15 +56,15 @@ func TestUpdate(t *testing.T) {
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix example.com/g
+# gazelle:prefix example.com/hello
 gazelle(
     name = "gazelle",
 )
 
 go_library(
-    name = "go_default_library",
+    name = "hello",
     srcs = ["hello.go"],
-    importpath = "example.com/g",
+    importpath = "example.com/hello",
     visibility = ["//visibility:public"],
 )
 `)

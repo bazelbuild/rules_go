@@ -24,9 +24,9 @@ POPULAR_REPOS = [
         strip_prefix = "crypto-de0752318171da717af4ce24d0a2e8626afaeb11",
         type = "zip",
         excludes = [
-            "ssh/agent:go_default_test",
-            "ssh:go_default_test",
-            "ssh/test:go_default_test",
+            "ssh/agent:agent_test",
+            "ssh:ssh_test",
+            "ssh/test:test_test",
         ],
     ),
 
@@ -35,15 +35,15 @@ POPULAR_REPOS = [
         importpath = "golang.org/x/net",
         commit = "57efc9c3d9f91fb3277f8da1cff370539c4d3dc5",
         excludes = [
-            "bpf:go_default_test", # Needs testdata directory
-            "html/charset:go_default_test", # Needs testdata directory
-            "http2:go_default_test", # Needs testdata directory
-            "icmp:go_default_test", # icmp requires adjusting kernel options.
-            "nettest:go_default_test", #
-            "lif:go_default_test",
+            "bpf:bpf_test", # Needs testdata directory
+            "html/charset:charset_test", # Needs testdata directory
+            "http2:http2_test", # Needs testdata directory
+            "icmp:icmp_test", # icmp requires adjusting kernel options.
+            "nettest:nettest_test", #
+            "lif:lif_test",
         ],
         darwin_tests = [
-            "route:go_default_test", # Not supported on linux
+            "route:route_test", # Not supported on linux
         ]
     ),
 
@@ -51,9 +51,6 @@ POPULAR_REPOS = [
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
         commit = "acbc56fc7007d2a01796d5bde54f39e3b3e95945",
-        excludes = [
-            "unix:go_default_test", # TODO(#413): External test depends on symbols defined in internal test.
-        ],
     ),
 
     dict(
@@ -61,13 +58,13 @@ POPULAR_REPOS = [
         importpath = "golang.org/x/text",
         commit = "a9a820217f98f7c8a207ec1e45a874e1fe12c478",
         excludes = [
-            "encoding/japanese:go_default_test", # Needs testdata directory
-            "encoding/korean:go_default_test", # Needs testdata directory
-            "encoding/charmap:go_default_test", # Needs testdata directory
-            "encoding/simplifiedchinese:go_default_test", # Needs testdata directory
-            "encoding/traditionalchinese:go_default_test", # Needs testdata directory
-            "encoding/unicode/utf32:go_default_test", # Needs testdata directory
-            "encoding/unicode:go_default_test", # Needs testdata directory
+            "encoding/japanese:japanese_test", # Needs testdata directory
+            "encoding/korean:korean_test", # Needs testdata directory
+            "encoding/charmap:charmap_test", # Needs testdata directory
+            "encoding/simplifiedchinese:simplifiedchinese_test", # Needs testdata directory
+            "encoding/traditionalchinese:traditionalchinese_test", # Needs testdata directory
+            "encoding/unicode/utf32:utf32_test", # Needs testdata directory
+            "encoding/unicode:unicode_test", # Needs testdata directory
         ],
     ),
 
@@ -210,8 +207,8 @@ POPULAR_REPOS = [
         importpath = "golang.org/x/mod",
         commit = "c0d644d00ab849f4506f17a98a5740bf0feff020",
         excludes = [
-            "sumdb/tlog:go_default_test", # Needs network, not available on RBE
-            "zip:go_default_test", # Needs vcs tools, not available on RBE
+            "sumdb/tlog:tlog_test", # Needs network, not available on RBE
+            "zip:zip_test", # Needs vcs tools, not available on RBE
         ],            
     ),
   ]
