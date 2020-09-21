@@ -131,7 +131,9 @@ func (e *env) goCmd(cmd string, args ...string) []string {
 // environment from this process.
 func (e *env) runCommand(args []string) error {
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Stdout = os.Stdout
+	// Redirecting stdout to stderr. This mirrors behavior in the go command:
+	// https://go.googlesource.com/go/+/refs/tags/go1.15.2/src/cmd/go/internal/work/exec.go#1958
+	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	return runAndLogCommand(cmd, e.verbose)
 }
