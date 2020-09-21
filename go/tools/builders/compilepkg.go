@@ -446,13 +446,12 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 	args = append(args, "-x", outFactsPath)
 	args = append(args, srcs...)
 
-	paramFile := filepath.Join(workDir, "nogo.param")
-	params := strings.Join(args[1:], "\n")
-	if err := ioutil.WriteFile(paramFile, []byte(params), 0666); err != nil {
-		return fmt.Errorf("error writing nogo paramfile: %v", err)
+	paramsFile := filepath.Join(workDir, "nogo.param")
+	if err := writeParamsFile(paramsFile, args[1:]); err != nil {
+		return fmt.Errorf("error writing nogo params file: %v", err)
 	}
 
-	cmd := exec.CommandContext(ctx, args[0], "-param="+paramFile)
+	cmd := exec.CommandContext(ctx, args[0], "-param="+paramsFile)
 	out := &bytes.Buffer{}
 	cmd.Stdout, cmd.Stderr = out, out
 	if err := cmd.Run(); err != nil {

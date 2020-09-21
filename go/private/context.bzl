@@ -139,7 +139,7 @@ def _builder_args(go, command = None):
 def _tool_args(go):
     args = go.actions.args()
     args.use_param_file("-param=%s")
-    args.set_param_file_format("multiline")
+    args.set_param_file_format("shell")
     return args
 
 def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, is_main = False, **kwargs):
