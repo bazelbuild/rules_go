@@ -50,6 +50,11 @@ var analyzers = []*analysis.Analyzer{
 {{- end}}
 }
 
+// importPathRestriction restricts the nogo checks to a specific import path.
+// With this, nogo can run only on a specific project / import path, instead
+// of all Go code, including external dependencies.
+var importPathRestriction = {{ printf "%q" .ImportPathRestriction}}
+
 // configs maps analysis names to configurations.
 var configs = map[string]config{
 {{- range $name, $config := .Configs}}
@@ -83,6 +88,7 @@ func genNogoMain(args []string) error {
 	analyzerImportPaths := multiFlag{}
 	flags := flag.NewFlagSet("generate_nogo_main", flag.ExitOnError)
 	out := flags.String("output", "", "output file to write (defaults to stdout)")
+	importPath := flags.String("importpath-restriction", "", "restrict nogo-checks to this import path")
 	flags.Var(&analyzerImportPaths, "analyzer_importpath", "import path of an analyzer library")
 	configFile := flags.String("config", "", "nogo config file")
 	if err := flags.Parse(args); err != nil {
@@ -125,12 +131,14 @@ func genNogoMain(args []string) error {
 		suffix++
 	}
 	data := struct {
-		Imports    []Import
-		Configs    Configs
-		NeedRegexp bool
+		Imports               []Import
+		Configs               Configs
+		ImportPathRestriction string
+		NeedRegexp            bool
 	}{
-		Imports: imports,
-		Configs: config,
+		Imports:               imports,
+		Configs:               config,
+		ImportPathRestriction: *importPath,
 	}
 	for _, c := range config {
 		if len(c.OnlyFiles) > 0 || len(c.ExcludeFiles) > 0 {

@@ -47,6 +47,8 @@ def _nogo_impl(ctx):
     if ctx.file.config:
         nogo_args.add("-config", ctx.file.config)
         nogo_inputs.append(ctx.file.config)
+    if ctx.attr.importpath:
+        nogo_args.add("-importpath-restriction", ctx.attr.importpath)
     ctx.actions.run(
         inputs = nogo_inputs,
         outputs = [nogo_main],
@@ -91,6 +93,10 @@ nogo = rule(
         ),
         "config": attr.label(
             allow_single_file = True,
+        ),
+        "importpath": attr.string(
+            mandatory = False,
+            doc = "Restrict nogo checks to the given importpath",
         ),
         "_nogo_srcs": attr.label(
             default = "@io_bazel_rules_go//go/tools/builders:nogo_srcs",

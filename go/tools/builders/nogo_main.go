@@ -146,6 +146,9 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 //
 // This implementation was adapted from that of golang.org/x/tools/go/checker/internal/checker.
 func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFile, importMap map[string]string, factMap map[string]string, filenames []string) (string, []byte, error) {
+	if importPathRestriction != "" && !strings.HasPrefix(packagePath, importPathRestriction) {
+		return "", nil, nil
+	}
 	// Register fact types and establish dependencies between analyzers.
 	actions := make(map[*analysis.Analyzer]*action)
 	var visit func(a *analysis.Analyzer) *action
