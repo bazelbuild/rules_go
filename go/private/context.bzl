@@ -187,17 +187,18 @@ def _merge_embed(source, embed):
     source["cgo_exports"] = source["cgo_exports"] + s.cgo_exports
 
 def _dedup_deps(deps):
-    """Returns a list of targets without duplicate import paths.
+    """Returns a list of deps without duplicate import paths.
 
     Earlier targets take precedence over later targets. This is intended to
     allow an embedding library to override the dependencies of its
     embedded libraries.
+
+    Args:
+      deps: an iterable containing either Targets or GoArchives.
     """
     deduped_deps = []
     importpaths = {}
     for dep in deps:
-        # TODO(#1784): we allow deps to be a list of GoArchive since go_test and
-        # nogo work this way. We should force deps to be a list of Targets.
         if hasattr(dep, "data") and hasattr(dep.data, "importpath"):
             importpath = dep.data.importpath
         else:

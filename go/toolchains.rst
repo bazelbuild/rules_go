@@ -879,8 +879,18 @@ build mode.
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`attr`                  | :type:`ctx.attr`            | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| The attributes of the rule being processed. In a normal rule implementation this would be        |
-| ctx.attr.                                                                                        |
+| The attributes of the target being analyzed. For most rules, this should be                      |
+| ``ctx.attr``. Rules can also pass in a ``struct`` with the same fields.                          |
+|                                                                                                  |
+| ``library_to_source`` looks for fields corresponding to the attributes of                        |
+| ``go_library`` and ``go_binary``. This includes ``srcs``, ``deps``, ``embed``,                   |
+| and so on. All fields are optional (and may not be defined in the struct                         |
+| argument at all), but if they are present, they must have the same types and                     |
+| allowed values as in ``go_library`` and ``go_binary``. For example, ``srcs``                     |
+| must be a list of ``Targets``; ``gc_goopts`` must be a list of strings.                          |
+|                                                                                                  |
+| As an exception, ``deps``, if present, must be a list containing either                          |
+| ``Targets`` or ``GoArchives``.                                                                   |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`library`               | :type:`GoLibrary`           | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
