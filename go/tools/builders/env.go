@@ -159,14 +159,13 @@ func absEnv(envNameList []string, argList []string) error {
 }
 
 func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
-	formattedCmd := formatCommand(cmd)
 	if verbose {
-		os.Stderr.WriteString(formattedCmd)
+		fmt.Fprintln(os.Stderr, formatCommand(cmd))
 	}
 	cleanup := passLongArgsInResponseFiles(cmd)
 	defer cleanup()
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error running the following subcommand: %v\n%s", err, formattedCmd)
+		return fmt.Errorf("error running subcommand %s: %v", cmd.Path, err)
 	}
 	return nil
 }
@@ -333,8 +332,8 @@ func absArgs(args []string, flags []string) {
 	}
 }
 
-// formatCommand writes cmd to w in a format where it can be pasted into a
-// shell. Spaces in environment variables and arguments are escaped as needed.
+// formatCommand formats cmd as a string that can be pasted into a shell.
+// Spaces in environment variables and arguments are escaped as needed.
 func formatCommand(cmd *exec.Cmd) string {
 	quoteIfNeeded := func(s string) string {
 		if strings.IndexByte(s, ' ') < 0 {
@@ -367,7 +366,6 @@ func formatCommand(cmd *exec.Cmd) string {
 		fmt.Fprintf(&w, "%s%s", sep, quoteIfNeeded(arg))
 		sep = " "
 	}
-	fmt.Fprint(&w, "\n")
 	return w.String()
 }
 
