@@ -63,10 +63,6 @@ load(
     _go_path = "go_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/rule.bzl",
-    _go_rule = "go_rule",
-)
-load(
     "@io_bazel_rules_go//go/private:rules/library.bzl",
     _go_tool_library = "go_tool_library",
 )
@@ -160,14 +156,14 @@ go_test = _go_test_macro
 # See go/core.rst#go_test for full documentation.
 go_source = _go_source
 
-# See go/core.rst#go_rule for full documentation.
-go_rule = _go_rule
-
 # See go/core.rst#go_path for full documentation.
 go_path = _go_path
 
 def go_vet_test(*args, **kwargs):
     fail("The go_vet_test rule has been removed. Please migrate to nogo instead, which supports vet tests.")
+
+def go_rule(**kwargs):
+    fail("The go_rule function has been removed. Use rule directly instead. See https://github.com/bazelbuild/rules_go/blob/master/go/toolchains.rst#writing-new-go-rules")
 
 def go_rules_dependencies():
     _moved("go_rules_dependencies")

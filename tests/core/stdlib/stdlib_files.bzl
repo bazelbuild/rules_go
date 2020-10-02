@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_rule")
+load("@io_bazel_rules_go//go:def.bzl", "go_context")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoStdLib")
 
 def _pure_transition_impl(settings, attr):

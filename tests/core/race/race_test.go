@@ -255,7 +255,7 @@ func Test(t *testing.T) {
 			}
 			args := []string{test.cmd}
 			if test.featureFlag {
-				args = append(args, "--features=race")
+				args = append(args, "--@io_bazel_rules_go//go/config:race")
 			}
 			args = append(args, test.target)
 			if test.cmd == "test" {

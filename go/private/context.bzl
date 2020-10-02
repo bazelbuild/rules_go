@@ -276,17 +276,16 @@ def _collect_runfiles(go, data, deps):
 def _check_binary_dep(go, dep, edge):
     """Checks that this rule doesn't depend on a go_binary or go_test.
 
-    go_binary and go_test apply an aspect to their deps and embeds. If a
-    go_binary / go_test depends on another go_binary / go_test in different
-    modes, the aspect is applied twice, and Bazel emits an opaque error
-    message.
+    go_binary and go_test may return provides with useful information for other
+    rules (like go_path), but go_binary and go_test may not depend on other
+    go_binary and go_binary targets. Their dependencies may be built in
+    different modes, resulting in conflicts and opaque errors.
     """
     if (type(dep) == "Target" and
         DefaultInfo in dep and
         getattr(dep[DefaultInfo], "files_to_run", None) and
         dep[DefaultInfo].files_to_run.executable):
-        # TODO(#1735): make this an error after 0.16 is released.
-        print("WARNING: rule {rule} depends on executable {dep} via {edge}. This is not safe for cross-compilation. Depend on go_library instead. This will be an error in the future.".format(
+        fail("rule {rule} depends on executable {dep} via {edge}. This is not safe for cross-compilation. Depend on go_library instead.".format(
             rule = str(go._ctx.label),
             dep = str(dep.label),
             edge = edge,
@@ -496,6 +495,10 @@ def go_context(ctx, attr = None):
     )
 
 def _go_context_data_impl(ctx):
+    if "race" in ctx.features:
+        print("WARNING: --features=race is no longer supported. Use --@io_bazel_rules_go//go/config:race instead.")
+    if "msan" in ctx.features:
+        print("WARNING: --features=msan is no longer supported. Use --@io_bazel_rules_go//go/config:msan instead.")
     coverdata = ctx.attr.coverdata[GoArchive]
     nogo = ctx.files.nogo[0] if ctx.files.nogo else None
     providers = [

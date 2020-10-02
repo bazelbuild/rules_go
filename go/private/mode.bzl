@@ -65,22 +65,13 @@ def _ternary(*values):
     fail("_ternary failed to produce a final result from {}".format(values))
 
 def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
-    static = _ternary(
-        "on" if "static" in ctx.features else "auto",
-        go_config_info.static if go_config_info else "off",
-    )
+    static = _ternary(go_config_info.static if go_config_info else "off")
     pure = _ternary(
         "on" if not cgo_context_info else "auto",
         go_config_info.pure if go_config_info else "off",
     )
-    race = _ternary(
-        "on" if ("race" in ctx.features and not pure) else "auto",
-        go_config_info.race if go_config_info else "off",
-    )
-    msan = _ternary(
-        "on" if ("msan" in ctx.features and not pure) else "auto",
-        go_config_info.msan if go_config_info else "off",
-    )
+    race = _ternary(go_config_info.race if go_config_info else "off")
+    msan = _ternary(go_config_info.msan if go_config_info else "off")
     strip = go_config_info.strip if go_config_info else False
     stamp = go_config_info.stamp if go_config_info else False
     debug = go_config_info.debug if go_config_info else False

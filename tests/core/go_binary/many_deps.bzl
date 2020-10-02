@@ -16,7 +16,6 @@ load(
     "@io_bazel_rules_go//go:def.bzl",
     "go_binary",
     "go_context",
-    "go_rule",
 )
 
 _PREFIX = "/".join(["abcdefgh"[i] * 100 for i in range(7)]) + "/"
@@ -35,11 +34,15 @@ def _gen_library_impl(ctx):
         DefaultInfo(files = depset([archive.data.file])),
     ]
 
-_gen_library = go_rule(
+_gen_library = rule(
     _gen_library_impl,
     attrs = {
         "importpath": attr.string(mandatory = True),
+        "_go_context_data": attr.label(
+            default = "//:go_context_data",
+        ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _gen_main_src_impl(ctx):

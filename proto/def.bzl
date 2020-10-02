@@ -24,10 +24,6 @@ load(
     "proto_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/rule.bzl",
-    "go_rule",
-)
-load(
     "@io_bazel_rules_go//go/private:providers.bzl",
     "INFERRED_PATH",
 )
@@ -138,8 +134,8 @@ def _go_proto_library_impl(ctx):
         ])
     return providers + [OutputGroupInfo(**output_groups)]
 
-go_proto_library = go_rule(
-    _go_proto_library_impl,
+go_proto_library = rule(
+    implementation = _go_proto_library_impl,
     attrs = {
         "proto": attr.label(providers = [ProtoInfo]),
         "protos": attr.label_list(
@@ -160,7 +156,11 @@ go_proto_library = go_rule(
             providers = [GoProtoCompiler],
             default = ["@io_bazel_rules_go//proto:go_proto"],
         ),
+        "_go_context_data": attr.label(
+            default = "//:go_context_data",
+        ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 # go_proto_library is a rule that takes a proto_library (in the proto
 # attribute) and produces a go library for it.

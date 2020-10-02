@@ -34,8 +34,6 @@ GoArchiveData = provider()
 # See go/providers.rst#GoArchive for full documentation.
 GoArchive = provider()
 
-GoAspectProviders = provider()
-
 GoPath = provider()
 
 GoSDK = provider(
@@ -76,15 +74,11 @@ EXPORT_PATH = "export"
 def get_source(dep):
     if type(dep) == "struct":
         return dep
-    if GoAspectProviders in dep:
-        return dep[GoAspectProviders].source
     return dep[GoSource]
 
 def get_archive(dep):
     if type(dep) == "struct":
         return dep
-    if GoAspectProviders in dep:
-        return dep[GoAspectProviders].archive
     return dep[GoArchive]
 
 def effective_importpath_pkgpath(lib):
