@@ -25,7 +25,7 @@ load(
     "split_srcs",
 )
 load(
-    ":rules/binary.bzl",
+    "//go/private/rules:binary.bzl",
     "gc_linkopts",
 )
 load(
@@ -37,7 +37,7 @@ load(
     "get_archive",
 )
 load(
-    ":rules/transition.bzl",
+    "//go/private/rules:transition.bzl",
     "go_transition_rule",
 )
 load(

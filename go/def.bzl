@@ -36,7 +36,7 @@ load(
     _GoSource = "GoSource",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/sdk.bzl",
+    "@io_bazel_rules_go//go/private/rules:sdk.bzl",
     _go_sdk = "go_sdk",
 )
 load(
@@ -45,13 +45,13 @@ load(
     _go_toolchain = "go_toolchain",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/wrappers.bzl",
+    "@io_bazel_rules_go//go/private/rules:wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_library_macro = "go_library_macro",
     _go_test_macro = "go_test_macro",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/source.bzl",
+    "@io_bazel_rules_go//go/private/rules:source.bzl",
     _go_source = "go_source",
 )
 load(
@@ -59,15 +59,15 @@ load(
     _go_embed_data = "go_embed_data",
 )
 load(
-    "@io_bazel_rules_go//go/private:tools/path.bzl",
+    "@io_bazel_rules_go//go/private/tools:path.bzl",
     _go_path = "go_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/library.bzl",
+    "@io_bazel_rules_go//go/private/rules:library.bzl",
     _go_tool_library = "go_tool_library",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/nogo.bzl",
+    "@io_bazel_rules_go//go/private/rules:nogo.bzl",
     _nogo = "nogo_wrapper",
 )
 

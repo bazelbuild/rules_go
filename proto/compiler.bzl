@@ -22,7 +22,7 @@ load(
     "go_context",
 )
 load(
-    "//go/private:rules/transition.bzl",
+    "//go/private/rules:transition.bzl",
     "go_reset_target",
 )
 

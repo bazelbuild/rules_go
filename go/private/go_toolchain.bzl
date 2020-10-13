@@ -17,14 +17,14 @@ Toolchain rules used by go.
 
 load("@io_bazel_rules_go//go/private:platforms.bzl", "PLATFORMS")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoSDK")
-load("@io_bazel_rules_go//go/private:actions/archive.bzl", "emit_archive")
-load("@io_bazel_rules_go//go/private:actions/asm.bzl", "emit_asm")
-load("@io_bazel_rules_go//go/private:actions/binary.bzl", "emit_binary")
-load("@io_bazel_rules_go//go/private:actions/compile.bzl", "emit_compile")
-load("@io_bazel_rules_go//go/private:actions/cover.bzl", "emit_cover")
-load("@io_bazel_rules_go//go/private:actions/link.bzl", "emit_link")
-load("@io_bazel_rules_go//go/private:actions/pack.bzl", "emit_pack")
-load("@io_bazel_rules_go//go/private:actions/stdlib.bzl", "emit_stdlib")
+load("@io_bazel_rules_go//go/private/actions:archive.bzl", "emit_archive")
+load("@io_bazel_rules_go//go/private/actions:asm.bzl", "emit_asm")
+load("@io_bazel_rules_go//go/private/actions:binary.bzl", "emit_binary")
+load("@io_bazel_rules_go//go/private/actions:compile.bzl", "emit_compile")
+load("@io_bazel_rules_go//go/private/actions:cover.bzl", "emit_cover")
+load("@io_bazel_rules_go//go/private/actions:link.bzl", "emit_link")
+load("@io_bazel_rules_go//go/private/actions:pack.bzl", "emit_pack")
+load("@io_bazel_rules_go//go/private/actions:stdlib.bzl", "emit_stdlib")
 
 def _go_toolchain_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]

@@ -1,5 +1,5 @@
 load("//go:def.bzl", "go_binary", "go_source", "go_test")
-load("//go/private:rules/transition.bzl", "go_reset_target")
+load("//go/private/rules:transition.bzl", "go_reset_target")
 
 go_test(
     name = "filter_test",

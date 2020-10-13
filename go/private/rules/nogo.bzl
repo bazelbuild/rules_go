@@ -24,7 +24,7 @@ load(
     "get_archive",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/transition.bzl",
+    "@io_bazel_rules_go//go/private/rules:transition.bzl",
     "go_reset_transition",
 )
 

@@ -1,13 +1,13 @@
 load(
-    "@io_bazel_rules_go//go/private:tools/lines_sorted_test.bzl",
+    "@io_bazel_rules_go//go/private/tools:lines_sorted_test.bzl",
     "lines_sorted_test",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/nogo.bzl",
+    "@io_bazel_rules_go//go/private/rules:nogo.bzl",
     "nogo",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/info.bzl",
+    "@io_bazel_rules_go//go/private/rules:info.bzl",
     "go_info",
 )
 load(
@@ -22,7 +22,7 @@ load(
     "go_context_data",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/stdlib.bzl",
+    "@io_bazel_rules_go//go/private/rules:stdlib.bzl",
     "stdlib",
 )
 

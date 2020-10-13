@@ -31,11 +31,11 @@ load(
     "get_archive",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/cgo.bzl",
+    "@io_bazel_rules_go//go/private/rules:cgo.bzl",
     "cgo_configure",
 )
 load(
-    "@io_bazel_rules_go//go/private:actions/compilepkg.bzl",
+    "@io_bazel_rules_go//go/private/actions:compilepkg.bzl",
     "emit_compilepkg",
 )
 

@@ -13,25 +13,25 @@
 # limitations under the License.
 
 load(
-    ":rules/library.bzl",
+    "//go/private/rules:library.bzl",
     "go_library",
 )
 load(
-    ":rules/binary.bzl",
+    "//go/private/rules:binary.bzl",
     "go_binary",
     "go_transition_binary",
 )
 load(
-    ":rules/test.bzl",
+    "//go/private/rules:test.bzl",
     "go_test",
     "go_transition_test",
 )
 load(
-    ":rules/cgo.bzl",
+    "//go/private/rules:cgo.bzl",
     "go_binary_c_archive_shared",
 )
 load(
-    ":rules/transition.bzl",
+    "//go/private/rules:transition.bzl",
     "go_transition_wrapper",
 )
 

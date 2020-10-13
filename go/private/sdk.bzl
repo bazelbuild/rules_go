@@ -31,7 +31,7 @@ load(
     "generate_toolchain_names",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/versions.bzl",
+    "@io_bazel_rules_go//go/private/skylib/lib:versions.bzl",
     "versions",
 )
 
