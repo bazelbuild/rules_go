@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":well_known_types.bzl", "go_proto_wrapper")
 load("//proto:def.bzl", "go_proto_library")
 
@@ -175,4 +176,15 @@ filegroup(
     testonly = True,
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "well_known_types",
+    srcs = ["well_known_types.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go:def",
+        "//proto:compiler",
+        "//proto:def",
+    ],
 )
