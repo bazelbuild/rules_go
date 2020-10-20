@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+)
+load(
     ":context.bzl",
     "go_context",
 )
@@ -33,6 +37,8 @@ load(
 )
 load(
     ":mode.bzl",
+    "LINKMODE_C_ARCHIVE",
+    "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
     "LINKMODE_SHARED",
 )
@@ -62,7 +68,8 @@ def _go_binary_impl(ctx):
         info_file = ctx.info_file,
         executable = executable,
     )
-    return [
+
+    providers = [
         library,
         source,
         archive,
@@ -76,6 +83,56 @@ def _go_binary_impl(ctx):
             executable = executable,
         ),
     ]
+
+    if go.mode.link == LINKMODE_C_SHARED or go.mode.link == LINKMODE_C_ARCHIVE:
+        cc_toolchain = find_cpp_toolchain(ctx)
+
+        feature_configuration = cc_common.configure_features(
+            ctx = ctx,
+            cc_toolchain = cc_toolchain,
+        )
+
+        create_library_to_link_kwargs = {}
+        if go.mode.link == LINKMODE_C_SHARED:
+            create_library_to_link_kwargs["dynamic_library"] = executable
+        elif go.mode.link == LINKMODE_C_ARCHIVE:
+            create_library_to_link_kwargs["static_library"] = executable
+        else:
+            fail("Unknown linkmode '{}'".format(go.mode.link))
+        linking_context = cc_common.create_linking_context(
+            linker_inputs = depset([
+                cc_common.create_linker_input(
+                    owner = ctx.label,
+                    libraries = depset([
+                        cc_common.create_library_to_link(
+                            actions = ctx.actions,
+                            feature_configuration = feature_configuration,
+                            cc_toolchain = cc_toolchain,
+                            **create_library_to_link_kwargs),
+                    ]),
+                ),
+            ]),
+        )
+
+        header = ctx.actions.declare_file("{}.h".format(ctx.attr.name))
+        ctx.actions.symlink(
+            output = header,
+            # TODO(yannic): Find better way to get direct export header.
+            target_file = archive.cgo_exports.to_list()[0],
+        )
+
+        compilation_context = cc_common.create_compilation_context(
+            headers = depset([header]),
+            includes = depset([header.root.path]),
+        )
+
+        cc_info = CcInfo(
+            compilation_context = compilation_context,
+            linking_context = linking_context,
+        )
+        providers.append(cc_info)
+
+    return providers
 
 _go_binary_kwargs = {
     "implementation": _go_binary_impl,
@@ -101,9 +158,14 @@ _go_binary_kwargs = {
         "cxxopts": attr.string_list(),
         "clinkopts": attr.string_list(),
         "_go_context_data": attr.label(default = "//:go_context_data"),
+        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
     },
     "executable": True,
-    "toolchains": ["@io_bazel_rules_go//go:toolchain"],
+    "toolchains": [
+        "@bazel_tools//tools/cpp:toolchain_type",
+        "@io_bazel_rules_go//go:toolchain",
+    ],
+    "fragments": ["cpp"]
 }
 
 go_binary = rule(**_go_binary_kwargs)

@@ -94,6 +94,17 @@ def emit_link(
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
 
+    if go.mode.link == "c-shared":
+        root_len = len(executable.root.path)
+        if root_len > 0:
+            # Add '/' seperator to `root_len`.
+            root_len += 1
+
+        # TODO(yannic): `-install_name` should be `@rpath/<runtime_solib_name>`,
+        # but we can't create `SolibSymlinkAction`s from Starlark yet.
+        extldflags.append("-install_name")
+        extldflags.append(executable.path[root_len:])
+
     arcs = _transitive_archives_without_test_archives(archive, test_archives)
     arcs.extend(test_archives)
     if (go.coverage_enabled and go.coverdata and
