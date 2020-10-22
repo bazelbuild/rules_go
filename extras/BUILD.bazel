@@ -31,5 +31,6 @@ bzl_library(
     name = "embed_data_deps",
     srcs = ["embed_data_deps.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["@bazel_tools//tools/build_defs/repo:git.bzl"],
+    # Don't list dependency on @bazel_tools//tools/build_defs/repo.bzl
+    deps = [],  # keep
 )

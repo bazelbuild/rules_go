@@ -13,11 +13,11 @@
 # limitations under the License.
 
 load(
-    ":context.bzl",
+    "@io_bazel_rules_go//go/private:context.bzl",
     "go_context",
 )
 load(
-    ":providers.bzl",
+    "//go/private:providers.bzl",
     "CgoContextInfo",
     "GoConfigInfo",
 )

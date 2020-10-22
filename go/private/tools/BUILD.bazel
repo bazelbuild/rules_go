@@ -3,6 +3,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 bzl_library(
     name = "path",
     srcs = ["path.bzl"],
+    visibility = ["//go:__subpackages__"],
     deps = [
         "@io_bazel_rules_go//go/private:common",
         "@io_bazel_rules_go//go/private:providers",

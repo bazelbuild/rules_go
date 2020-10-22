@@ -33,16 +33,16 @@ bzl_library(
     srcs = ["def.bzl"],
     visibility = ["//visibility:public"],
     deps = [
-        "@io_bazel_rules_go//extras:embed_data",
-        "@io_bazel_rules_go//go/private:context",
-        "@io_bazel_rules_go//go/private:go_toolchain",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//go/private/rules:library",
-        "@io_bazel_rules_go//go/private/rules:nogo",
-        "@io_bazel_rules_go//go/private/rules:sdk",
-        "@io_bazel_rules_go//go/private/rules:source",
-        "@io_bazel_rules_go//go/private/rules:wrappers",
-        "@io_bazel_rules_go//go/private/tools:path",
+        "//extras:embed_data",
+        "//go/private:context",
+        "//go/private:go_toolchain",
+        "//go/private:providers",
+        "//go/private/rules:library",
+        "//go/private/rules:nogo",
+        "//go/private/rules:sdk",
+        "//go/private/rules:source",
+        "//go/private/rules:wrappers",
+        "//go/private/tools:path",
     ],
 )
 
@@ -51,7 +51,7 @@ bzl_library(
     srcs = ["deps.bzl"],
     visibility = ["//visibility:public"],
     deps = [
-        "@io_bazel_rules_go//go/private:repositories",
-        "@io_bazel_rules_go//go/private:sdk",
+        "//go/private:repositories",
+        "//go/private:sdk",
     ],
 )

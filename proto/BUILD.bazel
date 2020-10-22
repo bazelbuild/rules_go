@@ -140,12 +140,12 @@ bzl_library(
     name = "def",
     srcs = ["def.bzl"],
     visibility = ["//visibility:public"],
+    # Don't list dependency on @rules_proto//proto:defs
     deps = [
         "//go:def",
         "@io_bazel_rules_go//go/private:providers",
         "@io_bazel_rules_go//proto:compiler",
-        "@rules_proto//proto:defs",
-    ],
+    ],  # keep
 )
 
 bzl_library(

@@ -13,17 +13,17 @@
 # limitations under the License.
 
 load(
-    ":mode.bzl",
+    "@io_bazel_rules_go//go/private:mode.bzl",
     "LINKMODES",
     "LINKMODE_NORMAL",
 )
 load(
-    ":platforms.bzl",
+    "@io_bazel_rules_go//go/private:platforms.bzl",
     "CGO_GOOS_GOARCH",
     "GOOS_GOARCH",
 )
 load(
-    ":providers.bzl",
+    "//go/private:providers.bzl",
     "GoArchive",
     "GoLibrary",
     "GoSource",

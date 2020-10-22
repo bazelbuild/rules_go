@@ -34,13 +34,12 @@ config_setting(
 )
 
 bzl_library(
-    name = "common",
-    srcs = ["common.bzl"],
-)
-
-bzl_library(
     name = "context",
     srcs = ["context.bzl"],
+    visibility = [
+        "//extras:__pkg__",  # Manually added
+        "//go:__subpackages__",
+    ],
     deps = [
         ":common",
         ":mode",
@@ -56,6 +55,7 @@ bzl_library(
 bzl_library(
     name = "go_toolchain",
     srcs = ["go_toolchain.bzl"],
+    visibility = ["//go:__subpackages__"],
     deps = [
         "@io_bazel_rules_go//go/private:platforms",
         "@io_bazel_rules_go//go/private:providers",
@@ -71,40 +71,22 @@ bzl_library(
 )
 
 bzl_library(
-    name = "mode",
-    srcs = ["mode.bzl"],
-)
-
-bzl_library(
-    name = "nogo",
-    srcs = ["nogo.bzl"],
-)
-
-bzl_library(
-    name = "platforms",
-    srcs = ["platforms.bzl"],
-)
-
-bzl_library(
-    name = "providers",
-    srcs = ["providers.bzl"],
-)
-
-bzl_library(
     name = "repositories",
     srcs = ["repositories.bzl"],
+    visibility = ["//go:__subpackages__"],
+    # Don't list dependency on @bazel_tools//tools/build_defs/repo:http.bzl
     deps = [
         ":common",
         ":nogo",
         "//go/private/skylib/lib:versions",
         "//proto:gogo",
-        "@bazel_tools//tools/build_defs/repo:http.bzl",
-    ],
+    ],  # keep
 )
 
 bzl_library(
     name = "sdk",
     srcs = ["sdk.bzl"],
+    visibility = ["//go:__subpackages__"],
     deps = [
         "@io_bazel_rules_go//go/private:common",
         "@io_bazel_rules_go//go/private:nogo",
@@ -115,6 +97,40 @@ bzl_library(
 )
 
 bzl_library(
+    name = "common",
+    srcs = ["common.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "mode",
+    srcs = ["mode.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "nogo",
+    srcs = ["nogo.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "platforms",
+    srcs = ["platforms.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "providers",
+    srcs = ["providers.bzl"],
+    visibility = [
+        "//go:__subpackages__",
+        "//proto:__pkg__",  # keep
+    ],
+)
+
+bzl_library(
     name = "sdk_list",
     srcs = ["sdk_list.bzl"],
+    visibility = ["//go:__subpackages__"],
 )

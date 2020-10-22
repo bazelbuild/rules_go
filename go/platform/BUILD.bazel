@@ -27,12 +27,12 @@ filegroup(
 )
 
 bzl_library(
-    name = "apple",
-    srcs = ["apple.bzl"],
-)
-
-bzl_library(
     name = "list",
     srcs = ["list.bzl"],
     deps = ["@io_bazel_rules_go//go/private:platforms"],
+)
+
+bzl_library(
+    name = "apple",
+    srcs = ["apple.bzl"],
 )
