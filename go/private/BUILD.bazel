@@ -2,14 +2,24 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 filegroup(
     name = "all_rules",
-    srcs = glob(["**/*.bzl"]),
+    srcs = [
+        "//go/private/actions:all_rules",
+        "//go/private/rules:all_rules",
+        "//go/private/skylib/lib:all_rules",
+        "//go/private/tools:all_rules",
+    ] + glob(["**/*.bzl"]),
     visibility = ["//visibility:public"],
 )
 
 filegroup(
     name = "all_files",
     testonly = True,
-    srcs = glob(["**"]),
+    srcs = [
+        "//go/private/actions:all_files",
+        "//go/private/rules:all_files",
+        "//go/private/skylib/lib:all_files",
+        "//go/private/tools:all_files",
+    ] + glob(["**"]),
     visibility = ["//visibility:public"],
 )
 

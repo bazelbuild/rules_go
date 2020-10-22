@@ -13,12 +13,12 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:mode.bzl",
+    "//go/private:mode.bzl",
     "LINKMODES",
     "LINKMODE_NORMAL",
 )
 load(
-    "@io_bazel_rules_go//go/private:platforms.bzl",
+    "//go/private:platforms.bzl",
     "CGO_GOOS_GOARCH",
     "GOOS_GOARCH",
 )
