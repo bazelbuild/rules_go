@@ -208,7 +208,7 @@ def has_versioned_shared_lib_extension(path):
 
     return True
 
-MINIMUM_BAZEL_VERSION = "2.2.0"
+MINIMUM_BAZEL_VERSION = "3.0.0"
 
 def as_list(v):
     """Returns a list, tuple, or depset as a list."""
