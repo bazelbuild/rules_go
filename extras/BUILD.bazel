@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 filegroup(
     name = "all_rules",
     srcs = glob(["*.bzl"]) + ["//go/private:all_rules"],
@@ -9,4 +11,26 @@ filegroup(
     testonly = True,
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "bindata",
+    srcs = ["bindata.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["@io_bazel_rules_go//go:def"],
+)
+
+bzl_library(
+    name = "embed_data",
+    srcs = ["embed_data.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["@io_bazel_rules_go//go/private:context"],
+)
+
+bzl_library(
+    name = "embed_data_deps",
+    srcs = ["embed_data_deps.bzl"],
+    visibility = ["//visibility:public"],
+    # Don't list dependency on @bazel_tools//tools/build_defs/repo.bzl
+    deps = [],  # keep
 )

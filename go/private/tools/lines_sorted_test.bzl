@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go/private:tools/files_equal_test.bzl", "files_equal_test")
+load("//go/private/tools:files_equal_test.bzl", "files_equal_test")
 
 def lines_sorted_test(name, file, cmd = "cat $< >$@", visibility = None, **kwargs):
     """Tests that lines within a file are sorted."""

@@ -13,11 +13,11 @@
 # limitations under the License.
 
 load(
-    ":context.bzl",
+    "//go/private:context.bzl",
     "go_context",
 )
 load(
-    ":common.bzl",
+    "//go/private:common.bzl",
     "asm_exts",
     "cgo_exts",
     "go_exts",
@@ -25,11 +25,11 @@ load(
     "split_srcs",
 )
 load(
-    ":rules/binary.bzl",
+    "//go/private/rules:binary.bzl",
     "gc_linkopts",
 )
 load(
-    ":providers.bzl",
+    "//go/private:providers.bzl",
     "GoArchive",
     "GoLibrary",
     "GoSource",
@@ -37,11 +37,11 @@ load(
     "get_archive",
 )
 load(
-    ":rules/transition.bzl",
+    "//go/private/rules:transition.bzl",
     "go_transition_rule",
 )
 load(
-    ":mode.bzl",
+    "//go/private:mode.bzl",
     "LINKMODE_NORMAL",
 )
 load(

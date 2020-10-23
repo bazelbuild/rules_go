@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # This file declares a config_setting for each platform supported by the
 # Go SDK. These rules follow a goos_goarch naming convention, for example,
 # //go/platform:linux_amd64
@@ -22,4 +24,15 @@ filegroup(
     testonly = True,
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "list",
+    srcs = ["list.bzl"],
+    deps = ["@io_bazel_rules_go//go/private:platforms"],
+)
+
+bzl_library(
+    name = "apple",
+    srcs = ["apple.bzl"],
 )

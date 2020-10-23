@@ -23,11 +23,11 @@ may change without notice.
 """
 
 load(
-    "@io_bazel_rules_go//go/private:context.bzl",
+    "//go/private:context.bzl",
     _go_context = "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
+    "//go/private:providers.bzl",
     _GoArchive = "GoArchive",
     _GoArchiveData = "GoArchiveData",
     _GoLibrary = "GoLibrary",
@@ -36,38 +36,38 @@ load(
     _GoSource = "GoSource",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/sdk.bzl",
+    "//go/private/rules:sdk.bzl",
     _go_sdk = "go_sdk",
 )
 load(
-    "@io_bazel_rules_go//go/private:go_toolchain.bzl",
+    "//go/private:go_toolchain.bzl",
     _declare_toolchains = "declare_toolchains",
     _go_toolchain = "go_toolchain",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/wrappers.bzl",
+    "//go/private/rules:wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_library_macro = "go_library_macro",
     _go_test_macro = "go_test_macro",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/source.bzl",
+    "//go/private/rules:source.bzl",
     _go_source = "go_source",
 )
 load(
-    "@io_bazel_rules_go//extras:embed_data.bzl",
+    "//extras:embed_data.bzl",
     _go_embed_data = "go_embed_data",
 )
 load(
-    "@io_bazel_rules_go//go/private:tools/path.bzl",
+    "//go/private/tools:path.bzl",
     _go_path = "go_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/library.bzl",
+    "//go/private/rules:library.bzl",
     _go_tool_library = "go_tool_library",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/nogo.bzl",
+    "//go/private/rules:nogo.bzl",
     _nogo = "nogo_wrapper",
 )
 

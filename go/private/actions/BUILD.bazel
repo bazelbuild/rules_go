@@ -1,0 +1,97 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+filegroup(
+    name = "all_rules",
+    srcs = glob(["**/*.bzl"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "archive",
+    srcs = ["archive.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@io_bazel_rules_go//go/private:common",
+        "@io_bazel_rules_go//go/private:mode",
+        "@io_bazel_rules_go//go/private:providers",
+        "@io_bazel_rules_go//go/private/actions:compilepkg",
+        "@io_bazel_rules_go//go/private/rules:cgo",
+    ],
+)
+
+bzl_library(
+    name = "asm",
+    srcs = ["asm.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = ["@io_bazel_rules_go//go/private:mode"],
+)
+
+bzl_library(
+    name = "binary",
+    srcs = ["binary.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@io_bazel_rules_go//go/private:common",
+        "@io_bazel_rules_go//go/private:mode",
+    ],
+)
+
+bzl_library(
+    name = "compile",
+    srcs = ["compile.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = ["@io_bazel_rules_go//go/private:mode"],
+)
+
+bzl_library(
+    name = "compilepkg",
+    srcs = ["compilepkg.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@bazel_skylib//lib:shell",
+        "@io_bazel_rules_go//go/private:mode",
+    ],
+)
+
+bzl_library(
+    name = "cover",
+    srcs = ["cover.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@bazel_skylib//lib:structs",
+        "@io_bazel_rules_go//go/private:providers",
+    ],
+)
+
+bzl_library(
+    name = "link",
+    srcs = ["link.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@io_bazel_rules_go//go/private:common",
+        "@io_bazel_rules_go//go/private:mode",
+    ],
+)
+
+bzl_library(
+    name = "pack",
+    srcs = ["pack.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "stdlib",
+    srcs = ["stdlib.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@io_bazel_rules_go//go/private:mode",
+        "@io_bazel_rules_go//go/private:providers",
+    ],
+)

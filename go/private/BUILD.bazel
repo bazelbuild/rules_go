@@ -1,13 +1,25 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 filegroup(
     name = "all_rules",
-    srcs = glob(["**/*.bzl"]),
+    srcs = [
+        "//go/private/actions:all_rules",
+        "//go/private/rules:all_rules",
+        "//go/private/skylib/lib:all_rules",
+        "//go/private/tools:all_rules",
+    ] + glob(["**/*.bzl"]),
     visibility = ["//visibility:public"],
 )
 
 filegroup(
     name = "all_files",
     testonly = True,
-    srcs = glob(["**"]),
+    srcs = [
+        "//go/private/actions:all_files",
+        "//go/private/rules:all_files",
+        "//go/private/skylib/lib:all_files",
+        "//go/private/tools:all_files",
+    ] + glob(["**"]),
     visibility = ["//visibility:public"],
 )
 
@@ -29,4 +41,106 @@ config_setting(
 config_setting(
     name = "stamp",
     values = {"stamp": "true"},
+)
+
+bzl_library(
+    name = "context",
+    srcs = ["context.bzl"],
+    visibility = [
+        "//extras:__pkg__",  # Manually added
+        "//go:__subpackages__",
+    ],
+    deps = [
+        ":common",
+        ":mode",
+        ":providers",
+        "//go/platform:apple",
+        "@bazel_skylib//lib:paths",
+        "@bazel_skylib//rules:common_settings",
+        "@bazel_tools//tools/build_defs/cc:action_names.bzl",
+        "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    ],
+)
+
+bzl_library(
+    name = "go_toolchain",
+    srcs = ["go_toolchain.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@io_bazel_rules_go//go/private:platforms",
+        "@io_bazel_rules_go//go/private:providers",
+        "@io_bazel_rules_go//go/private/actions:archive",
+        "@io_bazel_rules_go//go/private/actions:asm",
+        "@io_bazel_rules_go//go/private/actions:binary",
+        "@io_bazel_rules_go//go/private/actions:compile",
+        "@io_bazel_rules_go//go/private/actions:cover",
+        "@io_bazel_rules_go//go/private/actions:link",
+        "@io_bazel_rules_go//go/private/actions:pack",
+        "@io_bazel_rules_go//go/private/actions:stdlib",
+    ],
+)
+
+bzl_library(
+    name = "repositories",
+    srcs = ["repositories.bzl"],
+    visibility = ["//go:__subpackages__"],
+    # Don't list dependency on @bazel_tools//tools/build_defs/repo:http.bzl
+    deps = [
+        ":common",
+        ":nogo",
+        "//go/private/skylib/lib:versions",
+        "//proto:gogo",
+    ],  # keep
+)
+
+bzl_library(
+    name = "sdk",
+    srcs = ["sdk.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@io_bazel_rules_go//go/private:common",
+        "@io_bazel_rules_go//go/private:nogo",
+        "@io_bazel_rules_go//go/private:platforms",
+        "@io_bazel_rules_go//go/private:sdk_list",
+        "@io_bazel_rules_go//go/private/skylib/lib:versions",
+    ],
+)
+
+bzl_library(
+    name = "common",
+    srcs = ["common.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "mode",
+    srcs = ["mode.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "nogo",
+    srcs = ["nogo.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "platforms",
+    srcs = ["platforms.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
+
+bzl_library(
+    name = "providers",
+    srcs = ["providers.bzl"],
+    visibility = [
+        "//go:__subpackages__",
+        "//proto:__pkg__",  # keep
+    ],
+)
+
+bzl_library(
+    name = "sdk_list",
+    srcs = ["sdk_list.bzl"],
+    visibility = ["//go:__subpackages__"],
 )

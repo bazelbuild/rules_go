@@ -1,5 +1,5 @@
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("@io_bazel_rules_go//go/private:common.bzl", "has_shared_lib_extension")
+load("//go/private:common.bzl", "has_shared_lib_extension")
 
 def _versioned_shared_libraries_test(ctx):
     env = unittest.begin(ctx)

@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//proto:compiler.bzl",
     "go_proto_compiler",
@@ -122,4 +123,33 @@ filegroup(
     testonly = True,
     srcs = glob(["**"]) + ["//proto/wkt:all_files"],
     visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
+    name = "compiler",
+    srcs = ["compiler.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go:def",
+        "//go/private/rules:transition",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "def",
+    srcs = ["def.bzl"],
+    visibility = ["//visibility:public"],
+    # Don't list dependency on @rules_proto//proto:defs
+    deps = [
+        "//go:def",
+        "@io_bazel_rules_go//go/private:providers",
+        "@io_bazel_rules_go//proto:compiler",
+    ],  # keep
+)
+
+bzl_library(
+    name = "gogo",
+    srcs = ["gogo.bzl"],
+    visibility = ["//visibility:public"],
 )

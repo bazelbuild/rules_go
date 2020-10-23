@@ -13,29 +13,29 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
+    "//go/private:common.bzl",
     "as_tuple",
     "split_srcs",
 )
 load(
-    "@io_bazel_rules_go//go/private:mode.bzl",
+    "//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
     "mode_string",
 )
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
+    "//go/private:providers.bzl",
     "GoArchive",
     "GoArchiveData",
     "effective_importpath_pkgpath",
     "get_archive",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/cgo.bzl",
+    "//go/private/rules:cgo.bzl",
     "cgo_configure",
 )
 load(
-    "@io_bazel_rules_go//go/private:actions/compilepkg.bzl",
+    "//go/private/actions:compilepkg.bzl",
     "emit_compilepkg",
 )
 

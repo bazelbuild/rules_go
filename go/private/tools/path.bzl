@@ -13,14 +13,14 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
+    "//go/private:providers.bzl",
     "GoArchive",
     "GoPath",
     "effective_importpath_pkgpath",
     "get_archive",
 )
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
+    "//go/private:common.bzl",
     "as_iterable",
     "as_list",
 )

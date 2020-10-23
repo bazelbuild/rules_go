@@ -13,25 +13,25 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:common.bzl",
+    "//go/private:common.bzl",
     "executable_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:nogo.bzl",
+    "//go/private:nogo.bzl",
     "go_register_nogo",
 )
 load(
-    "@io_bazel_rules_go//go/private:sdk_list.bzl",
+    "//go/private:sdk_list.bzl",
     "DEFAULT_VERSION",
     "MIN_SUPPORTED_VERSION",
     "SDK_REPOSITORIES",
 )
 load(
-    "@io_bazel_rules_go//go/private:platforms.bzl",
+    "//go/private:platforms.bzl",
     "generate_toolchain_names",
 )
 load(
-    "@io_bazel_rules_go//go/private:skylib/lib/versions.bzl",
+    "//go/private/skylib/lib:versions.bzl",
     "versions",
 )
 

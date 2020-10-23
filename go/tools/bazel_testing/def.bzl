@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("//go:def.bzl", "go_test")
 
 def go_bazel_test(rule_files = None, **kwargs):
     """go_bazel_test is a wrapper for go_test that simplifies the use of

@@ -1,0 +1,24 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+filegroup(
+    name = "all_rules",
+    srcs = glob(["**/*.bzl"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "path",
+    srcs = ["path.bzl"],
+    visibility = ["//go:__subpackages__"],
+    deps = [
+        "@io_bazel_rules_go//go/private:common",
+        "@io_bazel_rules_go//go/private:providers",
+    ],
+)

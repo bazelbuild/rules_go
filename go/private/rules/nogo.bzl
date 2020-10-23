@@ -13,18 +13,18 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:context.bzl",
+    "//go/private:context.bzl",
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
+    "//go/private:providers.bzl",
     "EXPORT_PATH",
     "GoArchive",
     "GoLibrary",
     "get_archive",
 )
 load(
-    "@io_bazel_rules_go//go/private:rules/transition.bzl",
+    "//go/private/rules:transition.bzl",
     "go_reset_transition",
 )
 

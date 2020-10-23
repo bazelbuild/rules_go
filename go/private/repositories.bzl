@@ -15,7 +15,7 @@
 # Once nested repositories work, this file should cease to exist.
 
 load("//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
-load("//go/private:skylib/lib/versions.bzl", "versions")
+load("//go/private/skylib/lib:versions.bzl", "versions")
 load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 load("//proto:gogo.bzl", "gogo_special_proto")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -279,7 +279,15 @@ def _maybe(repo_rule, name, **kwargs):
         repo_rule(name = name, **kwargs)
 
 def _go_name_hack_impl(ctx):
-    ctx.file("BUILD.bazel")
+    build_content = """\
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+bzl_library(
+    name = "def",
+    srcs = ["def.bzl"],
+)
+"""
+    ctx.file("BUILD.bazel", build_content)
     content = "IS_RULES_GO = {}".format(ctx.attr.is_rules_go)
     ctx.file("def.bzl", content)
 

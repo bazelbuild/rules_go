@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 filegroup(
     name = "all_files",
     testonly = True,
@@ -24,4 +26,32 @@ filegroup(
 toolchain_type(
     name = "toolchain",
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "def",
+    srcs = ["def.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//extras:embed_data",
+        "//go/private:context",
+        "//go/private:go_toolchain",
+        "//go/private:providers",
+        "//go/private/rules:library",
+        "//go/private/rules:nogo",
+        "//go/private/rules:sdk",
+        "//go/private/rules:source",
+        "//go/private/rules:wrappers",
+        "//go/private/tools:path",
+    ],
+)
+
+bzl_library(
+    name = "deps",
+    srcs = ["deps.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/private:repositories",
+        "//go/private:sdk",
+    ],
 )
