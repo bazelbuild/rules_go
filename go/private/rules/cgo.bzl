@@ -17,6 +17,7 @@ load(
     "as_iterable",
     "has_simple_shared_lib_extension",
     "has_versioned_shared_lib_extension",
+    "hdr_exts",
 )
 load(
     "@io_bazel_rules_go//go/private:mode.bzl",
@@ -83,8 +84,15 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     seen_includes = {}
     seen_quote_includes = {}
     seen_system_includes = {}
-    for f in srcs:
-        if f.basename.endswith(".h"):
+    have_hdrs = any([f.basename.endswith(ext) for f in srcs for ext in hdr_exts])
+    if have_hdrs:
+        # Add include paths for all sources so we can use include paths relative
+        # to any source file or any header file. The go command requires all
+        # sources to be in the same directory, but that's not necessarily the
+        # case here.
+        #
+        # Use -I so either <> or "" includes may be used (same as go command).
+        for f in srcs:
             _include_unique(cppopts, "-I", f.dirname, seen_includes)
 
     inputs_direct = []
