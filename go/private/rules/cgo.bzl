@@ -61,9 +61,6 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
         fail("Go toolchain does not support cgo")
 
     cppopts = list(cppopts)
-    base_dir, _, _ = go._ctx.build_file_path.rpartition("/")
-    if base_dir:
-        cppopts.extend(["-I", base_dir])
     copts = go.cgo_tools.c_compile_options + copts
     cxxopts = go.cgo_tools.cxx_compile_options + cxxopts
     objcopts = go.cgo_tools.objc_compile_options + copts
@@ -88,7 +85,7 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     seen_system_includes = {}
     for f in srcs:
         if f.basename.endswith(".h"):
-            _include_unique(cppopts, "-iquote", f.dirname, seen_quote_includes)
+            _include_unique(cppopts, "-I", f.dirname, seen_includes)
 
     inputs_direct = []
     inputs_transitive = []
