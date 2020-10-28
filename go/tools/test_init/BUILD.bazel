@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go/private:rules/library.bzl", "go_tool_library")
+load("@io_bazel_rules_go//go/private/rules:library.bzl", "go_tool_library")
 
 go_tool_library(
     name = "test_init",
@@ -11,14 +11,5 @@ filegroup(
     name = "all_files",
     testonly = True,
     srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-
-# srcs are compiled into the test package with the generated testmain.
-filegroup(
-    name = "srcs",
-    srcs = [
-        "test_init.go",
-    ],
     visibility = ["//visibility:public"],
 )
