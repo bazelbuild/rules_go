@@ -33,6 +33,7 @@ load(
 # gazelle:exclude go/tools/coverdata
 # gazelle:exclude go/tools/fetch_repo
 # gazelle:exclude go/tools/windows-testrunner
+# gazelle:exclude go/tools/test_init
 # gazelle:exclude go/tools/testwrapper
 # gazelle:go_naming_convention import_alias
 
@@ -75,6 +76,7 @@ go_context_data(
         "//go/platform:internal_cgo_off": None,
         "//conditions:default": ":cgo_context_data",
     }),
+    test_init = "//go/tools/test_init",
     coverdata = "//go/tools/coverdata",
     go_config = ":go_config",
     nogo = "@io_bazel_rules_nogo//:nogo",

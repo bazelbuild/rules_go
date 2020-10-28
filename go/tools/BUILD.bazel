@@ -6,6 +6,7 @@ filegroup(
         "//go/tools/bazel_testing:all_files",
         "//go/tools/builders:all_files",
         "//go/tools/coverdata:all_files",
+        "//go/tools/test_init:all_files",
         "//go/tools/testwrapper:all_files",
     ],
     visibility = ["//visibility:public"],

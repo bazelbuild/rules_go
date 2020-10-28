@@ -62,13 +62,15 @@ type Cases struct {
 
 const testMainTpl = `
 package main
+// This must be first.
+import (
+	_ "github.com/bazelbuild/rules_go/go/tools/test_init"
+)
 import (
 	"flag"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"runtime"
 	"strconv"
 	"testing"
 	"testing/internal/testdeps"
@@ -128,23 +130,6 @@ func main() {
 			os.Exit(testWrapperAbnormalExit)
 		} else {
 			os.Exit(0)
-		}
-	}
-
-	// Check if we're being run by Bazel and change directories if so.
-	// TEST_SRCDIR and TEST_WORKSPACE are set by the Bazel test runner, so that makes a decent proxy.
-	testSrcdir := os.Getenv("TEST_SRCDIR")
-	testWorkspace := os.Getenv("TEST_WORKSPACE")
-	if testSrcdir != "" && testWorkspace != "" {
-		abs := filepath.Join(testSrcdir, testWorkspace, {{printf "%q" .RunDir}})
-		err := os.Chdir(abs)
-		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
-		// https://github.com/bazelbuild/rules_go/pull/1721#issuecomment-422145904
-		if err != nil && runtime.GOOS != "windows" {
-			log.Fatalf("could not change to test directory: %v", err)
-		}
-		if err == nil {
-			os.Setenv("PWD", abs)
 		}
 	}
 
