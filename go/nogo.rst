@@ -313,7 +313,7 @@ nogo
 ~~~~
 
 This generates a program that that analyzes the source code of Go programs. It
-runs alongisde the Go compiler in the Bazel Go rules and rejects programs that
+runs alongside the Go compiler in the Bazel Go rules and rejects programs that
 contain disallowed coding patterns.
 
 Attributes
