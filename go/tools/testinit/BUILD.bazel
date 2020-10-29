@@ -1,9 +1,9 @@
 load("@io_bazel_rules_go//go/private/rules:library.bzl", "go_tool_library")
 
 go_tool_library(
-    name = "test_init",
-    srcs = ["test_init.go"],
-    importpath = "github.com/bazelbuild/rules_go/go/tools/test_init",
+    name = "testinit",
+    srcs = ["testinit.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/testinit",
     visibility = ["//visibility:public"],
 )
 

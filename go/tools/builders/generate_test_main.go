@@ -25,7 +25,6 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"text/template"
@@ -50,7 +49,6 @@ type Example struct {
 
 // Cases holds template data.
 type Cases struct {
-	RunDir     string
 	Imports    []*Import
 	Tests      []TestCase
 	Benchmarks []TestCase
@@ -62,9 +60,13 @@ type Cases struct {
 
 const testMainTpl = `
 package main
-// This must be first.
+// This package must be initialized before packages being tested.
+// NOTE: this relies on the order of package initialization, which is the spec
+// is somewhat unclear about-- it only clearly guarantees that imported packages
+// are initialized before their importers, though in practice (and implied) it
+// also respects declaration order, which we're relying on here.
 import (
-	_ "github.com/bazelbuild/rules_go/go/tools/test_init"
+	_ "github.com/bazelbuild/rules_go/go/tools/testinit"
 )
 import (
 	"flag"
@@ -168,7 +170,6 @@ func genTestMain(args []string) error {
 	sources := multiFlag{}
 	flags := flag.NewFlagSet("GoTestGenTest", flag.ExitOnError)
 	goenv := envFlags(flags)
-	runDir := flags.String("rundir", ".", "Path to directory where tests should run.")
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
 	coverage := flags.Bool("coverage", false, "whether coverage is supported")
 	pkgname := flags.String("pkgname", "", "package name of test")
@@ -220,7 +221,6 @@ func genTestMain(args []string) error {
 	}
 
 	cases := Cases{
-		RunDir:   strings.Replace(filepath.FromSlash(*runDir), `\`, `\\`, -1),
 		Coverage: *coverage,
 		Pkgname:  *pkgname,
 	}

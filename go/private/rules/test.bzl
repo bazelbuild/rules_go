@@ -93,7 +93,6 @@ def _go_test_impl(ctx):
 
     main_go = go.declare_file(go, path = "testmain.go")
     arguments = go.builder_args(go, "gentestmain")
-    arguments.add("-rundir", run_dir)
     arguments.add("-output", main_go)
     if ctx.configuration.coverage_enabled:
         arguments.add("-coverage")
@@ -115,15 +114,14 @@ def _go_test_impl(ctx):
         mnemonic = "GoTestGenTest",
         executable = go.toolchain._builder,
         arguments = [arguments],
-        env = {
-            "RUNDIR": ctx.label.package,
-        },
     )
 
     test_gc_linkopts = gc_linkopts(ctx)
     if not go.mode.debug:
         # Disable symbol table and DWARF generation for test binaries.
         test_gc_linkopts.extend(["-s", "-w"])
+    # Link in the run_dir global for testinit
+    test_gc_linkopts.extend(["-X", "github.com/bazelbuild/rules_go/go/tools/testinit.RunDir=" + run_dir])
 
     # Now compile the test binary itself
     test_library = GoLibrary(
@@ -137,7 +135,7 @@ def _go_test_impl(ctx):
         resolve = None,
     )
     test_deps = external_archive.direct + [external_archive]
-    test_deps.append(go.test_init)
+    test_deps.append(go.testinit)
     if ctx.configuration.coverage_enabled:
         test_deps.append(go.coverdata)
     test_source = go.library_to_source(go, struct(
