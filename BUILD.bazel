@@ -76,11 +76,11 @@ go_context_data(
         "//go/platform:internal_cgo_off": None,
         "//conditions:default": ":cgo_context_data",
     }),
-    testinit = "//go/tools/testinit",
     coverdata = "//go/tools/coverdata",
     go_config = ":go_config",
     nogo = "@io_bazel_rules_nogo//:nogo",
     stdlib = ":stdlib",
+    testinit = "//go/tools/testinit",
     visibility = ["//visibility:public"],
 )
 

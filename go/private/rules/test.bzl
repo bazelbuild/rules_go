@@ -120,6 +120,7 @@ def _go_test_impl(ctx):
     if not go.mode.debug:
         # Disable symbol table and DWARF generation for test binaries.
         test_gc_linkopts.extend(["-s", "-w"])
+
     # Link in the run_dir global for testinit
     test_gc_linkopts.extend(["-X", "github.com/bazelbuild/rules_go/go/tools/testinit.RunDir=" + run_dir])
 
