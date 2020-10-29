@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 var (
@@ -37,11 +38,13 @@ func init() {
 		if !filepath.IsAbs(RunDir) {
 			abs = filepath.Join(testSrcdir, testWorkspace, RunDir)
 		}
-		if err := os.Chdir(abs); err != nil {
-			// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
-			// https://github.com/bazelbuild/rules_go/pull/1721#issuecomment-422145904
+		err := os.Chdir(abs)
+		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
+		// https://github.com/bazelbuild/rules_go/pull/1721#issuecomment-422145904
+		if err != nil && runtime.GOOS != "windows" {
 			log.Fatalf("could not change to test directory: %v", err)
-		} else {
+		}
+		if err == nil {
 			_ = os.Setenv("PWD", abs)
 		}
 	}
