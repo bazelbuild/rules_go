@@ -350,7 +350,6 @@ def go_context(ctx, attr = None):
     cgo_context_info = None
     go_config_info = None
     stdlib = None
-    testinit = None
     coverdata = None
     nogo = None
     if hasattr(attr, "_go_context_data"):
@@ -358,7 +357,6 @@ def go_context(ctx, attr = None):
             cgo_context_info = attr._go_context_data[CgoContextInfo]
         go_config_info = attr._go_context_data[GoConfigInfo]
         stdlib = attr._go_context_data[GoStdLib]
-        testinit = attr._go_context_data[GoContextInfo].testinit
         coverdata = attr._go_context_data[GoContextInfo].coverdata
         nogo = attr._go_context_data[GoContextInfo].nogo
     if getattr(attr, "_cgo_context_data", None) and CgoContextInfo in attr._cgo_context_data:
@@ -464,7 +462,6 @@ def go_context(ctx, attr = None):
         pathtype = pathtype,
         cgo_tools = cgo_tools,
         nogo = nogo,
-        testinit = testinit,
         coverdata = coverdata,
         coverage_enabled = ctx.configuration.coverage_enabled,
         coverage_instrumented = ctx.coverage_instrumented(),
@@ -502,12 +499,10 @@ def _go_context_data_impl(ctx):
         print("WARNING: --features=race is no longer supported. Use --@io_bazel_rules_go//go/config:race instead.")
     if "msan" in ctx.features:
         print("WARNING: --features=msan is no longer supported. Use --@io_bazel_rules_go//go/config:msan instead.")
-    testinit = ctx.attr.testinit[GoArchive]
     coverdata = ctx.attr.coverdata[GoArchive]
     nogo = ctx.files.nogo[0] if ctx.files.nogo else None
     providers = [
         GoContextInfo(
-            testinit = ctx.attr.testinit[GoArchive],
             coverdata = ctx.attr.coverdata[GoArchive],
             nogo = nogo,
         ),
@@ -522,10 +517,6 @@ go_context_data = rule(
     _go_context_data_impl,
     attrs = {
         "cgo_context_data": attr.label(),
-        "testinit": attr.label(
-            mandatory = True,
-            providers = [GoArchive],
-        ),
         "coverdata": attr.label(
             mandatory = True,
             providers = [GoArchive],

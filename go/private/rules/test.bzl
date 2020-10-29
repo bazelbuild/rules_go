@@ -135,8 +135,7 @@ def _go_test_impl(ctx):
         is_main = True,
         resolve = None,
     )
-    test_deps = external_archive.direct + [external_archive]
-    test_deps.append(go.testinit)
+    test_deps = external_archive.direct + [external_archive] + ctx.attr._testmain_additional_deps
     if ctx.configuration.coverage_enabled:
         test_deps.append(go.coverdata)
     test_source = go.library_to_source(go, struct(
@@ -199,6 +198,10 @@ _go_test_kwargs = {
         "_testmain_additional_srcs": attr.label_list(
             default = ["@io_bazel_rules_go//go/tools/testwrapper:srcs"],
             allow_files = go_exts,
+        ),
+        "_testmain_additional_deps": attr.label_list(
+            providers = [GoLibrary],
+            default = ["@io_bazel_rules_go//go/tools/testinit"],
         ),
         # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
         "_lcov_merger": attr.label(

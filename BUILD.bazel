@@ -80,7 +80,6 @@ go_context_data(
     go_config = ":go_config",
     nogo = "@io_bazel_rules_nogo//:nogo",
     stdlib = ":stdlib",
-    testinit = "//go/tools/testinit",
     visibility = ["//visibility:public"],
 )
 
