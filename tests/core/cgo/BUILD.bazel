@@ -56,7 +56,7 @@ cc_import(
 cc_binary(
     name = "libimported.dylib",
     srcs = ["imported.c"],
-    linkopts = ["-install_name @rpath/libimported.dylib"],
+    linkopts = ["-Wl,-install_name,@rpath/libimported.dylib"],
     linkshared = True,
     tags = ["manual"],
 )
