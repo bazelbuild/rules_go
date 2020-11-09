@@ -474,7 +474,7 @@ files.
     go_proto_library(
         name = "foo_go_proto",
         importpath = "github.com/example/protos/foo_proto",
-        proto = ":foo_proto",
+        protos = [":foo_proto"],
         visibility = ["//visibility:public"],
     )
 
