@@ -111,13 +111,13 @@ def go_rules_dependencies(is_rules_go = False):
     _maybe(
         http_archive,
         name = "rules_cc",
-        # master, as of 2020-08-24
+        # master, as of 2020-11-10
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_cc/archive/02becfef8bc97bda4f9bb64e153f1b0671aec4ba.zip",
-            "https://github.com/bazelbuild/rules_cc/archive/02becfef8bc97bda4f9bb64e153f1b0671aec4ba.zip",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_cc/archive/7bd0e49cfb2237086df89dca9e6ba7a5a5dfb36d.zip",
+            "https://github.com/bazelbuild/rules_cc/archive/7bd0e49cfb2237086df89dca9e6ba7a5a5dfb36d.zip",
         ],
-        sha256 = "fa42eade3cad9190c2a6286a6213f07f1a83d26d9f082d56f526d014c6ea7444",
-        strip_prefix = "rules_cc-02becfef8bc97bda4f9bb64e153f1b0671aec4ba",
+        sha256 = "c855aad5f1d125104cfa8e8e7590205bc35c5e8418771ffd2cfde0922ef31775",
+        strip_prefix = "rules_cc-7bd0e49cfb2237086df89dca9e6ba7a5a5dfb36d",
     )
 
     # Proto dependencies
