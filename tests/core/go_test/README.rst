@@ -3,6 +3,7 @@ Basic go_test functionality
 
 .. _go_test: /go/core.rst#_go_test
 .. _#1877: https://github.com/bazelbuild/rules_go/issues/1877
+.. _#34129: https:////github.com/golang/go/issues/34129
 
 Tests to ensure that basic features of `go_test`_ are working as expected.
 
@@ -97,3 +98,9 @@ indirect_import_test
 Checks that an external test can import another package that imports the library
 under test. The other package should be compiled against the internal test
 package, not the library under test. Verifies `#1877`_.
+
+testmain_bad_test
+-----------------
+
+Checks that TestMain without calling Os.Exit directly works.
+Verifies `#34129`_ from Go 1.15.
