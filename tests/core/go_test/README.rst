@@ -99,8 +99,8 @@ Checks that an external test can import another package that imports the library
 under test. The other package should be compiled against the internal test
 package, not the library under test. Verifies `#1877`_.
 
-testmain_bad_test
------------------
+testmain_without_exit
+---------------------
 
-Checks that TestMain without calling Os.Exit directly works.
+Checks that TestMain without calling os.Exit directly works.
 Verifies `#34129`_ from Go 1.15.

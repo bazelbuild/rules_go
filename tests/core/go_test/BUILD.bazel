@@ -190,9 +190,8 @@ go_library(
     deps = [":indirect_import_lib"],
 )
 
-go_test(
-    name = "testmain_bad_test",
-    size = "small",
-    srcs = ["testmain_bad_test.go"],
+go_bazel_test(
+    name = "testmain_without_exit_test",
+    srcs = ["testmain_without_exit_test.go"],
 )
 
