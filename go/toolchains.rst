@@ -95,8 +95,8 @@ Normal usage
 ~~~~~~~~~~~~
 
 This is an example of normal usage for the other examples to be compared
-against. This will download and use the latest Go SDK that was available when
-the version of rules_go you're using was released.
+against. This will download and use a specific version of Go for the host
+platform.
 
 .. code:: bzl
 
@@ -106,25 +106,7 @@ the version of rules_go you're using was released.
 
     go_rules_dependencies()
 
-    go_register_toolchains()
-
-
-Forcing the Go version
-~~~~~~~~~~~~~~~~~~~~~~
-
-You can select the version of the Go SDK to use by specifying it when you call
-`go_register_toolchains`_ but you must use a value that matches a known
-toolchain.
-
-.. code:: bzl
-
-    # WORKSPACE
-
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-
-    go_rules_dependencies()
-
-    go_register_toolchains(go_version="1.10.3")
+    go_register_toolchains(version = "1.15.5")
 
 
 Using the installed Go SDK
@@ -142,7 +124,7 @@ but builds won't be reproducible across systems with different SDKs installed.
 
     go_rules_dependencies()
 
-    go_register_toolchains(go_version="host")
+    go_register_toolchains(version = "host")
 
 
 Registering a custom SDK
@@ -215,19 +197,22 @@ Rules and functions
 go_register_toolchains
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Installs the Go toolchains. If :param:`go_version` is specified, it sets the
-SDK version to use (for example, :value:`"1.10.3"`). By default, the latest
-SDK will be used.
+Installs the Go toolchains. If :param:`version` is specified, it sets the
+SDK version to use (for example, :value:`"1.15.5"`).
 
 +--------------------------------+-----------------------------+-----------------------------------+
 | **Name**                       | **Type**                    | **Default value**                 |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go_version`            | :type:`string`              | latest release                    |
+| :param:`version`               | :type:`string`              | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
-| This specifies the version of the Go SDK to download. This is only used if                       |
-| no SDK has been declared with the name :value:`go_sdk` before the call to                        |
-| ``go_register_toolchains``. The default version is the latest version of Go                      |
-| that was released at the time the rules_go release you're using was tagged.                      |
+| Specifies the version of Go to download if one has not been declared.                            |
+|                                                                                                  |
+| If a toolchain was already declared with `go_download_sdk`_ or a similar rule,                   |
+| this parameter may not be set.                                                                   |
+|                                                                                                  |
+| Normally this is set to a Go version like :value:`"1.15.5"`. It may also be                      |
+| set to :value:`"host"`, which will cause rules_go to use the Go toolchain                        |
+| installed on the host system (found using ``GOROOT`` or ``PATH``).                               |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`nogo`                  | :type:`label`               | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -244,10 +229,10 @@ This downloads a Go SDK for use in toolchains.
 +--------------------------------+-----------------------------+---------------------------------------------+
 | **Name**                       | **Type**                    | **Default value**                           |
 +--------------------------------+-----------------------------+---------------------------------------------+
-| :param:`name`                  | :type:`string`              | |mandatory|                                 |
+| :param:`name`                  | :type:`string`              | |mandatory                                 |
 +--------------------------------+-----------------------------+---------------------------------------------+
-| A unique name for this SDK. This should almost always be :value:`go_sdk` if you want the SDK               |
-| to be used by toolchains.                                                                                  |
+| A unique name for this SDK. This should almost always be :value:`go_sdk` if                                |
+| you want the SDK to be used by toolchains.                                                                 |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | :param:`goos`                  | :type:`string`              | :value:`None`                               |
 +--------------------------------+-----------------------------+---------------------------------------------+
@@ -266,9 +251,10 @@ This downloads a Go SDK for use in toolchains.
 | :param:`version`               | :type:`string`              | :value:`latest Go version`                  |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | The version of Go to download, for example ``1.12.5``. If unspecified,                                     |
-| ``go_download_sdk`` will download the latest version of Go that rules_go                                   |
-| supports. Go versions that rules_go doesn't support may not be specified,                                  |
-| since the download SHA-256 sums are not known.                                                             |
+| ``go_download_sdk`` will list available versions of Go from golang.org, then                               |
+| pick the highest version. If ``version`` is specified but ``sdks`` is                                      |
+| unspecified, ``go_download_sdk`` will list available versions on golang.org                                |
+| to determine the correct file name and SHA-256 sum.                                                        |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}]`      |
 +--------------------------------+-----------------------------+---------------------------------------------+

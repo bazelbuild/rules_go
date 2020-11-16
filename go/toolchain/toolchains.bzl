@@ -13,27 +13,11 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:sdk.bzl",
-    _go_register_toolchains = "go_register_toolchains",
-)
-load(
-    "@io_bazel_rules_go//go/private:sdk_list.bzl",
-    _DEFAULT_VERSION = "DEFAULT_VERSION",
-    _MIN_SUPPORTED_VERSION = "MIN_SUPPORTED_VERSION",
-    _SDK_REPOSITORIES = "SDK_REPOSITORIES",
-)
-load(
     "@io_bazel_rules_go//go/private:platforms.bzl",
     "GOARCH_CONSTRAINTS",
     "GOOS_CONSTRAINTS",
     "PLATFORMS",
 )
-
-# These symbols should be loaded from sdk.bzl or deps.bzl instead of here..
-DEFAULT_VERSION = _DEFAULT_VERSION
-MIN_SUPPORTED_VERSION = _MIN_SUPPORTED_VERSION
-SDK_REPOSITORIES = _SDK_REPOSITORIES
-go_register_toolchains = _go_register_toolchains
 
 def declare_constraints():
     """Generates constraint_values and platform targets for valid platforms.

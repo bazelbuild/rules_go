@@ -21,12 +21,6 @@ load(
     "go_register_nogo",
 )
 load(
-    "//go/private:sdk_list.bzl",
-    "DEFAULT_VERSION",
-    "MIN_SUPPORTED_VERSION",
-    "SDK_REPOSITORIES",
-)
-load(
     "//go/private:platforms.bzl",
     "generate_toolchain_names",
 )
@@ -35,6 +29,8 @@ load(
     "versions",
 )
 
+MIN_SUPPORTED_VERSION = "1.13"
+
 def _go_host_sdk_impl(ctx):
     goroot = _detect_host_sdk(ctx)
     platform = _detect_sdk_platform(ctx, goroot)
@@ -42,7 +38,7 @@ def _go_host_sdk_impl(ctx):
     _local_sdk(ctx, goroot)
 
 _go_host_sdk = repository_rule(
-    _go_host_sdk_impl,
+    implementation = _go_host_sdk_impl,
     environ = ["GOROOT"],
 )
 
@@ -51,33 +47,76 @@ def go_host_sdk(name, **kwargs):
     _register_toolchains(name)
 
 def _go_download_sdk_impl(ctx):
-    if ctx.attr.version:
-        if ctx.attr.sdks:
-            fail("version and sdks must not both be set")
-        if ctx.attr.version not in SDK_REPOSITORIES:
-            fail("unknown Go version: {}".format(ctx.attr.version))
-        sdks = SDK_REPOSITORIES[ctx.attr.version]
-    elif ctx.attr.sdks:
-        sdks = ctx.attr.sdks
-    else:
-        sdks = SDK_REPOSITORIES[DEFAULT_VERSION]
-
     if not ctx.attr.goos and not ctx.attr.goarch:
-        platform = _detect_host_platform(ctx)
+        goos, goarch = _detect_host_platform(ctx)
     else:
         if not ctx.attr.goos:
-            fail("goos set but goarch not set")
-        if not ctx.attr.goarch:
             fail("goarch set but goos not set")
-        platform = ctx.attr.goos + "_" + ctx.attr.goarch
+        if not ctx.attr.goarch:
+            fail("goos set but goarch not set")
+        goos, goarch = ctx.attr.goos, ctx.attr.goarch
+    platform = goos + "_" + goarch
+    _sdk_build_file(ctx, platform)
+
+    version = ctx.attr.version
+    sdks = ctx.attr.sdks
+
+    if not sdks:
+        # If sdks was unspecified, download a full list of files.
+        # If version was unspecified, pick the latest version.
+        # Even if version was specified, we need to download the file list
+        # to find the SHA-256 sum. If we don't have it, Bazel won't cache
+        # the downloaded archive.
+        if not version:
+            ctx.report_progress("Finding latest Go version")
+        else:
+            ctx.report_progress("Finding Go SHA-256 sums")
+        ctx.download(
+            url = [
+                "https://golang.org/dl/?mode=json&include=all",
+                "https://golang.google.cn/dl/?mode=json&include=all",
+            ],
+            output = "versions.json",
+        )
+
+        data = ctx.read("versions.json")
+        sdks_by_version = _parse_versions_json(data)
+
+        if not version:
+            highest_version = None
+            for v in sdks_by_version.keys():
+                sv = versions.parse(v)
+                if v != ".".join([str(d) for d in sv]):
+                    # skip pre-release versions
+                    continue
+                if not highest_version or sv > highest_version:
+                    highest_version = sv
+            if not highest_version:
+                fail("did not find any Go versions in https://golang.org/dl/?mode=json")
+            version = ".".join([str(d) for d in highest_version])
+        sdks = sdks_by_version[version]
+
     if platform not in sdks:
         fail("unsupported platform {}".format(platform))
     filename, sha256 = sdks[platform]
-    _sdk_build_file(ctx, platform)
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
 
+    if not ctx.attr.sdks and not ctx.attr.version:
+        # Returning this makes Bazel print a message that 'version' must be
+        # specified for a reproducible build.
+        return {
+            "name": ctx.attr.name,
+            "goos": ctx.attr.goos,
+            "goarch": ctx.attr.goarch,
+            "sdks": ctx.attr.sdks,
+            "urls": ctx.attr.urls,
+            "version": version,
+            "strip_prefix": ctx.attr.strip_prefix,
+        }
+    return None
+
 _go_download_sdk = repository_rule(
-    _go_download_sdk_impl,
+    implementation = _go_download_sdk_impl,
     attrs = {
         "goos": attr.string(),
         "goarch": attr.string(),
@@ -99,7 +138,7 @@ def _go_local_sdk_impl(ctx):
     _local_sdk(ctx, goroot)
 
 _go_local_sdk = repository_rule(
-    _go_local_sdk_impl,
+    implementation = _go_local_sdk_impl,
     attrs = {
         "path": attr.string(),
     },
@@ -116,7 +155,7 @@ def _go_wrap_sdk_impl(ctx):
     _local_sdk(ctx, goroot)
 
 _go_wrap_sdk = repository_rule(
-    _go_wrap_sdk_impl,
+    implementation = _go_wrap_sdk_impl,
     attrs = {
         "root_file": attr.label(
             mandatory = True,
@@ -137,29 +176,14 @@ def _register_toolchains(repo):
     native.register_toolchains(*labels)
 
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
-    # TODO(bazelbuild/bazel#7055): download_and_extract fails to extract
-    # archives containing files with non-ASCII names. Go 1.12b1 has a test
-    # file like this. Remove this workaround when the bug is fixed.
     if len(urls) == 0:
         fail("no urls specified")
-    if urls[0].endswith(".tar.gz"):
-        if strip_prefix != "go":
-            fail("strip_prefix not supported")
-        ctx.download(
-            url = urls,
-            sha256 = sha256,
-            output = "go_sdk.tar.gz",
-        )
-        res = ctx.execute(["tar", "-xf", "go_sdk.tar.gz", "--strip-components=1"])
-        if res.return_code:
-            fail("error extracting Go SDK:\n" + res.stdout + res.stderr)
-        ctx.execute(["rm", "go_sdk.tar.gz"])
-    else:
-        ctx.download_and_extract(
-            url = urls,
-            stripPrefix = strip_prefix,
-            sha256 = sha256,
-        )
+    ctx.report_progress("Downloading and extracting Go toolchain")
+    ctx.download_and_extract(
+        url = urls,
+        stripPrefix = strip_prefix,
+        sha256 = sha256,
+    )
 
 def _local_sdk(ctx, path):
     for entry in ["src", "pkg", "bin"]:
@@ -181,14 +205,14 @@ def _sdk_build_file(ctx, platform):
 
 def _detect_host_platform(ctx):
     if ctx.os.name == "linux":
-        host = "linux_amd64"
+        goos, goarch = "linux", "amd64"
         res = ctx.execute(["uname", "-p"])
         if res.return_code == 0:
             uname = res.stdout.strip()
             if uname == "s390x":
-                host = "linux_s390x"
+                goarch = "s390x"
             elif uname == "i686":
-                host = "linux_386"
+                goarch = "386"
 
         # uname -p is not working on Aarch64 boards
         # or for ppc64le on some distros
@@ -196,26 +220,26 @@ def _detect_host_platform(ctx):
         if res.return_code == 0:
             uname = res.stdout.strip()
             if uname == "aarch64":
-                host = "linux_arm64"
+                goarch = "arm64"
             elif uname == "armv6l":
-                host = "linux_arm"
+                goarch = "arm"
             elif uname == "armv7l":
-                host = "linux_arm"
+                goarch = "arm"
             elif uname == "ppc64le":
-                host = "linux_ppc64le"
+                goarch = "ppc64le"
 
         # Default to amd64 when uname doesn't return a known value.
 
     elif ctx.os.name == "mac os x":
-        host = "darwin_amd64"
+        goos, goarch = "darwin", "amd64"
     elif ctx.os.name.startswith("windows"):
-        host = "windows_amd64"
+        goos, goarch = "windows", "amd64"
     elif ctx.os.name == "freebsd":
-        host = "freebsd_amd64"
+        goos, goarch = "freebsd", "amd64"
     else:
         fail("Unsupported operating system: " + ctx.os.name)
 
-    return host
+    return goos, goarch
 
 def _detect_host_sdk(ctx):
     root = "@invalid@"
@@ -238,8 +262,84 @@ def _detect_sdk_platform(ctx, goroot):
             return f
     fail("Could not detect SDK platform")
 
-def go_register_toolchains(go_version = None, nogo = None):
+def _parse_versions_json(data):
+    """Parses version metadata returned by golang.org.
+
+    This is a really basic JSON parser. We can only do so much in Starlark
+    without recursion. We don't want to download a platform-specific binary
+    for this, and we can't rely on any particular scripting language being
+    installed.
+
+    Args:
+        data: the contents of the file downloaded from
+            https://golang.org/dl/?mode=json. We assume the file is valid
+            JSON, is spaced and indented, and is in a particular format.
+
+    Return:
+        A dict mapping version strings (like "1.15.5") to dicts mapping
+        platform names (like "linux_amd64") to pairs of filenames
+        (like "go1.15.5.linux-amd64.tar.gz") and hex-encoded SHA-256 sums.
+    """
+    sdks_by_version = {}
+
+    START_STATE = 0
+    VERSION_STATE = 1
+    FILE_STATE = 2
+    state = START_STATE
+
+    version = None
+    version_files = None
+    file_fields = None
+
+    for i, line in enumerate(data.split("\n")):
+        line = line.strip()
+        if not line:
+            continue
+        if state == START_STATE:
+            if line == "{":
+                version_files = {}
+                state = VERSION_STATE
+        elif state == VERSION_STATE:
+            key, value = _parse_versions_json_field(line)
+            if key == "version":
+                version = value
+            elif line == "{":
+                state = FILE_STATE
+                file_fields = {}
+            elif line in ("}", "},"):
+                if version and version.startswith("go") and version_files:
+                    sdks_by_version[version[len("go"):]] = version_files
+                version = None
+                version_files = None
+                state = START_STATE
+        elif state == FILE_STATE:
+            key, value = _parse_versions_json_field(line)
+            if key != "":
+                file_fields[key] = value
+            elif line in ("}", "},"):
+                if (all([f in file_fields for f in ("filename", "os", "arch", "sha256", "kind")]) and
+                    file_fields["kind"] == "archive"):
+                    goos_goarch = file_fields["os"] + "_" + file_fields["arch"]
+                    version_files[goos_goarch] = (file_fields["filename"], file_fields["sha256"])
+                file_fields = None
+                state = VERSION_STATE
+
+    return sdks_by_version
+
+def _parse_versions_json_field(line):
+    """Parses a line like '"key": "value",' into a key and value pair."""
+    if line.endswith(","):
+        line = line[:-1]
+    k, sep, v = line.partition('": "')
+    if not sep or not k.startswith('"') or not v.endswith('"'):
+        return "", ""
+    return k[1:], v[:-1]
+
+def go_register_toolchains(version = None, nogo = None, go_version = None):
     """See /go/toolchains.rst#go-register-toolchains for full documentation."""
+    if not version:
+        version = go_version  # old name
+
     sdk_kinds = ("_go_download_sdk", "_go_host_sdk", "_go_local_sdk", "_go_wrap_sdk")
     existing_rules = native.existing_rules()
     sdk_rules = [r for r in existing_rules.values() if r["kind"] in sdk_kinds]
@@ -247,19 +347,19 @@ def go_register_toolchains(go_version = None, nogo = None):
         # may be local_repository in bazel_tests.
         sdk_rules.append(existing_rules["go_sdk"])
 
-    if go_version and len(sdk_rules) > 0:
-        fail("go_version set after go sdk rule declared ({})".format(", ".join([r["name"] for r in sdk_rules])))
+    if version and len(sdk_rules) > 0:
+        fail("go_register_toolchains: version set after go sdk rule declared ({})".format(", ".join([r["name"] for r in sdk_rules])))
     if len(sdk_rules) == 0:
-        if not go_version:
-            go_version = DEFAULT_VERSION
-        if go_version == "host":
+        if not version:
+            fail('go_register_toolchains: version must be set to a string like "1.15.5" or "host"')
+        elif version == "host":
             go_host_sdk(name = "go_sdk")
         else:
-            if not versions.is_at_least(MIN_SUPPORTED_VERSION, go_version):
-                print("DEPRECATED: go_register_toolchains: support for Go versions before {} will be removed soon".format(MIN_SUPPORTED_VERSION))
+            if not versions.is_at_least(MIN_SUPPORTED_VERSION, version):
+                print("DEPRECATED: Go versions before {} are not supported and may not work".format(MIN_SUPPORTED_VERSION))
             go_download_sdk(
                 name = "go_sdk",
-                version = go_version,
+                version = version,
             )
 
     if nogo:
