@@ -40,4 +40,9 @@ def emit_pack(
         executable = go.toolchain._builder,
         arguments = [args],
         env = go.env,
+        # We may need the shell environment (potentially augmented with --action_env)
+        # to invoke protoc on Windows. If protoc was built with mingw, it probably needs
+        # .dll files in non-default locations that must be in PATH. The target configuration
+        # may not have a C compiler, so we have no idea what PATH should be.
+        use_default_shell_env = "PATH" not in go.env,
     )

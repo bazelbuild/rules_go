@@ -28,6 +28,7 @@ def _go_info_impl(ctx):
         mnemonic = "GoInfo",
         executable = ctx.executable._go_info,
         arguments = [args],
+        use_default_shell_env = True,
     )
     return [DefaultInfo(
         files = depset([report]),
