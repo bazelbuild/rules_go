@@ -220,13 +220,13 @@ def go_rules_dependencies(is_rules_go = False):
     _maybe(
         http_archive,
         name = "org_golang_google_genproto",
-        # master, as of 2020-08-24
+        # master, as of 2020-11-18
         urls = [
-            "https://mirror.bazel.build/github.com/googleapis/go-genproto/archive/f69a88009b70a94c67e3910bf1663f5df9fbfc6d.zip",
-            "https://github.com/googleapis/go-genproto/archive/f69a88009b70a94c67e3910bf1663f5df9fbfc6d.zip",
+            "https://mirror.bazel.build/github.com/googleapis/go-genproto/archive/62d171c70ae133bd47722027b62f8820407cf744.zip",
+            "https://github.com/googleapis/go-genproto/archive/62d171c70ae133bd47722027b62f8820407cf744.zip",
         ],
-        sha256 = "22d99299278eb992d27a426350c290dfd272818104d02f244162127886ba25d7",
-        strip_prefix = "go-genproto-f69a88009b70a94c67e3910bf1663f5df9fbfc6d",
+        sha256 = "3c5dc64d2e600974efa6de3a1af0b05b01055f3b59c2db19195b44336944183e",
+        strip_prefix = "go-genproto-62d171c70ae133bd47722027b62f8820407cf744",
         patches = [
             # gazelle args: -repo_root . -go_prefix google.golang.org/genproto -go_naming_convention import_alias -proto disable_global
             "@io_bazel_rules_go//third_party:org_golang_google_genproto-gazelle.patch",
@@ -242,13 +242,13 @@ def go_rules_dependencies(is_rules_go = False):
     _maybe(
         http_archive,
         name = "go_googleapis",
-        # master, as of 2020-08-24
+        # master, as of 2020-11-18
         urls = [
-            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/079e09a64813291f71759d0e1b5f14b0794dc345.zip",
-            "https://github.com/googleapis/googleapis/archive/079e09a64813291f71759d0e1b5f14b0794dc345.zip",
+            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/e7b8cc00065515c3768f57f19a514d8697f76ff4.zip",
+            "https://github.com/googleapis/googleapis/archive/e7b8cc00065515c3768f57f19a514d8697f76ff4.zip",
         ],
-        sha256 = "bba8988a57dc1d259d8e032f3858b52e9708fb863cd378322e703c79582bd064",
-        strip_prefix = "googleapis-079e09a64813291f71759d0e1b5f14b0794dc345",
+        sha256 = "a3c38b5492638d2f358ec23c6d54b1129d883f4db1543ca437c61a829132c6fb",
+        strip_prefix = "googleapis-e7b8cc00065515c3768f57f19a514d8697f76ff4",
         patches = [
             # find . -name BUILD.bazel -delete
             "@io_bazel_rules_go//third_party:go_googleapis-deletebuild.patch",
