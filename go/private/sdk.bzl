@@ -29,7 +29,7 @@ load(
     "versions",
 )
 
-MIN_SUPPORTED_VERSION = "1.13"
+MIN_SUPPORTED_VERSION = "1.14"
 
 def _go_host_sdk_impl(ctx):
     goroot = _detect_host_sdk(ctx)
