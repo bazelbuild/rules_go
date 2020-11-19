@@ -11,13 +11,6 @@ load(
 )
 
 bool_flag(
-    name = "incompatible_package_conflict_is_error",
-    # TODO(#1374): Flip in v0.25.
-    build_setting_default = False,
-    visibility = ["//visibility:public"],
-)
-
-bool_flag(
     name = "static",
     build_setting_default = False,
     visibility = ["//visibility:public"],

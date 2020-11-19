@@ -490,8 +490,6 @@ def go_context(ctx, attr = None):
         # Private
         # TODO: All uses of this should be removed
         _ctx = ctx,
-        # TODO(#1374): Remove in v0.25.
-        _package_conflict_is_error = go_config_info._package_conflict_is_error if go_config_info else True,
     )
 
 def _go_context_data_impl(ctx):
@@ -767,9 +765,6 @@ def _go_config_impl(ctx):
         linkmode = ctx.attr.linkmode[BuildSettingInfo].value,
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
-
-        # TODO(#1374): Remove in v0.25.
-        _package_conflict_is_error = ctx.attr._package_conflict_is_error[BuildSettingInfo].value,
     )]
 
 go_config = rule(
@@ -808,9 +803,6 @@ go_config = rule(
             providers = [BuildSettingInfo],
         ),
         "stamp": attr.bool(mandatory = True),
-        "_package_conflict_is_error": attr.label(
-            default = "//go/config:incompatible_package_conflict_is_error",
-        ),
     },
     provides = [GoConfigInfo],
     doc = """Collects information about build settings in the current

@@ -153,11 +153,8 @@ def emit_link(
     tool_args.add_joined("-extldflags", extldflags, join_with = " ")
 
     conflict_err = _check_conflicts(arcs)
-    if go._package_conflict_is_error:
-        builder_args.add("-package_conflict_is_error")
     if conflict_err:
-        # Error is reported if -package_conflict_is_error was set, or if the
-        # linker command fails.
+        # Report package conflict errors in execution instead of analysis.
         # We could call fail() with this message, but Bazel prints a stack
         # that doesn't give useful information.
         builder_args.add("-conflict_err", conflict_err)

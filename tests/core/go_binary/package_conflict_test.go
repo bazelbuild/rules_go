@@ -113,30 +113,8 @@ func main() {
 	})
 }
 
-func runTest(t *testing.T, expectError bool, extraArgs ...string) {
-	args := append([]string{"build", "//:main"}, extraArgs...)
-
-	err := bazel_testing.RunBazel(args...)
-	if expectError {
-		if err == nil {
-			t.Fatal("Expected error")
-		}
-	} else {
-		if err != nil {
-			t.Fatal(err)
-		}
+func TestPackageConflict(t *testing.T) {
+	if err := bazel_testing.RunBazel("build", "//:main"); err == nil {
+		t.Fatal("Expected error")
 	}
-}
-
-func TestDefaultBehaviour(t *testing.T) {
-	// TODO(#1374): Default to `true`.
-	runTest(t, false)
-}
-
-func TestPackageConflictIsWarning(t *testing.T) {
-	runTest(t, false, "--@io_bazel_rules_go//go/config:incompatible_package_conflict_is_error=False")
-}
-
-func TestPackageConflictIsError(t *testing.T) {
-	runTest(t, true, "--@io_bazel_rules_go//go/config:incompatible_package_conflict_is_error=True")
 }
