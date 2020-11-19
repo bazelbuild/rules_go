@@ -101,7 +101,6 @@ bzl_library(
         "@io_bazel_rules_go//go/private:common",
         "@io_bazel_rules_go//go/private:nogo",
         "@io_bazel_rules_go//go/private:platforms",
-        "@io_bazel_rules_go//go/private:sdk_list",
         "@io_bazel_rules_go//go/private/skylib/lib:versions",
     ],
 )
@@ -137,10 +136,4 @@ bzl_library(
         "//go:__subpackages__",
         "//proto:__pkg__",  # keep
     ],
-)
-
-bzl_library(
-    name = "sdk_list",
-    srcs = ["sdk_list.bzl"],
-    visibility = ["//go:__subpackages__"],
 )

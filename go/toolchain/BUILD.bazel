@@ -27,6 +27,5 @@ bzl_library(
     deps = [
         "@io_bazel_rules_go//go/private:platforms",
         "@io_bazel_rules_go//go/private:sdk",
-        "@io_bazel_rules_go//go/private:sdk_list",
     ],
 )
