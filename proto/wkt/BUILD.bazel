@@ -80,6 +80,34 @@ go_proto_library(
 )
 
 go_proto_wrapper(
+    name = "field_mask_wrapper",
+    library = "@org_golang_google_genproto//protobuf/field_mask:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "field_mask_go_proto",
+    compilers = [":field_mask_wrapper"],
+    importpath = "google.golang.org/genproto/protobuf/field_mask",
+    protos = ["@com_google_protobuf//:field_mask_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "source_context_wrapper",
+    library = "@org_golang_google_genproto//protobuf/source_context:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "source_context_go_proto",
+    compilers = [":source_context_wrapper"],
+    importpath = "google.golang.org/genproto/protobuf/source_context",
+    protos = ["@com_google_protobuf//:source_context_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
     name = "struct_wrapper",
     library = "@com_github_golang_protobuf//ptypes/struct:go_default_library",
     visibility = ["//visibility:private"],
@@ -104,6 +132,20 @@ go_proto_library(
     compilers = [":timestamp_wrapper"],
     importpath = "github.com/golang/protobuf/ptypes/timestamp",
     protos = ["@com_google_protobuf//:timestamp_proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_wrapper(
+    name = "type_wrapper",
+    library = "@org_golang_google_genproto//protobuf/ptype:go_default_library",
+    visibility = ["//visibility:private"],
+)
+
+go_proto_library(
+    name = "type_go_proto",
+    compilers = [":type_wrapper"],
+    importpath = "google.golang.org/genproto/protobuf/ptype",
+    protos = ["@com_google_protobuf//:type_proto"],
     visibility = ["//visibility:public"],
 )
 
@@ -133,34 +175,6 @@ go_proto_library(
     deps = [
         ":source_context_go_proto",
         ":type_go_proto",
-    ],
-)
-
-go_proto_library(
-    name = "field_mask_go_proto",
-    compilers = ["//proto:go_proto_bootstrap"],
-    importpath = "google.golang.org/genproto/protobuf/field_mask",
-    protos = ["@com_google_protobuf//:field_mask_proto"],
-    visibility = ["//visibility:public"],
-)
-
-go_proto_library(
-    name = "source_context_go_proto",
-    compilers = ["//proto:go_proto_bootstrap"],
-    importpath = "google.golang.org/genproto/protobuf/source_context",
-    protos = ["@com_google_protobuf//:source_context_proto"],
-    visibility = ["//visibility:public"],
-)
-
-go_proto_library(
-    name = "type_go_proto",
-    compilers = ["//proto:go_proto_bootstrap"],
-    importpath = "google.golang.org/genproto/protobuf/ptype",
-    protos = ["@com_google_protobuf//:type_proto"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":any_go_proto",
-        ":source_context_go_proto",
     ],
 )
 
