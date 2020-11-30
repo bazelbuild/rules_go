@@ -7,6 +7,7 @@ load(
     "//proto/wkt:well_known_types.bzl",
     "GOGO_WELL_KNOWN_TYPE_REMAPS",
     "PROTO_RUNTIME_DEPS",
+    "WELL_KNOWN_TYPES_APIV2",
     "WELL_KNOWN_TYPE_RULES",
 )
 
@@ -19,14 +20,14 @@ go_proto_compiler(
 go_proto_compiler(
     name = "go_proto",
     visibility = ["//visibility:public"],
-    deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPE_RULES.values(),
+    deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPE_RULES.values() + WELL_KNOWN_TYPES_APIV2,
 )
 
 go_proto_compiler(
     name = "go_grpc",
     options = ["plugins=grpc"],
     visibility = ["//visibility:public"],
-    deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPE_RULES.values() + [
+    deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPE_RULES.values() + WELL_KNOWN_TYPES_APIV2 + [
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//codes:go_default_library",
         "@org_golang_google_grpc//status:go_default_library",

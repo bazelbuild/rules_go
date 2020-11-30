@@ -6,6 +6,8 @@ _proto_library_suffix = "proto"
 _go_proto_library_suffix = "go_proto"
 
 # TODO: this should be private. Make sure nothing depends on it, then rename it.
+# TODO: remove after protoc 3.14 is the minimum supported version. The WKTs
+# changed their import paths in that version.
 WELL_KNOWN_TYPE_PACKAGES = {
     "any": ("github.com/golang/protobuf/ptypes/any", []),
     "api": ("google.golang.org/genproto/protobuf/api", ["source_context", "type"]),
@@ -41,6 +43,32 @@ PROTO_RUNTIME_DEPS = [
     "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
     "@org_golang_google_protobuf//runtime/protoiface:go_default_library",
     "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
+]
+
+# TODO(#2721): after com_google_protobuf 3.14 is the minimum supported version,
+# drop the implicit dependencies on WELL_KNOWN_TYPE_RULES.values() from
+# //proto/wkt:go_proto and //proto/wkt:go_grpc.
+#
+# In protobuf 3.14, the 'option go_package' declarations were changed in the
+# Well Known Types to point to the APIv2 packages. Consequently, generated
+# proto code will import APIv2 packages instead of the APIv1 packages, even
+# when the APIv1 compiler is used (which is still the default). We shouldn't
+# need the APIv1 dependencies with protobuf 3.14, but we don't know which
+# version is in use at load time. The extra packages will be compiled but not
+# linked.
+WELL_KNOWN_TYPES_APIV2 = [
+    "@org_golang_google_protobuf//types/descriptorpb",
+    "@org_golang_google_protobuf//types/known/anypb",
+    "@org_golang_google_protobuf//types/known/apipb",
+    "@org_golang_google_protobuf//types/known/durationpb",
+    "@org_golang_google_protobuf//types/known/emptypb",
+    "@org_golang_google_protobuf//types/known/fieldmaskpb",
+    "@org_golang_google_protobuf//types/known/sourcecontextpb",
+    "@org_golang_google_protobuf//types/known/structpb",
+    "@org_golang_google_protobuf//types/known/timestamppb",
+    "@org_golang_google_protobuf//types/known/typepb",
+    "@org_golang_google_protobuf//types/known/wrapperspb",
+    "@org_golang_google_protobuf//types/pluginpb",
 ]
 
 def gen_well_known_types():
