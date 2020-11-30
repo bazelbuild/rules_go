@@ -119,9 +119,10 @@ Proto dependencies
 ------------------
 
 In order to build `proto_library`_ and `go_proto_library`_ rules, you must
-add a dependency on ``com_google_protobuf`` (perhaps on a newer version)
-in order to build the ``protoc`` compiler. You'll need a C/C++ toolchain for
-the execution platform, too.
+add a dependency on ``com_google_protobuf`` in order to build the ``protoc``
+compiler. Version 3.14.0 is the minimum supported version, but higher minor
+versions shoudl work. You'll need a C/C++ toolchain for the execution platform
+to build ``protoc``.
 
 .. code:: bzl
 
@@ -129,9 +130,12 @@ the execution platform, too.
 
     http_archive(
         name = "com_google_protobuf",
-        sha256 = "9748c0d90e54ea09e5e75fb7fac16edce15d2028d4356f32211cfa3c0e956564",
-        strip_prefix = "protobuf-3.11.4",
-        urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.4.zip"],
+        sha256 = "d0f5f605d0d656007ce6c8b5a82df3037e1d8fe8b121ed42e536f569dec16113",
+        strip_prefix = "protobuf-3.14.0",
+        urls = [
+            "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
+        ],
     )
 
     load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -225,9 +229,12 @@ For example, this is how you would override ``com_github_golang_protobuf``:
 
     http_archive(
         name = "com_google_protobuf",
-        sha256 = "9748c0d90e54ea09e5e75fb7fac16edce15d2028d4356f32211cfa3c0e956564",
-        strip_prefix = "protobuf-3.11.4",
-        urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.11.4.zip"],
+        sha256 = "d0f5f605d0d656007ce6c8b5a82df3037e1d8fe8b121ed42e536f569dec16113",
+        strip_prefix = "protobuf-3.14.0",
+        urls = [
+            "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/archive/v3.14.0.tar.gz",
+        ],
     )
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")

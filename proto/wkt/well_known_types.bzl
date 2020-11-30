@@ -1,13 +1,12 @@
 load("//go:def.bzl", "GoArchive", "GoLibrary", "GoSource")
-load("//proto:def.bzl", "go_proto_library")
 load("//proto:compiler.bzl", "GoProtoCompiler")
 
 _proto_library_suffix = "proto"
 _go_proto_library_suffix = "go_proto"
 
-# TODO: this should be private. Make sure nothing depends on it, then rename it.
-# TODO: remove after protoc 3.14 is the minimum supported version. The WKTs
-# changed their import paths in that version.
+# NOTE: since protobuf 3.14, the WKTs no longer use these paths. They're only
+# used by gogo below. Not clear if that actually works or if we should
+# continue supporting gogo.
 WELL_KNOWN_TYPE_PACKAGES = {
     "any": ("github.com/golang/protobuf/ptypes/any", []),
     "api": ("google.golang.org/genproto/protobuf/api", ["source_context", "type"]),
@@ -32,6 +31,7 @@ GOGO_WELL_KNOWN_TYPE_REMAPS = [
     "Mgoogle/protobuf/compiler_plugin.proto=github.com/gogo/protobuf/protoc-gen-gogo/plugin",
 ]
 
+# NOTE: only used by gogo.
 WELL_KNOWN_TYPE_RULES = {
     wkt: "@io_bazel_rules_go//proto/wkt:{}_{}".format(wkt, _go_proto_library_suffix)
     for wkt in WELL_KNOWN_TYPE_PACKAGES.keys()
@@ -45,17 +45,13 @@ PROTO_RUNTIME_DEPS = [
     "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
 ]
 
-# TODO(#2721): after com_google_protobuf 3.14 is the minimum supported version,
-# drop the implicit dependencies on WELL_KNOWN_TYPE_RULES.values() from
-# //proto/wkt:go_proto and //proto/wkt:go_grpc.
-#
 # In protobuf 3.14, the 'option go_package' declarations were changed in the
-# Well Known Types to point to the APIv2 packages. Consequently, generated
+# Well Known Types to point to the APIv2 packages below. Consequently, generated
 # proto code will import APIv2 packages instead of the APIv1 packages, even
-# when the APIv1 compiler is used (which is still the default). We shouldn't
-# need the APIv1 dependencies with protobuf 3.14, but we don't know which
-# version is in use at load time. The extra packages will be compiled but not
-# linked.
+# when the APIv1 compiler is used (which is still the default).
+#
+# protobuf 3.14 is now the minimum supported version, so we no longer depend
+# on the APIv1 packages.
 WELL_KNOWN_TYPES_APIV2 = [
     "@org_golang_google_protobuf//types/descriptorpb",
     "@org_golang_google_protobuf//types/known/anypb",
@@ -70,18 +66,6 @@ WELL_KNOWN_TYPES_APIV2 = [
     "@org_golang_google_protobuf//types/known/wrapperspb",
     "@org_golang_google_protobuf//types/pluginpb",
 ]
-
-def gen_well_known_types():
-    for wkt, rule in WELL_KNOWN_TYPE_RULES.items():
-        (go_package, deps) = WELL_KNOWN_TYPE_PACKAGES[wkt]
-        go_proto_library(
-            name = rule.rsplit(":", 1)[1],
-            compilers = ["@io_bazel_rules_go//proto:go_proto_bootstrap"],
-            importpath = go_package,
-            proto = "@com_google_protobuf//:{}_{}".format(wkt, _proto_library_suffix),
-            visibility = ["//visibility:public"],
-            deps = [WELL_KNOWN_TYPE_RULES[dep] for dep in deps],
-        )
 
 def _go_proto_wrapper_compile(go, compiler, protos, imports, importpath):
     return []
