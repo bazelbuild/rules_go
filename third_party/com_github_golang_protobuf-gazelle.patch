@@ -280,8 +280,8 @@ diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 +        "registry_test.go",
 +        "text_test.go",
 +    ],
-+    embed = [":proto"],
 +    deps = [
++        ":proto",
 +        "//internal/testprotos/proto2_proto",
 +        "//internal/testprotos/proto3_proto",
 +        "//protoc-gen-go/descriptor",
