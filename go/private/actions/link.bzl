@@ -87,6 +87,10 @@ def emit_link(
         #   Using the C linker avoids that. Race and msan always require a
         #   a C toolchain. See #2614.
         tool_args.add("-linkmode", "external")
+    if go.mode.pure:
+        # Force internal linking in pure mode. We don't have a C toolchain,
+        # so external linking is not possible.
+        tool_args.add("-linkmode", "internal")
     if go.mode.static:
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
