@@ -69,6 +69,12 @@ Slack: #bazel on `Gopher Slack`_
 Announcements
 -------------
 
+2020-12-02
+  Release `v0.25.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.25.0>`_
+  is now available with several changes.
+  `v0.24.8 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.8>`_ is
+  also available with bug fixes. Note that v0.24.9 will be released tomorrow
+  with support for new Go versions.
 2020-11-12
   Releases
   `v0.24.7 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.7>`_ and
@@ -79,11 +85,6 @@ Announcements
   `v0.24.6 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.6>`_ and
   `v0.23.14 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.14>`_ are
   are now available with support for Go 1.15.4 and 1.14.11.
-2020-10-26
-  Releases
-  `v0.24.5 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.5>`_ and
-  `v0.23.13 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.13>`_ are
-  are now available with bug fixes.
 
 Contents
 --------
@@ -168,7 +169,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: The latest version of these rules (v0.24.7) requires Bazel ≥ 2.2.0 to work.
+Note: The latest version of these rules (v0.25.0) requires Bazel ≥ 3.4.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -205,10 +206,10 @@ Go toolchain and register it for use.
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "207fad3e6689135c5d8713e5a17ba9d1290238f47b9ba545b63d9303406209c6",
+        sha256 = "6f111c57fd50baf5b8ee9d63024874dd2a014b069426156c55adbf6d3d22cb7b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz",
         ],
     )
 
@@ -216,7 +217,7 @@ Go toolchain and register it for use.
 
     go_rules_dependencies()
 
-    go_register_toolchains()
+    go_register_toolchains(version = "1.15.5")
 
 You can use rules_go at ``master`` by using `git_repository`_ instead of
 `http_archive`_ and pointing to a recent commit.
@@ -252,10 +253,10 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "207fad3e6689135c5d8713e5a17ba9d1290238f47b9ba545b63d9303406209c6",
+        sha256 = "6f111c57fd50baf5b8ee9d63024874dd2a014b069426156c55adbf6d3d22cb7b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz",
         ],
     )
 
@@ -273,7 +274,7 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     go_rules_dependencies()
 
-    go_register_toolchains()
+    go_register_toolchains(version = "1.15.5")
 
     gazelle_dependencies()
 
@@ -378,10 +379,10 @@ automatically from a go.mod or Gopkg.lock file.
     # Download the Go rules.
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "207fad3e6689135c5d8713e5a17ba9d1290238f47b9ba545b63d9303406209c6",
+        sha256 = "6f111c57fd50baf5b8ee9d63024874dd2a014b069426156c55adbf6d3d22cb7b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.25.0/rules_go-v0.25.0.tar.gz",
         ],
     )
 
@@ -410,7 +411,7 @@ automatically from a go.mod or Gopkg.lock file.
     # Declare indirect dependencies and register toolchains.
     go_rules_dependencies()
 
-    go_register_toolchains()
+    go_register_toolchains(version = "1.15.5")
 
     gazelle_dependencies()
 
@@ -768,29 +769,14 @@ it takes a very long time to transfer. Clean builds seem faster in practice.
 How do I test a beta version of the Go SDK?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-rules_go only supports official releases of the Go SDK. However, we do have
-an easy way for developers to try out beta releases.
-
-In your WORKSPACE file, add a call `go_download_sdk`_ like the one below. This
-must be named ``go_sdk``, and it must come *before* the call to
-`go_register_toolchains`_.
+rules_go only supports official releases of the Go SDK. However, you can still
+test beta and RC versions by passing a ``version`` like ``"1.16beta1"`` to
+`go_register_toolchains`_. See also `go_download_sdk`_.
 
 .. code:: bzl
 
-  load("@io_bazel_rules_go//go:deps.bzl",
-      "go_download_sdk",
-      "go_register_toolchains",
-      "go_rules_dependencies",
-  )
+  load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
   go_rules_dependencies()
 
-  go_download_sdk(
-      name = "go_sdk",
-      sdks = {
-          "darwin_amd64": ("go1.10beta1.darwin-amd64.tar.gz", "8c2a4743359f4b14bcfaf27f12567e3cbfafc809ed5825a2238c0ba45db3a8b4"),
-          "linux_amd64":  ("go1.10beta1.linux-amd64.tar.gz", "ec7a10b5bf147a8e06cf64e27384ff3c6d065c74ebd8fdd31f572714f74a1055"),
-      },
-  )
-
-  go_register_toolchains()
+  go_register_toolchains(version = "1.16beta1")
