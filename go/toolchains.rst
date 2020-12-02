@@ -229,7 +229,7 @@ This downloads a Go SDK for use in toolchains.
 +--------------------------------+-----------------------------+---------------------------------------------+
 | **Name**                       | **Type**                    | **Default value**                           |
 +--------------------------------+-----------------------------+---------------------------------------------+
-| :param:`name`                  | :type:`string`              | |mandatory                                 |
+| :param:`name`                  | :type:`string`              | |mandatory|                                 |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | A unique name for this SDK. This should almost always be :value:`go_sdk` if                                |
 | you want the SDK to be used by toolchains.                                                                 |
