@@ -69,6 +69,11 @@ Slack: #bazel on `Gopher Slack`_
 Announcements
 -------------
 
+2020-12-03
+  Release
+  `v0.24.9 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.9>`_
+  is now available with support for Go 1.15.6 and 1.14.13. v0.25.0 does not
+  require an update to support these versions.
 2020-12-02
   Release `v0.25.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.25.0>`_
   is now available with several changes.
@@ -80,11 +85,6 @@ Announcements
   `v0.24.7 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.7>`_ and
   `v0.23.15 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.15>`_ are
   now available with support for Go 1.15.5 and 1.14.12.
-2020-11-09
-  Releases
-  `v0.24.6 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.6>`_ and
-  `v0.23.14 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.14>`_ are
-  are now available with support for Go 1.15.4 and 1.14.11.
 
 Contents
 --------
