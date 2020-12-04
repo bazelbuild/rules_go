@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testinit
+package bzltestutil
 
 // This package must have no deps beyond Go SDK.
 import (
-	"log"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -25,32 +25,41 @@ import (
 var (
 	// Initialized by linker.
 	RunDir string
+
+	// Initial working directory.
+	testExecDir string
 )
 
 // This initializer runs before any user packages.
 func init() {
+	var err error
+	testExecDir, err = os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
 	// Check if we're being run by Bazel and change directories if so.
 	// TEST_SRCDIR and TEST_WORKSPACE are set by the Bazel test runner, so that makes a decent proxy.
-	testSrcdir, hasSrcDir := os.LookupEnv("TEST_SRCDIR")
+	testSrcDir, hasSrcDir := os.LookupEnv("TEST_SRCDIR")
 	testWorkspace, hasWorkspace := os.LookupEnv("TEST_WORKSPACE")
 	if hasSrcDir && hasWorkspace && RunDir != "" {
 		abs := RunDir
 		if !filepath.IsAbs(RunDir) {
-			abs = filepath.Join(testSrcdir, testWorkspace, RunDir)
+			abs = filepath.Join(testSrcDir, testWorkspace, RunDir)
 		}
 		err := os.Chdir(abs)
 		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
 		// https://github.com/bazelbuild/rules_go/pull/1721#issuecomment-422145904
 		if err != nil && runtime.GOOS != "windows" {
-			log.Fatalf("could not change to test directory: %v", err)
+			panic(fmt.Sprintf("could not change to test directory: %v", err))
 		}
 		if err == nil {
-			_ = os.Setenv("PWD", abs)
+			os.Setenv("PWD", abs)
 		}
 	}
 
 	// Setup the bazel tmpdir as the go tmpdir.
 	if tmpDir, ok := os.LookupEnv("TEST_TMPDIR"); ok {
-		_ = os.Setenv("TMPDIR", tmpDir)
+		os.Setenv("TMPDIR", tmpDir)
 	}
 }

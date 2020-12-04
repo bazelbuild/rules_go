@@ -6,13 +6,14 @@
 // It is used by cmd/test2json and cmd/go.
 //
 // See the cmd/test2json documentation for details of the JSON encoding.
-
+//
 // The file test2json.go was copied from upstream go at
 // src/cmd/internal/test2json/test2json.go, revision
 // d47526ed777958aa4a2542382e931eb7b3c4c6a9. At the time of writing this was
 // deemed the best way of depending on this code that is otherwise not exposed
 // outside of the go toolchain. These files should be kept in sync.
-package main
+
+package bzltestutil
 
 import (
 	"bytes"

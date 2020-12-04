@@ -121,8 +121,8 @@ def _go_test_impl(ctx):
         # Disable symbol table and DWARF generation for test binaries.
         test_gc_linkopts.extend(["-s", "-w"])
 
-    # Link in the run_dir global for testinit
-    test_gc_linkopts.extend(["-X", "github.com/bazelbuild/rules_go/go/tools/testinit.RunDir=" + run_dir])
+    # Link in the run_dir global for bzltestutil
+    test_gc_linkopts.extend(["-X", "github.com/bazelbuild/rules_go/go/tools/bzltestutil.RunDir=" + run_dir])
 
     # Now compile the test binary itself
     test_library = GoLibrary(
@@ -139,7 +139,7 @@ def _go_test_impl(ctx):
     if ctx.configuration.coverage_enabled:
         test_deps.append(go.coverdata)
     test_source = go.library_to_source(go, struct(
-        srcs = [struct(files = [main_go] + ctx.files._testmain_additional_srcs)],
+        srcs = [struct(files = [main_go])],
         deps = test_deps,
     ), test_library, False)
     test_archive, executable, runfiles = go.binary(
@@ -195,13 +195,9 @@ _go_test_kwargs = {
         "cxxopts": attr.string_list(),
         "clinkopts": attr.string_list(),
         "_go_context_data": attr.label(default = "//:go_context_data"),
-        "_testmain_additional_srcs": attr.label_list(
-            default = ["@io_bazel_rules_go//go/tools/testwrapper:srcs"],
-            allow_files = go_exts,
-        ),
         "_testmain_additional_deps": attr.label_list(
             providers = [GoLibrary],
-            default = ["@io_bazel_rules_go//go/tools/testinit"],
+            default = ["@io_bazel_rules_go//go/tools/bzltestutil"],
         ),
         # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
         "_lcov_merger": attr.label(

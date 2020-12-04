@@ -195,3 +195,16 @@ go_bazel_test(
     srcs = ["testmain_without_exit_test.go"],
 )
 
+go_test(
+    name = "wrapper_test",
+    srcs = ["wrapper_test.go"],
+    args = ["$(location :wrapped_test)"],
+    data = [":wrapped_test"],
+    rundir = ".",
+)
+
+go_test(
+    name = "wrapped_test",
+    srcs = ["wrapped_test.go"],
+    tags = ["manual"],
+)

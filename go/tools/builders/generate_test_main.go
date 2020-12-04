@@ -60,14 +60,14 @@ type Cases struct {
 
 const testMainTpl = `
 package main
+
 // This package must be initialized before packages being tested.
 // NOTE: this relies on the order of package initialization, which is the spec
 // is somewhat unclear about-- it only clearly guarantees that imported packages
 // are initialized before their importers, though in practice (and implied) it
 // also respects declaration order, which we're relying on here.
-import (
-	_ "github.com/bazelbuild/rules_go/go/tools/testinit"
-)
+import "github.com/bazelbuild/rules_go/go/tools/bzltestutil"
+
 import (
 	"flag"
 	"log"
@@ -126,13 +126,13 @@ func testsInShard() []testing.InternalTest {
 }
 
 func main() {
-	if shouldWrap() {
-		err := wrap("{{.Pkgname}}")
+	if bzltestutil.ShouldWrap() {
+		err := bzltestutil.Wrap("{{.Pkgname}}")
 		if xerr, ok := err.(*exec.ExitError); ok {
 			os.Exit(xerr.ExitCode())
 		} else if err != nil {
 			log.Print(err)
-			os.Exit(testWrapperAbnormalExit)
+			os.Exit(bzltestutil.TestWrapperAbnormalExit)
 		} else {
 			os.Exit(0)
 		}
