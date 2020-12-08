@@ -137,7 +137,7 @@ func (e *env) runCommand(args []string) error {
 	cmd.Stdout = buf
 	cmd.Stderr = buf
 	err := runAndLogCommand(cmd, e.verbose)
-	fmt.Fprint(os.Stderr, relativizePaths(buf.Bytes()))
+	os.Stderr.Write(relativizePaths(buf.Bytes()))
 	return err
 }
 
