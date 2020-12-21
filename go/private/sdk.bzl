@@ -252,13 +252,21 @@ def _detect_host_sdk(ctx):
     return root
 
 def _detect_sdk_platform(ctx, goroot):
-    res = ctx.execute(["ls", goroot + "/pkg/tool"])
+    path = goroot + "/pkg/tool"
+    res = ctx.execute(["ls", path])
     if res.return_code != 0:
-        fail("Could not detect SDK platform")
+        fail("Could not detect SDK platform: unable to list %s: %s" % (path, res.stderr))
+
+    platforms = []
     for f in res.stdout.strip().split("\n"):
         if f.find("_") >= 0:
-            return f
-    fail("Could not detect SDK platform")
+            platforms.append(f)
+
+    if len(platforms) == 0:
+        fail("Could not detect SDK platform: found no platforms in %s" % path)
+    if len(platforms) > 1:
+        fail("Could not detect SDK platform: found multiple platforms %s in %s" % (platforms, path))
+    return platforms[0]
 
 def _parse_versions_json(data):
     """Parses version metadata returned by golang.org.
