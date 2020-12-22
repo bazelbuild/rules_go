@@ -404,11 +404,11 @@ func compileArchive(
 	// nogo facts file (if there is one). This allows compile actions to depend
 	// on .x files only, so we don't need to recompile a package when one of its
 	// imports changes in a way that doesn't affect export data.
-	// TODO(golang/go#33820): Ideally, we would use -linkobj to tell the compiler
-	// to create separate .a and .x files for compiled code and export data, then
-	// copy the nogo facts into the .x file. Unfortunately, when building a plugin,
-	// the linker needs export data in the .a file. To work around this, we copy
-	// the export data into the .x file ourselves.
+	// TODO(golang/go#33820): After Go 1.16 is the minimum supported version,
+	// use -linkobj to tell the compiler to create separate .a and .x files for
+	// compiled code and export data. Before that version, the linker needed
+	// export data in the .a file when building a plugin. To work around that,
+	// we copy the export data into .x ourselves.
 	if err = extractFileFromArchive(outPath, workDir, pkgDef); err != nil {
 		return err
 	}

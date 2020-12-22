@@ -347,6 +347,23 @@ func simpleName(name string, names map[string]struct{}) (string, error) {
 }
 
 func appendFiles(goenv *env, archive string, files []string) error {
+	// Create an empty archive if one doesn't already exist.
+	// In Go 1.16, 'go tool pack r' reports an error if the archive doesn't exist.
+	// 'go tool pack c' copies export data in addition to creating the archive,
+	// so we don't want to use that directly.
+	_, err := os.Stat(archive)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if os.IsNotExist(err) {
+		if err := ioutil.WriteFile(archive, []byte(arHeader), 0666); err != nil {
+			return err
+		}
+	}
+
+	// Append files to the archive.
+	// TODO(jayconrod): copy cmd/internal/archive and use that instead of
+	// shelling out to cmd/pack.
 	args := goenv.goTool("pack", "r", archive)
 	args = append(args, files...)
 	return goenv.runCommand(args)
