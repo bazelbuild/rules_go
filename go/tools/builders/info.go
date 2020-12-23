@@ -38,6 +38,7 @@ func run(args []string) error {
 	if err := goenv.checkFlags(); err != nil {
 		return err
 	}
+	os.Setenv("GO111MODULE", "off")
 	f := os.Stderr
 	if filename != "" {
 		var err error
