@@ -347,6 +347,8 @@ func simpleName(name string, names map[string]struct{}) (string, error) {
 }
 
 func appendFiles(goenv *env, archive string, files []string) error {
+	archive = abs(archive) // required for long filenames on Windows.
+
 	// Create an empty archive if one doesn't already exist.
 	// In Go 1.16, 'go tool pack r' reports an error if the archive doesn't exist.
 	// 'go tool pack c' copies export data in addition to creating the archive,
