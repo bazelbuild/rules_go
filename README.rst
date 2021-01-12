@@ -302,7 +302,7 @@ below:
 
 This will generate a ``BUILD.bazel`` file with `go_library`_, `go_binary`_, and
 `go_test`_ targets for each package in your project. You can run the same
-command in the future to update exisitng build files with new source files,
+command in the future to update existing build files with new source files,
 dependencies, and options.
 
 Writing build files by hand
