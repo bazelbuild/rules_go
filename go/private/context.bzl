@@ -234,7 +234,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "cgo_deps": [],
         "cgo_exports": [],
     }
-    if coverage_instrumented and not getattr(attr, "testonly", False):
+    if coverage_instrumented:
         source["cover"] = attr_srcs
     for dep in source["deps"]:
         _check_binary_dep(go, dep, "deps")
