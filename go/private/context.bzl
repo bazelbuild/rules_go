@@ -537,6 +537,21 @@ go_context_data = rule(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
+def _cgo_compiler_transition_impl(settings, attr):
+    compiler = settings["@io_bazel_rules_go//go/config:cgo_compiler"]
+    if compiler == "":
+        compiler = settings["//command_line_option:compiler"]
+    return {"//command_line_option:compiler": compiler}
+
+cgo_compiler_transition = transition(
+    implementation = _cgo_compiler_transition_impl,
+    inputs = [
+        "@io_bazel_rules_go//go/config:cgo_compiler",
+        "//command_line_option:compiler",
+    ],
+    outputs = ["//command_line_option:compiler"],
+)
+
 def _cgo_context_data_impl(ctx):
     # TODO(jayconrod): find a way to get a list of files that comprise the
     # toolchain (to be inputs into actions that need it).
@@ -725,10 +740,14 @@ def _cgo_context_data_impl(ctx):
 
 cgo_context_data = rule(
     implementation = _cgo_context_data_impl,
+    cfg = cgo_compiler_transition,
     attrs = {
         "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
             default = "@bazel_tools//tools/osx:current_xcode_config",
+        ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],

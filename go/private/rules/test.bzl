@@ -14,6 +14,7 @@
 
 load(
     "//go/private:context.bzl",
+    "cgo_compiler_transition",
     "go_context",
 )
 load(
@@ -189,7 +190,7 @@ _go_test_kwargs = {
         "x_defs": attr.string_dict(),
         "linkmode": attr.string(default = LINKMODE_NORMAL),
         "cgo": attr.bool(),
-        "cdeps": attr.label_list(),
+        "cdeps": attr.label_list(cfg = cgo_compiler_transition),
         "cppopts": attr.string_list(),
         "copts": attr.string_list(),
         "cxxopts": attr.string_list(),
@@ -204,6 +205,9 @@ _go_test_kwargs = {
             executable = True,
             default = "@io_bazel_rules_go//go/tools/builders:lcov_merger",
             cfg = "target",
+        ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     "executable": True,

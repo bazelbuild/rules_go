@@ -14,6 +14,7 @@
 
 load(
     "//go/private:context.bzl",
+    "cgo_compiler_transition",
     "go_context",
 )
 load(
@@ -95,12 +96,15 @@ _go_binary_kwargs = {
         "basename": attr.string(),
         "out": attr.string(),
         "cgo": attr.bool(),
-        "cdeps": attr.label_list(),
+        "cdeps": attr.label_list(cfg = cgo_compiler_transition),
         "cppopts": attr.string_list(),
         "copts": attr.string_list(),
         "cxxopts": attr.string_list(),
         "clinkopts": attr.string_list(),
         "_go_context_data": attr.label(default = "//:go_context_data"),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
     },
     "executable": True,
     "toolchains": ["@io_bazel_rules_go//go:toolchain"],

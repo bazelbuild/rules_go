@@ -20,6 +20,7 @@ load(
 )
 load(
     "//go/private:context.bzl",
+    "cgo_compiler_transition",
     "go_context",
 )
 load(
@@ -63,12 +64,15 @@ go_library = rule(
         "gc_goopts": attr.string_list(),
         "x_defs": attr.string_dict(),
         "cgo": attr.bool(),
-        "cdeps": attr.label_list(),
+        "cdeps": attr.label_list(cfg = cgo_compiler_transition),
         "cppopts": attr.string_list(),
         "copts": attr.string_list(),
         "cxxopts": attr.string_list(),
         "clinkopts": attr.string_list(),
         "_go_context_data": attr.label(default = "//:go_context_data"),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )

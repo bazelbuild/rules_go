@@ -58,6 +58,12 @@ string_list_flag(
     visibility = ["//visibility:public"],
 )
 
+string_flag(
+    name = "cgo_compiler",
+    build_setting_default = "",
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "all_files",
     testonly = True,
