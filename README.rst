@@ -69,6 +69,11 @@ Slack: #bazel on `Gopher Slack`_
 Announcements
 -------------
 
+2020-01-19
+  Release
+  `v0.24.11 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.11>`_
+  is now available with support for Go 1.15.7 and 1.14.14. v0.25.x does not
+  require an update to support these versions.
 2020-12-23
   Releases
   `v0.25.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.25.1>`_ and
@@ -82,12 +87,6 @@ Announcements
   `v0.24.9 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.9>`_
   is now available with support for Go 1.15.6 and 1.14.13. v0.25.0 does not
   require an update to support these versions.
-2020-12-02
-  Release `v0.25.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.25.0>`_
-  is now available with several changes.
-  `v0.24.8 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.8>`_ is
-  also available with bug fixes. Note that v0.24.9 will be released tomorrow
-  with support for new Go versions.
 
 Contents
 --------
@@ -220,7 +219,7 @@ Go toolchain and register it for use.
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.6")
+    go_register_toolchains(version = "1.15.7")
 
 You can use rules_go at ``master`` by using `git_repository`_ instead of
 `http_archive`_ and pointing to a recent commit.
@@ -277,7 +276,7 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.6")
+    go_register_toolchains(version = "1.15.7")
 
     gazelle_dependencies()
 
@@ -414,7 +413,7 @@ automatically from a go.mod or Gopkg.lock file.
     # Declare indirect dependencies and register toolchains.
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.6")
+    go_register_toolchains(version = "1.15.7")
 
     gazelle_dependencies()
 
