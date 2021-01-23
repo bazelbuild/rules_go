@@ -230,6 +230,15 @@ def _detect_host_platform(ctx):
 
     elif ctx.os.name == "mac os x":
         goos, goarch = "darwin", "amd64"
+
+        res = ctx.execute(["uname", "-m"])
+        if res.return_code == 0:
+            uname = res.stdout.strip()
+            if uname == "arm64":
+                goarch = "arm64"
+
+        # Default to amd64 when uname doesn't return a known value.
+
     elif ctx.os.name.startswith("windows"):
         goos, goarch = "windows", "amd64"
     elif ctx.os.name == "freebsd":
