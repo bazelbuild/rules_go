@@ -30,6 +30,8 @@ Go rules for Bazel_
 .. _nogo build-time static analysis: go/nogo.rst
 .. _nogo: go/nogo.rst
 .. _rules_go and Gazelle roadmap: https://github.com/bazelbuild/rules_go/wiki/Roadmap
+.. _#bazel on Go Slack: https://gophers.slack.com/archives/C1SCQE54N
+.. _#go on Bazel Slack: https://bazelbuild.slack.com/archives/CDBP88Z0D
 
 .. Go rules
 .. _go_binary: go/core.rst#go_binary
@@ -64,11 +66,16 @@ Go rules for Bazel_
 
 Mailing list: `bazel-go-discuss`_
 
-Slack: #bazel on `Gopher Slack`_
+Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 
 Announcements
 -------------
 
+2021-01-27
+  rules_go and Gazelle are getting community maintainers! If you are a regular
+  user of either project and are interested in helping out with development,
+  code reviews, and issue triage, please drop by our Slack channels (linked
+  above) and say hello!
 2021-01-19
   Release
   `v0.24.11 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.11>`_
@@ -82,11 +89,6 @@ Announcements
   `v0.22.3 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.22.3>`_
   is also released with compatibility fixes with 1.16beta1, so make sure to
   upgrade that as well.
-2020-12-03
-  Release
-  `v0.24.9 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.9>`_
-  is now available with support for Go 1.15.6 and 1.14.13. v0.25.0 does not
-  require an update to support these versions.
 
 Contents
 --------
