@@ -139,6 +139,13 @@ method. In general, only rules_go should need to build or handle these.
 | Maps generated files in :param:`srcs` back to :param:`orig_srcs`. Not all                        |
 | generated files may appear in here.                                                              |
 +--------------------------------+-----------------------------------------------------------------+
+| :param:`embedsrcs`             | :type:`list of File`                                            |
++--------------------------------+-----------------------------------------------------------------+
+| Files that may be embedded into the compiled package using ``//go:embed``                        |
+| directives. All files must be in the same logical directory or a subdirectory                    |
+| as source files. However, it's okay to mix static and generated source files                     |
+| and static and generated embeddable files.                                                       |
++--------------------------------+-----------------------------------------------------------------+
 | :param:`cover`                 | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
 | List of source files to instrument for code coverage.                                            |

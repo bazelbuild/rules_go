@@ -18,6 +18,7 @@ load(
 )
 load(
     "//go/private:common.bzl",
+    "as_list",
     "asm_exts",
     "cgo_exts",
     "go_exts",
@@ -182,6 +183,7 @@ _go_test_kwargs = {
         "srcs": attr.label_list(allow_files = go_exts + asm_exts + cgo_exts),
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),
+        "embedsrcs": attr.label_list(allow_files = True),
         "importpath": attr.string(),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),
@@ -391,21 +393,22 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
         source = GoSource(
             library = library,
             mode = go.mode,
-            srcs = arc_data.srcs,
-            orig_srcs = arc_data.orig_srcs,
+            srcs = as_list(arc_data.srcs),
+            orig_srcs = as_list(arc_data.orig_srcs),
             orig_src_map = dict(zip(arc_data.srcs, arc_data._orig_src_map)),
             cover = arc_data._cover,
+            embedsrcs = as_list(arc_data._embedsrcs),
             x_defs = dict(arc_data._x_defs),
             deps = deps,
-            gc_goopts = arc_data._gc_goopts,
+            gc_goopts = as_list(arc_data._gc_goopts),
             runfiles = go._ctx.runfiles(files = arc_data.data_files),
             cgo = arc_data._cgo,
-            cdeps = arc_data._cdeps,
-            cppopts = arc_data._cppopts,
-            copts = arc_data._copts,
-            cxxopts = arc_data._cxxopts,
-            clinkopts = arc_data._clinkopts,
-            cgo_exports = arc_data._cgo_exports,
+            cdeps = as_list(arc_data._cdeps),
+            cppopts = as_list(arc_data._cppopts),
+            copts = as_list(arc_data._copts),
+            cxxopts = as_list(arc_data._cxxopts),
+            clinkopts = as_list(arc_data._clinkopts),
+            cgo_exports = as_list(arc_data._cgo_exports),
         )
 
         # If this archive needs to be recompiled, use go.archive.

@@ -112,6 +112,14 @@ Attributes
 | files are also permitted. Files may be filtered at build time                                    |
 | using Go `build constraints`_.                                                                   |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`embedsrcs`         | :type:`label_list`          | :value:`[]`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| The list of files that may be embedded into the compiled package using                           |
+| ``//go:embed`` directives. All files must be in the same logical directory                       |
+| or a subdirectory as source files. All source files containing ``//go:embed``                    |
+| directives must be in the same logical directory. It's okay to mix static and                    |
+| generated source files and static and generated embeddable files.                                |
++----------------------------+-----------------------------+---------------------------------------+
 | :param:`x_defs`            | :type:`string_dict`         | :value:`{}`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | Map of defines to add to the go link command.                                                    |
@@ -307,6 +315,14 @@ Attributes
 | :value:`.c .cc .cpp .cxx .h .hh .hpp .hxx .inc .m .mm`                                           |
 | files are also permitted. Files may be filtered at build time                                    |
 | using Go `build constraints`_.                                                                   |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`embedsrcs`         | :type:`label_list`          | :value:`[]`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| The list of files that may be embedded into the compiled package using                           |
+| ``//go:embed`` directives. All files must be in the same logical directory                       |
+| or a subdirectory as source files. All source files containing ``//go:embed``                    |
+| directives must be in the same logical directory. It's okay to mix static and                    |
+| generated source files and static and generated embeddable files.                                |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`deps`              | :type:`label_list`          | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
@@ -537,6 +553,14 @@ Attributes
 | the embedding library. At most one embedded library may have ``cgo = True``,                     |
 | and the embedding library may not also have ``cgo = True``. See Embedding_                       |
 | for more information.                                                                            |
++----------------------------+-----------------------------+---------------------------------------+
+| :param:`embedsrcs`         | :type:`label_list`          | :value:`[]`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| The list of files that may be embedded into the compiled package using                           |
+| ``//go:embed`` directives. All files must be in the same logical directory                       |
+| or a subdirectory as source files. All source files containing ``//go:embed``                    |
+| directives must be in the same logical directory. It's okay to mix static and                    |
+| generated source files and static and generated embeddable files.                                |
 +----------------------------+-----------------------------+---------------------------------------+
 | :param:`data`              | :type:`label_list`          | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+

@@ -7,6 +7,7 @@ go_test(
     srcs = [
         "filter.go",
         "filter_test.go",
+        "read.go",
     ],
 )
 
@@ -20,6 +21,7 @@ filegroup(
         "compile.go",
         "compilepkg.go",
         "cover.go",
+        "embedcfg.go",
         "env.go",
         "filter.go",
         "filter_buildid.go",
@@ -30,6 +32,7 @@ filegroup(
         "importcfg.go",
         "link.go",
         "pack.go",
+        "read.go",
         "replicate.go",
         "stdlib.go",
     ] + select({

@@ -88,6 +88,7 @@ _go_binary_kwargs = {
         "embed": attr.label_list(
             providers = [GoLibrary],
         ),
+        "embedsrcs": attr.label_list(allow_files = True),
         "importpath": attr.string(),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),

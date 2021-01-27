@@ -40,7 +40,7 @@ func compilePkg(args []string) error {
 
 	fs := flag.NewFlagSet("GoCompilePkg", flag.ExitOnError)
 	goenv := envFlags(fs)
-	var unfilteredSrcs, coverSrcs multiFlag
+	var unfilteredSrcs, coverSrcs, embedSrcs multiFlag
 	var deps archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
@@ -48,6 +48,7 @@ func compilePkg(args []string) error {
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&coverSrcs, "cover", ".go file that should be instrumented for coverage (must also be a -src)")
+	fs.Var(&embedSrcs, "embedsrc", "file that may be compiled into the package with a //go:embed directive")
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	fs.StringVar(&importPath, "importpath", "", "The import path of the package being compiled. Not passed to the compiler, but may be displayed in debug data.")
 	fs.StringVar(&packagePath, "p", "", "The package path (importmap) of the package being compiled")
@@ -80,6 +81,9 @@ func compilePkg(args []string) error {
 	outPath = abs(outPath)
 	for i := range unfilteredSrcs {
 		unfilteredSrcs[i] = abs(unfilteredSrcs[i])
+	}
+	for i := range embedSrcs {
+		embedSrcs[i] = abs(embedSrcs[i])
 	}
 	for i := range coverSrcs {
 		coverSrcs[i] = abs(coverSrcs[i])
@@ -124,6 +128,7 @@ func compilePkg(args []string) error {
 		deps,
 		coverMode,
 		coverSrcs,
+		embedSrcs,
 		cgoEnabled,
 		cc,
 		gcFlags,
@@ -149,6 +154,7 @@ func compileArchive(
 	deps []archive,
 	coverMode string,
 	coverSrcs []string,
+	embedSrcs []string,
 	cgoEnabled bool,
 	cc string,
 	gcFlags []string,
@@ -318,6 +324,32 @@ func compileArchive(
 	}
 	defer os.Remove(importcfgPath)
 
+	// Build an embedcfg file mapping embed patterns to filenames.
+	var srcDirs []string
+	srcDirs = append(srcDirs, filepath.Dir(outPath))
+	for _, src := range srcs.goSrcs {
+		srcDirs = append(srcDirs, filepath.Dir(src.filename))
+	}
+	sort.Strings(srcDirs)
+	embedRootDirs := srcDirs[:1]
+	for _, dir := range srcDirs {
+		prev := embedRootDirs[len(embedRootDirs)-1]
+		if dir == prev || strings.HasPrefix(dir, prev+string(filepath.Separator)) {
+			// Skip duplicates.
+			// Sources in subdirectories cause an error, but only if they contain
+			// embed directives, which we haven't checked yet.
+			continue
+		}
+		embedRootDirs = append(embedRootDirs, dir)
+	}
+	embedcfgPath, err := buildEmbedcfgFile(srcs.goSrcs, embedSrcs, embedRootDirs, workDir)
+	if err != nil {
+		return err
+	}
+	if embedcfgPath != "" {
+		defer os.Remove(embedcfgPath)
+	}
+
 	// Run nogo concurrently.
 	var nogoChan chan error
 	outFactsPath := filepath.Join(workDir, nogoFact)
@@ -349,7 +381,7 @@ func compileArchive(
 	}
 
 	// Compile the filtered .go files.
-	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, asmHdrPath, symabisPath, gcFlags, outPath); err != nil {
+	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath, gcFlags, outPath); err != nil {
 		return err
 	}
 
@@ -419,9 +451,12 @@ func compileArchive(
 	return appendFiles(goenv, outXPath, []string{pkgDefPath})
 }
 
-func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, asmHdrPath, symabisPath string, gcFlags []string, outPath string) error {
+func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath string, gcFlags []string, outPath string) error {
 	args := goenv.goTool("compile")
 	args = append(args, "-p", packagePath, "-importcfg", importcfgPath, "-pack")
+	if embedcfgPath != "" {
+		args = append(args, "-embedcfg", embedcfgPath)
+	}
 	if asmHdrPath != "" {
 		args = append(args, "-asmhdr", asmHdrPath)
 	}

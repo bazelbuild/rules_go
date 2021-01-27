@@ -170,6 +170,7 @@ def _merge_embed(source, embed):
     source["srcs"] = s.srcs + source["srcs"]
     source["orig_srcs"] = s.orig_srcs + source["orig_srcs"]
     source["orig_src_map"].update(s.orig_src_map)
+    source["embedsrcs"] = source["embedsrcs"] + s.embedsrcs
     source["cover"] = source["cover"] + s.cover
     source["deps"] = source["deps"] + s.deps
     source["x_defs"].update(s.x_defs)
@@ -214,6 +215,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     attr_srcs = [f for t in getattr(attr, "srcs", []) for f in as_iterable(t.files)]
     generated_srcs = getattr(library, "srcs", [])
     srcs = attr_srcs + generated_srcs
+    embedsrcs = [f for t in getattr(attr, "embedsrcs", []) for f in as_iterable(t.files)]
     source = {
         "library": library,
         "mode": go.mode,
@@ -221,6 +223,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "orig_srcs": srcs,
         "orig_src_map": {},
         "cover": [],
+        "embedsrcs": embedsrcs,
         "x_defs": {},
         "deps": getattr(attr, "deps", []),
         "gc_goopts": getattr(attr, "gc_goopts", []),

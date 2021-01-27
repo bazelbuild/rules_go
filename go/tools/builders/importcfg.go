@@ -76,7 +76,8 @@ func checkImports(files []fileInfo, archives []archive, stdPackageListPath strin
 	imports := make(map[string]*archive)
 	var derr depsError
 	for _, f := range files {
-		for _, path := range f.imports {
+		for _, imp := range f.imports {
+			path := imp.path
 			if _, ok := imports[path]; ok || path == "C" || isRelative(path) {
 				// TODO(#1645): Support local (relative) import paths. We don't emit
 				// errors for them here, but they will probably break something else.

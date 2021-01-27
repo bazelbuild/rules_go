@@ -18,21 +18,24 @@ import (
 	"fmt"
 	"go/ast"
 	"go/build"
-	"go/parser"
 	"go/token"
-	"log"
+	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
 type fileInfo struct {
 	filename string
 	ext      ext
+	header   []byte
+	fset     *token.FileSet
+	parsed   *ast.File
+	parseErr error
 	matched  bool
 	isCgo    bool
 	pkg      string
-	imports  []string
+	imports  []fileImport
+	embeds   []fileEmbed
 }
 
 type ext int
@@ -47,6 +50,17 @@ const (
 	hExt
 )
 
+type fileImport struct {
+	path string
+	pos  token.Pos
+	doc  *ast.CommentGroup
+}
+
+type fileEmbed struct {
+	pattern string
+	pos     token.Position
+}
+
 type archiveSrcs struct {
 	goSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []fileInfo
 }
@@ -56,7 +70,7 @@ type archiveSrcs struct {
 func filterAndSplitFiles(fileNames []string) (archiveSrcs, error) {
 	var res archiveSrcs
 	for _, s := range fileNames {
-		src, err := readFileInfo(build.Default, s, true)
+		src, err := readFileInfo(build.Default, s)
 		if err != nil {
 			return archiveSrcs{}, err
 		}
@@ -87,7 +101,7 @@ func filterAndSplitFiles(fileNames []string) (archiveSrcs, error) {
 
 // readFileInfo applies build constraints to an input file and returns whether
 // it should be compiled.
-func readFileInfo(bctx build.Context, input string, needPackage bool) (fileInfo, error) {
+func readFileInfo(bctx build.Context, input string) (fileInfo, error) {
 	fi := fileInfo{filename: input}
 	if ext := filepath.Ext(input); ext == ".C" {
 		fi.ext = cxxExt
@@ -125,53 +139,30 @@ func readFileInfo(bctx build.Context, input string, needPackage bool) (fileInfo,
 		}
 		fi.matched = match
 	}
-	// if we don't need the package, and we are cgo, no need to parse the file
-	if !needPackage && bctx.CgoEnabled {
-		return fi, nil
-	}
-	// if it's not a go file, there is no package or cgo
-	if !strings.HasSuffix(input, ".go") {
+	// If it's not a go file, there's nothing more to read.
+	if fi.ext != goExt {
 		return fi, nil
 	}
 
-	// read the file header
-	fset := token.NewFileSet()
-	parsed, err := parser.ParseFile(fset, input, nil, parser.ImportsOnly)
+	// Scan the file for imports and embeds.
+	f, err := os.Open(input)
 	if err != nil {
-		return fi, err
+		return fileInfo{}, err
 	}
-	fi.pkg = parsed.Name.String()
+	defer f.Close()
+	fi.fset = token.NewFileSet()
+	if err := readGoInfo(f, &fi); err != nil {
+		return fileInfo{}, err
+	}
 
-	for _, decl := range parsed.Decls {
-		d, ok := decl.(*ast.GenDecl)
-		if !ok {
-			continue
-		}
-		for _, dspec := range d.Specs {
-			spec, ok := dspec.(*ast.ImportSpec)
-			if !ok {
-				continue
-			}
-			imp, err := strconv.Unquote(spec.Path.Value)
-			if err != nil {
-				log.Panicf("%s: invalid string `%s`", input, spec.Path.Value)
-			}
-			if imp == "C" {
-				fi.isCgo = true
-				break
-			}
+	// Exclude cgo files if cgo is not enabled.
+	for _, imp := range fi.imports {
+		if imp.path == "C" {
+			fi.isCgo = true
+			break
 		}
 	}
-	// matched if cgo is enabled or the file is not cgo
 	fi.matched = fi.matched && (bctx.CgoEnabled || !fi.isCgo)
-
-	for _, i := range parsed.Imports {
-		path, err := strconv.Unquote(i.Path.Value)
-		if err != nil {
-			return fi, err
-		}
-		fi.imports = append(fi.imports, path)
-	}
 
 	return fi, nil
 }
