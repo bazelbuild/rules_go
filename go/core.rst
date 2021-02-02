@@ -496,10 +496,17 @@ To run a Go benchmark test, run
 
   bazel run //path/to:test -- -test.bench=.
 
-You can run specific tests by passing the `--test_filter=pattern <test_filter_>`_ argument to Bazel.
-You can pass arguments to tests by passing `--test_arg=arg <test_arg_>`_ arguments to Bazel.
+You can run specific tests by passing the `--test_filter=pattern
+<test_filter_>`_ argument to Bazel. You can pass arguments to tests by passing
+`--test_arg=arg <test_arg_>`_ arguments to Bazel, and you can set environment
+variables in the test environment by passing `--test_env=VAR=value`_.
 
-To write structured testlog information to Bazel's ``XML_OUTPUT_FILE``, tests ran with ``bazel test`` execute using a wrapper that invokes the testbinary with ``-test.v``. This functionality can be disabled by setting ``GO_TEST_WRAP=0`` in the test environment.
+To write structured testlog information to Bazel's ``XML_OUTPUT_FILE``, tests
+ran with ``bazel test`` execute using a wrapper. This functionality can be
+disabled by setting ``GO_TEST_WRAP=0`` in the test environment. Additionally,
+the testbinary can be invoked with ``-test.v`` by setting
+``GO_TEST_WRAP_TESTV=1`` in the test environment; this will result in the
+``XML_OUTPUT_FILE`` containing more granular data.
 
 Attributes
 ^^^^^^^^^^
