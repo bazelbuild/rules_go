@@ -71,6 +71,12 @@ Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 Announcements
 -------------
 
+2021-02-03
+  Release
+  `v0.24.12 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.12>`_
+  is now available with support for Go 1.15.8 and 1.14.15. v0.25.x does not
+  require an update to support these versions. v0.24.x releases are not
+  compatible with Bazel 4.0.0 and higher.
 2021-01-27
   rules_go and Gazelle are getting community maintainers! If you are a regular
   user of either project and are interested in helping out with development,
@@ -81,14 +87,6 @@ Announcements
   `v0.24.11 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.11>`_
   is now available with support for Go 1.15.7 and 1.14.14. v0.25.x does not
   require an update to support these versions.
-2020-12-23
-  Releases
-  `v0.25.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.25.1>`_ and
-  `v0.24.10 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.10>`_ are
-  now available with fixes and compatibility with Go 1.16beta1. Gazelle
-  `v0.22.3 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.22.3>`_
-  is also released with compatibility fixes with 1.16beta1, so make sure to
-  upgrade that as well.
 
 Contents
 --------
