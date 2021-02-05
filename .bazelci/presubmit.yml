@@ -8,6 +8,7 @@ platforms:
     - "..."
   ubuntu1804:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
+    bazel: 3.7.2 # test maximum supported version of bazel on release-0.24
     build_flags:
     - "--incompatible_load_cc_rules_from_bzl"
     - "--incompatible_load_proto_rules_from_bzl"
@@ -23,11 +24,13 @@ platforms:
     test_targets:
     - "..."
   macos:
+    bazel: 3.7.2 # test maximum supported version of bazel on release-0.24
     build_targets:
     - "..."
     test_targets:
     - "..."
   rbe_ubuntu1604:
+    bazel: 3.7.2 # test maximum supported version of bazel on release-0.24
     build_targets:
     - "..."
     test_flags:
@@ -45,6 +48,7 @@ platforms:
     - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/stdlib:buildid_test"
   windows:
+    bazel: 3.7.2 # test maximum supported version of bazel on release-0.24
     build_flags:
     # Go requires a C toolchain that accepts options and emits errors like
     # gcc or clang. The Go SDK does not support MSVC.
