@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option go_package = "github.com/bazelbuild/rules_go/tests/core/go_proto_library/protos";
+
+message Foo {
+    // Experimental protoc feature
+    // See: https://github.com/protocolbuffers/protobuf/blob/master/docs/implementing_proto3_presence.md
+    optional int64 x = 1; 
+}

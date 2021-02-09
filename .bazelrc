@@ -10,3 +10,6 @@ build:ci --spawn_strategy=standalone
 build:ci --genrule_strategy=standalone
 test:ci --test_strategy=standalone
 test:ci --test_output=errors
+
+# Required for proto related tests.
+build --protocopt=--experimental_allow_proto3_optional
