@@ -327,17 +327,17 @@ func Test(t *testing.T) {
 			target:      "//:has_errors",
 			wantSuccess: false,
 			includes: []string{
-				"has_errors.go:.*package fmt must not be imported",
-				"has_errors.go:.*function must not be named Foo",
-				"has_errors.go:.*function D is not visible in this package",
+				`has_errors.go:.*package fmt must not be imported \(importfmt\)`,
+				`has_errors.go:.*function must not be named Foo \(foofuncname\)`,
+				`has_errors.go:.*function D is not visible in this package \(visibility\)`,
 			},
 		}, {
 			desc:        "custom_config",
 			target:      "//:has_errors",
 			wantSuccess: false,
 			includes: []string{
-				"has_errors.go:.*package fmt must not be imported",
-				"has_errors.go:.*function must not be named Foo",
+				`has_errors.go:.*package fmt must not be imported \(importfmt\)`,
+				`has_errors.go:.*function must not be named Foo \(foofuncname\)`,
 			},
 			excludes: []string{
 				"custom/has_errors.go:.*function D is not visible in this package",

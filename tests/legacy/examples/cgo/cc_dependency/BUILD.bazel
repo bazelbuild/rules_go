@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
 
 config_setting(
     name = "darwin",
@@ -19,17 +19,10 @@ cc_library(
     }),
 )
 
-cc_library(
-    name = "c_version_orig",
-    srcs = ["c_version.c"],
-    hdrs = ["c_version.h"],
-)
-
-# Goes through filegroup() to emulate prebuilt .so in srcs of cc_library.
-filegroup(
+cc_binary(
     name = "c_version_so",
-    srcs = [":c_version_orig"],
-    output_group = "dynamic_library",
+    srcs = ["c_version.c", "c_version.h"],
+    linkshared = True,
 )
 
 cc_import(
