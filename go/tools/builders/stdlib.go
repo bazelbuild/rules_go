@@ -90,7 +90,19 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 
 	// Strip path prefix from source files in debug information.
 	os.Setenv("CGO_CFLAGS", os.Getenv("CGO_CFLAGS")+" "+strings.Join(defaultCFlags(output), " "))
-	os.Setenv("CGO_LDFLAGS", os.Getenv("CGO_LDFLAGS")+" "+strings.Join(defaultLdFlags(), " "))
+	relativeLdflags, _ := splitQuoted(os.Getenv("CGO_LDFLAGS"))
+	var absLdflags strings.Builder
+	for _, f := range relativeLdflags {
+		if strings.HasPrefix(f, "-") {
+			absLdflags.WriteString(f)
+		} else if _, err := os.Stat(f); os.IsNotExist(err) {
+			absLdflags.WriteString(f)
+		} else {
+			absLdflags.WriteString(abs(f))
+		}
+		absLdflags.WriteString(" ")
+	}
+	os.Setenv("CGO_LDFLAGS", absLdflags.String()+" "+strings.Join(defaultLdFlags(), " "))
 
 	// Allow flags in CGO_LDFLAGS that wouldn't pass the security check.
 	// Workaround for golang.org/issue/42565.
