@@ -68,12 +68,18 @@ go_source(
 )
 
 go_binary(
-    name = "go_path",
+    name = "go_path-bin",
     srcs = [
         "env.go",
         "flags.go",
         "go_path.go",
     ],
+    visibility = ["//visibility:public"],
+)
+
+go_reset_target(
+    name = "go_path",
+    dep = ":go_path-bin",
     visibility = ["//visibility:public"],
 )
 
