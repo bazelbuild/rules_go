@@ -35,21 +35,28 @@ def new_cc_import(go,
     ):
     return CcInfo(
         compilation_context = cc_common.create_compilation_context(
-            defines = defines or depset([]),
-            local_defines = local_defines or depset([]),
-            headers = hdrs or depset([]),
-            includes = depset([hdr.root.path for hdr in hdrs.to_list()]),
+            defines = defines,
+            local_defines = local_defines,
+            headers = hdrs,
+            includes = hdrs and depset([hdr.root.path for hdr in hdrs.to_list()]) or None,
         ),
         linking_context = cc_common.create_linking_context(
-            libraries_to_link = [cc_common.create_library_to_link(
-                actions = go._ctx.actions,
-                cc_toolchain = go.cgo_tools.cc_toolchain,
-                feature_configuration = go.cgo_tools.feature_configuration,
-                dynamic_library = dynamic_library,
-                static_library = static_library,
-                alwayslink = alwayslink,
-            )],
-            user_link_flags = linkopts,
+            linker_inputs = depset([
+                cc_common.create_linker_input(
+                    owner = go.label,
+                    libraries = depset([
+                        cc_common.create_library_to_link(
+                            actions = go.actions,
+                            cc_toolchain = go.cgo_tools.cc_toolchain,
+                            feature_configuration = go.cgo_tools.feature_configuration,
+                            dynamic_library = dynamic_library,
+                            static_library = static_library,
+                            alwayslink = alwayslink,
+                        ),
+                    ]),
+                    user_link_flags = depset(linkopts),
+                ),
+            ]),
         ),
     )
 
