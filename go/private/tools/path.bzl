@@ -24,7 +24,6 @@ load(
     "as_iterable",
     "as_list",
 )
-load("//go/private/rules:transition.bzl", "go_reset_transition")
 
 def _go_path_impl(ctx):
     # Gather all archives. Note that there may be multiple packages with the same
