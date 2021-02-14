@@ -27,10 +27,6 @@ load(
     "go_transition_test",
 )
 load(
-    "//go/private/rules:cgo.bzl",
-    "go_binary_c_archive_shared",
-)
-load(
     "//go/private/rules:transition.bzl",
     "go_transition_wrapper",
 )
@@ -48,7 +44,6 @@ def go_binary_macro(name, **kwargs):
     """See go/core.rst#go_binary for full documentation."""
     _cgo(name, kwargs)
     go_transition_wrapper(go_binary, go_transition_binary, name = name, **kwargs)
-    go_binary_c_archive_shared(name, kwargs)
 
 def go_test_macro(name, **kwargs):
     """See go/core.rst#go_test for full documentation."""
