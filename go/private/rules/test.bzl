@@ -126,8 +126,8 @@ def _go_test_impl(ctx):
 
     # Now compile the test binary itself
     test_library = GoLibrary(
-        name = go._ctx.label.name + "~testmain",
-        label = go._ctx.label,
+        name = go.label.name + "~testmain",
+        label = go.label,
         importpath = "testmain",
         importmap = "testmain",
         importpath_aliases = (),
