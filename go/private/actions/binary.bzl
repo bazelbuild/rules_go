@@ -24,21 +24,23 @@ load(
     "has_shared_lib_extension",
 )
 
+_EMPTY_DEPSET = depset([])
+
 def new_cc_import(
         go,
-        hdrs = None,
-        defines = None,
-        local_defines = None,
+        hdrs = _EMPTY_DEPSET,
+        defines = _EMPTY_DEPSET,
+        local_defines = _EMPTY_DEPSET,
         dynamic_library = None,
         static_library = None,
         alwayslink = False,
-        linkopts = None):
+        linkopts = []):
     return CcInfo(
         compilation_context = cc_common.create_compilation_context(
             defines = defines,
             local_defines = local_defines,
             headers = hdrs,
-            includes = hdrs and depset([hdr.root.path for hdr in hdrs.to_list()]) or None,
+            includes = depset([hdr.root.path for hdr in hdrs.to_list()]),
         ),
         linking_context = cc_common.create_linking_context(
             linker_inputs = depset([
