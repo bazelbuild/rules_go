@@ -130,7 +130,7 @@ def _go_binary_impl(ctx):
             "linkopts": {
                 "darwin": [],
                 "windows": ["-mthreads"],
-            }.get(go.mode.goos, ["-pthreads"]),
+            }.get(go.mode.goos, ["-pthread"]),
         }
         if go.mode.link == LINKMODE_C_SHARED:
             cc_import_kwargs["dynamic_library"] = executable
