@@ -74,6 +74,9 @@ def emit_binary(
     if name == "" and executable == None:
         fail("either name or executable must be set")
 
+    # Keep the original name for later if we need the name without any
+    # modification, such as when the linkmode is c-shared.
+    original_name = name
     archive = go.archive(go, source)
     if not executable:
         extension = go.exe_extension
@@ -103,7 +106,7 @@ def emit_binary(
 
     ccinfo = None
     if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
-        cgo_exports = go.actions.declare_file("%s.h" % name)
+        cgo_exports = go.actions.declare_file("{}.h".format(original_name))
         concat_args = go.actions.args()
         concat_args.add("concat")
         concat_args.add("-out", cgo_exports)
