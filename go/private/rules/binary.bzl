@@ -33,9 +33,49 @@ load(
 )
 load(
     "//go/private:mode.bzl",
+    "LINKMODE_C_ARCHIVE",
+    "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
     "LINKMODE_SHARED",
 )
+
+_EMPTY_DEPSET = depset([])
+
+def new_cc_import(
+        go,
+        hdrs = _EMPTY_DEPSET,
+        defines = _EMPTY_DEPSET,
+        local_defines = _EMPTY_DEPSET,
+        dynamic_library = None,
+        static_library = None,
+        alwayslink = False,
+        linkopts = []):
+    return CcInfo(
+        compilation_context = cc_common.create_compilation_context(
+            defines = defines,
+            local_defines = local_defines,
+            headers = hdrs,
+            includes = depset([hdr.root.path for hdr in hdrs.to_list()]),
+        ),
+        linking_context = cc_common.create_linking_context(
+            linker_inputs = depset([
+                cc_common.create_linker_input(
+                    owner = go.label,
+                    libraries = depset([
+                        cc_common.create_library_to_link(
+                            actions = go.actions,
+                            cc_toolchain = go.cgo_tools.cc_toolchain,
+                            feature_configuration = go.cgo_tools.feature_configuration,
+                            dynamic_library = dynamic_library,
+                            static_library = static_library,
+                            alwayslink = alwayslink,
+                        ),
+                    ]),
+                    user_link_flags = depset(linkopts),
+                ),
+            ]),
+        ),
+    )
 
 def _go_binary_impl(ctx):
     """go_binary_impl emits actions for compiling and linking a go executable."""
@@ -53,7 +93,7 @@ def _go_binary_impl(ctx):
         # directly, Bazel warns them not to use the same name as the rule, which is
         # the common case with go_binary.
         executable = ctx.actions.declare_file(ctx.attr.out)
-    archive, executable, runfiles, ccinfo = go.binary(
+    archive, executable, runfiles = go.binary(
         go,
         name = name,
         source = source,
@@ -78,7 +118,29 @@ def _go_binary_impl(ctx):
         ),
     ]
 
-    if ccinfo:
+    # If the binary's linkmode is c-archive or c-shared, expose CcInfo
+    if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
+        header = ctx.actions.declare_file("{}.h".format(name))
+        ctx.actions.symlink(
+            output = header,
+            target_file = archive.cgo_exports.to_list()[0],
+        )
+        cc_import_kwargs = {
+            "hdrs": depset([header]),
+            "linkopts": {
+                "darwin": [],
+                "windows": ["-mthreads"],
+            }.get(go.mode.goos, ["-pthreads"]),
+        }
+        if go.mode.link == LINKMODE_C_SHARED:
+            cc_import_kwargs["dynamic_library"] = executable
+        elif go.mode.link == LINKMODE_C_ARCHIVE:
+            cc_import_kwargs["static_library"] = executable
+            cc_import_kwargs["alwayslink"] = True
+        ccinfo = new_cc_import(go, **cc_import_kwargs)
+        ccinfo = cc_common.merge_cc_infos(
+            cc_infos = [ccinfo] + [d[CcInfo] for d in source.cdeps],
+        )
         providers.append(ccinfo)
 
     return providers

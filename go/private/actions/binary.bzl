@@ -24,44 +24,6 @@ load(
     "has_shared_lib_extension",
 )
 
-_EMPTY_DEPSET = depset([])
-
-def new_cc_import(
-        go,
-        hdrs = _EMPTY_DEPSET,
-        defines = _EMPTY_DEPSET,
-        local_defines = _EMPTY_DEPSET,
-        dynamic_library = None,
-        static_library = None,
-        alwayslink = False,
-        linkopts = []):
-    return CcInfo(
-        compilation_context = cc_common.create_compilation_context(
-            defines = defines,
-            local_defines = local_defines,
-            headers = hdrs,
-            includes = depset([hdr.root.path for hdr in hdrs.to_list()]),
-        ),
-        linking_context = cc_common.create_linking_context(
-            linker_inputs = depset([
-                cc_common.create_linker_input(
-                    owner = go.label,
-                    libraries = depset([
-                        cc_common.create_library_to_link(
-                            actions = go.actions,
-                            cc_toolchain = go.cgo_tools.cc_toolchain,
-                            feature_configuration = go.cgo_tools.feature_configuration,
-                            dynamic_library = dynamic_library,
-                            static_library = static_library,
-                            alwayslink = alwayslink,
-                        ),
-                    ]),
-                    user_link_flags = depset(linkopts),
-                ),
-            ]),
-        ),
-    )
-
 def emit_binary(
         go,
         name = "",
@@ -76,9 +38,6 @@ def emit_binary(
     if name == "" and executable == None:
         fail("either name or executable must be set")
 
-    # Keep the original name for later if we need the name without any
-    # modification, such as when the linkmode is c-shared.
-    original_name = name
     archive = go.archive(go, source)
     if not executable:
         extension = go.exe_extension
@@ -106,34 +65,4 @@ def emit_binary(
     ]
     runfiles = go._ctx.runfiles(files = cgo_dynamic_deps).merge(archive.runfiles)
 
-    ccinfo = None
-    if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
-        cgo_exports = go.actions.declare_file("{}.h".format(original_name))
-        concat_args = go.actions.args()
-        concat_args.add("concat")
-        concat_args.add("-out", cgo_exports)
-        concat_args.add_all(archive.cgo_exports)
-        go.actions.run(
-            inputs = archive.cgo_exports,
-            outputs = [cgo_exports],
-            executable = go.toolchain._builder,
-            arguments = [concat_args],
-        )
-        cc_import_kwargs = {
-            "hdrs": depset([cgo_exports]),
-            "linkopts": {
-                "darwin": [],
-                "windows": ["-mthreads"],
-            }.get(go.mode.goos, ["-pthreads"]),
-        }
-        if go.mode.link == LINKMODE_C_SHARED:
-            cc_import_kwargs["dynamic_library"] = executable
-        elif go.mode.link == LINKMODE_C_ARCHIVE:
-            cc_import_kwargs["static_library"] = executable
-            cc_import_kwargs["alwayslink"] = True
-        ccinfo = new_cc_import(go, **cc_import_kwargs)
-        ccinfo = cc_common.merge_cc_infos(
-            cc_infos = [ccinfo] + [d[CcInfo] for d in source.cdeps],
-        )
-
-    return archive, executable, runfiles, ccinfo
+    return archive, executable, runfiles

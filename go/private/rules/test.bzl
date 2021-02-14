@@ -142,7 +142,7 @@ def _go_test_impl(ctx):
         srcs = [struct(files = [main_go])],
         deps = test_deps,
     ), test_library, False)
-    test_archive, executable, runfiles, ccinfo = go.binary(
+    test_archive, executable, runfiles = go.binary(
         go,
         name = ctx.label.name,
         source = test_source,
