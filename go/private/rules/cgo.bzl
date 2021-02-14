@@ -20,15 +20,8 @@ load(
 )
 load(
     "//go/private:mode.bzl",
-    "LINKMODE_C_ARCHIVE",
-    "LINKMODE_C_SHARED",
     "LINKMODE_NORMAL",
     "extldflags_from_cc_toolchain",
-)
-load(
-    "@rules_cc//cc:defs.bzl",
-    "cc_import",
-    "cc_library",
 )
 
 def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):

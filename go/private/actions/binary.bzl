@@ -24,15 +24,15 @@ load(
     "has_shared_lib_extension",
 )
 
-def new_cc_import(go,
+def new_cc_import(
+        go,
         hdrs = None,
         defines = None,
         local_defines = None,
         dynamic_library = None,
         static_library = None,
         alwayslink = False,
-        linkopts = None,
-    ):
+        linkopts = None):
     return CcInfo(
         compilation_context = cc_common.create_compilation_context(
             defines = defines,
