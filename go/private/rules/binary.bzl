@@ -120,18 +120,20 @@ def _go_binary_impl(ctx):
 
     # If the binary's linkmode is c-archive or c-shared, expose CcInfo
     if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
-        header = ctx.actions.declare_file("{}.h".format(name))
-        ctx.actions.symlink(
-            output = header,
-            target_file = archive.cgo_exports.to_list()[0],
-        )
         cc_import_kwargs = {
-            "hdrs": depset([header]),
             "linkopts": {
                 "darwin": [],
                 "windows": ["-mthreads"],
             }.get(go.mode.goos, ["-pthread"]),
         }
+        cgo_exports = archive.cgo_exports.to_list()
+        if cgo_exports:
+            header = ctx.actions.declare_file("{}.h".format(name))
+            ctx.actions.symlink(
+                output = header,
+                target_file = cgo_exports[0],
+            )
+            cc_import_kwargs["hdrs"] = depset([header])
         if go.mode.link == LINKMODE_C_SHARED:
             cc_import_kwargs["dynamic_library"] = executable
         elif go.mode.link == LINKMODE_C_ARCHIVE:
