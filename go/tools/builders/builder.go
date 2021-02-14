@@ -45,8 +45,6 @@ func main() {
 		action = compile
 	case "compilepkg":
 		action = compilePkg
-	case "concat":
-		action = concat
 	case "cover":
 		action = cover
 	case "filterbuildid":
