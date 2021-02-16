@@ -219,7 +219,7 @@ Go toolchain and register it for use.
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.7")
+    go_register_toolchains(version = "1.16")
 
 You can use rules_go at ``master`` by using `git_repository`_ instead of
 `http_archive`_ and pointing to a recent commit.
@@ -276,7 +276,7 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.7")
+    go_register_toolchains(version = "1.16")
 
     gazelle_dependencies()
 
@@ -413,7 +413,7 @@ automatically from a go.mod or Gopkg.lock file.
     # Declare indirect dependencies and register toolchains.
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.7")
+    go_register_toolchains(version = "1.16")
 
     gazelle_dependencies()
 
