@@ -62,6 +62,7 @@ Go rules for Bazel_
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
 .. _#1199: https://github.com/bazelbuild/rules_go/issues/1199
+.. _#2775: https://github.com/bazelbuild/rules_go/issues/2775
 
 
 Mailing list: `bazel-go-discuss`_
@@ -71,6 +72,12 @@ Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 Announcements
 -------------
 
+2021-02-16
+  Release
+  `v0.24.13 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.13>`_
+  is now available with support for Go 1.16. v0.25.x does not require an update
+  to support this version. Note that the new ``//go:embed`` directive is
+  not quite supported yet (`#2775`_), but it will be in the next minor release.
 2021-02-03
   Release
   `v0.24.12 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.12>`_
@@ -82,11 +89,6 @@ Announcements
   user of either project and are interested in helping out with development,
   code reviews, and issue triage, please drop by our Slack channels (linked
   above) and say hello!
-2021-01-19
-  Release
-  `v0.24.11 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.11>`_
-  is now available with support for Go 1.15.7 and 1.14.14. v0.25.x does not
-  require an update to support these versions.
 
 Contents
 --------
