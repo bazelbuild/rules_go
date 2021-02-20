@@ -7,6 +7,9 @@ go_library(
         "@io_bazel_rules_go//go/platform:darwin_amd64": [
             "cgo_darwin.go",
         ],
+        "@io_bazel_rules_go//go/platform:darwin_arm64": [
+            "cgo_darwin.go",
+        ],
         "@io_bazel_rules_go//go/platform:linux_amd64": [
             "cgo_linux.go",
         ],
@@ -16,6 +19,9 @@ go_library(
     }),
     cdeps = select({
         "@io_bazel_rules_go//go/platform:darwin_amd64": [
+            ":darwin_lib",
+        ],
+        "@io_bazel_rules_go//go/platform:darwin_arm64": [
             ":darwin_lib",
         ],
         "@io_bazel_rules_go//go/platform:linux_amd64": [
