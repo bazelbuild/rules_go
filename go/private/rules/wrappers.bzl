@@ -45,6 +45,15 @@ def go_binary_macro(name, **kwargs):
     _cgo(name, kwargs)
     go_transition_wrapper(go_binary, go_transition_binary, name = name, **kwargs)
 
+    # Create an alias to tell users of the `.cc` rule that it is deprecated.
+    native.alias(
+        name = "{}.cc".format(name),
+        actual = name,
+        visibility = ["//visibility:public"],
+        tags = ["manual"],
+        deprecation = "This target is deprecated and will be removed in the near future. Please depend on ':{}' directly.".format(name),
+    )
+
 def go_test_macro(name, **kwargs):
     """See go/core.rst#go_test for full documentation."""
     _cgo(name, kwargs)
