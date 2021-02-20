@@ -35,7 +35,7 @@ def popular_repos():
         go_repository,
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
-        commit = "57efc9c3d9f91fb3277f8da1cff370539c4d3dc5",
+        commit = "5f55cee0dc0dc168ce29222f077fe7fcd4be72c5",
     )
     _maybe(
         go_repository,
