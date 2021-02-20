@@ -26,8 +26,12 @@ load(
     "extldflags_from_cc_toolchain",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "//go/private:rpath.bzl",
+    "rpath",
+)
+load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
 )
 
 def _format_archive(d):
@@ -105,8 +109,10 @@ def emit_link(
 
     # TODO: Rework when https://github.com/bazelbuild/bazel/pull/12304 is mainstream
     if go.mode.link == LINKMODE_C_SHARED and go.mode.goos == "darwin":
-        extldflags.append("-install_name")
-        extldflags.append(paths.relativize(executable.path, executable.root.path))
+        extldflags.extend([
+            "-install_name",
+            rpath.install_name(executable),
+        ])
 
     arcs = _transitive_archives_without_test_archives(archive, test_archives)
     arcs.extend(test_archives)
@@ -121,21 +127,11 @@ def emit_link(
     # are stored. Binaries that require these will only work when installed in
     # the bazel execroot. Most binaries are only dynamically linked against
     # system libraries though.
-    # TODO: there has to be a better way to work out the rpath.
-    config_strip = len(go._ctx.configuration.bin_dir.path) + 1
-    pkg_depth = executable.dirname[config_strip:].count("/") + 1
-    origin = "@loader_path/" if go.mode.goos == "darwin" else "$ORIGIN/"
-    base_rpath = origin + "../" * pkg_depth
-    cgo_dynamic_deps = [
-        d
+    cgo_rpaths = sorted(collections.uniq([
+        rpath.flag(go, d, relative_to = executable)
         for d in archive.cgo_deps.to_list()
         if has_shared_lib_extension(d.basename)
-    ]
-    cgo_rpaths = []
-    for d in cgo_dynamic_deps:
-        short_dir = d.dirname[len(d.root.path) + len("/"):]
-        cgo_rpaths.append("-Wl,-rpath,{}/{}".format(base_rpath, short_dir))
-    cgo_rpaths = sorted({p: None for p in cgo_rpaths}.keys())
+    ]))
     extldflags.extend(cgo_rpaths)
 
     # Process x_defs, either adding them directly to linker options, or
