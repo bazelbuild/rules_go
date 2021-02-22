@@ -38,6 +38,10 @@ load(
     "LINKMODE_PLUGIN",
     "LINKMODE_SHARED",
 )
+load(
+    "//go/private:rpath.bzl",
+    "rpath",
+)
 
 _EMPTY_DEPSET = depset([])
 
@@ -50,6 +54,8 @@ def new_cc_import(
         static_library = None,
         alwayslink = False,
         linkopts = []):
+    if dynamic_library:
+        linkopts = linkopts + [rpath.flag(go, dynamic_library)]
     return CcInfo(
         compilation_context = cc_common.create_compilation_context(
             defines = defines,
