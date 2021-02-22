@@ -62,6 +62,7 @@ Go rules for Bazel_
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
 .. _#1199: https://github.com/bazelbuild/rules_go/issues/1199
+.. _#2775: https://github.com/bazelbuild/rules_go/issues/2775
 
 
 Mailing list: `bazel-go-discuss`_
@@ -71,24 +72,23 @@ Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 Announcements
 -------------
 
+2021-02-16
+  Release
+  `v0.24.13 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.13>`_
+  is now available with support for Go 1.16. v0.25.x does not require an update
+  to support this version. Note that the new ``//go:embed`` directive is
+  not quite supported yet (`#2775`_), but it will be in the next minor release.
+2021-02-03
+  Release
+  `v0.24.12 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.12>`_
+  is now available with support for Go 1.15.8 and 1.14.15. v0.25.x does not
+  require an update to support these versions. v0.24.x releases are not
+  compatible with Bazel 4.0.0 and higher.
 2021-01-27
   rules_go and Gazelle are getting community maintainers! If you are a regular
   user of either project and are interested in helping out with development,
   code reviews, and issue triage, please drop by our Slack channels (linked
   above) and say hello!
-2021-01-19
-  Release
-  `v0.24.11 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.11>`_
-  is now available with support for Go 1.15.7 and 1.14.14. v0.25.x does not
-  require an update to support these versions.
-2020-12-23
-  Releases
-  `v0.25.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.25.1>`_ and
-  `v0.24.10 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.10>`_ are
-  now available with fixes and compatibility with Go 1.16beta1. Gazelle
-  `v0.22.3 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.22.3>`_
-  is also released with compatibility fixes with 1.16beta1, so make sure to
-  upgrade that as well.
 
 Contents
 --------
@@ -221,7 +221,7 @@ Go toolchain and register it for use.
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.7")
+    go_register_toolchains(version = "1.16")
 
 You can use rules_go at ``master`` by using `git_repository`_ instead of
 `http_archive`_ and pointing to a recent commit.
@@ -278,7 +278,7 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.7")
+    go_register_toolchains(version = "1.16")
 
     gazelle_dependencies()
 
@@ -415,7 +415,7 @@ automatically from a go.mod or Gopkg.lock file.
     # Declare indirect dependencies and register toolchains.
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.15.7")
+    go_register_toolchains(version = "1.16")
 
     gazelle_dependencies()
 
