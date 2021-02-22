@@ -33,14 +33,3 @@ func TestPIE(t *testing.T) {
 		t.Error("ELF binary is not position-independent.")
 	}
 }
-
-func TestNoPIE(t *testing.T) {
-	m, err := openMachO("tests/core/go_binary", "hello_nopie_bin")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if m.Flags&macho.FlagPIE != 0 {
-		t.Error("ELF binary is not position-dependent.")
-	}
-}
