@@ -32,6 +32,8 @@ func TestAsm(t *testing.T) {
 	var want int
 	if runtime.GOOS == "linux" {
 		want = 12
+	} else if runtime.GOARCH == "arm64" {
+		want = 75
 	} else {
 		want = 34
 	}
