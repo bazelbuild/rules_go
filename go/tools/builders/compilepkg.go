@@ -325,19 +325,24 @@ func compileArchive(
 	defer os.Remove(importcfgPath)
 
 	// Build an embedcfg file mapping embed patterns to filenames.
+	// Embed patterns are relative to any one of a list of root directories
+	// that may contain embeddable files. Source files containing embed patterns
+	// must be in one of these root directories so the pattern appears to be
+	// relative to the source file. Usually, there are two roots: the source
+	// directory, and the output directory (so that generated files are
+	// embeddable). There may be additional roots if sources are in multiple
+	// directories (like if there are are generated source files).
 	var srcDirs []string
 	srcDirs = append(srcDirs, filepath.Dir(outPath))
 	for _, src := range srcs.goSrcs {
 		srcDirs = append(srcDirs, filepath.Dir(src.filename))
 	}
-	sort.Strings(srcDirs)
+	sort.Strings(srcDirs) // group duplicates to uniq them below.
 	embedRootDirs := srcDirs[:1]
 	for _, dir := range srcDirs {
 		prev := embedRootDirs[len(embedRootDirs)-1]
 		if dir == prev || strings.HasPrefix(dir, prev+string(filepath.Separator)) {
 			// Skip duplicates.
-			// Sources in subdirectories cause an error, but only if they contain
-			// embed directives, which we haven't checked yet.
 			continue
 		}
 		embedRootDirs = append(embedRootDirs, dir)
