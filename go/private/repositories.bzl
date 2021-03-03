@@ -120,6 +120,18 @@ def go_rules_dependencies(is_rules_go = False):
         strip_prefix = "rules_cc-b1c40e1de81913a3c40e5948f78719c28152486d",
     )
 
+    # Needed for gopackagesdriver
+    _maybe(
+        http_archive,
+        name = "com_github_bazelbuild_bazel_watcher",
+        # master, as of 2021-03-03
+        urls = [
+            "https://github.com/bazelbuild/bazel-watcher/archive/512875a4a20b48d7539151e55b896f00be8c4a60.zip",
+        ],
+        sha256 = "e822f17ff2c533a068c48fd75764028aaee99f65381469c1b2f269e602e8fad7",
+        strip_prefix = "bazel-watcher-512875a4a20b48d7539151e55b896f00be8c4a60",
+    )
+
     # Proto dependencies
     # These are limited as much as possible. In most cases, users need to
     # declare these on their own (probably via go_repository rules generated

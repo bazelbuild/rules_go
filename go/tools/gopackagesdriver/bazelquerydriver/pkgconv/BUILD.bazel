@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "go_embed_data.go",
+        "go_library.go",
+        "go_proto_library.go",
+        "gotest.go",
+        "pkgconv.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver/bazelquerydriver/pkgconv",
+    visibility = ["//go/tools/gopackagesdriver:__subpackages__"],
+    deps = [
+        "@org_golang_x_tools//go/packages:go_default_library",
+        "@com_github_bazelbuild_bazel_watcher//third_party/bazel/master/src/main/protobuf/blaze_query:go_default_library",
+    ],
+)

@@ -1,0 +1,11 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+
+go_binary(
+    name = "gopackagesdriver",
+    srcs = ["gopackagesdriver.go"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/tools/gopackagesdriver/protocol:go_default_library",
+        "//go/tools/gopackagesdriver/bazelquerydriver:go_default_library",
+    ],
+)
