@@ -1,5 +1,5 @@
 diff -urN a/gopls/README.md b/gopls/README.md
---- a/gopls/README.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/README.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/README.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,71 +0,0 @@
 -# gopls documentation
@@ -74,7 +74,7 @@ diff -urN a/gopls/README.md b/gopls/README.md
 -[1.0 milestone]: https://github.com/golang/go/milestone/112
 -[gopls unplanned]: https://github.com/golang/go/milestone/124
 diff -urN a/gopls/doc/acme.md b/gopls/doc/acme.md
---- a/gopls/doc/acme.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/acme.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/acme.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,7 +0,0 @@
 -# Acme
@@ -85,7 +85,7 @@ diff -urN a/gopls/doc/acme.md b/gopls/doc/acme.md
 -[install steps]: https://github.com/fhs/acme-lsp#gopls
 -
 diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
---- a/gopls/doc/analyzers.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/analyzers.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/analyzers.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,491 +0,0 @@
 -# Analyzers
@@ -580,7 +580,7 @@ diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 -
 -Default value: `false`.
 diff -urN a/gopls/doc/atom.md b/gopls/doc/atom.md
---- a/gopls/doc/atom.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/atom.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/atom.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,7 +0,0 @@
 -# Atom
@@ -591,7 +591,7 @@ diff -urN a/gopls/doc/atom.md b/gopls/doc/atom.md
 -[`ide-gopls`]: https://github.com/MordFustang21/ide-gopls
 -[`atom-ide-ui`]: https://github.com/facebookarchive/atom-ide-ui
 diff -urN a/gopls/doc/command-line.md b/gopls/doc/command-line.md
---- a/gopls/doc/command-line.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/command-line.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/command-line.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,15 +0,0 @@
 -# Command line
@@ -611,7 +611,7 @@ diff -urN a/gopls/doc/command-line.md b/gopls/doc/command-line.md
 ---->
 \ No newline at end of file
 diff -urN a/gopls/doc/commands.md b/gopls/doc/commands.md
---- a/gopls/doc/commands.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/commands.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/commands.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,92 +0,0 @@
 -# Commands
@@ -707,7 +707,7 @@ diff -urN a/gopls/doc/commands.md b/gopls/doc/commands.md
 -
 -<!-- END Commands: DO NOT MANUALLY EDIT THIS SECTION -->
 diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
---- a/gopls/doc/contributing.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/contributing.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/contributing.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,25 +0,0 @@
 -# Documentation for contributors
@@ -737,7 +737,7 @@ diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
 -[issue-wanted]: https://github.com/golang/go/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Agopls+label%3A"help+wanted" "help wanted"
 \ No newline at end of file
 diff -urN a/gopls/doc/daemon.md b/gopls/doc/daemon.md
---- a/gopls/doc/daemon.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/daemon.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/daemon.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,176 +0,0 @@
 -# Running gopls as a daemon
@@ -917,7 +917,7 @@ diff -urN a/gopls/doc/daemon.md b/gopls/doc/daemon.md
 -change its configuration. These flags only matter for the forwarder process
 -that actually starts the daemon.
 diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
---- a/gopls/doc/design.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/design.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/design.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,400 +0,0 @@
 -# gopls design documentation
@@ -1321,7 +1321,7 @@ diff -urN a/gopls/doc/design.md b/gopls/doc/design.md
 -[`textDocument/typeDefinition`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#textDocument_typeDefinition
 -[`workspace/didChangeWatchedFiles`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#workspace_didChangeWatchedFiles
 diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
---- a/gopls/doc/emacs.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/emacs.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/emacs.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,70 +0,0 @@
 -# Emacs
@@ -1395,7 +1395,7 @@ diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
 -[lsp-go]: https://github.com/emacs-lsp/lsp-mode/blob/master/lsp-go.el
 -[Gophers slack]: https://invite.slack.golangbridge.org/
 diff -urN a/gopls/doc/faq.md b/gopls/doc/faq.md
---- a/gopls/doc/faq.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/faq.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/faq.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,7 +0,0 @@
 -# gopls FAQ
@@ -1407,7 +1407,7 @@ diff -urN a/gopls/doc/faq.md b/gopls/doc/faq.md
 -[cl/158197]: https://golang.org/cl/158197
 \ No newline at end of file
 diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
---- a/gopls/doc/generate.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/generate.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/generate.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,120 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -1531,7 +1531,7 @@ diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 -	return result, nil
 -}
 diff -urN a/gopls/doc/generate_test.go b/gopls/doc/generate_test.go
---- a/gopls/doc/generate_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/generate_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/generate_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,23 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -1558,7 +1558,7 @@ diff -urN a/gopls/doc/generate_test.go b/gopls/doc/generate_test.go
 -	}
 -}
 diff -urN a/gopls/doc/implementation.md b/gopls/doc/implementation.md
---- a/gopls/doc/implementation.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/implementation.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/implementation.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,48 +0,0 @@
 -# gopls implementation documentation
@@ -1610,7 +1610,7 @@ diff -urN a/gopls/doc/implementation.md b/gopls/doc/implementation.md
 -[internal/span]: https://github.com/golang/tools/tree/master/internal/span
 -[x/tools]: https://github.com/golang/tools
 diff -urN a/gopls/doc/integrating.md b/gopls/doc/integrating.md
---- a/gopls/doc/integrating.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/integrating.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/integrating.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,91 +0,0 @@
 -# Documentation for plugin authors
@@ -1705,7 +1705,7 @@ diff -urN a/gopls/doc/integrating.md b/gopls/doc/integrating.md
 -[#31553]: https://github.com/golang/go/issues/31553
 -[#31526]: https://github.com/golang/go/issues/31526
 diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
---- a/gopls/doc/settings.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/settings.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/settings.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,313 +0,0 @@
 -# Settings
@@ -2022,7 +2022,7 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -<!-- END Lenses: DO NOT MANUALLY EDIT THIS SECTION -->
 diff -urN a/gopls/doc/status.md b/gopls/doc/status.md
---- a/gopls/doc/status.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/status.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/status.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,37 +0,0 @@
 -# Status
@@ -2063,7 +2063,7 @@ diff -urN a/gopls/doc/status.md b/gopls/doc/status.md
 -[#29202]: https://github.com/golang/go/issues/29202
 -[#32877]: https://github.com/golang/go/issues/32877
 diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
---- a/gopls/doc/subl.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/subl.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/subl.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,11 +0,0 @@
 -# Sublime Text
@@ -2078,7 +2078,7 @@ diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
 -
 -[LSP]: https://packagecontrol.io/packages/LSP
 diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
---- a/gopls/doc/troubleshooting.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/troubleshooting.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/troubleshooting.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,85 +0,0 @@
 -# Troubleshooting
@@ -2167,7 +2167,7 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 -uncomfortable sharing the package names of your code, you can share the
 -`-nonames` zip instead.
 diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
---- a/gopls/doc/user.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/user.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/user.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,156 +0,0 @@
 -# User guide
@@ -2327,7 +2327,7 @@ diff -urN a/gopls/doc/user.md b/gopls/doc/user.md
 -
 -For more information, see the `gopls` [command line page](command-line.md).
 diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
---- a/gopls/doc/vim.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/vim.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/vim.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,193 +0,0 @@
 -# Vim / Neovim
@@ -2524,7 +2524,7 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 -[nvim-lspconfig]: https://github.com/neovim/nvim-lspconfig#gopls
 -[nvim-lspconfig-imports]: https://github.com/neovim/nvim-lspconfig/issues/115
 diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
---- a/gopls/doc/vscode.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/doc/vscode.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/vscode.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,74 +0,0 @@
 -# VSCode
@@ -2602,7 +2602,7 @@ diff -urN a/gopls/doc/vscode.md b/gopls/doc/vscode.md
 -
 -Once you have reloaded VSCode, you will be prompted to install `gopls` and other Go-related tools. After one more reload, you should be ready to develop remotely with VSCode and the Go extension.
 diff -urN a/gopls/go.mod b/gopls/go.mod
---- a/gopls/go.mod	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/go.mod	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.mod	1969-12-31 19:00:00.000000000 -0500
 @@ -1,14 +0,0 @@
 -module golang.org/x/tools/gopls
@@ -2620,7 +2620,7 @@ diff -urN a/gopls/go.mod b/gopls/go.mod
 -
 -replace golang.org/x/tools => ../
 diff -urN a/gopls/go.sum b/gopls/go.sum
---- a/gopls/go.sum	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/go.sum	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.sum	1969-12-31 19:00:00.000000000 -0500
 @@ -1,58 +0,0 @@
 -github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
@@ -2682,7 +2682,7 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -mvdan.cc/xurls/v2 v2.2.0 h1:NSZPykBXJFCetGZykLAxaL6SIpvbVy/UFEniIfHAa8A=
 -mvdan.cc/xurls/v2 v2.2.0/go.mod h1:EV1RMtya9D6G5DMYPGD8zTQzaHet6Jh8gFlRgGRJeO8=
 diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerfile
---- a/gopls/integration/govim/Dockerfile	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/govim/Dockerfile	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/Dockerfile	1969-12-31 19:00:00.000000000 -0500
 @@ -1,16 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
@@ -2702,7 +2702,7 @@ diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerf
 -RUN git clone https://github.com/govim/govim /src/govim && cd /src/govim && \
 -    git checkout $GOVIM_REF
 diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.md
---- a/gopls/integration/govim/README.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/govim/README.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/README.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,47 +0,0 @@
 -# govim integration tests
@@ -2753,7 +2753,7 @@ diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.m
 -
 -[govim]: https://github.com/govim/govim
 diff -urN a/gopls/integration/govim/artifacts.go b/gopls/integration/govim/artifacts.go
---- a/gopls/integration/govim/artifacts.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/govim/artifacts.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/artifacts.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,67 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -2824,7 +2824,7 @@ diff -urN a/gopls/integration/govim/artifacts.go b/gopls/integration/govim/artif
 -	return nil
 -}
 diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/govim/cloudbuild.harness.yaml
---- a/gopls/integration/govim/cloudbuild.harness.yaml	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/govim/cloudbuild.harness.yaml	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/cloudbuild.harness.yaml	1969-12-31 19:00:00.000000000 -0500
 @@ -1,21 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
@@ -2849,7 +2849,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/
 -images:
 -  - gcr.io/$PROJECT_ID/govim-harness
 diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cloudbuild.yaml
---- a/gopls/integration/govim/cloudbuild.yaml	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/govim/cloudbuild.yaml	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/cloudbuild.yaml	1969-12-31 19:00:00.000000000 -0500
 @@ -1,51 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
@@ -2904,7 +2904,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cl
 -# shared.
 -logsBucket: 'gs://${_RESULT_BUCKET}'
 diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_local.sh
---- a/gopls/integration/govim/run_local.sh	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/govim/run_local.sh	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/run_local.sh	1969-12-31 19:00:00.000000000 -0500
 @@ -1,96 +0,0 @@
 -#!/bin/bash -e
@@ -3004,7 +3004,7 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -  go test ${TEST_SHORT} ./cmd/govim \
 -    -gopls "/src/tools/gopls/${temp_gopls_name}"
 diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integration/govim/run_tests_for_cloudbuild.sh
---- a/gopls/integration/govim/run_tests_for_cloudbuild.sh	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/govim/run_tests_for_cloudbuild.sh	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/govim/run_tests_for_cloudbuild.sh	1969-12-31 19:00:00.000000000 -0500
 @@ -1,28 +0,0 @@
 -#!/bin/bash
@@ -3036,7 +3036,7 @@ diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integrat
 -  find "$GOVIM_TESTSCRIPT_WORKDIR_ROOT" -type d \( -name .vim -o -name gopath \) -prune -exec rm -rf '{}' \;
 -fi
 diff -urN a/gopls/integration/parse/parse.go b/gopls/integration/parse/parse.go
---- a/gopls/integration/parse/parse.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/parse/parse.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/parse/parse.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,230 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -3270,7 +3270,7 @@ diff -urN a/gopls/integration/parse/parse.go b/gopls/integration/parse/parse.go
 -	return fmt.Sprintf("dirname: %d unknown", d)
 -}
 diff -urN a/gopls/integration/parse/protocol.go b/gopls/integration/parse/protocol.go
---- a/gopls/integration/parse/protocol.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/parse/protocol.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/parse/protocol.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,320 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -3594,7 +3594,7 @@ diff -urN a/gopls/integration/parse/protocol.go b/gopls/integration/parse/protoc
 -	"callHierarchy/outgoingCalls":                  Mreq | Mcl,
 -}
 diff -urN a/gopls/integration/parse/rlog.go b/gopls/integration/parse/rlog.go
---- a/gopls/integration/parse/rlog.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/parse/rlog.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/parse/rlog.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,126 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -3724,7 +3724,7 @@ diff -urN a/gopls/integration/parse/rlog.go b/gopls/integration/parse/rlog.go
 -	return out.String()
 -}
 diff -urN a/gopls/integration/replay/README.md b/gopls/integration/replay/README.md
---- a/gopls/integration/replay/README.md	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/replay/README.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/replay/README.md	1969-12-31 19:00:00.000000000 -0500
 @@ -1,79 +0,0 @@
 -# Replaying Logs
@@ -3807,7 +3807,7 @@ diff -urN a/gopls/integration/replay/README.md b/gopls/integration/replay/README
 -Replay will use the gopls it finds (or is given). It has no way of using
 -the same version that created the original session.
 diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
---- a/gopls/integration/replay/main.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/integration/replay/main.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/integration/replay/main.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,292 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -4103,7 +4103,7 @@ diff -urN a/gopls/integration/replay/main.go b/gopls/integration/replay/main.go
 -	}
 -}
 diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
---- a/gopls/internal/hooks/analysis.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/hooks/analysis.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/analysis.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,39 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -4146,7 +4146,7 @@ diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 -	}
 -}
 diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
---- a/gopls/internal/hooks/diff.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/hooks/diff.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/diff.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,30 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -4180,7 +4180,7 @@ diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
 -	return edits
 -}
 diff -urN a/gopls/internal/hooks/diff_test.go b/gopls/internal/hooks/diff_test.go
---- a/gopls/internal/hooks/diff_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/hooks/diff_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/diff_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,16 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -4200,7 +4200,7 @@ diff -urN a/gopls/internal/hooks/diff_test.go b/gopls/internal/hooks/diff_test.g
 -	difftest.DiffTest(t, hooks.ComputeEdits)
 -}
 diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
---- a/gopls/internal/hooks/hooks.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/hooks/hooks.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/hooks.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,35 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -4239,7 +4239,7 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 -	return re
 -}
 diff -urN a/gopls/internal/regtest/bench_test.go b/gopls/internal/regtest/bench_test.go
---- a/gopls/internal/regtest/bench_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/bench_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/bench_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,104 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -4347,7 +4347,7 @@ diff -urN a/gopls/internal/regtest/bench_test.go b/gopls/internal/regtest/bench_
 -	})
 -}
 diff -urN a/gopls/internal/regtest/codelens_test.go b/gopls/internal/regtest/codelens_test.go
---- a/gopls/internal/regtest/codelens_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/codelens_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/codelens_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,285 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -4636,7 +4636,7 @@ diff -urN a/gopls/internal/regtest/codelens_test.go b/gopls/internal/regtest/cod
 -	})
 -}
 diff -urN a/gopls/internal/regtest/completion_bench_test.go b/gopls/internal/regtest/completion_bench_test.go
---- a/gopls/internal/regtest/completion_bench_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/completion_bench_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/completion_bench_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,200 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -4840,7 +4840,7 @@ diff -urN a/gopls/internal/regtest/completion_bench_test.go b/gopls/internal/reg
 -	}, t)
 -}
 diff -urN a/gopls/internal/regtest/completion_test.go b/gopls/internal/regtest/completion_test.go
---- a/gopls/internal/regtest/completion_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/completion_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/completion_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,213 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -5057,7 +5057,7 @@ diff -urN a/gopls/internal/regtest/completion_test.go b/gopls/internal/regtest/c
 -	return ""
 -}
 diff -urN a/gopls/internal/regtest/configuration_test.go b/gopls/internal/regtest/configuration_test.go
---- a/gopls/internal/regtest/configuration_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/configuration_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/configuration_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,42 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -5103,7 +5103,7 @@ diff -urN a/gopls/internal/regtest/configuration_test.go b/gopls/internal/regtes
 -	})
 -}
 diff -urN a/gopls/internal/regtest/definition_test.go b/gopls/internal/regtest/definition_test.go
---- a/gopls/internal/regtest/definition_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/definition_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/definition_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,131 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -5238,7 +5238,7 @@ diff -urN a/gopls/internal/regtest/definition_test.go b/gopls/internal/regtest/d
 -	})
 -}
 diff -urN a/gopls/internal/regtest/diagnostics_test.go b/gopls/internal/regtest/diagnostics_test.go
---- a/gopls/internal/regtest/diagnostics_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/diagnostics_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/diagnostics_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,1596 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -6838,7 +6838,7 @@ diff -urN a/gopls/internal/regtest/diagnostics_test.go b/gopls/internal/regtest/
 -	})
 -}
 diff -urN a/gopls/internal/regtest/doc.go b/gopls/internal/regtest/doc.go
---- a/gopls/internal/regtest/doc.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/doc.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/doc.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,36 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -6878,7 +6878,7 @@ diff -urN a/gopls/internal/regtest/doc.go b/gopls/internal/regtest/doc.go
 -// confusing diagnostic.
 -package regtest
 diff -urN a/gopls/internal/regtest/env.go b/gopls/internal/regtest/env.go
---- a/gopls/internal/regtest/env.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/env.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/env.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,314 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -7196,7 +7196,7 @@ diff -urN a/gopls/internal/regtest/env.go b/gopls/internal/regtest/env.go
 -	}
 -}
 diff -urN a/gopls/internal/regtest/env_test.go b/gopls/internal/regtest/env_test.go
---- a/gopls/internal/regtest/env_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/env_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/env_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,67 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -7267,7 +7267,7 @@ diff -urN a/gopls/internal/regtest/env_test.go b/gopls/internal/regtest/env_test
 -	}
 -}
 diff -urN a/gopls/internal/regtest/expectation.go b/gopls/internal/regtest/expectation.go
---- a/gopls/internal/regtest/expectation.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/expectation.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/expectation.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,547 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -7818,7 +7818,7 @@ diff -urN a/gopls/internal/regtest/expectation.go b/gopls/internal/regtest/expec
 -	return DiagnosticExpectation{path: name, message: msg, present: false}
 -}
 diff -urN a/gopls/internal/regtest/failures_test.go b/gopls/internal/regtest/failures_test.go
---- a/gopls/internal/regtest/failures_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/failures_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/failures_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,70 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -7892,7 +7892,7 @@ diff -urN a/gopls/internal/regtest/failures_test.go b/gopls/internal/regtest/fai
 -	})
 -}
 diff -urN a/gopls/internal/regtest/fix_test.go b/gopls/internal/regtest/fix_test.go
---- a/gopls/internal/regtest/fix_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/fix_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/fix_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,64 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -7960,7 +7960,7 @@ diff -urN a/gopls/internal/regtest/fix_test.go b/gopls/internal/regtest/fix_test
 -	})
 -}
 diff -urN a/gopls/internal/regtest/formatting_test.go b/gopls/internal/regtest/formatting_test.go
---- a/gopls/internal/regtest/formatting_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/formatting_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/formatting_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,225 +0,0 @@
 -package regtest
@@ -8189,7 +8189,7 @@ diff -urN a/gopls/internal/regtest/formatting_test.go b/gopls/internal/regtest/f
 -	})
 -}
 diff -urN a/gopls/internal/regtest/generate_test.go b/gopls/internal/regtest/generate_test.go
---- a/gopls/internal/regtest/generate_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/generate_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/generate_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,54 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -8247,7 +8247,7 @@ diff -urN a/gopls/internal/regtest/generate_test.go b/gopls/internal/regtest/gen
 -	})
 -}
 diff -urN a/gopls/internal/regtest/imports_test.go b/gopls/internal/regtest/imports_test.go
---- a/gopls/internal/regtest/imports_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/imports_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/imports_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,205 +0,0 @@
 -package regtest
@@ -8456,7 +8456,7 @@ diff -urN a/gopls/internal/regtest/imports_test.go b/gopls/internal/regtest/impo
 -	})
 -}
 diff -urN a/gopls/internal/regtest/link_test.go b/gopls/internal/regtest/link_test.go
---- a/gopls/internal/regtest/link_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/link_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/link_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,88 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -8548,7 +8548,7 @@ diff -urN a/gopls/internal/regtest/link_test.go b/gopls/internal/regtest/link_te
 -	}, WithProxyFiles(proxy))
 -}
 diff -urN a/gopls/internal/regtest/modfile_test.go b/gopls/internal/regtest/modfile_test.go
---- a/gopls/internal/regtest/modfile_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/modfile_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/modfile_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,652 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -9204,7 +9204,7 @@ diff -urN a/gopls/internal/regtest/modfile_test.go b/gopls/internal/regtest/modf
 -	})
 -}
 diff -urN a/gopls/internal/regtest/references_test.go b/gopls/internal/regtest/references_test.go
---- a/gopls/internal/regtest/references_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/references_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/references_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,41 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -9249,7 +9249,7 @@ diff -urN a/gopls/internal/regtest/references_test.go b/gopls/internal/regtest/r
 -	})
 -}
 diff -urN a/gopls/internal/regtest/reg_test.go b/gopls/internal/regtest/reg_test.go
---- a/gopls/internal/regtest/reg_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/reg_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/reg_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,91 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -9344,7 +9344,7 @@ diff -urN a/gopls/internal/regtest/reg_test.go b/gopls/internal/regtest/reg_test
 -	os.Exit(code)
 -}
 diff -urN a/gopls/internal/regtest/runner.go b/gopls/internal/regtest/runner.go
---- a/gopls/internal/regtest/runner.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/runner.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/runner.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,487 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -9835,7 +9835,7 @@ diff -urN a/gopls/internal/regtest/runner.go b/gopls/internal/regtest/runner.go
 -	return nil
 -}
 diff -urN a/gopls/internal/regtest/shared_test.go b/gopls/internal/regtest/shared_test.go
---- a/gopls/internal/regtest/shared_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/shared_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/shared_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,59 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -9898,7 +9898,7 @@ diff -urN a/gopls/internal/regtest/shared_test.go b/gopls/internal/regtest/share
 -	})
 -}
 diff -urN a/gopls/internal/regtest/stress_test.go b/gopls/internal/regtest/stress_test.go
---- a/gopls/internal/regtest/stress_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/stress_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/stress_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,82 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -9984,7 +9984,7 @@ diff -urN a/gopls/internal/regtest/stress_test.go b/gopls/internal/regtest/stres
 -	})
 -}
 diff -urN a/gopls/internal/regtest/unix_test.go b/gopls/internal/regtest/unix_test.go
---- a/gopls/internal/regtest/unix_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/unix_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/unix_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,32 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -10020,7 +10020,7 @@ diff -urN a/gopls/internal/regtest/unix_test.go b/gopls/internal/regtest/unix_te
 -	})
 -}
 diff -urN a/gopls/internal/regtest/vendor_test.go b/gopls/internal/regtest/vendor_test.go
---- a/gopls/internal/regtest/vendor_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/vendor_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/vendor_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,75 +0,0 @@
 -package regtest
@@ -10099,7 +10099,7 @@ diff -urN a/gopls/internal/regtest/vendor_test.go b/gopls/internal/regtest/vendo
 -	})
 -}
 diff -urN a/gopls/internal/regtest/watch_test.go b/gopls/internal/regtest/watch_test.go
---- a/gopls/internal/regtest/watch_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/watch_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/watch_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,755 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -10858,7 +10858,7 @@ diff -urN a/gopls/internal/regtest/watch_test.go b/gopls/internal/regtest/watch_
 -	})
 -}
 diff -urN a/gopls/internal/regtest/workspace_test.go b/gopls/internal/regtest/workspace_test.go
---- a/gopls/internal/regtest/workspace_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/workspace_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/workspace_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,625 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -11487,7 +11487,7 @@ diff -urN a/gopls/internal/regtest/workspace_test.go b/gopls/internal/regtest/wo
 -	})
 -}
 diff -urN a/gopls/internal/regtest/wrappers.go b/gopls/internal/regtest/wrappers.go
---- a/gopls/internal/regtest/wrappers.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/internal/regtest/wrappers.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/wrappers.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,353 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
@@ -11844,7 +11844,7 @@ diff -urN a/gopls/internal/regtest/wrappers.go b/gopls/internal/regtest/wrappers
 -	}
 -}
 diff -urN a/gopls/main.go b/gopls/main.go
---- a/gopls/main.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/main.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/main.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,26 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
@@ -11874,7 +11874,7 @@ diff -urN a/gopls/main.go b/gopls/main.go
 -	tool.Main(ctx, cmd.New("gopls", "", nil, hooks.Options), os.Args[1:])
 -}
 diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
---- a/gopls/test/gopls_test.go	2021-03-08 10:39:13.000000000 -0500
+--- a/gopls/test/gopls_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/test/gopls_test.go	1969-12-31 19:00:00.000000000 -0500
 @@ -1,32 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
