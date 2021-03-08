@@ -71,7 +71,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
-        commit = "11eff242d136374289f76e9313c76e9312391172",
+        commit = "a1b87a1c0de44760bd00894ef736a8c36548068f",
         excludes = [
             "blog:blog_test", # Needs goldmark
             "cmd/bundle:bundle_test", # Needs testdata directory
@@ -102,7 +102,9 @@ POPULAR_REPOS = [
             "go/analysis/passes/ctrlflow:ctrlflow_test", # Needs testdata directory
             "go/analysis/passes/deepequalerrors:deepequalerrors_test", # requires go list
             "go/analysis/passes/errorsas:errorsas_test", # requires go list and testdata
+            "go/analysis/passes/fieldalignment:fieldalignment_test", # Needs GOROOT
             "go/analysis/passes/findcall:findcall_test", # requires build cache
+            "go/analysis/passes/framepointer:framepointer_test", # Needs GOROOT
             "go/analysis/passes/httpresponse:httpresponse_test", # Needs testdata directory
             "go/analysis/passes/ifaceassert:ifaceassert_test", # Needs GOROOT
             "go/analysis/passes/loopclosure:loopclosure_test", # Needs testdata directory
@@ -170,19 +172,21 @@ POPULAR_REPOS = [
             "internal/lsp/fuzzy:fuzzy_test", # has additional deps
             "internal/lsp/lsprpc:lsprpc_test", # has additional deps
             "internal/lsp/mod:mod_test", # has additional deps
-            "internal/lsp/regtest:regtest_test", # has additional deps
             "internal/lsp/snippet:snippet_test", # has additional deps
             "internal/lsp/source:source_test", # Needs testdata directory
-            "internal/lsp/testdata/lsp/primarymod/analyzer:analyzer_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/codelens:codelens_test", # Is testdata
-            "internal/lsp/testdata/lsp/primarymod/godef/a:a_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/implementation/other:other_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/references:references_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/rename/testy:testy_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/signature:signature_test", # Is testdata
-            "internal/lsp/testdata/lsp/primarymod/testy:testy_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/unimported:unimported_test", # not a real test
+            "internal/lsp/source/genapijson:genapijson_test", # Needs GOROOT
             "internal/lsp:lsp_test", # Needs testdata directory
+            "internal/lsp/testdata/analyzer:analyzer_test", # is testdata
+            "internal/lsp/testdata/codelens:codelens_test", # is testdata
+            "internal/lsp/testdata/godef/a:a_test", # is testdata
+            "internal/lsp/testdata/implementation/other:other_test", # is testdata
+            "internal/lsp/testdata/references:references_test", # is testdata
+            "internal/lsp/testdata/rename/testy:testy_test", # is testdata
+            "internal/lsp/testdata/semantic:semantic_test", # is testdata
+            "internal/lsp/testdata/signature:signature_test", # is testdata
+            "internal/lsp/testdata/testy:testy_test", # is testdata
+            "internal/lsp/testdata/unimported:unimported_test", # is testdata
+            "internal/lsp/testdata/workspacesymbol/a:a_test", # is testdata
             "present:present_test", # Needs goldmark
             "refactor/eg:eg_test", # Needs testdata directory
             "refactor/importgraph:importgraph_test", # TODO(#417)

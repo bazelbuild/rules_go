@@ -151,6 +151,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/go-contrib-init:go-contrib-init_test
 * @org_golang_x_tools//cmd/splitdwarf/internal/macho:macho_test
 * @org_golang_x_tools//cover:cover_test
+* @org_golang_x_tools//go/analysis:analysis_test
 * @org_golang_x_tools//go/analysis/internal/analysisflags:analysisflags_test
 * @org_golang_x_tools//go/ast/astutil:astutil_test
 * @org_golang_x_tools//go/callgraph/static:static_test
@@ -170,6 +171,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/gopathwalk:gopathwalk_test
 * @org_golang_x_tools//internal/jsonrpc2:jsonrpc2_test
 * @org_golang_x_tools//internal/jsonrpc2/servertest:servertest_test
+* @org_golang_x_tools//internal/lsp/source/completion:completion_test
 * @org_golang_x_tools//internal/memoize:memoize_test
 * @org_golang_x_tools//internal/proxydir:proxydir_test
 * @org_golang_x_tools//internal/span:span_test
