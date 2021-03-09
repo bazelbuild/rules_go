@@ -27,27 +27,27 @@ def popular_repos():
         go_repository,
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        strip_prefix = "crypto-de0752318171da717af4ce24d0a2e8626afaeb11",
+        strip_prefix = "crypto-5ea612d1eb830b38bc4e914e37f55311eb58adce",
         type = "zip",
-        urls = ["https://codeload.github.com/golang/crypto/zip/de0752318171da717af4ce24d0a2e8626afaeb11"],
+        urls = ["https://codeload.github.com/golang/crypto/zip/5ea612d1eb830b38bc4e914e37f55311eb58adce"],
     )
     _maybe(
         go_repository,
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
-        commit = "57efc9c3d9f91fb3277f8da1cff370539c4d3dc5",
+        commit = "e18ecbb051101a46fc263334b127c89bc7bff7ea",
     )
     _maybe(
         go_repository,
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        commit = "acbc56fc7007d2a01796d5bde54f39e3b3e95945",
+        commit = "68d13333faf24bbe12c06419ed07e851a9dbf8f9",
     )
     _maybe(
         go_repository,
         name = "org_golang_x_text",
         importpath = "golang.org/x/text",
-        commit = "a9a820217f98f7c8a207ec1e45a874e1fe12c478",
+        commit = "e3aa4adf54f644ca0cb35f1f1fb19b239c40ef04",
     )
     _maybe(
         go_repository,
@@ -65,11 +65,11 @@ def popular_repos():
         go_repository,
         name = "org_golang_x_sync",
         importpath = "golang.org/x/sync",
-        commit = "112230192c580c3556b8cee6403af37a4fc5f28c",
+        commit = "036812b2e83c0ddf193dd5a34e034151da389d09",
     )
     _maybe(
         go_repository,
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
-        commit = "c0d644d00ab849f4506f17a98a5740bf0feff020",
+        commit = "c8bb1bd8a2aaa5c50fa106c8116850d503792d16",
     )
