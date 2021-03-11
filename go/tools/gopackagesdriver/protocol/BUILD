@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "protocol",
     srcs = [
         "driver.go",
         "protocol.go",
@@ -9,6 +9,6 @@ go_library(
     importpath = "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver/protocol",
     visibility = ["//go/tools/gopackagesdriver:__subpackages__"],
     deps = [
-        "@org_golang_x_tools//go/packages:go_default_library",
+        "@org_golang_x_tools//go/packages",
     ],
 )

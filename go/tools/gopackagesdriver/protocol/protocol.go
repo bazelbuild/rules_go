@@ -1,4 +1,4 @@
-// Copyright 2019 The Bazel Authors. All rights reserved.
+// Copyright 2021 The Bazel Authors. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,17 +23,26 @@ import (
 // Request is a JSON object sent by golang.org/x/tools/go/packages
 // on stdin. Keep in sync.
 type Request struct {
-	Command    string            `json:"command"` // FIXME ???
-	Mode       packages.LoadMode `json:"mode"`
-	Env        []string          `json:"env"` // FIXME handle
-	BuildFlags []string          `json:"build_flags"`
-	Tests      bool              `json:"tests"`   // FIXME handle
-	Overlay    map[string][]byte `json:"overlay"` // FIXME handle
+	Mode packages.LoadMode `json:"mode"`
+	// Env specifies the environment the underlying build system should be run in.
+	Env []string `json:"env"`
+	// BuildFlags are flags that should be passed to the underlying build system.
+	BuildFlags []string `json:"build_flags"`
+	// Tests specifies whether the patterns should also return test packages.
+	Tests bool `json:"tests"`
+	// Overlay maps file paths (relative to the driver's working directory) to the byte contents
+	// of overlay files.
+	Overlay map[string][]byte `json:"overlay"`
 }
 
 // Response is a JSON object sent by this program to
 // golang.org/x/tools/go/packages on stdout. Keep in sync.
 type Response struct {
+	// NotHandled is returned if the request can't be handled by the current
+	// driver. If an external driver returns a response with NotHandled, the
+	// rest of the driverResponse is ignored, and go/packages will fallback
+	// to the next driver. If go/packages is extended in the future to support
+	// lists of multiple drivers, go/packages will fall back to the next driver.
 	NotHandled bool
 
 	// Sizes, if not nil, is the types.Sizes to use when type checking.

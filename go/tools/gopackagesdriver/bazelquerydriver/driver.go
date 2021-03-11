@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// bazelquerydriver implements the driver interface for
+// golang.org/x/tools/go/packages. It uses `bazel query` to gather
+// information about packages built using bazel.
 package bazelquerydriver
 
 import (
@@ -23,7 +26,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -36,8 +38,6 @@ import (
 )
 
 const fileQueryPrefix = "file="
-
-var gorootPattern = regexp.MustCompile(`^bazel-[^/]+/external/go_sdk\b`)
 
 const supportedModes = packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles | packages.NeedImports | packages.NeedDeps | packages.NeedTypesSizes | packages.NeedModule
 
@@ -54,24 +54,22 @@ type bazelDriver struct {
 	wildcardQuery bool
 }
 
-// New returns a Driver implementation based on bazel query.
-func New() protocol.Driver {
-	return func(cfg protocol.Request, patterns ...string) (*protocol.Response, error) {
-		bzl := bazel.New()
-		sdk, err := newGoSDK(bzl)
-		if err != nil {
-			return nil, err
-		}
-		driver := &bazelDriver{
-			cfg:           cfg,
-			bazel:         bzl,
-			sdk:           sdk,
-			stdlibImports: make(map[string]bool),
-			fileQueries:   make(map[string]bool),
-			importQueries: make(map[string]bool),
-		}
-		return driver.loadPackages(patterns...)
+// LoadPackages uses bazel query to answer a gopackagesdriver request.
+func LoadPackages(cfg protocol.Request, patterns ...string) (*protocol.Response, error) {
+	bzl := bazel.New()
+	sdk, err := newGoSDK(bzl)
+	if err != nil {
+		return nil, err
 	}
+	driver := &bazelDriver{
+		cfg:           cfg,
+		bazel:         bzl,
+		sdk:           sdk,
+		stdlibImports: make(map[string]bool),
+		fileQueries:   make(map[string]bool),
+		importQueries: make(map[string]bool),
+	}
+	return driver.loadPackages(patterns...)
 }
 
 func (d *bazelDriver) loadPackages(patterns ...string) (*protocol.Response, error) {
@@ -91,13 +89,11 @@ func (d *bazelDriver) loadPackages(patterns ...string) (*protocol.Response, erro
 		patterns = append(patterns, ".")
 	}
 
-	var ignoredPkg packages.Package
-
 	for _, patt := range patterns {
 		switch {
 		case strings.HasPrefix(patt, fileQueryPrefix):
 			fp := strings.TrimPrefix(patt, fileQueryPrefix)
-			if err := d.processFileQuery(fp, &ignoredPkg); err != nil {
+			if err := d.prepareFileQuery(fp); err != nil {
 				return nil, err
 			}
 		case patt == ".":
@@ -130,15 +126,6 @@ func (d *bazelDriver) loadPackages(patterns ...string) (*protocol.Response, erro
 		resp.Roots = append(resp.Roots, roots...)
 	}
 
-	if len(ignoredPkg.IgnoredFiles) > 0 {
-		log.Printf("Ignored %v files", len(ignoredPkg.IgnoredFiles))
-		ignoredPkg.GoFiles = ignoredPkg.IgnoredFiles[:1]
-		ignoredPkg.CompiledGoFiles = ignoredPkg.GoFiles
-		ignoredPkg.IgnoredFiles = ignoredPkg.IgnoredFiles[1:]
-		resp.Packages = append(resp.Packages, &ignoredPkg)
-		resp.Roots = append(resp.Roots, ignoredPkg.ID)
-	}
-
 	stdlib, err := d.sdk.loadPackages(&d.cfg, d.stdlibImports)
 	if err != nil {
 		return nil, err
@@ -154,11 +141,15 @@ func (d *bazelDriver) loadPackages(patterns ...string) (*protocol.Response, erro
 	return &resp, nil
 }
 
-func (d *bazelDriver) processFileQuery(fp string, ignoredPkg *packages.Package) error {
+// prepareFileQuery parses queries starting with file=.
+// It determines whether the file is inside the standard library,
+// and adds the appropriate stdlib or bazel query to `d`.
+// TODO: handle queries for generated files
+func (d *bazelDriver) prepareFileQuery(fp string) error {
 	if len(fp) == 0 {
 		return fmt.Errorf("\"file=\" prefix given with no query after it")
 	}
-	stdlibRoot := filepath.Join(d.sdk.goroot, "src")
+	stdlibRoot := filepath.Join(d.sdk.goroot, "src") + string(filepath.Separator)
 
 	if filepath.IsAbs(fp) {
 		if strings.HasPrefix(fp, stdlibRoot) {
@@ -174,12 +165,7 @@ func (d *bazelDriver) processFileQuery(fp string, ignoredPkg *packages.Package) 
 			fp = rel
 		}
 	}
-	if prefix := gorootPattern.FindString(fp); prefix != "" {
-		ignoredPkg.Name = prefix
-		ignoredPkg.ID = prefix
-		ignoredPkg.IgnoredFiles = append(ignoredPkg.IgnoredFiles, fp)
-		return nil
-	}
+
 	query, err := d.convertFileQuery(fp)
 	if err != nil {
 		return err
@@ -189,6 +175,7 @@ func (d *bazelDriver) processFileQuery(fp string, ignoredPkg *packages.Package) 
 	return nil
 }
 
+// convertFileQuery returns a bazel query expression to find targets where `srcs` includes `path`.
 func (d *bazelDriver) convertFileQuery(path string) (string, error) {
 	log.Printf("bazel query %#v", path)
 	result, err := d.bazel.Query(path)

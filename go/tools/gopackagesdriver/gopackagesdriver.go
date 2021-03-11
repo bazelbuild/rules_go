@@ -20,10 +20,28 @@
 package main
 
 import (
+	"io"
+	"log"
+	"os"
+
 	"github.com/bazelbuild/rules_go/go/tools/gopackagesdriver/bazelquerydriver"
 	"github.com/bazelbuild/rules_go/go/tools/gopackagesdriver/protocol"
 )
 
 func main() {
-	protocol.Run(bazelquerydriver.New())
+	cleanup := func() error { return nil }
+	if logfile := os.Getenv("GOPACKAGESDRIVER_LOGFILE"); logfile != "" {
+		f, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalf("couldn't open log file: %s", err)
+		}
+		errorWriter := io.MultiWriter(f, os.Stderr)
+		cleanup = f.Close
+		log.SetOutput(errorWriter)
+		log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
+	}
+
+	defer cleanup()
+
+	protocol.Run(bazelquerydriver.LoadPackages)
 }

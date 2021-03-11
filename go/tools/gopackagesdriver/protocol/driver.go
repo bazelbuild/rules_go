@@ -17,7 +17,6 @@ package protocol
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -32,20 +31,6 @@ type Driver func(cfg Request, patterns ...string) (*Response, error)
 // writes the response to stdout.
 // If driver returns an error, Run will terminate the process.
 func Run(driver Driver) {
-	cleanup := func() error { return nil }
-	if logfile := os.Getenv("GOPACKAGESDRIVER_LOGFILE"); logfile != "" {
-		f, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-		if err != nil {
-			log.Fatalf("couldn't open log file: %s", err)
-		}
-		errorWriter := io.MultiWriter(f, os.Stderr)
-		cleanup = f.Close
-		log.SetOutput(errorWriter)
-		log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
-	}
-
-	defer cleanup()
-
 	wd, _ := os.Getwd()
 	targets := strings.Join(os.Args[1:], " ")
 	if len(targets) > 1000 {
@@ -96,7 +81,6 @@ func run(driver Driver, args []string) error {
 	log.Printf(" -> %d packages, %d roots", len(resp.Packages), len(resp.Roots))
 
 	return nil
-
 }
 
 // GetEnv returns a value from cfg.Env, or def if the value isn't found.

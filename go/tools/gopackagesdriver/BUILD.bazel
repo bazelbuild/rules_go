@@ -5,7 +5,7 @@ go_binary(
     srcs = ["gopackagesdriver.go"],
     visibility = ["//visibility:public"],
     deps = [
-        "//go/tools/gopackagesdriver/protocol:go_default_library",
-        "//go/tools/gopackagesdriver/bazelquerydriver:go_default_library",
+        "//go/tools/gopackagesdriver/protocol",
+        "//go/tools/gopackagesdriver/bazelquerydriver",
     ],
 )
