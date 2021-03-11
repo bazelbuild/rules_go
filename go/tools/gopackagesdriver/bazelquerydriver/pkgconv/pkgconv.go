@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pkgconv converts from bazel query protobufs into golang.org/x/tools/go/packages Packages.
+// Note that bazel query does not return all the required information about a Package,
+// so you will need to do additional processing. For example, the Name is not usually known.
 package pkgconv
 
 import (
