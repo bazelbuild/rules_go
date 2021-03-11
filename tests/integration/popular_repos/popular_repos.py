@@ -40,6 +40,7 @@ POPULAR_REPOS = [
             "html/charset:charset_test", # Needs testdata directory
             "http2:http2_test", # Needs testdata directory
             "icmp:icmp_test", # icmp requires adjusting kernel options.
+            "internal/socket:socket_test", # Needs GOROOT.
             "nettest:nettest_test", #
             "lif:lif_test",
         ],
