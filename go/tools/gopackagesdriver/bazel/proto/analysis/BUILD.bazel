@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "analysis",
+    srcs = ["analysis.pb.go"],
+    importpath = "github.com/bazelbuild/bazel-watcher/third_party/bazel/master/src/main/protobuf/analysis",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/tools/gopackagesdriver/bazel/proto/blaze_query",
+        "@com_github_golang_protobuf//proto:go_default_library",
+    ],
+)

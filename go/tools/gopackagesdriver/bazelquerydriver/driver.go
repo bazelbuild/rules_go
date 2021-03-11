@@ -105,7 +105,7 @@ func (d *bazelDriver) loadPackages(patterns ...string) (*protocol.Response, erro
 		case d.sdk.packages[patt]:
 			d.stdlibImports[patt] = true
 		default:
-			// TODO: do we need to check for a package ID instead of import path?
+			// TODO(#512): do we need to check for a package ID instead of import path?
 			d.importQueries[patt] = true
 			d.bazelQueries = append(d.bazelQueries, fmt.Sprintf("attr(importpath, '%v', deps(%v))", patt, goFilter("//...")))
 		}
@@ -144,7 +144,7 @@ func (d *bazelDriver) loadPackages(patterns ...string) (*protocol.Response, erro
 // prepareFileQuery parses queries starting with file=.
 // It determines whether the file is inside the standard library,
 // and adds the appropriate stdlib or bazel query to `d`.
-// TODO: handle queries for generated files
+// TODO(#512): handle queries for generated files
 func (d *bazelDriver) prepareFileQuery(fp string) error {
 	if len(fp) == 0 {
 		return fmt.Errorf("\"file=\" prefix given with no query after it")

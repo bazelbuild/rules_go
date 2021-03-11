@@ -12,7 +12,7 @@ go_library(
     importpath = "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver/bazelquerydriver/pkgconv",
     visibility = ["//go/tools/gopackagesdriver:__subpackages__"],
     deps = [
+        "//go/tools/gopackagesdriver/bazel/proto/blaze_query",
         "@org_golang_x_tools//go/packages:go_default_library",
-        "@com_github_bazelbuild_bazel_watcher//third_party/bazel/master/src/main/protobuf/blaze_query:go_default_library",
     ],
 )

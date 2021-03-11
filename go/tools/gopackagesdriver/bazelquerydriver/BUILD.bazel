@@ -11,8 +11,8 @@ go_library(
     deps = [
         "//go/tools/gopackagesdriver/bazelquerydriver/pkgconv",
         "//go/tools/gopackagesdriver/protocol",
-        "@com_github_bazelbuild_bazel_watcher//third_party/bazel/master/src/main/protobuf/blaze_query:go_default_library",
-        "@com_github_bazelbuild_bazel_watcher//bazel:go_default_library",
+        "//go/tools/gopackagesdriver/bazel/proto/blaze_query",
+        "//go/tools/gopackagesdriver/bazel",
         "@org_golang_x_tools//go/packages:go_default_library",
     ],
 )

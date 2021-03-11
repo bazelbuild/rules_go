@@ -32,6 +32,8 @@ type gosdk struct {
 }
 
 func newGoSDK(bazel bazel.Bazel) (*gosdk, error) {
+	// TODO(#512) This shouldn't hardcode the name go_sdk.
+	// People could use different names and/or have multiple SDKs.
 	info, err := bazel.Info()
 	if err != nil {
 		return nil, err
