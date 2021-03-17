@@ -95,6 +95,8 @@ ________________
 This runs tests from the repository `golang.org/x/sys <https://golang.org/x/sys>`_
 
 * @org_golang_x_sys//cpu:cpu_test
+* @org_golang_x_sys//execabs:execabs_test
+* @org_golang_x_sys//internal/unsafeheader:unsafeheader_test
 * @org_golang_x_sys//plan9:plan9_test
 * @org_golang_x_sys//unix:unix_test
 * @org_golang_x_sys//windows:windows_test
@@ -160,6 +162,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/getgo:getgo_test
 * @org_golang_x_tools//cmd/go-contrib-init:go-contrib-init_test
 * @org_golang_x_tools//cmd/splitdwarf/internal/macho:macho_test
+* @org_golang_x_tools//copyright:copyright_test
 * @org_golang_x_tools//cover:cover_test
 * @org_golang_x_tools//go/analysis:analysis_test
 * @org_golang_x_tools//go/analysis/internal/analysisflags:analysisflags_test
