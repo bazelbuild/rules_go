@@ -53,6 +53,9 @@ POPULAR_REPOS = [
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
         commit = "390168757d9c647283340d526204e3409d5903f3",
+        excludes = [
+            "unix:unix_test", # TestOpenByHandleAt reads source file.
+        ],
     ),
 
     dict(
