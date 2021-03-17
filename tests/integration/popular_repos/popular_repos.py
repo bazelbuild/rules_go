@@ -94,6 +94,7 @@ POPULAR_REPOS = [
             "cmd/guru:guru_test", # Needs testdata directory
             "cmd/stringer:stringer_test", # Needs testdata directory
             "container/intsets:intsets_test", # TODO(#413): External test depends on symbols defined in internal test.
+            "copyright:copyright_test", # # requires runfiles
             "go/analysis/analysistest:analysistest_test", # requires build cache
             "go/analysis/internal/checker:checker_test", # loads test package with go/packages, which probably needs go list
             "go/analysis/internal/facts:facts_test", # loads test package with go/packages, which probably needs go list
