@@ -72,6 +72,15 @@ Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 Announcements
 -------------
 
+2021-03-18
+  Release
+  `v0.27.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.27.0>`_
+  is now available. This updates ``org_golang_x_tools`` and adds
+  ``org_golang_x_sys``. This should have been done in ``v0.26.0``. Additionally,
+  `v0.24.14 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.14>`_
+  is now available with support for Go 1.16.2, 1.16.1, 1.15.10, and 1.15.9.
+  This will be the last release on the 0.24 branch. 0.27 and 0.25 are now
+  the two supported branches.
 2021-03-08
   Release
   `v0.26.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.26.0>`_
@@ -86,12 +95,6 @@ Announcements
   is now available with support for Go 1.16. v0.25.x does not require an update
   to support this version. Note that the new ``//go:embed`` directive is
   not quite supported yet (`#2775`_), but it will be in the next minor release.
-2021-02-03
-  Release
-  `v0.24.12 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.12>`_
-  is now available with support for Go 1.15.8 and 1.14.15. v0.25.x does not
-  require an update to support these versions. v0.24.x releases are not
-  compatible with Bazel 4.0.0 and higher.
 
 Contents
 --------
@@ -176,7 +179,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: The latest version of these rules (v0.26.0) requires Bazel ≥ 3.5.0 to work.
+Note: The latest version of these rules (v0.27.0) requires Bazel ≥ 3.5.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -213,10 +216,10 @@ Go toolchain and register it for use.
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "7c10271940c6bce577d51a075ae77728964db285dac0a46614a7934dc34303e6",
+        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
         ],
     )
 
@@ -260,10 +263,10 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "7c10271940c6bce577d51a075ae77728964db285dac0a46614a7934dc34303e6",
+        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
         ],
     )
 
@@ -386,10 +389,10 @@ automatically from a go.mod or Gopkg.lock file.
     # Download the Go rules.
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "7c10271940c6bce577d51a075ae77728964db285dac0a46614a7934dc34303e6",
+        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.26.0/rules_go-v0.26.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
         ],
     )
 
