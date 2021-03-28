@@ -35,6 +35,7 @@ filegroup(
         "read.go",
         "replicate.go",
         "stdlib.go",
+        "stdliblist.go",
     ] + select({
         "@bazel_tools//src/conditions:windows": ["path_windows.go"],
         "//conditions:default": ["path.go"],

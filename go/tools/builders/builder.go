@@ -59,6 +59,8 @@ func main() {
 		action = pack
 	case "stdlib":
 		action = stdlib
+	case "stdliblist":
+		action = stdliblist
 	default:
 		log.Fatalf("unknown action: %s", verb)
 	}
