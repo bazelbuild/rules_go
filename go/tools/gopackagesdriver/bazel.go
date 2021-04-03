@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -55,7 +56,7 @@ func (b *Bazel) run(ctx context.Context, command string, args ...string) (string
 }
 
 func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
-	jsonTmp, _ := os.CreateTemp("", "bep_")
+	jsonTmp, _ := ioutil.TempFile("", "bep_")
 	jsonTmp.Close()
 	defer os.RemoveAll(jsonTmp.Name())
 

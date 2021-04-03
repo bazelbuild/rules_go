@@ -44,8 +44,23 @@ var (
 	targetsTagFilters = os.Getenv("GOPACKAGESDRIVER_BAZEL_TAG_FILTERS")
 )
 
+func signalContext(parentCtx context.Context, signals ...os.Signal) (ctx context.Context, stop context.CancelFunc) {
+	ctx, cancel := context.WithCancel(parentCtx)
+	ch := make(chan os.Signal, 1)
+	go func() {
+		select {
+		case <-ch:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+	signal.Notify(ch, signals...)
+
+	return ctx, cancel
+}
+
 func run() error {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, cancel := signalContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	request, err := ReadDriverRequest(os.Stdin)
