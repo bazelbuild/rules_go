@@ -140,6 +140,8 @@ func packageToPackage(execRoot string, pkg *goListPackage) *flatPackage {
 	for _, imp := range pkg.Imports {
 		newPkg.Imports[imp] = stdlibPackageID(imp)
 	}
+	// We don't support CGo for now
+	delete(newPkg.Imports, "C")
 	return newPkg
 }
 

@@ -103,6 +103,10 @@ func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) {
 		}
 		for _, rawImport := range f.Imports {
 			imp := strings.Trim(rawImport.Path.Value, "\"")
+			// We don't handle CGo for now
+			if imp == "C" {
+				continue
+			}
 			if _, ok := fp.Imports[imp]; ok {
 				continue
 			}
