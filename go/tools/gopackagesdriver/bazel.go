@@ -47,6 +47,8 @@ func (b *Bazel) run(ctx context.Context, command string, args ...string) (string
 	cmd := exec.CommandContext(ctx, b.bazelBin, append([]string{
 		command,
 		"--tool_tag=" + toolTag,
+		"--show_result=0",
+		"--ui_actions_shown=0",
 	}, args...)...)
 	fmt.Fprintln(os.Stderr, "Running:", cmd.Args)
 	cmd.Dir = b.workspaceRoot

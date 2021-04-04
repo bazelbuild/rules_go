@@ -33,7 +33,6 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, needExports bool) ([]strin
 	buildsArgs := []string{
 		"--aspects=@io_bazel_rules_go//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
 		"--output_groups=" + output_groups,
-		"--show_result=0",
 	}
 
 	if b.tagFilters != "" {
