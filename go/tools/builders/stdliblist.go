@@ -124,6 +124,9 @@ func absoluteSourcesPaths(execRoot, pkgDir string, srcs []string) []string {
 }
 
 func packageToPackage(execRoot string, pkg *goListPackage) *flatPackage {
+	// Don't use generated files from the stdlib
+	goFiles := absoluteSourcesPaths(execRoot, pkg.Dir, pkg.GoFiles)
+
 	newPkg := &flatPackage{
 		ID:              stdlibPackageID(pkg.ImportPath),
 		Name:            pkg.Name,
@@ -131,8 +134,8 @@ func packageToPackage(execRoot string, pkg *goListPackage) *flatPackage {
 		ExportFile:      execRootPath(execRoot, pkg.Target),
 		Imports:         map[string]string{},
 		Standard:        pkg.Standard,
-		GoFiles:         absoluteSourcesPaths(execRoot, pkg.Dir, pkg.GoFiles),
-		CompiledGoFiles: absoluteSourcesPaths(execRoot, pkg.Dir, pkg.CompiledGoFiles),
+		GoFiles:         goFiles,
+		CompiledGoFiles: goFiles,
 	}
 	for _, imp := range pkg.Imports {
 		newPkg.Imports[imp] = stdlibPackageID(imp)
@@ -172,7 +175,7 @@ func stdliblist(args []string) error {
 	if len(build.Default.BuildTags) > 0 {
 		listArgs = append(listArgs, "-tags", strings.Join(build.Default.BuildTags, " "))
 	}
-	listArgs = append(listArgs, "-json", "-compiled", "builtin", "std", "runtime/cgo")
+	listArgs = append(listArgs, "-json", "builtin", "std", "runtime/cgo")
 
 	jsonFile, err := os.Create(*out)
 	if err != nil {
