@@ -101,6 +101,10 @@ func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) {
 		if err != nil {
 			continue
 		}
+		// If the name is not provided, fetch it from the sources
+		if fp.Name == "" {
+			fp.Name = f.Name.Name
+		}
 		for _, rawImport := range f.Imports {
 			imp := strings.Trim(rawImport.Path.Value, "\"")
 			// We don't handle CGo for now

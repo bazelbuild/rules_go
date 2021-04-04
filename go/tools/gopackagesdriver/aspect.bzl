@@ -30,7 +30,6 @@ def _go_pkg_info_aspect_impl(target, ctx):
         x = archive.data.export_file
         pkg = struct(
             ID = str(archive.data.label),
-            Name = "main" if archive.source.library.is_main else paths.basename(archive.data.importpath),
             PkgPath = archive.data.importpath,
             ExportFile = _file_path(archive.data.export_file),
             GoFiles = [
