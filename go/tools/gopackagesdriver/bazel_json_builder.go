@@ -13,6 +13,12 @@ type BazelJSONBuilder struct {
 	targets    []string
 }
 
+const (
+	OutputGroupDriverJSON  = "go_pkg_driver_json"
+	OutputGroupStdLibJSON  = "go_pkg_driver_stdlib_json"
+	OutputGroupExportFiles = "go_pkg_driver_x"
+)
+
 func NewBazelJSONBuilder(bazel *Bazel, query, tagFilters string, targets []string) (*BazelJSONBuilder, error) {
 	return &BazelJSONBuilder{
 		bazel:      bazel,
@@ -22,17 +28,18 @@ func NewBazelJSONBuilder(bazel *Bazel, query, tagFilters string, targets []strin
 	}, nil
 }
 
-func (b *BazelJSONBuilder) Build(ctx context.Context, needExports bool) ([]string, error) {
-	output_groups := "go_pkg_driver_json,go_pkg_driver_stdlib_json"
-
-	// Override for now
-	needExports = true
-	if needExports {
-		output_groups += ",go_pkg_driver_x"
+func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
+	og := OutputGroupDriverJSON + "," + OutputGroupStdLibJSON
+	if mode&NeedExportsFile != 0 || true { // override for now
+		og += "," + OutputGroupExportFiles
 	}
+	return og
+}
+
+func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, error) {
 	buildsArgs := []string{
 		"--aspects=@io_bazel_rules_go//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
-		"--output_groups=" + output_groups,
+		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
 	}
 

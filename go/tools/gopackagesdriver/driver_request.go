@@ -3,21 +3,65 @@ package main
 import (
 	"encoding/json"
 	"io"
-
-	"golang.org/x/tools/go/packages"
 )
 
+// From https://pkg.go.dev/golang.org/x/tools/go/packages#LoadMode
+type LoadMode int
+
+// Only NeedExportsFile is needed in our case
+const (
+	// NeedName adds Name and PkgPath.
+	NeedName LoadMode = 1 << iota
+
+	// NeedFiles adds GoFiles and OtherFiles.
+	NeedFiles
+
+	// NeedCompiledGoFiles adds CompiledGoFiles.
+	NeedCompiledGoFiles
+
+	// NeedImports adds Imports. If NeedDeps is not set, the Imports field will contain
+	// "placeholder" Packages with only the ID set.
+	NeedImports
+
+	// NeedDeps adds the fields requested by the LoadMode in the packages in Imports.
+	NeedDeps
+
+	// NeedExportsFile adds ExportFile.
+	NeedExportsFile
+
+	// NeedTypes adds Types, Fset, and IllTyped.
+	NeedTypes
+
+	// NeedSyntax adds Syntax.
+	NeedSyntax
+
+	// NeedTypesInfo adds TypesInfo.
+	NeedTypesInfo
+
+	// NeedTypesSizes adds TypesSizes.
+	NeedTypesSizes
+
+	// typecheckCgo enables full support for type checking cgo. Requires Go 1.15+.
+	// Modifies CompiledGoFiles and Types, and has no effect on its own.
+	typecheckCgo
+
+	// NeedModule adds Module.
+	NeedModule
+)
+
+// From https://github.com/golang/tools/blob/v0.1.0/go/packages/external.go#L32
+// Most fields are disabled since there are no needs for them
 type DriverRequest struct {
-	Mode packages.LoadMode `json:"mode"`
+	Mode LoadMode `json:"mode"`
 	// Env specifies the environment the underlying build system should be run in.
-	Env []string `json:"env"`
+	// Env []string `json:"env"`
 	// BuildFlags are flags that should be passed to the underlying build system.
-	BuildFlags []string `json:"build_flags"`
+	// BuildFlags []string `json:"build_flags"`
 	// Tests specifies whether the patterns should also return test packages.
-	Tests bool `json:"tests"`
+	// Tests bool `json:"tests"`
 	// Overlay maps file paths (relative to the driver's working directory) to the byte contents
 	// of overlay files.
-	Overlay map[string][]byte `json:"overlay"`
+	// Overlay map[string][]byte `json:"overlay"`
 }
 
 func ReadDriverRequest(r io.Reader) (*DriverRequest, error) {

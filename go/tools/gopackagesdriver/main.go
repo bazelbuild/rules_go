@@ -8,8 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"strings"
-
-	"golang.org/x/tools/go/packages"
 )
 
 type driverResponse struct {
@@ -81,7 +79,7 @@ func run() error {
 		targets = strings.Split(targetsStr, " ")
 	}
 	bazelJsonBuilder, err := NewBazelJSONBuilder(bazel, targetsQueryStr, targetsTagFilters, targets)
-	jsonFiles, err := bazelJsonBuilder.Build(ctx, request.Mode&packages.NeedExportsFile != 0)
+	jsonFiles, err := bazelJsonBuilder.Build(ctx, request.Mode)
 	if err != nil {
 		return fmt.Errorf("unable to build JSON files: %w", err)
 	}
