@@ -58,23 +58,22 @@ func (b *Bazel) run(ctx context.Context, command string, args ...string) (string
 }
 
 func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
-	jsonTmp, _ := ioutil.TempFile("", "bep_")
-	jsonTmp.Close()
-	defer os.RemoveAll(jsonTmp.Name())
+	jsonFile, err := ioutil.TempFile("", "gopackagesdriver_bep_")
+	if err != nil {
+		return nil, fmt.Errorf("unable to create BEP JSON file: %w", err)
+	}
+	defer func() {
+		jsonFile.Close()
+		os.Remove(jsonFile.Name())
+	}()
 
 	args = append([]string{
-		"--build_event_json_file=" + jsonTmp.Name(),
+		"--build_event_json_file=" + jsonFile.Name(),
 		"--build_event_json_file_path_conversion=no",
 	}, args...)
 	if _, err := b.run(ctx, "build", args...); err != nil {
 		return nil, err
 	}
-
-	jsonFile, err := os.Open(jsonTmp.Name())
-	if err != nil {
-		return nil, err
-	}
-	defer jsonFile.Close()
 
 	files := make([]string, 0)
 	decoder := json.NewDecoder(jsonFile)
