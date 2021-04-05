@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"go/parser"
 	"go/token"
 	"os"
@@ -61,7 +62,7 @@ func resolvePathsInPlace(prf PathResolverFunc, paths []string) {
 func WalkFlatPackagesFromJSON(jsonFile string, onPkg PackageFunc) error {
 	f, err := os.Open(jsonFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to open package JSON file: %w", err)
 	}
 	defer f.Close()
 
@@ -69,7 +70,7 @@ func WalkFlatPackagesFromJSON(jsonFile string, onPkg PackageFunc) error {
 	for decoder.More() {
 		pkg := &FlatPackage{}
 		if err := decoder.Decode(&pkg); err != nil {
-			return err
+			return fmt.Errorf("unable to decode package in %s: %w", f.Name(), err)
 		}
 		onPkg(pkg)
 	}

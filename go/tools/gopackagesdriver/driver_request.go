@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
@@ -67,7 +68,7 @@ type DriverRequest struct {
 func ReadDriverRequest(r io.Reader) (*DriverRequest, error) {
 	req := &DriverRequest{}
 	if err := json.NewDecoder(r).Decode(&req); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to decode driver request: %w", err)
 	}
 	return req, nil
 }

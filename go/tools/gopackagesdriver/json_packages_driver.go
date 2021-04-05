@@ -20,11 +20,11 @@ func NewJSONPackagesDriver(jsonFiles []string, prf PathResolverFunc) (*JSONPacka
 	}
 
 	if err := jpd.registry.ResolvePaths(prf); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to resolve paths: %w", err)
 	}
 
 	if err := jpd.registry.ResolveImports(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to resolve paths: %w", err)
 	}
 
 	return jpd, nil

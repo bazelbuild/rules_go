@@ -36,7 +36,7 @@ func NewBazel(ctx context.Context, bazelBin, workspaceRoot string) (*Bazel, erro
 		workspaceRoot: workspaceRoot,
 	}
 	if execRoot, err := b.run(ctx, "info", "execution_root"); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to find execution root: %w", err)
 	} else {
 		b.execRoot = strings.TrimSpace(execRoot)
 	}
@@ -72,7 +72,7 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 		"--build_event_json_file_path_conversion=no",
 	}, args...)
 	if _, err := b.run(ctx, "build", args...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("bazel build failed: %w", err)
 	}
 
 	files := make([]string, 0)
@@ -80,7 +80,7 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 	for decoder.More() {
 		var namedSet BEPNamedSet
 		if err := decoder.Decode(&namedSet); err != nil {
-			panic(err)
+			return nil, fmt.Errorf("unable to decode %s: %w", jsonFile, err)
 		}
 		if namedSet.NamedSetOfFiles != nil {
 			for _, f := range namedSet.NamedSetOfFiles.Files {
@@ -95,7 +95,7 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 func (b *Bazel) Query(ctx context.Context, args ...string) ([]string, error) {
 	output, err := b.run(ctx, "query", args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("bazel query failed: %w", err)
 	}
 	return strings.Split(strings.TrimSpace(output), "\n"), nil
 }
