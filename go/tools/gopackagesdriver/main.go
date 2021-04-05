@@ -36,7 +36,7 @@ const (
 
 var (
 	bazelBin          = os.Getenv("GOPACKAGESDRIVER_BAZEL")
-	workspaceRoot     = os.Getenv("GOPACKAGESDRIVER_BAZEL_WORKSPACE")
+	workspaceRoot     = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
 	targetsStr        = os.Getenv("GOPACKAGESDRIVER_BAZEL_TARGETS")
 	targetsQueryStr   = os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY")
 	targetsTagFilters = os.Getenv("GOPACKAGESDRIVER_BAZEL_TAG_FILTERS")
