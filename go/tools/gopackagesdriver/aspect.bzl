@@ -100,9 +100,9 @@ def _go_pkg_info_aspect_impl(target, ctx):
         pkg_info,
         OutputGroupInfo(
             go_pkg_driver_json = pkg_info.transitive_json,
-            go_pkg_driver_stdlib_json = depset([pkg_info.stdlib_json]),
             go_pkg_driver_x = pkg_info.transitive_x,
-        )
+            go_pkg_driver_stdlib_json = depset([pkg_info.stdlib_json] if pkg_info.stdlib_json else [])
+        ),
     ]
 
 go_pkg_info_aspect = aspect(
