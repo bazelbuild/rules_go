@@ -30,17 +30,20 @@ type driverResponse struct {
 	Packages []*FlatPackage
 }
 
-const (
-	defaultBazelBin = "bazel"
-)
-
 var (
-	bazelBin          = os.Getenv("GOPACKAGESDRIVER_BAZEL")
+	bazelBin          = getenvDefault("GOPACKAGESDRIVER_BAZEL", "bazel")
 	workspaceRoot     = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
 	targetsStr        = os.Getenv("GOPACKAGESDRIVER_BAZEL_TARGETS")
 	targetsQueryStr   = os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY")
 	targetsTagFilters = os.Getenv("GOPACKAGESDRIVER_BAZEL_TAG_FILTERS")
 )
+
+func getenvDefault(key, defaultValue string) string {
+	if v, ok := os.LookupEnv(key); ok {
+		return v
+	}
+	return defaultValue
+}
 
 func signalContext(parentCtx context.Context, signals ...os.Signal) (ctx context.Context, stop context.CancelFunc) {
 	ctx, cancel := context.WithCancel(parentCtx)
@@ -66,9 +69,6 @@ func run() error {
 		return fmt.Errorf("unable to read request: %w", err)
 	}
 
-	if bazelBin == "" {
-		bazelBin = defaultBazelBin
-	}
 	bazel, err := NewBazel(ctx, bazelBin, workspaceRoot)
 	if err != nil {
 		return fmt.Errorf("unable to create bazel instance: %w", err)
