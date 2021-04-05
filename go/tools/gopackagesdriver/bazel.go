@@ -80,7 +80,7 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 	for decoder.More() {
 		var namedSet BEPNamedSet
 		if err := decoder.Decode(&namedSet); err != nil {
-			return nil, fmt.Errorf("unable to decode %s: %w", jsonFile, err)
+			return nil, fmt.Errorf("unable to decode %s: %w", jsonFile.Name(), err)
 		}
 		if namedSet.NamedSetOfFiles != nil {
 			for _, f := range namedSet.NamedSetOfFiles.Files {
