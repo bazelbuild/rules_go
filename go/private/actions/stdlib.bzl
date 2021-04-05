@@ -65,7 +65,6 @@ def _build_stdlib_list_json(go):
     )
     return out
 
-
 def _sdk_stdlib(go):
     return GoStdLib(
         root_file = go.sdk.root_file,
