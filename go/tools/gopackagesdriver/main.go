@@ -79,6 +79,10 @@ func run() error {
 		targets = strings.Split(targetsStr, " ")
 	}
 	bazelJsonBuilder, err := NewBazelJSONBuilder(bazel, targetsQueryStr, targetsTagFilters, targets)
+	if err != nil {
+		return fmt.Errorf("unable to build JSON files: %w", err)
+	}
+
 	jsonFiles, err := bazelJsonBuilder.Build(ctx, request.Mode)
 	if err != nil {
 		return fmt.Errorf("unable to build JSON files: %w", err)
