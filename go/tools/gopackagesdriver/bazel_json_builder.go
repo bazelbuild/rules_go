@@ -48,7 +48,16 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 	}
 
 	if b.query != "" {
-		queryTargets, err := b.bazel.Query(ctx, b.query)
+		queryTargets, err := b.bazel.Query(
+			ctx,
+			"--order_output=no",
+			"--output=label",
+			"--experimental_graphless_query",
+			"--nodep_deps",
+			"--noimplicit_deps",
+			"--notool_deps",
+			b.query,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("unable to query %v: %w", b.query, err)
 		}
