@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -107,7 +108,10 @@ func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) {
 			fp.Name = f.Name.Name
 		}
 		for _, rawImport := range f.Imports {
-			imp := strings.Trim(rawImport.Path.Value, "\"")
+			imp, err := strconv.Unquote(rawImport.Path.Value)
+			if err != nil {
+				continue
+			}
 			// We don't handle CGo for now
 			if imp == "C" {
 				continue
