@@ -27,7 +27,7 @@ def _file_path(f):
     return paths.join("__BAZEL_EXECROOT__", f.path)
 
 def _go_pkg_info_aspect_impl(target, ctx):
-    # Fetch the stdlib JSON file from thte inner most target
+    # Fetch the stdlib JSON file from the inner most target
     stdlib_json = None
 
     deps_transitive_json = []
@@ -42,7 +42,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
                 if not stdlib_json:
                     stdlib_json = pkg_info.stdlib_json
 
-    # If deps are embedded, no not gather their json or x since they are
+    # If deps are embedded, do not gather their json or x since they are
     # included in the current target, but do gather their deps'.
     if hasattr(ctx.rule.attr, "embed"):
         for dep in ctx.rule.attr.embed:
