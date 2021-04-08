@@ -47,7 +47,6 @@ func (b *Bazel) run(ctx context.Context, command string, args ...string) (string
 	cmd := exec.CommandContext(ctx, b.bazelBin, append([]string{
 		command,
 		"--tool_tag=" + toolTag,
-		"--show_result=0",
 		"--ui_actions_shown=0",
 	}, args...)...)
 	fmt.Fprintln(os.Stderr, "Running:", cmd.Args)
@@ -68,6 +67,7 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 	}()
 
 	args = append([]string{
+		"--show_result=0",
 		"--build_event_json_file=" + jsonFile.Name(),
 		"--build_event_json_file_path_conversion=no",
 	}, args...)
