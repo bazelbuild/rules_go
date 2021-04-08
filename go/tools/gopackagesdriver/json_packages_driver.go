@@ -30,7 +30,6 @@ func NewJSONPackagesDriver(jsonFiles []string, prf PathResolverFunc) (*JSONPacka
 	return jpd, nil
 }
 
-// Match matches packages based on pattern
 func (b *JSONPackagesDriver) Packages() []*FlatPackage {
 	return b.registry.ToList()
 }
