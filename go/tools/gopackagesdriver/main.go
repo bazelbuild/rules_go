@@ -33,7 +33,7 @@ type driverResponse struct {
 var (
 	bazelBin          = getenvDefault("GOPACKAGESDRIVER_BAZEL", "bazel")
 	workspaceRoot     = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
-	targetsStr        = os.Getenv("GOPACKAGESDRIVER_BAZEL_TARGETS")
+	targets           = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_TARGETS"))
 	targetsQueryStr   = os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY")
 	targetsTagFilters = os.Getenv("GOPACKAGESDRIVER_BAZEL_TAG_FILTERS")
 )
@@ -74,10 +74,6 @@ func run() error {
 		return fmt.Errorf("unable to create bazel instance: %w", err)
 	}
 
-	targets := []string{}
-	if targetsStr != "" {
-		targets = strings.Split(targetsStr, " ")
-	}
 	bazelJsonBuilder, err := NewBazelJSONBuilder(bazel, targetsQueryStr, targetsTagFilters, targets)
 	if err != nil {
 		return fmt.Errorf("unable to build JSON files: %w", err)
