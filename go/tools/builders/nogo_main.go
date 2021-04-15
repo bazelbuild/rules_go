@@ -394,10 +394,10 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 		for _, d := range act.diagnostics {
 			// NOTE(golang.org/issue/31008): nilness does not set positions,
 			// so don't assume the position is valid.
-			f := pkg.fset.File(d.Pos)
+			p := pkg.fset.Position(d.Pos)
 			filename := "-"
-			if f != nil {
-				filename = f.Name()
+			if p.IsValid() {
+				filename = p.Filename
 			}
 			include := true
 			if len(config.onlyFiles) > 0 {
