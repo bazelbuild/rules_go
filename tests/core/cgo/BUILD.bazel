@@ -7,6 +7,33 @@ go_test(
     embed = [":opts"],
 )
 
+genrule(
+    name = "generate_header_copts",
+    outs = ["generated_copts/generated_copts.h"],
+    cmd = "echo '#define GENERATED_COPTS 1' >$@",
+)
+
+genrule(
+    name = "generate_header_cppopts",
+    outs = ["generated_cppopts/generated_cppopts.h"],
+    cmd = "echo '#define GENERATED_CPPOPTS 1' >$@",
+)
+
+genrule(
+    name = "generate_header_cxxopts",
+    outs = ["generated_cxxopts/generated_cxxopts.h"],
+    cmd = "echo '#define GENERATED_CXXOPTS 1' >$@",
+)
+
+cc_library(
+    name = "generated_headers",
+    hdrs = [
+        "generated_copts/generated_copts.h",
+        "generated_cppopts/generated_cppopts.h",
+        "generated_cxxopts/generated_cxxopts.h",
+    ],
+)
+
 go_library(
     name = "opts",
     srcs = [
@@ -21,10 +48,23 @@ go_library(
         ],
         "//conditions:default": [],
     }),
+    cdeps = [":generated_headers"],
     cgo = True,
-    copts = ["-DRULES_GO_C"],
-    cppopts = ["-DRULES_GO_CPP"],
-    cxxopts = ["-DRULES_GO_CXX"],
+    copts = [
+        "-DRULES_GO_C",
+        "-I$(GENDIR)/tests/core/cgo/generated_copts",
+        "-DDOLLAR_SIGN_C=$$",  # the dollar sign should be escaped
+    ],
+    cppopts = [
+        "-DRULES_GO_CPP",
+        "-I$(GENDIR)/tests/core/cgo/generated_cppopts",
+        "-DDOLLAR_SIGN_CPP=$$",  # the dollar sign should be escaped
+    ],
+    cxxopts = [
+        "-DRULES_GO_CXX",
+        "-I$(GENDIR)/tests/core/cgo/generated_cxxopts",
+        "-DDOLLAR_SIGN_CXX=$$",  # the dollar sign should be escaped
+    ],
     importpath = "github.com/bazelbuild/rules_go/tests/core/cxx",
 )
 

@@ -226,14 +226,14 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "embedsrcs": embedsrcs,
         "x_defs": {},
         "deps": getattr(attr, "deps", []),
-        "gc_goopts": getattr(attr, "gc_goopts", []),
+        "gc_goopts": _expand_opts(go, "gc_goopts", getattr(attr, "gc_goopts", [])),
         "runfiles": _collect_runfiles(go, getattr(attr, "data", []), getattr(attr, "deps", [])),
         "cgo": getattr(attr, "cgo", False),
         "cdeps": getattr(attr, "cdeps", []),
-        "cppopts": getattr(attr, "cppopts", []),
-        "copts": getattr(attr, "copts", []),
-        "cxxopts": getattr(attr, "cxxopts", []),
-        "clinkopts": getattr(attr, "clinkopts", []),
+        "cppopts": _expand_opts(go, "cppopts", getattr(attr, "cppopts", [])),
+        "copts": _expand_opts(go, "copts", getattr(attr, "copts", [])),
+        "cxxopts": _expand_opts(go, "cxxopts", getattr(attr, "cxxopts", [])),
+        "clinkopts": _expand_opts(go, "clinkopts", getattr(attr, "clinkopts", [])),
         "cgo_deps": [],
         "cgo_exports": [],
     }
@@ -815,3 +815,6 @@ go_config = rule(
     configuration. Rules may depend on this instead of depending on all
     the build settings directly.""",
 )
+
+def _expand_opts(go, attribute_name, opts):
+    return [go._ctx.expand_make_variables(attribute_name, opt, {}) for opt in opts]
