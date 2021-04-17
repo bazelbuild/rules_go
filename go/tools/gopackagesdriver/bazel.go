@@ -19,8 +19,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -98,7 +100,11 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 		}
 		if namedSet.NamedSetOfFiles != nil {
 			for _, f := range namedSet.NamedSetOfFiles.Files {
-				files = append(files, strings.TrimPrefix(f.URI, "file://"))
+				fileUrl, err := url.Parse(f.URI)
+				if err != nil {
+					return nil, fmt.Errorf("unable to parse file URI: %w", err)
+				}
+				files = append(files, filepath.FromSlash(fileUrl.Path))
 			}
 		}
 	}
