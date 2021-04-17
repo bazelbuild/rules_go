@@ -179,7 +179,7 @@ func stdliblist(args []string) error {
 
 	listArgs := goenv.goCmd("list")
 	if len(build.Default.BuildTags) > 0 {
-		listArgs = append(listArgs, "-tags", strings.Join(build.Default.BuildTags, " "))
+		listArgs = append(listArgs, "-tags", strings.Join(build.Default.BuildTags, ","))
 	}
 	listArgs = append(listArgs, "-json", "builtin", "std", "runtime/cgo")
 

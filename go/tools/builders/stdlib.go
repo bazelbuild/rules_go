@@ -112,7 +112,7 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 	// we strip the build ids, since they won't be used after this.
 	installArgs := goenv.goCmd("install", "-toolexec", abs(os.Args[0])+" filterbuildid")
 	if len(build.Default.BuildTags) > 0 {
-		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, " "))
+		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, ","))
 	}
 
 	gcflags := []string{}
