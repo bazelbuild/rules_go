@@ -115,7 +115,7 @@ func execRootPath(execRoot, p string) string {
 }
 
 func absoluteSourcesPaths(execRoot, pkgDir string, srcs []string) []string {
-	ret := []string{}
+	ret := make([]string, 0, len(srcs))
 	pkgDir = execRootPath(execRoot, pkgDir)
 	for _, src := range srcs {
 		ret = append(ret, filepath.Join(pkgDir, src))
