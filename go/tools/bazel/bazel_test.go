@@ -220,3 +220,36 @@ func TestEnterRunfiles(t *testing.T) {
 		t.Errorf("data-file not found in current directory (%s); entered invalid runfiles tree?", wd)
 	}
 }
+
+func TestPythonWindowsManifest(t *testing.T) {
+	cleanup, err := makeAndEnterTempdir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+
+	err = ioutil.WriteFile("MANIFEST",
+		// all on one line to make sure the whitespace stays exactly as in the source file
+		[]byte("__init__.py \n__main__/external/__init__.py \n__main__/external/rules_python/__init__.py \n__main__/external/rules_python/python/__init__.py \n__main__/external/rules_python/python/runfiles/__init__.py \n__main__/external/rules_python/python/runfiles/runfiles.py C:/users/sam/_bazel_sam/pj4cl7d4/external/rules_python/python/runfiles/runfiles.py\n__main__/go_cat_/go_cat.exe C:/users/sam/_bazel_sam/pj4cl7d4/execroot/__main__/bazel-out/x64_windows-opt-exec-2B5CBBC6/bin/go_cat_/go_cat.exe\n__main__/important.txt C:/users/sam/dev/rules_go_runfiles_repro/important.txt\n__main__/parent.exe C:/users/sam/_bazel_sam/pj4cl7d4/execroot/__main__/bazel-out/x64_windows-opt-exec-2B5CBBC6/bin/parent.exe\n__main__/parent.py C:/users/sam/dev/rules_go_runfiles_repro/parent.py\n__main__/parent.zip C:/users/sam/_bazel_sam/pj4cl7d4/execroot/__main__/bazel-out/x64_windows-opt-exec-2B5CBBC6/bin/parent.zip\nrules_python/__init__.py \nrules_python/python/__init__.py \nrules_python/python/runfiles/__init__.py \nrules_python/python/runfiles/runfiles.py C:/users/sam/_bazel_sam/pj4cl7d4/external/rules_python/python/runfiles/runfiles.py"),
+		os.FileMode(0644),
+	)
+	if err != nil {
+		t.Fatalf("Failed to write sample manifest: %v", err)
+	}
+
+	originalEnvVar := os.Getenv(RUNFILES_MANIFEST_FILE)
+	defer func() {
+		os.Setenv(RUNFILES_MANIFEST_FILE, originalEnvVar)
+	}()
+
+	if err = os.Setenv(RUNFILES_MANIFEST_FILE, "MANIFEST"); err != nil {
+		t.Fatalf("Failed to set manifest file environement variable: %v", err)
+	}
+
+	initRunfiles()
+
+	if runfiles.err != nil {
+		t.Errorf("failed to init runfiles: %v", runfiles.err)
+	}
+
+}

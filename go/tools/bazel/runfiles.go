@@ -325,17 +325,25 @@ func initRunfiles() {
 				data = data[i+1:]
 			}
 			lineno++
-			line = bytes.TrimSpace(line)
+			// don't trim whitespace here: if we are executing using python's runfiles on windows we'll have manifest
+			// lines like `__init.py__ ` note the space at the end, but no actual file after the space.
+			// https://github.com/bazelbuild/rules_go/issues/2866
 			if len(line) == 0 {
 				continue
 			}
-			e := bytes.SplitN(line, []byte(" "), 2)
-			if len(e) < 2 {
-				runfiles.err = fmt.Errorf("error parsing runfiles manifest: %s:%d: no space", manifest, lineno)
+
+			spaceIndex := bytes.IndexByte(line, ' ')
+			if spaceIndex < 0 {
+				runfiles.err = fmt.Errorf("error parsing runfiles manifest: %s:%d: no space: '%s'", manifest, lineno, line)
 				return
 			}
+			shortPath := string(line[0:spaceIndex])
+			abspath := ""
+			if len(line) > spaceIndex+1 {
+				abspath = string(line[spaceIndex+1:])
+			}
 
-			entry := RunfileEntry{ShortPath: string(e[0]), Path: string(e[1])}
+			entry := RunfileEntry{ShortPath: shortPath, Path: abspath}
 			if i := strings.IndexByte(entry.ShortPath, '/'); i >= 0 {
 				entry.Workspace = entry.ShortPath[:i]
 				entry.ShortPath = entry.ShortPath[i+1:]
@@ -362,7 +370,7 @@ func initRunfiles() {
 	} else if runtime.GOOS != "windows" {
 		dir, err := os.Getwd()
 		if err != nil {
-			runfiles.err = fmt.Errorf("error localting runfiles dir: %v", err)
+			runfiles.err = fmt.Errorf("error locating runfiles dir: %v", err)
 			return
 		}
 
