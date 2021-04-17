@@ -325,9 +325,12 @@ func initRunfiles() {
 				data = data[i+1:]
 			}
 			lineno++
-			// don't trim whitespace here: if we are executing using python's runfiles on windows we'll have manifest
-			// lines like `__init.py__ ` note the space at the end, but no actual file after the space.
-			// https://github.com/bazelbuild/rules_go/issues/2866
+
+			// Only TrimRight newlines. Do not TrimRight() completely, because that would remove spaces too.
+			// This is necessary in order to have at least one space in every manifest line.
+			// Some manifest entries don't have any path after this space, namely the "__init__.py" entries.
+			// original comment sourced from: https://github.com/bazelbuild/bazel/blob/09c621e4cf5b968f4c6cdf905ab142d5961f9ddc/src/test/py/bazel/runfiles_test.py#L225
+			line = bytes.TrimRight(line, "\r\n")
 			if len(line) == 0 {
 				continue
 			}
