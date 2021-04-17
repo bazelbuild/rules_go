@@ -14,9 +14,9 @@ type BazelJSONBuilder struct {
 }
 
 const (
-	OutputGroupDriverJSON  = "go_pkg_driver_json"
-	OutputGroupStdLibJSON  = "go_pkg_driver_stdlib_json"
-	OutputGroupExportFiles = "go_pkg_driver_x"
+	OutputGroupDriverJSONFile = "go_pkg_driver_json_file"
+	OutputGroupStdLibJSONFile = "go_pkg_driver_stdlib_json_file"
+	OutputGroupExportFile     = "go_pkg_driver_export_file"
 )
 
 func NewBazelJSONBuilder(bazel *Bazel, query, tagFilters string, targets []string) (*BazelJSONBuilder, error) {
@@ -29,9 +29,9 @@ func NewBazelJSONBuilder(bazel *Bazel, query, tagFilters string, targets []strin
 }
 
 func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
-	og := OutputGroupDriverJSON + "," + OutputGroupStdLibJSON
+	og := OutputGroupDriverJSONFile + "," + OutputGroupStdLibJSONFile
 	if mode&NeedExportsFile != 0 || true { // override for now
-		og += "," + OutputGroupExportFiles
+		og += "," + OutputGroupExportFile
 	}
 	return og
 }
