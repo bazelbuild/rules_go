@@ -145,7 +145,7 @@ func flatPackageForStd(execRoot string, pkg *goListPackage) *flatPackage {
 	return newPkg
 }
 
-// stdlib builds the standard library in the appropriate mode into a new goroot.
+// stdliblist runs `go list -json` on the standard library and saves it to a file.
 func stdliblist(args []string) error {
 	// process the args
 	flags := flag.NewFlagSet("stdliblist", flag.ExitOnError)
