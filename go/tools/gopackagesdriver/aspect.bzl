@@ -74,7 +74,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
         # If there was no stdlib json in any dependencies, fetch it from the
         # current go_ node.
         if not stdlib_json_file:
-            stdlib_json_file = ctx.attr._go_stdlib[GoStdLib].list_json
+            stdlib_json_file = ctx.attr._go_stdlib[GoStdLib]._list_json
 
     pkg_info = GoPkgInfo(
         json = pkg_json_file,

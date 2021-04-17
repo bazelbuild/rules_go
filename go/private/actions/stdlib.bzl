@@ -67,9 +67,9 @@ def _build_stdlib_list_json(go):
 
 def _sdk_stdlib(go):
     return GoStdLib(
-        root_file = go.sdk.root_file,
-        list_json = _build_stdlib_list_json(go),
+        _list_json = _build_stdlib_list_json(go),
         libs = go.sdk.libs,
+        root_file = go.sdk.root_file,
     )
 
 def _build_stdlib(go):
@@ -114,7 +114,7 @@ def _build_stdlib(go):
         env = env,
     )
     return GoStdLib(
-        root_file = root_file,
-        list_json = _build_stdlib_list_json(go),
+        _list_json = _build_stdlib_list_json(go),
         libs = [pkg],
+        root_file = root_file,
     )
