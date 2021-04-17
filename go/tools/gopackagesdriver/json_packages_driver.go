@@ -14,7 +14,10 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"go/types"
+)
 
 type JSONPackagesDriver struct {
 	registry *PackageRegistry
@@ -44,6 +47,13 @@ func NewJSONPackagesDriver(jsonFiles []string, prf PathResolverFunc) (*JSONPacka
 	return jpd, nil
 }
 
-func (b *JSONPackagesDriver) Packages() []*FlatPackage {
-	return b.registry.ToList()
+func (b *JSONPackagesDriver) Match(pattern ...string) *driverResponse {
+	rootPkgs, packages := b.registry.Match(pattern...)
+
+	return &driverResponse{
+		NotHandled: false,
+		Sizes:      types.SizesFor("gc", "amd64").(*types.StdSizes),
+		Roots:      rootPkgs,
+		Packages:   packages,
+	}
 }

@@ -14,13 +14,19 @@
 
 package main
 
+import (
+	"strings"
+)
+
 type PackageRegistry struct {
 	packagesByImportPath map[string]*FlatPackage
+	packagesByFile       map[string]*FlatPackage
 }
 
 func NewPackageRegistry(pkgs ...*FlatPackage) *PackageRegistry {
 	pr := &PackageRegistry{
 		packagesByImportPath: map[string]*FlatPackage{},
+		packagesByFile:       map[string]*FlatPackage{},
 	}
 	pr.Add(pkgs...)
 	return pr
@@ -44,17 +50,12 @@ func (pr *PackageRegistry) Remove(pkgs ...*FlatPackage) *PackageRegistry {
 	return pr
 }
 
-func (pr *PackageRegistry) ToList() []*FlatPackage {
-	pkgs := make([]*FlatPackage, 0, len(pr.packagesByImportPath))
-	for _, pkg := range pr.packagesByImportPath {
-		pkgs = append(pkgs, pkg)
-	}
-	return pkgs
-}
-
 func (pr *PackageRegistry) ResolvePaths(prf PathResolverFunc) error {
 	for _, pkg := range pr.packagesByImportPath {
 		pkg.ResolvePaths(prf)
+		for _, f := range pkg.CompiledGoFiles {
+			pr.packagesByFile[f] = pkg
+		}
 	}
 	return nil
 }
@@ -66,4 +67,39 @@ func (pr *PackageRegistry) ResolveImports() error {
 		})
 	}
 	return nil
+}
+
+func (pr *PackageRegistry) Match(patterns ...string) ([]string, []*FlatPackage) {
+	roots := map[string]struct{}{}
+	wildcard := false
+
+	for _, pattern := range patterns {
+		if strings.HasPrefix(pattern, "file=") {
+			f := strings.TrimPrefix(pattern, "file=")
+			if pkg, ok := pr.packagesByFile[f]; ok {
+				roots[pkg.ID] = struct{}{}
+			}
+		} else if pattern == "." || pattern == "./..." {
+			wildcard = true
+		} else {
+			if pkg, ok := pr.packagesByImportPath[pattern]; ok {
+				roots[pkg.ID] = struct{}{}
+			}
+		}
+	}
+
+	retPkgs := make([]*FlatPackage, 0, len(pr.packagesByImportPath))
+	for _, pkg := range pr.packagesByImportPath {
+		if wildcard && strings.HasPrefix(pkg.ID, "//") {
+			roots[pkg.ID] = struct{}{}
+		}
+		retPkgs = append(retPkgs, pkg)
+	}
+
+	retRoots := make([]string, 0, len(roots))
+	for pkg := range roots {
+		retRoots = append(retRoots, pkg)
+	}
+
+	return retRoots, retPkgs
 }

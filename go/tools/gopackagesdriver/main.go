@@ -103,20 +103,9 @@ func run() error {
 		return fmt.Errorf("unable to load JSON files: %w", err)
 	}
 
-	pkgs := driver.Packages()
-	roots := []string{}
-	for _, pkg := range pkgs {
-		if pkg.IsRoot() {
-			roots = append(roots, pkg.ID)
-		}
-	}
+	response := driver.Match(os.Args[1:]...)
+	// return nil
 
-	response := &driverResponse{
-		NotHandled: false,
-		Sizes:      types.SizesFor("gc", "amd64").(*types.StdSizes),
-		Roots:      roots,
-		Packages:   pkgs,
-	}
 	if err := json.NewEncoder(os.Stdout).Encode(response); err != nil {
 		return fmt.Errorf("unable to encode response: %w", err)
 	}
