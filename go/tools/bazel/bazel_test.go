@@ -221,7 +221,7 @@ func TestEnterRunfiles(t *testing.T) {
 	}
 }
 
-func TestPythonWindowsManifest(t *testing.T) {
+func TestPythonManifest(t *testing.T) {
 	cleanup, err := makeAndEnterTempdir()
 	if err != nil {
 		t.Fatal(err)
@@ -239,7 +239,9 @@ func TestPythonWindowsManifest(t *testing.T) {
 
 	originalEnvVar := os.Getenv(RUNFILES_MANIFEST_FILE)
 	defer func() {
-		os.Setenv(RUNFILES_MANIFEST_FILE, originalEnvVar)
+		if err = os.Setenv(RUNFILES_MANIFEST_FILE, originalEnvVar); err != nil {
+			t.Fatalf("Failed to reset environment: %v", err)
+		}
 	}()
 
 	if err = os.Setenv(RUNFILES_MANIFEST_FILE, "MANIFEST"); err != nil {
@@ -250,6 +252,15 @@ func TestPythonWindowsManifest(t *testing.T) {
 
 	if runfiles.err != nil {
 		t.Errorf("failed to init runfiles: %v", runfiles.err)
+	}
+
+	entry, ok := runfiles.index["important.txt"]
+	if !ok {
+		t.Errorf("failed to locate runfile %s in index", "important.txt")
+	}
+
+	if entry.Workspace != "__main__" {
+		t.Errorf("incorrect workspace for runfile. Expected: %s, actual %s", "__main__", entry.Workspace)
 	}
 
 }

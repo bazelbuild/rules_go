@@ -334,7 +334,8 @@ func initRunfiles() {
 
 			spaceIndex := bytes.IndexByte(line, ' ')
 			if spaceIndex < 0 {
-				runfiles.err = fmt.Errorf("error parsing runfiles manifest: %s:%d: no space: '%s'", manifest, lineno, line)
+				runfiles.err = fmt.Errorf(
+					"error parsing runfiles manifest: %s:%d: no space: '%s'", manifest, lineno, line)
 				return
 			}
 			shortPath := string(line[0:spaceIndex])
