@@ -128,9 +128,10 @@ def emit_link(
     # the bazel execroot. Most binaries are only dynamically linked against
     # system libraries though.
     cgo_rpaths = sorted(collections.uniq([
-        rpath.flag(go, d, relative_to = executable)
+        f
         for d in archive.cgo_deps.to_list()
         if has_shared_lib_extension(d.basename)
+        for f in rpath.flags(go, d, executable = executable)
     ]))
     extldflags.extend(cgo_rpaths)
 

@@ -55,7 +55,7 @@ def new_cc_import(
         alwayslink = False,
         linkopts = []):
     if dynamic_library:
-        linkopts = linkopts + [rpath.flag(go, dynamic_library)]
+        linkopts = linkopts + rpath.flags(go, dynamic_library)
     return CcInfo(
         compilation_context = cc_common.create_compilation_context(
             defines = defines,

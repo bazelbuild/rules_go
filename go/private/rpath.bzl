@@ -17,29 +17,43 @@ load(
     "paths",
 )
 
-def _rpath(go, library, relative_to = None):
-    """Returns the rpath of a library, possibly relative to another file."""
-    if not relative_to:
-        return paths.dirname(library.short_path)
+def _rpath(go, library, executable = None):
+    """Returns the potential rpaths of a library, possibly relative to another file."""
+    if not executable:
+        return [paths.dirname(library.short_path)]
 
-    # Go back to the workspace root from the executable file
-    depth = relative_to.short_path.count("/")
-    back_to_root = paths.join(*([".."] * depth))
     origin = go.mode.goos == "darwin" and "@loader_path" or "$ORIGIN"
 
-    # Then walk back to the library's short path
-    return paths.join(origin, back_to_root, paths.dirname(library.short_path))
+    # Accomodate for two kinds of executable paths.
+    rpaths = []
 
-def _flag(go, *args, **kwargs):
-    """Returns the linker flag rpath for a library."""
-    return "-Wl,-rpath," + _rpath(go, *args, **kwargs)
+    # 1. Where the executable is inside its own .runfiles directory.
+    #  This is the case for generated libraries as well as remote builds.
+    #   a) go back to the workspace root from the executable file in .runfiles
+    depth = executable.short_path.count("/")
+    back_to_root = paths.join(*([".."] * depth))
+
+    #   b) then walk back to the library's short path
+    rpaths.append(paths.join(origin, back_to_root, paths.dirname(library.short_path)))
+
+    # 2. Where the executable is outside the .runfiles directory:
+    #  This is the case for local pre-built libraries, as well as local
+    #  generated libraries.
+    runfiles_dir = paths.basename(executable.short_path) + ".runfiles"
+    rpaths.append(paths.join(origin, runfiles_dir, go._ctx.workspace_name, paths.dirname(library.short_path)))
+
+    return rpaths
+
+def _flags(go, *args, **kwargs):
+    """Returns the rpath linker flags for a library."""
+    return ["-Wl,-rpath," + p for p in _rpath(go, *args, **kwargs)]
 
 def _install_name(f):
     """Returns the install name for a dylib on macOS."""
     return f.short_path
 
 rpath = struct(
-    flag = _flag,
+    flags = _flags,
     install_name = _install_name,
     rpath = _rpath,
 )
