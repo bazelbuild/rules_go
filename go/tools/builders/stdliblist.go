@@ -123,7 +123,7 @@ func absoluteSourcesPaths(execRoot, pkgDir string, srcs []string) []string {
 	return ret
 }
 
-func packageToPackage(execRoot string, pkg *goListPackage) *flatPackage {
+func flatPackageForStd(execRoot string, pkg *goListPackage) *flatPackage {
 	// Don't use generated files from the stdlib
 	goFiles := absoluteSourcesPaths(execRoot, pkg.Dir, pkg.GoFiles)
 
@@ -200,7 +200,7 @@ func stdliblist(args []string) error {
 		if err := decoder.Decode(&pkg); err != nil {
 			return err
 		}
-		if err := encoder.Encode(packageToPackage(execRoot, pkg)); err != nil {
+		if err := encoder.Encode(flatPackageForStd(execRoot, pkg)); err != nil {
 			return err
 		}
 	}
