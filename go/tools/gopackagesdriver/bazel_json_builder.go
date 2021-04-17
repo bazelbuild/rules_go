@@ -87,7 +87,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 
 	ret := []string{}
 	for _, f := range files {
-		if strings.HasSuffix(f, ".pkg.json") == false {
+		if !strings.HasSuffix(f, ".pkg.json") {
 			continue
 		}
 		ret = append(ret, f)
