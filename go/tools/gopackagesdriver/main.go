@@ -126,6 +126,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error: %w", err)
+		os.Exit(1)
 	}
 }
