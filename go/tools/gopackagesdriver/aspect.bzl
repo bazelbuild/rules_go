@@ -46,24 +46,22 @@ def _go_pkg_info_aspect_impl(target, ctx):
 
     deps_transitive_json_file = []
     deps_transitive_export_file = []
-    if hasattr(ctx.rule.attr, "deps"):
-        for dep in ctx.rule.attr.deps:
-            if GoPkgInfo in dep:
-                pkg_info = dep[GoPkgInfo]
-                deps_transitive_json_file.append(pkg_info.transitive_json_file)
-                deps_transitive_export_file.append(pkg_info.transitive_export_file)
-                # Fetch the stdlib json from the first dependency
-                if not stdlib_json_file:
-                    stdlib_json_file = pkg_info.stdlib_json_file
+    for dep in getattr(ctx.rule.attr, "deps", []):
+        if GoPkgInfo in dep:
+            pkg_info = dep[GoPkgInfo]
+            deps_transitive_json_file.append(pkg_info.transitive_json_file)
+            deps_transitive_export_file.append(pkg_info.transitive_export_file)
+            # Fetch the stdlib json from the first dependency
+            if not stdlib_json_file:
+                stdlib_json_file = pkg_info.stdlib_json_file
 
     # If deps are embedded, do not gather their json or export_file since they
     # are included in the current target, but do gather their deps'.
-    if hasattr(ctx.rule.attr, "embed"):
-        for dep in ctx.rule.attr.embed:
-            if GoPkgInfo in dep:
-                pkg_info = dep[GoPkgInfo]
-                deps_transitive_json_file.append(pkg_info.deps_transitive_json_file)
-                deps_transitive_export_file.append(pkg_info.deps_transitive_export_file)
+    for dep in getattr(ctx.rule.attr, "embed", []):
+        if GoPkgInfo in dep:
+            pkg_info = dep[GoPkgInfo]
+            deps_transitive_json_file.append(pkg_info.deps_transitive_json_file)
+            deps_transitive_export_file.append(pkg_info.deps_transitive_export_file)
 
     pkg_json_file = None
     export_file = None
