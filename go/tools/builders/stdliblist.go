@@ -174,6 +174,7 @@ func stdliblist(args []string) error {
 	cachePath := abs(*out + ".gocache")
 	defer os.RemoveAll(cachePath)
 	os.Setenv("GOCACHE", cachePath)
+	os.Setenv("GOMODCACHE", cachePath)
 	os.Setenv("GOPATH", cachePath)
 
 	listArgs := goenv.goCmd("list")
