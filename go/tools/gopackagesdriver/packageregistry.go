@@ -19,12 +19,14 @@ import (
 )
 
 type PackageRegistry struct {
+	packagesByID         map[string]*FlatPackage
 	packagesByImportPath map[string]*FlatPackage
 	packagesByFile       map[string]*FlatPackage
 }
 
 func NewPackageRegistry(pkgs ...*FlatPackage) *PackageRegistry {
 	pr := &PackageRegistry{
+		packagesByID:         map[string]*FlatPackage{},
 		packagesByImportPath: map[string]*FlatPackage{},
 		packagesByFile:       map[string]*FlatPackage{},
 	}
@@ -34,6 +36,7 @@ func NewPackageRegistry(pkgs ...*FlatPackage) *PackageRegistry {
 
 func (pr *PackageRegistry) Add(pkgs ...*FlatPackage) *PackageRegistry {
 	for _, pkg := range pkgs {
+		pr.packagesByID[pkg.ID] = pkg
 		pr.packagesByImportPath[pkg.PkgPath] = pkg
 	}
 	return pr
@@ -69,6 +72,16 @@ func (pr *PackageRegistry) ResolveImports() error {
 	return nil
 }
 
+func (pr *PackageRegistry) walk(acc map[string]*FlatPackage, root string) {
+	pkg := pr.packagesByID[root]
+	acc[pkg.ID] = pkg
+	for _, pkgID := range pkg.Imports {
+		if _, ok := acc[pkgID]; !ok {
+			pr.walk(acc, pkgID)
+		}
+	}
+}
+
 func (pr *PackageRegistry) Match(patterns ...string) ([]string, []*FlatPackage) {
 	roots := map[string]struct{}{}
 	wildcard := false
@@ -88,17 +101,29 @@ func (pr *PackageRegistry) Match(patterns ...string) ([]string, []*FlatPackage) 
 		}
 	}
 
-	retPkgs := make([]*FlatPackage, 0, len(pr.packagesByImportPath))
-	for _, pkg := range pr.packagesByImportPath {
-		if wildcard && strings.HasPrefix(pkg.ID, "//") {
-			roots[pkg.ID] = struct{}{}
+	if wildcard {
+		retPkgs := make([]*FlatPackage, 0, len(pr.packagesByImportPath))
+		retRoots := make([]string, 0, len(pr.packagesByImportPath))
+		for _, pkg := range pr.packagesByImportPath {
+			if strings.HasPrefix(pkg.ID, "//") {
+				retRoots = append(retRoots, pkg.ID)
+				roots[pkg.ID] = struct{}{}
+			}
+			retPkgs = append(retPkgs, pkg)
 		}
-		retPkgs = append(retPkgs, pkg)
+		return retRoots, retPkgs
 	}
 
+	walkedPackages := map[string]*FlatPackage{}
 	retRoots := make([]string, 0, len(roots))
-	for pkg := range roots {
-		retRoots = append(retRoots, pkg)
+	for rootPkg := range roots {
+		retRoots = append(retRoots, rootPkg)
+		pr.walk(walkedPackages, rootPkg)
+	}
+
+	retPkgs := make([]*FlatPackage, 0, len(walkedPackages))
+	for _, pkg := range walkedPackages {
+		retPkgs = append(retPkgs, pkg)
 	}
 
 	return retRoots, retPkgs
