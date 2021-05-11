@@ -176,9 +176,13 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
     for a in direct:
         x_defs.update(a.x_defs)
     cgo_exports_direct = list(source.cgo_exports)
+
+    # Ensure that the _cgo_export.h of the current target comes first when cgo_exports is iterated
+    # by prepending it and specifying the order explicitly. This is required as the CcInfo attached
+    # to the archive only exposes a single header rather than combining all headers.
     if out_cgo_export_h:
-        cgo_exports_direct.append(out_cgo_export_h)
-    cgo_exports = depset(direct = cgo_exports_direct, transitive = [a.cgo_exports for a in direct])
+        cgo_exports_direct.insert(0, out_cgo_export_h)
+    cgo_exports = depset(direct = cgo_exports_direct, transitive = [a.cgo_exports for a in direct], order = "preorder")
     return GoArchive(
         source = source,
         data = data,
