@@ -165,6 +165,7 @@ _LINK_PLUGIN_PLATFORMS = {
     "android/arm64": None,
     "android/386": None,
     "darwin/amd64": None,
+    "darwin/arm64": None,
 }
 
 _LINK_PIE_PLATFORMS = {
