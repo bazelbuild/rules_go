@@ -334,15 +334,15 @@ with the ``importpath`` attribute.
 .. code:: bzl
 
     go_library(
-        name = "go_default_library",
+        name = "foo_library",
         srcs = [
             "a.go",
             "b.go",
         ],
         importpath = "github.com/example/project/foo",
         deps = [
-            "//tools:go_default_library",
-            "@org_golang_x_utils//stuff:go_default_library",
+            "//tools",
+            "@org_golang_x_utils//stuff",
         ],
         visibility = ["//visibility:public"],
     )
@@ -353,15 +353,15 @@ should be listed in an ``embed`` attribute.
 .. code:: bzl
 
     go_test(
-        name = "go_default_test",
+        name = "foo_test",
         srcs = [
             "a_test.go",
             "b_test.go",
         ],
-        embed = [":go_default_library"],
+        embed = [":foo_lib"],
         deps = [
-            "//testtools:go_default_library",
-            "@org_golang_x_utils//morestuff:go_default_library",
+            "//testtools",
+            "@org_golang_x_utils//morestuff",
         ],
     )
 
@@ -596,17 +596,17 @@ dependencies with ``select`` expressions (Gazelle does this automatically).
 .. code:: bzl
 
   go_library(
-      name = "go_default_library",
+      name = "foo",
       srcs = [
           "foo_linux.go",
           "foo_windows.go",
       ],
       deps = select({
           "@io_bazel_rules_go//go/platform:linux_amd64": [
-              "//bar_linux:go_default_library",
+              "//bar_linux",
           ],
           "@io_bazel_rules_go//go/platform:windows_amd64": [
-              "//bar_windows:go_default_library",
+              "//bar_windows",
           ],
           "//conditions:default": [],
       }),
@@ -629,7 +629,7 @@ For example, if you want to include everything in the ``testdata`` directory:
 .. code:: bzl
 
   go_test(
-      name = "go_default_test",
+      name = "foo_test",
       srcs = ["foo_test.go"],
       data = glob(["testdata/**"]),
       importpath = "github.com/example/project/foo",

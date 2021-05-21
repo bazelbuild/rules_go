@@ -324,7 +324,7 @@ you can do so with a separate ``go_library`` that embeds the
   load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
   go_library(
-      name = "go_default_library",
+      name = "foo",
       srcs = ["extra.go"],
       embed = [":foo_go_proto"],
       importpath = "example.com/repo/foo",
