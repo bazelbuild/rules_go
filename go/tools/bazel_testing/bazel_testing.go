@@ -132,7 +132,7 @@ func TestMain(m *testing.M, args Args) {
 		return
 	}
 	if beginFiles >= 0 {
-		files = os.Args[beginFiles+1 : endFiles-1]
+		files = os.Args[beginFiles+1 : endFiles]
 		os.Args = append(os.Args[:beginFiles:beginFiles], os.Args[endFiles+1:]...)
 	}
 
