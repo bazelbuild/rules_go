@@ -14,6 +14,7 @@
 package bazel
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -263,4 +264,83 @@ func TestPythonManifest(t *testing.T) {
 		t.Errorf("incorrect workspace for runfile. Expected: %s, actual %s", "__main__", entry.Workspace)
 	}
 
+}
+
+func TestSpliceDelimitedOSArgs(t *testing.T) {
+	testData := map[string]struct {
+		initial []string
+		want    []string
+		final   []string
+		wantErr error
+	}{
+		"no args": {
+			[]string{},
+			[]string{},
+			[]string{},
+			nil,
+		},
+		"empty splice": {
+			[]string{"-begin_files", "-end_files"},
+			[]string{},
+			[]string{},
+			nil,
+		},
+		"removes inner args": {
+			[]string{"-begin_files", "a", "-end_files"},
+			[]string{"a"},
+			[]string{},
+			nil,
+		},
+		"preserves outer args": {
+			[]string{"a", "-begin_files", "b", "-end_files", "c"},
+			[]string{"b"},
+			[]string{"a", "c"},
+			nil,
+		},
+		"complains about missing delimiter": {
+			[]string{"-begin_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"complains about out-of-order delimiter": {
+			[]string{"-end_files", "-begin_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+	}
+	for name, tc := range testData {
+		t.Run(name, func(t *testing.T) {
+			os.Args = tc.initial
+			got, err := SpliceDelimitedOSArgs("-begin_files", "-end_files")
+			if err != nil {
+				if tc.wantErr == nil {
+					t.Fatalf("unexpected err: %v", err)
+				}
+				if tc.wantErr.Error() != err.Error() {
+					t.Fatalf("err: want %v, got %v", tc.wantErr, err)
+				}
+				return
+			}
+			if len(tc.want) != len(got) {
+				t.Errorf("len(want: %d, got %d", len(tc.want), len(got))
+			}
+			for i, actual := range got {
+				expected := tc.want[i]
+				if expected != actual {
+					t.Errorf("%d: want %v, got %v", i, expected, actual)
+				}
+			}
+			if len(tc.final) != len(os.Args) {
+				t.Errorf("len(want: %d, os.Args %d", len(tc.final), len(os.Args))
+			}
+			for i, actual := range os.Args {
+				expected := tc.final[i]
+				if expected != actual {
+					t.Errorf("%d: want %v, os.Args %v", i, expected, actual)
+				}
+			}
+		})
+	}
 }

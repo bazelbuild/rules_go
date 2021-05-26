@@ -113,27 +113,10 @@ func TestMain(m *testing.M, args Args) {
 		os.Exit(code)
 	}()
 
-	var files []string
-	beginFiles, endFiles := -1, -1
-	for i, arg := range os.Args {
-		if arg == "-begin_files" {
-			beginFiles = i
-		} else if arg == "-end_files" {
-			endFiles = i
-			break
-		} else if arg == "--" {
-			break
-		}
-	}
-	if beginFiles >= 0 && endFiles < 0 ||
-		beginFiles < 0 && endFiles >= 0 ||
-		beginFiles >= 0 && beginFiles >= endFiles {
-		fmt.Fprintf(os.Stderr, "error: -begin_files, -end_files not set together or in order\n")
+	files, err := bazel.SpliceDelimitedOSArgs("-begin_files", "-end_files")
+	if err != nil {
+		fmt.Fprint(os.Stderr, err)
 		return
-	}
-	if beginFiles >= 0 {
-		files = os.Args[beginFiles+1 : endFiles-1]
-		os.Args = append(os.Args[:beginFiles:beginFiles], os.Args[endFiles+1:]...)
 	}
 
 	flag.Parse()

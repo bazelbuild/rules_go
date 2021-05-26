@@ -16,6 +16,7 @@
 package bazel
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 )
@@ -36,4 +37,37 @@ func TestTmpDir() string {
 		return tmp
 	}
 	return os.TempDir()
+}
+
+// SpliceDelimitedOSArgs is a utility function that scans the os.Args list for
+// entries delimited by the begin and end delimiters (typically the values
+// "-begin_files" and "-end_files" are used). Entries between these delimiters
+// are spliced out of from os.Args and returned to the caller.  If the ordering
+// of -begin_files or -end_files is malformed, error is returned.
+func SpliceDelimitedOSArgs(begin, end string) ([]string, error) {
+	var files []string
+	beginFiles, endFiles := -1, -1
+	for i, arg := range os.Args {
+		if arg == begin {
+			beginFiles = i
+		} else if arg == end {
+			endFiles = i
+			break
+		} else if arg == "--" {
+			break
+		}
+	}
+
+	if beginFiles >= 0 && endFiles < 0 ||
+		beginFiles < 0 && endFiles >= 0 ||
+		beginFiles >= 0 && beginFiles >= endFiles {
+		return nil, fmt.Errorf("error: %s, %s not set together or in order", begin, end)
+	}
+
+	if beginFiles >= 0 {
+		files = os.Args[beginFiles+1 : endFiles]
+		os.Args = append(os.Args[:beginFiles:beginFiles], os.Args[endFiles+1:]...)
+	}
+
+	return files, nil
 }
