@@ -292,13 +292,19 @@ func TestSpliceDelimitedOSArgs(t *testing.T) {
 			nil,
 		},
 		"preserves outer args": {
-			[]string{"a", "-begin_files", "b", "-end_files", "c"},
-			[]string{"b"},
-			[]string{"a", "c"},
+			[]string{"a", "-begin_files", "b", "c", "-end_files", "d"},
+			[]string{"b", "c"},
+			[]string{"a", "d"},
 			nil,
 		},
-		"complains about missing delimiter": {
+		"complains about missing end delimiter": {
 			[]string{"-begin_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"complains about missing begin delimiter": {
+			[]string{"-end_files"},
 			[]string{},
 			[]string{},
 			errors.New("error: -begin_files, -end_files not set together or in order"),
@@ -308,6 +314,18 @@ func TestSpliceDelimitedOSArgs(t *testing.T) {
 			[]string{},
 			[]string{},
 			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"-- at middle": {
+			[]string{"-begin_files", "a", "b", "--", "-end_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"-- at beginning": {
+			[]string{"--", "-begin_files", "a", "-end_files"},
+			[]string{},
+			[]string{"--", "-begin_files", "a", "-end_files"},
+			nil,
 		},
 	}
 	for name, tc := range testData {
@@ -324,7 +342,7 @@ func TestSpliceDelimitedOSArgs(t *testing.T) {
 				return
 			}
 			if len(tc.want) != len(got) {
-				t.Errorf("len(want: %d, got %d", len(tc.want), len(got))
+				t.Fatalf("len(want: %d, got %d", len(tc.want), len(got))
 			}
 			for i, actual := range got {
 				expected := tc.want[i]
@@ -333,7 +351,7 @@ func TestSpliceDelimitedOSArgs(t *testing.T) {
 				}
 			}
 			if len(tc.final) != len(os.Args) {
-				t.Errorf("len(want: %d, os.Args %d", len(tc.final), len(os.Args))
+				t.Fatalf("len(want: %d, os.Args %d", len(tc.final), len(os.Args))
 			}
 			for i, actual := range os.Args {
 				expected := tc.final[i]
