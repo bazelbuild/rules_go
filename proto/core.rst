@@ -398,6 +398,10 @@ Attributes
 | List of command line options to be passed to the compiler. Each option will                              |
 | be preceded by ``--option``.                                                                             |
 +-----------------------------+----------------------+-----------------------------------------------------+
+| :param:`data`               | :type:`label_list`   | :value:`[]`                                         |
++-----------------------------+----------------------+-----------------------------------------------------+
+| List of files that will be available to the compiler at runtime.                                         |
++-----------------------------+----------------------+-----------------------------------------------------+
 | :param:`suffix`             | :type:`string`       | :value:`.pb.go`                                     |
 +-----------------------------+----------------------+-----------------------------------------------------+
 | File name suffix of generated Go files. ``go_proto_compiler`` assumes that                               |

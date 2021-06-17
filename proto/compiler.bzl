@@ -118,7 +118,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
             direct = [
                 compiler.internal.go_protoc,
                 compiler.internal.protoc,
-            ],
+            ] + compiler.internal.data,
             transitive = [transitive_descriptor_sets],
         ),
         outputs = go_srcs,
@@ -172,6 +172,7 @@ def _go_proto_compiler_impl(ctx):
             compile = go_proto_compile,
             valid_archive = ctx.attr.valid_archive,
             internal = struct(
+                data = ctx.files.data,
                 options = ctx.attr.options,
                 suffix = ctx.attr.suffix,
                 protoc = ctx.executable._protoc,
@@ -187,6 +188,7 @@ def _go_proto_compiler_impl(ctx):
 _go_proto_compiler = rule(
     implementation = _go_proto_compiler_impl,
     attrs = {
+        "data": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),

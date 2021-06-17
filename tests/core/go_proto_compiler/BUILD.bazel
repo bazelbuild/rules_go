@@ -47,3 +47,45 @@ go_test(
         ":foo_go_proto",
     ],
 )
+
+go_library(
+    name = "data_lib",
+    srcs = ["data_plugin.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_compiler/data",
+    deps = [
+        "//go/tools/bazel",
+        "@org_golang_google_protobuf//compiler/protogen",
+    ],
+)
+
+go_binary(
+    name = "protoc-gen-data",
+    data = ["data.conf"],
+    embed = [":data_lib"],
+)
+
+go_proto_compiler(
+    name = "data",
+    data = ["data.conf"],
+    options = ["config=tests/core/go_proto_compiler/data.conf"],
+    plugin = ":protoc-gen-data",
+    suffix = ".data.pb.go",
+)
+
+go_proto_library(
+    name = "foo_go_proto_with_data",
+    compilers = [
+        "@io_bazel_rules_go//proto:go_proto",
+        ":data",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_proto_compiler/foo",
+    proto = ":foo_proto",
+)
+
+go_test(
+    name = "data_test",
+    srcs = ["data_test.go"],
+    deps = [
+        ":foo_go_proto_with_data",
+    ],
+)
