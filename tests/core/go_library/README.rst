@@ -37,3 +37,14 @@ import_alias_test
 Checks that a library may import another library using one of the strings
 listed in ``importpath_aliases``. This is the basic mechanism for minimal
 module compatibility. Verifies `#2058`_.
+
+embedsrcs_test
+--------------
+
+Checks that `go_library`_ can match ``//go:embed`` directives to files listed
+in the ``embedsrcs`` attribute and can pass those files to the compiler.
+
+embedsrcs_error_test
+--------------------
+
+Verifies common errors with ``//go:embed`` directives are correctly reported.

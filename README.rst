@@ -30,6 +30,8 @@ Go rules for Bazel_
 .. _nogo build-time static analysis: go/nogo.rst
 .. _nogo: go/nogo.rst
 .. _rules_go and Gazelle roadmap: https://github.com/bazelbuild/rules_go/wiki/Roadmap
+.. _#bazel on Go Slack: https://gophers.slack.com/archives/C1SCQE54N
+.. _#go on Bazel Slack: https://bazelbuild.slack.com/archives/CDBP88Z0D
 
 .. Go rules
 .. _go_binary: go/core.rst#go_binary
@@ -60,30 +62,39 @@ Go rules for Bazel_
 .. _#721: https://github.com/bazelbuild/rules_go/issues/721
 .. _#889: https://github.com/bazelbuild/rules_go/issues/889
 .. _#1199: https://github.com/bazelbuild/rules_go/issues/1199
+.. _#2775: https://github.com/bazelbuild/rules_go/issues/2775
 
 
 Mailing list: `bazel-go-discuss`_
 
-Slack: #bazel on `Gopher Slack`_
+Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 
 Announcements
 -------------
 
-2020-11-12
-  Releases
-  `v0.24.7 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.7>`_ and
-  `v0.23.15 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.15>`_ are
-  now available with support for Go 1.15.5 and 1.14.12.
-2020-11-09
-  Releases
-  `v0.24.6 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.6>`_ and
-  `v0.23.14 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.14>`_ are
-  are now available with support for Go 1.15.4 and 1.14.11.
-2020-10-26
-  Releases
-  `v0.24.5 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.5>`_ and
-  `v0.23.13 <https://github.com/bazelbuild/rules_go/releases/tag/v0.23.13>`_ are
-  are now available with bug fixes.
+2021-03-18
+  Release
+  `v0.27.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.27.0>`_
+  is now available. This updates ``org_golang_x_tools`` and adds
+  ``org_golang_x_sys``. This should have been done in ``v0.26.0``. Additionally,
+  `v0.24.14 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.14>`_
+  is now available with support for Go 1.16.2, 1.16.1, 1.15.10, and 1.15.9.
+  This will be the last release on the 0.24 branch. 0.27 and 0.25 are now
+  the two supported branches.
+2021-03-08
+  Release
+  `v0.26.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.26.0>`_
+  is now available. This provides support for the new ``//go:embed`` attribute,
+  plus several other improvements. Gazelle
+  `v0.23.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.23.0>`_
+  is also available with support for ``embedsrcs`` attributes (needed for
+  ``//go:embed``) and a few other improvements.
+2021-02-16
+  Release
+  `v0.24.13 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.13>`_
+  is now available with support for Go 1.16. v0.25.x does not require an update
+  to support this version. Note that the new ``//go:embed`` directive is
+  not quite supported yet (`#2775`_), but it will be in the next minor release.
 
 Contents
 --------
@@ -168,7 +179,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: The latest version of these rules (v0.24.7) requires Bazel ≥ 2.2.0 to work.
+Note: The latest version of these rules (v0.27.0) requires Bazel ≥ 3.5.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -205,10 +216,10 @@ Go toolchain and register it for use.
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "207fad3e6689135c5d8713e5a17ba9d1290238f47b9ba545b63d9303406209c6",
+        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
         ],
     )
 
@@ -216,7 +227,7 @@ Go toolchain and register it for use.
 
     go_rules_dependencies()
 
-    go_register_toolchains()
+    go_register_toolchains(version = "1.16")
 
 You can use rules_go at ``master`` by using `git_repository`_ instead of
 `http_archive`_ and pointing to a recent commit.
@@ -252,19 +263,19 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "207fad3e6689135c5d8713e5a17ba9d1290238f47b9ba545b63d9303406209c6",
+        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
         ],
     )
 
     http_archive(
         name = "bazel_gazelle",
-        sha256 = "b85f48fa105c4403326e9525ad2b2cc437babaa6e15a3fc0b1dbab0ab064bc7c",
+        sha256 = "62ca106be173579c0a167deb23358fdfe71ffa1e4cfdddf5582af26520f1c66f",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.2/bazel-gazelle-v0.22.2.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.2/bazel-gazelle-v0.22.2.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
         ],
     )
 
@@ -273,7 +284,7 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     go_rules_dependencies()
 
-    go_register_toolchains()
+    go_register_toolchains(version = "1.16")
 
     gazelle_dependencies()
 
@@ -298,7 +309,7 @@ below:
 
 This will generate a ``BUILD.bazel`` file with `go_library`_, `go_binary`_, and
 `go_test`_ targets for each package in your project. You can run the same
-command in the future to update exisitng build files with new source files,
+command in the future to update existing build files with new source files,
 dependencies, and options.
 
 Writing build files by hand
@@ -323,15 +334,15 @@ with the ``importpath`` attribute.
 .. code:: bzl
 
     go_library(
-        name = "go_default_library",
+        name = "foo_library",
         srcs = [
             "a.go",
             "b.go",
         ],
         importpath = "github.com/example/project/foo",
         deps = [
-            "//tools:go_default_library",
-            "@org_golang_x_utils//stuff:go_default_library",
+            "//tools",
+            "@org_golang_x_utils//stuff",
         ],
         visibility = ["//visibility:public"],
     )
@@ -342,15 +353,15 @@ should be listed in an ``embed`` attribute.
 .. code:: bzl
 
     go_test(
-        name = "go_default_test",
+        name = "foo_test",
         srcs = [
             "a_test.go",
             "b_test.go",
         ],
-        embed = [":go_default_library"],
+        embed = [":foo_lib"],
         deps = [
-            "//testtools:go_default_library",
-            "@org_golang_x_utils//morestuff:go_default_library",
+            "//testtools",
+            "@org_golang_x_utils//morestuff",
         ],
     )
 
@@ -378,20 +389,20 @@ automatically from a go.mod or Gopkg.lock file.
     # Download the Go rules.
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "207fad3e6689135c5d8713e5a17ba9d1290238f47b9ba545b63d9303406209c6",
+        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.24.7/rules_go-v0.24.7.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
         ],
     )
 
     # Download Gazelle.
     http_archive(
         name = "bazel_gazelle",
-        sha256 = "b85f48fa105c4403326e9525ad2b2cc437babaa6e15a3fc0b1dbab0ab064bc7c",
+        sha256 = "62ca106be173579c0a167deb23358fdfe71ffa1e4cfdddf5582af26520f1c66f",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.2/bazel-gazelle-v0.22.2.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.2/bazel-gazelle-v0.22.2.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.23.0/bazel-gazelle-v0.23.0.tar.gz",
         ],
     )
 
@@ -410,7 +421,7 @@ automatically from a go.mod or Gopkg.lock file.
     # Declare indirect dependencies and register toolchains.
     go_rules_dependencies()
 
-    go_register_toolchains()
+    go_register_toolchains(version = "1.16")
 
     gazelle_dependencies()
 
@@ -588,17 +599,17 @@ dependencies with ``select`` expressions (Gazelle does this automatically).
 .. code:: bzl
 
   go_library(
-      name = "go_default_library",
+      name = "foo",
       srcs = [
           "foo_linux.go",
           "foo_windows.go",
       ],
       deps = select({
           "@io_bazel_rules_go//go/platform:linux_amd64": [
-              "//bar_linux:go_default_library",
+              "//bar_linux",
           ],
           "@io_bazel_rules_go//go/platform:windows_amd64": [
-              "//bar_windows:go_default_library",
+              "//bar_windows",
           ],
           "//conditions:default": [],
       }),
@@ -621,7 +632,7 @@ For example, if you want to include everything in the ``testdata`` directory:
 .. code:: bzl
 
   go_test(
-      name = "go_default_test",
+      name = "foo_test",
       srcs = ["foo_test.go"],
       data = glob(["testdata/**"]),
       importpath = "github.com/example/project/foo",
@@ -771,29 +782,14 @@ it takes a very long time to transfer. Clean builds seem faster in practice.
 How do I test a beta version of the Go SDK?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-rules_go only supports official releases of the Go SDK. However, we do have
-an easy way for developers to try out beta releases.
-
-In your WORKSPACE file, add a call `go_download_sdk`_ like the one below. This
-must be named ``go_sdk``, and it must come *before* the call to
-`go_register_toolchains`_.
+rules_go only supports official releases of the Go SDK. However, you can still
+test beta and RC versions by passing a ``version`` like ``"1.16beta1"`` to
+`go_register_toolchains`_. See also `go_download_sdk`_.
 
 .. code:: bzl
 
-  load("@io_bazel_rules_go//go:deps.bzl",
-      "go_download_sdk",
-      "go_register_toolchains",
-      "go_rules_dependencies",
-  )
+  load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
   go_rules_dependencies()
 
-  go_download_sdk(
-      name = "go_sdk",
-      sdks = {
-          "darwin_amd64": ("go1.10beta1.darwin-amd64.tar.gz", "8c2a4743359f4b14bcfaf27f12567e3cbfafc809ed5825a2238c0ba45db3a8b4"),
-          "linux_amd64":  ("go1.10beta1.linux-amd64.tar.gz", "ec7a10b5bf147a8e06cf64e27384ff3c6d065c74ebd8fdd31f572714f74a1055"),
-      },
-  )
-
-  go_register_toolchains()
+  go_register_toolchains(version = "1.16beta1")

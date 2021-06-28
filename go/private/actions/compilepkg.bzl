@@ -34,6 +34,7 @@ def emit_compilepkg(
         go,
         sources = None,
         cover = None,
+        embedsrcs = [],
         importpath = "",
         importmap = "",
         archives = [],
@@ -56,7 +57,7 @@ def emit_compilepkg(
     if out_lib == None:
         fail("out_lib is a required parameter")
 
-    inputs = (sources + [go.package_list] +
+    inputs = (sources + embedsrcs + [go.package_list] +
               [archive.data.export_file for archive in archives] +
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
     outputs = [out_lib, out_export]
@@ -64,6 +65,7 @@ def emit_compilepkg(
 
     args = go.builder_args(go, "compilepkg")
     args.add_all(sources, before_each = "-src")
+    args.add_all(embedsrcs, before_each = "-embedsrc", expand_directories = False)
     if cover and go.coverdata:
         inputs.append(go.coverdata.data.export_file)
         args.add("-arc", _archive(go.coverdata))
@@ -90,10 +92,7 @@ def emit_compilepkg(
     if testfilter:
         args.add("-testfilter", testfilter)
 
-    gc_flags = [
-        go._ctx.expand_make_variables("gc_goopts", f, {})
-        for f in gc_goopts
-    ]
+    gc_flags = list(gc_goopts)
     asm_flags = []
     if go.mode.race:
         gc_flags.append("-race")

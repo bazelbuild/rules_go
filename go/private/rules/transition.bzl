@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "//go/private:mode.bzl",
     "LINKMODES",
     "LINKMODE_NORMAL",
@@ -227,16 +231,33 @@ def _go_reset_target_impl(ctx):
     providers = [t[p] for p in [GoLibrary, GoSource, GoArchive]]
 
     # We can't pass DefaultInfo through as-is, since Bazel forbids executable
-    # if it's a file declared in a different target. The caller must assume
-    # that the first file is executable.
+    # if it's a file declared in a different target. To emulate that, symlink
+    # to the original executable, if there is one.
     default_info = t[DefaultInfo]
-    default_info = DefaultInfo(
-        files = default_info.files,
-        data_runfiles = default_info.data_runfiles,
-        default_runfiles = default_info.default_runfiles,
-        executable = None,
+
+    new_executable = None
+    original_executable = default_info.files_to_run.executable
+    default_runfiles = default_info.default_runfiles
+    if original_executable:
+        # In order for the symlink to have the same basename as the original
+        # executable (important in the case of proto plugins), put it in a
+        # subdirectory named after the label to prevent collisions.
+        new_executable = ctx.actions.declare_file(paths.join(ctx.label.name, original_executable.basename))
+        ctx.actions.symlink(
+            output = new_executable,
+            target_file = original_executable,
+            is_executable = True,
+        )
+        default_runfiles = default_runfiles.merge(ctx.runfiles([new_executable]))
+
+    providers.append(
+        DefaultInfo(
+            files = default_info.files,
+            data_runfiles = default_info.data_runfiles,
+            default_runfiles = default_runfiles,
+            executable = new_executable,
+        ),
     )
-    providers.append(default_info)
     return providers
 
 go_reset_target = rule(

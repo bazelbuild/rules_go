@@ -154,7 +154,7 @@ func copyPath(out string, manifest []manifestEntry) error {
 		return err
 	}
 	for _, entry := range manifest {
-		dst := filepath.Join(out, filepath.FromSlash(entry.Dst))
+		dst := abs(filepath.Join(out, filepath.FromSlash(entry.Dst)))
 		if err := os.MkdirAll(filepath.Dir(dst), 0777); err != nil {
 			return err
 		}

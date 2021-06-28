@@ -7,6 +7,7 @@ go_test(
     srcs = [
         "filter.go",
         "filter_test.go",
+        "read.go",
     ],
 )
 
@@ -20,6 +21,7 @@ filegroup(
         "compile.go",
         "compilepkg.go",
         "cover.go",
+        "embedcfg.go",
         "env.go",
         "filter.go",
         "filter_buildid.go",
@@ -30,6 +32,7 @@ filegroup(
         "importcfg.go",
         "link.go",
         "pack.go",
+        "read.go",
         "replicate.go",
         "stdlib.go",
     ] + select({
@@ -68,12 +71,18 @@ go_source(
 )
 
 go_binary(
-    name = "go_path",
+    name = "go_path-bin",
     srcs = [
         "env.go",
         "flags.go",
         "go_path.go",
     ],
+    visibility = ["//visibility:public"],
+)
+
+go_reset_target(
+    name = "go_path",
+    dep = ":go_path-bin",
     visibility = ["//visibility:public"],
 )
 

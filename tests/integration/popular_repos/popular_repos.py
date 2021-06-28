@@ -20,25 +20,27 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        urls = "https://codeload.github.com/golang/crypto/zip/de0752318171da717af4ce24d0a2e8626afaeb11",
-        strip_prefix = "crypto-de0752318171da717af4ce24d0a2e8626afaeb11",
+        urls = "https://codeload.github.com/golang/crypto/zip/5ea612d1eb830b38bc4e914e37f55311eb58adce",
+        strip_prefix = "crypto-5ea612d1eb830b38bc4e914e37f55311eb58adce",
         type = "zip",
         excludes = [
+            "internal/wycheproof:wycheproof_test", # Needs GOROOT
             "ssh/agent:agent_test",
-            "ssh:ssh_test",
             "ssh/test:test_test",
+            "ssh:ssh_test",
         ],
     ),
 
     dict(
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
-        commit = "57efc9c3d9f91fb3277f8da1cff370539c4d3dc5",
+        commit = "e18ecbb051101a46fc263334b127c89bc7bff7ea",
         excludes = [
             "bpf:bpf_test", # Needs testdata directory
             "html/charset:charset_test", # Needs testdata directory
             "http2:http2_test", # Needs testdata directory
             "icmp:icmp_test", # icmp requires adjusting kernel options.
+            "internal/socket:socket_test", # Needs GOROOT.
             "nettest:nettest_test", #
             "lif:lif_test",
         ],
@@ -50,28 +52,35 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_sys",
         importpath = "golang.org/x/sys",
-        commit = "acbc56fc7007d2a01796d5bde54f39e3b3e95945",
+        commit = "390168757d9c647283340d526204e3409d5903f3",
+        excludes = [
+            "unix:unix_test", # TestOpenByHandleAt reads source file.
+        ],
     ),
 
     dict(
         name = "org_golang_x_text",
         importpath = "golang.org/x/text",
-        commit = "a9a820217f98f7c8a207ec1e45a874e1fe12c478",
+        commit = "e3aa4adf54f644ca0cb35f1f1fb19b239c40ef04",
         excludes = [
+            "encoding/charmap:charmap_test", # Needs testdata directory
             "encoding/japanese:japanese_test", # Needs testdata directory
             "encoding/korean:korean_test", # Needs testdata directory
-            "encoding/charmap:charmap_test", # Needs testdata directory
             "encoding/simplifiedchinese:simplifiedchinese_test", # Needs testdata directory
             "encoding/traditionalchinese:traditionalchinese_test", # Needs testdata directory
             "encoding/unicode/utf32:utf32_test", # Needs testdata directory
             "encoding/unicode:unicode_test", # Needs testdata directory
+            "internal/cldrtree:cldrtree_test", # Needs testdata directory
+            "internal/gen/bitfield:bitfield_test", # Needs runfiles
+            "message/pipeline/testdata/test1:test1_test", # Not a real test
+            "message/pipeline:pipeline_test", # Needs testdata directory
         ],
     ),
 
     dict(
         name = "org_golang_x_tools",
         importpath = "golang.org/x/tools",
-        commit = "11eff242d136374289f76e9313c76e9312391172",
+        commit = "fe37c9e135b934191089b245ac29325091462508",
         excludes = [
             "blog:blog_test", # Needs goldmark
             "cmd/bundle:bundle_test", # Needs testdata directory
@@ -85,6 +94,7 @@ POPULAR_REPOS = [
             "cmd/guru:guru_test", # Needs testdata directory
             "cmd/stringer:stringer_test", # Needs testdata directory
             "container/intsets:intsets_test", # TODO(#413): External test depends on symbols defined in internal test.
+            "copyright:copyright_test", # # requires runfiles
             "go/analysis/analysistest:analysistest_test", # requires build cache
             "go/analysis/internal/checker:checker_test", # loads test package with go/packages, which probably needs go list
             "go/analysis/internal/facts:facts_test", # loads test package with go/packages, which probably needs go list
@@ -102,7 +112,9 @@ POPULAR_REPOS = [
             "go/analysis/passes/ctrlflow:ctrlflow_test", # Needs testdata directory
             "go/analysis/passes/deepequalerrors:deepequalerrors_test", # requires go list
             "go/analysis/passes/errorsas:errorsas_test", # requires go list and testdata
+            "go/analysis/passes/fieldalignment:fieldalignment_test", # Needs GOROOT
             "go/analysis/passes/findcall:findcall_test", # requires build cache
+            "go/analysis/passes/framepointer:framepointer_test", # Needs GOROOT
             "go/analysis/passes/httpresponse:httpresponse_test", # Needs testdata directory
             "go/analysis/passes/ifaceassert:ifaceassert_test", # Needs GOROOT
             "go/analysis/passes/loopclosure:loopclosure_test", # Needs testdata directory
@@ -170,19 +182,20 @@ POPULAR_REPOS = [
             "internal/lsp/fuzzy:fuzzy_test", # has additional deps
             "internal/lsp/lsprpc:lsprpc_test", # has additional deps
             "internal/lsp/mod:mod_test", # has additional deps
-            "internal/lsp/regtest:regtest_test", # has additional deps
             "internal/lsp/snippet:snippet_test", # has additional deps
             "internal/lsp/source:source_test", # Needs testdata directory
-            "internal/lsp/testdata/lsp/primarymod/analyzer:analyzer_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/codelens:codelens_test", # Is testdata
-            "internal/lsp/testdata/lsp/primarymod/godef/a:a_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/implementation/other:other_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/references:references_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/rename/testy:testy_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/signature:signature_test", # Is testdata
-            "internal/lsp/testdata/lsp/primarymod/testy:testy_test", # not a real test
-            "internal/lsp/testdata/lsp/primarymod/unimported:unimported_test", # not a real test
             "internal/lsp:lsp_test", # Needs testdata directory
+            "internal/lsp/testdata/analyzer:analyzer_test", # is testdata
+            "internal/lsp/testdata/codelens:codelens_test", # is testdata
+            "internal/lsp/testdata/godef/a:a_test", # is testdata
+            "internal/lsp/testdata/implementation/other:other_test", # is testdata
+            "internal/lsp/testdata/references:references_test", # is testdata
+            "internal/lsp/testdata/rename/testy:testy_test", # is testdata
+            "internal/lsp/testdata/semantic:semantic_test", # is testdata
+            "internal/lsp/testdata/signature:signature_test", # is testdata
+            "internal/lsp/testdata/testy:testy_test", # is testdata
+            "internal/lsp/testdata/unimported:unimported_test", # is testdata
+            "internal/lsp/testdata/workspacesymbol/a:a_test", # is testdata
             "present:present_test", # Needs goldmark
             "refactor/eg:eg_test", # Needs testdata directory
             "refactor/importgraph:importgraph_test", # TODO(#417)
@@ -199,13 +212,13 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_sync",
         importpath = "golang.org/x/sync",
-        commit = "112230192c580c3556b8cee6403af37a4fc5f28c",
+        commit = "036812b2e83c0ddf193dd5a34e034151da389d09",
     ),
 
     dict(
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
-        commit = "c0d644d00ab849f4506f17a98a5740bf0feff020",
+        commit = "c8bb1bd8a2aaa5c50fa106c8116850d503792d16",
         excludes = [
             "sumdb/tlog:tlog_test", # Needs network, not available on RBE
             "zip:zip_test", # Needs vcs tools, not available on RBE

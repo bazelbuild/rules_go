@@ -13,6 +13,11 @@
 # limitations under the License.
 
 load(
+    "//go/private:mode.bzl",
+    "LINKMODE_C_ARCHIVE",
+    "LINKMODE_C_SHARED",
+)
+load(
     "//go/private/rules:library.bzl",
     "go_library",
 )
@@ -25,10 +30,6 @@ load(
     "//go/private/rules:test.bzl",
     "go_test",
     "go_transition_test",
-)
-load(
-    "//go/private/rules:cgo.bzl",
-    "go_binary_c_archive_shared",
 )
 load(
     "//go/private/rules:transition.bzl",
@@ -48,7 +49,15 @@ def go_binary_macro(name, **kwargs):
     """See go/core.rst#go_binary for full documentation."""
     _cgo(name, kwargs)
     go_transition_wrapper(go_binary, go_transition_binary, name = name, **kwargs)
-    go_binary_c_archive_shared(name, kwargs)
+    if kwargs.get("linkmode") in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
+        # Create an alias to tell users of the `.cc` rule that it is deprecated.
+        native.alias(
+            name = "{}.cc".format(name),
+            actual = name,
+            visibility = ["//visibility:public"],
+            tags = ["manual"],
+            deprecation = "This target is deprecated and will be removed in the near future. Please depend on ':{}' directly.".format(name),
+        )
 
 def go_test_macro(name, **kwargs):
     """See go/core.rst#go_test for full documentation."""

@@ -1,4 +1,6 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("//go:def.bzl", "go_binary", "go_library", "go_test")
+load("//go/tools/bazel_testing:def.bzl", "go_bazel_test")
+load(":def.bzl", "embedsrcs_files")
 
 go_library(
     name = "empty",
@@ -94,4 +96,47 @@ go_library(
     name = "import_alias_b_v2",
     importpath = "import_alias/b/v2",
     importpath_aliases = ["import_alias/b"],
+)
+
+go_test(
+    name = "embedsrcs_test",
+    srcs = [
+        "embedsrcs_gen_test.go",
+        "embedsrcs_test.go",
+    ],
+    embedsrcs = [
+        ":embedsrcs_dynamic",
+        "embedsrcs_test.go",
+    ] + glob(["embedsrcs_static/**"]),
+)
+
+genrule(
+    name = "embedsrcs_gen",
+    srcs = ["embedsrcs_gen_test.go.in"],
+    outs = ["embedsrcs_gen_test.go"],
+    cmd = "cp $< $@",
+)
+
+embedsrcs_files(
+    name = "embedsrcs_dynamic",
+    files = [
+        "dir/_no",
+        "dir/f",
+        "empty/",
+        "file",
+        "glob/_hidden",
+        "glob/f",
+        "no",
+    ],
+)
+
+go_binary(
+    name = "gen_embedsrcs_files",
+    srcs = ["gen_embedsrcs_files.go"],
+)
+
+go_bazel_test(
+    name = "embedsrcs_error_test",
+    size = "medium",
+    srcs = ["embedsrcs_error_test.go"],
 )

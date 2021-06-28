@@ -14,6 +14,7 @@
 package bazel
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -218,5 +219,146 @@ func TestEnterRunfiles(t *testing.T) {
 			t.Errorf("failed to get current working directory: %v", err)
 		}
 		t.Errorf("data-file not found in current directory (%s); entered invalid runfiles tree?", wd)
+	}
+}
+
+func TestPythonManifest(t *testing.T) {
+	cleanup, err := makeAndEnterTempdir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+
+	err = ioutil.WriteFile("MANIFEST",
+		// all on one line to make sure the whitespace stays exactly as in the source file
+		[]byte("__init__.py \n__main__/external/__init__.py \n__main__/external/rules_python/__init__.py \n__main__/external/rules_python/python/__init__.py \n__main__/external/rules_python/python/runfiles/__init__.py \n__main__/external/rules_python/python/runfiles/runfiles.py C:/users/sam/_bazel_sam/pj4cl7d4/external/rules_python/python/runfiles/runfiles.py\n__main__/go_cat_/go_cat.exe C:/users/sam/_bazel_sam/pj4cl7d4/execroot/__main__/bazel-out/x64_windows-opt-exec-2B5CBBC6/bin/go_cat_/go_cat.exe\n__main__/important.txt C:/users/sam/dev/rules_go_runfiles_repro/important.txt\n__main__/parent.exe C:/users/sam/_bazel_sam/pj4cl7d4/execroot/__main__/bazel-out/x64_windows-opt-exec-2B5CBBC6/bin/parent.exe\n__main__/parent.py C:/users/sam/dev/rules_go_runfiles_repro/parent.py\n__main__/parent.zip C:/users/sam/_bazel_sam/pj4cl7d4/execroot/__main__/bazel-out/x64_windows-opt-exec-2B5CBBC6/bin/parent.zip\nrules_python/__init__.py \nrules_python/python/__init__.py \nrules_python/python/runfiles/__init__.py \nrules_python/python/runfiles/runfiles.py C:/users/sam/_bazel_sam/pj4cl7d4/external/rules_python/python/runfiles/runfiles.py"),
+		os.FileMode(0644),
+	)
+	if err != nil {
+		t.Fatalf("Failed to write sample manifest: %v", err)
+	}
+
+	originalEnvVar := os.Getenv(RUNFILES_MANIFEST_FILE)
+	defer func() {
+		if err = os.Setenv(RUNFILES_MANIFEST_FILE, originalEnvVar); err != nil {
+			t.Fatalf("Failed to reset environment: %v", err)
+		}
+	}()
+
+	if err = os.Setenv(RUNFILES_MANIFEST_FILE, "MANIFEST"); err != nil {
+		t.Fatalf("Failed to set manifest file environement variable: %v", err)
+	}
+
+	initRunfiles()
+
+	if runfiles.err != nil {
+		t.Errorf("failed to init runfiles: %v", runfiles.err)
+	}
+
+	entry, ok := runfiles.index["important.txt"]
+	if !ok {
+		t.Errorf("failed to locate runfile %s in index", "important.txt")
+	}
+
+	if entry.Workspace != "__main__" {
+		t.Errorf("incorrect workspace for runfile. Expected: %s, actual %s", "__main__", entry.Workspace)
+	}
+
+}
+
+func TestSpliceDelimitedOSArgs(t *testing.T) {
+	testData := map[string]struct {
+		initial []string
+		want    []string
+		final   []string
+		wantErr error
+	}{
+		"no args": {
+			[]string{},
+			[]string{},
+			[]string{},
+			nil,
+		},
+		"empty splice": {
+			[]string{"-begin_files", "-end_files"},
+			[]string{},
+			[]string{},
+			nil,
+		},
+		"removes inner args": {
+			[]string{"-begin_files", "a", "-end_files"},
+			[]string{"a"},
+			[]string{},
+			nil,
+		},
+		"preserves outer args": {
+			[]string{"a", "-begin_files", "b", "c", "-end_files", "d"},
+			[]string{"b", "c"},
+			[]string{"a", "d"},
+			nil,
+		},
+		"complains about missing end delimiter": {
+			[]string{"-begin_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"complains about missing begin delimiter": {
+			[]string{"-end_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"complains about out-of-order delimiter": {
+			[]string{"-end_files", "-begin_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"-- at middle": {
+			[]string{"-begin_files", "a", "b", "--", "-end_files"},
+			[]string{},
+			[]string{},
+			errors.New("error: -begin_files, -end_files not set together or in order"),
+		},
+		"-- at beginning": {
+			[]string{"--", "-begin_files", "a", "-end_files"},
+			[]string{},
+			[]string{"--", "-begin_files", "a", "-end_files"},
+			nil,
+		},
+	}
+	for name, tc := range testData {
+		t.Run(name, func(t *testing.T) {
+			os.Args = tc.initial
+			got, err := SpliceDelimitedOSArgs("-begin_files", "-end_files")
+			if err != nil {
+				if tc.wantErr == nil {
+					t.Fatalf("unexpected err: %v", err)
+				}
+				if tc.wantErr.Error() != err.Error() {
+					t.Fatalf("err: want %v, got %v", tc.wantErr, err)
+				}
+				return
+			}
+			if len(tc.want) != len(got) {
+				t.Fatalf("len(want: %d, got %d", len(tc.want), len(got))
+			}
+			for i, actual := range got {
+				expected := tc.want[i]
+				if expected != actual {
+					t.Errorf("%d: want %v, got %v", i, expected, actual)
+				}
+			}
+			if len(tc.final) != len(os.Args) {
+				t.Fatalf("len(want: %d, os.Args %d", len(tc.final), len(os.Args))
+			}
+			for i, actual := range os.Args {
+				expected := tc.final[i]
+				if expected != actual {
+					t.Errorf("%d: want %v, os.Args %v", i, expected, actual)
+				}
+			}
+		})
 	}
 }

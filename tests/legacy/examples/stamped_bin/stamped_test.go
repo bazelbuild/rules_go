@@ -42,6 +42,7 @@ go_test(
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.BUILD_TIMESTAMP": "{BUILD_TIMESTAMP}",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.PassIfEmpty": "",
         "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.XdefInvalid": "{Undefined_Var}",  # undefined should leave the var alone
+        "github.com/bazelbuild/rules_go/examples/stamped_bin/stamp.Multiple": "{BUILD_TIMESTAMP}{BUILD_TIMESTAMP}",
     },
     deps = [":stamp"],
 )
@@ -59,6 +60,9 @@ var XdefBuildTimestamp = ""
 
 // an xdef with a missing key should leave this alone
 var XdefInvalid = "pass"
+
+// an xdef with multiple keys
+var Multiple = "fail"
 
 -- stamped_bin_test.go --
 package stamped_bin_test
@@ -84,6 +88,9 @@ func TestStampedBin(t *testing.T) {
 	}
 	if stamp.XdefInvalid != "pass" {
 		t.Errorf("Expected XdefInvalid to have been left alone, got %s.", stamp.XdefInvalid)
+	}
+	if stamp.Multiple != stamp.BUILD_TIMESTAMP + stamp.BUILD_TIMESTAMP {
+		t.Errorf("Expected Multiple to have two BUILD_TIMESTAMP, got %s.", stamp.Multiple)
 	}
 }
 

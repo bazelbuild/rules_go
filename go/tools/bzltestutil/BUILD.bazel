@@ -1,0 +1,36 @@
+load("//go:def.bzl", "go_test", "go_tool_library")
+
+go_tool_library(
+    name = "bzltestutil",
+    srcs = [
+        "init.go",
+        "test2json.go",
+        "wrap.go",
+        "xml.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/bzltestutil",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "bzltestutil_test",
+    srcs = [
+        "init.go",
+        "test2json.go",
+        "wrap.go",
+        "wrap_test.go",
+        "xml.go",
+        "xml_test.go",
+    ],
+    data = glob(["testdata/**"]),
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(
+        ["**"],
+        exclude = ["testdata/*"],
+    ),
+    visibility = ["//visibility:public"],
+)

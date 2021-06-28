@@ -79,6 +79,13 @@ go_library(
 )
 
 go_library(
+    name = "has_errors_linedirective",
+    srcs = ["has_errors_linedirective.go"],
+    importpath = "haserrors_linedirective",
+    deps = [":dep"],
+)
+
+go_library(
     name = "no_errors",
     srcs = ["no_errors.go"],
     importpath = "noerrors",
@@ -290,8 +297,25 @@ import (
 )
 
 func Foo() bool { // This should fail foofuncname
-	dep.D()     // This should fail visibility
-	return true // This should fail boolreturn
+	dep.D() // This should fail visibility
+	return true
+}
+
+-- has_errors_linedirective.go --
+//line linedirective.go:1
+package haserrors_linedirective
+
+import (
+	/*line linedirective_importfmt.go:4*/ _ "fmt" // This should fail importfmt
+
+	"dep"
+)
+
+//line linedirective_foofuncname.go:9
+func Foo() bool { // This should fail foofuncname
+//line linedirective_visibility.go:10
+	dep.D() // This should fail visibility
+	return true
 }
 
 -- no_errors.go --
@@ -327,20 +351,42 @@ func Test(t *testing.T) {
 			target:      "//:has_errors",
 			wantSuccess: false,
 			includes: []string{
-				"has_errors.go:.*package fmt must not be imported",
-				"has_errors.go:.*function must not be named Foo",
-				"has_errors.go:.*function D is not visible in this package",
+				`has_errors.go:.*package fmt must not be imported \(importfmt\)`,
+				`has_errors.go:.*function must not be named Foo \(foofuncname\)`,
+				`has_errors.go:.*function D is not visible in this package \(visibility\)`,
+			},
+		}, {
+			desc:        "default_config_linedirective",
+			target:      "//:has_errors_linedirective",
+			wantSuccess: false,
+			includes: []string{
+				`linedirective_importfmt.go:.*package fmt must not be imported \(importfmt\)`,
+				`linedirective_foofuncname.go:.*function must not be named Foo \(foofuncname\)`,
+				`linedirective_visibility.go:.*function D is not visible in this package \(visibility\)`,
 			},
 		}, {
 			desc:        "custom_config",
+			config:      "config.json",
 			target:      "//:has_errors",
 			wantSuccess: false,
 			includes: []string{
-				"has_errors.go:.*package fmt must not be imported",
-				"has_errors.go:.*function must not be named Foo",
+				`has_errors.go:.*package fmt must not be imported \(importfmt\)`,
+				`has_errors.go:.*function must not be named Foo \(foofuncname\)`,
 			},
 			excludes: []string{
-				"custom/has_errors.go:.*function D is not visible in this package",
+				`visib`,
+			},
+		}, {
+			desc:        "custom_config_linedirective",
+			config:      "config.json",
+			target:      "//:has_errors_linedirective",
+			wantSuccess: false,
+			includes: []string{
+				`linedirective_foofuncname.go:.*function must not be named Foo \(foofuncname\)`,
+				`linedirective_visibility.go:.*function D is not visible in this package \(visibility\)`,
+			},
+			excludes: []string{
+				`importfmt`,
 			},
 		}, {
 			desc:        "no_errors",

@@ -7,10 +7,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "add.s",
+        "add_amd64.s",
+        "add_arm64.s",
         "asm.go",
         "lib.go",
-        "sub.s",
+        "sub_amd64.s",
+        "sub_arm64.s",
     ],
     importpath = "github.com/bazelbuild/rules_go/examples/lib",
     deps = ["//tests/legacy/examples/lib/deep:go_default_library"],

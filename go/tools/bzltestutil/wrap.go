@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package bzltestutil
 
 import (
 	"bytes"
@@ -22,15 +22,17 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
-// testWrapperAbnormalExit is used by the testwrapper to indicate the child
+// TestWrapperAbnormalExit is used by Wrap to indicate the child
 // process exitted without an exit code (for example being killed by a signal).
 // We use 6, in line with Bazel's RUN_FAILURE.
-const testWrapperAbnormalExit = 6
+const TestWrapperAbnormalExit = 6
 
-func shouldWrap() bool {
+func ShouldWrap() bool {
 	if wrapEnv, ok := os.LookupEnv("GO_TEST_WRAP"); ok {
 		wrap, err := strconv.ParseBool(wrapEnv)
 		if err != nil {
@@ -56,7 +58,7 @@ func shouldAddTestV() bool {
 	return false
 }
 
-func wrap(pkg string) error {
+func Wrap(pkg string) error {
 	var jsonBuffer bytes.Buffer
 	jsonConverter := NewConverter(&jsonBuffer, pkg, Timestamp)
 
@@ -64,7 +66,11 @@ func wrap(pkg string) error {
 	if shouldAddTestV() {
 		args = append([]string{"-test.v"}, args...)
 	}
-	cmd := exec.Command(os.Args[0], args...)
+	exePath := os.Args[0]
+	if !filepath.IsAbs(exePath) && strings.ContainsRune(exePath, filepath.Separator) && testExecDir != "" {
+		exePath = filepath.Join(testExecDir, exePath)
+	}
+	cmd := exec.Command(exePath, args...)
 	cmd.Env = append(os.Environ(), "GO_TEST_WRAP=0")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = io.MultiWriter(os.Stdout, jsonConverter)

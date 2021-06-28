@@ -4,6 +4,7 @@ Basic go_test functionality
 .. _go_test: /go/core.rst#_go_test
 .. _#1877: https://github.com/bazelbuild/rules_go/issues/1877
 .. _#34129: https:////github.com/golang/go/issues/34129
+.. _#2749: https://github.com/bazelbuild/rules_go/issues/2749
 
 Tests to ensure that basic features of `go_test`_ are working as expected.
 
@@ -104,3 +105,9 @@ testmain_without_exit
 
 Checks that TestMain without calling os.Exit directly works.
 Verifies `#34129`_ from Go 1.15.
+
+wrapper_test
+------------
+
+Checks that a ``go_test`` can be executed by another test in a subdirectory.
+Verifies `#2749`_.

@@ -20,15 +20,8 @@ load(
 )
 load(
     "//go/private:mode.bzl",
-    "LINKMODE_C_ARCHIVE",
-    "LINKMODE_C_SHARED",
     "LINKMODE_NORMAL",
     "extldflags_from_cc_toolchain",
-)
-load(
-    "@rules_cc//cc:defs.bzl",
-    "cc_import",
-    "cc_library",
 )
 
 def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
@@ -195,10 +188,10 @@ def _cc_libs_and_flags(target):
                 libs.append(library_to_link.static_library)
             elif library_to_link.pic_static_library != None:
                 libs.append(library_to_link.pic_static_library)
-            elif library_to_link.interface_library != None:
-                libs.append(library_to_link.interface_library)
-            elif library_to_link.dynamic_library != None:
-                libs.append(library_to_link.dynamic_library)
+            elif library_to_link.resolved_symlink_interface_library != None:
+                libs.append(library_to_link.resolved_symlink_interface_library)
+            elif library_to_link.resolved_symlink_dynamic_library != None:
+                libs.append(library_to_link.resolved_symlink_dynamic_library)
     return libs, flags
 
 _DEFAULT_PLATFORM_COPTS = select({
@@ -212,56 +205,3 @@ def _include_unique(opts, flag, include, seen):
         return
     seen[include] = True
     opts.extend([flag, include])
-
-# Sets up the cc_ targets when a go_binary is built in either c-archive or
-# c-shared mode.
-def go_binary_c_archive_shared(name, kwargs):
-    linkmode = kwargs.get("linkmode")
-    if linkmode not in [LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE]:
-        return
-    cgo_exports = name + ".cgo_exports"
-    c_hdrs = name + ".c_hdrs"
-    cc_import_name = name + ".cc_import"
-    cc_library_name = name + ".cc"
-    tags = kwargs.get("tags", ["manual"])
-    if "manual" not in tags:
-        # These archives can't be built on all platforms, so use "manual" tags.
-        tags.append("manual")
-    native.filegroup(
-        name = cgo_exports,
-        srcs = [name],
-        output_group = "cgo_exports",
-        visibility = ["//visibility:private"],
-        tags = tags,
-    )
-    native.genrule(
-        name = c_hdrs,
-        srcs = [cgo_exports],
-        outs = ["%s.h" % name],
-        cmd = "cat $(SRCS) > $(@)",
-        visibility = ["//visibility:private"],
-        tags = tags,
-    )
-    cc_import_kwargs = {}
-    if linkmode == LINKMODE_C_SHARED:
-        cc_import_kwargs["shared_library"] = name
-    elif linkmode == LINKMODE_C_ARCHIVE:
-        cc_import_kwargs["static_library"] = name
-        cc_import_kwargs["alwayslink"] = 1
-    cc_import(
-        name = cc_import_name,
-        visibility = ["//visibility:private"],
-        tags = tags,
-        **cc_import_kwargs
-    )
-    cc_library(
-        name = cc_library_name,
-        hdrs = [c_hdrs],
-        deps = [cc_import_name],
-        alwayslink = 1,
-        linkstatic = (linkmode == LINKMODE_C_ARCHIVE and 1 or 0),
-        copts = _DEFAULT_PLATFORM_COPTS,
-        linkopts = _DEFAULT_PLATFORM_COPTS,
-        visibility = ["//visibility:public"],
-        tags = tags,
-    )

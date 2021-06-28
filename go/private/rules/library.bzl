@@ -60,6 +60,7 @@ go_library = rule(
         "importmap": attr.string(),
         "importpath_aliases": attr.string_list(),  # experimental, undocumented
         "embed": attr.label_list(providers = [GoLibrary]),
+        "embedsrcs": attr.label_list(allow_files = True),
         "gc_goopts": attr.string_list(),
         "x_defs": attr.string_dict(),
         "cgo": attr.bool(),

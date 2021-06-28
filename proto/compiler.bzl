@@ -176,8 +176,6 @@ def _go_proto_compiler_impl(ctx):
     go = go_context(ctx)
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
-    plugin = ctx.file.plugin
-    go_protoc = ctx.file._go_protoc
     return [
         GoProtoCompiler(
             deps = ctx.attr.deps,
@@ -187,8 +185,8 @@ def _go_proto_compiler_impl(ctx):
                 options = ctx.attr.options,
                 suffix = ctx.attr.suffix,
                 protoc = ctx.executable._protoc,
-                go_protoc = ctx.file._go_protoc,
-                plugin = ctx.file.plugin,
+                go_protoc = ctx.executable._go_protoc,
+                plugin = ctx.executable.plugin,
                 import_path_option = ctx.attr.import_path_option,
             ),
         ),
@@ -205,12 +203,12 @@ _go_proto_compiler = rule(
         "valid_archive": attr.bool(default = True),
         "import_path_option": attr.bool(default = False),
         "plugin": attr.label(
-            allow_single_file = True,
+            executable = True,
             cfg = "exec",
             mandatory = True,
         ),
         "_go_protoc": attr.label(
-            allow_single_file = True,
+            executable = True,
             cfg = "exec",
             default = "//go/tools/builders:go-protoc",
         ),

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package bzltestutil
 
 import (
 	"fmt"
@@ -54,7 +54,7 @@ func TestShouldWrap(t *testing.T) {
 					os.Setenv(k, v)
 				}
 			}
-			got := shouldWrap()
+			got := ShouldWrap()
 			if tt.shouldWrap != got {
 				t.Errorf("shouldWrap returned %t, expected %t", got, tt.shouldWrap)
 			}

@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -76,6 +77,11 @@ func run(args []string) error {
 		strings.TrimPrefix(filepath.Base(*plugin), "protoc-gen-"), ".exe")
 	for _, m := range imports {
 		options = append(options, fmt.Sprintf("M%v", m))
+	}
+	if runtime.GOOS == "windows" {
+		// Turn the plugin path into raw form, since we're handing it off to a non-go binary.
+		// This is required to work with long paths on Windows.
+		*plugin = "\\\\?\\" + abs(*plugin)
 	}
 	protoc_args := []string{
 		fmt.Sprintf("--%v_out=%v:%v", pluginName, strings.Join(options, ","), tmpDir),

@@ -138,8 +138,12 @@ lines_sorted_test(
     file = "AUTHORS",
 )
 
-# This could be any file, used as an anchor point for the directory in tests
-exports_files(["AUTHORS"])
+# AUTHORS is used as an anchor point for the directory in tests and the
+# license can be consumed by depending projects.
+exports_files([
+    "AUTHORS",
+    "LICENSE.txt",
+])
 
 go_info()
 

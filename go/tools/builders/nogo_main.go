@@ -366,7 +366,11 @@ func (g *goPackage) String() string {
 // and returns a string containing all the diagnostics that should be printed
 // to the build log.
 func checkAnalysisResults(actions []*action, pkg *goPackage) string {
-	var diagnostics []analysis.Diagnostic
+	type entry struct {
+		analysis.Diagnostic
+		*analysis.Analyzer
+	}
+	var diagnostics []entry
 	var errs []error
 	for _, act := range actions {
 		if act.err != nil {
@@ -381,17 +385,19 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 		if !ok {
 			// If the analyzer is not explicitly configured, it emits diagnostics for
 			// all files.
-			diagnostics = append(diagnostics, act.diagnostics...)
+			for _, diag := range act.diagnostics {
+				diagnostics = append(diagnostics, entry{Diagnostic: diag, Analyzer: act.a})
+			}
 			continue
 		}
 		// Discard diagnostics based on the analyzer configuration.
 		for _, d := range act.diagnostics {
 			// NOTE(golang.org/issue/31008): nilness does not set positions,
 			// so don't assume the position is valid.
-			f := pkg.fset.File(d.Pos)
+			p := pkg.fset.Position(d.Pos)
 			filename := "-"
-			if f != nil {
-				filename = f.Name()
+			if p.IsValid() {
+				filename = p.Filename
 			}
 			include := true
 			if len(config.onlyFiles) > 0 {
@@ -413,7 +419,7 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 				}
 			}
 			if include {
-				diagnostics = append(diagnostics, d)
+				diagnostics = append(diagnostics, entry{Diagnostic: d, Analyzer: act.a})
 			}
 		}
 	}
@@ -434,7 +440,7 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 	for _, d := range diagnostics {
 		errMsg.WriteString(sep)
 		sep = "\n"
-		fmt.Fprintf(errMsg, "%s: %s", pkg.fset.Position(d.Pos), d.Message)
+		fmt.Fprintf(errMsg, "%s: %s (%s)", pkg.fset.Position(d.Pos), d.Message, d.Name)
 	}
 	return errMsg.String()
 }

@@ -1,7 +1,7 @@
 ---
 platforms:
   ubuntu1604:
-    bazel: 3.0.0 # test minimum supported version of bazel on ubuntu1604 only
+    bazel: 3.5.0 # test minimum supported version of bazel on ubuntu1604 only
     build_targets:
     - "..."
     test_targets:
@@ -154,8 +154,12 @@ platforms:
     - "-@test_chdir_remote//sub:go_default_test"
     - "-//tests/core/cgo:dylib_client"
     - "-//tests/core/cgo:dylib_test"
+    - "-//tests/core/cgo:generated_dylib_client"
+    - "-//tests/core/cgo:generated_dylib_test"
     - "-//tests/core/cgo:versioned_dylib_client"
     - "-//tests/core/cgo:versioned_dylib_test"
+    - "-//tests/core/cgo:generated_versioned_dylib_client"
+    - "-//tests/core/cgo:generated_versioned_dylib_test"
     - "-//tests/core/cross:proto_test"
     - "-//tests/core/go_embed_data:go_default_test"
     - "-//tests/core/go_embed_data:go_default_library"
@@ -205,7 +209,6 @@ platforms:
     - "-//tests/legacy/examples/cgo:go_default_library"
     - "-//tests/legacy/examples/cgo/cc_dependency:version"
     - "-//tests/legacy/examples/cgo/cc_dependency:c_version_so"
-    - "-//tests/legacy/examples/cgo/cc_dependency:c_version_orig"
     - "-//tests/legacy/examples/cgo:sub"
     - "-//tests/legacy/examples/proto/dep:useful_go_proto"
     - "-//tests/legacy/examples/proto/dep:useful_proto"
@@ -265,10 +268,14 @@ platforms:
     - "-@org_golang_x_tools//cmd/splitdwarf/internal/macho:macho_test"
     - "-@test_chdir_remote//sub:go_default_test"
     - "-//tests:buildifier_test" # requires bash
-    - "-//tests/core/cgo:dylib_test"
     - "-//tests/core/cgo:dylib_client"
-    - "-//tests/core/cgo:versioned_dylib_test"
+    - "-//tests/core/cgo:dylib_test"
+    - "-//tests/core/cgo:generated_dylib_client"
+    - "-//tests/core/cgo:generated_dylib_test"
     - "-//tests/core/cgo:versioned_dylib_client"
+    - "-//tests/core/cgo:versioned_dylib_test"
+    - "-//tests/core/cgo:generated_versioned_dylib_client"
+    - "-//tests/core/cgo:generated_versioned_dylib_test"
     - "-//tests/core/coverage:coverage_test"
     - "-//tests/core/cross:proto_test"
     - "-//tests/core/go_binary:go_default_test"
@@ -311,7 +318,6 @@ platforms:
     - "-//tests/legacy/examples/cgo:go_default_library"
     - "-//tests/legacy/examples/cgo/cc_dependency:version"
     - "-//tests/legacy/examples/cgo/cc_dependency:c_version_so"
-    - "-//tests/legacy/examples/cgo/cc_dependency:c_version_orig"
     - "-//tests/legacy/examples/proto/gogo:gogo_test"
     - "-//tests/legacy/examples/proto:proto_pure_test"
     - "-//tests/legacy/examples/proto:proto_test"

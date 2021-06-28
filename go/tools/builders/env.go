@@ -133,9 +133,12 @@ func (e *env) runCommand(args []string) error {
 	cmd := exec.Command(args[0], args[1:]...)
 	// Redirecting stdout to stderr. This mirrors behavior in the go command:
 	// https://go.googlesource.com/go/+/refs/tags/go1.15.2/src/cmd/go/internal/work/exec.go#1958
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	return runAndLogCommand(cmd, e.verbose)
+	buf := &bytes.Buffer{}
+	cmd.Stdout = buf
+	cmd.Stderr = buf
+	err := runAndLogCommand(cmd, e.verbose)
+	os.Stderr.Write(relativizePaths(buf.Bytes()))
+	return err
 }
 
 // runCommandToFile executes a subprocess and writes the output to the given
@@ -330,6 +333,27 @@ func absArgs(args []string, flags []string) {
 			break
 		}
 	}
+}
+
+// relativizePaths converts absolute paths found in the given output string to
+// relative, if they are within the working directory.
+func relativizePaths(output []byte) []byte {
+	dir, err := os.Getwd()
+	if dir == "" || err != nil {
+		return output
+	}
+	dirBytes := make([]byte, len(dir), len(dir)+1)
+	copy(dirBytes, dir)
+	if bytes.HasSuffix(dirBytes, []byte{filepath.Separator}) {
+		return bytes.ReplaceAll(output, dirBytes, nil)
+	}
+
+	// This is the common case.
+	// Replace "$CWD/" with "" and "$CWD" with "."
+	dirBytes = append(dirBytes, filepath.Separator)
+	output = bytes.ReplaceAll(output, dirBytes, nil)
+	dirBytes = dirBytes[:len(dirBytes)-1]
+	return bytes.ReplaceAll(output, dirBytes, []byte{'.'})
 }
 
 // formatCommand formats cmd as a string that can be pasted into a shell.

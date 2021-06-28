@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 )
@@ -36,7 +37,6 @@ func link(args []string) error {
 		return err
 	}
 	builderArgs, toolArgs := splitArgs(args)
-	xstamps := multiFlag{}
 	stamps := multiFlag{}
 	xdefs := multiFlag{}
 	archives := archiveMultiFlag{}
@@ -49,7 +49,6 @@ func link(args []string) error {
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	buildmode := flags.String("buildmode", "", "Build mode used.")
 	flags.Var(&xdefs, "X", "A string variable to replace in the linked binary (repeated).")
-	flags.Var(&xstamps, "Xstamp", "Like -X but the values are looked up in the -stamp file.")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
 	conflictErrMsg := flags.String("conflict_err", "", "Error message about conflicts to report if there's a link error.")
 	if err := flags.Parse(builderArgs); err != nil {
@@ -110,11 +109,11 @@ func link(args []string) error {
 	parseXdef := func(xdef string) (pkg, name, value string, err error) {
 		eq := strings.IndexByte(xdef, '=')
 		if eq < 0 {
-			return "", "", "", fmt.Errorf("-X or -Xstamp flag does not contain '=': %s", xdef)
+			return "", "", "", fmt.Errorf("-X flag does not contain '=': %s", xdef)
 		}
 		dot := strings.LastIndexByte(xdef[:eq], '.')
 		if dot < 0 {
-			return "", "", "", fmt.Errorf("-X or -Xstamp flag does not contain '.': %s", xdef)
+			return "", "", "", fmt.Errorf("-X flag does not contain '.': %s", xdef)
 		}
 		pkg, name, value = xdef[:dot], xdef[dot+1:eq], xdef[eq+1:]
 		if pkg == *packagePath {
@@ -122,21 +121,22 @@ func link(args []string) error {
 		}
 		return pkg, name, value, nil
 	}
-	for _, xdef := range xstamps {
-		pkg, name, key, err := parseXdef(xdef)
-		if err != nil {
-			return err
-		}
-		if value, ok := stampMap[key]; ok {
-			goargs = append(goargs, "-X", fmt.Sprintf("%s.%s=%s", pkg, name, value))
-		}
-	}
 	for _, xdef := range xdefs {
 		pkg, name, value, err := parseXdef(xdef)
 		if err != nil {
 			return err
 		}
-		goargs = append(goargs, "-X", fmt.Sprintf("%s.%s=%s", pkg, name, value))
+		var missingKey bool
+		value = regexp.MustCompile(`\{.+?\}`).ReplaceAllStringFunc(value, func(key string) string {
+			if value, ok := stampMap[key[1:len(key)-1]]; ok {
+				return value
+			}
+			missingKey = true
+			return key
+		})
+		if !missingKey {
+			goargs = append(goargs, "-X", fmt.Sprintf("%s.%s=%s", pkg, name, value))
+		}
 	}
 
 	if *buildmode != "" {

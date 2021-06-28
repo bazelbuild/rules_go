@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
-load("@rules_cc//cc:defs.bzl", "cc_import", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 go_binary(
     name = "adder_archive",
@@ -17,7 +17,7 @@ cc_test(
     }),
     deps = select({
         "@io_bazel_rules_go//go/platform:windows": [],
-        "//conditions:default": [":adder_archive.cc"],
+        "//conditions:default": [":adder_archive"],
     }),
 )
 
@@ -37,7 +37,7 @@ cc_test(
     }),
     deps = select({
         "@io_bazel_rules_go//go/platform:windows": [],
-        "//conditions:default": [":c-archive_empty_hdr.cc"],
+        "//conditions:default": [":c-archive_empty_hdr"],
     }),
 )
 
@@ -57,7 +57,7 @@ cc_test(
     }),
     deps = select({
         "@io_bazel_rules_go//go/platform:windows": [],
-        "//conditions:default": [":adder_shared.cc"],
+        "//conditions:default": [":adder_shared"],
     }),
 )
 
@@ -87,5 +87,34 @@ cc_test(
     linkopts = select({
         "@io_bazel_rules_go//go/platform:windows": [],
         "//conditions:default": ["-ldl"],
+    }),
+)
+
+cc_library(
+    name = "adder_sandwich_cc",
+    srcs = ["add_sandwich.c"],
+    hdrs = ["add_sandwich.h"],
+    alwayslink = True,
+    linkstatic = True,
+)
+
+go_binary(
+    name = "adder_sandwich_archive",
+    srcs = ["add_sandwich.go"],
+    cgo = True,
+    linkmode = "c-archive",
+    cdeps = [":adder_sandwich_cc"],
+    tags = ["manual"],
+)
+
+cc_test(
+    name = "c-archive_sandwich_test",
+    srcs = select({
+        "@io_bazel_rules_go//go/platform:windows": ["skip.c"],
+        "//conditions:default": ["add_test_sandwich.c"],
+    }),
+    deps = select({
+        "@io_bazel_rules_go//go/platform:windows": [],
+        "//conditions:default": [":adder_sandwich_archive"],
     }),
 )

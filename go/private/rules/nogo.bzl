@@ -57,8 +57,8 @@ def _nogo_impl(ctx):
 
     # Compile the nogo binary itself.
     nogo_library = GoLibrary(
-        name = go._ctx.label.name + "~nogo",
-        label = go._ctx.label,
+        name = go.label.name + "~nogo",
+        label = go.label,
         importpath = "nogomain",
         importmap = "nogomain",
         importpath_aliases = (),

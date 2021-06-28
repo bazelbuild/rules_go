@@ -156,8 +156,8 @@ diff -urN a/io/BUILD.bazel b/io/BUILD.bazel
 +        "io_test.go",
 +        "uint32_test.go",
 +    ],
-+    embed = [":io"],
 +    deps = [
++        ":io",
 +        "//test",
 +        "//test/example",
 +    ],
@@ -869,7 +869,7 @@ diff -urN a/protoc-gen-gogo/BUILD.bazel b/protoc-gen-gogo/BUILD.bazel
 diff -urN a/protoc-gen-gogo/descriptor/BUILD.bazel b/protoc-gen-gogo/descriptor/BUILD.bazel
 --- a/protoc-gen-gogo/descriptor/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
 +++ b/protoc-gen-gogo/descriptor/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -894,8 +894,10 @@ diff -urN a/protoc-gen-gogo/descriptor/BUILD.bazel b/protoc-gen-gogo/descriptor/
 +go_test(
 +    name = "descriptor_test",
 +    srcs = ["descriptor_test.go"],
-+    embed = [":descriptor"],
-+    deps = ["//proto/test_proto"],
++    deps = [
++        ":descriptor",
++        "//proto/test_proto",
++    ],
 +)
 diff -urN a/protoc-gen-gogo/generator/BUILD.bazel b/protoc-gen-gogo/generator/BUILD.bazel
 --- a/protoc-gen-gogo/generator/BUILD.bazel	1969-12-31 19:00:00.000000000 -0500
@@ -3671,8 +3673,8 @@ diff -urN a/test/issue411/BUILD.bazel b/test/issue411/BUILD.bazel
 +go_test(
 +    name = "issue411_test",
 +    srcs = ["ids_test.go"],
-+    embed = [":issue411"],
 +    deps = [
++        ":issue411",
 +        "//jsonpb",
 +        "//proto",
 +    ],
