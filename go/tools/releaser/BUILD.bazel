@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//go:def.bzl", "go_binary")
+
+go_binary(
+    name = "releaser",
+    embed = [":releaser_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "releaser_lib",
+    srcs = [
+        "file.go",
+        "github.go",
+        "releaser.go",
+        "run.go",
+        "upgradedep.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/releaser",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_bazelbuild_buildtools//build:go_default_library",
+        "@com_github_google_go_github_v36//github",
+        "@org_golang_x_mod//semver",
+        "@org_golang_x_oauth2//:oauth2",
+        "@org_golang_x_sync//errgroup",
+    ],
+)
