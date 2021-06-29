@@ -3,6 +3,7 @@ Basic go_proto_library functionality
 
 .. _go_proto_library: /proto/core.rst#_go_proto_library
 .. _go_library: /go/core.rst#_go_library
+.. _protobuf v1.26.0: https://github.com/protocolbuffers/protobuf-go/releases/tag/v1.26.0
 .. _#1422: https://github.com/bazelbuild/rules_go/issues/1422
 .. _#1596: https://github.com/bazelbuild/rules_go/issues/1596
 
@@ -44,8 +45,11 @@ proto_package_test
 ------------------
 
 Checks that `go_proto_library`_ generates files with a package name based on
-the proto package, not ``importpath`` when ``option go_package`` is not given.
-Verifies `#1596`_.
+``importpath``, not the proto package, when ``option go_package`` is not given.
+This changed in `protobuf v1.26.0`_: the import path must either be specified
+with an ``option go_package`` in each proto file or with an ``M`` flag passed
+in from ``go_proto_library``. Previously, the Go package name was derived from
+the proto package name. Previously verified `#1596`_.
 
 wkt_wrapper_test
 ----------------

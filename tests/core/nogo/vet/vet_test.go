@@ -125,7 +125,7 @@ func Test(t *testing.T) {
 			nogo:   "@//:nogo",
 			target: "//:has_errors",
 			includes: []string{
-				"\\+build comment must appear before package clause and be followed by a blank line",
+				"misplaced \\+build comment",
 				"comparison of function F == nil is always false",
 				"Printf format %b has arg \"hi\" of wrong type string",
 				"redundant or: true \\|\\| true",

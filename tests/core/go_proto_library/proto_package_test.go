@@ -18,11 +18,11 @@ package proto_package_test
 import (
 	"testing"
 
-	"github.com/bazelbuild/rules_go/tests/core/go_proto_library/no_go_package"
+	"github.com/bazelbuild/rules_go/tests/core/go_proto_library/package_name_derived_from_importpath"
 )
 
 func use(interface{}) {}
 
 func TestNoGoPackage(t *testing.T) {
-	use(&protopkg.Foo{})
+	use(&package_name_derived_from_importpath.Foo{})
 }
