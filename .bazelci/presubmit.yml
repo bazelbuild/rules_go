@@ -1,11 +1,11 @@
 ---
-platforms:
-  ubuntu1604:
+tasks:
+  ubuntu1804_bazel350:
     bazel: 3.5.0 # test minimum supported version of bazel on ubuntu1604 only
     build_targets:
-    - "..."
+    - "//..."
     test_targets:
-    - "..."
+    - "//..."
   ubuntu1804:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     build_flags:
@@ -19,17 +19,17 @@ platforms:
     - "--incompatible_restrict_string_escapes"
     - "--incompatible_enable_cc_toolchain_resolution"
     build_targets:
-    - "..."
+    - "//..."
     test_targets:
-    - "..."
+    - "//..."
   macos:
     build_targets:
-    - "..."
+    - "//..."
     test_targets:
-    - "..."
+    - "//..."
   rbe_ubuntu1604:
     build_targets:
-    - "..."
+    - "//..."
     test_flags:
     # Some tests depend on this feature being disabled. However, because it's
     # enabled by default in the rbe_ubuntu1604 platform, we cannot simply remove
@@ -41,7 +41,7 @@ platforms:
     - "--test_tag_filters=-local"
     test_targets:
     - "--"
-    - "..."
+    - "//..."
     - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/stdlib:buildid_test"
   windows:
@@ -69,7 +69,7 @@ platforms:
     # TODO(#1790): Tests that require data should use bazel.Runfile.
     # TODO(#2516): Tests that require protoc fail when protoc is built with mingw-gcc.
     - "--"
-    - "..."
+    - "//..."
     - "-@com_github_golang_protobuf//ptypes:go_default_library_gen"
     - "-@com_google_protobuf//:any_proto"
     - "-@com_google_protobuf//:api_proto"
@@ -256,7 +256,7 @@ platforms:
     - "--test_env=PATH"
     test_targets:
     - "--"
-    - "..."
+    - "//..."
     - "-//go/tools/bazel:bazel_test"
     - "-@org_golang_x_crypto//ed25519:ed25519_test"
     - "-@org_golang_x_crypto//sha3:sha3_test"
