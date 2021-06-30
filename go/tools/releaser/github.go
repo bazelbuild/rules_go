@@ -24,7 +24,11 @@ import (
 	"github.com/google/go-github/v36/github"
 )
 
-func githubListTags(ctx context.Context, gh *github.Client, org, repo string) (_ []*github.RepositoryTag, err error) {
+type githubClient struct {
+	*github.Client
+}
+
+func (gh *githubClient) listTags(ctx context.Context, org, repo string) (_ []*github.RepositoryTag, err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("listing tags in github.com/%s/%s: %w", org, repo, err)
@@ -32,7 +36,7 @@ func githubListTags(ctx context.Context, gh *github.Client, org, repo string) (_
 	}()
 
 	var allTags []*github.RepositoryTag
-	err = githubListPages(func(opts *github.ListOptions) (*github.Response, error) {
+	err = gh.listPages(func(opts *github.ListOptions) (*github.Response, error) {
 		tags, resp, err := gh.Repositories.ListTags(ctx, org, repo, opts)
 		if err != nil {
 			return nil, err
@@ -48,7 +52,7 @@ func githubListTags(ctx context.Context, gh *github.Client, org, repo string) (_
 
 // githubListPages calls fn repeatedly to get all pages of a large result.
 // This is useful for fetching all tags or all comments or something similar.
-func githubListPages(fn func(opt *github.ListOptions) (*github.Response, error)) error {
+func (gh *githubClient) listPages(fn func(opt *github.ListOptions) (*github.Response, error)) error {
 	opt := &github.ListOptions{PerPage: 50}
 	for {
 		resp, err := fn(opt)
@@ -64,26 +68,24 @@ func githubListPages(fn func(opt *github.ListOptions) (*github.Response, error))
 
 // githubTokenFlag is used to find a GitHub personal access token on the
 // command line. It accepts a raw token or a path to a file containing a token.
-type githubTokenFlag struct {
-	token *string
-}
+type githubTokenFlag string
 
 func (f *githubTokenFlag) Set(v string) error {
 	if strings.HasPrefix(v, "ghp_") {
-		*f.token = v
+		*(*string)(f) = v
 		return nil
 	}
 	data, err := os.ReadFile(v)
 	if err != nil {
 		return fmt.Errorf("reading GitHub token: %w", err)
 	}
-	*f.token = string(bytes.TrimSpace(data))
+	*(*string)(f) = string(bytes.TrimSpace(data))
 	return nil
 }
 
 func (f *githubTokenFlag) String() string {
-	if f == nil || f.token == nil {
+	if f == nil {
 		return ""
 	}
-	return *f.token
+	return string(*f)
 }

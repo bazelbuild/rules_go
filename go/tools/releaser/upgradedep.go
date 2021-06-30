@@ -42,7 +42,7 @@ var upgradeDep = command{
 	name:        "upgrade-dep",
 	run:         runUpgradeDep,
 	description: "upgrades a dependency in WORKSPACE or go_repositories.bzl",
-	help: `releaser upgrade-dep [-githubtoken=token] [-work] deps...
+	help: `releaser upgrade-dep [-githubtoken=token] [-mirror] [-work] deps...
 
 upgrade-dep upgrades one or more rules_go dependencies in WORKSPACE or
 go/private/repositories.bzl. Dependency names (matching the name attributes)
@@ -79,9 +79,10 @@ previous patches applied.
 func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 	// Parse arguments.
 	flags := flag.NewFlagSet("releaser upgrade-dep", flag.ContinueOnError)
-	var githubToken string
-	var leaveWorkDir bool
-	flags.Var(&githubTokenFlag{&githubToken}, "githubtoken", "GitHub personal access token or path to a file containing it")
+	var githubToken githubTokenFlag
+	var uploadToMirror, leaveWorkDir bool
+	flags.Var(&githubToken, "githubtoken", "GitHub personal access token or path to a file containing it")
+	flags.BoolVar(&uploadToMirror, "mirror", true, "whether to upload dependency archives to mirror.bazel.build")
 	flags.BoolVar(&leaveWorkDir, "work", false, "don't delete temporary work directory (for debugging)")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -100,9 +101,12 @@ func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 		return errors.New("When 'all' is specified, it must be the only argument. For usage info, run:\n\treleaser help upgrade-dep")
 	}
 
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubToken})
-	tc := oauth2.NewClient(ctx, ts)
-	gh := github.NewClient(tc)
+	httpClient := http.DefaultClient
+	if githubToken != "" {
+		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: string(githubToken)})
+		httpClient = oauth2.NewClient(ctx, ts)
+	}
+	gh := &githubClient{Client: github.NewClient(httpClient)}
 
 	workDir, err := os.MkdirTemp("", "releaser-upgrade-dep-*")
 	if leaveWorkDir {
@@ -202,7 +206,7 @@ func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 				continue
 			}
 			eg.Go(func() error {
-				return upgradeDepDecl(egctx, gh, workDir, name, depIndex[name])
+				return upgradeDepDecl(egctx, gh, workDir, name, depIndex[name], uploadToMirror)
 			})
 		}
 	} else {
@@ -214,7 +218,7 @@ func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 		for _, arg := range flags.Args() {
 			arg := arg
 			eg.Go(func() error {
-				return upgradeDepDecl(egctx, gh, workDir, arg, depIndex[arg])
+				return upgradeDepDecl(egctx, gh, workDir, arg, depIndex[arg], uploadToMirror)
 			})
 		}
 	}
@@ -232,7 +236,7 @@ func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 }
 
 // upgradeDepDecl upgrades a specific dependency.
-func upgradeDepDecl(ctx context.Context, gh *github.Client, workDir, name string, call *bzl.CallExpr) (err error) {
+func upgradeDepDecl(ctx context.Context, gh *githubClient, workDir, name string, call *bzl.CallExpr, uploadToMirror bool) (err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("upgrading %s: %w", name, err)
@@ -284,7 +288,7 @@ func upgradeDepDecl(ctx context.Context, gh *github.Client, workDir, name string
 	// Find the highest tag in semver order, ignoring whether the version has a
 	// leading "v" or not. If there are no tags, find the commit at the tip of the
 	// default branch.
-	tags, err := githubListTags(ctx, gh, orgName, repoName)
+	tags, err := gh.listTags(ctx, orgName, repoName)
 	if err != nil {
 		return err
 	}
@@ -394,8 +398,10 @@ func upgradeDepDecl(ctx context.Context, gh *github.Client, workDir, name string
 	}
 
 	// Upload the archive to mirror.bazel.build.
-	if err := copyFileToMirror(ctx, ghURLWithoutScheme, archiveFile.Name()); err != nil {
-		return err
+	if uploadToMirror {
+		if err := copyFileToMirror(ctx, ghURLWithoutScheme, archiveFile.Name()); err != nil {
+			return err
+		}
 	}
 
 	// If there are patches, re-apply or re-generate them.
@@ -482,6 +488,8 @@ func upgradeDepDecl(ctx context.Context, gh *github.Client, workDir, name string
 // and returns the organization and repository name or an error if the directive
 // was not found or malformed.
 func parseUpgradeDepDirective(call *bzl.CallExpr) (orgName, repoName string, err error) {
+	// TODO: support other upgrade strategies. For example, support git_repository
+	// and go_repository (possibly wrapped in _maybe).
 	for _, c := range call.Comment().Before {
 		words := strings.Fields(strings.TrimPrefix(c.Token, "#"))
 		if len(words) == 0 || words[0] != "releaser:upgrade-dep" {

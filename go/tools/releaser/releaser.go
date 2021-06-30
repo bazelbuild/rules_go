@@ -52,8 +52,10 @@ func run(ctx context.Context, stderr io.Writer, args []string) error {
 		return errors.New("no command specified. For a list of commands, run:\n\treleaser help")
 	}
 	name, args := args[0], args[1:]
-	if name == "-h" || name == "-help" || name == "--help" {
-		return helpCmd.run(ctx, stderr, args)
+	for _, arg := range args {
+		if arg == "-h" || name == "-help" || name == "--help" {
+			return helpCmd.run(ctx, stderr, args)
+		}
 	}
 	for _, cmd := range commands {
 		if cmd.name == name {
