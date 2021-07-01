@@ -1,6 +1,7 @@
 ---
 tasks:
   ubuntu1804_bazel350:
+    platform: ubuntu1804
     bazel: 3.5.0 # test minimum supported version of bazel on ubuntu1604 only
     build_targets:
     - "//..."
