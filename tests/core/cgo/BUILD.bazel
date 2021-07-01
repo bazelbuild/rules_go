@@ -124,8 +124,9 @@ cc_import(
 cc_binary(
     name = "libimported_generated.dylib",
     srcs = ["imported.c"],
-#    linkopts = ["-Wl,-install_name,@rpath/libimported_generated.dylib"],
+    linkopts = ["-Wl,-install_name,@rpath/libimported_generated.dylib"],
     linkshared = True,
+    tags = ["manual"],
 )
 
 cc_import(
