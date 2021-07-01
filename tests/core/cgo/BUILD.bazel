@@ -73,7 +73,6 @@ go_test(
     srcs = ["dylib_test.go"],
     embed = [":dylib_client"],
     rundir = ".",
-    tags = ["manual"], # //tests/core/cgo:generate_imported_dylib.sh must be run first
 )
 
 go_library(
@@ -86,19 +85,16 @@ go_library(
     }),
     cgo = True,
     importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/dylib",
-    tags = ["manual"],
 )
 
 cc_import(
     name = "darwin_imported_dylib",
     shared_library = "libimported.dylib",
-    tags = ["manual"],
 )
 
 cc_import(
     name = "linux_imported_dylib",
     shared_library = ":libimported.so",
-    tags = ["manual"],
 )
 
 go_test(
@@ -123,7 +119,6 @@ go_library(
 cc_import(
     name = "darwin_imported_generated_dylib",
     shared_library = ":libimported_generated.dylib",
-    tags = ["manual"],
 )
 
 cc_binary(
@@ -131,20 +126,17 @@ cc_binary(
     srcs = ["imported.c"],
     linkopts = ["-Wl,-install_name,@rpath/libimported_generated.dylib"],
     linkshared = True,
-    tags = ["manual"],
 )
 
 cc_import(
     name = "linux_imported_generated_dylib",
     shared_library = ":libimported_generated.so",
-    tags = ["manual"],
 )
 
 cc_binary(
     name = "libimported_generated.so",
     srcs = ["imported.c"],
     linkshared = True,
-    tags = ["manual"],
 )
 
 go_test(
@@ -152,7 +144,6 @@ go_test(
     srcs = ["dylib_test.go"],
     embed = [":versioned_dylib_client"],
     rundir = ".",
-    tags = ["manual"], # //tests/core/cgo:generate_imported_dylib.sh must be run first
 )
 
 go_library(
@@ -168,13 +159,11 @@ go_library(
     }),
     cgo = True,
     importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/dylib",
-    tags = ["manual"],
 )
 
 cc_import(
     name = "linux_imported_versioned_dylib",
     shared_library = "libimported.so.2",
-    tags = ["manual"],
 )
 
 go_test(
@@ -203,14 +192,12 @@ cc_library(
     name = "linux_imported_generated_versioned_dylib",
     srcs = [":libimported_generated.so.2"],
     linkstatic = False,
-    tags = ["manual"],
 )
 
 cc_binary(
     name = "libimported_generated.so.2",
     srcs = ["imported.c"],
     linkshared = True,
-    tags = ["manual"],
 )
 
 go_test(
