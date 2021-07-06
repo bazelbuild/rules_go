@@ -1,13 +1,13 @@
 ---
 tasks:
-  ubuntu1804_bazel350:
+  ubuntu1804_bazel400:
     platform: ubuntu1804
-    bazel: 3.5.0 # test minimum supported version of bazel on ubuntu1604 only
+    bazel: 4.0.0 # test minimum supported version of bazel
     build_targets:
     - "//..."
     test_targets:
     - "//..."
-  ubuntu1804:
+  ubuntu2004:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     build_flags:
     - "--incompatible_load_cc_rules_from_bzl"
