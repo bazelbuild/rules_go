@@ -72,6 +72,11 @@ Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 Announcements
 -------------
 
+2021-07-07
+  Release
+  `v0.28.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.28.0>`_
+  is now available. This adds experimental editor support, plus a few other
+  changes. See the release notes for details. Thanks to all who contributed!
 2021-03-18
   Release
   `v0.27.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.27.0>`_
@@ -89,12 +94,6 @@ Announcements
   `v0.23.0 <https://github.com/bazelbuild/bazel-gazelle/releases/tag/v0.23.0>`_
   is also available with support for ``embedsrcs`` attributes (needed for
   ``//go:embed``) and a few other improvements.
-2021-02-16
-  Release
-  `v0.24.13 <https://github.com/bazelbuild/rules_go/releases/tag/v0.24.13>`_
-  is now available with support for Go 1.16. v0.25.x does not require an update
-  to support this version. Note that the new ``//go:embed`` directive is
-  not quite supported yet (`#2775`_), but it will be in the next minor release.
 
 Contents
 --------
@@ -179,7 +178,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: The latest version of these rules (v0.27.0) requires Bazel ≥ 3.5.0 to work.
+Note: The latest version of these rules (v0.28.0) requires Bazel ≥ 4.0.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -216,10 +215,10 @@ Go toolchain and register it for use.
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
+        sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
         ],
     )
 
@@ -227,7 +226,7 @@ Go toolchain and register it for use.
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.16")
+    go_register_toolchains(version = "1.16.5")
 
 You can use rules_go at ``master`` by using `git_repository`_ instead of
 `http_archive`_ and pointing to a recent commit.
@@ -263,10 +262,10 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "69de5c704a05ff37862f7e0f5534d4f479418afc21806c887db544a316f3cb6b",
+        sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.27.0/rules_go-v0.27.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
         ],
     )
 
@@ -284,7 +283,7 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.16")
+    go_register_toolchains(version = "1.16.5")
 
     gazelle_dependencies()
 
@@ -421,7 +420,7 @@ automatically from a go.mod or Gopkg.lock file.
     # Declare indirect dependencies and register toolchains.
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.16")
+    go_register_toolchains(version = "1.16.5")
 
     gazelle_dependencies()
 
@@ -792,4 +791,4 @@ test beta and RC versions by passing a ``version`` like ``"1.16beta1"`` to
 
   go_rules_dependencies()
 
-  go_register_toolchains(version = "1.16beta1")
+  go_register_toolchains(version = "1.17beta1")
