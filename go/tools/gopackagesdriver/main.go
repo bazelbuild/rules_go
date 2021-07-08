@@ -115,7 +115,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %w", err)
+		fmt.Fprintf(os.Stderr, "error: %v", err)
 		os.Exit(1)
 	}
 }
