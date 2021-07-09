@@ -136,16 +136,25 @@ def emit_link(
     extldflags.extend(cgo_rpaths)
 
     # Process x_defs, and record whether stamping is used.
-    stamp_x_defs = False
+    stamp_x_defs_info = False
+    stamp_x_defs_version = False
     for k, v in archive.x_defs.items():
-        if go.stamp and v.find("{") != -1 and v.find("}") != -1:
-            stamp_x_defs = True
+        start, end = v.find("{"), v.find("}")
+        if go.stamp and start != -1 and start != -1:
+            stamp_key = v[start + 1:end - 1]
+            if stamp_key.startswith("STABLE_") or stamp_key in ["BUILD_EMBED_LABEL", "BUILD_HOST", "BUILD_USER"]:
+                stamp_x_defs_info = True
+            else:
+                stamp_x_defs_version = True
         builder_args.add("-X", "%s=%s" % (k, v))
 
     # Stamping support
     stamp_inputs = []
-    if stamp_x_defs:
-        stamp_inputs = [info_file, version_file]
+    if stamp_x_defs_info:
+        stamp_inputs.append(info_file)
+    if stamp_x_defs_version:
+        stamp_inputs.append(version_file)
+    if stamp_x_defs_info or stamp_x_defs_version:
         builder_args.add_all(stamp_inputs, before_each = "-stamp")
 
     builder_args.add("-o", executable)
