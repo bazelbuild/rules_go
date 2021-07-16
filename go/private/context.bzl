@@ -647,7 +647,7 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
             variables = ld_executable_variables,
-        ),
+        ) + ctx.fragments.cpp.linkopts,
         _LINKER_OPTIONS_BLACKLIST,
     )
     env.update(cc_common.get_environment_variables(
@@ -688,9 +688,10 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
             variables = ld_dynamic_lib_variables,
-        ),
+        ) + ctx.fragments.cpp.linkopts,
         _LINKER_OPTIONS_BLACKLIST,
     )
+
     env.update(cc_common.get_environment_variables(
         feature_configuration = feature_configuration,
         action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
