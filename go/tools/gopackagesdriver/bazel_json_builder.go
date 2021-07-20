@@ -17,72 +17,104 @@ package main
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 )
 
 type BazelJSONBuilder struct {
-	bazel      *Bazel
-	query      string
-	tagFilters string
-	targets    []string
+	bazel    *Bazel
+	requests []string
 }
 
 const (
 	OutputGroupDriverJSONFile = "go_pkg_driver_json_file"
 	OutputGroupStdLibJSONFile = "go_pkg_driver_stdlib_json_file"
 	OutputGroupExportFile     = "go_pkg_driver_export_file"
+	wildcardQuery             = `kind("go_library", //...)`
 )
 
-func NewBazelJSONBuilder(bazel *Bazel, query, tagFilters string, targets []string) (*BazelJSONBuilder, error) {
+func (b *BazelJSONBuilder) fileQuery(filename string) string {
+	if filepath.IsAbs(filename) {
+		fp, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
+		filename = fp
+	}
+	return fmt.Sprintf(`some(kind("go_library", same_pkg_direct_rdeps("%s")))`, filename)
+}
+
+func (b *BazelJSONBuilder) packageQuery(importPath string) string {
+	return fmt.Sprintf(`some(kind("go_library", attr(importpath, "%s", //...)))`, importPath)
+}
+
+func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
+	ret := make([]string, 0, len(requests))
+	for _, request := range requests {
+		if request == "." || request == "./..." {
+			return wildcardQuery
+		} else if strings.HasPrefix(request, "file=") {
+			f := strings.TrimPrefix(request, "file=")
+			ret = append(ret, b.fileQuery(f))
+		} else {
+			ret = append(ret, b.packageQuery(request))
+		}
+	}
+	return strings.Join(ret, " union ")
+}
+
+func NewBazelJSONBuilder(bazel *Bazel, requests ...string) (*BazelJSONBuilder, error) {
 	return &BazelJSONBuilder{
-		bazel:      bazel,
-		query:      query,
-		tagFilters: tagFilters,
-		targets:    targets,
+		bazel:    bazel,
+		requests: requests,
 	}, nil
 }
 
 func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
 	og := OutputGroupDriverJSONFile + "," + OutputGroupStdLibJSONFile
-	if mode&NeedExportsFile != 0 || true { // override for now
+	if mode&NeedExportsFile != 0 { // override for now
 		og += "," + OutputGroupExportFile
 	}
 	return og
 }
 
+func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, error) {
+	queryArgs := concatStringsArrays(bazelFlags, bazelQueryFlags, []string{
+		"--ui_event_filters=-info,-stderr",
+		"--noshow_progress",
+		// Use Sky Query
+		"--universe_scope=//...",
+		"--order_output=no",
+		"--output=label",
+		"--nodep_deps",
+		"--noimplicit_deps",
+		"--notool_deps",
+		query,
+	})
+	labels, err := b.bazel.Query(ctx, queryArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to query: %w", err)
+	}
+	return labels, nil
+}
+
 func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, error) {
-	buildsArgs := []string{
-		"--aspects=@io_bazel_rules_go//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
+	labels, err := b.query(ctx, b.queryFromRequests(b.requests...))
+	if err != nil {
+		return nil, fmt.Errorf("unable to query: %w", err)
+	}
+	if len(labels) == 0 {
+		return nil, fmt.Errorf("found no target to build")
+	}
+
+	buildArgs := concatStringsArrays([]string{
+		"--experimental_convenience_symlinks=ignore",
+		"--ui_event_filters=-info,-stderr",
+		"--noshow_progress",
+		"--aspects=" + rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
 		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
-	}
-
-	if b.tagFilters != "" {
-		buildsArgs = append(buildsArgs, "--build_tag_filters="+b.tagFilters)
-	}
-
-	if b.query != "" {
-		queryTargets, err := b.bazel.Query(
-			ctx,
-			"--order_output=no",
-			"--output=label",
-			"--experimental_graphless_query",
-			"--nodep_deps",
-			"--noimplicit_deps",
-			"--notool_deps",
-			b.query,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("unable to query %v: %w", b.query, err)
-		}
-		buildsArgs = append(buildsArgs, queryTargets...)
-	}
-
-	buildsArgs = append(buildsArgs, b.targets...)
-
-	files, err := b.bazel.Build(ctx, buildsArgs...)
+	}, bazelFlags, bazelBuildFlags, labels)
+	files, err := b.bazel.Build(ctx, buildArgs...)
 	if err != nil {
-		return nil, fmt.Errorf("unable to bazel build %v: %w", buildsArgs, err)
+		return nil, fmt.Errorf("unable to bazel build %v: %w", buildArgs, err)
 	}
 
 	ret := []string{}

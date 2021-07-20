@@ -10,6 +10,7 @@ go_library(
         "json_packages_driver.go",
         "main.go",
         "packageregistry.go",
+        "utils.go",
     ],
     importpath = "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver",
     visibility = ["//visibility:private"],

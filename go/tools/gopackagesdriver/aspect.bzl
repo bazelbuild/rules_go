@@ -18,16 +18,8 @@ load(
     "GoStdLib",
 )
 load(
-    "//go/private:context.bzl",
-    "go_context",
-)
-load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
-)
-load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
 )
 
 GoPkgInfo = provider()
@@ -40,28 +32,43 @@ def _file_path(f):
         return paths.join("__BAZEL_WORKSPACE__", f.path)
     return paths.join("__BAZEL_EXECROOT__", f.path)
 
+def _new_pkg_info(archive_data):
+    return struct(
+        ID = str(archive_data.label),
+        PkgPath = archive_data.importpath,
+        ExportFile = _file_path(archive_data.export_file),
+        GoFiles = [
+            _file_path(src)
+            for src in archive_data.orig_srcs
+        ],
+        CompiledGoFiles = [
+            _file_path(src)
+            for src in archive_data.srcs
+        ],
+    )
+
 def _go_pkg_info_aspect_impl(target, ctx):
     # Fetch the stdlib JSON file from the inner most target
     stdlib_json_file = None
 
     deps_transitive_json_file = []
     deps_transitive_export_file = []
-    for dep in getattr(ctx.rule.attr, "deps", []):
-        if GoPkgInfo in dep:
-            pkg_info = dep[GoPkgInfo]
-            deps_transitive_json_file.append(pkg_info.transitive_json_file)
-            deps_transitive_export_file.append(pkg_info.transitive_export_file)
-            # Fetch the stdlib json from the first dependency
-            if not stdlib_json_file:
-                stdlib_json_file = pkg_info.stdlib_json_file
+    for attr in ["deps", "embed"]:
+        for dep in getattr(ctx.rule.attr, attr, []):
+            if GoPkgInfo in dep:
+                pkg_info = dep[GoPkgInfo]
+                if attr == "deps":
+                    deps_transitive_json_file.append(pkg_info.transitive_json_file)
+                    deps_transitive_export_file.append(pkg_info.transitive_export_file)
+                elif attr == "embed":
+                    # If deps are embedded, do not gather their json or export_file since they
+                    # are included in the current target, but do gather their deps'.
+                    deps_transitive_json_file.append(pkg_info.deps_transitive_json_file)
+                    deps_transitive_export_file.append(pkg_info.deps_transitive_export_file)
 
-    # If deps are embedded, do not gather their json or export_file since they
-    # are included in the current target, but do gather their deps'.
-    for dep in getattr(ctx.rule.attr, "embed", []):
-        if GoPkgInfo in dep:
-            pkg_info = dep[GoPkgInfo]
-            deps_transitive_json_file.append(pkg_info.deps_transitive_json_file)
-            deps_transitive_export_file.append(pkg_info.deps_transitive_export_file)
+                # Fetch the stdlib json from the first dependency
+                if not stdlib_json_file:
+                    stdlib_json_file = pkg_info.stdlib_json_file
 
     pkg_json_file = None
     export_file = None
@@ -83,6 +90,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
         )
         pkg_json_file = ctx.actions.declare_file(archive.data.name + ".pkg.json")
         ctx.actions.write(pkg_json_file, content = pkg.to_json())
+
         # If there was no stdlib json in any dependencies, fetch it from the
         # current go_ node.
         if not stdlib_json_file:
@@ -113,7 +121,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
         OutputGroupInfo(
             go_pkg_driver_json_file = pkg_info.transitive_json_file,
             go_pkg_driver_export_file = pkg_info.transitive_export_file,
-            go_pkg_driver_stdlib_json_file = depset([pkg_info.stdlib_json_file] if pkg_info.stdlib_json_file else [])
+            go_pkg_driver_stdlib_json_file = depset([pkg_info.stdlib_json_file] if pkg_info.stdlib_json_file else []),
         ),
     ]
 

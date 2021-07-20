@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -88,7 +89,13 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 		"--build_event_json_file_path_conversion=no",
 	}, args...)
 	if _, err := b.run(ctx, "build", args...); err != nil {
-		return nil, fmt.Errorf("bazel build failed: %w", err)
+		// Ignore a regular build failure to get partial data.
+		// See https://docs.bazel.build/versions/main/guide.html#what-exit-code-will-i-get on
+		// exit codes.
+		var exerr *exec.ExitError
+		if !errors.As(err, &exerr) || (errors.As(err, &exerr) && exerr.ExitCode() != 1) {
+			return nil, fmt.Errorf("bazel build failed: %w", err)
+		}
 	}
 
 	files := make([]string, 0)
@@ -113,6 +120,14 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 }
 
 func (b *Bazel) Query(ctx context.Context, args ...string) ([]string, error) {
+	output, err := b.run(ctx, "query", args...)
+	if err != nil {
+		return nil, fmt.Errorf("bazel query failed: %w", err)
+	}
+	return strings.Split(strings.TrimSpace(output), "\n"), nil
+}
+
+func (b *Bazel) QueryLabels(ctx context.Context, args ...string) ([]string, error) {
 	output, err := b.run(ctx, "query", args...)
 	if err != nil {
 		return nil, fmt.Errorf("bazel query failed: %w", err)
