@@ -40,7 +40,7 @@ def _bindata_impl(ctx):
     if not ctx.attr.modtime:
         arguments.add_all(["-modtime", "0"])
     if ctx.attr.extra_args:
-        arguments.add_all(ctx.attr.extra_args)
+        arguments.add_all(_expand_make_args(ctx, ctx.attr.extra_args))
     srcs = [f.path for f in ctx.files.srcs]
     if ctx.attr.strip_external and any([f.startswith("external/") for f in srcs]):
         arguments.add("-prefix", ctx.label.workspace_root + "/" + ctx.label.package)
@@ -57,6 +57,14 @@ def _bindata_impl(ctx):
             files = depset([out]),
         ),
     ]
+
+
+def _expand_make_args(ctx, args):
+    return [
+        ctx.expand_make_variables("args", arg, {})
+        for arg in args
+    ]
+
 
 bindata = rule(
     implementation = _bindata_impl,
