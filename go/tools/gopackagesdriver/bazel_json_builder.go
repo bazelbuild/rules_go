@@ -79,8 +79,6 @@ func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, e
 	queryArgs := concatStringsArrays(bazelFlags, bazelQueryFlags, []string{
 		"--ui_event_filters=-info,-stderr",
 		"--noshow_progress",
-		// Use Sky Query
-		"--universe_scope=//...",
 		"--order_output=no",
 		"--output=label",
 		"--nodep_deps",
