@@ -42,7 +42,7 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
-	return fmt.Sprintf(`some(kind("go_library", attr(importpath, "%s", //...)))`, importPath)
+	return fmt.Sprintf(`some(kind("go_library", attr(importpath, "%s", %s)))`, importPath, bazelQueryScope)
 }
 
 func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
