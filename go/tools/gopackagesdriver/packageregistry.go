@@ -95,7 +95,7 @@ func (pr *PackageRegistry) Match(patterns ...string) ([]string, []*FlatPackage) 
 		} else if strings.HasSuffix(pattern, "/...") {
 			pkgPrefix := strings.TrimSuffix(pattern, "/...")
 			for _, pkg := range pr.packagesByImportPath {
-				if strings.HasPrefix(pkg.PkgPath, pkgPrefix) {
+				if pkgPrefix == pkg.PkgPath || strings.HasPrefix(pkg.PkgPath, pkgPrefix+"/") {
 					roots[pkg.ID] = struct{}{}
 				}
 			}
