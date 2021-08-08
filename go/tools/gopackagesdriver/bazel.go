@@ -35,7 +35,6 @@ const (
 
 type Bazel struct {
 	bazelBin      string
-	execRoot      string
 	workspaceRoot string
 	info          map[string]string
 }
@@ -82,7 +81,7 @@ func (b *Bazel) run(ctx context.Context, command string, args ...string) (string
 		"--ui_actions_shown=0",
 	}, args...)...)
 	fmt.Fprintln(os.Stderr, "Running:", cmd.Args)
-	cmd.Dir = b.workspaceRoot
+	cmd.Dir = b.WorkspaceRoot()
 	cmd.Stderr = os.Stderr
 	output, err := cmd.Output()
 	return string(output), err
