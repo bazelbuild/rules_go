@@ -14,10 +14,19 @@
 
 package main
 
+import "path/filepath"
+
 func concatStringsArrays(values ...[]string) []string {
 	ret := []string{}
 	for _, v := range values {
 		ret = append(ret, v...)
 	}
 	return ret
+}
+
+func ensureAbsolutePathFromWorkspace(path string) string {
+	if filepath.IsAbs(path) {
+		return path
+	}
+	return filepath.Join(workspaceRoot, path)
 }

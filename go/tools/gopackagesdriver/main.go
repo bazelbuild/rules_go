@@ -56,7 +56,7 @@ var (
 	bazelBin              = getenvDefault("GOPACKAGESDRIVER_BAZEL", "bazel")
 	bazelFlags            = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_FLAGS"))
 	bazelQueryFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY_FLAGS"))
-	bazelQueryScope       = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "//...")
+	bazelQueryScope       = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "")
 	bazelBuildFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_BUILD_FLAGS"))
 	workspaceRoot         = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
 	emptyResponse         = &driverResponse{
@@ -93,6 +93,8 @@ func run() (*driverResponse, error) {
 	ctx, cancel := signalContext(context.Background(), os.Interrupt)
 	defer cancel()
 
+	queries := os.Args[1:]
+
 	request, err := ReadDriverRequest(os.Stdin)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("unable to read request: %w", err)
@@ -103,7 +105,7 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to create bazel instance: %w", err)
 	}
 
-	bazelJsonBuilder, err := NewBazelJSONBuilder(bazel, os.Args[1:]...)
+	bazelJsonBuilder, err := NewBazelJSONBuilder(bazel, queries...)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("unable to build JSON files: %w", err)
 	}
@@ -118,7 +120,8 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to load JSON files: %w", err)
 	}
 
-	return driver.Match("./..."), nil
+	// return driver.AllPackagesResponse(), nil
+	return driver.Match(queries...), nil
 }
 
 func main() {
