@@ -65,8 +65,10 @@ type FlatPackage struct {
 	Standard        bool                `json:",omitempty"`
 }
 
-type PackageFunc func(pkg *FlatPackage)
-type PathResolverFunc func(path string) string
+type (
+	PackageFunc      func(pkg *FlatPackage)
+	PathResolverFunc func(path string) string
+)
 
 func resolvePathsInPlace(prf PathResolverFunc, paths []string) {
 	for i, path := range paths {
