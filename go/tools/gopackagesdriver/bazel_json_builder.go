@@ -27,10 +27,7 @@ type BazelJSONBuilder struct {
 }
 
 const (
-	OutputGroupDriverJSONFile = "go_pkg_driver_json_file"
-	OutputGroupStdLibJSONFile = "go_pkg_driver_stdlib_json_file"
-	OutputGroupExportFile     = "go_pkg_driver_export_file"
-	wildcardQuery             = `kind("go_library", //...)`
+	RulesGoStdlibLabel = "@io_bazel_rules_go//:stdlib"
 )
 
 func (b *BazelJSONBuilder) fileQuery(filename string) string {
@@ -42,6 +39,9 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
+	if strings.HasSuffix(importPath, "/...") {
+		importPath = strings.TrimSuffix(importPath, "/...") + "/.*"
+	}
 	return fmt.Sprintf(`some(kind("go_library", attr(importpath, "%s", deps(%s))))`, importPath, bazelQueryScope)
 }
 
@@ -49,13 +49,22 @@ func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
 	ret := make([]string, 0, len(requests))
 	for _, request := range requests {
 		if request == "." || request == "./..." {
-			return wildcardQuery
+			if bazelQueryScope != "" {
+				ret = append(ret, fmt.Sprintf(`kind("go_library", %s)`, bazelQueryScope))
+			} else {
+				ret = append(ret, fmt.Sprintf(RulesGoStdlibLabel))
+			}
+		} else if request == "builtin" || request == "std" {
+			ret = append(ret, fmt.Sprintf(RulesGoStdlibLabel))
 		} else if strings.HasPrefix(request, "file=") {
 			f := strings.TrimPrefix(request, "file=")
 			ret = append(ret, b.fileQuery(f))
-		} else {
+		} else if bazelQueryScope != "" {
 			ret = append(ret, b.packageQuery(request))
 		}
+	}
+	if len(ret) == 0 {
+		return RulesGoStdlibLabel
 	}
 	return strings.Join(ret, " union ")
 }
@@ -68,9 +77,9 @@ func NewBazelJSONBuilder(bazel *Bazel, requests ...string) (*BazelJSONBuilder, e
 }
 
 func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
-	og := OutputGroupDriverJSONFile + "," + OutputGroupStdLibJSONFile
-	if mode&NeedExportsFile != 0 { // override for now
-		og += "," + OutputGroupExportFile
+	og := "go_pkg_driver_json_file,go_pkg_driver_stdlib_json_file,go_pkg_driver_srcs"
+	if mode&NeedExportsFile != 0 {
+		og += ",go_pkg_driver_export_file"
 	}
 	return og
 }
@@ -98,9 +107,6 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 	if err != nil {
 		return nil, fmt.Errorf("unable to query: %w", err)
 	}
-	if len(labels) == 0 {
-		return nil, fmt.Errorf("found no target to build")
-	}
 
 	buildArgs := concatStringsArrays([]string{
 		"--experimental_convenience_symlinks=ignore",
@@ -117,10 +123,9 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 
 	ret := []string{}
 	for _, f := range files {
-		if !strings.HasSuffix(f, ".pkg.json") {
-			continue
+		if strings.HasSuffix(f, ".pkg.json") {
+			ret = append(ret, f)
 		}
-		ret = append(ret, f)
 	}
 
 	return ret, nil

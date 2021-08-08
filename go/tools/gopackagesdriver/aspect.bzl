@@ -56,6 +56,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
 
     deps_transitive_json_file = []
     deps_transitive_export_file = []
+    deps_transitive_compiled_go_files = []
     for attr in ["deps", "embed"]:
         for dep in getattr(ctx.rule.attr, attr, []):
             if GoPkgInfo in dep:
@@ -63,20 +64,24 @@ def _go_pkg_info_aspect_impl(target, ctx):
                 if attr == "deps":
                     deps_transitive_json_file.append(pkg_info.transitive_json_file)
                     deps_transitive_export_file.append(pkg_info.transitive_export_file)
+                    deps_transitive_compiled_go_files.append(pkg_info.transitive_compiled_go_files)
                 elif attr == "embed":
                     # If deps are embedded, do not gather their json or export_file since they
                     # are included in the current target, but do gather their deps'.
                     deps_transitive_json_file.append(pkg_info.deps_transitive_json_file)
                     deps_transitive_export_file.append(pkg_info.deps_transitive_export_file)
+                    deps_transitive_compiled_go_files.append(pkg_info.deps_transitive_compiled_go_files)
 
                 # Fetch the stdlib json from the first dependency
                 if not stdlib_json_file:
                     stdlib_json_file = pkg_info.stdlib_json_file
 
     pkg_json_file = None
+    compiled_go_files = []
     export_file = None
     if GoArchive in target:
         archive = target[GoArchive]
+        compiled_go_files = archive.data.srcs
         export_file = archive.data.export_file
         pkg = struct(
             ID = str(archive.data.label),
@@ -94,10 +99,10 @@ def _go_pkg_info_aspect_impl(target, ctx):
         pkg_json_file = ctx.actions.declare_file(archive.data.name + ".pkg.json")
         ctx.actions.write(pkg_json_file, content = pkg.to_json())
 
-        # If there was no stdlib json in any dependencies, fetch it from the
-        # current go_ node.
-        if not stdlib_json_file:
-            stdlib_json_file = ctx.attr._go_stdlib[GoStdLib]._list_json
+    # If there was no stdlib json in any dependencies, fetch it from the
+    # current go_ node.
+    if not stdlib_json_file:
+        stdlib_json_file = ctx.attr._go_stdlib[GoStdLib]._list_json
 
     pkg_info = GoPkgInfo(
         json = pkg_json_file,
@@ -109,7 +114,13 @@ def _go_pkg_info_aspect_impl(target, ctx):
         deps_transitive_json_file = depset(
             transitive = deps_transitive_json_file,
         ),
-        export_file = export_file,
+        transitive_compiled_go_files = depset(
+            direct = compiled_go_files,
+            transitive = deps_transitive_compiled_go_files,
+        ),
+        deps_transitive_compiled_go_files = depset(
+            transitive = deps_transitive_compiled_go_files,
+        ),
         transitive_export_file = depset(
             direct = [export_file] if export_file else [],
             transitive = deps_transitive_export_file,
@@ -123,6 +134,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
         pkg_info,
         OutputGroupInfo(
             go_pkg_driver_json_file = pkg_info.transitive_json_file,
+            go_pkg_driver_srcs = pkg_info.transitive_compiled_go_files,
             go_pkg_driver_export_file = pkg_info.transitive_export_file,
             go_pkg_driver_stdlib_json_file = depset([pkg_info.stdlib_json_file] if pkg_info.stdlib_json_file else []),
         ),
