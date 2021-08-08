@@ -15,6 +15,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -35,6 +37,7 @@ type Bazel struct {
 	bazelBin      string
 	execRoot      string
 	workspaceRoot string
+	info          map[string]string
 }
 
 // Minimal BEP structs to access the build outputs
@@ -52,12 +55,24 @@ func NewBazel(ctx context.Context, bazelBin, workspaceRoot string) (*Bazel, erro
 		bazelBin:      bazelBin,
 		workspaceRoot: workspaceRoot,
 	}
-	if execRoot, err := b.run(ctx, "info", "execution_root"); err != nil {
-		return nil, fmt.Errorf("unable to find execution root: %w", err)
-	} else {
-		b.execRoot = strings.TrimSpace(execRoot)
+	if err := b.fillInfo(ctx); err != nil {
+		return nil, fmt.Errorf("unable to query bazel info: %w", err)
 	}
 	return b, nil
+}
+
+func (b *Bazel) fillInfo(ctx context.Context) error {
+	b.info = map[string]string{}
+	output, err := b.run(ctx, "info")
+	if err != nil {
+		return err
+	}
+	scanner := bufio.NewScanner(bytes.NewBufferString(output))
+	for scanner.Scan() {
+		parts := strings.SplitN(strings.TrimSpace(scanner.Text()), ":", 2)
+		b.info[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+	}
+	return nil
 }
 
 func (b *Bazel) run(ctx context.Context, command string, args ...string) (string, error) {
@@ -140,5 +155,9 @@ func (b *Bazel) WorkspaceRoot() string {
 }
 
 func (b *Bazel) ExecutionRoot() string {
-	return b.execRoot
+	return b.info["execution_root"]
+}
+
+func (b *Bazel) OutputBase() string {
+	return b.info["output_base"]
 }

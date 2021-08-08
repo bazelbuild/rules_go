@@ -130,6 +130,7 @@ func (b *BazelJSONBuilder) PathResolver() PathResolverFunc {
 	return func(p string) string {
 		p = strings.Replace(p, "__BAZEL_EXECROOT__", b.bazel.ExecutionRoot(), 1)
 		p = strings.Replace(p, "__BAZEL_WORKSPACE__", b.bazel.WorkspaceRoot(), 1)
+		p = strings.Replace(p, "__BAZEL_OUTPUT_BASE__", b.bazel.OutputBase(), 1)
 		return p
 	}
 }

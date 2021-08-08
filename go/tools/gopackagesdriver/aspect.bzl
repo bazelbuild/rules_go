@@ -28,9 +28,12 @@ def _is_file_external(f):
     return f.owner.workspace_root != ""
 
 def _file_path(f):
-    if f.is_source and not _is_file_external(f):
-        return paths.join("__BAZEL_WORKSPACE__", f.path)
-    return paths.join("__BAZEL_EXECROOT__", f.path)
+    prefix = "__BAZEL_WORKSPACE__"
+    if not f.is_source:
+        prefix = "__BAZEL_EXECROOT__"
+    elif _is_file_external(f):
+        prefix = "__BAZEL_OUTPUT_BASE__"
+    return paths.join(prefix, f.path)
 
 def _new_pkg_info(archive_data):
     return struct(
