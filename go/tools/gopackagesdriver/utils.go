@@ -14,7 +14,19 @@
 
 package main
 
-import "path/filepath"
+import (
+	"context"
+	"os"
+	"os/signal"
+	"path/filepath"
+)
+
+func getenvDefault(key, defaultValue string) string {
+	if v, ok := os.LookupEnv(key); ok {
+		return v
+	}
+	return defaultValue
+}
 
 func concatStringsArrays(values ...[]string) []string {
 	ret := []string{}
@@ -29,4 +41,19 @@ func ensureAbsolutePathFromWorkspace(path string) string {
 		return path
 	}
 	return filepath.Join(workspaceRoot, path)
+}
+
+func signalContext(parentCtx context.Context, signals ...os.Signal) (ctx context.Context, stop context.CancelFunc) {
+	ctx, cancel := context.WithCancel(parentCtx)
+	ch := make(chan os.Signal, 1)
+	go func() {
+		select {
+		case <-ch:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+	signal.Notify(ch, signals...)
+
+	return ctx, cancel
 }

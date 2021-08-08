@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"go/types"
 	"os"
-	"os/signal"
 	"strings"
 )
 
@@ -67,28 +66,6 @@ var (
 	}
 )
 
-func getenvDefault(key, defaultValue string) string {
-	if v, ok := os.LookupEnv(key); ok {
-		return v
-	}
-	return defaultValue
-}
-
-func signalContext(parentCtx context.Context, signals ...os.Signal) (ctx context.Context, stop context.CancelFunc) {
-	ctx, cancel := context.WithCancel(parentCtx)
-	ch := make(chan os.Signal, 1)
-	go func() {
-		select {
-		case <-ch:
-			cancel()
-		case <-ctx.Done():
-		}
-	}()
-	signal.Notify(ch, signals...)
-
-	return ctx, cancel
-}
-
 func run() (*driverResponse, error) {
 	ctx, cancel := signalContext(context.Background(), os.Interrupt)
 	defer cancel()
@@ -120,7 +97,6 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to load JSON files: %w", err)
 	}
 
-	// return driver.AllPackagesResponse(), nil
 	return driver.Match(queries...), nil
 }
 
