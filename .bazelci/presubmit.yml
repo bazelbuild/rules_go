@@ -305,6 +305,7 @@ tasks:
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
     - "-//tests/core/nogo/coverage:coverage_test"
+    - "-//tests/core/race:race_test" # fails on Windows due to upstream bug, see issue #2911
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
     - "-//tests/integration/gazelle:gazelle_test" # exceeds command line length limit
