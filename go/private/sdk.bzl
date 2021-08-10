@@ -147,7 +147,19 @@ def go_local_sdk(name, **kwargs):
     _register_toolchains(name)
 
 def _go_wrap_sdk_impl(ctx):
-    goroot = str(ctx.path(ctx.attr.root_file).dirname)
+    if not ctx.attr.root_file and not ctx.attr.root_files:
+        fail("either root_file or root_files must be provided")
+    if ctx.attr.root_file and ctx.attr.root_files:
+        fail("root_file and root_files cannot be both provided")
+    if ctx.attr.root_file:
+        root_file = ctx.attr.root_file
+    else:
+        goos, goarch = _detect_host_platform(ctx)
+        platform = goos + "_" + goarch
+        if platform not in ctx.attr.root_files:
+            fail("unsupported platform {}".format(platform))
+        root_file = Label(ctx.attr.root_files[platform])
+    goroot = str(ctx.path(root_file).dirname)
     platform = _detect_sdk_platform(ctx, goroot)
     _sdk_build_file(ctx, platform)
     _local_sdk(ctx, goroot)
@@ -156,8 +168,12 @@ _go_wrap_sdk = repository_rule(
     implementation = _go_wrap_sdk_impl,
     attrs = {
         "root_file": attr.label(
-            mandatory = True,
+            mandatory = False,
             doc = "A file in the SDK root direcotry. Used to determine GOROOT.",
+        ),
+        "root_files": attr.string_dict(
+            mandatory = False,
+            doc = "A set of mappings from the host platform to a file in the SDK's root directory",
         ),
     },
 )
