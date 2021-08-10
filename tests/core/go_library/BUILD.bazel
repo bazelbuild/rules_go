@@ -140,3 +140,9 @@ go_bazel_test(
     size = "medium",
     srcs = ["embedsrcs_error_test.go"],
 )
+
+go_test(
+    name = "embedsrcs_simple_test",
+    srcs = ["embedsrcs_simple_test.go"],
+    embedsrcs = ["embedsrcs_static/no"],
+)
