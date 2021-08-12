@@ -28,6 +28,7 @@ tasks:
     - "//..."
     test_targets:
     - "//..."
+    - "-//tests/core/race:race_test" # fails on Mac due to upstream bug, see issue #2911
   rbe_ubuntu1604:
     build_targets:
     - "//..."
