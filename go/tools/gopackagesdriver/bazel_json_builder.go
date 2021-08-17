@@ -35,14 +35,14 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		fp, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
 		filename = fp
 	}
-	return fmt.Sprintf(`some(kind("go_library", same_pkg_direct_rdeps("%s")))`, filename)
+	return fmt.Sprintf(`kind("go_library", same_pkg_direct_rdeps("%s"))`, filename)
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
 	if strings.HasSuffix(importPath, "/...") {
 		importPath = strings.TrimSuffix(importPath, "/...") + "/.*"
 	}
-	return fmt.Sprintf(`some(kind("go_library", attr(importpath, "%s", deps(%s))))`, importPath, bazelQueryScope)
+	return fmt.Sprintf(`kind("go_library", attr(importpath, "%s", deps(%s)))`, importPath, bazelQueryScope)
 }
 
 func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
