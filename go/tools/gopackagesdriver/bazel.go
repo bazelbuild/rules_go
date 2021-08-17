@@ -107,7 +107,7 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 		// See https://docs.bazel.build/versions/main/guide.html#what-exit-code-will-i-get on
 		// exit codes.
 		var exerr *exec.ExitError
-		if !errors.As(err, &exerr) || (errors.As(err, &exerr) && exerr.ExitCode() != 1) {
+		if !errors.As(err, &exerr) || exerr.ExitCode() != 1 {
 			return nil, fmt.Errorf("bazel build failed: %w", err)
 		}
 	}
