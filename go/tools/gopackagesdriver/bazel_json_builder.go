@@ -105,7 +105,11 @@ func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, e
 func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, error) {
 	labels, err := b.query(ctx, b.queryFromRequests(b.requests...))
 	if err != nil {
-		return nil, fmt.Errorf("unable to query: %w", err)
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+
+	if len(labels) == 0 {
+		return nil, fmt.Errorf("found no labels matching the requests")
 	}
 
 	buildArgs := concatStringsArrays([]string{
