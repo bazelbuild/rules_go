@@ -56,6 +56,10 @@ func (pr *PackageRegistry) Remove(pkgs ...*FlatPackage) *PackageRegistry {
 func (pr *PackageRegistry) ResolvePaths(prf PathResolverFunc) error {
 	for _, pkg := range pr.packagesByImportPath {
 		pkg.ResolvePaths(prf)
+		pkg.FilterFilesForBuildTags()
+		for _, f := range pkg.CompiledGoFiles {
+			pr.packagesByFile[f] = pkg
+		}
 		for _, f := range pkg.CompiledGoFiles {
 			pr.packagesByFile[f] = pkg
 		}

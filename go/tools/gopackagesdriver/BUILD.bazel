@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "bazel.go",
         "bazel_json_builder.go",
+        "build_context.go",
         "driver_request.go",
         "flatpackage.go",
         "json_packages_driver.go",

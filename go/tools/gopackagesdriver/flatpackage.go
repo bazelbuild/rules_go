@@ -102,6 +102,13 @@ func (fp *FlatPackage) ResolvePaths(prf PathResolverFunc) error {
 	return nil
 }
 
+// FilterFilesForBuildTags filters the source files given the current build
+// tags.
+func (fp *FlatPackage) FilterFilesForBuildTags() {
+	fp.GoFiles = filterSourceFilesForTags(fp.GoFiles)
+	fp.CompiledGoFiles = filterSourceFilesForTags(fp.CompiledGoFiles)
+}
+
 func (fp *FlatPackage) IsStdlib() bool {
 	return fp.Standard
 }
