@@ -107,6 +107,9 @@ func main() {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v", err)
+		// gopls will check the packages driver exit code, and if there is an
+		// error, it will fall back to go list. Obviously we don't want that,
+		// so force a 0 exit code.
 		os.Exit(0)
 	}
 }
