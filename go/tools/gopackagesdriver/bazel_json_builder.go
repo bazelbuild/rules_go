@@ -48,19 +48,23 @@ func (b *BazelJSONBuilder) packageQuery(importPath string) string {
 func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
 	ret := make([]string, 0, len(requests))
 	for _, request := range requests {
+		result := ""
 		if request == "." || request == "./..." {
 			if bazelQueryScope != "" {
-				ret = append(ret, fmt.Sprintf(`kind("go_library", %s)`, bazelQueryScope))
+				result = fmt.Sprintf(`kind("go_library", %s)`, bazelQueryScope)
 			} else {
-				ret = append(ret, fmt.Sprintf(RulesGoStdlibLabel))
+				result = fmt.Sprintf(RulesGoStdlibLabel)
 			}
 		} else if request == "builtin" || request == "std" {
-			ret = append(ret, fmt.Sprintf(RulesGoStdlibLabel))
+			result = fmt.Sprintf(RulesGoStdlibLabel)
 		} else if strings.HasPrefix(request, "file=") {
 			f := strings.TrimPrefix(request, "file=")
-			ret = append(ret, b.fileQuery(f))
+			result = b.fileQuery(f)
 		} else if bazelQueryScope != "" {
-			ret = append(ret, b.packageQuery(request))
+			result = b.packageQuery(request)
+		}
+		if result != "" {
+			ret = append(ret, result)
 		}
 	}
 	if len(ret) == 0 {
