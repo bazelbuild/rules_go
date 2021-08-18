@@ -35,20 +35,25 @@ def _file_path(f):
         prefix = "__BAZEL_OUTPUT_BASE__"
     return paths.join(prefix, f.path)
 
-def _new_pkg_info(archive_data):
+def _go_archive_to_pkg(archive):
     return struct(
-        ID = str(archive_data.label),
-        PkgPath = archive_data.importpath,
-        ExportFile = _file_path(archive_data.export_file),
+        ID = str(archive.data.label),
+        PkgPath = archive.data.importpath,
+        ExportFile = _file_path(archive.data.export_file),
         GoFiles = [
             _file_path(src)
-            for src in archive_data.orig_srcs
+            for src in archive.data.orig_srcs
         ],
         CompiledGoFiles = [
             _file_path(src)
-            for src in archive_data.srcs
+            for src in archive.data.srcs
         ],
     )
+
+def _make_pkg_json(ctx, archive, pkg_info):
+    pkg_json_file = ctx.actions.declare_file(archive.data.name + ".pkg.json")
+    ctx.actions.write(pkg_json_file, content = pkg_info.to_json())
+    return pkg_json_file
 
 def _go_pkg_info_aspect_impl(target, ctx):
     # Fetch the stdlib JSON file from the inner most target
@@ -57,6 +62,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
     deps_transitive_json_file = []
     deps_transitive_export_file = []
     deps_transitive_compiled_go_files = []
+
     for attr in ["deps", "embed"]:
         for dep in getattr(ctx.rule.attr, attr, []):
             if GoPkgInfo in dep:
@@ -76,28 +82,29 @@ def _go_pkg_info_aspect_impl(target, ctx):
                 if not stdlib_json_file:
                     stdlib_json_file = pkg_info.stdlib_json_file
 
-    pkg_json_file = None
+    pkg_json_files = []
     compiled_go_files = []
-    export_file = None
+    export_files = []
+
     if GoArchive in target:
         archive = target[GoArchive]
-        compiled_go_files = archive.data.srcs
-        export_file = archive.data.export_file
-        pkg = struct(
-            ID = str(archive.data.label),
-            PkgPath = archive.data.importpath,
-            ExportFile = _file_path(archive.data.export_file),
-            GoFiles = [
-                _file_path(src)
-                for src in archive.data.orig_srcs
-            ],
-            CompiledGoFiles = [
-                _file_path(src)
-                for src in archive.data.srcs
-            ],
-        )
-        pkg_json_file = ctx.actions.declare_file(archive.data.name + ".pkg.json")
-        ctx.actions.write(pkg_json_file, content = pkg.to_json())
+        compiled_go_files.extend(archive.source.srcs)
+        export_files.append(archive.data.export_file)
+        pkg = _go_archive_to_pkg(archive)
+        pkg_json_files.append(_make_pkg_json(ctx, archive, pkg))
+
+        # if the rule is a test, we need to get the embedded go_library with the current
+        # test's sources. For that, consume the dependency via GoArchive.direct so that
+        # the test source files are there. Then, create the pkg json file directly. Only
+        # do that for embedded targets, and use the importpath go find which.
+        if ctx.rule.kind == "go_test":
+            embedded_targets = [dep[GoArchive].data.importpath for dep in ctx.rule.attr.embed]
+            for archive in target[GoArchive].direct:
+                if archive.data.importpath in embedded_targets:
+                    pkg = _go_archive_to_pkg(archive)
+                    pkg_json_files.append(_make_pkg_json(ctx, archive, pkg))
+                    compiled_go_files.extend(archive.source.srcs)
+                    export_files.append(archive.data.export_file)
 
     # If there was no stdlib json in any dependencies, fetch it from the
     # current go_ node.
@@ -105,10 +112,9 @@ def _go_pkg_info_aspect_impl(target, ctx):
         stdlib_json_file = ctx.attr._go_stdlib[GoStdLib]._list_json
 
     pkg_info = GoPkgInfo(
-        json = pkg_json_file,
         stdlib_json_file = stdlib_json_file,
         transitive_json_file = depset(
-            direct = [pkg_json_file] if pkg_json_file else [],
+            direct = pkg_json_files,
             transitive = deps_transitive_json_file,
         ),
         deps_transitive_json_file = depset(
@@ -122,7 +128,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
             transitive = deps_transitive_compiled_go_files,
         ),
         transitive_export_file = depset(
-            direct = [export_file] if export_file else [],
+            direct = export_files,
             transitive = deps_transitive_export_file,
         ),
         deps_transitive_export_file = depset(
