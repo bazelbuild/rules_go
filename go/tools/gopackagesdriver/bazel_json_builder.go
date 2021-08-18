@@ -40,7 +40,7 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
 	if strings.HasSuffix(importPath, "/...") {
-		importPath = strings.TrimSuffix(importPath, "/...") + "(/.+)?$"
+		importPath = fmt.Sprintf(`^%s(/.+)?$`, strings.TrimSuffix(importPath, "/..."))
 	}
 	return fmt.Sprintf(`kind("go_library", attr(importpath, "%s", deps(%s)))`, importPath, bazelQueryScope)
 }
