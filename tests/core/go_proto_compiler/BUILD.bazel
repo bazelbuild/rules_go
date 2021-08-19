@@ -67,7 +67,7 @@ go_binary(
 go_proto_compiler(
     name = "data",
     data = ["data.conf"],
-    options = ["config=tests/core/go_proto_compiler/data.conf"],
+    options = ["config=$(rootpath :data.conf)"],
     plugin = ":protoc-gen-data",
     suffix = ".data.pb.go",
 )

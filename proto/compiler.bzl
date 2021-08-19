@@ -166,6 +166,11 @@ def _go_proto_compiler_impl(ctx):
     go = go_context(ctx)
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+
+    expanded_options = []
+    for opt in ctx.attr.options:
+        expanded_options.append(ctx.expand_location(opt, ctx.attr.data))
+
     return [
         GoProtoCompiler(
             deps = ctx.attr.deps,
@@ -173,7 +178,7 @@ def _go_proto_compiler_impl(ctx):
             valid_archive = ctx.attr.valid_archive,
             internal = struct(
                 data = ctx.files.data,
-                options = ctx.attr.options,
+                options = expanded_options,
                 suffix = ctx.attr.suffix,
                 protoc = ctx.executable._protoc,
                 go_protoc = ctx.executable._go_protoc,

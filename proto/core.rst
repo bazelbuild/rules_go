@@ -10,6 +10,7 @@ Go Protocol buffers
 .. _GoArchive: /go/providers.rst#goarchive
 .. _Gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _Make variable substitution: https://docs.bazel.build/versions/master/be/make-variables.html#make-var-substitution
+.. _Location expansion: https://docs.bazel.build/versions/main/be/make-variables.html#predefined_label_variables
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
 .. _gogoprotobuf: https://github.com/gogo/protobuf
 .. _compiler.bzl: compiler.bzl
@@ -396,7 +397,7 @@ Attributes
 | :param:`options`            | :type:`string_list`  | :value:`[]`                                         |
 +-----------------------------+----------------------+-----------------------------------------------------+
 | List of command line options to be passed to the compiler. Each option will                              |
-| be preceded by ``--option``.                                                                             |
+| be preceded by ``--option``. Subject to `Make variable substitution`_.                                   |
 +-----------------------------+----------------------+-----------------------------------------------------+
 | :param:`data`               | :type:`label_list`   | :value:`[]`                                         |
 +-----------------------------+----------------------+-----------------------------------------------------+
