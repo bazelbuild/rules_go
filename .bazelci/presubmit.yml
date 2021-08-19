@@ -273,6 +273,7 @@ tasks:
     - "-//tests/core/cgo:dylib_test"
     - "-//tests/core/cgo:generated_dylib_client"
     - "-//tests/core/cgo:generated_dylib_test"
+    - "-//tests/core/cgo:race_test" # fails on Windows due to upstream bug, see issue #2911
     - "-//tests/core/cgo:versioned_dylib_client"
     - "-//tests/core/cgo:versioned_dylib_test"
     - "-//tests/core/cgo:generated_versioned_dylib_client"
