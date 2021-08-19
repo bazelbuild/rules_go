@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"strings"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -39,6 +40,7 @@ func generate(g *protogen.GeneratedFile, f *protogen.File) {
 	g.P("package ", f.GoPackageName)
 	g.P()
 	for _, msg := range f.Messages {
-		g.P("const ", msg.GoIdent.GoName, `_greeting = "`, string(config), `"`)
+		greeting := strings.TrimSpace(string(config))
+		g.P("const ", msg.GoIdent.GoName, `_greeting = "`, greeting, `"`)
 	}
 }
