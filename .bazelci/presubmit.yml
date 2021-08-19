@@ -277,6 +277,7 @@ tasks:
     - "-//tests/core/cgo:versioned_dylib_test"
     - "-//tests/core/cgo:generated_versioned_dylib_client"
     - "-//tests/core/cgo:generated_versioned_dylib_test"
+    - "-//tests/core/cgo:race_test" # fails on Windows due to upstream bug, see issue #2911
     - "-//tests/core/coverage:coverage_test"
     - "-//tests/core/cross:proto_test"
     - "-//tests/core/go_binary:go_default_test"
