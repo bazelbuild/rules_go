@@ -316,6 +316,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 bzl_library(
     name = "def",
     srcs = ["def.bzl"],
+    visibility = ["//visibility:public"],
 )
 """
     ctx.file("BUILD.bazel", build_content)

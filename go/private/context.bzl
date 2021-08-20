@@ -346,7 +346,8 @@ def _infer_importpath(ctx):
 def go_context(ctx, attr = None):
     """Returns an API used to build Go code.
 
-    See /go/toolchains.rst#go-context"""
+    See /go/toolchains.rst#go-context
+    """
     if not attr:
         attr = ctx.attr
     toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]

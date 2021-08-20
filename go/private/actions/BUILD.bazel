@@ -75,8 +75,10 @@ bzl_library(
     srcs = ["link.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
+        "@bazel_skylib//lib:collections",
         "@io_bazel_rules_go//go/private:common",
         "@io_bazel_rules_go//go/private:mode",
+        "@io_bazel_rules_go//go/private:rpath",
     ],
 )
 
