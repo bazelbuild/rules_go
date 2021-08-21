@@ -96,11 +96,16 @@ def _go_pkg_info_aspect_impl(target, ctx):
         # if the rule is a test, we need to get the embedded go_library with the current
         # test's sources. For that, consume the dependency via GoArchive.direct so that
         # the test source files are there. Then, create the pkg json file directly. Only
-        # do that for embedded targets, and use the importpath go find which.
+        # do that for direct dependencies that are not defined as deps, and use the
+        # importpath to find which.
         if ctx.rule.kind == "go_test":
-            embedded_targets = [dep[GoArchive].data.importpath for dep in ctx.rule.attr.embed]
+            deps_targets = [
+                dep[GoArchive].data.importpath
+                for dep in ctx.rule.attr.deps
+                if GoArchive in dep
+            ]
             for archive in target[GoArchive].direct:
-                if archive.data.importpath in embedded_targets:
+                if archive.data.importpath not in deps_targets:
                     pkg = _go_archive_to_pkg(archive)
                     pkg_json_files.append(_make_pkg_json(ctx, archive, pkg))
                     compiled_go_files.extend(archive.source.srcs)
