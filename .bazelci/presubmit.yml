@@ -10,12 +10,10 @@ tasks:
   ubuntu2004:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     build_flags:
-    - "--incompatible_load_cc_rules_from_bzl"
     - "--incompatible_load_proto_rules_from_bzl"
     - "--incompatible_restrict_string_escapes"
     - "--incompatible_enable_cc_toolchain_resolution"
     test_flags:
-    - "--incompatible_load_cc_rules_from_bzl"
     - "--incompatible_load_proto_rules_from_bzl"
     - "--incompatible_restrict_string_escapes"
     - "--incompatible_enable_cc_toolchain_resolution"

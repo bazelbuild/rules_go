@@ -130,21 +130,6 @@ def go_rules_dependencies(is_rules_go = False):
         patch_args = ["-p1"],
     )
 
-    # Needed for additional targets declared around binaries with c-archive
-    # and c-shared link modes.
-    # releaser:upgrade-dep bazelbuild rules_cc
-    _maybe(
-        http_archive,
-        name = "rules_cc",
-        # main, as of 2021-06-30
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_cc/archive/daf6ace7cfeacd6a83e9ff2ed659f416537b6c74.zip",
-            "https://github.com/bazelbuild/rules_cc/archive/daf6ace7cfeacd6a83e9ff2ed659f416537b6c74.zip",
-        ],
-        sha256 = "b295cad8c5899e371dde175079c0a2cdc0151f5127acc92366a8c986beb95c76",
-        strip_prefix = "rules_cc-daf6ace7cfeacd6a83e9ff2ed659f416537b6c74",
-    )
-
     # Proto dependencies
     # These are limited as much as possible. In most cases, users need to
     # declare these on their own (probably via go_repository rules generated
