@@ -58,6 +58,15 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	}
 	defer cleanup()
 
+	// cgo2 will gather sources into a single temporary directory, since nogo
+	// scanners might want to include or exclude these sources we need to ensure
+	// that a fragment of the path is stable and human friendly enough to be
+	// referenced in nogo configuration.
+	workDir = filepath.Join(workDir, "cgo", packagePath)
+	if err := os.MkdirAll(workDir, 0700); err != nil {
+		return "", nil, nil, err
+	}
+
 	// Filter out -lstdc++ and -lc++ from ldflags if we don't have C++ sources,
 	// and set CGO_LDFLAGS. These flags get written as special comments into cgo
 	// generated sources. The compiler encodes those flags in the compiled .a

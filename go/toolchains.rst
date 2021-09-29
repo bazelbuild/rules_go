@@ -355,11 +355,17 @@ rule.
 | A unique name for this SDK. This should almost always be :value:`go_sdk` if you want the SDK     |
 | to be used by toolchains.                                                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
-| :param:`root_file`             | :type:`label`               | |mandatory|                       |
+| :param:`root_file`             | :type:`label`               | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | A Bazel label referencing a file in the root directory of the SDK. Used to                       |
-| determine the GOROOT for the SDK.                                                                |
+| determine the GOROOT for the SDK. This attribute and `root_files` cannot be both provided.       |
 +--------------------------------+-----------------------------+-----------------------------------+
+| :param:`root_files`            | :type:`string_dict`         | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| A set of mappings from the host platform to a Bazel label referencing a file in the SDK's root   |
+| directory. This attribute and `root_file` cannot be both provided.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+
 
 **Example:**
 

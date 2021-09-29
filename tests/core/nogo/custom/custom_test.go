@@ -86,6 +86,16 @@ go_library(
 )
 
 go_library(
+    name = "uses_cgo_with_errors",
+    srcs = [
+        "examplepkg/uses_cgo_clean.go",
+        "examplepkg/pure_src_with_err_calling_native.go",
+    ],
+    importpath = "examplepkg",
+    cgo = True,
+)
+
+go_library(
     name = "no_errors",
     srcs = ["no_errors.go"],
     importpath = "noerrors",
@@ -336,6 +346,26 @@ package dep
 func D() {
 }
 
+-- examplepkg/uses_cgo_clean.go --
+package examplepkg
+
+// #include <stdlib.h>
+import "C"
+
+func Bar() bool {
+  if C.rand() > 10 {
+    return true
+  }
+  return false
+}
+
+-- examplepkg/pure_src_with_err_calling_native.go --
+package examplepkg
+
+func Foo() bool { // This should fail foofuncname
+  return Bar()
+}
+
 `,
 	})
 }
@@ -389,6 +419,15 @@ func Test(t *testing.T) {
 				`importfmt`,
 			},
 		}, {
+			desc:        "uses_cgo_with_errors",
+			config:      "config.json",
+			target:      "//:uses_cgo_with_errors",
+			wantSuccess: false,
+			includes: []string{
+				// note the cross platform regex :)
+				`.*[\\/]cgo[\\/]examplepkg[\\/]pure_src_with_err_calling_native.go:.*function must not be named Foo \(foofuncname\)`,
+			},
+		}, {
 			desc:        "no_errors",
 			target:      "//:no_errors",
 			wantSuccess: true,
@@ -417,7 +456,7 @@ func Test(t *testing.T) {
 				if matched, err := regexp.Match(pattern, stderr.Bytes()); err != nil {
 					t.Fatal(err)
 				} else if !matched {
-					t.Errorf("output did not contain pattern: %s", pattern)
+					t.Errorf("got output:\n %s\n which does not contain pattern: %s", string(stderr.Bytes()), pattern)
 				}
 			}
 			for _, pattern := range test.excludes {

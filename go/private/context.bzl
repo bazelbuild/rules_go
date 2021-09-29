@@ -63,6 +63,10 @@ load(
     "@bazel_skylib//rules:common_settings.bzl",
     "BuildSettingInfo",
 )
+load(
+    "@io_bazel_rules_go//go/private/rules:transition.bzl",
+    "request_nogo_transition",
+)
 
 _COMPILER_OPTIONS_BLACKLIST = {
     # cgo parses the error messages from the compiler.  It can't handle colors.
@@ -535,10 +539,14 @@ go_context_data = rule(
             mandatory = True,
             providers = [GoStdLib],
         ),
+        "_whitelist_function_transition": attr.label(
+            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        ),
     },
     doc = """go_context_data gathers information about the build configuration.
     It is a common dependency of all Go targets.""",
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    cfg = request_nogo_transition,
 )
 
 def _cgo_context_data_impl(ctx):
@@ -647,7 +655,7 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
             variables = ld_executable_variables,
-        ),
+        ) + ctx.fragments.cpp.linkopts,
         _LINKER_OPTIONS_BLACKLIST,
     )
     env.update(cc_common.get_environment_variables(
@@ -688,9 +696,10 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
             variables = ld_dynamic_lib_variables,
-        ),
+        ) + ctx.fragments.cpp.linkopts,
         _LINKER_OPTIONS_BLACKLIST,
     )
+
     env.update(cc_common.get_environment_variables(
         feature_configuration = feature_configuration,
         action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,

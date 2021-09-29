@@ -10,12 +10,10 @@ tasks:
   ubuntu2004:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     build_flags:
-    - "--incompatible_load_cc_rules_from_bzl"
     - "--incompatible_load_proto_rules_from_bzl"
     - "--incompatible_restrict_string_escapes"
     - "--incompatible_enable_cc_toolchain_resolution"
     test_flags:
-    - "--incompatible_load_cc_rules_from_bzl"
     - "--incompatible_load_proto_rules_from_bzl"
     - "--incompatible_restrict_string_escapes"
     - "--incompatible_enable_cc_toolchain_resolution"
@@ -273,6 +271,7 @@ tasks:
     - "-//tests/core/cgo:dylib_test"
     - "-//tests/core/cgo:generated_dylib_client"
     - "-//tests/core/cgo:generated_dylib_test"
+    - "-//tests/core/cgo:race_test" # fails on Windows due to upstream bug, see issue #2911
     - "-//tests/core/cgo:versioned_dylib_client"
     - "-//tests/core/cgo:versioned_dylib_test"
     - "-//tests/core/cgo:generated_versioned_dylib_client"
@@ -305,6 +304,7 @@ tasks:
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
     - "-//tests/core/nogo/coverage:coverage_test"
+    - "-//tests/core/race:race_test" # fails on Windows due to upstream bug, see issue #2911
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
     - "-//tests/integration/gazelle:gazelle_test" # exceeds command line length limit

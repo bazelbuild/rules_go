@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -214,6 +215,23 @@ func Test(t *testing.T) {
 	// Compare dir0 and dir2. They should be different.
 	if err := compareHashes(dirHashes[0], dirHashes[2]); err == nil {
 		t.Fatalf("dir0 and dir2 are the same)", len(dirHashes[0]))
+	}
+
+	// Check that the go_sdk path doesn't appear in the builder binary. This path is different
+	// nominally different per workspace (but in these tests, the go_sdk paths are all set to the same
+	// path in WORKSPACE) -- so if this path is in the builder binary, then builds between workspaces
+	// would be partially non cacheable.
+	builder_file, err := os.Open(filepath.Join(dirs[0], "bazel-out", "host", "bin", "external", "go_sdk", "builder"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer builder_file.Close()
+	builder_data, err := ioutil.ReadAll(builder_file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Index(builder_data, []byte("go_sdk")) != -1 {
+		t.Fatalf("Found go_sdk path in builder binary, builder tool won't be reproducible")
 	}
 }
 

@@ -30,7 +30,6 @@ bzl_library(
     name = "cgo",
     srcs = ["cgo.bzl"],
     visibility = ["//go:__subpackages__"],
-    # Don't list dependency on @rules_cc//cc:defs
     deps = [
         "@io_bazel_rules_go//go/private:common",
         "@io_bazel_rules_go//go/private:mode",

@@ -181,6 +181,28 @@ def _go_transition_impl(settings, attr):
 
     return settings
 
+def _request_nogo_transition(settings, attr):
+    """Indicates that we want the project configured nogo instead of a noop.
+
+    This does not guarantee that the project configured nogo will be used (if
+    bootstrap is true we are currently building nogo so that is a cyclic
+    dependency).
+
+    The config setting nogo_active requires bootstrap to be false and
+    request_nogo to be true to provide the project configured nogo.
+    """
+    settings = dict(settings)
+    settings[filter_transition_label("@io_bazel_rules_go//go/private:request_nogo")] = True
+    return settings
+
+request_nogo_transition = transition(
+    implementation = _request_nogo_transition,
+    inputs = [],
+    outputs = [filter_transition_label(label) for label in [
+        "@io_bazel_rules_go//go/private:request_nogo",
+    ]],
+)
+
 go_transition = transition(
     implementation = _go_transition_impl,
     inputs = [filter_transition_label(label) for label in [
@@ -214,6 +236,7 @@ _reset_transition_dict = {
     "@io_bazel_rules_go//go/config:debug": False,
     "@io_bazel_rules_go//go/config:linkmode": LINKMODE_NORMAL,
     "@io_bazel_rules_go//go/config:tags": [],
+    "@io_bazel_rules_go//go/private:bootstrap_nogo": True,
 }
 
 _reset_transition_keys = sorted([filter_transition_label(label) for label in _reset_transition_dict.keys()])

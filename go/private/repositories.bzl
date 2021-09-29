@@ -130,21 +130,6 @@ def go_rules_dependencies(is_rules_go = False):
         patch_args = ["-p1"],
     )
 
-    # Needed for additional targets declared around binaries with c-archive
-    # and c-shared link modes.
-    # releaser:upgrade-dep bazelbuild rules_cc
-    _maybe(
-        http_archive,
-        name = "rules_cc",
-        # main, as of 2021-06-30
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_cc/archive/daf6ace7cfeacd6a83e9ff2ed659f416537b6c74.zip",
-            "https://github.com/bazelbuild/rules_cc/archive/daf6ace7cfeacd6a83e9ff2ed659f416537b6c74.zip",
-        ],
-        sha256 = "b295cad8c5899e371dde175079c0a2cdc0151f5127acc92366a8c986beb95c76",
-        strip_prefix = "rules_cc-daf6ace7cfeacd6a83e9ff2ed659f416537b6c74",
-    )
-
     # Proto dependencies
     # These are limited as much as possible. In most cases, users need to
     # declare these on their own (probably via go_repository rules generated
@@ -273,13 +258,13 @@ def go_rules_dependencies(is_rules_go = False):
     _maybe(
         http_archive,
         name = "go_googleapis",
-        # master, as of 2021-06-30
+        # master, as of 2021-09-23
         urls = [
-            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/1c5c56c18ab4e2353f87a9c2e14864f218c5502c.zip",
-            "https://github.com/googleapis/googleapis/archive/1c5c56c18ab4e2353f87a9c2e14864f218c5502c.zip",
+            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/aa73c560f096416fb96c9a3931ebc3fa2cab72ac.zip",
+            "https://github.com/googleapis/googleapis/archive/aa73c560f096416fb96c9a3931ebc3fa2cab72ac.zip",
         ],
-        sha256 = "fa52a03d9c49c28e475a33f9adfb0551344ca0dbd15168d6862ac32cc8354c1c",
-        strip_prefix = "googleapis-1c5c56c18ab4e2353f87a9c2e14864f218c5502c",
+        sha256 = "577ddf50dd603b477840c270eae6e20980da6e0651162018c083e05b6bdc0923",
+        strip_prefix = "googleapis-aa73c560f096416fb96c9a3931ebc3fa2cab72ac",
         patches = [
             # releaser:patch-cmd find . -name BUILD.bazel -delete
             "@io_bazel_rules_go//third_party:go_googleapis-deletebuild.patch",

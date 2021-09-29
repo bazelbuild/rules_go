@@ -2,7 +2,6 @@ nogo test with coverage
 =======================
 
 .. _nogo: /go/nogo.rst
-.. _go_tool_library: /go/core.rst#_go_tool_library
 .. _#1940: https://github.com/bazelbuild/rules_go/issues/1940
 .. _#2146: https://github.com/bazelbuild/rules_go/issues/2146
 

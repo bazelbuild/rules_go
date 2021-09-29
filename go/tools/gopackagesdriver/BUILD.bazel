@@ -5,11 +5,13 @@ go_library(
     srcs = [
         "bazel.go",
         "bazel_json_builder.go",
+        "build_context.go",
         "driver_request.go",
         "flatpackage.go",
         "json_packages_driver.go",
         "main.go",
         "packageregistry.go",
+        "utils.go",
     ],
     importpath = "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver",
     visibility = ["//visibility:private"],

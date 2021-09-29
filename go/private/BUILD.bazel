@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_setting")
 
 filegroup(
     name = "all_rules",
@@ -136,4 +137,39 @@ bzl_library(
         "//go:__subpackages__",
         "//proto:__pkg__",  # keep
     ],
+)
+
+# Usually false. This is only true when we are building nogo itself in which
+# because that rule uses an incoming transition to switch this to true.
+bool_setting(
+    name = "bootstrap_nogo",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# Usually true. The entire toolchain gets nogo to use in builds via the
+# go_context_data rule, which has an incoming transition that flips this flag
+# to true. This will only be false in host mode (which disallows any
+# transitions) or accessing nogo without going through go_context_data (which
+# does not happen in rules_go and does not seem to be useful).
+bool_setting(
+    name = "request_nogo",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+# Controls whether nogo alias will reference a noop or the configured nogo.
+# This *MUST* default to the noop to allow for tools to be built in the
+# deprecated "host" mode. Host mode cannot perform configuration transitions
+# so it cannot avoid circular dependencies. Therefore the default must work
+# without performing any transitions. The tradeoff is that nogo analysis is not
+# performed for any target built in host mode - this is not as bad as it seems
+# as most tools can (and should) use "exec" configuration instead of host which
+# does support transitions.
+config_setting(
+    name = "nogo_active",
+    flag_values = {
+        ":bootstrap_nogo": "False",
+        ":request_nogo": "True",
+    },
 )
