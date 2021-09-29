@@ -192,14 +192,12 @@ func runPrepare(ctx context.Context, stderr io.Writer, args []string) error {
 	// Create or update the GitHub release.
 	if release == nil {
 		fmt.Fprintf(stderr, "creating draft release...\n")
-		prerelease := true
 		draft := true
 		release = &github.RepositoryRelease{
 			TagName:         &version,
 			TargetCommitish: &branchName,
 			Name:            &version,
 			Body:            &rnotesStr,
-			Prerelease:      &prerelease,
 			Draft:           &draft,
 		}
 		if release, _, err = gh.Repositories.CreateRelease(ctx, "bazelbuild", "rules_go", release); err != nil {
