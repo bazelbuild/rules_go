@@ -13,7 +13,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Bare bones Go testing support for Bazel.
+// Go testing support for Bazel.
+//
+// A Go test comprises three packages:
+//
+// 1. An internal test package, compiled from the sources of the library being
+//    tested and any _test.go files with the same package name.
+// 2. An external test package, compiled from _test.go files with a package
+//    name ending with "_test".
+// 3. A generated main package that imports both packages and initializes the
+//    test framework with a list of tests, benchmarks, examples, and fuzz
+//    targets read from source files.
+//
+// This action generates the source code for (3). The equivalent code for
+// 'go test' is in $GOROOT/src/cmd/go/internal/load/test.go.
 
 package main
 
@@ -21,6 +34,7 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/doc"
 	"go/parser"
 	"go/token"
@@ -49,13 +63,24 @@ type Example struct {
 
 // Cases holds template data.
 type Cases struct {
-	Imports    []*Import
-	Tests      []TestCase
-	Benchmarks []TestCase
-	Examples   []Example
-	TestMain   string
-	Coverage   bool
-	Pkgname    string
+	Imports     []*Import
+	Tests       []TestCase
+	Benchmarks  []TestCase
+	FuzzTargets []TestCase
+	Examples    []Example
+	TestMain    string
+	Coverage    bool
+	Pkgname     string
+}
+
+// Version returns whether v is a supported Go version (like "go1.18").
+func (c *Cases) Version(v string) bool {
+	for _, r := range build.Default.ReleaseTags {
+		if v == r {
+			return true
+		}
+	}
+	return false
 }
 
 const testMainTpl = `
@@ -101,6 +126,14 @@ var benchmarks = []testing.InternalBenchmark{
 {{end}}
 }
 
+{{if .Version "go1.18"}}
+var fuzzTargets = []testing.InternalFuzzTarget{
+{{range .FuzzTargets}}
+  {"{{.Name}}", {{.Package}}.{{.Name}} },
+{{end}}
+}
+{{end}}
+
 var examples = []testing.InternalExample{
 {{range .Examples}}
 	{Name: "{{.Name}}", F: {{.Package}}.{{.Name}}, Output: {{printf "%q" .Output}}, Unordered: {{.Unordered}} },
@@ -138,7 +171,11 @@ func main() {
 		}
 	}
 
+  {{if .Version "go1.18"}}
+	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, fuzzTargets, examples)
+  {{else}}
 	m := testing.MainStart(testdeps.TestDeps{}, testsInShard(), benchmarks, examples)
+  {{end}}
 
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {
 		flag.Lookup("test.run").Value.Set(filter)
@@ -313,6 +350,16 @@ func genTestMain(args []string) error {
 				}
 				pkgs[pkg] = true
 				cases.Benchmarks = append(cases.Benchmarks, TestCase{
+					Package: pkg,
+					Name:    fn.Name.Name,
+				})
+			}
+			if strings.HasPrefix(fn.Name.Name, "Fuzz") {
+				if selExpr.Sel.Name != "F" {
+					continue
+				}
+				pkgs[pkg] = true
+				cases.FuzzTargets = append(cases.FuzzTargets, TestCase{
 					Package: pkg,
 					Name:    fn.Name.Name,
 				})

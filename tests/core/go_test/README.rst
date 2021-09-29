@@ -111,3 +111,8 @@ wrapper_test
 
 Checks that a ``go_test`` can be executed by another test in a subdirectory.
 Verifies `#2749`_.
+
+fuzz_test
+---------
+
+Checks that a ``go_test`` with a fuzz target builds correctly.
