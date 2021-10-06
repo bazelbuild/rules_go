@@ -2014,31 +2014,6 @@ diff -urN c/google/analytics/admin/v1alpha/BUILD.bazel d/google/analytics/admin/
 +    visibility = ["//visibility:public"],
 +    deps = ["//google/api:annotations_go_proto"],
 +)
-diff -urN c/google/analytics/data/v1alpha/BUILD.bazel d/google/analytics/data/v1alpha/BUILD.bazel
---- c/google/analytics/data/v1alpha/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
-+++ d/google/analytics/data/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,21 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "data_proto",
-+    srcs = [
-+        "analytics_data_api.proto",
-+        "data.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_proto"],
-+)
-+
-+go_proto_library(
-+    name = "data_go_proto",
-+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
-+    importpath = "google.golang.org/genproto/googleapis/analytics/data/v1alpha",
-+    proto = ":data_proto",
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_go_proto"],
-+)
 diff -urN c/google/analytics/data/v1beta/BUILD.bazel d/google/analytics/data/v1beta/BUILD.bazel
 --- c/google/analytics/data/v1beta/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ d/google/analytics/data/v1beta/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -5383,7 +5358,7 @@ diff -urN c/google/cloud/deploy/v1/BUILD.bazel d/google/cloud/deploy/v1/BUILD.ba
 diff -urN c/google/cloud/dialogflow/cx/v3/BUILD.bazel d/google/cloud/dialogflow/cx/v3/BUILD.bazel
 --- c/google/cloud/dialogflow/cx/v3/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ d/google/cloud/dialogflow/cx/v3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,54 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5393,6 +5368,7 @@ diff -urN c/google/cloud/dialogflow/cx/v3/BUILD.bazel d/google/cloud/dialogflow/
 +        "advanced_settings.proto",
 +        "agent.proto",
 +        "audio_config.proto",
++        "deployment.proto",
 +        "entity_type.proto",
 +        "environment.proto",
 +        "experiment.proto",
@@ -5440,7 +5416,7 @@ diff -urN c/google/cloud/dialogflow/cx/v3/BUILD.bazel d/google/cloud/dialogflow/
 diff -urN c/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel d/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel
 --- c/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ d/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,54 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5450,6 +5426,7 @@ diff -urN c/google/cloud/dialogflow/cx/v3beta1/BUILD.bazel d/google/cloud/dialog
 +        "advanced_settings.proto",
 +        "agent.proto",
 +        "audio_config.proto",
++        "deployment.proto",
 +        "entity_type.proto",
 +        "environment.proto",
 +        "experiment.proto",
@@ -5920,7 +5897,7 @@ diff -urN c/google/cloud/eventarc/v1/BUILD.bazel d/google/cloud/eventarc/v1/BUIL
 diff -urN c/google/cloud/filestore/v1/BUILD.bazel d/google/cloud/filestore/v1/BUILD.bazel
 --- c/google/cloud/filestore/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ d/google/cloud/filestore/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,29 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -5930,6 +5907,7 @@ diff -urN c/google/cloud/filestore/v1/BUILD.bazel d/google/cloud/filestore/v1/BU
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_proto",
++        "//google/cloud/common:common_proto",
 +        "//google/longrunning:longrunning_proto",
 +        "@com_google_protobuf//:field_mask_proto",
 +        "@com_google_protobuf//:timestamp_proto",
@@ -5945,6 +5923,7 @@ diff -urN c/google/cloud/filestore/v1/BUILD.bazel d/google/cloud/filestore/v1/BU
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//google/api:annotations_go_proto",
++        "//google/cloud/common:common_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
@@ -6015,6 +5994,28 @@ diff -urN c/google/cloud/functions/v1/BUILD.bazel d/google/cloud/functions/v1/BU
 +        "//google/iam/v1:iam_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
 +    ],
++)
+diff -urN c/google/cloud/gaming/allocationendpoint/v1alpha/BUILD.bazel d/google/cloud/gaming/allocationendpoint/v1alpha/BUILD.bazel
+--- c/google/cloud/gaming/allocationendpoint/v1alpha/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ d/google/cloud/gaming/allocationendpoint/v1alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "allocationendpoint_proto",
++    srcs = ["allocation_endpoint.proto"],
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_proto"],
++)
++
++go_proto_library(
++    name = "allocationendpoint_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/gaming/allocationendpoint/v1alpha",
++    proto = ":allocationendpoint_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
 +)
 diff -urN c/google/cloud/gaming/v1/BUILD.bazel d/google/cloud/gaming/v1/BUILD.bazel
 --- c/google/cloud/gaming/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
@@ -6591,6 +6592,27 @@ diff -urN c/google/cloud/gkehub/v1beta1/BUILD.bazel d/google/cloud/gkehub/v1beta
 +        "//google/longrunning:longrunning_go_proto",
 +        "//google/rpc:status_go_proto",
 +    ],
++)
+diff -urN c/google/cloud/gsuiteaddons/logging/v1/BUILD.bazel d/google/cloud/gsuiteaddons/logging/v1/BUILD.bazel
+--- c/google/cloud/gsuiteaddons/logging/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ d/google/cloud/gsuiteaddons/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,17 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "logging_proto",
++    srcs = ["g_suite_add_ons_log_entry.proto"],
++    visibility = ["//visibility:public"],
++    deps = ["//google/rpc:status_proto"],
++)
++
++go_proto_library(
++    name = "logging_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/cloud/gsuiteaddons/logging/v1",
++    proto = ":logging_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/rpc:status_go_proto"],
 +)
 diff -urN c/google/cloud/gsuiteaddons/v1/BUILD.bazel d/google/cloud/gsuiteaddons/v1/BUILD.bazel
 --- c/google/cloud/gsuiteaddons/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
