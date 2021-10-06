@@ -102,7 +102,7 @@ func runPrepare(ctx context.Context, stderr io.Writer, args []string) error {
 	// Get the GitHub release.
 	fmt.Fprintf(stderr, "checking if release %s exists...\n", version)
 	release, err := gh.getReleaseByTagIncludingDraft(ctx, "bazelbuild", "rules_go", version)
-	if err != nil && errors.Is(err, errReleaseNotFound) {
+	if err != nil && !errors.Is(err, errReleaseNotFound) {
 		return err
 	}
 	if release != nil && !release.GetDraft() {
