@@ -89,6 +89,7 @@ def go_rules_dependencies(is_rules_go = False):
             "@io_bazel_rules_go//third_party:org_golang_x_tools-deletegopls.patch",
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
             "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",
+            "@io_bazel_rules_go//third_party:org_golang_x_tools-public-visibility.patch",
         ],
         patch_args = ["-p1"],
     )
