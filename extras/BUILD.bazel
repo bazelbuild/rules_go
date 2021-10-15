@@ -1,5 +1,8 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+# TODO do we really need exports_files
+exports_files(["embed_data.bzl"])
+
 filegroup(
     name = "all_rules",
     srcs = glob(["*.bzl"]) + ["//go/private:all_rules"],
