@@ -1,0 +1,16 @@
+${ruleName}
+-------------
+
+$ruleInfo.docString
+
+#if (!$ruleInfo.getAttributeList().isEmpty())
++----------------------------+-----------------------------+---------------------------------------+
+| **Name**                   | **Type**                    | **Default value**                     |
++----------------------------+-----------------------------+---------------------------------------+
+#foreach ($attribute in $ruleInfo.getAttributeList())
+
+| :param:`${attribute.name}`    | :type:`${util.attributeTypeString($attribute)}`              | :value:`$attribute.defaultValue`  |   #if( $attribute.mandatory ), mandatory#end   |                           |
+| #if (!$attribute.docString.isEmpty()): ${attribute.docString.trim()}#end                                                                   |
+#end
+
+#end

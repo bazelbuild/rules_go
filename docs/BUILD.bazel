@@ -1,13 +1,29 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+
+_NAV_HEADER = """
+.. _`core go rules`: core.rst
+.. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
+.. _`gazelle documentation`: https://github.com/bazelbuild/bazel-gazelle/blob/master/README.rst
+.. _gazelle rule: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
+.. _gomock_rule: https://github.com/jmhodges/bazel_gomock
+.. _golang/mock: https://github.com/golang/mock
+
+.. role:: param(kbd)
+.. role:: type(emphasis)
+.. role:: value(code)
+.. |mandatory| replace:: **mandatory value**
+"""
+
 # Workaround https://github.com/bazelbuild/stardoc/issues/25
 write_file(
     name = "gen_header",
     out = "header.vm",
     content = [
-        "<!-- Generated with Stardoc, Do Not Edit! -->",
-        "",
+        "Extra rules",
+        "===========",
+        _NAV_HEADER,
         "${moduleDocstring}",
     ],
 )
@@ -20,12 +36,18 @@ _DOC_SRCS = {
     stardoc(
         name = file.replace(":", "_") + "_doc",
         out = file.replace(":", "_") + ".md_",
-        # header_template = ":header.vm",
+        header_template = ":header.vm",
+        rule_template = ":rule.vm",
         input = "//%s.bzl" % file,
         deps = ["//" + file],
     )
     for file in _DOC_SRCS.keys()
 ]
+
+# reformatter(
+#     src =  that one
+#     out = cleaned
+# )
 
 [
     diff_test(

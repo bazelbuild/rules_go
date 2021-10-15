@@ -16,6 +16,7 @@ Extra rules
 This is a collection of helper rules. These are not core to building a go binary, but are supplied
 to make life a little easier.
 
+<a id="#go_embed_data"></a>
 .. contents::
 
 -----

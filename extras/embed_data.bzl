@@ -12,12 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""embed_data.bzl provides the go_embed_data rule for embedding data in go files"""
+"""This is a collection of helper rules. These are not core to building a go binary, but are supplied
+to make life a little easier.
+
+gazelle
+-------
+
+This rule has moved. See `gazelle rule`_ in the Gazelle repository.
+
+gomock
+------
+
+This rule allows you to generate mock interfaces with mockgen (from `golang/mock`_) which can be useful for certain testing scenarios. See  `gomock_rule`_ in the gomock repository.
+
+"""
 
 load(
     "@io_bazel_rules_go//go/private:context.bzl",  #TODO: This ought to be def
     "go_context",
 )
+
+_DOC = """``go_embed_data`` generates a .go file that contains data from a file or a
+list of files. It should be consumed in the srcs list of one of the
+`core go rules`_.
+
+Before using ``go_embed_data``, you must add the following snippet to your
+WORKSPACE:
+
+.. code:: bzl
+
+    load("@io_bazel_rules_go//extras:embed_data_deps.bzl", "go_embed_data_dependencies")
+
+    go_embed_data_dependencies()
+
+
+``go_embed_data`` accepts the attributes listed below.
+"""
 
 def _go_embed_data_impl(ctx):
     go = go_context(ctx)
@@ -80,9 +110,13 @@ def _go_embed_data_impl(ctx):
 
 go_embed_data = rule(
     implementation = _go_embed_data_impl,
+    doc = _DOC,
     attrs = {
         "package": attr.string(),
-        "var": attr.string(default = "Data"),
+        "var": attr.string(
+            default = "Data",
+            doc = "Name of the variable that will contain the embedded data.",
+        ),
         "src": attr.label(allow_single_file = True),
         "srcs": attr.label_list(allow_files = True),
         "flatten": attr.bool(),
