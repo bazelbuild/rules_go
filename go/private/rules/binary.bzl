@@ -235,6 +235,7 @@ def _go_tool_binary_impl(ctx):
         arguments = [largs],
         inputs = sdk.libs + sdk.headers + sdk.tools + [cout],
         outputs = [out],
+        env = {"GOROOT_FINAL": "GOROOT"},  # Suppress go root paths to keep the output reproducible.
         mnemonic = "GoToolchainBinary",
     )
 

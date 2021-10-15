@@ -208,3 +208,8 @@ go_test(
     srcs = ["wrapped_test.go"],
     tags = ["manual"],
 )
+
+go_test(
+    name = "fuzz_test",
+    srcs = ["fuzz_test.go"],
+)

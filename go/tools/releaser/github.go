@@ -17,6 +17,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -49,6 +50,46 @@ func (gh *githubClient) listTags(ctx context.Context, org, repo string) (_ []*gi
 	}
 	return allTags, nil
 }
+
+func (gh *githubClient) listReleases(ctx context.Context, org, repo string) (_ []*github.RepositoryRelease, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("listing releases in github.com/%s/%s: %w", org, repo, err)
+		}
+	}()
+
+	var allReleases []*github.RepositoryRelease
+	err = gh.listPages(func(opts *github.ListOptions) (*github.Response, error) {
+		releases, resp, err := gh.Repositories.ListReleases(ctx, org, repo, opts)
+		if err != nil {
+			return nil, err
+		}
+		allReleases = append(allReleases, releases...)
+		return resp, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return allReleases, nil
+}
+
+// getReleaseByTagIncludingDraft is like
+// github.RepositoriesService.GetReleaseByTag, but it also considers draft
+// releases that aren't tagged yet.
+func (gh *githubClient) getReleaseByTagIncludingDraft(ctx context.Context, org, repo, tag string) (*github.RepositoryRelease, error) {
+	releases, err := gh.listReleases(ctx, org, repo)
+	if err != nil {
+		return nil, err
+	}
+	for _, release := range releases {
+		if release.GetTagName() == tag {
+			return release, nil
+		}
+	}
+	return nil, errReleaseNotFound
+}
+
+var errReleaseNotFound = errors.New("release not found")
 
 // githubListPages calls fn repeatedly to get all pages of a large result.
 // This is useful for fetching all tags or all comments or something similar.

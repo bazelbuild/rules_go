@@ -1,5 +1,4 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library")
 
 go_test(
     name = "opts_test",
@@ -34,6 +33,11 @@ cc_library(
     ],
 )
 
+COPTS_INCLUDE_PREFIX = (package_name() if repository_name() == "@" else "external/%s/%s" % (
+    repository_name()[1:],
+    package_name(),
+))
+
 go_library(
     name = "opts",
     srcs = [
@@ -52,17 +56,17 @@ go_library(
     cgo = True,
     copts = [
         "-DRULES_GO_C",
-        "-I$(GENDIR)/tests/core/cgo/generated_copts",
+        "-I$(GENDIR)/%s/generated_copts" % COPTS_INCLUDE_PREFIX,
         "-DDOLLAR_SIGN_C=$$",  # the dollar sign should be escaped
     ],
     cppopts = [
         "-DRULES_GO_CPP",
-        "-I$(GENDIR)/tests/core/cgo/generated_cppopts",
+        "-I$(GENDIR)/%s/generated_cppopts" % COPTS_INCLUDE_PREFIX,
         "-DDOLLAR_SIGN_CPP=$$",  # the dollar sign should be escaped
     ],
     cxxopts = [
         "-DRULES_GO_CXX",
-        "-I$(GENDIR)/tests/core/cgo/generated_cxxopts",
+        "-I$(GENDIR)/%s/generated_cxxopts" % COPTS_INCLUDE_PREFIX,
         "-DDOLLAR_SIGN_CXX=$$",  # the dollar sign should be escaped
     ],
     importpath = "github.com/bazelbuild/rules_go/tests/core/cxx",
@@ -73,7 +77,7 @@ go_test(
     srcs = ["dylib_test.go"],
     embed = [":dylib_client"],
     rundir = ".",
-    tags = ["manual"], # //tests/core/cgo:generate_imported_dylib.sh must be run first
+    tags = ["manual"],  # //tests/core/cgo:generate_imported_dylib.sh must be run first
 )
 
 go_library(
@@ -152,7 +156,7 @@ go_test(
     srcs = ["dylib_test.go"],
     embed = [":versioned_dylib_client"],
     rundir = ".",
-    tags = ["manual"], # //tests/core/cgo:generate_imported_dylib.sh must be run first
+    tags = ["manual"],  # //tests/core/cgo:generate_imported_dylib.sh must be run first
 )
 
 go_library(

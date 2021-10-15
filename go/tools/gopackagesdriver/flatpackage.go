@@ -65,8 +65,10 @@ type FlatPackage struct {
 	Standard        bool                `json:",omitempty"`
 }
 
-type PackageFunc func(pkg *FlatPackage)
-type PathResolverFunc func(path string) string
+type (
+	PackageFunc      func(pkg *FlatPackage)
+	PathResolverFunc func(path string) string
+)
 
 func resolvePathsInPlace(prf PathResolverFunc, paths []string) {
 	for i, path := range paths {
@@ -98,6 +100,13 @@ func (fp *FlatPackage) ResolvePaths(prf PathResolverFunc) error {
 	resolvePathsInPlace(prf, fp.OtherFiles)
 	fp.ExportFile = prf(fp.ExportFile)
 	return nil
+}
+
+// FilterFilesForBuildTags filters the source files given the current build
+// tags.
+func (fp *FlatPackage) FilterFilesForBuildTags() {
+	fp.GoFiles = filterSourceFilesForTags(fp.GoFiles)
+	fp.CompiledGoFiles = filterSourceFilesForTags(fp.CompiledGoFiles)
 }
 
 func (fp *FlatPackage) IsStdlib() bool {

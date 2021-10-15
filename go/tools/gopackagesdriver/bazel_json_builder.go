@@ -17,80 +17,123 @@ package main
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"strings"
 )
 
 type BazelJSONBuilder struct {
-	bazel      *Bazel
-	query      string
-	tagFilters string
-	targets    []string
+	bazel    *Bazel
+	requests []string
 }
 
 const (
-	OutputGroupDriverJSONFile = "go_pkg_driver_json_file"
-	OutputGroupStdLibJSONFile = "go_pkg_driver_stdlib_json_file"
-	OutputGroupExportFile     = "go_pkg_driver_export_file"
+	RulesGoStdlibLabel = "@io_bazel_rules_go//:stdlib"
 )
 
-func NewBazelJSONBuilder(bazel *Bazel, query, tagFilters string, targets []string) (*BazelJSONBuilder, error) {
+func (b *BazelJSONBuilder) fileQuery(filename string) string {
+	if filepath.IsAbs(filename) {
+		fp, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
+		filename = fp
+	}
+	return fmt.Sprintf(`kind("go_library|go_test", same_pkg_direct_rdeps("%s"))`, filename)
+}
+
+func (b *BazelJSONBuilder) packageQuery(importPath string) string {
+	if strings.HasSuffix(importPath, "/...") {
+		importPath = fmt.Sprintf(`^%s(/.+)?$`, strings.TrimSuffix(importPath, "/..."))
+	}
+	return fmt.Sprintf(`kind("go_library", attr(importpath, "%s", deps(%s)))`, importPath, bazelQueryScope)
+}
+
+func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
+	ret := make([]string, 0, len(requests))
+	for _, request := range requests {
+		result := ""
+		if request == "." || request == "./..." {
+			if bazelQueryScope != "" {
+				result = fmt.Sprintf(`kind("go_library", %s)`, bazelQueryScope)
+			} else {
+				result = fmt.Sprintf(RulesGoStdlibLabel)
+			}
+		} else if request == "builtin" || request == "std" {
+			result = fmt.Sprintf(RulesGoStdlibLabel)
+		} else if strings.HasPrefix(request, "file=") {
+			f := strings.TrimPrefix(request, "file=")
+			result = b.fileQuery(f)
+		} else if bazelQueryScope != "" {
+			result = b.packageQuery(request)
+		}
+		if result != "" {
+			ret = append(ret, result)
+		}
+	}
+	if len(ret) == 0 {
+		return RulesGoStdlibLabel
+	}
+	return strings.Join(ret, " union ")
+}
+
+func NewBazelJSONBuilder(bazel *Bazel, requests ...string) (*BazelJSONBuilder, error) {
 	return &BazelJSONBuilder{
-		bazel:      bazel,
-		query:      query,
-		tagFilters: tagFilters,
-		targets:    targets,
+		bazel:    bazel,
+		requests: requests,
 	}, nil
 }
 
 func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
-	og := OutputGroupDriverJSONFile + "," + OutputGroupStdLibJSONFile
-	if mode&NeedExportsFile != 0 || true { // override for now
-		og += "," + OutputGroupExportFile
+	og := "go_pkg_driver_json_file,go_pkg_driver_stdlib_json_file,go_pkg_driver_srcs"
+	if mode&NeedExportsFile != 0 {
+		og += ",go_pkg_driver_export_file"
 	}
 	return og
 }
 
+func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, error) {
+	queryArgs := concatStringsArrays(bazelFlags, bazelQueryFlags, []string{
+		"--ui_event_filters=-info,-stderr",
+		"--noshow_progress",
+		"--order_output=no",
+		"--output=label",
+		"--nodep_deps",
+		"--noimplicit_deps",
+		"--notool_deps",
+		query,
+	})
+	labels, err := b.bazel.Query(ctx, queryArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to query: %w", err)
+	}
+	return labels, nil
+}
+
 func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, error) {
-	buildsArgs := []string{
-		"--aspects=@io_bazel_rules_go//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
+	labels, err := b.query(ctx, b.queryFromRequests(b.requests...))
+	if err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+
+	if len(labels) == 0 {
+		return nil, fmt.Errorf("found no labels matching the requests")
+	}
+
+	buildArgs := concatStringsArrays([]string{
+		"--experimental_convenience_symlinks=ignore",
+		"--ui_event_filters=-info,-stderr",
+		"--noshow_progress",
+		"--aspects=" + rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
 		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
-	}
-
-	if b.tagFilters != "" {
-		buildsArgs = append(buildsArgs, "--build_tag_filters="+b.tagFilters)
-	}
-
-	if b.query != "" {
-		queryTargets, err := b.bazel.Query(
-			ctx,
-			"--order_output=no",
-			"--output=label",
-			"--experimental_graphless_query",
-			"--nodep_deps",
-			"--noimplicit_deps",
-			"--notool_deps",
-			b.query,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("unable to query %v: %w", b.query, err)
-		}
-		buildsArgs = append(buildsArgs, queryTargets...)
-	}
-
-	buildsArgs = append(buildsArgs, b.targets...)
-
-	files, err := b.bazel.Build(ctx, buildsArgs...)
+	}, bazelFlags, bazelBuildFlags, labels)
+	files, err := b.bazel.Build(ctx, buildArgs...)
 	if err != nil {
-		return nil, fmt.Errorf("unable to bazel build %v: %w", buildsArgs, err)
+		return nil, fmt.Errorf("unable to bazel build %v: %w", buildArgs, err)
 	}
 
 	ret := []string{}
 	for _, f := range files {
-		if !strings.HasSuffix(f, ".pkg.json") {
-			continue
+		if strings.HasSuffix(f, ".pkg.json") {
+			ret = append(ret, f)
 		}
-		ret = append(ret, f)
 	}
 
 	return ret, nil
@@ -100,6 +143,7 @@ func (b *BazelJSONBuilder) PathResolver() PathResolverFunc {
 	return func(p string) string {
 		p = strings.Replace(p, "__BAZEL_EXECROOT__", b.bazel.ExecutionRoot(), 1)
 		p = strings.Replace(p, "__BAZEL_WORKSPACE__", b.bazel.WorkspaceRoot(), 1)
+		p = strings.Replace(p, "__BAZEL_OUTPUT_BASE__", b.bazel.OutputBase(), 1)
 		return p
 	}
 }

@@ -66,18 +66,8 @@ Create a workspace with a simple ``cc_binary`` target.
 .. code::
 
     -- WORKSPACE --
-    load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
-    git_repository(
-        name = "rules_cc",
-        commit = "7e650b11fe6d49f70f2ca7a1c4cb8bcc4a1fe239",
-        remote = "https://github.com/bazelbuild/rules_cc",
-        shallow_since = "1578064657 -0800",
-    )
 
     -- BUILD.bazel --
-    load("@rules_cc//cc:defs.bzl", "cc_binary")
-
     cc_binary(
         name = "hello",
         srcs = ["hello.c"],

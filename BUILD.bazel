@@ -53,7 +53,7 @@ stdlib(
 # default_nogo is the nogo target that nogo references by default. It
 # does not analyze anything, which means no binary is built or run
 # at compile time.
-nogo(
+filegroup(
     name = "default_nogo",
     visibility = ["//visibility:public"],
 )

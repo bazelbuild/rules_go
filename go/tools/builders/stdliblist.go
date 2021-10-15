@@ -111,7 +111,7 @@ func stdlibPackageID(importPath string) string {
 
 func execRootPath(execRoot, p string) string {
 	dir, _ := filepath.Rel(execRoot, p)
-	return filepath.Join("__BAZEL_EXECROOT__", dir)
+	return filepath.Join("__BAZEL_OUTPUT_BASE__", dir)
 }
 
 func absoluteSourcesPaths(execRoot, pkgDir string, srcs []string) []string {

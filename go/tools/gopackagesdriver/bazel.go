@@ -15,8 +15,11 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -32,8 +35,8 @@ const (
 
 type Bazel struct {
 	bazelBin      string
-	execRoot      string
 	workspaceRoot string
+	info          map[string]string
 }
 
 // Minimal BEP structs to access the build outputs
@@ -51,12 +54,24 @@ func NewBazel(ctx context.Context, bazelBin, workspaceRoot string) (*Bazel, erro
 		bazelBin:      bazelBin,
 		workspaceRoot: workspaceRoot,
 	}
-	if execRoot, err := b.run(ctx, "info", "execution_root"); err != nil {
-		return nil, fmt.Errorf("unable to find execution root: %w", err)
-	} else {
-		b.execRoot = strings.TrimSpace(execRoot)
+	if err := b.fillInfo(ctx); err != nil {
+		return nil, fmt.Errorf("unable to query bazel info: %w", err)
 	}
 	return b, nil
+}
+
+func (b *Bazel) fillInfo(ctx context.Context) error {
+	b.info = map[string]string{}
+	output, err := b.run(ctx, "info")
+	if err != nil {
+		return err
+	}
+	scanner := bufio.NewScanner(bytes.NewBufferString(output))
+	for scanner.Scan() {
+		parts := strings.SplitN(strings.TrimSpace(scanner.Text()), ":", 2)
+		b.info[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+	}
+	return nil
 }
 
 func (b *Bazel) run(ctx context.Context, command string, args ...string) (string, error) {
@@ -66,7 +81,7 @@ func (b *Bazel) run(ctx context.Context, command string, args ...string) (string
 		"--ui_actions_shown=0",
 	}, args...)...)
 	fmt.Fprintln(os.Stderr, "Running:", cmd.Args)
-	cmd.Dir = b.workspaceRoot
+	cmd.Dir = b.WorkspaceRoot()
 	cmd.Stderr = os.Stderr
 	output, err := cmd.Output()
 	return string(output), err
@@ -88,7 +103,13 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 		"--build_event_json_file_path_conversion=no",
 	}, args...)
 	if _, err := b.run(ctx, "build", args...); err != nil {
-		return nil, fmt.Errorf("bazel build failed: %w", err)
+		// Ignore a regular build failure to get partial data.
+		// See https://docs.bazel.build/versions/main/guide.html#what-exit-code-will-i-get on
+		// exit codes.
+		var exerr *exec.ExitError
+		if !errors.As(err, &exerr) || exerr.ExitCode() != 1 {
+			return nil, fmt.Errorf("bazel build failed: %w", err)
+		}
 	}
 
 	files := make([]string, 0)
@@ -120,10 +141,22 @@ func (b *Bazel) Query(ctx context.Context, args ...string) ([]string, error) {
 	return strings.Split(strings.TrimSpace(output), "\n"), nil
 }
 
+func (b *Bazel) QueryLabels(ctx context.Context, args ...string) ([]string, error) {
+	output, err := b.run(ctx, "query", args...)
+	if err != nil {
+		return nil, fmt.Errorf("bazel query failed: %w", err)
+	}
+	return strings.Split(strings.TrimSpace(output), "\n"), nil
+}
+
 func (b *Bazel) WorkspaceRoot() string {
 	return b.workspaceRoot
 }
 
 func (b *Bazel) ExecutionRoot() string {
-	return b.execRoot
+	return b.info["execution_root"]
+}
+
+func (b *Bazel) OutputBase() string {
+	return b.info["output_base"]
 }

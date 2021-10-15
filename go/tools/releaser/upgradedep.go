@@ -38,9 +38,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var upgradeDep = command{
+var upgradeDepCmd = command{
 	name:        "upgrade-dep",
-	run:         runUpgradeDep,
 	description: "upgrades a dependency in WORKSPACE or go_repositories.bzl",
 	help: `releaser upgrade-dep [-githubtoken=token] [-mirror] [-work] deps...
 
@@ -76,6 +75,11 @@ previous patches applied.
 `,
 }
 
+func init() {
+	// break init cycle
+	upgradeDepCmd.run = runUpgradeDep
+}
+
 func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 	// Parse arguments.
 	flags := flag.NewFlagSet("releaser upgrade-dep", flag.ContinueOnError)
@@ -88,7 +92,7 @@ func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 		return err
 	}
 	if flags.NArg() == 0 {
-		return errors.New("No dependencies specified. For usage info, run:\n\treleaser help upgrade-dep")
+		return usageErrorf(&upgradeDepCmd, "No dependencies specified")
 	}
 	upgradeAll := false
 	for _, arg := range flags.Args() {
@@ -98,7 +102,7 @@ func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 		}
 	}
 	if upgradeAll && flags.NArg() != 1 {
-		return errors.New("When 'all' is specified, it must be the only argument. For usage info, run:\n\treleaser help upgrade-dep")
+		return usageErrorf(&upgradeDepCmd, "When 'all' is specified, it must be the only argument")
 	}
 
 	httpClient := http.DefaultClient

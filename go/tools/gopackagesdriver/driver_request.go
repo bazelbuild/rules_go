@@ -65,7 +65,7 @@ const (
 )
 
 // From https://github.com/golang/tools/blob/v0.1.0/go/packages/external.go#L32
-// Most fields are disabled since there are no needs for them
+// Most fields are disabled since there is no need for them
 type DriverRequest struct {
 	Mode LoadMode `json:"mode"`
 	// Env specifies the environment the underlying build system should be run in.

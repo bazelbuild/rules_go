@@ -10,8 +10,11 @@ go_binary(
 go_library(
     name = "releaser_lib",
     srcs = [
+        "boilerplate.go",
         "file.go",
+        "git.go",
         "github.go",
+        "prepare.go",
         "releaser.go",
         "run.go",
         "upgradedep.go",

@@ -23,10 +23,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 )
 
 func main() {
-	if err := run(context.Background(), os.Stderr, os.Args[1:]); err != nil {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+	if err := run(ctx, os.Stderr, os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
@@ -37,14 +40,10 @@ type command struct {
 	run                     func(context.Context, io.Writer, []string) error
 }
 
-var commands []command
-
-// break init cycle
-func init() {
-	commands = []command{
-		helpCmd,
-		upgradeDep,
-	}
+var commands = []*command{
+	&helpCmd,
+	&prepareCmd,
+	&upgradeDepCmd,
 }
 
 func run(ctx context.Context, stderr io.Writer, args []string) error {
@@ -73,12 +72,16 @@ var helpCmd = command{
 The help sub-command prints information on how to use any subcommand. Run help
 without arguments for a list of all subcommands.
 `,
-	run: runHelp,
+}
+
+func init() {
+	// break init cycle
+	helpCmd.run = runHelp
 }
 
 func runHelp(ctx context.Context, stderr io.Writer, args []string) error {
 	if len(args) > 1 {
-		return errors.New("help accepts at most one argument. For usage info, run:\n\treleaser help help")
+		return usageErrorf(&helpCmd, "help accepts at most one argument.")
 	}
 
 	if len(args) == 1 {
@@ -104,4 +107,21 @@ func runHelp(ctx context.Context, stderr io.Writer, args []string) error {
 	}
 	fmt.Fprintf(stderr, "\nRun 'releaser help <subcommand>' for more information on any command.\n")
 	return nil
+}
+
+type usageError struct {
+	cmd *command
+	err error
+}
+
+func (e *usageError) Error() string {
+	return fmt.Sprintf("%v. For usage info, run:\n\treleaser help %s", e.err, e.cmd.name)
+}
+
+func (e *usageError) Unwrap() error {
+	return e.err
+}
+
+func usageErrorf(cmd *command, format string, args ...interface{}) error {
+	return &usageError{cmd: cmd, err: fmt.Errorf(format, args...)}
 }

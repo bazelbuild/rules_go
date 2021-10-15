@@ -184,31 +184,22 @@ def has_simple_shared_lib_extension(path):
     return False
 
 def has_versioned_shared_lib_extension(path):
-    """Returns whether the path appears to be an .so file."""
-    if not path[-1].isdigit():
+    """Returns whether the path appears to be an versioned .so or .dylib file."""
+    parts = path.split("/")[-1].split(".")
+    if not parts[-1].isdigit():
         return False
+    for i in range(len(parts) - 1, 0, -1):
+        if not parts[i].isdigit():
+            if parts[i] == "dylib" or parts[i] == "so":
+                return True
 
-    so_location = path.rfind(".so")
-
-    # Version extensions are only allowed for .so files
-    if so_location == -1:
-        return False
-    last_dot = so_location
-    for i in range(so_location + 3, len(path)):
-        if path[i] == ".":
-            if i - last_dot > 1:
-                last_dot = i
-            else:
-                return False
-        elif not path[i].isdigit():
+            # somehting like foo.bar.1.2
             return False
 
-    if last_dot == len(path):
-        return False
+    # something like 1.2.3, or so.1.2, or dylib.1.2, or foo.1.2
+    return False
 
-    return True
-
-MINIMUM_BAZEL_VERSION = "4.0.0"
+MINIMUM_BAZEL_VERSION = "4.2.0"
 
 def as_list(v):
     """Returns a list, tuple, or depset as a list."""

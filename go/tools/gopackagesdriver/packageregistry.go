@@ -56,6 +56,10 @@ func (pr *PackageRegistry) Remove(pkgs ...*FlatPackage) *PackageRegistry {
 func (pr *PackageRegistry) ResolvePaths(prf PathResolverFunc) error {
 	for _, pkg := range pr.packagesByImportPath {
 		pkg.ResolvePaths(prf)
+		pkg.FilterFilesForBuildTags()
+		for _, f := range pkg.CompiledGoFiles {
+			pr.packagesByFile[f] = pkg
+		}
 		for _, f := range pkg.CompiledGoFiles {
 			pr.packagesByFile[f] = pkg
 		}
@@ -84,34 +88,37 @@ func (pr *PackageRegistry) walk(acc map[string]*FlatPackage, root string) {
 
 func (pr *PackageRegistry) Match(patterns ...string) ([]string, []*FlatPackage) {
 	roots := map[string]struct{}{}
-	wildcard := false
 
 	for _, pattern := range patterns {
-		if strings.HasPrefix(pattern, "file=") {
-			f := strings.TrimPrefix(pattern, "file=")
+		if pattern == "." || pattern == "./..." {
+			for _, pkg := range pr.packagesByImportPath {
+				if strings.HasPrefix(pkg.ID, "//") {
+					roots[pkg.ID] = struct{}{}
+				}
+			}
+		} else if strings.HasSuffix(pattern, "/...") {
+			pkgPrefix := strings.TrimSuffix(pattern, "/...")
+			for _, pkg := range pr.packagesByImportPath {
+				if pkgPrefix == pkg.PkgPath || strings.HasPrefix(pkg.PkgPath, pkgPrefix+"/") {
+					roots[pkg.ID] = struct{}{}
+				}
+			}
+		} else if pattern == "builtin" || pattern == "std" {
+			for _, pkg := range pr.packagesByImportPath {
+				if pkg.Standard {
+					roots[pkg.ID] = struct{}{}
+				}
+			}
+		} else if strings.HasPrefix(pattern, "file=") {
+			f := ensureAbsolutePathFromWorkspace(strings.TrimPrefix(pattern, "file="))
 			if pkg, ok := pr.packagesByFile[f]; ok {
 				roots[pkg.ID] = struct{}{}
 			}
-		} else if pattern == "." || pattern == "./..." {
-			wildcard = true
 		} else {
 			if pkg, ok := pr.packagesByImportPath[pattern]; ok {
 				roots[pkg.ID] = struct{}{}
 			}
 		}
-	}
-
-	if wildcard {
-		retPkgs := make([]*FlatPackage, 0, len(pr.packagesByImportPath))
-		retRoots := make([]string, 0, len(pr.packagesByImportPath))
-		for _, pkg := range pr.packagesByImportPath {
-			if strings.HasPrefix(pkg.ID, "//") {
-				retRoots = append(retRoots, pkg.ID)
-				roots[pkg.ID] = struct{}{}
-			}
-			retPkgs = append(retPkgs, pkg)
-		}
-		return retRoots, retPkgs
 	}
 
 	walkedPackages := map[string]*FlatPackage{}

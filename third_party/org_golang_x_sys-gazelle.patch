@@ -165,7 +165,7 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 --- a/unix/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/unix/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,324 @@
+@@ -0,0 +1,331 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -210,6 +210,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "fcntl_darwin.go",
 +        "fcntl_linux_32bit.go",
 +        "fdset.go",
++        "ifreq_linux.go",
 +        "ioctl.go",
 +        "ioctl_linux.go",
 +        "pagesize_unix.go",
@@ -272,6 +273,9 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "syscall_unix.go",
 +        "syscall_unix_gc.go",
 +        "syscall_unix_gc_ppc64x.go",
++        "sysvshm_linux.go",
++        "sysvshm_unix.go",
++        "sysvshm_unix_other.go",
 +        "timestruct.go",
 +        "unveil_openbsd.go",
 +        "xattr_bsd.go",
@@ -464,9 +468,11 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "dirent_test.go",
 +        "example_exec_test.go",
 +        "example_flock_test.go",
++        "example_sysvshm_test.go",
 +        "export_test.go",
 +        "fdset_test.go",
 +        "getdirentries_test.go",
++        "ifreq_linux_test.go",
 +        "mmap_unix_test.go",
 +        "openbsd_test.go",
 +        "pipe2_test.go",
@@ -485,6 +491,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "syscall_solaris_test.go",
 +        "syscall_test.go",
 +        "syscall_unix_test.go",
++        "sysvshm_unix_test.go",
 +        "timestruct_test.go",
 +        "xattr_test.go",
 +    ],
