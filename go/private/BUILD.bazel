@@ -143,6 +143,7 @@ bzl_library(
     name = "rpath",
     srcs = ["rpath.bzl"],
     visibility = ["//go:__subpackages__"],
+)
 
 # Usually false. This is only true when we are building nogo itself in which
 # because that rule uses an incoming transition to switch this to true.
