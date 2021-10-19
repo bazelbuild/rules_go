@@ -216,6 +216,7 @@ fetch rules_go and its dependencies. Bazel will download a recent supported
 Go toolchain and register it for use.
 
 .. code:: bzl
+
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
     http_archive(
