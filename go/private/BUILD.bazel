@@ -56,6 +56,7 @@ bzl_library(
         ":mode",
         ":providers",
         "//go/platform:apple",
+        "//go/private/rules:transition",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//rules:common_settings",
         "@bazel_tools//tools/build_defs/cc:action_names.bzl",
