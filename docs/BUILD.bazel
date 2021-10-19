@@ -37,17 +37,12 @@ _DOC_SRCS = {
         name = file.replace(":", "_") + "_doc",
         out = file.replace(":", "_") + ".md_",
         header_template = ":header.vm",
-        rule_template = ":rule.vm",
+        # rule_template = ":rule.vm",
         input = "//%s.bzl" % file,
         deps = ["//" + file],
     )
     for file in _DOC_SRCS.keys()
 ]
-
-# reformatter(
-#     src =  that one
-#     out = cleaned
-# )
 
 [
     diff_test(
@@ -57,3 +52,24 @@ _DOC_SRCS = {
     )
     for [k, v] in _DOC_SRCS.items()
 ]
+
+write_file(
+    name = "gen_update",
+    out = "update.sh",
+    content = [
+        "#!/bin/sh",
+        "cd $BUILD_WORKSPACE_DIRECTORY",
+    ] + [
+        "cp -fv bazel-bin/docs/{0} {1}".format(
+            k.replace(":", "_") + ".md_",
+            v[2:].replace(":", "/").replace(".rst", ".md"),
+        )
+        for [k, v] in _DOC_SRCS.items()
+    ]
+)
+
+sh_binary(
+    name = "update",
+    srcs = ["update.sh"],
+    data = [k.replace(":", "_") + ".md_" for k in _DOC_SRCS.keys()],
+)
