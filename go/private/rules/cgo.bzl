@@ -131,11 +131,15 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
                     inputs_direct.append(lib)
                 elif (lib.basename.startswith("lib") and
                       has_versioned_shared_lib_extension(lib.basename)):
-                    # With a versioned shared library, we must use the full filename,
-                    # otherwise the library will not be found by the linker.
-                    libname = ":%s" % lib.basename
-                    clinkopts.extend(["-L", lib.dirname, "-l", libname])
-                    inputs_direct.append(lib)
+                    # assuming the "." is not part of a library's name
+                    libname = lib.basename[len("lib"):lib.basename.index(".")]
+                    # check whether the unversioned lib is already added to the linker opts
+                    if "-l" + libname not in clinkopts:
+                        # With a versioned shared library, we must use the full filename,
+                        # otherwise the library will not be found by the linker.
+                        libname = ":%s" % lib.basename
+                        clinkopts.extend(["-L", lib.dirname, "-l", libname])
+                        inputs_direct.append(lib)
                 else:
                     lib_opts.append(lib.path)
             clinkopts.extend(cc_link_flags)
