@@ -18,10 +18,10 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"go/format"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"os"
 	"strconv"
 )
 
@@ -74,19 +74,29 @@ func instrumentForCoverage(goenv *env, srcPath, srcName, coverVar, mode, outPath
 	return registerCoverage(outPath, coverVar, srcName)
 }
 
-// registerCoverage modifies coverSrc, the output file from go tool cover. It
-// adds a call to coverdata.RegisterCoverage, which ensures the coverage
+// registerCoverage modifies coverSrcFilename, the output file from go tool cover.
+// It adds a call to coverdata.RegisterCoverage, which ensures the coverage
 // data from each file is reported. The name by which the file is registered
 // need not match its original name (it may use the importpath).
-func registerCoverage(coverSrc, varName, srcName string) error {
+func registerCoverage(coverSrcFilename, varName, srcName string) error {
+	coverSrc, err := os.ReadFile(coverSrcFilename)
+	if err != nil {
+		return fmt.Errorf("instrumentForCoverage: reading instrumented source: %w", err)
+	}
+
 	// Parse the file.
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, coverSrc, nil, parser.ParseComments)
+	f, err := parser.ParseFile(fset, coverSrcFilename, coverSrc, parser.ParseComments)
 	if err != nil {
 		return nil // parse error: proceed and let the compiler fail
 	}
 
-	// Ensure coverdata is imported in the AST. Use an existing import if present
+	// Perform edits using a byte buffer instead of the AST, because
+	// we can not use go/format to write the AST back out without
+	// changing line numbers.
+	editor := NewBuffer(coverSrc)
+
+	// Ensure coverdata is imported. Use an existing import if present
 	// or add a new one.
 	const coverdataPath = "github.com/bazelbuild/rules_go/go/tools/coverdata"
 	var coverdataName string
@@ -100,9 +110,14 @@ func registerCoverage(coverSrc, varName, srcName string) error {
 				// renaming import
 				if imp.Name.Name == "_" {
 					// Change blank import to named import
-					imp.Name.Name = "coverdata"
+					editor.Replace(
+						fset.Position(imp.Name.Pos()).Offset,
+						fset.Position(imp.Name.End()).Offset,
+						"coverdata")
+					coverdataName = "coverdata"
+				} else {
+					coverdataName = imp.Name.Name
 				}
-				coverdataName = imp.Name.Name
 			} else {
 				// default import
 				coverdataName = "coverdata"
@@ -113,15 +128,12 @@ func registerCoverage(coverSrc, varName, srcName string) error {
 	if coverdataName == "" {
 		// No existing import. Add a new one.
 		coverdataName = "coverdata"
-		addNamedImport(fset, f, coverdataName, coverdataPath)
-	}
-	var buf bytes.Buffer
-	if err := format.Node(&buf, fset, f); err != nil {
-		return fmt.Errorf("registerCoverage: could not reformat coverage source %s: %v", coverSrc, err)
+		editor.Insert(fset.Position(f.Name.End()).Offset, fmt.Sprintf("; import %q", coverdataPath))
 	}
 
 	// Append an init function.
-	fmt.Fprintf(&buf, `
+	var buf = bytes.NewBuffer(editor.Bytes())
+	fmt.Fprintf(buf, `
 func init() {
 	%s.RegisterFile(%q,
 		%[3]s.Count[:],
@@ -129,9 +141,8 @@ func init() {
 		%[3]s.NumStmt[:])
 }
 `, coverdataName, srcName, varName)
-	if err := ioutil.WriteFile(coverSrc, buf.Bytes(), 0666); err != nil {
+	if err := ioutil.WriteFile(coverSrcFilename, buf.Bytes(), 0666); err != nil {
 		return fmt.Errorf("registerCoverage: %v", err)
 	}
-
 	return nil
 }

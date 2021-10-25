@@ -11,6 +11,18 @@ go_test(
     ],
 )
 
+go_test(
+    name = "cover_test",
+    size = "small",
+    srcs = [
+        "cover.go",
+        "cover_test.go",
+        "edit.go",
+        "env.go",
+        "flags.go",
+    ],
+)
+
 filegroup(
     name = "builder_srcs",
     srcs = [
@@ -21,6 +33,7 @@ filegroup(
         "compile.go",
         "compilepkg.go",
         "cover.go",
+        "edit.go",
         "embedcfg.go",
         "env.go",
         "filter.go",
@@ -28,7 +41,6 @@ filegroup(
         "flags.go",
         "generate_nogo_main.go",
         "generate_test_main.go",
-        "imports.go",
         "importcfg.go",
         "link.go",
         "pack.go",
