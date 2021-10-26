@@ -3,12 +3,16 @@ tasks:
   ubuntu1804_bazel400:
     platform: ubuntu1804
     bazel: 4.2.0 # test minimum supported version of bazel
+    shell_commands:
+      - tests/core/cgo/generate_imported_dylib.sh
     build_targets:
     - "//..."
     test_targets:
     - "//..."
   ubuntu2004:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
+    shell_commands:
+      - tests/core/cgo/generate_imported_dylib.sh
     build_flags:
     - "--incompatible_load_proto_rules_from_bzl"
     - "--incompatible_restrict_string_escapes"
@@ -29,6 +33,8 @@ tasks:
     test_targets:
     - "//..."
   rbe_ubuntu1604:
+    shell_commands:
+      - tests/core/cgo/generate_imported_dylib.sh
     build_targets:
     - "//..."
     test_flags:

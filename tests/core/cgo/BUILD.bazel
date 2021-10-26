@@ -159,7 +159,8 @@ go_test(
     rundir = ".",
     target_compatible_with = [
         "@platforms//os:macos",
-    ]
+        "@platforms//os:linux",
+    ],
 )
 
 go_library(
