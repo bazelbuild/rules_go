@@ -12,8 +12,7 @@ case "$(uname -s)" in
   Darwin*)
     cc -shared -Wl,-install_name,@rpath/libimported.dylib -o libimported.dylib imported.c
     cc -shared -Wl,-install_name,@rpath/libversioned.dylib.2 -o libversioned.dylib.2 imported.c
-    # Some libraries, such as Oracle Instant Client, are distributed as a versioned library
-    # with a symlink
+    # We need a symlink to load dylib on Darwin
     ln -s libversioned.dylib.2 libversioned.dylib
     ;;
   *)
