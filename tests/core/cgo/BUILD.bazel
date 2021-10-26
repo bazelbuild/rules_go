@@ -168,7 +168,6 @@ go_library(
         # TODO(jayconrod): Support windows, skip others.
     }),
     cgo = True,
-    clinkopts = ["-lversioned"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/dylib",
     tags = ["manual"],
 )
