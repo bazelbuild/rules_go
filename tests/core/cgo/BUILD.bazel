@@ -157,10 +157,11 @@ go_test(
     srcs = ["dylib_test.go"],
     embed = [":versioned_dylib_client"],
     rundir = ".",
-    target_compatible_with = [
-        "@platforms//os:macos",
-        "@platforms//os:linux",
-    ],
+    target_compatible_with = select({
+        "@platforms//os:osx": [],
+        "@platforms//os:linux": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
 )
 
 go_library(
