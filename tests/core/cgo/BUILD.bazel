@@ -151,12 +151,15 @@ cc_binary(
     tags = ["manual"],
 )
 
+# //tests/core/cgo:generate_imported_dylib.sh must be run first
 go_test(
     name = "versioned_dylib_test",
     srcs = ["dylib_test.go"],
     embed = [":versioned_dylib_client"],
     rundir = ".",
-    tags = ["manual"],  # //tests/core/cgo:generate_imported_dylib.sh must be run first
+    target_compatible_with = [
+        "@platforms//os:macos",
+    ]
 )
 
 go_library(

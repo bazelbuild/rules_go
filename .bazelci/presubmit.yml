@@ -22,6 +22,8 @@ tasks:
     test_targets:
     - "//..."
   macos:
+    shell_commands:
+      - tests/core/cgo/generate_imported_dylib.sh
     build_targets:
     - "//..."
     test_targets:
