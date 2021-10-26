@@ -14,8 +14,8 @@
 
 load(
     "//go/private:common.bzl",
-    "has_simple_shared_lib_extension",
     "get_versioned_shared_lib_extension",
+    "has_simple_shared_lib_extension",
     "hdr_exts",
 )
 load(
