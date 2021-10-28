@@ -16,7 +16,6 @@ Extra rules
 This is a collection of helper rules. These are not core to building a go binary, but are supplied
 to make life a little easier.
 
-<a id="#go_embed_data"></a>
 .. contents::
 
 -----
@@ -76,7 +75,7 @@ WORKSPACE:
 | A list of files to embed. This cannot be used at the same time as :param:`src`.                  |
 | The generated file will have a variable of type :type:`map[string][]byte` or                     |
 | :type:`map[string]string` with the contents of each file.                                        |
-| The map keys are relative paths the files from the repository root.                              |
+| The map keys are relative paths of the files from the repository root.                              |
 | Keys for files in external repositories will be prefixed with :value:`"external/repo/"` where    |
 | "repo" is the name of the external repository.                                                   |
 +----------------------------+-----------------------------+---------------------------------------+
