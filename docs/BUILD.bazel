@@ -42,7 +42,6 @@ _DOC_SRCS = {
         name = file.replace(":", "_") + "_doc",
         out = file.replace(":", "_") + ".md_",
         header_template = ":header.vm",
-        # rule_template = ":rule.vm",
         input = "//%s.bzl" % file,
         deps = ["//" + file],
     )
@@ -52,8 +51,11 @@ _DOC_SRCS = {
 [
     diff_test(
         name = "check_" + k.replace(":", "/"),
-        file1 = k.replace(":", "_") + ".md_",
-        file2 = v,
+        failure_message = "Please run \"bazel run //docs:update\"",
+        # Source file
+        file1 = v.replace(".rst", ".md"),
+        # Output from stardoc rule above
+        file2 = k.replace(":", "_") + ".md_",
     )
     for [
         k,

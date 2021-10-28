@@ -327,3 +327,6 @@ tasks:
     - "-//tests/legacy/test_chdir:go_default_test"
     - "-//tests/legacy/test_rundir:go_default_test"
     - "-//tests/legacy/transitive_data:go_default_test"
+    # Stardoc produces different line-endings on windows,
+    # so the documentation it generates doesn't match the checked in files
+    - "-//docs:all"
