@@ -4,6 +4,7 @@ load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
 
 _DOC_SRCS = {
     "//extras:embed_data": "extras.md",
+    "//go/private:mode": "modes.md",
 }
 
 [

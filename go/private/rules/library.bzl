@@ -12,6 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+# Core Go rules
+
+.. _"Make variable": https://docs.bazel.build/versions/master/be/make-variables.html
+.. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
+.. _Gazelle: https://github.com/bazelbuild/bazel-gazelle
+.. _GoArchive: providers.rst#GoArchive
+.. _GoLibrary: providers.rst#GoLibrary
+.. _GoPath: providers.rst#GoPath
+.. _GoSource: providers.rst#GoSource
+.. _build constraints: https://golang.org/pkg/go/build/#hdr-Build_Constraints
+.. _cc_library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
+.. _cgo: http://golang.org/cmd/cgo/
+.. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
+.. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
+.. _goarch: modes.rst#goarch
+.. _goos: modes.rst#goos
+.. _mode attributes: modes.rst#mode-attributes
+.. _nogo: nogo.rst#nogo
+.. _pure: modes.rst#pure
+.. _race: modes.rst#race
+.. _msan: modes.rst#msan
+.. _select: https://docs.bazel.build/versions/master/be/functions.html#select
+.. _shard_count: https://docs.bazel.build/versions/master/be/common-definitions.html#test.shard_count
+.. _static: modes.rst#static
+.. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
+.. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
+.. _test_env: https://docs.bazel.build/versions/master/user-manual.html#flag--test_env
+.. _write a CROSSTOOL file: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
+.. _bazel: https://pkg.go.dev/github.com/bazelbuild/rules_go/go/tools/bazel?tab=doc
+
+.. role:: param(kbd)
+.. role:: type(emphasis)
+.. role:: value(code)
+.. |mandatory| replace:: **mandatory value**
+
+These are the core go rules, required for basic operation.
+The intent is that these rules are sufficient to match the capabilities of the normal go tools.
+
+.. contents:: :depth: 2
+
+"""
+
 load(
     "//go/private:common.bzl",
     "asm_exts",
