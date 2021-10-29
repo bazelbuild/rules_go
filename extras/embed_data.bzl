@@ -13,6 +13,23 @@
 # limitations under the License.
 
 """
+  [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
+  [golang/mock]: https://github.com/golang/mock
+  [gomock_rule]: https://github.com/jmhodges/bazel_gomock
+  [core go rules]: core.rst
+
+# Extra rules
+
+This is a collection of helper rules. These are not core to building a go binary, but are supplied
+to make life a little easier.
+
+Contents
+- [gazelle](#gazelle)
+- [gomock](#gomock)
+- [go_embed_data](#go_embed_data)
+
+------------------------------------------------------------------------
+
 gazelle
 -------
 
@@ -22,7 +39,6 @@ gomock
 ------
 
 This rule allows you to generate mock interfaces with mockgen (from [golang/mock]) which can be useful for certain testing scenarios. See [gomock_rule] in the gomock repository.
-
 """
 
 load(
@@ -148,4 +164,4 @@ go_embed_data = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-# See go/extras.rst#go_embed_data for full documentation.
+# See go/extras.md#go_embed_data for full documentation.

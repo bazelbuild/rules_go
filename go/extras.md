@@ -1,3 +1,11 @@
+<!-- Generated with Stardoc: http://skydoc.bazel.build -->
+
+
+  [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
+  [golang/mock]: https://github.com/golang/mock
+  [gomock_rule]: https://github.com/jmhodges/bazel_gomock
+  [core go rules]: core.rst
+
 # Extra rules
 
 This is a collection of helper rules. These are not core to building a go binary, but are supplied
@@ -10,7 +18,6 @@ Contents
 
 ------------------------------------------------------------------------
 
-
 gazelle
 -------
 
@@ -21,12 +28,6 @@ gomock
 
 This rule allows you to generate mock interfaces with mockgen (from [golang/mock]) which can be useful for certain testing scenarios. See [gomock_rule] in the gomock repository.
 
-
-
-  [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
-  [golang/mock]: https://github.com/golang/mock
-  [gomock_rule]: https://github.com/jmhodges/bazel_gomock
-  [core go rules]: core.rst
 
 <a id="#go_embed_data"></a>
 
