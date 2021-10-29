@@ -11,10 +11,16 @@
 This is a collection of helper rules. These are not core to building a go binary, but are supplied
 to make life a little easier.
 
-Contents
+## Contents
 - [gazelle](#gazelle)
 - [gomock](#gomock)
 - [go_embed_data](#go_embed_data)
+
+## Additional resources
+- [gazelle rule]
+- [golang/mock]
+- [gomock_rule]
+- [core go rules]
 
 ------------------------------------------------------------------------
 
