@@ -6,7 +6,7 @@ Go rules for Bazel_
 .. _Avoiding conflicts: proto/core.rst#avoiding-conflicts
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
 .. _Bazel: https://bazel.build/
-.. _Build modes: go/modes.rst
+.. _Build modes: go/modes.md
 .. _Core rules: go/core.rst
 .. _Dependencies: go/dependencies.rst
 .. _Deprecation schedule: https://github.com/bazelbuild/rules_go/wiki/Deprecation-schedule
@@ -145,7 +145,7 @@ Documentation
   * `go_embed_data`_
 
 * `nogo build-time static analysis`_
-* `Build modes <go/modes.rst>`_
+* `Build modes <go/modes.md>`_
 
 Quick links
 ~~~~~~~~~~~

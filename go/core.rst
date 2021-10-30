@@ -13,16 +13,16 @@ Core Go rules
 .. _cgo: http://golang.org/cmd/cgo/
 .. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
 .. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
-.. _goarch: modes.rst#goarch
-.. _goos: modes.rst#goos
-.. _mode attributes: modes.rst#mode-attributes
+.. _goarch: modes.md#goarch
+.. _goos: modes.md#goos
+.. _mode attributes: modes.md#mode-attributes
 .. _nogo: nogo.rst#nogo
-.. _pure: modes.rst#pure
-.. _race: modes.rst#race
-.. _msan: modes.rst#msan
+.. _pure: modes.md#pure
+.. _race: modes.md#race
+.. _msan: modes.md#msan
 .. _select: https://docs.bazel.build/versions/master/be/functions.html#select
 .. _shard_count: https://docs.bazel.build/versions/master/be/common-definitions.html#test.shard_count
-.. _static: modes.rst#static
+.. _static: modes.md#static
 .. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
 .. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
 .. _test_env: https://docs.bazel.build/versions/master/user-manual.html#flag--test_env

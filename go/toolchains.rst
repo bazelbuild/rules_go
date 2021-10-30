@@ -9,7 +9,7 @@ Go toolchains
 .. _GoSDK: providers.rst#gosdk
 .. _GoSource: providers.rst#gosource
 .. _binary distribution: https://golang.org/dl/
-.. _compilation modes: modes.rst#compilation-modes
+.. _compilation modes: modes.md#compilation-modes
 .. _control the version: `Forcing the Go version`_
 .. _core: core.bzl
 .. _forked version of Go: `Registering a custom SDK`_

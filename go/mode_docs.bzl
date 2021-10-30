@@ -1,6 +1,4 @@
-<!-- Generated with Stardoc: http://skydoc.bazel.build -->
-
-
+"""
   [Bazel build settings]: https://docs.bazel.build/versions/master/skylark/config.html#using-build-settings
   [Bazel configuration transitions]: https://docs.bazel.build/versions/master/skylark/lib/transition.html
   [Bazel platform]: https://docs.bazel.build/versions/master/platforms.html
@@ -202,5 +200,4 @@ go_test(
     race = "on",
 )
 ```
-
-
+"""

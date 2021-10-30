@@ -9,8 +9,8 @@ Go providers
 .. _go_path: core.rst#go_path
 .. _cc_library: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
 .. _flatbuffers: http://google.github.io/flatbuffers/
-.. _static linking: modes.rst#building-static-binaries
-.. _race detector: modes.rst#using-the-race-detector
+.. _static linking: modes.md#building-static-binaries
+.. _race detector: modes.md#using-the-race-detector
 .. _runfiles: https://docs.bazel.build/versions/master/skylark/lib/runfiles.html
 .. _File: https://docs.bazel.build/versions/master/skylark/lib/File.html
 .. _new_library: toolchains.rst#new_library
