@@ -520,6 +520,7 @@ func createTrimPath(gcFlags []string, path string) string {
 
 	return "-trimpath=" + path
 }
+
 func sanitizePathForIdentifier(path string) string {
 	return strings.Map(func(r rune) rune {
 		if 'A' <= r && r <= 'Z' ||
