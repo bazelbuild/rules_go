@@ -116,10 +116,7 @@ bzl_library(
 bzl_library(
     name = "mode",
     srcs = ["mode.bzl"],
-    visibility = [
-        "//docs:__pkg__",
-        "//go:__subpackages__",
-    ],
+    visibility = ["//go:__subpackages__"],
 )
 
 bzl_library(
