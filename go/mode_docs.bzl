@@ -59,47 +59,47 @@ The build settings below are defined in the package
 `@io_bazel_rules_go//go/config`. They can all be set on the command line
 or using [Bazel configuration transitions].
 
-### `static`
+#### `static`
 - Optional boolean
 - Default: `False`
 
 Statically links the target binary. May not always work since parts of the standard library and other C 
 dependencies won't tolerate static linking. Works best with `pure` set as well.
 
-### `race`
+#### `race`
 - Optional boolean
 - Default: `False`
 
 Instruments the binary for race detection. Programs will panic when a data race is detected. 
 Requires cgo. Mutually exclusive with `msan`.
 
-### `msan`
+#### `msan`
 - Optional boolean
 - Default: `False`
 
 Instruments the binary for memory sanitization. Requires cgo. Mutually exclusive with `race`.
 
-### `pure`
+#### `pure`
 - Optional boolean
 - Default: `False`
 
 Disables cgo, even when a C/C++ toolchain is configured (similar to setting `CGO_ENABLED=0`). 
 Packages that contain cgo code may still be built, but the cgo code will be filtered out, and the `cgo` build tag will be false.
 
-### `strip`
+#### `strip`
 - Optional boolean
 - Default: `False`
 
 Strips symbols from compiled packages and linked binaries (using the `-w` flag). 
 May also be set with the `--strip` command line option, which affects C/C++ targets, too.
 
-### `debug`
+#### `debug`
 - Optional boolean
 - Default: `False`
 
 Includes debugging information in compiled packages (using the `-N` and `-l` flags).
 
-### `gotags`
+#### `gotags`
 - Optional list of strings
 - Default: `[]`
 
@@ -138,8 +138,7 @@ This sets the `--platforms` flag via [Bazel configuration transitions].
 Examples
 --------
 
-Building pure go binaries
--------------------------
+### Building pure go binaries
 
 You can switch the default binaries to non cgo using
 
@@ -158,8 +157,7 @@ go_binary(
 ```
 
 
-Building static binaries
-------------------------
+### Building static binaries
 
 | Note that static linking does not work on darwin.
 
@@ -180,8 +178,7 @@ go_binary(
 )
 ```
 
-Using the race detector
------------------------
+### Using the race detector
 
 You can switch the default binaries to race detection mode, and thus also switch
 the mode of tests by using
