@@ -7,7 +7,7 @@ Go rules for Bazel_
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
 .. _Bazel: https://bazel.build/
 .. _Build modes: go/modes.rst
-.. _Core rules: go/core.rst
+.. _Core rules: docs/go/core/rules.md
 .. _Dependencies: go/dependencies.rst
 .. _Deprecation schedule: https://github.com/bazelbuild/rules_go/wiki/Deprecation-schedule
 .. _Editor and tool integration: https://github.com/bazelbuild/rules_go/wiki/Editor-and-tool-integration
@@ -34,21 +34,21 @@ Go rules for Bazel_
 .. _#go on Bazel Slack: https://bazelbuild.slack.com/archives/CDBP88Z0D
 
 .. Go rules
-.. _go_binary: go/core.rst#go_binary
+.. _go_binary: docs/go/core/rules.md#go_binary
 .. _go_context: go/toolchains.rst#go_context
 .. _go_download_sdk: go/toolchains.rst#go_download_sdk
-.. _go_embed_data: go/extras.md#go_embed_data
+.. _go_embed_data: docs/go/extras/extras.md#go_embed_data
 .. _go_host_sdk: go/toolchains.rst#go_host_sdk
-.. _go_library: go/core.rst#go_library
+.. _go_library: docs/go/core/rules.md#go_library
 .. _go_local_sdk: go/toolchains.rst#go_local_sdk
-.. _go_path: go/core.rst#go_path
+.. _go_path: docs/go/core/rules.md#go_path
 .. _go_proto_compiler: proto/core.rst#go_proto_compiler
 .. _go_proto_library: proto/core.rst#go_proto_library
 .. _go_register_toolchains: go/toolchains.rst#go_register_toolchains
 .. _go_repository: https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository
 .. _go_rules_dependencies: go/dependencies.rst#go_rules_dependencies
-.. _go_source: go/core.rst#go_source
-.. _go_test: go/core.rst#go_test
+.. _go_source: docs/go/core/rules.md#go_source
+.. _go_test: docs/go/core/rules.md#go_test
 .. _go_toolchain: go/toolchains.rst#go_toolchain
 .. _go_wrap_sdk: go/toolchains.rst#go_wrap_sdk
 
@@ -140,7 +140,7 @@ Documentation
   * `go_toolchain`_
   * `go_context`_
 
-* `Extra rules <go/extras.md>`_
+* `Extra rules <docs/go/extras/extras.md>`_
 
   * `go_embed_data`_
 

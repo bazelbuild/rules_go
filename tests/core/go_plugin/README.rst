@@ -1,7 +1,7 @@
 Basic -buildmode=plugin functionality
 =====================================
 
-.. _go_binary: /go/core.rst#_go_binary
+.. _go_binary: /docs/go/core/rules.md#_go_binary
 
 Tests to ensure the basic features of go_binary with linkmode="plugin" are
 working as expected.

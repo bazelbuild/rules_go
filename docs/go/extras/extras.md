@@ -4,7 +4,7 @@
   [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
   [golang/mock]: https://github.com/golang/mock
   [gomock_rule]: https://github.com/jmhodges/bazel_gomock
-  [core go rules]: core.rst
+  [core go rules]: /docs/go/core/rules.md
 
 # Extra rules
 
@@ -35,6 +35,9 @@ gomock
 This rule allows you to generate mock interfaces with mockgen (from [golang/mock]) which can be useful for certain testing scenarios. See [gomock_rule] in the gomock repository.
 
 
+
+
+
 <a id="#go_embed_data"></a>
 
 ## go_embed_data
@@ -59,7 +62,7 @@ go_embed_data_dependencies()
 `go_embed_data` accepts the attributes listed below.
 
 
-**ATTRIBUTES**
+### **Attributes**
 
 
 | Name  | Description | Type | Mandatory | Default |

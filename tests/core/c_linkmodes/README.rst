@@ -1,7 +1,7 @@
 c-archive / c-shared linkmodes
 ==============================
 
-.. _go_binary: /go/core.rst#go_binary
+.. _go_binary: /docs/go/core/rules.md#go_binary
 .. _#2132: https://github.com/bazelbuild/rules_go/issues/2132
 .. _#2138: https://github.com/bazelbuild/rules_go/issues/2138
 

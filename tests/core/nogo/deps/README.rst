@@ -2,7 +2,7 @@ nogo analyzers with dependencies
 =============================
 
 .. _nogo: /go/nogo.rst
-.. _go_library: /go/core.rst#_go_library
+.. _go_library: /docs/go/core/rules.md#_go_library
 
 Tests to ensure that custom `nogo`_ analyzers that depend on each other are
 run in the correct order.

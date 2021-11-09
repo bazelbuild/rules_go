@@ -1,8 +1,8 @@
 Misc configuration transition tests
 ===================================
 
-.. _go_binary: /go/core.rst#_go_binary
-.. _go_test: /go/core.rst#_go_test
+.. _go_binary: /docs/go/core/rules.md#_go_binary
+.. _go_test: /docs/go/core/rules.md#_go_test
 
 Tests that check that configuration transitions for `go_binary`_ and `go_test`_
 are working correctly.

@@ -1,8 +1,8 @@
 Cross compilation
 =================
 
-.. _go_binary: /go/core.rst#go_binary
-.. _go_library: /go/core.rst#go_library
+.. _go_binary: /docs/go/core/rules.md#go_binary
+.. _go_library: /docs/go/core/rules.md#go_library
 .. _#2523: https://github.com/bazelbuild/rules_go/issues/2523
 
 Tests to ensure that cross compilation is working as expected.

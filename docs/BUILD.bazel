@@ -1,50 +1,19 @@
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@io_bazel_stardoc//stardoc:stardoc.bzl", "stardoc")
+load("//docs:doc_helpers.bzl", "stardoc_with_diff_test", "update_docs")
 
-_DOC_SRCS = {
-    "//extras:embed_data": "extras.md",
-}
-
-[
-    stardoc(
-        name = out.replace(".md", "_docgen"),
-        out = out,
-        input = input + ".bzl",
-        deps = [input],
-    )
-    for [
-        input,
-        out,
-    ] in _DOC_SRCS.items()
-]
-
-[
-    diff_test(
-        name = "check_" + out,
-        failure_message = "Please run \"bazel run //docs:update\"",
-        # Source file
-        file1 = "//go:" + out,
-        # Output from stardoc rule above
-        file2 = out,
-    )
-    for out in _DOC_SRCS.values()
-]
-
-write_file(
-    name = "gen_update",
-    out = "update.sh",
-    content = [
-        "#!/bin/sh",
-        "cd $BUILD_WORKSPACE_DIRECTORY",
-    ] + [
-        "cp -fv bazel-bin/docs/{0} go/{0}".format(out)
-        for out in _DOC_SRCS.values()
-    ],
+# For each doc file, generate MD from bzl_library, then perform diff test
+stardoc_with_diff_test(
+    bzl_library_target = "//docs/go/extras:extras",
+    out_label = "//docs/go/extras:extras.md",
+    rule_template = "rule_body.vm",
 )
 
-sh_binary(
+stardoc_with_diff_test(
+    bzl_library_target = "//docs/go/core:rules",
+    out_label = "//docs/go/core:rules.md",
+    rule_template = "rule_body.vm",
+)
+
+# Update MD in local source tree
+update_docs(
     name = "update",
-    srcs = ["update.sh"],
-    data = _DOC_SRCS.values(),
 )

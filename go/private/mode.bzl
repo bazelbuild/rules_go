@@ -118,8 +118,8 @@ def installsuffix(mode):
     return s
 
 def mode_tags_equivalent(l, r):
-    """Returns whether two modes are equivalent for Go build tags. For example,
-    goos and goarch must match, but static doesn't matter."""
+    # Returns whether two modes are equivalent for Go build tags. For example,
+    # goos and goarch must match, but static doesn't matter.
     return (l.goos == r.goos and
             l.goarch == r.goarch and
             l.race == r.race and

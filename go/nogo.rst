@@ -2,7 +2,7 @@
 ====================================
 
 .. _nogo: nogo.rst#nogo
-.. _go_library: core.rst#go_library
+.. _go_library: /docs/go/core/rules.md#go_library
 .. _analysis: https://godoc.org/golang.org/x/tools/go/analysis
 .. _Analyzer: https://godoc.org/golang.org/x/tools/go/analysis#Analyzer
 .. _GoLibrary: providers.rst#GoLibrary

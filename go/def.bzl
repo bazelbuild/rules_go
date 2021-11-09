@@ -144,19 +144,19 @@ GoArchiveData = _GoArchiveData
 # See go/providers.rst#GoSDK for full documentation.
 GoSDK = _GoSDK
 
-# See go/core.rst#go_library for full documentation.
+# See docs/go/core/rules.md#go_library for full documentation.
 go_library = _go_library_macro
 
-# See go/core.rst#go_binary for full documentation.
+# See docs/go/core/rules.md#go_binary for full documentation.
 go_binary = _go_binary_macro
 
-# See go/core.rst#go_test for full documentation.
+# See docs/go/core/rules.md#go_test for full documentation.
 go_test = _go_test_macro
 
-# See go/core.rst#go_test for full documentation.
+# See docs/go/core/rules.md#go_test for full documentation.
 go_source = _go_source
 
-# See go/core.rst#go_path for full documentation.
+# See docs/go/core/rules.md#go_path for full documentation.
 go_path = _go_path
 
 def go_vet_test(*args, **kwargs):

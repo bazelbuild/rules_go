@@ -1,7 +1,7 @@
 Import maps
 ===========
 
-.. _go_library: /go/core.rst#_go_library
+.. _go_library: /docs/go/core/rules.md#_go_library
 
 Tests to ensure that importmap is working as expected.
 

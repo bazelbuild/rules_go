@@ -2,7 +2,7 @@ Custom nogo analyzers
 =====================
 
 .. _nogo: /go/nogo.rst
-.. _go_library: /go/core.rst#_go_library
+.. _go_library: /docs/go/core/rules.md#_go_library
 
 Tests to ensure that custom `nogo`_ analyzers run and detect errors.
 

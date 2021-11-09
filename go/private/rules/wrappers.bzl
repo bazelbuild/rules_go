@@ -41,12 +41,12 @@ def _cgo(name, kwargs):
         fail("//{}:{}: the objc attribute has been removed. .m sources may be included in srcs or may be extracted into a separated objc_library listed in cdeps.".format(native.package_name(), name))
 
 def go_library_macro(name, **kwargs):
-    """See go/core.rst#go_library for full documentation."""
+    """See docs/go/core/rules.md#go_library for full documentation."""
     _cgo(name, kwargs)
     go_library(name = name, **kwargs)
 
 def go_binary_macro(name, **kwargs):
-    """See go/core.rst#go_binary for full documentation."""
+    """See docs/go/core/rules.md#go_binary for full documentation."""
     _cgo(name, kwargs)
     go_transition_wrapper(go_binary, go_transition_binary, name = name, **kwargs)
     if kwargs.get("linkmode") in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
@@ -60,6 +60,6 @@ def go_binary_macro(name, **kwargs):
         )
 
 def go_test_macro(name, **kwargs):
-    """See go/core.rst#go_test for full documentation."""
+    """See docs/go/core/rules.md#go_test for full documentation."""
     _cgo(name, kwargs)
     go_transition_wrapper(go_test, go_transition_test, name = name, **kwargs)
