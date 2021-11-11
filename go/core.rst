@@ -492,6 +492,13 @@ Attributes
 | List of Go libraries this test imports directly.                                                 |
 | These may be go_library rules or compatible rules with the GoLibrary_ provider.                  |
 +----------------------------+-----------------------------+---------------------------------------+
+| :param:`env`               | :type:`string_dict`         | :value:`{}`                           |
++----------------------------+-----------------------------+---------------------------------------+
+| Environment variables to set for the test execution.                                             |
+| The values (but not keys) are subject to                                                         |
+| [location expansion](https://docs.bazel.build/versions/main/skylark/macros.html) but not full    |
+| [make variable expansion](https://docs.bazel.build/versions/main/be/make-variables.html).        |
++----------------------------+-----------------------------+---------------------------------------+
 | :param:`embed`             | :type:`label_list`          | :value:`[]`                           |
 +----------------------------+-----------------------------+---------------------------------------+
 | List of Go libraries whose sources should be compiled together with this                         |
