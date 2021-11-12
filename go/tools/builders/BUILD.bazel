@@ -1,5 +1,5 @@
 load("//go:def.bzl", "go_binary", "go_source", "go_test")
-load("//go/private/rules:transition.bzl", "go_reset_target")
+load("//go/private/rules:transition.bzl", "go_exec_reset_target")
 
 go_test(
     name = "filter_test",
@@ -93,7 +93,7 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
-go_reset_target(
+go_exec_reset_target(
     name = "go_path",
     dep = ":go_path-bin",
     visibility = ["//visibility:public"],
@@ -127,7 +127,7 @@ go_binary(
     visibility = ["//visibility:private"],
 )
 
-go_reset_target(
+go_exec_reset_target(
     name = "go-protoc",
     dep = ":go-protoc-bin",
     visibility = ["//visibility:public"],

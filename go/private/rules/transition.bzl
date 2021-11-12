@@ -221,7 +221,7 @@ go_transition = transition(
     ]],
 )
 
-_reset_transition_dict = {
+_common_reset_transition_dict = {
     "@io_bazel_rules_go//go/config:static": False,
     "@io_bazel_rules_go//go/config:msan": False,
     "@io_bazel_rules_go//go/config:race": False,
@@ -230,17 +230,22 @@ _reset_transition_dict = {
     "@io_bazel_rules_go//go/config:debug": False,
     "@io_bazel_rules_go//go/config:linkmode": LINKMODE_NORMAL,
     "@io_bazel_rules_go//go/config:tags": [],
-    "@io_bazel_rules_go//go/private:bootstrap_nogo": True,
 }
+
+_reset_transition_dict = dict(_common_reset_transition_dict, **{
+    "@io_bazel_rules_go//go/private:bootstrap_nogo": True,
+})
 
 _reset_transition_keys = sorted([filter_transition_label(label) for label in _reset_transition_dict.keys()])
 
-def _go_reset_transition_impl(settings, attr):
-    """Sets Go settings to default values so tools can be built safely.
+def _go_exec_reset_transition_impl(settings, attr):
+    """Sets most Go settings to default values (use for external Go tools).
 
-    go_reset_transition sets all of the //go/config settings to their default
-    values. This is used for tool binaries like nogo. Tool binaries shouldn't
-    depend on the link mode or tags of the target configuration. This transition
+    go_exec_reset_transition sets all of the //go/config settings to their
+    default values and disables nogo. This is used for Go tool binaries like
+    nogo itself. Tool binaries shouldn't depend on the link mode or tags of the
+    target configuration and neither the tools nor the code they potentially
+    generate should be subject to nogo's static analysis. This transition
     doesn't change the platform (goos, goarch), but tool binaries should also
     have `cfg = "exec"` so tool binaries should be built for the execution
     platform.
@@ -250,15 +255,44 @@ def _go_reset_transition_impl(settings, attr):
         settings[filter_transition_label(label)] = value
     return settings
 
-go_reset_transition = transition(
-    implementation = _go_reset_transition_impl,
+go_exec_reset_transition = transition(
+    implementation = _go_exec_reset_transition_impl,
     inputs = _reset_transition_keys,
     outputs = _reset_transition_keys,
 )
 
-def _go_reset_target_impl(ctx):
+_non_go_exec_reset_transition_dict = dict(_common_reset_transition_dict, **{
+    "@io_bazel_rules_go//go/private:bootstrap_nogo": False,
+})
+
+_non_go_exec_reset_transition_keys = sorted([filter_transition_label(label) for label in _non_go_exec_reset_transition_dict.keys()])
+
+def _go_non_go_exec_reset_tool_transition_impl(settings, attr):
+    """Sets all Go settings to default values (use for external non-Go tools).
+
+    go_non_go_exec_reset_transition sets all of the //go/config settings as well
+    as the nogo settings to their default values. This is used for all tools that
+    are not themselves targets created from rules_go rules and thus do not read
+    these settings. Resetting all of them to defaults prevents unnecessary
+    configuration changes for these targets that could cause rebuilds.
+
+    Examples: This transition is applied to attributes referening proto_library
+    targets or protoc directly.
+    """
+    settings = dict(settings)
+    for label, value in _non_go_exec_reset_transition_dict.items():
+        settings[filter_transition_label(label)] = value
+    return settings
+
+go_non_go_exec_reset_tool_transition = transition(
+    implementation = _go_non_go_exec_reset_tool_transition_impl,
+    inputs = _non_go_exec_reset_transition_keys,
+    outputs = _non_go_exec_reset_transition_keys,
+)
+
+def _go_exec_reset_target_impl(ctx):
     t = ctx.attr.dep[0]  # [0] seems to be necessary with the transition
-    providers = [t[p] for p in [GoLibrary, GoSource, GoArchive]]
+    providers = [t[p] for p in [GoLibrary, GoSource, GoArchive] if p in t]
 
     # We can't pass DefaultInfo through as-is, since Bazel forbids executable
     # if it's a file declared in a different target. To emulate that, symlink
@@ -290,25 +324,49 @@ def _go_reset_target_impl(ctx):
     )
     return providers
 
-go_reset_target = rule(
-    implementation = _go_reset_target_impl,
+go_exec_reset_target = rule(
+    implementation = _go_exec_reset_target_impl,
     attrs = {
         "dep": attr.label(
             mandatory = True,
-            cfg = go_reset_transition,
+            cfg = go_exec_reset_transition,
         ),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    doc = """Forwards providers from a target and applies go_reset_transition.
+    doc = """Forwards providers from a target and applies go_exec_reset_transition.
 
-go_reset_target depends on a single target, built using go_reset_transition.
+go_exec_reset_target depends on a single target, built using go_exec_reset_transition.
 It forwards Go providers and DefaultInfo.
 
 This is used to work around a problem with building tools: tools should be
 built with 'cfg = "exec"' so they work on the execution platform, but we also
-need to apply go_reset_transition, so for example, a tool isn't built as a
+need to apply go_exec_reset_transition, so for example, a tool isn't built as a
+shared library with race instrumentation. This acts as an intermediately rule
+so we can apply both transitions.
+""",
+)
+
+go_non_go_exec_reset_target = rule(
+    implementation = _go_exec_reset_target_impl,
+    attrs = {
+        "dep": attr.label(
+            mandatory = True,
+            cfg = go_non_go_exec_reset_tool_transition,
+        ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+    },
+    doc = """Forwards providers from a target and applies go_exec_reset_transition.
+
+go_exec_reset_target depends on a single target, built using go_exec_reset_transition.
+It forwards Go providers and DefaultInfo.
+
+This is used to work around a problem with building tools: tools should be
+built with 'cfg = "exec"' so they work on the execution platform, but we also
+need to apply go_exec_reset_transition, so for example, a tool isn't built as a
 shared library with race instrumentation. This acts as an intermediately rule
 so we can apply both transitions.
 """,
