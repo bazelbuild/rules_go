@@ -4,6 +4,10 @@ load(
     "go_proto_compiler",
 )
 load(
+    "//go/private/rules:transition.bzl",
+    "go_non_go_exec_reset_target",
+)
+load(
     "//proto/wkt:well_known_types.bzl",
     "GOGO_WELL_KNOWN_TYPE_REMAPS",
     "PROTO_RUNTIME_DEPS",
@@ -110,6 +114,12 @@ go_proto_compiler(
         "@org_golang_google_grpc//status:go_default_library",
         "@org_golang_x_net//context:go_default_library",
     ] + WELL_KNOWN_TYPE_RULES.values(),
+)
+
+go_non_go_exec_reset_target(
+    name = "protoc_reset_target_",
+    dep = "@com_google_protobuf//:protoc",
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
