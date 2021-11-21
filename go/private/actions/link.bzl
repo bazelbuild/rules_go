@@ -108,7 +108,7 @@ def emit_link(
         tool_args.add("-pluginpath", archive.data.importpath)
 
     # TODO: Rework when https://github.com/bazelbuild/bazel/pull/12304 is mainstream
-    if go.mode.link == LINKMODE_C_SHARED and go.mode.goos == "darwin":
+    if go.mode.link == LINKMODE_C_SHARED and (go.mode.goos in ["darwin", "ios"]):
         extldflags.extend([
             "-install_name",
             rpath.install_name(executable),

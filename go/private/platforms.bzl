@@ -20,6 +20,7 @@ BAZEL_GOOS_CONSTRAINTS = {
     "android": "@platforms//os:android",
     "darwin": "@platforms//os:osx",
     "freebsd": "@platforms//os:freebsd",
+    "ios": "@platforms//os:ios",
     "linux": "@platforms//os:linux",
     "windows": "@platforms//os:windows",
 }
@@ -49,6 +50,8 @@ GOOS_GOARCH = (
     ("freebsd", "arm"),
     ("freebsd", "arm64"),
     ("illumos", "amd64"),
+    ("ios", "amd64"),
+    ("ios", "arm64"),
     ("js", "wasm"),
     ("linux", "386"),
     ("linux", "amd64"),
@@ -107,6 +110,8 @@ CGO_GOOS_GOARCH = {
     ("freebsd", "amd64"): None,
     ("freebsd", "arm"): None,
     ("illumos", "amd64"): None,
+    ("ios", "amd64"): None,
+    ("ios", "arm64"): None,
     ("linux", "386"): None,
     ("linux", "amd64"): None,
     ("linux", "arm"): None,
@@ -166,26 +171,6 @@ def _generate_platforms():
                 constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"] + mingw,
                 cgo = True,
             ))
-
-    for goarch in ("arm", "arm64", "386", "amd64"):
-        constraints = [
-            "@platforms//os:ios",
-            GOARCH_CONSTRAINTS[goarch],
-        ]
-        platforms.append(struct(
-            name = "ios_" + goarch,
-            goos = "darwin",
-            goarch = goarch,
-            constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_off"],
-            cgo = False,
-        ))
-        platforms.append(struct(
-            name = "ios_" + goarch + "_cgo",
-            goos = "darwin",
-            goarch = goarch,
-            constraints = constraints + ["@io_bazel_rules_go//go/toolchain:cgo_on"],
-            cgo = True,
-        ))
 
     return platforms
 

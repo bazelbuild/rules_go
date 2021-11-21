@@ -67,7 +67,7 @@ func link(args []string) error {
 	// os.Open on Windows converts absolute paths to some other path format with
 	// longer length limits. Absolute paths do not work on macOS for .dylib
 	// outputs because they get baked in as the "install path".
-	if runtime.GOOS != "darwin" {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "ios" {
 		*outFile = abs(*outFile)
 	}
 	*main = abs(*main)

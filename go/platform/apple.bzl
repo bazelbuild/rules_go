@@ -29,7 +29,7 @@ _PLATFORMS = {
 def _apple_version_min(ctx, platform, platform_type):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
     min_os = str(xcode_config.minimum_os_for_platform_type(platform_type))
-    return "-m" + platform.name_in_plist.lower() + "-version-min=" + min_os
+    return "-m{}-version-min={}".format(platform.name_in_plist.lower(), min_os)
 
 def _apple_env(ctx, platform):
     xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig]
@@ -40,8 +40,6 @@ def apple_ensure_options(ctx, env, tags, compiler_option_lists, linker_option_li
     platform, platform_type = _PLATFORMS.get(target_gnu_system_name, (None, None))
     if not platform:
         return
-    if platform_type == apple_common.platform_type.ios:
-        tags.append("ios")  # needed for stdlib building
     env.update(_apple_env(ctx, platform))
     min_version = _apple_version_min(ctx, platform, platform_type)
     for compiler_options in compiler_option_lists:

@@ -127,8 +127,8 @@ def mode_tags_equivalent(l, r):
 
 # Ported from https://github.com/golang/go/blob/master/src/cmd/go/internal/work/init.go#L76
 _LINK_C_ARCHIVE_PLATFORMS = {
-    "darwin/arm": None,
     "darwin/arm64": None,
+    "ios/arm64": None,
 }
 
 _LINK_C_ARCHIVE_GOOS = {
@@ -140,18 +140,11 @@ _LINK_C_ARCHIVE_GOOS = {
     "solaris": None,
 }
 
-_LINK_C_SHARED_PLATFORMS = {
-    "linux/amd64": None,
-    "linux/arm": None,
-    "linux/arm64": None,
-    "linux/386": None,
-    "linux/ppc64le": None,
-    "linux/s390x": None,
-    "android/amd64": None,
-    "android/arm": None,
-    "android/arm64": None,
-    "android/386": None,
-}
+_LINK_C_SHARED_GOOS = [
+    "android",
+    "freebsd",
+    "linux",
+]
 
 _LINK_PLUGIN_PLATFORMS = {
     "linux/amd64": None,
@@ -166,6 +159,8 @@ _LINK_PLUGIN_PLATFORMS = {
     "android/386": None,
     "darwin/amd64": None,
     "darwin/arm64": None,
+    "ios/arm": None,
+    "ios/arm64": None,
 }
 
 _LINK_PIE_PLATFORMS = {
@@ -191,7 +186,7 @@ def link_mode_args(mode):
             mode.goos in _LINK_C_ARCHIVE_GOOS and platform != "linux/ppc64"):
             args.append("-shared")
     elif mode.link == LINKMODE_C_SHARED:
-        if platform in _LINK_C_SHARED_PLATFORMS:
+        if mode.goos in _LINK_C_SHARED_GOOS:
             args.append("-shared")
     elif mode.link == LINKMODE_PLUGIN:
         if platform in _LINK_PLUGIN_PLATFORMS:
@@ -218,7 +213,7 @@ def extld_from_cc_toolchain(go):
     elif go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_PIE):
         return ["-extld", go.cgo_tools.ld_dynamic_lib_path]
     elif go.mode.link == LINKMODE_C_ARCHIVE:
-        if go.mode.goos == "darwin":
+        if go.mode.goos in ["darwin", "ios"]:
             # TODO(jayconrod): on macOS, set -extar. At this time, wrapped_ar is
             # a bash script without a shebang line, so we can't execute it. We
             # use /usr/bin/ar (the default) instead.
