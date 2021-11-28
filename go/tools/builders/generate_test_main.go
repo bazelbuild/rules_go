@@ -69,7 +69,7 @@ type Cases struct {
 	FuzzTargets []TestCase
 	Examples    []Example
 	TestMain    string
-	Coverage    bool
+	CoverMode   string
 	Pkgname     string
 }
 
@@ -105,7 +105,7 @@ import (
 	"testing"
 	"testing/internal/testdeps"
 
-{{if .Coverage}}
+{{if ne .CoverMode ""}}
 	"github.com/bazelbuild/rules_go/go/tools/coverdata"
 {{end}}
 
@@ -181,12 +181,15 @@ func main() {
 		flag.Lookup("test.run").Value.Set(filter)
 	}
 
-	{{if .Coverage}}
-	if len(coverdata.Cover.Counters) > 0 {
-		testing.RegisterCover(coverdata.Cover)
-	}
-	if coverageDat, ok := os.LookupEnv("COVERAGE_OUTPUT_FILE"); ok {
-		if testing.CoverMode() != "" {
+	{{if ne .CoverMode ""}}
+	if len(coverdata.Counters) > 0 {
+		testing.RegisterCover(testing.Cover{
+			Mode: "{{ .CoverMode }}",
+			Counters: coverdata.Counters,
+			Blocks: coverdata.Blocks,
+		})
+
+		if coverageDat, ok := os.LookupEnv("COVERAGE_OUTPUT_FILE"); ok {
 			flag.Lookup("test.coverprofile").Value.Set(coverageDat)
 		}
 	}
@@ -213,7 +216,7 @@ func genTestMain(args []string) error {
 	flags := flag.NewFlagSet("GoTestGenTest", flag.ExitOnError)
 	goenv := envFlags(flags)
 	out := flags.String("output", "", "output file to write. Defaults to stdout.")
-	coverage := flags.Bool("coverage", false, "whether coverage is supported")
+	coverMode := flags.String("cover_mode", "", "the coverage mode to use")
 	pkgname := flags.String("pkgname", "", "package name of test")
 	flags.Var(&imports, "import", "Packages to import")
 	flags.Var(&sources, "src", "Sources to process for tests")
@@ -263,8 +266,8 @@ func genTestMain(args []string) error {
 	}
 
 	cases := Cases{
-		Coverage: *coverage,
-		Pkgname:  *pkgname,
+		CoverMode: *coverMode,
+		Pkgname:   *pkgname,
 	}
 
 	testFileSet := token.NewFileSet()

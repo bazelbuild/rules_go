@@ -243,9 +243,10 @@ func Test(t *testing.T) {
 			target:        "//:pure_race_bin",
 			wantBuildFail: true,
 		}, {
-			desc:   "cover_race",
-			cmd:    "coverage",
-			target: "//:coverrace_test",
+			desc:        "cover_race",
+			cmd:         "coverage",
+			target:      "//:coverrace_test",
+			featureFlag: true,
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {

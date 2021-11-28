@@ -25,13 +25,11 @@ import (
 	"testing"
 )
 
-// Cover contains all coverage data for the program.
-var Cover = testing.Cover{
-	Mode:            "set",
-	CoveredPackages: "",
-	Counters:        map[string][]uint32{},
-	Blocks:          map[string][]testing.CoverBlock{},
-}
+// Contains all coverage data for the program.
+var (
+	Counters = make(map[string][]uint32)
+	Blocks = make(map[string][]testing.CoverBlock)
+)
 
 // RegisterFile causes the coverage data recorded for a file to be included
 // in program-wide coverage reports. This should be called from init functions
@@ -40,12 +38,12 @@ func RegisterFile(fileName string, counter []uint32, pos []uint32, numStmts []ui
 	if 3*len(counter) != len(pos) || len(counter) != len(numStmts) {
 		panic("coverage: mismatched sizes")
 	}
-	if Cover.Counters[fileName] != nil {
+	if Counters[fileName] != nil {
 		// Already registered.
 		fmt.Printf("Already covered %s\n", fileName)
 		return
 	}
-	Cover.Counters[fileName] = counter
+	Counters[fileName] = counter
 	block := make([]testing.CoverBlock, len(counter))
 	for i := range counter {
 		block[i] = testing.CoverBlock{
@@ -56,5 +54,5 @@ func RegisterFile(fileName string, counter []uint32, pos []uint32, numStmts []ui
 			Stmts: numStmts[i],
 		}
 	}
-	Cover.Blocks[fileName] = block
+	Blocks[fileName] = block
 }

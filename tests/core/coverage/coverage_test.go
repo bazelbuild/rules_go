@@ -16,6 +16,7 @@ package coverage_test
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -171,7 +172,21 @@ func TestPanic(t *testing.T) {
 }
 
 func TestCoverage(t *testing.T) {
-	if err := bazel_testing.RunBazel("coverage", "--instrumentation_filter=-//:b", ":a_test"); err != nil {
+	t.Run("without-race", func(t *testing.T) {
+		testCoverage(t, "set")
+	})
+
+	t.Run("with-race", func(t *testing.T) {
+		testCoverage(t, "atomic", "--@io_bazel_rules_go//go/config:race")
+	})
+}
+
+func testCoverage(t *testing.T, expectedCoverMode string, extraArgs ...string) {
+	args := append([]string{"coverage"}, append(
+		extraArgs, "--instrumentation_filter=-//:b", ":a_test",
+	)...)
+
+	if err := bazel_testing.RunBazel(args...); err != nil {
 		t.Fatal(err)
 	}
 
@@ -181,6 +196,7 @@ func TestCoverage(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, include := range []string{
+		fmt.Sprintf("mode: %s", expectedCoverMode),
 		"example.com/coverage/a/a.go:",
 		"example.com/coverage/c/c.go:",
 	} {

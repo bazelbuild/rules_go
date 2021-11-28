@@ -96,8 +96,11 @@ def _go_test_impl(ctx):
     main_go = go.declare_file(go, path = "testmain.go")
     arguments = go.builder_args(go, "gentestmain")
     arguments.add("-output", main_go)
-    if ctx.configuration.coverage_enabled:
-        arguments.add("-coverage")
+    if go.coverage_enabled:
+        if go.mode.race:
+            arguments.add("-cover_mode", "atomic")
+        else:
+            arguments.add("-cover_mode", "set")
     arguments.add(
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
