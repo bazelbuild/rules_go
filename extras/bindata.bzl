@@ -55,6 +55,7 @@ def _bindata_impl(ctx):
     return [
         DefaultInfo(
             files = depset([out]),
+            runfiles = ctx.runfiles([out]),
         ),
     ]
 
