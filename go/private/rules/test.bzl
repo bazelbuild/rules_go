@@ -96,8 +96,11 @@ def _go_test_impl(ctx):
     main_go = go.declare_file(go, path = "testmain.go")
     arguments = go.builder_args(go, "gentestmain")
     arguments.add("-output", main_go)
-    if ctx.configuration.coverage_enabled:
-        arguments.add("-coverage")
+    if go.coverage_enabled:
+        if go.mode.race:
+            arguments.add("-cover_mode", "atomic")
+        else:
+            arguments.add("-cover_mode", "set")
     arguments.add(
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
@@ -154,6 +157,10 @@ def _go_test_impl(ctx):
         info_file = ctx.info_file,
     )
 
+    env = {}
+    for k, v in ctx.attr.env.items():
+        env[k] = ctx.expand_location(v, ctx.attr.data)
+
     # Bazel only looks for coverage data if the test target has an
     # InstrumentedFilesProvider. If the provider is found and at least one
     # source file is present, Bazel will set the COVERAGE_OUTPUT_FILE
@@ -175,6 +182,7 @@ def _go_test_impl(ctx):
             dependency_attributes = ["deps", "embed"],
             extensions = ["go"],
         ),
+        testing.TestEnvironment(env),
     ]
 
 _go_test_kwargs = {
@@ -185,6 +193,7 @@ _go_test_kwargs = {
         "deps": attr.label_list(providers = [GoLibrary]),
         "embed": attr.label_list(providers = [GoLibrary]),
         "embedsrcs": attr.label_list(allow_files = True),
+        "env": attr.string_dict(),
         "importpath": attr.string(),
         "gc_goopts": attr.string_list(),
         "gc_linkopts": attr.string_list(),

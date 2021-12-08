@@ -16,6 +16,7 @@ package coverage_test
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -75,6 +76,18 @@ go_test(
 	name = "d_test",
 	embed = [":d"],
 )
+
+go_library(
+	name = "panicking",
+	srcs = ["panicking.go"],
+	importpath = "example.com/coverage/panicking",
+)
+
+go_test(
+    name = "panicking_test",
+    srcs = ["panicking_test.go"],
+    embed = [":panicking"],
+)
 -- a_test.go --
 package a
 
@@ -83,7 +96,6 @@ import "testing"
 func TestA(t *testing.T) {
 	ALive()
 }
-
 -- a.go --
 package a
 
@@ -128,12 +140,53 @@ package lzma
 
 // ntz32Const is used by the functions NTZ and NLZ.
 const ntz32Const = 0x04d7651f
+-- panicking.go --
+package panicking
+
+func Panic() {
+	panic("from line 4")
+}
+-- panicking_test.go --
+package panicking
+
+import (
+	"regexp"
+	"runtime/debug"
+	"testing"
+)
+
+func TestPanic(t *testing.T) {
+	defer func() {
+		if err := recover(); err != nil {
+			got := regexp.MustCompile("panicking.go:[0-9]+").
+				FindString(string(debug.Stack()))
+			if want := "panicking.go:4"; want != got {
+				t.Errorf("want %q; got %q", want, got)
+			}
+		}
+	}()
+	Panic()
+}
 `,
 	})
 }
 
 func TestCoverage(t *testing.T) {
-	if err := bazel_testing.RunBazel("coverage", "--instrumentation_filter=-//:b", ":a_test"); err != nil {
+	t.Run("without-race", func(t *testing.T) {
+		testCoverage(t, "set")
+	})
+
+	t.Run("with-race", func(t *testing.T) {
+		testCoverage(t, "atomic", "--@io_bazel_rules_go//go/config:race")
+	})
+}
+
+func testCoverage(t *testing.T, expectedCoverMode string, extraArgs ...string) {
+	args := append([]string{"coverage"}, append(
+		extraArgs, "--instrumentation_filter=-//:b", ":a_test",
+	)...)
+
+	if err := bazel_testing.RunBazel(args...); err != nil {
 		t.Fatal(err)
 	}
 
@@ -143,6 +196,7 @@ func TestCoverage(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, include := range []string{
+		fmt.Sprintf("mode: %s", expectedCoverMode),
 		"example.com/coverage/a/a.go:",
 		"example.com/coverage/c/c.go:",
 	} {
@@ -167,6 +221,12 @@ func TestCrossBuild(t *testing.T) {
 
 func TestCoverageWithComments(t *testing.T) {
 	if err := bazel_testing.RunBazel("coverage", ":d_test"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCoverageWithCorrectLineNumbers(t *testing.T) {
+	if err := bazel_testing.RunBazel("coverage", ":panicking_test"); err != nil {
 		t.Fatal(err)
 	}
 }

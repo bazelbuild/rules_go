@@ -51,9 +51,20 @@ func Runfile(path string) (string, error) {
 	}
 
 	// Search manifest if we have one.
-	if entry, ok := runfiles.index[path]; ok {
+	if entry, ok := runfiles.index.GetIgnoringWorkspace(path); ok {
 		return entry.Path, nil
 	}
+
+	if strings.HasPrefix(path, "../") || strings.HasPrefix(path, "external/") {
+		pathParts := strings.Split(path, "/")
+		if len(pathParts) >= 3 {
+			workspace := pathParts[1]
+			pathInsideWorkspace := strings.Join(pathParts[2:], "/")
+			if path := runfiles.index.Get(workspace, pathInsideWorkspace); path != "" {
+				return path, nil
+			}
+		}
+    }
 
 	// Search the main workspace.
 	if runfiles.workspace != "" {
@@ -279,7 +290,7 @@ var runfiles = struct {
 	list []RunfileEntry
 
 	// index maps runfile short paths to absolute paths.
-	index map[string]RunfileEntry
+	index index
 
 	// dir is a path to the runfile directory. Typically this is a directory
 	// named <target>.runfiles, with a subdirectory for each workspace.
@@ -296,6 +307,47 @@ var runfiles = struct {
 	err error
 }{}
 
+type index struct {
+	indexWithWorkspace map[indexKey]*RunfileEntry
+	indexIgnoringWorksapce map[string]*RunfileEntry
+}
+
+func newIndex() index {
+	return index {
+		indexWithWorkspace: make(map[indexKey]*RunfileEntry),
+		indexIgnoringWorksapce: make(map[string]*RunfileEntry),
+	}
+}
+
+func (i *index) Put(entry *RunfileEntry) {
+	i.indexWithWorkspace[indexKey{
+		workspace: entry.Workspace,
+		shortPath: entry.ShortPath,
+	}] = entry
+	i.indexIgnoringWorksapce[entry.ShortPath] = entry
+}
+
+func (i *index) Get(workspace string, shortPath string) string {
+	entry := i.indexWithWorkspace[indexKey{
+		workspace: workspace,
+		shortPath: shortPath,
+	}]
+	if entry == nil {
+		return ""
+	}
+	return entry.Path
+}
+
+func (i *index) GetIgnoringWorkspace(shortPath string) (*RunfileEntry, bool) {
+	entry, ok := i.indexIgnoringWorksapce[shortPath]
+	return entry, ok
+}
+
+type indexKey struct {
+	workspace string
+	shortPath string
+}
+
 func ensureRunfiles() error {
 	runfiles.once.Do(initRunfiles)
 	return runfiles.err
@@ -307,7 +359,7 @@ func initRunfiles() {
 		// On Windows, Bazel doesn't create a symlink tree of runfiles because
 		// Windows doesn't support symbolic links by default. Instead, runfile
 		// locations are written to a manifest file.
-		runfiles.index = make(map[string]RunfileEntry)
+		runfiles.index = newIndex()
 		data, err := ioutil.ReadFile(manifest)
 		if err != nil {
 			runfiles.err = err
@@ -361,7 +413,7 @@ func initRunfiles() {
 			}
 
 			runfiles.list = append(runfiles.list, entry)
-			runfiles.index[entry.ShortPath] = entry
+			runfiles.index.Put(&entry)
 		}
 	}
 

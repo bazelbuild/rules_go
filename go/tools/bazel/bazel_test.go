@@ -255,7 +255,7 @@ func TestPythonManifest(t *testing.T) {
 		t.Errorf("failed to init runfiles: %v", runfiles.err)
 	}
 
-	entry, ok := runfiles.index["important.txt"]
+	entry, ok := runfiles.index.GetIgnoringWorkspace("important.txt")
 	if !ok {
 		t.Errorf("failed to locate runfile %s in index", "important.txt")
 	}

@@ -44,7 +44,8 @@ def emit_cover(go, source):
         _, pkgpath = effective_importpath_pkgpath(source.library)
         srcname = pkgpath + "/" + orig.basename if pkgpath else orig.path
 
-        cover_var = "Cover_%s_%s" % (_sanitize(pkgpath), _sanitize(src.basename[:-3]))
+        _cover_var = "Cover_%s_%s" % (_sanitize(pkgpath), _sanitize(src.basename[:-3]))
+        cover_var = _cover_var.replace("_", "Z")
         out = go.declare_file(go, path = "Cover_%s" % _sanitize(src.basename[:-3]), ext = ".cover.go")
         covered_src_map.pop(src, None)
         covered_src_map[out] = orig

@@ -181,7 +181,11 @@ func Test(t *testing.T) {
 	for _, dir := range dirs {
 		go func(dir string) {
 			defer wg.Done()
-			cmd := bazel_testing.BazelCmd("build", "//:all", "@io_bazel_rules_go//go/tools/builders:go_path")
+			cmd := bazel_testing.BazelCmd("build",
+				"//:all",
+				"@io_bazel_rules_go//go/tools/builders:go_path",
+				"@go_sdk//:builder",
+			)
 			cmd.Dir = dir
 			if err := cmd.Run(); err != nil {
 				t.Fatalf("in %s, error running %s: %v", dir, strings.Join(cmd.Args, " "), err)
@@ -221,7 +225,7 @@ func Test(t *testing.T) {
 	// nominally different per workspace (but in these tests, the go_sdk paths are all set to the same
 	// path in WORKSPACE) -- so if this path is in the builder binary, then builds between workspaces
 	// would be partially non cacheable.
-	builder_file, err := os.Open(filepath.Join(dirs[0], "bazel-out", "host", "bin", "external", "go_sdk", "builder"))
+	builder_file, err := os.Open(filepath.Join(dirs[0], "bazel-bin", "external", "go_sdk", "builder"))
 	if err != nil {
 		t.Fatal(err)
 	}

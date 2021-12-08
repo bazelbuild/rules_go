@@ -231,6 +231,7 @@ cc_binary(
 go_test(
     name = "cc_libs_test",
     srcs = [
+        "cc_libs_common.go",
         "cc_libs_darwin_test.go",
         "cc_libs_linux_test.go",
     ],

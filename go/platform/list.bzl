@@ -54,25 +54,6 @@ def declare_config_settings():
             ],
         )
 
-    # Additional settings for ios. Unfortunately, we cannot have a "darwin"
-    # setting that covers both operating systems, so "darwin" here means macOS.
-    # The "darwin" build tag will be true for both during execution; this only
-    # matters when evaluating select expressions.
-    native.config_setting(
-        name = "ios",
-        constraint_values = [
-            "@platforms//os:ios",
-        ],
-    )
-    for goarch in ("arm", "arm64", "386", "amd64"):
-        native.config_setting(
-            name = "ios_" + goarch,
-            constraint_values = [
-                "@platforms//os:ios",
-                "@io_bazel_rules_go//go/toolchain:" + goarch,
-            ],
-        )
-
     # Setting that determines whether cgo is enabled.
     # This is experimental and may be changed or removed when we migrate
     # to build settings.

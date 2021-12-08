@@ -34,7 +34,7 @@ var (
 	// cgoEnvVars is the list of all cgo environment variable
 	cgoEnvVars = []string{"CGO_CFLAGS", "CGO_CXXFLAGS", "CGO_CPPFLAGS", "CGO_LDFLAGS"}
 	// cgoAbsEnvFlags are all the flags that need absolute path in cgoEnvVars
-	cgoAbsEnvFlags = []string{"-I", "-L", "-isysroot", "-isystem", "-iquote", "-include", "-gcc-toolchain", "--sysroot", "-resource-dir"}
+	cgoAbsEnvFlags = []string{"-I", "-L", "-isysroot", "-isystem", "-iquote", "-include", "-gcc-toolchain", "--sysroot", "-resource-dir", "-fsanitize-blacklist", "-fsanitize-ignorelist"}
 )
 
 // env holds a small amount of Go environment and toolchain information

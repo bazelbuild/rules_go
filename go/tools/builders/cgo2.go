@@ -133,7 +133,12 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	}
 	hdrIncludes = append(hdrIncludes, "-iquote", workDir) // for _cgo_export.h
 
-	args := goenv.goTool("cgo", "-srcdir", srcDir, "-objdir", workDir)
+	execRoot, err := bazelExecRoot()
+	if err != nil {
+		return "", nil, nil, err
+	}
+	// Trim the execroot from the //line comments emitted by cgo.
+	args := goenv.goTool("cgo", "-srcdir", srcDir, "-objdir", workDir, "-trimpath", execRoot)
 	if packagePath != "" {
 		args = append(args, "-importpath", packagePath)
 	}
@@ -284,7 +289,7 @@ func defaultCFlags(workDir string) []string {
 	}
 	goos, goarch := os.Getenv("GOOS"), os.Getenv("GOARCH")
 	switch {
-	case goos == "darwin":
+	case goos == "darwin" || goos == "ios":
 		return flags
 	case goos == "windows" && goarch == "amd64":
 		return append(flags, "-mthreads")
@@ -298,7 +303,7 @@ func defaultLdFlags() []string {
 	switch {
 	case goos == "android":
 		return []string{"-llog", "-ldl"}
-	case goos == "darwin":
+	case goos == "darwin" || goos == "ios":
 		return nil
 	case goos == "windows" && goarch == "amd64":
 		return []string{"-mthreads"}
@@ -333,6 +338,18 @@ func gatherSrcs(dir string, srcs []string) ([]string, error) {
 		copiedBases[i] = base
 	}
 	return copiedBases, nil
+}
+
+func bazelExecRoot() (string, error) {
+	// Bazel executes the builder with a working directory of the form
+	// .../execroot/<workspace name>. By stripping the last segment, we obtain a
+	// prefix of all possible source files, even when contained in external
+	// repositories.
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Dir(cwd), nil
 }
 
 type cgoError []string

@@ -64,6 +64,8 @@ func TestBinaries(t *testing.T) {
 					t.Errorf("wanted dependency on library %q", wantLib)
 				}
 			}
+
+			verifyNoCachePaths(t, test.shortPath)
 		})
 	}
 }

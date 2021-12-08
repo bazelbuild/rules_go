@@ -129,6 +129,7 @@ def _go_binary_impl(ctx):
         cc_import_kwargs = {
             "linkopts": {
                 "darwin": [],
+                "ios": [],
                 "windows": ["-mthreads"],
             }.get(go.mode.goos, ["-pthread"]),
         }

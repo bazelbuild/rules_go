@@ -1,7 +1,7 @@
 go_embed_data
 =============
 
-.. _go_embed_data: /extras.rst#go-embed-data
+.. _go_embed_data: /extras.md#go-embed-data
 
 Tests to ensure basic features of `go_embed_data`_ are working correctly.
 

@@ -37,7 +37,7 @@ Go rules for Bazel_
 .. _go_binary: go/core.rst#go_binary
 .. _go_context: go/toolchains.rst#go_context
 .. _go_download_sdk: go/toolchains.rst#go_download_sdk
-.. _go_embed_data: go/extras.rst#go_embed_data
+.. _go_embed_data: go/extras.md#go_embed_data
 .. _go_host_sdk: go/toolchains.rst#go_host_sdk
 .. _go_library: go/core.rst#go_library
 .. _go_local_sdk: go/toolchains.rst#go_local_sdk
@@ -76,7 +76,7 @@ Announcements
   Release
   `v0.29.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.29.0>`_
   is now available. This enables `nogo` analyzers to depend on `go_library` rules,
-  removes the `rules_cc` dependency, adds automatic target detection to gopackagesdriver, 
+  removes the `rules_cc` dependency, adds automatic target detection to gopackagesdriver,
   and fixes some cgo-related bugs. See the release notes for details.
 2021-07-07
   Release
@@ -140,7 +140,7 @@ Documentation
   * `go_toolchain`_
   * `go_context`_
 
-* `Extra rules <go/extras.rst>`_
+* `Extra rules <go/extras.md>`_
 
   * `go_embed_data`_
 
