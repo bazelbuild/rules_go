@@ -179,22 +179,21 @@ def has_simple_shared_lib_extension(path):
     """
     Matches filenames of shared libraries, without a version number extension.
     """
-    if any([path.endswith(ext) for ext in SHARED_LIB_EXTENSIONS]):
-        return True
-    return False
+    return any([path.endswith(ext) for ext in SHARED_LIB_EXTENSIONS])
 
 def get_versioned_shared_lib_extension(path):
     """If appears to be an versioned .so or .dylib file, return the extension; otherwise empty"""
     parts = path.split("/")[-1].split(".")
     if not parts[-1].isdigit():
         return ""
+
     # only iterating to 1 because parts[0] has to be the lib name
     for i in range(len(parts) - 1, 0, -1):
         if not parts[i].isdigit():
             if parts[i] == "dylib" or parts[i] == "so":
                 return ".".join(parts[i:])
 
-            # somehting like foo.bar.1.2 or dylib.1.2
+            # something like foo.bar.1.2 or dylib.1.2
             return ""
 
     # something like 1.2.3, or so.1.2, or dylib.1.2, or foo.1.2
