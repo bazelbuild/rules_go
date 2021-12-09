@@ -183,13 +183,37 @@ cc_import(
     tags = ["manual"],
 )
 
-cc_library(
+cc_import(
     name = "darwin_imported_versioned_dylib",
+    shared_library = "libversioned.2.dylib",
+    tags = ["manual"],
+)
+
+go_test(
+    name = "oracle_convention_darwin_dylib_test",
+    srcs = ["dylib_test.go"],
+    embed = [":oracle_convention_darwin_dylib_client"],
+    rundir = ".",
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
+go_library(
+    name = "oracle_convention_darwin_dylib_client",
+    srcs = ["dylib_client.go"],
+    cdeps = [":oracle_convention_darwin_dylib"],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/dylib",
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
+# //tests/core/cgo:generate_imported_dylib.sh must be run first
+cc_library(
+    name = "oracle_convention_darwin_dylib",
     srcs = [
         "libversioned.dylib",
         "libversioned.dylib.2",
     ],
-    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:macos"],
 )
 
 go_test(
