@@ -139,8 +139,10 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
                         inputs_direct.append(lib)
                         continue
                     elif extension.startswith("dylib"):
-                        # With a versioned .dylib file, we can only symlink it as a simple .dylib
-                        # file and treat it as an unversioned one.
+                        # A standard versioned dylib is named as libMagick.2.dylib, which is
+                        # treated as a simple shared library. Non-standard versioned dylibs such as
+                        # libclntsh.dylib.12.1, users have to create a unversioned symbolic link,
+                        # so it can be treated as a simple shared library too.
                         continue
                 lib_opts.append(lib.path)
             clinkopts.extend(cc_link_flags)

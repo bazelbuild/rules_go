@@ -188,9 +188,10 @@ def get_versioned_shared_lib_extension(path):
     parts = path.split("/")[-1].split(".")
     if not parts[-1].isdigit():
         return ""
+    # only iterating to 1 because parts[0] has to be the lib name
     for i in range(len(parts) - 1, 0, -1):
         if not parts[i].isdigit():
-            if i != 0 and (parts[i] == "dylib" or parts[i] == "so"):
+            if parts[i] == "dylib" or parts[i] == "so":
                 return ".".join(parts[i:])
 
             # somehting like foo.bar.1.2 or dylib.1.2
