@@ -45,6 +45,12 @@ Test that the `go_binary`_ ``x_defs`` attribute works correctly, both in a
 binary and in an embedded library. Tests regular stamps and stamps that
 depend on values from the workspace status script. Verifies #2000.
 
+stamp_volatile
+------
+Test that volatile workspace status stamps within an x_def don't result in
+a relink until those targets also depend on a stable attribute from the
+workspace status file.
+
 pie_test
 --------
 Tests that specifying the ``linkmode`` attribute on a `go_binary`_ target to be

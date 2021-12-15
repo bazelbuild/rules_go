@@ -22,6 +22,18 @@ go_bazel_test(
 )
 
 go_binary(
+    name = "stamp_workspace_status_bin",
+    srcs = ["stamp_workspace_status.go"]
+)
+
+go_bazel_test(
+    name = "stamp_volatile_test",
+    data = [":stamp_workspace_status_bin"],
+    srcs = ["stamp_volatile_test.go"],
+    deps = ["@io_bazel_rules_go//go/tools/bazel:go_default_library"],
+)
+
+go_binary(
     name = "custom_bin",
     srcs = ["custom_bin.go"],
     out = "alt_bin",
