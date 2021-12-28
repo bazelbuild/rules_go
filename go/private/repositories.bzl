@@ -86,9 +86,9 @@ def go_rules_dependencies():
             # deletegopls removes the gopls subdirectory. It contains a nested
             # module with additional dependencies. It's not needed by rules_go.
             # releaser:patch-cmd rm -rf gopls
-            "@io_bazel_rules_go//third_party:org_golang_x_tools-deletegopls.patch",
+            Label("//third_party:org_golang_x_tools-deletegopls.patch"),
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
-            "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",
+            Label("//third_party:org_golang_x_tools-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
@@ -106,7 +106,7 @@ def go_rules_dependencies():
         strip_prefix = "sys-2c5d950f24efcc95bc256be158532a2eee20542f",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/sys -go_naming_convention import_alias
-            "@io_bazel_rules_go//third_party:org_golang_x_sys-gazelle.patch",
+            Label("//third_party:org_golang_x_sys-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
@@ -125,7 +125,7 @@ def go_rules_dependencies():
         strip_prefix = "xerrors-5ec99f83aff198f5fbd629d6c8d8eb38a04218ca",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/xerrors -go_naming_convention import_alias
-            "@io_bazel_rules_go//third_party:org_golang_x_xerrors-gazelle.patch",
+            Label("//third_party:org_golang_x_xerrors-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
@@ -160,7 +160,7 @@ def go_rules_dependencies():
         strip_prefix = "protobuf-go-1.27.1",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix google.golang.org/protobuf -go_naming_convention import_alias -proto disable_global
-            "@io_bazel_rules_go//third_party:org_golang_google_protobuf-gazelle.patch",
+            Label("//third_party:org_golang_google_protobuf-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
@@ -183,7 +183,7 @@ def go_rules_dependencies():
         strip_prefix = "protobuf-1.5.2",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix github.com/golang/protobuf -go_naming_convention import_alias -proto disable_global
-            "@io_bazel_rules_go//third_party:com_github_golang_protobuf-gazelle.patch",
+            Label("//third_party:com_github_golang_protobuf-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
@@ -217,7 +217,7 @@ def go_rules_dependencies():
         strip_prefix = "protobuf-1.3.2",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix github.com/gogo/protobuf -go_naming_convention import_alias -proto legacy
-            "@io_bazel_rules_go//third_party:com_github_gogo_protobuf-gazelle.patch",
+            Label("//third_party:com_github_gogo_protobuf-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
@@ -244,7 +244,7 @@ def go_rules_dependencies():
         strip_prefix = "go-genproto-c76a74d43a8eff9efc7832aa92c6a61ce42c8101",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix google.golang.org/genproto -go_naming_convention import_alias -proto disable_global
-            "@io_bazel_rules_go//third_party:org_golang_google_genproto-gazelle.patch",
+            Label("//third_party:org_golang_google_genproto-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
@@ -267,11 +267,11 @@ def go_rules_dependencies():
         strip_prefix = "googleapis-409e134ffaacc243052b08e6fb8e2d458014ed37",
         patches = [
             # releaser:patch-cmd find . -name BUILD.bazel -delete
-            "@io_bazel_rules_go//third_party:go_googleapis-deletebuild.patch",
+            Label("//third_party:go_googleapis-deletebuild.patch"),
             # set gazelle directives; change workspace name
-            "@io_bazel_rules_go//third_party:go_googleapis-directives.patch",
+            Label("//third_party:go_googleapis-directives.patch"),
             # releaser:patch-cmd gazelle -repo_root .
-            "@io_bazel_rules_go//third_party:go_googleapis-gazelle.patch",
+            Label("//third_party:go_googleapis-gazelle.patch"),
         ],
         patch_args = ["-E", "-p1"],
     )
