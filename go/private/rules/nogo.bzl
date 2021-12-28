@@ -93,7 +93,7 @@ _nogo = rule(
             allow_single_file = True,
         ),
         "_nogo_srcs": attr.label(
-            default = "@io_bazel_rules_go//go/tools/builders:nogo_srcs",
+            default = "//go/tools/builders:nogo_srcs",
         ),
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
         "_go_config": attr.label(default = "//:go_config"),

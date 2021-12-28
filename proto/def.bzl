@@ -154,7 +154,7 @@ go_proto_library = rule(
         "compiler": attr.label(providers = [GoProtoCompiler]),
         "compilers": attr.label_list(
             providers = [GoProtoCompiler],
-            default = ["@io_bazel_rules_go//proto:go_proto"],
+            default = ["//proto:go_proto"],
         ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",

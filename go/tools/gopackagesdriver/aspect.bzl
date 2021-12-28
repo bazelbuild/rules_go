@@ -156,7 +156,7 @@ go_pkg_info_aspect = aspect(
     attr_aspects = ["embed", "deps"],
     attrs = {
         "_go_stdlib": attr.label(
-            default = "@io_bazel_rules_go//:stdlib",
+            default = "//:stdlib",
         ),
     },
 )

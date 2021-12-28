@@ -395,12 +395,12 @@ _go_test_kwargs = {
         "_go_context_data": attr.label(default = "//:go_context_data"),
         "_testmain_additional_deps": attr.label_list(
             providers = [GoLibrary],
-            default = ["@io_bazel_rules_go//go/tools/bzltestutil"],
+            default = ["//go/tools/bzltestutil"],
         ),
         # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
         "_lcov_merger": attr.label(
             executable = True,
-            default = "@io_bazel_rules_go//go/tools/builders:lcov_merger",
+            default = "//go/tools/builders:lcov_merger",
             cfg = "target",
         ),
     },
