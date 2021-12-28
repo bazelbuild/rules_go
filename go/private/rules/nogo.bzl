@@ -112,7 +112,7 @@ def nogo(name, visibility = None, **kwargs):
         name = name,
         actual = select({
             "@io_bazel_rules_go//go/private:nogo_active": actual_name,
-            "//conditions:default": "@io_bazel_rules_go//:default_nogo",
+            "//conditions:default": Label("//:default_nogo"),
         }),
         visibility = visibility,
     )
