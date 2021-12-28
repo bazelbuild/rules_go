@@ -201,12 +201,6 @@ def _cc_libs_and_flags(target):
                 libs.append(library_to_link.resolved_symlink_dynamic_library)
     return libs, flags
 
-_DEFAULT_PLATFORM_COPTS = select({
-    "@io_bazel_rules_go//go/platform:darwin": [],
-    "@io_bazel_rules_go//go/platform:windows_amd64": ["-mthreads"],
-    "//conditions:default": ["-pthread"],
-})
-
 def _include_unique(opts, flag, include, seen):
     if include in seen:
         return
