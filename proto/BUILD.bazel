@@ -144,8 +144,8 @@ bzl_library(
     # Don't list dependency on @rules_proto//proto:defs
     deps = [
         "//go:def",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//proto:compiler",
+        "//go/private:providers",
+        "//proto:compiler",
     ],  # keep
 )
 

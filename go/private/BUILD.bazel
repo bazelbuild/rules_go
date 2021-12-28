@@ -70,16 +70,16 @@ bzl_library(
     srcs = ["go_toolchain.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//go/private:platforms",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//go/private/actions:archive",
-        "@io_bazel_rules_go//go/private/actions:asm",
-        "@io_bazel_rules_go//go/private/actions:binary",
-        "@io_bazel_rules_go//go/private/actions:compile",
-        "@io_bazel_rules_go//go/private/actions:cover",
-        "@io_bazel_rules_go//go/private/actions:link",
-        "@io_bazel_rules_go//go/private/actions:pack",
-        "@io_bazel_rules_go//go/private/actions:stdlib",
+        "//go/private:platforms",
+        "//go/private:providers",
+        "//go/private/actions:archive",
+        "//go/private/actions:asm",
+        "//go/private/actions:binary",
+        "//go/private/actions:compile",
+        "//go/private/actions:cover",
+        "//go/private/actions:link",
+        "//go/private/actions:pack",
+        "//go/private/actions:stdlib",
     ],
 )
 
@@ -101,10 +101,10 @@ bzl_library(
     srcs = ["sdk.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:nogo",
-        "@io_bazel_rules_go//go/private:platforms",
-        "@io_bazel_rules_go//go/private/skylib/lib:versions",
+        "//go/private:common",
+        "//go/private:nogo",
+        "//go/private:platforms",
+        "//go/private/skylib/lib:versions",
     ],
 )
 

@@ -21,7 +21,7 @@ bzl_library(
         "//go:__subpackages__",
     ],
     deps = [
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:providers",
+        "//go/private:common",
+        "//go/private:providers",
     ],
 )

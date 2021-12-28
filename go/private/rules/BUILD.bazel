@@ -23,11 +23,11 @@ bzl_library(
         "//go:__subpackages__",
     ],
     deps = [
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:context",
-        "@io_bazel_rules_go//go/private:mode",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//go/private/rules:transition",
+        "//go/private:common",
+        "//go/private:context",
+        "//go/private:mode",
+        "//go/private:providers",
+        "//go/private/rules:transition",
     ],
 )
 
@@ -36,8 +36,8 @@ bzl_library(
     srcs = ["cgo.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:mode",
+        "//go/private:common",
+        "//go/private:mode",
     ],  # keep
 )
 
@@ -45,7 +45,7 @@ bzl_library(
     name = "info",
     srcs = ["info.bzl"],
     visibility = ["//go:__subpackages__"],
-    deps = ["@io_bazel_rules_go//go/private:context"],
+    deps = ["//go/private:context"],
 )
 
 bzl_library(
@@ -56,9 +56,9 @@ bzl_library(
         "//go:__subpackages__",
     ],
     deps = [
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:context",
-        "@io_bazel_rules_go//go/private:providers",
+        "//go/private:common",
+        "//go/private:context",
+        "//go/private:providers",
     ],
 )
 
@@ -67,9 +67,9 @@ bzl_library(
     srcs = ["nogo.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//go/private:context",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//go/private/rules:transition",
+        "//go/private:context",
+        "//go/private:providers",
+        "//go/private/rules:transition",
     ],
 )
 
@@ -77,7 +77,7 @@ bzl_library(
     name = "sdk",
     srcs = ["sdk.bzl"],
     visibility = ["//go:__subpackages__"],
-    deps = ["@io_bazel_rules_go//go/private:providers"],
+    deps = ["//go/private:providers"],
 )
 
 bzl_library(
@@ -88,8 +88,8 @@ bzl_library(
         "//go:__subpackages__",
     ],
     deps = [
-        "@io_bazel_rules_go//go/private:context",
-        "@io_bazel_rules_go//go/private:providers",
+        "//go/private:context",
+        "//go/private:providers",
     ],
 )
 
@@ -98,8 +98,8 @@ bzl_library(
     srcs = ["stdlib.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//go/private:context",
-        "@io_bazel_rules_go//go/private:providers",
+        "//go/private:context",
+        "//go/private:providers",
     ],
 )
 
@@ -111,13 +111,13 @@ bzl_library(
         "//go:__subpackages__",
     ],
     deps = [
+        "//go/private:common",
+        "//go/private:context",
+        "//go/private:mode",
+        "//go/private:providers",
+        "//go/private/rules:binary",
+        "//go/private/rules:transition",
         "@bazel_skylib//lib:structs",
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:context",
-        "@io_bazel_rules_go//go/private:mode",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//go/private/rules:binary",
-        "@io_bazel_rules_go//go/private/rules:transition",
     ],
 )
 
@@ -129,10 +129,10 @@ bzl_library(
         "//proto:__pkg__",
     ],
     deps = [
-        "@io_bazel_rules_go//go/platform:crosstool",
-        "@io_bazel_rules_go//go/private:mode",
-        "@io_bazel_rules_go//go/private:platforms",
-        "@io_bazel_rules_go//go/private:providers",
+        "//go/platform:crosstool",
+        "//go/private:mode",
+        "//go/private:platforms",
+        "//go/private:providers",
     ],
 )
 
@@ -141,10 +141,10 @@ bzl_library(
     srcs = ["wrappers.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//go/private/rules:binary",
-        "@io_bazel_rules_go//go/private/rules:cgo",
-        "@io_bazel_rules_go//go/private/rules:library",
-        "@io_bazel_rules_go//go/private/rules:test",
-        "@io_bazel_rules_go//go/private/rules:transition",
+        "//go/private/rules:binary",
+        "//go/private/rules:cgo",
+        "//go/private/rules:library",
+        "//go/private/rules:test",
+        "//go/private/rules:transition",
     ],
 )
