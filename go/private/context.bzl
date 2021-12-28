@@ -64,7 +64,7 @@ load(
     "BuildSettingInfo",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:transition.bzl",
+    "//go/private/rules:transition.bzl",
     "request_nogo_transition",
 )
 

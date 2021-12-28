@@ -19,12 +19,12 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//proto:compiler.bzl",
+    "//proto:compiler.bzl",
     "GoProtoCompiler",
     "proto_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
+    "//go/private:providers.bzl",
     "INFERRED_PATH",
 )
 load(

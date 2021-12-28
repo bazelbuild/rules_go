@@ -33,7 +33,7 @@ load(
     "GoSource",
 )
 load(
-    "@io_bazel_rules_go//go/platform:crosstool.bzl",
+    "//go/platform:crosstool.bzl",
     "platform_from_crosstool",
 )
 

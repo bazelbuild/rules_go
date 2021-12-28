@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:platforms.bzl",
+    "//go/private:platforms.bzl",
     _GOARCH = "GOARCH_CONSTRAINTS",
     _GOOS = "GOOS_CONSTRAINTS",
     _GOOS_GOARCH = "GOOS_GOARCH",
