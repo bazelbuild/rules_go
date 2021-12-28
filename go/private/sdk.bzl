@@ -227,12 +227,13 @@ def _sdk_build_file(ctx, platform):
     goos, _, goarch = platform.partition("_")
     ctx.template(
         "BUILD.bazel",
-        Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
+        Label("//go/private:BUILD.sdk.bazel"),
         executable = False,
         substitutions = {
             "{goos}": goos,
             "{goarch}": goarch,
             "{exe}": ".exe" if goos == "windows" else "",
+            "{rules_go_repo_name}": Label("//go/private:BUILD.sdk.bazel").workspace_name,
         },
     )
 
