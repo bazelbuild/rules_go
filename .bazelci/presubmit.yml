@@ -23,6 +23,25 @@ tasks:
     - "//..."
     test_targets:
     - "//..."
+  ubuntu2004_bazel5_bzlmod:
+    platform: ubuntu2004
+    bazel: 5.0.0rc4
+    shell_commands:
+      - tests/core/cgo/generate_imported_dylib.sh
+    build_flags:
+      - "--experimental_enable_bzlmod"
+    test_flags:
+      - "--experimental_enable_bzlmod"
+    # Stardoc is currently broken with bzlmod since it is not repo mapping
+    # aware (https://github.com/bazelbuild/bazel/issues/14140).
+    build_targets:
+      - "--"
+      - "//..."
+      - "-//docs/..."
+    test_targets:
+      - "--"
+      - "//..."
+      - "-//docs/..."
   macos:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
