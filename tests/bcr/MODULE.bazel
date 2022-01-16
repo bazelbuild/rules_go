@@ -1,0 +1,15 @@
+module(
+    name = "rules_go_bcr_tests",
+    # Test that the default SDK is registered by not registering one from the test module.
+)
+
+bazel_dep(name = "io_bazel_rules_go", version = "", repo_name = "my_rules_go")
+local_path_override(
+    module_name = "io_bazel_rules_go",
+    path = "../..",
+)
+
+# Test that this correctly downloads the SDK by requesting it from the commandline (see presubmit.yml).
+go_sdk = use_extension("@my_rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(name = "go_sdk", version = "1.17.5")
+use_repo(go_sdk, "go_sdk")

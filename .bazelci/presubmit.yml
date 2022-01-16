@@ -23,6 +23,20 @@ tasks:
     - "//..."
     test_targets:
     - "//..."
+  ubuntu2004_bcr_tests:
+    name: BCR test module
+    platform: ubuntu2004
+    bazel: 6.0.0-pre.20220526.1
+    working_directory: tests/bcr
+    build_flags:
+      - "--experimental_enable_bzlmod"
+    test_flags:
+      - "--experimental_enable_bzlmod"
+    build_targets:
+      - "//..."
+      - "@go_sdk//..."
+    test_targets:
+      - "//..."
   macos:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh

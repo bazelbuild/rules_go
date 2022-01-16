@@ -1,3 +1,4 @@
 /bazel-*
 /tests/core/cgo/libimported.*
 /tests/core/cgo/libversioned.*
+/tests/bcr/bazel-*
