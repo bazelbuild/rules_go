@@ -20,7 +20,7 @@ load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 load("//proto:gogo.bzl", "gogo_special_proto")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def go_rules_dependencies():
+def go_rules_dependencies(force = False):
     """Declares workspaces the Go rules depend on. Workspaces that use
     rules_go should call this.
 
@@ -38,11 +38,16 @@ def go_rules_dependencies():
     if getattr(native, "bazel_version", None):
         versions.check(MINIMUM_BAZEL_VERSION, bazel_version = native.bazel_version)
 
+    if force:
+        wrapper = _always
+    else:
+        wrapper = _maybe
+
     # Needed by rules_go implementation and tests.
     # We can't call bazel_skylib_workspace from here. At the moment, it's only
     # used to register unittest toolchains, which rules_go does not need.
     # releaser:upgrade-dep bazelbuild bazel-skylib
-    _maybe(
+    wrapper(
         http_archive,
         name = "bazel_skylib",
         # 1.2.1, latest as of 2022-06-05
@@ -56,7 +61,7 @@ def go_rules_dependencies():
 
     # Needed for nogo vet checks and go/packages.
     # releaser:upgrade-dep golang tools
-    _maybe(
+    wrapper(
         http_archive,
         name = "org_golang_x_tools",
         # v0.1.9, latest as of 2022-03-14
@@ -78,7 +83,7 @@ def go_rules_dependencies():
     )
 
     # releaser:upgrade-dep golang sys
-    _maybe(
+    wrapper(
         http_archive,
         name = "org_golang_x_sys",
         # master, as of 2022-06-05
@@ -97,7 +102,7 @@ def go_rules_dependencies():
 
     # Needed by golang.org/x/tools/go/packages
     # releaser:upgrade-dep golang xerrors
-    _maybe(
+    wrapper(
         http_archive,
         name = "org_golang_x_xerrors",
         # master, as of 2022-06-05
@@ -132,7 +137,7 @@ def go_rules_dependencies():
 
     # Go protobuf runtime library and utilities.
     # releaser:upgrade-dep protocolbuffers protobuf-go
-    _maybe(
+    wrapper(
         http_archive,
         name = "org_golang_google_protobuf",
         sha256 = "dc4339bd2011a230d81d5ec445361efeb78366f1d30a7757e8fbea3e7221080e",
@@ -155,7 +160,7 @@ def go_rules_dependencies():
     # We need to apply a patch to enable both go_proto_library and
     # go_library with pre-generated sources.
     # releaser:upgrade-dep golang protobuf
-    _maybe(
+    wrapper(
         http_archive,
         name = "com_github_golang_protobuf",
         # v1.5.2, latest as of 2022-06-05
@@ -175,7 +180,7 @@ def go_rules_dependencies():
     # Extra protoc plugins and libraries.
     # Doesn't belong here, but low maintenance.
     # releaser:upgrade-dep mwitkow go-proto-validators
-    _maybe(
+    wrapper(
         http_archive,
         name = "com_github_mwitkow_go_proto_validators",
         # v0.3.2, latest as of 2022-06-05
@@ -189,7 +194,7 @@ def go_rules_dependencies():
     )
 
     # releaser:upgrade-dep gogo protobuf
-    _maybe(
+    wrapper(
         http_archive,
         name = "com_github_gogo_protobuf",
         # v1.3.2, latest as of 2022-06-05
@@ -206,7 +211,7 @@ def go_rules_dependencies():
         patch_args = ["-p1"],
     )
 
-    _maybe(
+    wrapper(
         gogo_special_proto,
         name = "gogo_special_proto",
     )
@@ -216,7 +221,7 @@ def go_rules_dependencies():
     # Doesn't belong here, but it would be an annoying source of errors if
     # this weren't generated with -proto disable_global.
     # releaser:upgrade-dep googleapis go-genproto
-    _maybe(
+    wrapper(
         http_archive,
         name = "org_golang_google_genproto",
         # main, as of 2022-06-05
@@ -239,7 +244,7 @@ def go_rules_dependencies():
     # here. Gazelle should resolve dependencies to com_google_googleapis
     # instead, and we should remove this.
     # releaser:upgrade-dep googleapis googleapis
-    _maybe(
+    wrapper(
         http_archive,
         name = "go_googleapis",
         # master, as of 2022-06-05
@@ -281,7 +286,7 @@ def go_rules_dependencies():
     # This may be overridden by go_register_toolchains, but it's not mandatory
     # for users to call that function (they may declare their own @go_sdk and
     # register their own toolchains).
-    _maybe(
+    wrapper(
         go_register_nogo,
         name = "io_bazel_rules_nogo",
         nogo = DEFAULT_NOGO,
@@ -290,3 +295,6 @@ def go_rules_dependencies():
 def _maybe(repo_rule, name, **kwargs):
     if name not in native.existing_rules():
         repo_rule(name = name, **kwargs)
+
+def _always(repo_rule, name, **kwargs):
+    repo_rule(name = name, **kwargs)
