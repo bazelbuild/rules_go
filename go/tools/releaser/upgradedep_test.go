@@ -41,7 +41,7 @@ func TestPatchItemParser(t *testing.T) {
 func loadRepositoriesFile(filename string) (body []bzl.Expr, err error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("could not open %s\n", filename)
+		return nil, fmt.Errorf("could not open %s: %s\n", filename, err)
 	}
 
 	parsed, err := bzl.Parse(filename, data)
