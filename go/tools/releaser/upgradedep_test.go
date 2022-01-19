@@ -2,19 +2,19 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io/ioutil"
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
 )
 
 const (
-	repos    = "repositories_test.bzl"
-	funcName = "go_rules_dependencies"
+	reposFile = "testdata/repositories.bzl"
+	funcName  = "go_rules_dependencies"
 )
 
 func TestPatchItemParser(t *testing.T) {
-	rules, err := loadRepositoriesFile(repos)
+	rules, err := loadRepositoriesFile(reposFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestPatchItemParser(t *testing.T) {
 
 // loads the repository file and parses out the body
 func loadRepositoriesFile(filename string) (body []bzl.Expr, err error) {
-	data, err := os.ReadFile(filename)
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("could not open %s\n", filename)
 	}
