@@ -433,19 +433,20 @@ func upgradeDepDecl(ctx context.Context, gh *githubClient, workDir, name string,
 			return fmt.Errorf("\"patches\" attribute is not a list")
 		}
 		for patchIndex, patchLabelExpr := range patchesList.List {
-			patchLabel, ok := patchLabelExpr.(*bzl.StringExpr)
-			if !ok {
-				return fmt.Errorf("not all patches are string literals")
+			patchLabelValue, comments, err := parsePatchesItem(patchLabelExpr)
+			if err != nil {
+				return err
 			}
-			if !strings.HasPrefix(patchLabel.Value, "@io_bazel_rules_go//third_party:") {
-				return fmt.Errorf("patch does not start with '@io_bazel_rules_go//third_party:': %s", patchLabel)
+
+			if !strings.HasPrefix(patchLabelValue, "//third_party:") {
+				return fmt.Errorf("patch does not start with '//third_party:': %s", patchLabelValue)
 			}
-			patchName := patchLabel.Value[len("@io_bazel_rules_go//third_party:"):]
+			patchName := patchLabelValue[len("//third_party:"):]
 			patchPath := filepath.Join(rootDir, "third_party", patchName)
 			prevDir := filepath.Join(workDir, name, string('a'+patchIndex))
 			patchDir := filepath.Join(workDir, name, string('a'+patchIndex+1))
 			var patchCmd []string
-			for _, c := range patchLabel.Comment().Before {
+			for _, c := range comments.Before {
 				words := strings.Fields(strings.TrimPrefix(c.Token, "#"))
 				if len(words) > 0 && words[0] == "releaser:patch-cmd" {
 					patchCmd = words[1:]
@@ -486,6 +487,45 @@ func upgradeDepDecl(ctx context.Context, gh *githubClient, workDir, name string,
 	urlsKwarg.Before = []bzl.Comment{{Token: "# " + urlComment}}
 
 	return nil
+}
+
+func parsePatchesItem(patchLabelExpr bzl.Expr) (value string, comments *bzl.Comments, err error) {
+	// Parse as regular call
+	patchLabelCall, ok := patchLabelExpr.(*bzl.CallExpr)
+
+	if ok {
+		// Verify the identifier, should be Label
+		ident, ok := patchLabelCall.X.(*bzl.Ident)
+		if !ok {
+			return "", nil, fmt.Errorf("invalid identifier while parsing patch label")
+		}
+		if ident.Name != "Label" {
+			return "", nil, fmt.Errorf("invalid patch function: %s", ident.Name)
+		}
+
+		// Expect 1 String argument with the patch
+		if len(patchLabelCall.List) != 1 {
+			return "", nil, fmt.Errorf("Label expr should have 1 argument, found %d", len(patchLabelCall.List))
+		}
+
+		// Parse patch as a string
+		patchLabelStr, ok := patchLabelCall.List[0].(*bzl.StringExpr)
+		if !ok {
+			return "", nil, fmt.Errorf("Label expr does not contain a string literal")
+		}
+		return patchLabelStr.Value, patchLabelCall.Comment(), nil
+	}
+
+	// non-label string literal
+	patchLabelStr, ok := patchLabelExpr.(*bzl.StringExpr)
+	if !ok {
+		return "", nil, fmt.Errorf("not all patches are string literals or Label()")
+	}
+
+	if strings.HasPrefix(patchLabelStr.Value, "@io_bazel_rules_go") {
+		return patchLabelStr.Value[len("@io_bazel_rules_go"):], patchLabelStr.Comment(), nil
+	}
+	return patchLabelStr.Value, patchLabelStr.Comment(), nil
 }
 
 // parseUpgradeDepDirective parses a '# releaser:upgrade-dep org repo' directive

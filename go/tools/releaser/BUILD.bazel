@@ -1,4 +1,4 @@
-load("//go:def.bzl", "go_binary", "go_library")
+load("//go:def.bzl", "go_binary", "go_library", "go_test")
 
 go_binary(
     name = "releaser",
@@ -27,4 +27,12 @@ go_library(
         "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_sync//errgroup",
     ],
+)
+
+go_test(
+    name = "releaser_test",
+    srcs = ["upgradedep_test.go"],
+    data = ["repositories_test.bzl"],
+    embed = [":releaser_lib"],
+    deps = ["@com_github_bazelbuild_buildtools//build:go_default_library"],
 )
