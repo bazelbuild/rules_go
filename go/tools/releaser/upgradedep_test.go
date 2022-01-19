@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
+	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
 const (
-	reposFile = "testdata/repositories.bzl"
+	reposFile = "go/tools/releaser/testdata/repositories.bzl"
 	funcName  = "go_rules_dependencies"
 )
 
@@ -40,7 +40,7 @@ func TestPatchItemParser(t *testing.T) {
 
 // loads the repository file and parses out the body
 func loadRepositoriesFile(filename string) (body []bzl.Expr, err error) {
-	filepath, err := filepath.Abs(filename)
+	filepath, err := bazel.Runfile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("loadRepositoriesFile: %s\n", err)
 	}
