@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
@@ -39,9 +40,13 @@ func TestPatchItemParser(t *testing.T) {
 
 // loads the repository file and parses out the body
 func loadRepositoriesFile(filename string) (body []bzl.Expr, err error) {
-	data, err := ioutil.ReadFile(filename)
+	filepath, err := filepath.Abs(filename)
 	if err != nil {
-		return nil, fmt.Errorf("could not open %s: %s\n", filename, err)
+		return nil, fmt.Errorf("loadRepositoriesFile: %s\n", err)
+	}
+	data, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("loadRepositoriesFile: %s\n", err)
 	}
 
 	parsed, err := bzl.Parse(filename, data)
