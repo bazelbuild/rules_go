@@ -37,12 +37,12 @@ func TestPatchItemParser(t *testing.T) {
 			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
 			NotLabel("//third_party:org_golang_x_tools-gazelle.patch")`),
 			result: "",
-			error:  "invalid patch function: NotLabel",
+			error:  `invalid patch function: "NotLabel"`,
 		},
 		{
 			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
 			NotLabel(True)`),
-			error: "invalid patch function: NotLabel",
+			error: `invalid patch function: "NotLabel"`,
 		},
 		{
 			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
@@ -71,7 +71,7 @@ func TestPatchItemParser(t *testing.T) {
 			patchLabelStr, _, err := parsePatchesItem(patchExpr.Stmt[0])
 			if err != nil && err.Error() != tt.error {
 				if tt.error != "" {
-					t.Errorf("expected error '%s', but got error '%s' instead", tt.error, err.Error())
+					t.Errorf("expected error %q, but got error %q instead", tt.error, err.Error())
 				} else {
 					t.Errorf("unexpected error while parsing expression: %s", err.Error())
 				}
@@ -79,9 +79,9 @@ func TestPatchItemParser(t *testing.T) {
 
 			if err == nil && patchLabelStr != tt.result {
 				if tt.error != "" {
-					t.Errorf("expected error '%s', but got result '%s' instead", tt.error, patchLabelStr)
+					t.Errorf("expected error %q, but got result %q instead", tt.error, patchLabelStr)
 				} else {
-					t.Errorf("expected result '%s', but got result '%s' instead", tt.result, patchLabelStr)
+					t.Errorf("expected result %q, but got result %q instead", tt.result, patchLabelStr)
 				}
 			}
 		})
