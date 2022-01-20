@@ -32,10 +32,6 @@ go_library(
 go_test(
     name = "releaser_test",
     srcs = ["upgradedep_test.go"],
-    data = glob(["testdata/**"]),
     embed = [":releaser_lib"],
-    deps = [
-        "//go/tools/bazel",
-        "@com_github_bazelbuild_buildtools//build:go_default_library",
-    ],
+    deps = ["@com_github_bazelbuild_buildtools//build:go_default_library"],
 )

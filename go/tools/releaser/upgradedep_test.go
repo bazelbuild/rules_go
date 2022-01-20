@@ -2,122 +2,88 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	bzl "github.com/bazelbuild/buildtools/build"
-	"github.com/bazelbuild/rules_go/go/tools/bazel"
-)
-
-const (
-	reposFile = "go/tools/releaser/testdata/repositories.bzl"
-	funcName  = "go_rules_dependencies"
 )
 
 func TestPatchItemParser(t *testing.T) {
-	rules, err := loadRepositoriesFile(reposFile)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Loop over the repo rules
-	for _, expr := range rules {
-		patches, expected, err := parseRepoRule(expr)
-		if err != nil {
-			t.Fatal(err)
-		}
-		// parse each of the patch items, check against expected result
-		for i, patchLabelExpr := range patches.List {
-			patchLabelStr, _, err := parsePatchesItem(patchLabelExpr)
-			if err != nil && err.Error() != expected[i] {
-				t.Fatalf("Patch index %d: expected %s but got error: %s", i, expected[i], err.Error())
-			}
-			if err == nil && patchLabelStr != expected[i] {
-				t.Fatalf("Patch index %d: expected %s but got: %s", i, expected[i], patchLabelStr)
-			}
-		}
-	}
-}
-
-// loads the repository file and parses out the body
-func loadRepositoriesFile(filename string) (body []bzl.Expr, err error) {
-	filepath, err := bazel.Runfile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("loadRepositoriesFile: %s\n", err)
-	}
-	data, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("loadRepositoriesFile: %s\n", err)
-	}
-
-	parsed, err := bzl.Parse(filename, data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse: %s\n", err)
-	}
-
-	// Parse out go_rules_dependencies
-	for _, expr := range parsed.Stmt {
-		def, ok := expr.(*bzl.DefStmt)
-		if !ok {
-			continue
-		}
-		if def.Name == funcName {
-			body = def.Body
-			break
-		}
-	}
-
-	return
-}
-
-// parses an individual repo rule
-func parseRepoRule(expr bzl.Expr) (patches *bzl.ListExpr, expected []string, err error) {
-	// Check if repo rule is a function call
-	call, ok := expr.(*bzl.CallExpr)
-	if !ok {
-		return nil, nil, fmt.Errorf("repo_rule is not a CallExpr")
+	tests := []struct {
+		expression []byte
+		result     string
+		error      string
+	}{
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			Label("//third_party:org_golang_x_tools-gazelle.patch")`),
+			result: "//third_party:org_golang_x_tools-gazelle.patch",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			"@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch"`),
+			result: "//third_party:org_golang_x_tools-gazelle.patch",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			"//third_party:org_golang_x_tools-gazelle.patch"`),
+			result: "//third_party:org_golang_x_tools-gazelle.patch",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			Label("@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch")`),
+			result: "@io_bazel_rules_go//third_party:org_golang_x_tools-gazelle.patch",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			NotLabel("//third_party:org_golang_x_tools-gazelle.patch")`),
+			result: "",
+			error:  "invalid patch function: NotLabel",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			NotLabel(True)`),
+			error: "invalid patch function: NotLabel",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			True`),
+			error: "not all patches are string literals or Label()",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			Label("//third_party:org_golang_x_tools-gazelle.patch", True)`),
+			error: "Label expr should have 1 argument, found 2",
+		},
+		{
+			expression: []byte(`# releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
+			Label(True)`),
+			error: "Label expr does not contain a string literal",
+		},
 	}
 
-	expected = make([]string, 0, 5)
-
-	// Loop over the KV pairs in the repo_rule to parse patches and expected results
-	for _, arg := range call.List {
-		kwarg, ok := arg.(*bzl.AssignExpr)
-		if !ok {
-			continue
-		}
-
-		key, ok := kwarg.LHS.(*bzl.Ident) // required by parser
-		if !ok {
-			continue
-		}
-		// Fetch each of the expected items and store them
-		if key.Name == "expected" {
-			value, ok := kwarg.RHS.(*bzl.ListExpr)
-			if !ok {
-				return nil, nil, fmt.Errorf("expected value does not contain a List at line %d\n", kwarg.OpPos.Line)
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%v", tt.expression), func(t *testing.T) {
+			patchExpr, err := bzl.Parse("repos.bzl", tt.expression)
+			if err != nil {
+				t.Fatalf(err.Error())
 			}
 
-			for _, val := range value.List {
-				str, ok := val.(*bzl.StringExpr)
-
-				if !ok {
-					return nil, nil, fmt.Errorf("invalid expected results at line %d\n", kwarg.OpPos.Line)
+			patchLabelStr, _, err := parsePatchesItem(patchExpr.Stmt[0])
+			if err != nil && err.Error() != tt.error {
+				if tt.error != "" {
+					t.Errorf("expected error '%s', but got error '%s' instead", tt.error, err.Error())
+				} else {
+					t.Errorf("unexpected error while parsing expression: %s", err.Error())
 				}
-
-				expected = append(expected, str.Value)
-			}
-		}
-
-		// Parse the patches list
-		if key.Name == "patches" {
-			value, ok := kwarg.RHS.(*bzl.ListExpr)
-			if !ok {
-				return nil, nil, fmt.Errorf("patches do not contain a List at line %d\n", kwarg.OpPos.Line)
 			}
 
-			patches = value
-		}
+			if err == nil && patchLabelStr != tt.result {
+				if tt.error != "" {
+					t.Errorf("expected error '%s', but got result '%s' instead", tt.error, patchLabelStr)
+				} else {
+					t.Errorf("expected result '%s', but got result '%s' instead", tt.result, patchLabelStr)
+				}
+			}
+		})
 	}
-
-	return
 }
