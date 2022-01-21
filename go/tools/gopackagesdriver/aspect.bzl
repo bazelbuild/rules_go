@@ -55,7 +55,7 @@ def _go_archive_to_pkg(archive):
     )
 
 def _make_pkg_json(ctx, archive, pkg_info):
-    pkg_json_file = ctx.actions.declare_file(pkg_json_name(archive.data.label))
+    pkg_json_file = ctx.actions.declare_file(pkg_json_name(archive.data))
     content = pkg_info.to_json()
     ctx.actions.write(pkg_json_file, content = content)
     return pkg_json_file
