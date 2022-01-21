@@ -11,44 +11,44 @@ def _pkg_json_name(ctx):
     env = unittest.begin(ctx)
     testcases = [
         struct(
-            want="ZZfooZname.pkg.json",
+            name="simple",
             label="//:foo",
-            name="name",
+            want="ZZfooZsimple.pkg.json",
         ),
         struct(
-            want="ZfooZbarZbazZname.pkg.json",
+            name="longer",
             label="//foo/bar:baz",
-            name="name",
+            want="ZfooZbarZbazZlonger.pkg.json",
         ),
         struct(
-            want="ZfooZbar_bazZname.pkg.json",
+            name="with_underscore",
             label="//foo:bar_baz",
-            name="name",
+            want="ZfooZbar_bazZwith_underscore.pkg.json",
         ),
         struct(
-            want="ZfooZbazZname.pkg.json",
+            name="name",
             label="//foo:baz",
-            name="name",
+            want="ZfooZbazZname.pkg.json",
         ),
         struct(
-            want="ZfooZgo_default_libraryZname.pkg.json",
+            name="name",
             label="//foo:go_default_library",
-            name="name",
+            want="ZfooZgo_default_libraryZname.pkg.json",
         ),
         struct(
-            want="externalZfooZfooZbazZname.pkg.json",
+            name="name",
             label="@foo//foo:baz",
-            name="name",
+            want="externalZfooZfooZbazZname.pkg.json",
         ),
         struct(
-            want="externalZfooZZbazZname.pkg.json",
+            name="name",
             label="@foo//:baz",
-            name="name",
+            want="externalZfooZZbazZname.pkg.json",
         ),
         struct(
-            want="ZZbaz_testZbaz_test_.pkg.json",
-            label="//:baz_test",
             name="baz_test_",
+            label="//:baz_test",
+            want="ZZbaz_testZbaz_test_.pkg.json",
         ),
     ]
 
