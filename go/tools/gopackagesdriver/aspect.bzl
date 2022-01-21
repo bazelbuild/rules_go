@@ -51,8 +51,13 @@ def _go_archive_to_pkg(archive):
     )
 
 def _make_pkg_json(ctx, archive, pkg_info):
-    pkg_json_file = ctx.actions.declare_file(archive.data.name + ".pkg.json")
-    ctx.actions.write(pkg_json_file, content = pkg_info.to_json())
+    name = "{}_{}.pkg.json".format(
+        archive.data.label.package.replace("/", "_"),
+        archive.data.name,
+    )
+    pkg_json_file = ctx.actions.declare_file(name)
+    content = pkg_info.to_json()
+    ctx.actions.write(pkg_json_file, content = content)
     return pkg_json_file
 
 def _go_pkg_info_aspect_impl(target, ctx):
