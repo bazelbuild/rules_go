@@ -1,4 +1,3 @@
-load(":aspect_test.bzl", "actions_test_suite")
 load("//go:def.bzl", "go_binary", "go_library")
 
 go_library(
@@ -23,5 +22,3 @@ go_binary(
     embed = [":gopackagesdriver_lib"],
     visibility = ["//visibility:public"],
 )
-
-actions_test_suite()

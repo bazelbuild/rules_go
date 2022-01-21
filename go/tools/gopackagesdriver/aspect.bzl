@@ -21,6 +21,10 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load(
+    "//go/tools/gopackagesdriver/internal:pkg.bzl",
+    "pkg_json_name",
+)
 
 GoPkgInfo = provider()
 
@@ -48,14 +52,6 @@ def _go_archive_to_pkg(archive):
             _file_path(src)
             for src in archive.data.srcs
         ],
-    )
-
-def pkg_json_name(label):
-    """Returns the pkg_json name for a given Go Archive
-    """
-    return "{}_{}.pkg.json".format(
-        label.package.replace("/", "_"),
-        label.name,
     )
 
 def _make_pkg_json(ctx, archive, pkg_info):
