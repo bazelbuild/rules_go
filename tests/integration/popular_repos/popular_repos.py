@@ -55,6 +55,7 @@ POPULAR_REPOS = [
         commit = "390168757d9c647283340d526204e3409d5903f3",
         excludes = [
             "unix:unix_test", # TestOpenByHandleAt reads source file.
+            "windows:windows_test", # Needs testdata directory
         ],
     ),
 
@@ -222,7 +223,7 @@ POPULAR_REPOS = [
         excludes = [
             "sumdb/tlog:tlog_test", # Needs network, not available on RBE
             "zip:zip_test", # Needs vcs tools, not available on RBE
-        ],            
+        ],
     ),
   ]
 
