@@ -60,7 +60,7 @@ autocompletion for Bazel-generated Go files, among other things.
       \ }
       ```
 
-  * You'll want to replace `-bazel-mypkg` with your package.
-  * If you've put your `gopackagesdriver.sh` script somewhere other than
-    `tools/gopackagesdriver.sh`, you'll need to update
-    `MaybeSetGoPackagesDriver` accordingly.
+    * You'll want to replace `-bazel-mypkg` with your package.
+    * If you've put your `gopackagesdriver.sh` script somewhere other than
+      `tools/gopackagesdriver.sh`, you'll need to update
+      `MaybeSetGoPackagesDriver` accordingly.
