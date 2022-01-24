@@ -181,6 +181,10 @@ func main() {
 		flag.Lookup("test.run").Value.Set(filter)
 	}
 
+	if failfast := os.Getenv("TESTBRIDGE_TEST_RUNNER_FAIL_FAST"); failfast != "" {
+		flag.Lookup("test.failfast").Value.Set("true")
+	}
+
 	{{if ne .CoverMode ""}}
 	if len(coverdata.Counters) > 0 {
 		testing.RegisterCover(testing.Cover{

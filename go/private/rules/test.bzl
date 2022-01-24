@@ -421,7 +421,9 @@ _go_test_kwargs = {
     <test_filter_>` argument to Bazel. You can pass arguments to tests by passing
     `--test_arg=arg <test_arg_>` arguments to Bazel, and you can set environment
     variables in the test environment by passing
-    `--test_env=VAR=value <test_env_>`.<br><br>
+    `--test_env=VAR=value <test_env_>`. You can terminate test execution after the first
+    failure by passing the `--test_runner_fast_fast <test_runner_fail_fast_>` argument
+    to Bazel. This is equivalent to passing `--test_arg=-failfast <test_arg_>`.<br><br>
     To write structured testlog information to Bazel's `XML_OUTPUT_FILE`, tests
     ran with `bazel test` execute using a wrapper. This functionality can be
     disabled by setting `GO_TEST_WRAP=0` in the test environment. Additionally,

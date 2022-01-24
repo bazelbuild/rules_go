@@ -24,6 +24,7 @@
   [test_arg]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
   [test_filter]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
   [test_env]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_env
+  [test_runner_fail_fast]: https://docs.bazel.build/versions/master/command-line-reference.html#flag--test_runner_fail_fast
   [write a CROSSTOOL file]: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
   [bazel]: https://pkg.go.dev/github.com/bazelbuild/rules_go/go/tools/bazel?tab=doc
   [go_library]: #go_library
@@ -70,6 +71,7 @@ sufficient to match the capabilities of the normal go tools.
 - [test_arg]
 - [test_filter]
 - [test_env]
+- [test_runner_fail_fast]
 - [write a CROSSTOOL file]
 - [bazel]
 

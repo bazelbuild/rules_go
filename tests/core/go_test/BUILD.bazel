@@ -140,6 +140,11 @@ go_library(
 )
 
 go_bazel_test(
+    name = "test_fail_fast_test",
+    srcs = ["test_fail_fast_test.go"],
+)
+
+go_bazel_test(
     name = "test_filter_test",
     srcs = ["test_filter_test.go"],
 )

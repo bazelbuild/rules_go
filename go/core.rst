@@ -26,6 +26,7 @@ Core Go rules
 .. _test_arg: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
 .. _test_filter: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
 .. _test_env: https://docs.bazel.build/versions/master/user-manual.html#flag--test_env
+.. _test_runner_fail_fast: https://docs.bazel.build/versions/master/command-line-reference.html#flag--test_runner_fail_fast
 .. _write a CROSSTOOL file: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
 .. _bazel: https://pkg.go.dev/github.com/bazelbuild/rules_go/go/tools/bazel?tab=doc
 .. _introduction: /docs/go/core/rules.md#introduction

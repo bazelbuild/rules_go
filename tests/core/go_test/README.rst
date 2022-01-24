@@ -75,6 +75,14 @@ Checks that data dependencies, including those inherited from ``deps`` and
 ``embed``, are visible to tests at run-time. Source files should not be
 visible at run-time.
 
+test_fail_fast_test
+----------------
+
+Checks that ``--test_runner_fail_fast`` actually enables stopping test execution after
+the first failure.
+
+Verifies #3055.
+
 test_filter_test
 ----------------
 

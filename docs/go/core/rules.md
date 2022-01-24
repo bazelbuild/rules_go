@@ -26,6 +26,7 @@
   [test_arg]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
   [test_filter]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
   [test_env]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_env
+  [test_runner_fail_fast]: https://docs.bazel.build/versions/master/command-line-reference.html#flag--test_runner_fail_fast
   [write a CROSSTOOL file]: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
   [bazel]: https://pkg.go.dev/github.com/bazelbuild/rules_go/go/tools/bazel?tab=doc
   [go_library]: #go_library
@@ -72,6 +73,7 @@ sufficient to match the capabilities of the normal go tools.
 - [test_arg]
 - [test_filter]
 - [test_env]
+- [test_runner_fail_fast]
 - [write a CROSSTOOL file]
 - [bazel]
 
@@ -306,7 +308,9 @@ This builds a set of tests that can be run with `bazel test`.<br><br>
     <test_filter_>` argument to Bazel. You can pass arguments to tests by passing
     `--test_arg=arg <test_arg_>` arguments to Bazel, and you can set environment
     variables in the test environment by passing
-    `--test_env=VAR=value <test_env_>`.<br><br>
+    `--test_env=VAR=value <test_env_>`. You can terminate test execution after the first
+    failure by passing the `--test_runner_fast_fast <test_runner_fail_fast_>` argument
+    to Bazel. This is equivalent to passing `--test_arg=-failfast <test_arg_>`.<br><br>
     To write structured testlog information to Bazel's `XML_OUTPUT_FILE`, tests
     ran with `bazel test` execute using a wrapper. This functionality can be
     disabled by setting `GO_TEST_WRAP=0` in the test environment. Additionally,
