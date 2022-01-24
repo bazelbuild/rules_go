@@ -5313,66 +5313,23 @@ diff -urN c/google/cloud/bigquery/logging/v1/BUILD.bazel d/google/cloud/bigquery
 +        "//google/rpc:status_go_proto",
 +    ],
 +)
-diff -urN c/google/cloud/bigquery/migration/tasks/assessment/v2alpha/BUILD.bazel d/google/cloud/bigquery/migration/tasks/assessment/v2alpha/BUILD.bazel
---- c/google/cloud/bigquery/migration/tasks/assessment/v2alpha/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
-+++ d/google/cloud/bigquery/migration/tasks/assessment/v2alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,17 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "assessment_proto",
-+    srcs = ["assessment.proto"],
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_proto"],
-+)
-+
-+go_proto_library(
-+    name = "assessment_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/cloud/bigquery/migration/tasks/assessment/v2alpha",
-+    proto = ":assessment_proto",
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_go_proto"],
-+)
-diff -urN c/google/cloud/bigquery/migration/tasks/translation/v2alpha/BUILD.bazel d/google/cloud/bigquery/migration/tasks/translation/v2alpha/BUILD.bazel
---- c/google/cloud/bigquery/migration/tasks/translation/v2alpha/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
-+++ d/google/cloud/bigquery/migration/tasks/translation/v2alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "translation_proto",
-+    srcs = [
-+        "dataset_reference.proto",
-+        "translation.proto",
-+    ],
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_proto"],
-+)
-+
-+go_proto_library(
-+    name = "translation_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/cloud/bigquery/migration/tasks/translation/v2alpha",
-+    proto = ":translation_proto",
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_go_proto"],
-+)
 diff -urN c/google/cloud/bigquery/migration/v2alpha/BUILD.bazel d/google/cloud/bigquery/migration/v2alpha/BUILD.bazel
 --- c/google/cloud/bigquery/migration/v2alpha/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ d/google/cloud/bigquery/migration/v2alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,38 @@
+@@ -0,0 +1,40 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
 +proto_library(
 +    name = "migration_proto",
 +    srcs = [
++        "assessment_task.proto",
 +        "migration_entities.proto",
 +        "migration_error_details.proto",
 +        "migration_metrics.proto",
 +        "migration_service.proto",
 +        "translation_service.proto",
++        "translation_task.proto",
 +    ],
 +    visibility = ["//visibility:public"],
 +    deps = [
@@ -6232,6 +6189,44 @@ diff -urN c/google/cloud/datalabeling/v1beta1/BUILD.bazel d/google/cloud/datalab
 +        "//google/api:annotations_go_proto",
 +        "//google/longrunning:longrunning_go_proto",
 +        "//google/rpc:status_go_proto",
++    ],
++)
+diff -urN c/google/cloud/dataplex/v1/BUILD.bazel d/google/cloud/dataplex/v1/BUILD.bazel
+--- c/google/cloud/dataplex/v1/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
++++ d/google/cloud/dataplex/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,34 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "dataplex_proto",
++    srcs = [
++        "logs.proto",
++        "metadata.proto",
++        "resources.proto",
++        "service.proto",
++        "tasks.proto",
++    ],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/longrunning:longrunning_proto",
++        "@com_google_protobuf//:duration_proto",
++        "@com_google_protobuf//:empty_proto",
++        "@com_google_protobuf//:field_mask_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "dataplex_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/dataplex/v1",
++    proto = ":dataplex_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/longrunning:longrunning_go_proto",
 +    ],
 +)
 diff -urN c/google/cloud/dataproc/logging/BUILD.bazel d/google/cloud/dataproc/logging/BUILD.bazel

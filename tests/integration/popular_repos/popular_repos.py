@@ -89,6 +89,7 @@ POPULAR_REPOS = [
             "cmd/callgraph:callgraph_test", # Needs testdata directory
             "cmd/cover:cover_test", # Needs testdata directory
             "cmd/fiximports:fiximports_test", # requires working GOROOT, not present in CI.
+            "cmd/file2fuzz:file2fuzz_test", # Requires working GOROOT, uses go build
             "cmd/godoc:godoc_test", # TODO(#417)
             "cmd/gorename:gorename_test", # TODO(#417)
             "cmd/guru/testdata/src/referrers:referrers_test", # Not a real test
@@ -124,8 +125,10 @@ POPULAR_REPOS = [
             "go/analysis/passes/nilness:nilness_test", # Needs testdata directory
             "go/analysis/passes/pkgfact:pkgfact_test", # requires go list
             "go/analysis/passes/printf:printf_test", # Needs testdata directory
+            "go/analysis/passes/reflectvaluecompare:reflectvaluecompare_test", # Needs testdata directory
             "go/analysis/passes/shadow:shadow_test", # Needs testdata directory
-            "go/analysis/passes/shift:shift_test", # Needs testdata directory
+            "go/analysis/passes/shift:shift_test", # Needs testdata director
+            "go/analysis/passes/sigchanyzer:sigchanyzer_test", # Needs testdata directory
             "go/analysis/passes/sortslice:sortslice_test", # Needs 'go list'
             "go/analysis/passes/stdmethods:stdmethods_test", # Needs testdata directory
             "go/analysis/passes/stringintconv:stringintconv_test", # Needs 'go list'
@@ -134,16 +137,19 @@ POPULAR_REPOS = [
             "go/analysis/passes/tests/testdata/src/a:a_test", # Not a real test
             "go/analysis/passes/tests/testdata/src/b_x_test:b_x_test_test", # Not a real test
             "go/analysis/passes/tests/testdata/src/divergent:divergent_test", # Not a real test
+            "go/analysis/passes/tests/testdata/src/typeparams:typeparams_test", # Not a real test
             "go/analysis/passes/tests:tests_test", # Needs testdata directory
             "go/analysis/passes/unmarshal:unmarshal_test", # Needs go list
             "go/analysis/passes/unreachable:unreachable_test", # Needs testdata directory
             "go/analysis/passes/unsafeptr:unsafeptr_test", # Needs testdata directory
             "go/analysis/passes/unusedresult:unusedresult_test", # Needs testdata directory
+            "go/analysis/passes/unusedwrite:unusedwrite_test", # Needs testdata directory
             "go/analysis/unitchecker:unitchecker_test", # requires go vet
             "go/ast/inspector:inspector_test", # requires GOROOT and GOPATH
             "go/buildutil:buildutil_test", # Needs testdata directory
             "go/callgraph/cha:cha_test", # Needs testdata directory
             "go/callgraph/rta:rta_test", # Needs testdata directory
+            "go/callgraph/vta:vta_test", # Needs testdata directory
             "go/expect:expect_test", # Needs testdata directory
             "go/gccgoexportdata:gccgoexportdata_test", # Needs testdata directory
             "go/gcexportdata:gcexportdata_test", # Needs testdata directory
@@ -176,6 +182,7 @@ POPULAR_REPOS = [
             "internal/lsp/analysis/unusedparams:unusedparams_test", # Needs go tool
             "internal/lsp/cache:cache_test", # has additional deps
             "internal/lsp/cmd:cmd_test", # panics?
+            "internal/lsp/command:command_test", # Needs go tool
             "internal/lsp/diff/difftest:difftest_test", # has additional deps
             "internal/lsp/diff/myers:myers_test", # has additional deps
             "internal/lsp/diff:diff_test", # has additional deps
@@ -197,6 +204,7 @@ POPULAR_REPOS = [
             "internal/lsp/testdata/testy:testy_test", # is testdata
             "internal/lsp/testdata/unimported:unimported_test", # is testdata
             "internal/lsp/testdata/workspacesymbol/a:a_test", # is testdata
+            "internal/lsp/testdata/statements:statements_test", # is testdata
             "present:present_test", # Needs goldmark
             "refactor/eg:eg_test", # Needs testdata directory
             "refactor/importgraph:importgraph_test", # TODO(#417)
