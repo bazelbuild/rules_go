@@ -350,7 +350,7 @@ _go_test_kwargs = {
         "race": attr.string(
             default = "auto",
             doc = """Controls whether code is instrumented for race detection. May be one of
-            `on`, `on`, or `auto`. Not available when cgo is
+            `on`, `off`, or `auto`. Not available when cgo is
             disabled. In most cases, it's better to control this on the command line with
             `--@io_bazel_rules_go//go/config:race`. See [mode attributes], specifically
             [race].
@@ -359,7 +359,7 @@ _go_test_kwargs = {
         "msan": attr.string(
             default = "auto",
             doc = """Controls whether code is instrumented for memory sanitization. May be one of
-            `on`, `on`, or `auto`. Not available when cgo is
+            `on`, `off`, or `auto`. Not available when cgo is
             disabled. In most cases, it's better to control this on the command line with
             `--@io_bazel_rules_go//go/config:msan`. See [mode attributes], specifically
             [msan].
