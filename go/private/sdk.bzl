@@ -276,7 +276,15 @@ def _detect_host_platform(ctx):
         # Default to amd64 when uname doesn't return a known value.
 
     elif ctx.os.name.startswith("windows"):
-        goos, goarch = "windows", "amd64"
+        if "PROCESSOR_ARCHITECTURE" in ctx.os.environ and \
+            ctx.os.environ["PROCESSOR_ARCHITECTURE"] == "ARM64":
+            goarch = "arm64"
+        elif "PROCESSOR_ARCHITEW6432" in ctx.os.environ and \
+            ctx.os.environ["PROCESSOR_ARCHITEW6432"] == "ARM64":
+            goarch = "arm64"
+        else:
+            goarch = "amd64"
+        goos = "windows"
     elif ctx.os.name == "freebsd":
         goos, goarch = "freebsd", "amd64"
     else:

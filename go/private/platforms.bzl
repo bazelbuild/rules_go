@@ -83,6 +83,7 @@ GOOS_GOARCH = (
     ("windows", "386"),
     ("windows", "amd64"),
     ("windows", "arm"),
+    ("windows", "arm64"),
 )
 
 RACE_GOOS_GOARCH = {
@@ -135,6 +136,7 @@ CGO_GOOS_GOARCH = {
     ("solaris", "amd64"): None,
     ("windows", "386"): None,
     ("windows", "amd64"): None,
+    ("windows", "arm64"): None,
 }
 
 def _generate_constraints(names, bazel_constraints):
