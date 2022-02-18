@@ -237,6 +237,12 @@ def _sdk_build_file(ctx, platform):
         },
     )
 
+def _get_env_var(ctx, name, default=""):
+    if name in ctx.os.environ:
+        return ctx.os.environ[name]
+    else:
+        return default
+
 def _detect_host_platform(ctx):
     if ctx.os.name == "linux":
         goos, goarch = "linux", "amd64"
@@ -276,11 +282,9 @@ def _detect_host_platform(ctx):
         # Default to amd64 when uname doesn't return a known value.
 
     elif ctx.os.name.startswith("windows"):
-        if "PROCESSOR_ARCHITECTURE" in ctx.os.environ and \
-            ctx.os.environ["PROCESSOR_ARCHITECTURE"] == "ARM64":
+        if _get_env_var(ctx, "PROCESSOR_ARCHITECTURE") == "ARM64":
             goarch = "arm64"
-        elif "PROCESSOR_ARCHITEW6432" in ctx.os.environ and \
-            ctx.os.environ["PROCESSOR_ARCHITEW6432"] == "ARM64":
+        elif _get_env_var(ctx, "PROCESSOR_ARCHITEW6432") == "ARM64":
             goarch = "arm64"
         else:
             goarch = "amd64"
