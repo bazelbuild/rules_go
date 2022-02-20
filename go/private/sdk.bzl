@@ -219,7 +219,7 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
         )
 
 def _local_sdk(ctx, path):
-    for entry in ["src", "pkg", "bin"]:
+    for entry in ["src", "pkg", "bin", "lib"]:
         ctx.symlink(path + "/" + entry, entry)
 
 def _sdk_build_file(ctx, platform):
