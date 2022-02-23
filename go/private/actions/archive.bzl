@@ -39,8 +39,6 @@ load(
     "emit_compilepkg",
 )
 
-load("//go/private/skylib/lib:versions.bzl", "versions")
-
 def emit_archive(go, source = None, _recompile_suffix = ""):
     """See go/toolchains.rst#archive for full documentation."""
 
@@ -69,13 +67,12 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
     data_files = runfiles.files
 
     # After bazel version 5.0.0, skylark introduced a new API called merge_all().
-    # There is a recommendation in the release notes to use merge_all() if
-    # we hit the depth limit because of using merge() in a loop, we saw
-    # some repos hitting this issue after upgrading to 5.0.0
-    # To keep it backwards compatible, we will fallback to the old logic if
-    # the version is not at least 5.0.0
+    # There is a recommendation in the release notes to use merge_all() if we hit
+    # the depth limit because of using merge() in a loop; we saw some repositories
+    # hitting this issue after upgrading to 5.0.0. To keep it backward compatible,
+    # we will fall back to the old logic if it doesn't have merge_all.
     # https://blog.bazel.build/2022/01/19/bazel-5.0.html#starlark-build-language
-    if versions.is_at_least("5.0.0", versions.get()):
+    if hasattr(runfiles, "merge_all"):
         files = []
         for a in direct:
             files.append(a.runfiles)
