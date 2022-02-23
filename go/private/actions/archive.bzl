@@ -39,6 +39,8 @@ load(
     "emit_compilepkg",
 )
 
+load("//go/private/skylib/lib:versions.bzl", "versions")
+
 def emit_archive(go, source = None, _recompile_suffix = ""):
     """See go/toolchains.rst#archive for full documentation."""
 
@@ -65,12 +67,26 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
     direct = [get_archive(dep) for dep in source.deps]
     runfiles = source.runfiles
     data_files = runfiles.files
-    files = []
-    for a in direct:
-        files.append(a.runfiles)
-        if a.source.mode != go.mode:
-            fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
-    runfiles.merge_all(files)
+
+    # After bazel version 5.0.0, skylark introduced a new API called merge_all().
+    # There is a recommendation in the release notes to use merge_all() if
+    # we hit the depth limit because of using merge() in a loop, we saw
+    # some repos hitting this issue after upgrading to 5.0.0
+    # To keep it backwards compatible, we will fallback to the old logic if
+    # the version is not at least 5.0.0
+    # https://blog.bazel.build/2022/01/19/bazel-5.0.html#starlark-build-language
+    if versions.is_at_least("5.0.0", versions.get()):
+        files = []
+        for a in direct:
+            files.append(a.runfiles)
+            if a.source.mode != go.mode:
+                fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
+        runfiles.merge_all(files)
+    else:
+        for a in direct:
+            runfiles = runfiles.merge(a.runfiles)
+            if a.source.mode != go.mode:
+                fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
 
     importmap = "main" if source.library.is_main else source.library.importmap
     importpath, _ = effective_importpath_pkgpath(source.library)
