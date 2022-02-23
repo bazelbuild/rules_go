@@ -70,7 +70,8 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
     # There is a recommendation in the release notes to use merge_all() if we hit
     # the depth limit because of using merge() in a loop; we saw some repositories
     # hitting this issue after upgrading to 5.0.0. To keep it backward compatible,
-    # we will fall back to the old logic if it doesn't have merge_all.
+    # we will fall back to the old logic if the array doesn't have merge_all().
+    # TODO: remove this check after the MINIMUM_BAZEL_VERSION becomes >= 5.0.0
     # https://blog.bazel.build/2022/01/19/bazel-5.0.html#starlark-build-language
     if hasattr(runfiles, "merge_all"):
         files = []
