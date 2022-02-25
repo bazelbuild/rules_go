@@ -38,22 +38,6 @@ def go_rules_dependencies():
     if getattr(native, "bazel_version", None):
         versions.check(MINIMUM_BAZEL_VERSION, bazel_version = native.bazel_version)
 
-    # Repository of standard constraint settings and values.
-    # Bazel declares this automatically after 0.28.0, but it's better to
-    # define an explicit version.
-    # releaser:upgrade-dep bazelbuild platforms
-    _maybe(
-        http_archive,
-        name = "platforms",
-        # 0.0.4, latest as of 2022-01-24
-        urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.4/platforms-0.0.4.tar.gz",
-            "https://github.com/bazelbuild/platforms/releases/download/0.0.4/platforms-0.0.4.tar.gz",
-        ],
-        sha256 = "079945598e4b6cc075846f7fd6a9d0857c33a7afc0de868c2ccb96405225135d",
-        strip_prefix = "",
-    )
-
     # Needed by rules_go implementation and tests.
     # We can't call bazel_skylib_workspace from here. At the moment, it's only
     # used to register unittest toolchains, which rules_go does not need.
