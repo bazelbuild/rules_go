@@ -15,6 +15,7 @@
 load(
     "//go/private:common.bzl",
     "as_set",
+    "count_group_matches",
     "has_shared_lib_extension",
 )
 load(
@@ -136,16 +137,27 @@ def emit_link(
     extldflags.extend(cgo_rpaths)
 
     # Process x_defs, and record whether stamping is used.
-    stamp_x_defs = False
+    stamp_x_defs_volatile = False
+    stamp_x_defs_stable = False
     for k, v in archive.x_defs.items():
-        if go.stamp and v.find("{") != -1 and v.find("}") != -1:
-            stamp_x_defs = True
         builder_args.add("-X", "%s=%s" % (k, v))
+        if go.stamp:
+            stable_vars_count = (count_group_matches(v, "{STABLE_", "}") +
+                                 v.count("{BUILD_EMBED_LABEL}") +
+                                 v.count("{BUILD_USER}") +
+                                 v.count("{BUILD_HOST}"))
+            if stable_vars_count > 0:
+                stamp_x_defs_stable = True
+            if count_group_matches(v, "{", "}") != stable_vars_count:
+                stamp_x_defs_volatile = True
 
     # Stamping support
     stamp_inputs = []
-    if stamp_x_defs:
-        stamp_inputs = [info_file, version_file]
+    if stamp_x_defs_stable:
+        stamp_inputs.append(info_file)
+    if stamp_x_defs_volatile:
+        stamp_inputs.append(version_file)
+    if stamp_inputs:
         builder_args.add_all(stamp_inputs, before_each = "-stamp")
 
     builder_args.add("-o", executable)

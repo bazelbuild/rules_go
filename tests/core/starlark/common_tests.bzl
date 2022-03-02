@@ -1,5 +1,5 @@
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//go/private:common.bzl", "has_shared_lib_extension")
+load("//go/private:common.bzl", "count_group_matches", "has_shared_lib_extension")
 
 def _versioned_shared_libraries_test(ctx):
     env = unittest.begin(ctx)
@@ -30,9 +30,24 @@ def _versioned_shared_libraries_test(ctx):
 
 versioned_shared_libraries_test = unittest.make(_versioned_shared_libraries_test)
 
+def _count_group_matches_test(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.equals(env, 1, count_group_matches("{foo_status}", "{foo_", "}"))
+    asserts.equals(env, 1, count_group_matches("{foo_status} {status}", "{foo_", "}"))
+    asserts.equals(env, 0, count_group_matches("{foo_status}", "{bar_", "}"))
+    asserts.equals(env, 1, count_group_matches("{foo_status}", "{", "}"))
+    asserts.equals(env, 2, count_group_matches("{foo} {bar}", "{", "}"))
+    asserts.equals(env, 2, count_group_matches("{foo{bar} {baz}", "{", "}"))
+
+    return unittest.end(env)
+
+count_group_matches_test = unittest.make(_count_group_matches_test)
+
 def common_test_suite():
     """Creates the test targets and test suite for common.bzl tests."""
     unittest.suite(
         "common_tests",
         versioned_shared_libraries_test,
+        count_group_matches_test,
     )

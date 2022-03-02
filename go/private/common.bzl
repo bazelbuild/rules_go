@@ -240,3 +240,30 @@ def as_set(v):
     if type(v) == "tuple":
         return depset(v)
     fail("as_tuple failed on {}".format(v))
+
+def count_group_matches(v, prefix, suffix):
+    """Counts reluctant substring matches between prefix and suffix.
+
+    Equivalent to the number of regular expression matches "prefix.+?suffix"
+    in the string v.
+    """
+
+    count = 0
+    idx = 0
+    for i in range(0, len(v)):
+        if idx > i:
+            continue
+
+        idx = v.find(prefix, idx)
+        if idx == -1:
+            break
+
+        # If there is another prefix before the next suffix, the previous prefix is discarded.
+        # This is OK; it does not affect our count.
+        idx = v.find(suffix, idx)
+        if idx == -1:
+            break
+
+        count = count + 1
+
+    return count

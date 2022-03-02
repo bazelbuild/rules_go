@@ -65,8 +65,11 @@ by spaces, one per line. For example:
 echo STABLE_GIT_COMMIT $(git rev-parse HEAD)
 ```
 
-***Note:*** keys that start with `STABLE_` will trigger a re-link when they change.
-Other keys will NOT trigger a re-link.
+***Note:*** stamping with keys that bazel designates as "stable" will trigger a
+re-link when any stable key changes. Currently, in bazel, stable keys are
+`BUILD_EMBED_LABEL`, `BUILD_USER`, `BUILD_HOST` and keys whose names start with
+`STABLE_`. Stamping only with keys that are not stable keys will not trigger a
+relink.
 
 You can reference these in `x_defs` using curly braces.
 
