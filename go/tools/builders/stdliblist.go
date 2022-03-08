@@ -158,18 +158,21 @@ func stdliblist(args []string) error {
 		return err
 	}
 
+	execRoot := abs(".")
+	if err := replicate(os.Getenv("GOROOT"), execRoot, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
+		return err
+	}
+
 	// Ensure paths are absolute.
 	absPaths := []string{}
 	for _, path := range filepath.SplitList(os.Getenv("PATH")) {
 		absPaths = append(absPaths, abs(path))
 	}
 	os.Setenv("PATH", strings.Join(absPaths, string(os.PathListSeparator)))
-	os.Setenv("GOROOT", abs(os.Getenv("GOROOT")))
+	os.Setenv("GOROOT", execRoot)
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
 	os.Setenv("CC", abs(os.Getenv("CC")))
-
-	execRoot := abs(".")
 
 	cachePath := abs(*out + ".gocache")
 	defer os.RemoveAll(cachePath)
