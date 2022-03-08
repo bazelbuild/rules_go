@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -145,6 +146,42 @@ func flatPackageForStd(execRoot string, pkg *goListPackage) *flatPackage {
 	return newPkg
 }
 
+// In Go 1.18, the standard library started using go:embed directives.
+// When Bazel runs this action, it does so inside a sandbox where GOROOT points
+// to an external/go_sdk directory that contains a symlink farm of all files in
+// the Go SDK.
+// If we run "go list" with that GOROOT, this action will fail because those
+// go:embed directives will refuse to include the symlinks in the sandbox.
+//
+// To work around this, cloneRoot creates a copy of external/go_sdk into a new
+// directory "root" while retaining its path relative to the root directory.
+// So "$OUTPUT_BASE/external/go_sdk" becomes
+// "$OUTPUT_BASE/root/external/go_sdk".
+// This ensures that file paths in the generated JSON are still valid.
+//
+// cloneRoot returns the new root directory and the new GOROOT we should run
+// under.
+func cloneRoot(execRoot, goroot string) (newRoot string, newGoroot string, err error) {
+	relativeGoroot, err := filepath.Rel(abs(execRoot), abs(goroot))
+	if err != nil {
+		// GOROOT has to be a subdirectory of execRoot.
+		// Otherwise we're breaking the sandbox.
+		return "", "", fmt.Errorf("GOROOT %q is not relative to execution root %q: %v", goroot, execRoot)
+	}
+
+	newRoot = filepath.Join(execRoot, "root")
+	newGoroot = filepath.Join(newRoot, relativeGoroot)
+	if err := os.MkdirAll(newGoroot, 01755); err != nil {
+		return "", "", err
+	}
+
+	if err := replicate(goroot, newGoroot, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
+		return "", "", err
+	}
+
+	return newRoot, newGoroot, nil
+}
+
 // stdliblist runs `go list -json` on the standard library and saves it to a file.
 func stdliblist(args []string) error {
 	// process the args
@@ -158,8 +195,8 @@ func stdliblist(args []string) error {
 		return err
 	}
 
-	execRoot := abs(".")
-	if err := replicate(os.Getenv("GOROOT"), execRoot, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
+	execRoot, goroot, err := cloneRoot(".", os.Getenv("GOROOT"))
+	if err != nil {
 		return err
 	}
 
@@ -169,7 +206,7 @@ func stdliblist(args []string) error {
 		absPaths = append(absPaths, abs(path))
 	}
 	os.Setenv("PATH", strings.Join(absPaths, string(os.PathListSeparator)))
-	os.Setenv("GOROOT", execRoot)
+	os.Setenv("GOROOT", goroot)
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
 	os.Setenv("CC", abs(os.Getenv("CC")))
