@@ -27,10 +27,11 @@ pure_transition = transition(
 def _stdlib_files_impl(ctx):
     # When a transition is used, ctx.attr._stdlib is a list of Target instead
     # of a Target. Possibly a bug?
-    libs = ctx.attr._stdlib[0][GoStdLib].libs
+    stdlib = ctx.attr._stdlib[0][GoStdLib]
+    libs = stdlib.libs
     runfiles = ctx.runfiles(files = libs)
     return [DefaultInfo(
-        files = depset(libs),
+        files = depset(libs + [stdlib._list_json]),
         runfiles = runfiles,
     )]
 
