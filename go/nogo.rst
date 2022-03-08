@@ -197,7 +197,7 @@ contain the following key-value pairs:
 +----------------------------+---------------------------------------------------------------------+
 | ``"analyzer_flags"``       | :type:`dictionary, string to string`                                |
 +----------------------------+---------------------------------------------------------------------+
-| Passes on a set of flags as defined by the Go ``flags`` package to the analyzer via the          |
+| Passes on a set of flags as defined by the Go ``flag`` package to the analyzer via the           |
 | ``analysis.Analyzer.Flags`` field. Its keys are the flag names *without* a ``-`` prefix, and its |
 | values are the flag values. nogo will exit with an error upon receiving flags not recognized by  |
 | the analyzer or upon receiving ill-formatted flag values as defined by the corresponding         |
