@@ -4,13 +4,16 @@ Custom nogo analyzers
 .. _nogo: /go/nogo.rst
 .. _go_library: /docs/go/core/rules.md#_go_library
 
-Tests to ensure that custom `nogo`_ analyzers run and detect errors.
+Tests to ensure that custom `nogo`_ analyzers that consume flags can be
+supplied those flags via nono config.
 
 .. contents::
 
 custom_test
 -----------
-Verifies that custom analyzers print errors and fail a `go_library`_ build when
-a configuration file is not provided, and that analyzers with the same package
-name do not conflict. Also checks that custom analyzers can be configured to
-apply only to certain file paths using a custom configuration file.
+Verifies that a simple custom analyzer's behavior can be modified by setting
+its analyzer flags in the nogo driver, and that these flags can be provided to
+the driver via the nogo config `analyzer_flags` field. Also checks that
+invalid flags as defined by the `flag` package cause the driver to immediately
+return an error.
+
