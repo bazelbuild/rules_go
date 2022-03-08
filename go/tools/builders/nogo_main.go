@@ -172,6 +172,11 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 
 	roots := make([]*action, 0, len(analyzers))
 	for _, a := range analyzers {
+		if cfg, ok := configs[a.Name]; ok {
+			for flagKey, flagVal := range cfg.analyzerFlags {
+				a.Flags.Set(flagKey, flagVal)
+			}
+		}
 		roots = append(roots, visit(a))
 	}
 
@@ -457,6 +462,9 @@ type config struct {
 	// excludeFiles is a list of regular expressions that match files that an
 	// analyzer will not emit diagnostics for.
 	excludeFiles []*regexp.Regexp
+
+	// analyzerFlags is a map of
+	analyzerFlags map[string]string
 }
 
 // importer is an implementation of go/types.Importer that imports type

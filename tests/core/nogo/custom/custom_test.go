@@ -39,6 +39,7 @@ nogo(
         ":foofuncname",
         ":importfmt",
         ":visibility",
+        ":flagger",
     ],
     # config = "",
     visibility = ["//visibility:public"],
@@ -67,6 +68,16 @@ go_library(
     deps = [
         "@org_golang_x_tools//go/analysis",
         "@org_golang_x_tools//go/ast/inspector",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "flagger",
+    srcs = ["flagger.go"],
+    importpath = "flaggeranalyzer",
+    deps = [
+        "@org_golang_x_tools//go/analysis",
     ],
     visibility = ["//visibility:public"],
 )
@@ -280,6 +291,48 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
+-- flagger.go --
+// flagger crashes when three flags are set in the config or else it no-ops
+package flagger
+
+import (
+        "errors"
+        "fmt"
+
+        "golang.org/x/tools/go/analysis"
+)
+
+var (
+        boolSwitch   bool
+        stringSwitch string
+        intSwitch    int
+)
+
+var Analyzer = &analysis.Analyzer{
+        Name: "flagger",
+        Run:  run,
+        Doc:  "Dummy analyzer that requires some flags to be set true in order to pass",
+}
+
+func init() {
+        Analyzer.Flags.BoolVar(&boolSwitch, "bool-switch", false, "Bool must be set to true to run")
+        Analyzer.Flags.StringVar(&stringSwitch, "string-switch", "no", "String must be set to \"yes\" to run")
+        Analyzer.Flags.IntVar(&intSwitch, "int-switch", 0, "Int must be set to 1 to run")
+}
+
+func run(pass *analysis.Pass) (interface{}, error) {
+        if !boolSwitch {
+                return nil, nil
+        }
+        if stringSwitch != "yes" {
+                return nil, nil
+        }
+        if intSwitch != 1 {
+                return nil, nil
+        }
+        return nil, errors.New("all switches were set -> fail")
+}
+
 -- config.json --
 {
   "importfmt": {
@@ -293,6 +346,36 @@ func run(pass *analysis.Pass) (interface{}, error) {
   "visibility": {
     "exclude_files": {
       "has_.*\\.go": "special exception to visibility rules"
+    }
+  }
+}
+
+-- flagger_config.json --
+{
+  "importfmt": {
+    "only_files": {
+      "no_errors\\.go": ""
+    }
+  },
+  "foofuncname": {
+    "only_files": {
+      "no_errors\\.go": ""
+    }
+  },
+  "flagger": {
+    "description": "this will crash on the specified file",
+    "only_files": {
+      "has_errors\\.go": ""
+    },
+    "analyzer_flags": {
+        "bool-switch": "true",
+        "int-switch": "1",
+        "string-switch": "yes"
+    }
+  },
+  "visibility": {
+    "only_files": {
+      "no_errors\\.go": ""
     }
   }
 }
@@ -427,6 +510,12 @@ func Test(t *testing.T) {
 				// note the cross platform regex :)
 				`.*[\\/]cgo[\\/]examplepkg[\\/]pure_src_with_err_calling_native.go:.*function must not be named Foo \(foofuncname\)`,
 			},
+		}, {
+			desc:        "config_flags_triggering_error",
+			target:      "//:has_errors",
+			wantSuccess: false,
+			config:      "flagger_config.json",
+			includes:    []string{"all switches were set -> fail"},
 		}, {
 			desc:        "no_errors",
 			target:      "//:no_errors",
