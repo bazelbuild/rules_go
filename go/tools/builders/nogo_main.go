@@ -174,7 +174,17 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 	for _, a := range analyzers {
 		if cfg, ok := configs[a.Name]; ok {
 			for flagKey, flagVal := range cfg.analyzerFlags {
-				a.Flags.Set(flagKey, flagVal)
+				if err := a.Flags.Set(flagKey, flagVal); err != nil {
+					if strings.HasPrefix(flagKey, "-") {
+						return "", nil, fmt.Errorf(
+							"%s: flag should not begin with '-': %s", a.Name, flagKey)
+					}
+					if flag := a.Flags.Lookup(flagKey); flag == nil {
+						return "", nil, fmt.Errorf("%s: unrecognized flag: %s", a.Name, flagKey)
+					}
+					return "", nil, fmt.Errorf(
+						"%s: invalid value for flag: %s=%s", a.Name, flagKey, flagVal)
+				}
 			}
 		}
 		roots = append(roots, visit(a))
@@ -463,7 +473,9 @@ type config struct {
 	// analyzer will not emit diagnostics for.
 	excludeFiles []*regexp.Regexp
 
-	// analyzerFlags is a map of
+	// analyzerFlags is a map of flag names to flag values which will be passed
+	// to Analyzer.Flags. Note that no leading '-' should be present in a flag
+	// name
 	analyzerFlags map[string]string
 }
 
