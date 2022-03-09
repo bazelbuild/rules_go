@@ -1,4 +1,4 @@
-Custom nogo analyzers
+Custom nogo analyzer flags
 =====================
 
 .. _nogo: /go/nogo.rst
@@ -9,7 +9,7 @@ supplied those flags via nono config.
 
 .. contents::
 
-custom_test
+flags_test
 -----------
 Verifies that a simple custom analyzer's behavior can be modified by setting
 its analyzer flags in the nogo driver, and that these flags can be provided to
