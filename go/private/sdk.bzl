@@ -237,7 +237,7 @@ def _sdk_build_file(ctx, platform):
         },
     )
 
-def _get_env_var(ctx, name, default=""):
+def _get_env_var(ctx, name, default = ""):
     if name in ctx.os.environ:
         return ctx.os.environ[name]
     else:
