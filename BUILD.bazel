@@ -33,8 +33,6 @@ load(
 # gazelle:exclude go/tools/coverdata
 # gazelle:exclude go/tools/fetch_repo
 # gazelle:exclude go/tools/windows-testrunner
-# gazelle:exclude go/tools/testinit
-# gazelle:exclude go/tools/testwrapper
 # gazelle:go_naming_convention import_alias
 
 # TODO(jayconrod): add a gazelle rule so gazelle can be run automatically.
