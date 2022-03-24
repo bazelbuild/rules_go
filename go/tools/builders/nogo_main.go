@@ -174,16 +174,16 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 	for _, a := range analyzers {
 		if cfg, ok := configs[a.Name]; ok {
 			for flagKey, flagVal := range cfg.analyzerFlags {
-				if err := a.Flags.Set(flagKey, flagVal); err != nil {
-					if strings.HasPrefix(flagKey, "-") {
-						return "", nil, fmt.Errorf(
-							"%s: flag should not begin with '-': %s", a.Name, flagKey)
-					}
-					if flag := a.Flags.Lookup(flagKey); flag == nil {
-						return "", nil, fmt.Errorf("%s: unrecognized flag: %s", a.Name, flagKey)
-					}
+				if strings.HasPrefix(flagKey, "-") {
 					return "", nil, fmt.Errorf(
-						"%s: invalid value for flag: %s=%s", a.Name, flagKey, flagVal)
+						"%s: flag should not begin with '-': %s", a.Name, flagKey)
+				}
+				if flag := a.Flags.Lookup(flagKey); flag == nil {
+					return "", nil, fmt.Errorf("%s: unrecognized flag: %s", a.Name, flagKey)
+				}
+				if err := a.Flags.Set(flagKey, flagVal); err != nil {
+					return "", nil, fmt.Errorf(
+						"%s: invalid value for flag: %s=%s: %w", a.Name, flagKey, flagVal, err)
 				}
 			}
 		}
