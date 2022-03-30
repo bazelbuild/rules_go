@@ -178,7 +178,12 @@ func compileArchive(
 	defer cleanup()
 
 	if len(srcs.goSrcs) == 0 {
-		emptyPath := filepath.Join(workDir, "_empty.go")
+		// We need to run the compiler to create a valid archive, even if there's
+		// nothing in it. GoPack will complain if we try to add assembly or cgo
+		// objects.
+		// _empty.go needs to be in a deterministic location (not tmpdir) in order
+		// to ensure deterministic output
+		emptyPath := filepath.Join(filepath.Dir(outPath), "_empty.go")
 		if err := ioutil.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
 			return err
 		}
