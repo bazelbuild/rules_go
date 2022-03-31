@@ -143,21 +143,6 @@ def proto_path(src, proto):
     Returns:
         An import path string.
     """
-    if not hasattr(proto, "proto_source_root"):
-        # Legacy path. Remove when Bazel minimum version >= 0.21.0.
-        path = src.path
-        root = src.root.path
-        ws = src.owner.workspace_root
-        if path.startswith(root):
-            path = path[len(root):]
-        if path.startswith("/"):
-            path = path[1:]
-        if path.startswith(ws):
-            path = path[len(ws):]
-        if path.startswith("/"):
-            path = path[1:]
-        return path
-
     if proto.proto_source_root == ".":
         # true if proto sources were generated
         prefix = src.root.path + "/"
