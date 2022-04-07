@@ -54,7 +54,28 @@ def filter_transition_label(label):
     else:
         return str(Label(label))
 
-def go_transition_wrapper(kind, transition_kind, name, **kwargs):
+ForwardingPastTransitionProvider = provider(
+    "TODO",
+    fields = {
+        "executable": "TODO",
+        "runfiles": "TODO",
+        "providers_to_forward": "TODO",
+    },
+)
+
+def _minus_keys(d, minus):
+    """Returns a copy of dict d without the keys listed in minus.
+
+    Args:
+        d (dict): dict to copy
+        minus (list): keys to not copy from d.
+    """
+    ret = dict(d)
+    for key in minus:
+        ret.pop(key, None)
+    return ret
+
+def go_transition_wrapper(kind, transition_kind, name, use_basename, keys_to_strip, **kwargs):
     """Wrapper for rules that may use transitions.
 
     This is used in place of instantiating go_binary or go_transition_binary
@@ -64,51 +85,61 @@ def go_transition_wrapper(kind, transition_kind, name, **kwargs):
     configuration identical to the default configuration.
     """
     transition_keys = ("goos", "goarch", "pure", "static", "msan", "race", "gotags", "linkmode")
+    keys_to_strip = [k for k in keys_to_strip if k not in transition_keys]
     need_transition = any([key in kwargs for key in transition_keys])
     if need_transition:
-        transition_kind(name = name, **kwargs)
+        transitioned_name = name + ".transitioned"
+
+        # Strip out attrs that are expected by the underlying rule.
+        # This means that we strip out things like srcs, because we don't need them,
+        # but preserve things like tags and exec_compatible_with,
+        # which are general to all tests rather than specific to go_test specifically,
+        # and should apply to generated tests and binaries too.
+        transition_kind(name = name, transition_dep = transitioned_name, **_minus_keys(kwargs, keys_to_strip))
+        tags = kwargs.pop("tags", [])
+        if "manual" not in tags:
+            tags += ["manual"]
+        kwargs["tags"] = tags
+        if use_basename and "basename" not in kwargs:
+            kwargs["basename"] = name
+        kind(name = transitioned_name, **kwargs)
     else:
         kind(name = name, **kwargs)
 
-def go_transition_rule(**kwargs):
-    """Like "rule", but adds a transition and mode attributes."""
-    kwargs = dict(kwargs)
-    kwargs["attrs"].update({
-        "goos": attr.string(
-            default = "auto",
-            values = ["auto"] + {goos: None for goos, _ in GOOS_GOARCH}.keys(),
-        ),
-        "goarch": attr.string(
-            default = "auto",
-            values = ["auto"] + {goarch: None for _, goarch in GOOS_GOARCH}.keys(),
-        ),
-        "pure": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "static": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "msan": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "race": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "gotags": attr.string_list(default = []),
-        "linkmode": attr.string(
-            default = "auto",
-            values = ["auto"] + LINKMODES,
-        ),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
-        ),
-    })
-    kwargs["cfg"] = go_transition
-    return rule(**kwargs)
+transition_attrs = {
+    "goos": attr.string(
+        default = "auto",
+        values = ["auto"] + {goos: None for goos, _ in GOOS_GOARCH}.keys(),
+    ),
+    "goarch": attr.string(
+        default = "auto",
+        values = ["auto"] + {goarch: None for _, goarch in GOOS_GOARCH}.keys(),
+    ),
+    "pure": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "static": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "msan": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "race": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "gotags": attr.string_list(default = []),
+    "linkmode": attr.string(
+        default = "auto",
+        values = ["auto"] + LINKMODES,
+    ),
+    "_whitelist_function_transition": attr.label(
+        default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+    ),
+}
 
 def _go_transition_impl(settings, attr):
     # NOTE(bazelbuild/bazel#11409): Calling fail here for invalid combinations
