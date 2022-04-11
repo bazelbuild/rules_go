@@ -70,43 +70,45 @@ def go_transition_wrapper(kind, transition_kind, name, **kwargs):
     else:
         kind(name = name, **kwargs)
 
+transition_attrs = {
+    "goos": attr.string(
+        default = "auto",
+        values = ["auto"] + {goos: None for goos, _ in GOOS_GOARCH}.keys(),
+    ),
+    "goarch": attr.string(
+        default = "auto",
+        values = ["auto"] + {goarch: None for _, goarch in GOOS_GOARCH}.keys(),
+    ),
+    "pure": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "static": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "msan": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "race": attr.string(
+        default = "auto",
+        values = ["auto", "on", "off"],
+    ),
+    "gotags": attr.string_list(default = []),
+    "linkmode": attr.string(
+        default = "auto",
+        values = ["auto"] + LINKMODES,
+    ),
+    "_whitelist_function_transition": attr.label(
+        default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+    ),
+}
+
 def go_transition_rule(**kwargs):
     """Like "rule", but adds a transition and mode attributes."""
     kwargs = dict(kwargs)
-    kwargs["attrs"].update({
-        "goos": attr.string(
-            default = "auto",
-            values = ["auto"] + {goos: None for goos, _ in GOOS_GOARCH}.keys(),
-        ),
-        "goarch": attr.string(
-            default = "auto",
-            values = ["auto"] + {goarch: None for _, goarch in GOOS_GOARCH}.keys(),
-        ),
-        "pure": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "static": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "msan": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "race": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "gotags": attr.string_list(default = []),
-        "linkmode": attr.string(
-            default = "auto",
-            values = ["auto"] + LINKMODES,
-        ),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
-        ),
-    })
+    kwargs["attrs"].update(transition_attrs)
     kwargs["cfg"] = go_transition
     return rule(**kwargs)
 
