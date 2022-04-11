@@ -30,12 +30,9 @@ load(
 load(
     "//go/private/rules:transition.bzl",
     "ForwardingPastTransitionProvider",
+    "copy_file_to_rule_name",
     "go_transition",
     "transition_attrs",
-)
-load(
-    "//go/private/skylib/lib:copy_file.bzl",
-    "copy_file_to_rule_name",
 )
 load(
     "//go/private:mode.bzl",

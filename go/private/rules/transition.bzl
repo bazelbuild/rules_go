@@ -37,7 +37,7 @@ load(
     "platform_from_crosstool",
 )
 load(
-    "@bazel_skylib//lib:dicts.bzl",
+    "//go/private/skylib/lib:dicts.bzl",
     "dicts",
 )
 
@@ -355,3 +355,13 @@ def _set_ternary(settings, attr, name):
         label = filter_transition_label("@io_bazel_rules_go//go/config:{}".format(name))
         settings[label] = value == "on"
     return value
+
+def copy_file_to_rule_name(ctx, src):
+    output_file_name = ctx.label.name + (".exe" if ctx.attr.is_windows else "")
+    dst = ctx.actions.declare_file(output_file_name)
+    ctx.actions.symlink(
+        output = dst,
+        target_file = src,
+        is_executable = True,
+    )
+    return dst

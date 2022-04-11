@@ -20,7 +20,7 @@ bzl_library(
 )
 
 bzl_library(
-    name = "copy_file",
-    srcs = ["copy_file.bzl"],
+    name = "dicts",
+    srcs = ["dicts.bzl"],
     visibility = ["//go:__subpackages__"],
 )
