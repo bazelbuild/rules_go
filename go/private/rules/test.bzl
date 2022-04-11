@@ -45,8 +45,7 @@ load(
 )
 load(
     "//go/private/skylib/lib:copy_file.bzl",
-    "copy_bash",
-    "copy_cmd",
+    "copy_file_to_rule_name",
 )
 load(
     "//go/private:mode.bzl",
@@ -69,14 +68,7 @@ def _forward_test_output(ctx):
     ep = ctx.attr.transition_dep[0][ForwardingPastTransitionProvider]
     di = ctx.attr.transition_dep[0][DefaultInfo]
 
-    output_file_name = ctx.label.name + (".exe" if ctx.attr.is_windows else "")
-    copied_executable = ctx.actions.declare_file(output_file_name)
-
-    if ctx.attr.is_windows:
-        copy_cmd(ctx, ep.executable, copied_executable)
-    else:
-        copy_bash(ctx, ep.executable, copied_executable)
-
+    copied_executable = copy_file_to_rule_name(ctx, ep.executable)
     data_runfiles = di.data_runfiles.merge(ctx.runfiles([copied_executable]))
     default_runfiles = di.default_runfiles.merge(ctx.runfiles([copied_executable]))
 

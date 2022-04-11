@@ -1,3 +1,14 @@
+def copy_file_to_rule_name(ctx, src):
+    output_file_name = ctx.label.name + (".exe" if ctx.attr.is_windows else "")
+    dst = ctx.actions.declare_file(output_file_name)
+    ctx.actions.symlink(
+        output = dst,
+        target_file = src,
+        is_executable = True,
+    )
+    return dst
+
+# Taken from https://github.com/bazelbuild/bazel-skylib/blob/7b859037a673db6f606661323e74c5d4751595e6/rules/private/copy_file_private.bzl
 def copy_cmd(ctx, src, dst):
     # Most Windows binaries built with MSVC use a certain argument quoting
     # scheme. Bazel uses that scheme too to quote arguments. However,
@@ -26,6 +37,7 @@ def copy_cmd(ctx, src, dst):
         use_default_shell_env = True,
     )
 
+# Taken from https://github.com/bazelbuild/bazel-skylib/blob/7b859037a673db6f606661323e74c5d4751595e6/rules/private/copy_file_private.bzl
 def copy_bash(ctx, src, dst):
     ctx.actions.run_shell(
         tools = [src],
