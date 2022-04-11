@@ -36,6 +36,10 @@ load(
     "//go/platform:crosstool.bzl",
     "platform_from_crosstool",
 )
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
 
 def filter_transition_label(label):
     """Transforms transition labels for the current workspace.
@@ -63,18 +67,6 @@ ForwardingPastTransitionProvider = provider(
     },
 )
 
-def _minus_keys(d, minus):
-    """Returns a copy of dict d without the keys listed in minus.
-
-    Args:
-        d (dict): dict to copy
-        minus (list): keys to not copy from d.
-    """
-    ret = dict(d)
-    for key in minus:
-        ret.pop(key, None)
-    return ret
-
 def go_transition_wrapper(kind, transition_kind, name, use_basename, keys_to_strip, **kwargs):
     """Wrapper for rules that may use transitions.
 
@@ -95,7 +87,7 @@ def go_transition_wrapper(kind, transition_kind, name, use_basename, keys_to_str
         # but preserve things like tags and exec_compatible_with,
         # which are general to all tests rather than specific to go_test specifically,
         # and should apply to generated tests and binaries too.
-        transition_kwargs = _minus_keys(kwargs, keys_to_strip)
+        transition_kwargs = dicts.omit(kwargs, keys_to_strip)
         transition_kwargs["name"] = name
         transition_kwargs["transition_dep"] = transitioned_name
         transition_kwargs["is_windows"] = select({

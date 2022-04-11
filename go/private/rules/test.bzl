@@ -52,17 +52,16 @@ load(
     "LINKMODE_NORMAL",
 )
 load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
+)
+load(
     "@bazel_skylib//lib:structs.bzl",
     "structs",
 )
 
 def _testmain_library_to_source(go, attr, source, merge):
     source["deps"] = source["deps"] + [attr.library]
-
-def _merge(d1, d2):
-    d = dict(d1)
-    d.update(d2)
-    return d
 
 def _forward_test_output(ctx):
     ep = ctx.attr.transition_dep[0][ForwardingPastTransitionProvider]
@@ -81,7 +80,7 @@ def _forward_test_output(ctx):
 
 go_transition_test = rule(
     implementation = _forward_test_output,
-    attrs = _merge(transition_attrs, {
+    attrs = dicts.add(transition_attrs, {
         "transition_dep": attr.label(cfg = go_transition),
         "is_windows": attr.bool(),
         # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
