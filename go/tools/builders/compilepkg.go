@@ -40,7 +40,7 @@ func compilePkg(args []string) error {
 
 	fs := flag.NewFlagSet("GoCompilePkg", flag.ExitOnError)
 	goenv := envFlags(fs)
-	var unfilteredSrcs, coverSrcs, embedSrcs multiFlag
+	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots multiFlag
 	var deps archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
@@ -49,6 +49,8 @@ func compilePkg(args []string) error {
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&coverSrcs, "cover", ".go file that should be instrumented for coverage (must also be a -src)")
 	fs.Var(&embedSrcs, "embedsrc", "file that may be compiled into the package with a //go:embed directive")
+	fs.Var(&embedLookupDirs, "embedlookupdir", "Root-relative paths to directories relative to which //go:embed directives are resolved")
+	fs.Var(&embedRoots, "embedroot", "Bazel output root under which a file passed via -embedsrc resides")
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	fs.StringVar(&importPath, "importpath", "", "The import path of the package being compiled. Not passed to the compiler, but may be displayed in debug data.")
 	fs.StringVar(&packagePath, "p", "", "The package path (importmap) of the package being compiled")
@@ -129,6 +131,8 @@ func compilePkg(args []string) error {
 		coverMode,
 		coverSrcs,
 		embedSrcs,
+		embedLookupDirs,
+		embedRoots,
 		cgoEnabled,
 		cc,
 		gcFlags,
@@ -155,6 +159,8 @@ func compileArchive(
 	coverMode string,
 	coverSrcs []string,
 	embedSrcs []string,
+	embedLookupDirs []string,
+	embedRoots []string,
 	cgoEnabled bool,
 	cc string,
 	gcFlags []string,
@@ -334,24 +340,24 @@ func compileArchive(
 	// Embed patterns are relative to any one of a list of root directories
 	// that may contain embeddable files. Source files containing embed patterns
 	// must be in one of these root directories so the pattern appears to be
-	// relative to the source file. Usually, there are two roots: the source
-	// directory, and the output directory (so that generated files are
-	// embeddable). There may be additional roots if sources are in multiple
-	// directories (like if there are are generated source files).
-	var srcDirs []string
-	srcDirs = append(srcDirs, filepath.Dir(outPath))
-	for _, src := range srcs.goSrcs {
-		srcDirs = append(srcDirs, filepath.Dir(src.filename))
-	}
-	sort.Strings(srcDirs) // group duplicates to uniq them below.
-	embedRootDirs := srcDirs[:1]
-	for _, dir := range srcDirs {
-		prev := embedRootDirs[len(embedRootDirs)-1]
-		if dir == prev || strings.HasPrefix(dir, prev+string(filepath.Separator)) {
-			// Skip duplicates.
-			continue
+	// relative to the source file. Due to transitions, source files can reside
+	// under Bazel roots different from both those of the go srcs and those of
+	// the compilation output. Thus, we have to consider all combinations of
+	// Bazel roots embedsrcs and root-relative paths of source files and the
+	// output binary.
+	var embedRootDirs []string
+	for _, root := range embedRoots {
+		for _, lookupDir := range embedLookupDirs {
+			embedRootDir := abs(filepath.Join(root, lookupDir))
+			// Since we are iterating over all combinations of roots and
+			// root-relative paths, some resulting paths may not exist and
+			// should be filtered out before being passed to buildEmbedcfgFile.
+			// Since Bazel uniquified both the roots and the root-relative
+			// paths, the combinations are automatically unique.
+			if _, err := os.Stat(embedRootDir); err == nil {
+				embedRootDirs = append(embedRootDirs, embedRootDir)
+			}
 		}
-		embedRootDirs = append(embedRootDirs, dir)
 	}
 	embedcfgPath, err := buildEmbedcfgFile(srcs.goSrcs, embedSrcs, embedRootDirs, workDir)
 	if err != nil {

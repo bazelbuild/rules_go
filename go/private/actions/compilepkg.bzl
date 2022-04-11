@@ -30,6 +30,15 @@ def _archive(v):
         v.data.export_file.path if v.data.export_file else v.data.file.path,
     )
 
+def _embedroot_arg(src):
+    return src.root.path
+
+def _embedlookupdir_arg(src):
+    root_relative = src.dirname[len(src.root.path):]
+    if root_relative.startswith("/"):
+        root_relative = root_relative[len("/"):]
+    return root_relative
+
 def emit_compilepkg(
         go,
         sources = None,
@@ -66,6 +75,20 @@ def emit_compilepkg(
     args = go.builder_args(go, "compilepkg")
     args.add_all(sources, before_each = "-src")
     args.add_all(embedsrcs, before_each = "-embedsrc", expand_directories = False)
+    args.add_all(
+        sources + [out_lib] + embedsrcs,
+        map_each = _embedroot_arg,
+        before_each = "-embedroot",
+        uniquify = True,
+        expand_directories = False,
+    )
+    args.add_all(
+        sources + [out_lib],
+        map_each = _embedlookupdir_arg,
+        before_each = "-embedlookupdir",
+        uniquify = True,
+        expand_directories = False,
+    )
     if cover and go.coverdata:
         inputs.append(go.coverdata.data.export_file)
         args.add("-arc", _archive(go.coverdata))
