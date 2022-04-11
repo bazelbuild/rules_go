@@ -95,7 +95,14 @@ def go_transition_wrapper(kind, transition_kind, name, use_basename, keys_to_str
         # but preserve things like tags and exec_compatible_with,
         # which are general to all tests rather than specific to go_test specifically,
         # and should apply to generated tests and binaries too.
-        transition_kind(name = name, transition_dep = transitioned_name, **_minus_keys(kwargs, keys_to_strip))
+        transition_kwargs = _minus_keys(kwargs, keys_to_strip)
+        transition_kwargs["name"] = name
+        transition_kwargs["transition_dep"] = transitioned_name
+        transition_kwargs["is_windows"] = select({
+            "@bazel_tools//src/conditions:windows": True,
+            "//conditions:default": False,
+        })
+        transition_kind(**transition_kwargs)
         tags = kwargs.pop("tags", [])
         if "manual" not in tags:
             tags += ["manual"]

@@ -28,6 +28,7 @@ bzl_library(
         "//go/private:mode",
         "//go/private:providers",
         "//go/private/rules:transition",
+        "//go/private/skylib/lib:copy_file",
     ],
 )
 
@@ -117,6 +118,7 @@ bzl_library(
         "//go/private:providers",
         "//go/private/rules:binary",
         "//go/private/rules:transition",
+        "//go/private/skylib/lib:copy_file",
         "@bazel_skylib//lib:structs",
     ],
 )

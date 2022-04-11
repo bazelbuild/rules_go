@@ -18,3 +18,9 @@ bzl_library(
     srcs = ["versions.bzl"],
     visibility = ["//go:__subpackages__"],
 )
+
+bzl_library(
+    name = "copy_file",
+    srcs = ["copy_file.bzl"],
+    visibility = ["//go:__subpackages__"],
+)

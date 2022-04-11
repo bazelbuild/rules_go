@@ -34,6 +34,11 @@ load(
     "transition_attrs",
 )
 load(
+    "//go/private/skylib/lib:copy_file.bzl",
+    "copy_bash",
+    "copy_cmd",
+)
+load(
     "//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
@@ -393,11 +398,10 @@ def _forward_binary_output(ctx):
     di = ctx.attr.transition_dep[0][DefaultInfo]
 
     copied_executable = ctx.actions.declare_file(ctx.label.name)
-    ctx.actions.symlink(
-        output = copied_executable,
-        target_file = ep.executable,
-        is_executable = True,
-    )
+    if ctx.attr.is_windows:
+        copy_cmd(ctx, ep.executable, copied_executable)
+    else:
+        copy_bash(ctx, ep.executable, copied_executable)
 
     data_runfiles = di.data_runfiles.merge(ctx.runfiles([copied_executable]))
     default_runfiles = di.default_runfiles.merge(ctx.runfiles([copied_executable]))
@@ -411,7 +415,10 @@ def _forward_binary_output(ctx):
 
 go_transition_binary = rule(
     implementation = _forward_binary_output,
-    attrs = _merge(transition_attrs, {"transition_dep": attr.label(cfg = go_transition)}),
+    attrs = _merge(transition_attrs, {
+        "is_windows": attr.bool(),
+        "transition_dep": attr.label(cfg = go_transition),
+    }),
     executable = True,
 )
 
