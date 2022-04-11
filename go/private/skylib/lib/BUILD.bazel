@@ -18,3 +18,9 @@ bzl_library(
     srcs = ["versions.bzl"],
     visibility = ["//go:__subpackages__"],
 )
+
+bzl_library(
+    name = "dicts",
+    srcs = ["dicts.bzl"],
+    visibility = ["//go:__subpackages__"],
+)
