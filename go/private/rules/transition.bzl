@@ -316,7 +316,7 @@ def _go_reset_target_impl(ctx):
             target_file = original_executable,
             is_executable = True,
         )
-        runfiles_wrapper = _add_to_runfiles(runfiles_wrapper, new_executable)
+        runfiles_wrapper = _add_to_runfiles(ctx, runfiles_wrapper, new_executable)
 
     providers.append(
         DefaultInfo(
@@ -374,7 +374,7 @@ def _symlink_file_to_rule_name(ctx, src):
     )
     return dst
 
-def _add_to_runfiles(default_info, file):
+def _add_to_runfiles(ctx, default_info, file):
     if file == None:
         return default_info
 
@@ -390,7 +390,7 @@ def forward_through_transition_impl(ctx):
     default_info = ctx.attr.transition_dep[0][DefaultInfo]
 
     copied_executable = _symlink_file_to_rule_name(ctx, forwarding_provider.executable)
-    runfiles = _add_to_runfiles(default_info, copied_executable)
+    runfiles = _add_to_runfiles(ctx, default_info, copied_executable)
 
     return [DefaultInfo(
         executable = copied_executable,
