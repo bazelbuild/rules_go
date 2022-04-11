@@ -29,7 +29,10 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_transition_rule",
+    "ForwardingPastTransitionProvider",
+    "forward_through_transition_impl",
+    "go_transition",
+    "transition_attrs",
 )
 load(
     "//go/private:mode.bzl",
@@ -42,6 +45,10 @@ load(
 load(
     "//go/private:rpath.bzl",
     "rpath",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 
 _EMPTY_DEPSET = depset([])
@@ -110,18 +117,13 @@ def _go_binary_impl(ctx):
         executable = executable,
     )
 
-    providers = [
+    providers_to_forward = [
         library,
         source,
         archive,
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
             compilation_outputs = [archive.data.file],
-        ),
-        DefaultInfo(
-            files = depset([executable]),
-            runfiles = runfiles,
-            executable = executable,
         ),
     ]
 
@@ -151,9 +153,17 @@ def _go_binary_impl(ctx):
         ccinfo = cc_common.merge_cc_infos(
             cc_infos = [ccinfo] + [d[CcInfo] for d in source.cdeps],
         )
-        providers.append(ccinfo)
+        providers_to_forward.append(ccinfo)
 
-    return providers
+    forwarding_provider = ForwardingPastTransitionProvider(executable = executable, runfiles = runfiles, providers_to_forward = providers_to_forward)
+    return providers_to_forward + [
+        forwarding_provider,
+        DefaultInfo(
+            files = depset([executable]),
+            runfiles = runfiles,
+            executable = executable,
+        ),
+    ]
 
 go_binary_attrs = {
     "srcs": attr.label_list(
@@ -377,7 +387,15 @@ _go_binary_kwargs = {
 }
 
 go_binary = rule(**_go_binary_kwargs)
-go_transition_binary = go_transition_rule(**_go_binary_kwargs)
+
+go_transition_binary = rule(
+    implementation = forward_through_transition_impl,
+    attrs = dicts.add(transition_attrs, {
+        "is_windows": attr.bool(),
+        "transition_dep": attr.label(cfg = go_transition),
+    }),
+    executable = True,
+)
 
 def _go_tool_binary_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]

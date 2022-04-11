@@ -36,6 +36,10 @@ load(
     "//go/platform:crosstool.bzl",
     "platform_from_crosstool",
 )
+load(
+    "//go/private/skylib/lib:dicts.bzl",
+    "dicts",
+)
 
 def filter_transition_label(label):
     """Transforms transition labels for the current workspace.
@@ -54,7 +58,24 @@ def filter_transition_label(label):
     else:
         return str(Label(label))
 
-def go_transition_wrapper(kind, transition_kind, name, **kwargs):
+ForwardingPastTransitionProvider = provider(
+    """Provider for a go_transition_wrapper to forward information from its dep.
+
+    go_transition_wrapper symlinks outputs from some rule, after performing a
+    transition on the rule it depends on. It also forwards all of the providers
+    from that rule.
+
+    This provider allows structured passing of the required data in order to
+    perform that forwarding.
+    """,
+    fields = {
+        "executable": "File: The executable of the dep, which should be symlinked to.",
+        "runfiles": "Runfiles: The runfiles of the dep.",
+        "providers_to_forward": "[Provider]: The providers the transition-wrapping rule should expose.",
+    },
+)
+
+def go_transition_wrapper(kind, transition_kind, name, use_basename, keys_to_strip, **kwargs):
     """Wrapper for rules that may use transitions.
 
     This is used in place of instantiating go_binary or go_transition_binary
@@ -64,9 +85,34 @@ def go_transition_wrapper(kind, transition_kind, name, **kwargs):
     configuration identical to the default configuration.
     """
     transition_keys = ("goos", "goarch", "pure", "static", "msan", "race", "gotags", "linkmode")
+    keys_to_strip = [k for k in keys_to_strip if k not in transition_keys]
     need_transition = any([key in kwargs for key in transition_keys])
     if need_transition:
-        transition_kind(name = name, **kwargs)
+        transitioned_name = name + ".transitioned"
+
+        # Strip out attrs that are expected by the underlying rule.
+        # This means that we strip out things like srcs, because we don't need them,
+        # but preserve things like tags and exec_compatible_with,
+        # which are general to all tests rather than specific to go_test specifically,
+        # and should apply to generated tests and binaries too.
+        transition_kwargs = dicts.omit(kwargs, keys_to_strip)
+        transition_kwargs["name"] = name
+        transition_kwargs["transition_dep"] = transitioned_name
+        transition_kwargs["is_windows"] = select({
+            "@bazel_tools//src/conditions:windows": True,
+            "//conditions:default": False,
+        })
+        transition_kind(**transition_kwargs)
+
+        tags = kwargs.pop("tags", [])
+        if "manual" not in tags:
+            tags += ["manual"]
+        kwargs["tags"] = tags
+
+        if use_basename and "basename" not in kwargs:
+            kwargs["basename"] = name
+
+        kind(name = transitioned_name, **kwargs)
     else:
         kind(name = name, **kwargs)
 
@@ -104,13 +150,6 @@ transition_attrs = {
         default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
     ),
 }
-
-def go_transition_rule(**kwargs):
-    """Like "rule", but adds a transition and mode attributes."""
-    kwargs = dict(kwargs)
-    kwargs["attrs"].update(transition_attrs)
-    kwargs["cfg"] = go_transition
-    return rule(**kwargs)
 
 def _go_transition_impl(settings, attr):
     # NOTE(bazelbuild/bazel#11409): Calling fail here for invalid combinations
@@ -269,7 +308,7 @@ def _go_reset_target_impl(ctx):
 
     new_executable = None
     original_executable = default_info.files_to_run.executable
-    default_runfiles = default_info.default_runfiles
+    runfiles_wrapper = default_info
     if original_executable:
         # In order for the symlink to have the same basename as the original
         # executable (important in the case of proto plugins), put it in a
@@ -280,13 +319,13 @@ def _go_reset_target_impl(ctx):
             target_file = original_executable,
             is_executable = True,
         )
-        default_runfiles = default_runfiles.merge(ctx.runfiles([new_executable]))
+        runfiles_wrapper = _add_to_runfiles(ctx, runfiles_wrapper, new_executable)
 
     providers.append(
         DefaultInfo(
             files = default_info.files,
-            data_runfiles = default_info.data_runfiles,
-            default_runfiles = default_runfiles,
+            data_runfiles = runfiles_wrapper.data_runfiles,
+            default_runfiles = runfiles_wrapper.default_runfiles,
             executable = new_executable,
         ),
     )
@@ -327,3 +366,38 @@ def _set_ternary(settings, attr, name):
         label = filter_transition_label("@io_bazel_rules_go//go/config:{}".format(name))
         settings[label] = value == "on"
     return value
+
+def _symlink_file_to_rule_name(ctx, src):
+    output_file_name = ctx.label.name + (".exe" if ctx.attr.is_windows else "")
+    dst = ctx.actions.declare_file(output_file_name)
+    ctx.actions.symlink(
+        output = dst,
+        target_file = src,
+        is_executable = True,
+    )
+    return dst
+
+def _add_to_runfiles(ctx, default_info, file):
+    if file == None:
+        return default_info
+
+    data_runfiles = default_info.data_runfiles.merge(ctx.runfiles([file]))
+    default_runfiles = default_info.data_runfiles.merge(ctx.runfiles([file]))
+    return struct(
+        data_runfiles = data_runfiles,
+        default_runfiles = default_runfiles,
+    )
+
+def forward_through_transition_impl(ctx):
+    forwarding_provider = ctx.attr.transition_dep[0][ForwardingPastTransitionProvider]
+    default_info = ctx.attr.transition_dep[0][DefaultInfo]
+
+    copied_executable = _symlink_file_to_rule_name(ctx, forwarding_provider.executable)
+    runfiles = _add_to_runfiles(ctx, default_info, copied_executable)
+
+    return [DefaultInfo(
+        executable = copied_executable,
+        files = default_info.files,
+        data_runfiles = runfiles.data_runfiles,
+        default_runfiles = runfiles.default_runfiles,
+    )] + forwarding_provider.providers_to_forward

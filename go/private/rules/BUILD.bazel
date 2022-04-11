@@ -28,6 +28,7 @@ bzl_library(
         "//go/private:mode",
         "//go/private:providers",
         "//go/private/rules:transition",
+        "@bazel_skylib//lib:dicts",
     ],
 )
 
@@ -117,6 +118,7 @@ bzl_library(
         "//go/private:providers",
         "//go/private/rules:binary",
         "//go/private/rules:transition",
+        "@bazel_skylib//lib:dicts",
         "@bazel_skylib//lib:structs",
     ],
 )
@@ -133,6 +135,7 @@ bzl_library(
         "//go/private:mode",
         "//go/private:platforms",
         "//go/private:providers",
+        "//go/private/skylib/lib:dicts",
     ],
 )
 

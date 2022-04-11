@@ -39,11 +39,18 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_transition_rule",
+    "ForwardingPastTransitionProvider",
+    "forward_through_transition_impl",
+    "go_transition",
+    "transition_attrs",
 )
 load(
     "//go/private:mode.bzl",
     "LINKMODE_NORMAL",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 load(
     "@bazel_skylib//lib:structs.bzl",
@@ -52,6 +59,22 @@ load(
 
 def _testmain_library_to_source(go, attr, source, merge):
     source["deps"] = source["deps"] + [attr.library]
+
+go_transition_test = rule(
+    implementation = forward_through_transition_impl,
+    attrs = dicts.add(transition_attrs, {
+        "transition_dep": attr.label(cfg = go_transition),
+        "is_windows": attr.bool(),
+        # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
+        "_lcov_merger": attr.label(
+            executable = True,
+            default = "//go/tools/builders:lcov_merger",
+            cfg = "target",
+        ),
+    }),
+    executable = True,
+    test = True,
+)
 
 def _go_test_impl(ctx):
     """go_test_impl implements go testing.
@@ -166,13 +189,8 @@ def _go_test_impl(ctx):
     # source file is present, Bazel will set the COVERAGE_OUTPUT_FILE
     # environment variable during tests and will save that file to the build
     # events + test outputs.
-    return [
+    providers_to_forward = [
         test_archive,
-        DefaultInfo(
-            files = depset([executable]),
-            runfiles = runfiles,
-            executable = executable,
-        ),
         OutputGroupInfo(
             compilation_outputs = [internal_archive.data.file],
         ),
@@ -183,6 +201,21 @@ def _go_test_impl(ctx):
             extensions = ["go"],
         ),
         testing.TestEnvironment(env),
+    ]
+
+    forwarding_provider = ForwardingPastTransitionProvider(
+        executable = executable,
+        runfiles = runfiles,
+        providers_to_forward = providers_to_forward,
+    )
+
+    return providers_to_forward + [
+        forwarding_provider,
+        DefaultInfo(
+            files = depset([executable]),
+            runfiles = runfiles,
+            executable = executable,
+        ),
     ]
 
 go_test_attrs = {
@@ -442,7 +475,6 @@ _go_test_kwargs = {
 }
 
 go_test = rule(**_go_test_kwargs)
-go_transition_test = go_transition_rule(**_go_test_kwargs)
 
 def _recompile_external_deps(go, external_source, internal_archive, library_labels):
     """Recompiles some archives in order to split internal and external tests.

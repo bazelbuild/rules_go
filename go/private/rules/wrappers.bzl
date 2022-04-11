@@ -24,11 +24,13 @@ load(
 load(
     "//go/private/rules:binary.bzl",
     "go_binary",
+    "go_binary_attrs",
     "go_transition_binary",
 )
 load(
     "//go/private/rules:test.bzl",
     "go_test",
+    "go_test_attrs",
     "go_transition_test",
 )
 load(
@@ -48,7 +50,7 @@ def go_library_macro(name, **kwargs):
 def go_binary_macro(name, **kwargs):
     """See docs/go/core/rules.md#go_binary for full documentation."""
     _cgo(name, kwargs)
-    go_transition_wrapper(go_binary, go_transition_binary, name = name, **kwargs)
+    go_transition_wrapper(go_binary, go_transition_binary, name = name, use_basename = True, keys_to_strip = go_binary_attrs.keys(), **kwargs)
     if kwargs.get("linkmode") in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
         # Create an alias to tell users of the `.cc` rule that it is deprecated.
         native.alias(
@@ -62,4 +64,4 @@ def go_binary_macro(name, **kwargs):
 def go_test_macro(name, **kwargs):
     """See docs/go/core/rules.md#go_test for full documentation."""
     _cgo(name, kwargs)
-    go_transition_wrapper(go_test, go_transition_test, name = name, **kwargs)
+    go_transition_wrapper(go_test, go_transition_test, name = name, use_basename = False, keys_to_strip = go_test_attrs.keys(), **kwargs)
