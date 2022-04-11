@@ -69,7 +69,7 @@ def _forward_test_output(ctx):
     ep = ctx.attr.transition_dep[0][ForwardingPastTransitionProvider]
     di = ctx.attr.transition_dep[0][DefaultInfo]
 
-    output_file_name = ctx.label.name + ".exe" if ctx.attr.is_windows else ""
+    output_file_name = ctx.label.name + (".exe" if ctx.attr.is_windows else "")
     copied_executable = ctx.actions.declare_file(output_file_name)
 
     if ctx.attr.is_windows:
