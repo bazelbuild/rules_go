@@ -321,7 +321,7 @@ def _go_reset_target_impl(ctx):
     providers.append(
         DefaultInfo(
             files = default_info.files,
-            data_runfiles = runfile_wrapper.data_runfiles,
+            data_runfiles = runfiles_wrapper.data_runfiles,
             default_runfiles = runfiles_wrapper.default_runfiles,
             executable = new_executable,
         ),
