@@ -59,11 +59,19 @@ def filter_transition_label(label):
         return str(Label(label))
 
 ForwardingPastTransitionProvider = provider(
-    "TODO",
+    """Provider for a go_transition_wrapper to forward information from its dep.
+
+    go_transition_wrapper symlinks outputs from some rule, after performing a
+    transition on the rule it depends on. It also forwards all of the providers
+    from that rule.
+
+    This provider allows structured passing of the required data in order to
+    perform that forwarding.
+    """,
     fields = {
-        "executable": "TODO",
-        "runfiles": "TODO",
-        "providers_to_forward": "TODO",
+        "executable": "File: The executable of the dep, which should be symlinked to.",
+        "runfiles": "Runfiles: The runfiles of the dep.",
+        "providers_to_forward": "[Provider]: The providers the transition-wrapping rule should expose.",
     },
 )
 
@@ -297,7 +305,7 @@ def _go_reset_target_impl(ctx):
 
     new_executable = None
     original_executable = default_info.files_to_run.executable
-    default_runfiles = default_info.default_runfiles
+    runfiles_wrapper = default_info
     if original_executable:
         # In order for the symlink to have the same basename as the original
         # executable (important in the case of proto plugins), put it in a
@@ -308,13 +316,13 @@ def _go_reset_target_impl(ctx):
             target_file = original_executable,
             is_executable = True,
         )
-        default_runfiles = default_runfiles.merge(ctx.runfiles([new_executable]))
+        runfiles_wrapper = _add_to_runfiles(runfiles_wrapper, new_executable)
 
     providers.append(
         DefaultInfo(
             files = default_info.files,
-            data_runfiles = default_info.data_runfiles,
-            default_runfiles = default_runfiles,
+            data_runfiles = runfile_wrapper.data_runfiles,
+            default_runfiles = runfiles_wrapper.default_runfiles,
             executable = new_executable,
         ),
     )
@@ -356,7 +364,7 @@ def _set_ternary(settings, attr, name):
         settings[label] = value == "on"
     return value
 
-def copy_file_to_rule_name(ctx, src):
+def _symlink_file_to_rule_name(ctx, src):
     output_file_name = ctx.label.name + (".exe" if ctx.attr.is_windows else "")
     dst = ctx.actions.declare_file(output_file_name)
     ctx.actions.symlink(
@@ -365,3 +373,28 @@ def copy_file_to_rule_name(ctx, src):
         is_executable = True,
     )
     return dst
+
+def _add_to_runfiles(default_info, file):
+    if file == None:
+        return default_info
+
+    data_runfiles = default_info.data_runfiles.merge(ctx.runfiles([file]))
+    default_runfiles = default_info.data_runfiles.merge(ctx.runfiles([file]))
+    return struct(
+        data_runfiles = data_runfiles,
+        default_runfiles = default_runfiles,
+    )
+
+def forward_through_transition_impl(ctx):
+    forwarding_provider = ctx.attr.transition_dep[0][ForwardingPastTransitionProvider]
+    default_info = ctx.attr.transition_dep[0][DefaultInfo]
+
+    copied_executable = _symlink_file_to_rule_name(ctx, forwarding_provider.executable)
+    runfiles = _add_to_runfiles(default_info, copied_executable)
+
+    return [DefaultInfo(
+        executable = copied_executable,
+        files = default_info.files,
+        data_runfiles = runfiles.data_runfiles,
+        default_runfiles = runfiles.default_runfiles,
+    )] + forwarding_provider.providers_to_forward

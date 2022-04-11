@@ -30,7 +30,7 @@ load(
 load(
     "//go/private/rules:transition.bzl",
     "ForwardingPastTransitionProvider",
-    "copy_file_to_rule_name",
+    "forward_through_transition_impl",
     "go_transition",
     "transition_attrs",
 )
@@ -45,6 +45,10 @@ load(
 load(
     "//go/private:rpath.bzl",
     "rpath",
+)
+load(
+    "@bazel_skylib//lib:dicts.bzl",
+    "dicts",
 )
 
 _EMPTY_DEPSET = depset([])
@@ -384,29 +388,9 @@ _go_binary_kwargs = {
 
 go_binary = rule(**_go_binary_kwargs)
 
-def _merge(d1, d2):
-    d = dict(d1)
-    d.update(d2)
-    return d
-
-def _forward_binary_output(ctx):
-    ep = ctx.attr.transition_dep[0][ForwardingPastTransitionProvider]
-    di = ctx.attr.transition_dep[0][DefaultInfo]
-
-    copied_executable = copy_file_to_rule_name(ctx, ep.executable)
-    data_runfiles = di.data_runfiles.merge(ctx.runfiles([copied_executable]))
-    default_runfiles = di.default_runfiles.merge(ctx.runfiles([copied_executable]))
-
-    return [DefaultInfo(
-        executable = copied_executable,
-        files = di.files,
-        data_runfiles = data_runfiles,
-        default_runfiles = default_runfiles,
-    )] + ep.providers_to_forward
-
 go_transition_binary = rule(
-    implementation = _forward_binary_output,
-    attrs = _merge(transition_attrs, {
+    implementation = forward_through_transition_impl,
+    attrs = dicts.add(transition_attrs, {
         "is_windows": attr.bool(),
         "transition_dep": attr.label(cfg = go_transition),
     }),

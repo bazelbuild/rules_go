@@ -40,7 +40,7 @@ load(
 load(
     "//go/private/rules:transition.bzl",
     "ForwardingPastTransitionProvider",
-    "copy_file_to_rule_name",
+    "forward_through_transition_impl",
     "go_transition",
     "transition_attrs",
 )
@@ -60,23 +60,8 @@ load(
 def _testmain_library_to_source(go, attr, source, merge):
     source["deps"] = source["deps"] + [attr.library]
 
-def _forward_test_output(ctx):
-    ep = ctx.attr.transition_dep[0][ForwardingPastTransitionProvider]
-    di = ctx.attr.transition_dep[0][DefaultInfo]
-
-    copied_executable = copy_file_to_rule_name(ctx, ep.executable)
-    data_runfiles = di.data_runfiles.merge(ctx.runfiles([copied_executable]))
-    default_runfiles = di.default_runfiles.merge(ctx.runfiles([copied_executable]))
-
-    return [DefaultInfo(
-        executable = copied_executable,
-        files = di.files,
-        data_runfiles = data_runfiles,
-        default_runfiles = default_runfiles,
-    )] + ep.providers_to_forward
-
 go_transition_test = rule(
-    implementation = _forward_test_output,
+    implementation = forward_through_transition_impl,
     attrs = dicts.add(transition_attrs, {
         "transition_dep": attr.label(cfg = go_transition),
         "is_windows": attr.bool(),
