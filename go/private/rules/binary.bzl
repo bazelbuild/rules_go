@@ -46,6 +46,19 @@ load(
 
 _EMPTY_DEPSET = depset([])
 
+def _include_path(hdr):
+    if not hdr.root.path:
+        fail("Expected hdr to be a generated file, got source file: " + hdr.path)
+
+    root_relative_path = hdr.path[len(hdr.root.path + "/"):]
+    if not root_relative_path.startswith("external/"):
+        return hdr.root.path
+
+    # All headers should be includeable via a path relative to their repository
+    # root, regardless of whether the repository is external or not. If it is,
+    # we thus need to append "external/<external repo name>" to the path.
+    return "/".join([hdr.root.path] + root_relative_path.split("/")[0:2])
+
 def new_cc_import(
         go,
         hdrs = _EMPTY_DEPSET,
@@ -62,7 +75,7 @@ def new_cc_import(
             defines = defines,
             local_defines = local_defines,
             headers = hdrs,
-            includes = depset([hdr.root.path for hdr in hdrs.to_list()]),
+            includes = depset([_include_path(hdr) for hdr in hdrs.to_list()]),
         ),
         linking_context = cc_common.create_linking_context(
             linker_inputs = depset([
