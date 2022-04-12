@@ -4,6 +4,16 @@ load(":many_deps.bzl", "many_deps")
 
 test_suite(name = "go_binary")
 
+go_bazel_test(
+    name = "configurable_attribute_bad_test",
+    srcs = ["configurable_attribute_bad_test.go"],
+)
+
+go_bazel_test(
+    name = "configurable_attribute_good_test",
+    srcs = ["configurable_attribute_good_test.go"],
+)
+
 go_binary(
     name = "hello",
     srcs = ["hello.go"],

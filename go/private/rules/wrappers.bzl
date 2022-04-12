@@ -26,17 +26,11 @@ load(
 load(
     "//go/private/rules:binary.bzl",
     "go_binary",
-    "go_non_executable_transition_binary",
-    "go_transition_binary",
+    "go_non_executable_binary",
 )
 load(
     "//go/private/rules:test.bzl",
     "go_test",
-    "go_transition_test",
-)
-load(
-    "//go/private/rules:transition.bzl",
-    "go_transition_wrapper",
 )
 
 def _cgo(name, kwargs):
@@ -51,12 +45,24 @@ def go_library_macro(name, **kwargs):
 def go_binary_macro(name, **kwargs):
     """See docs/go/core/rules.md#go_binary for full documentation."""
     _cgo(name, kwargs)
+
+    if kwargs.get("goos") != None or kwargs.get("goarch") != None:
+        for key, value in kwargs.items():
+            if type(value) == "select":
+                # In the long term, we should replace goos/goarch with Bazel-native platform
+                # support, but while we have the mechanisms, we try to avoid people trying to use
+                # _both_ goos/goarch _and_ native platform support.
+                #
+                # It's unclear to users whether the select should happen before or after the
+                # goos/goarch is reconfigured, and we can't interpose code to force either
+                # behaviour, so we forbid this.
+                fail("Cannot use select for go_binary with goos/goarch set, but {} was a select".format(key))
+
     if kwargs.get("linkmode", default = LINKMODE_NORMAL) in LINKMODES_EXECUTABLE:
-        go_transition_wrapper(go_binary, go_transition_binary, name = name, **kwargs)
+        go_binary(name = name, **kwargs)
     else:
-        # A non-normal link mode implies the use of transitions, so we don't have to define a
-        # non-executable version of the untransitioned go_binary.
-        go_transition_wrapper(None, go_non_executable_transition_binary, name = name, **kwargs)
+        go_non_executable_binary(name = name, **kwargs)
+
     if kwargs.get("linkmode") in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
         # Create an alias to tell users of the `.cc` rule that it is deprecated.
         native.alias(
@@ -70,4 +76,4 @@ def go_binary_macro(name, **kwargs):
 def go_test_macro(name, **kwargs):
     """See docs/go/core/rules.md#go_test for full documentation."""
     _cgo(name, kwargs)
-    go_transition_wrapper(go_test, go_transition_test, name = name, **kwargs)
+    go_test(name = name, **kwargs)

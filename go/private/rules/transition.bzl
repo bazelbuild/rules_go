@@ -80,62 +80,6 @@ _SETTING_KEY_TO_ORIGINAL_SETTING_KEY = {
     for setting in TRANSITIONED_GO_SETTING_KEYS
 }
 
-def go_transition_wrapper(kind, transition_kind, name, **kwargs):
-    """Wrapper for rules that may use transitions.
-
-    This is used in place of instantiating go_binary or go_transition_binary
-    directly. If one of the transition attributes is set explicitly, it
-    instantiates the rule with a transition. Otherwise, it instantiates the
-    regular rule. This prevents targets from being rebuilt for an alternative
-    configuration identical to the default configuration.
-    """
-    transition_keys = ("goos", "goarch", "pure", "static", "msan", "race", "gotags", "linkmode")
-    need_transition = any([key in kwargs for key in transition_keys])
-    if need_transition:
-        transition_kind(name = name, **kwargs)
-    else:
-        kind(name = name, **kwargs)
-
-def go_transition_rule(**kwargs):
-    """Like "rule", but adds a transition and mode attributes."""
-    kwargs = dict(kwargs)
-    kwargs["attrs"].update({
-        "goos": attr.string(
-            default = "auto",
-            values = ["auto"] + {goos: None for goos, _ in GOOS_GOARCH}.keys(),
-        ),
-        "goarch": attr.string(
-            default = "auto",
-            values = ["auto"] + {goarch: None for _, goarch in GOOS_GOARCH}.keys(),
-        ),
-        "pure": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "static": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "msan": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "race": attr.string(
-            default = "auto",
-            values = ["auto", "on", "off"],
-        ),
-        "gotags": attr.string_list(default = []),
-        "linkmode": attr.string(
-            default = "auto",
-            values = ["auto"] + LINKMODES,
-        ),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
-        ),
-    })
-    kwargs["cfg"] = go_transition
-    return rule(**kwargs)
-
 def _go_transition_impl(settings, attr):
     # NOTE: Keep the list of rules_go settings set by this transition in sync
     # with POTENTIALLY_TRANSITIONED_SETTINGS.

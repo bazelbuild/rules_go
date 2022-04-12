@@ -43,7 +43,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_transition_rule",
+    "go_transition",
     "non_go_transition",
 )
 load(
@@ -220,6 +220,7 @@ _go_test_kwargs = {
             doc = """List of Go libraries this test imports directly.
             These may be go_library rules or compatible rules with the [GoLibrary] provider.
             """,
+            cfg = go_transition,
         ),
         "embed": attr.label_list(
             providers = [GoLibrary],
@@ -231,6 +232,7 @@ _go_test_kwargs = {
             and the embedding library may not also have `cgo = True`. See [Embedding]
             for more information.
             """,
+            cfg = go_transition,
         ),
         "embedsrcs": attr.label_list(
             allow_files = True,
@@ -402,10 +404,11 @@ _go_test_kwargs = {
             See [Cross compilation] for more information.
             """,
         ),
-        "_go_context_data": attr.label(default = "//:go_context_data"),
+        "_go_context_data": attr.label(default = "//:go_context_data", cfg = go_transition),
         "_testmain_additional_deps": attr.label_list(
             providers = [GoLibrary],
             default = ["//go/tools/bzltestutil"],
+            cfg = go_transition,
         ),
         # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
         "_lcov_merger": attr.label(
@@ -453,7 +456,6 @@ _go_test_kwargs = {
 }
 
 go_test = rule(**_go_test_kwargs)
-go_transition_test = go_transition_rule(**_go_test_kwargs)
 
 def _recompile_external_deps(go, external_source, internal_archive, library_labels):
     """Recompiles some archives in order to split internal and external tests.
