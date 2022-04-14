@@ -76,7 +76,6 @@ bzl_library(
         "//go/private/actions:asm",
         "//go/private/actions:binary",
         "//go/private/actions:compile",
-        "//go/private/actions:cover",
         "//go/private/actions:link",
         "//go/private/actions:pack",
         "//go/private/actions:stdlib",

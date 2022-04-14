@@ -483,7 +483,6 @@ def go_context(ctx, attr = None):
         asm = toolchain.actions.asm,
         binary = toolchain.actions.binary,
         compile = toolchain.actions.compile,
-        cover = toolchain.actions.cover,
         link = toolchain.actions.link,
         pack = toolchain.actions.pack,
 
