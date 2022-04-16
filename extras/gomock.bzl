@@ -32,13 +32,15 @@ def _gomock_source_impl(ctx):
     # create GOPATH and copy source into GOPATH
     source_relative_path = paths.join("src", ctx.attr.library[GoLibrary].importmap, ctx.file.source.basename)
     source = ctx.actions.declare_file(paths.join("gopath", source_relative_path))
+
     # trim the relative path of source to get GOPATH
     gopath = source.path[:-len(source_relative_path)]
     ctx.actions.run_shell(
-        outputs=[source],
-        inputs=[ctx.file.source],
+        outputs = [source],
+        inputs = [ctx.file.source],
         command = "mkdir -p {0} && cp -L {1} {0}".format(source.dirname, ctx.file.source.path),
     )
+
     # passed in source needs to be in gopath to not trigger module mode
     args = ["-source", source.path]
 
@@ -50,9 +52,9 @@ def _gomock_source_impl(ctx):
             f = target.files.to_list()[0]
             aux = ctx.actions.declare_file(paths.join(gopath, "src", pkg, f.basename))
             ctx.actions.run_shell(
-                outputs=[aux],
-                inputs=[f],
-                command = "mkdir -p {0} && cp -L {1} {0}".format(aux.dirname, f.path)
+                outputs = [aux],
+                inputs = [f],
+                command = "mkdir -p {0} && cp -L {1} {0}".format(aux.dirname, f.path),
             )
             aux_files.append("{0}={1}".format(pkg, aux.path))
             needed_files.append(f)
