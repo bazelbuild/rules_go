@@ -5,7 +5,7 @@ go_library(
     srcs = [
         "client.go",
     ],
-    importpath = "uber.com/client",
+    importpath = "github.com/bazelbuild/rules_go/gomock/client",
     visibility = ["//visibility:public"],
     deps = [
         "@go_googleapis//google/bytestream:bytestream_go_proto",
