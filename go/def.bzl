@@ -59,6 +59,10 @@ load(
     _go_embed_data = "go_embed_data",
 )
 load(
+    "//extras:gomock.bzl",
+    _gomock = "gomock",
+)
+load(
     "//go/private/tools:path.bzl",
     _go_path = "go_path",
 )
@@ -121,6 +125,7 @@ RULES_GO_VERSION = "0.31.0"
 declare_toolchains = _declare_toolchains
 go_context = _go_context
 go_embed_data = _go_embed_data
+gomock = _gomock
 go_sdk = _go_sdk
 go_tool_library = _go_tool_library
 go_toolchain = _go_toolchain

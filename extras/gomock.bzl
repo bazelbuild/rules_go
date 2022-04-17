@@ -19,12 +19,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_context")
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+# The rules in this files are still under development. Breaking changes are planned.
+# DO NOT USE IT.
+
+load("//go/private:context.bzl", "go_context")
+load("//go/private/rules:wrappers.bzl", go_binary = "go_binary_macro")
+load("//go/private:providers.bzl", "GoLibrary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
-_MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
+_MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model"
 
 def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)

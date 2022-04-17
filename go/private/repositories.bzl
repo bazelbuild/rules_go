@@ -260,6 +260,24 @@ def go_rules_dependencies():
         patch_args = ["-E", "-p1"],
     )
 
+    # releaser:upgrade-dep golang mock
+    _maybe(
+        http_archive,
+        name = "com_github_golang_mock",
+        # v1.6.0, latest as of 2022-04-16
+        urls = [
+            "https://mirror.bazel.build/github.com/golang/mock/archive/v1.6.0.zip",
+            "https://github.com/golang/mock/archive/v1.6.0.zip",
+        ],
+        patches = [
+            # releaser:patch-cmd gazelle -repo_root . -go_prefix github.com/golang/mock
+            Label("//third_party:com_github_golang_mock-gazelle.patch"),
+        ],
+        patch_args = ["-p1"],
+        sha256 = "604d9ab25b07d60c1b8ba6d3ea2e66873138edeed2e561c5358de804ea421a0e",
+        strip_prefix = "mock-1.6.0",
+    )
+
     # This may be overridden by go_register_toolchains, but it's not mandatory
     # for users to call that function (they may declare their own @go_sdk and
     # register their own toolchains).
