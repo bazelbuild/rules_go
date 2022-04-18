@@ -74,7 +74,7 @@ func TestString(t *testing.T) {
 
 func TestUnpack(t *testing.T) {
 	for _, data := range unpack {
-		checkFile(t, "tests/core/go_embed_data/BUILD.bazel", data)
+		checkFile(t, "tests/extras/go_embed_data/BUILD.bazel", data)
 	}
 	for _, key := range []string{
 		"from-zip/BUILD.bazel",
