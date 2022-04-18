@@ -277,6 +277,7 @@ tasks:
     - "-//tests/core/coverage:coverage_test"
     - "-//tests/core/cross:proto_test"
     - "-//tests/core/go_binary:go_default_test"
+    - "-//tests/extras/go_embed_data:go_default_test"
     - "-//tests/core/go_path:go_path"
     - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/go_path:link_path"
