@@ -578,7 +578,7 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = C_COMPILE_ACTION_NAME,
             variables = c_compile_variables,
-        ),
+        ) + ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts,
         _COMPILER_OPTIONS_BLACKLIST,
     )
     env.update(cc_common.get_environment_variables(
@@ -596,7 +596,7 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_COMPILE_ACTION_NAME,
             variables = cxx_compile_variables,
-        ),
+        ) + ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts,
         _COMPILER_OPTIONS_BLACKLIST,
     )
     env.update(cc_common.get_environment_variables(
