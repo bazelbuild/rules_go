@@ -111,11 +111,6 @@ _gomock_source = rule(
             doc = "The new Go file to emit the generated mocks into",
             mandatory = True,
         ),
-        "interfaces": attr.string_list(
-            allow_empty = False,
-            doc = "Ignored. If `source` is not set, this would be the list of Go interfaces to generate mocks for.",
-            mandatory = True,
-        ),
         "aux_files": attr.label_keyed_string_dict(
             default = {},
             doc = "A map from auxilliary Go source files to their packages.",
