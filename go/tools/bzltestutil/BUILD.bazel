@@ -5,8 +5,6 @@ go_tool_library(
     srcs = [
         "init.go",
         "lcov.go",
-        "lcov_testdeps.go",
-        "lcov_testdeps_go1.18.go",
         "test2json.go",
         "wrap.go",
         "xml.go",
