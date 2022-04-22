@@ -160,8 +160,13 @@ type LcovTestDeps struct {
 	testdeps.TestDeps
 }
 
-// SetPanicOnExit0 is called with argument `true` by the Go testing package
-// after the coverage profile has been written and before m.Run() returns.
+// SetPanicOnExit0 is called with true by m.Run() before running all tests,
+// and with false right before returning -- after writing all coverage
+// profiles.
+// https://cs.opensource.google/go/go/+/refs/tags/go1.18.1:src/testing/testing.go;l=1921-1931;drc=refs%2Ftags%2Fgo1.18.1
+//
+// This gives us a good place to intercept the os.Exit(m.Run()) with coverage
+// data already available.
 func (ltd LcovTestDeps) SetPanicOnExit0(panicOnExit bool) {
 	if !panicOnExit {
 		lcovAtExitHook()
