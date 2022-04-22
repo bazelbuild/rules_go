@@ -172,15 +172,16 @@ func main() {
 		}
 	}
 
+	testDeps :=
   {{if eq .CoverFormat "lcov"}}
-	doPatch := true
+		bzltestutil.LcovTestDeps{TestDeps: testdeps.TestDeps{}}
   {{else}}
-	doPatch := false
+		testdeps.TestDeps{}
   {{end}}
   {{if .Version "go1.18"}}
-	m := testing.MainStart(bzltestutil.PatchTestDeps(doPatch, testdeps.TestDeps{}), testsInShard(), benchmarks, fuzzTargets, examples)
+	m := testing.MainStart(testDeps, testsInShard(), benchmarks, fuzzTargets, examples)
   {{else}}
-	m := testing.MainStart(bzltestutil.PatchTestDeps(doPatch, testdeps.TestDeps{}), testsInShard(), benchmarks, examples)
+	m := testing.MainStart(testDeps, testsInShard(), benchmarks, examples)
   {{end}}
 
 	if filter := os.Getenv("TESTBRIDGE_TEST_ONLY"); filter != "" {

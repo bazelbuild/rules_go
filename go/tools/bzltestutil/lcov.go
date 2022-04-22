@@ -25,6 +25,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"testing/internal/testdeps"
 )
 
 func coverageAtExitHook() {
@@ -156,29 +157,21 @@ func emitLcovLines(lcov io.StringWriter, path string, lineCounts map[uint32]uint
 	return nil
 }
 
-// PatchTestDeps returns a patched version of testdeps.testDeps that allows to
+// LcovTestDeps is a patched version of testdeps.TestDeps that allows to
 // hook into the SetPanicOnExit0 call happening right before testing.M.Run
 // returns.
 // This trick relies on the testDeps interface defined in this package being
 // identical to the actual testing.testDeps interface, which differs between
 // major versions of Go.
-func PatchTestDeps(doPatch bool, deps testDeps) testDeps {
-	if doPatch {
-		return FakeTestDeps{deps}
-	} else {
-		return deps
-	}
-}
-
-type FakeTestDeps struct{
-	testDeps
+type LcovTestDeps struct {
+	testdeps.TestDeps
 }
 
 // SetPanicOnExit0 is called with argument `true` by the Go testing package
 // after the coverage profile has been written and before m.Run() returns.
-func (ftd FakeTestDeps) SetPanicOnExit0(panicOnExit bool) {
+func (ltd LcovTestDeps) SetPanicOnExit0(panicOnExit bool) {
 	if !panicOnExit {
 		coverageAtExitHook()
 	}
-	ftd.testDeps.SetPanicOnExit0(panicOnExit)
+	ltd.TestDeps.SetPanicOnExit0(panicOnExit)
 }
