@@ -28,13 +28,6 @@ import (
 	"testing/internal/testdeps"
 )
 
-func coverageAtExitHook() {
-	if err := ConvertCoverToLcov(); err != nil {
-		log.Printf("Failed to collect coverage: %s", err)
-		os.Exit(TestWrapperAbnormalExit)
-	}
-}
-
 // ConvertCoverToLcov converts the go coverprofile file coverage.dat.cover to
 // the expectedLcov format and stores it in coverage.dat, where it is picked up by
 // Bazel.
@@ -171,7 +164,14 @@ type LcovTestDeps struct {
 // after the coverage profile has been written and before m.Run() returns.
 func (ltd LcovTestDeps) SetPanicOnExit0(panicOnExit bool) {
 	if !panicOnExit {
-		coverageAtExitHook()
+		lcovAtExitHook()
 	}
 	ltd.TestDeps.SetPanicOnExit0(panicOnExit)
+}
+
+func lcovAtExitHook() {
+	if err := ConvertCoverToLcov(); err != nil {
+		log.Printf("Failed to collect coverage: %s", err)
+		os.Exit(TestWrapperAbnormalExit)
+	}
 }
