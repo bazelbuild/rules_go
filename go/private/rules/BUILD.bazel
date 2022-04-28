@@ -140,7 +140,10 @@ bzl_library(
 bzl_library(
     name = "wrappers",
     srcs = ["wrappers.bzl"],
-    visibility = ["//go:__subpackages__", "//extras:__pkg__"],
+    visibility = [
+        "//extras:__pkg__",
+        "//go:__subpackages__",
+    ],
     deps = [
         "//go/private/rules:binary",
         "//go/private/rules:cgo",
