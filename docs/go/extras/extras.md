@@ -3,7 +3,6 @@
 
   [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
   [golang/mock]: https://github.com/golang/mock
-  [gomock_rule]: https://github.com/jmhodges/bazel_gomock
   [core go rules]: /docs/go/core/rules.md
 
 # Extra rules
@@ -19,7 +18,6 @@ to make life a little easier.
 ## Additional resources
 - [gazelle rule]
 - [golang/mock]
-- [gomock_rule]
 - [core go rules]
 
 ------------------------------------------------------------------------
@@ -29,10 +27,6 @@ gazelle
 
 This rule has moved. See [gazelle rule] in the Gazelle repository.
 
-gomock
-------
-
-This rule allows you to generate mock interfaces with mockgen (from [golang/mock]) which can be useful for certain testing scenarios. See [gomock_rule] in the gomock repository.
 
 
 
@@ -75,5 +69,38 @@ go_embed_data_dependencies()
 | <a id="go_embed_data-string"></a>string |  If <code>True</code>, the embedded data will be stored as <code>string</code> instead of <code>[]byte</code>.   | Boolean | optional | False |
 | <a id="go_embed_data-unpack"></a>unpack |  If <code>True</code>, sources are treated as archives and their contents will be stored. Supported formats are <code>.zip</code> and <code>.tar</code>   | Boolean | optional | False |
 | <a id="go_embed_data-var"></a>var |  Name of the variable that will contain the embedded data.   | String | optional | "Data" |
+
+
+<a id="#gomock"></a>
+
+## gomock
+
+<pre>
+gomock(<a href="#gomock-name">name</a>, <a href="#gomock-library">library</a>, <a href="#gomock-out">out</a>, <a href="#gomock-source">source</a>, <a href="#gomock-interfaces">interfaces</a>, <a href="#gomock-package">package</a>, <a href="#gomock-self_package">self_package</a>, <a href="#gomock-aux_files">aux_files</a>, <a href="#gomock-mockgen_tool">mockgen_tool</a>,
+       <a href="#gomock-imports">imports</a>, <a href="#gomock-copyright_file">copyright_file</a>, <a href="#gomock-mock_names">mock_names</a>)
+</pre>
+
+Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
+
+If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="gomock-name"></a>name |  the target name.   |  none |
+| <a id="gomock-library"></a>library |  the Go library to took for the interfaces (reflecitve mode) or source (source mode).   |  none |
+| <a id="gomock-out"></a>out |  the output Go file name.   |  none |
+| <a id="gomock-source"></a>source |  a Go file in the given <code>library</code>. If this is given, <code>gomock</code> will call mockgen in source mode to mock all interfaces in the file.   |  <code>None</code> |
+| <a id="gomock-interfaces"></a>interfaces |  a list of interfaces in the given <code>library</code> to be mocked in reflective mode.   |  <code>[]</code> |
+| <a id="gomock-package"></a>package |  the name of the package the generated mocks should be in. If not specified, uses mockgen's default.   |  <code>""</code> |
+| <a id="gomock-self_package"></a>self_package |  the full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.   |  <code>""</code> |
+| <a id="gomock-aux_files"></a>aux_files |  a map from source files to their package path. This only needed when <code>source</code> is provided. See [mockgen's -aux_files](https://github.com/golang/mock#flags) for more information.   |  <code>{}</code> |
+| <a id="gomock-mockgen_tool"></a>mockgen_tool |  the mockgen tool to run.   |  <code>"@com_github_golang_mock//mockgen"</code> |
+| <a id="gomock-imports"></a>imports |  dictionary of name-path pairs of explicit imports to use. See [mockgen's -imports](https://github.com/golang/mock#flags) for more information.   |  <code>[]</code> |
+| <a id="gomock-copyright_file"></a>copyright_file |  optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/golang/mock#flags) for more information.   |  <code>None</code> |
+| <a id="gomock-mock_names"></a>mock_names |  dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/golang/mock#flags) for more information.   |  <code>[]</code> |
 
 

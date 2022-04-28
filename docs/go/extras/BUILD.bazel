@@ -10,7 +10,7 @@ bzl_library(
     srcs = ["extras.bzl"],
     visibility = ["//visibility:public"],
     deps = [
-        "//extras:embed_data.bzl",
-        "@io_bazel_rules_go//go/private:context",
+        "//extras:embed_data",
+        "//extras:gomock",
     ],
 )

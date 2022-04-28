@@ -137,6 +137,7 @@ bzl_library(
     visibility = [
         "//go:__subpackages__",
         "//proto:__pkg__",  # keep
+         "//extras:__pkg__",
     ],
 )
 

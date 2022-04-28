@@ -1,7 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-exports_files(["embed_data.bzl"])
-
 filegroup(
     name = "all_rules",
     srcs = glob(["*.bzl"]) + ["//go/private:all_rules"],
@@ -35,4 +33,15 @@ bzl_library(
     visibility = ["//visibility:public"],
     # Don't list dependency on @bazel_tools//tools/build_defs/repo.bzl
     deps = [],  # keep
+)
+
+bzl_library(
+    name = "gomock",
+    srcs = ["gomock.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/private:context",
+        "//go/private:providers",
+        "//go/private/rules:wrappers",
+    ],
 )

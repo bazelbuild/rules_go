@@ -27,6 +27,7 @@ bzl_library(
         "//go/private:context",
         "//go/private:mode",
         "//go/private:providers",
+        "//go/private:rpath",
         "//go/private/rules:transition",
     ],
 )
@@ -139,7 +140,7 @@ bzl_library(
 bzl_library(
     name = "wrappers",
     srcs = ["wrappers.bzl"],
-    visibility = ["//go:__subpackages__"],
+    visibility = ["//go:__subpackages__", "//extras:__pkg__"],
     deps = [
         "//go/private/rules:binary",
         "//go/private/rules:cgo",

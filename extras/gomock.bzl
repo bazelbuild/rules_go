@@ -98,7 +98,7 @@ _gomock_source = rule(
     _gomock_source_impl,
     attrs = {
         "library": attr.label(
-            doc = "The target the Go library is at to look for the interfaces in. When this is set and source is not set, mockgen will use its reflect code to generate the mocks. If source is set, its dependencies will be included in the GOPATH that mockgen will be run in.",
+            doc = "The target the Go library where this source file belongs",
             providers = [GoLibrary],
             mandatory = True,
         ),
@@ -149,25 +149,50 @@ _gomock_source = rule(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def gomock(name, library, out, **kwargs):
-    mockgen_tool = _MOCKGEN_TOOL
-    if kwargs.get("mockgen_tool", None):
-        mockgen_tool = kwargs["mockgen_tool"]
+def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = [], copyright_file = None, mock_names = []):
+    """Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
 
-    if kwargs.get("source", None):
+    If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
+
+    Args:
+        name: the target name.
+        library: the Go library to took for the interfaces (reflecitve mode) or source (source mode).
+        out: the output Go file name.
+        source: a Go file in the given `library`. If this is given, `gomock` will call mockgen in source mode to mock all interfaces in the file.
+        interfaces: a list of interfaces in the given `library` to be mocked in reflective mode.
+        package: the name of the package the generated mocks should be in. If not specified, uses mockgen's default.
+        self_package: the full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.
+        aux_files: a map from source files to their package path. This only needed when `source` is provided. See [mockgen's -aux_files](https://github.com/golang/mock#flags) for more information.
+        mockgen_tool: the mockgen tool to run.
+        imports: dictionary of name-path pairs of explicit imports to use. See [mockgen's -imports](https://github.com/golang/mock#flags) for more information.
+        copyright_file: optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/golang/mock#flags) for more information.
+        mock_names: dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/golang/mock#flags) for more information.
+    """
+    if source:
         _gomock_source(
             name = name,
             library = library,
             out = out,
-            **kwargs
+            package = package,
+            self_package = self_package,
+            aux_files = aux_files,
+            mockgen_tool = mockgen_tool,
+            imports = imports,
+            copyright_file = copyright_file,
+            mock_names = mock_names,
         )
     else:
         _gomock_reflect(
             name = name,
             library = library,
             out = out,
+            interfaces = interfaces,
+            package = package,
+            self_package = self_package,
             mockgen_tool = mockgen_tool,
-            **kwargs
+            imports = imports,
+            copyright_file = copyright_file,
+            mock_names = mock_names,
         )
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
