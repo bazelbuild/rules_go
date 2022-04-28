@@ -149,7 +149,7 @@ _gomock_source = rule(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = [], copyright_file = None, mock_names = []):
+def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}):
     """Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
 
     If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
@@ -160,8 +160,8 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
         out: the output Go file name.
         source: a Go file in the given `library`. If this is given, `gomock` will call mockgen in source mode to mock all interfaces in the file.
         interfaces: a list of interfaces in the given `library` to be mocked in reflective mode.
-        package: the name of the package the generated mocks should be in. If not specified, uses mockgen's default.
-        self_package: the full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.
+        package: the name of the package the generated mocks should be in. If not specified, uses mockgen's default. See [mockgen's -package](https://github.com/golang/mock#flags) for more information.
+        self_package: the full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. See [mockgen's -self_package](https://github.com/golang/mock#flags) for more information.
         aux_files: a map from source files to their package path. This only needed when `source` is provided. See [mockgen's -aux_files](https://github.com/golang/mock#flags) for more information.
         mockgen_tool: the mockgen tool to run.
         imports: dictionary of name-path pairs of explicit imports to use. See [mockgen's -imports](https://github.com/golang/mock#flags) for more information.
@@ -173,6 +173,7 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
             name = name,
             library = library,
             out = out,
+            source = source,
             package = package,
             self_package = self_package,
             aux_files = aux_files,
