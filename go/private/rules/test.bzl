@@ -579,8 +579,11 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     # can't import anything that imports itself.
     internal_source = internal_archive.source
     internal_deps = [dep for dep in internal_source.deps if not need_recompile[get_archive(dep).data.label]]
+    x_defs = dict(internal_source.x_defs)
+    x_defs.update(internal_archive.x_defs)
     attrs = structs.to_dict(internal_source)
     attrs["deps"] = internal_deps
+    attrs["x_defs"] = x_defs
     internal_source = GoSource(**attrs)
     internal_archive = go.archive(go, internal_source, _recompile_suffix = ".recompileinternal")
 
