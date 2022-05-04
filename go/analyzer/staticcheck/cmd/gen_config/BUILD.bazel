@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "gen_config_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/analyzer/staticcheck/cmd/gen_config",
+    visibility = ["//visibility:private"],
+    deps = ["//go/analyzer/staticcheck/util"],
+)
+
+go_binary(
+    name = "gen_config",
+    embed = [":gen_config_lib"],
+    visibility = ["//visibility:public"],
+)

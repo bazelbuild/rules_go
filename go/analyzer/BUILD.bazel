@@ -1,0 +1,16 @@
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]) + [
+        "//go/analyzer/staticcheck:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_rules",
+    srcs = glob(["*.bzl"]) + [
+        "//go/analyzer/staticcheck:all_rules",
+    ],
+    visibility = ["//visibility:public"],
+)

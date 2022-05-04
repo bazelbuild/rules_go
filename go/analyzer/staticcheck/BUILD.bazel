@@ -1,0 +1,46 @@
+# gazelle:ignore
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go/analyzer/staticcheck:def.bzl", "ANALYZERS")
+
+exports_files([
+    "def.bzl",
+    "deps.bzl",
+])
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]) + [
+        "//go/analyzer/staticcheck/cmd/list_analyzers:all_files",
+        "//go/analyzer/staticcheck/cmd/gen_config:all_files",
+        "//go/analyzer/staticcheck/util:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_rules",
+    srcs = glob(["*.bzl"]),
+    visibility = ["//visibility:public"],
+)
+
+[
+    go_library(
+        name = analyzer,
+        srcs = ["analyzer.go"],
+        importpath = "github.com/bazelbuild/rules_go/go/analyzer/staticcheck/" + analyzer,
+        visibility = ["//visibility:public"],
+        x_defs = {"name": analyzer},
+        deps = ["//go/analyzer/staticcheck/util"],
+    )
+    for analyzer in ANALYZERS
+]
+
+[
+    go_test(
+        name = analyzer + "_test",
+        srcs = ["analyzer_test.go"],
+        embed = [analyzer],
+    )
+    for analyzer in ANALYZERS
+]

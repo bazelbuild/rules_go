@@ -4,6 +4,7 @@ filegroup(
     name = "all_files",
     testonly = True,
     srcs = glob(["**"]) + [
+        "//go/analyzer:all_files",
         "//go/config:all_files",
         "//go/platform:all_files",
         "//go/toolchain:all_files",

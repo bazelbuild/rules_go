@@ -123,6 +123,7 @@ tasks:
     - "-@org_golang_x_sys//windows/svc/eventlog:eventlog_test"
     - "-@org_golang_x_sys//windows/svc:svc_test"
     - "-@org_golang_x_text//language:language_test"
+    - "-//go/analyzer/staticcheck:all"
     - "-//proto:combo_grpc"
     - "-//proto:combo_proto"
     - "-//proto:gofast_grpc"
@@ -191,6 +192,7 @@ tasks:
     - "-//tests/core/go_proto_library_importmap:importmap_test"
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
+    - "-//tests/core/nogo/staticcheck:staticcheck_test"
     - "-//tests/core/race:race_test"
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"
@@ -254,7 +256,6 @@ tasks:
     test_targets:
     - "--"
     - "//..."
-    - "-//go/tools/bazel:bazel_test"
     - "-@org_golang_x_crypto//ed25519:ed25519_test"
     - "-@org_golang_x_crypto//sha3:sha3_test"
     - "-@org_golang_x_net//ipv4:ipv4_test"
@@ -264,6 +265,8 @@ tasks:
     - "-@org_golang_x_text//language:language_test"
     - "-@org_golang_x_tools//cmd/splitdwarf/internal/macho:macho_test"
     - "-@test_chdir_remote//sub:go_default_test"
+    - "-//go/analyzer/staticcheck:all"
+    - "-//go/tools/bazel:bazel_test"
     - "-//tests:buildifier_test" # requires bash
     - "-//tests/core/cgo:dylib_client"
     - "-//tests/core/cgo:dylib_test"
@@ -294,6 +297,7 @@ tasks:
     - "-//tests/core/go_test:data_test"
     - "-//tests/core/go_test:pwd_test"
     - "-//tests/core/nogo/coverage:coverage_test"
+    - "-//tests/core/nogo/staticcheck:staticcheck_test"
     - "-//tests/core/race:race_test" # fails on Windows due to upstream bug, see issue #2911
     - "-//tests/core/stdlib:buildid_test"
     - "-//tests/examples/executable_name:executable_name"

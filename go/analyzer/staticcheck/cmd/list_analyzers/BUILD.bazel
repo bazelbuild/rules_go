@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "list_analyzers_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/analyzer/staticcheck/cmd/list_analyzers",
+    visibility = ["//visibility:private"],
+    deps = ["//go/analyzer/staticcheck/util"],
+)
+
+go_binary(
+    name = "list_analyzers",
+    embed = [":list_analyzers_lib"],
+    visibility = ["//visibility:public"],
+)

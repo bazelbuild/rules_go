@@ -122,6 +122,10 @@ go_repository(
     version = "v0.0.0-20210628180205-a41e5a781914",
 )
 
+load("@io_bazel_rules_go//go/analyzer/staticcheck:deps.bzl", "staticcheck_deps")
+
+staticcheck_deps()
+
 gazelle_dependencies()
 
 load("@io_bazel_rules_go//tests/legacy/test_chdir:remote.bzl", "test_chdir_remote")
