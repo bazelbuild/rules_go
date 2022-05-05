@@ -23,7 +23,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_exec_reset_target",
+    "go_reset_target",
 )
 
 GoProtoCompiler = provider(
@@ -200,7 +200,7 @@ _go_proto_compiler = rule(
         "_protoc": attr.label(
             executable = True,
             cfg = "exec",
-            default = "//proto:protoc_reset_target_",
+            default = "//proto:protoc",
         ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",
@@ -212,7 +212,7 @@ _go_proto_compiler = rule(
 def go_proto_compiler(name, **kwargs):
     plugin = kwargs.pop("plugin", "@com_github_golang_protobuf//protoc-gen-go")
     reset_plugin_name = name + "_reset_plugin_"
-    go_exec_reset_target(
+    go_reset_target(
         name = reset_plugin_name,
         dep = plugin,
         visibility = ["//visibility:private"],

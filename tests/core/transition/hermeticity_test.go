@@ -111,6 +111,7 @@ func assertDependsCleanlyOnWithFlags(t *testing.T, targetA, targetB string, flag
 	out, err := bazel_testing.BazelOutput(append(
 		[]string{
 			"cquery",
+			"--transitions=full",
 			query,
 		},
 		flags...,

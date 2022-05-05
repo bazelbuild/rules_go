@@ -33,7 +33,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_non_go_exec_reset_tool_transition",
+    "non_go_tool_transition",
 )
 load(
     "@rules_proto//proto:defs.bzl",
@@ -149,11 +149,11 @@ go_proto_library = rule(
     implementation = _go_proto_library_impl,
     attrs = {
         "proto": attr.label(
-            cfg = go_non_go_exec_reset_tool_transition,
+            cfg = non_go_tool_transition,
             providers = [ProtoInfo],
         ),
         "protos": attr.label_list(
-            cfg = go_non_go_exec_reset_tool_transition,
+            cfg = non_go_tool_transition,
             providers = [ProtoInfo],
             default = [],
         ),

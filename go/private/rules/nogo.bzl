@@ -25,7 +25,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_exec_reset_transition",
+    "go_tool_transition",
 )
 
 def _nogo_impl(ctx):
@@ -103,7 +103,7 @@ _nogo = rule(
         ),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
-    cfg = go_exec_reset_transition,
+    cfg = go_tool_transition,
 )
 
 def nogo(name, visibility = None, **kwargs):

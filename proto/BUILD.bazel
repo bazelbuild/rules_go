@@ -5,7 +5,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_non_go_exec_reset_target",
+    "non_go_reset_target",
 )
 load(
     "//proto/wkt:well_known_types.bzl",
@@ -116,8 +116,8 @@ go_proto_compiler(
     ] + WELL_KNOWN_TYPE_RULES.values(),
 )
 
-go_non_go_exec_reset_target(
-    name = "protoc_reset_target_",
+non_go_reset_target(
+    name = "protoc",
     dep = "@com_google_protobuf//:protoc",
     visibility = ["//visibility:public"],
 )
