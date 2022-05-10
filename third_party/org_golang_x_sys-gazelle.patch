@@ -62,12 +62,16 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 diff -urN a/execabs/BUILD.bazel b/execabs/BUILD.bazel
 --- a/execabs/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/execabs/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "execabs",
-+    srcs = ["execabs.go"],
++    srcs = [
++        "execabs.go",
++        "execabs_go118.go",
++        "execabs_go119.go",
++    ],
 +    importpath = "golang.org/x/sys/execabs",
 +    visibility = ["//visibility:public"],
 +)
@@ -165,7 +169,7 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 --- a/unix/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/unix/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,335 @@
+@@ -0,0 +1,336 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -489,6 +493,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "syscall_internal_bsd_test.go",
 +        "syscall_internal_darwin_test.go",
 +        "syscall_internal_linux_test.go",
++        "syscall_internal_solaris_test.go",
 +        "syscall_linux_test.go",
 +        "syscall_netbsd_test.go",
 +        "syscall_openbsd_test.go",

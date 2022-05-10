@@ -1585,6 +1585,52 @@ diff -urN a/googleapis/ccc/hosted/marketplace/v2/BUILD.bazel b/googleapis/ccc/ho
 +    actual = ":marketplace",
 +    visibility = ["//visibility:public"],
 +)
+diff -urN a/googleapis/chat/dynamite/integration/logging/v1/BUILD.bazel b/googleapis/chat/dynamite/integration/logging/v1/BUILD.bazel
+--- a/googleapis/chat/dynamite/integration/logging/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/chat/dynamite/integration/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "logging",
++    srcs = ["dynamite_integration_log_entry.pb.go"],
++    importpath = "google.golang.org/genproto/googleapis/chat/dynamite/integration/logging/v1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/rpc/status",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":logging",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/googleapis/chat/logging/v1/BUILD.bazel b/googleapis/chat/logging/v1/BUILD.bazel
+--- a/googleapis/chat/logging/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/chat/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "logging",
++    srcs = ["chat_app_log_entry.pb.go"],
++    importpath = "google.golang.org/genproto/googleapis/chat/logging/v1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/rpc/status",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":logging",
++    visibility = ["//visibility:public"],
++)
 diff -urN a/googleapis/chromeos/moblab/v1beta1/BUILD.bazel b/googleapis/chromeos/moblab/v1beta1/BUILD.bazel
 --- a/googleapis/chromeos/moblab/v1beta1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/chromeos/moblab/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -2499,6 +2545,28 @@ diff -urN a/googleapis/cloud/asset/v1p7beta1/BUILD.bazel b/googleapis/cloud/asse
 +    actual = ":v1p7beta1",
 +    visibility = ["//visibility:public"],
 +)
+diff -urN a/googleapis/cloud/assuredworkloads/regulatoryintercept/logging/v1/BUILD.bazel b/googleapis/cloud/assuredworkloads/regulatoryintercept/logging/v1/BUILD.bazel
+--- a/googleapis/cloud/assuredworkloads/regulatoryintercept/logging/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/assuredworkloads/regulatoryintercept/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "logging",
++    srcs = ["regulatory_intercept_ack_log_entry.pb.go"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/assuredworkloads/regulatoryintercept/logging/v1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":logging",
++    visibility = ["//visibility:public"],
++)
 diff -urN a/googleapis/cloud/assuredworkloads/v1/BUILD.bazel b/googleapis/cloud/assuredworkloads/v1/BUILD.bazel
 --- a/googleapis/cloud/assuredworkloads/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/assuredworkloads/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -2736,6 +2804,40 @@ diff -urN a/googleapis/cloud/baremetalsolution/v2/BUILD.bazel b/googleapis/cloud
 +    actual = ":baremetalsolution",
 +    visibility = ["//visibility:public"],
 +)
+diff -urN a/googleapis/cloud/batch/v1alpha1/BUILD.bazel b/googleapis/cloud/batch/v1alpha1/BUILD.bazel
+--- a/googleapis/cloud/batch/v1alpha1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/batch/v1alpha1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "v1alpha1",
++    srcs = [
++        "batch.pb.go",
++        "job.pb.go",
++        "task.pb.go",
++        "volume.pb.go",
++    ],
++    importpath = "google.golang.org/genproto/googleapis/cloud/batch/v1alpha1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api/annotations",
++        "//googleapis/longrunning",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_google_grpc//codes:go_default_library",
++        "@org_golang_google_grpc//status:go_default_library",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":v1alpha1",
++    visibility = ["//visibility:public"],
++)
 diff -urN a/googleapis/cloud/bigquery/connection/v1/BUILD.bazel b/googleapis/cloud/bigquery/connection/v1/BUILD.bazel
 --- a/googleapis/cloud/bigquery/connection/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/bigquery/connection/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -2778,6 +2880,59 @@ diff -urN a/googleapis/cloud/bigquery/connection/v1beta1/BUILD.bazel b/googleapi
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
++        "//googleapis/iam/v1:iam",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_google_grpc//codes:go_default_library",
++        "@org_golang_google_grpc//status:go_default_library",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
++        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/wrapperspb:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":v1beta1",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/googleapis/cloud/bigquery/dataexchange/common/BUILD.bazel b/googleapis/cloud/bigquery/dataexchange/common/BUILD.bazel
+--- a/googleapis/cloud/bigquery/dataexchange/common/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/bigquery/dataexchange/common/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "common",
++    srcs = ["common.pb.go"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/bigquery/dataexchange/common",
++    visibility = ["//visibility:public"],
++    deps = [
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":common",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/googleapis/cloud/bigquery/dataexchange/v1beta1/BUILD.bazel b/googleapis/cloud/bigquery/dataexchange/v1beta1/BUILD.bazel
+--- a/googleapis/cloud/bigquery/dataexchange/v1beta1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/bigquery/dataexchange/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "v1beta1",
++    srcs = ["dataexchange.pb.go"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/bigquery/dataexchange/v1beta1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api/annotations",
++        "//googleapis/cloud/bigquery/dataexchange/common",
 +        "//googleapis/iam/v1:iam",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
@@ -2911,6 +3066,44 @@ diff -urN a/googleapis/cloud/bigquery/migration/tasks/translation/v2alpha/BUILD.
 +alias(
 +    name = "go_default_library",
 +    actual = ":v2alpha",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/googleapis/cloud/bigquery/migration/v2/BUILD.bazel b/googleapis/cloud/bigquery/migration/v2/BUILD.bazel
+--- a/googleapis/cloud/bigquery/migration/v2/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/bigquery/migration/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "migration",
++    srcs = [
++        "migration_entities.pb.go",
++        "migration_error_details.pb.go",
++        "migration_metrics.pb.go",
++        "migration_service.pb.go",
++        "translation_config.pb.go",
++    ],
++    importpath = "google.golang.org/genproto/googleapis/cloud/bigquery/migration/v2",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api/annotations",
++        "//googleapis/api/distribution",
++        "//googleapis/api/metric",
++        "//googleapis/rpc/errdetails",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_google_grpc//codes:go_default_library",
++        "@org_golang_google_grpc//status:go_default_library",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
++        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":migration",
 +    visibility = ["//visibility:public"],
 +)
 diff -urN a/googleapis/cloud/bigquery/migration/v2alpha/BUILD.bazel b/googleapis/cloud/bigquery/migration/v2alpha/BUILD.bazel
@@ -3425,7 +3618,7 @@ diff -urN a/googleapis/cloud/certificatemanager/v1/BUILD.bazel b/googleapis/clou
 diff -urN a/googleapis/cloud/channel/v1/BUILD.bazel b/googleapis/cloud/channel/v1/BUILD.bazel
 --- a/googleapis/cloud/channel/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/channel/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -3438,6 +3631,7 @@ diff -urN a/googleapis/cloud/channel/v1/BUILD.bazel b/googleapis/cloud/channel/v
 +        "offers.pb.go",
 +        "operations.pb.go",
 +        "products.pb.go",
++        "repricing.pb.go",
 +        "service.pb.go",
 +        "subscriber_event.pb.go",
 +    ],
@@ -3446,6 +3640,8 @@ diff -urN a/googleapis/cloud/channel/v1/BUILD.bazel b/googleapis/cloud/channel/v
 +    deps = [
 +        "//googleapis/api/annotations",
 +        "//googleapis/longrunning",
++        "//googleapis/type/date",
++        "//googleapis/type/decimal",
 +        "//googleapis/type/money",
 +        "//googleapis/type/postaladdress",
 +        "@org_golang_google_grpc//:go_default_library",
@@ -3634,7 +3830,7 @@ diff -urN a/googleapis/cloud/containers/workflow/analysis/BUILD.bazel b/googleap
 diff -urN a/googleapis/cloud/datacatalog/v1/BUILD.bazel b/googleapis/cloud/datacatalog/v1/BUILD.bazel
 --- a/googleapis/cloud/datacatalog/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/datacatalog/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -3644,7 +3840,9 @@ diff -urN a/googleapis/cloud/datacatalog/v1/BUILD.bazel b/googleapis/cloud/datac
 +        "common.pb.go",
 +        "data_source.pb.go",
 +        "datacatalog.pb.go",
++        "dataplex_spec.pb.go",
 +        "gcs_fileset_spec.pb.go",
++        "physical_schema.pb.go",
 +        "policytagmanager.pb.go",
 +        "policytagmanagerserialization.pb.go",
 +        "schema.pb.go",
@@ -4063,12 +4261,20 @@ diff -urN a/googleapis/cloud/datastream/v1alpha1/BUILD.bazel b/googleapis/cloud/
 diff -urN a/googleapis/cloud/deploy/v1/BUILD.bazel b/googleapis/cloud/deploy/v1/BUILD.bazel
 --- a/googleapis/cloud/deploy/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/deploy/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
 +    name = "deploy",
-+    srcs = ["cloud_deploy.pb.go"],
++    srcs = [
++        "cloud_deploy.pb.go",
++        "deliverypipeline_notification_payload.pb.go",
++        "log_enums.pb.go",
++        "release_notification_payload.pb.go",
++        "release_render_payload.pb.go",
++        "rollout_notification_payload.pb.go",
++        "target_notification_payload.pb.go",
++    ],
 +    importpath = "google.golang.org/genproto/googleapis/cloud/deploy/v1",
 +    visibility = ["//visibility:public"],
 +    deps = [
@@ -4266,7 +4472,7 @@ diff -urN a/googleapis/cloud/dialogflow/v2/BUILD.bazel b/googleapis/cloud/dialog
 diff -urN a/googleapis/cloud/dialogflow/v2beta1/BUILD.bazel b/googleapis/cloud/dialogflow/v2beta1/BUILD.bazel
 --- a/googleapis/cloud/dialogflow/v2beta1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/dialogflow/v2beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,52 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -4306,7 +4512,6 @@ diff -urN a/googleapis/cloud/dialogflow/v2beta1/BUILD.bazel b/googleapis/cloud/d
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/anypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
@@ -4323,7 +4528,7 @@ diff -urN a/googleapis/cloud/dialogflow/v2beta1/BUILD.bazel b/googleapis/cloud/d
 diff -urN a/googleapis/cloud/documentai/v1/BUILD.bazel b/googleapis/cloud/documentai/v1/BUILD.bazel
 --- a/googleapis/cloud/documentai/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/documentai/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,36 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -4351,7 +4556,6 @@ diff -urN a/googleapis/cloud/documentai/v1/BUILD.bazel b/googleapis/cloud/docume
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +    ],
 +)
@@ -4948,6 +5152,43 @@ diff -urN a/googleapis/cloud/gkebackup/logging/v1/BUILD.bazel b/googleapis/cloud
 +    actual = ":logging",
 +    visibility = ["//visibility:public"],
 +)
+diff -urN a/googleapis/cloud/gkebackup/v1/BUILD.bazel b/googleapis/cloud/gkebackup/v1/BUILD.bazel
+--- a/googleapis/cloud/gkebackup/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/gkebackup/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,33 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "gkebackup",
++    srcs = [
++        "backup.pb.go",
++        "backup_plan.pb.go",
++        "common.pb.go",
++        "gkebackup.pb.go",
++        "restore.pb.go",
++        "restore_plan.pb.go",
++        "volume.pb.go",
++    ],
++    importpath = "google.golang.org/genproto/googleapis/cloud/gkebackup/v1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api/annotations",
++        "//googleapis/longrunning",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_google_grpc//codes:go_default_library",
++        "@org_golang_google_grpc//status:go_default_library",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":gkebackup",
++    visibility = ["//visibility:public"],
++)
 diff -urN a/googleapis/cloud/gkeconnect/gateway/v1/BUILD.bazel b/googleapis/cloud/gkeconnect/gateway/v1/BUILD.bazel
 --- a/googleapis/cloud/gkeconnect/gateway/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/gkeconnect/gateway/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -5051,7 +5292,7 @@ diff -urN a/googleapis/cloud/gkehub/cloudauditlogging/v1alpha/BUILD.bazel b/goog
 diff -urN a/googleapis/cloud/gkehub/configmanagement/v1/BUILD.bazel b/googleapis/cloud/gkehub/configmanagement/v1/BUILD.bazel
 --- a/googleapis/cloud/gkehub/configmanagement/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/gkehub/configmanagement/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,19 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -5060,7 +5301,6 @@ diff -urN a/googleapis/cloud/gkehub/configmanagement/v1/BUILD.bazel b/googleapis
 +    importpath = "google.golang.org/genproto/googleapis/cloud/gkehub/configmanagement/v1",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//googleapis/api/annotations",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
@@ -5171,7 +5411,7 @@ diff -urN a/googleapis/cloud/gkehub/metering/v1beta/BUILD.bazel b/googleapis/clo
 diff -urN a/googleapis/cloud/gkehub/multiclusteringress/v1/BUILD.bazel b/googleapis/cloud/gkehub/multiclusteringress/v1/BUILD.bazel
 --- a/googleapis/cloud/gkehub/multiclusteringress/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/gkehub/multiclusteringress/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -5180,7 +5420,6 @@ diff -urN a/googleapis/cloud/gkehub/multiclusteringress/v1/BUILD.bazel b/googlea
 +    importpath = "google.golang.org/genproto/googleapis/cloud/gkehub/multiclusteringress/v1",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//googleapis/api/annotations",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
 +    ],
@@ -5264,7 +5503,7 @@ diff -urN a/googleapis/cloud/gkehub/servicemesh/v1alpha/BUILD.bazel b/googleapis
 diff -urN a/googleapis/cloud/gkehub/v1/BUILD.bazel b/googleapis/cloud/gkehub/v1/BUILD.bazel
 --- a/googleapis/cloud/gkehub/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/gkehub/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -5286,7 +5525,6 @@ diff -urN a/googleapis/cloud/gkehub/v1/BUILD.bazel b/googleapis/cloud/gkehub/v1/
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +    ],
@@ -5426,6 +5664,41 @@ diff -urN a/googleapis/cloud/gkehub/v1beta1/BUILD.bazel b/googleapis/cloud/gkehu
 +alias(
 +    name = "go_default_library",
 +    actual = ":v1beta1",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/googleapis/cloud/gkemulticloud/v1/BUILD.bazel b/googleapis/cloud/gkemulticloud/v1/BUILD.bazel
+--- a/googleapis/cloud/gkemulticloud/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/gkemulticloud/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "gkemulticloud",
++    srcs = [
++        "aws_resources.pb.go",
++        "aws_service.pb.go",
++        "azure_resources.pb.go",
++        "azure_service.pb.go",
++        "common_resources.pb.go",
++    ],
++    importpath = "google.golang.org/genproto/googleapis/cloud/gkemulticloud/v1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api/annotations",
++        "//googleapis/longrunning",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_google_grpc//codes:go_default_library",
++        "@org_golang_google_grpc//status:go_default_library",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":gkemulticloud",
 +    visibility = ["//visibility:public"],
 +)
 diff -urN a/googleapis/cloud/gsuiteaddons/logging/v1/BUILD.bazel b/googleapis/cloud/gsuiteaddons/logging/v1/BUILD.bazel
@@ -6433,6 +6706,29 @@ diff -urN a/googleapis/cloud/networkservices/v1beta1/BUILD.bazel b/googleapis/cl
 +    actual = ":v1beta1",
 +    visibility = ["//visibility:public"],
 +)
+diff -urN a/googleapis/cloud/notebooks/logging/v1/BUILD.bazel b/googleapis/cloud/notebooks/logging/v1/BUILD.bazel
+--- a/googleapis/cloud/notebooks/logging/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/notebooks/logging/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,19 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "logging",
++    srcs = ["runtime_log.pb.go"],
++    importpath = "google.golang.org/genproto/googleapis/cloud/notebooks/logging/v1",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api/annotations",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":logging",
++    visibility = ["//visibility:public"],
++)
 diff -urN a/googleapis/cloud/notebooks/v1/BUILD.bazel b/googleapis/cloud/notebooks/v1/BUILD.bazel
 --- a/googleapis/cloud/notebooks/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/notebooks/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -7122,7 +7418,7 @@ diff -urN a/googleapis/cloud/recaptchaenterprise/v1/BUILD.bazel b/googleapis/clo
 diff -urN a/googleapis/cloud/recaptchaenterprise/v1beta1/BUILD.bazel b/googleapis/cloud/recaptchaenterprise/v1beta1/BUILD.bazel
 --- a/googleapis/cloud/recaptchaenterprise/v1beta1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/recaptchaenterprise/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -7137,8 +7433,6 @@ diff -urN a/googleapis/cloud/recaptchaenterprise/v1beta1/BUILD.bazel b/googleapi
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
-+        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +    ],
 +)
@@ -7312,7 +7606,7 @@ diff -urN a/googleapis/cloud/recommender/v1beta1/BUILD.bazel b/googleapis/cloud/
 diff -urN a/googleapis/cloud/redis/v1/BUILD.bazel b/googleapis/cloud/redis/v1/BUILD.bazel
 --- a/googleapis/cloud/redis/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/redis/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -7323,11 +7617,14 @@ diff -urN a/googleapis/cloud/redis/v1/BUILD.bazel b/googleapis/cloud/redis/v1/BU
 +    deps = [
 +        "//googleapis/api/annotations",
 +        "//googleapis/longrunning",
++        "//googleapis/type/dayofweek",
++        "//googleapis/type/timeofday",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +    ],
@@ -7466,7 +7763,7 @@ diff -urN a/googleapis/cloud/resourcesettings/v1/BUILD.bazel b/googleapis/cloud/
 diff -urN a/googleapis/cloud/retail/logging/BUILD.bazel b/googleapis/cloud/retail/logging/BUILD.bazel
 --- a/googleapis/cloud/retail/logging/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/retail/logging/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -7475,7 +7772,6 @@ diff -urN a/googleapis/cloud/retail/logging/BUILD.bazel b/googleapis/cloud/retai
 +    importpath = "google.golang.org/genproto/googleapis/cloud/retail/logging",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//googleapis/api/annotations",
 +        "//googleapis/rpc/status",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
@@ -7491,7 +7787,7 @@ diff -urN a/googleapis/cloud/retail/logging/BUILD.bazel b/googleapis/cloud/retai
 diff -urN a/googleapis/cloud/retail/v2/BUILD.bazel b/googleapis/cloud/retail/v2/BUILD.bazel
 --- a/googleapis/cloud/retail/v2/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/retail/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,46 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -7505,6 +7801,7 @@ diff -urN a/googleapis/cloud/retail/v2/BUILD.bazel b/googleapis/cloud/retail/v2/
 +        "prediction_service.pb.go",
 +        "product.pb.go",
 +        "product_service.pb.go",
++        "promotion.pb.go",
 +        "purge_config.pb.go",
 +        "search_service.pb.go",
 +        "user_event.pb.go",
@@ -7540,7 +7837,7 @@ diff -urN a/googleapis/cloud/retail/v2/BUILD.bazel b/googleapis/cloud/retail/v2/
 diff -urN a/googleapis/cloud/retail/v2alpha/BUILD.bazel b/googleapis/cloud/retail/v2alpha/BUILD.bazel
 --- a/googleapis/cloud/retail/v2alpha/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/retail/v2alpha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,51 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -7557,6 +7854,7 @@ diff -urN a/googleapis/cloud/retail/v2alpha/BUILD.bazel b/googleapis/cloud/retai
 +        "prediction_service.pb.go",
 +        "product.pb.go",
 +        "product_service.pb.go",
++        "promotion.pb.go",
 +        "purge_config.pb.go",
 +        "search_service.pb.go",
 +        "serving_config.pb.go",
@@ -7594,7 +7892,7 @@ diff -urN a/googleapis/cloud/retail/v2alpha/BUILD.bazel b/googleapis/cloud/retai
 diff -urN a/googleapis/cloud/retail/v2beta/BUILD.bazel b/googleapis/cloud/retail/v2beta/BUILD.bazel
 --- a/googleapis/cloud/retail/v2beta/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/retail/v2beta/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,51 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -7611,6 +7909,7 @@ diff -urN a/googleapis/cloud/retail/v2beta/BUILD.bazel b/googleapis/cloud/retail
 +        "prediction_service.pb.go",
 +        "product.pb.go",
 +        "product_service.pb.go",
++        "promotion.pb.go",
 +        "purge_config.pb.go",
 +        "search_service.pb.go",
 +        "serving_config.pb.go",
@@ -7643,6 +7942,46 @@ diff -urN a/googleapis/cloud/retail/v2beta/BUILD.bazel b/googleapis/cloud/retail
 +alias(
 +    name = "go_default_library",
 +    actual = ":v2beta",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/googleapis/cloud/run/v2/BUILD.bazel b/googleapis/cloud/run/v2/BUILD.bazel
+--- a/googleapis/cloud/run/v2/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/cloud/run/v2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "run",
++    srcs = [
++        "condition.pb.go",
++        "k8s.min.pb.go",
++        "revision.pb.go",
++        "revision_template.pb.go",
++        "service.pb.go",
++        "traffic_target.pb.go",
++        "vendor_settings.pb.go",
++    ],
++    importpath = "google.golang.org/genproto/googleapis/cloud/run/v2",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api",
++        "//googleapis/api/annotations",
++        "//googleapis/iam/v1:iam",
++        "//googleapis/longrunning",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_google_grpc//codes:go_default_library",
++        "@org_golang_google_grpc//status:go_default_library",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":run",
 +    visibility = ["//visibility:public"],
 +)
 diff -urN a/googleapis/cloud/runtimeconfig/v1beta1/BUILD.bazel b/googleapis/cloud/runtimeconfig/v1beta1/BUILD.bazel
@@ -8003,7 +8342,7 @@ diff -urN a/googleapis/cloud/securitycenter/settings/v1beta1/BUILD.bazel b/googl
 diff -urN a/googleapis/cloud/securitycenter/v1/BUILD.bazel b/googleapis/cloud/securitycenter/v1/BUILD.bazel
 --- a/googleapis/cloud/securitycenter/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/securitycenter/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,50 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -8012,9 +8351,11 @@ diff -urN a/googleapis/cloud/securitycenter/v1/BUILD.bazel b/googleapis/cloud/se
 +        "access.pb.go",
 +        "asset.pb.go",
 +        "bigquery_export.pb.go",
++        "connection.pb.go",
 +        "external_system.pb.go",
 +        "finding.pb.go",
 +        "folder.pb.go",
++        "iam_binding.pb.go",
 +        "indicator.pb.go",
 +        "mitre_attack.pb.go",
 +        "mute_config.pb.go",
@@ -8241,7 +8582,7 @@ diff -urN a/googleapis/cloud/shell/v1/BUILD.bazel b/googleapis/cloud/shell/v1/BU
 diff -urN a/googleapis/cloud/speech/v1/BUILD.bazel b/googleapis/cloud/speech/v1/BUILD.bazel
 --- a/googleapis/cloud/speech/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/speech/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -8261,7 +8602,6 @@ diff -urN a/googleapis/cloud/speech/v1/BUILD.bazel b/googleapis/cloud/speech/v1/
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/anypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/wrapperspb:go_default_library",
@@ -8442,7 +8782,7 @@ diff -urN a/googleapis/cloud/support/v1alpha1/BUILD.bazel b/googleapis/cloud/sup
 diff -urN a/googleapis/cloud/talent/v4/BUILD.bazel b/googleapis/cloud/talent/v4/BUILD.bazel
 --- a/googleapis/cloud/talent/v4/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/talent/v4/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,46 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -8476,7 +8816,6 @@ diff -urN a/googleapis/cloud/talent/v4/BUILD.bazel b/googleapis/cloud/talent/v4/
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/anypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
@@ -9639,7 +9978,7 @@ diff -urN a/googleapis/cloud/workflows/executions/v1beta/BUILD.bazel b/googleapi
 diff -urN a/googleapis/cloud/workflows/type/BUILD.bazel b/googleapis/cloud/workflows/type/BUILD.bazel
 --- a/googleapis/cloud/workflows/type/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/cloud/workflows/type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -9653,6 +9992,7 @@ diff -urN a/googleapis/cloud/workflows/type/BUILD.bazel b/googleapis/cloud/workf
 +    deps = [
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/structpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +    ],
 +)
@@ -9980,26 +10320,38 @@ diff -urN a/googleapis/datastore/v1beta3/BUILD.bazel b/googleapis/datastore/v1be
 diff -urN a/googleapis/devtools/artifactregistry/v1/BUILD.bazel b/googleapis/devtools/artifactregistry/v1/BUILD.bazel
 --- a/googleapis/devtools/artifactregistry/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/devtools/artifactregistry/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,40 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
 +    name = "artifactregistry",
 +    srcs = [
++        "apt_artifact.pb.go",
 +        "artifact.pb.go",
++        "file.pb.go",
++        "package.pb.go",
 +        "repository.pb.go",
 +        "service.pb.go",
++        "settings.pb.go",
++        "tag.pb.go",
++        "version.pb.go",
++        "yum_artifact.pb.go",
 +    ],
 +    importpath = "google.golang.org/genproto/googleapis/devtools/artifactregistry/v1",
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
 +        "//googleapis/iam/v1:iam",
++        "//googleapis/longrunning",
++        "//googleapis/rpc/status",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
++        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
++        "@org_golang_google_protobuf//types/known/structpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +    ],
 +)
@@ -10280,7 +10632,7 @@ diff -urN a/googleapis/devtools/cloudtrace/v2/BUILD.bazel b/googleapis/devtools/
 diff -urN a/googleapis/devtools/containeranalysis/v1/BUILD.bazel b/googleapis/devtools/containeranalysis/v1/BUILD.bazel
 --- a/googleapis/devtools/containeranalysis/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/devtools/containeranalysis/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -10297,7 +10649,6 @@ diff -urN a/googleapis/devtools/containeranalysis/v1/BUILD.bazel b/googleapis/de
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
 +    ],
 +)
 +
@@ -11315,7 +11666,7 @@ diff -urN a/googleapis/home/graph/v1/BUILD.bazel b/googleapis/home/graph/v1/BUIL
 diff -urN a/googleapis/iam/admin/v1/BUILD.bazel b/googleapis/iam/admin/v1/BUILD.bazel
 --- a/googleapis/iam/admin/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/iam/admin/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -11335,7 +11686,6 @@ diff -urN a/googleapis/iam/admin/v1/BUILD.bazel b/googleapis/iam/admin/v1/BUILD.
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/anypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
@@ -11381,7 +11731,7 @@ diff -urN a/googleapis/iam/credentials/v1/BUILD.bazel b/googleapis/iam/credentia
 diff -urN a/googleapis/iam/v1/BUILD.bazel b/googleapis/iam/v1/BUILD.bazel
 --- a/googleapis/iam/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/iam/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -11401,6 +11751,7 @@ diff -urN a/googleapis/iam/v1/BUILD.bazel b/googleapis/iam/v1/BUILD.bazel
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
 +    ],
 +)
 +
@@ -11461,10 +11812,42 @@ diff -urN a/googleapis/iam/v1beta/BUILD.bazel b/googleapis/iam/v1beta/BUILD.baze
 +    actual = ":v1beta",
 +    visibility = ["//visibility:public"],
 +)
+diff -urN a/googleapis/iam/v2beta/BUILD.bazel b/googleapis/iam/v2beta/BUILD.bazel
+--- a/googleapis/iam/v2beta/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
++++ b/googleapis/iam/v2beta/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "v2beta",
++    srcs = [
++        "deny.pb.go",
++        "policy.pb.go",
++    ],
++    importpath = "google.golang.org/genproto/googleapis/iam/v2beta",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//googleapis/api/annotations",
++        "//googleapis/longrunning",
++        "//googleapis/type/expr",
++        "@org_golang_google_grpc//:go_default_library",
++        "@org_golang_google_grpc//codes:go_default_library",
++        "@org_golang_google_grpc//status:go_default_library",
++        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
++        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
++        "@org_golang_google_protobuf//types/known/timestamppb:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":v2beta",
++    visibility = ["//visibility:public"],
++)
 diff -urN a/googleapis/identity/accesscontextmanager/type/BUILD.bazel b/googleapis/identity/accesscontextmanager/type/BUILD.bazel
 --- a/googleapis/identity/accesscontextmanager/type/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/identity/accesscontextmanager/type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,19 @@
+@@ -0,0 +1,18 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -11473,7 +11856,6 @@ diff -urN a/googleapis/identity/accesscontextmanager/type/BUILD.bazel b/googleap
 +    importpath = "google.golang.org/genproto/googleapis/identity/accesscontextmanager/type",
 +    visibility = ["//visibility:public"],
 +    deps = [
-+        "//googleapis/api/annotations",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
 +    ],
@@ -11887,21 +12269,26 @@ diff -urN a/googleapis/maps/unity/BUILD.bazel b/googleapis/maps/unity/BUILD.baze
 diff -urN a/googleapis/monitoring/dashboard/v1/BUILD.bazel b/googleapis/monitoring/dashboard/v1/BUILD.bazel
 --- a/googleapis/monitoring/dashboard/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/monitoring/dashboard/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
 +    name = "dashboard",
 +    srcs = [
 +        "alertchart.pb.go",
++        "collapsible_group.pb.go",
 +        "common.pb.go",
 +        "dashboard.pb.go",
++        "dashboard_filter.pb.go",
 +        "dashboards_service.pb.go",
 +        "drilldowns.pb.go",
 +        "layouts.pb.go",
++        "logs_panel.pb.go",
 +        "metrics.pb.go",
 +        "scorecard.pb.go",
 +        "service.pb.go",
++        "table.pb.go",
++        "table_display_options.pb.go",
 +        "text.pb.go",
 +        "widget.pb.go",
 +        "xychart.pb.go",
@@ -11910,7 +12297,6 @@ diff -urN a/googleapis/monitoring/dashboard/v1/BUILD.bazel b/googleapis/monitori
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
-+        "//googleapis/api/distribution",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",
@@ -11918,7 +12304,6 @@ diff -urN a/googleapis/monitoring/dashboard/v1/BUILD.bazel b/googleapis/monitori
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
 +        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
-+        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
 +    ],
 +)
 +
@@ -12477,7 +12862,7 @@ diff -urN a/googleapis/storage/v2/BUILD.bazel b/googleapis/storage/v2/BUILD.baze
 diff -urN a/googleapis/storagetransfer/v1/BUILD.bazel b/googleapis/storagetransfer/v1/BUILD.bazel
 --- a/googleapis/storagetransfer/v1/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/googleapis/storagetransfer/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
 +
 +go_library(
@@ -12499,7 +12884,6 @@ diff -urN a/googleapis/storagetransfer/v1/BUILD.bazel b/googleapis/storagetransf
 +        "@org_golang_google_grpc//status:go_default_library",
 +        "@org_golang_google_protobuf//reflect/protoreflect:go_default_library",
 +        "@org_golang_google_protobuf//runtime/protoimpl:go_default_library",
-+        "@org_golang_google_protobuf//types/known/anypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/durationpb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/emptypb:go_default_library",
 +        "@org_golang_google_protobuf//types/known/fieldmaskpb:go_default_library",
