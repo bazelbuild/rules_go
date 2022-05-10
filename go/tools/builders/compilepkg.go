@@ -176,8 +176,8 @@ func compileArchive(
 	outPath string,
 	outXPath string,
 	cgoExportHPath string,
-	coverFormat string) error {
-
+	coverFormat string,
+) error {
 	workDir, cleanup, err := goenv.workDir()
 	if err != nil {
 		return err
@@ -188,19 +188,29 @@ func compileArchive(
 		// We need to run the compiler to create a valid archive, even if there's
 		// nothing in it. GoPack will complain if we try to add assembly or cgo
 		// objects.
+		//
 		// _empty.go needs to be in a deterministic location (not tmpdir) in order
-		// to ensure deterministic output
-		emptyPath := filepath.Join(filepath.Dir(outPath), "_empty.go")
+		// to ensure deterministic output. The location also needs to be unique
+		// otherwise platforms without sandbox support may race to create/remove
+		// the file during parallel compilation.
+		emptyDir := filepath.Join(filepath.Dir(outPath), sanitizePathForIdentifier(importPath))
+		err := os.Mkdir(emptyDir, 0700)
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(emptyDir)
+		emptyPath := filepath.Join(emptyDir, "_empty.go")
 		if err := os.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
 			return err
 		}
+		defer os.Remove(emptyPath)
+
 		srcs.goSrcs = append(srcs.goSrcs, fileInfo{
 			filename: emptyPath,
 			ext:      goExt,
 			matched:  true,
 			pkg:      "empty",
 		})
-		defer os.Remove(emptyPath)
 	}
 	packageName := srcs.goSrcs[0].pkg
 	var goSrcs, cgoSrcs []string
@@ -416,8 +426,8 @@ func compileArchive(
 	// Compile the .s files.
 	if len(srcs.sSrcs) > 0 {
 		includeSet := map[string]struct{}{
-			filepath.Join(os.Getenv("GOROOT"), "pkg", "include"): struct{}{},
-			workDir: struct{}{},
+			filepath.Join(os.Getenv("GOROOT"), "pkg", "include"): {},
+			workDir: {},
 		}
 		for _, hdr := range srcs.hSrcs {
 			includeSet[filepath.Dir(hdr.filename)] = struct{}{}

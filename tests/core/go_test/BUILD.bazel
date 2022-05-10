@@ -195,6 +195,27 @@ go_library(
     deps = [":indirect_import_lib"],
 )
 
+[
+    go_library(
+        name = "same_package_{}".format(i),
+        srcs = ["same_package.go"],
+        importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/same_package_{}".format(i),
+        x_defs = {
+            "name": "{}".format(i),
+        },
+    )
+    for i in range(1, 80)
+]
+
+[
+    go_test(
+        name = "same_package_{}_test".format(i),
+        srcs = ["same_package_test.go"],
+        embed = [":same_package_{}".format(i)],
+    )
+    for i in range(1, 80)
+]
+
 go_bazel_test(
     name = "testmain_without_exit_test",
     srcs = ["testmain_without_exit_test.go"],
