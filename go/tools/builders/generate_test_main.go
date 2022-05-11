@@ -192,12 +192,10 @@ func main() {
 		flag.Lookup("test.failfast").Value.Set("true")
 	}
 {{if eq .CoverFormat "lcov"}}
-	panicOnExit0Flag := flag.Lookup("test.paniconexit0")
-	if panicOnExit0Flag != nil && panicOnExit0Flag.Value.String() != "false" {
-		testDeps.OriginalPanicOnExit = true
-	}
+	panicOnExit0Flag := flag.Lookup("test.paniconexit0").Value
+	testDeps.OriginalPanicOnExit, _ = strconv.ParseBool(panicOnExit0Flag.String())
 	// Setting this flag provides a way to run hooks right before testing.M.Run() returns.
-	panicOnExit0Flag.Value.Set("true")
+	panicOnExit0Flag.Set("true")
 {{end}}
 {{if ne .CoverMode ""}}
 	if len(coverdata.Counters) > 0 {
