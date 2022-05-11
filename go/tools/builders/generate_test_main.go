@@ -193,7 +193,7 @@ func main() {
 	}
 {{if eq .CoverFormat "lcov"}}
 	panicOnExit0Flag := flag.Lookup("test.paniconexit0").Value
-	testDeps.OriginalPanicOnExit, _ = strconv.ParseBool(panicOnExit0Flag.String())
+	testDeps.OriginalPanicOnExit = panicOnExit0Flag.(flag.Getter).Get().(bool)
 	// Setting this flag provides a way to run hooks right before testing.M.Run() returns.
 	panicOnExit0Flag.Set("true")
 {{end}}
