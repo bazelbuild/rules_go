@@ -191,7 +191,7 @@ func compileArchive(
 		// _empty.go needs to be in a deterministic location (not tmpdir) in order
 		// to ensure deterministic output
 		emptyPath := filepath.Join(filepath.Dir(outPath), "_empty.go")
-		if err := ioutil.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
+		if err := os.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
 			return err
 		}
 		srcs.goSrcs = append(srcs.goSrcs, fileInfo{

@@ -191,14 +191,13 @@ func main() {
 	if failfast := os.Getenv("TESTBRIDGE_TEST_RUNNER_FAIL_FAST"); failfast != "" {
 		flag.Lookup("test.failfast").Value.Set("true")
 	}
-
-	// Setting this flag serves two purposes:
-	// 1. It attains parity with "go test", which enables this feature by default.
-	//    https://cs.opensource.google/go/go/+/refs/tags/go1.18.1:src/cmd/go/internal/test/test.go;l=1331-1337
-	// 2. It provides a way to run hooks right before testing.M.Run() returns.
-	flag.Lookup("test.paniconexit0").Value.Set("true")
-
-	{{if ne .CoverMode ""}}
+{{if eq .CoverFormat "lcov"}}
+	panicOnExit0Flag := flag.Lookup("test.paniconexit0").Value
+	testDeps.OriginalPanicOnExit = panicOnExit0Flag.(flag.Getter).Get().(bool)
+	// Setting this flag provides a way to run hooks right before testing.M.Run() returns.
+	panicOnExit0Flag.Set("true")
+{{end}}
+{{if ne .CoverMode ""}}
 	if len(coverdata.Counters) > 0 {
 		testing.RegisterCover(testing.Cover{
 			Mode: "{{ .CoverMode }}",
