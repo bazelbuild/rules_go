@@ -158,6 +158,7 @@ func emitLcovLines(lcov io.StringWriter, path string, lineCounts map[uint32]uint
 // major versions of Go.
 type LcovTestDeps struct {
 	testdeps.TestDeps
+	OriginalPanicOnExit bool
 }
 
 // SetPanicOnExit0 is called with true by m.Run() before running all tests,
@@ -171,7 +172,7 @@ func (ltd LcovTestDeps) SetPanicOnExit0(panicOnExit bool) {
 	if !panicOnExit {
 		lcovAtExitHook()
 	}
-	ltd.TestDeps.SetPanicOnExit0(panicOnExit)
+	ltd.TestDeps.SetPanicOnExit0(ltd.OriginalPanicOnExit)
 }
 
 func lcovAtExitHook() {
