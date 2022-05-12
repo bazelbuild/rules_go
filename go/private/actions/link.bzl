@@ -20,7 +20,6 @@ load(
 )
 load(
     "//go/private:mode.bzl",
-    "LINKMODE_C_SHARED",
     "LINKMODE_NORMAL",
     "LINKMODE_PLUGIN",
     "extld_from_cc_toolchain",
@@ -107,13 +106,6 @@ def emit_link(
         builder_args.add("-buildmode", go.mode.link)
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
-
-    # TODO: Rework when https://github.com/bazelbuild/bazel/pull/12304 is mainstream
-    if go.mode.link == LINKMODE_C_SHARED and (go.mode.goos in ["darwin", "ios"]):
-        extldflags.extend([
-            "-install_name",
-            rpath.install_name(executable),
-        ])
 
     arcs = _transitive_archives_without_test_archives(archive, test_archives)
     arcs.extend(test_archives)
