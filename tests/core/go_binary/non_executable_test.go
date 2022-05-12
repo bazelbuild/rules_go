@@ -26,26 +26,62 @@ func TestMain(m *testing.M) {
 		Main: `
 -- src/BUILD.bazel --
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load(":rules.bzl", "no_runfiles_check")
 
 go_binary(
     name = "archive",
     srcs = ["archive.go"],
+    cgo = True,
     linkmode = "c-archive",
+)
+
+cc_binary(
+    name = "main",
+    srcs = ["main.c"],
+    deps = [":archive"],
+)
+
+no_runfiles_check(
+    name = "no_runfiles",
+    target = ":main",
 )
 -- src/archive.go --
 package main
 
+import "C"
+
 func main() {}
+-- src/main.c --
+int main() {}
+-- src/rules.bzl --
+def _no_runfiles_check_impl(ctx):
+    runfiles = ctx.attr.target[DefaultInfo].default_runfiles.files.to_list()
+    for runfile in runfiles:
+        if runfile.short_path not in ["src/main", "src/main.exe"]:
+            fail("Unexpected runfile: %s" % runfile.short_path)
+
+no_runfiles_check = rule(
+    implementation = _no_runfiles_check_impl,
+    attrs = {
+        "target": attr.label(),
+    }
+)
 `,
 	})
 }
 
-func TestNonExecutableGoBinary(t *testing.T) {
+func TestNonExecutableGoBinaryCantBeRun(t *testing.T) {
 	if err := bazel_testing.RunBazel("build", "//src:archive"); err != nil {
 		t.Fatal(err)
 	}
 	err := bazel_testing.RunBazel("run", "//src:archive")
 	if err == nil || !strings.Contains(err.Error(), "ERROR: Cannot run target //src:archive: Not executable") {
 		t.Errorf("Expected bazel run to fail due to //src:archive not being executable")
+	}
+}
+
+func TestNonExecutableGoBinaryNotInRunfiles(t *testing.T) {
+	if err := bazel_testing.RunBazel("build", "//src:no_runfiles"); err != nil {
+		t.Fatal(err)
 	}
 }

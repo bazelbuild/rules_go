@@ -34,6 +34,7 @@ load(
 )
 load(
     "//go/private:mode.bzl",
+    "LINKMODES_EXECUTABLE",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
     "LINKMODE_NORMAL",
@@ -118,18 +119,34 @@ def _go_binary_impl(ctx):
         executable = executable,
     )
 
+    if go.mode.link in LINKMODES_EXECUTABLE:
+        # The executable is automatically added to the runfiles.
+        default_info = DefaultInfo(
+            files = depset([executable]),
+            runfiles = runfiles,
+            executable = executable,
+        )
+    else:
+        # Workaround for https://github.com/bazelbuild/bazel/issues/15043
+        # As of Bazel 5.1.1, native rules do not pick up the "files" of a data
+        # dependency's DefaultInfo, only the "data_runfiles". Since transitive
+        # non-data dependents should not pick up the executable as a runfile
+        # implicitly, the deprecated "default_runfiles" and "data_runfiles"
+        # constructor parameters have to be used.
+        default_info = DefaultInfo(
+            files = depset([executable]),
+            default_runfiles = runfiles,
+            data_runfiles = runfiles.merge(ctx.runfiles([executable])),
+        )
+
     providers = [
         library,
         source,
         archive,
+        default_info,
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
             compilation_outputs = [archive.data.file],
-        ),
-        DefaultInfo(
-            files = depset([executable]),
-            runfiles = runfiles,
-            executable = executable,
         ),
     ]
 
