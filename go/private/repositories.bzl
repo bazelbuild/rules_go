@@ -264,13 +264,13 @@ def go_rules_dependencies():
     _maybe(
         http_archive,
         name = "com_github_golang_mock",
-        # v1.6.0, latest as of 2022-05-09
+        # v1.6.0, latest as of 2022-05-13
         urls = [
             "https://mirror.bazel.build/github.com/golang/mock/archive/v1.6.0.zip",
             "https://github.com/golang/mock/archive/v1.6.0.zip",
         ],
         patches = [
-            # releaser:patch-cmd gazelle -repo_root . -go_prefix github.com/golang/mock
+            # releaser:patch-cmd gazelle -repo_root . -go_prefix github.com/golang/mock -go_naming_convention import_alias
             Label("//third_party:com_github_golang_mock-gazelle.patch"),
         ],
         patch_args = ["-p1"],
