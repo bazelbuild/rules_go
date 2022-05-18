@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/bazelbuild/rules_go/go/tools/bazel"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,17 +14,12 @@ func Test_stdliblist(t *testing.T) {
 	testDir := t.TempDir()
 	outJSON := filepath.Join(testDir, "out.json")
 
-	runFilePath, err := bazel.RunfilesPath()
-	if err != nil {
-		t.Errorf("cannot file runfile path %v", err)
-	}
 	test_args := []string{
 		fmt.Sprintf("-out=%s", outJSON),
-		fmt.Sprintf("-sdk=%s", abs(filepath.Join(filepath.Dir(runFilePath), "go_sdk"))),
+		fmt.Sprintf("-sdk=%s", "external/go_sdk"),
 	}
 
-	err = stdliblist(test_args)
-	if err != nil {
+	if err := stdliblist(test_args); err != nil {
 		t.Errorf("calling stdliblist got err: %v", err)
 	}
 	f, err := os.Open(outJSON)
