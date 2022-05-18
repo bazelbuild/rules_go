@@ -272,6 +272,10 @@ def _detect_host_platform(ctx):
             uname = res.stdout.strip()
             if uname == "arm64":
                 goarch = "arm64"
+            else:
+                res_sysctl = ctx.execute(["sysctl", "-n", "sysctl.proc_translated"])
+                if res_sysctl.return_code == 0 and res_sysctl.stdout.strip() == "1":
+                    goarch = "arm64"
 
         # Default to amd64 when uname doesn't return a known value.
 
