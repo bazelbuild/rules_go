@@ -20,7 +20,6 @@ import (
 	"flag"
 	"fmt"
 	"go/build"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -191,10 +190,11 @@ func stdliblist(args []string) error {
 		return err
 	}
 
-	cloneBase, err := ioutil.TempDir(goenv.workDirPath, "stdlist-*")
+	cloneBase, cleanup, err := goenv.workDir()
 	if err != nil {
 		return err
 	}
+	defer func() { cleanup() }()
 
 	relGoSdk, err := filepath.Rel(".", goenv.sdk)
 	if err != nil {
