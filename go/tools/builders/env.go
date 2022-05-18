@@ -66,7 +66,7 @@ type env struct {
 // configured with those flags.
 func envFlags(flags *flag.FlagSet) *env {
 	env := &env{}
-	flags.StringVar(&env.sdk, "sdk", "", "Relative path to the Go SDK.")
+	flags.StringVar(&env.sdk, "sdk", "", "Path to the Go SDK.")
 	flags.Var(&tagFlag{}, "tags", "List of build tags considered true.")
 	flags.StringVar(&env.installSuffix, "installsuffix", "", "Standard library under GOROOT/pkg")
 	flags.BoolVar(&env.verbose, "v", false, "Whether subprocess command lines should be printed")
@@ -121,7 +121,6 @@ func (e *env) goTool(tool string, args ...string) []string {
 // and additional arguments.
 func (e *env) goCmd(cmd string, args ...string) []string {
 	exe := filepath.Join(e.sdk, "bin", "go")
-
 	if runtime.GOOS == "windows" {
 		exe += ".exe"
 	}

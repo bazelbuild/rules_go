@@ -149,34 +149,6 @@ func flatPackageForStd(cloneBase string, pkg *goListPackage) *flatPackage {
 	return newPkg
 }
 
-// In Go 1.18, the standard library started using go:embed directives.
-// When Bazel runs this action, it does so inside a sandbox where GOROOT points
-// to an external/go_sdk directory that contains a symlink farm of all files in
-// the Go SDK.
-// If we run "go list" with that GOROOT, this action will fail because those
-// go:embed directives will refuse to include the symlinks in the sandbox.
-//
-// To work around this, cloneGoRoot creates a copy of a subset of external/go_sdk
-// that is sufficient to call "go list" into a new cloneBase directory, e.g.
-// "go list" needs to call "compile", which needs "pkg/tool".
-// We also need to retain the same relative path to the root directory, e.g.
-// "$OUTPUT_BASE/external/go_sdk" becomes
-// {cloneBase}/external/go_sdk", which will be set at GOROOT later. This ensures
-// that file paths in the generated JSON are still valid.
-//
-// cloneGoRoot replicate goRoot to newGoRoot and returns an error if any.
-func cloneGoRoot(goRoot, newGoRoot string) error {
-	if err := os.MkdirAll(newGoRoot, 01755); err != nil {
-		return err
-	}
-
-	if err := replicate(goRoot, newGoRoot, replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // stdliblist runs `go list -json` on the standard library and saves it to a file.
 func stdliblist(args []string) error {
 	// process the args
@@ -190,22 +162,37 @@ func stdliblist(args []string) error {
 		return err
 	}
 
+	if filepath.IsAbs(goenv.sdk) {
+		return fmt.Errorf("-sdk needs to be a relative path, but got %s", goenv.sdk)
+	}
+
+	// In Go 1.18, the standard library started using go:embed directives.
+	// When Bazel runs this action, it does so inside a sandbox where GOROOT points
+	// to an external/go_sdk directory that contains a symlink farm of all files in
+	// the Go SDK.
+	// If we run "go list" with that GOROOT, this action will fail because those
+	// go:embed directives will refuse to include the symlinks in the sandbox.
+	//
+	// To work around this, cloneGoRoot creates a copy of a subset of external/go_sdk
+	// that is sufficient to call "go list" into a new cloneBase directory, e.g.
+	// "go list" needs to call "compile", which needs "pkg/tool".
+	// We also need to retain the same relative path to the root directory, e.g.
+	// "$OUTPUT_BASE/external/go_sdk" becomes
+	// {cloneBase}/external/go_sdk", which will be set at GOROOT later. This ensures
+	// that file paths in the generated JSON are still valid.
+	//
+	// Here we replicate goRoot(absolute path of goenv.sdk) to newGoRoot.
 	cloneBase, cleanup, err := goenv.workDir()
 	if err != nil {
 		return err
 	}
 	defer func() { cleanup() }()
 
-	relGoSdk, err := filepath.Rel(".", goenv.sdk)
-	if err != nil {
+	newGoRoot := filepath.Join(cloneBase, goenv.sdk)
+	if err := replicate(abs(goenv.sdk), abs(newGoRoot), replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
 		return err
 	}
 
-	newGoRoot := filepath.Join(cloneBase, relGoSdk)
-	err = cloneGoRoot(abs(goenv.sdk), abs(newGoRoot))
-	if err != nil {
-		return fmt.Errorf("failed to clone new go root %v", err)
-	}
 	// Ensure paths are absolute.
 	absPaths := []string{}
 	for _, path := range filepath.SplitList(os.Getenv("PATH")) {

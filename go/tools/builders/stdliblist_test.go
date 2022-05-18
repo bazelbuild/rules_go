@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,7 +15,7 @@ func Test_stdliblist(t *testing.T) {
 
 	test_args := []string{
 		fmt.Sprintf("-out=%s", outJSON),
-		fmt.Sprintf("-sdk=%s", "external/go_sdk"),
+		"-sdk=external/go_sdk",
 	}
 
 	if err := stdliblist(test_args); err != nil {
@@ -27,22 +26,22 @@ func Test_stdliblist(t *testing.T) {
 		t.Errorf("cannot open output json: %v", err)
 	}
 	defer func() { _ = f.Close() }()
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		var result flatPackage
-		jsonLineStr := scanner.Text()
-		if err := json.Unmarshal([]byte(jsonLineStr), &result); err != nil {
-			t.Errorf("cannot parse result line %s \n to goListPackage{}: %v\n", err)
+	decoder := json.NewDecoder(f)
+	for decoder.More() {
+		var result *flatPackage
+		if err := decoder.Decode(&result); err != nil {
+			t.Errorf("unable to decode output json: %v\n", err)
 		}
+
 		if !strings.HasPrefix(result.ID, "@io_bazel_rules_go//stdlib") {
-			t.Errorf("ID should be prefixed with @io_bazel_rules_go//stdlib :%s", jsonLineStr)
+			t.Errorf("ID should be prefixed with @io_bazel_rules_go//stdlib :%v", result)
 		}
 		if !strings.HasPrefix(result.ExportFile, "__BAZEL_OUTPUT_BASE__") {
-			t.Errorf("export file should be prefixed with __BAZEL_OUTPUT_BASE__ :%s", jsonLineStr)
+			t.Errorf("export file should be prefixed with __BAZEL_OUTPUT_BASE__ :%v", result)
 		}
 		for _, gofile := range result.GoFiles {
 			if !strings.HasPrefix(gofile, "__BAZEL_OUTPUT_BASE__/external/go_sdk") {
-				t.Errorf("All go files should be prefixed with __BAZEL_OUTPUT_BASE__/go_sdk :%s", jsonLineStr)
+				t.Errorf("all go files should be prefixed with __BAZEL_OUTPUT_BASE__/external/go_sdk :%v", result)
 			}
 		}
 	}
