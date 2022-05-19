@@ -110,8 +110,8 @@ func stdlibPackageID(importPath string) string {
 	return "@io_bazel_rules_go//stdlib:" + importPath
 }
 
-// labelledPath replace the cloneBase with output base label
-func labelledPath(cloneBase, p string) string {
+// outputBasePath replace the cloneBase with output base label
+func outputBasePath(cloneBase, p string) string {
 	dir, _ := filepath.Rel(cloneBase, p)
 	return filepath.Join("__BAZEL_OUTPUT_BASE__", dir)
 }
@@ -120,7 +120,7 @@ func labelledPath(cloneBase, p string) string {
 //  paths with the label for all source files in a package
 func absoluteSourcesPaths(cloneBase, pkgDir string, srcs []string) []string {
 	ret := make([]string, 0, len(srcs))
-	pkgDir = labelledPath(cloneBase, pkgDir)
+	pkgDir = outputBasePath(cloneBase, pkgDir)
 	for _, src := range srcs {
 		ret = append(ret, filepath.Join(pkgDir, src))
 	}
@@ -135,7 +135,7 @@ func flatPackageForStd(cloneBase string, pkg *goListPackage) *flatPackage {
 		ID:              stdlibPackageID(pkg.ImportPath),
 		Name:            pkg.Name,
 		PkgPath:         pkg.ImportPath,
-		ExportFile:      labelledPath(cloneBase, pkg.Target),
+		ExportFile:      outputBasePath(cloneBase, pkg.Target),
 		Imports:         map[string]string{},
 		Standard:        pkg.Standard,
 		GoFiles:         goFiles,
