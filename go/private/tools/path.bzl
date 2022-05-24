@@ -24,6 +24,10 @@ load(
     "as_iterable",
     "as_list",
 )
+load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
 
 def _go_path_impl(ctx):
     # Gather all archives. Note that there may be multiple packages with the same
@@ -68,11 +72,18 @@ def _go_path_impl(ctx):
     manifest_entries = []
     manifest_entry_map = {}
     for pkg in pkg_map.values():
+        # src_dir is the path to the directory holding the source.
+        # Paths to embedded sources will be relative to this path.
+        src_dir = None
+
         for f in pkg.srcs:
+            src_dir = f.dirname
             dst = pkg.dir + "/" + f.basename
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
         for f in pkg.embedsrcs:
-            dst = pkg.dir + "/" + f.basename
+            if src_dir == None:
+                fail("cannot relativize {}: src_dir is unset".format(f.path))
+            dst = pkg.dir + "/" + paths.relativize(f.path, src_dir)
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
     if ctx.attr.include_pkg:
         for pkg in pkg_map.values():

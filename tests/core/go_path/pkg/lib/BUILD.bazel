@@ -8,7 +8,10 @@ go_library(
         "data.txt",
         "testdata/testdata.txt",
     ],
-    embedsrcs = [":embedded_src.txt"],
+    embedsrcs = [
+        "embedded_src.txt",
+        "template/index.html.tmpl",
+    ],
     importpath = "example.com/repo/pkg/lib",
     visibility = ["//visibility:public"],
     deps = [":transitive_lib"],

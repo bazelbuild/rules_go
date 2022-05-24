@@ -6,4 +6,7 @@ import (
 )
 
 //go:embed embedded_src.txt
-var embedded_src string
+var embeddedSource string
+
+//go:embed template/index.html.tmpl
+var indexTmpl string
