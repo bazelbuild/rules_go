@@ -55,6 +55,7 @@ def _go_path_impl(ctx):
                 dir = "src/" + pkgpath,
                 srcs = as_list(archive.orig_srcs),
                 data = as_list(archive.data_files),
+                embedsrcs = as_list(archive._embedsrcs),
                 pkgs = {mode: archive.file},
             )
             if pkgpath in pkg_map:
@@ -68,6 +69,9 @@ def _go_path_impl(ctx):
     manifest_entry_map = {}
     for pkg in pkg_map.values():
         for f in pkg.srcs:
+            dst = pkg.dir + "/" + f.basename
+            _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
+        for f in pkg.embedsrcs:
             dst = pkg.dir + "/" + f.basename
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
     if ctx.attr.include_pkg:
@@ -245,8 +249,10 @@ go_path = rule(
 def _merge_pkg(x, y):
     x_srcs = {f.path: None for f in x.srcs}
     x_data = {f.path: None for f in x.data}
+    x_embedsrcs = {f.path: None for f in x.embedsrcs}
     x.srcs.extend([f for f in y.srcs if f.path not in x_srcs])
     x.data.extend([f for f in y.data if f.path not in x_srcs])
+    x.embedsrcs.extend([f for f in y.embedsrcs if f.path not in x_embedsrcs])
     x.pkgs.update(y.pkgs)
 
 def _add_manifest_entry(entries, entry_map, inputs, src, dst):
