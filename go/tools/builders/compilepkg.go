@@ -42,7 +42,7 @@ func compilePkg(args []string) error {
 	goenv := envFlags(fs)
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots multiFlag
 	var deps archiveMultiFlag
-	var importPath, packagePath, nogoPath, packageListPath, coverMode string
+	var labelName, importPath, packagePath, nogoPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
@@ -63,6 +63,7 @@ func compilePkg(args []string) error {
 	fs.Var(&objcFlags, "objcflags", "Objective-C compiler flags")
 	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
+	fs.StringVar(&labelName, "label_name", "", "The label's name")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
@@ -123,6 +124,7 @@ func compilePkg(args []string) error {
 
 	return compileArchive(
 		goenv,
+		labelName,
 		importPath,
 		packagePath,
 		srcs,
@@ -152,6 +154,7 @@ func compilePkg(args []string) error {
 
 func compileArchive(
 	goenv *env,
+	labelName string,
 	importPath string,
 	packagePath string,
 	srcs archiveSrcs,
@@ -193,7 +196,7 @@ func compileArchive(
 		// to ensure deterministic output. The location also needs to be unique
 		// otherwise platforms without sandbox support may race to create/remove
 		// the file during parallel compilation.
-		emptyDir := filepath.Join(filepath.Dir(outPath), sanitizePathForIdentifier(importPath))
+		emptyDir := filepath.Join(filepath.Dir(outPath), labelName)
 		err := os.Mkdir(emptyDir, 0700)
 		if err != nil {
 			return err

@@ -99,6 +99,7 @@ def emit_compilepkg(
         args.add("-cover_format", go.cover_format)
         args.add_all(cover, before_each = "-cover")
     args.add_all(archives, before_each = "-arc", map_each = _archive)
+    args.add("-label_name", go.label.name)
     if importpath:
         args.add("-importpath", importpath)
     if importmap:
