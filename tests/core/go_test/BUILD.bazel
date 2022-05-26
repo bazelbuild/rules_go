@@ -216,6 +216,11 @@ go_library(
     for i in range(1, 80)
 ]
 
+test_suite(
+    name = "same_package_test",
+    tests = ["same_package_{}_test".format(i) for i in range(1, 80)],
+)
+
 go_bazel_test(
     name = "testmain_without_exit_test",
     srcs = ["testmain_without_exit_test.go"],

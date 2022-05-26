@@ -203,7 +203,6 @@ func compileArchive(
 		if err := os.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
 			return err
 		}
-		defer os.Remove(emptyPath)
 
 		srcs.goSrcs = append(srcs.goSrcs, fileInfo{
 			filename: emptyPath,
