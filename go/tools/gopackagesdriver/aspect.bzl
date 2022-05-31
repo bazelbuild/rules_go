@@ -42,12 +42,16 @@ def _go_archive_to_pkg(archive):
         ExportFile = _file_path(archive.data.export_file),
         GoFiles = [
             _file_path(src)
-            for src in archive.data.orig_srcs
+            for src in archive.data.orig_srcs if not src.path.endswith(".s")
         ],
         CompiledGoFiles = [
             _file_path(src)
-            for src in archive.data.srcs
+            for src in archive.data.srcs if not src.path.endswith(".s")
         ],
+        SFiles = [
+            _file_path(src)
+            for src in archive.data.orig_srcs if src.path.endswith(".s")
+        ]
     )
 
 def _make_pkg_json(ctx, archive, pkg_info):

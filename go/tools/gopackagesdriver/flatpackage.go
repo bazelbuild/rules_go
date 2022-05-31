@@ -59,6 +59,7 @@ type FlatPackage struct {
 	Errors          []FlatPackagesError `json:",omitempty"`
 	GoFiles         []string            `json:",omitempty"`
 	CompiledGoFiles []string            `json:",omitempty"`
+	SFiles          []string            `json:",omitempty"`
 	OtherFiles      []string            `json:",omitempty"`
 	ExportFile      string              `json:",omitempty"`
 	Imports         map[string]string   `json:",omitempty"`
@@ -97,6 +98,7 @@ func WalkFlatPackagesFromJSON(jsonFile string, onPkg PackageFunc) error {
 func (fp *FlatPackage) ResolvePaths(prf PathResolverFunc) error {
 	resolvePathsInPlace(prf, fp.CompiledGoFiles)
 	resolvePathsInPlace(prf, fp.GoFiles)
+	resolvePathsInPlace(prf, fp.SFiles)
 	resolvePathsInPlace(prf, fp.OtherFiles)
 	fp.ExportFile = prf(fp.ExportFile)
 	return nil
