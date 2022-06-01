@@ -224,8 +224,8 @@ Go toolchain and register it for use.
         name = "io_bazel_rules_go",
         sha256 = "ab21448cef298740765f33a7f5acee0607203e4ea321219f2a4c85a6e0fb0a27",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/archive/refs/tags/v0.32.0.zip",
-            "https://github.com/bazelbuild/rules_go/archive/refs/tags/v0.32.0.zip",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.32.0/rules_go-v0.32.0.zip",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.32.0/rules_go-v0.32.0.zip",
         ],
     )
 
