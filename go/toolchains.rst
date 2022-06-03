@@ -585,6 +585,9 @@ It returns a GoArchive_.
 asm
 +++
 
+**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
+comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
+
 The asm function adds an action that runs ``go tool asm`` on a source file to
 produce an object, and returns the File of that object.
 
@@ -655,6 +658,9 @@ a ``runfiles`` object.
 compile
 +++++++
 
+**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
+comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
+
 The compile function adds an action that compiles a list of source files into
 a package archive (.a file).
 
@@ -715,6 +721,9 @@ It does not return anything.
 
 cover
 +++++
+
+**Removed in rules_go 0.32.0:** Please comment on https://github.com/bazelbuild/rules_go/issues/3168
+if you still use this feature and cannot rely on `archive` instead.
 
 The cover function adds an action that runs ``go tool cover`` on a set of source
 files to produce copies with cover instrumentation.
@@ -781,6 +790,9 @@ It does not return anything.
 
 pack
 ++++
+
+**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
+comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
 
 The pack function adds an action that produces an archive from a base archive
 and a collection of additional object files.

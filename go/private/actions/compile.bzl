@@ -16,6 +16,10 @@ load(
     "//go/private:mode.bzl",
     "link_mode_args",
 )
+load(
+    "//go/private/actions:deprecation.bzl",
+    "LEGACY_ACTIONS_DEPRECATION_NOTICE",
+)
 
 def _archive(v):
     importpaths = [v.data.importpath]
@@ -37,6 +41,11 @@ def emit_compile(
         testfilter = None,
         asmhdr = None):
     """See go/toolchains.rst#compile for full documentation."""
+
+    print(LEGACY_ACTIONS_DEPRECATION_NOTICE.format(
+        old = "go_context.compile",
+        new = "go_context.archive",
+    ))
 
     if sources == None:
         fail("sources is a required parameter")
