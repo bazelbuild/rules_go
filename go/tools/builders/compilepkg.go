@@ -194,11 +194,11 @@ func compileArchive(
 		// otherwise platforms without sandbox support may race to create/remove
 		// the file during parallel compilation.
 		emptyDir := filepath.Join(filepath.Dir(outPath), sanitizePathForIdentifier(importPath))
-		err := os.Mkdir(emptyDir, 0700)
-		if err != nil {
-			return err
+		if err := os.Mkdir(emptyDir, 0700); err != nil {
+			return fmt.Errorf("could not create directory for _empty.go: %v", err)
 		}
 		defer os.RemoveAll(emptyDir)
+
 		emptyPath := filepath.Join(emptyDir, "_empty.go")
 		if err := os.WriteFile(emptyPath, []byte("package empty\n"), 0666); err != nil {
 			return err
