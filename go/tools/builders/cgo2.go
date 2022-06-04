@@ -197,7 +197,30 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	args = append([]string{cc, "-o", mainBin, mainObj}, cObjs...)
 	args = append(args, combinedLdFlags...)
 	if err := goenv.runCommand(args); err != nil {
-		return "", nil, nil, err
+		// If linking the binary for cgo fails, this is usually because the
+		// object files reference external symbols that can't be resolved yet.
+		// Since the binary is only produced to have its symbols read by the cgo
+		// command, there is no harm in trying to build it allowing unresolved
+		// symbols - the real link that happens at the end will fail if they
+		// rightfully can't be resolved.
+		var allowUnresolvedSymbolsLdFlag string
+		switch os.Getenv("GOOS") {
+		case "windows":
+			// MinGW's linker doesn't seem to support --unresolved-symbols
+			// and MSVC isn't supported at all.
+			return "", nil, nil, err
+		case "darwin", "ios":
+			allowUnresolvedSymbolsLdFlag = "-Wl,-undefined,dynamic_lookup"
+		default:
+			allowUnresolvedSymbolsLdFlag = "-Wl,--unresolved-symbols=ignore-all"
+		}
+		if err2 := goenv.runCommand(append(args, allowUnresolvedSymbolsLdFlag)); err2 != nil {
+			// Return the original error if we can't link the binary with the
+			// additional linker flags as they may simply be incorrect for the
+			// particular compiler/linker pair and would obscure the true reason
+			// for the failure of the original command.
+			return "", nil, nil, err
+		}
 	}
 
 	cgoImportsGo := filepath.Join(workDir, "_cgo_imports.go")

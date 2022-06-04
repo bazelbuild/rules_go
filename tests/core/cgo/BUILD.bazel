@@ -414,3 +414,23 @@ go_bazel_test(
     name = "external_includes_test",
     srcs = ["external_includes_test.go"],
 )
+
+go_library(
+    name = "use_external_symbol",
+    srcs = ["use_external_symbol.go"],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/use_external_symbol",
+    tags = ["manual"],
+)
+
+go_binary(
+    name = "provide_external_symbol",
+    srcs = ["provide_external_symbol.go"],
+    cgo = True,
+    target_compatible_with = select({
+        "@platforms//os:osx": [],
+        "@platforms//os:linux": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [":use_external_symbol"],
+)
