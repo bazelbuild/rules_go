@@ -8,10 +8,11 @@ Go rules for Bazel_
 .. _Bazel: https://bazel.build/
 .. _Build modes: go/modes.rst
 .. _Core rules: docs/go/core/rules.md
+.. _Coverage: https://bazel.google.cn/docs/coverage
 .. _Dependencies: go/dependencies.rst
 .. _Deprecation schedule: https://github.com/bazelbuild/rules_go/wiki/Deprecation-schedule
-.. _Editor and tool integration: https://github.com/bazelbuild/rules_go/wiki/Editor-and-tool-integration
 .. _Gopher Slack: https://invite.slack.golangbridge.org/
+.. _gopls integration: https://github.com/bazelbuild/rules_go/wiki/Editor-setup
 .. _Overriding dependencies: go/dependencies.rst#overriding-dependencies
 .. _Proto dependencies: go/dependencies.rst#proto-dependencies
 .. _Proto rules: proto/core.rst
@@ -169,12 +170,12 @@ The rules are in the beta stage of development. They support:
 * Build-time code analysis via nogo_
 * `Protocol buffers`_
 * Remote execution
+* `Coverage`_
+* `gopls integration`_ for editor support
+* Debugging
 
 They currently do not support or have limited support for:
 
-* `Editor and tool integration`_
-* Coverage
-* Debugging
 * C/C++ integration other than cgo (SWIG)
 
 The Go rules are tested and supported on the following host platforms:
@@ -185,7 +186,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: The latest version of these rules (v0.28.0) requires Bazel ≥ 4.0.0 to work.
+Note: Since version v0.30.0, rules_go requires Bazel ≥ 4.2.1 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
