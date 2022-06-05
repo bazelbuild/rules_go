@@ -298,7 +298,7 @@ def build_bazel():
     f.write(BUILD_HEADER)
     for repo in POPULAR_REPOS:
       name = repo["name"]
-      tests = check_output(["bazel", "query", "kind(go_test, \"@{}//...\")".format(name)]).split("\n")
+      tests = check_output(["bazel", "query", "kind(go_test, \"@{}//...\")".format(name)], text=True).split("\n")
       excludes = ["@{}//{}".format(name, l) for l in repo.get("excludes", [])]
       for k in repo:
         if k.endswith("_excludes") or k.endswith("_tests"):
