@@ -544,15 +544,17 @@ func parseUpgradeDepDirective(call *bzl.CallExpr) (orgName, repoName string, err
 // that any year starting with "19" is a zero-valeud date.
 func sanitizePatch(patch []byte) []byte {
 	lines := bytes.Split(patch, []byte{'\n'})
-LineLoop:
+
 	for i, line := range lines {
-		if !bytes.HasPrefix(line, []byte("+++ ")) && !bytes.HasSuffix(line, []byte("--- ")) {
+		if !bytes.HasPrefix(line, []byte("+++ ")) && !bytes.HasPrefix(line, []byte("--- ")) {
 			continue
 		}
+
 		tab := bytes.LastIndexByte(line, '\t')
 		if tab < 0 || bytes.HasPrefix(line[tab+1:], []byte("19")) {
-			continue LineLoop
+			continue
 		}
+
 		lines[i] = append(line[:tab+1], []byte("2000-01-01 00:00:00.000000000 -0000")...)
 	}
 	return bytes.Join(lines, []byte{'\n'})
