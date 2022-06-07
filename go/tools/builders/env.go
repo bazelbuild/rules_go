@@ -141,12 +141,12 @@ func (e *env) runCommand(args []string) error {
 	return err
 }
 
-// runCommandToFile executes a subprocess and writes the output to the given
-// writer.
-func (e *env) runCommandToFile(w io.Writer, args []string) error {
+// runCommandToFile executes a subprocess and writes stdout/stderr to the given
+// writers.
+func (e *env) runCommandToFile(out, err io.Writer, args []string) error {
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = out
+	cmd.Stderr = err
 	return runAndLogCommand(cmd, e.verbose)
 }
 

@@ -223,7 +223,7 @@ func stdliblist(args []string) error {
 	defer jsonFile.Close()
 
 	jsonData := &bytes.Buffer{}
-	if err := goenv.runCommandToFile(jsonData, listArgs); err != nil {
+	if err := goenv.runCommandToFile(jsonData, os.Stderr, listArgs); err != nil {
 		return err
 	}
 	encoder := json.NewEncoder(jsonFile)

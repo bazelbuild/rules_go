@@ -23,6 +23,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -196,7 +197,8 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	mainBin := filepath.Join(workDir, "_cgo_.o") // .o is a lie; it's an executable
 	args = append([]string{cc, "-o", mainBin, mainObj}, cObjs...)
 	args = append(args, combinedLdFlags...)
-	if err := goenv.runCommand(args); err != nil {
+	var originalErrBuf bytes.Buffer
+	if err := goenv.runCommandToFile(os.Stdout, &originalErrBuf, args); err != nil {
 		// If linking the binary for cgo fails, this is usually because the
 		// object files reference external symbols that can't be resolved yet.
 		// Since the binary is only produced to have its symbols read by the cgo
@@ -214,13 +216,20 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 		default:
 			allowUnresolvedSymbolsLdFlag = "-Wl,--unresolved-symbols=ignore-all"
 		}
-		if err2 := goenv.runCommand(append(args, allowUnresolvedSymbolsLdFlag)); err2 != nil {
-			// Return the original error if we can't link the binary with the
-			// additional linker flags as they may simply be incorrect for the
-			// particular compiler/linker pair and would obscure the true reason
-			// for the failure of the original command.
+		// Print and return the original error if we can't link the binary with
+		// the additional linker flags as they may simply be incorrect for the
+		// particular compiler/linker pair and would obscure the true reason for
+		// the failure of the original command.
+		if err2 := goenv.runCommandToFile(
+			os.Stdout,
+			ioutil.Discard,
+			append(args, allowUnresolvedSymbolsLdFlag),
+		); err2 != nil {
+			os.Stderr.Write(relativizePaths(originalErrBuf.Bytes()))
 			return "", nil, nil, err
 		}
+		// Do not print the original error - rerunning the command with the
+		// additional linker flag fixed it.
 	}
 
 	cgoImportsGo := filepath.Join(workDir, "_cgo_imports.go")
