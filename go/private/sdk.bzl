@@ -320,11 +320,6 @@ def _detect_sdk_platform(ctx, goroot):
 def _parse_versions_json(data):
     """Parses version metadata returned by golang.org.
 
-    This is a really basic JSON parser. We can only do so much in Starlark
-    without recursion. We don't want to download a platform-specific binary
-    for this, and we can't rely on any particular scripting language being
-    installed.
-
     Args:
         data: the contents of the file downloaded from
             https://golang.org/dl/?mode=json. We assume the file is valid
@@ -335,60 +330,18 @@ def _parse_versions_json(data):
         platform names (like "linux_amd64") to pairs of filenames
         (like "go1.15.5.linux-amd64.tar.gz") and hex-encoded SHA-256 sums.
     """
-    sdks_by_version = {}
-
-    START_STATE = 0
-    VERSION_STATE = 1
-    FILE_STATE = 2
-    state = START_STATE
-
-    version = None
-    version_files = None
-    file_fields = None
-
-    for i, line in enumerate(data.split("\n")):
-        line = line.strip()
-        if not line:
-            continue
-        if state == START_STATE:
-            if line == "{":
-                version_files = {}
-                state = VERSION_STATE
-        elif state == VERSION_STATE:
-            key, value = _parse_versions_json_field(line)
-            if key == "version":
-                version = value
-            elif line == "{":
-                state = FILE_STATE
-                file_fields = {}
-            elif line in ("}", "},"):
-                if version and version.startswith("go") and version_files:
-                    sdks_by_version[version[len("go"):]] = version_files
-                version = None
-                version_files = None
-                state = START_STATE
-        elif state == FILE_STATE:
-            key, value = _parse_versions_json_field(line)
-            if key != "":
-                file_fields[key] = value
-            elif line in ("}", "},"):
-                if (all([f in file_fields for f in ("filename", "os", "arch", "sha256", "kind")]) and
-                    file_fields["kind"] == "archive"):
-                    goos_goarch = file_fields["os"] + "_" + file_fields["arch"]
-                    version_files[goos_goarch] = (file_fields["filename"], file_fields["sha256"])
-                file_fields = None
-                state = VERSION_STATE
-
-    return sdks_by_version
-
-def _parse_versions_json_field(line):
-    """Parses a line like '"key": "value",' into a key and value pair."""
-    if line.endswith(","):
-        line = line[:-1]
-    k, sep, v = line.partition('": "')
-    if not sep or not k.startswith('"') or not v.endswith('"'):
-        return "", ""
-    return k[1:], v[:-1]
+    sdks = json.decode(data)
+    return {
+        sdk["version"][len("go"):]: {
+            "%s_%s" % (file["os"], file["arch"]): (
+                file["filename"],
+                file["sha256"],
+            )
+            for file in sdk["files"]
+            if file["kind"] == "archive"
+        }
+        for sdk in sdks
+    }
 
 def _parse_version(version):
     """Parses a version string like "1.15.5" and returns a tuple of numbers or None"""
