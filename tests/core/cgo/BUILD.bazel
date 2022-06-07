@@ -434,3 +434,41 @@ go_binary(
     }),
     deps = [":use_external_symbol"],
 )
+
+cc_library(
+    name = "native_dep",
+    srcs = ["native_dep.c"],
+    hdrs = ["native_dep.h"],
+    # Force static linking to ensure that the build doesn't succeed by
+    # accidentally picking up the shared library in the search path.
+    linkstatic = True,
+)
+
+go_library(
+    name = "transitive_dep",
+    srcs = ["transitive_dep.go"],
+    cdeps = [":native_dep"],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/transitive_dep",
+)
+
+go_library(
+    name = "direct_dep",
+    srcs = ["direct_dep.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/direct_dep",
+    deps = [":transitive_dep"],
+)
+
+go_binary(
+    name = "use_transitive_symbol",
+    srcs = ["use_transitive_symbol.go"],
+    cgo = True,
+    linkmode = "c-archive",
+    deps = [":direct_dep"],
+)
+
+cc_binary(
+    name = "use_c_symbol_through_go",
+    srcs = ["use_c_symbol_through_go.c"],
+    deps = [":use_transitive_symbol"],
+)

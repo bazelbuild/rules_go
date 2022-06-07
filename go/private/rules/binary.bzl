@@ -163,7 +163,7 @@ def _go_binary_impl(ctx):
             cc_import_kwargs["alwayslink"] = True
         ccinfo = new_cc_import(go, **cc_import_kwargs)
         ccinfo = cc_common.merge_cc_infos(
-            cc_infos = [ccinfo] + [d[CcInfo] for d in source.cdeps],
+            cc_infos = [ccinfo, source.cc_info],
         )
         providers.append(ccinfo)
 

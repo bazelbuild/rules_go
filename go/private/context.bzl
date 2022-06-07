@@ -50,6 +50,7 @@ load(
     "as_iterable",
     "goos_to_extension",
     "goos_to_shared_extension",
+    "is_struct",
 )
 load(
     "//go/platform:apple.bzl",
@@ -240,6 +241,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "clinkopts": _expand_opts(go, "clinkopts", getattr(attr, "clinkopts", [])),
         "cgo_deps": [],
         "cgo_exports": [],
+        "cc_info": None,
     }
     if coverage_instrumented:
         source["cover"] = attr_srcs
@@ -266,6 +268,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
                 fail("source {} has C/C++ extension, but cgo was not enabled (set 'cgo = True')".format(f.path))
     if library.resolve:
         library.resolve(go, attr, source, _merge_embed)
+    source["cc_info"] = _collect_cc_infos(source["deps"], source["cdeps"])
     return GoSource(**source)
 
 def _collect_runfiles(go, data, deps):
@@ -279,6 +282,19 @@ def _collect_runfiles(go, data, deps):
     for t in deps:
         runfiles = runfiles.merge(get_source(t).runfiles)
     return runfiles
+
+def _collect_cc_infos(deps, cdeps):
+    cc_infos = []
+    for dep in cdeps:
+        if CcInfo in dep:
+            cc_infos.append(dep[CcInfo])
+    for dep in deps:
+        # dep may be a struct, which doesn't support indexing by providers.
+        if is_struct(dep):
+            continue
+        if GoSource in dep:
+            cc_infos.append(dep[GoSource].cc_info)
+    return cc_common.merge_cc_infos(cc_infos = cc_infos)
 
 def _check_binary_dep(go, dep, edge):
     """Checks that this rule doesn't depend on a go_binary or go_test.
