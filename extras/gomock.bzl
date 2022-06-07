@@ -144,7 +144,7 @@ _gomock_source = rule(
             mandatory = False,
         ),
         "_go_context_data": attr.label(
-            default = "@io_bazel_rules_go//:go_context_data",
+            default = "//:go_context_data",
         ),
     },
     toolchains = [GO_TOOLCHAIN],
@@ -275,7 +275,7 @@ _gomock_prog_gen = rule(
             mandatory = False,
         ),
         "_go_context_data": attr.label(
-            default = "@io_bazel_rules_go//:go_context_data",
+            default = "//:go_context_data",
         ),
     },
     toolchains = [GO_TOOLCHAIN],
@@ -357,7 +357,7 @@ _gomock_prog_exec = rule(
             mandatory = False,
         ),
         "_go_context_data": attr.label(
-            default = "@io_bazel_rules_go//:go_context_data",
+            default = "//:go_context_data",
         ),
     },
     toolchains = [GO_TOOLCHAIN],
