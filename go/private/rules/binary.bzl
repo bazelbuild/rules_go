@@ -23,6 +23,10 @@ load(
     "go_exts",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private:providers.bzl",
     "GoLibrary",
     "GoSDK",
@@ -380,7 +384,7 @@ _go_binary_kwargs = {
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    "toolchains": ["@io_bazel_rules_go//go:toolchain"],
+    "toolchains": [GO_TOOLCHAIN],
     "doc": """This builds an executable from a set of source files,
     which must all be in the `main` package. You can run the binary with
     `bazel run`, or you can build it with `bazel build` and run it directly.<br><br>

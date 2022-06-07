@@ -24,7 +24,10 @@ bzl_library(
     name = "embed_data",
     srcs = ["embed_data.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["@io_bazel_rules_go//go/private:context"],
+    deps = [
+        "//go/private:context",
+        "//go/private:go_toolchain",
+    ],
 )
 
 bzl_library(
@@ -41,6 +44,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/private:context",
+        "//go/private:go_toolchain",
         "//go/private:providers",
         "//go/private/rules:wrappers",
     ],

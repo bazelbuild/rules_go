@@ -22,6 +22,10 @@ load(
     "go_context",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private/rules:transition.bzl",
     "go_reset_target",
 )
@@ -206,7 +210,7 @@ _go_proto_compiler = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def go_proto_compiler(name, **kwargs):

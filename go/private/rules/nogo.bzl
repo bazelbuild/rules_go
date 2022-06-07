@@ -17,6 +17,10 @@ load(
     "go_context",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private:providers.bzl",
     "EXPORT_PATH",
     "GoArchive",
@@ -102,7 +106,7 @@ _nogo = rule(
             default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
     cfg = go_tool_transition,
 )
 

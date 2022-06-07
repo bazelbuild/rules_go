@@ -27,6 +27,10 @@ load(
     "OBJC_COMPILE_ACTION_NAME",
 )
 load(
+    ":go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     ":providers.bzl",
     "CgoContextInfo",
     "EXPLICIT_PATH",
@@ -354,7 +358,7 @@ def go_context(ctx, attr = None):
     """
     if not attr:
         attr = ctx.attr
-    toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+    toolchain = ctx.toolchains[GO_TOOLCHAIN]
     cgo_context_info = None
     go_config_info = None
     stdlib = None
@@ -546,7 +550,7 @@ go_context_data = rule(
     },
     doc = """go_context_data gathers information about the build configuration.
     It is a common dependency of all Go targets.""",
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
     cfg = request_nogo_transition,
 )
 

@@ -23,6 +23,7 @@
 # DO NOT USE IT.
 
 load("//go/private:context.bzl", "go_context")
+load("//go/private:go_toolchain.bzl", "GO_TOOLCHAIN")
 load("//go/private/rules:wrappers.bzl", go_binary = "go_binary_macro")
 load("//go/private:providers.bzl", "GoLibrary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -146,7 +147,7 @@ _gomock_source = rule(
             default = "@io_bazel_rules_go//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}):
@@ -277,7 +278,7 @@ _gomock_prog_gen = rule(
             default = "@io_bazel_rules_go//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def _gomock_prog_exec_impl(ctx):
@@ -359,7 +360,7 @@ _gomock_prog_exec = rule(
             default = "@io_bazel_rules_go//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def _handle_shared_args(ctx, args):

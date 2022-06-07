@@ -25,6 +25,8 @@ load("//go/private/actions:link.bzl", "emit_link")
 load("//go/private/actions:pack.bzl", "emit_pack")
 load("//go/private/actions:stdlib.bzl", "emit_stdlib")
 
+GO_TOOLCHAIN = "@io_bazel_rules_go//go:toolchain"
+
 def _go_toolchain_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]
     cross_compile = ctx.attr.goos != sdk.goos or ctx.attr.goarch != sdk.goarch
@@ -131,7 +133,7 @@ def declare_toolchains(host, sdk, builder):
         )
         native.toolchain(
             name = toolchain_name,
-            toolchain_type = "@io_bazel_rules_go//go:toolchain",
+            toolchain_type = GO_TOOLCHAIN,
             exec_compatible_with = [
                 "@io_bazel_rules_go//go/toolchain:" + host_goos,
                 "@io_bazel_rules_go//go/toolchain:" + host_goarch,

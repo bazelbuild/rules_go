@@ -17,6 +17,10 @@ load(
     "go_context",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private:providers.bzl",
     "GoLibrary",
 )
@@ -78,7 +82,7 @@ go_source = rule(
         "_go_config": attr.label(default = "//:go_config"),
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
     doc = """This declares a set of source files and related dependencies that can be embedded into one of the
     other rules.
     This is used as a way of easily declaring a common set of sources re-used in multiple rules.<br><br>
