@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:context.bzl",  #TODO: This ought to be def
+    "//go/private:context.bzl",  #TODO: This ought to be def
     "go_context",
 )
 

@@ -15,7 +15,7 @@
 """bindata.bzl provides the bindata rule for embedding data in .go files"""
 
 load(
-    "@io_bazel_rules_go//go:def.bzl",
+    "//go:def.bzl",
     "go_context",
 )
 
