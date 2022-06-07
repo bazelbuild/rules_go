@@ -33,7 +33,7 @@ GOGO_WELL_KNOWN_TYPE_REMAPS = [
 
 # NOTE: only used by gogo.
 WELL_KNOWN_TYPE_RULES = {
-    wkt: "@io_bazel_rules_go//proto/wkt:{}_{}".format(wkt, _go_proto_library_suffix)
+    wkt: Label("//proto/wkt:{}_{}".format(wkt, _go_proto_library_suffix))
     for wkt in WELL_KNOWN_TYPE_PACKAGES.keys()
 }
 

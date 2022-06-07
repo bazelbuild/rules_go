@@ -21,7 +21,7 @@ def go_bazel_test(rule_files = None, **kwargs):
     """
 
     if not rule_files:
-        rule_files = ["@io_bazel_rules_go//:all_files"]
+        rule_files = [Label("//:all_files")]
 
     # Add dependency on bazel_testing library.
     kwargs.setdefault("deps", [])
