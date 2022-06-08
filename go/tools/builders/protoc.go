@@ -83,8 +83,19 @@ func run(args []string) error {
 		// This is required to work with long paths on Windows.
 		*plugin = "\\\\?\\" + abs(*plugin)
 	}
+
+	outArg := fmt.Sprintf("--%v_out=%v:%v", pluginName, strings.Join(options, ","), tmpDir)
+	if len(outArg) > 100000 {
+		argsFile := filepath.Join(tmpDir, "longargs.params")
+		err := os.WriteFile(argsFile, []byte(outArg), 0644)
+		if err != nil {
+			return fmt.Errorf("error creating file for long args: %v", err)
+		}
+		outArg = "@" + argsFile
+	}
+
 	protoc_args := []string{
-		fmt.Sprintf("--%v_out=%v:%v", pluginName, strings.Join(options, ","), tmpDir),
+		outArg,
 		"--plugin", fmt.Sprintf("%v=%v", strings.TrimSuffix(pluginBase, ".exe"), *plugin),
 		"--descriptor_set_in", strings.Join(descriptors, string(os.PathListSeparator)),
 	}
