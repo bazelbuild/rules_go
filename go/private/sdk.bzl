@@ -233,7 +233,7 @@ def _sdk_build_file(ctx, platform):
             "{goos}": goos,
             "{goarch}": goarch,
             "{exe}": ".exe" if goos == "windows" else "",
-            "{rules_go_repo_name}": Label("//go/private:BUILD.sdk.bazel").workspace_name,
+            "{rules_go_repo_name}": "io_bazel_rules_go",
         },
     )
 
