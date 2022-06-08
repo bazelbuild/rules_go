@@ -1,28 +1,28 @@
 load(
-    "@io_bazel_rules_go//go/private/tools:lines_sorted_test.bzl",
+    "//go/private/tools:lines_sorted_test.bzl",
     "lines_sorted_test",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:nogo.bzl",
+    "//go/private/rules:nogo.bzl",
     "nogo",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:info.bzl",
+    "//go/private/rules:info.bzl",
     "go_info",
 )
 load(
-    "@io_bazel_rules_go//go:def.bzl",
+    "//go:def.bzl",
     "TOOLS_NOGO",
 )
 load(
-    "@io_bazel_rules_go//go/private:context.bzl",
+    "//go/private:context.bzl",
     "cgo_context_data",
     "cgo_context_data_proxy",
     "go_config",
     "go_context_data",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:stdlib.bzl",
+    "//go/private/rules:stdlib.bzl",
     "stdlib",
 )
 
