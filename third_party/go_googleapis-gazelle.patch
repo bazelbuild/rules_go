@@ -3848,7 +3848,7 @@ diff -urN c/google/analytics/data/v1beta/BUILD.bazel d/google/analytics/data/v1b
 diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 --- c/google/api/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
 +++ d/google/api/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,184 @@
+@@ -0,0 +1,210 @@
 +load("@rules_proto//proto:defs.bzl", "proto_library")
 +load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 +
@@ -3911,14 +3911,22 @@ diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 +    name = "metric_proto",
 +    srcs = ["metric.proto"],
 +    visibility = ["//visibility:public"],
-+    deps = ["@com_google_protobuf//:duration_proto"],
++    deps = [
++        ":api_proto",
++        ":label_proto",
++        "@com_google_protobuf//:duration_proto",
++    ],
 +)
 +
 +proto_library(
 +    name = "monitoredres_proto",
 +    srcs = ["monitored_resource.proto"],
 +    visibility = ["//visibility:public"],
-+    deps = ["@com_google_protobuf//:struct_proto"],
++    deps = [
++        ":api_proto",
++        ":label_proto",
++        "@com_google_protobuf//:struct_proto",
++    ],
 +)
 +
 +proto_library(
@@ -3943,6 +3951,10 @@ diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 +    ],
 +    visibility = ["//visibility:public"],
 +    deps = [
++        ":annotations_proto",
++        ":label_proto",
++        ":metric_proto",
++        ":monitoredres_proto",
 +        "@com_google_protobuf//:any_proto",
 +        "@com_google_protobuf//:api_proto",
 +        "@com_google_protobuf//:type_proto",
@@ -4011,6 +4023,10 @@ diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 +    importpath = "google.golang.org/genproto/googleapis/api/metric",
 +    proto = ":metric_proto",
 +    visibility = ["//visibility:public"],
++    deps = [
++        ":api_go_proto",
++        ":label_go_proto",
++    ],
 +)
 +
 +go_proto_library(
@@ -4018,6 +4034,10 @@ diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 +    importpath = "google.golang.org/genproto/googleapis/api/monitoredres",
 +    proto = ":monitoredres_proto",
 +    visibility = ["//visibility:public"],
++    deps = [
++        ":api_go_proto",
++        ":label_go_proto",
++    ],
 +)
 +
 +go_proto_library(
@@ -4025,6 +4045,12 @@ diff -urN c/google/api/BUILD.bazel d/google/api/BUILD.bazel
 +    importpath = "google.golang.org/genproto/googleapis/api/serviceconfig",
 +    proto = ":serviceconfig_proto",
 +    visibility = ["//visibility:public"],
++    deps = [
++        ":annotations_go_proto",
++        ":label_go_proto",
++        ":metric_go_proto",
++        ":monitoredres_go_proto",
++    ],
 +)
 +
 +go_proto_library(
@@ -4980,6 +5006,41 @@ diff -urN c/google/chromeos/uidetection/v1/BUILD.bazel d/google/chromeos/uidetec
 +    proto = ":uidetection_proto",
 +    visibility = ["//visibility:public"],
 +    deps = ["//google/api:annotations_go_proto"],
++)
+diff -urN c/google/cloud/BUILD.bazel d/google/cloud/BUILD.bazel
+--- c/google/cloud/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ d/google/cloud/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,31 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "cloud_proto",
++    srcs = ["common_resources.proto"],
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_proto"],
++)
++
++proto_library(
++    name = "extendedops_proto",
++    srcs = ["extended_operations.proto"],
++    visibility = ["//visibility:public"],
++    deps = ["@com_google_protobuf//:descriptor_proto"],
++)
++
++go_proto_library(
++    name = "cloud_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/cloud",
++    proto = ":cloud_proto",
++    visibility = ["//visibility:public"],
++    deps = ["//google/api:annotations_go_proto"],
++)
++
++go_proto_library(
++    name = "extendedops_go_proto",
++    importpath = "google.golang.org/genproto/googleapis/cloud/extendedops",
++    proto = ":extendedops_proto",
++    visibility = ["//visibility:public"],
 +)
 diff -urN c/google/cloud/accessapproval/v1/BUILD.bazel d/google/cloud/accessapproval/v1/BUILD.bazel
 --- c/google/cloud/accessapproval/v1/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
@@ -6832,41 +6893,6 @@ diff -urN c/google/cloud/binaryauthorization/v1beta1/BUILD.bazel d/google/cloud/
 +    proto = ":binaryauthorization_proto",
 +    visibility = ["//visibility:public"],
 +    deps = ["//google/api:annotations_go_proto"],
-+)
-diff -urN c/google/cloud/BUILD.bazel d/google/cloud/BUILD.bazel
---- c/google/cloud/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
-+++ d/google/cloud/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "cloud_proto",
-+    srcs = ["common_resources.proto"],
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_proto"],
-+)
-+
-+proto_library(
-+    name = "extendedops_proto",
-+    srcs = ["extended_operations.proto"],
-+    visibility = ["//visibility:public"],
-+    deps = ["@com_google_protobuf//:descriptor_proto"],
-+)
-+
-+go_proto_library(
-+    name = "cloud_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/cloud",
-+    proto = ":cloud_proto",
-+    visibility = ["//visibility:public"],
-+    deps = ["//google/api:annotations_go_proto"],
-+)
-+
-+go_proto_library(
-+    name = "extendedops_go_proto",
-+    importpath = "google.golang.org/genproto/googleapis/cloud/extendedops",
-+    proto = ":extendedops_proto",
-+    visibility = ["//visibility:public"],
 +)
 diff -urN c/google/cloud/certificatemanager/v1/BUILD.bazel d/google/cloud/certificatemanager/v1/BUILD.bazel
 --- c/google/cloud/certificatemanager/v1/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
@@ -13940,6 +13966,35 @@ diff -urN c/google/devtools/containeranalysis/v1/BUILD.bazel d/google/devtools/c
 +        "//grafeas/v1:grafeas_go_proto",
 +    ],
 +)
+diff -urN c/google/devtools/containeranalysis/v1beta1/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/BUILD.bazel
+--- c/google/devtools/containeranalysis/v1beta1/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ d/google/devtools/containeranalysis/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,25 @@
++load("@rules_proto//proto:defs.bzl", "proto_library")
++load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
++
++proto_library(
++    name = "containeranalysis_proto",
++    srcs = ["containeranalysis.proto"],
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_proto",
++        "//google/iam/v1:iam_proto",
++        "@com_google_protobuf//:timestamp_proto",
++    ],
++)
++
++go_proto_library(
++    name = "containeranalysis_go_proto",
++    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
++    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1",
++    proto = ":containeranalysis_proto",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//google/api:annotations_go_proto",
++        "//google/iam/v1:iam_go_proto",
++    ],
++)
 diff -urN c/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
 +++ d/google/devtools/containeranalysis/v1beta1/attestation/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -13981,35 +14036,6 @@ diff -urN c/google/devtools/containeranalysis/v1beta1/build/BUILD.bazel d/google
 +    proto = ":build_proto",
 +    visibility = ["//visibility:public"],
 +    deps = ["//google/devtools/containeranalysis/v1beta1/provenance:provenance_go_proto"],
-+)
-diff -urN c/google/devtools/containeranalysis/v1beta1/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/BUILD.bazel
---- c/google/devtools/containeranalysis/v1beta1/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
-+++ d/google/devtools/containeranalysis/v1beta1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
-+load("@rules_proto//proto:defs.bzl", "proto_library")
-+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-+
-+proto_library(
-+    name = "containeranalysis_proto",
-+    srcs = ["containeranalysis.proto"],
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/api:annotations_proto",
-+        "//google/iam/v1:iam_proto",
-+        "@com_google_protobuf//:timestamp_proto",
-+    ],
-+)
-+
-+go_proto_library(
-+    name = "containeranalysis_go_proto",
-+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
-+    importpath = "google.golang.org/genproto/googleapis/devtools/containeranalysis/v1beta1",
-+    proto = ":containeranalysis_proto",
-+    visibility = ["//visibility:public"],
-+    deps = [
-+        "//google/api:annotations_go_proto",
-+        "//google/iam/v1:iam_go_proto",
-+    ],
 +)
 diff -urN c/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel d/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel
 --- c/google/devtools/containeranalysis/v1beta1/common/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
