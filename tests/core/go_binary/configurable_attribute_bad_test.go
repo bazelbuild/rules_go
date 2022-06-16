@@ -32,8 +32,8 @@ go_binary(
     srcs = [
         "main.go",
     ],
-	goos = "darwin",
-	goarch = "amd64",
+    goos = "darwin",
+    goarch = "amd64",
     gotags = select({
         "@io_bazel_rules_go//go/platform:linux": ["penguins"],
         "//conditions:default": ["nopenguins"],

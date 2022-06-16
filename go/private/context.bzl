@@ -392,7 +392,7 @@ def go_context(ctx, attr = None):
     coverdata = None
     nogo = None
     if hasattr(attr, "_go_context_data"):
-        go_context_data = _flatten(attr._go_context_data)
+        go_context_data = _flatten_possibly_transitioned_attr(attr._go_context_data)
         if CgoContextInfo in go_context_data:
             cgo_context_info = go_context_data[CgoContextInfo]
         go_config_info = go_context_data[GoConfigInfo]
@@ -406,7 +406,7 @@ def go_context(ctx, attr = None):
     if hasattr(attr, "_go_config"):
         go_config_info = attr._go_config[GoConfigInfo]
     if hasattr(attr, "_stdlib"):
-        stdlib = _flatten(attr._stdlib)[GoStdLib]
+        stdlib = _flatten_possibly_transitioned_attr(attr._stdlib)[GoStdLib]
 
     mode = get_mode(ctx, toolchain, cgo_context_info, go_config_info)
     tags = mode.tags
@@ -866,12 +866,14 @@ go_config = rule(
 def _expand_opts(go, attribute_name, opts):
     return [go._ctx.expand_make_variables(attribute_name, opt, {}) for opt in opts]
 
+_LIST_TYPE = type([])
+
 # Used to get attribute values which may have been transitioned.
 # Transitioned attributes end up as lists.
 # We never use split-transitions, so we always expect exactly one element in those lists.
 # But if the attribute wasn't transitioned, it won't be a list.
-def _flatten(maybe_list):
-    if type(maybe_list) == "list":
+def _flatten_possibly_transitioned_attr(maybe_list):
+    if type(maybe_list) == _LIST_TYPE:
         if len(maybe_list) == 1:
             return maybe_list[0]
         else:

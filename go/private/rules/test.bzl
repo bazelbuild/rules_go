@@ -44,7 +44,6 @@ load(
 load(
     "//go/private/rules:transition.bzl",
     "go_transition",
-    "non_go_transition",
 )
 load(
     "//go/private:mode.bzl",
@@ -196,7 +195,6 @@ _go_test_kwargs = {
     "attrs": {
         "data": attr.label_list(
             allow_files = True,
-            cfg = non_go_transition,
             doc = """List of files needed by this rule at run-time. This may include data files
             needed or other programs that may be executed. The [bazel] package may be
             used to locate run files; they may appear in different places depending on the
@@ -206,7 +204,6 @@ _go_test_kwargs = {
         ),
         "srcs": attr.label_list(
             allow_files = go_exts + asm_exts + cgo_exts,
-            cfg = non_go_transition,
             doc = """The list of Go source files that are compiled to create the package.
             Only `.go` and `.s` files are permitted, unless the `cgo`
             attribute is set, in which case,
@@ -236,7 +233,6 @@ _go_test_kwargs = {
         ),
         "embedsrcs": attr.label_list(
             allow_files = True,
-            cfg = non_go_transition,
             doc = """The list of files that may be embedded into the compiled package using
             `//go:embed` directives. All files must be in the same logical directory
             or a subdirectory as source files. All source files containing `//go:embed`
@@ -309,7 +305,6 @@ _go_test_kwargs = {
             """,
         ),
         "cdeps": attr.label_list(
-            cfg = non_go_transition,
             doc = """The list of other libraries that the c code depends on.
             This can be anything that would be allowed in [cc_library deps]
             Only valid if `cgo` = `True`.

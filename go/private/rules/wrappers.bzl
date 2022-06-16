@@ -33,6 +33,8 @@ load(
     "go_test",
 )
 
+_SELECT_TYPE = type(select({"//conditions:default": ""}))
+
 def _cgo(name, kwargs):
     if "objc" in kwargs:
         fail("//{}:{}: the objc attribute has been removed. .m sources may be included in srcs or may be extracted into a separated objc_library listed in cdeps.".format(native.package_name(), name))
@@ -48,7 +50,7 @@ def go_binary_macro(name, **kwargs):
 
     if kwargs.get("goos") != None or kwargs.get("goarch") != None:
         for key, value in kwargs.items():
-            if type(value) == "select":
+            if type(value) == _SELECT_TYPE:
                 # In the long term, we should replace goos/goarch with Bazel-native platform
                 # support, but while we have the mechanisms, we try to avoid people trying to use
                 # _both_ goos/goarch _and_ native platform support.
