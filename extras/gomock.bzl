@@ -183,7 +183,7 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
             imports = imports,
             copyright_file = copyright_file,
             mock_names = mock_names,
-            **kwargs,
+            **kwargs
         )
     else:
         _gomock_reflect(
@@ -197,7 +197,7 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
             imports = imports,
             copyright_file = copyright_file,
             mock_names = mock_names,
-            **kwargs,
+            **kwargs
         )
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
