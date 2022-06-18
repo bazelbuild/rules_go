@@ -19,6 +19,7 @@ gomock(
     library = ":client",
     package = "client",
     source = "client.go",
+    visibility = ["//visibility:public"],
 )
 
 go_test(

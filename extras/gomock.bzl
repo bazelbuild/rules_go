@@ -150,7 +150,7 @@ _gomock_source = rule(
     toolchains = [GO_TOOLCHAIN],
 )
 
-def gomock(name, library, out, source = None, interfaces = [], aux_files = {}, **kwargs):
+def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}, **kwargs):
     """Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
 
     If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
@@ -168,6 +168,7 @@ def gomock(name, library, out, source = None, interfaces = [], aux_files = {}, *
         imports: dictionary of name-path pairs of explicit imports to use. See [mockgen's -imports](https://github.com/golang/mock#flags) for more information.
         copyright_file: optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/golang/mock#flags) for more information.
         mock_names: dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/golang/mock#flags) for more information.
+        kwargs: common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) to all Bazel rules.
     """
     if source:
         _gomock_source(
@@ -175,8 +176,14 @@ def gomock(name, library, out, source = None, interfaces = [], aux_files = {}, *
             library = library,
             out = out,
             source = source,
+            package = package,
+            self_package = self_package,
             aux_files = aux_files,
-            **kwargs
+            mockgen_tool = mockgen_tool,
+            imports = imports,
+            copyright_file = copyright_file,
+            mock_names = mock_names,
+            **kwargs,
         )
     else:
         _gomock_reflect(
@@ -184,7 +191,13 @@ def gomock(name, library, out, source = None, interfaces = [], aux_files = {}, *
             library = library,
             out = out,
             interfaces = interfaces,
-            **kwargs
+            package = package,
+            self_package = self_package,
+            mockgen_tool = mockgen_tool,
+            imports = imports,
+            copyright_file = copyright_file,
+            mock_names = mock_names,
+            **kwargs,
         )
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
