@@ -150,7 +150,7 @@ _gomock_source = rule(
     toolchains = [GO_TOOLCHAIN],
 )
 
-def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}):
+def gomock(name, library, out, source = None, interfaces = [], aux_files = {}, **kwargs):
     """Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
 
     If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
@@ -175,13 +175,8 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
             library = library,
             out = out,
             source = source,
-            package = package,
-            self_package = self_package,
             aux_files = aux_files,
-            mockgen_tool = mockgen_tool,
-            imports = imports,
-            copyright_file = copyright_file,
-            mock_names = mock_names,
+            **kwargs
         )
     else:
         _gomock_reflect(
@@ -189,12 +184,7 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
             library = library,
             out = out,
             interfaces = interfaces,
-            package = package,
-            self_package = self_package,
-            mockgen_tool = mockgen_tool,
-            imports = imports,
-            copyright_file = copyright_file,
-            mock_names = mock_names,
+            **kwargs
         )
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
