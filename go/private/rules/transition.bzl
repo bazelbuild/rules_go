@@ -347,6 +347,48 @@ go_transition.
 """,
 )
 
+def _non_go_transition_impl(settings, attr):
+    """Sets all Go settings to the values they had before the last go_transition.
+
+    non_go_transition sets all of the //go/config settings to the value they had
+    before the last go_transition. This should be used on all attributes of
+    go_library/go_binary/go_test that are built in the target configuration and
+    do not constitute advertise any Go providers.
+
+    Examples: This transition is applied to the 'data' attribute of go_binary so
+    that other Go binaries used at runtime aren't affected by a non-standard
+    link mode set on the go_binary target, but still use the same top-level
+    settings such as e.g. race instrumentation.
+    """
+    new_settings = {}
+    for key, original_key in _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.items():
+        original_value = settings[original_key]
+        if original_value:
+            # Reset to the original value of the setting before go_transition.
+            new_settings[key] = json.decode(original_value)
+        else:
+            new_settings[key] = settings[key]
+
+        # Reset the value of the helper setting to its default for two reasons:
+        # 1. Performance: This ensures that the Go settings of non-Go
+        #    dependencies have the same values as before the go_transition,
+        #    which can prevent unnecessary rebuilds caused by configuration
+        #    changes.
+        # 2. Correctness in edge cases: If there is a path in the build graph
+        #    from a go_binary's non-Go dependency to a go_library that does not
+        #    pass through another go_binary (e.g., through a custom rule
+        #    replacement for go_binary), this transition could be applied again
+        #    and cause incorrect Go setting values.
+        new_settings[original_key] = ""
+
+    return new_settings
+
+non_go_transition = transition(
+    implementation = _non_go_transition_impl,
+    inputs = TRANSITIONED_GO_SETTING_KEYS + _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.values(),
+    outputs = TRANSITIONED_GO_SETTING_KEYS + _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.values(),
+)
+
 def _check_ternary(name, value):
     if value not in ("on", "off", "auto"):
         fail('{}: must be "on", "off", or "auto"'.format(name))

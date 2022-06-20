@@ -31,6 +31,10 @@ load(
     "GoLibrary",
     "INFERRED_PATH",
 )
+load(
+    "//go/private/rules:transition.bzl",
+    "non_go_transition",
+)
 
 def _go_library_impl(ctx):
     """Implements the go_library() rule."""
@@ -59,6 +63,7 @@ go_library = rule(
     attrs = {
         "data": attr.label_list(
             allow_files = True,
+            cfg = non_go_transition,
             doc = """
             List of files needed by this rule at run-time.
             This may include data files needed or other programs that may be executed.
@@ -68,6 +73,7 @@ go_library = rule(
         ),
         "srcs": attr.label_list(
             allow_files = go_exts + asm_exts + cgo_exts,
+            cfg = non_go_transition,
             doc = """
             The list of Go source files that are compiled to create the package.
             Only `.go` and `.s` files are permitted, unless the `cgo` attribute is set,
@@ -110,6 +116,7 @@ go_library = rule(
         ),
         "embedsrcs": attr.label_list(
             allow_files = True,
+            cfg = non_go_transition,
             doc = """
             The list of files that may be embedded into the compiled package using `//go:embed`
             directives. All files must be in the same logical directory or a subdirectory as source files.
@@ -137,6 +144,7 @@ go_library = rule(
             """,
         ),
         "cdeps": attr.label_list(
+            cfg = non_go_transition,
             doc = """
             List of other libraries that the c code depends on.
             This can be anything that would be allowed in [cc_library deps] Only valid if `cgo = True`.
@@ -168,6 +176,9 @@ go_library = rule(
             """,
         ),
         "_go_context_data": attr.label(default = "//:go_context_data"),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
     },
     toolchains = [GO_TOOLCHAIN],
     doc = """This builds a Go library from a set of source files that are all part of
