@@ -406,6 +406,8 @@ def go_context(ctx, attr = None):
         go_config_info = attr._go_config[GoConfigInfo]
     if hasattr(attr, "_stdlib"):
         stdlib = attr._stdlib[GoStdLib]
+    if getattr(attr, "nogo", None):
+        nogo = ctx.files.nogo[0] if ctx.files.nogo else None
 
     mode = get_mode(ctx, toolchain, cgo_context_info, go_config_info)
     tags = mode.tags

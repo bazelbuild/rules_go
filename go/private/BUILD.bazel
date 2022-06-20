@@ -169,7 +169,7 @@ bool_setting(
 # does not happen in rules_go and does not seem to be useful).
 bool_setting(
     name = "request_nogo",
-    build_setting_default = False,
+    build_setting_default = True,
     visibility = ["//visibility:public"],
 )
 
