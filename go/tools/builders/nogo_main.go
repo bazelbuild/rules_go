@@ -335,6 +335,9 @@ func load(packagePath string, imp *importer, filenames []string) (*goPackage, er
 		Scopes:     make(map[ast.Node]*types.Scope),
 		Selections: make(map[*ast.SelectorExpr]*types.Selection),
 	}
+
+	initInstanceInfo(info)
+
 	types, err := config.Check(packagePath, pkg.fset, syntax, info)
 	if err != nil {
 		pkg.illTyped, pkg.typeCheckError = true, err

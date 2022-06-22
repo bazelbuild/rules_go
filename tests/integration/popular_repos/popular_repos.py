@@ -94,6 +94,9 @@ POPULAR_REPOS = [
             "cmd/gorename:gorename_test", # TODO(#417)
             "cmd/guru/testdata/src/referrers:referrers_test", # Not a real test
             "cmd/guru:guru_test", # Needs testdata directory
+            "cmd/signature-fuzzer/fuzz-driver:fuzz-driver_test", # requires working GOROOT
+            "cmd/signature-fuzzer/fuzz-runner:fuzz-runner_test", # requires working GOROOT
+            "cmd/signature-fuzzer/internal/fuzz-generator:fuzz-generator_test", # requires working GOROOT
             "cmd/stringer:stringer_test", # Needs testdata directory
             "container/intsets:intsets_test", # TODO(#413): External test depends on symbols defined in internal test.
             "copyright:copyright_test", # # requires runfiles
@@ -111,6 +114,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/buildtag:buildtag_test", # Needs testdata directory
             "go/analysis/passes/cgocall:cgocall_test", # Needs testdata directory
             "go/analysis/passes/composite:composite_test", # Needs testdata directory
+            "go/analysis/passes/composite/testdata/src/a:a_test", # Does not compile
             "go/analysis/passes/copylock:copylock_test", # Needs testdata directory
             "go/analysis/passes/ctrlflow:ctrlflow_test", # Needs testdata directory
             "go/analysis/passes/deepequalerrors:deepequalerrors_test", # requires go list
@@ -174,6 +178,7 @@ POPULAR_REPOS = [
             "internal/apidiff:apidiff_test", # Needs testdata directory
             "internal/gocommand:gocommand_test", # Needs go tool
             "internal/imports:imports_test", # Needs testdata directory
+            "internal/lsp/analysis/embeddirective:embeddirective_test", # requires GOROOT
             "internal/lsp/analysis/fillreturns:fillreturns_test", # Needs go tool
             "internal/lsp/analysis/fillstruct:fillstruct_test", # Needs go tool
             "internal/lsp/analysis/infertypeargs:infertypeargs_test", # Needs go tool
@@ -195,6 +200,7 @@ POPULAR_REPOS = [
             "internal/lsp/fuzzy:fuzzy_test", # has additional deps
             "internal/lsp/lsprpc:lsprpc_test", # has additional deps
             "internal/lsp/mod:mod_test", # has additional deps
+            "internal/lsp/safetoken:safetoken_test", # requires build cache
             "internal/lsp/snippet:snippet_test", # has additional deps
             "internal/lsp/source:source_test", # Needs testdata directory
             "internal/lsp/testdata/analyzer:analyzer_test", # is testdata
@@ -233,7 +239,7 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
-        commit = "c8bb1bd8a2aaa5c50fa106c8116850d503792d16",
+        commit = "86c51ed26bb44749b7d60a57bab0e7524656fe8a",
         excludes = [
             "sumdb/tlog:tlog_test", # Needs network, not available on RBE
             "zip:zip_test", # Needs vcs tools, not available on RBE
