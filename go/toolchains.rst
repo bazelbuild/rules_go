@@ -67,6 +67,16 @@ SDKs are specific to a host platform (e.g., ``linux_amd64``) and a version of
 Go. They may target all platforms that Go supports. The Go SDK is naturally
 cross compiling.
 
+By default, all ``go_binary``, ``go_test``, etc. rules will use the first declared
+Go SDK. If you would like to build a target using a specific Go SDK version, first
+ensure that you have declared a Go SDK of that version using one of the above rules
+(`go_download_sdk`_, `go_host_sdk`_, `go_local_sdk`_, `go_wrap_sdk`_). Then you
+can specify the sdk version to build with when running a ``bazel build`` by passing
+the flag ``--@io_bazel_rules_go//go/toolchain:sdk_version="version"`` where
+``"version"`` is the SDK version you would like to build with, eg. ``"1.18.3"``.
+The SDK version can omit the patch, or include a prerelease part, eg. ``"1"``,
+``"1.18"``, ``"1.18.0"``, and ``"1.19.0beta1"`` are all valid values for ``sdk_version``.
+
 The toolchain
 ~~~~~~~~~~~~~
 

@@ -1,6 +1,7 @@
 load("@{rules_go_repo_name}//go/private/rules:binary.bzl", "go_tool_binary")
 load("@{rules_go_repo_name}//go/private/rules:sdk.bzl", "package_list")
 load("@{rules_go_repo_name}//go:def.bzl", "declare_toolchains", "go_sdk")
+load("@bazel_skylib//lib:selects.bzl", "selects")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -58,10 +59,60 @@ package_list(
     root_file = "ROOT",
 )
 
+sdk_version_label = "@{rules_go_repo_name}//go/toolchain:sdk_version"
+
+config_setting(
+    name = "match_all_versions",
+    flag_values = {
+        sdk_version_label: "",
+    },
+)
+
+config_setting(
+    name = "match_major_version",
+    flag_values = {
+        sdk_version_label: "{major_version}",
+    },
+)
+
+config_setting(
+    name = "match_major_minor_version",
+    flag_values = {
+        sdk_version_label: "{major_version}.{minor_version}",
+    },
+)
+
+config_setting(
+    name = "match_patch_version",
+    flag_values = {
+        sdk_version_label: "{major_version}.{minor_version}.{patch_version}",
+    },
+)
+
+# If prerelease version is "", this will be the same as ":match_patch_version", but that's fine since we use match_any in config_setting_group.
+config_setting(
+    name = "match_prerelease_version",
+    flag_values = {
+        sdk_version_label: "{major_version}.{minor_version}.{patch_version}{prerelease_suffix}",
+    },
+)
+
+selects.config_setting_group(
+    name = "sdk_version_setting",
+    match_any = [
+        ":match_all_versions",
+        ":match_major_version",
+        ":match_major_minor_version",
+        ":match_patch_version",
+        ":match_prerelease_version",
+    ],
+)
+
 declare_toolchains(
     builder = ":builder",
     host = "{goos}_{goarch}",
     sdk = ":go_sdk",
+    sdk_version_setting = ":sdk_version_setting",
 )
 
 filegroup(

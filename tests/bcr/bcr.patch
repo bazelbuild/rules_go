@@ -33,7 +33,7 @@ index 9a364815..2eb6349d 100644
  
  def _go_toolchain_impl(ctx):
      sdk = ctx.attr.sdk[GoSDK]
-@@ -115,8 +115,8 @@ def declare_toolchains(host, sdk, builder):
+@@ -115,8 +115,8 @@ def declare_toolchains(host, sdk, builder, sdk_version_setting):
          impl_name = toolchain_name + "-impl"
  
          cgo_constraints = (
@@ -44,7 +44,7 @@ index 9a364815..2eb6349d 100644
          )
          constraints = [c for c in p.constraints if c not in cgo_constraints]
  
-@@ -135,8 +135,8 @@ def declare_toolchains(host, sdk, builder):
+@@ -135,8 +135,8 @@ def declare_toolchains(host, sdk, builder, sdk_version_setting):
              name = toolchain_name,
              toolchain_type = GO_TOOLCHAIN,
              exec_compatible_with = [
@@ -54,7 +54,7 @@ index 9a364815..2eb6349d 100644
 +                "@rules_go//go/toolchain:" + host_goarch,
              ],
              target_compatible_with = constraints,
-             toolchain = ":" + impl_name,
+             target_settings = [sdk_version_setting],
 diff --git a/go/private/nogo.bzl b/go/private/nogo.bzl
 index 1d3491bb..efb4594f 100644
 --- a/go/private/nogo.bzl
@@ -128,15 +128,15 @@ diff --git a/go/private/sdk.bzl b/go/private/sdk.bzl
 index ee53cb0b..768b174d 100644
 --- a/go/private/sdk.bzl
 +++ b/go/private/sdk.bzl
-@@ -237,7 +237,7 @@ def _sdk_build_file(ctx, platform):
+@@ -249,7 +249,7 @@ def _sdk_build_file(ctx, platform, version):
              "{goos}": goos,
              "{goarch}": goarch,
              "{exe}": ".exe" if goos == "windows" else "",
 -            "{rules_go_repo_name}": "io_bazel_rules_go",
 +            "{rules_go_repo_name}": "rules_go",
-         },
-     )
- 
+             "{major_version}": str(major),
+             "{minor_version}": str(minor),
+             "{patch_version}": str(patch),
 diff --git a/go/toolchain/toolchains.bzl b/go/toolchain/toolchains.bzl
 index b4e070cf..6a342da7 100644
 --- a/go/toolchain/toolchains.bzl

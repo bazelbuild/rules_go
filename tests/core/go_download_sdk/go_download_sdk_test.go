@@ -55,7 +55,8 @@ func Test(t *testing.T) {
 
 func Test(t *testing.T) {
 	for _, test := range []struct {
-		desc, rule, wantVersion string
+		desc, rule       string
+		optToWantVersion map[string]string
 	}{
 		{
 			desc: "version",
@@ -68,7 +69,7 @@ go_download_sdk(
 )
 
 `,
-			wantVersion: "go1.16",
+			optToWantVersion: map[string]string{"": "go1.16"},
 		}, {
 			desc: "custom_archives",
 			rule: `
@@ -84,7 +85,33 @@ go_download_sdk(
     },
 )
 `,
-			wantVersion: "go1.16",
+			optToWantVersion: map[string]string{"": "go1.16"},
+		},
+		{
+			desc: "multiple_sdks",
+			rule: `
+load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
+
+go_download_sdk(
+    name = "go_sdk",
+    version = "1.16",
+)
+go_download_sdk(
+    name = "go_sdk_1_17",
+    version = "1.17",
+)
+go_download_sdk(
+    name = "go_sdk_1_17_1",
+    version = "1.17.1",
+)
+`,
+			optToWantVersion: map[string]string{
+				"": "go1.16",
+				"--@io_bazel_rules_go//go/toolchain:sdk_version=1":   "go1.16",
+				"--@io_bazel_rules_go//go/toolchain:sdk_version=1.17":   "go1.17",
+				"--@io_bazel_rules_go//go/toolchain:sdk_version=1.17.0": "go1.17",
+				"--@io_bazel_rules_go//go/toolchain:sdk_version=1.17.1": "go1.17.1",
+			},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -115,8 +142,18 @@ go_register_toolchains()
 				}
 			}()
 
-			if err := bazel_testing.RunBazel("test", "//:version_test", "--test_arg=-version="+test.wantVersion); err != nil {
-				t.Fatal(err)
+			for opt, wantVersion := range test.optToWantVersion {
+				args := []string{
+					"test",
+					"//:version_test",
+					"--test_arg=-version=" + wantVersion,
+				}
+				if opt != "" {
+					args = append(args, opt)
+				}
+				if err := bazel_testing.RunBazel(args...); err != nil {
+					t.Fatal(err)
+				}
 			}
 		})
 	}

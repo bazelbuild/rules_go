@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load(
     ":toolchains.bzl",
     "declare_constraints",
@@ -7,6 +8,11 @@ load(
 package(default_visibility = ["//visibility:public"])
 
 declare_constraints()
+
+string_flag(
+    name = "sdk_version",
+    build_setting_default = "",
+)
 
 filegroup(
     name = "all_rules",

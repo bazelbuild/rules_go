@@ -30,7 +30,8 @@ MIN_SUPPORTED_VERSION = (1, 14, 0)
 def _go_host_sdk_impl(ctx):
     goroot = _detect_host_sdk(ctx)
     platform = _detect_sdk_platform(ctx, goroot)
-    _sdk_build_file(ctx, platform)
+    version = _detect_sdk_version(ctx, goroot)
+    _sdk_build_file(ctx, platform, version)
     _local_sdk(ctx, goroot)
 
 _go_host_sdk = repository_rule(
@@ -53,7 +54,6 @@ def _go_download_sdk_impl(ctx):
             fail("goos set but goarch not set")
         goos, goarch = ctx.attr.goos, ctx.attr.goarch
     platform = goos + "_" + goarch
-    _sdk_build_file(ctx, platform)
 
     version = ctx.attr.version
     sdks = ctx.attr.sdks
@@ -100,6 +100,9 @@ def _go_download_sdk_impl(ctx):
     filename, sha256 = sdks[platform]
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
 
+    detected_version = _detect_sdk_version(ctx, ".")
+    _sdk_build_file(ctx, platform, detected_version)
+
     if not ctx.attr.sdks and not ctx.attr.version:
         # Returning this makes Bazel print a message that 'version' must be
         # specified for a reproducible build.
@@ -134,7 +137,8 @@ def go_download_sdk(name, register_toolchains = True, **kwargs):
 def _go_local_sdk_impl(ctx):
     goroot = ctx.attr.path
     platform = _detect_sdk_platform(ctx, goroot)
-    _sdk_build_file(ctx, platform)
+    version = _detect_sdk_version(ctx, goroot)
+    _sdk_build_file(ctx, platform, version)
     _local_sdk(ctx, goroot)
 
 _go_local_sdk = repository_rule(
@@ -164,7 +168,8 @@ def _go_wrap_sdk_impl(ctx):
         root_file = Label(ctx.attr.root_files[platform])
     goroot = str(ctx.path(root_file).dirname)
     platform = _detect_sdk_platform(ctx, goroot)
-    _sdk_build_file(ctx, platform)
+    version = _detect_sdk_version(ctx, goroot)
+    _sdk_build_file(ctx, platform, version)
     _local_sdk(ctx, goroot)
 
 _go_wrap_sdk = repository_rule(
@@ -226,9 +231,16 @@ def _local_sdk(ctx, path):
     for entry in ["src", "pkg", "bin", "lib"]:
         ctx.symlink(path + "/" + entry, entry)
 
-def _sdk_build_file(ctx, platform):
+def _sdk_build_file(ctx, platform, version):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
+
+    pv = _parse_version(version)
+    if pv == None or len(pv) < 3:
+        fail("error parsing sdk version: " + version)
+    major, minor, patch = pv[0], pv[1], pv[2]
+    prerelease = pv[3] if len(pv) > 3 else ""
+
     ctx.template(
         "BUILD.bazel",
         Label("//go/private:BUILD.sdk.bazel"),
@@ -238,6 +250,10 @@ def _sdk_build_file(ctx, platform):
             "{goarch}": goarch,
             "{exe}": ".exe" if goos == "windows" else "",
             "{rules_go_repo_name}": "io_bazel_rules_go",
+            "{major_version}": str(major),
+            "{minor_version}": str(minor),
+            "{patch_version}": str(patch),
+            "{prerelease_suffix}": prerelease,
         },
     )
 
@@ -320,6 +336,16 @@ def _detect_sdk_platform(ctx, goroot):
     if len(platforms) > 1:
         fail("Could not detect SDK platform: found multiple platforms %s in %s" % (platforms, path))
     return platforms[0]
+
+def _detect_sdk_version(ctx, goroot):
+    path = goroot + "/VERSION"
+    version_contents = ctx.read(path)
+
+    # VERSION file has version prefixed by go, eg. go1.18.3
+    version = version_contents[2:]
+    if _parse_version(version) == None:
+        fail("Could not parse SDK version from version file (%s): %s" % (path, version_contents))
+    return version
 
 def _parse_versions_json(data):
     """Parses version metadata returned by golang.org.

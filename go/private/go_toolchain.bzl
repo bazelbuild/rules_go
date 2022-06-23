@@ -92,7 +92,7 @@ go_toolchain = rule(
     provides = [platform_common.ToolchainInfo],
 )
 
-def declare_toolchains(host, sdk, builder):
+def declare_toolchains(host, sdk, builder, sdk_version_setting):
     """Declares go_toolchain and toolchain targets for each platform."""
 
     # keep in sync with generate_toolchain_names
@@ -139,5 +139,6 @@ def declare_toolchains(host, sdk, builder):
                 "@io_bazel_rules_go//go/toolchain:" + host_goarch,
             ],
             target_compatible_with = constraints,
+            target_settings = [sdk_version_setting],
             toolchain = ":" + impl_name,
         )
