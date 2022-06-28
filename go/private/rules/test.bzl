@@ -54,9 +54,6 @@ load(
     "structs",
 )
 
-def _testmain_library_to_source(go, attr, source, merge):
-    source["deps"] = source["deps"] + [attr.library]
-
 def _go_test_impl(ctx):
     """go_test_impl implements go testing.
 

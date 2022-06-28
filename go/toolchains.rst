@@ -940,7 +940,7 @@ resolver when it is invoked.
 |                                                                                                  |
 | .. code:: bzl                                                                                    |
 |                                                                                                  |
-|     def _testmain_library_to_source(go, attr, source, merge)                                     |
+|     def _stdlib_library_to_source(go, attr, source, merge)                                       |
 |                                                                                                  |
 | attr is the attributes of the rule being processed                                               |
 | source is the dictionary of GoSource fields being generated                                      |
