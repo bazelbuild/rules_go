@@ -26,7 +26,7 @@ tasks:
   ubuntu2004_bcr_tests:
     name: BCR test module
     platform: ubuntu2004
-    bazel: 6.0.0-pre.20220526.1
+    bazel: 6.0.0-pre.20220608.2
     working_directory: tests/bcr
     build_flags:
       - "--experimental_enable_bzlmod"
