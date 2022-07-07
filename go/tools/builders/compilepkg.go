@@ -474,7 +474,7 @@ func compileArchive(
 		}
 		for i, sSrc := range srcs.sSrcs {
 			obj := filepath.Join(workDir, fmt.Sprintf("s%d.o", i))
-			if err := asmFile(goenv, sSrc.filename, asmFlags, obj); err != nil {
+			if err := asmFile(goenv, sSrc.filename, packagePath, asmFlags, obj); err != nil {
 				return err
 			}
 			objFiles = append(objFiles, obj)
