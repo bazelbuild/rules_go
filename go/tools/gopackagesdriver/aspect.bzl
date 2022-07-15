@@ -24,6 +24,16 @@ load(
 
 GoPkgInfo = provider()
 
+DEPS_ATTRS = [
+    "deps",
+    "embed",
+]
+
+PROTO_COMPILER_ATTRS = [
+    "compiler",
+    "compilers",
+]
+
 def _is_file_external(f):
     return f.owner.workspace_root != ""
 
@@ -67,8 +77,8 @@ def _go_pkg_info_aspect_impl(target, ctx):
     transitive_export_files = []
     transitive_compiled_go_files = []
 
-    for attr in ["deps", "embed"]:
-        for dep in getattr(ctx.rule.attr, attr, []):
+    for attr in DEPS_ATTRS + PROTO_COMPILER_ATTRS:
+        for dep in getattr(ctx.rule.attr, attr, []) or []:
             if GoPkgInfo in dep:
                 pkg_info = dep[GoPkgInfo]
                 transitive_json_files.append(pkg_info.pkg_json_files)
@@ -133,7 +143,7 @@ def _go_pkg_info_aspect_impl(target, ctx):
 
 go_pkg_info_aspect = aspect(
     implementation = _go_pkg_info_aspect_impl,
-    attr_aspects = ["embed", "deps"],
+    attr_aspects = DEPS_ATTRS + PROTO_COMPILER_ATTRS,
     attrs = {
         "_go_stdlib": attr.label(
             default = "//:stdlib",
