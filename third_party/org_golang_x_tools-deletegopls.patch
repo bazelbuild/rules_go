@@ -1,6 +1,6 @@
 diff -urN a/gopls/README.md b/gopls/README.md
 --- a/gopls/README.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/README.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/README.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,113 +0,0 @@
 -# `gopls`, the Go language server
 -
@@ -117,7 +117,7 @@ diff -urN a/gopls/README.md b/gopls/README.md
 -[Gophers Slack]: https://gophers.slack.com/
 diff -urN a/gopls/api-diff/api_diff.go b/gopls/api-diff/api_diff.go
 --- a/gopls/api-diff/api_diff.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/api-diff/api_diff.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/api-diff/api_diff.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,274 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -395,7 +395,7 @@ diff -urN a/gopls/api-diff/api_diff.go b/gopls/api-diff/api_diff.go
 -}
 diff -urN a/gopls/doc/advanced.md b/gopls/doc/advanced.md
 --- a/gopls/doc/advanced.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/advanced.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/advanced.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,69 +0,0 @@
 -# Advanced topics
 -
@@ -468,7 +468,7 @@ diff -urN a/gopls/doc/advanced.md b/gopls/doc/advanced.md
 -[Go project]: https://go.googlesource.com/go
 diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 --- a/gopls/doc/analyzers.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/analyzers.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/analyzers.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,676 +0,0 @@
 -# Analyzers
 -
@@ -1148,7 +1148,7 @@ diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 -<!-- END Analyzers: DO NOT MANUALLY EDIT THIS SECTION -->
 diff -urN a/gopls/doc/command-line.md b/gopls/doc/command-line.md
 --- a/gopls/doc/command-line.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/command-line.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/command-line.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,15 +0,0 @@
 -# Command line
 -
@@ -1167,7 +1167,7 @@ diff -urN a/gopls/doc/command-line.md b/gopls/doc/command-line.md
 -It is not a goal of `gopls` to be a high performance command line tool. Its command line is intended for single file/package user interaction speeds, not bulk processing.
 diff -urN a/gopls/doc/commands.md b/gopls/doc/commands.md
 --- a/gopls/doc/commands.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/commands.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/commands.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,436 +0,0 @@
 -# Commands
 -
@@ -1607,7 +1607,7 @@ diff -urN a/gopls/doc/commands.md b/gopls/doc/commands.md
 -<!-- END Commands: DO NOT MANUALLY EDIT THIS SECTION -->
 diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
 --- a/gopls/doc/contributing.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/contributing.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/contributing.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,119 +0,0 @@
 -# Documentation for contributors
 -
@@ -1730,7 +1730,7 @@ diff -urN a/gopls/doc/contributing.md b/gopls/doc/contributing.md
 -[issue-wanted]: https://github.com/golang/go/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Agopls+label%3A"help+wanted" "help wanted"
 diff -urN a/gopls/doc/daemon.md b/gopls/doc/daemon.md
 --- a/gopls/doc/daemon.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/daemon.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/daemon.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,183 +0,0 @@
 -# Running gopls as a daemon
 -
@@ -1917,7 +1917,7 @@ diff -urN a/gopls/doc/daemon.md b/gopls/doc/daemon.md
 -that actually starts the daemon.
 diff -urN a/gopls/doc/design/design.md b/gopls/doc/design/design.md
 --- a/gopls/doc/design/design.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/design/design.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/design/design.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,394 +0,0 @@
 -# `gopls` design documentation
 -
@@ -2315,7 +2315,7 @@ diff -urN a/gopls/doc/design/design.md b/gopls/doc/design/design.md
 -[`workspace/didChangeWatchedFiles`]: https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md#workspace_didChangeWatchedFiles
 diff -urN a/gopls/doc/design/implementation.md b/gopls/doc/design/implementation.md
 --- a/gopls/doc/design/implementation.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/design/implementation.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/design/implementation.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,48 +0,0 @@
 -# gopls implementation documentation
 -
@@ -2367,7 +2367,7 @@ diff -urN a/gopls/doc/design/implementation.md b/gopls/doc/design/implementation
 -[x/tools]: https://github.com/golang/tools
 diff -urN a/gopls/doc/design/integrating.md b/gopls/doc/design/integrating.md
 --- a/gopls/doc/design/integrating.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/design/integrating.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/design/integrating.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,91 +0,0 @@
 -# Documentation for plugin authors
 -
@@ -2462,7 +2462,7 @@ diff -urN a/gopls/doc/design/integrating.md b/gopls/doc/design/integrating.md
 -[#31526]: https://github.com/golang/go/issues/31526
 diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
 --- a/gopls/doc/emacs.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/emacs.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/emacs.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,183 +0,0 @@
 -# Emacs
 -
@@ -2649,7 +2649,7 @@ diff -urN a/gopls/doc/emacs.md b/gopls/doc/emacs.md
 -[Gophers slack]: https://invite.slack.golangbridge.org/
 diff -urN a/gopls/doc/features.md b/gopls/doc/features.md
 --- a/gopls/doc/features.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/features.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/features.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,55 +0,0 @@
 -# Features
 -
@@ -2708,7 +2708,7 @@ diff -urN a/gopls/doc/features.md b/gopls/doc/features.md
 -
 diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 --- a/gopls/doc/generate.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/generate.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/generate.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,712 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -3424,7 +3424,7 @@ diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 -}
 diff -urN a/gopls/doc/generate_test.go b/gopls/doc/generate_test.go
 --- a/gopls/doc/generate_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/generate_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/generate_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,26 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -3454,7 +3454,7 @@ diff -urN a/gopls/doc/generate_test.go b/gopls/doc/generate_test.go
 -}
 diff -urN a/gopls/doc/semantictokens.md b/gopls/doc/semantictokens.md
 --- a/gopls/doc/semantictokens.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/semantictokens.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/semantictokens.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,121 +0,0 @@
 -# Semantic Tokens
 -
@@ -3580,7 +3580,7 @@ diff -urN a/gopls/doc/semantictokens.md b/gopls/doc/semantictokens.md
 \ No newline at end of file
 diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 --- a/gopls/doc/settings.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/settings.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/settings.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,484 +0,0 @@
 -# Settings
 -
@@ -4068,7 +4068,7 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -<!-- END Lenses: DO NOT MANUALLY EDIT THIS SECTION -->
 diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
 --- a/gopls/doc/subl.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/subl.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/subl.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,81 +0,0 @@
 -# Sublime Text
 -
@@ -4153,7 +4153,7 @@ diff -urN a/gopls/doc/subl.md b/gopls/doc/subl.md
 -[LSP]: https://packagecontrol.io/packages/LSP
 diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 --- a/gopls/doc/troubleshooting.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/troubleshooting.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/troubleshooting.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,48 +0,0 @@
 -# Troubleshooting
 -
@@ -4205,7 +4205,7 @@ diff -urN a/gopls/doc/troubleshooting.md b/gopls/doc/troubleshooting.md
 -`gopls` automatically writes out memory debug information when your usage exceeds 1GB. This information can be found in your temporary directory with names like `gopls.1234-5GiB-withnames.zip`. On Windows, your temporary directory will be located at `%TMP%`, and on Unixes, it will be `$TMPDIR`, which is usually `/tmp`. Please [file an issue](#file-an-issue) with this memory debug information attached. If you are uncomfortable sharing the package names of your code, you can share the `-nonames` zip instead, but it's much less useful.
 diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 --- a/gopls/doc/vim.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/vim.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/vim.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,225 +0,0 @@
 -# Vim / Neovim
 -
@@ -4434,7 +4434,7 @@ diff -urN a/gopls/doc/vim.md b/gopls/doc/vim.md
 -[nvim-lspconfig-imports]: https://github.com/neovim/nvim-lspconfig/issues/115
 diff -urN a/gopls/doc/workspace.md b/gopls/doc/workspace.md
 --- a/gopls/doc/workspace.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/doc/workspace.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/doc/workspace.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,95 +0,0 @@
 -# Setting up your workspace
 -
@@ -4533,7 +4533,7 @@ diff -urN a/gopls/doc/workspace.md b/gopls/doc/workspace.md
 -[file a new issue](https://github.com/golang/go/issues/new).
 diff -urN a/gopls/go.mod b/gopls/go.mod
 --- a/gopls/go.mod	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/go.mod	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/go.mod	1969-12-31 16:00:00.000000000 -0800
 @@ -1,28 +0,0 @@
 -module golang.org/x/tools/gopls
 -
@@ -4565,7 +4565,7 @@ diff -urN a/gopls/go.mod b/gopls/go.mod
 -replace golang.org/x/tools => ../
 diff -urN a/gopls/go.sum b/gopls/go.sum
 --- a/gopls/go.sum	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/go.sum	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/go.sum	1969-12-31 16:00:00.000000000 -0800
 @@ -1,95 +0,0 @@
 -github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 -github.com/BurntSushi/toml v0.4.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
@@ -4664,7 +4664,7 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -mvdan.cc/xurls/v2 v2.4.0/go.mod h1:+GEjq9uNjqs8LQfM9nVnM8rff0OQ5Iash5rzX+N1CSg=
 diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerfile
 --- a/gopls/integration/govim/Dockerfile	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/integration/govim/Dockerfile	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/integration/govim/Dockerfile	1969-12-31 16:00:00.000000000 -0800
 @@ -1,16 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
@@ -4684,7 +4684,7 @@ diff -urN a/gopls/integration/govim/Dockerfile b/gopls/integration/govim/Dockerf
 -    git checkout $GOVIM_REF
 diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.md
 --- a/gopls/integration/govim/README.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/integration/govim/README.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/integration/govim/README.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,47 +0,0 @@
 -# govim integration tests
 -
@@ -4735,7 +4735,7 @@ diff -urN a/gopls/integration/govim/README.md b/gopls/integration/govim/README.m
 -[govim]: https://github.com/govim/govim
 diff -urN a/gopls/integration/govim/artifacts.go b/gopls/integration/govim/artifacts.go
 --- a/gopls/integration/govim/artifacts.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/integration/govim/artifacts.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/integration/govim/artifacts.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,67 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -4806,7 +4806,7 @@ diff -urN a/gopls/integration/govim/artifacts.go b/gopls/integration/govim/artif
 -}
 diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/govim/cloudbuild.harness.yaml
 --- a/gopls/integration/govim/cloudbuild.harness.yaml	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/integration/govim/cloudbuild.harness.yaml	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/integration/govim/cloudbuild.harness.yaml	1969-12-31 16:00:00.000000000 -0800
 @@ -1,21 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
@@ -4831,7 +4831,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.harness.yaml b/gopls/integration/
 -  - gcr.io/$PROJECT_ID/govim-harness
 diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cloudbuild.yaml
 --- a/gopls/integration/govim/cloudbuild.yaml	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/integration/govim/cloudbuild.yaml	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/integration/govim/cloudbuild.yaml	1969-12-31 16:00:00.000000000 -0800
 @@ -1,51 +0,0 @@
 -# Copyright 2019 The Go Authors. All rights reserved.
 -# Use of this source code is governed by a BSD-style
@@ -4886,7 +4886,7 @@ diff -urN a/gopls/integration/govim/cloudbuild.yaml b/gopls/integration/govim/cl
 -logsBucket: 'gs://${_RESULT_BUCKET}'
 diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_local.sh
 --- a/gopls/integration/govim/run_local.sh	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/integration/govim/run_local.sh	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/integration/govim/run_local.sh	1969-12-31 16:00:00.000000000 -0800
 @@ -1,96 +0,0 @@
 -#!/bin/bash -e
 -
@@ -4986,7 +4986,7 @@ diff -urN a/gopls/integration/govim/run_local.sh b/gopls/integration/govim/run_l
 -    -gopls "/src/tools/gopls/${temp_gopls_name}"
 diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integration/govim/run_tests_for_cloudbuild.sh
 --- a/gopls/integration/govim/run_tests_for_cloudbuild.sh	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/integration/govim/run_tests_for_cloudbuild.sh	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/integration/govim/run_tests_for_cloudbuild.sh	1969-12-31 16:00:00.000000000 -0800
 @@ -1,28 +0,0 @@
 -#!/bin/bash
 -
@@ -5018,7 +5018,7 @@ diff -urN a/gopls/integration/govim/run_tests_for_cloudbuild.sh b/gopls/integrat
 -fi
 diff -urN a/gopls/internal/coverage/coverage.go b/gopls/internal/coverage/coverage.go
 --- a/gopls/internal/coverage/coverage.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/coverage/coverage.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/coverage/coverage.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,261 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -5283,7 +5283,7 @@ diff -urN a/gopls/internal/coverage/coverage.go b/gopls/internal/coverage/covera
 -}
 diff -urN a/gopls/internal/govulncheck/README.md b/gopls/internal/govulncheck/README.md
 --- a/gopls/internal/govulncheck/README.md	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/govulncheck/README.md	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/govulncheck/README.md	1969-12-31 16:00:00.000000000 -0800
 @@ -1,17 +0,0 @@
 -# internal/govulncheck package
 -
@@ -5304,7 +5304,7 @@ diff -urN a/gopls/internal/govulncheck/README.md b/gopls/internal/govulncheck/RE
 -3. Run `copy.sh`.
 diff -urN a/gopls/internal/govulncheck/cache.go b/gopls/internal/govulncheck/cache.go
 --- a/gopls/internal/govulncheck/cache.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/govulncheck/cache.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/govulncheck/cache.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,138 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -5446,7 +5446,7 @@ diff -urN a/gopls/internal/govulncheck/cache.go b/gopls/internal/govulncheck/cac
 -}
 diff -urN a/gopls/internal/govulncheck/cache_test.go b/gopls/internal/govulncheck/cache_test.go
 --- a/gopls/internal/govulncheck/cache_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/govulncheck/cache_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/govulncheck/cache_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,165 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -5615,7 +5615,7 @@ diff -urN a/gopls/internal/govulncheck/cache_test.go b/gopls/internal/govulnchec
 -}
 diff -urN a/gopls/internal/govulncheck/copy.sh b/gopls/internal/govulncheck/copy.sh
 --- a/gopls/internal/govulncheck/copy.sh	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/govulncheck/copy.sh	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/govulncheck/copy.sh	1969-12-31 16:00:00.000000000 -0800
 @@ -1,13 +0,0 @@
 -#!/bin/bash -eu
 -
@@ -5632,7 +5632,7 @@ diff -urN a/gopls/internal/govulncheck/copy.sh b/gopls/internal/govulncheck/copy
 -cp ../../../../vuln/cmd/govulncheck/internal/govulncheck/*.go .
 diff -urN a/gopls/internal/govulncheck/source.go b/gopls/internal/govulncheck/source.go
 --- a/gopls/internal/govulncheck/source.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/govulncheck/source.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/govulncheck/source.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,129 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -5765,7 +5765,7 @@ diff -urN a/gopls/internal/govulncheck/source.go b/gopls/internal/govulncheck/so
 -}
 diff -urN a/gopls/internal/govulncheck/util.go b/gopls/internal/govulncheck/util.go
 --- a/gopls/internal/govulncheck/util.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/govulncheck/util.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/govulncheck/util.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,109 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -5878,7 +5878,7 @@ diff -urN a/gopls/internal/govulncheck/util.go b/gopls/internal/govulncheck/util
 -}
 diff -urN a/gopls/internal/govulncheck/util_test.go b/gopls/internal/govulncheck/util_test.go
 --- a/gopls/internal/govulncheck/util_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/govulncheck/util_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/govulncheck/util_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,85 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -5967,7 +5967,7 @@ diff -urN a/gopls/internal/govulncheck/util_test.go b/gopls/internal/govulncheck
 -}
 diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 --- a/gopls/internal/hooks/analysis.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/analysis.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/analysis.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,62 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6033,7 +6033,7 @@ diff -urN a/gopls/internal/hooks/analysis.go b/gopls/internal/hooks/analysis.go
 -}
 diff -urN a/gopls/internal/hooks/analysis_117.go b/gopls/internal/hooks/analysis_117.go
 --- a/gopls/internal/hooks/analysis_117.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/analysis_117.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/analysis_117.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,14 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6051,7 +6051,7 @@ diff -urN a/gopls/internal/hooks/analysis_117.go b/gopls/internal/hooks/analysis
 -}
 diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
 --- a/gopls/internal/hooks/diff.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/diff.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/diff.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,41 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6096,7 +6096,7 @@ diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
 -}
 diff -urN a/gopls/internal/hooks/diff_test.go b/gopls/internal/hooks/diff_test.go
 --- a/gopls/internal/hooks/diff_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/diff_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/diff_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,16 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6116,7 +6116,7 @@ diff -urN a/gopls/internal/hooks/diff_test.go b/gopls/internal/hooks/diff_test.g
 -}
 diff -urN a/gopls/internal/hooks/gen-licenses.sh b/gopls/internal/hooks/gen-licenses.sh
 --- a/gopls/internal/hooks/gen-licenses.sh	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/gen-licenses.sh	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/gen-licenses.sh	1969-12-31 16:00:00.000000000 -0800
 @@ -1,38 +0,0 @@
 -#!/bin/bash -eu
 -
@@ -6159,7 +6159,7 @@ diff -urN a/gopls/internal/hooks/gen-licenses.sh b/gopls/internal/hooks/gen-lice
 \ No newline at end of file
 diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 --- a/gopls/internal/hooks/hooks.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/hooks.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/hooks.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,34 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6197,7 +6197,7 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 -}
 diff -urN a/gopls/internal/hooks/licenses.go b/gopls/internal/hooks/licenses.go
 --- a/gopls/internal/hooks/licenses.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/licenses.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/licenses.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,169 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6370,7 +6370,7 @@ diff -urN a/gopls/internal/hooks/licenses.go b/gopls/internal/hooks/licenses.go
 -`
 diff -urN a/gopls/internal/hooks/licenses_test.go b/gopls/internal/hooks/licenses_test.go
 --- a/gopls/internal/hooks/licenses_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/hooks/licenses_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/hooks/licenses_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,46 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6420,7 +6420,7 @@ diff -urN a/gopls/internal/hooks/licenses_test.go b/gopls/internal/hooks/license
 -}
 diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/bench/bench_test.go
 --- a/gopls/internal/regtest/bench/bench_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/bench/bench_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/bench/bench_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,194 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6618,7 +6618,7 @@ diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/
 -}
 diff -urN a/gopls/internal/regtest/bench/completion_bench_test.go b/gopls/internal/regtest/bench/completion_bench_test.go
 --- a/gopls/internal/regtest/bench/completion_bench_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/bench/completion_bench_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/bench/completion_bench_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,187 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6809,7 +6809,7 @@ diff -urN a/gopls/internal/regtest/bench/completion_bench_test.go b/gopls/intern
 -}
 diff -urN a/gopls/internal/regtest/bench/stress_test.go b/gopls/internal/regtest/bench/stress_test.go
 --- a/gopls/internal/regtest/bench/stress_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/bench/stress_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/bench/stress_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,66 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -6879,7 +6879,7 @@ diff -urN a/gopls/internal/regtest/bench/stress_test.go b/gopls/internal/regtest
 -}
 diff -urN a/gopls/internal/regtest/codelens/codelens_test.go b/gopls/internal/regtest/codelens/codelens_test.go
 --- a/gopls/internal/regtest/codelens/codelens_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/codelens/codelens_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/codelens/codelens_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,355 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -7238,7 +7238,7 @@ diff -urN a/gopls/internal/regtest/codelens/codelens_test.go b/gopls/internal/re
 -}
 diff -urN a/gopls/internal/regtest/completion/completion18_test.go b/gopls/internal/regtest/completion/completion18_test.go
 --- a/gopls/internal/regtest/completion/completion18_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/completion/completion18_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/completion/completion18_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,123 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -7365,7 +7365,7 @@ diff -urN a/gopls/internal/regtest/completion/completion18_test.go b/gopls/inter
 -}
 diff -urN a/gopls/internal/regtest/completion/completion_test.go b/gopls/internal/regtest/completion/completion_test.go
 --- a/gopls/internal/regtest/completion/completion_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/completion/completion_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/completion/completion_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,648 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -8017,7 +8017,7 @@ diff -urN a/gopls/internal/regtest/completion/completion_test.go b/gopls/interna
 -}
 diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/internal/regtest/completion/postfix_snippet_test.go
 --- a/gopls/internal/regtest/completion/postfix_snippet_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/completion/postfix_snippet_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/completion/postfix_snippet_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,442 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -8463,7 +8463,7 @@ diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/in
 -}
 diff -urN a/gopls/internal/regtest/debug/debug_test.go b/gopls/internal/regtest/debug/debug_test.go
 --- a/gopls/internal/regtest/debug/debug_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/debug/debug_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/debug/debug_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,34 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -8501,7 +8501,7 @@ diff -urN a/gopls/internal/regtest/debug/debug_test.go b/gopls/internal/regtest/
 -}
 diff -urN a/gopls/internal/regtest/diagnostics/builtin_test.go b/gopls/internal/regtest/diagnostics/builtin_test.go
 --- a/gopls/internal/regtest/diagnostics/builtin_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/diagnostics/builtin_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/diagnostics/builtin_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,38 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -8543,7 +8543,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/builtin_test.go b/gopls/internal/
 -}
 diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/internal/regtest/diagnostics/diagnostics_test.go
 --- a/gopls/internal/regtest/diagnostics/diagnostics_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/diagnostics/diagnostics_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/diagnostics/diagnostics_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,2268 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -10815,7 +10815,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -}
 diff -urN a/gopls/internal/regtest/diagnostics/undeclared_test.go b/gopls/internal/regtest/diagnostics/undeclared_test.go
 --- a/gopls/internal/regtest/diagnostics/undeclared_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/diagnostics/undeclared_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/diagnostics/undeclared_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,67 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -10886,7 +10886,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/undeclared_test.go b/gopls/intern
 -}
 diff -urN a/gopls/internal/regtest/misc/call_hierarchy_test.go b/gopls/internal/regtest/misc/call_hierarchy_test.go
 --- a/gopls/internal/regtest/misc/call_hierarchy_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/call_hierarchy_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/call_hierarchy_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,35 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -10925,7 +10925,7 @@ diff -urN a/gopls/internal/regtest/misc/call_hierarchy_test.go b/gopls/internal/
 -}
 diff -urN a/gopls/internal/regtest/misc/configuration_test.go b/gopls/internal/regtest/misc/configuration_test.go
 --- a/gopls/internal/regtest/misc/configuration_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/configuration_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/configuration_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,80 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -11009,7 +11009,7 @@ diff -urN a/gopls/internal/regtest/misc/configuration_test.go b/gopls/internal/r
 -}
 diff -urN a/gopls/internal/regtest/misc/debugserver_test.go b/gopls/internal/regtest/misc/debugserver_test.go
 --- a/gopls/internal/regtest/misc/debugserver_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/debugserver_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/debugserver_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,46 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -11059,7 +11059,7 @@ diff -urN a/gopls/internal/regtest/misc/debugserver_test.go b/gopls/internal/reg
 -}
 diff -urN a/gopls/internal/regtest/misc/definition_test.go b/gopls/internal/regtest/misc/definition_test.go
 --- a/gopls/internal/regtest/misc/definition_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/definition_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/definition_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,291 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -11354,7 +11354,7 @@ diff -urN a/gopls/internal/regtest/misc/definition_test.go b/gopls/internal/regt
 -}
 diff -urN a/gopls/internal/regtest/misc/embed_test.go b/gopls/internal/regtest/misc/embed_test.go
 --- a/gopls/internal/regtest/misc/embed_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/embed_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/embed_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,37 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -11395,7 +11395,7 @@ diff -urN a/gopls/internal/regtest/misc/embed_test.go b/gopls/internal/regtest/m
 -}
 diff -urN a/gopls/internal/regtest/misc/failures_test.go b/gopls/internal/regtest/misc/failures_test.go
 --- a/gopls/internal/regtest/misc/failures_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/failures_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/failures_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,70 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -11469,7 +11469,7 @@ diff -urN a/gopls/internal/regtest/misc/failures_test.go b/gopls/internal/regtes
 -}
 diff -urN a/gopls/internal/regtest/misc/fix_test.go b/gopls/internal/regtest/misc/fix_test.go
 --- a/gopls/internal/regtest/misc/fix_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/fix_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/fix_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,107 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -11580,7 +11580,7 @@ diff -urN a/gopls/internal/regtest/misc/fix_test.go b/gopls/internal/regtest/mis
 -}
 diff -urN a/gopls/internal/regtest/misc/formatting_test.go b/gopls/internal/regtest/misc/formatting_test.go
 --- a/gopls/internal/regtest/misc/formatting_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/formatting_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/formatting_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,369 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -11953,7 +11953,7 @@ diff -urN a/gopls/internal/regtest/misc/formatting_test.go b/gopls/internal/regt
 -}
 diff -urN a/gopls/internal/regtest/misc/generate_test.go b/gopls/internal/regtest/misc/generate_test.go
 --- a/gopls/internal/regtest/misc/generate_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/generate_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/generate_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,75 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12032,7 +12032,7 @@ diff -urN a/gopls/internal/regtest/misc/generate_test.go b/gopls/internal/regtes
 -}
 diff -urN a/gopls/internal/regtest/misc/highlight_test.go b/gopls/internal/regtest/misc/highlight_test.go
 --- a/gopls/internal/regtest/misc/highlight_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/highlight_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/highlight_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,151 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12187,7 +12187,7 @@ diff -urN a/gopls/internal/regtest/misc/highlight_test.go b/gopls/internal/regte
 -}
 diff -urN a/gopls/internal/regtest/misc/hover_test.go b/gopls/internal/regtest/misc/hover_test.go
 --- a/gopls/internal/regtest/misc/hover_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/hover_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/hover_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,223 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12414,7 +12414,7 @@ diff -urN a/gopls/internal/regtest/misc/hover_test.go b/gopls/internal/regtest/m
 -}
 diff -urN a/gopls/internal/regtest/misc/import_test.go b/gopls/internal/regtest/misc/import_test.go
 --- a/gopls/internal/regtest/misc/import_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/import_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/import_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,133 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12551,7 +12551,7 @@ diff -urN a/gopls/internal/regtest/misc/import_test.go b/gopls/internal/regtest/
 -}
 diff -urN a/gopls/internal/regtest/misc/imports_test.go b/gopls/internal/regtest/misc/imports_test.go
 --- a/gopls/internal/regtest/misc/imports_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/imports_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/imports_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,216 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12771,7 +12771,7 @@ diff -urN a/gopls/internal/regtest/misc/imports_test.go b/gopls/internal/regtest
 -}
 diff -urN a/gopls/internal/regtest/misc/link_test.go b/gopls/internal/regtest/misc/link_test.go
 --- a/gopls/internal/regtest/misc/link_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/link_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/link_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,98 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12873,7 +12873,7 @@ diff -urN a/gopls/internal/regtest/misc/link_test.go b/gopls/internal/regtest/mi
 -}
 diff -urN a/gopls/internal/regtest/misc/misc_test.go b/gopls/internal/regtest/misc/misc_test.go
 --- a/gopls/internal/regtest/misc/misc_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/misc_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/misc_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,18 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12895,7 +12895,7 @@ diff -urN a/gopls/internal/regtest/misc/misc_test.go b/gopls/internal/regtest/mi
 -}
 diff -urN a/gopls/internal/regtest/misc/multiple_adhoc_test.go b/gopls/internal/regtest/misc/multiple_adhoc_test.go
 --- a/gopls/internal/regtest/misc/multiple_adhoc_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/multiple_adhoc_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/multiple_adhoc_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,44 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -12943,7 +12943,7 @@ diff -urN a/gopls/internal/regtest/misc/multiple_adhoc_test.go b/gopls/internal/
 -}
 diff -urN a/gopls/internal/regtest/misc/references_test.go b/gopls/internal/regtest/misc/references_test.go
 --- a/gopls/internal/regtest/misc/references_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/references_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/references_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,83 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13030,7 +13030,7 @@ diff -urN a/gopls/internal/regtest/misc/references_test.go b/gopls/internal/regt
 -}
 diff -urN a/gopls/internal/regtest/misc/rename_test.go b/gopls/internal/regtest/misc/rename_test.go
 --- a/gopls/internal/regtest/misc/rename_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/rename_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/rename_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,58 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13092,7 +13092,7 @@ diff -urN a/gopls/internal/regtest/misc/rename_test.go b/gopls/internal/regtest/
 -}
 diff -urN a/gopls/internal/regtest/misc/semantictokens_test.go b/gopls/internal/regtest/misc/semantictokens_test.go
 --- a/gopls/internal/regtest/misc/semantictokens_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/semantictokens_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/semantictokens_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,44 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13140,7 +13140,7 @@ diff -urN a/gopls/internal/regtest/misc/semantictokens_test.go b/gopls/internal/
 -}
 diff -urN a/gopls/internal/regtest/misc/settings_test.go b/gopls/internal/regtest/misc/settings_test.go
 --- a/gopls/internal/regtest/misc/settings_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/settings_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/settings_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,36 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13180,7 +13180,7 @@ diff -urN a/gopls/internal/regtest/misc/settings_test.go b/gopls/internal/regtes
 -}
 diff -urN a/gopls/internal/regtest/misc/shared_test.go b/gopls/internal/regtest/misc/shared_test.go
 --- a/gopls/internal/regtest/misc/shared_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/shared_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/shared_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,64 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13248,7 +13248,7 @@ diff -urN a/gopls/internal/regtest/misc/shared_test.go b/gopls/internal/regtest/
 -}
 diff -urN a/gopls/internal/regtest/misc/staticcheck_test.go b/gopls/internal/regtest/misc/staticcheck_test.go
 --- a/gopls/internal/regtest/misc/staticcheck_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/staticcheck_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/staticcheck_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,78 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13330,7 +13330,7 @@ diff -urN a/gopls/internal/regtest/misc/staticcheck_test.go b/gopls/internal/reg
 -}
 diff -urN a/gopls/internal/regtest/misc/vendor_test.go b/gopls/internal/regtest/misc/vendor_test.go
 --- a/gopls/internal/regtest/misc/vendor_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/vendor_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/vendor_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,79 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13413,7 +13413,7 @@ diff -urN a/gopls/internal/regtest/misc/vendor_test.go b/gopls/internal/regtest/
 -}
 diff -urN a/gopls/internal/regtest/misc/vuln_test.go b/gopls/internal/regtest/misc/vuln_test.go
 --- a/gopls/internal/regtest/misc/vuln_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/vuln_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/vuln_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,43 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13460,7 +13460,7 @@ diff -urN a/gopls/internal/regtest/misc/vuln_test.go b/gopls/internal/regtest/mi
 -}
 diff -urN a/gopls/internal/regtest/misc/workspace_symbol_test.go b/gopls/internal/regtest/misc/workspace_symbol_test.go
 --- a/gopls/internal/regtest/misc/workspace_symbol_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/misc/workspace_symbol_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/misc/workspace_symbol_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,131 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -13595,7 +13595,7 @@ diff -urN a/gopls/internal/regtest/misc/workspace_symbol_test.go b/gopls/interna
 -}
 diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regtest/modfile/modfile_test.go
 --- a/gopls/internal/regtest/modfile/modfile_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/modfile/modfile_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/modfile/modfile_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,1199 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -14798,7 +14798,7 @@ diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regt
 -}
 diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/regtest/template/template_test.go
 --- a/gopls/internal/regtest/template/template_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/template/template_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/template/template_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,232 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -15034,7 +15034,7 @@ diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/re
 -// Hover needs tests
 diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/watch/watch_test.go
 --- a/gopls/internal/regtest/watch/watch_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/watch/watch_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/watch/watch_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,768 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -15806,7 +15806,7 @@ diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/
 -}
 diff -urN a/gopls/internal/regtest/workspace/metadata_test.go b/gopls/internal/regtest/workspace/metadata_test.go
 --- a/gopls/internal/regtest/workspace/metadata_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/workspace/metadata_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/workspace/metadata_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,43 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -15853,7 +15853,7 @@ diff -urN a/gopls/internal/regtest/workspace/metadata_test.go b/gopls/internal/r
 -}
 diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/regtest/workspace/workspace_test.go
 --- a/gopls/internal/regtest/workspace/workspace_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/regtest/workspace/workspace_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/regtest/workspace/workspace_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,1307 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -17164,7 +17164,7 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -}
 diff -urN a/gopls/internal/vulncheck/command.go b/gopls/internal/vulncheck/command.go
 --- a/gopls/internal/vulncheck/command.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/vulncheck/command.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/vulncheck/command.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,123 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -17291,7 +17291,7 @@ diff -urN a/gopls/internal/vulncheck/command.go b/gopls/internal/vulncheck/comma
 -}
 diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/command_test.go
 --- a/gopls/internal/vulncheck/command_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/vulncheck/command_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/vulncheck/command_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,310 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -17605,7 +17605,7 @@ diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/
 -}
 diff -urN a/gopls/internal/vulncheck/util.go b/gopls/internal/vulncheck/util.go
 --- a/gopls/internal/vulncheck/util.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/vulncheck/util.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/vulncheck/util.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,82 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -17691,7 +17691,7 @@ diff -urN a/gopls/internal/vulncheck/util.go b/gopls/internal/vulncheck/util.go
 -}
 diff -urN a/gopls/internal/vulncheck/vulncheck.go b/gopls/internal/vulncheck/vulncheck.go
 --- a/gopls/internal/vulncheck/vulncheck.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/internal/vulncheck/vulncheck.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/internal/vulncheck/vulncheck.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,23 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -17718,7 +17718,7 @@ diff -urN a/gopls/internal/vulncheck/vulncheck.go b/gopls/internal/vulncheck/vul
 -}
 diff -urN a/gopls/main.go b/gopls/main.go
 --- a/gopls/main.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/main.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/main.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,31 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -17753,7 +17753,7 @@ diff -urN a/gopls/main.go b/gopls/main.go
 -}
 diff -urN a/gopls/release/release.go b/gopls/release/release.go
 --- a/gopls/release/release.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/release/release.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/release/release.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,213 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -17970,7 +17970,7 @@ diff -urN a/gopls/release/release.go b/gopls/release/release.go
 -}
 diff -urN a/gopls/test/debug/debug_test.go b/gopls/test/debug/debug_test.go
 --- a/gopls/test/debug/debug_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/test/debug/debug_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/test/debug/debug_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,181 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -18155,7 +18155,7 @@ diff -urN a/gopls/test/debug/debug_test.go b/gopls/test/debug/debug_test.go
 -}
 diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 --- a/gopls/test/gopls_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/test/gopls_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/test/gopls_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,34 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
@@ -18193,7 +18193,7 @@ diff -urN a/gopls/test/gopls_test.go b/gopls/test/gopls_test.go
 -}
 diff -urN a/gopls/test/json_test.go b/gopls/test/json_test.go
 --- a/gopls/test/json_test.go	2000-01-01 00:00:00.000000000 -0000
-+++ b/gopls/test/json_test.go	1970-01-01 01:00:00.000000000 +0100
++++ b/gopls/test/json_test.go	1969-12-31 16:00:00.000000000 -0800
 @@ -1,134 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
