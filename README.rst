@@ -75,8 +75,8 @@ Announcements
 2022-07-19
   Release
   `v0.34.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.34.0>`_
-  is now available. This release brings initial support for bzlmod, several
-  improvements to nogo and gopackagesdriver.
+  is now available. This release brings very experimental support for bzlmod,
+  several improvements to nogo and gopackagesdriver.
 
 2022-06-06
   Release
