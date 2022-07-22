@@ -1,7 +1,7 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 
-  ["Make variable"]: https://bazel.build/reference/be/make-variables)
+  ["Make variable"]: https://bazel.build/reference/be/make-variables
   [Bourne shell tokenization]: https://bazel.build/reference/be/common-definitions#sh-tokenization
   [Gazelle]: https://github.com/bazelbuild/bazel-gazelle
   [GoArchive]: /go/providers.rst#GoArchive
