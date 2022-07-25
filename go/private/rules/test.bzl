@@ -162,6 +162,7 @@ def _go_test_impl(ctx):
     env = {}
     for k, v in ctx.attr.env.items():
         env[k] = ctx.expand_location(v, ctx.attr.data)
+    inherited_environment = ctx.attr.env_inherit
 
     # Bazel only looks for coverage data if the test target has an
     # InstrumentedFilesProvider. If the provider is found and at least one
@@ -184,7 +185,7 @@ def _go_test_impl(ctx):
             dependency_attributes = ["data", "deps", "embed", "embedsrcs"],
             extensions = ["go"],
         ),
-        testing.TestEnvironment(env),
+        testing.TestEnvironment(env, inherited_environment),
     ]
 
 _go_test_kwargs = {
@@ -242,6 +243,10 @@ _go_test_kwargs = {
             The values (but not keys) are subject to
             [location expansion](https://docs.bazel.build/versions/main/skylark/macros.html) but not full
             [make variable expansion](https://docs.bazel.build/versions/main/be/make-variables.html).
+            """,
+        ),
+        "env_inherit": attr.string_list(
+            doc = """Environment variables to inherit from the external environment.
             """,
         ),
         "importpath": attr.string(
