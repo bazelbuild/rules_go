@@ -432,6 +432,12 @@ def go_context(ctx, attr = None):
         # happen. See #2291 for more information.
         "GOPATH": "",
     }
+
+    # The level of support is determined by the platform constraints in
+    # //go/constraints/amd64.
+    # See https://github.com/golang/go/wiki/MinimumRequirements#amd64
+    if mode.amd64:
+        env["GOAMD64"] = mode.amd64
     if mode.pure:
         crosstool = []
         cgo_tools = None
@@ -814,6 +820,7 @@ def _go_config_impl(ctx):
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
+        amd64 = ctx.attr.amd64,
     )]
 
 go_config = rule(
@@ -856,6 +863,7 @@ go_config = rule(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
+        "amd64": attr.string(),
     },
     provides = [GoConfigInfo],
     doc = """Collects information about build settings in the current

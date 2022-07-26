@@ -1,0 +1,38 @@
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+# Represents the level of support for the particular microarchitecture of a
+# target platform based on the general amd64 architecture.
+# GOAMD64 is set based on the chosen constraint_value.
+# See https://github.com/golang/go/wiki/MinimumRequirements#amd64
+constraint_setting(
+    name = "amd64",
+)
+
+constraint_value(
+    name = "v1",
+    constraint_setting = ":amd64",
+)
+
+constraint_value(
+    name = "v2",
+    constraint_setting = ":amd64",
+)
+
+constraint_value(
+    name = "v3",
+    constraint_setting = ":amd64",
+)
+
+constraint_value(
+    name = "v4",
+    constraint_setting = ":amd64",
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
