@@ -16,55 +16,60 @@ package runfiles_test
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel/runfiles"
 )
 
-func ExamplePath() {
+func TestPath_FileLookup(t *testing.T) {
 	path, err := runfiles.Path("io_bazel_rules_go/go/tools/bazel/runfiles/test.txt")
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	b, err := os.ReadFile(path)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
-	fmt.Println(string(b))
-	// Output: hi!
+	got := strings.TrimSpace(string(b))
+	want := "hi!"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
 }
 
-func ExampleRunfiles() {
+func TestPath_SubprocessRunfilesLookup(t *testing.T) {
 	r, err := runfiles.New()
 	if err != nil {
 		panic(err)
 	}
 	// The binary “testprog” is itself built with Bazel, and needs
 	// runfiles.
-	prog, err := r.Path("io_bazel_rules_go/go/tools/bazel/runfiles/testprog/testprog")
+	testprogRpath := "io_bazel_rules_go/go/tools/bazel/runfiles/testprog/testprog_/testprog"
+	if runtime.GOOS == "windows" {
+		testprogRpath += ".exe"
+	}
+	prog, err := r.Path(testprogRpath)
 	if err != nil {
 		panic(err)
-	}
-	if runtime.GOOS == "windows" {
-		// TODO: fixme
-		// panic: exec: "...testprog\\testprog": file does not exist [recovered]
-		return
 	}
 	cmd := exec.Command(prog)
 	// We add r.Env() after os.Environ() so that runfile environment
 	// variables override anything set in the process environment.
 	cmd.Env = append(os.Environ(), r.Env()...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		panic(err)
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatal(err)
 	}
-	// Output: hi!
+	got := strings.TrimSpace(string(out))
+	want := "hi!"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
 }
 
 func TestPath_errors(t *testing.T) {

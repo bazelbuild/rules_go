@@ -24,7 +24,6 @@ go_library(
 
 go_binary(
     name = "testprog",
-    out = "testprog",
     data = ["//go/tools/bazel/runfiles:test.txt"],
     embed = [":testprog_lib"],
     visibility = ["//go/tools/bazel/runfiles:__pkg__"],
