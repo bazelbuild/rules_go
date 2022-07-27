@@ -111,7 +111,7 @@ func TestRunfiles_empty(t *testing.T) {
 func TestRunfiles_manifestWithDir(t *testing.T) {
 	dir := t.TempDir()
 	manifest := filepath.Join(dir, "manifest")
-	if err := os.WriteFile(manifest, []byte(filepath.FromSlash("foo/dir")+" "+filepath.FromSlash("path/to/foo/dir\n")), 0o600); err != nil {
+	if err := os.WriteFile(manifest, []byte("foo/dir path/to/foo/dir\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	r, err := runfiles.New(runfiles.ManifestFile(manifest))
@@ -120,9 +120,9 @@ func TestRunfiles_manifestWithDir(t *testing.T) {
 	}
 
 	for rlocation, want := range map[string]string{
-		filepath.FromSlash("foo/dir"):                    filepath.FromSlash("path/to/foo/dir"),
-		filepath.FromSlash("foo/dir/file"):               filepath.FromSlash("path/to/foo/dir/file"),
-		filepath.FromSlash("foo/dir/deeply/nested/file"): filepath.FromSlash("path/to/foo/dir/deeply/nested/file"),
+		"foo/dir":                    filepath.FromSlash("path/to/foo/dir"),
+		"foo/dir/file":               filepath.FromSlash("path/to/foo/dir/file"),
+		"foo/dir/deeply/nested/file": filepath.FromSlash("path/to/foo/dir/deeply/nested/file"),
 	} {
 		t.Run(rlocation, func(t *testing.T) {
 			got, err := r.Path(rlocation)

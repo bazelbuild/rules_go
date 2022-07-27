@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -74,10 +75,10 @@ func (m manifest) path(s string) (string, error) {
 	// If path references a runfile that lies under a directory that itself is a
 	// runfile, then only the directory is listed in the manifest. Look up all
 	// prefixes of path in the manifest.
-	for prefix := s; prefix != ""; prefix, _ = filepath.Split(prefix) {
-		prefix = strings.TrimSuffix(prefix, string(os.PathSeparator))
+	for prefix := s; prefix != ""; prefix, _ = path.Split(prefix) {
+		prefix = strings.TrimSuffix(prefix, "/")
 		if prefixMatch, ok := m[prefix]; ok {
-			return prefixMatch + strings.TrimPrefix(s, prefix), nil
+			return prefixMatch + filepath.FromSlash(strings.TrimPrefix(s, prefix)), nil
 		}
 	}
 
