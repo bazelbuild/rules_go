@@ -185,7 +185,7 @@ def _go_test_impl(ctx):
             dependency_attributes = ["data", "deps", "embed", "embedsrcs"],
             extensions = ["go"],
         ),
-        testing.TestEnvironment(env, inherited_environment),
+        testing.TestEnvironment(env, inherited_environment) if inherited_environment else testing.TestEnvironment(env),
     ]
 
 _go_test_kwargs = {
