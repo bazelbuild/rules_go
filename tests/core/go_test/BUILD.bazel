@@ -243,3 +243,9 @@ go_test(
         "@io_bazel_rules_go//go/tools/bazel",
     ],
 )
+
+go_test(
+    name = "env_inherit_test",
+    env_inherit = ["INHERITEDVAR"],
+    srcs = ["env_inherit_test.go"],
+)
