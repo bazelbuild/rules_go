@@ -244,8 +244,7 @@ go_test(
     ],
 )
 
-go_test(
+go_bazel_test(
     name = "env_inherit_test",
-    env_inherit = ["INHERITEDVAR"],
     srcs = ["env_inherit_test.go"],
 )
