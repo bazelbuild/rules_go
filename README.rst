@@ -276,7 +276,7 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "ab21448cef298740765f33a7f5acee0607203e4ea321219f2a4c85a6e0fb0a27",
+        sha256 = "c94d55fe5b87723fd9c4652f464b51a665631fa8d8deba6a5e74a6cd6e3f97a7",
         urls = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_go/archive/refs/tags/v0.32.0.zip",
             "https://github.com/bazelbuild/rules_go/archive/refs/tags/v0.32.0.zip",
