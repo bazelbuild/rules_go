@@ -152,6 +152,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cross",
+    srcs = ["cross.bzl"],
+    visibility = [
+        "//docs:__subpackages__",
+        "//go:__subpackages__",
+    ],
+    deps = [
+        "//go/private:providers",
+        "//go/private/rules:transition",
+    ],
+)
+
+bzl_library(
     name = "wrappers",
     srcs = ["wrappers.bzl"],
     visibility = [
@@ -161,6 +174,7 @@ bzl_library(
     deps = [
         "//go/private/rules:binary",
         "//go/private/rules:cgo",
+        "//go/private/rules:cross",
         "//go/private/rules:library",
         "//go/private/rules:test",
         "//go/private/rules:transition",

@@ -12,6 +12,7 @@ bzl_library(
     deps = [
         "//go/private:rpath",
         "//go/private/rules:binary",
+        "//go/private/rules:cross",
         "//go/private/rules:library",
         "//go/private/rules:library.bzl",
         "//go/private/rules:source",

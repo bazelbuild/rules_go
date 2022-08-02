@@ -177,6 +177,39 @@ This builds an executable from a set of source files,
 
 
 
+<a id="#go_cross"></a>
+
+## go_cross
+
+<pre>
+go_cross(<a href="#go_cross-name">name</a>, <a href="#go_cross-platform">platform</a>, <a href="#go_cross-sdk_version">sdk_version</a>, <a href="#go_cross-target">target</a>)
+</pre>
+
+This wraps an executable built by `go_binary` to cross compile it
+    for a different platform, and/or compile it using a different version
+    of the golang SDK.<br><br>
+    **Providers:**
+    <ul>
+      <li>[GoLibrary]</li>
+      <li>[GoSource]</li>
+      <li>[GoArchive]</li>
+    </ul>
+    
+
+### **Attributes**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="go_cross-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="go_cross-platform"></a>platform |  The platform to cross compile the <code>target</code> for.             If unspecified, the <code>target</code> will be compiled with the             same platform as it would've with the original <code>go_binary</code> rule.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
+| <a id="go_cross-sdk_version"></a>sdk_version |  The golang SDK version to use for compiling the <code>target</code>.             Supports specifying major, minor, and/or patch versions, eg. <code>"1"</code>,             <code>"1.17"</code>, or <code>"1.17.1"</code>. The first Go SDK provider installed in the             repo's workspace (via <code>go_download_sdk</code>, <code>go_wrap_sdk</code>, etc) that             matches the specified version will be used for compiling the given             <code>target</code>. If unspecified, the <code>target</code> will be compiled with the same             SDK as it would've with the original <code>go_binary</code> rule.             Transitions <code>target</code> by changing the <code>--@io_bazel_rules_go//go/toolchain:sdk_version</code>             build flag to the value provided for <code>sdk_version</code> here.   | String | optional | "" |
+| <a id="go_cross-target"></a>target |  Go binary target to transition to the given platform and/or sdk_version.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
+
+
+
+
+
 <a id="#go_library"></a>
 
 ## go_library
