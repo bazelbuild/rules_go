@@ -131,7 +131,7 @@ go_embed_data = rule(
             doc = "If `True`, the embedded data will be stored as `string` instead of `[]byte`.",
         ),
         "_embed": attr.label(
-            default = "@io_bazel_rules_go//go/tools/builders:embed",
+            default = "//go/tools/builders:embed",
             executable = True,
             cfg = "host",
         ),

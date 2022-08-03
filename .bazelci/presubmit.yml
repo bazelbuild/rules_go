@@ -28,8 +28,8 @@ tasks:
     platform: ubuntu2004
     bazel: last_green
     shell_commands:
-      # Patch io_bazel_rules_go to rules_go. The patch may be slightly out of date, so we ignore the exit status.
-      - "curl https://raw.githubusercontent.com/bazelbuild/bazel-central-registry/main/modules/rules_go/0.33.0/patches/bcr.patch | patch -r -u -p1 -d ../.. || exit 0"
+      # Patch io_bazel_rules_go to rules_go.
+      - "patch -p1 -d ../.. <bcr.patch"
     working_directory: tests/bcr
     build_flags:
       - "--experimental_enable_bzlmod"
