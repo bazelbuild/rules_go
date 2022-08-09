@@ -11,6 +11,7 @@ print("WARNING: The rules_go Bazel module is still highly experimental and subje
 
 bazel_dep(name = "bazel_skylib", version = "1.2.0")
 bazel_dep(name = "platforms", version = "0.0.4")
+bazel_dep(name = "rules_proto", version = "4.0.0")
 
 non_module_dependencies = use_extension("//go/private:extensions.bzl", "non_module_dependencies")
 use_repo(
