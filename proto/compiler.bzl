@@ -205,7 +205,7 @@ _go_proto_compiler = rule(
         "_protoc": attr.label(
             executable = True,
             cfg = "exec",
-            default = "//proto:protoc",
+            default = "@//third_party/protoc:protoc",
         ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",
