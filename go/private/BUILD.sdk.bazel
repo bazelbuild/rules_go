@@ -74,6 +74,9 @@ filegroup(
 )
 
 exports_files(
-    ["lib/time/zoneinfo.zip"],
+    glob([
+        "lib/time/zoneinfo.zip",
+        "misc/wasm/**",
+    ]),
     visibility = ["//visibility:public"],
 )
