@@ -35,7 +35,7 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		fp, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
 		filename = fp
 	}
-	return fmt.Sprintf(`kind("go_library|go_test", same_pkg_direct_rdeps("%s"))`, filename)
+	return fmt.Sprintf(`kind("go_library|go_test|go_binary", same_pkg_direct_rdeps("%s"))`, filename)
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
