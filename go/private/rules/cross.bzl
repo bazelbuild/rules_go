@@ -138,4 +138,4 @@ _go_cross_kwargs = {
     """,
 }
 
-go_cross = rule(executable = True, **_go_cross_kwargs)
+go_cross_binary = rule(executable = True, **_go_cross_kwargs)

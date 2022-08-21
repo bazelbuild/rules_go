@@ -92,14 +92,14 @@ func main() {
   fmt.Print(runtime.Version())
 }
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_cross")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_cross_binary")
 
 go_binary(
   name = "print_version",
   srcs = ["main.go"],
 )
 {{range .TestCases}}
-go_cross(
+go_cross_binary(
   name = "{{.Name}}",
   target = ":print_version",
   sdk_version = "{{.SDKVersion}}",

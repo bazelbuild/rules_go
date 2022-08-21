@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
 		Main: `
 -- src/BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_cross")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_cross_binary")
 load(":rules.bzl", "no_runfiles_check")
 
 go_binary(
@@ -35,7 +35,7 @@ go_binary(
     linkmode = "c-archive",
 )
 
-# We make a new platform here so that we can exercise the go_cross rule.
+# We make a new platform here so that we can exercise the go_cross_binary rule.
 # However, the test needs to run on all hosts, so the platform needs
 # to inherit from the host platform.
 platform(
@@ -46,7 +46,7 @@ platform(
   ],
 )
 
-go_cross(
+go_cross_binary(
     name = "host_archive",
     target = ":archive",
     platform = ":host_cgo",
@@ -91,8 +91,8 @@ func TestNonExecutableGoBinaryCantBeRun(t *testing.T) {
 	if err := bazel_testing.RunBazel("build", "//src:host_archive"); err != nil {
 		t.Fatal(err)
 	}
-  err := bazel_testing.RunBazel("run", "//src:host_archive")
-  if err == nil || !strings.Contains(err.Error(), "cannot run go_cross target \"host_archive\": underlying target \"//src:archive\" is not executable") {
+	err := bazel_testing.RunBazel("run", "//src:host_archive")
+	if err == nil || !strings.Contains(err.Error(), "cannot run go_cross target \"host_archive\": underlying target \"//src:archive\" is not executable") {
 		t.Errorf("Expected bazel run to fail due to //src:host_archive not being executable")
 	}
 }

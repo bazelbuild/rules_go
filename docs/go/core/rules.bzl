@@ -119,11 +119,11 @@ load("//go/private/rules:binary.bzl", _go_binary = "go_binary")
 load("//go/private/rules:test.bzl", _go_test = "go_test")
 load("//go/private/rules:source.bzl", _go_source = "go_source")
 load("//go/private/tools:path.bzl", _go_path = "go_path")
-load("//go/private/rules:cross.bzl", _go_cross = "go_cross")
+load("//go/private/rules:cross.bzl", _go_cross_binary = "go_cross_binary")
 
 go_library = _go_library
 go_binary = _go_binary
 go_test = _go_test
 go_source = _go_source
 go_path = _go_path
-go_cross = _go_cross
+go_cross_binary = _go_cross_binary
