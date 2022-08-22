@@ -24,34 +24,34 @@ import (
 )
 
 type testcase struct {
-	Name, SDKVersion, expectedVersion string
+	Name, SDKVersion, ExpectedVersion string
 }
 
 var testCases = []testcase{
 	{
 		Name:            "major_version",
 		SDKVersion:      "1",
-		expectedVersion: "go1.16",
+		ExpectedVersion: "go1.16",
 	},
 	{
 		Name:            "minor_version",
 		SDKVersion:      "1.16",
-		expectedVersion: "go1.16",
+		ExpectedVersion: "go1.16",
 	},
 	{
 		Name:            "patch_version",
 		SDKVersion:      "1.16.0",
-		expectedVersion: "go1.16",
+		ExpectedVersion: "go1.16",
 	},
 	{
 		Name:            "1_17_minor_version",
 		SDKVersion:      "1.17",
-		expectedVersion: "go1.17",
+		ExpectedVersion: "go1.17",
 	},
 	{
 		Name:            "1_17_patch_version",
 		SDKVersion:      "1.17.1",
-		expectedVersion: "go1.17.1",
+		ExpectedVersion: "go1.17.1",
 	},
 }
 
@@ -91,8 +91,25 @@ import (
 func main() {
   fmt.Print(runtime.Version())
 }
+-- test.go --
+package test
+
+import (
+  "runtime"
+  "testing"
+)
+
+var WantVersion = ""
+
+func TestVersion(t *testing.T) {
+  gotVersion := runtime.Version()
+  if WantVersion != gotVersion {
+    t.Logf("wanted %s, got %s", WantVersion, gotVersion)
+    t.Fail()
+  }
+}
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_cross_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_test", "go_cross_test")
 
 go_binary(
   name = "print_version",
@@ -100,8 +117,19 @@ go_binary(
 )
 {{range .TestCases}}
 go_cross_binary(
-  name = "{{.Name}}",
+  name = "{{.Name}}_binary",
   target = ":print_version",
+  sdk_version = "{{.SDKVersion}}",
+)
+
+go_test(
+  name = "{{.Name}}_test_w_env",
+  srcs = ["test.go"],
+  x_defs = {"WantVersion": "{{.ExpectedVersion}}"},
+)
+go_cross_test(
+  name = "{{.Name}}_test",
+  target = ":{{.Name}}_test_w_env",
   sdk_version = "{{.SDKVersion}}",
 )
 {{end}}
@@ -122,14 +150,19 @@ go_cross_binary(
 func Test(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.Name, func(t *testing.T) {
-			output, err := bazel_testing.BazelOutput("run", fmt.Sprintf("//:%s", test.Name))
+			output, err := bazel_testing.BazelOutput("run", fmt.Sprintf("//:%s_binary", test.Name))
 			if err != nil {
 				t.Fatal(err)
 			}
 			actualVersion := string(output)
-			if actualVersion != test.expectedVersion {
-				t.Fatal("actual", actualVersion, "vs expected", test.expectedVersion)
+			if actualVersion != test.ExpectedVersion {
+				t.Fatal("actual", actualVersion, "vs expected", test.ExpectedVersion)
 			}
+
+      err = bazel_testing.RunBazel("test", fmt.Sprintf("//:%s_test", test.Name))
+      if err != nil {
+        t.Fatal(err)
+      }
 		})
 	}
 }

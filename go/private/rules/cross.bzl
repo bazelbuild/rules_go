@@ -50,6 +50,14 @@ def _error_script(ctx):
     ctx.actions.write(error_script, UNIX_ERR_SCRIPT.format(errmsg), is_executable = True)
     return error_script
 
+def _get_test_info_providers():
+    providers = []
+
+    # Once https://github.com/bazelbuild/bazel/pull/15766 is in the minimum bazel version (probably 5.3.0).
+    # We can enable passing through of test environment info.
+    # providers = [RunEnvironmentInfo]
+    return providers
+
 def _go_cross_impl(ctx):
     old_default_info = ctx.attr.target[DefaultInfo]
     old_executable = old_default_info.files_to_run.executable
@@ -89,44 +97,50 @@ def _go_cross_impl(ctx):
             GoArchive,
             OutputGroupInfo,
             CcInfo,
-        ]
+            InstrumentedFilesInfo,
+        ] + _get_test_info_providers()
         if provider in ctx.attr.target
     ]
     return [new_default_info] + providers
 
-_go_cross_kwargs = {
-    "implementation": _go_cross_impl,
-    "attrs": {
-        "target": attr.label(
-            doc = """Go binary target to transition to the given platform and/or sdk_version.
-            """,
-            providers = [GoLibrary, GoSource, GoArchive],
-            mandatory = True,
-        ),
-        "platform": attr.label(
-            doc = """The platform to cross compile the `target` for.
-            If unspecified, the `target` will be compiled with the
-            same platform as it would've with the original `go_binary` rule.
-            """,
-        ),
-        "sdk_version": attr.string(
-            doc = """The golang SDK version to use for compiling the `target`.
-            Supports specifying major, minor, and/or patch versions, eg. `"1"`,
-            `"1.17"`, or `"1.17.1"`. The first Go SDK provider installed in the
-            repo's workspace (via `go_download_sdk`, `go_wrap_sdk`, etc) that
-            matches the specified version will be used for compiling the given
-            `target`. If unspecified, the `target` will be compiled with the same
-            SDK as it would've with the original `go_binary` rule.
-            Transitions `target` by changing the `--@io_bazel_rules_go//go/toolchain:sdk_version`
-            build flag to the value provided for `sdk_version` here.
-            """,
-        ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
-    },
-    "cfg": go_cross_transition,
-    "doc": """This wraps an executable built by `go_binary` to cross compile it
+def _go_cross_kwargs_for_target_type(target_type):
+    return {
+        "implementation": _go_cross_impl,
+        "attrs": {
+            "target": attr.label(
+                doc = """`{target_type}` target to transition to the given platform and/or sdk_version.
+                """.format(target_type = target_type),
+                providers = [GoArchive],
+                mandatory = True,
+            ),
+            "platform": attr.label(
+                doc = """The platform to cross compile the `target` for.
+                If unspecified, the `target` will be compiled with the
+                same platform as it would've with the original `{target_type}` rule.
+                """.format(target_type = target_type),
+            ),
+            "sdk_version": attr.string(
+                doc = """The golang SDK version to use for compiling the `target`.
+                Supports specifying major, minor, and/or patch versions, eg. `"1"`,
+                `"1.17"`, or `"1.17.1"`. The first Go SDK provider installed in the
+                repo's workspace (via `go_download_sdk`, `go_wrap_sdk`, etc) that
+                matches the specified version will be used for compiling the given
+                `target`. If unspecified, the `target` will be compiled with the same
+                SDK as it would've with the original `{target_type}` rule.
+                Transitions `target` by changing the `--@io_bazel_rules_go//go/toolchain:sdk_version`
+                build flag to the value provided for `sdk_version` here.
+                """.format(target_type = target_type),
+            ),
+            "_allowlist_function_transition": attr.label(
+                default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+            ),
+        },
+        "cfg": go_cross_transition,
+    }
+
+go_cross_binary = rule(
+    executable = True,
+    doc = """This wraps an executable built by `go_binary` to cross compile it
     for a different platform, and/or compile it using a different version
     of the golang SDK.<br><br>
     **Providers:**
@@ -136,6 +150,21 @@ _go_cross_kwargs = {
       <li>[GoArchive]</li>
     </ul>
     """,
-}
-
-go_cross_binary = rule(executable = True, **_go_cross_kwargs)
+    **_go_cross_kwargs_for_target_type("go_binary")
+)
+go_cross_test = rule(
+    executable = True,
+    test = True,
+    doc = """This wraps a test built by `go_test` to cross compile it
+    for a different platform, and/or compile it using a different version
+    of the golang SDK.<br><br>
+    Warning: Any `env` set in the `go_test` rule, will not be passed through
+    to the `go_cross_test` rule due to a <a href=https://github.com/bazelbuild/bazel/issues/15224>bug</a>
+    in bazel.
+    **Providers:**
+    <ul>
+      <li>[GoArchive]</li>
+    </ul>
+    """,
+    **_go_cross_kwargs_for_target_type("go_test")
+)
