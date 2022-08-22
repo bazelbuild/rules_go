@@ -74,6 +74,11 @@ load(
     "//go/private/rules:nogo.bzl",
     _nogo = "nogo_wrapper",
 )
+load(
+    "//go/private/rules:cross.bzl",
+    _go_cross_binary = "go_cross_binary",
+    _go_cross_test = "go_cross_test",
+)
 
 # TOOLS_NOGO is a list of all analysis passes in
 # golang.org/x/tools/go/analysis/passes.
@@ -163,6 +168,11 @@ go_source = _go_source
 
 # See docs/go/core/rules.md#go_path for full documentation.
 go_path = _go_path
+
+# See docs/go/core/rules.md#go_cross_binary for full documentation.
+go_cross_binary = _go_cross_binary
+# See docs/go/core/rules.md#go_cross_binary for full documentation.
+go_cross_test = _go_cross_test
 
 def go_vet_test(*args, **kwargs):
     fail("The go_vet_test rule has been removed. Please migrate to nogo instead, which supports vet tests.")

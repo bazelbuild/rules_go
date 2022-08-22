@@ -400,3 +400,25 @@ def _set_ternary(settings, attr, name):
         label = filter_transition_label("@io_bazel_rules_go//go/config:{}".format(name))
         settings[label] = value == "on"
     return value
+
+_SDK_VERSION_BUILD_SETTING = filter_transition_label("@io_bazel_rules_go//go/toolchain:sdk_version")
+TRANSITIONED_GO_CROSS_SETTING_KEYS = [
+    _SDK_VERSION_BUILD_SETTING,
+    "//command_line_option:platforms",
+]
+
+def _go_cross_transition_impl(settings, attr):
+    settings = dict(settings)
+    if attr.sdk_version != None:
+        settings[_SDK_VERSION_BUILD_SETTING] = attr.sdk_version
+
+    if attr.platform != None:
+        settings["//command_line_option:platforms"] = str(attr.platform)
+
+    return settings
+
+go_cross_transition = transition(
+    implementation = _go_cross_transition_impl,
+    inputs = TRANSITIONED_GO_CROSS_SETTING_KEYS,
+    outputs = TRANSITIONED_GO_CROSS_SETTING_KEYS,
+)

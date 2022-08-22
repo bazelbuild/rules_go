@@ -3,6 +3,7 @@ Cross compilation
 
 .. _go_binary: /docs/go/core/rules.md#go_binary
 .. _go_library: /docs/go/core/rules.md#go_library
+.. _go_cross: /docs/go/core/rules.md#go_cross
 .. _#2523: https://github.com/bazelbuild/rules_go/issues/2523
 
 Tests to ensure that cross compilation is working as expected.
@@ -29,6 +30,15 @@ different source file (determined by ``select``) for each platform. The source
 files have a ``goos`` suffix, so they will only be built on the right platform.
 If the wrong source file is used or if all files are filtered out, the
 `go_binary`_ will not build.
+
+go_cross_test
+-------------
+
+Indentical test to ``cross_test`` except tests using a `go_cross`_ rule wrapping a `go_binary`_ instead of the ``goos`` and ``goarch`` attributes on a `go_binary`_.
+
+sdk_version_test
+----------------
+Tests that a `go_binary`_ wrapped in a `go_cross`_ rule, with the ``sdk_version`` attribute set, produces an executable built with the correct Go SDK version.
 
 ios_select_test
 ---------------
