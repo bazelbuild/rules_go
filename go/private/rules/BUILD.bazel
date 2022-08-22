@@ -132,6 +132,7 @@ bzl_library(
         "//go/private:providers",
         "//go/private/rules:binary",
         "//go/private/rules:transition",
+        "//go/private/skylib/lib:versions",
         "@bazel_skylib//lib:structs",
     ],
 )
