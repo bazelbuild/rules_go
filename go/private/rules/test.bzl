@@ -53,7 +53,7 @@ load(
     "structs",
 )
 load(
-    "@bazel_skylib//lib:versions.bzl",
+    "//go/private/skylib/lib:versions.bzl",
     "versions",
 )
 

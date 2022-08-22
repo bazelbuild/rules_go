@@ -16,5 +16,8 @@ filegroup(
 bzl_library(
     name = "versions",
     srcs = ["versions.bzl"],
-    visibility = ["//go:__subpackages__"],
+    visibility = [
+        "//go:__subpackages__",
+        "//go/private/rules:test",
+    ],
 )
