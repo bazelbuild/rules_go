@@ -52,7 +52,10 @@ load(
     "@bazel_skylib//lib:structs.bzl",
     "structs",
 )
-load("//go/private/skylib/lib:versions.bzl", "versions")
+load(
+    "@bazel_skylib//lib:versions.bzl",
+    "versions",
+)
 
 def _go_test_impl(ctx):
     """go_test_impl implements go testing.
