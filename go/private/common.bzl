@@ -115,26 +115,6 @@ def join_srcs(source):
     """Combines source from a split_srcs struct into a single list."""
     return source.go + source.headers + source.asm + source.c + source.cxx + source.objc
 
-def env_execute(ctx, arguments, environment = {}, **kwargs):
-    """Executes a command in for a repository rule.
-
-    It prepends "env -i" to "arguments" before calling "ctx.execute".
-    Variables that aren't explicitly mentioned in "environment"
-    are removed from the environment. This should be preferred to "ctx.execute"
-    in most situations.
-    """
-    if ctx.os.name.startswith("windows"):
-        return ctx.execute(arguments, environment = environment, **kwargs)
-    env_args = ["env", "-i"]
-    environment = dict(environment)
-    for var in ["TMP", "TMPDIR"]:
-        if var in ctx.os.environ and not var in environment:
-            environment[var] = ctx.os.environ[var]
-    for k, v in environment.items():
-        env_args.append("%s=%s" % (k, v))
-    arguments = env_args + arguments
-    return ctx.execute(arguments, **kwargs)
-
 def os_path(ctx, path):
     path = str(path)  # maybe convert from path type
     if ctx.os.name.startswith("windows"):
