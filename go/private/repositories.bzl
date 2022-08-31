@@ -25,7 +25,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Needed for guarding env_inherit support https://github.com/bazelbuild/rules_go/pull/3256 which requires 5.2.0+
 def _bazel_version_repository_impl(repository_ctx):
     repository_ctx.file("bazel_version.bzl", "bazel_version = \"{}\"".format(native.bazel_version))
-    repository_ctx.file("BUILD", "")
+    repository_ctx.file("BUILD", "exports_files([\"bazel_version.bzl\"])")
 
 _bazel_version_repository = repository_rule(
     implementation = _bazel_version_repository_impl,
