@@ -52,6 +52,7 @@ load(
     "@bazel_skylib//lib:structs.bzl",
     "structs",
 )
+load("@rules_go_bazel_version//:bazel_version.bzl", "bazel_version")
 load(
     "//go/private/skylib/lib:versions.bzl",
     "versions",
@@ -171,8 +172,7 @@ def _go_test_impl(ctx):
     if ctx.attr.env_inherit:
         # inherited_environment is only available in Bazel 5.2.0+
         # https://github.com/bazelbuild/rules_go/pull/3256
-        if not getattr(native, "bazel_version", None) or not versions.check("5.2.0", bazel_version = native.bazel_version):
-            fail("env_inherit is only available in Bazel 5.2.0 or higher")
+        versions.check("5.2.0", bazel_version = bazel_version)
         test_environment = testing.TestEnvironment(env, ctx.attr.env_inherit)
 
     # Bazel only looks for coverage data if the test target has an

@@ -20,6 +20,18 @@ load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 load("//proto:gogo.bzl", "gogo_special_proto")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+# native.bazel_version is only available in WORKSPACE macros
+# https://github.com/bazelbuild/bazel/issues/8305
+# Needed for guarding env_inherit support https://github.com/bazelbuild/rules_go/pull/3256 which requires 5.2.0+
+def _bazel_version_repository_impl(repository_ctx):
+    repository_ctx.file("bazel_version.bzl", "bazel_version = \"{}\"".format(native.bazel_version))
+    repository_ctx.file("BUILD", "")
+
+_bazel_version_repository = repository_rule(
+    implementation = _bazel_version_repository_impl,
+    local = True,
+)
+
 def go_rules_dependencies(force = False):
     """Declares workspaces the Go rules depend on. Workspaces that use
     rules_go should call this.
@@ -37,6 +49,8 @@ def go_rules_dependencies(force = False):
     """
     if getattr(native, "bazel_version", None):
         versions.check(MINIMUM_BAZEL_VERSION, bazel_version = native.bazel_version)
+
+    _bazel_version_repository(name = "rules_go_bazel_version")
 
     if force:
         wrapper = _always
