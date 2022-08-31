@@ -134,6 +134,7 @@ bzl_library(
         "//go/private/rules:transition",
         "//go/private/skylib/lib:versions",
         "@bazel_skylib//lib:structs",
+        "@rules_go_bazel_version//:bazel_version.bzl",
     ],
 )
 
