@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // TestWrapperAbnormalExit is used by Wrap to indicate the child
@@ -61,6 +62,7 @@ func shouldAddTestV() bool {
 func Wrap(pkg string) error {
 	var jsonBuffer bytes.Buffer
 	jsonConverter := NewConverter(&jsonBuffer, pkg, Timestamp)
+	pipeRead, pipeWrite := io.Pipe()
 
 	args := os.Args[1:]
 	if shouldAddTestV() {
@@ -72,9 +74,20 @@ func Wrap(pkg string) error {
 	}
 	cmd := exec.Command(exePath, args...)
 	cmd.Env = append(os.Environ(), "GO_TEST_WRAP=0")
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = io.MultiWriter(os.Stdout, jsonConverter)
+	cmd.Stderr = io.MultiWriter(os.Stderr, pipeWrite)
+	cmd.Stdout = io.MultiWriter(os.Stdout, pipeWrite)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		_, err := io.Copy(jsonConverter, pipeRead)
+		if err != nil {
+			panic(err)
+		}
+		wg.Done()
+	}()
 	err := cmd.Run()
+	pipeWrite.Close()
+	wg.Wait()
 	jsonConverter.Close()
 	if out, ok := os.LookupEnv("XML_OUTPUT_FILE"); ok {
 		werr := writeReport(jsonBuffer, pkg, out)
