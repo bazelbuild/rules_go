@@ -27,9 +27,6 @@ tasks:
     name: BCR test module
     platform: ubuntu2004
     bazel: last_green
-    shell_commands:
-      # Patch io_bazel_rules_go to rules_go.
-      - "patch -p1 -d ../.. <bcr.patch"
     working_directory: tests/bcr
     build_flags:
       - "--experimental_enable_bzlmod"

@@ -3,9 +3,9 @@ module(
     # Test that the default SDK is registered by not registering one from the test module.
 )
 
-bazel_dep(name = "io_bazel_rules_go", version = "", repo_name = "my_rules_go")
+bazel_dep(name = "rules_go", version = "", repo_name = "my_rules_go")
 local_path_override(
-    module_name = "io_bazel_rules_go",
+    module_name = "rules_go",
     path = "../..",
 )
 
