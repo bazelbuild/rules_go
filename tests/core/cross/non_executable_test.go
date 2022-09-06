@@ -15,11 +15,13 @@
 package non_executable_test
 
 import (
-	"strings"
+	"regexp"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel_testing"
 )
+
+var errorRegexp = regexp.MustCompile(`cannot run go_cross target "host_archive": underlying target "@{0,2}//src:archive" is not executable`);
 
 func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
@@ -92,7 +94,7 @@ func TestNonExecutableGoBinaryCantBeRun(t *testing.T) {
 		t.Fatal(err)
 	}
 	err := bazel_testing.RunBazel("run", "//src:host_archive")
-	if err == nil || !strings.Contains(err.Error(), "cannot run go_cross target \"host_archive\": underlying target \"//src:archive\" is not executable") {
+	if err == nil || !errorRegexp.MatchString(err.Error()) {
 		t.Errorf("Expected bazel run to fail due to //src:host_archive not being executable")
 	}
 }
