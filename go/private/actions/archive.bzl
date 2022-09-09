@@ -66,25 +66,12 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
     runfiles = source.runfiles
     data_files = runfiles.files
 
-    # After bazel version 5.0.0, starlark introduced a new API called merge_all().
-    # There is a recommendation in the release notes to use merge_all() if we hit
-    # the depth limit because of using merge() in a loop; we saw some repositories
-    # hitting this issue after upgrading to 5.0.0. To keep it backward compatible,
-    # we will fall back to the old logic if the array doesn't have merge_all().
-    # TODO: remove this check after the MINIMUM_BAZEL_VERSION becomes >= 5.0.0
-    # https://blog.bazel.build/2022/01/19/bazel-5.0.html#starlark-build-language
-    if hasattr(runfiles, "merge_all"):
-        files = []
-        for a in direct:
-            files.append(a.runfiles)
-            if a.source.mode != go.mode:
-                fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
-        runfiles.merge_all(files)
-    else:
-        for a in direct:
-            runfiles = runfiles.merge(a.runfiles)
-            if a.source.mode != go.mode:
-                fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
+    files = []
+    for a in direct:
+        files.append(a.runfiles)
+        if a.source.mode != go.mode:
+            fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
+    runfiles.merge_all(files)
 
     importmap = "main" if source.library.is_main else source.library.importmap
     importpath, _ = effective_importpath_pkgpath(source.library)
