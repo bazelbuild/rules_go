@@ -1,0 +1,24 @@
+load("@my_rules_go//go:def.bzl", "go_test")
+load("@my_rules_go//proto:def.bzl", "go_grpc_library", "go_proto_library")
+
+proto_library(
+    name = "foo_proto",
+    srcs = ["foo.proto"],
+    deps = [
+        "@protobuf//:empty_proto",
+    ],
+)
+
+go_proto_library(
+    name = "foo_go_proto",
+    importpath = "example.com/foo_proto",
+    proto = ":foo_proto",
+)
+
+go_test(
+    name = "foo_test",
+    srcs = ["foo_test.go"],
+    deps = [
+        ":foo_go_proto",
+    ],
+)

@@ -12,6 +12,8 @@ print("WARNING: The rules_go Bazel module is still highly experimental and subje
 
 bazel_dep(name = "bazel_skylib", version = "1.2.0")
 bazel_dep(name = "platforms", version = "0.0.4")
+bazel_dep(name = "rules_proto", version = "4.0.0")
+bazel_dep(name = "protobuf", version = "3.19.2", repo_name = "com_google_protobuf")
 
 non_module_dependencies = use_extension("//go/private:extensions.bzl", "non_module_dependencies")
 use_repo(
@@ -25,5 +27,9 @@ use_repo(go_sdk, "go_default_sdk")
 
 bazel_dep(name = "gazelle", version = "0.26.0")
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
-go_deps.module(path = "github.com/golang/mock", version = "v1.6.0", sum = "h1:ErTB+efbowRARo13NNdxyJji2egdxLGQhRaY+DUumQc=")
-use_repo(go_deps, "com_github_golang_mock")
+go_deps.from_file(go_mod = "//:go.mod")
+use_repo(go_deps,
+    "com_github_golang_mock",
+    "com_github_golang_protobuf",
+    "org_golang_google_protobuf",
+)

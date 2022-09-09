@@ -8,6 +8,7 @@ local_path_override(
     module_name = "rules_go",
     path = "../..",
 )
+bazel_dep(name = "protobuf", version = "3.19.2")
 
 # Test that this correctly downloads the SDK by requesting it from the commandline (see presubmit.yml).
 go_sdk = use_extension("@my_rules_go//go:extensions.bzl", "go_sdk")
