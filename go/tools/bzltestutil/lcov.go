@@ -33,13 +33,7 @@ import (
 // Bazel.
 // The conversion emits line and branch coverage, but not function coverage.
 func ConvertCoverToLcov() error {
-	// The value of test.coverprofile has been set to
-	// ${COVERAGE_OUTPUT_PATH}.cover by the generated TestMain. We have to strip
-	// the ".cover" suffix here so that the generated expectedLcov report is at the
-	// location where Bazel's expectedLcov merge picks it up.
 	inPath := flag.Lookup("test.coverprofile").Value.String()
-	outPath := strings.TrimSuffix(inPath, ".cover")
-
 	in, err := os.Open(inPath)
 	if err != nil {
 		// This can happen if there are no tests and should not be an error.
@@ -48,7 +42,8 @@ func ConvertCoverToLcov() error {
 	}
 	defer in.Close()
 
-	out, err := os.Create(outPath)
+	// All *.dat files in $COVERAGE_DIR will be merged by Bazel's lcov_merger tool.
+	out, err := os.CreateTemp(os.Getenv("COVERAGE_DIR"), "go_coverage.*.dat")
 	if err != nil {
 		return err
 	}
@@ -62,8 +57,8 @@ var _coverLinePattern = regexp.MustCompile(`^(?P<path>.+):(?P<startLine>\d+)\.(?
 const (
 	_pathIdx      = 1
 	_startLineIdx = 2
-	_endLineIdx = 4
-	_countIdx   = 7
+	_endLineIdx   = 4
+	_countIdx     = 7
 )
 
 func convertCoverToLcov(coverReader io.Reader, lcovWriter io.Writer) error {

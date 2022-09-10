@@ -402,11 +402,21 @@ _go_test_kwargs = {
             default = ["//go/tools/bzltestutil"],
             cfg = go_transition,
         ),
-        # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
+        # Required for Bazel to collect coverage of instrumented C/C++ binaries
+        # executed by go_test.
+        # This is just a shell script and thus cheap enough to depend on
+        # unconditionally.
+        "_collect_cc_coverage": attr.label(
+            default = "@bazel_tools//tools/test:collect_cc_coverage",
+            cfg = "exec",
+        ),
+        # Required for Bazel to merge coverage reports for Go and other
+        # languages into a single report per test.
+        # Using configuration_field ensures that the tool is only built when
+        # run with bazel coverage, not with bazel test.
         "_lcov_merger": attr.label(
-            executable = True,
-            default = "//go/tools/builders:lcov_merger",
-            cfg = "target",
+            default = configuration_field(fragment = "coverage", name = "output_generator"),
+            cfg = "exec",
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",

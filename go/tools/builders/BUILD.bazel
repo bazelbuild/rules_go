@@ -149,12 +149,6 @@ go_reset_target(
     visibility = ["//visibility:public"],
 )
 
-sh_binary(
-    name = "lcov_merger",
-    srcs = ["lcov_merger.sh"],
-    visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "all_builder_srcs",
     testonly = True,

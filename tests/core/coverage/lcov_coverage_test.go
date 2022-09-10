@@ -47,6 +47,18 @@ go_test(
     srcs = ["lib_test.go"],
     deps = [":lib"],
 )
+
+java_binary(
+    name = "Tool",
+    srcs = ["Tool.java"],
+)
+
+go_test(
+    name = "lib_with_tool_test",
+    srcs = ["lib_with_tool_test.go"],
+    data = [":Tool"],
+    deps = [":lib"],
+)
 -- src/lib.go --
 package lib
 
@@ -90,6 +102,40 @@ func TestLib(t *testing.T) {
 		t.Error("Expected a newline in the output")
 	}
 }
+-- src/Tool.java --
+public class Tool {
+  public static void main(String[] args) {
+    if (args.length != 0) {
+      System.err.println("Expected no arguments");
+      System.exit(1);
+    }
+    System.err.println("Hello, world!");
+  }
+}
+-- src/lib_with_tool_test.go --
+package lib_test
+
+import (
+	"os/exec"
+	"strings"
+	"testing"
+
+	"example.com/lib"
+)
+
+func TestLib(t *testing.T) {
+	if !strings.Contains(lib.HelloFromLib(false), "\n") {
+		t.Error("Expected a newline in the output")
+	}
+}
+
+func TestTool(t *testing.T) {
+	err := exec.Command("Tool").Run()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 `,
 	})
 }
@@ -120,7 +166,7 @@ func testLcovCoverage(t *testing.T, extraArgs ...string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, expectedIndividualCoverage := range expectedIndividualCoverages {
+	for _, expectedIndividualCoverage := range expectedGoCoverage {
 		if !strings.Contains(string(individualCoverageData), expectedIndividualCoverage) {
 			t.Errorf(
 				"%s: does not contain:\n\n%s\nactual content:\n\n%s",
@@ -146,8 +192,54 @@ func testLcovCoverage(t *testing.T, extraArgs ...string) {
 	}
 }
 
-var expectedIndividualCoverages = []string{
+func TestLcovCoverageWithTool(t *testing.T) {
+	args := append([]string{
+		"coverage",
+		"--combined_report=lcov",
+		"//src:lib_with_tool_test",
+	})
+
+	if err := bazel_testing.RunBazel(args...); err != nil {
+		t.Fatal(err)
+	}
+
+	individualCoveragePath := filepath.FromSlash("bazel-testlogs/src/lib_with_tool_test/coverage.dat")
+	individualCoverageData, err := ioutil.ReadFile(individualCoveragePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedCoverage := append(expectedGoCoverage, expectedToolCoverage)
+	for _, expected := range expectedCoverage {
+		if !strings.Contains(string(individualCoverageData), expected) {
+			t.Errorf(
+				"%s: does not contain:\n\n%s\nactual content:\n\n%s",
+				individualCoveragePath,
+				expected,
+				string(individualCoverageData),
+			)
+		}
+	}
+
+	combinedCoveragePath := filepath.FromSlash("bazel-out/_coverage/_coverage_report.dat")
+	combinedCoverageData, err := ioutil.ReadFile(combinedCoveragePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, include := range []string{
+		"SF:src/lib.go\n",
+		"SF:src/other_lib.go\n",
+		"SF:src/Tool.java\n",
+	} {
+		if !strings.Contains(string(combinedCoverageData), include) {
+			t.Errorf("%s: does not contain %q\n", combinedCoverageData, include)
+		}
+	}
+}
+
+var expectedGoCoverage = []string{
 	`SF:src/other_lib.go
+FNF:0
+FNH:0
 DA:3,1
 DA:4,1
 DA:5,0
@@ -158,6 +250,8 @@ LF:5
 end_of_record
 `,
 	`SF:src/lib.go
+FNF:0
+FNH:0
 DA:9,1
 DA:10,1
 DA:11,1
@@ -171,3 +265,25 @@ LH:8
 LF:9
 end_of_record
 `}
+
+const expectedToolCoverage = `SF:src/Tool.java
+FN:1,Tool::<init> ()V
+FN:3,Tool::main ([Ljava/lang/String;)V
+FNDA:0,Tool::<init> ()V
+FNDA:1,Tool::main ([Ljava/lang/String;)V
+FNF:2
+FNH:1
+BRDA:3,0,0,1
+BRDA:3,0,1,0
+BRF:2
+BRH:1
+DA:1,0
+DA:3,1
+DA:4,0
+DA:5,0
+DA:7,1
+DA:8,1
+LH:3
+LF:6
+end_of_record
+`

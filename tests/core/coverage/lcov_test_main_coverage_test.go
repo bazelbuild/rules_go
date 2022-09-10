@@ -108,6 +108,8 @@ func TestLcovCoverageWithTestMain(t *testing.T) {
 }
 
 const expectedIndividualCoverage = `SF:src/lib.go
+FNF:0
+FNH:0
 DA:3,1
 DA:4,1
 DA:5,0
