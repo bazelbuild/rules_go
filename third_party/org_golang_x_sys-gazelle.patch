@@ -1,7 +1,7 @@
 diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 --- a/cpu/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/cpu/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,59 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -27,6 +27,8 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 +        "cpu_mips64x.go",
 +        "cpu_mipsx.go",
 +        "cpu_netbsd_arm64.go",
++        "cpu_openbsd_arm64.go",
++        "cpu_openbsd_arm64.s",
 +        "cpu_other_arm.go",
 +        "cpu_other_arm64.go",
 +        "cpu_ppc64x.go",
@@ -114,7 +116,7 @@ diff -urN a/internal/unsafeheader/BUILD.bazel b/internal/unsafeheader/BUILD.baze
 diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 --- a/plan9/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/plan9/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,45 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -142,12 +144,6 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 +    ],
 +    importpath = "golang.org/x/sys/plan9",
 +    visibility = ["//visibility:public"],
-+    deps = select({
-+        "@io_bazel_rules_go//go/platform:plan9": [
-+            "//internal/unsafeheader",
-+        ],
-+        "//conditions:default": [],
-+    }),
 +)
 +
 +alias(
@@ -169,7 +165,7 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 --- a/unix/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/unix/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,332 @@
+@@ -0,0 +1,302 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -225,7 +221,6 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "sockcmsg_linux.go",
 +        "sockcmsg_unix.go",
 +        "sockcmsg_unix_other.go",
-+        "str.go",
 +        "syscall.go",
 +        "syscall_aix.go",
 +        "syscall_aix_ppc64.go",
@@ -269,6 +264,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "syscall_openbsd_amd64.go",
 +        "syscall_openbsd_arm.go",
 +        "syscall_openbsd_arm64.go",
++        "syscall_openbsd_libc.go",
 +        "syscall_solaris.go",
 +        "syscall_solaris_amd64.go",
 +        "syscall_unix.go",
@@ -349,9 +345,13 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "zsyscall_netbsd_arm.go",
 +        "zsyscall_netbsd_arm64.go",
 +        "zsyscall_openbsd_386.go",
++        "zsyscall_openbsd_386.s",
 +        "zsyscall_openbsd_amd64.go",
++        "zsyscall_openbsd_amd64.s",
 +        "zsyscall_openbsd_arm.go",
++        "zsyscall_openbsd_arm.s",
 +        "zsyscall_openbsd_arm64.go",
++        "zsyscall_openbsd_arm64.s",
 +        "zsyscall_solaris_amd64.go",
 +        "zsysctl_openbsd_386.go",
 +        "zsysctl_openbsd_amd64.go",
@@ -419,39 +419,6 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +    cgo = True,
 +    importpath = "golang.org/x/sys/unix",
 +    visibility = ["//visibility:public"],
-+    deps = select({
-+        "@io_bazel_rules_go//go/platform:aix": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:android": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:darwin": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:dragonfly": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:freebsd": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:ios": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:linux": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:netbsd": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:openbsd": [
-+            "//internal/unsafeheader",
-+        ],
-+        "@io_bazel_rules_go//go/platform:solaris": [
-+            "//internal/unsafeheader",
-+        ],
-+        "//conditions:default": [],
-+    }),
 +)
 +
 +alias(
@@ -472,7 +439,6 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "example_exec_test.go",
 +        "example_flock_test.go",
 +        "example_sysvshm_test.go",
-+        "export_test.go",
 +        "fdset_test.go",
 +        "getdirentries_test.go",
 +        "getfsstat_test.go",

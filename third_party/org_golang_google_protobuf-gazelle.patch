@@ -2767,7 +2767,7 @@ diff -urN a/internal/weakdeps/BUILD.bazel b/internal/weakdeps/BUILD.bazel
 diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 --- a/proto/BUILD.bazel	1969-12-31 16:00:00.000000000 -0800
 +++ b/proto/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,95 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2840,6 +2840,7 @@ diff -urN a/proto/BUILD.bazel b/proto/BUILD.bazel
 +        "//internal/filedesc",
 +        "//internal/flags",
 +        "//internal/impl",
++        "//internal/pragma",
 +        "//internal/protobuild",
 +        "//internal/testprotos/legacy",
 +        "//internal/testprotos/legacy/proto2_20160225_2fc053c5",

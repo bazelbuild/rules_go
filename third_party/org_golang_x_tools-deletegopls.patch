@@ -469,7 +469,7 @@ diff -urN a/gopls/doc/advanced.md b/gopls/doc/advanced.md
 diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 --- a/gopls/doc/analyzers.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/analyzers.md	1969-12-31 16:00:00.000000000 -0800
-@@ -1,676 +0,0 @@
+@@ -1,690 +0,0 @@
 -# Analyzers
 -
 -This document describes the analyzers that `gopls` uses inside the editor.
@@ -603,7 +603,7 @@ diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 -find structs that would use less memory if their fields were sorted
 -
 -This analyzer find structs that can be rearranged to use less memory, and provides
--a suggested edit with the optimal order.
+-a suggested edit with the most compact order.
 -
 -Note that there are two different diagnostics reported. One checks struct size,
 -and the other reports "pointer bytes" used. Pointer bytes is how many bytes of the
@@ -621,6 +621,11 @@ diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 -	struct { string; uint32 }
 -
 -has 8 because it can stop immediately after the string pointer.
+-
+-Be aware that the most compact order is not always the most efficient.
+-In rare cases it may cause two variables each updated by its own goroutine
+-to occupy the same CPU cache line, inducing a form of memory contention
+-known as "false sharing" that slows down both goroutines.
 -
 -
 -**Disabled by default. Enable it by setting `"analyses": {"fieldalignment": true}`.**
@@ -1123,6 +1128,15 @@ diff -urN a/gopls/doc/analyzers.md b/gopls/doc/analyzers.md
 -
 -
 -**Enabled by default.**
+-
+-## **unusedvariable**
+-
+-check for unused variables
+-
+-The unusedvariable analyzer suggests fixes for unused variables errors.
+-
+-
+-**Disabled by default. Enable it by setting `"analyses": {"unusedvariable": true}`.**
 -
 -## **fillstruct**
 -
@@ -2709,7 +2723,7 @@ diff -urN a/gopls/doc/features.md b/gopls/doc/features.md
 diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 --- a/gopls/doc/generate.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/generate.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,712 +0,0 @@
+@@ -1,756 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -2775,6 +2789,9 @@ diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 -	if ok, err := rewriteFile(filepath.Join(baseDir, "gopls/doc/analyzers.md"), api, write, rewriteAnalyzers); !ok || err != nil {
 -		return ok, err
 -	}
+-	if ok, err := rewriteFile(filepath.Join(baseDir, "gopls/doc/inlayHints.md"), api, write, rewriteInlayHints); !ok || err != nil {
+-		return ok, err
+-	}
 -
 -	return true, nil
 -}
@@ -2814,6 +2831,7 @@ diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 -	} {
 -		api.Analyzers = append(api.Analyzers, loadAnalyzers(m)...)
 -	}
+-	api.Hints = loadHints(source.AllInlayHints)
 -	for _, category := range []reflect.Value{
 -		reflect.ValueOf(defaults.UserOptions),
 -	} {
@@ -2856,6 +2874,14 @@ diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 -						Name:    fmt.Sprintf("%q", l.Lens),
 -						Doc:     l.Doc,
 -						Default: def,
+-					})
+-				}
+-			case "hints":
+-				for _, a := range api.Hints {
+-					opt.EnumKeys.Keys = append(opt.EnumKeys.Keys, source.EnumKey{
+-						Name:    fmt.Sprintf("%q", a.Name),
+-						Doc:     a.Doc,
+-						Default: strconv.FormatBool(a.Default),
 -					})
 -				}
 -			}
@@ -3200,6 +3226,23 @@ diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 -	return json
 -}
 -
+-func loadHints(m map[string]*source.Hint) []*source.HintJSON {
+-	var sorted []string
+-	for _, h := range m {
+-		sorted = append(sorted, h.Name)
+-	}
+-	sort.Strings(sorted)
+-	var json []*source.HintJSON
+-	for _, name := range sorted {
+-		h := m[name]
+-		json = append(json, &source.HintJSON{
+-			Name: h.Name,
+-			Doc:  h.Doc,
+-		})
+-	}
+-	return json
+-}
+-
 -func lowerFirst(x string) string {
 -	if x == "" {
 -		return x
@@ -3411,6 +3454,21 @@ diff -urN a/gopls/doc/generate.go b/gopls/doc/generate.go
 -	return replaceSection(doc, "Analyzers", section.Bytes())
 -}
 -
+-func rewriteInlayHints(doc []byte, api *source.APIJSON) ([]byte, error) {
+-	section := bytes.NewBuffer(nil)
+-	for _, hint := range api.Hints {
+-		fmt.Fprintf(section, "## **%v**\n\n", hint.Name)
+-		fmt.Fprintf(section, "%s\n\n", hint.Doc)
+-		switch hint.Default {
+-		case true:
+-			fmt.Fprintf(section, "**Enabled by default.**\n\n")
+-		case false:
+-			fmt.Fprintf(section, "**Disabled by default. Enable it by setting `\"hints\": {\"%s\": true}`.**\n\n", hint.Name)
+-		}
+-	}
+-	return replaceSection(doc, "Hints", section.Bytes())
+-}
+-
 -func replaceSection(doc []byte, sectionName string, replacement []byte) ([]byte, error) {
 -	re := regexp.MustCompile(fmt.Sprintf(`(?s)<!-- BEGIN %v.* -->\n(.*?)<!-- END %v.* -->`, sectionName, sectionName))
 -	idx := re.FindSubmatchIndex(doc)
@@ -3452,6 +3510,90 @@ diff -urN a/gopls/doc/generate_test.go b/gopls/doc/generate_test.go
 -		t.Error("documentation needs updating. run: `go run doc/generate.go` from the gopls module.")
 -	}
 -}
+diff -urN a/gopls/doc/inlayHints.md b/gopls/doc/inlayHints.md
+--- a/gopls/doc/inlayHints.md	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/doc/inlayHints.md	1969-12-31 16:00:00.000000000 -0800
+@@ -1,80 +0,0 @@
+-# Hints
+-
+-This document describes the inlay hints that `gopls` uses inside the editor.
+-
+-<!-- BEGIN Hints: DO NOT MANUALLY EDIT THIS SECTION -->
+-## **assignVariableTypes**
+-
+-Enable/disable inlay hints for variable types in assign statements:
+-```go
+-	i/* int*/, j/* int*/ := 0, len(r)-1
+-```
+-
+-**Disabled by default. Enable it by setting `"hints": {"assignVariableTypes": true}`.**
+-
+-## **compositeLiteralFields**
+-
+-Enable/disable inlay hints for composite literal field names:
+-```go
+-	{/*in: */"Hello, world", /*want: */"dlrow ,olleH"}
+-```
+-
+-**Disabled by default. Enable it by setting `"hints": {"compositeLiteralFields": true}`.**
+-
+-## **compositeLiteralTypes**
+-
+-Enable/disable inlay hints for composite literal types:
+-```go
+-	for _, c := range []struct {
+-		in, want string
+-	}{
+-		/*struct{ in string; want string }*/{"Hello, world", "dlrow ,olleH"},
+-	}
+-```
+-
+-**Disabled by default. Enable it by setting `"hints": {"compositeLiteralTypes": true}`.**
+-
+-## **constantValues**
+-
+-Enable/disable inlay hints for constant values:
+-```go
+-	const (
+-		KindNone   Kind = iota/* = 0*/
+-		KindPrint/*  = 1*/
+-		KindPrintf/* = 2*/
+-		KindErrorf/* = 3*/
+-	)
+-```
+-
+-**Disabled by default. Enable it by setting `"hints": {"constantValues": true}`.**
+-
+-## **functionTypeParameters**
+-
+-Enable/disable inlay hints for implicit type parameters on generic functions:
+-```go
+-	myFoo/*[int, string]*/(1, "hello")
+-```
+-
+-**Disabled by default. Enable it by setting `"hints": {"functionTypeParameters": true}`.**
+-
+-## **parameterNames**
+-
+-Enable/disable inlay hints for parameter names:
+-```go
+-	parseInt(/* str: */ "123", /* radix: */ 8)
+-```
+-
+-**Disabled by default. Enable it by setting `"hints": {"parameterNames": true}`.**
+-
+-## **rangeVariableTypes**
+-
+-Enable/disable inlay hints for variable types in range statements:
+-```go
+-	for k/* int*/, v/* string*/ := range []string{} {
+-		fmt.Println(k, v)
+-	}
+-```
+-
+-**Disabled by default. Enable it by setting `"hints": {"rangeVariableTypes": true}`.**
+-
+-<!-- END Hints: DO NOT MANUALLY EDIT THIS SECTION -->
 diff -urN a/gopls/doc/semantictokens.md b/gopls/doc/semantictokens.md
 --- a/gopls/doc/semantictokens.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/semantictokens.md	1969-12-31 16:00:00.000000000 -0800
@@ -3581,7 +3723,7 @@ diff -urN a/gopls/doc/semantictokens.md b/gopls/doc/semantictokens.md
 diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 --- a/gopls/doc/settings.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/doc/settings.md	1969-12-31 16:00:00.000000000 -0800
-@@ -1,484 +0,0 @@
+@@ -1,507 +0,0 @@
 -# Settings
 -
 -<!--TODO: Generate this file from the documentation in golang/org/x/tools/internal/lsp/source/options.go.-->
@@ -3619,6 +3761,7 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -  * [Completion](#completion)
 -  * [Diagnostic](#diagnostic)
 -  * [Documentation](#documentation)
+-  * [Inlayhint](#inlayhint)
 -  * [Navigation](#navigation)
 -
 -### Build
@@ -3954,6 +4097,18 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -
 -Default: `true`.
 -
+-#### Inlayhint
+-
+-##### **hints** *map[string]bool*
+-
+-**This setting is experimental and may be deleted.**
+-
+-hints specify inlay hints that users want to see.
+-A full list of hints that gopls uses can be found
+-[here](https://github.com/golang/tools/blob/master/gopls/doc/inlayHints.md).
+-
+-Default: `{}`.
+-
 -#### Navigation
 -
 -##### **importShortcut** *enum*
@@ -4022,6 +4177,16 @@ diff -urN a/gopls/doc/settings.md b/gopls/doc/settings.md
 -Default: `false`.
 -
 -<!-- END User: DO NOT MANUALLY EDIT THIS SECTION -->
+-
+-#### **newDiff** *string*
+-
+-newDiff enables the new diff implementation. If this is "both",
+-for now both diffs will be run and statistics will be generateted in
+-a file in $TMPDIR. This is a risky setting; help in trying it
+-is appreciated. If it is "old" the old implementation is used,
+-and if it is "new", just the new implementation is used.
+-
+-Default: 'old'.
 -
 -## Code Lenses
 -
@@ -4534,43 +4699,42 @@ diff -urN a/gopls/doc/workspace.md b/gopls/doc/workspace.md
 diff -urN a/gopls/go.mod b/gopls/go.mod
 --- a/gopls/go.mod	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.mod	1969-12-31 16:00:00.000000000 -0800
-@@ -1,28 +0,0 @@
+@@ -1,27 +0,0 @@
 -module golang.org/x/tools/gopls
 -
 -go 1.18
 -
 -require (
--	github.com/google/go-cmp v0.5.7
+-	github.com/google/go-cmp v0.5.8
 -	github.com/jba/printsrc v0.2.2
 -	github.com/jba/templatecheck v0.6.0
 -	github.com/sergi/go-diff v1.1.0
 -	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4
--	golang.org/x/sys v0.0.0-20220209214540-3681064d5158
--	golang.org/x/tools v0.1.11-0.20220330174940-8e193c2ba95e
--	golang.org/x/vuln v0.0.0-20220503210553-a5481fb0c8be
--	honnef.co/go/tools v0.3.0
--	mvdan.cc/gofumpt v0.3.0
+-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f
+-	golang.org/x/tools v0.1.11
+-	golang.org/x/vuln v0.0.0-20220725105440-4151a5aca1df
+-	honnef.co/go/tools v0.3.2
+-	mvdan.cc/gofumpt v0.3.1
 -	mvdan.cc/xurls/v2 v2.4.0
 -)
 -
 -require (
--	github.com/BurntSushi/toml v1.0.0 // indirect
+-	github.com/BurntSushi/toml v1.2.0 // indirect
 -	github.com/google/safehtml v0.0.2 // indirect
--	golang.org/x/exp/typeparams v0.0.0-20220218215828-6cf2b201936e // indirect
--	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+-	golang.org/x/exp/typeparams v0.0.0-20220722155223-a9213eeb770e // indirect
+-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 -	golang.org/x/text v0.3.7 // indirect
--	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 -)
 -
 -replace golang.org/x/tools => ../
 diff -urN a/gopls/go.sum b/gopls/go.sum
 --- a/gopls/go.sum	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/go.sum	1969-12-31 16:00:00.000000000 -0800
-@@ -1,95 +0,0 @@
+@@ -1,90 +0,0 @@
 -github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 -github.com/BurntSushi/toml v0.4.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
--github.com/BurntSushi/toml v1.0.0 h1:dtDWrepsVPfW9H/4y7dDgFc2MBUSeJhlaDtK13CxFlU=
--github.com/BurntSushi/toml v1.0.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
+-github.com/BurntSushi/toml v1.2.0 h1:Rt8g24XnyGTyglgET/PRUNlrUeu9F5L+7FilkXfZgs0=
+-github.com/BurntSushi/toml v1.2.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 -github.com/client9/misspell v0.3.4 h1:ta993UF76GwbvJcIo3Y68y/M3WxlpEHPWIGDkJYwzJI=
 -github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 -github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
@@ -4582,8 +4746,9 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -github.com/google/go-cmdtest v0.4.0/go.mod h1:apVn/GCasLZUVpAJ6oWAuyP7Ne7CEsQbTnc0plM3m+o=
 -github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 -github.com/google/go-cmp v0.5.6/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
--github.com/google/go-cmp v0.5.7 h1:81/ik6ipDQS2aGcBfIN5dHDB36BwrStyeAQquSYCV4o=
 -github.com/google/go-cmp v0.5.7/go.mod h1:n+brtR0CgQNWTVd5ZUFpTBC8YFBDLK/h/bpaJ8/DtOE=
+-github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
+-github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 -github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 -github.com/google/safehtml v0.0.2 h1:ZOt2VXg4x24bW0m2jtzAOkhoXV0iM8vNKc0paByCZqM=
 -github.com/google/safehtml v0.0.2/go.mod h1:L4KWwDsUJdECRAEpZoBn3O64bQaywRscowZjJAzjHnU=
@@ -4609,42 +4774,36 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 -github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 -github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
--github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
--golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
--golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
+-github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 -golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
--golang.org/x/exp/typeparams v0.0.0-20220218215828-6cf2b201936e h1:qyrTQ++p1afMkO4DPEeLGq/3oTsdlvdH4vqZUBWzUKM=
 -golang.org/x/exp/typeparams v0.0.0-20220218215828-6cf2b201936e/go.mod h1:AbB0pIl9nAr9wVwH+Z2ZpaocVmF5I4GyWCDIsVjR0bk=
--golang.org/x/mod v0.5.1/go.mod h1:5OXOZSfqPIIbmVBIIKWRFfZjPR0E5r58TLhUjH0a2Ro=
--golang.org/x/mod v0.6.0-dev.0.20211013180041-c96bc1413d57/go.mod h1:3p9vT2HGsQu2K1YbXdKPJLVgG5VJdoTa1poYQBtP1AY=
+-golang.org/x/exp/typeparams v0.0.0-20220722155223-a9213eeb770e h1:7Xs2YCOpMlNqSQSmrrnhlzBXIE/bpMecZplbLePTJvE=
+-golang.org/x/exp/typeparams v0.0.0-20220722155223-a9213eeb770e/go.mod h1:AbB0pIl9nAr9wVwH+Z2ZpaocVmF5I4GyWCDIsVjR0bk=
 -golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3/go.mod h1:3p9vT2HGsQu2K1YbXdKPJLVgG5VJdoTa1poYQBtP1AY=
 -golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 h1:6zppjxzCulZykYSLyVDYbneBfbaBIQPYMevg0bEwv2s=
 -golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
--golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 -golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
--golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
--golang.org/x/sync v0.0.0-20210220032951-036812b2e83c h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=
+-golang.org/x/net v0.0.0-20220722155237-a158d28d115b/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
 -golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
--golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
--golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+-golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 h1:uVc8UZUe6tr40fFVnUP5Oj+veunVezqYl9z7DYw9xzw=
+-golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 -golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
--golang.org/x/sys v0.0.0-20210423082822-04245dca01da/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 -golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 -golang.org/x/sys v0.0.0-20211019181941-9d821ace8654/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 -golang.org/x/sys v0.0.0-20211213223007-03aa0b5f6827/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
--golang.org/x/sys v0.0.0-20220209214540-3681064d5158 h1:rm+CHSpPEEW2IsXUib1ThaHIjuBVZjxNgSKmBLFfD4c=
--golang.org/x/sys v0.0.0-20220209214540-3681064d5158/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+-golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+-golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+-golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f h1:v4INt8xihDGvnrfjMDVXGxw9wrfxYyCjk0KbXjhR55s=
+-golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 -golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
--golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+-golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
 -golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
--golang.org/x/text v0.3.6/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 -golang.org/x/text v0.3.7 h1:olpwvP2KacW1ZWvsR7uQhoyTYvKAupfQrRGBFM352Gk=
 -golang.org/x/text v0.3.7/go.mod h1:u+2+/6zg+i71rQMx5EYifcz6MCKuco9NR6JIITiCfzQ=
--golang.org/x/vuln v0.0.0-20220503210553-a5481fb0c8be h1:jokAF1mfylAi1iTQx7C44B7vyXUcSEMw8eDv0PzNu8s=
--golang.org/x/vuln v0.0.0-20220503210553-a5481fb0c8be/go.mod h1:twca1SxmF6/i2wHY/mj1vLIkkHdp+nil/yA32ZOP4kg=
+-golang.org/x/vuln v0.0.0-20220725105440-4151a5aca1df h1:BkeW9/QJhcigekDUPS9N9bIb0v7gPKKmLYeczVAqr2s=
+-golang.org/x/vuln v0.0.0-20220725105440-4151a5aca1df/go.mod h1:UZshlUPxXeGUM9I14UOawXQg6yosDE9cr1vKY/DzgWo=
 -golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 -golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
--golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 h1:go1bK/D/BFZV2I8cIQd1NKEZ+0owSTG1fDTci4IqFcE=
 -golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 -gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 -gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
@@ -4654,10 +4813,10 @@ diff -urN a/gopls/go.sum b/gopls/go.sum
 -gopkg.in/yaml.v2 v2.2.4 h1:/eiJrUcujPVeJ3xlSWaiNi3uSVmDGBK1pDHUHAnao1I=
 -gopkg.in/yaml.v2 v2.2.4/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 -honnef.co/go/tools v0.2.2/go.mod h1:lPVVZ2BS5TfnjLyizF7o7hv7j9/L+8cZY2hLyjP9cGY=
--honnef.co/go/tools v0.3.0 h1:2LdYUZ7CIxnYgskbUZfY7FPggmqnh6shBqfWa8Tn3XU=
--honnef.co/go/tools v0.3.0/go.mod h1:vlRD9XErLMGT+mDuofSr0mMMquscM/1nQqtRSsh6m70=
--mvdan.cc/gofumpt v0.3.0 h1:kTojdZo9AcEYbQYhGuLf/zszYthRdhDNDUi2JKTxas4=
--mvdan.cc/gofumpt v0.3.0/go.mod h1:0+VyGZWleeIj5oostkOex+nDBA0eyavuDnDusAJ8ylo=
+-honnef.co/go/tools v0.3.2 h1:ytYb4rOqyp1TSa2EPvNVwtPQJctSELKaMyLfqNP4+34=
+-honnef.co/go/tools v0.3.2/go.mod h1:jzwdWgg7Jdq75wlfblQxO4neNaFFSvgc1tD5Wv8U0Yw=
+-mvdan.cc/gofumpt v0.3.1 h1:avhhrOmv0IuvQVK7fvwV91oFSGAk5/6Po8GXTzICeu8=
+-mvdan.cc/gofumpt v0.3.1/go.mod h1:w3ymliuxvzVx8DAutBnVyDqYb1Niy/yCJt/lk821YCE=
 -mvdan.cc/unparam v0.0.0-20211214103731-d0ef000c54e5 h1:Jh3LAeMt1eGpxomyu3jVkmVZWW2MxZ1qIIV2TZ/nRio=
 -mvdan.cc/unparam v0.0.0-20211214103731-d0ef000c54e5/go.mod h1:b8RRCBm0eeiWR8cfN88xeq2G5SG3VKGO+5UPWi5FSOY=
 -mvdan.cc/xurls/v2 v2.4.0 h1:tzxjVAj+wSBmDcF6zBB7/myTy3gX9xvi8Tyr28AuQgc=
@@ -5284,7 +5443,7 @@ diff -urN a/gopls/internal/coverage/coverage.go b/gopls/internal/coverage/covera
 diff -urN a/gopls/internal/govulncheck/README.md b/gopls/internal/govulncheck/README.md
 --- a/gopls/internal/govulncheck/README.md	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/govulncheck/README.md	1969-12-31 16:00:00.000000000 -0800
-@@ -1,17 +0,0 @@
+@@ -1,19 +0,0 @@
 -# internal/govulncheck package
 -
 -This package is a literal copy of the cmd/govulncheck/internal/govulncheck
@@ -5302,6 +5461,9 @@ diff -urN a/gopls/internal/govulncheck/README.md b/gopls/internal/govulncheck/RE
 -2. cd to this directory.
 -
 -3. Run `copy.sh`.
+-
+-4. Re-add build tags for go1.18
+\ No newline at end of file
 diff -urN a/gopls/internal/govulncheck/cache.go b/gopls/internal/govulncheck/cache.go
 --- a/gopls/internal/govulncheck/cache.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/govulncheck/cache.go	1969-12-31 16:00:00.000000000 -0800
@@ -5633,7 +5795,7 @@ diff -urN a/gopls/internal/govulncheck/copy.sh b/gopls/internal/govulncheck/copy
 diff -urN a/gopls/internal/govulncheck/source.go b/gopls/internal/govulncheck/source.go
 --- a/gopls/internal/govulncheck/source.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/govulncheck/source.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,129 +0,0 @@
+@@ -1,116 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -5644,13 +5806,11 @@ diff -urN a/gopls/internal/govulncheck/source.go b/gopls/internal/govulncheck/so
 -package govulncheck
 -
 -import (
--	"context"
 -	"fmt"
 -	"sort"
 -	"strings"
 -
 -	"golang.org/x/tools/go/packages"
--	"golang.org/x/vuln/client"
 -	"golang.org/x/vuln/vulncheck"
 -)
 -
@@ -5693,34 +5853,23 @@ diff -urN a/gopls/internal/govulncheck/source.go b/gopls/internal/govulncheck/so
 -	return vpkgs, err
 -}
 -
--// Source calls vulncheck.Source on the Go source in pkgs. It returns the result
--// with Vulns trimmed to those that are actually called.
--func Source(ctx context.Context, pkgs []*vulncheck.Package, c client.Client) (*vulncheck.Result, error) {
--	r, err := vulncheck.Source(ctx, pkgs, &vulncheck.Config{Client: c})
--	if err != nil {
--		return nil, err
--	}
--	// Keep only the vulns that are called.
--	var vulns []*vulncheck.Vuln
--	for _, v := range r.Vulns {
--		if v.CallSink != 0 {
--			vulns = append(vulns, v)
--		}
--	}
--	r.Vulns = vulns
--	return r, nil
--}
--
 -// CallInfo is information about calls to vulnerable functions.
 -type CallInfo struct {
--	CallStacks     map[*vulncheck.Vuln][]vulncheck.CallStack // all call stacks
--	VulnGroups     [][]*vulncheck.Vuln                       // vulns grouped by ID and package
--	ModuleVersions map[string]string                         // map from module paths to versions
--	TopPackages    map[string]bool                           // top-level packages
+-	// CallStacks contains all call stacks to vulnerable functions.
+-	CallStacks map[*vulncheck.Vuln][]vulncheck.CallStack
+-
+-	// VulnGroups contains vulnerabilities grouped by ID and package.
+-	VulnGroups [][]*vulncheck.Vuln
+-
+-	// ModuleVersions is a map of module paths to versions.
+-	ModuleVersions map[string]string
+-
+-	// TopPackages contains the top-level packages in the call info.
+-	TopPackages map[string]bool
 -}
 -
 -// GetCallInfo computes call stacks and related information from a vulncheck.Result.
--// I also makes a set of top-level packages from pkgs.
+-// It also makes a set of top-level packages from pkgs.
 -func GetCallInfo(r *vulncheck.Result, pkgs []*vulncheck.Package) *CallInfo {
 -	pset := map[string]bool{}
 -	for _, p := range pkgs {
@@ -6052,7 +6201,7 @@ diff -urN a/gopls/internal/hooks/analysis_117.go b/gopls/internal/hooks/analysis
 diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
 --- a/gopls/internal/hooks/diff.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/diff.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,41 +0,0 @@
+@@ -1,205 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -6060,12 +6209,176 @@ diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
 -package hooks
 -
 -import (
+-	"crypto/rand"
+-	"encoding/json"
 -	"fmt"
+-	"io"
+-	"log"
+-	"math/big"
+-	"os"
+-	"path/filepath"
+-	"runtime"
+-	"strings"
+-	"sync"
+-	"time"
+-	"unicode"
 -
 -	"github.com/sergi/go-diff/diffmatchpatch"
 -	"golang.org/x/tools/internal/lsp/diff"
 -	"golang.org/x/tools/internal/span"
 -)
+-
+-// structure for saving information about diffs
+-// while the new code is being rolled out
+-type diffstat struct {
+-	Before, After      int
+-	Oldedits, Newedits int
+-	Oldtime, Newtime   time.Duration
+-	Stack              string
+-	Msg                string `json:",omitempty"` // for errors
+-	Ignored            int    `json:",omitempty"` // numbr of skipped records with 0 edits
+-}
+-
+-var (
+-	mu      sync.Mutex // serializes writes and protects ignored
+-	difffd  io.Writer
+-	ignored int // lots of the diff calls have 0 diffs
+-)
+-
+-var fileonce sync.Once
+-
+-func (s *diffstat) save() {
+-	// save log records in a file in os.TempDir().
+-	// diff is frequently called with identical strings, so
+-	// these are somewhat compressed out
+-	fileonce.Do(func() {
+-		fname := filepath.Join(os.TempDir(), fmt.Sprintf("gopls-diff-%x", os.Getpid()))
+-		fd, err := os.Create(fname)
+-		if err != nil {
+-			// now what?
+-		}
+-		difffd = fd
+-	})
+-
+-	mu.Lock()
+-	defer mu.Unlock()
+-	if s.Oldedits == 0 && s.Newedits == 0 {
+-		if ignored < 15 {
+-			// keep track of repeated instances of no diffs
+-			// but only print every 15th
+-			ignored++
+-			return
+-		}
+-		s.Ignored = ignored + 1
+-	} else {
+-		s.Ignored = ignored
+-	}
+-	ignored = 0
+-	// it would be really nice to see why diff was called
+-	_, f, l, ok := runtime.Caller(2)
+-	if ok {
+-		var fname string
+-		fname = filepath.Base(f) // diff is only called from a few places
+-		s.Stack = fmt.Sprintf("%s:%d", fname, l)
+-	}
+-	x, err := json.Marshal(s)
+-	if err != nil {
+-		log.Print(err) // failure to print statistics should not stop gopls
+-	}
+-	fmt.Fprintf(difffd, "%s\n", x)
+-}
+-
+-// save encrypted versions of the broken input and return the file name
+-// (the saved strings will have the same diff behavior as the user's strings)
+-func disaster(before, after string) string {
+-	// encrypt before and after for privacy. (randomized monoalphabetic cipher)
+-	// got will contain the substitution cipher
+-	// for the runes in before and after
+-	got := map[rune]rune{}
+-	for _, r := range before {
+-		got[r] = ' ' // value doesn't matter
+-	}
+-	for _, r := range after {
+-		got[r] = ' '
+-	}
+-	repl := initrepl(len(got))
+-	i := 0
+-	for k := range got { // randomized
+-		got[k] = repl[i]
+-		i++
+-	}
+-	// use got to encrypt before and after
+-	subst := func(r rune) rune { return got[r] }
+-	first := strings.Map(subst, before)
+-	second := strings.Map(subst, after)
+-
+-	// one failure per session is enough, and more private.
+-	// this saves the last one.
+-	fname := fmt.Sprintf("%s/gopls-failed-%x", os.TempDir(), os.Getpid())
+-	fd, err := os.Create(fname)
+-	defer fd.Close()
+-	_, err = fd.Write([]byte(fmt.Sprintf("%s\n%s\n", string(first), string(second))))
+-	if err != nil {
+-		// what do we tell the user?
+-		return ""
+-	}
+-	// ask the user to send us the file, somehow
+-	return fname
+-}
+-
+-func initrepl(n int) []rune {
+-	repl := make([]rune, 0, n)
+-	for r := rune(0); len(repl) < n; r++ {
+-		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+-			repl = append(repl, r)
+-		}
+-	}
+-	// randomize repl
+-	rdr := rand.Reader
+-	lim := big.NewInt(int64(len(repl)))
+-	for i := 1; i < n; i++ {
+-		v, _ := rand.Int(rdr, lim)
+-		k := v.Int64()
+-		repl[i], repl[k] = repl[k], repl[i]
+-	}
+-	return repl
+-}
+-
+-// BothDiffs edits calls both the new and old diffs, checks that the new diffs
+-// change before into after, and attempts to preserve some statistics.
+-func BothDiffs(uri span.URI, before, after string) (edits []diff.TextEdit, err error) {
+-	// The new diff code contains a lot of internal checks that panic when they
+-	// fail. This code catches the panics, or other failures, tries to save
+-	// the failing example (and ut wiykd ask the user to send it back to us, and
+-	// changes options.newDiff to 'old', if only we could figure out how.)
+-	stat := diffstat{Before: len(before), After: len(after)}
+-	now := time.Now()
+-	Oldedits, oerr := ComputeEdits(uri, before, after)
+-	if oerr != nil {
+-		stat.Msg += fmt.Sprintf("old:%v", oerr)
+-	}
+-	stat.Oldedits = len(Oldedits)
+-	stat.Oldtime = time.Since(now)
+-	defer func() {
+-		if r := recover(); r != nil {
+-			disaster(before, after)
+-			edits, err = Oldedits, oerr
+-		}
+-	}()
+-	now = time.Now()
+-	Newedits, rerr := diff.NComputeEdits(uri, before, after)
+-	stat.Newedits = len(Newedits)
+-	stat.Newtime = time.Now().Sub(now)
+-	got := diff.ApplyEdits(before, Newedits)
+-	if got != after {
+-		stat.Msg += "FAIL"
+-		disaster(before, after)
+-		stat.save()
+-		return Oldedits, oerr
+-	}
+-	stat.save()
+-	return Newedits, rerr
+-}
 -
 -func ComputeEdits(uri span.URI, before, after string) (edits []diff.TextEdit, err error) {
 -	// The go-diff library has an unresolved panic (see golang/go#278774).
@@ -6097,22 +6410,63 @@ diff -urN a/gopls/internal/hooks/diff.go b/gopls/internal/hooks/diff.go
 diff -urN a/gopls/internal/hooks/diff_test.go b/gopls/internal/hooks/diff_test.go
 --- a/gopls/internal/hooks/diff_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/diff_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,16 +0,0 @@
+@@ -1,57 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
 -
--package hooks_test
+-package hooks
 -
 -import (
+-	"fmt"
+-	"io/ioutil"
+-	"os"
 -	"testing"
+-	"unicode/utf8"
 -
--	"golang.org/x/tools/gopls/internal/hooks"
 -	"golang.org/x/tools/internal/lsp/diff/difftest"
 -)
 -
 -func TestDiff(t *testing.T) {
--	difftest.DiffTest(t, hooks.ComputeEdits)
+-	difftest.DiffTest(t, ComputeEdits)
+-}
+-
+-func TestRepl(t *testing.T) {
+-	t.Skip("just for checking repl by looking at it")
+-	repl := initrepl(800)
+-	t.Errorf("%q", string(repl))
+-	t.Errorf("%d", len(repl))
+-}
+-
+-func TestDisaster(t *testing.T) {
+-	a := "This is a string,(\u0995) just for basic functionality"
+-	b := "Ths is another string, (\u0996) to see if disaster will store stuff correctly"
+-	fname := disaster(a, b)
+-	buf, err := ioutil.ReadFile(fname)
+-	if err != nil {
+-		t.Errorf("error %v reading %s", err, fname)
+-	}
+-	var x, y string
+-	n, err := fmt.Sscanf(string(buf), "%s\n%s\n", &x, &y)
+-	if n != 2 {
+-		t.Errorf("got %d, expected 2", n)
+-		t.Logf("read %q", string(buf))
+-	}
+-	if a == x || b == y {
+-		t.Error("failed to encrypt")
+-	}
+-	err = os.Remove(fname)
+-	if err != nil {
+-		t.Errorf("%v removing %s", err, fname)
+-	}
+-	alen, blen := utf8.RuneCount([]byte(a)), utf8.RuneCount([]byte(b))
+-	xlen, ylen := utf8.RuneCount([]byte(x)), utf8.RuneCount([]byte(y))
+-	if alen != xlen {
+-		t.Errorf("a; got %d, expected %d", xlen, alen)
+-	}
+-	if blen != ylen {
+-		t.Errorf("b: got %d expected %d", ylen, blen)
+-	}
 -}
 diff -urN a/gopls/internal/hooks/gen-licenses.sh b/gopls/internal/hooks/gen-licenses.sh
 --- a/gopls/internal/hooks/gen-licenses.sh	2000-01-01 00:00:00.000000000 -0000
@@ -6160,7 +6514,7 @@ diff -urN a/gopls/internal/hooks/gen-licenses.sh b/gopls/internal/hooks/gen-lice
 diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 --- a/gopls/internal/hooks/hooks.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/hooks/hooks.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,34 +0,0 @@
+@@ -1,42 +0,0 @@
 -// Copyright 2019 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -6174,6 +6528,7 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 -	"context"
 -
 -	"golang.org/x/tools/gopls/internal/vulncheck"
+-	"golang.org/x/tools/internal/lsp/diff"
 -	"golang.org/x/tools/internal/lsp/source"
 -	"mvdan.cc/gofumpt/format"
 -	"mvdan.cc/xurls/v2"
@@ -6182,7 +6537,14 @@ diff -urN a/gopls/internal/hooks/hooks.go b/gopls/internal/hooks/hooks.go
 -func Options(options *source.Options) {
 -	options.LicensesText = licensesText
 -	if options.GoDiff {
--		options.ComputeEdits = ComputeEdits
+-		switch options.NewDiff {
+-		case "old":
+-			options.ComputeEdits = ComputeEdits
+-		case "new":
+-			options.ComputeEdits = diff.NComputeEdits
+-		default:
+-			options.ComputeEdits = BothDiffs
+-		}
 -	}
 -	options.URLRegexp = xurls.Relaxed()
 -	options.GofumptFormat = func(ctx context.Context, langVersion, modulePath string, src []byte) ([]byte, error) {
@@ -6421,7 +6783,7 @@ diff -urN a/gopls/internal/hooks/licenses_test.go b/gopls/internal/hooks/license
 diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/bench/bench_test.go
 --- a/gopls/internal/regtest/bench/bench_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/bench/bench_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,194 +0,0 @@
+@@ -1,225 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -6432,6 +6794,7 @@ diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/
 -	"flag"
 -	"fmt"
 -	"os"
+-	"runtime"
 -	"runtime/pprof"
 -	"testing"
 -
@@ -6456,7 +6819,7 @@ diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/
 -		// Skip logs as they buffer up memory unnaturally.
 -		SkipLogs(),
 -		// The Debug server only makes sense if running in singleton mode.
--		Modes(Singleton),
+-		Modes(Default),
 -		// Remove the default timeout. Individual tests should control their
 -		// own graceful termination.
 -		NoDefaultTimeout(),
@@ -6490,6 +6853,7 @@ diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/
 -	results := testing.Benchmark(func(b *testing.B) {
 -		for i := 0; i < b.N; i++ {
 -			WithOptions(opts...).Run(t, "", func(t *testing.T, env *Env) {})
+-
 -		}
 -	})
 -
@@ -6515,14 +6879,14 @@ diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/
 -	}
 -
 -	opts := benchmarkOptions(symbolOptions.workdir)
--	conf := EditorConfig{}
+-	settings := make(Settings)
 -	if symbolOptions.matcher != "" {
--		conf.SymbolMatcher = &symbolOptions.matcher
+-		settings["symbolMatcher"] = symbolOptions.matcher
 -	}
 -	if symbolOptions.style != "" {
--		conf.SymbolStyle = &symbolOptions.style
+-		settings["symbolStyle"] = symbolOptions.style
 -	}
--	opts = append(opts, conf)
+-	opts = append(opts, settings)
 -
 -	WithOptions(opts...).Run(t, "", func(t *testing.T, env *Env) {
 -		// We can't Await in this test, since we have disabled hooks. Instead, run
@@ -6614,6 +6978,35 @@ diff -urN a/gopls/internal/regtest/bench/bench_test.go b/gopls/internal/regtest/
 -			}
 -		})
 -		printBenchmarkResults(result)
+-	})
+-}
+-
+-// TestPrintMemStats measures the memory usage of loading a project.
+-// It uses the same -didchange_dir flag as above.
+-// Always run it in isolation since it measures global heap usage.
+-//
+-// Kubernetes example:
+-//
+-//	$ go test -v -run=TestPrintMemStats -didchange_dir=$HOME/w/kubernetes
+-//	TotalAlloc:      5766 MB
+-//	HeapAlloc:       1984 MB
+-//
+-// Both figures exhibit variance of less than 1%.
+-func TestPrintMemStats(t *testing.T) {
+-	if *benchDir == "" {
+-		t.Skip("-didchange_dir is not set")
+-	}
+-
+-	// Load the program...
+-	opts := benchmarkOptions(*benchDir)
+-	WithOptions(opts...).Run(t, "", func(_ *testing.T, env *Env) {
+-		// ...and print the memory usage.
+-		runtime.GC()
+-		runtime.GC()
+-		var mem runtime.MemStats
+-		runtime.ReadMemStats(&mem)
+-		t.Logf("TotalAlloc:\t%d MB", mem.TotalAlloc/1e6)
+-		t.Logf("HeapAlloc:\t%d MB", mem.HeapAlloc/1e6)
 -	})
 -}
 diff -urN a/gopls/internal/regtest/bench/completion_bench_test.go b/gopls/internal/regtest/bench/completion_bench_test.go
@@ -6880,7 +7273,7 @@ diff -urN a/gopls/internal/regtest/bench/stress_test.go b/gopls/internal/regtest
 diff -urN a/gopls/internal/regtest/codelens/codelens_test.go b/gopls/internal/regtest/codelens/codelens_test.go
 --- a/gopls/internal/regtest/codelens/codelens_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/codelens/codelens_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,355 +0,0 @@
+@@ -1,354 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -6946,9 +7339,7 @@ diff -urN a/gopls/internal/regtest/codelens/codelens_test.go b/gopls/internal/re
 -	for _, test := range tests {
 -		t.Run(test.label, func(t *testing.T) {
 -			WithOptions(
--				EditorConfig{
--					CodeLenses: test.enabled,
--				},
+-				Settings{"codelenses": test.enabled},
 -			).Run(t, workspace, func(t *testing.T, env *Env) {
 -				env.OpenFile("lib.go")
 -				lens := env.CodeLens("lib.go")
@@ -7191,10 +7582,11 @@ diff -urN a/gopls/internal/regtest/codelens/codelens_test.go b/gopls/internal/re
 -}
 -`
 -	WithOptions(
--		EditorConfig{
--			CodeLenses: map[string]bool{
+-		Settings{
+-			"codelenses": map[string]bool{
 -				"gc_details": true,
--			}},
+-			},
+-		},
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("main.go")
 -		env.ExecuteCodeLensCommand("main.go", command.GCDetails)
@@ -7898,7 +8290,7 @@ diff -urN a/gopls/internal/regtest/completion/completion_test.go b/gopls/interna
 -}
 -`
 -	WithOptions(
--		EditorConfig{WindowsLineEndings: true},
+-		WindowsLineEndings(),
 -	).Run(t, src, func(t *testing.T, env *Env) {
 -		// Trigger unimported completions for the example.com/blah package.
 -		env.OpenFile("main.go")
@@ -8018,7 +8410,7 @@ diff -urN a/gopls/internal/regtest/completion/completion_test.go b/gopls/interna
 diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/internal/regtest/completion/postfix_snippet_test.go
 --- a/gopls/internal/regtest/completion/postfix_snippet_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/completion/postfix_snippet_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,442 +0,0 @@
+@@ -1,462 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -8030,12 +8422,9 @@ diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/in
 -	"testing"
 -
 -	. "golang.org/x/tools/internal/lsp/regtest"
--	"golang.org/x/tools/internal/lsp/source"
 -)
 -
 -func TestPostfixSnippetCompletion(t *testing.T) {
--	t.Skipf("skipping test due to suspected synchronization bug; see https://go.dev/issue/50707")
--
 -	const mod = `
 --- go.mod --
 -module mod.com
@@ -8289,6 +8678,27 @@ diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/in
 -`,
 -		},
 -		{
+-			name: "channel_range",
+-			before: `
+-package foo
+-
+-func _() {
+-	foo := make(chan int)
+-	foo.range
+-}
+-`,
+-			after: `
+-package foo
+-
+-func _() {
+-	foo := make(chan int)
+-	for e := range foo {
+-	$0
+-}
+-}
+-`,
+-		},
+-		{
 -			name: "var",
 -			before: `
 -package foo
@@ -8400,7 +8810,7 @@ diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/in
 -			before: `
 -package foo
 -
--func foo() []string { 
+-func foo() []string {
 -	x := "test"
 -	return x.split
 -}`,
@@ -8409,7 +8819,7 @@ diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/in
 -
 -import "strings"
 -
--func foo() []string { 
+-func foo() []string {
 -	x := "test"
 -	return strings.Split(x, "$0")
 -}`,
@@ -8435,9 +8845,11 @@ diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/in
 -		},
 -	}
 -
--	r := WithOptions(Options(func(o *source.Options) {
--		o.ExperimentalPostfixCompletions = true
--	}))
+-	r := WithOptions(
+-		Settings{
+-			"experimentalPostfixCompletions": true,
+-		},
+-	)
 -	r.Run(t, mod, func(t *testing.T, env *Env) {
 -		for _, c := range cases {
 -			t.Run(c.name, func(t *testing.T) {
@@ -8464,7 +8876,7 @@ diff -urN a/gopls/internal/regtest/completion/postfix_snippet_test.go b/gopls/in
 diff -urN a/gopls/internal/regtest/debug/debug_test.go b/gopls/internal/regtest/debug/debug_test.go
 --- a/gopls/internal/regtest/debug/debug_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/debug/debug_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,34 +0,0 @@
+@@ -1,30 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -8487,12 +8899,8 @@ diff -urN a/gopls/internal/regtest/debug/debug_test.go b/gopls/internal/regtest/
 -	// Verify that a properly configured session gets notified of a bug on the
 -	// server.
 -	WithOptions(
--		Modes(Singleton), // must be in-process to receive the bug report below
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"showBugReports": true,
--			},
--		},
+-		Modes(Default), // must be in-process to receive the bug report below
+-		Settings{"showBugReports": true},
 -	).Run(t, "", func(t *testing.T, env *Env) {
 -		const desc = "got a bug"
 -		bug.Report(desc, nil)
@@ -8544,7 +8952,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/builtin_test.go b/gopls/internal/
 diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/internal/regtest/diagnostics/diagnostics_test.go
 --- a/gopls/internal/regtest/diagnostics/diagnostics_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/diagnostics/diagnostics_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,2268 +0,0 @@
+@@ -1,2233 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -8845,7 +9253,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -
 -	t.Run("without workspace module", func(t *testing.T) {
 -		WithOptions(
--			Modes(Singleton),
+-			Modes(Default),
 -		).Run(t, noMod, func(t *testing.T, env *Env) {
 -			env.Await(
 -				env.DiagnosticAtRegexp("main.go", `"mod.com/bob"`),
@@ -9018,12 +9426,11 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -}
 -`
 -	WithOptions(
--		EditorConfig{
--			Env: map[string]string{
--				"GOPATH":      "",
--				"GO111MODULE": "off",
--			},
--		}).Run(t, files, func(t *testing.T, env *Env) {
+-		EnvVars{
+-			"GOPATH":      "",
+-			"GO111MODULE": "off",
+-		},
+-	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("main.go")
 -		env.Await(env.DiagnosticAtRegexp("main.go", "fmt"))
 -		env.SaveBuffer("main.go")
@@ -9047,8 +9454,9 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -
 -var X = 0
 -`
--	editorConfig := EditorConfig{Env: map[string]string{"GOFLAGS": "-tags=foo"}}
--	WithOptions(editorConfig).Run(t, files, func(t *testing.T, env *Env) {
+-	WithOptions(
+-		EnvVars{"GOFLAGS": "-tags=foo"},
+-	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("main.go")
 -		env.OrganizeImports("main.go")
 -		env.Await(EmptyDiagnostics("main.go"))
@@ -9120,9 +9528,9 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -`
 -	for _, go111module := range []string{"on", "off", ""} {
 -		t.Run(fmt.Sprintf("GO111MODULE_%v", go111module), func(t *testing.T) {
--			WithOptions(EditorConfig{
--				Env: map[string]string{"GO111MODULE": go111module},
--			}).Run(t, files, func(t *testing.T, env *Env) {
+-			WithOptions(
+-				EnvVars{"GO111MODULE": go111module},
+-			).Run(t, files, func(t *testing.T, env *Env) {
 -				env.Await(
 -					NoOutstandingWork(),
 -				)
@@ -9152,11 +9560,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -`
 -	WithOptions(
 -		InGOPATH(),
--		EditorConfig{
--			Env: map[string]string{
--				"GO111MODULE": "off",
--			},
--		},
+-		EnvVars{"GO111MODULE": "off"},
 -	).Run(t, collision, func(t *testing.T, env *Env) {
 -		env.OpenFile("x/x.go")
 -		env.Await(
@@ -9187,8 +9591,6 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -
 -// Test for golang/go#38211.
 -func Test_Issue38211(t *testing.T) {
--	t.Skipf("Skipping flaky test: https://golang.org/issue/44098")
--
 -	testenv.NeedsGo1Point(t, 14)
 -	const ardanLabs = `
 --- go.mod --
@@ -9254,7 +9656,8 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -
 -// Test for golang/go#38207.
 -func TestNewModule_Issue38207(t *testing.T) {
--	testenv.NeedsGo1Point(t, 14)
+-	// Fails at Go 1.14 following CL 417576. Not investigated.
+-	testenv.NeedsGo1Point(t, 15)
 -	const emptyFile = `
 --- go.mod --
 -module mod.com
@@ -9425,7 +9828,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -}
 -
 -func TestChangePackageName(t *testing.T) {
--	t.Skip("This issue hasn't been fixed yet. See golang.org/issue/41061.")
+-	testenv.NeedsGo1Point(t, 16) // needs native overlay support
 -
 -	const mod = `
 --- go.mod --
@@ -9440,15 +9843,11 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -	Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("foo/bar_test.go")
 -		env.RegexpReplace("foo/bar_test.go", "package foo_", "package foo_test")
--		env.SaveBuffer("foo/bar_test.go")
 -		env.Await(
 -			OnceMet(
--				env.DoneWithSave(),
--				NoDiagnostics("foo/bar_test.go"),
--			),
--			OnceMet(
--				env.DoneWithSave(),
--				NoDiagnostics("foo/foo.go"),
+-				env.DoneWithChange(),
+-				EmptyOrNoDiagnostics("foo/bar_test.go"),
+-				EmptyOrNoDiagnostics("foo/foo.go"),
 -			),
 -		)
 -	})
@@ -9518,8 +9917,6 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -// This is a copy of the scenario_default/quickfix_empty_files.txt test from
 -// govim. Reproduces golang/go#39646.
 -func TestQuickFixEmptyFiles(t *testing.T) {
--	t.Skip("too flaky: golang/go#48773")
--
 -	testenv.NeedsGo1Point(t, 15)
 -
 -	const mod = `
@@ -9783,7 +10180,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -	})
 -	WithOptions(
 -		WorkspaceFolders("a"),
--		LimitWorkspaceScope(),
+-		Settings{"expandWorkspaceToModule": false},
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("a/main.go")
 -		env.Await(
@@ -9814,11 +10211,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -`
 -
 -	WithOptions(
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"staticcheck": true,
--			},
--		},
+-		Settings{"staticcheck": true},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("main.go")
 -		var d protocol.PublishDiagnosticsParams
@@ -9928,9 +10321,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -}
 -`
 -	WithOptions(
--		EditorConfig{
--			AllExperiments: true,
--		},
+-		Settings{"allExperiments": true},
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		// Confirm that the setting doesn't cause any warnings.
 -		env.Await(NoShowMessage())
@@ -10042,11 +10433,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -	WithOptions(
 -		ProxyFiles(proxy),
 -		InGOPATH(),
--		EditorConfig{
--			Env: map[string]string{
--				"GO111MODULE": "off",
--			},
--		},
+-		EnvVars{"GO111MODULE": "off"},
 -	).Run(t, contents, func(t *testing.T, env *Env) {
 -		// Simulate typing character by character.
 -		env.OpenFile("foo/foo_test.go")
@@ -10245,10 +10632,8 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -	t.Run("GOPATH", func(t *testing.T) {
 -		WithOptions(
 -			InGOPATH(),
--			EditorConfig{
--				Env: map[string]string{"GO111MODULE": "off"},
--			},
--			Modes(Singleton),
+-			EnvVars{"GO111MODULE": "off"},
+-			Modes(Default),
 -		).Run(t, mod, func(t *testing.T, env *Env) {
 -			env.Await(
 -				env.DiagnosticAtRegexpWithMessage("main.go", `"nosuchpkg"`, `cannot find package "nosuchpkg" in any of`),
@@ -10275,12 +10660,8 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -	for _, go111module := range []string{"on", "auto"} {
 -		t.Run("GO111MODULE="+go111module, func(t *testing.T) {
 -			WithOptions(
--				Modes(Singleton),
--				EditorConfig{
--					Env: map[string]string{
--						"GO111MODULE": go111module,
--					},
--				},
+-				Modes(Default),
+-				EnvVars{"GO111MODULE": go111module},
 -			).Run(t, modules, func(t *testing.T, env *Env) {
 -				env.OpenFile("a/a.go")
 -				env.OpenFile("b/go.mod")
@@ -10296,12 +10677,8 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -	// Expect no warning if GO111MODULE=auto in a directory in GOPATH.
 -	t.Run("GOPATH_GO111MODULE_auto", func(t *testing.T) {
 -		WithOptions(
--			Modes(Singleton),
--			EditorConfig{
--				Env: map[string]string{
--					"GO111MODULE": "auto",
--				},
--			},
+-			Modes(Default),
+-			EnvVars{"GO111MODULE": "auto"},
 -			InGOPATH(),
 -		).Run(t, modules, func(t *testing.T, env *Env) {
 -			env.OpenFile("a/a.go")
@@ -10362,7 +10739,7 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -`
 -	WithOptions(
 -		ProxyFiles(proxy),
--		Modes(Singleton),
+-		Modes(Default),
 -	).Run(t, nested, func(t *testing.T, env *Env) {
 -		// Expect a diagnostic in a nested module.
 -		env.OpenFile("nested/hello/hello.go")
@@ -10573,10 +10950,8 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -func Hello() {}
 -`
 -	WithOptions(
--		EditorConfig{
--			ExperimentalUseInvalidMetadata: true,
--		},
--		Modes(Singleton),
+-		Settings{"experimentalUseInvalidMetadata": true},
+-		Modes(Default),
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("go.mod")
 -		env.RegexpReplace("go.mod", "module mod.com", "modul mod.com") // break the go.mod file
@@ -10629,12 +11004,10 @@ diff -urN a/gopls/internal/regtest/diagnostics/diagnostics_test.go b/gopls/inter
 -func _() {}
 -`
 -	WithOptions(
--		EditorConfig{
--			ExperimentalUseInvalidMetadata: true,
--		},
+-		Settings{"experimentalUseInvalidMetadata": true},
 -		// ExperimentalWorkspaceModule has a different failure mode for this
 -		// case.
--		Modes(Singleton),
+-		Modes(Default),
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.Await(
 -			OnceMet(
@@ -10884,6 +11257,81 @@ diff -urN a/gopls/internal/regtest/diagnostics/undeclared_test.go b/gopls/intern
 -		}
 -	})
 -}
+diff -urN a/gopls/internal/regtest/inlayhints/inlayhints_test.go b/gopls/internal/regtest/inlayhints/inlayhints_test.go
+--- a/gopls/internal/regtest/inlayhints/inlayhints_test.go	2000-01-01 00:00:00.000000000 -0000
++++ b/gopls/internal/regtest/inlayhints/inlayhints_test.go	1969-12-31 16:00:00.000000000 -0800
+@@ -1,71 +0,0 @@
+-// Copyright 2022 The Go Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style
+-// license that can be found in the LICENSE file.
+-package inlayhint
+-
+-import (
+-	"testing"
+-
+-	"golang.org/x/tools/gopls/internal/hooks"
+-	"golang.org/x/tools/internal/lsp/bug"
+-	. "golang.org/x/tools/internal/lsp/regtest"
+-	"golang.org/x/tools/internal/lsp/source"
+-	"golang.org/x/tools/internal/testenv"
+-)
+-
+-func TestMain(m *testing.M) {
+-	bug.PanicOnBugs = true
+-	Main(m, hooks.Options)
+-}
+-
+-func TestEnablingInlayHints(t *testing.T) {
+-	testenv.NeedsGo1Point(t, 14) // Test fails on 1.13.
+-	const workspace = `
+--- go.mod --
+-module inlayHint.test
+-go 1.12
+--- lib.go --
+-package lib
+-type Number int
+-const (
+-	Zero Number = iota
+-	One
+-	Two
+-)
+-`
+-	tests := []struct {
+-		label         string
+-		enabled       map[string]bool
+-		wantInlayHint bool
+-	}{
+-		{
+-			label:         "default",
+-			wantInlayHint: false,
+-		},
+-		{
+-			label:         "enable const",
+-			enabled:       map[string]bool{source.ConstantValues: true},
+-			wantInlayHint: true,
+-		},
+-		{
+-			label:         "enable parameter names",
+-			enabled:       map[string]bool{source.ParameterNames: true},
+-			wantInlayHint: false,
+-		},
+-	}
+-	for _, test := range tests {
+-		t.Run(test.label, func(t *testing.T) {
+-			WithOptions(
+-				Settings{
+-					"hints": test.enabled,
+-				},
+-			).Run(t, workspace, func(t *testing.T, env *Env) {
+-				env.OpenFile("lib.go")
+-				lens := env.InlayHints("lib.go")
+-				if gotInlayHint := len(lens) > 0; gotInlayHint != test.wantInlayHint {
+-					t.Errorf("got inlayHint: %t, want %t", gotInlayHint, test.wantInlayHint)
+-				}
+-			})
+-		})
+-	}
+-}
 diff -urN a/gopls/internal/regtest/misc/call_hierarchy_test.go b/gopls/internal/regtest/misc/call_hierarchy_test.go
 --- a/gopls/internal/regtest/misc/call_hierarchy_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/call_hierarchy_test.go	1969-12-31 16:00:00.000000000 -0800
@@ -10926,7 +11374,7 @@ diff -urN a/gopls/internal/regtest/misc/call_hierarchy_test.go b/gopls/internal/
 diff -urN a/gopls/internal/regtest/misc/configuration_test.go b/gopls/internal/regtest/misc/configuration_test.go
 --- a/gopls/internal/regtest/misc/configuration_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/configuration_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,80 +0,0 @@
+@@ -1,76 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -10938,7 +11386,6 @@ diff -urN a/gopls/internal/regtest/misc/configuration_test.go b/gopls/internal/r
 -
 -	. "golang.org/x/tools/internal/lsp/regtest"
 -
--	"golang.org/x/tools/internal/lsp/fake"
 -	"golang.org/x/tools/internal/testenv"
 -)
 -
@@ -10969,12 +11416,11 @@ diff -urN a/gopls/internal/regtest/misc/configuration_test.go b/gopls/internal/r
 -			env.DoneWithOpen(),
 -			NoDiagnostics("a/a.go"),
 -		)
--		cfg := &fake.EditorConfig{}
--		*cfg = env.Editor.Config
+-		cfg := env.Editor.Config()
 -		cfg.Settings = map[string]interface{}{
 -			"staticcheck": true,
 -		}
--		env.ChangeConfiguration(t, cfg)
+-		env.ChangeConfiguration(cfg)
 -		env.Await(
 -			DiagnosticAt("a/a.go", 5, 4),
 -		)
@@ -10999,11 +11445,9 @@ diff -urN a/gopls/internal/regtest/misc/configuration_test.go b/gopls/internal/r
 -var FooErr = errors.New("foo")
 -`
 -
--	WithOptions(EditorConfig{
--		Settings: map[string]interface{}{
--			"staticcheck": true,
--		},
--	}).Run(t, files, func(t *testing.T, env *Env) {
+-	WithOptions(
+-		Settings{"staticcheck": true},
+-	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.Await(ShownMessage("staticcheck is not supported"))
 -	})
 -}
@@ -11060,7 +11504,7 @@ diff -urN a/gopls/internal/regtest/misc/debugserver_test.go b/gopls/internal/reg
 diff -urN a/gopls/internal/regtest/misc/definition_test.go b/gopls/internal/regtest/misc/definition_test.go
 --- a/gopls/internal/regtest/misc/definition_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/definition_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,291 +0,0 @@
+@@ -1,289 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -11225,9 +11669,7 @@ diff -urN a/gopls/internal/regtest/misc/definition_test.go b/gopls/internal/regt
 -	} {
 -		t.Run(tt.importShortcut, func(t *testing.T) {
 -			WithOptions(
--				EditorConfig{
--					ImportShortcut: tt.importShortcut,
--				},
+-				Settings{"importShortcut": tt.importShortcut},
 -			).Run(t, mod, func(t *testing.T, env *Env) {
 -				env.OpenFile("main.go")
 -				file, pos := env.GoToDefinition("main.go", env.RegexpSearch("main.go", `"fmt"`))
@@ -11581,7 +12023,7 @@ diff -urN a/gopls/internal/regtest/misc/fix_test.go b/gopls/internal/regtest/mis
 diff -urN a/gopls/internal/regtest/misc/formatting_test.go b/gopls/internal/regtest/misc/formatting_test.go
 --- a/gopls/internal/regtest/misc/formatting_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/formatting_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,369 +0,0 @@
+@@ -1,367 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -11936,10 +12378,8 @@ diff -urN a/gopls/internal/regtest/misc/formatting_test.go b/gopls/internal/regt
 -`
 -
 -	WithOptions(
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"gofumpt": true,
--			},
+-		Settings{
+-			"gofumpt": true,
 -		},
 -	).Run(t, input, func(t *testing.T, env *Env) {
 -		env.OpenFile("foo.go")
@@ -11954,7 +12394,7 @@ diff -urN a/gopls/internal/regtest/misc/formatting_test.go b/gopls/internal/regt
 diff -urN a/gopls/internal/regtest/misc/generate_test.go b/gopls/internal/regtest/misc/generate_test.go
 --- a/gopls/internal/regtest/misc/generate_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/generate_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,75 +0,0 @@
+@@ -1,73 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -11973,8 +12413,6 @@ diff -urN a/gopls/internal/regtest/misc/generate_test.go b/gopls/internal/regtes
 -)
 -
 -func TestGenerateProgress(t *testing.T) {
--	t.Skipf("skipping flaky test: https://golang.org/issue/49901")
--
 -	const generatedWorkspace = `
 --- go.mod --
 -module fake.test
@@ -12552,7 +12990,7 @@ diff -urN a/gopls/internal/regtest/misc/import_test.go b/gopls/internal/regtest/
 diff -urN a/gopls/internal/regtest/misc/imports_test.go b/gopls/internal/regtest/misc/imports_test.go
 --- a/gopls/internal/regtest/misc/imports_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/imports_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,216 +0,0 @@
+@@ -1,261 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -12708,9 +13146,8 @@ diff -urN a/gopls/internal/regtest/misc/imports_test.go b/gopls/internal/regtest
 -		t.Fatal(err)
 -	}
 -	defer os.RemoveAll(modcache)
--	editorConfig := EditorConfig{Env: map[string]string{"GOMODCACHE": modcache}}
 -	WithOptions(
--		editorConfig,
+-		EnvVars{"GOMODCACHE": modcache},
 -		ProxyFiles(proxy),
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("main.go")
@@ -12769,10 +13206,56 @@ diff -urN a/gopls/internal/regtest/misc/imports_test.go b/gopls/internal/regtest
 -		)
 -	})
 -}
+-
+-// Test for golang/go#52784
+-func TestGoWorkImports(t *testing.T) {
+-	testenv.NeedsGo1Point(t, 18)
+-	const pkg = `
+--- go.work --
+-go 1.19
+-
+-use (
+-        ./caller
+-        ./mod
+-)
+--- caller/go.mod --
+-module caller.com
+-
+-go 1.18
+-
+-require mod.com v0.0.0
+-
+-replace mod.com => ../mod
+--- caller/caller.go --
+-package main
+-
+-func main() {
+-        a.Test()
+-}
+--- mod/go.mod --
+-module mod.com
+-
+-go 1.18
+--- mod/a/a.go --
+-package a
+-
+-func Test() {
+-}
+-`
+-	Run(t, pkg, func(t *testing.T, env *Env) {
+-		env.OpenFile("caller/caller.go")
+-		env.Await(env.DiagnosticAtRegexp("caller/caller.go", "a.Test"))
+-
+-		// Saving caller.go should trigger goimports, which should find a.Test in
+-		// the mod.com module, thanks to the go.work file.
+-		env.SaveBuffer("caller/caller.go")
+-		env.Await(EmptyDiagnostics("caller/caller.go"))
+-	})
+-}
 diff -urN a/gopls/internal/regtest/misc/link_test.go b/gopls/internal/regtest/misc/link_test.go
 --- a/gopls/internal/regtest/misc/link_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/link_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,98 +0,0 @@
+@@ -1,100 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -12850,7 +13333,9 @@ diff -urN a/gopls/internal/regtest/misc/link_test.go b/gopls/internal/regtest/mi
 -		}
 -
 -		// Then change the environment to make these links private.
--		env.ChangeEnv(map[string]string{"GOPRIVATE": "import.test"})
+-		cfg := env.Editor.Config()
+-		cfg.Env = map[string]string{"GOPRIVATE": "import.test"}
+-		env.ChangeConfiguration(cfg)
 -
 -		// Finally, verify that the links are gone.
 -		content, _ = env.Hover("main.go", env.RegexpSearch("main.go", "pkg.Hello"))
@@ -12944,7 +13429,7 @@ diff -urN a/gopls/internal/regtest/misc/multiple_adhoc_test.go b/gopls/internal/
 diff -urN a/gopls/internal/regtest/misc/references_test.go b/gopls/internal/regtest/misc/references_test.go
 --- a/gopls/internal/regtest/misc/references_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/references_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,83 +0,0 @@
+@@ -1,171 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -12952,6 +13437,8 @@ diff -urN a/gopls/internal/regtest/misc/references_test.go b/gopls/internal/regt
 -package misc
 -
 -import (
+-	"fmt"
+-	"strings"
 -	"testing"
 -
 -	. "golang.org/x/tools/internal/lsp/regtest"
@@ -13028,6 +13515,92 @@ diff -urN a/gopls/internal/regtest/misc/references_test.go b/gopls/internal/regt
 -		}
 -	})
 -}
+-
+-func TestPackageReferences(t *testing.T) {
+-	tests := []struct {
+-		packageName  string
+-		wantRefCount int
+-		wantFiles    []string
+-	}{
+-		{
+-			"lib1",
+-			3,
+-			[]string{
+-				"main.go",
+-				"lib1/a.go",
+-				"lib1/b.go",
+-			},
+-		},
+-		{
+-			"lib2",
+-			2,
+-			[]string{
+-				"main.go",
+-				"lib2/a.go",
+-			},
+-		},
+-	}
+-
+-	const files = `
+--- go.mod --
+-module mod.com
+-
+-go 1.18
+--- lib1/a.go --
+-package lib1
+-
+-const A = 1
+-
+--- lib1/b.go --
+-package lib1
+-
+-const B = 1
+-
+--- lib2/a.go --
+-package lib2
+-
+-const C = 1
+-
+--- main.go --
+-package main
+-
+-import (
+-	"mod.com/lib1"
+-	"mod.com/lib2"
+-)
+-
+-func main() {
+-	println("Hello")
+-}
+-`
+-	Run(t, files, func(t *testing.T, env *Env) {
+-		for _, test := range tests {
+-			f := fmt.Sprintf("%s/a.go", test.packageName)
+-			env.OpenFile(f)
+-			pos := env.RegexpSearch(f, test.packageName)
+-			refs := env.References(fmt.Sprintf("%s/a.go", test.packageName), pos)
+-			if len(refs) != test.wantRefCount {
+-				t.Fatalf("got %v reference(s), want %d", len(refs), test.wantRefCount)
+-			}
+-			var refURIs []string
+-			for _, ref := range refs {
+-				refURIs = append(refURIs, string(ref.URI))
+-			}
+-			for _, base := range test.wantFiles {
+-				hasBase := false
+-				for _, ref := range refURIs {
+-					if strings.HasSuffix(ref, base) {
+-						hasBase = true
+-						break
+-					}
+-				}
+-				if !hasBase {
+-					t.Fatalf("got [%v], want reference ends with \"%v\"", strings.Join(refURIs, ","), base)
+-				}
+-			}
+-		}
+-	})
+-}
 diff -urN a/gopls/internal/regtest/misc/rename_test.go b/gopls/internal/regtest/misc/rename_test.go
 --- a/gopls/internal/regtest/misc/rename_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/rename_test.go	1969-12-31 16:00:00.000000000 -0800
@@ -13093,7 +13666,7 @@ diff -urN a/gopls/internal/regtest/misc/rename_test.go b/gopls/internal/regtest/
 diff -urN a/gopls/internal/regtest/misc/semantictokens_test.go b/gopls/internal/regtest/misc/semantictokens_test.go
 --- a/gopls/internal/regtest/misc/semantictokens_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/semantictokens_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,44 +0,0 @@
+@@ -1,42 +0,0 @@
 -// Copyright 2021 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -13121,10 +13694,8 @@ diff -urN a/gopls/internal/regtest/misc/semantictokens_test.go b/gopls/internal/
 -
 -`
 -	WithOptions(
--		Modes(Singleton),
--		EditorConfig{
--			AllExperiments: true,
--		},
+-		Modes(Default),
+-		Settings{"allExperiments": true},
 -	).Run(t, src, func(t *testing.T, env *Env) {
 -		params := &protocol.SemanticTokensParams{}
 -		const badURI = "http://foo"
@@ -13141,7 +13712,7 @@ diff -urN a/gopls/internal/regtest/misc/semantictokens_test.go b/gopls/internal/
 diff -urN a/gopls/internal/regtest/misc/settings_test.go b/gopls/internal/regtest/misc/settings_test.go
 --- a/gopls/internal/regtest/misc/settings_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/settings_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,36 +0,0 @@
+@@ -1,32 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -13168,11 +13739,7 @@ diff -urN a/gopls/internal/regtest/misc/settings_test.go b/gopls/internal/regtes
 -`
 -
 -	WithOptions(
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"directoryFilters": []string{""},
--			},
--		},
+-		Settings{"directoryFilters": []string{""}},
 -	).Run(t, src, func(t *testing.T, env *Env) {
 -		// No need to do anything. Issue golang/go#51843 is triggered by the empty
 -		// directory filter above.
@@ -13181,7 +13748,7 @@ diff -urN a/gopls/internal/regtest/misc/settings_test.go b/gopls/internal/regtes
 diff -urN a/gopls/internal/regtest/misc/shared_test.go b/gopls/internal/regtest/misc/shared_test.go
 --- a/gopls/internal/regtest/misc/shared_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/shared_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,64 +0,0 @@
+@@ -1,72 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -13208,48 +13775,56 @@ diff -urN a/gopls/internal/regtest/misc/shared_test.go b/gopls/internal/regtest/
 -	fmt.Println("Hello World.")
 -}`
 -
--func runShared(t *testing.T, testFunc func(env1 *Env, env2 *Env)) {
+-// runShared is a helper to run a test in the same directory using both the
+-// original env, and an additional other environment connected to the same
+-// server.
+-func runShared(t *testing.T, testFunc func(origEnv *Env, otherEnv *Env)) {
 -	// Only run these tests in forwarded modes.
 -	modes := DefaultModes() & (Forwarded | SeparateProcess)
 -	WithOptions(Modes(modes)).Run(t, sharedProgram, func(t *testing.T, env1 *Env) {
 -		// Create a second test session connected to the same workspace and server
 -		// as the first.
--		env2 := NewEnv(env1.Ctx, t, env1.Sandbox, env1.Server, env1.Editor.Config, true)
+-		env2, cleanup := NewEnv(env1.Ctx, t, env1.Sandbox, env1.Server, env1.Editor.Config(), true)
+-		defer cleanup()
 -		env2.Await(InitialWorkspaceLoad)
 -		testFunc(env1, env2)
 -	})
 -}
 -
 -func TestSimultaneousEdits(t *testing.T) {
--	runShared(t, func(env1 *Env, env2 *Env) {
+-	runShared(t, func(origEnv *Env, otherEnv *Env) {
 -		// In editor #1, break fmt.Println as before.
--		env1.OpenFile("main.go")
--		env1.RegexpReplace("main.go", "Printl(n)", "")
+-		origEnv.OpenFile("main.go")
+-		origEnv.RegexpReplace("main.go", "Printl(n)", "")
 -		// In editor #2 remove the closing brace.
--		env2.OpenFile("main.go")
--		env2.RegexpReplace("main.go", "\\)\n(})", "")
+-		otherEnv.OpenFile("main.go")
+-		otherEnv.RegexpReplace("main.go", "\\)\n(})", "")
 -
 -		// Now check that we got different diagnostics in each environment.
--		env1.Await(env1.DiagnosticAtRegexp("main.go", "Printl"))
--		env2.Await(env2.DiagnosticAtRegexp("main.go", "$"))
+-		origEnv.Await(origEnv.DiagnosticAtRegexp("main.go", "Printl"))
+-		otherEnv.Await(otherEnv.DiagnosticAtRegexp("main.go", "$"))
 -	})
 -}
 -
 -func TestShutdown(t *testing.T) {
--	runShared(t, func(env1 *Env, env2 *Env) {
--		if err := env1.Editor.Close(env1.Ctx); err != nil {
+-	runShared(t, func(origEnv *Env, otherEnv *Env) {
+-		// Close otherEnv, and verify that operation in the original environment is
+-		// unaffected. Note: 'otherEnv' must be the environment being closed here.
+-		// If we were to instead close 'env' here, we'd run into a duplicate
+-		// shutdown when the test runner closes the original env.
+-		if err := otherEnv.Editor.Close(otherEnv.Ctx); err != nil {
 -			t.Errorf("closing first editor: %v", err)
 -		}
 -		// Now make an edit in editor #2 to trigger diagnostics.
--		env2.OpenFile("main.go")
--		env2.RegexpReplace("main.go", "\\)\n(})", "")
--		env2.Await(env2.DiagnosticAtRegexp("main.go", "$"))
+-		origEnv.OpenFile("main.go")
+-		origEnv.RegexpReplace("main.go", "\\)\n(})", "")
+-		origEnv.Await(origEnv.DiagnosticAtRegexp("main.go", "$"))
 -	})
 -}
 diff -urN a/gopls/internal/regtest/misc/staticcheck_test.go b/gopls/internal/regtest/misc/staticcheck_test.go
 --- a/gopls/internal/regtest/misc/staticcheck_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/staticcheck_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,78 +0,0 @@
+@@ -1,76 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -13312,11 +13887,9 @@ diff -urN a/gopls/internal/regtest/misc/staticcheck_test.go b/gopls/internal/reg
 -var FooErr error = errors.New("foo")
 -`
 -
--	WithOptions(EditorConfig{
--		Settings: map[string]interface{}{
--			"staticcheck": true,
--		},
--	}).Run(t, files, func(t *testing.T, env *Env) {
+-	WithOptions(
+-		Settings{"staticcheck": true},
+-	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("a/a.go")
 -		env.Await(
 -			env.DiagnosticAtRegexpFromSource("a/a.go", "sort.Slice", "sortslice"),
@@ -13331,7 +13904,7 @@ diff -urN a/gopls/internal/regtest/misc/staticcheck_test.go b/gopls/internal/reg
 diff -urN a/gopls/internal/regtest/misc/vendor_test.go b/gopls/internal/regtest/misc/vendor_test.go
 --- a/gopls/internal/regtest/misc/vendor_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/vendor_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,79 +0,0 @@
+@@ -1,69 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -13361,16 +13934,6 @@ diff -urN a/gopls/internal/regtest/misc/vendor_test.go b/gopls/internal/regtest/
 -func TestInconsistentVendoring(t *testing.T) {
 -	testenv.NeedsGo1Point(t, 14)
 -
--	// TODO(golang/go#49646): delete this comment once this test is stable.
--	//
--	// In golang/go#49646, this test is reported as flaky on Windows. We believe
--	// this is due to file contention from go mod vendor that should be resolved.
--	// If this test proves to still be flaky, skip it.
--	//
--	// if runtime.GOOS == "windows" {
--	// 	t.Skipf("skipping test due to flakiness on Windows: https://golang.org/issue/49646")
--	// }
--
 -	const pkgThatUsesVendoring = `
 --- go.mod --
 -module mod.com
@@ -13393,7 +13956,7 @@ diff -urN a/gopls/internal/regtest/misc/vendor_test.go b/gopls/internal/regtest/
 -}
 -`
 -	WithOptions(
--		Modes(Singleton),
+-		Modes(Default),
 -		ProxyFiles(basicProxy),
 -	).Run(t, pkgThatUsesVendoring, func(t *testing.T, env *Env) {
 -		env.OpenFile("a/a1.go")
@@ -13461,7 +14024,7 @@ diff -urN a/gopls/internal/regtest/misc/vuln_test.go b/gopls/internal/regtest/mi
 diff -urN a/gopls/internal/regtest/misc/workspace_symbol_test.go b/gopls/internal/regtest/misc/workspace_symbol_test.go
 --- a/gopls/internal/regtest/misc/workspace_symbol_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/misc/workspace_symbol_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,131 +0,0 @@
+@@ -1,127 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -13536,9 +14099,7 @@ diff -urN a/gopls/internal/regtest/misc/workspace_symbol_test.go b/gopls/interna
 -
 -	var symbolMatcher = string(source.SymbolFastFuzzy)
 -	WithOptions(
--		EditorConfig{
--			SymbolMatcher: &symbolMatcher,
--		},
+-		Settings{"symbolMatcher": symbolMatcher},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		want := []string{
 -			"Foo",    // prefer exact segment matches first
@@ -13569,9 +14130,7 @@ diff -urN a/gopls/internal/regtest/misc/workspace_symbol_test.go b/gopls/interna
 -
 -	var symbolMatcher = string(source.SymbolFastFuzzy)
 -	WithOptions(
--		EditorConfig{
--			SymbolMatcher: &symbolMatcher,
--		},
+-		Settings{"symbolMatcher": symbolMatcher},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		compareSymbols(t, env.WorkspaceSymbol("ABC"), []string{"ABC", "AxxBxxCxx"})
 -		compareSymbols(t, env.WorkspaceSymbol("'ABC"), []string{"ABC"})
@@ -13596,7 +14155,7 @@ diff -urN a/gopls/internal/regtest/misc/workspace_symbol_test.go b/gopls/interna
 diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regtest/modfile/modfile_test.go
 --- a/gopls/internal/regtest/modfile/modfile_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/modfile/modfile_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,1199 +0,0 @@
+@@ -1,1193 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -14339,13 +14898,9 @@ diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regt
 -}
 -`
 -	WithOptions(
--		EditorConfig{
--			Env: map[string]string{
--				"GOFLAGS": "-mod=readonly",
--			},
--		},
+-		EnvVars{"GOFLAGS": "-mod=readonly"},
 -		ProxyFiles(proxy),
--		Modes(Singleton),
+-		Modes(Default),
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("main.go")
 -		original := env.ReadWorkspaceFile("go.mod")
@@ -14429,9 +14984,7 @@ diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regt
 -`
 -	WithOptions(
 -		ProxyFiles(workspaceProxy),
--		EditorConfig{
--			BuildFlags: []string{"-tags", "bob"},
--		},
+-		Settings{"buildFlags": []string{"-tags", "bob"}},
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.Await(
 -			env.DiagnosticAtRegexp("main.go", `"example.com/blah"`),
@@ -14527,7 +15080,7 @@ diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regt
 -		// TODO(rFindley) this doesn't work in multi-module workspace mode, because
 -		// it keeps around the last parsing modfile. Update this test to also
 -		// exercise the workspace module.
--		Modes(Singleton),
+-		Modes(Default),
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("go.mod")
 -		env.Await(env.DoneWithOpen())
@@ -14695,7 +15248,7 @@ diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regt
 -`
 -	WithOptions(
 -		ProxyFiles(workspaceProxy),
--		Modes(Singleton),
+-		Modes(Default),
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("go.mod")
 -		params := &protocol.PublishDiagnosticsParams{}
@@ -14764,7 +15317,7 @@ diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regt
 -`
 -	WithOptions(
 -		ProxyFiles(proxy),
--		Modes(Singleton),
+-		Modes(Default),
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.OpenFile("main.go")
 -		d := &protocol.PublishDiagnosticsParams{}
@@ -14799,7 +15352,7 @@ diff -urN a/gopls/internal/regtest/modfile/modfile_test.go b/gopls/internal/regt
 diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/regtest/template/template_test.go
 --- a/gopls/internal/regtest/template/template_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/template/template_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,232 +0,0 @@
+@@ -1,224 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -14837,11 +15390,9 @@ diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/re
 -{{end}}
 -`
 -	WithOptions(
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"templateExtensions": []string{"tmpl"},
--				"semanticTokens":     true,
--			},
+-		Settings{
+-			"templateExtensions": []string{"tmpl"},
+-			"semanticTokens":     true,
 -		},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		var p protocol.SemanticTokensParams
@@ -14868,11 +15419,9 @@ diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/re
 -{{end}}
 -`
 -	WithOptions(
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"templateExtensions": []string{"tmpl"},
--				"semanticTokens":     true,
--			},
+-		Settings{
+-			"templateExtensions": []string{"tmpl"},
+-			"semanticTokens":     true,
 -		},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		// TODO: can we move this diagnostic onto {{}}?
@@ -14914,11 +15463,9 @@ diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/re
 -`
 -
 -	WithOptions(
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"templateExtensions": []string{"tmpl"},
--			},
--			DirectoryFilters: []string{"-b"},
+-		Settings{
+-			"directoryFilters":   []string{"-b"},
+-			"templateExtensions": []string{"tmpl"},
 -		},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.Await(
@@ -14986,10 +15533,8 @@ diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/re
 -`
 -
 -	WithOptions(
--		EditorConfig{
--			Settings: map[string]interface{}{
--				"templateExtensions": []string{"tmpl", "gotmpl"},
--			},
+-		Settings{
+-			"templateExtensions": []string{"tmpl", "gotmpl"},
 -		},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("a.tmpl")
@@ -15035,7 +15580,7 @@ diff -urN a/gopls/internal/regtest/template/template_test.go b/gopls/internal/re
 diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/watch/watch_test.go
 --- a/gopls/internal/regtest/watch/watch_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/watch/watch_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,768 +0,0 @@
+@@ -1,758 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -15237,14 +15782,12 @@ diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/
 -}
 -`
 -	Run(t, missing, func(t *testing.T, env *Env) {
--		t.Skip("the initial workspace load fails and never retries")
--
 -		env.Await(
 -			env.DiagnosticAtRegexp("a/a.go", "\"mod.com/c\""),
 -		)
 -		env.WriteWorkspaceFile("c/c.go", `package c; func C() {};`)
 -		env.Await(
--			EmptyDiagnostics("c/c.go"),
+-			EmptyDiagnostics("a/a.go"),
 -		)
 -	})
 -}
@@ -15427,9 +15970,9 @@ diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/
 -package a
 -`
 -	t.Run("close then delete", func(t *testing.T) {
--		WithOptions(EditorConfig{
--			VerboseOutput: true,
--		}).Run(t, pkg, func(t *testing.T, env *Env) {
+-		WithOptions(
+-			Settings{"verboseOutput": true},
+-		).Run(t, pkg, func(t *testing.T, env *Env) {
 -			env.OpenFile("a/a.go")
 -			env.OpenFile("a/a_unneeded.go")
 -			env.Await(
@@ -15462,7 +16005,7 @@ diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/
 -
 -	t.Run("delete then close", func(t *testing.T) {
 -		WithOptions(
--			EditorConfig{VerboseOutput: true},
+-			Settings{"verboseOutput": true},
 -		).Run(t, pkg, func(t *testing.T, env *Env) {
 -			env.OpenFile("a/a.go")
 -			env.OpenFile("a/a_unneeded.go")
@@ -15658,11 +16201,7 @@ diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/
 -`
 -	WithOptions(
 -		InGOPATH(),
--		EditorConfig{
--			Env: map[string]string{
--				"GO111MODULE": "auto",
--			},
--		},
+-		EnvVars{"GO111MODULE": "auto"},
 -		Modes(Experimental), // module is in a subdirectory
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("foo/main.go")
@@ -15701,11 +16240,7 @@ diff -urN a/gopls/internal/regtest/watch/watch_test.go b/gopls/internal/regtest/
 -`
 -	WithOptions(
 -		InGOPATH(),
--		EditorConfig{
--			Env: map[string]string{
--				"GO111MODULE": "auto",
--			},
--		},
+-		EnvVars{"GO111MODULE": "auto"},
 -	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.OpenFile("foo/main.go")
 -		env.RemoveWorkspaceFile("foo/go.mod")
@@ -15854,7 +16389,7 @@ diff -urN a/gopls/internal/regtest/workspace/metadata_test.go b/gopls/internal/r
 diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/regtest/workspace/workspace_test.go
 --- a/gopls/internal/regtest/workspace/workspace_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/regtest/workspace/workspace_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,1307 +0,0 @@
+@@ -1,1354 +0,0 @@
 -// Copyright 2020 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -15872,7 +16407,6 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -	"golang.org/x/tools/internal/lsp/bug"
 -	"golang.org/x/tools/internal/lsp/fake"
 -	"golang.org/x/tools/internal/lsp/protocol"
--	"golang.org/x/tools/internal/lsp/source"
 -	"golang.org/x/tools/internal/testenv"
 -
 -	. "golang.org/x/tools/internal/lsp/regtest"
@@ -15995,36 +16529,22 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -	}
 -}
 -
--// make sure that directory filters work
--func TestFilters(t *testing.T) {
--	for _, tt := range []struct {
--		name, rootPath string
--	}{
--		{
--			name:     "module root",
--			rootPath: "pkg",
+-func TestDirectoryFilters(t *testing.T) {
+-	WithOptions(
+-		ProxyFiles(workspaceProxy),
+-		WorkspaceFolders("pkg"),
+-		Settings{
+-			"directoryFilters": []string{"-inner"},
 -		},
--	} {
--		t.Run(tt.name, func(t *testing.T) {
--			opts := []RunOption{ProxyFiles(workspaceProxy)}
--			if tt.rootPath != "" {
--				opts = append(opts, WorkspaceFolders(tt.rootPath))
+-	).Run(t, workspaceModule, func(t *testing.T, env *Env) {
+-		syms := env.WorkspaceSymbol("Hi")
+-		sort.Slice(syms, func(i, j int) bool { return syms[i].ContainerName < syms[j].ContainerName })
+-		for _, s := range syms {
+-			if strings.Contains(s.ContainerName, "inner") {
+-				t.Errorf("WorkspaceSymbol: found symbol %q with container %q, want \"inner\" excluded", s.Name, s.ContainerName)
 -			}
--			f := func(o *source.Options) {
--				o.DirectoryFilters = append(o.DirectoryFilters, "-inner")
--			}
--			opts = append(opts, Options(f))
--			WithOptions(opts...).Run(t, workspaceModule, func(t *testing.T, env *Env) {
--				syms := env.WorkspaceSymbol("Hi")
--				sort.Slice(syms, func(i, j int) bool { return syms[i].ContainerName < syms[j].ContainerName })
--				for i, s := range syms {
--					if strings.Contains(s.ContainerName, "/inner") {
--						t.Errorf("%s %v %s %s %d\n", s.Name, s.Kind, s.ContainerName, tt.name, i)
--					}
--				}
--			})
--		})
--	}
+-		}
+-	})
 -}
 -
 -// Make sure that analysis diagnostics are cleared for the whole package when
@@ -16893,10 +17413,10 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -
 -const _ = Nonexistant
 -`
--	cfg := EditorConfig{
--		DirectoryFilters: []string{"-exclude"},
--	}
--	WithOptions(cfg).Run(t, files, func(t *testing.T, env *Env) {
+-
+-	WithOptions(
+-		Settings{"directoryFilters": []string{"-exclude"}},
+-	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.Await(NoDiagnostics("exclude/x.go"))
 -	})
 -}
@@ -16921,10 +17441,9 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -const X = 1
 -`
 -
--	cfg := EditorConfig{
--		DirectoryFilters: []string{"-exclude"},
--	}
--	WithOptions(cfg).Run(t, files, func(t *testing.T, env *Env) {
+-	WithOptions(
+-		Settings{"directoryFilters": []string{"-exclude"}},
+-	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.Await(
 -			NoDiagnostics("exclude/exclude.go"), // filtered out
 -			NoDiagnostics("include/include.go"), // successfully builds
@@ -16971,10 +17490,11 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 --- exclude.com@v1.0.0/exclude.go --
 -package exclude
 -`
--	cfg := EditorConfig{
--		DirectoryFilters: []string{"-exclude"},
--	}
--	WithOptions(cfg, Modes(Experimental), ProxyFiles(proxy)).Run(t, files, func(t *testing.T, env *Env) {
+-	WithOptions(
+-		Modes(Experimental),
+-		ProxyFiles(proxy),
+-		Settings{"directoryFilters": []string{"-exclude"}},
+-	).Run(t, files, func(t *testing.T, env *Env) {
 -		env.Await(env.DiagnosticAtRegexp("include/include.go", `exclude.(X)`))
 -	})
 -}
@@ -17061,10 +17581,8 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -package main
 -`
 -	WithOptions(
--		EditorConfig{Env: map[string]string{
--			"GOPATH": filepath.FromSlash("$SANDBOX_WORKDIR/gopath"),
--		}},
--		Modes(Singleton),
+-		EnvVars{"GOPATH": filepath.FromSlash("$SANDBOX_WORKDIR/gopath")},
+-		Modes(Default),
 -	).Run(t, mod, func(t *testing.T, env *Env) {
 -		env.Await(
 -			// Confirm that the build configuration is seen as valid,
@@ -17095,7 +17613,7 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -func main() {}
 -`
 -	WithOptions(
--		Modes(Singleton),
+-		Modes(Default),
 -	).Run(t, nomod, func(t *testing.T, env *Env) {
 -		env.OpenFile("a/main.go")
 -		env.OpenFile("b/main.go")
@@ -17162,10 +17680,74 @@ diff -urN a/gopls/internal/regtest/workspace/workspace_test.go b/gopls/internal/
 -		_, _ = env.GoToDefinition("other_test.go", env.RegexpSearch("other_test.go", "Server"))
 -	})
 -}
+-
+-// Test for golang/go#48929.
+-func TestClearNonWorkspaceDiagnostics(t *testing.T) {
+-	testenv.NeedsGo1Point(t, 18) // uses go.work
+-
+-	const ws = `
+--- go.work --
+-go 1.18
+-
+-use (
+-        ./b
+-)
+--- a/go.mod --
+-module a
+-
+-go 1.17
+--- a/main.go --
+-package main
+-
+-func main() {
+-   var V string
+-}
+--- b/go.mod --
+-module b
+-
+-go 1.17
+--- b/main.go --
+-package b
+-
+-import (
+-        _ "fmt"
+-)
+-`
+-	Run(t, ws, func(t *testing.T, env *Env) {
+-		env.OpenFile("b/main.go")
+-		env.Await(
+-			OnceMet(
+-				env.DoneWithOpen(),
+-				NoDiagnostics("a/main.go"),
+-			),
+-		)
+-		env.OpenFile("a/main.go")
+-		env.Await(
+-			OnceMet(
+-				env.DoneWithOpen(),
+-				env.DiagnosticAtRegexpWithMessage("a/main.go", "V", "declared but not used"),
+-			),
+-		)
+-		env.CloseBuffer("a/main.go")
+-
+-		// Make an arbitrary edit because gopls explicitly diagnoses a/main.go
+-		// whenever it is "changed".
+-		//
+-		// TODO(rfindley): it should not be necessary to make another edit here.
+-		// Gopls should be smart enough to avoid diagnosing a.
+-		env.RegexpReplace("b/main.go", "package b", "package b // a package")
+-		env.Await(
+-			OnceMet(
+-				env.DoneWithChange(),
+-				EmptyDiagnostics("a/main.go"),
+-			),
+-		)
+-	})
+-}
 diff -urN a/gopls/internal/vulncheck/command.go b/gopls/internal/vulncheck/command.go
 --- a/gopls/internal/vulncheck/command.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/vulncheck/command.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,123 +0,0 @@
+@@ -1,197 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -17179,12 +17761,15 @@ diff -urN a/gopls/internal/vulncheck/command.go b/gopls/internal/vulncheck/comma
 -	"context"
 -	"log"
 -	"os"
+-	"sort"
 -	"strings"
 -
 -	"golang.org/x/tools/go/packages"
 -	gvc "golang.org/x/tools/gopls/internal/govulncheck"
 -	"golang.org/x/tools/internal/lsp/command"
 -	"golang.org/x/vuln/client"
+-	"golang.org/x/vuln/osv"
+-	"golang.org/x/vuln/vulncheck"
 -)
 -
 -func init() {
@@ -17245,31 +17830,88 @@ diff -urN a/gopls/internal/vulncheck/command.go b/gopls/internal/vulncheck/comma
 -		log.Printf("package load failed: %v", err)
 -		return nil, err
 -	}
--	log.Printf("loaded %d packages\n", len(loadedPkgs))
 -
--	r, err := gvc.Source(ctx, loadedPkgs, c.Client)
+-	log.Printf("analyzing %d packages...\n", len(loadedPkgs))
+-
+-	r, err := vulncheck.Source(ctx, loadedPkgs, &vulncheck.Config{Client: c.Client, SourceGoVersion: goVersion()})
 -	if err != nil {
 -		return nil, err
 -	}
+-
+-	log.Printf("selecting affecting vulnerabilities from %d findings...\n", len(r.Vulns))
+-	unaffectedMods := filterUnaffected(r.Vulns)
+-	r.Vulns = filterCalled(r)
+-
+-	log.Printf("found %d vulnerabilities.\n", len(r.Vulns))
 -	callInfo := gvc.GetCallInfo(r, loadedPkgs)
--	return toVulns(callInfo)
+-	return toVulns(callInfo, unaffectedMods)
 -	// TODO: add import graphs.
 -}
 -
--func toVulns(ci *gvc.CallInfo) ([]Vuln, error) {
+-// filterCalled returns vulnerabilities where the symbols are actually called.
+-func filterCalled(r *vulncheck.Result) []*vulncheck.Vuln {
+-	var vulns []*vulncheck.Vuln
+-	for _, v := range r.Vulns {
+-		if v.CallSink != 0 {
+-			vulns = append(vulns, v)
+-		}
+-	}
+-	return vulns
+-}
+-
+-// filterUnaffected returns vulnerabilities where no symbols are called,
+-// grouped by module.
+-func filterUnaffected(vulns []*vulncheck.Vuln) map[string][]*osv.Entry {
+-	// It is possible that the same vuln.OSV.ID has vuln.CallSink != 0
+-	// for one symbol, but vuln.CallSink == 0 for a different one, so
+-	// we need to filter out ones that have been called.
+-	called := map[string]bool{}
+-	for _, vuln := range vulns {
+-		if vuln.CallSink != 0 {
+-			called[vuln.OSV.ID] = true
+-		}
+-	}
+-
+-	modToIDs := map[string]map[string]*osv.Entry{}
+-	for _, vuln := range vulns {
+-		if !called[vuln.OSV.ID] {
+-			if _, ok := modToIDs[vuln.ModPath]; !ok {
+-				modToIDs[vuln.ModPath] = map[string]*osv.Entry{}
+-			}
+-			// keep only one vuln.OSV instance for the same ID.
+-			modToIDs[vuln.ModPath][vuln.OSV.ID] = vuln.OSV
+-		}
+-	}
+-	output := map[string][]*osv.Entry{}
+-	for m, vulnSet := range modToIDs {
+-		var vulns []*osv.Entry
+-		for _, vuln := range vulnSet {
+-			vulns = append(vulns, vuln)
+-		}
+-		sort.Slice(vulns, func(i, j int) bool { return vulns[i].ID < vulns[j].ID })
+-		output[m] = vulns
+-	}
+-	return output
+-}
+-
+-func fixed(v *osv.Entry) string {
+-	lf := gvc.LatestFixed(v.Affected)
+-	if lf != "" && lf[0] != 'v' {
+-		lf = "v" + lf
+-	}
+-	return lf
+-}
+-
+-func toVulns(ci *gvc.CallInfo, unaffectedMods map[string][]*osv.Entry) ([]Vuln, error) {
 -	var vulns []Vuln
 -
 -	for _, vg := range ci.VulnGroups {
 -		v0 := vg[0]
--		lf := gvc.LatestFixed(v0.OSV.Affected)
--		if lf != "" && lf[0] != 'v' {
--			lf = "v" + lf
--		}
 -		vuln := Vuln{
 -			ID:             v0.OSV.ID,
 -			PkgPath:        v0.PkgPath,
 -			CurrentVersion: ci.ModuleVersions[v0.ModPath],
--			FixedVersion:   lf,
+-			FixedVersion:   fixed(v0.OSV),
 -			Details:        v0.OSV.Details,
 -
 -			Aliases: v0.OSV.Aliases,
@@ -17287,12 +17929,26 @@ diff -urN a/gopls/internal/vulncheck/command.go b/gopls/internal/vulncheck/comma
 -		}
 -		vulns = append(vulns, vuln)
 -	}
+-	for m, vg := range unaffectedMods {
+-		for _, v0 := range vg {
+-			vuln := Vuln{
+-				ID:             v0.ID,
+-				Details:        v0.Details,
+-				Aliases:        v0.Aliases,
+-				ModPath:        m,
+-				URL:            href(v0),
+-				CurrentVersion: "",
+-				FixedVersion:   fixed(v0),
+-			}
+-			vulns = append(vulns, vuln)
+-		}
+-	}
 -	return vulns, nil
 -}
 diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/command_test.go
 --- a/gopls/internal/vulncheck/command_test.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/vulncheck/command_test.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,310 +0,0 @@
+@@ -1,339 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -17374,6 +18030,15 @@ diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/
 -				CallStacksStr: []string{
 -					"golang.org/entry/y.Y [approx.] (y.go:5)\n" +
 -						"golang.org/bmod/bvuln.Vuln (bvuln.go:2)\n",
+-				},
+-			},
+-			{
+-				Vuln: Vuln{
+-					ID:           "GO-2022-03",
+-					Details:      "unaffecting vulnerability",
+-					ModPath:      "golang.org/amod",
+-					URL:          "https://pkg.go.dev/vuln/GO-2022-03",
+-					FixedVersion: "v1.0.4",
 -				},
 -			},
 -		}
@@ -17523,6 +18188,21 @@ diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/
 -					EcosystemSpecific: osv.EcosystemSpecific{Symbols: []string{"VulnData.Vuln1", "VulnData.Vuln2"}},
 -				}},
 -			},
+-			{
+-				ID:      "GO-2022-03",
+-				Details: "unaffecting vulnerability",
+-				References: []osv.Reference{
+-					{
+-						Type: "href",
+-						URL:  "pkg.go.dev/vuln/GO-2022-01",
+-					},
+-				},
+-				Affected: []osv.Affected{{
+-					Package:           osv.Package{Name: "golang.org/amod/avuln"},
+-					Ranges:            osv.Affects{{Type: osv.TypeSemver, Events: []osv.RangeEvent{{Introduced: "1.0.0"}, {Fixed: "1.0.4"}, {Introduced: "1.1.2"}}}},
+-					EcosystemSpecific: osv.EcosystemSpecific{Symbols: []string{"nonExisting"}},
+-				}},
+-			},
 -		},
 -		"golang.org/bmod": {
 -			{
@@ -17564,7 +18244,7 @@ diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/
 -		t.Fatal(err)
 -	}
 -
--	cache := cache.New(nil)
+-	cache := cache.New(nil, nil, nil)
 -	session := cache.NewSession(ctx)
 -	options := source.DefaultOptions().Clone()
 -	tests.DefaultOptions(options)
@@ -17580,8 +18260,13 @@ diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/
 -	if err != nil {
 -		t.Fatal(err)
 -	}
--	defer release()
--	defer view.Shutdown(ctx)
+-
+-	defer func() {
+-		// The snapshot must be released before calling view.Shutdown, to avoid a
+-		// deadlock.
+-		release()
+-		view.Shutdown(ctx)
+-	}()
 -
 -	test(ctx, snapshot)
 -}
@@ -17606,7 +18291,7 @@ diff -urN a/gopls/internal/vulncheck/command_test.go b/gopls/internal/vulncheck/
 diff -urN a/gopls/internal/vulncheck/util.go b/gopls/internal/vulncheck/util.go
 --- a/gopls/internal/vulncheck/util.go	2000-01-01 00:00:00.000000000 -0000
 +++ b/gopls/internal/vulncheck/util.go	1969-12-31 16:00:00.000000000 -0800
-@@ -1,82 +0,0 @@
+@@ -1,98 +0,0 @@
 -// Copyright 2022 The Go Authors. All rights reserved.
 -// Use of this source code is governed by a BSD-style
 -// license that can be found in the LICENSE file.
@@ -17617,8 +18302,11 @@ diff -urN a/gopls/internal/vulncheck/util.go b/gopls/internal/vulncheck/util.go
 -package vulncheck
 -
 -import (
+-	"bytes"
 -	"fmt"
 -	"go/token"
+-	"os"
+-	"os/exec"
 -
 -	gvc "golang.org/x/tools/gopls/internal/govulncheck"
 -	"golang.org/x/tools/internal/lsp/protocol"
@@ -17688,6 +18376,19 @@ diff -urN a/gopls/internal/vulncheck/util.go b/gopls/internal/vulncheck/util.go
 -		// but somthing that does not require file contents.
 -	}
 -	return p
+-}
+-
+-func goVersion() string {
+-	if v := os.Getenv("GOVERSION"); v != "" {
+-		// Unlikely to happen in practice, mostly used for testing.
+-		return v
+-	}
+-	out, err := exec.Command("go", "env", "GOVERSION").Output()
+-	if err != nil {
+-		fmt.Fprintf(os.Stderr, "failed to determine go version; skipping stdlib scanning: %v\n", err)
+-		return ""
+-	}
+-	return string(bytes.TrimSpace(out))
 -}
 diff -urN a/gopls/internal/vulncheck/vulncheck.go b/gopls/internal/vulncheck/vulncheck.go
 --- a/gopls/internal/vulncheck/vulncheck.go	2000-01-01 00:00:00.000000000 -0000
