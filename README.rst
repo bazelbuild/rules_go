@@ -75,9 +75,10 @@ Announcements
 2022-09-11
   Release
   `v0.35.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.35.0>`_
-  is now available. This release enhances support for bzlmod and gopackagesdriver.
-  Starting this release, rules_go requires Bazel 5.1.0, because it needs to read
-  CPU architecture from Bazel to better support Apple M1 with Rosetta translation.
+  is now available. This release supports switching Go SDK version from a
+  build flag. Starting this release, rules_go requires Bazel 5.1.0, because
+  it needs to read CPU architecture from Bazel to better support Apple M1
+  with Rosetta translation.
 
 2022-07-19
   Release
