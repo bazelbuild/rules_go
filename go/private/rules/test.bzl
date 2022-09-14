@@ -181,7 +181,7 @@ def _go_test_impl(ctx):
         coverage_common.instrumented_files_info(
             ctx,
             source_attributes = ["srcs"],
-            dependency_attributes = ["deps", "embed"],
+            dependency_attributes = ["data", "deps", "embed", "embedsrcs"],
             extensions = ["go"],
         ),
         testing.TestEnvironment(env),
