@@ -302,13 +302,18 @@ def _detect_sdk_platform(ctx, goroot):
     return platforms[0]
 
 def _detect_sdk_version(ctx, goroot):
-    path = goroot + "/VERSION"
-    version_contents = ctx.read(path)
+    go_binary_path = goroot + "/bin/go"
+    result = ctx.execute([go_binary_path, "version"])
+    if result.return_code != 0:
+        fail("Could not detect SDK version: '%s version' exited with exit code %d" % (go_binary_path, result.return_code))
 
-    # VERSION file has version prefixed by go, eg. go1.18.3
-    version = version_contents[2:]
+    # go version output is of the form "go version go1.18.3 linux/amd64"
+    output_parts = result.stdout.split(" ")
+    if len(output_parts) < 3 or not output_parts[2].startswith("go"):
+        fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
+    version = output_parts[2][len("go"):]
     if _parse_version(version) == None:
-        fail("Could not parse SDK version from version file (%s): %s" % (path, version_contents))
+        fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
     return version
 
 def _parse_versions_json(data):
