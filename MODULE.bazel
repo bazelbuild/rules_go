@@ -3,9 +3,6 @@ module(
     repo_name = "io_bazel_rules_go",
     version = "0.35.0",
     compatibility_level = 0,
-    toolchains_to_register = [
-        "@go_default_sdk//:all",
-    ],
 )
 
 print("WARNING: The rules_go Bazel module is still highly experimental and subject to change at any time. Only use it to try out bzlmod for now.")
@@ -24,6 +21,7 @@ use_repo(
 go_sdk = use_extension("//go:extensions.bzl", "go_sdk")
 go_sdk.download(name = "go_default_sdk", version = "1.18.3")
 use_repo(go_sdk, "go_default_sdk")
+register_toolchains("@go_default_sdk//:all")
 
 bazel_dep(name = "gazelle", version = "0.26.0")
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")

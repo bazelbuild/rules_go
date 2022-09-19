@@ -52,6 +52,12 @@ def _go_library_impl(ctx):
         DefaultInfo(
             files = depset([archive.data.file]),
         ),
+        coverage_common.instrumented_files_info(
+            ctx,
+            source_attributes = ["srcs"],
+            dependency_attributes = ["data", "deps", "embed", "embedsrcs"],
+            extensions = ["go"],
+        ),
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
             compilation_outputs = [archive.data.file],
