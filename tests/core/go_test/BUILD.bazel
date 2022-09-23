@@ -264,3 +264,40 @@ go_bazel_test(
     name = "filter_test_cases_test",
     srcs = ["filter_test_cases_test.go"],
 )
+
+go_library(
+    name = "stackpath_lib",
+    srcs = ["stackpath_lib.go"],
+    importpath = "stackpath_lib",
+    stackpath = "foo",
+)
+
+go_test(
+    name = "stackpath_test",
+    srcs = [
+        "a/stackpath2_test.go",
+        "stackpath_test.go",
+    ],
+    stackpath = "bar",
+    deps = [
+        ":stackpath_lib",
+    ],
+)
+
+go_library(
+    name = "stackpath_test_lib",
+    srcs = [
+        "a/stackpath2_test.go",
+        "stackpath_test.go",
+    ],
+    importpath = "stackpath_test",
+    stackpath = "bar",
+    deps = [
+        ":stackpath_lib",
+    ],
+)
+
+go_test(
+    name = "stackpath_embed_test",
+    embed = [":stackpath_test_lib"],
+)
