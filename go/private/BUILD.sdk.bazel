@@ -97,6 +97,13 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "match_sdk_type",
+    flag_values = {
+        sdk_version_label: "{sdk_type}",
+    },
+)
+
 selects.config_setting_group(
     name = "sdk_version_setting",
     match_any = [
@@ -105,6 +112,7 @@ selects.config_setting_group(
         ":match_major_minor_version",
         ":match_patch_version",
         ":match_prerelease_version",
+        ":match_sdk_type",
     ],
 )
 

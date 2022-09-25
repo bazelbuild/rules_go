@@ -31,7 +31,7 @@ def _go_host_sdk_impl(ctx):
     goroot = _detect_host_sdk(ctx)
     platform = _detect_sdk_platform(ctx, goroot)
     version = _detect_sdk_version(ctx, goroot)
-    _sdk_build_file(ctx, platform, version)
+    _sdk_build_file(ctx, platform, version, "host")
     _local_sdk(ctx, goroot)
 
 _go_host_sdk = repository_rule(
@@ -231,7 +231,7 @@ def _local_sdk(ctx, path):
     for entry in ["src", "pkg", "bin", "lib"]:
         ctx.symlink(path + "/" + entry, entry)
 
-def _sdk_build_file(ctx, platform, version):
+def _sdk_build_file(ctx, platform, version, sdk_type = "remote"):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
 
@@ -254,6 +254,7 @@ def _sdk_build_file(ctx, platform, version):
             "{minor_version}": str(minor),
             "{patch_version}": str(patch),
             "{prerelease_suffix}": prerelease,
+            "{sdk_type}": sdk_type,
         },
     )
 

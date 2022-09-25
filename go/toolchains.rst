@@ -76,6 +76,8 @@ the flag ``--@io_bazel_rules_go//go/toolchain:sdk_version="version"`` where
 ``"version"`` is the SDK version you would like to build with, eg. ``"1.18.3"``.
 The SDK version can omit the patch, or include a prerelease part, eg. ``"1"``,
 ``"1.18"``, ``"1.18.0"``, and ``"1.19.0beta1"`` are all valid values for ``sdk_version``.
+When ``go_host_sdk`` is used, ``"version"`` can be set to ``host`` to refer to the host Go SDK.
+It can also be set ``remote`` to match any non-host version.
 
 The toolchain
 ~~~~~~~~~~~~~

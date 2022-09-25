@@ -90,7 +90,7 @@ go_download_sdk(
 		{
 			desc: "multiple_sdks",
 			rule: `
-load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
+load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk", "go_host_sdk")
 
 go_download_sdk(
     name = "go_sdk",
@@ -107,7 +107,8 @@ go_download_sdk(
 `,
 			optToWantVersion: map[string]string{
 				"": "go1.16",
-				"--@io_bazel_rules_go//go/toolchain:sdk_version=1":   "go1.16",
+				"--@io_bazel_rules_go//go/toolchain:sdk_version=remote": "go1.16",
+				"--@io_bazel_rules_go//go/toolchain:sdk_version=1":      "go1.16",
 				"--@io_bazel_rules_go//go/toolchain:sdk_version=1.17":   "go1.17",
 				"--@io_bazel_rules_go//go/toolchain:sdk_version=1.17.0": "go1.17",
 				"--@io_bazel_rules_go//go/toolchain:sdk_version=1.17.1": "go1.17.1",
@@ -122,7 +123,7 @@ go_download_sdk(
 
 			i := bytes.Index(origWorkspaceData, []byte("go_rules_dependencies()"))
 			if i < 0 {
-				t.Fatalf("%s: could not find call to go_rules_dependencies()")
+				t.Fatal("could not find call to go_rules_dependencies()")
 			}
 
 			buf := &bytes.Buffer{}
@@ -143,17 +144,19 @@ go_register_toolchains()
 			}()
 
 			for opt, wantVersion := range test.optToWantVersion {
-				args := []string{
-					"test",
-					"//:version_test",
-					"--test_arg=-version=" + wantVersion,
-				}
-				if opt != "" {
-					args = append(args, opt)
-				}
-				if err := bazel_testing.RunBazel(args...); err != nil {
-					t.Fatal(err)
-				}
+				t.Run(wantVersion, func(t *testing.T) {
+					args := []string{
+						"test",
+						"//:version_test",
+						"--test_arg=-version=" + wantVersion,
+					}
+					if opt != "" {
+						args = append(args, opt)
+					}
+					if err := bazel_testing.RunBazel(args...); err != nil {
+						t.Fatal(err)
+					}
+				})
 			}
 		})
 	}
