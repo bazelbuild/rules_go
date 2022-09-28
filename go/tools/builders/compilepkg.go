@@ -459,7 +459,7 @@ func compileArchive(
 	if len(srcs.sSrcs) > 0 {
 		asmHdrPath = filepath.Join(workDir, "go_asm.h")
 	}
-	symabisPath, err := buildSymabisFile(goenv, srcs.sSrcs, srcs.hSrcs, asmHdrPath)
+	symabisPath, err := buildSymabisFile(goenv, srcs.sSrcs, srcs.hSrcs, asmHdrPath, stackPath)
 	if symabisPath != "" {
 		if !goenv.shouldPreserveWorkDir {
 			defer os.Remove(symabisPath)
@@ -493,7 +493,7 @@ func compileArchive(
 		}
 		for i, sSrc := range srcs.sSrcs {
 			obj := filepath.Join(workDir, fmt.Sprintf("s%d.o", i))
-			if err := asmFile(goenv, sSrc.filename, packagePath, asmFlags, obj); err != nil {
+			if err := asmFile(goenv, sSrc.filename, packagePath, asmFlags, obj, stackPath); err != nil {
 				return err
 			}
 			objFiles = append(objFiles, obj)
