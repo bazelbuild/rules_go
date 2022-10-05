@@ -70,7 +70,7 @@ def _go_download_sdk_impl(ctx):
             ctx.report_progress("Finding Go SHA-256 sums")
         ctx.download(
             url = [
-                "https://golang.org/dl/?mode=json&include=all",
+                "https://go.dev/dl/?mode=json&include=all",
                 "https://golang.google.cn/dl/?mode=json&include=all",
             ],
             output = "versions.json",
@@ -89,10 +89,10 @@ def _go_download_sdk_impl(ctx):
                 if not highest_version or _version_less(highest_version, pv):
                     highest_version = pv
             if not highest_version:
-                fail("did not find any Go versions in https://golang.org/dl/?mode=json")
+                fail("did not find any Go versions in https://go.dev/dl/?mode=json")
             version = _version_string(highest_version)
         if version not in sdks_by_version:
-            fail("did not find version {} in https://golang.org/dl/?mode=json".format(version))
+            fail("did not find version {} in https://go.dev/dl/?mode=json".format(version))
         sdks = sdks_by_version[version]
 
     if platform not in sdks:
@@ -327,11 +327,11 @@ def _detect_sdk_version(ctx, goroot):
     return version
 
 def _parse_versions_json(data):
-    """Parses version metadata returned by golang.org.
+    """Parses version metadata returned by go.dev.
 
     Args:
         data: the contents of the file downloaded from
-            https://golang.org/dl/?mode=json. We assume the file is valid
+            https://go.dev/dl/?mode=json. We assume the file is valid
             JSON, is spaced and indented, and is in a particular format.
 
     Return:
