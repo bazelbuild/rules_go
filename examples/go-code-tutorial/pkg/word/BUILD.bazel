@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "word",
+    srcs = ["generate_word.go"],
+    importpath = "github.com/bazelbuild/rules_go/examples/go-code-tutorial/pkg/word",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_tjarratt_babble//:babble"],
+)
+
+go_test(
+    name = "word_test",
+    srcs = ["generate_word_test.go"],
+    embed = [":word"],
+)

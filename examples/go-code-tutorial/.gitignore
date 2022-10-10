@@ -1,0 +1,5 @@
+/bazel-bazel-gazelle
+/bazel-bin
+/bazel-out
+/bazel-go-code-tutorial
+/bazel-testlogs

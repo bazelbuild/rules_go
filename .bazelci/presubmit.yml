@@ -37,6 +37,17 @@ tasks:
       - "@go_sdk//..."
     test_targets:
       - "//..."
+  ubuntu2004_examples:
+    name: Examples test Ubuntu
+    platform: ubuntu2004
+    working_directory: examples/go-code-tutorial
+    shell_commands:
+      - "sudo apt-get update"
+      - "sudo apt-get install wamerican"
+    build_targets:
+      - "//..."
+    test_targets:
+      - "//..."
   macos:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
