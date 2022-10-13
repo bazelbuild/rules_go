@@ -24,7 +24,7 @@ tasks:
   ubuntu2004_bcr_tests:
     name: BCR test module
     platform: ubuntu2004
-    bazel: b12f3a93a55019276879bd2d3edbd201c913675a
+    bazel: 6.0.0rc2
     working_directory: tests/bcr
     build_flags:
       - "--allow_yanked_versions=all"

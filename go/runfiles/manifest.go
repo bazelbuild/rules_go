@@ -28,13 +28,23 @@ import (
 // environmental variable RUNFILES_MANIFEST_FILE.
 type ManifestFile string
 
-func (f ManifestFile) new() (*Runfiles, error) {
+func (f ManifestFile) new(sourceRepo SourceRepo) (*Runfiles, error) {
 	m, err := f.parse()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Runfiles{m, manifestFileVar + "=" + string(f)}, nil
+	var repoMapping map[repoMappingKey]string
+	repoMappingPath, err := m.path(repoMappingRlocation)
+	// If Bzlmod is disabled, the repository mapping manifest isn't created, so
+	// it is not an error if it is missing.
+	if err == nil {
+		repoMapping, err = parseRepoMapping(repoMappingPath)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &Runfiles{m, manifestFileVar + "=" + string(f), repoMapping, string(sourceRepo)}, nil
 }
 
 type manifest map[string]string

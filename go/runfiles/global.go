@@ -14,18 +14,26 @@
 
 package runfiles
 
-import "sync"
+import (
+	"regexp"
+	"runtime"
+	"sync"
+)
 
 // Rlocation returns the absolute path name of a runfile.  The runfile name must be
 // a relative path, using the slash (not backslash) as directory separator.  If
 // the runfiles manifest maps s to an empty name (indicating an empty runfile
 // not present in the filesystem), Rlocation returns an error that wraps ErrEmpty.
-func Rlocation(s string) (string, error) {
+func Rlocation(path string) (string, error) {
+	return RlocationFrom(path, CurrentRepository(2))
+}
+
+func RlocationFrom(path string, sourceRepo string) (string, error) {
 	r, err := g.get()
 	if err != nil {
 		return "", err
 	}
-	return r.Rlocation(s)
+	return r.WithSourceRepo(sourceRepo).Rlocation(path)
 }
 
 // Env returns additional environmental variables to pass to subprocesses.
@@ -40,6 +48,26 @@ func Env() ([]string, error) {
 		return nil, err
 	}
 	return r.Env(), nil
+}
+
+var legacyExternalGeneratedFile = regexp.MustCompile(`^bazel-out[/][^/]+/bin/external/([^/]+)/`)
+var legacyExternalFile = regexp.MustCompile(`^external/([^/]+)/`)
+
+// CurrentRepository returns the canonical name of the Bazel repository that
+// contains the source file of the skip-th caller of this function. For example,
+// passing 1 will return the name of the repository that contains the caller of
+// CurrentRepository.
+func CurrentRepository(skip int) string {
+	_, file, _, _ := runtime.Caller(skip)
+	if match := legacyExternalGeneratedFile.FindStringSubmatch(file); match != nil {
+		return match[1]
+	}
+	if match := legacyExternalFile.FindStringSubmatch(file); match != nil {
+		return match[1]
+	}
+	// If a file is not in an external repository, it is in the main repository,
+	// which has the empty string as its canonical name.
+	return ""
 }
 
 type global struct {

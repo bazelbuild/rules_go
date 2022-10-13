@@ -21,8 +21,18 @@ import "path/filepath"
 // environmental variable RUNFILES_DIR.
 type Directory string
 
-func (d Directory) new() *Runfiles {
-	return &Runfiles{d, directoryVar + "=" + string(d)}
+func (d Directory) new(sourceRepo SourceRepo) (*Runfiles, error) {
+	var repoMapping map[repoMappingKey]string
+	repoMappingPath, err := d.path(repoMappingRlocation)
+	// If Bzlmod is disabled, the repository mapping manifest isn't created, so
+	// it is not an error if it is missing.
+	if err == nil {
+		repoMapping, err = parseRepoMapping(repoMappingPath)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &Runfiles{d, directoryVar + "=" + string(d), repoMapping, string(sourceRepo)}, nil
 }
 
 func (d Directory) path(s string) (string, error) {
