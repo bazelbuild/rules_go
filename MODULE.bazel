@@ -24,7 +24,7 @@ go_sdk.download(name = "go_default_sdk", version = "1.18.3")
 use_repo(go_sdk, "go_default_sdk")
 register_toolchains("@go_default_sdk//:all")
 
-bazel_dep(name = "gazelle", version = "0.26.0")
+bazel_dep(name = "gazelle", version = "0.27.0")
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
 use_repo(go_deps,

@@ -9,3 +9,7 @@ message Foo {
   int64 value = 1;
   google.protobuf.Empty empty = 2;
 }
+
+service Fooer {
+  rpc RoundTripFoo (Foo) returns (Foo) {}
+}
