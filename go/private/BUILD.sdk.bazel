@@ -66,6 +66,7 @@ config_setting(
     flag_values = {
         sdk_version_label: "",
     },
+    visibility = ["//visibility:private"],
 )
 
 config_setting(
@@ -73,6 +74,7 @@ config_setting(
     flag_values = {
         sdk_version_label: "{major_version}",
     },
+    visibility = ["//visibility:private"],
 )
 
 config_setting(
@@ -80,6 +82,7 @@ config_setting(
     flag_values = {
         sdk_version_label: "{major_version}.{minor_version}",
     },
+    visibility = ["//visibility:private"],
 )
 
 config_setting(
@@ -87,6 +90,7 @@ config_setting(
     flag_values = {
         sdk_version_label: "{major_version}.{minor_version}.{patch_version}",
     },
+    visibility = ["//visibility:private"],
 )
 
 # If prerelease version is "", this will be the same as ":match_patch_version", but that's fine since we use match_any in config_setting_group.
@@ -95,6 +99,7 @@ config_setting(
     flag_values = {
         sdk_version_label: "{major_version}.{minor_version}.{patch_version}{prerelease_suffix}",
     },
+    visibility = ["//visibility:private"],
 )
 
 config_setting(
@@ -102,6 +107,7 @@ config_setting(
     flag_values = {
         sdk_version_label: "{sdk_type}",
     },
+    visibility = ["//visibility:private"],
 )
 
 selects.config_setting_group(
@@ -114,6 +120,7 @@ selects.config_setting_group(
         ":match_prerelease_version",
         ":match_sdk_type",
     ],
+    visibility = ["//visibility:private"],
 )
 
 declare_toolchains(

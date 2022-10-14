@@ -14,11 +14,9 @@ tasks:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
     build_flags:
-    - "--incompatible_load_proto_rules_from_bzl"
-    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--config=incompatible"
     test_flags:
-    - "--incompatible_load_proto_rules_from_bzl"
-    - "--incompatible_enable_cc_toolchain_resolution"
+    - "--config=incompatible"
     build_targets:
     - "//..."
     test_targets:

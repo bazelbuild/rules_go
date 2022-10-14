@@ -39,11 +39,13 @@ def declare_config_settings():
         native.config_setting(
             name = goos,
             constraint_values = [Label("//go/toolchain:" + goos)],
+            visibility = ["//visibility:public"],
         )
     for goarch in GOARCH:
         native.config_setting(
             name = goarch,
             constraint_values = [Label("//go/toolchain:" + goarch)],
+            visibility = ["//visibility:public"],
         )
     for goos, goarch in GOOS_GOARCH:
         native.config_setting(
@@ -52,6 +54,7 @@ def declare_config_settings():
                 Label("//go/toolchain:" + goos),
                 Label("//go/toolchain:" + goarch),
             ],
+            visibility = ["//visibility:public"],
         )
 
     # Setting that determines whether cgo is enabled.
