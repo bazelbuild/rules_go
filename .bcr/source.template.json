@@ -1,0 +1,4 @@
+{
+  "integrity": "",
+  "url": "https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/{REPO}-{TAG}.zip"
+}

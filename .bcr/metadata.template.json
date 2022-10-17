@@ -1,0 +1,12 @@
+{
+  "homepage": "https://github.com/bazelbuild/rules_go",
+  "maintainers": [
+    {
+      "email": "fabian@meumertzhe.im",
+      "github": "fmeum",
+      "name": "Fabian Meumertzheim"
+    }
+  ],
+  "versions": [],
+  "yanked_versions": {}
+}
