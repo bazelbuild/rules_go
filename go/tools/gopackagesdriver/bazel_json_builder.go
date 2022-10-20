@@ -30,16 +30,15 @@ const (
 	RulesGoStdlibLabel = "@io_bazel_rules_go//:stdlib"
 )
 
+var _defaultKinds = []string{"go_library", "go_test", "go_binary"}
+
 func (b *BazelJSONBuilder) fileQuery(filename string) string {
 	if filepath.IsAbs(filename) {
 		fp, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
 		filename = fp
 	}
-	addtlKinds := ""
-	if len(additionalKinds) > 0 {
-		addtlKinds = "|" + strings.Join(additionalKinds, "|")
-	}
-	return fmt.Sprintf(`kind("go_library|go_test|go_binary%s", same_pkg_direct_rdeps("%s"))`, addtlKinds, filename)
+	kinds := append(_defaultKinds, additionalKinds...)
+	return fmt.Sprintf(`kind("%s", same_pkg_direct_rdeps("%s"))`, strings.Join(kinds, "|"), filename)
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
