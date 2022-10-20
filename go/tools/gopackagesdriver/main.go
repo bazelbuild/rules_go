@@ -58,8 +58,8 @@ var (
 	bazelQueryScope       = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "")
 	bazelBuildFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_BUILD_FLAGS"))
 	workspaceRoot         = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
-	customAspect		  = getenvDefault("GOPACKAGESDRIVER_BAZEL_ASPECT", rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect")
-	additionalKinds		  = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
+	customAspect          = getenvDefault("GOPACKAGESDRIVER_BAZEL_ASPECT", rulesGoRepositoryName+"//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect")
+	additionalKinds       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
 	emptyResponse         = &driverResponse{
 		NotHandled: false,
 		Sizes:      types.SizesFor("gc", "amd64").(*types.StdSizes),
