@@ -35,7 +35,11 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		fp, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
 		filename = fp
 	}
-	return fmt.Sprintf(`kind("go_library|go_test|go_binary", same_pkg_direct_rdeps("%s"))`, filename)
+	addtlKinds := ""
+	if len(additionalKinds) > 0 {
+		addtlKinds = "|" + strings.Join(additionalKinds, "|")
+	}
+	return fmt.Sprintf(`kind("go_library|go_test|go_binary%s", same_pkg_direct_rdeps("%s"))`, addtlKinds, filename)
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
@@ -120,7 +124,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		"--experimental_convenience_symlinks=ignore",
 		"--ui_event_filters=-info,-stderr",
 		"--noshow_progress",
-		"--aspects=" + rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
+		"--aspects=" + customAspect,
 		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
 	}, bazelFlags, bazelBuildFlags, labels)
