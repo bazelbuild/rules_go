@@ -52,15 +52,15 @@ def _go_archive_to_pkg(archive):
         ExportFile = _file_path(archive.data.export_file),
         GoFiles = [
             _file_path(src)
-            for src in archive.data.orig_srcs if not src.path.endswith(".s")
+            for src in archive.data.orig_srcs if src.path.endswith(".go")
         ],
         CompiledGoFiles = [
             _file_path(src)
-            for src in archive.data.srcs if not src.path.endswith(".s")
+            for src in archive.data.srcs if src.path.endswith(".go")
         ],
-        SFiles = [
+        OtherFiles = [
             _file_path(src)
-            for src in archive.data.orig_srcs if src.path.endswith(".s")
+            for src in archive.data.orig_srcs if not src.path.endswith(".go")
         ]
     )
 
