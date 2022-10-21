@@ -119,11 +119,13 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		return nil, fmt.Errorf("found no labels matching the requests")
 	}
 
+	aspects := append(additionalAspects, rulesGoAspect)
+
 	buildArgs := concatStringsArrays([]string{
 		"--experimental_convenience_symlinks=ignore",
 		"--ui_event_filters=-info,-stderr",
 		"--noshow_progress",
-		"--aspects=" + customAspect,
+		"--aspects=" + strings.Join(aspects, ","),
 		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
 	}, bazelFlags, bazelBuildFlags, labels)
