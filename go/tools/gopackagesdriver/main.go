@@ -52,7 +52,7 @@ var (
 	// It seems https://github.com/bazelbuild/bazel/issues/3115 isn't fixed when specifying
 	// the aspect from the command line. Use this trick in the mean time.
 	rulesGoRepositoryName = getenvDefault("GOPACKAGESDRIVER_RULES_GO_REPOSITORY_NAME", "@io_bazel_rules_go")
-	rulesGoAspect         = rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect"
+	goDefaultAspect       = rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect"
 	bazelBin              = getenvDefault("GOPACKAGESDRIVER_BAZEL", "bazel")
 	bazelFlags            = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_FLAGS"))
 	bazelQueryFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY_FLAGS"))

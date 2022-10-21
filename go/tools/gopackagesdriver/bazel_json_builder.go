@@ -119,7 +119,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		return nil, fmt.Errorf("found no labels matching the requests")
 	}
 
-	aspects := append(additionalAspects, rulesGoAspect)
+	aspects := append(additionalAspects, goDefaultAspect)
 
 	buildArgs := concatStringsArrays([]string{
 		"--experimental_convenience_symlinks=ignore",
