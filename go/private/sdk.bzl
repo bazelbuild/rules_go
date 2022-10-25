@@ -317,11 +317,21 @@ def _detect_sdk_version(ctx, goroot):
     if result.return_code != 0:
         fail("Could not detect SDK version: '%s version' exited with exit code %d" % (go_binary_path, result.return_code))
 
-    # go version output is of the form "go version go1.18.3 linux/amd64"
+    # go version output is of the form "go version go1.18.3 linux/amd64" or "go
+    # version devel go1.19-fd1b5904ae Tue Mar 22 21:38:10 2022 +0000
+    # linux/amd64". See the following links for how this output is generated:
+    # - https://github.com/golang/go/blob/2bdb5c57f1efcbddab536028d053798e35de6226/src/cmd/go/internal/version/version.go#L75
+    # - https://github.com/golang/go/blob/2bdb5c57f1efcbddab536028d053798e35de6226/src/cmd/dist/build.go#L333
+    #
+    # Read the third word, or the fourth word if the third word is "devel", to
+    # find the version number.
     output_parts = result.stdout.split(" ")
-    if len(output_parts) < 3 or not output_parts[2].startswith("go"):
+    if len(output_parts) > 2 and output_parts[2].startswith("go"):
+        version = output_parts[2][len("go"):]
+    if len(output_parts) > 3 and output_parts[2] == "devel" and output_parts[3].startswith("go"):
+        version = output_parts[3][len("go"):]
+    else:
         fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
-    version = output_parts[2][len("go"):]
     if _parse_version(version) == None:
         fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
     return version
