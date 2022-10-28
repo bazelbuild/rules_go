@@ -62,7 +62,7 @@ var (
 	additionalAspects     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_ADDTL_ASPECTS"))
 	additionalKinds       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
 	emptyResponse         = &driverResponse{
-		NotHandled: false,
+		NotHandled: true,
 		Sizes:      types.SizesFor("gc", "amd64").(*types.StdSizes),
 		Roots:      []string{},
 		Packages:   []*FlatPackage{},
