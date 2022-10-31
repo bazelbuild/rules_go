@@ -1,1 +1,3 @@
-fixedReleaser: fmeum
+fixedReleaser:
+  login: fmeum
+  email: fabian@meumertzhe.im
