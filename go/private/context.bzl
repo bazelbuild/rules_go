@@ -195,6 +195,7 @@ def _merge_embed(source, embed):
     source["deps"] = source["deps"] + s.deps
     source["x_defs"].update(s.x_defs)
     source["gc_goopts"] = source["gc_goopts"] + s.gc_goopts
+    source["defines"] = source["defines"] + s.defines
     source["runfiles"] = source["runfiles"].merge(s.runfiles)
     if s.cgo and source["cgo"]:
         fail("multiple libraries with cgo enabled")
@@ -247,6 +248,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "x_defs": {},
         "deps": getattr(attr, "deps", []),
         "gc_goopts": _expand_opts(go, "gc_goopts", getattr(attr, "gc_goopts", [])),
+        "defines": _expand_opts(go, "defines", getattr(attr, "defines", [])),
         "runfiles": _collect_runfiles(go, getattr(attr, "data", []), getattr(attr, "deps", [])),
         "cgo": getattr(attr, "cgo", False),
         "cdeps": getattr(attr, "cdeps", []),
@@ -821,6 +823,7 @@ def _go_config_impl(ctx):
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
+        defines = ctx.attr.defines,
         amd64 = ctx.attr.amd64,
     )]
 
@@ -865,6 +868,10 @@ go_config = rule(
         ),
         "stamp": attr.bool(mandatory = True),
         "cover_format": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
+        "defines": attr.label_list(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),

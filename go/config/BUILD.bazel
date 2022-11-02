@@ -80,3 +80,9 @@ filegroup(
     srcs = glob(["**"]),
     visibility = ["//visibility:public"],
 )
+
+string_list_flag(
+    name = "defines",
+    build_setting_default = [],
+    visibility = ["//visibility:public"],
+)

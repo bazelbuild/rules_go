@@ -107,6 +107,7 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
             out_export = out_export,
             out_cgo_export_h = out_cgo_export_h,
             gc_goopts = source.gc_goopts,
+            defines = source.defines,
             cgo = True,
             cgo_inputs = cgo.inputs,
             cppopts = cgo.cppopts,
@@ -130,6 +131,7 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
             out_lib = out_lib,
             out_export = out_export,
             gc_goopts = source.gc_goopts,
+            defines = source.defines,
             cgo = False,
             testfilter = testfilter,
         )
@@ -157,6 +159,7 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
         _embedsrcs = as_tuple(source.embedsrcs),
         _x_defs = tuple(source.x_defs.items()),
         _gc_goopts = as_tuple(source.gc_goopts),
+        _defines = as_tuple(source.defines),
         _cgo = source.cgo,
         _cdeps = as_tuple(source.cdeps),
         _cppopts = as_tuple(source.cppopts),
