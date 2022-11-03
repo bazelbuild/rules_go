@@ -251,7 +251,7 @@ _go_test_kwargs = {
             """,
         ),
         "gc_goopts": attr.string_list(
-            doc = """List of flags to add to the Go compilation command for the current target and it's dependencies when using the gc compiler.
+            doc = """List of flags to add to the Go compilation command when using the gc compiler.
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].
             """,
         ),
