@@ -251,7 +251,12 @@ _go_test_kwargs = {
             """,
         ),
         "gc_goopts": attr.string_list(
-            doc = """List of flags to add to the Go compilation command when using the gc compiler.
+            doc = """List of flags to add to the Go compilation command for the current target and it's dependencies when using the gc compiler.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            """,
+        ),
+        "defines": attr.string_list(
+            doc = """List of flags to add to the compile line for a target and dependencies it references.
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].
             """,
         ),
@@ -647,6 +652,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
             x_defs = dict(arc_data._x_defs),
             deps = deps,
             gc_goopts = as_list(arc_data._gc_goopts),
+            defines = as_list(arc_data.defines),
             runfiles = go._ctx.runfiles(files = arc_data.data_files),
             cgo = arc_data._cgo,
             cdeps = as_list(arc_data._cdeps),

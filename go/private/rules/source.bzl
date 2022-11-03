@@ -80,8 +80,7 @@ go_source = rule(
             """,
         ),
         "defines": attr.string_list(
-            doc = """List of flags to add to the Go compilation command when using the gc compiler.
-            Added to all compilation commands for a target and it's dependencies.
+            doc = """List of flags to add to the compile line for a target and dependencies it references.
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].
             """,
         ),
