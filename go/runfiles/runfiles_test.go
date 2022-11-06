@@ -23,11 +23,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bazelbuild/rules_go/go/tools/bazel/runfiles"
+	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
 func TestPath_FileLookup(t *testing.T) {
-	path, err := runfiles.Path("io_bazel_rules_go/go/tools/bazel/runfiles/test.txt")
+	path, err := runfiles.Path("io_bazel_rules_go/go/runfiles/test.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestPath_SubprocessRunfilesLookup(t *testing.T) {
 	}
 	// The binary “testprog” is itself built with Bazel, and needs
 	// runfiles.
-	testprogRpath := "io_bazel_rules_go/go/tools/bazel/runfiles/testprog/testprog_/testprog"
+	testprogRpath := "io_bazel_rules_go/go/runfiles/testprog/testprog_/testprog"
 	if runtime.GOOS == "windows" {
 		testprogRpath += ".exe"
 	}

@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/bazelbuild/rules_go/go/tools/bazel/runfiles"
+	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
 func main() {
-	path, err := runfiles.Path("io_bazel_rules_go/go/tools/bazel/runfiles/test.txt")
+	path, err := runfiles.Path("io_bazel_rules_go/go/runfiles/test.txt")
 	if err != nil {
 		panic(err)
 	}

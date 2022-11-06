@@ -26,7 +26,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/bazelbuild/rules_go/go/tools/bazel/runfiles"
+	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
 func TestFS(t *testing.T) {
@@ -43,9 +43,9 @@ func TestFS(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// Currently the result of
 		//
-		//  fsys.Path("io_bazel_rules_go/go/tools/bazel/runfiles/test.txt")
+		//  fsys.Path("io_bazel_rules_go/go/runfiles/test.txt")
 		//  fsys.Path("bazel_tools/tools/bash/runfiles/runfiles.bash")
-		//  fsys.Path("io_bazel_rules_go/go/tools/bazel/runfiles/testprog/testprog")
+		//  fsys.Path("io_bazel_rules_go/go/runfiles/testprog/testprog")
 		//
 		// would be a full path like these
 		//
@@ -59,8 +59,8 @@ func TestFS(t *testing.T) {
 		return
 	}
 
-	expected1 := "io_bazel_rules_go/go/tools/bazel/runfiles/test.txt"
-	expected2 := "io_bazel_rules_go/go/tools/bazel/runfiles/testprog/testprog_/testprog"
+	expected1 := "io_bazel_rules_go/go/runfiles/test.txt"
+	expected2 := "io_bazel_rules_go/go/runfiles/testprog/testprog_/testprog"
 	expected3 := "bazel_tools/tools/bash/runfiles/runfiles.bash"
 	if err := fstest.TestFS(fsys, expected1, expected2, expected3); err != nil {
 		t.Error(err)

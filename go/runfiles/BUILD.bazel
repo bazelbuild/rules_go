@@ -23,7 +23,7 @@ go_library(
         "manifest.go",
         "runfiles.go",
     ],
-    importpath = "github.com/bazelbuild/rules_go/go/tools/bazel/runfiles",
+    importpath = "github.com/bazelbuild/rules_go/go/runfiles",
     visibility = ["//visibility:public"],
 )
 
@@ -35,7 +35,7 @@ go_test(
     ],
     data = [
         "test.txt",
-        "//go/tools/bazel/runfiles/testprog",
+        "//go/runfiles/testprog",
         "@bazel_tools//tools/bash/runfiles",
     ],
     deps = [":runfiles"],
@@ -43,7 +43,7 @@ go_test(
 
 exports_files(
     ["test.txt"],
-    visibility = ["//go/tools/bazel/runfiles/testprog:__pkg__"],
+    visibility = ["//go/runfiles/testprog:__pkg__"],
 )
 
 alias(
