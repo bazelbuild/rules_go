@@ -73,6 +73,7 @@ def emit_link(
 
     if go.coverage_enabled:
         extldflags.append("--coverage")
+    gc_linkopts.extend(go.mode.gc_linkopts)
     gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
     builder_args = go.builder_args(go, "link")
     tool_args = go.tool_args(go)

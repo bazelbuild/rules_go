@@ -120,6 +120,7 @@ go_config(
     }),
     gotags = "//go/config:tags",
     linkmode = "//go/config:linkmode",
+    gc_linkopts = "//go/config:gc_linkopts",
     msan = "//go/config:msan",
     pure = "//go/config:pure",
     race = "//go/config:race",

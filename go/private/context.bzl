@@ -817,6 +817,7 @@ def _go_config_impl(ctx):
         strip = ctx.attr.strip[BuildSettingInfo].value,
         debug = ctx.attr.debug[BuildSettingInfo].value,
         linkmode = ctx.attr.linkmode[BuildSettingInfo].value,
+        gc_linkopts = ctx.attr.gc_linkopts[BuildSettingInfo].value,
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
@@ -851,6 +852,10 @@ go_config = rule(
             providers = [BuildSettingInfo],
         ),
         "linkmode": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
+        "gc_linkopts": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),

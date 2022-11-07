@@ -90,6 +90,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     if pure and msan:
         fail("msan instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
 
+    gc_linkopts = list(go_config_info.gc_linkopts) if go_config_info else []
     tags = list(go_config_info.tags) if go_config_info else []
     if "gotags" in ctx.var:
         tags.extend(ctx.var["gotags"].split(","))
@@ -106,6 +107,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         msan = msan,
         pure = pure,
         link = linkmode,
+        gc_linkopts = gc_linkopts,
         strip = strip,
         stamp = stamp,
         debug = debug,

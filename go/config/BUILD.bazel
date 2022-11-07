@@ -53,6 +53,12 @@ string_flag(
 )
 
 string_list_flag(
+    name = "gc_linkopts",
+    build_setting_default = [],
+    visibility = ["//visibility:public"],
+)
+
+string_list_flag(
     name = "tags",
     build_setting_default = [],
     visibility = ["//visibility:public"],
