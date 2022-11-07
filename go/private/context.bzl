@@ -195,7 +195,7 @@ def _merge_embed(source, embed):
     source["deps"] = source["deps"] + s.deps
     source["x_defs"].update(s.x_defs)
     source["gc_goopts"] = source["gc_goopts"] + s.gc_goopts
-    source["defines"] = source["defines"] + s.defines
+    source["defines"].extend(s.defines)
     source["runfiles"] = source["runfiles"].merge(s.runfiles)
     if s.cgo and source["cgo"]:
         fail("multiple libraries with cgo enabled")

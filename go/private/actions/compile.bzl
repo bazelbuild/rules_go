@@ -78,8 +78,8 @@ def emit_compile(
 
     #TODO: Check if we really need this expand make variables in here
     #TODO: If we really do then it needs to be moved all the way back out to the rule
-    gc_goopts = [go._ctx.expand_make_variables("defines", f, {}) for f in defines]
-    + [go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
+    gc_goopts = list([go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts])
+    gc_goopts.extend([go._ctx.expand_make_variables("defines", f, {}) for f in defines])
     tool_args.add_all(gc_goopts)
     if go.mode.race:
         tool_args.add("-race")
