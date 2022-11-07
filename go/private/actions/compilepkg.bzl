@@ -118,7 +118,8 @@ def emit_compilepkg(
         outputs.append(out_cgo_export_h)
     if testfilter:
         args.add("-testfilter", testfilter)
-    gc_flags = list(gc_goopts) + [go._ctx.expand_make_variables("defines", f, {}) for f in defines]
+    gc_flags = list(gc_goopts)
+    gc_flags.extend([go._ctx.expand_make_variables("defines", f, {}) for f in defines])
     asm_flags = []
     if go.mode.race:
         gc_flags.append("-race")
