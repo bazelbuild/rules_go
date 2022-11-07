@@ -823,7 +823,7 @@ def _go_config_impl(ctx):
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
-        defines = ctx.attr.defines,
+        defines = ctx.attr.defines[BuildSettingInfo].value,
         amd64 = ctx.attr.amd64,
     )]
 
@@ -871,7 +871,7 @@ go_config = rule(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
-        "defines": attr.label_list(
+        "defines": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
