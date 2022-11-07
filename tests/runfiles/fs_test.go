@@ -59,8 +59,8 @@ func TestFS(t *testing.T) {
 		return
 	}
 
-	expected1 := "io_bazel_rules_go/go/runfiles/test.txt"
-	expected2 := "io_bazel_rules_go/go/runfiles/testprog/testprog_/testprog"
+	expected1 := "io_bazel_rules_go/tests/runfiles/test.txt"
+	expected2 := "io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog"
 	expected3 := "bazel_tools/tools/bash/runfiles/runfiles.bash"
 	if err := fstest.TestFS(fsys, expected1, expected2, expected3); err != nil {
 		t.Error(err)

@@ -12,23 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
-go_library(
-    name = "runfiles",
+go_test(
+    name = "runfiles_test",
     srcs = [
-        "directory.go",
-        "fs.go",
-        "global.go",
-        "manifest.go",
-        "runfiles.go",
+        "fs_test.go",
+        "runfiles_test.go",
     ],
-    importpath = "github.com/bazelbuild/rules_go/go/runfiles",
-    visibility = ["//visibility:public"],
+    data = [
+        "test.txt",
+        "//tests/runfiles/testprog",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    deps = [
+        "//go/runfiles",
+    ],
 )
 
-alias(
-    name = "go_default_library",
-    actual = ":runfiles",
-    visibility = ["//visibility:public"],
+exports_files(
+    ["test.txt"],
+    visibility = ["//tests/runfiles/testprog:__pkg__"],
 )

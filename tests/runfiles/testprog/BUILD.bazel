@@ -17,14 +17,14 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "testprog_lib",
     srcs = ["main.go"],
-    importpath = "github.com/bazelbuild/rules_go/go/runfiles/testprog",
+    importpath = "github.com/bazelbuild/rules_go/tests/runfiles/testprog",
     visibility = ["//visibility:private"],
     deps = ["//go/runfiles"],
 )
 
 go_binary(
     name = "testprog",
-    data = ["//go/runfiles:test.txt"],
+    data = ["//tests/runfiles:test.txt"],
     embed = [":testprog_lib"],
-    visibility = ["//go/runfiles:__pkg__"],
+    visibility = ["//tests/runfiles:__pkg__"],
 )
