@@ -41,6 +41,7 @@ load(
 )
 load(
     "//go/private:go_toolchain.bzl",
+    _declare_go_toolchains = "declare_go_toolchains",
     _declare_toolchains = "declare_toolchains",
     _go_toolchain = "go_toolchain",
 )
@@ -126,6 +127,7 @@ TOOLS_NOGO = [
 # check this to determine compatibility.
 RULES_GO_VERSION = "0.35.0"
 
+declare_go_toolchains = _declare_go_toolchains
 declare_toolchains = _declare_toolchains
 go_context = _go_context
 go_embed_data = _go_embed_data

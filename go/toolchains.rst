@@ -88,6 +88,16 @@ the rules register these toolchains automatically. Bazel will select a
 registered toolchain automatically based on the execution and target platforms,
 specified with ``--host_platform`` and ``--platforms``, respectively.
 
+The workspace rules define the toolchains in a separate repository from the
+SDK. For example, if the SDK repository is `@go_sdk`, the toolchains will be
+defined in `@go_sdk_toolchains`. The `@go_sdk_toolchains` repository must be
+eagerly fetched in order to register the toolchain, but fetching the `@go_sdk`
+repository may be delayed until the toolchain is needed to build something. To
+activate lazily fetching the SDK, you must provide a `version` attribute to the
+workspace rule that defines the SDK (`go_download_sdk`, `go_host_sdk`, `go_local_sdk`,
+`go_wrap_sdk`, or `go_register_toolchains`). The value must match the actual
+version of the SDK; rules_go will validate this when the toolchain is used.
+
 The toolchain itself should be considered opaque. You should only access
 its contents through `the context`_.
 
@@ -225,6 +235,10 @@ SDK version to use (for example, :value:`"1.15.5"`).
 | Normally this is set to a Go version like :value:`"1.15.5"`. It may also be                      |
 | set to :value:`"host"`, which will cause rules_go to use the Go toolchain                        |
 | installed on the host system (found using ``GOROOT`` or ``PATH``).                               |
+|                                                                                                  |
+| If ``version`` is specified and is not set to :value:`"host"`, the SDK will be lazily fetched    |
+| when the Go toolchain is required. Otherwise it will be eagerly fetched during the analysis      |
+| phase.                                                                                           |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`nogo`                  | :type:`label`               | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
@@ -267,6 +281,8 @@ This downloads a Go SDK for use in toolchains.
 | pick the highest version. If ``version`` is specified but ``sdks`` is                                      |
 | unspecified, ``go_download_sdk`` will list available versions on golang.org                                |
 | to determine the correct file name and SHA-256 sum.                                                        |
+| If ``version`` is specified, the SDK will be lazily fetched when the Go toolchain is required. Otherwise   |
+| it will be eagerly fetched during the analysis phase.                                                      |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}]`      |
 +--------------------------------+-----------------------------+---------------------------------------------+
@@ -344,7 +360,11 @@ used. Otherwise, ``go env GOROOT`` is used.
 | A unique name for this SDK. This should almost always be :value:`go_sdk` if you want the SDK     |
 | to be used by toolchains.                                                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
-
+| :param:`version`               | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The version of Go installed on the host. If specified, `go_host_sdk` will create its repository  |
+| lazily, when the Go toolchain is required.                                                       |
++--------------------------------+-----------------------------+-----------------------------------+
 
 go_local_sdk
 ~~~~~~~~~~~~
@@ -363,6 +383,11 @@ This prepares a local path to use as the Go SDK in toolchains.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The local path to a pre-installed Go SDK. The path must contain the go binary, the tools it      |
 | invokes and the standard library sources.                                                        |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`version`               | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The version of the Go SDK. If specified, `go_local_sdk` will create its repository lazily, when  |
+| the Go toolchain is required.                                                                    |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -389,6 +414,11 @@ rule.
 +--------------------------------+-----------------------------+-----------------------------------+
 | A set of mappings from the host platform to a Bazel label referencing a file in the SDK's root   |
 | directory. This attribute and `root_file` cannot be both provided.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`version`               | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The version of the Go SDK. If specified, `go_wrap_sdk` will create its repository lazily, when   |
+| the Go toolchain is required.                                                                    |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 

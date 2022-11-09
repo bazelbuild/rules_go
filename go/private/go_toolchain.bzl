@@ -92,11 +92,8 @@ go_toolchain = rule(
     provides = [platform_common.ToolchainInfo],
 )
 
-def declare_toolchains(host, sdk, builder, sdk_version_setting):
-    """Declares go_toolchain and toolchain targets for each platform."""
-
-    # keep in sync with generate_toolchain_names
-    host_goos, _, host_goarch = host.partition("_")
+def declare_go_toolchains(host_goos, sdk, builder):
+    """Declares go_toolchain targets for each platform."""
     for p in PLATFORMS:
         if p.cgo:
             # Don't declare separate toolchains for cgo_on / cgo_off.
@@ -111,17 +108,8 @@ def declare_toolchains(host, sdk, builder, sdk_version_setting):
         if host_goos == "linux":
             cgo_link_flags.append("-Wl,-whole-archive")
 
-        toolchain_name = "go_" + p.name
-        impl_name = toolchain_name + "-impl"
-
-        cgo_constraints = (
-            "@io_bazel_rules_go//go/toolchain:cgo_off",
-            "@io_bazel_rules_go//go/toolchain:cgo_on",
-        )
-        constraints = [c for c in p.constraints if c not in cgo_constraints]
-
         go_toolchain(
-            name = impl_name,
+            name = "go_" + p.name + "-impl",
             goos = p.goos,
             goarch = p.goarch,
             sdk = sdk,
@@ -131,8 +119,25 @@ def declare_toolchains(host, sdk, builder, sdk_version_setting):
             tags = ["manual"],
             visibility = ["//visibility:public"],
         )
+
+def declare_toolchains(host_goos, host_goarch, sdk_repo, sdk_version_setting):
+    """Declares toolchain targets for each platform."""
+    for p in PLATFORMS:
+        if p.cgo:
+            # Don't declare separate toolchains for cgo_on / cgo_off.
+            # This is controlled by the cgo_context_data dependency of
+            # go_context_data, which is configured using constraint_values.
+            continue
+
+        cgo_constraints = (
+            "@io_bazel_rules_go//go/toolchain:cgo_off",
+            "@io_bazel_rules_go//go/toolchain:cgo_on",
+        )
+        constraints = [c for c in p.constraints if c not in cgo_constraints]
+
         native.toolchain(
-            name = toolchain_name,
+            # keep in sync with generate_toolchain_names
+            name = "go_" + p.name,
             toolchain_type = GO_TOOLCHAIN,
             exec_compatible_with = [
                 "@io_bazel_rules_go//go/toolchain:" + host_goos,
@@ -140,5 +145,5 @@ def declare_toolchains(host, sdk, builder, sdk_version_setting):
             ],
             target_compatible_with = constraints,
             target_settings = [sdk_version_setting],
-            toolchain = ":" + impl_name,
+            toolchain = "@" + sdk_repo + "//:go_" + p.name + "-impl",
         )
