@@ -64,7 +64,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	// that a fragment of the path is stable and human friendly enough to be
 	// referenced in nogo configuration.
 	workDir = filepath.Join(workDir, "cgo", packagePath)
-	if err := os.MkdirAll(workDir, 0700); err != nil {
+	if err := os.MkdirAll(workDir, 0o700); err != nil {
 		return "", nil, nil, err
 	}
 
@@ -112,7 +112,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 		}
 	} else {
 		srcDir = filepath.Join(workDir, "cgosrcs")
-		if err := os.Mkdir(srcDir, 0777); err != nil {
+		if err := os.Mkdir(srcDir, 0o777); err != nil {
 			return "", nil, nil, err
 		}
 		copiedSrcs, err := gatherSrcs(srcDir, cgoSrcs)
@@ -207,12 +207,11 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 		// rightfully can't be resolved.
 		var allowUnresolvedSymbolsLdFlag string
 		switch os.Getenv("GOOS") {
-		case "windows":
+		case "windows", "darwin", "ios":
 			// MinGW's linker doesn't seem to support --unresolved-symbols
 			// and MSVC isn't supported at all.
+			// XCode's ld has deprecated `-undefined dynamic_lookup`.
 			return "", nil, nil, err
-		case "darwin", "ios":
-			allowUnresolvedSymbolsLdFlag = "-Wl,-undefined,dynamic_lookup"
 		default:
 			allowUnresolvedSymbolsLdFlag = "-Wl,--unresolved-symbols=ignore-all"
 		}
