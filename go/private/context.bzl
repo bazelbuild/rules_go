@@ -195,7 +195,6 @@ def _merge_embed(source, embed):
     source["deps"] = source["deps"] + s.deps
     source["x_defs"].update(s.x_defs)
     source["gc_goopts"] = source["gc_goopts"] + s.gc_goopts
-    source["defines"].extend(s.defines)
     source["runfiles"] = source["runfiles"].merge(s.runfiles)
     if s.cgo and source["cgo"]:
         fail("multiple libraries with cgo enabled")
@@ -248,7 +247,6 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "x_defs": {},
         "deps": getattr(attr, "deps", []),
         "gc_goopts": _expand_opts(go, "gc_goopts", getattr(attr, "gc_goopts", [])),
-        "defines": _expand_opts(go, "defines", getattr(attr, "defines", [])),
         "runfiles": _collect_runfiles(go, getattr(attr, "data", []), getattr(attr, "deps", [])),
         "cgo": getattr(attr, "cgo", False),
         "cdeps": getattr(attr, "cdeps", []),
@@ -393,6 +391,7 @@ def go_context(ctx, attr = None):
     stdlib = None
     coverdata = None
     nogo = None
+    gc_goopts_global = None
     if hasattr(attr, "_go_context_data"):
         go_context_data = _flatten_possibly_transitioned_attr(attr._go_context_data)
         if CgoContextInfo in go_context_data:
@@ -401,6 +400,7 @@ def go_context(ctx, attr = None):
         stdlib = go_context_data[GoStdLib]
         coverdata = go_context_data[GoContextInfo].coverdata
         nogo = go_context_data[GoContextInfo].nogo
+        gc_goopts_global = go_context_data[GoContextInfo].gc_goopts_global
     if getattr(attr, "_cgo_context_data", None) and CgoContextInfo in attr._cgo_context_data:
         cgo_context_info = attr._cgo_context_data[CgoContextInfo]
     if getattr(attr, "cgo_context_data", None) and CgoContextInfo in attr.cgo_context_data:
@@ -518,7 +518,7 @@ def go_context(ctx, attr = None):
         stamp = mode.stamp,
         label = ctx.label,
         cover_format = mode.cover_format,
-
+        gc_goopts_global = gc_goopts_global,
         # Action generators
         archive = toolchain.actions.archive,
         asm = toolchain.actions.asm,
@@ -552,6 +552,7 @@ def _go_context_data_impl(ctx):
         GoContextInfo(
             coverdata = ctx.attr.coverdata[GoArchive],
             nogo = nogo,
+            gc_goopts_global = ctx.attr.go_config[GoConfigInfo].gc_goopts_global,
         ),
         ctx.attr.stdlib[GoStdLib],
         ctx.attr.go_config[GoConfigInfo],
@@ -811,6 +812,11 @@ cgo_context_data_proxy = rule(
 )
 
 def _go_config_impl(ctx):
+    if not ctx.attr.gotags:
+      fail("no tags detected")
+    if not ctx.attr.gc_goopts_global:
+      err = "should have gc_goopts_global " + ctx.attr.gc_goopts_global
+      fail(err)
     return [GoConfigInfo(
         static = ctx.attr.static[BuildSettingInfo].value,
         race = ctx.attr.race[BuildSettingInfo].value,
@@ -823,7 +829,7 @@ def _go_config_impl(ctx):
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
-        defines = ctx.attr.defines[BuildSettingInfo].value,
+        gc_goopts_global = ctx.attr.gc_goopts_global,
         amd64 = ctx.attr.amd64,
     )]
 
@@ -871,7 +877,7 @@ go_config = rule(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
-        "defines": attr.label(
+        "gc_goopts_global": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),

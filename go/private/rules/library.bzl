@@ -136,11 +136,6 @@ go_library = rule(
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].
             """,
         ),
-        "defines": attr.string_list(
-            doc = """List of flags to add to the compile line for a target and dependencies it references.
-            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
-            """,
-        ),
         "x_defs": attr.string_dict(
             doc = """
             Map of defines to add to the go link command. See [Defines and stamping] for examples of how to use these.
@@ -217,7 +212,6 @@ go_tool_library = rule(
         "importmap": attr.string(),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
-        "defines": attr.string_list(),
         "x_defs": attr.string_dict(),
         "_go_config": attr.label(default = "//:go_config"),
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),

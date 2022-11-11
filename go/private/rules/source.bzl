@@ -79,11 +79,6 @@ go_source = rule(
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].
             """,
         ),
-        "defines": attr.string_list(
-            doc = """List of flags to add to the compile line for a target and dependencies it references.
-            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
-            """,
-        ),
         "_go_config": attr.label(default = "//:go_config"),
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
     },

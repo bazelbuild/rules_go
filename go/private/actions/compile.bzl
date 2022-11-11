@@ -38,7 +38,6 @@ def emit_compile(
         out_lib = None,
         out_export = None,
         gc_goopts = [],
-        defines = [],
         testfilter = None,
         asmhdr = None):
     """See go/toolchains.rst#compile for full documentation."""
@@ -75,12 +74,11 @@ def emit_compile(
         builder_args.add("-asmhdr", asmhdr)
         outputs.append(asmhdr)
     tool_args.add("-trimpath", ".")
-
     #TODO: Check if we really need this expand make variables in here
     #TODO: If we really do then it needs to be moved all the way back out to the rule
     gc_goopts = list([go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts])
-    gc_goopts.extend([go._ctx.expand_make_variables("defines", f, {}) for f in defines])
-    tool_args.add_all(gc_goopts)
+    #not sure if adding defines here actually affects anything
+    go.tool_args.add_all(gc_goopts)
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:

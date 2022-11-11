@@ -245,11 +245,6 @@ _go_binary_kwargs = {
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].
             """,
         ),
-        "defines": attr.string_list(
-            doc = """List of flags to add to the compile line for a target and dependencies it references.
-            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
-            """,
-        ),
         "gc_linkopts": attr.string_list(
             doc = """List of flags to add to the Go link command when using the gc compiler.
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].
