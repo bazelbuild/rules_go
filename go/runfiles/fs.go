@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build go1.16
 // +build go1.16
 
 package runfiles
@@ -29,7 +30,7 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
-	p, err := r.Path(name)
+	p, err := r.Rlocation(name)
 	if errors.Is(err, ErrEmpty) {
 		return emptyFile(name), nil
 	}
@@ -44,7 +45,7 @@ func (r *Runfiles) Stat(name string) (fs.FileInfo, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrInvalid}
 	}
-	p, err := r.Path(name)
+	p, err := r.Rlocation(name)
 	if errors.Is(err, ErrEmpty) {
 		return emptyFileInfo(name), nil
 	}
@@ -59,7 +60,7 @@ func (r *Runfiles) ReadFile(name string) ([]byte, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
-	p, err := r.Path(name)
+	p, err := r.Rlocation(name)
 	if errors.Is(err, ErrEmpty) {
 		return nil, nil
 	}

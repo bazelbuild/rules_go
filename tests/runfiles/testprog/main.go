@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	path, err := runfiles.Path("io_bazel_rules_go/tests/runfiles/test.txt")
+	path, err := runfiles.Rlocation("io_bazel_rules_go/tests/runfiles/test.txt")
 	if err != nil {
 		panic(err)
 	}

@@ -27,7 +27,7 @@ import (
 )
 
 func TestPath_FileLookup(t *testing.T) {
-	path, err := runfiles.Path("io_bazel_rules_go/tests/runfiles/test.txt")
+	path, err := runfiles.Rlocation("io_bazel_rules_go/tests/runfiles/test.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestPath_SubprocessRunfilesLookup(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		testprogRpath += ".exe"
 	}
-	prog, err := r.Path(testprogRpath)
+	prog, err := r.Rlocation(testprogRpath)
 	if err != nil {
 		panic(err)
 	}
@@ -79,7 +79,7 @@ func TestPath_errors(t *testing.T) {
 	}
 	for _, s := range []string{"", "/..", "../", "a/../b", "a//b", "a/./b", `\a`} {
 		t.Run(s, func(t *testing.T) {
-			if got, err := r.Path(s); err == nil {
+			if got, err := r.Rlocation(s); err == nil {
 				t.Errorf("got %q, want error", got)
 			}
 		})
@@ -88,8 +88,8 @@ func TestPath_errors(t *testing.T) {
 
 func TestRunfiles_zero(t *testing.T) {
 	var r runfiles.Runfiles
-	if got, err := r.Path("a"); err == nil {
-		t.Errorf("Path: got %q, want error", got)
+	if got, err := r.Rlocation("a"); err == nil {
+		t.Errorf("Rlocation: got %q, want error", got)
 	}
 	if got := r.Env(); got != nil {
 		t.Errorf("Env: got %v, want nil", got)
@@ -106,10 +106,10 @@ func TestRunfiles_empty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, got := r.Path("__init__.py")
+	_, got := r.Rlocation("__init__.py")
 	want := runfiles.ErrEmpty
 	if !errors.Is(got, want) {
-		t.Errorf("Path for empty file: got error %q, want something that wraps %q", got, want)
+		t.Errorf("Rlocation for empty file: got error %q, want something that wraps %q", got, want)
 	}
 }
 
@@ -130,12 +130,12 @@ func TestRunfiles_manifestWithDir(t *testing.T) {
 		"foo/dir/deeply/nested/file": filepath.FromSlash("path/to/foo/dir/deeply/nested/file"),
 	} {
 		t.Run(rlocation, func(t *testing.T) {
-			got, err := r.Path(rlocation)
+			got, err := r.Rlocation(rlocation)
 			if err != nil {
-				t.Fatalf("Path failed: got unexpected error %q", err)
+				t.Fatalf("Rlocation failed: got unexpected error %q", err)
 			}
 			if got != want {
-				t.Errorf("Path failed: got %q, want %q", got, want)
+				t.Errorf("Rlocation failed: got %q, want %q", got, want)
 			}
 		})
 	}

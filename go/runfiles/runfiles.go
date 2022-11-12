@@ -16,13 +16,13 @@
 //
 // Usage
 //
-// This package has two main entry points, the global functions Path and Env,
+// This package has two main entry points, the global functions Rlocation and Env,
 // and the Runfiles type.
 //
 // Global functions
 //
-// For simple use cases that don’t require hermetic behavior, use the Path and
-// Env functions to access runfiles.  Use Path to find the filesystem location
+// For simple use cases that don’t require hermetic behavior, use the Rlocation and
+// Env functions to access runfiles.  Use Rlocation to find the filesystem location
 // of a runfile, and use Env to obtain environmental variables to pass on to
 // subprocesses.
 //
@@ -30,7 +30,7 @@
 //
 // If you need hermetic behavior or want to change the runfiles discovery
 // process, use New to create a Runfiles object.  New accepts a few options to
-// change the discovery process.  Runfiles objects have methods Path and Env,
+// change the discovery process.  Runfiles objects have methods Rlocation and Env,
 // which correspond to the package-level functions.  On Go 1.16, *Runfiles
 // implements fs.FS, fs.StatFS, and fs.ReadFileFS.
 package runfiles
@@ -101,16 +101,16 @@ func New(opts ...Option) (*Runfiles, error) {
 	return nil, errors.New("runfiles: no runfiles found")
 }
 
-// Path returns the absolute path name of a runfile.  The runfile name must be a
+// Rlocation returns the absolute path name of a runfile.  The runfile name must be a
 // runfile-root relative path, using the slash (not backslash) as directory separator.
 // It is typically of the form "repo/path/to/pkg/file".
-// If r is the zero Runfiles object, Path always returns an error.  If the runfiles
+// If r is the zero Runfiles object, Rlocation always returns an error.  If the runfiles
 // manifest maps s to an empty name (indicating an empty runfile not present in the
-// filesystem), Path returns an error that wraps ErrEmpty.
+// filesystem), Rlocation returns an error that wraps ErrEmpty.
 //
 // See section “Library interface” in
 // https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub.
-func (r *Runfiles) Path(path string) (string, error) {
+func (r *Runfiles) Rlocation(path string) (string, error) {
 	if r.impl == nil {
 		return "", errors.New("runfiles: uninitialized Runfiles object")
 	}
