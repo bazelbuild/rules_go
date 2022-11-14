@@ -54,6 +54,7 @@ Go rules for Bazel_
 .. _go_cross_binary: docs/go/core/rules.md#go_cross_binary
 .. _go_toolchain: go/toolchains.rst#go_toolchain
 .. _go_wrap_sdk: go/toolchains.rst#go_wrap_sdk
+.. _gomock: docs/go/extras/extras.md#gomock
 
 .. External rules
 .. _git_repository: https://docs.bazel.build/versions/master/repo/git.html
@@ -209,6 +210,7 @@ Documentation
   * `go_context`_
 
 * `Extra rules <docs/go/extras/extras.md>`_
+  * `gomock`_
 
 * `nogo build-time static analysis`_
 * `Build modes <go/modes.rst>`_
