@@ -82,7 +82,7 @@ filegroup(
 )
 
 string_flag(
-    name = "gc_goopts_global",
+    name = "gc_goopts",
     build_setting_default = "",
     visibility = ["//visibility:public"],
 )

@@ -391,7 +391,7 @@ def go_context(ctx, attr = None):
     stdlib = None
     coverdata = None
     nogo = None
-    gc_goopts_global = None
+    gc_goopts = None
     if hasattr(attr, "_go_context_data"):
         go_context_data = _flatten_possibly_transitioned_attr(attr._go_context_data)
         if CgoContextInfo in go_context_data:
@@ -400,7 +400,7 @@ def go_context(ctx, attr = None):
         stdlib = go_context_data[GoStdLib]
         coverdata = go_context_data[GoContextInfo].coverdata
         nogo = go_context_data[GoContextInfo].nogo
-        gc_goopts_global = go_context_data[GoContextInfo].gc_goopts_global
+        gc_goopts = go_context_data[GoContextInfo].gc_goopts
     if getattr(attr, "_cgo_context_data", None) and CgoContextInfo in attr._cgo_context_data:
         cgo_context_info = attr._cgo_context_data[CgoContextInfo]
     if getattr(attr, "cgo_context_data", None) and CgoContextInfo in attr.cgo_context_data:
@@ -518,7 +518,7 @@ def go_context(ctx, attr = None):
         stamp = mode.stamp,
         label = ctx.label,
         cover_format = mode.cover_format,
-        gc_goopts_global = gc_goopts_global,
+        gc_goopts = gc_goopts,
         # Action generators
         archive = toolchain.actions.archive,
         asm = toolchain.actions.asm,
@@ -552,7 +552,7 @@ def _go_context_data_impl(ctx):
         GoContextInfo(
             coverdata = ctx.attr.coverdata[GoArchive],
             nogo = nogo,
-            gc_goopts_global = ctx.attr.go_config[GoConfigInfo].gc_goopts_global,
+            gc_goopts = ctx.attr.go_config[GoConfigInfo].gc_goopts,
         ),
         ctx.attr.stdlib[GoStdLib],
         ctx.attr.go_config[GoConfigInfo],
@@ -824,7 +824,7 @@ def _go_config_impl(ctx):
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
-        gc_goopts_global = ctx.attr.gc_goopts_global,
+        gc_goopts = ctx.attr.gc_goopts,
         amd64 = ctx.attr.amd64,
     )]
 
@@ -872,7 +872,7 @@ go_config = rule(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
-        "gc_goopts_global": attr.label(
+        "gc_goopts": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
