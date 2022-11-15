@@ -1,4 +1,4 @@
-load("@{rules_go_repo_name}//go:def.bzl", "declare_toolchains")
+load("@{rules_go_repo_name}//go:def.bzl", "declare_bazel_toolchains")
 load("@bazel_skylib//lib:selects.bzl", "selects")
 
 {version_constants}
@@ -69,9 +69,9 @@ selects.config_setting_group(
     visibility = ["//visibility:private"],
 )
 
-declare_toolchains(
+declare_bazel_toolchains(
     host_goos = "{goos}",
     host_goarch = "{goarch}",
-    sdk_repo = "{sdk_repo}",
+    toolchain_prefix = "@{sdk_repo}//",
     sdk_version_setting = ":sdk_version_setting",
 )

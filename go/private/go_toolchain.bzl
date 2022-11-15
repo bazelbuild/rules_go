@@ -120,7 +120,7 @@ def declare_go_toolchains(host_goos, sdk, builder):
             visibility = ["//visibility:public"],
         )
 
-def declare_toolchains(host_goos, host_goarch, sdk_repo, sdk_version_setting):
+def declare_bazel_toolchains(host_goos, host_goarch, toolchain_prefix, sdk_version_setting):
     """Declares toolchain targets for each platform."""
     for p in PLATFORMS:
         if p.cgo:
@@ -145,5 +145,5 @@ def declare_toolchains(host_goos, host_goarch, sdk_repo, sdk_version_setting):
             ],
             target_compatible_with = constraints,
             target_settings = [sdk_version_setting],
-            toolchain = "@" + sdk_repo + "//:go_" + p.name + "-impl",
+            toolchain = toolchain_prefix + ":go_" + p.name + "-impl",
         )
