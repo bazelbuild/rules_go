@@ -140,7 +140,7 @@ _go_download_sdk = repository_rule(
     },
 )
 
-def _version_constants(version):
+def _define_version_constants(version):
     pv = _parse_version(version)
     if pv == None or len(pv) < 3:
         fail("error parsing sdk version: " + version)
@@ -177,7 +177,7 @@ def _go_toolchains_impl(ctx):
     # _sdk_build_file creates. This will trigger an eager fetch.
     version = ctx.attr.sdk_version
     if version:
-        version_constants = _version_constants(version)
+        version_constants = _define_version_constants(version)
     else:
         version_constants = 'load("@{}//:version.bzl", "MAJOR_VERSION", "MINOR_VERSION", "PATCH_VERSION", "PRERELEASE_SUFFIX")'.format(sdk_repo)
 
@@ -353,7 +353,7 @@ def _sdk_build_file(ctx, platform, version):
     ctx.file(
         "version.bzl",
         executable = False,
-        content = _version_constants(version),
+        content = _define_version_constants(version),
     )
 
 def _detect_host_platform(ctx):
