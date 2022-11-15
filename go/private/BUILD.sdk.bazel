@@ -1,6 +1,7 @@
 load("@{rules_go_repo_name}//go/private/rules:binary.bzl", "go_tool_binary")
 load("@{rules_go_repo_name}//go/private/rules:sdk.bzl", "package_list")
-load("@{rules_go_repo_name}//go:def.bzl", "declare_go_toolchains", "go_sdk")
+load("@{rules_go_repo_name}//go/private:go_toolchain.bzl", "declare_go_toolchains")
+load("@{rules_go_repo_name}//go:def.bzl", "go_sdk")
 
 package(default_visibility = ["//visibility:public"])
 

@@ -127,9 +127,6 @@ TOOLS_NOGO = [
 # check this to determine compatibility.
 RULES_GO_VERSION = "0.35.0"
 
-declare_go_toolchains = _declare_go_toolchains
-declare_bazel_toolchains = _declare_bazel_toolchains
-
 def declare_toolchains(host, sdk, builder, sdk_version_setting):
     host_goos, _, host_goarch = host.partition("_")
     _declare_go_toolchains(

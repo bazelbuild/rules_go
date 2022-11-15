@@ -1,4 +1,4 @@
-load("@{rules_go_repo_name}//go:def.bzl", "declare_bazel_toolchains")
+load("@{rules_go_repo_name}//go/private:go_toolchain.bzl", "declare_bazel_toolchains")
 load("@bazel_skylib//lib:selects.bzl", "selects")
 
 {version_constants}
