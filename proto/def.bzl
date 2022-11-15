@@ -169,6 +169,7 @@ go_proto_library = rule(
         "importmap": attr.string(),
         "importpath_aliases": attr.string_list(),  # experimental, undocumented
         "embed": attr.label_list(providers = [GoLibrary]),
+        "gc_goopts": attr.string_list(),
         "compiler": attr.label(providers = [GoProtoCompiler]),
         "compilers": attr.label_list(
             providers = [GoProtoCompiler],
