@@ -22,7 +22,7 @@ use_repo(
 go_sdk = use_extension("//go:extensions.bzl", "go_sdk")
 go_sdk.download(name = "go_default_sdk", version = "1.18.3")
 use_repo(go_sdk, "go_default_sdk")
-register_toolchains("@go_default_sdk//:all")
+register_toolchains("@go_default_sdk_toolchains//:all")
 
 bazel_dep(name = "gazelle", version = "0.27.0")
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
