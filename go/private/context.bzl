@@ -812,11 +812,6 @@ cgo_context_data_proxy = rule(
 )
 
 def _go_config_impl(ctx):
-    if not ctx.attr.gotags:
-      fail("no tags detected")
-    if not ctx.attr.gc_goopts_global:
-      err = "should have gc_goopts_global " + ctx.attr.gc_goopts_global
-      fail(err)
     return [GoConfigInfo(
         static = ctx.attr.static[BuildSettingInfo].value,
         race = ctx.attr.race[BuildSettingInfo].value,
