@@ -78,7 +78,7 @@ def emit_compile(
     #TODO: If we really do then it needs to be moved all the way back out to the rule
     gc_goopts = list([go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts])
     #not sure if adding defines here actually affects anything
-    go.tool_args.add_all(gc_goopts)
+    tool_args.add_all(gc_goopts)
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
