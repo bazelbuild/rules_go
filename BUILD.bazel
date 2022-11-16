@@ -119,7 +119,6 @@ go_config(
         "//conditions:default": "//go/config:debug",
     }),
     gc_goopts = "//go/config:gc_goopts",
-    gc_goopts = "//go/config:gc_goopts",
     gc_linkopts = "//go/config:gc_linkopts",
     gotags = "//go/config:tags",
     linkmode = "//go/config:linkmode",
