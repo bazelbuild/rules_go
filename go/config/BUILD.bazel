@@ -81,8 +81,8 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-string_flag(
+string_list_flag(
     name = "gc_goopts",
-    build_setting_default = "",
+    build_setting_default = [],
     visibility = ["//visibility:public"],
 )

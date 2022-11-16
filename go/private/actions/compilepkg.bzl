@@ -125,7 +125,7 @@ def emit_compilepkg(
 
     gc_flags = list(gc_goopts)
     if go.mode.gc_goopts:
-        gc_flags.extend([go.mode.gc_goopts])
+        gc_flags.extend(go.mode.gc_goopts)
     asm_flags = []
     if go.mode.race:
         gc_flags.append("-race")
