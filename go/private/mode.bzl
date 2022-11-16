@@ -86,6 +86,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     goos = go_toolchain.default_goos if getattr(ctx.attr, "goos", "auto") == "auto" else ctx.attr.goos
     goarch = go_toolchain.default_goarch if getattr(ctx.attr, "goarch", "auto") == "auto" else ctx.attr.goarch
     gc_goopts = go_config_info.gc_goopts if go_config_info else ""
+
     # TODO(jayconrod): check for more invalid and contradictory settings.
     if pure and race:
         fail("race instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")

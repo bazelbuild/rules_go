@@ -74,6 +74,7 @@ def emit_compile(
         builder_args.add("-asmhdr", asmhdr)
         outputs.append(asmhdr)
     tool_args.add("-trimpath", ".")
+
     #TODO: Check if we really need this expand make variables in here
     #TODO: If we really do then it needs to be moved all the way back out to the rule
     gc_goopts = [go._ctx.expand_make_variables("gc_goopts", f, {}) for f in gc_goopts]
