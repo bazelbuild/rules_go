@@ -400,7 +400,6 @@ def go_context(ctx, attr = None):
         stdlib = go_context_data[GoStdLib]
         coverdata = go_context_data[GoContextInfo].coverdata
         nogo = go_context_data[GoContextInfo].nogo
-        gc_goopts = go_context_data[GoContextInfo].gc_goopts
     if getattr(attr, "_cgo_context_data", None) and CgoContextInfo in attr._cgo_context_data:
         cgo_context_info = attr._cgo_context_data[CgoContextInfo]
     if getattr(attr, "cgo_context_data", None) and CgoContextInfo in attr.cgo_context_data:
@@ -552,7 +551,6 @@ def _go_context_data_impl(ctx):
         GoContextInfo(
             coverdata = ctx.attr.coverdata[GoArchive],
             nogo = nogo,
-            gc_goopts = ctx.attr.go_config[GoConfigInfo].gc_goopts,
         ),
         ctx.attr.stdlib[GoStdLib],
         ctx.attr.go_config[GoConfigInfo],
@@ -824,7 +822,7 @@ def _go_config_impl(ctx):
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
-        gc_goopts = ctx.attr.gc_goopts,
+        gc_goopts = ctx.attr.gc_goopts[BuildSettingInfo].value,
         amd64 = ctx.attr.amd64,
     )]
 
