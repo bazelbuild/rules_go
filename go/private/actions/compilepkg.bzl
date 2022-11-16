@@ -21,11 +21,6 @@ load(
     "shell",
 )
 
-load(
-    "@bazel_skylib//rules:common_settings.bzl",
-    "BuildSettingInfo",
-)
-
 def _archive(v):
     importpaths = [v.data.importpath]
     importpaths.extend(v.data.importpath_aliases)
