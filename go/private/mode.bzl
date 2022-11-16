@@ -14,11 +14,6 @@
 
 # Modes are documented in go/modes.rst#compilation-modes
 
-load(
-    "@bazel_skylib//rules:common_settings.bzl",
-    "BuildSettingInfo",
-)
-
 LINKMODE_NORMAL = "normal"
 
 LINKMODE_SHARED = "shared"
