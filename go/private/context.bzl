@@ -391,7 +391,6 @@ def go_context(ctx, attr = None):
     stdlib = None
     coverdata = None
     nogo = None
-    gc_goopts = None
     if hasattr(attr, "_go_context_data"):
         go_context_data = _flatten_possibly_transitioned_attr(attr._go_context_data)
         if CgoContextInfo in go_context_data:
@@ -517,7 +516,6 @@ def go_context(ctx, attr = None):
         stamp = mode.stamp,
         label = ctx.label,
         cover_format = mode.cover_format,
-        gc_goopts = gc_goopts,
         # Action generators
         archive = toolchain.actions.archive,
         asm = toolchain.actions.asm,
