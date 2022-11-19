@@ -57,6 +57,7 @@ var (
 	bazelFlags            = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_FLAGS"))
 	bazelQueryFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY_FLAGS"))
 	bazelQueryScope       = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "")
+	bazelQueryDepsDepth   = os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY_DEPS_DEPTH")
 	bazelBuildFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_BUILD_FLAGS"))
 	workspaceRoot         = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
 	additionalAspects     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_ADDTL_ASPECTS"))

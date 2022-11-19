@@ -17,7 +17,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"regexp"
 )
@@ -56,6 +58,16 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
 	if strings.HasSuffix(importPath, "/...") {
 		importPath = fmt.Sprintf(`^%s(/.+)?$`, strings.TrimSuffix(importPath, "/..."))
+	}
+	depth, err := strconv.Atoi(bazelQueryDepsDepth)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to convert GOPACKAGESDRIVER_BAZEL_QUERY_DEPS_DEPTH to int type: %v\n", err)
+	}
+	if depth < 0 {
+		fmt.Fprintf(os.Stderr, "GOPACKAGESDRIVER_BAZEL_QUERY_DEPS_DEPTH %d should not be negative\n", depth)
+	}
+	if err == nil && depth >= 0 {
+		return fmt.Sprintf(`kind("go_library", attr(importpath, "%s", deps(%s, %d)))`, importPath, bazelQueryScope, depth)
 	}
 	return fmt.Sprintf(`kind("go_library", attr(importpath, "%s", deps(%s)))`, importPath, bazelQueryScope)
 }
