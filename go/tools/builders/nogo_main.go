@@ -39,8 +39,8 @@ import (
 	"sync"
 
 	"golang.org/x/tools/go/analysis"
-	"golang.org/x/tools/go/analysis/internal/facts"
 	"golang.org/x/tools/go/gcexportdata"
+	"golang.org/x/tools/internal/facts"
 )
 
 func init() {
@@ -89,7 +89,7 @@ func run(args []string) error {
 		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics)
 	}
 	if *xPath != "" {
-		if err := ioutil.WriteFile(abs(*xPath), facts, 0666); err != nil {
+		if err := ioutil.WriteFile(abs(*xPath), facts, 0o666); err != nil {
 			return fmt.Errorf("error writing facts: %v", err)
 		}
 	}
@@ -344,7 +344,7 @@ func load(packagePath string, imp *importer, filenames []string) (*goPackage, er
 	}
 	pkg.types, pkg.typesInfo = types, info
 
-	pkg.facts, err = facts.Decode(pkg.types, imp.readFacts)
+	pkg.facts, err = facts.NewDecoder(pkg.types).Decode(imp.readFacts)
 	if err != nil {
 		return nil, fmt.Errorf("internal error decoding facts: %v", err)
 	}
