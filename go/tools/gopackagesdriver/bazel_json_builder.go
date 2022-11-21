@@ -53,7 +53,7 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 
 	relToBin, err := filepath.Rel(b.bazel.info["bazel-bin"], filename)
 	if err == nil && !strings.Contains(relToBin, "../") {
-		fmt.Fprintf(os.Stderr, "File is under bazel-bin, reverse walking tree to find matching BUILD.bazel.")
+		fmt.Fprintln(os.Stderr, "File is under bazel-bin, reverse walking tree to find matching BUILD.bazel.")
 
 		// We've effectively converted filename from bazel-bin/some/path.go to some/path.go;
 		// Check if a BUILD.bazel files exists under this dir, if not walk up and repeat.
