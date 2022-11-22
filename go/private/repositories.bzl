@@ -82,7 +82,6 @@ def go_rules_dependencies(force = False):
         patch_args = ["-p1"],
     )
 
-
     # releaser:upgrade-dep golang sys
     wrapper(
         http_archive,
