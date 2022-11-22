@@ -64,24 +64,24 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_tools",
-        # v0.3.0, latest as of 2022-11-21
+        # v0.1.12, latest as of 2022-09-10
         urls = [
-            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.3.0.zip",
-            "https://github.com/golang/tools/archive/refs/tags/v0.3.0.zip",
+            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.1.12.zip",
+            "https://github.com/golang/tools/archive/refs/tags/v0.1.12.zip",
         ],
-        sha256 = "6daa3ba04a80f406250874acbeeb4610c02016bdb08023c6b3b5d3875c6d521b",
-        strip_prefix = "tools-0.3.0",
+        sha256 = "4e3d94e7bf8dde5dad681c5ddddda6e634f8c8c500683fdf3d2f77a9c086702d",
+        strip_prefix = "tools-0.1.12",
         patches = [
             # deletegopls removes the gopls subdirectory. It contains a nested
             # module with additional dependencies. It's not needed by rules_go.
             # releaser:patch-cmd rm -rf gopls
             Label("//third_party:org_golang_x_tools-deletegopls.patch"),
-            Label("//third_party:org_golang_x_tools-visibility.patch"),
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
             Label("//third_party:org_golang_x_tools-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
+
 
     # releaser:upgrade-dep golang sys
     wrapper(
