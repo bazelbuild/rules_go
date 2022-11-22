@@ -165,7 +165,6 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cover:cover_test
 * @org_golang_x_tools//go/analysis:analysis_test
 * @org_golang_x_tools//go/analysis/passes/internal/analysisutil:analysisutil_test
-* @org_golang_x_tools//go/analysis/passes/timeformat:timeformat_test
 * @org_golang_x_tools//go/ast/astutil:astutil_test
 * @org_golang_x_tools//go/callgraph/static:static_test
 * @org_golang_x_tools//go/callgraph/vta/internal/trie:trie_test
@@ -177,7 +176,6 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//godoc/vfs/mapfs:mapfs_test
 * @org_golang_x_tools//internal/bug:bug_test
 * @org_golang_x_tools//internal/diff:diff_test
-* @org_golang_x_tools//internal/diff/difftest:difftest_test
 * @org_golang_x_tools//internal/diff/lcs:lcs_test
 * @org_golang_x_tools//internal/diff/myers:myers_test
 * @org_golang_x_tools//internal/event:event_test

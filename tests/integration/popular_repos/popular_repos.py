@@ -15,6 +15,7 @@
 
 from subprocess import check_output, call
 from sys import exit
+from os import path
 
 POPULAR_REPOS = [
     dict(
@@ -103,7 +104,6 @@ POPULAR_REPOS = [
             "go/analysis/analysistest:analysistest_test", # requires build cache
             "go/analysis/internal/analysisflags:analysisflags_test", # calls os.Exit(0) in a test
             "go/analysis/internal/checker:checker_test", # loads test package with go/packages, which probably needs go list
-            "go/analysis/internal/facts:facts_test", # loads test package with go/packages, which probably needs go list
             "go/analysis/multichecker:multichecker_test", # requires go vet
             "go/analysis/passes/asmdecl:asmdecl_test", # Needs testdata directory
             "go/analysis/passes/assign:assign_test", # Needs testdata directory
@@ -149,6 +149,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/unsafeptr:unsafeptr_test", # Needs testdata directory
             "go/analysis/passes/unusedresult:unusedresult_test", # Needs testdata directory
             "go/analysis/passes/unusedwrite:unusedwrite_test", # Needs testdata directory
+            "go/analysis/passes/timeformat:timeformat_test", # Needs go tool
             "go/analysis/passes/usesgenerics:usesgenerics_test", # Needs go tool
             "go/analysis/unitchecker:unitchecker_test", # requires go vet
             "go/ast/inspector:inspector_test", # requires GOROOT and GOPATH
@@ -160,7 +161,6 @@ POPULAR_REPOS = [
             "go/gccgoexportdata:gccgoexportdata_test", # Needs testdata directory
             "go/gcexportdata:gcexportdata_test", # Needs testdata directory
             "go/internal/gccgoimporter:gccgoimporter_test", # Needs testdata directory
-            "go/internal/gcimporter:gcimporter_test", # Needs testdata directory
             "go/loader:loader_test", # Needs testdata directory
             "go/packages/packagestest/testdata/groups/two/primarymod/expect:expect_test", # Is testdata
             "go/packages/packagestest/testdata:testdata_test", # Is testdata
@@ -176,46 +176,11 @@ POPULAR_REPOS = [
             "godoc/vfs/zipfs:zipfs_test", # requires GOROOT
             "godoc:godoc_test", # requires GOROOT and GOPATH
             "internal/apidiff:apidiff_test", # Needs testdata directory
+            "internal/diff/difftest:difftest_test", # Needs diff tool
+            "internal/facts:facts_test", # loads test package with go/packages, which probably needs go list
+            "internal/gcimporter:gcimporter_test", # Needs testdata directory
             "internal/gocommand:gocommand_test", # Needs go tool
             "internal/imports:imports_test", # Needs testdata directory
-            "internal/lsp/analysis/embeddirective:embeddirective_test", # requires GOROOT
-            "internal/lsp/analysis/fillreturns:fillreturns_test", # Needs go tool
-            "internal/lsp/analysis/fillstruct:fillstruct_test", # Needs go tool
-            "internal/lsp/analysis/infertypeargs:infertypeargs_test", # Needs go tool
-            "internal/lsp/analysis/nonewvars:nonewvars_test", # Needs GOROOT
-            "internal/lsp/analysis/noresultvalues:noresultvalues_test", # Needs GOROOT
-            "internal/lsp/analysis/simplifycompositelit:simplifycompositelit_test", # Needs go tool
-            "internal/lsp/analysis/simplifyrange:simplifyrange_test", # Needs GOROOT
-            "internal/lsp/analysis/simplifyslice:simplifyslice_test", # Needs GOROOT
-            "internal/lsp/analysis/undeclaredname:undeclaredname_test", # Needs GOROOT
-            "internal/lsp/analysis/unusedparams:unusedparams_test", # Needs go tool
-            "internal/lsp/analysis/useany:useany_test", # Needs go tool
-            "internal/lsp/cache:cache_test", # has additional deps
-            "internal/lsp/cmd:cmd_test", # panics?
-            "internal/lsp/command:command_test", # Needs go tool
-            "internal/lsp/diff/difftest:difftest_test", # has additional deps
-            "internal/lsp/diff/myers:myers_test", # has additional deps
-            "internal/lsp/diff:diff_test", # has additional deps
-            "internal/lsp/fake:fake_test", # has additional deps
-            "internal/lsp/fuzzy:fuzzy_test", # has additional deps
-            "internal/lsp/lsprpc:lsprpc_test", # has additional deps
-            "internal/lsp/mod:mod_test", # has additional deps
-            "internal/lsp/safetoken:safetoken_test", # requires build cache
-            "internal/lsp/snippet:snippet_test", # has additional deps
-            "internal/lsp/source:source_test", # Needs testdata directory
-            "internal/lsp/testdata/analyzer:analyzer_test", # is testdata
-            "internal/lsp/testdata/codelens:codelens_test", # is testdata
-            "internal/lsp/testdata/godef/a:a_test", # is testdata
-            "internal/lsp/testdata/implementation/other:other_test", # is testdata
-            "internal/lsp/testdata/references:references_test", # is testdata
-            "internal/lsp/testdata/rename/testy:testy_test", # is testdata
-            "internal/lsp/testdata/semantic:semantic_test", # is testdata
-            "internal/lsp/testdata/signature:signature_test", # is testdata
-            "internal/lsp/testdata/statements:statements_test", # is testdata
-            "internal/lsp/testdata/testy:testy_test", # is testdata
-            "internal/lsp/testdata/unimported:unimported_test", # is testdata
-            "internal/lsp/testdata/workspacesymbol/a:a_test", # is testdata
-            "internal/lsp:lsp_test", # Needs testdata directory
             "internal/typeparams:typeparams_test", # Needs go tool
             "present:present_test", # Needs goldmark
             "refactor/eg:eg_test", # Needs testdata directory
@@ -294,7 +259,7 @@ It helps catch changes that might break a large number of users.
 """.lstrip()
 
 def popular_repos_bzl():
-  with open("popular_repos.bzl", "w") as f:
+  with open(path.join(path.dirname(__file__), "popular_repos.bzl"), "w") as f:
     f.write(BZL_HEADER)
     for repo in POPULAR_REPOS:
       f.write("    _maybe(\n        go_repository,\n")
@@ -305,7 +270,7 @@ def popular_repos_bzl():
       f.write("    )\n")
 
 def build_bazel():
-  with open("BUILD.bazel", "w") as f:
+  with open(path.join(path.dirname(__file__), "BUILD.bazel"), "w") as f:
     f.write(BUILD_HEADER)
     for repo in POPULAR_REPOS:
       name = repo["name"]
@@ -331,7 +296,7 @@ def build_bazel():
       repo["actual"] = actual
 
 def readme_rst():
-  with open("README.rst", "w") as f:
+  with open(path.join(path.dirname(__file__), "README.rst"), "w") as f:
     f.write(DOCUMENTATION_HEADER)
     for repo in POPULAR_REPOS:
       name = repo["name"]
