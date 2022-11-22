@@ -76,6 +76,7 @@ def go_rules_dependencies(force = False):
             # module with additional dependencies. It's not needed by rules_go.
             # releaser:patch-cmd rm -rf gopls
             Label("//third_party:org_golang_x_tools-deletegopls.patch"),
+            Label("//third_party:org_golang_x_tools-visibility.patch"),
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools -go_naming_convention import_alias
             Label("//third_party:org_golang_x_tools-gazelle.patch"),
         ],
