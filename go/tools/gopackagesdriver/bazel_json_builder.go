@@ -52,15 +52,15 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 	}
 
 	relToBin, err := filepath.Rel(b.bazel.info["bazel-bin"], filename)
-	if err == nil && !strings.Contains(relToBin, "../") {
-		fmt.Fprintln(os.Stderr, "File is under bazel-bin, reverse walking tree to find matching BUILD.bazel.")
+	if err == nil && !strings.HasPrefix(relToBin, "../") {
 
 		// We've effectively converted filename from bazel-bin/some/path.go to some/path.go;
 		// Check if a BUILD.bazel files exists under this dir, if not walk up and repeat.
 		relToBin = filepath.Dir(relToBin)
 		_, err = os.Stat(filepath.Join(b.bazel.WorkspaceRoot(), relToBin, "BUILD.bazel"))
-		for ; errors.Is(err, os.ErrNotExist) && relToBin != "."; _, err = os.Stat(filepath.Join(b.bazel.WorkspaceRoot(), relToBin, "BUILD.bazel")) {
+		for errors.Is(err, os.ErrNotExist) && relToBin != "." {
 			relToBin = filepath.Dir(relToBin)
+			_, err = os.Stat(filepath.Join(b.bazel.WorkspaceRoot(), relToBin, "BUILD.bazel"))
 		}
 
 		if err == nil {
