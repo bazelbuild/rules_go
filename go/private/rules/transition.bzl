@@ -219,6 +219,13 @@ _reset_transition_dict = dict(_common_reset_transition_dict, **{
 
 _reset_transition_keys = sorted([filter_transition_label(label) for label in _reset_transition_dict.keys()])
 
+_stdlib_reset_keys = sorted([
+    "@io_bazel_rules_go//go/config:static",
+    "@io_bazel_rules_go//go/config:strip",
+    "@io_bazel_rules_go//go/config:debug",
+    "@io_bazel_rules_go//go/config:tags",
+])
+
 def _go_tool_transition_impl(settings, attr):
     """Sets most Go settings to default values (use for external Go tools).
 
@@ -262,6 +269,22 @@ def _non_go_tool_transition_impl(settings, attr):
 
 non_go_tool_transition = transition(
     implementation = _non_go_tool_transition_impl,
+    inputs = _reset_transition_keys,
+    outputs = _reset_transition_keys,
+)
+
+def _go_stdlib_transition_impl(settings, attr):
+    """TODO
+    """
+    settings = dict(settings)
+    for label, value in _reset_transition_dict.items():
+        if label in _stdlib_reset_keys:
+            settings[filter_transition_label(label)] = value
+    settings[filter_transition_label("@io_bazel_rules_go//go/private:bootstrap_nogo")] = False
+    return settings
+
+go_stdlib_transition = transition(
+    implementation = _go_stdlib_transition_impl,
     inputs = _reset_transition_keys,
     outputs = _reset_transition_keys,
 )

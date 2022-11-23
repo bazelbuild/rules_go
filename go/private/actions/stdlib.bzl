@@ -18,7 +18,6 @@ load(
 )
 load(
     "//go/private:mode.bzl",
-    "LINKMODE_NORMAL",
     "extldflags_from_cc_toolchain",
     "link_mode_args",
 )
@@ -34,22 +33,8 @@ def emit_stdlib(go):
         will point to a new GoStdLib.
     """
     library = go.new_library(go, resolver = _stdlib_library_to_source)
-    source = go.library_to_source(go, {}, library, False)
+    source = _build_stdlib(go)
     return [source, library]
-
-def _stdlib_library_to_source(go, attr, source, merge):
-    if _should_use_sdk_stdlib(go):
-        source["stdlib"] = _sdk_stdlib(go)
-    else:
-        source["stdlib"] = _build_stdlib(go)
-
-def _should_use_sdk_stdlib(go):
-    return (go.mode.goos == go.sdk.goos and
-            go.mode.goarch == go.sdk.goarch and
-            not go.mode.race and  # TODO(jayconrod): use precompiled race
-            not go.mode.msan and
-            not go.mode.pure and
-            go.mode.link == LINKMODE_NORMAL)
 
 def _build_stdlib_list_json(go):
     out = go.declare_file(go, "stdlib.pkg.json")
@@ -65,13 +50,6 @@ def _build_stdlib_list_json(go):
         env = go.env,
     )
     return out
-
-def _sdk_stdlib(go):
-    return GoStdLib(
-        _list_json = _build_stdlib_list_json(go),
-        libs = go.sdk.libs,
-        root_file = go.sdk.root_file,
-    )
 
 def _build_stdlib(go):
     pkg = go.declare_directory(go, path = "pkg")

@@ -25,6 +25,10 @@ load(
     "CgoContextInfo",
     "GoConfigInfo",
 )
+load(
+    "//go/private/rules:transition.bzl",
+    "go_stdlib_transition",
+)
 
 def _stdlib_impl(ctx):
     go = go_context(ctx)
@@ -33,11 +37,15 @@ def _stdlib_impl(ctx):
 
 stdlib = rule(
     implementation = _stdlib_impl,
+    cfg = go_stdlib_transition,
     attrs = {
         "cgo_context_data": attr.label(providers = [CgoContextInfo]),
         "_go_config": attr.label(
             default = "//:go_config",
             providers = [GoConfigInfo],
+        ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     doc = """stdlib builds the standard library for the target configuration

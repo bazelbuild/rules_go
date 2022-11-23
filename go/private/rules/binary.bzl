@@ -33,6 +33,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
+    "go_tool_transition",
     "go_transition",
 )
 load(
@@ -415,52 +416,23 @@ def _go_tool_binary_impl(ctx):
     if sdk.goos == "windows":
         name += ".exe"
 
-    cout = ctx.actions.declare_file(name + ".a")
+    out = ctx.actions.declare_file(name)
     if sdk.goos == "windows":
-        cmd = "@echo off\n {go} tool compile -o {cout} -trimpath=%cd% {srcs}".format(
-            go = sdk.go.path.replace("/", "\\"),
-            cout = cout.path,
-            srcs = " ".join([f.path for f in ctx.files.srcs]),
-        )
-        bat = ctx.actions.declare_file(name + ".bat")
-        ctx.actions.write(
-            output = bat,
-            content = cmd,
-        )
-        ctx.actions.run(
-            executable = bat,
-            inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
-            outputs = [cout],
-            env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
-            mnemonic = "GoToolchainBinaryCompile",
-        )
+        # TODO(matloob): do the below, but for Windows.
+        pass
     else:
-        cmd = "{go} tool compile -o {cout} -trimpath=$PWD {srcs}".format(
+        # Note: GOPATH is needed for Go 1.16.
+        cmd = "GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath {srcs}".format(
             go = sdk.go.path,
-            cout = cout.path,
+            out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
         )
         ctx.actions.run_shell(
             command = cmd,
-            inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
-            outputs = [cout],
-            env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
+            inputs = sdk.headers + sdk.tools + sdk.srcs + ctx.files.srcs + [sdk.go],  # sdk.libs
+            outputs = [out],
             mnemonic = "GoToolchainBinaryCompile",
         )
-
-    out = ctx.actions.declare_file(name)
-    largs = ctx.actions.args()
-    largs.add_all(["tool", "link"])
-    largs.add("-o", out)
-    largs.add(cout)
-    ctx.actions.run(
-        executable = sdk.go,
-        arguments = [largs],
-        inputs = sdk.libs + sdk.headers + sdk.tools + [cout],
-        outputs = [out],
-        env = {"GOROOT_FINAL": "GOROOT"},  # Suppress go root paths to keep the output reproducible.
-        mnemonic = "GoToolchainBinary",
-    )
 
     return [DefaultInfo(
         files = depset([out]),
@@ -469,6 +441,7 @@ def _go_tool_binary_impl(ctx):
 
 go_tool_binary = rule(
     implementation = _go_tool_binary_impl,
+    cfg = go_tool_transition,  # For fmeum: Is this correct? do we need go_reset_target?
     attrs = {
         "srcs": attr.label_list(
             allow_files = True,
@@ -478,6 +451,9 @@ go_tool_binary = rule(
             mandatory = True,
             providers = [GoSDK],
             doc = "The SDK containing tools and libraries to build this binary",
+        ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     executable = True,
