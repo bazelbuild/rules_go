@@ -605,12 +605,8 @@ Methods
 * Action generators
 
   * archive_
-  * asm_
   * binary_
-  * compile_
-  * cover_
   * link_
-  * pack_
 
 * Helpers
 
@@ -638,33 +634,6 @@ It returns a GoArchive_.
 | :param:`source`                | :type:`GoSource`            | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The GoSource_ that should be compiled into an archive.                                           |
-+--------------------------------+-----------------------------+-----------------------------------+
-
-
-asm
-+++
-
-**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
-comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
-
-The asm function adds an action that runs ``go tool asm`` on a source file to
-produce an object, and returns the File of that object.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`source`                | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A source code artifact to assemble.                                                              |
-| This must be a ``.s`` file that contains code in the platform neutral `go assembly`_ language.   |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`hdrs`                  | :type:`File iterable`       | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The list of .h files that may be included by the source.                                         |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -714,96 +683,6 @@ a ``runfiles`` object.
 | file name based on ``name``, the target platform, and the link mode.                             |
 +--------------------------------+-----------------------------+-----------------------------------+
 
-compile
-+++++++
-
-**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
-comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
-
-The compile function adds an action that compiles a list of source files into
-a package archive (.a file).
-
-It does not return anything.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`sources`               | :type:`File iterable`       | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of source code artifacts.                                                            |
-| These must be pure .go files, no assembly or cgo is allowed.                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`importpath`            | :type:`string`              | :value:`""`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The import path this package represents. This is passed to the -p flag. When the actual import   |
-| path is different than the source import path (i.e., when ``importmap`` is set in a              |
-| ``go_library`` rule), this should be the actual import path.                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`archives`              | :type:`GoArchive iterable`  | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of all directly imported libraries.                                                  |
-| The action will verify that all directly imported libraries were supplied, not allowing          |
-| transitive dependencies to satisfy imports. It will not check that all supplied libraries were   |
-| used though.                                                                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`out_lib`               | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The archive file that should be produced.                                                        |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`out_export`            | :type:`File`                | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| File where extra information about the package may be stored. This is used                       |
-| by nogo to store serialized facts about definitions. In the future, it may                       |
-| be used to store export data (instead of the .a file).                                           |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`gc_goopts`             | :type:`string_list`         | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Additional flags to pass to the compiler.                                                        |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`testfilter`            | :type:`string`              | :value:`"off"`                    |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Controls how files with a ``_test`` suffix are filtered.                                         |
-|                                                                                                  |
-| * ``"off"`` - files with and without a ``_test`` suffix are compiled.                            |
-| * ``"only"`` - only files with a ``_test`` suffix are compiled.                                  |
-| * ``"exclude"`` - only files without a ``_test`` suffix are compiled.                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`asmhdr`                | :type:`File`                | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| If provided, the compiler will write an assembly header to this file.                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-
-
-cover
-+++++
-
-**Removed in rules_go 0.32.0:** Please comment on https://github.com/bazelbuild/rules_go/issues/3168
-if you still use this feature and cannot rely on `archive` instead.
-
-The cover function adds an action that runs ``go tool cover`` on a set of source
-files to produce copies with cover instrumentation.
-
-Returns a covered GoSource_ with the required source files process for coverage.
-
-Note that this removes most comments, including cgo comments.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`source`                | :type:`GoSource`            | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The source object to process. Any source files in the object that have been marked as needing    |
-| coverage will be processed and substiuted in the returned GoSource.                              |
-+--------------------------------+-----------------------------+-----------------------------------+
-
 
 link
 ++++
@@ -847,43 +726,6 @@ It does not return anything.
 | Info file used for link stamping.                                                                |
 +--------------------------------+-----------------------------+-----------------------------------+
 
-pack
-++++
-
-**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
-comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
-
-The pack function adds an action that produces an archive from a base archive
-and a collection of additional object files.
-
-It does not return anything.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`in_lib`                | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The archive that should be copied and appended to.                                               |
-| This must always be an archive in the common ar form (like that produced by the go compiler).    |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`out_lib`               | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The archive that should be produced.                                                             |
-| This will always be an archive in the common ar form (like that produced by the go compiler).    |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`objects`               | :type:`File iterable`       | :value:`()`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of object files to be added to the output archive file.                              |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`archives`              | :type:`list of File`        | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Additional archives whose objects will be appended to the output.                                |
-| These can be ar files in either common form or either the bsd or sysv variations.                |
-+--------------------------------+-----------------------------+-----------------------------------+
 
 args
 ++++

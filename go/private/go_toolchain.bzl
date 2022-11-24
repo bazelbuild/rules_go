@@ -18,11 +18,8 @@ Toolchain rules used by go.
 load("//go/private:platforms.bzl", "PLATFORMS")
 load("//go/private:providers.bzl", "GoSDK")
 load("//go/private/actions:archive.bzl", "emit_archive")
-load("//go/private/actions:asm.bzl", "emit_asm")
 load("//go/private/actions:binary.bzl", "emit_binary")
-load("//go/private/actions:compile.bzl", "emit_compile")
 load("//go/private/actions:link.bzl", "emit_link")
-load("//go/private/actions:pack.bzl", "emit_pack")
 load("//go/private/actions:stdlib.bzl", "emit_stdlib")
 
 GO_TOOLCHAIN = "@io_bazel_rules_go//go:toolchain"
@@ -38,11 +35,8 @@ def _go_toolchain_impl(ctx):
         default_goarch = ctx.attr.goarch,
         actions = struct(
             archive = emit_archive,
-            asm = emit_asm,
             binary = emit_binary,
-            compile = emit_compile,
             link = emit_link,
-            pack = emit_pack,
             stdlib = emit_stdlib,
         ),
         flags = struct(

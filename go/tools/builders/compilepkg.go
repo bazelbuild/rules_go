@@ -31,6 +31,15 @@ import (
 	"strings"
 )
 
+type nogoResult int
+
+const (
+	nogoNotRun nogoResult = iota
+	nogoError
+	nogoFailed
+	nogoSucceeded
+)
+
 func compilePkg(args []string) error {
 	// Parse arguments.
 	args, _, err := expandParamsFiles(args)

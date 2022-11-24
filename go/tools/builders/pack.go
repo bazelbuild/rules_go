@@ -18,7 +18,6 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -28,56 +27,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-// pack copies an .a file and appends a list of .o files to the copy using
-// go tool pack. It is invoked by the Go rules as an action.
-//
-// pack can also append .o files contained in a static library passed in
-// with the -arc option. That archive may be in BSD or SysV / GNU format.
-// pack has a primitive parser for these formats, since cmd/pack can't
-// handle them, and ar may not be available (cpp.ar_executable is libtool
-// on darwin).
-func pack(args []string) error {
-	args, _, err := expandParamsFiles(args)
-	if err != nil {
-		return err
-	}
-	flags := flag.NewFlagSet("GoPack", flag.ExitOnError)
-	goenv := envFlags(flags)
-	inArchive := flags.String("in", "", "Path to input archive")
-	outArchive := flags.String("out", "", "Path to output archive")
-	objects := multiFlag{}
-	flags.Var(&objects, "obj", "Object to append (may be repeated)")
-	archives := multiFlag{}
-	flags.Var(&archives, "arc", "Archives to append")
-	if err := flags.Parse(args); err != nil {
-		return err
-	}
-	if err := goenv.checkFlags(); err != nil {
-		return err
-	}
-
-	if err := copyFile(abs(*inArchive), abs(*outArchive)); err != nil {
-		return err
-	}
-
-	dir, err := ioutil.TempDir("", "go-pack")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-
-	names := map[string]struct{}{}
-	for _, archive := range archives {
-		archiveObjects, err := extractFiles(archive, dir, names)
-		if err != nil {
-			return err
-		}
-		objects = append(objects, archiveObjects...)
-	}
-
-	return appendFiles(goenv, abs(*outArchive), objects)
-}
 
 func copyFile(inPath, outPath string) error {
 	inFile, err := os.Open(inPath)
