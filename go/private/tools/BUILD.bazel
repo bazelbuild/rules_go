@@ -16,9 +16,12 @@ filegroup(
 bzl_library(
     name = "path",
     srcs = ["path.bzl"],
-    visibility = ["//go:__subpackages__"],
+    visibility = [
+        "//docs:__subpackages__",
+        "//go:__subpackages__",
+    ],
     deps = [
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:providers",
+        "//go/private:common",
+        "//go/private:providers",
     ],
 )

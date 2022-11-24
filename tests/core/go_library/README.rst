@@ -1,7 +1,7 @@
 Basic go_library functionality
 ==============================
 
-.. _go_library: /go/core.rst#_go_library
+.. _go_library: /docs/go/core/rules.md#_go_library
 .. #1262: https://github.com/bazelbuild/rules_go/issues/1262
 .. #1520: https://github.com/bazelbuild/rules_go/issues/1520
 .. #1772: https://github.com/bazelbuild/rules_go/issues/1772

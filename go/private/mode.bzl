@@ -28,6 +28,9 @@ LINKMODE_C_ARCHIVE = "c-archive"
 
 LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE, LINKMODE_PIE]
 
+# All link modes that produce executables to be run with bazel run.
+LINKMODES_EXECUTABLE = [LINKMODE_NORMAL, LINKMODE_PIE]
+
 def mode_string(mode):
     result = [mode.goos, mode.goarch]
     if mode.static:
@@ -44,6 +47,8 @@ def mode_string(mode):
         result.append("stripped")
     if not result or not mode.link == LINKMODE_NORMAL:
         result.append(mode.link)
+    if mode.gc_goopts:
+        result.extend(mode.gc_goopts)
     return "_".join(result)
 
 def _ternary(*values):
@@ -76,8 +81,11 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     stamp = go_config_info.stamp if go_config_info else False
     debug = go_config_info.debug if go_config_info else False
     linkmode = go_config_info.linkmode if go_config_info else LINKMODE_NORMAL
-    goos = go_toolchain.default_goos
-    goarch = go_toolchain.default_goarch
+    cover_format = go_config_info and go_config_info.cover_format
+    amd64 = go_config_info.amd64 if go_config_info else None
+    goos = go_toolchain.default_goos if getattr(ctx.attr, "goos", "auto") == "auto" else ctx.attr.goos
+    goarch = go_toolchain.default_goarch if getattr(ctx.attr, "goarch", "auto") == "auto" else ctx.attr.goarch
+    gc_goopts = go_config_info.gc_goopts if go_config_info else []
 
     # TODO(jayconrod): check for more invalid and contradictory settings.
     if pure and race:
@@ -85,6 +93,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     if pure and msan:
         fail("msan instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
 
+    gc_linkopts = list(go_config_info.gc_linkopts) if go_config_info else []
     tags = list(go_config_info.tags) if go_config_info else []
     if "gotags" in ctx.var:
         tags.extend(ctx.var["gotags"].split(","))
@@ -101,12 +110,16 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         msan = msan,
         pure = pure,
         link = linkmode,
+        gc_linkopts = gc_linkopts,
         strip = strip,
         stamp = stamp,
         debug = debug,
         goos = goos,
         goarch = goarch,
         tags = tags,
+        cover_format = cover_format,
+        amd64 = amd64,
+        gc_goopts = gc_goopts,
     )
 
 def installsuffix(mode):
@@ -118,8 +131,8 @@ def installsuffix(mode):
     return s
 
 def mode_tags_equivalent(l, r):
-    """Returns whether two modes are equivalent for Go build tags. For example,
-    goos and goarch must match, but static doesn't matter."""
+    # Returns whether two modes are equivalent for Go build tags. For example,
+    # goos and goarch must match, but static doesn't matter.
     return (l.goos == r.goos and
             l.goarch == r.goarch and
             l.race == r.race and

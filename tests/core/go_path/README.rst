@@ -1,7 +1,7 @@
 Basic go_path functionality
 ===========================
 
-.. _go_path: /go/core.rst#_go_path
+.. _go_path: /docs/go/core/rules.md#_go_path
 
 Tests to ensure the basic features of `go_path`_ are working as expected.
 

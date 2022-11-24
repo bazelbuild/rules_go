@@ -5,3 +5,9 @@ go_bazel_test(
     size = "medium",
     srcs = ["cmdline_test.go"],
 )
+
+go_bazel_test(
+    name = "hermeticity_test",
+    size = "medium",
+    srcs = ["hermeticity_test.go"],
+)

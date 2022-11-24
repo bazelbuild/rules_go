@@ -1,0 +1,22 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files([
+    "rules.md",
+    "rules.bzl",
+])
+
+bzl_library(
+    name = "rules",
+    srcs = ["rules.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/private:rpath",
+        "//go/private/rules:binary",
+        "//go/private/rules:cross",
+        "//go/private/rules:library",
+        "//go/private/rules:library.bzl",
+        "//go/private/rules:source",
+        "//go/private/rules:test",
+        "//go/private/tools:path",
+    ],
+)

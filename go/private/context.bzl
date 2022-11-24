@@ -27,6 +27,10 @@ load(
     "OBJC_COMPILE_ACTION_NAME",
 )
 load(
+    ":go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     ":providers.bzl",
     "CgoContextInfo",
     "EXPLICIT_PATH",
@@ -50,6 +54,7 @@ load(
     "as_iterable",
     "goos_to_extension",
     "goos_to_shared_extension",
+    "is_struct",
 )
 load(
     "//go/platform:apple.bzl",
@@ -64,7 +69,7 @@ load(
     "BuildSettingInfo",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:transition.bzl",
+    "//go/private/rules:transition.bzl",
     "request_nogo_transition",
 )
 
@@ -92,6 +97,17 @@ _COMPILER_OPTIONS_BLACKLIST = {
 _LINKER_OPTIONS_BLACKLIST = {
     "-Wl,--gc-sections": None,
 }
+
+_UNSUPPORTED_FEATURES = [
+    # These toolchain features require special rule support and will thus break
+    # with CGo.
+    # Taken from https://github.com/bazelbuild/rules_rust/blob/521e649ff44e9711fe3c45b0ec1e792f7e1d361e/rust/private/utils.bzl#L20.
+    "thin_lto",
+    "module_maps",
+    "use_header_modules",
+    "fdo_instrument",
+    "fdo_optimize",
+]
 
 def _match_option(option, pattern):
     if pattern.endswith("="):
@@ -240,6 +256,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "clinkopts": _expand_opts(go, "clinkopts", getattr(attr, "clinkopts", [])),
         "cgo_deps": [],
         "cgo_exports": [],
+        "cc_info": None,
     }
     if coverage_instrumented:
         source["cover"] = attr_srcs
@@ -266,6 +283,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
                 fail("source {} has C/C++ extension, but cgo was not enabled (set 'cgo = True')".format(f.path))
     if library.resolve:
         library.resolve(go, attr, source, _merge_embed)
+    source["cc_info"] = _collect_cc_infos(source["deps"], source["cdeps"])
     return GoSource(**source)
 
 def _collect_runfiles(go, data, deps):
@@ -279,6 +297,19 @@ def _collect_runfiles(go, data, deps):
     for t in deps:
         runfiles = runfiles.merge(get_source(t).runfiles)
     return runfiles
+
+def _collect_cc_infos(deps, cdeps):
+    cc_infos = []
+    for dep in cdeps:
+        if CcInfo in dep:
+            cc_infos.append(dep[CcInfo])
+    for dep in deps:
+        # dep may be a struct, which doesn't support indexing by providers.
+        if is_struct(dep):
+            continue
+        if GoSource in dep:
+            cc_infos.append(dep[GoSource].cc_info)
+    return cc_common.merge_cc_infos(cc_infos = cc_infos)
 
 def _check_binary_dep(go, dep, edge):
     """Checks that this rule doesn't depend on a go_binary or go_test.
@@ -354,19 +385,20 @@ def go_context(ctx, attr = None):
     """
     if not attr:
         attr = ctx.attr
-    toolchain = ctx.toolchains["@io_bazel_rules_go//go:toolchain"]
+    toolchain = ctx.toolchains[GO_TOOLCHAIN]
     cgo_context_info = None
     go_config_info = None
     stdlib = None
     coverdata = None
     nogo = None
     if hasattr(attr, "_go_context_data"):
-        if CgoContextInfo in attr._go_context_data:
-            cgo_context_info = attr._go_context_data[CgoContextInfo]
-        go_config_info = attr._go_context_data[GoConfigInfo]
-        stdlib = attr._go_context_data[GoStdLib]
-        coverdata = attr._go_context_data[GoContextInfo].coverdata
-        nogo = attr._go_context_data[GoContextInfo].nogo
+        go_context_data = _flatten_possibly_transitioned_attr(attr._go_context_data)
+        if CgoContextInfo in go_context_data:
+            cgo_context_info = go_context_data[CgoContextInfo]
+        go_config_info = go_context_data[GoConfigInfo]
+        stdlib = go_context_data[GoStdLib]
+        coverdata = go_context_data[GoContextInfo].coverdata
+        nogo = go_context_data[GoContextInfo].nogo
     if getattr(attr, "_cgo_context_data", None) and CgoContextInfo in attr._cgo_context_data:
         cgo_context_info = attr._cgo_context_data[CgoContextInfo]
     if getattr(attr, "cgo_context_data", None) and CgoContextInfo in attr.cgo_context_data:
@@ -374,7 +406,7 @@ def go_context(ctx, attr = None):
     if hasattr(attr, "_go_config"):
         go_config_info = attr._go_config[GoConfigInfo]
     if hasattr(attr, "_stdlib"):
-        stdlib = attr._stdlib[GoStdLib]
+        stdlib = _flatten_possibly_transitioned_attr(attr._stdlib)[GoStdLib]
 
     mode = get_mode(ctx, toolchain, cgo_context_info, go_config_info)
     tags = mode.tags
@@ -400,6 +432,12 @@ def go_context(ctx, attr = None):
         # happen. See #2291 for more information.
         "GOPATH": "",
     }
+
+    # The level of support is determined by the platform constraints in
+    # //go/constraints/amd64.
+    # See https://github.com/golang/go/wiki/MinimumRequirements#amd64
+    if mode.amd64:
+        env["GOAMD64"] = mode.amd64
     if mode.pure:
         crosstool = []
         cgo_tools = None
@@ -477,13 +515,12 @@ def go_context(ctx, attr = None):
         tags = tags,
         stamp = mode.stamp,
         label = ctx.label,
-
+        cover_format = mode.cover_format,
         # Action generators
         archive = toolchain.actions.archive,
         asm = toolchain.actions.asm,
         binary = toolchain.actions.binary,
         compile = toolchain.actions.compile,
-        cover = toolchain.actions.cover,
         link = toolchain.actions.link,
         pack = toolchain.actions.pack,
 
@@ -546,7 +583,7 @@ go_context_data = rule(
     },
     doc = """go_context_data gathers information about the build configuration.
     It is a common dependency of all Go targets.""",
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
     cfg = request_nogo_transition,
 )
 
@@ -560,7 +597,7 @@ def _cgo_context_data_impl(ctx):
         ctx = ctx,
         cc_toolchain = cc_toolchain,
         requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+        unsupported_features = ctx.disabled_features + _UNSUPPORTED_FEATURES,
     )
 
     # TODO(jayconrod): keep the environment separate for different actions.
@@ -579,7 +616,7 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = C_COMPILE_ACTION_NAME,
             variables = c_compile_variables,
-        ),
+        ) + ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts,
         _COMPILER_OPTIONS_BLACKLIST,
     )
     env.update(cc_common.get_environment_variables(
@@ -597,7 +634,7 @@ def _cgo_context_data_impl(ctx):
             feature_configuration = feature_configuration,
             action_name = CPP_COMPILE_ACTION_NAME,
             variables = cxx_compile_variables,
-        ),
+        ) + ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts,
         _COMPILER_OPTIONS_BLACKLIST,
     )
     env.update(cc_common.get_environment_variables(
@@ -779,8 +816,12 @@ def _go_config_impl(ctx):
         strip = ctx.attr.strip[BuildSettingInfo].value,
         debug = ctx.attr.debug[BuildSettingInfo].value,
         linkmode = ctx.attr.linkmode[BuildSettingInfo].value,
+        gc_linkopts = ctx.attr.gc_linkopts[BuildSettingInfo].value,
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
+        cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
+        gc_goopts = ctx.attr.gc_goopts[BuildSettingInfo].value,
+        amd64 = ctx.attr.amd64,
     )]
 
 go_config = rule(
@@ -814,11 +855,24 @@ go_config = rule(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
+        "gc_linkopts": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
         "gotags": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
         "stamp": attr.bool(mandatory = True),
+        "cover_format": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
+        "gc_goopts": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
+        "amd64": attr.string(),
     },
     provides = [GoConfigInfo],
     doc = """Collects information about build settings in the current
@@ -828,3 +882,17 @@ go_config = rule(
 
 def _expand_opts(go, attribute_name, opts):
     return [go._ctx.expand_make_variables(attribute_name, opt, {}) for opt in opts]
+
+_LIST_TYPE = type([])
+
+# Used to get attribute values which may have been transitioned.
+# Transitioned attributes end up as lists.
+# We never use split-transitions, so we always expect exactly one element in those lists.
+# But if the attribute wasn't transitioned, it won't be a list.
+def _flatten_possibly_transitioned_attr(maybe_list):
+    if type(maybe_list) == _LIST_TYPE:
+        if len(maybe_list) == 1:
+            return maybe_list[0]
+        else:
+            fail("Expected exactly one element in list but got {}".format(maybe_list))
+    return maybe_list

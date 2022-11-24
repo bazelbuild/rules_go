@@ -1,0 +1,8 @@
+load("//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["a.go"],
+    importpath = "example.com/a",
+    visibility = ["//tests/core/starlark/packagedriver:__subpackages__"],
+)

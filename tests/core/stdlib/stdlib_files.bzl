@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go:def.bzl", "go_context")
 load("//go/private:providers.bzl", "GoStdLib")
 
 def _pure_transition_impl(settings, attr):
@@ -27,10 +26,11 @@ pure_transition = transition(
 def _stdlib_files_impl(ctx):
     # When a transition is used, ctx.attr._stdlib is a list of Target instead
     # of a Target. Possibly a bug?
-    libs = ctx.attr._stdlib[0][GoStdLib].libs
+    stdlib = ctx.attr._stdlib[0][GoStdLib]
+    libs = stdlib.libs
     runfiles = ctx.runfiles(files = libs)
     return [DefaultInfo(
-        files = depset(libs),
+        files = depset(libs + [stdlib._list_json]),
         runfiles = runfiles,
     )]
 

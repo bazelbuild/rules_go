@@ -23,6 +23,20 @@ go_test(
     ],
 )
 
+go_test(
+    name = "stdliblist_test",
+    size = "small",
+    srcs = [
+        "env.go",
+        "flags.go",
+        "replicate.go",
+        "stdliblist.go",
+        "stdliblist_test.go",
+    ],
+    data = ["@go_sdk//:files"],
+    rundir = ".",
+)
+
 filegroup(
     name = "builder_srcs",
     srcs = [
@@ -67,6 +81,8 @@ go_source(
         "env.go",
         "flags.go",
         "nogo_main.go",
+        "nogo_typeparams_go117.go",
+        "nogo_typeparams_go118.go",
         "pack.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
@@ -130,12 +146,6 @@ go_binary(
 go_reset_target(
     name = "go-protoc",
     dep = ":go-protoc-bin",
-    visibility = ["//visibility:public"],
-)
-
-sh_binary(
-    name = "lcov_merger",
-    srcs = ["lcov_merger.sh"],
     visibility = ["//visibility:public"],
 )
 

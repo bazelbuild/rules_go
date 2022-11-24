@@ -16,6 +16,10 @@ load(
     "//go/private:context.bzl",
     "go_context",
 )
+load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
 
 def _go_info_impl(ctx):
     go = go_context(ctx)
@@ -46,7 +50,7 @@ _go_info = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def go_info():

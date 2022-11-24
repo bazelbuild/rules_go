@@ -18,7 +18,7 @@ case "$(uname -s)" in
     # symlink (https://www.oracle.com/database/technologies/instant-client/macos-intel-x86-downloads.html).
     # Let's cover this non-standard case as well.
     cc -shared -Wl,-install_name,@rpath/libversioned.dylib.2 -o libversioned.dylib.2 imported.c
-    ln -s libversioned.dylib.2 libversioned.dylib
+    ln -fs libversioned.dylib.2 libversioned.dylib
     ;;
   *)
     echo "Unsupported OS: $(uname -s)" >&2

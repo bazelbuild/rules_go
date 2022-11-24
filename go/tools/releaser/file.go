@@ -298,5 +298,4 @@ func copyFileToMirror(ctx context.Context, path, fileName string) (err error) {
 	// cloud.google.com/go/storage because that package has a million
 	// dependencies.
 	return runForError(ctx, ".", "gsutil", "cp", "-n", fileName, dest)
-	return nil
 }

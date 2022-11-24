@@ -1,0 +1,47 @@
+load("@my_rules_go//extras:gomock.bzl", "gomock")
+load("@my_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "lib",
+    srcs = ["lib.go"],
+    importpath = "example.com/lib",
+)
+
+go_binary(
+    name = "main",
+    srcs = ["main.go"],
+    deps = [":lib"],
+)
+
+go_test(
+    name = "test",
+    srcs = ["test.go"],
+    embed = [":lib"],
+)
+
+go_library(
+    name = "mockable",
+    srcs = [
+        "mockable.go",
+    ],
+    importpath = "example.com/mockable",
+)
+
+gomock(
+    name = "mocks",
+    out = "mockable_mock.go",
+    library = ":mockable",
+    package = "mockable",
+    source = "mockable.go",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "mockable_test",
+    srcs = [
+        "mockable_mock.go",
+        "mockable_test.go",
+    ],
+    embed = [":mockable"],
+    deps = ["@my_rules_go//extras/gomock"],
+)

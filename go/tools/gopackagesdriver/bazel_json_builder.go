@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"regexp"
 )
 
 type BazelJSONBuilder struct {
@@ -30,12 +31,26 @@ const (
 	RulesGoStdlibLabel = "@io_bazel_rules_go//:stdlib"
 )
 
+var _defaultKinds = []string{"go_library", "go_test", "go_binary"}
+
+var externalRe = regexp.MustCompile(".*\\/external\\/([^\\/]+)(\\/(.*))?\\/([^\\/]+.go)")
+
 func (b *BazelJSONBuilder) fileQuery(filename string) string {
+	label := filename
+
 	if filepath.IsAbs(filename) {
-		fp, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
-		filename = fp
+		label, _ = filepath.Rel(b.bazel.WorkspaceRoot(), filename)
 	}
-	return fmt.Sprintf(`kind("go_library|go_test", same_pkg_direct_rdeps("%s"))`, filename)
+
+	if matches := externalRe.FindStringSubmatch(filename); len(matches) == 5 {
+		// if filepath is for a third party lib, we need to know, what external
+		// library this file is part of.
+		matches = append(matches[:2], matches[3:]...)
+		label = fmt.Sprintf("@%s//%s", matches[1], strings.Join(matches[2:], ":"))
+	}
+
+	kinds := append(_defaultKinds, additionalKinds...)
+	return fmt.Sprintf(`kind("%s", same_pkg_direct_rdeps("%s"))`, strings.Join(kinds, "|"), label)
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
@@ -116,11 +131,13 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		return nil, fmt.Errorf("found no labels matching the requests")
 	}
 
+	aspects := append(additionalAspects, goDefaultAspect)
+
 	buildArgs := concatStringsArrays([]string{
 		"--experimental_convenience_symlinks=ignore",
 		"--ui_event_filters=-info,-stderr",
 		"--noshow_progress",
-		"--aspects=" + rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect",
+		"--aspects=" + strings.Join(aspects, ","),
 		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
 	}, bazelFlags, bazelBuildFlags, labels)

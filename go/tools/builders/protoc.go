@@ -41,7 +41,7 @@ type genFileInfo struct {
 
 func run(args []string) error {
 	// process the args
-	args, err := expandParamsFiles(args)
+	args, useParamFile, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,24 @@ func run(args []string) error {
 		"--descriptor_set_in", strings.Join(descriptors, string(os.PathListSeparator)),
 	}
 	protoc_args = append(protoc_args, flags.Args()...)
-	cmd := exec.Command(*protoc, protoc_args...)
+
+	var cmd *exec.Cmd
+	if useParamFile {
+		paramFile, err := ioutil.TempFile(tmpDir, "protoc-*.params")
+		if err != nil {
+			return fmt.Errorf("error creating param file for protoc: %v", err)
+		}
+		for _, arg := range protoc_args {
+			_, err := fmt.Fprintln(paramFile, arg)
+			if err != nil {
+				return fmt.Errorf("error writing param file for protoc: %v", err)
+			}
+		}
+		cmd = exec.Command(*protoc, "@"+paramFile.Name())
+	} else {
+		cmd = exec.Command(*protoc, protoc_args...)
+	}
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {

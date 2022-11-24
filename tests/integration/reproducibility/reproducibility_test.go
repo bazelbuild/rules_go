@@ -35,7 +35,13 @@ func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
 		Main: `
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+	name = "empty_lib",
+	srcs = [],
+	importpath = "empty_lib",
+)
 
 go_binary(
     name = "hello",

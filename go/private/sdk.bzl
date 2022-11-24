@@ -30,17 +30,30 @@ MIN_SUPPORTED_VERSION = (1, 14, 0)
 def _go_host_sdk_impl(ctx):
     goroot = _detect_host_sdk(ctx)
     platform = _detect_sdk_platform(ctx, goroot)
-    _sdk_build_file(ctx, platform)
+    version = _detect_sdk_version(ctx, goroot)
+    _sdk_build_file(ctx, platform, version)
     _local_sdk(ctx, goroot)
 
 _go_host_sdk = repository_rule(
     implementation = _go_host_sdk_impl,
     environ = ["GOROOT"],
+    attrs = {
+        "version": attr.string(),
+    },
 )
 
-def go_host_sdk(name, **kwargs):
+def go_host_sdk(name, register_toolchains = True, **kwargs):
     _go_host_sdk(name = name, **kwargs)
-    _register_toolchains(name)
+    _go_toolchains(
+        name = name + "_toolchains",
+        sdk_repo = name,
+        sdk_type = "host",
+        sdk_version = kwargs.get("version"),
+        goos = kwargs.get("goos"),
+        goarch = kwargs.get("goarch"),
+    )
+    if register_toolchains:
+        _register_toolchains(name)
 
 def _go_download_sdk_impl(ctx):
     if not ctx.attr.goos and not ctx.attr.goarch:
@@ -52,7 +65,6 @@ def _go_download_sdk_impl(ctx):
             fail("goos set but goarch not set")
         goos, goarch = ctx.attr.goos, ctx.attr.goarch
     platform = goos + "_" + goarch
-    _sdk_build_file(ctx, platform)
 
     version = ctx.attr.version
     sdks = ctx.attr.sdks
@@ -69,7 +81,7 @@ def _go_download_sdk_impl(ctx):
             ctx.report_progress("Finding Go SHA-256 sums")
         ctx.download(
             url = [
-                "https://golang.org/dl/?mode=json&include=all",
+                "https://go.dev/dl/?mode=json&include=all",
                 "https://golang.google.cn/dl/?mode=json&include=all",
             ],
             output = "versions.json",
@@ -88,16 +100,19 @@ def _go_download_sdk_impl(ctx):
                 if not highest_version or _version_less(highest_version, pv):
                     highest_version = pv
             if not highest_version:
-                fail("did not find any Go versions in https://golang.org/dl/?mode=json")
+                fail("did not find any Go versions in https://go.dev/dl/?mode=json")
             version = _version_string(highest_version)
         if version not in sdks_by_version:
-            fail("did not find version {} in https://golang.org/dl/?mode=json".format(version))
+            fail("did not find version {} in https://go.dev/dl/?mode=json".format(version))
         sdks = sdks_by_version[version]
 
     if platform not in sdks:
         fail("unsupported platform {}".format(platform))
     filename, sha256 = sdks[platform]
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
+
+    detected_version = _detect_sdk_version(ctx, ".")
+    _sdk_build_file(ctx, platform, detected_version)
 
     if not ctx.attr.sdks and not ctx.attr.version:
         # Returning this makes Bazel print a message that 'version' must be
@@ -125,26 +140,112 @@ _go_download_sdk = repository_rule(
     },
 )
 
-def go_download_sdk(name, **kwargs):
+def _define_version_constants(version):
+    pv = _parse_version(version)
+    if pv == None or len(pv) < 3:
+        fail("error parsing sdk version: " + version)
+    major, minor, patch = pv[0], pv[1], pv[2]
+    prerelease = pv[3] if len(pv) > 3 else ""
+    return """
+MAJOR_VERSION = "{major}"
+MINOR_VERSION = "{minor}"
+PATCH_VERSION = "{patch}"
+PRERELEASE_SUFFIX = "{prerelease}"
+""".format(
+        major = major,
+        minor = minor,
+        patch = patch,
+        prerelease = prerelease,
+    )
+
+def _go_toolchains_impl(ctx):
+    if not ctx.attr.goos and not ctx.attr.goarch:
+        goos, goarch = _detect_host_platform(ctx)
+    else:
+        if not ctx.attr.goos:
+            fail("goarch set but goos not set")
+        if not ctx.attr.goarch:
+            fail("goos set but goarch not set")
+        goos, goarch = ctx.attr.goos, ctx.attr.goarch
+
+    sdk_repo = ctx.attr.sdk_repo
+    sdk_type = ctx.attr.sdk_type
+
+    # If a sdk_version attribute is provided, use that version. This avoids
+    # eagerly fetching the SDK repository. But if it's not provided, we have
+    # no choice and must load version constants from the version.bzl file that
+    # _sdk_build_file creates. This will trigger an eager fetch.
+    version = ctx.attr.sdk_version
+    if version:
+        version_constants = _define_version_constants(version)
+    else:
+        version_constants = 'load("@{}//:version.bzl", "MAJOR_VERSION", "MINOR_VERSION", "PATCH_VERSION", "PRERELEASE_SUFFIX")'.format(sdk_repo)
+
+    ctx.template(
+        "BUILD.bazel",
+        Label("//go/private:BUILD.toolchains.bazel"),
+        executable = False,
+        substitutions = {
+            "{goos}": goos,
+            "{goarch}": goarch,
+            "{sdk_repo}": sdk_repo,
+            "{sdk_type}": sdk_type,
+            "{rules_go_repo_name}": "io_bazel_rules_go",
+            "{version_constants}": version_constants,
+        },
+    )
+
+_go_toolchains = repository_rule(
+    implementation = _go_toolchains_impl,
+    attrs = {
+        "sdk_repo": attr.string(mandatory = True),
+        "sdk_type": attr.string(mandatory = True),
+        "sdk_version": attr.string(),
+        "goos": attr.string(),
+        "goarch": attr.string(),
+    },
+)
+
+def go_download_sdk(name, register_toolchains = True, **kwargs):
     _go_download_sdk(name = name, **kwargs)
-    _register_toolchains(name)
+    _go_toolchains(
+        name = name + "_toolchains",
+        sdk_repo = name,
+        sdk_type = "remote",
+        sdk_version = kwargs.get("version"),
+        goos = kwargs.get("goos"),
+        goarch = kwargs.get("goarch"),
+    )
+    if register_toolchains:
+        _register_toolchains(name)
 
 def _go_local_sdk_impl(ctx):
     goroot = ctx.attr.path
     platform = _detect_sdk_platform(ctx, goroot)
-    _sdk_build_file(ctx, platform)
+    version = _detect_sdk_version(ctx, goroot)
+    _sdk_build_file(ctx, platform, version)
     _local_sdk(ctx, goroot)
 
 _go_local_sdk = repository_rule(
     implementation = _go_local_sdk_impl,
     attrs = {
         "path": attr.string(),
+        "version": attr.string(),
     },
 )
 
-def go_local_sdk(name, **kwargs):
+def go_local_sdk(name, register_toolchains = True, **kwargs):
     _go_local_sdk(name = name, **kwargs)
-    _register_toolchains(name)
+    _go_toolchains(
+        name = name + "_toolchains",
+        sdk_repo = name,
+        sdk_type = "remote",
+        sdk_version = kwargs.get("version"),
+        goos = kwargs.get("goos"),
+        goarch = kwargs.get("goarch"),
+    )
+    if register_toolchains:
+        _register_toolchains(name)
 
 def _go_wrap_sdk_impl(ctx):
     if not ctx.attr.root_file and not ctx.attr.root_files:
@@ -161,7 +262,8 @@ def _go_wrap_sdk_impl(ctx):
         root_file = Label(ctx.attr.root_files[platform])
     goroot = str(ctx.path(root_file).dirname)
     platform = _detect_sdk_platform(ctx, goroot)
-    _sdk_build_file(ctx, platform)
+    version = _detect_sdk_version(ctx, goroot)
+    _sdk_build_file(ctx, platform, version)
     _local_sdk(ctx, goroot)
 
 _go_wrap_sdk = repository_rule(
@@ -175,16 +277,26 @@ _go_wrap_sdk = repository_rule(
             mandatory = False,
             doc = "A set of mappings from the host platform to a file in the SDK's root directory",
         ),
+        "version": attr.string(),
     },
 )
 
-def go_wrap_sdk(name, **kwargs):
+def go_wrap_sdk(name, register_toolchains = True, **kwargs):
     _go_wrap_sdk(name = name, **kwargs)
-    _register_toolchains(name)
+    _go_toolchains(
+        name = name + "_toolchains",
+        sdk_repo = name,
+        sdk_type = "remote",
+        sdk_version = kwargs.get("version"),
+        goos = kwargs.get("goos"),
+        goarch = kwargs.get("goarch"),
+    )
+    if register_toolchains:
+        _register_toolchains(name)
 
 def _register_toolchains(repo):
     labels = [
-        "@{}//:{}".format(repo, name)
+        "@{}_toolchains//:{}".format(repo, name)
         for name in generate_toolchain_names()
     ]
     native.register_toolchains(*labels)
@@ -219,67 +331,43 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
         )
 
 def _local_sdk(ctx, path):
-    for entry in ["src", "pkg", "bin"]:
+    for entry in ["src", "pkg", "bin", "lib", "misc"]:
         ctx.symlink(path + "/" + entry, entry)
 
-def _sdk_build_file(ctx, platform):
+def _sdk_build_file(ctx, platform, version):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
+
     ctx.template(
         "BUILD.bazel",
-        Label("@io_bazel_rules_go//go/private:BUILD.sdk.bazel"),
+        Label("//go/private:BUILD.sdk.bazel"),
         executable = False,
         substitutions = {
             "{goos}": goos,
             "{goarch}": goarch,
             "{exe}": ".exe" if goos == "windows" else "",
+            "{rules_go_repo_name}": "io_bazel_rules_go",
         },
     )
 
+    ctx.file(
+        "version.bzl",
+        executable = False,
+        content = _define_version_constants(version),
+    )
+
 def _detect_host_platform(ctx):
-    if ctx.os.name == "linux":
-        goos, goarch = "linux", "amd64"
-        res = ctx.execute(["uname", "-p"])
-        if res.return_code == 0:
-            uname = res.stdout.strip()
-            if uname == "s390x":
-                goarch = "s390x"
-            elif uname == "i686":
-                goarch = "386"
+    goos = ctx.os.name
+    if goos == "mac os x":
+        goos = "darwin"
+    elif goos.startswith("windows"):
+        goos = "windows"
 
-        # uname -p is not working on Aarch64 boards
-        # or for ppc64le on some distros
-        res = ctx.execute(["uname", "-m"])
-        if res.return_code == 0:
-            uname = res.stdout.strip()
-            if uname == "aarch64":
-                goarch = "arm64"
-            elif uname == "armv6l":
-                goarch = "arm"
-            elif uname == "armv7l":
-                goarch = "arm"
-            elif uname == "ppc64le":
-                goarch = "ppc64le"
-
-        # Default to amd64 when uname doesn't return a known value.
-
-    elif ctx.os.name == "mac os x":
-        goos, goarch = "darwin", "amd64"
-
-        res = ctx.execute(["uname", "-m"])
-        if res.return_code == 0:
-            uname = res.stdout.strip()
-            if uname == "arm64":
-                goarch = "arm64"
-
-        # Default to amd64 when uname doesn't return a known value.
-
-    elif ctx.os.name.startswith("windows"):
-        goos, goarch = "windows", "amd64"
-    elif ctx.os.name == "freebsd":
-        goos, goarch = "freebsd", "amd64"
-    else:
-        fail("Unsupported operating system: " + ctx.os.name)
+    goarch = ctx.os.arch
+    if goarch == "aarch64":
+        goarch = "arm64"
+    elif goarch == "x86_64":
+        goarch = "amd64"
 
     return goos, goarch
 
@@ -312,17 +400,49 @@ def _detect_sdk_platform(ctx, goroot):
         fail("Could not detect SDK platform: found multiple platforms %s in %s" % (platforms, path))
     return platforms[0]
 
-def _parse_versions_json(data):
-    """Parses version metadata returned by golang.org.
+def _detect_sdk_version(ctx, goroot):
+    version_file_path = goroot + "/VERSION"
+    if ctx.path(version_file_path).exists:
+        # VERSION file has version prefixed by go, eg. go1.18.3
+        version = ctx.read(version_file_path)[2:]
+        if ctx.attr.version and ctx.attr.version != version:
+            fail("SDK is version %s, but version %s was expected" % (version, ctx.attr.version))
+        return version
 
-    This is a really basic JSON parser. We can only do so much in Starlark
-    without recursion. We don't want to download a platform-specific binary
-    for this, and we can't rely on any particular scripting language being
-    installed.
+    # The top-level VERSION file does not exist in all Go SDK distributions, e.g. those shipped by Debian or Fedora.
+    # Falling back to running "go version"
+    go_binary_path = goroot + "/bin/go"
+    result = ctx.execute([go_binary_path, "version"])
+    if result.return_code != 0:
+        fail("Could not detect SDK version: '%s version' exited with exit code %d" % (go_binary_path, result.return_code))
+
+    # go version output is of the form "go version go1.18.3 linux/amd64" or "go
+    # version devel go1.19-fd1b5904ae Tue Mar 22 21:38:10 2022 +0000
+    # linux/amd64". See the following links for how this output is generated:
+    # - https://github.com/golang/go/blob/2bdb5c57f1efcbddab536028d053798e35de6226/src/cmd/go/internal/version/version.go#L75
+    # - https://github.com/golang/go/blob/2bdb5c57f1efcbddab536028d053798e35de6226/src/cmd/dist/build.go#L333
+    #
+    # Read the third word, or the fourth word if the third word is "devel", to
+    # find the version number.
+    output_parts = result.stdout.split(" ")
+    if len(output_parts) > 2 and output_parts[2].startswith("go"):
+        version = output_parts[2][len("go"):]
+    if len(output_parts) > 3 and output_parts[2] == "devel" and output_parts[3].startswith("go"):
+        version = output_parts[3][len("go"):]
+    else:
+        fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
+    if _parse_version(version) == None:
+        fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
+    if ctx.attr.version and ctx.attr.version != version:
+        fail("SDK is version %s, but version %s was expected" % (version, ctx.attr.version))
+    return version
+
+def _parse_versions_json(data):
+    """Parses version metadata returned by go.dev.
 
     Args:
         data: the contents of the file downloaded from
-            https://golang.org/dl/?mode=json. We assume the file is valid
+            https://go.dev/dl/?mode=json. We assume the file is valid
             JSON, is spaced and indented, and is in a particular format.
 
     Return:
@@ -330,60 +450,18 @@ def _parse_versions_json(data):
         platform names (like "linux_amd64") to pairs of filenames
         (like "go1.15.5.linux-amd64.tar.gz") and hex-encoded SHA-256 sums.
     """
-    sdks_by_version = {}
-
-    START_STATE = 0
-    VERSION_STATE = 1
-    FILE_STATE = 2
-    state = START_STATE
-
-    version = None
-    version_files = None
-    file_fields = None
-
-    for i, line in enumerate(data.split("\n")):
-        line = line.strip()
-        if not line:
-            continue
-        if state == START_STATE:
-            if line == "{":
-                version_files = {}
-                state = VERSION_STATE
-        elif state == VERSION_STATE:
-            key, value = _parse_versions_json_field(line)
-            if key == "version":
-                version = value
-            elif line == "{":
-                state = FILE_STATE
-                file_fields = {}
-            elif line in ("}", "},"):
-                if version and version.startswith("go") and version_files:
-                    sdks_by_version[version[len("go"):]] = version_files
-                version = None
-                version_files = None
-                state = START_STATE
-        elif state == FILE_STATE:
-            key, value = _parse_versions_json_field(line)
-            if key != "":
-                file_fields[key] = value
-            elif line in ("}", "},"):
-                if (all([f in file_fields for f in ("filename", "os", "arch", "sha256", "kind")]) and
-                    file_fields["kind"] == "archive"):
-                    goos_goarch = file_fields["os"] + "_" + file_fields["arch"]
-                    version_files[goos_goarch] = (file_fields["filename"], file_fields["sha256"])
-                file_fields = None
-                state = VERSION_STATE
-
-    return sdks_by_version
-
-def _parse_versions_json_field(line):
-    """Parses a line like '"key": "value",' into a key and value pair."""
-    if line.endswith(","):
-        line = line[:-1]
-    k, sep, v = line.partition('": "')
-    if not sep or not k.startswith('"') or not v.endswith('"'):
-        return "", ""
-    return k[1:], v[:-1]
+    sdks = json.decode(data)
+    return {
+        sdk["version"][len("go"):]: {
+            "%s_%s" % (file["os"], file["arch"]): (
+                file["filename"],
+                file["sha256"],
+            )
+            for file in sdk["files"]
+            if file["kind"] == "archive"
+        }
+        for sdk in sdks
+    }
 
 def _parse_version(version):
     """Parses a version string like "1.15.5" and returns a tuple of numbers or None"""

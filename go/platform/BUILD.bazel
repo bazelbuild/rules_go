@@ -29,7 +29,7 @@ filegroup(
 bzl_library(
     name = "list",
     srcs = ["list.bzl"],
-    deps = ["@io_bazel_rules_go//go/private:platforms"],
+    deps = ["//go/private:platforms"],
 )
 
 bzl_library(

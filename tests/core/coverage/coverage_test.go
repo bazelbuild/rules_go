@@ -183,7 +183,10 @@ func TestCoverage(t *testing.T) {
 
 func testCoverage(t *testing.T, expectedCoverMode string, extraArgs ...string) {
 	args := append([]string{"coverage"}, append(
-		extraArgs, "--instrumentation_filter=-//:b", ":a_test",
+		extraArgs,
+		"--instrumentation_filter=-//:b",
+		"--@io_bazel_rules_go//go/config:cover_format=go_cover",
+		":a_test",
 	)...)
 
 	if err := bazel_testing.RunBazel(args...); err != nil {
@@ -214,19 +217,49 @@ func testCoverage(t *testing.T, expectedCoverMode string, extraArgs ...string) {
 }
 
 func TestCrossBuild(t *testing.T) {
-	if err := bazel_testing.RunBazel("build", "--collect_code_coverage", "--instrumentation_filter=-//:b", "//:a_test_cross"); err != nil {
+	t.Run("lcov", func(t *testing.T) {
+		testCrossBuild(t)
+	})
+	t.Run("cover", func(t *testing.T) {
+		testCrossBuild(t, "--@io_bazel_rules_go//go/config:cover_format=go_cover")
+	})
+}
+
+func testCrossBuild(t *testing.T, extraArgs ...string) {
+	if err := bazel_testing.RunBazel(append(
+		[]string{"build", "--collect_code_coverage", "--instrumentation_filter=-//:b", "//:a_test_cross"},
+		extraArgs...,
+	)...); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestCoverageWithComments(t *testing.T) {
-	if err := bazel_testing.RunBazel("coverage", ":d_test"); err != nil {
+	t.Run("lcov", func(t *testing.T) {
+		testCoverageWithComments(t)
+	})
+	t.Run("go_cover", func(t *testing.T) {
+		testCoverageWithComments(t, "--@io_bazel_rules_go//go/config:cover_format=go_cover")
+	})
+}
+
+func testCoverageWithComments(t *testing.T, extraArgs ...string) {
+	if err := bazel_testing.RunBazel(append([]string{"coverage", ":d_test"}, extraArgs...)...); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestCoverageWithCorrectLineNumbers(t *testing.T) {
-	if err := bazel_testing.RunBazel("coverage", ":panicking_test"); err != nil {
+	t.Run("lcov", func(t *testing.T) {
+		testCoverageWithCorrectLineNumbers(t)
+	})
+	t.Run("go_cover", func(t *testing.T) {
+		testCoverageWithCorrectLineNumbers(t, "--@io_bazel_rules_go//go/config:cover_format=go_cover")
+	})
+}
+
+func testCoverageWithCorrectLineNumbers(t *testing.T, extraArgs ...string) {
+	if err := bazel_testing.RunBazel(append([]string{"coverage", ":panicking_test"}, extraArgs...)...); err != nil {
 		t.Fatal(err)
 	}
 }

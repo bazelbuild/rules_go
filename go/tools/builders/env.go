@@ -141,12 +141,12 @@ func (e *env) runCommand(args []string) error {
 	return err
 }
 
-// runCommandToFile executes a subprocess and writes the output to the given
-// writer.
-func (e *env) runCommandToFile(w io.Writer, args []string) error {
+// runCommandToFile executes a subprocess and writes stdout/stderr to the given
+// writers.
+func (e *env) runCommandToFile(out, err io.Writer, args []string) error {
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Stdout = w
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = out
+	cmd.Stderr = err
 	return runAndLogCommand(cmd, e.verbose)
 }
 
@@ -176,7 +176,9 @@ func runAndLogCommand(cmd *exec.Cmd, verbose bool) error {
 // expandParamsFiles looks for arguments in args of the form
 // "-param=filename". When it finds these arguments it reads the file "filename"
 // and replaces the argument with its content.
-func expandParamsFiles(args []string) ([]string, error) {
+// It returns the expanded arguments as well as a bool that is true if any param
+// files have been passed.
+func expandParamsFiles(args []string) ([]string, bool, error) {
 	var paramsIndices []int
 	for i, arg := range args {
 		if strings.HasPrefix(arg, "-param=") {
@@ -184,7 +186,7 @@ func expandParamsFiles(args []string) ([]string, error) {
 		}
 	}
 	if len(paramsIndices) == 0 {
-		return args, nil
+		return args, false, nil
 	}
 	var expandedArgs []string
 	last := 0
@@ -195,12 +197,12 @@ func expandParamsFiles(args []string) ([]string, error) {
 		fileName := args[pi][len("-param="):]
 		fileArgs, err := readParamsFile(fileName)
 		if err != nil {
-			return nil, err
+			return nil, true, err
 		}
 		expandedArgs = append(expandedArgs, fileArgs...)
 	}
 	expandedArgs = append(expandedArgs, args[last:]...)
-	return expandedArgs, nil
+	return expandedArgs, true, nil
 }
 
 // readParamsFiles parses a Bazel params file in "shell" format. The file

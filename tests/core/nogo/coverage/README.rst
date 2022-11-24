@@ -16,3 +16,8 @@ handle libraries like this that do not have serialized facts. Verifies `#1940`_.
 
 Also checks that `nogo`_ itself can be built with coverage enabled.
 Verifies `#2146`_.
+
+gen_code_test
+-------------
+Checks how `nogo`_ should not run on source code that was generated as part of
+rules_go's coverage implementation.

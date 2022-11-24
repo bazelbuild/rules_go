@@ -1,12 +1,11 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-exports_files(["extras.md"])
-
 filegroup(
     name = "all_files",
     testonly = True,
     srcs = glob(["**"]) + [
         "//go/config:all_files",
+        "//go/constraints/amd64:all_files",
         "//go/platform:all_files",
         "//go/toolchain:all_files",
         "//go/tools:all_files",
@@ -36,6 +35,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//extras:embed_data",
+        "//extras:gomock",
         "//go/private:context",
         "//go/private:go_toolchain",
         "//go/private:providers",

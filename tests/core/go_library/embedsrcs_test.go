@@ -31,6 +31,9 @@ var static embed.FS
 //go:embed embedsrcs_dynamic/file embedsrcs_dynamic/dir embedsrcs_dynamic/glob/*
 var dynamic embed.FS
 
+//go:embed embedsrcs_transitioned
+var transitioned embed.FS
+
 //go:embed *
 var star embed.FS
 
@@ -85,6 +88,14 @@ func TestFiles(t *testing.T) {
 			},
 		},
 		{
+			desc: "transitioned",
+			fsys: transitioned,
+			want: []string{
+				".",
+				"embedsrcs_transitioned",
+			},
+		},
+		{
 			desc: "star",
 			fsys: star,
 			want: []string{
@@ -105,6 +116,7 @@ func TestFiles(t *testing.T) {
 				"embedsrcs_static/glob/f",
 				"embedsrcs_static/no",
 				"embedsrcs_test.go",
+				"embedsrcs_transitioned",
 			},
 		},
 	} {

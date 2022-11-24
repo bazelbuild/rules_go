@@ -5,9 +5,9 @@ Build modes
 .. _Bazel configuration transitions: https://docs.bazel.build/versions/master/skylark/lib/transition.html
 .. _Bazel platform: https://docs.bazel.build/versions/master/platforms.html
 
-.. _go_library: core.rst#go_library
-.. _go_binary: core.rst#go_binary
-.. _go_test: core.rst#go_test
+.. _go_library: /docs/go/core/rules.md#go_library
+.. _go_binary: /docs/go/core/rules.md#go_binary
+.. _go_test: /docs/go/core/rules.md#go_test
 .. _toolchain: toolchains.rst#the-toolchain-object
 
 .. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
@@ -78,7 +78,7 @@ or using `Bazel configuration transitions`_.
 | :param:`debug`    | :type:`bool`        | :value:`false`                     |
 +-------------------+---------------------+------------------------------------+
 | Includes debugging information in compiled packages (using the ``-N`` and    |
-| ``-l`` flags).                                                               |
+| ``-l`` flags). This is always true with ``-c dbg``.                          |
 +-------------------+---------------------+------------------------------------+
 | :param:`gotags`   | :type:`string_list` | :value:`[]`                        |
 +-------------------+---------------------+------------------------------------+
@@ -122,9 +122,7 @@ Building pure go binaries
 You can switch the default binaries to non cgo using
 
 .. code:: bash
-
     bazel build --@io_bazel_rules_go//go/config:pure //:my_binary
-
 You can build pure go binaries by setting those attributes on a binary.
 
 .. code:: bzl
@@ -144,9 +142,7 @@ Building static binaries
 You can switch the default binaries to statically linked binaries using
 
 .. code:: bash
-
     bazel build --@io_bazel_rules_go//go/config:static //:my_binary
-
 You can build static go binaries by setting those attributes on a binary.
 If you want it to be fully static (no libc), you should also specify pure.
 
@@ -179,4 +175,3 @@ Alternatively, you can activate race detection for specific tests.
         embed = [":go_default_library"],
         race = "on",
   )
-

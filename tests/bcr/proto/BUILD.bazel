@@ -1,0 +1,51 @@
+load("@my_rules_go//go:def.bzl", "go_test")
+load("@my_rules_go//proto:def.bzl", "go_grpc_library", "go_proto_library")
+
+proto_library(
+    name = "foo_proto",
+    srcs = ["foo.proto"],
+    deps = [
+        "@protobuf//:empty_proto",
+    ],
+)
+
+go_proto_library(
+    name = "foo_go_proto",
+    importpath = "example.com/foo_proto",
+    proto = ":foo_proto",
+)
+
+go_test(
+    name = "foo_proto_test",
+    srcs = ["foo_proto_test.go"],
+    deps = [":foo_go_proto"],
+)
+
+go_grpc_library(
+    name = "foo_go_grpc",
+    importpath = "example.com/foo_proto",
+    protos = [":foo_proto"],
+)
+
+go_test(
+    name = "foo_grpc_test",
+    srcs = ["foo_grpc_test.go"],
+    deps = [
+        ":foo_go_grpc",
+        "@org_golang_google_grpc//:grpc",
+        "@org_golang_google_grpc//credentials/insecure",
+    ],
+)
+
+go_proto_library(
+    name = "foo_go_proto_gogo",
+    compilers = ["@my_rules_go//proto:gogo_proto"],
+    importpath = "example.com/foo_proto",
+    protos = [":foo_proto"],
+)
+
+go_test(
+    name = "foo_proto_gogo_test",
+    srcs = ["foo_proto_test.go"],
+    deps = [":foo_go_proto_gogo"],
+)

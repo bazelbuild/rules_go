@@ -1,0 +1,50 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+test_suite(
+    name = "x_defs",
+)
+
+go_test(
+    name = "foo_test",
+    srcs = ["foo_test.go"],
+    embed = [":foo"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/x_defs/foo",
+    pure = "on",
+    deps = [":bar"],
+)
+
+go_library(
+    name = "bar",
+    srcs = ["bar.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/x_defs/bar",
+    visibility = ["//visibility:public"],
+    x_defs = {"Bar": "Bar"},
+    deps = [
+        ":baz",
+        ":foo",
+    ],
+)
+
+go_library(
+    name = "baz",
+    srcs = ["baz.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/x_defs/baz",
+    visibility = ["//visibility:public"],
+    x_defs = {"Baz": "Baz"},
+    deps = [":qux"],
+)
+
+go_library(
+    name = "foo",
+    srcs = ["foo.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/x_defs/foo",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "qux",
+    srcs = ["qux.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/x_defs/qux",
+    visibility = ["//visibility:public"],
+    x_defs = {"Qux": "Qux"},
+)

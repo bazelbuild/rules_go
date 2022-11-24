@@ -1,28 +1,28 @@
 load(
-    "@io_bazel_rules_go//go/private/tools:lines_sorted_test.bzl",
+    "//go/private/tools:lines_sorted_test.bzl",
     "lines_sorted_test",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:nogo.bzl",
+    "//go/private/rules:nogo.bzl",
     "nogo",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:info.bzl",
+    "//go/private/rules:info.bzl",
     "go_info",
 )
 load(
-    "@io_bazel_rules_go//go:def.bzl",
+    "//go:def.bzl",
     "TOOLS_NOGO",
 )
 load(
-    "@io_bazel_rules_go//go/private:context.bzl",
+    "//go/private:context.bzl",
     "cgo_context_data",
     "cgo_context_data_proxy",
     "go_config",
     "go_context_data",
 )
 load(
-    "@io_bazel_rules_go//go/private/rules:stdlib.bzl",
+    "//go/private/rules:stdlib.bzl",
     "stdlib",
 )
 
@@ -33,8 +33,6 @@ load(
 # gazelle:exclude go/tools/coverdata
 # gazelle:exclude go/tools/fetch_repo
 # gazelle:exclude go/tools/windows-testrunner
-# gazelle:exclude go/tools/testinit
-# gazelle:exclude go/tools/testwrapper
 # gazelle:go_naming_convention import_alias
 
 # TODO(jayconrod): add a gazelle rule so gazelle can be run automatically.
@@ -107,7 +105,21 @@ cgo_context_data_proxy(
 # to depend on all build settings directly.
 go_config(
     name = "go_config",
-    debug = "//go/config:debug",
+    amd64 = select({
+        "//go/constraints/amd64:v2": "v2",
+        "//go/constraints/amd64:v3": "v3",
+        "//go/constraints/amd64:v4": "v4",
+        # The default is v1.
+        "//conditions:default": None,
+    }),
+    cover_format = "//go/config:cover_format",
+    # Always include debug symbols with -c dbg.
+    debug = select({
+        "//go/private:is_compilation_mode_dbg": "//go/private:always_true",
+        "//conditions:default": "//go/config:debug",
+    }),
+    gc_goopts = "//go/config:gc_goopts",
+    gc_linkopts = "//go/config:gc_linkopts",
     gotags = "//go/config:tags",
     linkmode = "//go/config:linkmode",
     msan = "//go/config:msan",

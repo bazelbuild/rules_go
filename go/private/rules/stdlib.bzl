@@ -17,6 +17,10 @@ load(
     "go_context",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private:providers.bzl",
     "CgoContextInfo",
     "GoConfigInfo",
@@ -38,5 +42,5 @@ stdlib = rule(
     },
     doc = """stdlib builds the standard library for the target configuration
 or uses the precompiled standard library from the SDK if it is suitable.""",
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )

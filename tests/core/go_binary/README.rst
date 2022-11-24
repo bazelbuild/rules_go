@@ -1,7 +1,7 @@
 Basic go_binary functionality
 =============================
 
-.. _go_binary: /go/core.rst#_go_binary
+.. _go_binary: /docs/go/core/rules.md#_go_binary
 .. _#2168: https://github.com/bazelbuild/rules_go/issues/2168
 .. _#2463: https://github.com/bazelbuild/rules_go/issues/2463
 

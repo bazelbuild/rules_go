@@ -1,0 +1,20 @@
+load("//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["c.go"],
+    importpath = "example.com/c",
+    visibility = ["//tests/core/starlark/packagedriver:__subpackages__"],
+    deps = [
+        "//tests/core/starlark/packagedriver/fixtures/a:go_default_library",
+        "//tests/core/starlark/packagedriver/fixtures/b:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["c_test.go"],
+    embed = [":go_default_library"],
+    tags = ["manual"],
+    visibility = ["//tests/core/starlark/packagedriver:__subpackages__"],
+)

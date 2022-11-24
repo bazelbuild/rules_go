@@ -140,6 +140,11 @@ go_library(
 )
 
 go_bazel_test(
+    name = "test_fail_fast_test",
+    srcs = ["test_fail_fast_test.go"],
+)
+
+go_bazel_test(
     name = "test_filter_test",
     srcs = ["test_filter_test.go"],
 )
@@ -188,6 +193,19 @@ go_library(
     srcs = ["indirect_import_dep.go"],
     importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/indirect_import_dep",
     deps = [":indirect_import_lib"],
+)
+
+[
+    go_test(
+        name = "same_package_{}_test".format(i),
+        srcs = ["same_package_test.go"],
+    )
+    for i in range(1, 80)
+]
+
+test_suite(
+    name = "same_package_test",
+    tests = ["same_package_{}_test".format(i) for i in range(1, 80)],
 )
 
 go_bazel_test(

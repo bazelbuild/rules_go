@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@io_bazel_rules_go//go/private:platforms.bzl",
+    "//go/private:platforms.bzl",
     _GOARCH = "GOARCH_CONSTRAINTS",
     _GOOS = "GOOS_CONSTRAINTS",
     _GOOS_GOARCH = "GOOS_GOARCH",
@@ -38,20 +38,23 @@ def declare_config_settings():
     for goos in GOOS:
         native.config_setting(
             name = goos,
-            constraint_values = ["@io_bazel_rules_go//go/toolchain:" + goos],
+            constraint_values = [Label("//go/toolchain:" + goos)],
+            visibility = ["//visibility:public"],
         )
     for goarch in GOARCH:
         native.config_setting(
             name = goarch,
-            constraint_values = ["@io_bazel_rules_go//go/toolchain:" + goarch],
+            constraint_values = [Label("//go/toolchain:" + goarch)],
+            visibility = ["//visibility:public"],
         )
     for goos, goarch in GOOS_GOARCH:
         native.config_setting(
             name = goos + "_" + goarch,
             constraint_values = [
-                "@io_bazel_rules_go//go/toolchain:" + goos,
-                "@io_bazel_rules_go//go/toolchain:" + goarch,
+                Label("//go/toolchain:" + goos),
+                Label("//go/toolchain:" + goarch),
             ],
+            visibility = ["//visibility:public"],
         )
 
     # Setting that determines whether cgo is enabled.
@@ -59,6 +62,6 @@ def declare_config_settings():
     # to build settings.
     native.config_setting(
         name = "internal_cgo_off",
-        constraint_values = ["@io_bazel_rules_go//go/toolchain:cgo_off"],
-        visibility = ["@io_bazel_rules_go//:__pkg__"],
+        constraint_values = [Label("//go/toolchain:cgo_off")],
+        visibility = [Label("//:__pkg__")],
     )

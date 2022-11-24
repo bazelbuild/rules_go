@@ -17,7 +17,7 @@ DEFAULT_NOGO = "@io_bazel_rules_go//:default_nogo"
 def _go_register_nogo_impl(ctx):
     ctx.template(
         "BUILD.bazel",
-        Label("@io_bazel_rules_go//go/private:BUILD.nogo.bazel"),
+        Label("//go/private:BUILD.nogo.bazel"),
         substitutions = {
             "{{nogo}}": ctx.attr.nogo,
         },

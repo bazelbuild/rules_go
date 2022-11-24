@@ -38,7 +38,7 @@ import (
 // handle them, and ar may not be available (cpp.ar_executable is libtool
 // on darwin).
 func pack(args []string) error {
-	args, err := expandParamsFiles(args)
+	args, _, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}

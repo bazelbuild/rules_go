@@ -25,29 +25,16 @@ filegroup(
 )
 
 config_setting(
-    name = "strip-always",
-    values = {"strip": "always"},
-)
-
-config_setting(
-    name = "strip-sometimes",
-    values = {"strip": "sometimes"},
-)
-
-config_setting(
-    name = "strip-never",
-    values = {"strip": "never"},
-)
-
-config_setting(
     name = "stamp",
     values = {"stamp": "true"},
+    visibility = ["//:__pkg__"],
 )
 
 bzl_library(
     name = "context",
     srcs = ["context.bzl"],
     visibility = [
+        "//docs:__subpackages__",
         "//extras:__pkg__",  # Manually added
         "//go:__subpackages__",
     ],
@@ -56,6 +43,7 @@ bzl_library(
         ":mode",
         ":providers",
         "//go/platform:apple",
+        "//go/private:go_toolchain",
         "//go/private/rules:transition",
         "@bazel_skylib//lib:paths",
         "@bazel_skylib//rules:common_settings",
@@ -67,18 +55,20 @@ bzl_library(
 bzl_library(
     name = "go_toolchain",
     srcs = ["go_toolchain.bzl"],
-    visibility = ["//go:__subpackages__"],
+    visibility = [
+        "//extras:__pkg__",  # Manually added
+        "//go:__subpackages__",
+    ],
     deps = [
-        "@io_bazel_rules_go//go/private:platforms",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//go/private/actions:archive",
-        "@io_bazel_rules_go//go/private/actions:asm",
-        "@io_bazel_rules_go//go/private/actions:binary",
-        "@io_bazel_rules_go//go/private/actions:compile",
-        "@io_bazel_rules_go//go/private/actions:cover",
-        "@io_bazel_rules_go//go/private/actions:link",
-        "@io_bazel_rules_go//go/private/actions:pack",
-        "@io_bazel_rules_go//go/private/actions:stdlib",
+        "//go/private:platforms",
+        "//go/private:providers",
+        "//go/private/actions:archive",
+        "//go/private/actions:asm",
+        "//go/private/actions:binary",
+        "//go/private/actions:compile",
+        "//go/private/actions:link",
+        "//go/private/actions:pack",
+        "//go/private/actions:stdlib",
     ],
 )
 
@@ -100,10 +90,10 @@ bzl_library(
     srcs = ["sdk.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
-        "@io_bazel_rules_go//go/private:common",
-        "@io_bazel_rules_go//go/private:nogo",
-        "@io_bazel_rules_go//go/private:platforms",
-        "@io_bazel_rules_go//go/private/skylib/lib:versions",
+        "//go/private:common",
+        "//go/private:nogo",
+        "//go/private:platforms",
+        "//go/private/skylib/lib:versions",
     ],
 )
 
@@ -135,6 +125,7 @@ bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
     visibility = [
+        "//extras:__pkg__",
         "//go:__subpackages__",
         "//proto:__pkg__",  # keep
     ],
@@ -143,7 +134,10 @@ bzl_library(
 bzl_library(
     name = "rpath",
     srcs = ["rpath.bzl"],
-    visibility = ["//go:__subpackages__"],
+    visibility = [
+        "//docs:__subpackages__",
+        "//go:__subpackages__",
+    ],
 )
 
 # Usually false. This is only true when we are building nogo itself in which
@@ -179,4 +173,20 @@ config_setting(
         ":bootstrap_nogo": "False",
         ":request_nogo": "True",
     },
+    visibility = ["//visibility:public"],
+)
+
+bool_setting(
+    name = "always_true",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
+# Only used by //:go_config.
+config_setting(
+    name = "is_compilation_mode_dbg",
+    values = {
+        "compilation_mode": "dbg",
+    },
+    visibility = ["//:__pkg__"],
 )

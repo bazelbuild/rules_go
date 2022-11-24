@@ -17,6 +17,10 @@ load(
     "go_context",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private:providers.bzl",
     "EXPORT_PATH",
     "GoArchive",
@@ -25,7 +29,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_reset_transition",
+    "go_tool_transition",
 )
 
 def _nogo_impl(ctx):
@@ -93,7 +97,7 @@ _nogo = rule(
             allow_single_file = True,
         ),
         "_nogo_srcs": attr.label(
-            default = "@io_bazel_rules_go//go/tools/builders:nogo_srcs",
+            default = "//go/tools/builders:nogo_srcs",
         ),
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
         "_go_config": attr.label(default = "//:go_config"),
@@ -102,8 +106,8 @@ _nogo = rule(
             default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
-    cfg = go_reset_transition,
+    toolchains = [GO_TOOLCHAIN],
+    cfg = go_tool_transition,
 )
 
 def nogo(name, visibility = None, **kwargs):
@@ -112,7 +116,7 @@ def nogo(name, visibility = None, **kwargs):
         name = name,
         actual = select({
             "@io_bazel_rules_go//go/private:nogo_active": actual_name,
-            "//conditions:default": "@io_bazel_rules_go//:default_nogo",
+            "//conditions:default": Label("//:default_nogo"),
         }),
         visibility = visibility,
     )

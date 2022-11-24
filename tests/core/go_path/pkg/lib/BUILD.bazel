@@ -8,9 +8,13 @@ go_library(
         "data.txt",
         "testdata/testdata.txt",
     ],
-    deps = [":transitive_lib"],
+    embedsrcs = [
+        "embedded_src.txt",
+        "template/index.html.tmpl",
+    ],
     importpath = "example.com/repo/pkg/lib",
     visibility = ["//visibility:public"],
+    deps = [":transitive_lib"],
 )
 
 go_test(
@@ -39,8 +43,8 @@ go_library(
 go_library(
     name = "vendored",
     srcs = ["vendored.go"],
-    importpath = "example.com/repo2",
     importmap = "example.com/repo/vendor/example.com/repo2",
+    importpath = "example.com/repo2",
     visibility = ["//visibility:public"],
 )
 

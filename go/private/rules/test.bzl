@@ -26,6 +26,10 @@ load(
     "split_srcs",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private/rules:binary.bzl",
     "gc_linkopts",
 )
@@ -39,7 +43,7 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_transition_rule",
+    "go_transition",
 )
 load(
     "//go/private:mode.bzl",
@@ -49,9 +53,6 @@ load(
     "@bazel_skylib//lib:structs.bzl",
     "structs",
 )
-
-def _testmain_library_to_source(go, attr, source, merge):
-    source["deps"] = source["deps"] + [attr.library]
 
 def _go_test_impl(ctx):
     """go_test_impl implements go testing.
@@ -101,6 +102,7 @@ def _go_test_impl(ctx):
             arguments.add("-cover_mode", "atomic")
         else:
             arguments.add("-cover_mode", "set")
+        arguments.add("-cover_format", go.cover_format)
     arguments.add(
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
@@ -179,7 +181,7 @@ def _go_test_impl(ctx):
         coverage_common.instrumented_files_info(
             ctx,
             source_attributes = ["srcs"],
-            dependency_attributes = ["deps", "embed"],
+            dependency_attributes = ["data", "deps", "embed", "embedsrcs"],
             extensions = ["go"],
         ),
         testing.TestEnvironment(env),
@@ -188,43 +190,274 @@ def _go_test_impl(ctx):
 _go_test_kwargs = {
     "implementation": _go_test_impl,
     "attrs": {
-        "data": attr.label_list(allow_files = True),
-        "srcs": attr.label_list(allow_files = go_exts + asm_exts + cgo_exts),
-        "deps": attr.label_list(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoLibrary]),
-        "embedsrcs": attr.label_list(allow_files = True),
-        "env": attr.string_dict(),
-        "importpath": attr.string(),
-        "gc_goopts": attr.string_list(),
-        "gc_linkopts": attr.string_list(),
-        "rundir": attr.string(),
-        "x_defs": attr.string_dict(),
-        "linkmode": attr.string(default = LINKMODE_NORMAL),
-        "cgo": attr.bool(),
-        "cdeps": attr.label_list(),
-        "cppopts": attr.string_list(),
-        "copts": attr.string_list(),
-        "cxxopts": attr.string_list(),
-        "clinkopts": attr.string_list(),
-        "_go_context_data": attr.label(default = "//:go_context_data"),
+        "data": attr.label_list(
+            allow_files = True,
+            doc = """List of files needed by this rule at run-time. This may include data files
+            needed or other programs that may be executed. The [bazel] package may be
+            used to locate run files; they may appear in different places depending on the
+            operating system and environment. See [data dependencies] for more
+            information on data files.
+            """,
+        ),
+        "srcs": attr.label_list(
+            allow_files = go_exts + asm_exts + cgo_exts,
+            doc = """The list of Go source files that are compiled to create the package.
+            Only `.go` and `.s` files are permitted, unless the `cgo`
+            attribute is set, in which case,
+            `.c .cc .cpp .cxx .h .hh .hpp .hxx .inc .m .mm`
+            files are also permitted. Files may be filtered at build time
+            using Go [build constraints].
+            """,
+        ),
+        "deps": attr.label_list(
+            providers = [GoLibrary],
+            doc = """List of Go libraries this test imports directly.
+            These may be go_library rules or compatible rules with the [GoLibrary] provider.
+            """,
+            cfg = go_transition,
+        ),
+        "embed": attr.label_list(
+            providers = [GoLibrary],
+            doc = """List of Go libraries whose sources should be compiled together with this
+            package's sources. Labels listed here must name `go_library`,
+            `go_proto_library`, or other compatible targets with the [GoLibrary] and
+            [GoSource] providers. Embedded libraries must have the same `importpath` as
+            the embedding library. At most one embedded library may have `cgo = True`,
+            and the embedding library may not also have `cgo = True`. See [Embedding]
+            for more information.
+            """,
+            cfg = go_transition,
+        ),
+        "embedsrcs": attr.label_list(
+            allow_files = True,
+            doc = """The list of files that may be embedded into the compiled package using
+            `//go:embed` directives. All files must be in the same logical directory
+            or a subdirectory as source files. All source files containing `//go:embed`
+            directives must be in the same logical directory. It's okay to mix static and
+            generated source files and static and generated embeddable files.
+            """,
+        ),
+        "env": attr.string_dict(
+            doc = """Environment variables to set for the test execution.
+            The values (but not keys) are subject to
+            [location expansion](https://docs.bazel.build/versions/main/skylark/macros.html) but not full
+            [make variable expansion](https://docs.bazel.build/versions/main/be/make-variables.html).
+            """,
+        ),
+        "importpath": attr.string(
+            doc = """The import path of this test. Tests can't actually be imported, but this
+            may be used by [go_path] and other tools to report the location of source
+            files. This may be inferred from embedded libraries.
+            """,
+        ),
+        "gc_goopts": attr.string_list(
+            doc = """List of flags to add to the Go compilation command when using the gc compiler.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            """,
+        ),
+        "gc_linkopts": attr.string_list(
+            doc = """List of flags to add to the Go link command when using the gc compiler.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            """,
+        ),
+        "rundir": attr.string(
+            doc = """ A directory to cd to before the test is run.
+            This should be a path relative to the execution dir of the test.
+
+            The default behaviour is to change to the workspace relative path, this replicates the normal
+            behaviour of `go test` so it is easy to write compatible tests.
+
+            Setting it to `.` makes the test behave the normal way for a bazel test.
+
+            ***Note:*** This defaults to the package path.
+            """,
+        ),
+        "x_defs": attr.string_dict(
+            doc = """Map of defines to add to the go link command.
+            See [Defines and stamping] for examples of how to use these.
+            """,
+        ),
+        "linkmode": attr.string(
+            default = LINKMODE_NORMAL,
+            doc = """Determines how the binary should be built and linked. This accepts some of
+            the same values as `go build -buildmode` and works the same way.
+            <br><br>
+            <ul>
+            <li>`normal`: Builds a normal executable with position-dependent code.</li>
+            <li>`pie`: Builds a position-independent executable.</li>
+            <li>`plugin`: Builds a shared library that can be loaded as a Go plugin. Only supported on platforms that support plugins.</li>
+            <li>`c-shared`: Builds a shared library that can be linked into a C program.</li>
+            <li>`c-archive`: Builds an archive that can be linked into a C program.</li>
+            </ul>
+            """,
+        ),
+        "cgo": attr.bool(
+            doc = """
+            If `True`, the package may contain [cgo] code, and `srcs` may contain
+            C, C++, Objective-C, and Objective-C++ files and non-Go assembly files.
+            When cgo is enabled, these files will be compiled with the C/C++ toolchain
+            and included in the package. Note that this attribute does not force cgo
+            to be enabled. Cgo is enabled for non-cross-compiling builds when a C/C++
+            toolchain is configured.
+            """,
+        ),
+        "cdeps": attr.label_list(
+            doc = """The list of other libraries that the c code depends on.
+            This can be anything that would be allowed in [cc_library deps]
+            Only valid if `cgo` = `True`.
+            """,
+        ),
+        "cppopts": attr.string_list(
+            doc = """List of flags to add to the C/C++ preprocessor command.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            Only valid if `cgo` = `True`.
+            """,
+        ),
+        "copts": attr.string_list(
+            doc = """List of flags to add to the C compilation command.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            Only valid if `cgo` = `True`.
+            """,
+        ),
+        "cxxopts": attr.string_list(
+            doc = """List of flags to add to the C++ compilation command.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            Only valid if `cgo` = `True`.
+            """,
+        ),
+        "clinkopts": attr.string_list(
+            doc = """List of flags to add to the C link command.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            Only valid if `cgo` = `True`.
+            """,
+        ),
+        "pure": attr.string(
+            default = "auto",
+            doc = """Controls whether cgo source code and dependencies are compiled and linked,
+            similar to setting `CGO_ENABLED`. May be one of `on`, `off`,
+            or `auto`. If `auto`, pure mode is enabled when no C/C++
+            toolchain is configured or when cross-compiling. It's usually better to
+            control this on the command line with
+            `--@io_bazel_rules_go//go/config:pure`. See [mode attributes], specifically
+            [pure].
+            """,
+        ),
+        "static": attr.string(
+            default = "auto",
+            doc = """Controls whether a binary is statically linked. May be one of `on`,
+            `off`, or `auto`. Not available on all platforms or in all
+            modes. It's usually better to control this on the command line with
+            `--@io_bazel_rules_go//go/config:static`. See [mode attributes],
+            specifically [static].
+            """,
+        ),
+        "race": attr.string(
+            default = "auto",
+            doc = """Controls whether code is instrumented for race detection. May be one of
+            `on`, `off`, or `auto`. Not available when cgo is
+            disabled. In most cases, it's better to control this on the command line with
+            `--@io_bazel_rules_go//go/config:race`. See [mode attributes], specifically
+            [race].
+            """,
+        ),
+        "msan": attr.string(
+            default = "auto",
+            doc = """Controls whether code is instrumented for memory sanitization. May be one of
+            `on`, `off`, or `auto`. Not available when cgo is
+            disabled. In most cases, it's better to control this on the command line with
+            `--@io_bazel_rules_go//go/config:msan`. See [mode attributes], specifically
+            [msan].
+            """,
+        ),
+        "gotags": attr.string_list(
+            doc = """Enables a list of build tags when evaluating [build constraints]. Useful for
+            conditional compilation.
+            """,
+        ),
+        "goos": attr.string(
+            default = "auto",
+            doc = """Forces a binary to be cross-compiled for a specific operating system. It's
+            usually better to control this on the command line with `--platforms`.
+
+            This disables cgo by default, since a cross-compiling C/C++ toolchain is
+            rarely available. To force cgo, set `pure` = `off`.
+
+            See [Cross compilation] for more information.
+            """,
+        ),
+        "goarch": attr.string(
+            default = "auto",
+            doc = """Forces a binary to be cross-compiled for a specific architecture. It's usually
+            better to control this on the command line with `--platforms`.
+
+            This disables cgo by default, since a cross-compiling C/C++ toolchain is
+            rarely available. To force cgo, set `pure` = `off`.
+
+            See [Cross compilation] for more information.
+            """,
+        ),
+        "_go_context_data": attr.label(default = "//:go_context_data", cfg = go_transition),
         "_testmain_additional_deps": attr.label_list(
             providers = [GoLibrary],
-            default = ["@io_bazel_rules_go//go/tools/bzltestutil"],
+            default = ["//go/tools/bzltestutil"],
+            cfg = go_transition,
         ),
-        # Workaround for bazelbuild/bazel#6293. See comment in lcov_merger.sh.
+        # Required for Bazel to collect coverage of instrumented C/C++ binaries
+        # executed by go_test.
+        # This is just a shell script and thus cheap enough to depend on
+        # unconditionally.
+        "_collect_cc_coverage": attr.label(
+            default = "@bazel_tools//tools/test:collect_cc_coverage",
+            cfg = "exec",
+        ),
+        # Required for Bazel to merge coverage reports for Go and other
+        # languages into a single report per test.
+        # Using configuration_field ensures that the tool is only built when
+        # run with bazel coverage, not with bazel test.
         "_lcov_merger": attr.label(
-            executable = True,
-            default = "@io_bazel_rules_go//go/tools/builders:lcov_merger",
-            cfg = "target",
+            default = configuration_field(fragment = "coverage", name = "output_generator"),
+            cfg = "exec",
+        ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     "executable": True,
     "test": True,
-    "toolchains": ["@io_bazel_rules_go//go:toolchain"],
+    "toolchains": [GO_TOOLCHAIN],
+    "doc": """This builds a set of tests that can be run with `bazel test`.<br><br>
+    To run all tests in the workspace, and print output on failure (the
+    equivalent of `go test ./...`), run<br>
+    ```
+    bazel test --test_output=errors //...
+    ```<br><br>
+    To run a Go benchmark test, run<br>
+    ```
+    bazel run //path/to:test -- -test.bench=.
+    ```<br><br>
+    You can run specific tests by passing the `--test_filter=pattern
+    <test_filter_>` argument to Bazel. You can pass arguments to tests by passing
+    `--test_arg=arg <test_arg_>` arguments to Bazel, and you can set environment
+    variables in the test environment by passing
+    `--test_env=VAR=value <test_env_>`. You can terminate test execution after the first
+    failure by passing the `--test_runner_fast_fast <test_runner_fail_fast_>` argument
+    to Bazel. This is equivalent to passing `--test_arg=-failfast <test_arg_>`.<br><br>
+    To write structured testlog information to Bazel's `XML_OUTPUT_FILE`, tests
+    ran with `bazel test` execute using a wrapper. This functionality can be
+    disabled by setting `GO_TEST_WRAP=0` in the test environment. Additionally,
+    the testbinary can be invoked with `-test.v` by setting
+    `GO_TEST_WRAP_TESTV=1` in the test environment; this will result in the
+    `XML_OUTPUT_FILE` containing more granular data.<br><br>
+    ***Note:*** To interoperate cleanly with old targets generated by [Gazelle], `name`
+    should be `go_default_test` for internal tests and
+    `go_default_xtest` for external tests. Gazelle now generates
+    the name  based on the last component of the path. For example, a test
+    in `//foo/bar` is named `bar_test`, and uses internal and external
+    sources.
+    """,
 }
 
 go_test = rule(**_go_test_kwargs)
-go_transition_test = go_transition_rule(**_go_test_kwargs)
 
 def _recompile_external_deps(go, external_source, internal_archive, library_labels):
     """Recompiles some archives in order to split internal and external tests.
@@ -363,8 +596,11 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     # can't import anything that imports itself.
     internal_source = internal_archive.source
     internal_deps = [dep for dep in internal_source.deps if not need_recompile[get_archive(dep).data.label]]
+    x_defs = dict(internal_source.x_defs)
+    x_defs.update(internal_archive.x_defs)
     attrs = structs.to_dict(internal_source)
     attrs["deps"] = internal_deps
+    attrs["x_defs"] = x_defs
     internal_source = GoSource(**attrs)
     internal_archive = go.archive(go, internal_source, _recompile_suffix = ".recompileinternal")
 

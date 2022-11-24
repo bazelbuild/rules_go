@@ -22,6 +22,10 @@ load(
     "go_context",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private/rules:transition.bzl",
     "go_reset_target",
 )
@@ -108,6 +112,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     args.add_all(go_srcs, before_each = "-expected")
     args.add_all(imports, before_each = "-import")
     args.add_all(proto_paths.keys())
+    args.use_param_file("-param=%s")
     go.actions.run(
         inputs = depset(
             direct = [
@@ -143,21 +148,6 @@ def proto_path(src, proto):
     Returns:
         An import path string.
     """
-    if not hasattr(proto, "proto_source_root"):
-        # Legacy path. Remove when Bazel minimum version >= 0.21.0.
-        path = src.path
-        root = src.root.path
-        ws = src.owner.workspace_root
-        if path.startswith(root):
-            path = path[len(root):]
-        if path.startswith("/"):
-            path = path[1:]
-        if path.startswith(ws):
-            path = path[len(ws):]
-        if path.startswith("/"):
-            path = path[1:]
-        return path
-
     if proto.proto_source_root == ".":
         # true if proto sources were generated
         prefix = src.root.path + "/"
@@ -215,13 +205,13 @@ _go_proto_compiler = rule(
         "_protoc": attr.label(
             executable = True,
             cfg = "exec",
-            default = "@com_google_protobuf//:protoc",
+            default = "//proto:protoc",
         ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def go_proto_compiler(name, **kwargs):

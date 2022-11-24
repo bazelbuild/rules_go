@@ -3,10 +3,10 @@ Go providers
 
 .. _providers: https://docs.bazel.build/versions/master/skylark/rules.html#providers
 
-.. _go_library: core.rst#go_library
-.. _go_binary: core.rst#go_binary
-.. _go_test: core.rst#go_test
-.. _go_path: core.rst#go_path
+.. _go_library: /docs/go/core/rules.md#go_library
+.. _go_binary: /docs/go/core/rules.md#go_binary
+.. _go_test: /docs/go/core/rules.md#go_test
+.. _go_path: /docs/go/core/rules.md#go_path
 .. _cc_library: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
 .. _flatbuffers: http://google.github.io/flatbuffers/
 .. _static linking: modes.rst#building-static-binaries
@@ -203,6 +203,10 @@ method. In general, only rules_go should need to build or handle these.
 | :param:`cgo_exports`           | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
 | The exposed cc headers for these sources.                                                        |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`cc_info`               | :type:`CcInfo`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| The result of merging the ``CcInfo``s of all `deps` and `cdeps`                                  |
 +--------------------------------+-----------------------------------------------------------------+
 
 GoArchiveData

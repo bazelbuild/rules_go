@@ -1,5 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//go:def.bzl", "go_library")
 
 go_library(
     name = "bazel_testing",
@@ -29,5 +29,5 @@ bzl_library(
     name = "def",
     srcs = ["def.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["@io_bazel_rules_go//go:def"],
+    deps = ["//go:def"],
 )

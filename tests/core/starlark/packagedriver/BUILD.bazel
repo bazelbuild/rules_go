@@ -1,0 +1,5 @@
+load(":go_pkg_info_aspect_test.bzl", "package_driver_suite")
+
+package_driver_suite(
+    name = "package_driver_test",
+)

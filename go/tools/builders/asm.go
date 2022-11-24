@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -30,7 +31,7 @@ import (
 // Go rules as an action.
 func asm(args []string) error {
 	// Parse arguments.
-	args, err := expandParamsFiles(args)
+	args, _, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,10 @@ func asm(args []string) error {
 	}
 
 	// Build source with the assembler.
-	return asmFile(goenv, source, asmFlags, outPath)
+	// Note: As of Go 1.19, this would require a valid package path to work.
+	// But since this functionality is only used by the deprecated action API,
+	// we won't fix this.
+	return asmFile(goenv, source, "", asmFlags, outPath)
 }
 
 // buildSymabisFile generates a file from assembly files that is consumed
@@ -137,12 +141,34 @@ func buildSymabisFile(goenv *env, sFiles, hFiles []fileInfo, asmhdr string) (str
 	return symabisName, err
 }
 
-func asmFile(goenv *env, srcPath string, asmFlags []string, outPath string) error {
+func asmFile(goenv *env, srcPath, packagePath string, asmFlags []string, outPath string) error {
 	args := goenv.goTool("asm")
 	args = append(args, asmFlags...)
+	// The package path has to be specified as of Go 1.19 or the resulting
+	// object will be unlinkable, but the -p flag is also only available
+	// since Go 1.19.
+	if packagePath != "" && isGo119OrHigher() {
+		args = append(args, "-p", packagePath)
+	}
 	args = append(args, "-trimpath", ".")
 	args = append(args, "-o", outPath)
 	args = append(args, "--", srcPath)
 	absArgs(args, []string{"-I", "-o", "-trimpath"})
 	return goenv.runCommand(args)
+}
+
+var goMinorVersionRegexp = regexp.MustCompile(`^go1\.(\d+)`)
+
+func isGo119OrHigher() bool {
+	match := goMinorVersionRegexp.FindStringSubmatch(runtime.Version())
+	if match == nil {
+		// Developer version or something with an unparseable version string,
+		// assume Go 1.19 or higher.
+		return true
+	}
+	minorVersion, err := strconv.Atoi(match[1])
+	if err != nil {
+		return true
+	}
+	return minorVersion >= 19
 }

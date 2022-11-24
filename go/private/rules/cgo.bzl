@@ -195,17 +195,11 @@ def _cc_libs_and_flags(target):
                 libs.append(library_to_link.static_library)
             elif library_to_link.pic_static_library != None:
                 libs.append(library_to_link.pic_static_library)
-            elif library_to_link.resolved_symlink_interface_library != None:
-                libs.append(library_to_link.resolved_symlink_interface_library)
-            elif library_to_link.resolved_symlink_dynamic_library != None:
-                libs.append(library_to_link.resolved_symlink_dynamic_library)
+            elif library_to_link.interface_library != None:
+                libs.append(library_to_link.interface_library)
+            elif library_to_link.dynamic_library != None:
+                libs.append(library_to_link.dynamic_library)
     return libs, flags
-
-_DEFAULT_PLATFORM_COPTS = select({
-    "@io_bazel_rules_go//go/platform:darwin": [],
-    "@io_bazel_rules_go//go/platform:windows_amd64": ["-mthreads"],
-    "//conditions:default": ["-pthread"],
-})
 
 def _include_unique(opts, flag, include, seen):
     if include in seen:

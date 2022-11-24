@@ -105,6 +105,7 @@ go_test(
         "embedsrcs_test.go",
     ],
     embedsrcs = [
+        ":embedsrcs_transitioned",
         ":embedsrcs_dynamic",
         "embedsrcs_test.go",
     ] + glob(["embedsrcs_static/**"]),
@@ -128,6 +129,14 @@ embedsrcs_files(
         "glob/f",
         "no",
     ],
+)
+
+go_binary(
+    name = "embedsrcs_transitioned",
+    srcs = ["empty_main.go"],
+    out = "embedsrcs_transitioned",
+    # Causes a transition on the incoming dependency edge.
+    race = "on",
 )
 
 go_binary(

@@ -138,15 +138,13 @@ func (b *Bazel) Query(ctx context.Context, args ...string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("bazel query failed: %w", err)
 	}
-	return strings.Split(strings.TrimSpace(output), "\n"), nil
-}
 
-func (b *Bazel) QueryLabels(ctx context.Context, args ...string) ([]string, error) {
-	output, err := b.run(ctx, "query", args...)
-	if err != nil {
-		return nil, fmt.Errorf("bazel query failed: %w", err)
+	trimmedOutput := strings.TrimSpace(output)
+	if len(trimmedOutput) == 0 {
+		return nil, nil
 	}
-	return strings.Split(strings.TrimSpace(output), "\n"), nil
+
+	return strings.Split(trimmedOutput, "\n"), nil
 }
 
 func (b *Bazel) WorkspaceRoot() string {

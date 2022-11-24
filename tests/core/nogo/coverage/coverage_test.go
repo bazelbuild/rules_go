@@ -51,13 +51,15 @@ package coverage_target_test
 }
 
 func TestCoverageWithNogo(t *testing.T) {
-	if err := bazel_testing.RunBazel("coverage", "//:coverage_target"); err != nil {
+	if out, err := bazel_testing.BazelOutput("coverage", "//:coverage_target"); err != nil {
+		println(string(out))
 		t.Fatal(err)
 	}
 }
 
 func TestCoverageOfNogo(t *testing.T) {
-	if err := bazel_testing.RunBazel("build", "--instrumentation_filter=.*", "--collect_code_coverage", "//:nogo"); err != nil {
+	if out, err := bazel_testing.BazelOutput("build", "--instrumentation_filter=.*", "--collect_code_coverage", "//:nogo"); err != nil {
+		println(string(out))
 		t.Fatal(err)
 	}
 }

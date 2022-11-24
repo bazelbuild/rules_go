@@ -24,7 +24,7 @@ import (
 )
 
 func run(args []string) error {
-	args, err := expandParamsFiles(args)
+	args, _, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}
@@ -48,10 +48,10 @@ func run(args []string) error {
 		}
 		defer f.Close()
 	}
-	if err := goenv.runCommandToFile(f, goenv.goCmd("version")); err != nil {
+	if err := goenv.runCommandToFile(f, os.Stderr, goenv.goCmd("version")); err != nil {
 		return err
 	}
-	if err := goenv.runCommandToFile(f, goenv.goCmd("env")); err != nil {
+	if err := goenv.runCommandToFile(f, os.Stderr, goenv.goCmd("env")); err != nil {
 		return err
 	}
 	return nil

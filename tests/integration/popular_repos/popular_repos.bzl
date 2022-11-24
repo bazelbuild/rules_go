@@ -71,5 +71,5 @@ def popular_repos():
         go_repository,
         name = "org_golang_x_mod",
         importpath = "golang.org/x/mod",
-        commit = "c8bb1bd8a2aaa5c50fa106c8116850d503792d16",
+        commit = "86c51ed26bb44749b7d60a57bab0e7524656fe8a",
     )

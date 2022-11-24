@@ -2,7 +2,7 @@ Nogo configuration
 ==================
 
 .. _nogo: /go/nogo.rst
-.. _go_binary: /go/core.rst#_go_binary
+.. _go_binary: /docs/go/core/rules.md#_go_binary
 .. _#1850: https://github.com/bazelbuild/rules_go/issues/1850
 .. _#2470: https://github.com/bazelbuild/rules_go/issues/2470
 

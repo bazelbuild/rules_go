@@ -52,6 +52,6 @@ go_test(
         ":nodata_path",
         ":notransitive_path",
     ],
-    deps = ["//go/tools/bazel:go_default_library"],
     rundir = ".",
+    deps = ["//go/tools/bazel:go_default_library"],
 )

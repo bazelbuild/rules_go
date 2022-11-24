@@ -2,9 +2,9 @@ load(":buildifier_test.bzl", "buildifier_test")
 
 buildifier_test(
     name = "buildifier_test",
+    size = "small",
     data = [
         ":buildifier_test.bzl",
         "//:all_files",
     ],
-    size = "small",
 )

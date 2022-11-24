@@ -4,9 +4,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
-go_rules_dependencies(is_rules_go = True)
+go_rules_dependencies()
 
-go_register_toolchains(version = "1.17")
+go_register_toolchains(version = "1.18.3")
 
 http_archive(
     name = "com_google_protobuf",
@@ -54,21 +54,20 @@ llvm_toolchain(
 )
 
 http_archive(
-    name = "bazel_toolchains",
-    sha256 = "179ec02f809e86abf56356d8898c8bd74069f1bd7c56044050c2cd3d79d0e024",
-    strip_prefix = "bazel-toolchains-4.1.0",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-toolchains/releases/download/4.1.0/bazel-toolchains-4.1.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-toolchains/releases/download/4.1.0/bazel-toolchains-4.1.0.tar.gz",
-    ],
+    name = "bazelci_rules",
+    sha256 = "eca21884e6f66a88c358e580fd67a6b148d30ab57b1680f62a96c00f9bc6a07e",
+    strip_prefix = "bazelci_rules-1.0.0",
+    url = "https://github.com/bazelbuild/continuous-integration/releases/download/rules-1.0.0/bazelci_rules-1.0.0.tar.gz",
 )
 
-load("@bazel_toolchains//rules:rbe_repo.bzl", "rbe_autoconfig")
+load("@bazelci_rules//:rbe_repo.bzl", "rbe_preconfig")
 
-# Creates toolchain configuration for remote execution with BuildKite CI
-# for rbe_ubuntu1604
-rbe_autoconfig(
+# Creates a default toolchain config for RBE.
+# Use this as is if you are using the rbe_ubuntu16_04 container,
+# otherwise refer to RBE docs.
+rbe_preconfig(
     name = "buildkite_config",
+    toolchain = "ubuntu1804-bazel-java11",
 )
 
 # Needed for tests and tools
@@ -78,10 +77,10 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "222e49f034ca7a1d1231422cdb67066b885819885c356673cb1f72f748a3c9d4",
+    sha256 = "501deb3d5695ab658e82f6f6f549ba681ea3ca2a5fb7911154b5aa45596183fa",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.3/bazel-gazelle-v0.22.3.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.22.3/bazel-gazelle-v0.22.3.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.26.0/bazel-gazelle-v0.26.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.26.0/bazel-gazelle-v0.26.0.tar.gz",
     ],
 )
 
@@ -104,8 +103,8 @@ go_repository(
 go_repository(
     name = "org_golang_x_mod",
     importpath = "golang.org/x/mod",
-    sum = "h1:Gz96sIWK3OalVv/I/qNygP42zyoKp3xptRVCWRFEBvo=",
-    version = "v0.4.2",
+    sum = "h1:6zppjxzCulZykYSLyVDYbneBfbaBIQPYMevg0bEwv2s=",
+    version = "v0.6.0-dev.0.20220419223038-86c51ed26bb4",
 )
 
 go_repository(
@@ -121,6 +120,18 @@ go_repository(
     sum = "h1:3B43BWw0xEBsLZ/NO1VALz6fppU3481pik+2Ksv45z8=",
     version = "v0.0.0-20210628180205-a41e5a781914",
 )
+
+# TODO(sluongng): Gazelle v0.25.0 switched to static dependency resolution which cause
+# build files generation in external dependencies to wrongly resolve these repositories.
+# We should investigate in Gazelle why this happen and fix it.
+# For now, use manual mapping as a workaround.
+#
+# gazelle:repository go_repository name=org_golang_x_tools   importpath=golang.org/x/tools
+# gazelle:repository go_repository name=org_golang_x_text    importpath=golang.org/x/text
+# gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
+# gazelle:repository go_repository name=org_golang_x_net     importpath=golang.org/x/net
+# gazelle:repository go_repository name=org_golang_x_sys     importpath=golang.org/x/sys
+# gazelle:repository go_repository name=org_golang_x_crypto  importpath=golang.org/x/crypto
 
 gazelle_dependencies()
 

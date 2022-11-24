@@ -12,44 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-  [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
-  [golang/mock]: https://github.com/golang/mock
-  [gomock_rule]: https://github.com/jmhodges/bazel_gomock
-  [core go rules]: core.rst
-
-# Extra rules
-
-This is a collection of helper rules. These are not core to building a go binary, but are supplied
-to make life a little easier.
-
-## Contents
-- [gazelle](#gazelle)
-- [gomock](#gomock)
-- [go_embed_data](#go_embed_data)
-
-## Additional resources
-- [gazelle rule]
-- [golang/mock]
-- [gomock_rule]
-- [core go rules]
-
-------------------------------------------------------------------------
-
-gazelle
--------
-
-This rule has moved. See [gazelle rule] in the Gazelle repository.
-
-gomock
-------
-
-This rule allows you to generate mock interfaces with mockgen (from [golang/mock]) which can be useful for certain testing scenarios. See [gomock_rule] in the gomock repository.
-"""
-
 load(
-    "@io_bazel_rules_go//go/private:context.bzl",  #TODO: This ought to be def
+    "//go/private:context.bzl",  #TODO: This ought to be def
     "go_context",
+)
+load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
 )
 
 _DOC = """`go_embed_data` generates a .go file that contains data from a file or a
@@ -69,6 +38,8 @@ go_embed_data_dependencies()
 """
 
 def _go_embed_data_impl(ctx):
+    print("Embedding is now better handled by using rules_go's built in https://github.com/bazelbuild/rules_go/blob/master/docs/go/core/embedding.md functionality. The `bindata` rule is deprecated and will be removed in rules_go version 0.35.")
+
     go = go_context(ctx)
     if ctx.attr.src and ctx.attr.srcs:
         fail("%s: src and srcs attributes cannot both be specified" % ctx.label)
@@ -160,7 +131,7 @@ go_embed_data = rule(
             doc = "If `True`, the embedded data will be stored as `string` instead of `[]byte`.",
         ),
         "_embed": attr.label(
-            default = "@io_bazel_rules_go//go/tools/builders:embed",
+            default = "//go/tools/builders:embed",
             executable = True,
             cfg = "host",
         ),
@@ -168,6 +139,6 @@ go_embed_data = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
-# See go/extras.md#go_embed_data for full documentation.
+# See /docs/go/extras/extras.md#go_embed_data for full documentation.

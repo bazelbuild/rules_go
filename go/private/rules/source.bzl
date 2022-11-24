@@ -17,6 +17,10 @@ load(
     "go_context",
 )
 load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
     "//go/private:providers.bzl",
     "GoLibrary",
 )
@@ -37,14 +41,56 @@ def _go_source_impl(ctx):
 go_source = rule(
     implementation = _go_source_impl,
     attrs = {
-        "data": attr.label_list(allow_files = True),
-        "srcs": attr.label_list(allow_files = True),
-        "deps": attr.label_list(providers = [GoLibrary]),
-        "embed": attr.label_list(providers = [GoLibrary]),
-        "gc_goopts": attr.string_list(),
+        "data": attr.label_list(
+            allow_files = True,
+            doc = """List of files needed by this rule at run-time. This may include data files
+            needed or other programs that may be executed. The [bazel] package may be
+            used to locate run files; they may appear in different places depending on the
+            operating system and environment. See [data dependencies] for more
+            information on data files.
+            """,
+        ),
+        "srcs": attr.label_list(
+            allow_files = True,
+            doc = """The list of Go source files that are compiled to create the package.
+            The following file types are permitted: `.go, .c, .s, .S .h`.
+            The files may contain Go-style [build constraints].
+            """,
+        ),
+        "deps": attr.label_list(
+            providers = [GoLibrary],
+            doc = """List of Go libraries this source list imports directly.
+            These may be go_library rules or compatible rules with the [GoLibrary] provider.
+            """,
+        ),
+        "embed": attr.label_list(
+            providers = [GoLibrary],
+            doc = """List of Go libraries whose sources should be compiled together with this
+            package's sources. Labels listed here must name `go_library`,
+            `go_proto_library`, or other compatible targets with the [GoLibrary] and
+            [GoSource] providers. Embedded libraries must have the same `importpath` as
+            the embedding library. At most one embedded library may have `cgo = True`,
+            and the embedding library may not also have `cgo = True`. See [Embedding]
+            for more information.
+            """,
+        ),
+        "gc_goopts": attr.string_list(
+            doc = """List of flags to add to the Go compilation command when using the gc compiler.
+            Subject to ["Make variable"] substitution and [Bourne shell tokenization].
+            """,
+        ),
         "_go_config": attr.label(default = "//:go_config"),
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
+    doc = """This declares a set of source files and related dependencies that can be embedded into one of the
+    other rules.
+    This is used as a way of easily declaring a common set of sources re-used in multiple rules.<br><br>
+    **Providers:**
+    <ul>
+      <li>[GoLibrary]</li>
+      <li>[GoSource]</li>
+    </ul>
+    """,
 )
-# See go/core.rst#go_source for full documentation.
+# See docs/go/core/rules.md#go_source for full documentation.

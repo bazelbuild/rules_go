@@ -4,6 +4,7 @@ go_tool_library(
     name = "bzltestutil",
     srcs = [
         "init.go",
+        "lcov.go",
         "test2json.go",
         "wrap.go",
         "xml.go",
@@ -15,14 +16,12 @@ go_tool_library(
 go_test(
     name = "bzltestutil_test",
     srcs = [
-        "init.go",
-        "test2json.go",
-        "wrap.go",
+        "lcov_test.go",
         "wrap_test.go",
-        "xml.go",
         "xml_test.go",
     ],
     data = glob(["testdata/**"]),
+    embed = [":bzltestutil"],
 )
 
 filegroup(
@@ -32,5 +31,11 @@ filegroup(
         ["**"],
         exclude = ["testdata/*"],
     ),
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "go_default_library",
+    actual = ":bzltestutil",
     visibility = ["//visibility:public"],
 )

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package tests.bcr.proto;
+option go_package = "example.com/foo_proto";
+
+import "google/protobuf/empty.proto";
+
+message Foo {
+  int64 value = 1;
+  google.protobuf.Empty empty = 2;
+}
+
+service Fooer {
+  rpc RoundTripFoo (Foo) returns (Foo) {}
+}

@@ -1,0 +1,17 @@
+alias(
+    name = "gomock",
+    actual = "@com_github_golang_mock//gomock",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "mockgen",
+    actual = "@com_github_golang_mock//mockgen",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "mockgen_model",
+    actual = "@com_github_golang_mock//mockgen/model",
+    visibility = ["//visibility:public"],
+)

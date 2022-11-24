@@ -441,7 +441,7 @@ func loadWorkspaceName(workspacePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	nameRe := regexp.MustCompile(`(?m)^workspace\(\s*name\s*=\s*("[^"]*"|'[^']*')\s*,?\s*\)$`)
+	nameRe := regexp.MustCompile(`(?m)^workspace\(\s*name\s*=\s*("[^"]*"|'[^']*')\s*,?\s*\)\s*$`)
 	match := nameRe.FindSubmatchIndex(workspaceData)
 	if match == nil {
 		return "", fmt.Errorf("%s: workspace name not set", workspacePath)

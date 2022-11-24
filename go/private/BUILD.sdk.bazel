@@ -1,6 +1,7 @@
-load("@io_bazel_rules_go//go/private/rules:binary.bzl", "go_tool_binary")
-load("@io_bazel_rules_go//go/private/rules:sdk.bzl", "package_list")
-load("@io_bazel_rules_go//go:def.bzl", "declare_toolchains", "go_sdk")
+load("@{rules_go_repo_name}//go/private/rules:binary.bzl", "go_tool_binary")
+load("@{rules_go_repo_name}//go/private/rules:sdk.bzl", "package_list")
+load("@{rules_go_repo_name}//go/private:go_toolchain.bzl", "declare_go_toolchains")
+load("@{rules_go_repo_name}//go:def.bzl", "go_sdk")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -24,25 +25,28 @@ filegroup(
 
 filegroup(
     name = "tools",
-    srcs = glob(["pkg/tool/**", "bin/gofmt*"])
+    srcs = glob([
+        "pkg/tool/**",
+        "bin/gofmt*",
+    ]),
 )
 
 go_sdk(
     name = "go_sdk",
-    goos = "{goos}",
-    goarch = "{goarch}",
-    root_file = "ROOT",
-    package_list = ":package_list",
-    libs = [":libs"],
-    headers = [":headers"],
     srcs = [":srcs"],
-    tools = [":tools"],
     go = "bin/go{exe}",
+    goarch = "{goarch}",
+    goos = "{goos}",
+    headers = [":headers"],
+    libs = [":libs"],
+    package_list = ":package_list",
+    root_file = "ROOT",
+    tools = [":tools"],
 )
 
 go_tool_binary(
     name = "builder",
-    srcs = ["@io_bazel_rules_go//go/tools/builders:builder_srcs"],
+    srcs = ["@{rules_go_repo_name}//go/tools/builders:builder_srcs"],
     sdk = ":go_sdk",
 )
 
@@ -51,14 +55,14 @@ go_tool_binary(
 package_list(
     name = "package_list",
     srcs = [":srcs"],
-    root_file = "ROOT",
     out = "packages.txt",
+    root_file = "ROOT",
 )
 
-declare_toolchains(
-    host = "{goos}_{goarch}",
-    sdk = ":go_sdk",
+declare_go_toolchains(
     builder = ":builder",
+    host_goos = "{goos}",
+    sdk = ":go_sdk",
 )
 
 filegroup(
@@ -71,6 +75,9 @@ filegroup(
 )
 
 exports_files(
-    ["lib/time/zoneinfo.zip"],
+    glob([
+        "lib/time/zoneinfo.zip",
+        "misc/wasm/**",
+    ]),
     visibility = ["//visibility:public"],
 )

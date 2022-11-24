@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_source", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library", "go_test")
 load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 load(":def.bzl", "no_context_info")
 
@@ -33,6 +33,31 @@ go_binary(
     deps = [":platform_lib"],
 )
 
+go_binary(
+    name = "native_bin",
+    srcs = ["main.go"],
+    pure = "on",
+    deps = [":platform_lib"],
+)
+
+go_cross_binary(
+    name = "windows_go_cross",
+    platform = "@io_bazel_rules_go//go/toolchain:windows_amd64",
+    target = ":native_bin",
+)
+
+go_cross_binary(
+    name = "linux_go_cross",
+    platform = "@io_bazel_rules_go//go/toolchain:linux_amd64",
+    target = ":native_bin",
+)
+
+go_cross_binary(
+    name = "darwin_go_cross",
+    platform = "@io_bazel_rules_go//go/toolchain:darwin_amd64",
+    target = ":native_bin",
+)
+
 go_library(
     name = "platform_lib",
     srcs = select({
@@ -64,6 +89,27 @@ go_test(
     deps = ["//go/tools/bazel:go_default_library"],
 )
 
+go_test(
+    name = "go_cross_binary_test",
+    size = "small",
+    srcs = ["cross_test.go"],
+    args = [
+        "-darwin",
+        "$(location :darwin_go_cross)",
+        "-linux",
+        "$(location :linux_go_cross)",
+        "-windows",
+        "$(location :windows_go_cross)",
+    ],
+    data = [
+        ":darwin_go_cross",
+        ":linux_go_cross",
+        ":windows_go_cross",
+    ],
+    rundir = ".",
+    deps = ["//go/tools/bazel:go_default_library"],
+)
+
 go_bazel_test(
     name = "ios_select_test",
     srcs = ["ios_select_test.go"],
@@ -72,6 +118,16 @@ go_bazel_test(
 go_bazel_test(
     name = "proto_test",
     srcs = ["proto_test.go"],
+)
+
+go_bazel_test(
+    name = "sdk_version_test",
+    srcs = ["sdk_version_test.go"],
+)
+
+go_bazel_test(
+    name = "non_executable_test",
+    srcs = ["non_executable_test.go"],
 )
 
 no_context_info(

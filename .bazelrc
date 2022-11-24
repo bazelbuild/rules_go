@@ -10,3 +10,12 @@ build:ci --spawn_strategy=standalone
 build:ci --genrule_strategy=standalone
 test:ci --test_strategy=standalone
 test:ci --test_output=errors
+
+# Incompatible flags to test in a dedicated CI pipeline.
+build:incompatible --incompatible_load_proto_rules_from_bzl
+build:incompatible --incompatible_enable_cc_toolchain_resolution
+build:incompatible --incompatible_config_setting_private_default_visibility
+build:incompatible --incompatible_enforce_config_setting_visibility
+build:incompatible --incompatible_disallow_empty_glob
+# Also enable all incompatible flags in go_bazel_test by default.
+test:incompatible --test_env=GO_BAZEL_TEST_BAZELFLAGS=--incompatible_load_proto_rules_from_bzl --incompatible_enable_cc_toolchain_resolution --incompatible_config_setting_private_default_visibility --incompatible_enforce_config_setting_visibility --incompatible_disallow_empty_glob

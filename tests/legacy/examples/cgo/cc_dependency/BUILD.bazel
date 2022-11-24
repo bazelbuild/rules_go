@@ -1,8 +1,3 @@
-config_setting(
-    name = "darwin",
-    values = {"cpu": "darwin"},
-)
-
 cc_library(
     name = "version",
     srcs = ["cxx_version.cc"],
@@ -12,14 +7,17 @@ cc_library(
     # TODO(yugui) Support darwin too and remove this workaround.
     # See also comments in cxx_version.cc.
     deps = select({
-        ":darwin": [],
+        "@platforms//os:macos": [],
         "//conditions:default": [":c_version_import"],
     }),
 )
 
 cc_binary(
     name = "c_version_so",
-    srcs = ["c_version.c", "c_version.h"],
+    srcs = [
+        "c_version.c",
+        "c_version.h",
+    ],
     linkshared = True,
 )
 

@@ -28,7 +28,7 @@ import (
 // cover transforms a source file with "go tool cover". It is invoked by the
 // Go rules as an action.
 func cover(args []string) error {
-	args, err := expandParamsFiles(args)
+	args, _, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}

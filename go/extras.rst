@@ -1,3 +1,3 @@
-.. _`extras.md`: extras.md
+.. _extras.md: /docs/go/extras/extras.md
 
-This file has moved, please find it at `extras.md`_.
+This file has moved, please find it at extras.md_.

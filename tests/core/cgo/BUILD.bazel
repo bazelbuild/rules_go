@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 
 go_test(
     name = "opts_test",
@@ -407,4 +408,67 @@ cc_library(
     name = "split_import_c",
     srcs = ["split_import_c.c"],
     hdrs = ["split_import_c.h"],
+)
+
+go_bazel_test(
+    name = "external_includes_test",
+    srcs = ["external_includes_test.go"],
+)
+
+go_library(
+    name = "use_external_symbol",
+    srcs = ["use_external_symbol.go"],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/use_external_symbol",
+    tags = ["manual"],
+)
+
+go_binary(
+    name = "provide_external_symbol",
+    srcs = ["provide_external_symbol.go"],
+    cgo = True,
+    target_compatible_with = select({
+        "@platforms//os:osx": [],
+        "@platforms//os:linux": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [":use_external_symbol"],
+)
+
+cc_library(
+    name = "native_dep",
+    srcs = ["native_dep.c"],
+    hdrs = ["native_dep.h"],
+    # Force static linking to ensure that the build doesn't succeed by
+    # accidentally picking up the shared library in the search path.
+    linkstatic = True,
+)
+
+go_library(
+    name = "transitive_dep",
+    srcs = ["transitive_dep.go"],
+    cdeps = [":native_dep"],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/transitive_dep",
+)
+
+go_library(
+    name = "direct_dep",
+    srcs = ["direct_dep.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/direct_dep",
+    deps = [":transitive_dep"],
+)
+
+go_binary(
+    name = "use_transitive_symbol",
+    srcs = ["use_transitive_symbol.go"],
+    cgo = True,
+    linkmode = "c-archive",
+    deps = [":direct_dep"],
+)
+
+cc_binary(
+    name = "use_c_symbol_through_go",
+    srcs = ["use_c_symbol_through_go.c"],
+    deps = [":use_transitive_symbol"],
 )

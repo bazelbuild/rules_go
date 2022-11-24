@@ -2,7 +2,7 @@
 ====================================
 
 .. _nogo: nogo.rst#nogo
-.. _go_library: core.rst#go_library
+.. _go_library: /docs/go/core/rules.md#go_library
 .. _analysis: https://godoc.org/golang.org/x/tools/go/analysis
 .. _Analyzer: https://godoc.org/golang.org/x/tools/go/analysis#Analyzer
 .. _GoLibrary: providers.rst#GoLibrary
@@ -195,6 +195,14 @@ contain the following key-value pairs:
 | in both ``only_files`` and ``exclude_files``, the analyzer will not emit diagnostics for that    |
 | file.                                                                                            |
 +----------------------------+---------------------------------------------------------------------+
+| ``"analyzer_flags"``       | :type:`dictionary, string to string`                                |
++----------------------------+---------------------------------------------------------------------+
+| Passes on a set of flags as defined by the Go ``flag`` package to the analyzer via the           |
+| ``analysis.Analyzer.Flags`` field. Its keys are the flag names *without* a ``-`` prefix, and its |
+| values are the flag values. nogo will exit with an error upon receiving flags not recognized by  |
+| the analyzer or upon receiving ill-formatted flag values as defined by the corresponding         |
+| ``flag.Value`` specified by the analyzer.                                                        |
++----------------------------+---------------------------------------------------------------------+
 
 Example
 ^^^^^^^
@@ -202,6 +210,8 @@ Example
 The following configuration file configures the analyzers named ``importunsafe``
 and ``unsafedom``. Since the ``loopclosure`` analyzer is not explicitly
 configured, it will emit diagnostics for all Go files built by Bazel.
+``unsafedom`` will receive a flag equivalent to ``-block-unescaped-html=false``
+on a command line driver.
 
 .. code:: json
 
@@ -218,7 +228,10 @@ configured, it will emit diagnostics for all Go files built by Bazel.
         },
         "exclude_files": {
           "src/(third_party|vendor)/.*": "enforce DOM safety requirements only on first-party code"
-        }
+        },
+        "analyzer_flags": {
+            "block-unescaped-html": "false",
+        },
       }
     }
 

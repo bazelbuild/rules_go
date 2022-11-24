@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load(
+    "//go/private/actions:deprecation.bzl",
+    "LEGACY_ACTIONS_DEPRECATION_NOTICE",
+)
+
 def emit_pack(
         go,
         in_lib = None,
@@ -19,6 +24,11 @@ def emit_pack(
         objects = [],
         archives = []):
     """See go/toolchains.rst#pack for full documentation."""
+
+    print(LEGACY_ACTIONS_DEPRECATION_NOTICE.format(
+        old = "go_context.pack",
+        new = "go_context.link",
+    ))
 
     if in_lib == None:
         fail("in_lib is a required parameter")

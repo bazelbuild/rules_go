@@ -1,9 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load(":generate_test.bzl", "generate_script")
+
 package(
     default_visibility = ["//visibility:public"],
 )
-
-load("@io_bazel_rules_go//go:def.bzl", "go_binary")
-load(":generate_test.bzl", "generate_script")
 
 go_binary(
     name = "example_command",

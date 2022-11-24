@@ -40,6 +40,8 @@ var files = []string{
 	"-src/testmain/testmain.go",
 	"src/example.com/repo/cmd/bin/bin.go",
 	"src/example.com/repo/pkg/lib/lib.go",
+	"src/example.com/repo/pkg/lib/embedded_src.txt",
+	"src/example.com/repo/pkg/lib/template/index.html.tmpl",
 	"src/example.com/repo/pkg/lib/embed_test.go",
 	"src/example.com/repo/pkg/lib/internal_test.go",
 	"src/example.com/repo/pkg/lib/external_test.go",

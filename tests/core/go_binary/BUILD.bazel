@@ -4,6 +4,16 @@ load(":many_deps.bzl", "many_deps")
 
 test_suite(name = "go_binary")
 
+go_bazel_test(
+    name = "configurable_attribute_bad_test",
+    srcs = ["configurable_attribute_bad_test.go"],
+)
+
+go_bazel_test(
+    name = "configurable_attribute_good_test",
+    srcs = ["configurable_attribute_good_test.go"],
+)
+
 go_binary(
     name = "hello",
     srcs = ["hello.go"],
@@ -94,8 +104,8 @@ go_binary(
 go_test(
     name = "pie_test",
     srcs = [
-        "pie_darwin_test.go",
         "pie_darwin_amd64_test.go",
+        "pie_darwin_test.go",
         "pie_linux_test.go",
     ],
     data = select({
@@ -175,4 +185,9 @@ go_library(
 go_binary(
     name = "prefix",
     embed = ["//tests/core/go_binary/prefix"],
+)
+
+go_bazel_test(
+    name = "non_executable_test",
+    srcs = ["non_executable_test.go"],
 )

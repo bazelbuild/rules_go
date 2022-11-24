@@ -19,13 +19,25 @@ load(
     "go_context",
 )
 load(
-    "@io_bazel_rules_go//proto:compiler.bzl",
+    "@bazel_skylib//lib:types.bzl",
+    "types",
+)
+load(
+    "//proto:compiler.bzl",
     "GoProtoCompiler",
     "proto_path",
 )
 load(
-    "@io_bazel_rules_go//go/private:providers.bzl",
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
+)
+load(
+    "//go/private:providers.bzl",
     "INFERRED_PATH",
+)
+load(
+    "//go/private/rules:transition.bzl",
+    "non_go_tool_transition",
 )
 load(
     "@rules_proto//proto:defs.bzl",
@@ -37,8 +49,9 @@ GoProtoImports = provider()
 def get_imports(attr):
     proto_deps = []
 
-    if hasattr(attr, "proto") and attr.proto and ProtoInfo in attr.proto:
-        proto_deps = [attr.proto]
+    # ctx.attr.proto is a one-element array since there is a Starlark transition attached to it.
+    if hasattr(attr, "proto") and attr.proto and types.is_list(attr.proto) and ProtoInfo in attr.proto[0]:
+        proto_deps = [attr.proto[0]]
     elif hasattr(attr, "protos"):
         proto_deps = [d for d in attr.protos if ProtoInfo in d]
     else:
@@ -92,7 +105,9 @@ def _go_proto_library_impl(ctx):
         #TODO: print("DEPRECATED: proto attribute on {}, use protos instead".format(ctx.label))
         if ctx.attr.protos:
             fail("Either proto or protos (non-empty) argument must be specified, but not both")
-        proto_deps = [ctx.attr.proto]
+
+        # ctx.attr.proto is a one-element array since there is a Starlark transition attached to it.
+        proto_deps = [ctx.attr.proto[0]]
     else:
         if not ctx.attr.protos:
             fail("Either proto or protos (non-empty) argument must be specified")
@@ -137,8 +152,12 @@ def _go_proto_library_impl(ctx):
 go_proto_library = rule(
     implementation = _go_proto_library_impl,
     attrs = {
-        "proto": attr.label(providers = [ProtoInfo]),
+        "proto": attr.label(
+            cfg = non_go_tool_transition,
+            providers = [ProtoInfo],
+        ),
         "protos": attr.label_list(
+            cfg = non_go_tool_transition,
             providers = [ProtoInfo],
             default = [],
         ),
@@ -154,20 +173,23 @@ go_proto_library = rule(
         "compiler": attr.label(providers = [GoProtoCompiler]),
         "compilers": attr.label_list(
             providers = [GoProtoCompiler],
-            default = ["@io_bazel_rules_go//proto:go_proto"],
+            default = ["//proto:go_proto"],
         ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",
         ),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )
 # go_proto_library is a rule that takes a proto_library (in the proto
 # attribute) and produces a go library for it.
 
 def go_grpc_library(**kwargs):
     # TODO: Deprecate once gazelle generates just go_proto_library
-    go_proto_library(compilers = ["@io_bazel_rules_go//proto:go_grpc"], **kwargs)
+    go_proto_library(compilers = [Label("//proto:go_grpc")], **kwargs)
 
 def proto_register_toolchains():
     print("You no longer need to call proto_register_toolchains(), it does nothing")

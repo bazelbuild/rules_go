@@ -32,7 +32,7 @@ import (
 
 func link(args []string) error {
 	// Parse arguments.
-	args, err := expandParamsFiles(args)
+	args, _, err := expandParamsFiles(args)
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -109,29 +110,32 @@ func stdlibPackageID(importPath string) string {
 	return "@io_bazel_rules_go//stdlib:" + importPath
 }
 
-func execRootPath(execRoot, p string) string {
-	dir, _ := filepath.Rel(execRoot, p)
+// outputBasePath replace the cloneBase with output base label
+func outputBasePath(cloneBase, p string) string {
+	dir, _ := filepath.Rel(cloneBase, p)
 	return filepath.Join("__BAZEL_OUTPUT_BASE__", dir)
 }
 
-func absoluteSourcesPaths(execRoot, pkgDir string, srcs []string) []string {
+//  absoluteSourcesPaths replace cloneBase of the absolution
+//  paths with the label for all source files in a package
+func absoluteSourcesPaths(cloneBase, pkgDir string, srcs []string) []string {
 	ret := make([]string, 0, len(srcs))
-	pkgDir = execRootPath(execRoot, pkgDir)
+	pkgDir = outputBasePath(cloneBase, pkgDir)
 	for _, src := range srcs {
 		ret = append(ret, filepath.Join(pkgDir, src))
 	}
 	return ret
 }
 
-func flatPackageForStd(execRoot string, pkg *goListPackage) *flatPackage {
+func flatPackageForStd(cloneBase string, pkg *goListPackage) *flatPackage {
 	// Don't use generated files from the stdlib
-	goFiles := absoluteSourcesPaths(execRoot, pkg.Dir, pkg.GoFiles)
+	goFiles := absoluteSourcesPaths(cloneBase, pkg.Dir, pkg.GoFiles)
 
 	newPkg := &flatPackage{
 		ID:              stdlibPackageID(pkg.ImportPath),
 		Name:            pkg.Name,
 		PkgPath:         pkg.ImportPath,
-		ExportFile:      execRootPath(execRoot, pkg.Target),
+		ExportFile:      outputBasePath(cloneBase, pkg.Target),
 		Imports:         map[string]string{},
 		Standard:        pkg.Standard,
 		GoFiles:         goFiles,
@@ -158,18 +162,47 @@ func stdliblist(args []string) error {
 		return err
 	}
 
+	if filepath.IsAbs(goenv.sdk) {
+		return fmt.Errorf("-sdk needs to be a relative path, but got %s", goenv.sdk)
+	}
+
+	// In Go 1.18, the standard library started using go:embed directives.
+	// When Bazel runs this action, it does so inside a sandbox where GOROOT points
+	// to an external/go_sdk directory that contains a symlink farm of all files in
+	// the Go SDK.
+	// If we run "go list" with that GOROOT, this action will fail because those
+	// go:embed directives will refuse to include the symlinks in the sandbox.
+	//
+	// To work around this, cloneGoRoot creates a copy of a subset of external/go_sdk
+	// that is sufficient to call "go list" into a new cloneBase directory, e.g.
+	// "go list" needs to call "compile", which needs "pkg/tool".
+	// We also need to retain the same relative path to the root directory, e.g.
+	// "$OUTPUT_BASE/external/go_sdk" becomes
+	// {cloneBase}/external/go_sdk", which will be set at GOROOT later. This ensures
+	// that file paths in the generated JSON are still valid.
+	//
+	// Here we replicate goRoot(absolute path of goenv.sdk) to newGoRoot.
+	cloneBase, cleanup, err := goenv.workDir()
+	if err != nil {
+		return err
+	}
+	defer func() { cleanup() }()
+
+	newGoRoot := filepath.Join(cloneBase, goenv.sdk)
+	if err := replicate(abs(goenv.sdk), abs(newGoRoot), replicatePaths("src", "pkg/tool", "pkg/include")); err != nil {
+		return err
+	}
+
 	// Ensure paths are absolute.
 	absPaths := []string{}
 	for _, path := range filepath.SplitList(os.Getenv("PATH")) {
 		absPaths = append(absPaths, abs(path))
 	}
 	os.Setenv("PATH", strings.Join(absPaths, string(os.PathListSeparator)))
-	os.Setenv("GOROOT", abs(os.Getenv("GOROOT")))
+	os.Setenv("GOROOT", newGoRoot)
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
 	os.Setenv("CC", abs(os.Getenv("CC")))
-
-	execRoot := abs(".")
 
 	cachePath := abs(*out + ".gocache")
 	defer os.RemoveAll(cachePath)
@@ -190,10 +223,9 @@ func stdliblist(args []string) error {
 	defer jsonFile.Close()
 
 	jsonData := &bytes.Buffer{}
-	if err := goenv.runCommandToFile(jsonData, listArgs); err != nil {
+	if err := goenv.runCommandToFile(jsonData, os.Stderr, listArgs); err != nil {
 		return err
 	}
-
 	encoder := json.NewEncoder(jsonFile)
 	decoder := json.NewDecoder(jsonData)
 	for decoder.More() {
@@ -201,7 +233,7 @@ func stdliblist(args []string) error {
 		if err := decoder.Decode(&pkg); err != nil {
 			return err
 		}
-		if err := encoder.Encode(flatPackageForStd(execRoot, pkg)); err != nil {
+		if err := encoder.Encode(flatPackageForStd(cloneBase, pkg)); err != nil {
 			return err
 		}
 	}

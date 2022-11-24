@@ -16,12 +16,21 @@ load(
     "//go/private:mode.bzl",
     "link_mode_args",
 )
+load(
+    "//go/private/actions:deprecation.bzl",
+    "LEGACY_ACTIONS_DEPRECATION_NOTICE",
+)
 
 def emit_asm(
         go,
         source = None,
         hdrs = []):
     """See go/toolchains.rst#asm for full documentation."""
+
+    print(LEGACY_ACTIONS_DEPRECATION_NOTICE.format(
+        old = "go_context.asm",
+        new = "go_context.archive",
+    ))
 
     if source == None:
         fail("source is a required parameter")

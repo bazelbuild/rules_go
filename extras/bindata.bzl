@@ -15,8 +15,12 @@
 """bindata.bzl provides the bindata rule for embedding data in .go files"""
 
 load(
-    "@io_bazel_rules_go//go:def.bzl",
+    "//go:def.bzl",
     "go_context",
+)
+load(
+    "//go/private:go_toolchain.bzl",
+    "GO_TOOLCHAIN",
 )
 
 def _bindata_impl(ctx):
@@ -78,5 +82,5 @@ bindata = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = ["@io_bazel_rules_go//go:toolchain"],
+    toolchains = [GO_TOOLCHAIN],
 )

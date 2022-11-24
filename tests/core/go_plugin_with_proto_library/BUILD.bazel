@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_test")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
 test_suite(name = "go_plugin_with_proto_library")
@@ -14,8 +14,8 @@ go_binary(
     name = "plugin",
     srcs = ["plugin.go"],
     out = "plugin.so",
-    deps = [":validate"],
     linkmode = "plugin",
+    deps = [":validate"],
 )
 
 proto_library(
@@ -25,7 +25,7 @@ proto_library(
 
 go_proto_library(
     name = "validate",
+    gc_goopts = ["-trimpath=$(BINDIR)=>."],
     importpath = "go_plugin_with_proto_library/validate",
     proto = ":validate_proto",
-    gc_goopts = ["-trimpath=$(BINDIR)=>."],
 )

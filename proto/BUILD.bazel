@@ -4,6 +4,10 @@ load(
     "go_proto_compiler",
 )
 load(
+    "//go/private/rules:transition.bzl",
+    "non_go_reset_target",
+)
+load(
     "//proto/wkt:well_known_types.bzl",
     "GOGO_WELL_KNOWN_TYPE_REMAPS",
     "PROTO_RUNTIME_DEPS",
@@ -112,6 +116,12 @@ go_proto_compiler(
     ] + WELL_KNOWN_TYPE_RULES.values(),
 )
 
+non_go_reset_target(
+    name = "protoc",
+    dep = "@com_google_protobuf//:protoc",
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "all_rules",
     testonly = True,
@@ -144,8 +154,8 @@ bzl_library(
     # Don't list dependency on @rules_proto//proto:defs
     deps = [
         "//go:def",
-        "@io_bazel_rules_go//go/private:providers",
-        "@io_bazel_rules_go//proto:compiler",
+        "//go/private:providers",
+        "//proto:compiler",
     ],  # keep
 )
 

@@ -54,6 +54,13 @@ var analyzers = []*analysis.Analyzer{
 var configs = map[string]config{
 {{- range $name, $config := .Configs}}
 	{{printf "%q" $name}}: config{
+		{{- if $config.AnalyzerFlags }}
+		analyzerFlags: map[string]string {
+			{{- range $flagKey, $flagValue := $config.AnalyzerFlags}}
+			{{printf "%q: %q" $flagKey $flagValue}},
+			{{- end}}
+		},
+		{{- end -}}
 		{{- if $config.OnlyFiles}}
 		onlyFiles: []*regexp.Regexp{
 			{{- range $path, $comment := $config.OnlyFiles}}
@@ -171,8 +178,9 @@ func buildConfig(path string) (Configs, error) {
 		}
 		configs[name] = Config{
 			// Description is currently unused.
-			OnlyFiles:    config.OnlyFiles,
-			ExcludeFiles: config.ExcludeFiles,
+			OnlyFiles:     config.OnlyFiles,
+			ExcludeFiles:  config.ExcludeFiles,
+			AnalyzerFlags: config.AnalyzerFlags,
 		}
 	}
 	return configs, nil
@@ -181,7 +189,8 @@ func buildConfig(path string) (Configs, error) {
 type Configs map[string]Config
 
 type Config struct {
-	Description  string
-	OnlyFiles    map[string]string `json:"only_files"`
-	ExcludeFiles map[string]string `json:"exclude_files"`
+	Description   string
+	OnlyFiles     map[string]string `json:"only_files"`
+	ExcludeFiles  map[string]string `json:"exclude_files"`
+	AnalyzerFlags map[string]string `json:"analyzer_flags"`
 }

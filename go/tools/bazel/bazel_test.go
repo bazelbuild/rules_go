@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -96,7 +95,7 @@ func TestRunfilesPath(t *testing.T) {
 }
 
 func TestNewTmpDir(t *testing.T) {
-	//prefix := "new/temp/dir"
+	// prefix := "new/temp/dir"
 	prefix := "demodir"
 	tmpdir, err := NewTmpDir(prefix)
 	if err != nil {
@@ -124,101 +123,6 @@ func TestTestWorkspace(t *testing.T) {
 
 	if err != nil {
 		t.Errorf("Unable to get workspace with error %s", err)
-	}
-}
-
-func TestFindRunfiles(t *testing.T) {
-	testData := []struct {
-		name string
-
-		pathsToCreate []string
-		wantRunfiles  string
-		wantOk        bool
-	}{
-		{
-			"NoFiles",
-			[]string{},
-			"",
-			false,
-		},
-		{
-			"CurrentDirectory",
-			[]string{
-				"data-file",
-			},
-			".",
-			true,
-		},
-		{
-			"BazelBinNoConfigurationInPath",
-			[]string{
-				"bazel-bin/some/package/bin.runfiles/project/",
-				"bazel-bin/some/package/bin.runfiles/project/data-file",
-				"data-file", // bazel-bin should be preferred.
-			},
-			"bazel-bin/some/package/bin.runfiles/project",
-			true,
-		},
-		{
-			"BazelBinConfigurationInPath",
-			[]string{
-				"bazel-bin/some/package/amd64/bin.runfiles/project/",
-				"bazel-bin/some/package/arm64/bin.runfiles/project/",
-				"bazel-bin/some/package/arm64/bin.runfiles/project/data-file",
-				"bazel-bin/some/package/powerpc/bin.runfiles/project/",
-				"data-file", // bazel-bin should be preferred.
-			},
-			"bazel-bin/some/package/arm64/bin.runfiles/project",
-			true,
-		},
-	}
-	for _, d := range testData {
-		t.Run(d.name, func(t *testing.T) {
-			cleanup, err := makeAndEnterTempdir()
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer cleanup()
-
-			if err := createPaths(d.pathsToCreate); err != nil {
-				t.Fatal(err)
-			}
-
-			runfiles, ok := findRunfiles("project", "some/package", "bin", "data-file")
-			if filepath.Clean(runfiles) != filepath.Clean(d.wantRunfiles) || ok != d.wantOk {
-				t.Errorf("Got %s, %v; want %s, %v", runfiles, ok, d.wantRunfiles, d.wantOk)
-			}
-		})
-	}
-}
-
-func TestEnterRunfiles(t *testing.T) {
-	cleanup, err := makeAndEnterTempdir()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer cleanup()
-
-	pathsToCreate := []string{
-		"bazel-bin/some/package/bin.runfiles/project/",
-		"bazel-bin/some/package/bin.runfiles/project/data-file",
-	}
-	if err := createPaths(pathsToCreate); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := EnterRunfiles("project", "some/package", "bin", "data-file"); err != nil {
-		t.Fatalf("Cannot enter runfiles tree: %v", err)
-	}
-	// The cleanup routine returned by makeAndEnterTempdir restores the working directory from
-	// the beginning of the test, so we don't have to worry about it here.
-
-	if _, err := os.Lstat("data-file"); err != nil {
-		wd, err := os.Getwd()
-		if err != nil {
-			t.Errorf("failed to get current working directory: %v", err)
-		}
-		t.Errorf("data-file not found in current directory (%s); entered invalid runfiles tree?", wd)
 	}
 }
 
@@ -263,7 +167,6 @@ func TestPythonManifest(t *testing.T) {
 	if entry.Workspace != "__main__" {
 		t.Errorf("incorrect workspace for runfile. Expected: %s, actual %s", "__main__", entry.Workspace)
 	}
-
 }
 
 func TestSpliceDelimitedOSArgs(t *testing.T) {

@@ -7,8 +7,8 @@ Configuring a custom C toolchain
 .. _Configuring C++ toolchains: https://docs.bazel.build/versions/master/tutorial/cc-toolchain-config.html
 .. _cc_library: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library
 .. _crosstool_config.proto: https://github.com/bazelbuild/bazel/blob/master/src/main/protobuf/crosstool_config.proto
-.. _go_binary: go/core.rst#go_binary
-.. _go_library: go/core.rst#go_library
+.. _go_binary: docs/go/core/rules.md#go_binary
+.. _go_library: docs/go/core/rules.md#go_library
 .. _toolchain: https://docs.bazel.build/versions/master/be/platform.html#toolchain
 .. _#1642: https://github.com/bazelbuild/rules_go/issues/1642
 
@@ -97,7 +97,7 @@ Step 3: Write a CROSSTOOL
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We'll create a file named ``tools/CROSSTOOL``, which describes our toolchain
-to Bazel. If you have more than one C/C++ toolchain (e.g., different tools for 
+to Bazel. If you have more than one C/C++ toolchain (e.g., different tools for
 debug and optimized builds, or different compilers for different platforms),
 they should all be configured in the same ``CROSSTOOL`` file.
 
@@ -255,7 +255,7 @@ of extra flags to Bazel.
       srcs = ["hello.c"],
   )
   EOF
-  
+
   $ bazel build \
     --crosstool_top=//tools:clang-toolchain \
     --cpu=x86_64 \

@@ -4,3 +4,8 @@ go_bazel_test(
     name = "coverage_test",
     srcs = ["coverage_test.go"],
 )
+
+go_bazel_test(
+    name = "gen_code_test",
+    srcs = ["gen_code_test.go"],
+)

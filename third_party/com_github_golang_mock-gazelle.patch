@@ -1,0 +1,1155 @@
+diff -urN a/gomock/BUILD.bazel b/gomock/BUILD.bazel
+--- a/gomock/BUILD.bazel	1969-12-31 16:00:00
++++ b/gomock/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,34 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "gomock",
++    srcs = [
++        "call.go",
++        "callset.go",
++        "controller.go",
++        "doc.go",
++        "matchers.go",
++    ],
++    importpath = "github.com/golang/mock/gomock",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":gomock",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "gomock_test",
++    srcs = [
++        "call_test.go",
++        "callset_test.go",
++        "controller_test.go",
++        "example_test.go",
++        "matchers_test.go",
++        "mock_test.go",
++    ],
++    embed = [":gomock"],
++    deps = ["//gomock/internal/mock_gomock"],
++)
+diff -urN a/gomock/internal/mock_gomock/BUILD.bazel b/gomock/internal/mock_gomock/BUILD.bazel
+--- a/gomock/internal/mock_gomock/BUILD.bazel	1969-12-31 16:00:00
++++ b/gomock/internal/mock_gomock/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "mock_gomock",
++    srcs = ["mock_matcher.go"],
++    importpath = "github.com/golang/mock/gomock/internal/mock_gomock",
++    visibility = ["//gomock:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":mock_gomock",
++    visibility = ["//gomock:__subpackages__"],
++)
+diff -urN a/mockgen/BUILD.bazel b/mockgen/BUILD.bazel
+--- a/mockgen/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
++
++go_library(
++    name = "mockgen_lib",
++    srcs = [
++        "generic_go118.go",
++        "generic_notgo118.go",
++        "mockgen.go",
++        "parse.go",
++        "reflect.go",
++        "version.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen",
++    visibility = ["//visibility:private"],
++    deps = [
++        "//mockgen/model",
++        "@org_golang_x_mod//modfile:go_default_library",
++        "@org_golang_x_tools//imports:go_default_library",
++    ],
++)
++
++go_binary(
++    name = "mockgen",
++    embed = [":mockgen_lib"],
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "mockgen_test",
++    srcs = [
++        "mockgen_test.go",
++        "parse_test.go",
++    ],
++    embed = [":mockgen_lib"],
++    deps = ["//mockgen/model"],
++)
+diff -urN a/mockgen/internal/tests/aux_imports_embedded_interface/BUILD.bazel b/mockgen/internal/tests/aux_imports_embedded_interface/BUILD.bazel
+--- a/mockgen/internal/tests/aux_imports_embedded_interface/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/aux_imports_embedded_interface/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,28 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "aux_imports_embedded_interface",
++    srcs = [
++        "bugreport.go",
++        "bugreport_mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/aux_imports_embedded_interface",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/aux_imports_embedded_interface/faux",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":aux_imports_embedded_interface",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "aux_imports_embedded_interface_test",
++    srcs = ["bugreport_test.go"],
++    embed = [":aux_imports_embedded_interface"],
++    deps = ["//gomock"],
++)
+diff -urN a/mockgen/internal/tests/aux_imports_embedded_interface/faux/BUILD.bazel b/mockgen/internal/tests/aux_imports_embedded_interface/faux/BUILD.bazel
+--- a/mockgen/internal/tests/aux_imports_embedded_interface/faux/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/aux_imports_embedded_interface/faux/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "faux",
++    srcs = ["faux.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/aux_imports_embedded_interface/faux",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":faux",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/const_array_length/BUILD.bazel b/mockgen/internal/tests/const_array_length/BUILD.bazel
+--- a/mockgen/internal/tests/const_array_length/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/const_array_length/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "const_array_length",
++    srcs = [
++        "input.go",
++        "mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/const_array_length",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":const_array_length",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/copyright_file/BUILD.bazel b/mockgen/internal/tests/copyright_file/BUILD.bazel
+--- a/mockgen/internal/tests/copyright_file/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/copyright_file/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "copyright_file",
++    srcs = [
++        "input.go",
++        "mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/copyright_file",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":copyright_file",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/custom_package_name/client/v1/BUILD.bazel b/mockgen/internal/tests/custom_package_name/client/v1/BUILD.bazel
+--- a/mockgen/internal/tests/custom_package_name/client/v1/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/custom_package_name/client/v1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "client",
++    srcs = ["client.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/custom_package_name/client/v1",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":client",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/custom_package_name/greeter/BUILD.bazel b/mockgen/internal/tests/custom_package_name/greeter/BUILD.bazel
+--- a/mockgen/internal/tests/custom_package_name/greeter/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/custom_package_name/greeter/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,31 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "greeter",
++    srcs = ["greeter.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/custom_package_name/greeter",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//mockgen/internal/tests/custom_package_name/client/v1:client",
++        "//mockgen/internal/tests/custom_package_name/validator",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":greeter",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "greeter_test",
++    srcs = [
++        "greeter_mock_test.go",
++        "greeter_test.go",
++    ],
++    embed = [":greeter"],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/custom_package_name/client/v1:client",
++    ],
++)
+diff -urN a/mockgen/internal/tests/custom_package_name/validator/BUILD.bazel b/mockgen/internal/tests/custom_package_name/validator/BUILD.bazel
+--- a/mockgen/internal/tests/custom_package_name/validator/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/custom_package_name/validator/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "validator",
++    srcs = ["validate.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/custom_package_name/validator",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":validator",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/dot_imports/BUILD.bazel b/mockgen/internal/tests/dot_imports/BUILD.bazel
+--- a/mockgen/internal/tests/dot_imports/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/dot_imports/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "dot_imports",
++    srcs = [
++        "input.go",
++        "mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/dot_imports",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":dot_imports",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/empty_interface/BUILD.bazel b/mockgen/internal/tests/empty_interface/BUILD.bazel
+--- a/mockgen/internal/tests/empty_interface/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/empty_interface/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "empty_interface",
++    srcs = [
++        "input.go",
++        "mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/empty_interface",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":empty_interface",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/extra_import/BUILD.bazel b/mockgen/internal/tests/extra_import/BUILD.bazel
+--- a/mockgen/internal/tests/extra_import/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/extra_import/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "extra_import",
++    srcs = [
++        "import.go",
++        "mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/extra_import",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":extra_import",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/generated_identifier_conflict/BUILD.bazel b/mockgen/internal/tests/generated_identifier_conflict/BUILD.bazel
+--- a/mockgen/internal/tests/generated_identifier_conflict/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/generated_identifier_conflict/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "generated_identifier_conflict",
++    srcs = [
++        "bugreport.go",
++        "bugreport_mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/generated_identifier_conflict",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":generated_identifier_conflict",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "generated_identifier_conflict_test",
++    srcs = ["bugreport_test.go"],
++    embed = [":generated_identifier_conflict"],
++    deps = ["//gomock"],
++)
+diff -urN a/mockgen/internal/tests/generics/BUILD.bazel b/mockgen/internal/tests/generics/BUILD.bazel
+--- a/mockgen/internal/tests/generics/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/generics/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "generics",
++    srcs = [
++        "external.go",
++        "generics.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/generics",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//mockgen/internal/tests/generics/other",
++        "@org_golang_x_exp//constraints:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":generics",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/generics/other/BUILD.bazel b/mockgen/internal/tests/generics/other/BUILD.bazel
+--- a/mockgen/internal/tests/generics/other/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/generics/other/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "other",
++    srcs = ["other.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/generics/other",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":other",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/generics/source/BUILD.bazel b/mockgen/internal/tests/generics/source/BUILD.bazel
+--- a/mockgen/internal/tests/generics/source/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/generics/source/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_test")
++
++go_test(
++    name = "source_test",
++    srcs = [
++        "mock_external_test.go",
++        "mock_generics_test.go",
++    ],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/generics",
++        "//mockgen/internal/tests/generics/other",
++        "@org_golang_x_exp//constraints:go_default_library",
++    ],
++)
+diff -urN a/mockgen/internal/tests/import_embedded_interface/BUILD.bazel b/mockgen/internal/tests/import_embedded_interface/BUILD.bazel
+--- a/mockgen/internal/tests/import_embedded_interface/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/import_embedded_interface/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "import_embedded_interface",
++    srcs = [
++        "bugreport.go",
++        "bugreport_mock.go",
++        "foo.go",
++        "net.go",
++        "net_mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/import_embedded_interface/ersatz",
++        "//mockgen/internal/tests/import_embedded_interface/faux",
++        "//mockgen/internal/tests/import_embedded_interface/other/ersatz",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":import_embedded_interface",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "import_embedded_interface_test",
++    srcs = [
++        "bugreport_test.go",
++        "net_test.go",
++    ],
++    embed = [":import_embedded_interface"],
++    deps = ["//gomock"],
++)
+diff -urN a/mockgen/internal/tests/import_embedded_interface/ersatz/BUILD.bazel b/mockgen/internal/tests/import_embedded_interface/ersatz/BUILD.bazel
+--- a/mockgen/internal/tests/import_embedded_interface/ersatz/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/import_embedded_interface/ersatz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "ersatz",
++    srcs = ["ersatz.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/ersatz",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":ersatz",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/import_embedded_interface/faux/BUILD.bazel b/mockgen/internal/tests/import_embedded_interface/faux/BUILD.bazel
+--- a/mockgen/internal/tests/import_embedded_interface/faux/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/import_embedded_interface/faux/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "faux",
++    srcs = [
++        "conflict.go",
++        "faux.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/faux",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//mockgen/internal/tests/import_embedded_interface/other/ersatz",
++        "//mockgen/internal/tests/import_embedded_interface/other/log",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":faux",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/import_embedded_interface/other/ersatz/BUILD.bazel b/mockgen/internal/tests/import_embedded_interface/other/ersatz/BUILD.bazel
+--- a/mockgen/internal/tests/import_embedded_interface/other/ersatz/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/import_embedded_interface/other/ersatz/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "ersatz",
++    srcs = ["ersatz.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/other/ersatz",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":ersatz",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/import_embedded_interface/other/log/BUILD.bazel b/mockgen/internal/tests/import_embedded_interface/other/log/BUILD.bazel
+--- a/mockgen/internal/tests/import_embedded_interface/other/log/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/import_embedded_interface/other/log/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "log",
++    srcs = ["log.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/other/log",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":log",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/import_source/BUILD.bazel b/mockgen/internal/tests/import_source/BUILD.bazel
+--- a/mockgen/internal/tests/import_source/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/import_source/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "import_source",
++    srcs = ["source_mock.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/import_source",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/import_source/definition",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":import_source",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/import_source/definition/BUILD.bazel b/mockgen/internal/tests/import_source/definition/BUILD.bazel
+--- a/mockgen/internal/tests/import_source/definition/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/import_source/definition/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "definition",
++    srcs = [
++        "source.go",
++        "source_mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/import_source/definition",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":definition",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/internal_pkg/BUILD.bazel b/mockgen/internal/tests/internal_pkg/BUILD.bazel
+--- a/mockgen/internal/tests/internal_pkg/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/internal_pkg/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "internal_pkg",
++    srcs = ["generate.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":internal_pkg",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/BUILD.bazel b/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/BUILD.bazel
+--- a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "pkg",
++    srcs = ["input.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":pkg",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_output/BUILD.bazel b/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_output/BUILD.bazel
+--- a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_output/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_output/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "reflect_output",
++    srcs = ["mock.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_output",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/internal_pkg/subdir/internal/pkg",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":reflect_output",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_output/BUILD.bazel b/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_output/BUILD.bazel
+--- a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_output/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_output/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "source_output",
++    srcs = ["mock.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_output",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/internal_pkg/subdir/internal/pkg",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":source_output",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/missing_import/output/BUILD.bazel b/mockgen/internal/tests/missing_import/output/BUILD.bazel
+--- a/mockgen/internal/tests/missing_import/output/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/missing_import/output/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "output",
++    srcs = ["source_mock.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/missing_import/output",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "//mockgen/internal/tests/missing_import/source",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":output",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/missing_import/source/BUILD.bazel b/mockgen/internal/tests/missing_import/source/BUILD.bazel
+--- a/mockgen/internal/tests/missing_import/source/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/missing_import/source/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "source",
++    srcs = ["source.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/missing_import/source",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":source",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/mock_in_test_package/BUILD.bazel b/mockgen/internal/tests/mock_in_test_package/BUILD.bazel
+--- a/mockgen/internal/tests/mock_in_test_package/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/mock_in_test_package/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "mock_in_test_package",
++    srcs = ["user.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/mock_in_test_package",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":mock_in_test_package",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "mock_in_test_package_test",
++    srcs = ["mock_test.go"],
++    deps = [
++        ":mock_in_test_package",
++        "//gomock",
++    ],
++)
+diff -urN a/mockgen/internal/tests/overlapping_methods/BUILD.bazel b/mockgen/internal/tests/overlapping_methods/BUILD.bazel
+--- a/mockgen/internal/tests/overlapping_methods/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/overlapping_methods/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,26 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "overlapping_methods",
++    srcs = [
++        "interfaces.go",
++        "mock.go",
++        "overlap.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/overlapping_methods",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":overlapping_methods",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "overlapping_methods_test",
++    srcs = ["overlap_test.go"],
++    embed = [":overlapping_methods"],
++    deps = ["//gomock"],
++)
+diff -urN a/mockgen/internal/tests/panicing_test/BUILD.bazel b/mockgen/internal/tests/panicing_test/BUILD.bazel
+--- a/mockgen/internal/tests/panicing_test/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/panicing_test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,21 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "panicing_test",
++    srcs = ["panic.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/panicing_test",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":panicing_test",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "panicing_test_test",
++    srcs = ["mock_test.go"],
++    embed = [":panicing_test"],
++    deps = ["//gomock"],
++)
+diff -urN a/mockgen/internal/tests/parenthesized_parameter_type/BUILD.bazel b/mockgen/internal/tests/parenthesized_parameter_type/BUILD.bazel
+--- a/mockgen/internal/tests/parenthesized_parameter_type/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/parenthesized_parameter_type/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "parenthesized_parameter_type",
++    srcs = [
++        "input.go",
++        "mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/parenthesized_parameter_type",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":parenthesized_parameter_type",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/performance/big_interface/BUILD.bazel b/mockgen/internal/tests/performance/big_interface/BUILD.bazel
+--- a/mockgen/internal/tests/performance/big_interface/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/performance/big_interface/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "big_interface",
++    srcs = ["big_interface.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/performance/big_interface",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":big_interface",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/self_package/BUILD.bazel b/mockgen/internal/tests/self_package/BUILD.bazel
+--- a/mockgen/internal/tests/self_package/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/self_package/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "self_package",
++    srcs = [
++        "mock.go",
++        "types.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/self_package",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":self_package",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/test_package/BUILD.bazel b/mockgen/internal/tests/test_package/BUILD.bazel
+--- a/mockgen/internal/tests/test_package/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/test_package/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "test_package",
++    srcs = ["foo.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/test_package",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":test_package",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "test_package_test",
++    srcs = [
++        "mock_test.go",
++        "user_test.go",
++    ],
++    deps = ["//gomock"],
++)
+diff -urN a/mockgen/internal/tests/unexported_method/BUILD.bazel b/mockgen/internal/tests/unexported_method/BUILD.bazel
+--- a/mockgen/internal/tests/unexported_method/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/unexported_method/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,25 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "unexported_method",
++    srcs = [
++        "bugreport.go",
++        "bugreport_mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/unexported_method",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":unexported_method",
++    visibility = ["//mockgen:__subpackages__"],
++)
++
++go_test(
++    name = "unexported_method_test",
++    srcs = ["bugreport_test.go"],
++    embed = [":unexported_method"],
++    deps = ["//gomock"],
++)
+diff -urN a/mockgen/internal/tests/vendor_dep/BUILD.bazel b/mockgen/internal/tests/vendor_dep/BUILD.bazel
+--- a/mockgen/internal/tests/vendor_dep/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/vendor_dep/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,22 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "vendor_dep",
++    srcs = [
++        "doc.go",
++        "mock.go",
++        "vendor_dep.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/vendor_dep",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "@org_golang_x_tools//present:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":vendor_dep",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/vendor_dep/source_mock_package/BUILD.bazel b/mockgen/internal/tests/vendor_dep/source_mock_package/BUILD.bazel
+--- a/mockgen/internal/tests/vendor_dep/source_mock_package/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/vendor_dep/source_mock_package/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "source_mock_package",
++    srcs = ["mock.go"],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/vendor_dep/source_mock_package",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = [
++        "//gomock",
++        "@org_golang_x_tools//present:go_default_library",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":source_mock_package",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/internal/tests/vendor_pkg/BUILD.bazel b/mockgen/internal/tests/vendor_pkg/BUILD.bazel
+--- a/mockgen/internal/tests/vendor_pkg/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/internal/tests/vendor_pkg/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "vendor_pkg",
++    srcs = [
++        "doc.go",
++        "mock.go",
++    ],
++    importpath = "github.com/golang/mock/mockgen/internal/tests/vendor_pkg",
++    visibility = ["//mockgen:__subpackages__"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":vendor_pkg",
++    visibility = ["//mockgen:__subpackages__"],
++)
+diff -urN a/mockgen/model/BUILD.bazel b/mockgen/model/BUILD.bazel
+--- a/mockgen/model/BUILD.bazel	1969-12-31 16:00:00
++++ b/mockgen/model/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "model",
++    srcs = ["model.go"],
++    importpath = "github.com/golang/mock/mockgen/model",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":model",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "model_test",
++    srcs = ["model_test.go"],
++    embed = [":model"],
++)
+diff -urN a/sample/BUILD.bazel b/sample/BUILD.bazel
+--- a/sample/BUILD.bazel	1969-12-31 16:00:00
++++ b/sample/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "sample",
++    srcs = ["user.go"],
++    importpath = "github.com/golang/mock/sample",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//sample/imp1",
++        "//sample/imp2",
++        "//sample/imp3",
++        "//sample/imp4",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":sample",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "sample_test",
++    srcs = [
++        "mock_user_test.go",
++        "user_test.go",
++    ],
++    deps = [
++        ":sample",
++        "//gomock",
++        "//sample/imp1",
++        "//sample/imp2",
++        "//sample/imp3",
++        "//sample/imp4",
++    ],
++)
+diff -urN a/sample/concurrent/BUILD.bazel b/sample/concurrent/BUILD.bazel
+--- a/sample/concurrent/BUILD.bazel	1969-12-31 16:00:00
++++ b/sample/concurrent/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "concurrent",
++    srcs = ["concurrent.go"],
++    importpath = "github.com/golang/mock/sample/concurrent",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":concurrent",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "concurrent_test",
++    srcs = ["concurrent_test.go"],
++    embed = [":concurrent"],
++    deps = [
++        "//gomock",
++        "//sample/concurrent/mock",
++    ],
++)
+diff -urN a/sample/concurrent/mock/BUILD.bazel b/sample/concurrent/mock/BUILD.bazel
+--- a/sample/concurrent/mock/BUILD.bazel	1969-12-31 16:00:00
++++ b/sample/concurrent/mock/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "mock",
++    srcs = ["concurrent_mock.go"],
++    importpath = "github.com/golang/mock/sample/concurrent/mock",
++    visibility = ["//visibility:public"],
++    deps = ["//gomock"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":mock",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/sample/imp1/BUILD.bazel b/sample/imp1/BUILD.bazel
+--- a/sample/imp1/BUILD.bazel	1969-12-31 16:00:00
++++ b/sample/imp1/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "imp1",
++    srcs = ["imp1.go"],
++    importpath = "github.com/golang/mock/sample/imp1",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":imp1",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/sample/imp2/BUILD.bazel b/sample/imp2/BUILD.bazel
+--- a/sample/imp2/BUILD.bazel	1969-12-31 16:00:00
++++ b/sample/imp2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "imp2",
++    srcs = ["imp2.go"],
++    importpath = "github.com/golang/mock/sample/imp2",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":imp2",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/sample/imp3/BUILD.bazel b/sample/imp3/BUILD.bazel
+--- a/sample/imp3/BUILD.bazel	1969-12-31 16:00:00
++++ b/sample/imp3/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "imp3",
++    srcs = ["imp3.go"],
++    importpath = "github.com/golang/mock/sample/imp3",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":imp3",
++    visibility = ["//visibility:public"],
++)
+diff -urN a/sample/imp4/BUILD.bazel b/sample/imp4/BUILD.bazel
+--- a/sample/imp4/BUILD.bazel	1969-12-31 16:00:00
++++ b/sample/imp4/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "imp4",
++    srcs = ["imp4.go"],
++    importpath = "github.com/golang/mock/sample/imp4",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":imp4",
++    visibility = ["//visibility:public"],
++)
