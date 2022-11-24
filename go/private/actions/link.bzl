@@ -45,21 +45,19 @@ def _transitive_archives_without_test_archives(archive, test_archives):
     # transitively depends on the library under test, we need to exclude the
     # library under test and use the internal test archive instead.
     deps = depset(transitive = [d.transitive for d in archive.direct])
-    result = []
-    result_by_importmap = dict()
+    result = {}
+    # Unfortunately, Starlark doesn't support set()
+    test_imports = {}
+    for t in test_archives:
+        test_imports[t.importmap] = True
     for d in deps.to_list():
-        if any([d.importmap == t.importmap for t in test_archives]):
+        if d.importmap in test_imports:
             continue
-        existing = result_by_importmap.get(d.importmap)
-        if existing:
-            # Issue #3017
-            # This is not expected to happen routinely. Print a warning if it's not coverdata.
-            if d.importmap != "github.com/bazelbuild/rules_go/go/tools/coverdata":
-                print("ignoring {} in favor of {}".format(d.file.path, existing.file.path))
+        if d.importmap in result:
+            print("Multiple copies of {} passed to the linker. Ignoring {} in favor of {}".format(d.importmap, d.file.path, result[d.importmap].file.path))
             continue
-        result.append(d)
-        result_by_importmap[d.importmap] = d
-    return result
+        result[d.importmap] = d
+    return result.values()
 
 def emit_link(
         go,
