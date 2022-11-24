@@ -40,6 +40,8 @@ This rule has moved. See [gazelle rule] in the Gazelle repository.
 go_embed_data(<a href="#go_embed_data-name">name</a>, <a href="#go_embed_data-flatten">flatten</a>, <a href="#go_embed_data-package">package</a>, <a href="#go_embed_data-src">src</a>, <a href="#go_embed_data-srcs">srcs</a>, <a href="#go_embed_data-string">string</a>, <a href="#go_embed_data-unpack">unpack</a>, <a href="#go_embed_data-var">var</a>)
 </pre>
 
+**Deprecated**: Will be removed in rules_go 0.39.
+
 `go_embed_data` generates a .go file that contains data from a file or a
 list of files. It should be consumed in the srcs list of one of the
 [core go rules].
