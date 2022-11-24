@@ -13,7 +13,7 @@ go_binary(
     srcs = ["bin.go"],
     importpath = "example.com/repo/cmd/bin",
     visibility = ["//visibility:public"],
-    linkmode="pie",
+    linkmode = "pie",
     deps = [
         "//tests/core/go_path/pkg/lib:go_default_library"
     ]
