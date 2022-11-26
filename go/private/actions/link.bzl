@@ -46,7 +46,7 @@ def _transitive_archives_without_test_archives(archive, test_archives):
     # library under test and use the internal test archive instead.
     deps = depset(transitive = [d.transitive for d in archive.direct])
     result = {}
-    
+
     # Unfortunately, Starlark doesn't support set()
     test_imports = {}
     for t in test_archives:
