@@ -1,11 +1,11 @@
 package main
 
 import (
-	"io/ioutil"
 	"strings"
 
-	"github.com/bazelbuild/rules_go/go/tools/bazel"
 	"google.golang.org/protobuf/compiler/protogen"
+
+	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
 var (
@@ -14,12 +14,11 @@ var (
 )
 
 func main() {
-	path, err := bazel.Runfile(configPath)
+	runfiles, err := runfiles.New()
 	if err != nil {
 		panic(err)
 	}
-
-	config, err = ioutil.ReadFile(path)
+	config, err = runfiles.ReadFile(configPath)
 	if err != nil {
 		panic(err)
 	}
