@@ -75,10 +75,6 @@ def emit_link(
     if executable == None:
         fail("executable is a required parameter")
 
-    #TODO: There has to be a better way to work out the rpath
-    config_strip = len(go._ctx.configuration.bin_dir.path) + 1
-    pkg_depth = executable.dirname[config_strip:].count("/") + 1
-
     # Exclude -lstdc++ from link options. We don't want to link against it
     # unless we actually have some C++ code. _cgo_codegen will include it
     # in archives via CGO_LDFLAGS if it's needed.
