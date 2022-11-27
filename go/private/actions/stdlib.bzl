@@ -75,14 +75,11 @@ def _sdk_stdlib(go):
 
 def _build_stdlib(go):
     pkg = go.declare_directory(go, path = "pkg")
-    src = go.declare_directory(go, path = "src")
-    root_file = go.declare_file(go, path = "ROOT")
     args = go.builder_args(go, "stdlib")
-    args.add("-out", root_file.dirname)
+    args.add("-out", pkg.dirname)
     if go.mode.race:
         args.add("-race")
     args.add_all(link_mode_args(go.mode))
-    go.actions.write(root_file, "")
     env = go.env
     if go.mode.pure:
         env.update({"CGO_ENABLED": "0"})
@@ -105,7 +102,7 @@ def _build_stdlib(go):
               go.sdk.tools +
               [go.sdk.go, go.sdk.package_list, go.sdk.root_file] +
               go.crosstool)
-    outputs = [pkg, src]
+    outputs = [pkg]
     go.actions.run(
         inputs = inputs,
         outputs = outputs,
@@ -117,5 +114,5 @@ def _build_stdlib(go):
     return GoStdLib(
         _list_json = _build_stdlib_list_json(go),
         libs = [pkg],
-        root_file = root_file,
+        root_file = pkg,
     )
