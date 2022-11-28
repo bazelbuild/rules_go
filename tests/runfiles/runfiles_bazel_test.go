@@ -66,7 +66,7 @@ import (
 
 func PrintRepo() {
 	_, file, _, _ := runtime.Caller(0)
-	fmt.Printf("%s: '%s'\n", file, runfiles.CurrentRepository(1))
+	fmt.Printf("%s: '%s'\n", file, runfiles.CurrentRepository(0))
 }
 -- pkg/BUILD.bazel --
 -- pkg/BUILD.bazel --
@@ -110,7 +110,7 @@ import (
 
 func PrintRepo() {
 	_, file, _, _ := runtime.Caller(0)
-	fmt.Printf("%s: '%s'\n", file, runfiles.CurrentRepository(1))
+	fmt.Printf("%s: '%s'\n", file, runfiles.CurrentRepository(0))
 }
 -- BUILD.bazel --
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
