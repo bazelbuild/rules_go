@@ -40,10 +40,7 @@ tasks:
   ubuntu2004_examples:
     name: Examples test Ubuntu
     platform: ubuntu2004
-    working_directory: examples/go-code-tutorial
-    shell_commands:
-      - "sudo apt-get update"
-      - "sudo apt-get install wamerican"
+    working_directory: examples/basic-gazelle
     build_targets:
       - "//..."
     test_targets:
