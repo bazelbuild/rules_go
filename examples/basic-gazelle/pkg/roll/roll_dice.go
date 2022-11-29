@@ -15,14 +15,15 @@
 package roll
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"k8s.io/klog/v2"
 )
 
 func Roll() string {
-	fmt.Println("roll dice")
+	klog.Info("rolling the dice")
 	return generateNumber()
 }
 

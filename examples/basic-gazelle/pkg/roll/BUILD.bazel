@@ -5,6 +5,7 @@ go_library(
     srcs = ["roll_dice.go"],
     importpath = "github.com/bazelbuild/rules_go/examples/basic-gazelle/pkg/roll",
     visibility = ["//visibility:public"],
+    deps = ["@io_k8s_klog_v2//:klog"],
 )
 
 go_test(
@@ -13,3 +14,8 @@ go_test(
     embed = [":roll"],
 )
 
+go_test(
+    name = "roll_test",
+    srcs = ["roll_dice_test.go"],
+    embed = [":roll"],
+)

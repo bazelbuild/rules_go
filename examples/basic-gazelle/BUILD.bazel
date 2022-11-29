@@ -20,7 +20,10 @@ go_library(
     srcs = ["main.go"],
     importpath = "github.com/bazelbuild/rules_go/examples/basic-gazelle",
     visibility = ["//visibility:private"],
-    deps = ["//cmd"],
+    deps = [
+        "//cmd",
+        "@io_k8s_klog_v2//:klog",
+    ],
 )
 
 go_binary(

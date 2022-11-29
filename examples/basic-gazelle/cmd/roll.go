@@ -19,6 +19,7 @@ import (
 
 	"github.com/bazelbuild/rules_go/examples/basic-gazelle/pkg/roll"
 	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
 )
 
 // rollCmd represents the roll command
@@ -32,21 +33,12 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("roll called")
-		fmt.Println(roll.Roll())
+		klog.Info("calling roll")
+		fmt.Printf("Number rolled: %s\n", roll.Roll())
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(rollCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// rollCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// rollCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
