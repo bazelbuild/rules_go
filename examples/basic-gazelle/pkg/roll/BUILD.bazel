@@ -3,6 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "roll",
     srcs = ["roll_dice.go"],
-    importpath = "github.com/bazelbuild/rules_go/examples/go-code-tutorial/pkg/roll",
+    importpath = "github.com/bazelbuild/rules_go/examples/basic-gazelle/pkg/roll",
     visibility = ["//visibility:public"],
 )

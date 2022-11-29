@@ -17,7 +17,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/bazelbuild/rules_go/examples/go-code-tutorial/pkg/word"
+	"github.com/bazelbuild/rules_go/examples/basic-gazelle/pkg/word"
 	"github.com/spf13/cobra"
 )
 

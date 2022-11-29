@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/bazelbuild/rules_go/examples/go-code-tutorial/cmd"
+import "github.com/bazelbuild/rules_go/examples/basic-gazelle/cmd"
 
 func main() {
 	cmd.Execute()

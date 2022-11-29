@@ -17,7 +17,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/bazelbuild/rules_go/examples/go-code-tutorial/pkg/roll"
+	"github.com/bazelbuild/rules_go/examples/basic-gazelle/pkg/roll"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +33,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("roll called")
-		roll.Roll()
+		fmt.Println(roll.Roll())
 	},
 }
 

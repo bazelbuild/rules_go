@@ -14,8 +14,19 @@
 
 package roll
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
-func Roll() {
+func Roll() int {
 	fmt.Println("roll dice")
+	return generateNumber()
+}
+
+func generateNumber() int {
+	source := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(source)
+	return random.Intn(100)
 }
