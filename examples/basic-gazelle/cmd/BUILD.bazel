@@ -5,13 +5,11 @@ go_library(
     srcs = [
         "roll.go",
         "root.go",
-        "word.go",
     ],
     importpath = "github.com/bazelbuild/rules_go/examples/basic-gazelle/cmd",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_spf13_cobra//:cobra",
         "//pkg/roll",
-        "//pkg/word",
     ],
 )

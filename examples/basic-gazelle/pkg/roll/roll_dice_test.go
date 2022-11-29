@@ -15,19 +15,13 @@
 package roll
 
 import (
-	"fmt"
-	"math/rand"
-	"strconv"
-	"time"
+	"testing"
 )
 
-func Roll() string {
-	fmt.Println("roll dice")
-	return generateNumber()
-}
+func TestGenerateNumber(t *testing.T) {
+	result := generateNumber()
 
-func generateNumber() string {
-	source := rand.NewSource(time.Now().UnixNano())
-	random := rand.New(source)
-	return strconv.Itoa(random.Intn(100))
+	if result == "" {
+		t.Error("got an empty string")
+	}
 }
