@@ -38,13 +38,21 @@ tasks:
     test_targets:
       - "//..."
   ubuntu2004_examples:
-    name: Examples test Ubuntu
+    name: Examples test on Ubuntu
     platform: ubuntu2004
     working_directory: examples/basic-gazelle
     build_targets:
       - "//..."
     test_targets:
       - "//..."
+  macos_examples:
+    name: Examples test on MacOS
+    platform: macos
+    working_directory: examples/basic-gazelle
+    build_targets:
+    - "//..."
+    test_targets:
+    - "//..."
   macos:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
