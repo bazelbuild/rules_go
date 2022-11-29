@@ -1,11 +1,8 @@
-module github.com/bazelbuild/rules_go/examples/go-code-tutorial
+module github.com/bazelbuild/rules_go/examples/basic-gazelle
 
 go 1.19
 
-require (
-	github.com/spf13/cobra v1.5.0
-	github.com/tjarratt/babble v0.0.0-20210505082055-cbca2a4833c1
-)
+require github.com/spf13/cobra v1.5.0
 
 require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
