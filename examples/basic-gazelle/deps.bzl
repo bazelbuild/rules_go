@@ -111,12 +111,7 @@ def go_dependencies():
         sum = "h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=",
         version = "v1.5.1",
     )
-    go_repository(
-        name = "com_github_tjarratt_babble",
-        importpath = "github.com/tjarratt/babble",
-        sum = "h1:j8whCiEmvLCXI3scVn+YnklCU8mwJ9ZJ4/DGAKqQbRE=",
-        version = "v0.0.0-20210505082055-cbca2a4833c1",
-    )
+
     go_repository(
         name = "com_github_yuin_goldmark",
         importpath = "github.com/yuin/goldmark",
