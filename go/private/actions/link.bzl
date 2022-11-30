@@ -89,12 +89,14 @@ def emit_link(
     tool_args = go.tool_args(go)
 
     # Add in any mode specific behaviours
-    tool_args.add_all(extld_from_cc_toolchain(go))
+    extld = extld_from_cc_toolchain(go)
+    tool_args.add_all(extld)
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
     if ((go.mode.static and not go.mode.pure) or
+        (go.mode.race and extld) or
         go.mode.link != LINKMODE_NORMAL or
         go.mode.goos == "windows" and (go.mode.race or go.mode.msan)):
         # Force external linking for the following conditions:
@@ -106,6 +108,11 @@ def emit_link(
         #   incompatibilities with mingw, and we get link errors in race mode.
         #   Using the C linker avoids that. Race and msan always require a
         #   a C toolchain. See #2614.
+        # * Linux race builds: we get linker errors during build with Go's
+        #   internal linker. For example, when using zig cc v0.10
+        #   (clang-15.0.3):
+        #
+        #       runtime/cgo(.text): relocation target memset not defined
         tool_args.add("-linkmode", "external")
     if go.mode.pure:
         # Force internal linking in pure mode. We don't have a C toolchain,
