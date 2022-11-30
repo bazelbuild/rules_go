@@ -16,7 +16,7 @@ func TestRunfilesApparent(t *testing.T) {
 }
 
 func TestRunfilesApparentSourceRepositoryOption(t *testing.T) {
-	r, err := runfiles.New(runfiles.SourceRepo(runfiles.CurrentRepository(1)))
+	r, err := runfiles.New(runfiles.SourceRepo(runfiles.CurrentRepository()))
 	if err != nil {
 		t.Fatalf("runfiles.New: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestRunfilesApparentWithSourceRepository(t *testing.T) {
 	if err != nil {
 		t.Fatalf("runfiles.New: %v", err)
 	}
-	r = r.WithSourceRepo(runfiles.CurrentRepository(1))
+	r = r.WithSourceRepo(runfiles.CallerRepository(0))
 	path, err := r.Rlocation("other_module/bar.txt")
 	if err != nil {
 		t.Fatalf("runfiles.Path: %v", err)
@@ -41,7 +41,7 @@ func TestRunfilesApparentWithSourceRepository(t *testing.T) {
 }
 
 func TestRunfilesFromApparent(t *testing.T) {
-	path, err := runfiles.RlocationFrom("other_module/bar.txt", runfiles.CurrentRepository(1))
+	path, err := runfiles.RlocationFrom("other_module/bar.txt", runfiles.CurrentRepository())
 	if err != nil {
 		t.Fatalf("runfiles.Path: %v", err)
 	}

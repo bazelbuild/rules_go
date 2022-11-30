@@ -25,7 +25,7 @@ import (
 // the runfiles manifest maps s to an empty name (indicating an empty runfile
 // not present in the filesystem), Rlocation returns an error that wraps ErrEmpty.
 func Rlocation(path string) (string, error) {
-	return RlocationFrom(path, CurrentRepository(1))
+	return RlocationFrom(path, CallerRepository(1))
 }
 
 func RlocationFrom(path string, sourceRepo string) (string, error) {
@@ -54,10 +54,17 @@ var legacyExternalGeneratedFile = regexp.MustCompile(`^bazel-out[/][^/]+/bin/ext
 var legacyExternalFile = regexp.MustCompile(`^external/([^/]+)/`)
 
 // CurrentRepository returns the canonical name of the Bazel repository that
+// contains the source file of the caller of this function.
+func CurrentRepository() string {
+	return CallerRepository(1)
+}
+
+// CallerRepository returns the canonical name of the Bazel repository that
 // contains the source file of the caller of this function with skip frames
 // skipped. For example, passing 0 will return the name of the repository that
-// contains the caller of CurrentRepository.
-func CurrentRepository(skip int) string {
+// contains the caller of CallerRepository and behaves identically to
+// CurrentRepository.
+func CallerRepository(skip int) string {
 	_, file, _, _ := runtime.Caller(skip + 1)
 	if match := legacyExternalGeneratedFile.FindStringSubmatch(file); match != nil {
 		return match[1]
