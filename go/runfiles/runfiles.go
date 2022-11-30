@@ -176,6 +176,20 @@ func isNormalizedPath(s string) error {
 	return nil
 }
 
+// loadRepoMapping loads the repo mapping (if it exists) using the impl.
+// This mutates the Runfiles object, but is idempotent.
+func (r *Runfiles) loadRepoMapping() error {
+	repoMappingPath, err := r.impl.path(repoMappingRlocation)
+	// If Bzlmod is disabled, the repository mapping manifest isn't created, so
+	// it is not an error if it is missing.
+	if err != nil {
+		return nil
+	}
+	r.repoMapping, err = parseRepoMapping(repoMappingPath)
+	// If the repository mapping manifest exists, it must be valid.
+	return err
+}
+
 // Env returns additional environmental variables to pass to subprocesses.
 // Each element is of the form “key=value”.  Pass these variables to
 // Bazel-built binaries so they can find their runfiles as well.  See the

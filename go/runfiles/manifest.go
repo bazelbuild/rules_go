@@ -33,18 +33,13 @@ func (f ManifestFile) new(sourceRepo SourceRepo) (*Runfiles, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	var repoMapping map[repoMappingKey]string
-	repoMappingPath, err := m.path(repoMappingRlocation)
-	// If Bzlmod is disabled, the repository mapping manifest isn't created, so
-	// it is not an error if it is missing.
-	if err == nil {
-		repoMapping, err = parseRepoMapping(repoMappingPath)
-		if err != nil {
-			return nil, err
-		}
+	r := &Runfiles{
+		impl:       m,
+		env:        manifestFileVar + "=" + string(f),
+		sourceRepo: string(sourceRepo),
 	}
-	return &Runfiles{m, manifestFileVar + "=" + string(f), repoMapping, string(sourceRepo)}, nil
+	err = r.loadRepoMapping()
+	return r, err
 }
 
 type manifest map[string]string

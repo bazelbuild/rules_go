@@ -22,17 +22,13 @@ import "path/filepath"
 type Directory string
 
 func (d Directory) new(sourceRepo SourceRepo) (*Runfiles, error) {
-	var repoMapping map[repoMappingKey]string
-	repoMappingPath, err := d.path(repoMappingRlocation)
-	// If Bzlmod is disabled, the repository mapping manifest isn't created, so
-	// it is not an error if it is missing.
-	if err == nil {
-		repoMapping, err = parseRepoMapping(repoMappingPath)
-		if err != nil {
-			return nil, err
-		}
+	r := &Runfiles{
+		impl:       d,
+		env:        directoryVar + "=" + string(d),
+		sourceRepo: string(sourceRepo),
 	}
-	return &Runfiles{d, directoryVar + "=" + string(d), repoMapping, string(sourceRepo)}, nil
+	err := r.loadRepoMapping()
+	return r, err
 }
 
 func (d Directory) path(s string) (string, error) {
