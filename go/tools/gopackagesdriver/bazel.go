@@ -36,7 +36,7 @@ const (
 type Bazel struct {
 	bazelBin      string
 	workspaceRoot string
-	bazelFlags []string
+	bazelFlags    []string
 	info          map[string]string
 }
 
@@ -54,6 +54,7 @@ func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, bazelFlags []
 	b := &Bazel{
 		bazelBin:      bazelBin,
 		workspaceRoot: workspaceRoot,
+		bazelFlags:    bazelFlags,
 	}
 	if err := b.fillInfo(ctx); err != nil {
 		return nil, fmt.Errorf("unable to query bazel info: %w", err)
