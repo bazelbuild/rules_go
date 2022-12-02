@@ -34,10 +34,10 @@ const (
 )
 
 type Bazel struct {
-	bazelBin      string
-	workspaceRoot string
-	bazelFlags    []string
-	info          map[string]string
+	bazelBin          string
+	workspaceRoot     string
+	bazelStartupFlags []string
+	info              map[string]string
 }
 
 // Minimal BEP structs to access the build outputs
@@ -50,11 +50,11 @@ type BEPNamedSet struct {
 	} `json:"namedSetOfFiles"`
 }
 
-func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, bazelFlags []string) (*Bazel, error) {
+func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, bazelStartupFlags []string) (*Bazel, error) {
 	b := &Bazel{
-		bazelBin:      bazelBin,
-		workspaceRoot: workspaceRoot,
-		bazelFlags:    bazelFlags,
+		bazelBin:          bazelBin,
+		workspaceRoot:     workspaceRoot,
+		bazelStartupFlags: bazelStartupFlags,
 	}
 	if err := b.fillInfo(ctx); err != nil {
 		return nil, fmt.Errorf("unable to query bazel info: %w", err)
@@ -82,7 +82,7 @@ func (b *Bazel) run(ctx context.Context, command string, args ...string) (string
 		"--tool_tag=" + toolTag,
 		"--ui_actions_shown=0",
 	}
-	cmd := exec.CommandContext(ctx, b.bazelBin, concatStringsArrays(b.bazelFlags, defaultArgs, args)...)
+	cmd := exec.CommandContext(ctx, b.bazelBin, concatStringsArrays(b.bazelStartupFlags, defaultArgs, args)...)
 	fmt.Fprintln(os.Stderr, "Running:", cmd.Args)
 	cmd.Dir = b.WorkspaceRoot()
 	cmd.Stderr = os.Stderr
