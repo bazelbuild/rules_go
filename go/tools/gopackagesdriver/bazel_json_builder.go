@@ -131,7 +131,7 @@ func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
 }
 
 func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, error) {
-	queryArgs := concatStringsArrays(bazelFlags, bazelQueryFlags, []string{
+	queryArgs := concatStringsArrays(bazelQueryFlags, []string{
 		"--ui_event_filters=-info,-stderr",
 		"--noshow_progress",
 		"--order_output=no",
@@ -167,7 +167,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		"--aspects=" + strings.Join(aspects, ","),
 		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
-	}, bazelFlags, bazelBuildFlags)
+	}, bazelBuildFlags)
 
 	if len(labels) < 100 {
 		buildArgs = append(buildArgs, labels...)
