@@ -34,14 +34,14 @@ PROTO_COMPILER_ATTRS = [
     "compilers",
 ]
 
-def _is_file_external(f):
+def is_file_external(f):
     return f.owner.workspace_root != ""
 
-def _file_path(f):
+def file_path(f):
     prefix = "__BAZEL_WORKSPACE__"
     if not f.is_source:
         prefix = "__BAZEL_EXECROOT__"
-    elif _is_file_external(f):
+    elif is_file_external(f):
         prefix = "__BAZEL_OUTPUT_BASE__"
     return paths.join(prefix, f.path)
 
@@ -49,23 +49,23 @@ def _go_archive_to_pkg(archive):
     return struct(
         ID = str(archive.data.label),
         PkgPath = archive.data.importpath,
-        ExportFile = _file_path(archive.data.export_file),
+        ExportFile = file_path(archive.data.export_file),
         GoFiles = [
-            _file_path(src)
+            file_path(src)
             for src in archive.data.orig_srcs if src.path.endswith(".go")
         ],
         CompiledGoFiles = [
-            _file_path(src)
+            file_path(src)
             for src in archive.data.srcs if src.path.endswith(".go")
         ],
         OtherFiles = [
-            _file_path(src)
+            file_path(src)
             for src in archive.data.orig_srcs if not src.path.endswith(".go")
         ]
     )
 
-def _make_pkg_json(ctx, archive, pkg_info):
-    pkg_json_file = ctx.actions.declare_file(archive.data.name + ".pkg.json")
+def make_pkg_json(ctx, name, pkg_info):
+    pkg_json_file = ctx.actions.declare_file(name + ".pkg.json")
     ctx.actions.write(pkg_json_file, content = pkg_info.to_json())
     return pkg_json_file
 
@@ -98,14 +98,14 @@ def _go_pkg_info_aspect_impl(target, ctx):
         compiled_go_files.extend(archive.source.srcs)
         export_files.append(archive.data.export_file)
         pkg = _go_archive_to_pkg(archive)
-        pkg_json_files.append(_make_pkg_json(ctx, archive, pkg))
+        pkg_json_files.append(make_pkg_json(ctx, archive.data.name, pkg))
 
         if ctx.rule.kind == "go_test":
             for dep_archive in archive.direct:
                 # find the archive containing the test sources
                 if archive.data.label == dep_archive.data.label:
                     pkg = _go_archive_to_pkg(dep_archive)
-                    pkg_json_files.append(_make_pkg_json(ctx, dep_archive, pkg))
+                    pkg_json_files.append(make_pkg_json(ctx, dep_archive.data.name, pkg))
                     compiled_go_files.extend(dep_archive.source.srcs)
                     export_files.append(dep_archive.data.export_file)
                     break
