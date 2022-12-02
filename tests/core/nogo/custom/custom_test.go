@@ -297,6 +297,24 @@ func run(pass *analysis.Pass) (interface{}, error) {
   }
 }
 
+-- baseconfig.json --
+{
+  "_base": {
+    "exclude_files": {
+      "has_.*\\.go": "Visibility analyzer not specified. Still inherits this special exception."
+    }
+  },
+  "importfmt": {
+    "only_files": {
+      "has_errors\\.go": ""
+    }
+  },
+  "foofuncname": {
+    "description": "no exemptions since we know this check is 100% accurate, so override base config",
+    "exclude_files": {}
+  }
+}
+
 -- has_errors.go --
 package haserrors
 
@@ -409,6 +427,18 @@ func Test(t *testing.T) {
 		}, {
 			desc:        "custom_config_linedirective",
 			config:      "config.json",
+			target:      "//:has_errors_linedirective",
+			wantSuccess: false,
+			includes: []string{
+				`linedirective_foofuncname.go:.*function must not be named Foo \(foofuncname\)`,
+				`linedirective_visibility.go:.*function D is not visible in this package \(visibility\)`,
+			},
+			excludes: []string{
+				`importfmt`,
+			},
+		}, {
+			desc:        "custom_config_with_base_linedirective",
+			config:      "baseconfig.json",
 			target:      "//:has_errors_linedirective",
 			wantSuccess: false,
 			includes: []string{
