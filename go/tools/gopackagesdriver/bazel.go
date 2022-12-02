@@ -36,6 +36,7 @@ const (
 type Bazel struct {
 	bazelBin      string
 	workspaceRoot string
+	bazelFlags []string
 	info          map[string]string
 }
 
@@ -49,7 +50,7 @@ type BEPNamedSet struct {
 	} `json:"namedSetOfFiles"`
 }
 
-func NewBazel(ctx context.Context, bazelBin, workspaceRoot string) (*Bazel, error) {
+func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, bazelFlags []string) (*Bazel, error) {
 	b := &Bazel{
 		bazelBin:      bazelBin,
 		workspaceRoot: workspaceRoot,
@@ -75,11 +76,12 @@ func (b *Bazel) fillInfo(ctx context.Context) error {
 }
 
 func (b *Bazel) run(ctx context.Context, command string, args ...string) (string, error) {
-	cmd := exec.CommandContext(ctx, b.bazelBin, append([]string{
+	defaultArgs := []string{
 		command,
 		"--tool_tag=" + toolTag,
 		"--ui_actions_shown=0",
-	}, args...)...)
+	}
+	cmd := exec.CommandContext(ctx, b.bazelBin, concatStringsArrays(b.bazelFlags, defaultArgs, args)...)
 	fmt.Fprintln(os.Stderr, "Running:", cmd.Args)
 	cmd.Dir = b.WorkspaceRoot()
 	cmd.Stderr = os.Stderr

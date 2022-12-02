@@ -80,7 +80,7 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to read request: %w", err)
 	}
 
-	bazel, err := NewBazel(ctx, bazelBin, workspaceRoot)
+	bazel, err := NewBazel(ctx, bazelBin, workspaceRoot, bazelFlags)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("unable to create bazel instance: %w", err)
 	}
