@@ -177,6 +177,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		if err != nil {
 			return nil, fmt.Errorf("unable to create target pattern file: %w", err)
 		}
+		targetsFile.WriteString(strings.Join(labels, "\n"))
 		defer func() {
 			targetsFile.Close()
 			os.Remove(targetsFile.Name())
