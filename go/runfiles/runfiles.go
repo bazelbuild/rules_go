@@ -101,12 +101,14 @@ func New(opts ...Option) (*Runfiles, error) {
 	return nil, errors.New("runfiles: no runfiles found")
 }
 
-// Rlocation returns the absolute path name of a runfile.  The runfile name must be a
-// runfile-root relative path, using the slash (not backslash) as directory separator.
-// It is typically of the form "repo/path/to/pkg/file".
-// If r is the zero Runfiles object, Rlocation always returns an error.  If the runfiles
-// manifest maps s to an empty name (indicating an empty runfile not present in the
-// filesystem), Rlocation returns an error that wraps ErrEmpty.
+// Rlocation returns the (relative or absolute) path name of a runfile.
+// The runfile name must be a runfile-root relative path, using the slash (not
+// backslash) as directory separator. It is typically of the form
+// "repo/path/to/pkg/file".
+//
+// If r is the zero Runfiles object, Rlocation always returns an error. If the
+// runfiles manifest maps s to an empty name (indicating an empty runfile not
+// present in the filesystem), Rlocation returns an error that wraps ErrEmpty.
 //
 // See section “Library interface” in
 // https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub.
