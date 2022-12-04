@@ -118,8 +118,8 @@ func (r *Runfiles) Rlocation(path string) (string, error) {
 	if path == "" {
 		return "", errors.New("runfiles: path may not be empty")
 	}
-	if !isNormalizedPath(path) {
-		return "", fmt.Errorf("runfiles: path %q is not normalized", path)
+	if err := isNormalizedPath(path); err != nil {
+		return "", err
 	}
 
 	// See https://github.com/bazelbuild/bazel/commit/b961b0ad6cc2578b98d0a307581e23e73392ad02
@@ -137,10 +137,17 @@ func (r *Runfiles) Rlocation(path string) (string, error) {
 	return p, nil
 }
 
-func isNormalizedPath(s string) bool {
-	return !strings.HasPrefix(s, "../") && !strings.Contains(s, "/..") &&
-		!strings.HasPrefix(s, "./") && !strings.HasSuffix(s, "/.") &&
-		!strings.Contains(s, "/./") && !strings.Contains(s, "//")
+func isNormalizedPath(s string) error {
+	if strings.HasPrefix(s, "../") || strings.Contains(s, "/../") || strings.HasSuffix(s, "/..") {
+		return fmt.Errorf(`runfiles: path %q must not contain ".." segments`, s)
+	}
+	if strings.HasPrefix(s, "./") || strings.Contains(s, "/./") || strings.HasSuffix(s, "/.") {
+		return fmt.Errorf(`runfiles: path %q must not contain "." segments`, s)
+	}
+	if strings.Contains(s, "//") {
+		return fmt.Errorf(`runfiles: path %q must not contain "//"`, s)
+	}
+	return nil
 }
 
 // Env returns additional environmental variables to pass to subprocesses.
