@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -177,7 +178,15 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		if err != nil {
 			return nil, fmt.Errorf("unable to create target pattern file: %w", err)
 		}
-		targetsFile.WriteString(strings.Join(labels, "\n"))
+		writer := bufio.NewWriter(targetsFile)
+		defer writer.Flush()
+		for _, l := range labels {
+			writer.WriteString(l+"\n")
+		}
+		err = writer.Flush()
+		if err != nil {
+			return nil, fmt.Errorf("unable to flush data to target pattern file: %w", err)
+		}
 		defer func() {
 			targetsFile.Close()
 			os.Remove(targetsFile.Name())
