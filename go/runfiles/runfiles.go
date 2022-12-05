@@ -83,7 +83,7 @@ func New(opts ...Option) (*Runfiles, error) {
 	}
 
 	if o.sourceRepo == noSourceRepoSentinel {
-		o.sourceRepo = SourceRepo(CallerRepository(1))
+		o.sourceRepo = SourceRepo(CallerRepository())
 	}
 
 	if o.manifest == "" {

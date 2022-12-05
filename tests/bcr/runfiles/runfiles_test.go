@@ -32,7 +32,7 @@ func TestRunfilesApparentWithSourceRepository(t *testing.T) {
 	if err != nil {
 		t.Fatalf("runfiles.New: %v", err)
 	}
-	r = r.WithSourceRepo(runfiles.CallerRepository(0))
+	r = r.WithSourceRepo(runfiles.CurrentRepository())
 	path, err := r.Rlocation("other_module/bar.txt")
 	if err != nil {
 		t.Fatalf("runfiles.Path: %v", err)
