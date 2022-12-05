@@ -125,7 +125,7 @@ TOOLS_NOGO = [
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.36.0"
+RULES_GO_VERSION = "0.37.0"
 
 def declare_toolchains(host, sdk, builder, sdk_version_setting):
     host_goos, _, host_goarch = host.partition("_")
