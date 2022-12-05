@@ -117,6 +117,8 @@ def emit_compilepkg(
         outputs.append(out_cgo_export_h)
     if testfilter:
         args.add("-testfilter", testfilter)
+    if go.sdk.boringcrypto:
+        args.add("-boringcrypto")
 
     gc_flags = list(gc_goopts)
     gc_flags.extend(go.mode.gc_goopts)
