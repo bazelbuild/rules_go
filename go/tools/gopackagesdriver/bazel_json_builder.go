@@ -183,8 +183,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		for _, l := range labels {
 			writer.WriteString(l+"\n")
 		}
-		err = writer.Flush()
-		if err != nil {
+		if err := writer.Flush(); err != nil {
 			return nil, fmt.Errorf("unable to flush data to target pattern file: %w", err)
 		}
 		defer func() {
