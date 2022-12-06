@@ -109,11 +109,6 @@ Announcements
   is now available. This adds `gomock` to rules_go and supports lcov format
   for code coverage report, as well as a long list of other changes listed
   in the release notes.
-2022-03-21
-  Release
-  `v0.31.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.31.0>`_
-  is now available. This adds support for bazel 5.0.0.
-  Thanks to all who contributed!
 
 Contents
 --------
@@ -282,10 +277,10 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "ae013bf35bd23234d1dea46b079f1e05ba74ac0321423830119d3e787ec73483",
+        sha256 = "56d8c5a5c91e1af73eca71a6fab2ced959b67c86d12ba37feedb0a2dfea441a6",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.36.0/rules_go-v0.36.0.zip",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.36.0/rules_go-v0.36.0.zip",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
         ],
     )
 
@@ -406,14 +401,14 @@ automatically from a go.mod or Gopkg.lock file.
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
     # Download the Go rules.
-  http_archive(
-      name = "io_bazel_rules_go",
-      sha256 = "ae013bf35bd23234d1dea46b079f1e05ba74ac0321423830119d3e787ec73483",
-      urls = [
-          "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.36.0/rules_go-v0.36.0.zip",
-          "https://github.com/bazelbuild/rules_go/releases/download/v0.36.0/rules_go-v0.36.0.zip",
-      ],
-  )
+    http_archive(
+        name = "io_bazel_rules_go",
+        sha256 = "56d8c5a5c91e1af73eca71a6fab2ced959b67c86d12ba37feedb0a2dfea441a6",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
+        ],
+    )
 
     # Download Gazelle.
     http_archive(
