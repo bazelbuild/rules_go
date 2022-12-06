@@ -219,11 +219,11 @@ _reset_transition_dict = dict(_common_reset_transition_dict, **{
 
 _reset_transition_keys = sorted([filter_transition_label(label) for label in _reset_transition_dict.keys()])
 
-_stdlib_reset_keys = sorted([
-    "@io_bazel_rules_go//go/config:static",
-    "@io_bazel_rules_go//go/config:strip",
-    "@io_bazel_rules_go//go/config:debug",
-    "@io_bazel_rules_go//go/config:tags",
+_stdlib_keep_keys = sorted([
+    "@io_bazel_rules_go//go/config:msan",
+    "@io_bazel_rules_go//go/config:race",
+    "@io_bazel_rules_go//go/config:pure",
+    "@io_bazel_rules_go//go/config:linkmode",
 ])
 
 def _go_tool_transition_impl(settings, attr):
@@ -274,11 +274,16 @@ non_go_tool_transition = transition(
 )
 
 def _go_stdlib_transition_impl(settings, attr):
-    """TODO
+    """Sets all Go settings to their default values, except for those affecting the Go SDK.
+
+    This transition is similar to _non_go_tool_transition except that it keeps the
+    parts of the configuration that determine how to build the standard library.
+    It's used to consolidate the configurations used to build the standard library to limit
+    the number built.
     """
     settings = dict(settings)
     for label, value in _reset_transition_dict.items():
-        if label in _stdlib_reset_keys:
+        if label not in _stdlib_keep_keys:
             settings[filter_transition_label(label)] = value
     settings[filter_transition_label("@io_bazel_rules_go//go/private:bootstrap_nogo")] = False
     return settings
