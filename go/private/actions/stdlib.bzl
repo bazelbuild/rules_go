@@ -33,8 +33,11 @@ def emit_stdlib(go):
         will point to a new GoStdLib.
     """
     library = go.new_library(go, resolver = _stdlib_library_to_source)
-    source = _build_stdlib(go)
+    source = go.library_to_source(go, {}, library, False)
     return [source, library]
+
+def _stdlib_library_to_source(go, attr, source, merge):
+    source["stdlib"] = _build_stdlib(go)
 
 def _build_stdlib_list_json(go):
     out = go.declare_file(go, "stdlib.pkg.json")
