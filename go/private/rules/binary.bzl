@@ -417,20 +417,34 @@ def _go_tool_binary_impl(ctx):
 
     out = ctx.actions.declare_file(name)
     if sdk.goos == "windows":
-        # TODO(matloob): do the below, but for Windows.
-        pass
+        cmd = "@echo off\nset GOCACHE=%TMPDIR%\\gocache\nsetGOPATH=$TMPDIR\\gopath\n {go} build -o {out} -trimpath {srcs}".format(
+            go = sdk.go.path.replace("/", "\\"),
+            out = out.path,
+            srcs = " ".join([f.path for f in ctx.files.srcs]),
+        )
+        bat = ctx.actions.declare_file(name + ".bat")
+        ctx.actions.write(
+            output = bat,
+            content = cmd,
+        )
+        ctx.actions.run(
+            executable = bat,
+            inputs = sdk.headers + sdk.tools + sdk.srcs + ctx.files.srcs + [sdk.go],
+            outputs = [out],
+            mnemonic = "GoToolchainBinaryBuild",
+        )
     else:
         # Note: GOPATH is needed for Go 1.16.
-        cmd = "GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath {srcs}".format(
+        cmd = "GOCACHE=$TMPDIR/gocache GOPATH=$TMPDIR/gopath {go} build -o {out} -trimpath {srcs}".format(
             go = sdk.go.path,
             out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
         )
         ctx.actions.run_shell(
             command = cmd,
-            inputs = sdk.headers + sdk.tools + sdk.srcs + ctx.files.srcs + [sdk.go],  # sdk.libs
+            inputs = sdk.headers + sdk.tools + sdk.srcs + ctx.files.srcs + [sdk.go],
             outputs = [out],
-            mnemonic = "GoToolchainBinaryCompile",
+            mnemonic = "GoToolchainBinaryBuild",
         )
 
     return [DefaultInfo(
