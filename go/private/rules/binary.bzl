@@ -441,7 +441,6 @@ def _go_tool_binary_impl(ctx):
 
 go_tool_binary = rule(
     implementation = _go_tool_binary_impl,
-    cfg = go_tool_transition,  # For fmeum: Is this correct? do we need go_reset_target?
     attrs = {
         "srcs": attr.label_list(
             allow_files = True,
@@ -451,9 +450,6 @@ go_tool_binary = rule(
             mandatory = True,
             providers = [GoSDK],
             doc = "The SDK containing tools and libraries to build this binary",
-        ),
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     executable = True,
