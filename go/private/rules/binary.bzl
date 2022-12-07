@@ -420,8 +420,8 @@ def _go_tool_binary_impl(ctx):
         gopath = ctx.actions.declare_directory("gopath")
         gocache = ctx.actions.declare_directory("gocache")
         cmd = "set WORKDIR=%cd%\necho CMD %WORKDIR%\nset GOCACHE=%WORKDIR%\\{gocache}\nset GOPATH=%WORKDIR%\\{gopath}\necho %GOCACHE%\n {go} build -o {out} -trimpath {srcs}".format(
-            gopath = gopath,
-            gocache = gocache,
+            gopath = gopath.path,
+            gocache = gocache.path,
             go = sdk.go.path.replace("/", "\\"),
             out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
