@@ -33,7 +33,6 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_tool_transition",
     "go_transition",
 )
 load(
