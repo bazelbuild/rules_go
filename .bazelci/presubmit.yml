@@ -343,6 +343,9 @@ tasks:
     name: Examples test on Ubuntu
     platform: ubuntu2004
     working_directory: examples/basic-gazelle
+    build_flags:
+      - "--incompatible_config_setting_private_default_visibility"
+      - "--incompatible_enforce_config_setting_visibility"
     build_targets:
       - "//..."
     test_targets:
@@ -351,14 +354,20 @@ tasks:
     name: Examples test on MacOS
     platform: macos
     working_directory: examples/basic-gazelle
+    build_flags:
+      - "--incompatible_config_setting_private_default_visibility"
+      - "--incompatible_enforce_config_setting_visibility"
     build_targets:
     - "//..."
     test_targets:
     - "//..."
   windows_examples:
-    platform: windows
     name: Examples test on Windows
+    platform: windows
+    working_directory: examples/basic-gazelle
     build_flags:
+    - "--incompatible_config_setting_private_default_visibility"
+    - "--incompatible_enforce_config_setting_visibility"
     # Go requires a C toolchain that accepts options and emits errors like
     # gcc or clang. The Go SDK does not support MSVC.
     - "--cpu=x64_windows"
@@ -370,7 +379,6 @@ tasks:
     - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
     - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
     - "--incompatible_enable_cc_toolchain_resolution"
-    working_directory: examples/basic-gazelle
     build_targets:
     - "//..."
     test_targets:
