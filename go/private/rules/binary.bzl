@@ -434,7 +434,7 @@ def _go_tool_binary_impl(ctx):
         ctx.actions.run(
             executable = bat,
             inputs = sdk.headers + sdk.tools + sdk.srcs + ctx.files.srcs + [sdk.go],
-            outputs = [out],
+            outputs = [out, gopath, gocache],
             mnemonic = "GoToolchainBinaryBuild",
         )
     else:
