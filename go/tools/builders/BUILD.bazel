@@ -44,7 +44,6 @@ filegroup(
         "asm.go",
         "builder.go",
         "cgo2.go",
-        "compile.go",
         "compilepkg.go",
         "cover.go",
         "edit.go",

@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 
 go_library(
     name = "go_default_library",
@@ -10,11 +11,18 @@ go_library(
     ],
     embedsrcs = [
         "embedded_src.txt",
+        "renamed_embedded_src.txt",
         "template/index.html.tmpl",
     ],
     importpath = "example.com/repo/pkg/lib",
     visibility = ["//visibility:public"],
     deps = [":transitive_lib"],
+)
+
+copy_file(
+    name = "rename_embedded_src.txt",
+    src = ":embedded_src.txt",
+    out = "renamed_embedded_src.txt",
 )
 
 go_test(

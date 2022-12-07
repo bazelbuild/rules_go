@@ -7,6 +7,9 @@
       "name": "Fabian Meumertzheim"
     }
   ],
+  "repository": [
+    "github:bazelbuild/rules_go"
+  ],
   "versions": [],
   "yanked_versions": {}
 }

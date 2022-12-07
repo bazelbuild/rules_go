@@ -63,11 +63,8 @@ bzl_library(
         "//go/private:platforms",
         "//go/private:providers",
         "//go/private/actions:archive",
-        "//go/private/actions:asm",
         "//go/private/actions:binary",
-        "//go/private/actions:compile",
         "//go/private/actions:link",
-        "//go/private/actions:pack",
         "//go/private/actions:stdlib",
     ],
 )

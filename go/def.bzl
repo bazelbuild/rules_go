@@ -41,7 +41,8 @@ load(
 )
 load(
     "//go/private:go_toolchain.bzl",
-    _declare_toolchains = "declare_toolchains",
+    _declare_bazel_toolchains = "declare_bazel_toolchains",
+    _declare_go_toolchains = "declare_go_toolchains",
     _go_toolchain = "go_toolchain",
 )
 load(
@@ -124,9 +125,22 @@ TOOLS_NOGO = [
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.35.0"
+RULES_GO_VERSION = "0.37.0"
 
-declare_toolchains = _declare_toolchains
+def declare_toolchains(host, sdk, builder, sdk_version_setting):
+    host_goos, _, host_goarch = host.partition("_")
+    _declare_go_toolchains(
+        host_goos = host_goos,
+        sdk = sdk,
+        builder = builder,
+    )
+    _declare_bazel_toolchains(
+        host_goos = host_goos,
+        host_goarch = host_goarch,
+        toolchain_prefix = "",
+        sdk_version_setting = sdk_version_setting,
+    )
+
 go_context = _go_context
 go_embed_data = _go_embed_data
 gomock = _gomock

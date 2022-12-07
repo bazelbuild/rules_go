@@ -54,7 +54,7 @@ var (
 	rulesGoRepositoryName = getenvDefault("GOPACKAGESDRIVER_RULES_GO_REPOSITORY_NAME", "@io_bazel_rules_go")
 	goDefaultAspect       = rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect"
 	bazelBin              = getenvDefault("GOPACKAGESDRIVER_BAZEL", "bazel")
-	bazelFlags            = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_FLAGS"))
+	bazelStartupFlags     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_FLAGS"))
 	bazelQueryFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY_FLAGS"))
 	bazelQueryScope       = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "")
 	bazelBuildFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_BUILD_FLAGS"))
@@ -80,7 +80,7 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to read request: %w", err)
 	}
 
-	bazel, err := NewBazel(ctx, bazelBin, workspaceRoot)
+	bazel, err := NewBazel(ctx, bazelBin, workspaceRoot, bazelStartupFlags)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("unable to create bazel instance: %w", err)
 	}

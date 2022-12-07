@@ -16,7 +16,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"go/parser"
 	"go/token"
@@ -24,43 +23,6 @@ import (
 	"os"
 	"strconv"
 )
-
-// cover transforms a source file with "go tool cover". It is invoked by the
-// Go rules as an action.
-func cover(args []string) error {
-	args, _, err := expandParamsFiles(args)
-	if err != nil {
-		return err
-	}
-	flags := flag.NewFlagSet("cover", flag.ExitOnError)
-	var coverSrc, coverVar, origSrc, srcName, mode string
-	flags.StringVar(&coverSrc, "o", "", "coverage output file")
-	flags.StringVar(&coverVar, "var", "", "name of cover variable")
-	flags.StringVar(&origSrc, "src", "", "original source file")
-	flags.StringVar(&srcName, "srcname", "", "source name printed in coverage data")
-	flags.StringVar(&mode, "mode", "set", "coverage mode to use")
-	goenv := envFlags(flags)
-	if err := flags.Parse(args); err != nil {
-		return err
-	}
-	if err := goenv.checkFlags(); err != nil {
-		return err
-	}
-	if coverSrc == "" {
-		return fmt.Errorf("-o was not set")
-	}
-	if coverVar == "" {
-		return fmt.Errorf("-var was not set")
-	}
-	if origSrc == "" {
-		return fmt.Errorf("-src was not set")
-	}
-	if srcName == "" {
-		srcName = origSrc
-	}
-
-	return instrumentForCoverage(goenv, origSrc, srcName, coverVar, mode, coverSrc)
-}
 
 // instrumentForCoverage runs "go tool cover" on a source file to produce
 // a coverage-instrumented version of the file. It also registers the file

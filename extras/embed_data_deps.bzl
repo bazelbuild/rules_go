@@ -20,6 +20,8 @@ load(
 )
 
 def go_embed_data_dependencies():
+    print("Embedding is now better handled by using rules_go's built-in embedding functionality (https://github.com/bazelbuild/rules_go/blob/master/docs/go/core/rules.md#go_library-embedsrcs). The `go_embed_data_dependencies` macro is deprecated and will be removed in rules_go version 0.39.")
+
     if "com_github_kevinburke_go_bindata" not in native.existing_rules():
         git_repository(
             name = "com_github_kevinburke_go_bindata",

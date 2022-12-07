@@ -43,9 +43,9 @@ func TestFS(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		// Currently the result of
 		//
-		//  fsys.Path("io_bazel_rules_go/go/runfiles/test.txt")
-		//  fsys.Path("bazel_tools/tools/bash/runfiles/runfiles.bash")
-		//  fsys.Path("io_bazel_rules_go/go/runfiles/testprog/testprog")
+		//  fsys.Rlocation("io_bazel_rules_go/go/runfiles/test.txt")
+		//  fsys.Rlocation("bazel_tools/tools/bash/runfiles/runfiles.bash")
+		//  fsys.Rlocation("io_bazel_rules_go/go/runfiles/testprog/testprog")
 		//
 		// would be a full path like these
 		//

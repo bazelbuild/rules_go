@@ -516,14 +516,10 @@ def go_context(ctx, attr = None):
         stamp = mode.stamp,
         label = ctx.label,
         cover_format = mode.cover_format,
-
         # Action generators
         archive = toolchain.actions.archive,
-        asm = toolchain.actions.asm,
         binary = toolchain.actions.binary,
-        compile = toolchain.actions.compile,
         link = toolchain.actions.link,
-        pack = toolchain.actions.pack,
 
         # Helpers
         args = _new_args,  # deprecated
@@ -821,6 +817,7 @@ def _go_config_impl(ctx):
         tags = ctx.attr.gotags[BuildSettingInfo].value,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
+        gc_goopts = ctx.attr.gc_goopts[BuildSettingInfo].value,
         amd64 = ctx.attr.amd64,
     )]
 
@@ -865,6 +862,10 @@ go_config = rule(
         ),
         "stamp": attr.bool(mandatory = True),
         "cover_format": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
+        "gc_goopts": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
