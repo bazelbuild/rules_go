@@ -9,12 +9,6 @@ go_library(
 )
 
 go_test(
-    name = "roll_dice_test",
-    srcs = ["roll_dice_test.go"],
-    embed = [":roll"],
-)
-
-go_test(
     name = "roll_test",
     srcs = ["roll_dice_test.go"],
     embed = [":roll"],
