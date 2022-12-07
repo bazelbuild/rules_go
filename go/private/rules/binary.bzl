@@ -419,7 +419,7 @@ def _go_tool_binary_impl(ctx):
     if sdk.goos == "windows":
         gopath = ctx.actions.declare_directory("gopath")
         gocache = ctx.actions.declare_directory("gocache")
-        cmd = "set WORKDIR=%cd%\necho CMD %WORKDIR%\nset GOCACHE=%WORKDIR%\\{gocache}\nset GOPATH=%WORKDIR%\\{gopath}\necho %GOCACHE%\n {go} build -o {out} -trimpath {srcs}".format(
+        cmd = "@echo off\nset GOCACHE=%cd%\\{gocache}\nset GOPATH=%cd%\\{gopath}\n{go} build -o {out} -trimpath {srcs}".format(
             gopath = gopath.path,
             gocache = gocache.path,
             go = sdk.go.path.replace("/", "\\"),
