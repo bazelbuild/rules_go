@@ -25,6 +25,21 @@ go_binary(
 )
 
 go_binary(
+    name = "linux_cross_impure",
+    srcs = ["main.go"],
+    goarch = "amd64",
+    goos = "linux",
+    pure = "off",
+    deps = [":platform_lib"],
+)
+
+go_cross_binary(
+    name = "linux_go_cross_impure_cgo",
+    platform = "@io_bazel_rules_go//go/toolchain:linux_amd64_cgo",
+    target = ":linux_cross_impure",
+)
+
+go_binary(
     name = "darwin_cross",
     srcs = ["main.go"],
     goarch = "amd64",
