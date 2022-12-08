@@ -838,7 +838,13 @@ cgo_context_data = rule(
             default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    toolchains = [
+        # In pure mode, a C++ toolchain isn't needed when transitioning.
+        # But if we declare a mandatory toolchain dependency here, a cross-compiling C++ toolchain is required at toolchain resolution time.
+        # So we make this toolchain dependency optional, so that it's only attempted to be looked up if it's actually needed.
+        # Optional toolchain support was added in bazel 6.0.0.
+        config_common.toolchain_type("@bazel_tools//tools/cpp:toolchain_type", mandatory = False) if hasattr(config_common, "toolchain_type") else "@bazel_tools//tools/cpp:toolchain_type",
+    ],
     fragments = ["apple", "cpp"],
     doc = """Collects information about the C/C++ toolchain. The C/C++ toolchain
     is needed to build cgo code, but is generally optional. Rules can't have
