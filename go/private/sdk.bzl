@@ -431,7 +431,6 @@ def _detect_sdk_version(ctx, goroot):
     # Read the third word, or the fourth word if the third word is "devel", to
     # find the version number.
     output_parts = result.stdout.split(" ")
-    print("len(output_parts)", len(output_parts), output_parts[2].startswith("go"))
     if len(output_parts) > 2 and output_parts[2].startswith("go"):
         version = output_parts[2][len("go"):]
     elif len(output_parts) > 3 and output_parts[2] == "devel" and output_parts[3].startswith("go"):

@@ -48,7 +48,7 @@ go_sdk = rule(
         ),
         "boringcrypto": attr.bool(
             mandatory = False,
-            doc = "The host architecture the SDK was built for",
+            doc = "Whether the toolchain should be built with boringcrypto cupport enabled",
         ),
         "root_file": attr.label(
             mandatory = True,
