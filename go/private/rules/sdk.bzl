@@ -32,6 +32,7 @@ def _go_sdk_impl(ctx):
         srcs = ctx.files.srcs,
         tools = ctx.files.tools,
         go = ctx.executable.go,
+        version = ctx.attr.version,
     )]
 
 go_sdk = rule(
@@ -81,6 +82,9 @@ go_sdk = rule(
             executable = True,
             cfg = "exec",
             doc = "The go binary",
+        ),
+        "version": attr.string(
+            doc = "The version of the Go SDK.",
         ),
     },
     doc = ("Collects information about a Go SDK. The SDK must have a normal " +

@@ -347,6 +347,7 @@ def _sdk_build_file(ctx, platform, version):
             "{goarch}": goarch,
             "{exe}": ".exe" if goos == "windows" else "",
             "{rules_go_repo_name}": "io_bazel_rules_go",
+            "{version}": version,
         },
     )
 

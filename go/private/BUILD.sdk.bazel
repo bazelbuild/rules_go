@@ -7,6 +7,14 @@ load("@{rules_go_repo_name}//go:def.bzl", "go_sdk")
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
+    name = "libs",
+    srcs = glob(
+        ["pkg/{goos}_{goarch}/**/*.a"],
+        exclude = ["pkg/{goos}_{goarch}/**/cmd/**"],
+    ),
+)
+
+filegroup(
     name = "headers",
     srcs = glob(["pkg/include/*.h"]),
 )
@@ -31,9 +39,11 @@ go_sdk(
     goarch = "{goarch}",
     goos = "{goos}",
     headers = [":headers"],
+    libs = [":libs"],
     package_list = ":package_list",
     root_file = "ROOT",
     tools = [":tools"],
+    version = "{version}",
 )
 
 go_tool_binary(

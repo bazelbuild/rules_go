@@ -54,6 +54,7 @@ GoSDK = provider(
         "tools": ("List of executable files in the SDK built for " +
                   "the execution platform, excluding the go binary file"),
         "go": "The go binary file",
+        "version": "The Go SDK version",
     },
 )
 
