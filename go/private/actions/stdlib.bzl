@@ -22,6 +22,10 @@ load(
     "extldflags_from_cc_toolchain",
     "link_mode_args",
 )
+load(
+    "//go/private:common.bzl",
+    "minor_version",
+)
 
 def emit_stdlib(go):
     """Returns a standard library for the target configuration.
@@ -53,8 +57,12 @@ def _should_use_sdk_stdlib(go):
             go.mode.link == LINKMODE_NORMAL)
 
 def _has_precompiled_stdlib(version_string):
+    minor = _minor_version(version_string)
+    return minor != None and minor < 20
+
+def _minor_version(version_string):
     if version_string[:2] != "1.":
-        return False
+        return None
     minor = version_string[2:]
     dot = minor.find(".")
     if dot != -1:
@@ -65,7 +73,7 @@ def _has_precompiled_stdlib(version_string):
             minor_digits += e
         else:
             break
-    return int(minor_digits) < 20
+    return int(minor_digits)
 
 def _build_stdlib_list_json(go):
     out = go.declare_file(go, "stdlib.pkg.json")
@@ -95,6 +103,10 @@ def _build_stdlib(go):
     args.add("-out", pkg.dirname)
     if go.mode.race:
         args.add("-race")
+    minor = minor_version(go.sdk.version)
+    if minor != None and minor >= 20:
+        # Turn off coverageredesign GOEXPERIMENT
+        args.add("-nocoverageredesign")
     args.add_all(link_mode_args(go.mode))
     env = go.env
     if go.mode.pure:

@@ -33,6 +33,7 @@ func stdlib(args []string) error {
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
 	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
+	nocoverageredesign := flags.Bool("nocoverageredesign", false, "Disable the coverageredesign GOEXPERIMENT")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
