@@ -438,7 +438,7 @@ def go_context(ctx, attr = None):
     # See https://github.com/golang/go/wiki/MinimumRequirements#amd64
     if mode.amd64:
         env["GOAMD64"] = mode.amd64
-    if mode.pure:
+    if not cgo_context_info:
         crosstool = []
         cgo_tools = None
     else:

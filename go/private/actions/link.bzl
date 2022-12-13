@@ -95,10 +95,11 @@ def emit_link(
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
-    if ((go.mode.static and not go.mode.pure) or
-        (go.mode.race and extld) or
+
+    if extld and (go.mode.static or
+        go.mode.race or
         go.mode.link != LINKMODE_NORMAL or
-        go.mode.goos == "windows" and (go.mode.race or go.mode.msan)):
+        go.mode.goos == "windows" and go.mode.msan):
         # Force external linking for the following conditions:
         # * Mode is static but not pure: -static must be passed to the C
         #   linker if the binary contains cgo code. See #2168, #2216.
@@ -114,10 +115,7 @@ def emit_link(
         #
         #       runtime/cgo(.text): relocation target memset not defined
         tool_args.add("-linkmode", "external")
-    if go.mode.pure:
-        # Force internal linking in pure mode. We don't have a C toolchain,
-        # so external linking is not possible.
-        tool_args.add("-linkmode", "internal")
+
     if go.mode.static:
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
