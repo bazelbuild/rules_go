@@ -48,6 +48,7 @@ func link(args []string) error {
 	flags.Var(&archives, "arc", "Label, package path, and file name of a dependency, separated by '='")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	buildmode := flags.String("buildmode", "", "Build mode used.")
+	nocoverageredesign := flags.Bool("nocoverageredesign", false, "Disable the coverageredesign GOEXPERIMENT")
 	flags.Var(&xdefs, "X", "A string variable to replace in the linked binary (repeated).")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
 	conflictErrMsg := flags.String("conflict_err", "", "Error message about conflicts to report if there's a link error.")
@@ -141,7 +142,9 @@ func link(args []string) error {
 		}
 	}
 
-	os.Setenv("GOEXPERIMENT", "nocoverageredesign")
+	if *nocoverageredesign {
+		os.Setenv("GOEXPERIMENT", "nocoverageredesign")
+	}
 
 	if *buildmode != "" {
 		goargs = append(goargs, "-buildmode", *buildmode)

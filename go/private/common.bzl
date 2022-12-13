@@ -254,7 +254,7 @@ def count_group_matches(v, prefix, suffix):
 
     return count
 
-def minor_version(version):
+def minor_version(version_string):
     if version_string[:2] != "1.":
         return None
     minor = version_string[2:]
