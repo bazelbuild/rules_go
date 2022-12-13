@@ -131,7 +131,7 @@ func TestLib(t *testing.T) {
 }
 
 func TestTool(t *testing.T) {
-	err := exec.Command(".", + string(filepath.Separator) + "Tool").Run()
+	err := exec.Command("." + string(filepath.Separator) + "Tool").Run()
 	if err != nil {
 		t.Error(err)
 	}
