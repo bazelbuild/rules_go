@@ -100,7 +100,9 @@ func link(args []string) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(importcfgName)
+	if !goenv.shouldPreserveWorkDir {
+		defer os.Remove(importcfgName)
+	}
 
 	// generate any additional link options we need
 	goargs := goenv.goTool("link")
