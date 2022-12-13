@@ -11,6 +11,7 @@ filegroup(
     srcs = glob(
         ["pkg/{goos}_{goarch}/**/*.a"],
         exclude = ["pkg/{goos}_{goarch}/**/cmd/**"],
+        allow_empty = True,
     ),
 )
 
