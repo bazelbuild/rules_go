@@ -59,6 +59,12 @@ def _has_precompiled_stdlib(version_string):
     dot = minor.find(".")
     if dot != -1:
         minor = minor[:dot]
+    rc = minor.find("rc")
+    if rc != -1:
+        minor = minor[:rc]
+    beta = minor.find("beta")
+    if beta != -1:
+        minor = minor[:beta]
     return int(minor) < 20
 
 def _build_stdlib_list_json(go):
