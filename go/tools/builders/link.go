@@ -141,6 +141,8 @@ func link(args []string) error {
 		}
 	}
 
+	os.Setenv("GOEXPERIMENT", "nocoverageredesign")
+
 	if *buildmode != "" {
 		goargs = append(goargs, "-buildmode", *buildmode)
 	}

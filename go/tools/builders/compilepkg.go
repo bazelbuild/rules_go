@@ -130,6 +130,8 @@ func compilePkg(args []string) error {
 		return fmt.Errorf("invalid test filter %q", testFilter)
 	}
 
+	os.Setenv("GOEXPERIMENT", "nocoverageredesign")
+
 	return compileArchive(
 		goenv,
 		importPath,
