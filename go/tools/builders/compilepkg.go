@@ -73,7 +73,7 @@ func compilePkg(args []string) error {
 	fs.Var(&objcFlags, "objcflags", "Objective-C compiler flags")
 	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
-	fs.BoolVar(&noCoverageRedesign, "noCoverageRedesign", false, "Turn off the coverageredesign GOEXPERIMENT")
+	fs.BoolVar(&noCoverageRedesign, "nocoverageredesign", false, "Turn off the coverageredesign GOEXPERIMENT")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
