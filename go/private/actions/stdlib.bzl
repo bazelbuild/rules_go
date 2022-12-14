@@ -48,17 +48,13 @@ def _stdlib_library_to_source(go, attr, source, merge):
         source["stdlib"] = _build_stdlib(go)
 
 def _should_use_sdk_stdlib(go):
-    return (_has_precompiled_stdlib(go.sdk.version) and
+    return (go.sdk.libs and  # go.sdk.libs is non-empty if sdk ships with precompiled .a files
             go.mode.goos == go.sdk.goos and
             go.mode.goarch == go.sdk.goarch and
             not go.mode.race and  # TODO(jayconrod): use precompiled race
             not go.mode.msan and
             not go.mode.pure and
             go.mode.link == LINKMODE_NORMAL)
-
-def _has_precompiled_stdlib(version_string):
-    minor = minor_version(version_string)
-    return minor != None and minor < 20
 
 def _build_stdlib_list_json(go):
     out = go.declare_file(go, "stdlib.pkg.json")
