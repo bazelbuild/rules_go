@@ -56,7 +56,7 @@ func compilePkg(args []string) error {
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
-	var noCoverageRedesign bool
+	var boringcrypto, noCoverageRedesign bool
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&coverSrcs, "cover", ".go file that should be instrumented for coverage (must also be a -src)")
 	fs.Var(&embedSrcs, "embedsrc", "file that may be compiled into the package with a //go:embed directive")
@@ -72,6 +72,7 @@ func compilePkg(args []string) error {
 	fs.Var(&cxxFlags, "cxxflags", "C++ compiler flags")
 	fs.Var(&objcFlags, "objcflags", "Objective-C compiler flags")
 	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
+	fs.BoolVar(&boringcrypto, "boringcrypto", false, "Build stdlib with boringcrypto")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
 	fs.BoolVar(&noCoverageRedesign, "nocoverageredesign", false, "Turn off the coverageredesign GOEXPERIMENT")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
@@ -132,8 +133,15 @@ func compilePkg(args []string) error {
 		return fmt.Errorf("invalid test filter %q", testFilter)
 	}
 
+	var experiments []string
 	if noCoverageRedesign {
-		os.Setenv("GOEXPERIMENT", "nocoverageredesign")
+		experiments = append(experiments, "nocoverageredesign")
+	}
+	if boringcrypto {
+		experiments = append(experiments, "boringcrypto")
+	}
+	if len(experiments) > 0 {
+		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
 	}
 
 	return compileArchive(

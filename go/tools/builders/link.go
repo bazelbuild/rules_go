@@ -48,6 +48,7 @@ func link(args []string) error {
 	flags.Var(&archives, "arc", "Label, package path, and file name of a dependency, separated by '='")
 	packageList := flags.String("package_list", "", "The file containing the list of standard library packages")
 	buildmode := flags.String("buildmode", "", "Build mode used.")
+	boringcrypto := flags.Bool("boringcrypto", false, "set boringcrypto GOEXPERIMENT")
 	nocoverageredesign := flags.Bool("nocoverageredesign", false, "Disable the coverageredesign GOEXPERIMENT")
 	flags.Var(&xdefs, "X", "A string variable to replace in the linked binary (repeated).")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
@@ -142,8 +143,15 @@ func link(args []string) error {
 		}
 	}
 
+	var experiments []string
 	if *nocoverageredesign {
-		os.Setenv("GOEXPERIMENT", "nocoverageredesign")
+		experiments = append(experiments, "nocoverageredesign")
+	}
+	if *boringcrypto {
+		experiments = append(experiments, "boringcrypto")
+	}
+	if len(experiments) > 0 {
+		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
 	}
 
 	if *buildmode != "" {

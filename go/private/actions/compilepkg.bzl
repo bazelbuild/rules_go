@@ -121,6 +121,8 @@ def emit_compilepkg(
         outputs.append(out_cgo_export_h)
     if testfilter:
         args.add("-testfilter", testfilter)
+    if go.sdk.boringcrypto:
+        args.add("-boringcrypto")
     minor = minor_version(go.sdk.version)
     if minor != None and minor >= 20:
         # Turn off coverageredesign GOEXPERIMENT
