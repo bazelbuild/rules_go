@@ -57,23 +57,8 @@ def _should_use_sdk_stdlib(go):
             go.mode.link == LINKMODE_NORMAL)
 
 def _has_precompiled_stdlib(version_string):
-    minor = _minor_version(version_string)
+    minor = minor_version(version_string)
     return minor != None and minor < 20
-
-def _minor_version(version_string):
-    if version_string[:2] != "1.":
-        return None
-    minor = version_string[2:]
-    dot = minor.find(".")
-    if dot != -1:
-        minor = minor[:dot]
-    minor_digits = ""
-    for e in minor.elems():
-        if e.isdigit():
-            minor_digits += e
-        else:
-            break
-    return int(minor_digits)
 
 def _build_stdlib_list_json(go):
     out = go.declare_file(go, "stdlib.pkg.json")

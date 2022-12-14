@@ -338,13 +338,6 @@ def _sdk_build_file(ctx, platform, version):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
 
-    coverageredesign = False
-    pv = _parse_version(version)
-    if pv == None or len(pv) < 3:
-        fail("error parsing sdk version: " + version)
-    if pv[1] >= 20:
-        coverageredesign = True
-
     ctx.template(
         "BUILD.bazel",
         Label("//go/private:BUILD.sdk.bazel"),

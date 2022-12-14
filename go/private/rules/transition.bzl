@@ -203,6 +203,7 @@ go_transition = transition(
 )
 
 _common_reset_transition_dict = dict({
+    "@io_bazel_rules_go//go/private:request_nogo": False,
     "@io_bazel_rules_go//go/config:static": False,
     "@io_bazel_rules_go//go/config:msan": False,
     "@io_bazel_rules_go//go/config:race": False,
