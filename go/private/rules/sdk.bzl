@@ -25,7 +25,7 @@ def _go_sdk_impl(ctx):
     return [GoSDK(
         goos = ctx.attr.goos,
         goarch = ctx.attr.goarch,
-        boringcrypto = ctx.attr.boringcrypto,
+        experiments = ctx.attr.experiments,
         root_file = ctx.file.root_file,
         package_list = package_list,
         libs = ctx.files.libs,
@@ -46,9 +46,9 @@ go_sdk = rule(
             mandatory = True,
             doc = "The host architecture the SDK was built for",
         ),
-        "boringcrypto": attr.bool(
+        "experiments": attr.string_list(
             mandatory = False,
-            doc = "Whether the toolchain should be built with boringcrypto support enabled",
+            doc = "Go experiments to enable via GOEXPERIMENT",
         ),
         "root_file": attr.label(
             mandatory = True,

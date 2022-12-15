@@ -33,7 +33,8 @@ func stdlib(args []string) error {
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
 	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
-	boringcrypto := flags.Bool("boringcrypto", false, "Build stdlib with boringcrypto")
+	var experiments multiFlag
+	flags.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -110,8 +111,8 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 	}
 	os.Setenv("CGO_LDFLAGS_ALLOW", b.String())
 
-	if *boringcrypto {
-		os.Setenv("GOEXPERIMENT", "boringcrypto")
+	if len(experiments) > 0 {
+		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
 	}
 
 	// Build the commands needed to build the std library in the right mode

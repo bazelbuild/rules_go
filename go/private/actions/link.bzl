@@ -175,8 +175,7 @@ def emit_link(
     builder_args.add("-p", archive.data.importmap)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
-    if go.sdk.boringcrypto:
-        builder_args.add("-boringcrypto")
+    builder_args.add_all(go.sdk.experiments, before_each = "-experiment")
 
     # Do not remove, somehow this is needed when building for darwin/arm only.
     tool_args.add("-buildid=redacted")
