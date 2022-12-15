@@ -176,12 +176,10 @@ def emit_link(
     builder_args.add("-p", archive.data.importmap)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
-    if go.sdk.boringcrypto:
-        builder_args.add("-boringcrypto")
     minor = minor_version(go.sdk.version)
     if minor != None and minor >= 20:
         # Turn off coverageredesign GOEXPERIMENT
-        builder_args.add("-nocoverageredesign")
+        builder_args.add("-experiment", "nocoverageredesign")
 
     # Do not remove, somehow this is needed when building for darwin/arm only.
     tool_args.add("-buildid=redacted")

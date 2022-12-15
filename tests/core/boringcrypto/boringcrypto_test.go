@@ -66,7 +66,7 @@ const origWrapSDK = `go_wrap_sdk(
 const wrapSDKBoringcrypto = `go_wrap_sdk(
     name = "go_sdk",
     root_file = "@local_go_sdk//:ROOT",
-    boringcrypto = True,
+    experiments = ["boringcrypto"],
 )`
 
 func TestBoringcryptoExperimentPresent(t *testing.T) {
@@ -91,30 +91,6 @@ func TestBoringcryptoExperimentPresent(t *testing.T) {
 
 	if !strings.Contains(string(out), "X:boringcrypto") {
 		t.Fatalf(`version of binary: got %q, want string containing "X:boringcrypto"`, string(out))
-	}
-}
-
-func TestGoRegisterToolchainsChecksVersion(t *testing.T) {
-	const (
-		from = `go_wrap_sdk(
-    name = "go_sdk",
-    root_file = "@local_go_sdk//:ROOT",
-)
-
-go_register_toolchains()`
-		to = `go_register_toolchains(version = "1.18.0", boringcrypto = True)`
-	)
-	mustReplaceInFile(t, "WORKSPACE", from, to)
-	defer mustReplaceInFile(t, "WORKSPACE", to, from)
-
-	out, err := bazel_testing.BazelCmd("build", "//:program").CombinedOutput()
-	if err == nil {
-		t.Fatal("bazel build succeeded; expected command failure\n output:", string(out))
-	}
-
-	wantMsg := "go_register_toolchains: boringcrypto is only supported for versions 1.19.0 and above"
-	if !strings.Contains(string(out), wantMsg) {
-		t.Fatalf("output of bazel build: expected to contain %q\ngot %v", wantMsg, string(out))
 	}
 }
 

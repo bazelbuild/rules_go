@@ -43,7 +43,7 @@ go_sdk(
     libs = [":libs"],
     package_list = ":package_list",
     root_file = "ROOT",
-    boringcrypto = {boringcrypto},
+    experiments = {experiments},
     tools = [":tools"],
     version = "{version}",
 )

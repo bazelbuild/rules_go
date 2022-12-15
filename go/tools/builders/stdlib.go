@@ -33,8 +33,8 @@ func stdlib(args []string) error {
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
 	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
-	boringcrypto := flags.Bool("boringcrypto", false, "Build stdlib with boringcrypto")
-	nocoverageredesign := flags.Bool("nocoverageredesign", false, "Disable the coverageredesign GOEXPERIMENT")
+	var experiments multiFlag
+	flags.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -112,13 +112,6 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 	os.Setenv("CGO_LDFLAGS_ALLOW", b.String())
 	os.Setenv("GODEBUG", "installgoroot=all")
 
-	var experiments []string
-	if *nocoverageredesign {
-		experiments = append(experiments, "nocoverageredesign")
-	}
-	if *boringcrypto {
-		experiments = append(experiments, "boringcrypto")
-	}
 	if len(experiments) > 0 {
 		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
 	}

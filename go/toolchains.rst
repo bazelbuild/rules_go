@@ -247,6 +247,10 @@ SDK version to use (for example, :value:`"1.15.5"`).
 | used for static analysis. The ``nogo`` binary will be used alongside the                         |
 | Go compiler when building packages.                                                              |
 +--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
++--------------------------------+-----------------------------+-----------------------------------+
 
 go_download_sdk
 ~~~~~~~~~~~~~~~
@@ -367,6 +371,10 @@ used. Otherwise, ``go env GOROOT`` is used.
 | only when the build uses a Go toolchain and `toolchain resolution`_ results in this SDK being    |
 | chosen. Otherwise it will be created unconditionally.                                            |
 +--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
++--------------------------------+-----------------------------+-----------------------------------+
 
 go_local_sdk
 ~~~~~~~~~~~~
@@ -391,6 +399,10 @@ This prepares a local path to use as the Go SDK in toolchains.
 | The version of the Go SDK. If specified, `go_local_sdk` will create its repository only when the |
 | build uses a Go toolchain and `toolchain resolution`_ results in this SDK being chosen.          |
 | Otherwise it will be created unconditionally.                                                    |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -423,6 +435,10 @@ rule.
 | The version of the Go SDK. If specified, `go_wrap_sdk` will create its repository only when the  |
 | build uses a Go toolchain and `toolchain resolution`_ results in this SDK being chosen.          |
 | Otherwise it will be created unconditionally.                                                    |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
