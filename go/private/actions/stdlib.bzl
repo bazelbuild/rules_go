@@ -45,7 +45,6 @@ def _stdlib_library_to_source(go, attr, source, merge):
 
 def _should_use_sdk_stdlib(go):
     return (go.sdk.libs and  # go.sdk.libs is non-empty if sdk ships with precompiled .a files
-            not go.sdk.experiments and
             go.mode.goos == go.sdk.goos and
             go.mode.goarch == go.sdk.goarch and
             not go.mode.race and  # TODO(jayconrod): use precompiled race
