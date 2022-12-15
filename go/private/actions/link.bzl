@@ -17,7 +17,6 @@ load(
     "as_set",
     "count_group_matches",
     "has_shared_lib_extension",
-    "minor_version",
 )
 load(
     "//go/private:mode.bzl",
@@ -176,10 +175,7 @@ def emit_link(
     builder_args.add("-p", archive.data.importmap)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
-    minor = minor_version(go.sdk.version)
-    if minor != None and minor >= 20:
-        # Turn off coverageredesign GOEXPERIMENT
-        builder_args.add("-experiment", "nocoverageredesign")
+    builder_args.add_all(go.sdk.experiments, before_each = "-experiment")
 
     # Do not remove, somehow this is needed when building for darwin/arm only.
     tool_args.add("-buildid=redacted")

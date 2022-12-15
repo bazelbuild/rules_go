@@ -253,18 +253,3 @@ def count_group_matches(v, prefix, suffix):
         count = count + 1
 
     return count
-
-def minor_version(version_string):
-    if version_string[:2] != "1.":
-        return None
-    minor = version_string[2:]
-    dot = minor.find(".")
-    if dot != -1:
-        minor = minor[:dot]
-    minor_digits = ""
-    for e in minor.elems():
-        if e.isdigit():
-            minor_digits += e
-        else:
-            break
-    return int(minor_digits)

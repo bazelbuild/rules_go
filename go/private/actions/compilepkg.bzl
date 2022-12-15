@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "//go/private:common.bzl",
-    "minor_version",
-)
-load(
     "//go/private:mode.bzl",
     "link_mode_args",
 )
@@ -121,10 +117,6 @@ def emit_compilepkg(
         outputs.append(out_cgo_export_h)
     if testfilter:
         args.add("-testfilter", testfilter)
-    minor = minor_version(go.sdk.version)
-    if minor != None and minor >= 20:
-        # Turn off coverageredesign GOEXPERIMENT
-        args.add("-experiment", "nocoverageredesign")
     args.add_all(go.sdk.experiments, before_each = "-experiment")
 
     gc_flags = list(gc_goopts)

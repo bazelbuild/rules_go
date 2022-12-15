@@ -22,10 +22,6 @@ load(
     "extldflags_from_cc_toolchain",
     "link_mode_args",
 )
-load(
-    "//go/private:common.bzl",
-    "minor_version",
-)
 
 def emit_stdlib(go):
     """Returns a standard library for the target configuration.
@@ -49,6 +45,7 @@ def _stdlib_library_to_source(go, attr, source, merge):
 
 def _should_use_sdk_stdlib(go):
     return (go.sdk.libs and  # go.sdk.libs is non-empty if sdk ships with precompiled .a files
+            not go.sdk.experiments and
             go.mode.goos == go.sdk.goos and
             go.mode.goarch == go.sdk.goarch and
             not go.mode.race and  # TODO(jayconrod): use precompiled race
@@ -85,10 +82,6 @@ def _build_stdlib(go):
     args.add("-out", pkg.dirname)
     if go.mode.race:
         args.add("-race")
-    minor = minor_version(go.sdk.version)
-    if minor != None and minor >= 20:
-        # Turn off coverageredesign GOEXPERIMENT
-        args.add("-experiment", "nocoverageredesign")
     args.add_all(go.sdk.experiments, before_each = "-experiment")
     args.add_all(link_mode_args(go.mode))
     env = go.env

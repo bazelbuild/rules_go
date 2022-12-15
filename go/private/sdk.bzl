@@ -350,6 +350,14 @@ def _sdk_build_file(ctx, platform, version, experiments):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
 
+    pv = _parse_version(version)
+    if pv != None and pv[1] >= 20:
+        # Turn off coverageredesign GOEXPERIMENT on 1.20+
+        # until rules_go is updated to work with the
+        # coverage redesign.
+        if not "nocoverageredesign" in experiments:
+            experiments.append("nocoverageredesign")
+
     ctx.template(
         "BUILD.bazel",
         Label("//go/private:BUILD.sdk.bazel"),
