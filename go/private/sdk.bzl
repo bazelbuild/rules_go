@@ -356,7 +356,7 @@ def _sdk_build_file(ctx, platform, version, experiments):
         # until rules_go is updated to work with the
         # coverage redesign.
         if not "nocoverageredesign" in experiments:
-            experiments.append("nocoverageredesign")
+            experiments = experiments + ["nocoverageredesign"]
 
     ctx.template(
         "BUILD.bazel",
