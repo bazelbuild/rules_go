@@ -88,7 +88,7 @@ def _build_stdlib(go):
     minor = minor_version(go.sdk.version)
     if minor != None and minor >= 20:
         # Turn off coverageredesign GOEXPERIMENT
-        args.add_all("-experiment", "noboringcrypto")
+        args.add("-experiment", "nocoverageredesign")
     args.add_all(go.sdk.experiments, before_each = "-experiment")
     args.add_all(link_mode_args(go.mode))
     env = go.env
