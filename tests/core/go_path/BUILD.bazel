@@ -44,6 +44,12 @@ go_path(
     deps = ["//tests/core/go_path/pkg/lib:go_default_library"],
 )
 
+go_path(
+    name = "embeded_test",
+    mode = "link",
+    deps = ["//tests/core/go_path/pkg/lib:generated_embeded"],
+)
+
 go_test(
     name = "go_path_test",
     srcs = ["go_path_test.go"],
@@ -58,9 +64,9 @@ go_test(
         ":archive_path",
         ":copy_path",
         ":link_path",
-        ":transition_path",
         ":nodata_path",
         ":notransitive_path",
+        ":transition_path",
     ],
     rundir = ".",
     deps = ["//go/tools/bazel:go_default_library"],
