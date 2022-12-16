@@ -45,8 +45,8 @@ go_path(
 )
 
 go_path(
-    name = "embeded_test",
-    mode = "link",
+    name = "embed_path",
+    mode = "copy",
     deps = ["//tests/core/go_path/pkg/lib:generated_embeded"],
 )
 
@@ -58,11 +58,13 @@ go_test(
         "-copy_path=$(location :copy_path)",
         "-link_path=tests/core/go_path/link_path",  # can't use location; not a single file
         "-nodata_path=$(location :nodata_path)",
+        "-embed_path=$(location :embed_path)",
         "-notransitive_path=$(location :notransitive_path)",
     ],
     data = [
         ":archive_path",
         ":copy_path",
+        ":embed_path",
         ":link_path",
         ":nodata_path",
         ":notransitive_path",
