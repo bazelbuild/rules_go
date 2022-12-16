@@ -76,7 +76,7 @@ bindata = rule(
         "extra_args": attr.string_list(),
         "_bindata": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = "@com_github_kevinburke_go_bindata//go-bindata:go-bindata",
         ),
         "_go_context_data": attr.label(

@@ -135,7 +135,7 @@ go_embed_data = rule(
         "_embed": attr.label(
             default = "//go/tools/builders:embed",
             executable = True,
-            cfg = "host",
+            cfg = "exec",
         ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",
