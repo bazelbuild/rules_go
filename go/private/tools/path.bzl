@@ -77,15 +77,14 @@ def _go_path_impl(ctx):
         src_dir = None
 
         for f in pkg.srcs:
-            src_dir = f.dirname
+            if src_dir == None:
+                src_dir = f.dirname
             dst = pkg.dir + "/" + f.basename
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
         for f in pkg.embedsrcs:
             if src_dir == None:
                 fail("cannot relativize {}: src_dir is unset".format(f.path))
             embedpath = paths.relativize(f.path, f.root.path)
-            if ctx.bin_dir.path == f.root.path:
-                embedpath = f.path
             dst = pkg.dir + "/" + paths.relativize(embedpath, src_dir)
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
     if ctx.attr.include_pkg:
