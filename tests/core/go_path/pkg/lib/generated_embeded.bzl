@@ -56,7 +56,7 @@ def _gen_main_src_impl(ctx):
         "",
         "import (",
     ]
-    lines.append("\t_ \"dep_library\"")
+    lines.append("\t_ \"lib\"")
     lines.extend([
         ")",
         "",
@@ -70,7 +70,7 @@ _gen_main_src = rule(
 )
 
 def generated_embeded(name, srcs, embedsrcs, **kwargs):
-    lib_name = "dep_library"
+    lib_name = "lib"
     _gen_library(
         name = lib_name,
         srcs = srcs,
