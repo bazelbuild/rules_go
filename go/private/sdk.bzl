@@ -355,7 +355,7 @@ def _sdk_build_file(ctx, platform, version, experiments):
         # Turn off coverageredesign GOEXPERIMENT on 1.20+
         # until rules_go is updated to work with the
         # coverage redesign.
-        if not "nocoverageredesign" in experiments:
+        if not "nocoverageredesign" in experiments and not "coverageredesign" in experiments:
             experiments = experiments + ["nocoverageredesign"]
 
     ctx.template(
