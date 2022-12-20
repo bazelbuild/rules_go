@@ -121,6 +121,16 @@ def nogo(name, visibility = None, **kwargs):
         visibility = visibility,
     )
 
+    # With --use_top_level_targets_for_symlinks, which is enabled by default in
+    # Bazel 6.0.0, self-transitioning top-level targets prevent the bazel-bin
+    # convenience symlink from being created. Since nogo targets are of this
+    # type, their presence would trigger this behavior. Work around this by
+    # excluding them from wildcards - they are still transitively built as a
+    # tool dependency of every Go target.
+    kwargs.setdefault("tags", [])
+    if "manual" not in kwargs["tags"]:
+        kwargs["tags"].append("manual")
+
     _nogo(
         name = actual_name,
         visibility = visibility,
