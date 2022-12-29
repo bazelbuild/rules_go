@@ -89,32 +89,35 @@ def emit_link(
     tool_args = go.tool_args(go)
 
     # Add in any mode specific behaviours
-    extld = extld_from_cc_toolchain(go)
-    tool_args.add_all(extld)
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
 
-    if extld and (go.mode.static or
-        go.mode.race or
-        go.mode.link != LINKMODE_NORMAL or
-        go.mode.goos == "windows" and go.mode.msan):
-        # Force external linking for the following conditions:
-        # * Mode is static but not pure: -static must be passed to the C
-        #   linker if the binary contains cgo code. See #2168, #2216.
-        # * Non-normal build mode: may not be strictly necessary, especially
-        #   for modes like "pie".
-        # * Race or msan build for Windows: Go linker has pairwise
-        #   incompatibilities with mingw, and we get link errors in race mode.
-        #   Using the C linker avoids that. Race and msan always require a
-        #   a C toolchain. See #2614.
-        # * Linux race builds: we get linker errors during build with Go's
-        #   internal linker. For example, when using zig cc v0.10
-        #   (clang-15.0.3):
-        #
-        #       runtime/cgo(.text): relocation target memset not defined
-        tool_args.add("-linkmode", "external")
+    if go.mode.pure:
+        tool_args.add("-linkmode", "internal")
+    else:
+        extld = extld_from_cc_toolchain(go)
+        tool_args.add_all(extld)
+        if extld and (go.mode.static or
+                      go.mode.race or
+                      go.mode.link != LINKMODE_NORMAL or
+                      go.mode.goos == "windows" and go.mode.msan):
+            # Force external linking for the following conditions:
+            # * Mode is static but not pure: -static must be passed to the C
+            #   linker if the binary contains cgo code. See #2168, #2216.
+            # * Non-normal build mode: may not be strictly necessary, especially
+            #   for modes like "pie".
+            # * Race or msan build for Windows: Go linker has pairwise
+            #   incompatibilities with mingw, and we get link errors in race mode.
+            #   Using the C linker avoids that. Race and msan always require a
+            #   a C toolchain. See #2614.
+            # * Linux race builds: we get linker errors during build with Go's
+            #   internal linker. For example, when using zig cc v0.10
+            #   (clang-15.0.3):
+            #
+            #       runtime/cgo(.text): relocation target memset not defined
+            tool_args.add("-linkmode", "external")
 
     if go.mode.static:
         extldflags.append("-static")
