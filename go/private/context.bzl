@@ -231,10 +231,18 @@ def _dedup_deps(deps):
     return deduped_deps
 
 def _library_to_source(go, attr, library, coverage_instrumented):
+    root_dir = None
+
     #TODO: stop collapsing a depset in this line...
     attr_srcs = [f for t in getattr(attr, "srcs", []) for f in as_iterable(t.files)]
+    if len(attr_srcs) > 0:
+        root_dir = attr_srcs[0].dirname
     generated_srcs = getattr(library, "srcs", [])
     srcs = attr_srcs + generated_srcs
+    if root_dir == None and len(generated_srcs) > 0:
+        root_dir = generated_srcs[0].dirname
+        if root_dir.startswith(go._ctx.bin_dir.path + "/"):
+            root_dir = root_dir[len(go._ctx.bin_dir.path) + 1:]
     embedsrcs = [f for t in getattr(attr, "embedsrcs", []) for f in as_iterable(t.files)]
     source = {
         "library": library,
@@ -257,6 +265,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "cgo_deps": [],
         "cgo_exports": [],
         "cc_info": None,
+        "root_dir": root_dir,
     }
     if coverage_instrumented:
         source["cover"] = attr_srcs

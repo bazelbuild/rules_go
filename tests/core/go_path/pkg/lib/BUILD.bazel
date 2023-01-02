@@ -33,6 +33,12 @@ generated_embeded(
     visibility = ["//visibility:public"],
 )
 
+generated_embeded(
+    name = "generated_embeded_no_srcs",
+    embedsrcs = ["embedded_src.txt"],
+    visibility = ["//visibility:public"],
+)
+
 go_test(
     name = "go_default_test",
     srcs = [

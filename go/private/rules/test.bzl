@@ -655,6 +655,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
             cxxopts = as_list(arc_data._cxxopts),
             clinkopts = as_list(arc_data._clinkopts),
             cgo_exports = as_list(arc_data._cgo_exports),
+            root_dir = arc_data._root_dir,
         )
 
         # If this archive needs to be recompiled, use go.archive.

@@ -20,8 +20,21 @@ load(
 
 def _gen_library_impl(ctx):
     go = go_context(ctx)
+    libname = getattr(ctx.attr, "libname")
     src = go.actions.declare_file(ctx.label.name + ".go")
-    go.actions.write(src, "package " + ctx.label.name + "\n")
+
+    embedsrcs = getattr(ctx.attr, "embedsrcs", [])
+
+    embed_declarations = ""
+    i = 0
+    for e in embedsrcs:
+        for f in e.files.to_list():
+            embed_declarations += "//go:embed {0}\nvar embeddedSource{1} string\n".format(f.basename, i)
+            i += 1
+
+    go.actions.write(src, "package " + libname + "\n" +
+                          "import _ \"embed\"\n" + embed_declarations)
+
     library = go.new_library(go, srcs = [src])
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     archive = go.archive(go, source)
@@ -45,6 +58,7 @@ _gen_library = rule(
         "embedsrcs": attr.label_list(
             allow_files = True,
         ),
+        "libname": attr.string(default = "lib"),
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
@@ -69,24 +83,25 @@ _gen_main_src = rule(
     _gen_main_src_impl,
 )
 
-def generated_embeded(name, srcs, embedsrcs, **kwargs):
-    lib_name = "lib"
+def generated_embeded(name, embedsrcs, **kwargs):
+    lib_name = name + "_lib"
+    srcs = kwargs.pop("srcs", None)
     _gen_library(
         name = lib_name,
         srcs = srcs,
-        importpath = lib_name,
+        importpath = "lib",
         embedsrcs = embedsrcs,
         visibility = ["//visibility:private"],
     )
 
     _gen_main_src(
-        name = "generated_main_src",
+        name = name + "_main",
     )
 
     go_library(
         name = name,
         importpath = "main",
-        srcs = [":generated_main_src"],
+        srcs = [":" + name + "_main"],
         deps = [lib_name],
         **kwargs
     )

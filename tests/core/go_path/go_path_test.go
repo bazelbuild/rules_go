@@ -29,7 +29,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
-var copyPath, embedPath, linkPath, archivePath, nodataPath, notransitivePath string
+var copyPath, embedPath, embedNoSrcsPath, linkPath, archivePath, nodataPath, notransitivePath string
 
 var defaultMode = runtime.GOOS + "_" + runtime.GOARCH
 
@@ -61,6 +61,7 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&archivePath, "archive_path", "", "path to archive go_path")
 	flag.StringVar(&nodataPath, "nodata_path", "", "path to go_path without data")
 	flag.StringVar(&embedPath, "embed_path", "", "path to go_path with embedsrcs")
+	flag.StringVar(&embedNoSrcsPath, "embed_no_srcs_path", "", "path to go_path with embedsrcs")
 	flag.StringVar(&notransitivePath, "notransitive_path", "", "path to go_path without transitive dependencies")
 	flag.Parse()
 	os.Exit(m.Run())
@@ -87,10 +88,22 @@ func TestEmbedPath(t *testing.T) {
 	files := []string{
 		"src/lib/embed_test.go",
 		"src/lib/embedded_src.txt",
-		"src/lib/lib.go",
-		"src/main/generated_main_src.go",
+		"src/lib/generated_embeded_lib.go",
+		"src/main/generated_embeded_main.go",
 	}
 	checkPath(t, embedPath, files)
+}
+
+func TestEmbedNoSrcsPath(t *testing.T) {
+	if embedNoSrcsPath == "" {
+		t.Fatal("-embed_no_srcs_path not set")
+	}
+	files := []string{
+		"src/lib/embedded_src.txt",
+		"src/lib/generated_embeded_no_srcs_lib.go",
+		"src/main/generated_embeded_no_srcs_main.go",
+	}
+	checkPath(t, embedNoSrcsPath, files)
 }
 
 func TestArchivePath(t *testing.T) {

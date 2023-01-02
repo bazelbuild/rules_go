@@ -54,6 +54,11 @@ def _go_path_impl(ctx):
             importpath, pkgpath = effective_importpath_pkgpath(archive)
             if importpath == "":
                 continue  # synthetic archive or inferred location
+
+            # Uses an array so it can be updated during the merge package
+            root_dir = []
+            if archive._root_dir:
+                root_dir = [archive._root_dir]
             pkg = struct(
                 importpath = importpath,
                 dir = "src/" + pkgpath,
@@ -61,6 +66,7 @@ def _go_path_impl(ctx):
                 data = as_list(archive.data_files),
                 embedsrcs = as_list(archive._embedsrcs),
                 pkgs = {mode: archive.file},
+                root_dir = root_dir,
             )
             if pkgpath in pkg_map:
                 _merge_pkg(pkg_map[pkgpath], pkg)
@@ -75,16 +81,18 @@ def _go_path_impl(ctx):
         # src_dir is the path to the directory holding the source.
         # Paths to embedded sources will be relative to this path.
         src_dir = None
+        if len(pkg.root_dir) > 0:
+            src_dir = pkg.root_dir[0]
 
         for f in pkg.srcs:
-            if src_dir == None:
-                src_dir = f.dirname
             dst = pkg.dir + "/" + f.basename
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
         for f in pkg.embedsrcs:
             if src_dir == None:
                 fail("cannot relativize {}: src_dir is unset".format(f.path))
             embedpath = paths.relativize(f.path, f.root.path)
+            if embedpath.startswith(ctx.bin_dir.path + "/"):
+                embedpath = embedpath[len(ctx.bin_dir.path) + 1:]
             dst = pkg.dir + "/" + paths.relativize(embedpath, src_dir)
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
     if ctx.attr.include_pkg:
@@ -266,6 +274,8 @@ def _merge_pkg(x, y):
     x.srcs.extend([f for f in y.srcs if f.path not in x_srcs])
     x.data.extend([f for f in y.data if f.path not in x_srcs])
     x.embedsrcs.extend([f for f in y.embedsrcs if f.path not in x_embedsrcs])
+    if y.root_dir and not x.root_dir:
+        x.root_dir.extend(y.root_dir)
     x.pkgs.update(y.pkgs)
 
 def _add_manifest_entry(entries, entry_map, inputs, src, dst):
