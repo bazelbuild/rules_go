@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 var (
@@ -45,7 +46,16 @@ func init() {
 	if hasSrcDir && hasWorkspace && RunDir != "" {
 		abs := RunDir
 		if !filepath.IsAbs(RunDir) {
-			abs = filepath.Join(testSrcDir, testWorkspace, RunDir)
+			if strings.HasSuffix(testSrcDir, ".runfiles") && strings.HasPrefix(RunDir, "external/") {
+				// --legacy_external_runfiles is the default, but if the user
+				// has set --nolegacy_external_runfiles then
+				// $workspace_root/external will not exist. Adjust the path
+				// to the non-legacy location.
+				abs = filepath.Join(testSrcDir, strings.TrimPrefix(RunDir, "external/"))
+			} else {
+				// Outside of runfiles, this is still the path layout
+				abs = filepath.Join(testSrcDir, testWorkspace, RunDir)
+			}
 		}
 		err := os.Chdir(abs)
 		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
