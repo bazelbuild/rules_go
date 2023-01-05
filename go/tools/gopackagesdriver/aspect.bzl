@@ -52,16 +52,19 @@ def _go_archive_to_pkg(archive):
         ExportFile = file_path(archive.data.export_file),
         GoFiles = [
             file_path(src)
-            for src in archive.data.orig_srcs if src.path.endswith(".go")
+            for src in archive.data.orig_srcs
+            if src.path.endswith(".go")
         ],
         CompiledGoFiles = [
             file_path(src)
-            for src in archive.data.srcs if src.path.endswith(".go")
+            for src in archive.data.srcs
+            if src.path.endswith(".go")
         ],
         OtherFiles = [
             file_path(src)
-            for src in archive.data.orig_srcs if not src.path.endswith(".go")
-        ]
+            for src in archive.data.orig_srcs
+            if not src.path.endswith(".go")
+        ],
     )
 
 def make_pkg_json(ctx, name, pkg_info):

@@ -12,11 +12,11 @@ go_binary(
     name = "pie",
     srcs = ["bin.go"],
     importpath = "example.com/repo/cmd/bin",
-    visibility = ["//visibility:public"],
     linkmode = "pie",
+    visibility = ["//visibility:public"],
     deps = [
-        "//tests/core/go_path/pkg/lib:go_default_library"
-    ]
+        "//tests/core/go_path/pkg/lib:go_default_library",
+    ],
 )
 
 go_binary(

@@ -70,8 +70,8 @@ selects.config_setting_group(
 )
 
 declare_bazel_toolchains(
-    host_goos = "{goos}",
     host_goarch = "{goarch}",
-    toolchain_prefix = "@{sdk_repo}//",
+    host_goos = "{goos}",
     sdk_version_setting = ":sdk_version_setting",
+    toolchain_prefix = "@{sdk_repo}//",
 )

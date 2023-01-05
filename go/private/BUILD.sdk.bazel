@@ -10,8 +10,8 @@ filegroup(
     name = "libs",
     srcs = glob(
         ["pkg/{goos}_{goarch}/**/*.a"],
-        exclude = ["pkg/{goos}_{goarch}/**/cmd/**"],
         allow_empty = True,
+        exclude = ["pkg/{goos}_{goarch}/**/cmd/**"],
     ),
 )
 
@@ -36,6 +36,7 @@ filegroup(
 go_sdk(
     name = "go_sdk",
     srcs = [":srcs"],
+    experiments = {experiments},
     go = "bin/go{exe}",
     goarch = "{goarch}",
     goos = "{goos}",
@@ -43,7 +44,6 @@ go_sdk(
     libs = [":libs"],
     package_list = ":package_list",
     root_file = "ROOT",
-    experiments = {experiments},
     tools = [":tools"],
     version = "{version}",
 )
@@ -56,7 +56,7 @@ go_tool_binary(
 
 non_go_reset_target(
     name = "builder_reset",
-    dep = ":builder"
+    dep = ":builder",
 )
 
 # TODO(jayconrod): Gazelle depends on this file directly. This dependency

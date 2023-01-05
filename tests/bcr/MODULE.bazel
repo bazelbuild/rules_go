@@ -8,6 +8,7 @@ local_path_override(
     module_name = "rules_go",
     path = "../..",
 )
+
 bazel_dep(name = "gazelle", version = "0.26.0")
 bazel_dep(name = "protobuf", version = "3.19.6")
 bazel_dep(name = "other_module", version = "")
@@ -18,13 +19,16 @@ local_path_override(
 
 # Test that this correctly downloads the SDK by requesting it from the commandline (see presubmit.yml).
 go_sdk = use_extension("@my_rules_go//go:extensions.bzl", "go_sdk")
-go_sdk.download(name = "go_sdk", version = "1.17.5")
+go_sdk.download(
+    name = "go_sdk",
+    version = "1.17.5",
+)
 use_repo(go_sdk, "go_sdk")
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.module(
     path = "google.golang.org/grpc",
-    version = "v1.50.0",
     sum = "h1:fPVVDxY9w++VjTZsYvXWqEf9Rqar/e+9zYfxKK+W+YU=",
+    version = "v1.50.0",
 )
 use_repo(go_deps, "org_golang_google_grpc")
