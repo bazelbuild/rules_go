@@ -20,7 +20,11 @@ go_test(
         "wrap_test.go",
         "xml_test.go",
     ],
-    data = glob(["testdata/**"]),
+    # Empty in integration tests or in distributions.
+    data = glob(
+        ["testdata/**"],
+        allow_empty = True,
+    ),
     embed = [":bzltestutil"],
 )
 
