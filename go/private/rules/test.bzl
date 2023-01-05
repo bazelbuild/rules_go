@@ -22,7 +22,6 @@ load(
     "asm_exts",
     "cgo_exts",
     "go_exts",
-    "pkg_dir",
     "split_srcs",
 )
 load(
@@ -86,13 +85,15 @@ def _go_test_impl(ctx):
     external_srcs = split_srcs(external_source.srcs).go
 
     # now generate the main function
-    if ctx.attr.rundir:
-        if ctx.attr.rundir.startswith("/"):
-            run_dir = ctx.attr.rundir
-        else:
-            run_dir = pkg_dir(ctx.label.workspace_root, ctx.attr.rundir)
+    repo_relative_rundir = ctx.attr.rundir
+    if not repo_relative_rundir:
+        repo_relative_rundir = ctx.label.package if ctx.label.package else "."
+    if ctx.label.workspace_name:
+        # The test is contained in an external repository. The test runner cd's into the directory
+        # corresponding to the main repository, so walk up and then down.
+        run_dir = "../" + ctx.label.workspace_name + "/" + repo_relative_rundir
     else:
-        run_dir = pkg_dir(ctx.label.workspace_root, ctx.label.package)
+        run_dir = repo_relative_rundir
 
     main_go = go.declare_file(go, path = "testmain.go")
     arguments = go.builder_args(go, "gentestmain")
@@ -262,14 +263,21 @@ _go_test_kwargs = {
         ),
         "rundir": attr.string(
             doc = """ A directory to cd to before the test is run.
-            This should be a path relative to the execution dir of the test.
+            This should be a path relative to the subdirectory of the runfiles
+            directory corresponding to the test's repository.
 
-            The default behaviour is to change to the workspace relative path, this replicates the normal
+            The default behaviour is to change to the relative path
+            corresponding to the test's package, which replicates the normal
             behaviour of `go test` so it is easy to write compatible tests.
 
-            Setting it to `.` makes the test behave the normal way for a bazel test.
+            Setting it to `.` makes the test behave the normal way for a bazel
+            test, except that the working directory is always that of the test's
+            repository, which is not necessarily the main repository.
 
-            ***Note:*** This defaults to the package path.
+            Note: If runfile symlinks are disabled (such as on Windows by
+            default), the test will run in the working directory set by Bazel,
+            which is the subdirectory of the runfiles directory corresponding to
+            the main repository.
             """,
         ),
         "x_defs": attr.string_dict(

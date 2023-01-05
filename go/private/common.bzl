@@ -69,16 +69,6 @@ cgo_exts = [
     ".mm",
 ]
 
-def pkg_dir(workspace_root, package_name):
-    """Returns a path to a package directory from the root of the sandbox."""
-    if workspace_root and package_name:
-        return workspace_root + "/" + package_name
-    if workspace_root:
-        return workspace_root
-    if package_name:
-        return package_name
-    return "."
-
 def split_srcs(srcs):
     """Returns a struct of sources, divided by extension."""
     sources = struct(
