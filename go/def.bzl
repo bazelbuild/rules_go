@@ -185,28 +185,28 @@ go_path = _go_path
 # See docs/go/core/rules.md#go_cross_binary for full documentation.
 go_cross_binary = _go_cross_binary
 
-def go_vet_test(*args, **kwargs):
+def go_vet_test(*_args, **_kwargs):
     fail("The go_vet_test rule has been removed. Please migrate to nogo instead, which supports vet tests.")
 
-def go_rule(**kwargs):
+def go_rule(**_kwargs):
     fail("The go_rule function has been removed. Use rule directly instead. See https://github.com/bazelbuild/rules_go/blob/master/go/toolchains.rst#writing-new-go-rules")
 
 def go_rules_dependencies():
     _moved("go_rules_dependencies")
 
-def go_register_toolchains(**kwargs):
+def go_register_toolchains(**_kwargs):
     _moved("go_register_toolchains")
 
-def go_download_sdk(**kwargs):
+def go_download_sdk(**_kwargs):
     _moved("go_download_sdk")
 
-def go_host_sdk(**kwargs):
+def go_host_sdk(**_kwargs):
     _moved("go_host_sdk")
 
-def go_local_sdk(**kwargs):
+def go_local_sdk(**_kwargs):
     _moved("go_local_sdk")
 
-def go_wrap_sdk(**kwargs):
+def go_wrap_sdk(**_kwargs):
     _moved("go_wrap_sdK")
 
 def _moved(name):

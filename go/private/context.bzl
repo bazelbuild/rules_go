@@ -540,7 +540,6 @@ def _go_context_data_impl(ctx):
         print("WARNING: --features=race is no longer supported. Use --@io_bazel_rules_go//go/config:race instead.")
     if "msan" in ctx.features:
         print("WARNING: --features=msan is no longer supported. Use --@io_bazel_rules_go//go/config:msan instead.")
-    coverdata = ctx.attr.coverdata[GoArchive]
     nogo = ctx.files.nogo[0] if ctx.files.nogo else None
     providers = [
         GoContextInfo(

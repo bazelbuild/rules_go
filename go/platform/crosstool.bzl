@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def _match_apple(crosstool_top, cpu):
+def _match_apple(_crosstool_top, cpu):
     """_match_apple will try to detect wether the inbound crosstool/cpu is
     targeting the Apple ecosystem. Apple crosstool CPUs are prefixed, so
     matching is easy."""

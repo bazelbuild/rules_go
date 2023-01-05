@@ -45,7 +45,7 @@ go_sdk = module_extension(
     },
 )
 
-def _non_module_dependencies_impl(ctx):
+def _non_module_dependencies_impl(_ctx):
     go_rules_dependencies(force = True)
 
 non_module_dependencies = module_extension(

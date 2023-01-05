@@ -168,7 +168,7 @@ def _go_transition_impl(settings, attr):
 
     return settings
 
-def _request_nogo_transition(settings, attr):
+def _request_nogo_transition(settings, _attr):
     """Indicates that we want the project configured nogo instead of a noop.
 
     This does not guarantee that the project configured nogo will be used (if
@@ -227,7 +227,7 @@ _stdlib_keep_keys = sorted([
     "@io_bazel_rules_go//go/config:linkmode",
 ])
 
-def _go_tool_transition_impl(settings, attr):
+def _go_tool_transition_impl(settings, _attr):
     """Sets most Go settings to default values (use for external Go tools).
 
     go_tool_transition sets all of the //go/config settings to their default
@@ -250,7 +250,7 @@ go_tool_transition = transition(
     outputs = _reset_transition_keys,
 )
 
-def _non_go_tool_transition_impl(settings, attr):
+def _non_go_tool_transition_impl(settings, _attr):
     """Sets all Go settings to default values (use for external non-Go tools).
 
     non_go_tool_transition sets all of the //go/config settings as well as the
@@ -274,7 +274,7 @@ non_go_tool_transition = transition(
     outputs = _reset_transition_keys,
 )
 
-def _go_stdlib_transition_impl(settings, attr):
+def _go_stdlib_transition_impl(settings, _attr):
     """Sets all Go settings to their default values, except for those affecting the Go SDK.
 
     This transition is similar to _non_go_tool_transition except that it keeps the
@@ -376,7 +376,7 @@ go_transition.
 """,
 )
 
-def _non_go_transition_impl(settings, attr):
+def _non_go_transition_impl(settings, _attr):
     """Sets all Go settings to the values they had before the last go_transition.
 
     non_go_transition sets all of the //go/config settings to the value they had

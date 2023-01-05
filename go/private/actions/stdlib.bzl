@@ -37,7 +37,7 @@ def emit_stdlib(go):
     source = go.library_to_source(go, {}, library, False)
     return [source, library]
 
-def _stdlib_library_to_source(go, attr, source, merge):
+def _stdlib_library_to_source(go, _attr, source, _merge):
     if _should_use_sdk_stdlib(go):
         source["stdlib"] = _sdk_stdlib(go)
     else:
