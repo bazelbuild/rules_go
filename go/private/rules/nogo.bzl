@@ -76,14 +76,14 @@ def _nogo_impl(ctx):
         embed = [ctx.attr._nogo_srcs],
         deps = analyzer_archives,
     ), nogo_library, False)
-    nogo_archive, executable, runfiles = go.binary(
+    _, executable, runfiles = go.binary(
         go,
         name = ctx.label.name,
         source = nogo_source,
     )
     return [DefaultInfo(
         files = depset([executable]),
-        runfiles = nogo_archive.runfiles,
+        runfiles = runfiles,
         executable = executable,
     )]
 

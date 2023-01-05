@@ -83,7 +83,6 @@ def _go_test_impl(ctx):
     ), external_library, ctx.coverage_instrumented())
     external_source, internal_archive = _recompile_external_deps(go, external_source, internal_archive, [t.label for t in ctx.attr.embed])
     external_archive = go.archive(go, external_source)
-    external_srcs = split_srcs(external_source.srcs).go
 
     # now generate the main function
     if ctx.attr.rundir:
@@ -524,13 +523,10 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     # deps_pushed tracks the status of each target.
     # DEPS_UNPROCESSED means the target is on the stack, but its dependencies
     # are not.
-    # ON_DEP_LIST means the target and its dependencies have been added to
-    # dep_list.
     # Non-negative integers are the number of dependencies on the stack that
     # still need to be processed.
     # A target is on the stack if its status is DEPS_UNPROCESSED or 0.
     DEPS_UNPROCESSED = -1
-    ON_DEP_LIST = -2
     deps_pushed = {l: DEPS_UNPROCESSED for l in stack}
 
     # dependents maps labels to lists of known dependents. When a target is

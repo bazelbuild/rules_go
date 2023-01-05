@@ -118,4 +118,5 @@ eof""",
             "$(location %s)" % actual,
             error_message,
         ],
+        **kwargs
     )

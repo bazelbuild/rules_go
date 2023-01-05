@@ -263,7 +263,7 @@ def _merge_pkg(x, y):
     x_data = {f.path: None for f in x.data}
     x_embedsrcs = {f.path: None for f in x.embedsrcs}
     x.srcs.extend([f for f in y.srcs if f.path not in x_srcs])
-    x.data.extend([f for f in y.data if f.path not in x_srcs])
+    x.data.extend([f for f in y.data if f.path not in x_data])
     x.embedsrcs.extend([f for f in y.embedsrcs if f.path not in x_embedsrcs])
     x.pkgs.update(y.pkgs)
 
