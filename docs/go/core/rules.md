@@ -1,18 +1,18 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
 
-  ["Make variable"]: https://docs.bazel.build/versions/master/be/make-variables.html
-  [Bourne shell tokenization]: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
+  ["Make variable"]: https://bazel.build/reference/be/make-variables
+  [Bourne shell tokenization]: https://bazel.build/reference/be/common-definitions#sh-tokenization
   [Gazelle]: https://github.com/bazelbuild/bazel-gazelle
   [GoArchive]: /go/providers.rst#GoArchive
   [GoLibrary]: /go/providers.rst#GoLibrary
   [GoPath]: /go/providers.rst#GoPath
   [GoSource]: /go/providers.rst#GoSource
   [build constraints]: https://golang.org/pkg/go/build/#hdr-Build_Constraints
-  [cc_library deps]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
+  [cc_library deps]: https://bazel.build/reference/be/c-cpp#cc_library.deps
   [cgo]: http://golang.org/cmd/cgo/
-  [config_setting]: https://docs.bazel.build/versions/master/be/general.html#config_setting
-  [data dependencies]: https://docs.bazel.build/versions/master/build-ref.html#data
+  [config_setting]: https://bazel.build/reference/be/general#config_setting
+  [data dependencies]: https://bazel.build/concepts/build-ref#data
   [goarch]: /go/modes.rst#goarch
   [goos]: /go/modes.rst#goos
   [mode attributes]: /go/modes.rst#mode-attributes
@@ -20,13 +20,13 @@
   [pure]: /go/modes.rst#pure
   [race]: /go/modes.rst#race
   [msan]: /go/modes.rst#msan
-  [select]: https://docs.bazel.build/versions/master/be/functions.html#select
-  [shard_count]: https://docs.bazel.build/versions/master/be/common-definitions.html#test.shard_count
+  [select]: https://bazel.build/reference/be/functions#select
+  [shard_count]: https://bazel.build/reference/be/common-definitions#test.shard_count
   [static]: /go/modes.rst#static
-  [test_arg]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_arg
-  [test_filter]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
-  [test_env]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_env
-  [test_runner_fail_fast]: https://docs.bazel.build/versions/master/command-line-reference.html#flag--test_runner_fail_fast
+  [test_arg]: https://bazel.build/docs/user-manual#flag--test_arg
+  [test_filter]: https://bazel.build/docs/user-manual#flag--test_filter
+  [test_env]: https://bazel.build/docs/user-manual#flag--test_env
+  [test_runner_fail_fast]: https://bazel.build/reference/command-line-reference#flag--test_runner_fail_fast
   [write a CROSSTOOL file]: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
   [bazel]: https://pkg.go.dev/github.com/bazelbuild/rules_go/go/tools/bazel?tab=doc
   [go_library]: #go_library
@@ -382,7 +382,7 @@ This builds a set of tests that can be run with `bazel test`.<br><br>
 | <a id="go_test-deps"></a>deps |  List of Go libraries this test imports directly.             These may be go_library rules or compatible rules with the [GoLibrary] provider.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="go_test-embed"></a>embed |  List of Go libraries whose sources should be compiled together with this             package's sources. Labels listed here must name <code>go_library</code>,             <code>go_proto_library</code>, or other compatible targets with the [GoLibrary] and             [GoSource] providers. Embedded libraries must have the same <code>importpath</code> as             the embedding library. At most one embedded library may have <code>cgo = True</code>,             and the embedding library may not also have <code>cgo = True</code>. See [Embedding]             for more information.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="go_test-embedsrcs"></a>embedsrcs |  The list of files that may be embedded into the compiled package using             <code>//go:embed</code> directives. All files must be in the same logical directory             or a subdirectory as source files. All source files containing <code>//go:embed</code>             directives must be in the same logical directory. It's okay to mix static and             generated source files and static and generated embeddable files.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
-| <a id="go_test-env"></a>env |  Environment variables to set for the test execution.             The values (but not keys) are subject to             [location expansion](https://docs.bazel.build/versions/main/skylark/macros.html) but not full             [make variable expansion](https://docs.bazel.build/versions/main/be/make-variables.html).   | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
+| <a id="go_test-env"></a>env |  Environment variables to set for the test execution.             The values (but not keys) are subject to             [location expansion](https://docs.bazel.build/versions/main/skylark/macros.html) but not full             [make variable expansion](https://bazel.build/reference/be/make-variables).  | <a href="https://bazel.build/docs/skylark/lib/dict.html">Dictionary: String -> String</a> | optional | {} |
 | <a id="go_test-gc_goopts"></a>gc_goopts |  List of flags to add to the Go compilation command when using the gc compiler.             Subject to ["Make variable"] substitution and [Bourne shell tokenization].   | List of strings | optional | [] |
 | <a id="go_test-gc_linkopts"></a>gc_linkopts |  List of flags to add to the Go link command when using the gc compiler.             Subject to ["Make variable"] substitution and [Bourne shell tokenization].   | List of strings | optional | [] |
 | <a id="go_test-goarch"></a>goarch |  Forces a binary to be cross-compiled for a specific architecture. It's usually             better to control this on the command line with <code>--platforms</code>.<br><br>            This disables cgo by default, since a cross-compiling C/C++ toolchain is             rarely available. To force cgo, set <code>pure</code> = <code>off</code>.<br><br>            See [Cross compilation] for more information.   | String | optional | "auto" |
