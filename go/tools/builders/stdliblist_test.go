@@ -15,7 +15,7 @@ func Test_stdliblist(t *testing.T) {
 
 	test_args := []string{
 		fmt.Sprintf("-out=%s", outJSON),
-		"-sdk=external/go_sdk",
+		"-sdk=../go_sdk",
 	}
 
 	if err := stdliblist(test_args); err != nil {
@@ -36,12 +36,12 @@ func Test_stdliblist(t *testing.T) {
 		if !strings.HasPrefix(result.ID, "@io_bazel_rules_go//stdlib") {
 			t.Errorf("ID should be prefixed with @io_bazel_rules_go//stdlib :%v", result)
 		}
-		if !strings.HasPrefix(result.ExportFile, "__BAZEL_OUTPUT_BASE__") {
-			t.Errorf("export file should be prefixed with __BAZEL_OUTPUT_BASE__ :%v", result)
+		if !strings.HasPrefix(result.ExportFile, "go_sdk") {
+			t.Errorf("export file should be prefixed with go_sdk :%v", result)
 		}
 		for _, gofile := range result.GoFiles {
-			if !strings.HasPrefix(gofile, "__BAZEL_OUTPUT_BASE__/external/go_sdk") {
-				t.Errorf("all go files should be prefixed with __BAZEL_OUTPUT_BASE__/external/go_sdk :%v", result)
+			if !strings.HasPrefix(gofile, "go_sdk") {
+				t.Errorf("all go files should be prefixed with go_sdk")
 			}
 		}
 	}
