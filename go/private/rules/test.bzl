@@ -87,8 +87,10 @@ def _go_test_impl(ctx):
     # now generate the main function
     repo_relative_rundir = ctx.attr.rundir or ctx.label.package or "."
     if ctx.label.workspace_name:
-        # The test is contained in an external repository. The test runner cd's into the directory
-        # corresponding to the main repository, so walk up and then down.
+        # The test is contained in an external repository (Label.workspace_name is always the empty
+        # string for the main repository, which is the canonical repository name of this repo).
+        # The test runner cd's into the directory corresponding to the main repository, so walk up
+        # and then down.
         run_dir = "../" + ctx.label.workspace_name + "/" + repo_relative_rundir
     else:
         run_dir = repo_relative_rundir
@@ -261,8 +263,9 @@ _go_test_kwargs = {
         ),
         "rundir": attr.string(
             doc = """ A directory to cd to before the test is run.
-            This should be a path relative to the subdirectory of the runfiles
-            directory corresponding to the test's repository.
+            This should be a path relative to the root directory of the
+            repository in which the test is defined, which can be the main or an
+            external repository.
 
             The default behaviour is to change to the relative path
             corresponding to the test's package, which replicates the normal
