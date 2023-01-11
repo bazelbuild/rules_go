@@ -85,9 +85,7 @@ def _go_test_impl(ctx):
     external_srcs = split_srcs(external_source.srcs).go
 
     # now generate the main function
-    repo_relative_rundir = ctx.attr.rundir
-    if not repo_relative_rundir:
-        repo_relative_rundir = ctx.label.package if ctx.label.package else "."
+    repo_relative_rundir = ctx.attr.rundir or ctx.label.package or "."
     if ctx.label.workspace_name:
         # The test is contained in an external repository. The test runner cd's into the directory
         # corresponding to the main repository, so walk up and then down.
