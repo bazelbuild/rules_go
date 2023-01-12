@@ -164,7 +164,7 @@ def emit_archive(go, source = None, _recompile_suffix = ""):
         _cxxopts = as_tuple(source.cxxopts),
         _clinkopts = as_tuple(source.clinkopts),
         _cgo_exports = as_tuple(source.cgo_exports),
-        _root_dir = source.root_dir,
+
         # Information on dependencies
         _dep_labels = tuple([d.data.label for d in direct]),
         _dep_importmaps = tuple([d.data.importmap for d in direct]),
