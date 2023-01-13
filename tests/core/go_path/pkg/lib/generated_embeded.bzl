@@ -25,15 +25,23 @@ def _gen_library_impl(ctx):
 
     embedsrcs = getattr(ctx.attr, "embedsrcs", [])
 
-    embed_declarations = ""
+    lines = [
+        "package " + libname,
+        "",
+        'import _ "embed"',
+        "",
+    ]
+
     i = 0
     for e in embedsrcs:
         for f in e.files.to_list():
-            embed_declarations += "//go:embed {0}\nvar embeddedSource{1} string\n".format(f.basename, i)
+            lines.extend([
+                "//go:embed {}".format(f.basename),
+                "var embeddedSource{} string".format(i),
+            ])
             i += 1
 
-    go.actions.write(src, "package " + libname + "\n" +
-                          "import _ \"embed\"\n" + embed_declarations)
+    ctx.actions.write(src, "\n".join(lines))
 
     library = go.new_library(go, srcs = [src])
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
