@@ -33,11 +33,11 @@ type archive struct {
 }
 
 // checkImports verifies that each import in files refers to a
-// direct dependendency in archives or to a standard library package
+// direct dependency in archives or to a standard library package
 // listed in the file at stdPackageListPath. checkImports returns
 // a map from source import paths to elements of archives or to nil
 // for standard library packages.
-func checkImports(files []fileInfo, archives []archive, stdPackageListPath string) (map[string]*archive, error) {
+func checkImports(files []fileInfo, archives []archive, stdPackageListPath string, importPath string, recompileInternalDeps []string) (map[string]*archive, error) {
 	// Read the standard package list.
 	packagesTxt, err := ioutil.ReadFile(stdPackageListPath)
 	if err != nil {
@@ -71,7 +71,11 @@ func checkImports(files []fileInfo, archives []archive, stdPackageListPath strin
 			importAliasToArchive[imp] = arc
 		}
 	}
-
+	// Construct recompileInternalDeps as a map to check if there are imports that are disallowed.
+	recompileInternalDepMap := make(map[string]struct{})
+	for _, dep := range recompileInternalDeps {
+		recompileInternalDepMap[dep] = struct{}{}
+	}
 	// Build the import map.
 	imports := make(map[string]*archive)
 	var derr depsError
@@ -82,6 +86,9 @@ func checkImports(files []fileInfo, archives []archive, stdPackageListPath strin
 				// TODO(#1645): Support local (relative) import paths. We don't emit
 				// errors for them here, but they will probably break something else.
 				continue
+			}
+			if _, ok := recompileInternalDepMap[path]; ok {
+				return nil, fmt.Errorf("dependency cycle detected between %q and %q in file %q", importPath, path, f.filename)
 			}
 			if stdPkgs[path] {
 				imports[path] = nil

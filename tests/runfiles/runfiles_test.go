@@ -84,6 +84,13 @@ func TestPath_errors(t *testing.T) {
 			}
 		})
 	}
+	for _, s := range []string{"foo/..bar", "foo/.bar"} {
+		t.Run(s, func(t *testing.T) {
+			if _, err := r.Rlocation(s); err != nil && !os.IsNotExist(err.(runfiles.Error).Err) {
+				t.Errorf("got %q, want none or 'file not found' error", err)
+			}
+		})
+	}
 }
 
 func TestRunfiles_zero(t *testing.T) {

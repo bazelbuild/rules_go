@@ -438,7 +438,7 @@ def go_context(ctx, attr = None):
     # See https://github.com/golang/go/wiki/MinimumRequirements#amd64
     if mode.amd64:
         env["GOAMD64"] = mode.amd64
-    if mode.pure:
+    if not cgo_context_info:
         crosstool = []
         cgo_tools = None
     else:
@@ -518,11 +518,8 @@ def go_context(ctx, attr = None):
         cover_format = mode.cover_format,
         # Action generators
         archive = toolchain.actions.archive,
-        asm = toolchain.actions.asm,
         binary = toolchain.actions.binary,
-        compile = toolchain.actions.compile,
         link = toolchain.actions.link,
-        pack = toolchain.actions.pack,
 
         # Helpers
         args = _new_args,  # deprecated
@@ -543,7 +540,6 @@ def _go_context_data_impl(ctx):
         print("WARNING: --features=race is no longer supported. Use --@io_bazel_rules_go//go/config:race instead.")
     if "msan" in ctx.features:
         print("WARNING: --features=msan is no longer supported. Use --@io_bazel_rules_go//go/config:msan instead.")
-    coverdata = ctx.attr.coverdata[GoArchive]
     nogo = ctx.files.nogo[0] if ctx.files.nogo else None
     providers = [
         GoContextInfo(

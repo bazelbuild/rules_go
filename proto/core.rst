@@ -13,7 +13,6 @@ Go Protocol buffers
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
 .. _gogoprotobuf: https://github.com/gogo/protobuf
 .. _compiler.bzl: compiler.bzl
-.. _bazelbuild/bazel#3867: https://github.com/bazelbuild/bazel/issues/3867
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -140,15 +139,13 @@ have protos, you'll also need to add
 A note on vendored .proto files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Bazel can only handle imports in .proto files that are relative to a repository
+By default, Bazel assumes imports in .proto files are relative to a repository
 root directory. This means, for example, if you import ``"foo/bar/baz.proto"``,
 that file must be in the directory ``foo/bar``, not
 ``vendor/example.com/repo/foo/bar``.
 
-If you have proto files that don't conform to this convention, follow the
-instructions for using pre-generated .pb.go files above.
-
-The Bazel tracking issue for supporting this is `bazelbuild/bazel#3867`_.
+To deal with this, use the `strip_import_prefix` option in the proto_library_
+for the vendored file.
 
 API
 ---
@@ -365,7 +362,7 @@ go_proto_compiler
 ``go_proto_compiler`` describes a plugin for protoc, the proto compiler.
 Different plugins will generate different Go code from the same protos.
 Compilers may be chosen through the ``compilers`` attribute of
-``go_proto_library``. 
+``go_proto_library``.
 
 Several instances of this rule are listed in `Predefined plugins`_. You will
 only need to use this rule directly if you need a plugin which is not there.
@@ -456,7 +453,7 @@ use protoc), you can write a new rule that produces this.
 ``GoProtoCompiler`` is loaded from ``@io_bazel_rules_go//proto:def.bzl``.
 
 ``GoProtoCompiler`` has the fields described below. Additional fields may be
-added to pass information to the ``compile`` function. This interface is 
+added to pass information to the ``compile`` function. This interface is
 *not final* and may change in the future.
 
 +-----------------------------+-------------------------------------------------+

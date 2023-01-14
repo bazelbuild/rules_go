@@ -83,7 +83,8 @@ def _go_path_impl(ctx):
         for f in pkg.embedsrcs:
             if src_dir == None:
                 fail("cannot relativize {}: src_dir is unset".format(f.path))
-            dst = pkg.dir + "/" + paths.relativize(f.path, src_dir)
+            embedpath = paths.relativize(f.path, f.root.path)
+            dst = pkg.dir + "/" + paths.relativize(embedpath, src_dir)
             _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
     if ctx.attr.include_pkg:
         for pkg in pkg_map.values():
@@ -262,7 +263,7 @@ def _merge_pkg(x, y):
     x_data = {f.path: None for f in x.data}
     x_embedsrcs = {f.path: None for f in x.embedsrcs}
     x.srcs.extend([f for f in y.srcs if f.path not in x_srcs])
-    x.data.extend([f for f in y.data if f.path not in x_srcs])
+    x.data.extend([f for f in y.data if f.path not in x_data])
     x.embedsrcs.extend([f for f in y.embedsrcs if f.path not in x_embedsrcs])
     x.pkgs.update(y.pkgs)
 

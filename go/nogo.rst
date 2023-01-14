@@ -204,6 +204,9 @@ contain the following key-value pairs:
 | ``flag.Value`` specified by the analyzer.                                                        |
 +----------------------------+---------------------------------------------------------------------+
 
+``nogo`` also supports a special key to specify the same config for all analyzers, even if they are
+not explicitly specified called ``_base``. See below for an example of its usage.
+
 Example
 ^^^^^^^
 
@@ -216,6 +219,12 @@ on a command line driver.
 .. code:: json
 
     {
+      "_base": {
+        "description": "Base config that all subsequent analyzers, even unspecified will inherit.",
+        "exclude_files": {
+          "third_party/": "exclude all third_party code for all analyzers"
+        }
+      },
       "importunsafe": {
         "exclude_files": {
           "src/foo\\.go": "manually verified that behavior is working-as-intended",

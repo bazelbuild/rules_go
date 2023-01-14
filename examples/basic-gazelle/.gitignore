@@ -1,0 +1,5 @@
+# We added this file as part of the tutorial
+/bazel-basic-gazelle
+/bazel-bin
+/bazel-out
+/bazel-testlogs

@@ -39,6 +39,7 @@ func link(args []string) error {
 	builderArgs, toolArgs := splitArgs(args)
 	stamps := multiFlag{}
 	xdefs := multiFlag{}
+	experiments := multiFlag{}
 	archives := archiveMultiFlag{}
 	flags := flag.NewFlagSet("link", flag.ExitOnError)
 	goenv := envFlags(flags)
@@ -50,6 +51,7 @@ func link(args []string) error {
 	buildmode := flags.String("buildmode", "", "Build mode used.")
 	flags.Var(&xdefs, "X", "A string variable to replace in the linked binary (repeated).")
 	flags.Var(&stamps, "stamp", "The name of a file with stamping values.")
+	flags.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
 	conflictErrMsg := flags.String("conflict_err", "", "Error message about conflicts to report if there's a link error.")
 	if err := flags.Parse(builderArgs); err != nil {
 		return err
@@ -100,7 +102,9 @@ func link(args []string) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(importcfgName)
+	if !goenv.shouldPreserveWorkDir {
+		defer os.Remove(importcfgName)
+	}
 
 	// generate any additional link options we need
 	goargs := goenv.goTool("link")
@@ -143,6 +147,10 @@ func link(args []string) error {
 		goargs = append(goargs, "-buildmode", *buildmode)
 	}
 	goargs = append(goargs, "-o", *outFile)
+
+	if len(experiments) > 0 {
+		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+	}
 
 	// add in the unprocess pass through options
 	goargs = append(goargs, toolArgs...)

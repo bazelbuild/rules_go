@@ -168,7 +168,7 @@ def _go_transition_impl(settings, attr):
 
     return settings
 
-def _request_nogo_transition(settings, attr):
+def _request_nogo_transition(settings, _attr):
     """Indicates that we want the project configured nogo instead of a noop.
 
     This does not guarantee that the project configured nogo will be used (if
@@ -203,6 +203,7 @@ go_transition = transition(
 )
 
 _common_reset_transition_dict = dict({
+    "@io_bazel_rules_go//go/private:request_nogo": False,
     "@io_bazel_rules_go//go/config:static": False,
     "@io_bazel_rules_go//go/config:msan": False,
     "@io_bazel_rules_go//go/config:race": False,
@@ -219,7 +220,14 @@ _reset_transition_dict = dict(_common_reset_transition_dict, **{
 
 _reset_transition_keys = sorted([filter_transition_label(label) for label in _reset_transition_dict.keys()])
 
-def _go_tool_transition_impl(settings, attr):
+_stdlib_keep_keys = sorted([
+    "@io_bazel_rules_go//go/config:msan",
+    "@io_bazel_rules_go//go/config:race",
+    "@io_bazel_rules_go//go/config:pure",
+    "@io_bazel_rules_go//go/config:linkmode",
+])
+
+def _go_tool_transition_impl(settings, _attr):
     """Sets most Go settings to default values (use for external Go tools).
 
     go_tool_transition sets all of the //go/config settings to their default
@@ -242,7 +250,7 @@ go_tool_transition = transition(
     outputs = _reset_transition_keys,
 )
 
-def _non_go_tool_transition_impl(settings, attr):
+def _non_go_tool_transition_impl(settings, _attr):
     """Sets all Go settings to default values (use for external non-Go tools).
 
     non_go_tool_transition sets all of the //go/config settings as well as the
@@ -262,6 +270,27 @@ def _non_go_tool_transition_impl(settings, attr):
 
 non_go_tool_transition = transition(
     implementation = _non_go_tool_transition_impl,
+    inputs = _reset_transition_keys,
+    outputs = _reset_transition_keys,
+)
+
+def _go_stdlib_transition_impl(settings, _attr):
+    """Sets all Go settings to their default values, except for those affecting the Go SDK.
+
+    This transition is similar to _non_go_tool_transition except that it keeps the
+    parts of the configuration that determine how to build the standard library.
+    It's used to consolidate the configurations used to build the standard library to limit
+    the number built.
+    """
+    settings = dict(settings)
+    for label, value in _reset_transition_dict.items():
+        if label not in _stdlib_keep_keys:
+            settings[filter_transition_label(label)] = value
+    settings[filter_transition_label("@io_bazel_rules_go//go/private:bootstrap_nogo")] = False
+    return settings
+
+go_stdlib_transition = transition(
+    implementation = _go_stdlib_transition_impl,
     inputs = _reset_transition_keys,
     outputs = _reset_transition_keys,
 )
@@ -347,7 +376,7 @@ go_transition.
 """,
 )
 
-def _non_go_transition_impl(settings, attr):
+def _non_go_transition_impl(settings, _attr):
     """Sets all Go settings to the values they had before the last go_transition.
 
     non_go_transition sets all of the //go/config settings to the value they had

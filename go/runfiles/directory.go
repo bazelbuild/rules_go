@@ -21,8 +21,14 @@ import "path/filepath"
 // environmental variable RUNFILES_DIR.
 type Directory string
 
-func (d Directory) new() *Runfiles {
-	return &Runfiles{d, directoryVar + "=" + string(d)}
+func (d Directory) new(sourceRepo SourceRepo) (*Runfiles, error) {
+	r := &Runfiles{
+		impl:       d,
+		env:        directoryVar + "=" + string(d),
+		sourceRepo: string(sourceRepo),
+	}
+	err := r.loadRepoMapping()
+	return r, err
 }
 
 func (d Directory) path(s string) (string, error) {

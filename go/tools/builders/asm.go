@@ -15,9 +15,6 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"go/build"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,46 +23,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-// asm builds a single .s file with "go tool asm". It is invoked by the
-// Go rules as an action.
-func asm(args []string) error {
-	// Parse arguments.
-	args, _, err := expandParamsFiles(args)
-	if err != nil {
-		return err
-	}
-	builderArgs, asmFlags := splitArgs(args)
-	var outPath string
-	flags := flag.NewFlagSet("GoAsm", flag.ExitOnError)
-	flags.StringVar(&outPath, "o", "", "The output archive file to write")
-	goenv := envFlags(flags)
-	if err := flags.Parse(builderArgs); err != nil {
-		return err
-	}
-	if err := goenv.checkFlags(); err != nil {
-		return err
-	}
-	if flags.NArg() != 1 {
-		return fmt.Errorf("wanted exactly 1 source file; got %d", flags.NArg())
-	}
-	source := flags.Args()[0]
-
-	// Filter the input file.
-	metadata, err := readFileInfo(build.Default, source)
-	if err != nil {
-		return err
-	}
-	if !metadata.matched {
-		source = os.DevNull
-	}
-
-	// Build source with the assembler.
-	// Note: As of Go 1.19, this would require a valid package path to work.
-	// But since this functionality is only used by the deprecated action API,
-	// we won't fix this.
-	return asmFile(goenv, source, "", asmFlags, outPath)
-}
 
 // buildSymabisFile generates a file from assembly files that is consumed
 // by the compiler. This is only needed in go1.12+ when there is at least one

@@ -117,6 +117,7 @@ package lib_test
 
 import (
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -130,7 +131,7 @@ func TestLib(t *testing.T) {
 }
 
 func TestTool(t *testing.T) {
-	err := exec.Command("Tool").Run()
+	err := exec.Command("." + string(filepath.Separator) + "Tool").Run()
 	if err != nil {
 		t.Error(err)
 	}

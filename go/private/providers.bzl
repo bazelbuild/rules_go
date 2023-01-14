@@ -41,6 +41,7 @@ GoSDK = provider(
     fields = {
         "goos": "The host OS the SDK was built for.",
         "goarch": "The host architecture the SDK was built for.",
+        "experiments": "Go experiments to enable via GOEXPERIMENT.",
         "root_file": "A file in the SDK root directory",
         "libs": ("List of pre-compiled .a files for the standard library " +
                  "built for the execution platform."),
@@ -54,6 +55,7 @@ GoSDK = provider(
         "tools": ("List of executable files in the SDK built for " +
                   "the execution platform, excluding the go binary file"),
         "go": "The go binary file",
+        "version": "The Go SDK version",
     },
 )
 

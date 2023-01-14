@@ -19,6 +19,15 @@ test_suite(name = "go_path")
 ) for mode in ("archive", "copy", "link")]
 
 go_path(
+    name = "transition_path",
+    testonly = True,
+    data = ["extra.txt"],
+    include_pkg = True,
+    mode = "copy",
+    deps = ["//tests/core/go_path/cmd/bin:pie"],
+)
+
+go_path(
     name = "nodata_path",
     testonly = True,
     data = ["extra.txt"],
@@ -51,6 +60,7 @@ go_test(
         ":link_path",
         ":nodata_path",
         ":notransitive_path",
+        ":transition_path",
     ],
     rundir = ".",
     deps = ["//go/tools/bazel:go_default_library"],

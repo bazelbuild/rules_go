@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@io_bazel_rules_go//go:def.bzl", "go_test")
+load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 
 go_test(
     name = "runfiles_test",
@@ -28,6 +29,11 @@ go_test(
     deps = [
         "//go/runfiles",
     ],
+)
+
+go_bazel_test(
+    name = "runfiles_bazel_test",
+    srcs = ["runfiles_bazel_test.go"],
 )
 
 exports_files(

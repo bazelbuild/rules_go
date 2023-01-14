@@ -415,11 +415,15 @@ def _go_tool_binary_impl(ctx):
     if sdk.goos == "windows":
         name += ".exe"
 
-    cout = ctx.actions.declare_file(name + ".a")
+    out = ctx.actions.declare_file(name)
     if sdk.goos == "windows":
-        cmd = "@echo off\n {go} tool compile -o {cout} -trimpath=%cd% {srcs}".format(
+        gopath = ctx.actions.declare_directory("gopath")
+        gocache = ctx.actions.declare_directory("gocache")
+        cmd = "@echo off\nset GOCACHE=%cd%\\{gocache}\nset GOPATH=%cd%\\{gopath}\n{go} build -o {out} -trimpath {srcs}".format(
+            gopath = gopath.path,
+            gocache = gocache.path,
             go = sdk.go.path.replace("/", "\\"),
-            cout = cout.path,
+            out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
         )
         bat = ctx.actions.declare_file(name + ".bat")
@@ -429,38 +433,23 @@ def _go_tool_binary_impl(ctx):
         )
         ctx.actions.run(
             executable = bat,
-            inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
-            outputs = [cout],
-            env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
-            mnemonic = "GoToolchainBinaryCompile",
+            inputs = sdk.headers + sdk.tools + sdk.srcs + ctx.files.srcs + [sdk.go],
+            outputs = [out, gopath, gocache],
+            mnemonic = "GoToolchainBinaryBuild",
         )
     else:
-        cmd = "{go} tool compile -o {cout} -trimpath=$PWD {srcs}".format(
+        # Note: GOPATH is needed for Go 1.16.
+        cmd = "GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath {srcs}".format(
             go = sdk.go.path,
-            cout = cout.path,
+            out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
         )
         ctx.actions.run_shell(
             command = cmd,
-            inputs = sdk.libs + sdk.headers + sdk.tools + ctx.files.srcs + [sdk.go],
-            outputs = [cout],
-            env = {"GOROOT": sdk.root_file.dirname},  # NOTE(#2005): avoid realpath in sandbox
-            mnemonic = "GoToolchainBinaryCompile",
+            inputs = sdk.headers + sdk.tools + sdk.srcs + sdk.libs + ctx.files.srcs + [sdk.go],
+            outputs = [out],
+            mnemonic = "GoToolchainBinaryBuild",
         )
-
-    out = ctx.actions.declare_file(name)
-    largs = ctx.actions.args()
-    largs.add_all(["tool", "link"])
-    largs.add("-o", out)
-    largs.add(cout)
-    ctx.actions.run(
-        executable = sdk.go,
-        arguments = [largs],
-        inputs = sdk.libs + sdk.headers + sdk.tools + [cout],
-        outputs = [out],
-        env = {"GOROOT_FINAL": "GOROOT"},  # Suppress go root paths to keep the output reproducible.
-        mnemonic = "GoToolchainBinary",
-    )
 
     return [DefaultInfo(
         files = depset([out]),

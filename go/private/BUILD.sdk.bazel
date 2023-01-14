@@ -1,7 +1,8 @@
 load("@{rules_go_repo_name}//go/private/rules:binary.bzl", "go_tool_binary")
 load("@{rules_go_repo_name}//go/private/rules:sdk.bzl", "package_list")
-load("@{rules_go_repo_name}//go:def.bzl", "declare_toolchains", "go_sdk")
-load("@bazel_skylib//lib:selects.bzl", "selects")
+load("@{rules_go_repo_name}//go/private/rules:transition.bzl", "non_go_reset_target")
+load("@{rules_go_repo_name}//go/private:go_toolchain.bzl", "declare_go_toolchains")
+load("@{rules_go_repo_name}//go:def.bzl", "go_sdk")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -9,6 +10,7 @@ filegroup(
     name = "libs",
     srcs = glob(
         ["pkg/{goos}_{goarch}/**/*.a"],
+        allow_empty = True,
         exclude = ["pkg/{goos}_{goarch}/**/cmd/**"],
     ),
 )
@@ -34,6 +36,7 @@ filegroup(
 go_sdk(
     name = "go_sdk",
     srcs = [":srcs"],
+    experiments = {experiments},
     go = "bin/go{exe}",
     goarch = "{goarch}",
     goos = "{goos}",
@@ -42,12 +45,18 @@ go_sdk(
     package_list = ":package_list",
     root_file = "ROOT",
     tools = [":tools"],
+    version = "{version}",
 )
 
 go_tool_binary(
     name = "builder",
     srcs = ["@{rules_go_repo_name}//go/tools/builders:builder_srcs"],
     sdk = ":go_sdk",
+)
+
+non_go_reset_target(
+    name = "builder_reset",
+    dep = ":builder",
 )
 
 # TODO(jayconrod): Gazelle depends on this file directly. This dependency
@@ -59,75 +68,10 @@ package_list(
     root_file = "ROOT",
 )
 
-sdk_version_label = "@{rules_go_repo_name}//go/toolchain:sdk_version"
-
-config_setting(
-    name = "match_all_versions",
-    flag_values = {
-        sdk_version_label: "",
-    },
-    visibility = ["//visibility:private"],
-)
-
-config_setting(
-    name = "match_major_version",
-    flag_values = {
-        sdk_version_label: "{major_version}",
-    },
-    visibility = ["//visibility:private"],
-)
-
-config_setting(
-    name = "match_major_minor_version",
-    flag_values = {
-        sdk_version_label: "{major_version}.{minor_version}",
-    },
-    visibility = ["//visibility:private"],
-)
-
-config_setting(
-    name = "match_patch_version",
-    flag_values = {
-        sdk_version_label: "{major_version}.{minor_version}.{patch_version}",
-    },
-    visibility = ["//visibility:private"],
-)
-
-# If prerelease version is "", this will be the same as ":match_patch_version", but that's fine since we use match_any in config_setting_group.
-config_setting(
-    name = "match_prerelease_version",
-    flag_values = {
-        sdk_version_label: "{major_version}.{minor_version}.{patch_version}{prerelease_suffix}",
-    },
-    visibility = ["//visibility:private"],
-)
-
-config_setting(
-    name = "match_sdk_type",
-    flag_values = {
-        sdk_version_label: "{sdk_type}",
-    },
-    visibility = ["//visibility:private"],
-)
-
-selects.config_setting_group(
-    name = "sdk_version_setting",
-    match_any = [
-        ":match_all_versions",
-        ":match_major_version",
-        ":match_major_minor_version",
-        ":match_patch_version",
-        ":match_prerelease_version",
-        ":match_sdk_type",
-    ],
-    visibility = ["//visibility:private"],
-)
-
-declare_toolchains(
-    builder = ":builder",
-    host = "{goos}_{goarch}",
+declare_go_toolchains(
+    builder = ":builder_reset",
+    host_goos = "{goos}",
     sdk = ":go_sdk",
-    sdk_version_setting = ":sdk_version_setting",
 )
 
 filegroup(

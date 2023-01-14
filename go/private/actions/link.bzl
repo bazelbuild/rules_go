@@ -45,7 +45,20 @@ def _transitive_archives_without_test_archives(archive, test_archives):
     # transitively depends on the library under test, we need to exclude the
     # library under test and use the internal test archive instead.
     deps = depset(transitive = [d.transitive for d in archive.direct])
-    return [d for d in deps.to_list() if not any([d.importmap == t.importmap for t in test_archives])]
+    result = {}
+
+    # Unfortunately, Starlark doesn't support set()
+    test_imports = {}
+    for t in test_archives:
+        test_imports[t.importmap] = True
+    for d in deps.to_list():
+        if d.importmap in test_imports:
+            continue
+        if d.importmap in result:
+            print("Multiple copies of {} passed to the linker. Ignoring {} in favor of {}".format(d.importmap, d.file.path, result[d.importmap].file.path))
+            continue
+        result[d.importmap] = d
+    return result.values()
 
 def emit_link(
         go,
@@ -62,10 +75,6 @@ def emit_link(
     if executable == None:
         fail("executable is a required parameter")
 
-    #TODO: There has to be a better way to work out the rpath
-    config_strip = len(go._ctx.configuration.bin_dir.path) + 1
-    pkg_depth = executable.dirname[config_strip:].count("/") + 1
-
     # Exclude -lstdc++ from link options. We don't want to link against it
     # unless we actually have some C++ code. _cgo_codegen will include it
     # in archives via CGO_LDFLAGS if it's needed.
@@ -80,28 +89,36 @@ def emit_link(
     tool_args = go.tool_args(go)
 
     # Add in any mode specific behaviours
-    tool_args.add_all(extld_from_cc_toolchain(go))
     if go.mode.race:
         tool_args.add("-race")
     if go.mode.msan:
         tool_args.add("-msan")
-    if ((go.mode.static and not go.mode.pure) or
-        go.mode.link != LINKMODE_NORMAL or
-        go.mode.goos == "windows" and (go.mode.race or go.mode.msan)):
-        # Force external linking for the following conditions:
-        # * Mode is static but not pure: -static must be passed to the C
-        #   linker if the binary contains cgo code. See #2168, #2216.
-        # * Non-normal build mode: may not be strictly necessary, especially
-        #   for modes like "pie".
-        # * Race or msan build for Windows: Go linker has pairwise
-        #   incompatibilities with mingw, and we get link errors in race mode.
-        #   Using the C linker avoids that. Race and msan always require a
-        #   a C toolchain. See #2614.
-        tool_args.add("-linkmode", "external")
+
     if go.mode.pure:
-        # Force internal linking in pure mode. We don't have a C toolchain,
-        # so external linking is not possible.
         tool_args.add("-linkmode", "internal")
+    else:
+        extld = extld_from_cc_toolchain(go)
+        tool_args.add_all(extld)
+        if extld and (go.mode.static or
+                      go.mode.race or
+                      go.mode.link != LINKMODE_NORMAL or
+                      go.mode.goos == "windows" and go.mode.msan):
+            # Force external linking for the following conditions:
+            # * Mode is static but not pure: -static must be passed to the C
+            #   linker if the binary contains cgo code. See #2168, #2216.
+            # * Non-normal build mode: may not be strictly necessary, especially
+            #   for modes like "pie".
+            # * Race or msan build for Windows: Go linker has pairwise
+            #   incompatibilities with mingw, and we get link errors in race mode.
+            #   Using the C linker avoids that. Race and msan always require a
+            #   a C toolchain. See #2614.
+            # * Linux race builds: we get linker errors during build with Go's
+            #   internal linker. For example, when using zig cc v0.10
+            #   (clang-15.0.3):
+            #
+            #       runtime/cgo(.text): relocation target memset not defined
+            tool_args.add("-linkmode", "external")
+
     if go.mode.static:
         extldflags.append("-static")
     if go.mode.link != LINKMODE_NORMAL:
@@ -159,6 +176,7 @@ def emit_link(
     builder_args.add("-p", archive.data.importmap)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
+    builder_args.add_all(go.sdk.experiments, before_each = "-experiment")
 
     # Do not remove, somehow this is needed when building for darwin/arm only.
     tool_args.add("-buildid=redacted")

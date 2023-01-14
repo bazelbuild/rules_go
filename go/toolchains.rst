@@ -20,6 +20,7 @@ Go toolchains
 .. _nogo: nogo.rst#nogo
 .. _register: Registration_
 .. _register_toolchains: https://docs.bazel.build/versions/master/skylark/lib/globals.html#register_toolchains
+.. _toolchain resolution: https://bazel.build/extending/toolchains#toolchain-resolution
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -87,6 +88,16 @@ implementations for each target platform that Go supports. Wrappers around
 the rules register these toolchains automatically. Bazel will select a
 registered toolchain automatically based on the execution and target platforms,
 specified with ``--host_platform`` and ``--platforms``, respectively.
+
+The workspace rules define the toolchains in a separate repository from the
+SDK. For example, if the SDK repository is `@go_sdk`, the toolchains will be
+defined in `@go_sdk_toolchains`. The `@go_sdk_toolchains` repository must be
+eagerly fetched in order to register the toolchain, but fetching the `@go_sdk`
+repository may be delayed until the toolchain is needed to build something. To
+activate lazily fetching the SDK, you must provide a `version` attribute to the
+workspace rule that defines the SDK (`go_download_sdk`, `go_host_sdk`, `go_local_sdk`,
+`go_wrap_sdk`, or `go_register_toolchains`). The value must match the actual
+version of the SDK; rules_go will validate this when the toolchain is used.
 
 The toolchain itself should be considered opaque. You should only access
 its contents through `the context`_.
@@ -225,12 +236,20 @@ SDK version to use (for example, :value:`"1.15.5"`).
 | Normally this is set to a Go version like :value:`"1.15.5"`. It may also be                      |
 | set to :value:`"host"`, which will cause rules_go to use the Go toolchain                        |
 | installed on the host system (found using ``GOROOT`` or ``PATH``).                               |
+|                                                                                                  |
+| If ``version`` is specified and is not set to :value:`"host"`, the SDK will be fetched only when |
+| the build uses a Go toolchain and `toolchain resolution`_ results in  this SDK being chosen.     |
+| Otherwise it will be fetched unconditionally.                                                    |
 +--------------------------------+-----------------------------+-----------------------------------+
 | :param:`nogo`                  | :type:`label`               | :value:`None`                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The ``nogo`` attribute refers to a nogo_ rule that builds a binary                               |
 | used for static analysis. The ``nogo`` binary will be used alongside the                         |
 | Go compiler when building packages.                                                              |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 go_download_sdk
@@ -267,6 +286,8 @@ This downloads a Go SDK for use in toolchains.
 | pick the highest version. If ``version`` is specified but ``sdks`` is                                      |
 | unspecified, ``go_download_sdk`` will list available versions on golang.org                                |
 | to determine the correct file name and SHA-256 sum.                                                        |
+| If ``version`` is specified, the SDK will be fetched only when the build uses a Go toolchain and           |
+| `toolchain resolution`_ results in this SDK being chosen. Otherwise it will be fetched unconditionally.    |
 +--------------------------------+-----------------------------+---------------------------------------------+
 | :param:`urls`                  | :type:`string_list`         | :value:`[https://dl.google.com/go/{}]`      |
 +--------------------------------+-----------------------------+---------------------------------------------+
@@ -344,7 +365,16 @@ used. Otherwise, ``go env GOROOT`` is used.
 | A unique name for this SDK. This should almost always be :value:`go_sdk` if you want the SDK     |
 | to be used by toolchains.                                                                        |
 +--------------------------------+-----------------------------+-----------------------------------+
-
+| :param:`version`               | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The version of Go installed on the host. If specified, `go_host_sdk` will create its repository  |
+| only when the build uses a Go toolchain and `toolchain resolution`_ results in this SDK being    |
+| chosen. Otherwise it will be created unconditionally.                                            |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
++--------------------------------+-----------------------------+-----------------------------------+
 
 go_local_sdk
 ~~~~~~~~~~~~
@@ -363,6 +393,16 @@ This prepares a local path to use as the Go SDK in toolchains.
 +--------------------------------+-----------------------------+-----------------------------------+
 | The local path to a pre-installed Go SDK. The path must contain the go binary, the tools it      |
 | invokes and the standard library sources.                                                        |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`version`               | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The version of the Go SDK. If specified, `go_local_sdk` will create its repository only when the |
+| build uses a Go toolchain and `toolchain resolution`_ results in this SDK being chosen.          |
+| Otherwise it will be created unconditionally.                                                    |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -389,6 +429,16 @@ rule.
 +--------------------------------+-----------------------------+-----------------------------------+
 | A set of mappings from the host platform to a Bazel label referencing a file in the SDK's root   |
 | directory. This attribute and `root_file` cannot be both provided.                               |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`version`               | :type:`string`              | :value:`None`                     |
++--------------------------------+-----------------------------+-----------------------------------+
+| The version of the Go SDK. If specified, `go_wrap_sdk` will create its repository only when the  |
+| build uses a Go toolchain and `toolchain resolution`_ results in this SDK being chosen.          |
+| Otherwise it will be created unconditionally.                                                    |
++--------------------------------+-----------------------------+-----------------------------------+
+| :param:`experiments`           | :type:`string_list`         | :value:`[]`                       |
++--------------------------------+-----------------------------+-----------------------------------+
+| Go experiments to enable via `GOEXPERIMENT`.                                                     |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -571,12 +621,8 @@ Methods
 * Action generators
 
   * archive_
-  * asm_
   * binary_
-  * compile_
-  * cover_
   * link_
-  * pack_
 
 * Helpers
 
@@ -604,33 +650,6 @@ It returns a GoArchive_.
 | :param:`source`                | :type:`GoSource`            | |mandatory|                       |
 +--------------------------------+-----------------------------+-----------------------------------+
 | The GoSource_ that should be compiled into an archive.                                           |
-+--------------------------------+-----------------------------+-----------------------------------+
-
-
-asm
-+++
-
-**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
-comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
-
-The asm function adds an action that runs ``go tool asm`` on a source file to
-produce an object, and returns the File of that object.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`source`                | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| A source code artifact to assemble.                                                              |
-| This must be a ``.s`` file that contains code in the platform neutral `go assembly`_ language.   |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`hdrs`                  | :type:`File iterable`       | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The list of .h files that may be included by the source.                                         |
 +--------------------------------+-----------------------------+-----------------------------------+
 
 
@@ -680,96 +699,6 @@ a ``runfiles`` object.
 | file name based on ``name``, the target platform, and the link mode.                             |
 +--------------------------------+-----------------------------+-----------------------------------+
 
-compile
-+++++++
-
-**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
-comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
-
-The compile function adds an action that compiles a list of source files into
-a package archive (.a file).
-
-It does not return anything.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`sources`               | :type:`File iterable`       | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of source code artifacts.                                                            |
-| These must be pure .go files, no assembly or cgo is allowed.                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`importpath`            | :type:`string`              | :value:`""`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The import path this package represents. This is passed to the -p flag. When the actual import   |
-| path is different than the source import path (i.e., when ``importmap`` is set in a              |
-| ``go_library`` rule), this should be the actual import path.                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`archives`              | :type:`GoArchive iterable`  | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of all directly imported libraries.                                                  |
-| The action will verify that all directly imported libraries were supplied, not allowing          |
-| transitive dependencies to satisfy imports. It will not check that all supplied libraries were   |
-| used though.                                                                                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`out_lib`               | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The archive file that should be produced.                                                        |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`out_export`            | :type:`File`                | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| File where extra information about the package may be stored. This is used                       |
-| by nogo to store serialized facts about definitions. In the future, it may                       |
-| be used to store export data (instead of the .a file).                                           |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`gc_goopts`             | :type:`string_list`         | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Additional flags to pass to the compiler.                                                        |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`testfilter`            | :type:`string`              | :value:`"off"`                    |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Controls how files with a ``_test`` suffix are filtered.                                         |
-|                                                                                                  |
-| * ``"off"`` - files with and without a ``_test`` suffix are compiled.                            |
-| * ``"only"`` - only files with a ``_test`` suffix are compiled.                                  |
-| * ``"exclude"`` - only files without a ``_test`` suffix are compiled.                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`asmhdr`                | :type:`File`                | :value:`None`                     |
-+--------------------------------+-----------------------------+-----------------------------------+
-| If provided, the compiler will write an assembly header to this file.                            |
-+--------------------------------+-----------------------------+-----------------------------------+
-
-
-cover
-+++++
-
-**Removed in rules_go 0.32.0:** Please comment on https://github.com/bazelbuild/rules_go/issues/3168
-if you still use this feature and cannot rely on `archive` instead.
-
-The cover function adds an action that runs ``go tool cover`` on a set of source
-files to produce copies with cover instrumentation.
-
-Returns a covered GoSource_ with the required source files process for coverage.
-
-Note that this removes most comments, including cgo comments.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`source`                | :type:`GoSource`            | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The source object to process. Any source files in the object that have been marked as needing    |
-| coverage will be processed and substiuted in the returned GoSource.                              |
-+--------------------------------+-----------------------------+-----------------------------------+
-
 
 link
 ++++
@@ -813,43 +742,6 @@ It does not return anything.
 | Info file used for link stamping.                                                                |
 +--------------------------------+-----------------------------+-----------------------------------+
 
-pack
-++++
-
-**Deprecated:** Planned to be removed in rules_go version 0.36.0. Please use `archive` instead and
-comment on https://github.com/bazelbuild/rules_go/issues/3168 if should not be possible.
-
-The pack function adds an action that produces an archive from a base archive
-and a collection of additional object files.
-
-It does not return anything.
-
-+--------------------------------+-----------------------------+-----------------------------------+
-| **Name**                       | **Type**                    | **Default value**                 |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`go`                    | :type:`GoContext`           | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| This must be the same GoContext object you got this function from.                               |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`in_lib`                | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The archive that should be copied and appended to.                                               |
-| This must always be an archive in the common ar form (like that produced by the go compiler).    |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`out_lib`               | :type:`File`                | |mandatory|                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| The archive that should be produced.                                                             |
-| This will always be an archive in the common ar form (like that produced by the go compiler).    |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`objects`               | :type:`File iterable`       | :value:`()`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| An iterable of object files to be added to the output archive file.                              |
-+--------------------------------+-----------------------------+-----------------------------------+
-| :param:`archives`              | :type:`list of File`        | :value:`[]`                       |
-+--------------------------------+-----------------------------+-----------------------------------+
-| Additional archives whose objects will be appended to the output.                                |
-| These can be ar files in either common form or either the bsd or sysv variations.                |
-+--------------------------------+-----------------------------+-----------------------------------+
 
 args
 ++++

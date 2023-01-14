@@ -428,7 +428,7 @@ from GoSDK_, or it may be another library compiled for the target mode.
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`root_file`             | :type:`File`                                                    |
 +--------------------------------+-----------------------------------------------------------------+
-| A file in the standard library root directory. Used to determine ``GOROOT``.                     |
+| A file or directory in the standard library root directory. Used to determine ``GOROOT``.                     |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`libs`                  | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+

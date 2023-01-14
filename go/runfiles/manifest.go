@@ -28,13 +28,18 @@ import (
 // environmental variable RUNFILES_MANIFEST_FILE.
 type ManifestFile string
 
-func (f ManifestFile) new() (*Runfiles, error) {
+func (f ManifestFile) new(sourceRepo SourceRepo) (*Runfiles, error) {
 	m, err := f.parse()
 	if err != nil {
 		return nil, err
 	}
-
-	return &Runfiles{m, manifestFileVar + "=" + string(f)}, nil
+	r := &Runfiles{
+		impl:       m,
+		env:        manifestFileVar + "=" + string(f),
+		sourceRepo: string(sourceRepo),
+	}
+	err = r.loadRepoMapping()
+	return r, err
 }
 
 type manifest map[string]string

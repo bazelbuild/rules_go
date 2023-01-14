@@ -15,11 +15,15 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
-	"strings"
 	"regexp"
+	"strings"
 )
 
 type BazelJSONBuilder struct {
@@ -47,6 +51,30 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		// library this file is part of.
 		matches = append(matches[:2], matches[3:]...)
 		label = fmt.Sprintf("@%s//%s", matches[1], strings.Join(matches[2:], ":"))
+	}
+
+	relToBin, err := filepath.Rel(b.bazel.info["output_path"], filename)
+	if err == nil && !strings.HasPrefix(relToBin, "../") {
+		parts := strings.SplitN(relToBin, string(filepath.Separator), 3)
+		relToBin = parts[2]
+		// We've effectively converted filename from bazel-bin/some/path.go to some/path.go;
+		// Check if a BUILD.bazel files exists under this dir, if not walk up and repeat.
+		relToBin = filepath.Dir(relToBin)
+		_, err = os.Stat(filepath.Join(b.bazel.WorkspaceRoot(), relToBin, "BUILD.bazel"))
+		for errors.Is(err, os.ErrNotExist) && relToBin != "." {
+			relToBin = filepath.Dir(relToBin)
+			_, err = os.Stat(filepath.Join(b.bazel.WorkspaceRoot(), relToBin, "BUILD.bazel"))
+		}
+
+		if err == nil {
+			// return package path found and build all targets (codegen doesn't fall under go_library)
+			// Otherwise fallback to default
+			if relToBin == "." {
+				relToBin = ""
+			}
+			label = fmt.Sprintf("//%s:all", relToBin)
+			additionalKinds = append(additionalKinds, "go_.*")
+		}
 	}
 
 	kinds := append(_defaultKinds, additionalKinds...)
@@ -104,7 +132,7 @@ func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
 }
 
 func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, error) {
-	queryArgs := concatStringsArrays(bazelFlags, bazelQueryFlags, []string{
+	queryArgs := concatStringsArrays(bazelQueryFlags, []string{
 		"--ui_event_filters=-info,-stderr",
 		"--noshow_progress",
 		"--order_output=no",
@@ -140,7 +168,31 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		"--aspects=" + strings.Join(aspects, ","),
 		"--output_groups=" + b.outputGroupsForMode(mode),
 		"--keep_going", // Build all possible packages
-	}, bazelFlags, bazelBuildFlags, labels)
+	}, bazelBuildFlags)
+
+	if len(labels) < 100 {
+		buildArgs = append(buildArgs, labels...)
+	} else {
+		// To avoid hitting MAX_ARGS length, write labels to a file and use `--target_pattern_file`
+		targetsFile, err := ioutil.TempFile("", "gopackagesdriver_targets_")
+		if err != nil {
+			return nil, fmt.Errorf("unable to create target pattern file: %w", err)
+		}
+		writer := bufio.NewWriter(targetsFile)
+		defer writer.Flush()
+		for _, l := range labels {
+			writer.WriteString(l+"\n")
+		}
+		if err := writer.Flush(); err != nil {
+			return nil, fmt.Errorf("unable to flush data to target pattern file: %w", err)
+		}
+		defer func() {
+			targetsFile.Close()
+			os.Remove(targetsFile.Name())
+		}()
+
+		buildArgs = append(buildArgs, "--target_pattern_file="+targetsFile.Name())
+	}
 	files, err := b.bazel.Build(ctx, buildArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to bazel build %v: %w", buildArgs, err)

@@ -1,0 +1,9 @@
+load("@my_rules_go//go:def.bzl", "go_test")
+
+go_test(
+    name = "runfiles_test",
+    srcs = ["runfiles_test.go"],
+    args = ["$(rlocationpath @other_module//:bar.txt)"],
+    data = ["@other_module//:bar.txt"],
+    deps = ["@my_rules_go//go/runfiles"],
+)

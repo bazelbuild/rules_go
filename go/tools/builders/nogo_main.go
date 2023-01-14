@@ -43,6 +43,8 @@ import (
 	"golang.org/x/tools/internal/facts"
 )
 
+const nogoBaseConfigName = "_base"
+
 func init() {
 	if err := analysis.Validate(analyzers); err != nil {
 		log.Fatal(err)
@@ -399,10 +401,26 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 		if len(act.diagnostics) == 0 {
 			continue
 		}
-		config, ok := configs[act.a.Name]
-		if !ok {
-			// If the analyzer is not explicitly configured, it emits diagnostics for
-			// all files.
+		var currentConfig config
+		// Use the base config if it exists.
+		if baseConfig, ok := configs[nogoBaseConfigName]; ok {
+			currentConfig = baseConfig
+		}
+		// Overwrite the config with the desired config. Any unset fields
+		// in the config will default to the base config.
+		if actionConfig, ok := configs[act.a.Name]; ok {
+			if actionConfig.analyzerFlags != nil {
+				currentConfig.analyzerFlags = actionConfig.analyzerFlags
+			}
+			if actionConfig.onlyFiles != nil {
+				currentConfig.onlyFiles = actionConfig.onlyFiles
+			}
+			if actionConfig.excludeFiles != nil {
+				currentConfig.excludeFiles = actionConfig.excludeFiles
+			}
+		}
+
+		if currentConfig.onlyFiles == nil && currentConfig.excludeFiles == nil {
 			for _, diag := range act.diagnostics {
 				diagnostics = append(diagnostics, entry{Diagnostic: diag, Analyzer: act.a})
 			}
@@ -418,10 +436,10 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 				filename = p.Filename
 			}
 			include := true
-			if len(config.onlyFiles) > 0 {
+			if len(currentConfig.onlyFiles) > 0 {
 				// This analyzer emits diagnostics for only a set of files.
 				include = false
-				for _, pattern := range config.onlyFiles {
+				for _, pattern := range currentConfig.onlyFiles {
 					if pattern.MatchString(filename) {
 						include = true
 						break
@@ -429,7 +447,7 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 				}
 			}
 			if include {
-				for _, pattern := range config.excludeFiles {
+				for _, pattern := range currentConfig.excludeFiles {
 					if pattern.MatchString(filename) {
 						include = false
 						break

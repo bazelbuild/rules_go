@@ -31,6 +31,15 @@ import (
 	"strings"
 )
 
+type nogoResult int
+
+const (
+	nogoNotRun nogoResult = iota
+	nogoError
+	nogoFailed
+	nogoSucceeded
+)
+
 func compilePkg(args []string) error {
 	// Parse arguments.
 	args, _, err := expandParamsFiles(args)
@@ -40,13 +49,14 @@ func compilePkg(args []string) error {
 
 	fs := flag.NewFlagSet("GoCompilePkg", flag.ExitOnError)
 	goenv := envFlags(fs)
-	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots multiFlag
+	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
 	var deps archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
+	var experiments multiFlag
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&coverSrcs, "cover", ".go file that should be instrumented for coverage (must also be a -src)")
 	fs.Var(&embedSrcs, "embedsrc", "file that may be compiled into the package with a //go:embed directive")
@@ -62,6 +72,7 @@ func compilePkg(args []string) error {
 	fs.Var(&cxxFlags, "cxxflags", "C++ compiler flags")
 	fs.Var(&objcFlags, "objcflags", "Objective-C compiler flags")
 	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
+	fs.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
@@ -71,6 +82,7 @@ func compilePkg(args []string) error {
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
 	fs.StringVar(&coverFormat, "cover_format", "", "Emit source file paths in coverage instrumentation suitable for the specified coverage format")
+	fs.Var(&recompileInternalDeps, "recompile_internal_deps", "The import path of the direct dependencies that needs to be recompiled.")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -121,6 +133,10 @@ func compilePkg(args []string) error {
 		return fmt.Errorf("invalid test filter %q", testFilter)
 	}
 
+	if len(experiments) > 0 {
+		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+	}
+
 	return compileArchive(
 		goenv,
 		importPath,
@@ -147,7 +163,8 @@ func compilePkg(args []string) error {
 		outPath,
 		outFactsPath,
 		cgoExportHPath,
-		coverFormat)
+		coverFormat,
+		recompileInternalDeps)
 }
 
 func compileArchive(
@@ -177,6 +194,7 @@ func compileArchive(
 	outXPath string,
 	cgoExportHPath string,
 	coverFormat string,
+	recompileInternalDeps []string,
 ) error {
 	workDir, cleanup, err := goenv.workDir()
 	if err != nil {
@@ -334,7 +352,7 @@ func compileArchive(
 
 	// Check that the filtered sources don't import anything outside of
 	// the standard library and the direct dependencies.
-	imports, err := checkImports(srcs.goSrcs, deps, packageListPath)
+	imports, err := checkImports(srcs.goSrcs, deps, packageListPath, importPath, recompileInternalDeps)
 	if err != nil {
 		return err
 	}
@@ -367,7 +385,9 @@ func compileArchive(
 	if err != nil {
 		return err
 	}
-	defer os.Remove(importcfgPath)
+	if !goenv.shouldPreserveWorkDir {
+		defer os.Remove(importcfgPath)
+	}
 
 	// Build an embedcfg file mapping embed patterns to filenames.
 	// Embed patterns are relative to any one of a list of root directories
@@ -397,7 +417,9 @@ func compileArchive(
 		return err
 	}
 	if embedcfgPath != "" {
-		defer os.Remove(embedcfgPath)
+		if !goenv.shouldPreserveWorkDir {
+			defer os.Remove(embedcfgPath)
+		}
 	}
 
 	// Run nogo concurrently.
@@ -444,7 +466,9 @@ func compileArchive(
 	}
 	symabisPath, err := buildSymabisFile(goenv, srcs.sSrcs, srcs.hSrcs, asmHdrPath)
 	if symabisPath != "" {
-		defer os.Remove(symabisPath)
+		if !goenv.shouldPreserveWorkDir {
+			defer os.Remove(symabisPath)
+		}
 	}
 	if err != nil {
 		return err

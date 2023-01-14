@@ -70,7 +70,7 @@ def get_imports(attr):
     ]
     return depset(direct = direct.keys(), transitive = transitive)
 
-def _go_proto_aspect_impl(target, ctx):
+def _go_proto_aspect_impl(_target, ctx):
     imports = get_imports(ctx.rule.attr)
     return [GoProtoImports(imports = imports)]
 
@@ -82,7 +82,7 @@ _go_proto_aspect = aspect(
     ],
 )
 
-def _proto_library_to_source(go, attr, source, merge):
+def _proto_library_to_source(_go, attr, source, merge):
     if attr.compiler:
         compilers = [attr.compiler]
     else:
