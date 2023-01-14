@@ -1,0 +1,5 @@
+diff -urN b/internal/facts/BUILD.bazel c/internal/facts/BUILD.bazel
+--- b/internal/facts/BUILD.bazel	1969-12-31 16:00:00
++++ c/internal/facts/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1 @@
++package(default_visibility = ["//visibility:public"])
