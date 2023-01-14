@@ -64,13 +64,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_tools",
-        # v0.3.0, latest as of 2022-11-21
+        # v0.5.0, latest as of 2023-01-13
         urls = [
-            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.3.0.zip",
-            "https://github.com/golang/tools/archive/refs/tags/v0.3.0.zip",
+            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.5.0.zip",
+            "https://github.com/golang/tools/archive/refs/tags/v0.5.0.zip",
         ],
-        sha256 = "6daa3ba04a80f406250874acbeeb4610c02016bdb08023c6b3b5d3875c6d521b",
-        strip_prefix = "tools-0.3.0",
+        sha256 = "7b22a085a24e9da2fb9db9b97e9e7325387e66153997f17e44129df2943ddee7",
+        strip_prefix = "tools-0.5.0",
         patches = [
             # deletegopls removes the gopls subdirectory. It contains a nested
             # module with additional dependencies. It's not needed by rules_go.
