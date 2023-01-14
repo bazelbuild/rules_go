@@ -9159,7 +9159,7 @@ diff -urN b/internal/facts/BUILD.bazel c/internal/facts/BUILD.bazel
 +        "imports.go",
 +    ],
 +    importpath = "golang.org/x/tools/internal/facts",
-+    visibility = ["//:__subpackages__"],
++    visibility = ["//visibility:public"],
 +    deps = [
 +        "//go/analysis",
 +        "//go/types/objectpath",
@@ -9170,7 +9170,7 @@ diff -urN b/internal/facts/BUILD.bazel c/internal/facts/BUILD.bazel
 +alias(
 +    name = "go_default_library",
 +    actual = ":facts",
-+    visibility = ["//:__subpackages__"],
++    visibility = ["//visibility:public"],
 +)
 +
 +go_test(

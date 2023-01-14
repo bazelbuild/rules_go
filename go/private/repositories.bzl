@@ -64,7 +64,7 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_tools",
-        # v0.5.0, latest as of 2023-01-13
+        # v0.5.0, latest as of 2023-01-14
         urls = [
             "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.5.0.zip",
             "https://github.com/golang/tools/archive/refs/tags/v0.5.0.zip",
