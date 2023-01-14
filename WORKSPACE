@@ -130,8 +130,6 @@ go_repository(
 # gazelle:repository go_repository name=org_golang_x_sys     importpath=golang.org/x/sys
 # gazelle:repository go_repository name=org_golang_x_crypto  importpath=golang.org/x/crypto
 
-gazelle_dependencies()
-
 load("@io_bazel_rules_go//tests/legacy/test_chdir:remote.bzl", "test_chdir_remote")
 
 test_chdir_remote()
@@ -143,6 +141,8 @@ popular_repos()
 load("@io_bazel_rules_go//tests:grpc_repos.bzl", "grpc_dependencies")
 
 grpc_dependencies()
+
+gazelle_dependencies()
 
 local_repository(
     name = "runfiles_remote_test",
