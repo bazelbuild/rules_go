@@ -26,8 +26,10 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 * @org_golang_x_crypto//chacha20poly1305:chacha20poly1305_test
 * @org_golang_x_crypto//cryptobyte:cryptobyte_test
 * @org_golang_x_crypto//curve25519:curve25519_test
+* @org_golang_x_crypto//curve25519/internal/field:field_test
 * @org_golang_x_crypto//ed25519:ed25519_test
 * @org_golang_x_crypto//hkdf:hkdf_test
+* @org_golang_x_crypto//internal/poly1305:poly1305_test
 * @org_golang_x_crypto//internal/subtle:subtle_test
 * @org_golang_x_crypto//md4:md4_test
 * @org_golang_x_crypto//nacl/auth:auth_test
@@ -45,7 +47,6 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 * @org_golang_x_crypto//pbkdf2:pbkdf2_test
 * @org_golang_x_crypto//pkcs12:pkcs12_test
 * @org_golang_x_crypto//pkcs12/internal/rc2:rc2_test
-* @org_golang_x_crypto//poly1305:poly1305_test
 * @org_golang_x_crypto//ripemd160:ripemd160_test
 * @org_golang_x_crypto//salsa20:salsa20_test
 * @org_golang_x_crypto//salsa20/salsa:salsa_test
