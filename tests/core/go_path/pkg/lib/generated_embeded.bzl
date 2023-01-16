@@ -15,7 +15,6 @@
 load(
     "@io_bazel_rules_go//go:def.bzl",
     "go_context",
-    "go_library",
 )
 
 def _gen_library_impl(ctx):
@@ -53,7 +52,7 @@ def _gen_library_impl(ctx):
         DefaultInfo(files = depset([archive.data.file])),
     ]
 
-_gen_library = rule(
+generated_embeded = rule(
     _gen_library_impl,
     attrs = {
         "importpath": attr.string(mandatory = True),
@@ -70,46 +69,3 @@ _gen_library = rule(
     },
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
-
-def _gen_main_src_impl(ctx):
-    src = ctx.actions.declare_file(ctx.label.name + ".go")
-    lines = [
-        "package main",
-        "",
-        "import (",
-    ]
-    lines.append("\t_ \"lib\"")
-    lines.extend([
-        ")",
-        "",
-        "func main() {}",
-    ])
-    ctx.actions.write(src, "\n".join(lines))
-    return [DefaultInfo(files = depset([src]))]
-
-_gen_main_src = rule(
-    _gen_main_src_impl,
-)
-
-def generated_embeded(name, embedsrcs, **kwargs):
-    lib_name = name + "_lib"
-    srcs = kwargs.pop("srcs", None)
-    _gen_library(
-        name = lib_name,
-        srcs = srcs,
-        importpath = "lib",
-        embedsrcs = embedsrcs,
-        visibility = ["//visibility:private"],
-    )
-
-    _gen_main_src(
-        name = name + "_main",
-    )
-
-    go_library(
-        name = name,
-        importpath = "main",
-        srcs = [":" + name + "_main"],
-        deps = [lib_name],
-        **kwargs
-    )

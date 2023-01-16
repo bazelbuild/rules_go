@@ -88,8 +88,7 @@ func TestEmbedPath(t *testing.T) {
 	files := []string{
 		"src/lib/embed_test.go",
 		"src/lib/embedded_src.txt",
-		"src/lib/generated_embeded_lib.go",
-		"src/main/generated_embeded_main.go",
+		"src/lib/generated_embeded.go",
 	}
 	checkPath(t, embedPath, files)
 }
@@ -100,8 +99,7 @@ func TestEmbedNoSrcsPath(t *testing.T) {
 	}
 	files := []string{
 		"src/lib/embedded_src.txt",
-		"src/lib/generated_embeded_no_srcs_lib.go",
-		"src/main/generated_embeded_no_srcs_main.go",
+		"src/lib/generated_embeded_no_srcs.go",
 	}
 	checkPath(t, embedNoSrcsPath, files)
 }

@@ -30,12 +30,14 @@ generated_embeded(
     name = "generated_embeded",
     srcs = ["embed_test.go"],
     embedsrcs = ["embedded_src.txt"],
+    importpath = "lib",
     visibility = ["//visibility:public"],
 )
 
 generated_embeded(
     name = "generated_embeded_no_srcs",
     embedsrcs = ["embedded_src.txt"],
+    importpath = "lib",
     visibility = ["//visibility:public"],
 )
 
