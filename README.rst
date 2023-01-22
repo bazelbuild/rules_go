@@ -193,7 +193,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: Since version v0.35.0, rules_go requires Bazel ≥ 5.1.0 to work.
+Note: Since version v0.38.0, rules_go requires Bazel ≥ 5.2.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 

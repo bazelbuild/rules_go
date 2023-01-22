@@ -52,11 +52,6 @@ load(
     "@bazel_skylib//lib:structs.bzl",
     "structs",
 )
-load("@rules_go_bazel_version//:bazel_version.bzl", "bazel_version")
-load(
-    "//go/private/skylib/lib:versions.bzl",
-    "versions",
-)
 
 def _go_test_impl(ctx):
     """go_test_impl implements go testing.
@@ -168,12 +163,7 @@ def _go_test_impl(ctx):
     for k, v in ctx.attr.env.items():
         env[k] = ctx.expand_location(v, ctx.attr.data)
 
-    test_environment = testing.TestEnvironment(env)
-    if ctx.attr.env_inherit:
-        # inherited_environment is only available in Bazel 5.2.0+
-        # https://github.com/bazelbuild/rules_go/pull/3256
-        versions.check("5.2.0", bazel_version = bazel_version)
-        test_environment = testing.TestEnvironment(env, ctx.attr.env_inherit)
+    test_environment = testing.TestEnvironment(env, ctx.attr.env_inherit)
 
     # Bazel only looks for coverage data if the test target has an
     # InstrumentedFilesProvider. If the provider is found and at least one
