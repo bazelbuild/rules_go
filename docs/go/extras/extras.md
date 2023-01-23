@@ -63,17 +63,17 @@ go_embed_data_dependencies()
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="go_embed_data-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/docs/build-ref.html#name">Name</a> | required |  |
+| <a id="go_embed_data-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="go_embed_data-flatten"></a>flatten |  If <code>True</code> and <code>srcs</code> is used, map keys are file base names instead of relative paths.   | Boolean | optional | False |
 | <a id="go_embed_data-package"></a>package |  Go package name for the generated .go file.   | String | optional | "" |
-| <a id="go_embed_data-src"></a>src |  A single file to embed. This cannot be used at the same time as <code>srcs</code>.             The generated file will have a variable of type <code>[]byte</code> or <code>string</code> with the contents of this file.   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
-| <a id="go_embed_data-srcs"></a>srcs |  A list of files to embed. This cannot be used at the same time as <code>src</code>.             The generated file will have a variable of type <code>map[string][]byte</code> or <code>map[string]string</code> with the contents             of each file. The map keys are relative paths of the files from the repository root. Keys for files in external             repositories will be prefixed with <code>"external/repo/"</code> where "repo" is the name of the external repository.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
+| <a id="go_embed_data-src"></a>src |  A single file to embed. This cannot be used at the same time as <code>srcs</code>.             The generated file will have a variable of type <code>[]byte</code> or <code>string</code> with the contents of this file.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | None |
+| <a id="go_embed_data-srcs"></a>srcs |  A list of files to embed. This cannot be used at the same time as <code>src</code>.             The generated file will have a variable of type <code>map[string][]byte</code> or <code>map[string]string</code> with the contents             of each file. The map keys are relative paths of the files from the repository root. Keys for files in external             repositories will be prefixed with <code>"external/repo/"</code> where "repo" is the name of the external repository.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | [] |
 | <a id="go_embed_data-string"></a>string |  If <code>True</code>, the embedded data will be stored as <code>string</code> instead of <code>[]byte</code>.   | Boolean | optional | False |
 | <a id="go_embed_data-unpack"></a>unpack |  If <code>True</code>, sources are treated as archives and their contents will be stored. Supported formats are <code>.zip</code> and <code>.tar</code>   | Boolean | optional | False |
 | <a id="go_embed_data-var"></a>var |  Name of the variable that will contain the embedded data.   | String | optional | "Data" |
 
 
-<a id="#gomock"></a>
+<a id="gomock"></a>
 
 ## gomock
 
