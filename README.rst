@@ -193,7 +193,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: Since version v0.38.0, rules_go requires Bazel ≥ 5.3.0 to work.
+Note: Since version v0.38.0, rules_go requires Bazel ≥ 5.4.0 to work.
 
 The ``master`` branch is only guaranteed to work with the latest version of Bazel.
 
@@ -550,6 +550,17 @@ That said, it's usually still a good idea to follow conventions required by
 the ``go`` command (e.g., one package per directory, package paths match
 directory paths). Tools that aren't compatible with Bazel will still work,
 and your project can be depended on by non-Bazel projects.
+
+If you need to use the ``go`` command to perform tasks that Bazel doesn't cover
+(such as adding a new dependency to ``go.mod``), you can use the following Bazel
+invocation to run the ``go`` binary of the Bazel-configured Go SDK:
+
+.. code:: bash
+
+    bazel run @io_bazel_rules_go//go -- <args>
+
+Prefer this to running ``go`` directly since it ensures that the version of Go
+is identical to the one used by rules_go.
 
 Does this work with Go modules?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

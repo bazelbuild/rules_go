@@ -1,5 +1,12 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+alias(
+    name = "go",
+    actual = "//go/tools/go_bin_runner",
+    # Meant to be run with `bazel run`, but should not be depended on.
+    visibility = ["//visibility:private"],
+)
+
 filegroup(
     name = "all_files",
     testonly = True,

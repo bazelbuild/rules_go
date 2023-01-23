@@ -1,0 +1,44 @@
+# gazelle:exclude
+
+load("//go:def.bzl", "go_binary", "go_library")
+load("//go/private/rules:go_bin_for_host.bzl", "go_bin_for_host")
+
+go_bin_for_host(
+    name = "go_bin_for_host",
+    visibility = ["//go:__pkg__"],
+)
+
+go_library(
+    name = "go_bin_runner_lib",
+    srcs = [
+        "main.go",
+    ] + select({
+        "@platforms//os:windows": ["process.go"],
+        "//conditions:default": ["process_unix.go"],
+    }),
+    importpath = "github.com/bazelbuild/rules_go/go/tools/go_bin_runner",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/runfiles",
+    ] + select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["@org_golang_x_sys//unix"],
+    }),
+)
+
+go_binary(
+    name = "go_bin_runner",
+    data = [":go_bin_for_host"],
+    embed = [":go_bin_runner_lib"],
+    env = {
+        "GO_BIN_RLOCATIONPATH": "$(rlocationpath :go_bin_for_host)",
+    },
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
