@@ -163,7 +163,7 @@ def _go_test_impl(ctx):
     for k, v in ctx.attr.env.items():
         env[k] = ctx.expand_location(v, ctx.attr.data)
 
-    test_environment = testing.TestEnvironment(env, ctx.attr.env_inherit)
+    run_environment_info = RunEnvironmentInfo(env, ctx.attr.env_inherit)
 
     # Bazel only looks for coverage data if the test target has an
     # InstrumentedFilesProvider. If the provider is found and at least one
@@ -186,7 +186,7 @@ def _go_test_impl(ctx):
             dependency_attributes = ["data", "deps", "embed", "embedsrcs"],
             extensions = ["go"],
         ),
-        test_environment,
+        run_environment_info,
     ]
 
 _go_test_kwargs = {

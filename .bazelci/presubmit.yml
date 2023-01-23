@@ -2,7 +2,7 @@
 tasks:
   ubuntu1804_bazel400:
     platform: ubuntu1804
-    bazel: 5.2.0 # test minimum supported version of bazel
+    bazel: 5.3.0 # test minimum supported version of bazel
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
     build_targets:
