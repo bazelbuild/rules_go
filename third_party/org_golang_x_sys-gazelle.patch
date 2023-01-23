@@ -1,7 +1,7 @@
 diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 --- a/cpu/BUILD.bazel	1969-12-31 16:00:00
 +++ b/cpu/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,62 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -41,6 +41,8 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 +        "cpu_zos.go",
 +        "cpu_zos_s390x.go",
 +        "hwcap_linux.go",
++        "parse.go",
++        "proc_cpuinfo_linux.go",
 +        "syscall_aix_ppc64_gc.go",
 +    ],
 +    importpath = "golang.org/x/sys/cpu",
@@ -58,8 +60,9 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 +    srcs = [
 +        "cpu_s390x_test.go",
 +        "cpu_test.go",
++        "parse_test.go",
 +    ],
-+    deps = [":cpu"],
++    embed = [":cpu"],
 +)
 diff -urN a/execabs/BUILD.bazel b/execabs/BUILD.bazel
 --- a/execabs/BUILD.bazel	1969-12-31 16:00:00
@@ -165,7 +168,7 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 --- a/unix/BUILD.bazel	1969-12-31 16:00:00
 +++ b/unix/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,294 @@
+@@ -0,0 +1,295 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -454,6 +457,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "syscall_solaris_test.go",
 +        "syscall_test.go",
 +        "syscall_unix_test.go",
++        "sysctl_netbsd_test.go",
 +        "sysvshm_unix_test.go",
 +        "timestruct_test.go",
 +        "xattr_test.go",
