@@ -178,7 +178,7 @@ diff -urN b/cmd/benchcmp/BUILD.bazel c/cmd/benchcmp/BUILD.bazel
 diff -urN b/cmd/bundle/BUILD.bazel c/cmd/bundle/BUILD.bazel
 --- b/cmd/bundle/BUILD.bazel	1969-12-31 16:00:00
 +++ c/cmd/bundle/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,22 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 +
 +go_library(
@@ -198,7 +198,6 @@ diff -urN b/cmd/bundle/BUILD.bazel c/cmd/bundle/BUILD.bazel
 +go_test(
 +    name = "bundle_test",
 +    srcs = ["main_test.go"],
-+    data = glob(["testdata/**"]),
 +    embed = [":bundle_lib"],
 +    deps = ["//go/packages/packagestest"],
 +)
@@ -245,7 +244,7 @@ diff -urN b/cmd/bundle/testdata/src/initial/BUILD.bazel c/cmd/bundle/testdata/sr
 diff -urN b/cmd/callgraph/BUILD.bazel c/cmd/callgraph/BUILD.bazel
 --- b/cmd/callgraph/BUILD.bazel	1969-12-31 16:00:00
 +++ c/cmd/callgraph/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,74 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 +
 +go_library(
@@ -276,7 +275,6 @@ diff -urN b/cmd/callgraph/BUILD.bazel c/cmd/callgraph/BUILD.bazel
 +go_test(
 +    name = "callgraph_test",
 +    srcs = ["main_test.go"],
-+    data = glob(["testdata/**"]),
 +    embed = [":callgraph_lib"],
 +    deps = select({
 +        "@io_bazel_rules_go//go/platform:aix": [
@@ -533,7 +531,7 @@ diff -urN b/cmd/file2fuzz/BUILD.bazel c/cmd/file2fuzz/BUILD.bazel
 diff -urN b/cmd/fiximports/BUILD.bazel c/cmd/fiximports/BUILD.bazel
 --- b/cmd/fiximports/BUILD.bazel	1969-12-31 16:00:00
 +++ c/cmd/fiximports/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,63 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 +
 +go_library(
@@ -553,7 +551,6 @@ diff -urN b/cmd/fiximports/BUILD.bazel c/cmd/fiximports/BUILD.bazel
 +go_test(
 +    name = "fiximports_test",
 +    srcs = ["main_test.go"],
-+    data = glob(["testdata/**"]),
 +    embed = [":fiximports_lib"],
 +    deps = select({
 +        "@io_bazel_rules_go//go/platform:aix": [
@@ -1077,7 +1074,7 @@ diff -urN b/cmd/goyacc/testdata/expr/BUILD.bazel c/cmd/goyacc/testdata/expr/BUIL
 diff -urN b/cmd/guru/BUILD.bazel c/cmd/guru/BUILD.bazel
 --- b/cmd/guru/BUILD.bazel	1969-12-31 16:00:00
 +++ c/cmd/guru/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,56 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 +
 +go_library(
@@ -1131,7 +1128,6 @@ diff -urN b/cmd/guru/BUILD.bazel c/cmd/guru/BUILD.bazel
 +        "guru_test.go",
 +        "unit_test.go",
 +    ],
-+    data = glob(["testdata/**"]),
 +    embed = [":guru_lib"],
 +    deps = ["//internal/testenv"],
 +)
@@ -2372,7 +2368,7 @@ diff -urN b/go/analysis/multichecker/BUILD.bazel c/go/analysis/multichecker/BUIL
 diff -urN b/go/analysis/passes/asmdecl/BUILD.bazel c/go/analysis/passes/asmdecl/BUILD.bazel
 --- b/go/analysis/passes/asmdecl/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/asmdecl/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2399,7 +2395,6 @@ diff -urN b/go/analysis/passes/asmdecl/BUILD.bazel c/go/analysis/passes/asmdecl/
 +go_test(
 +    name = "asmdecl_test",
 +    srcs = ["asmdecl_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":asmdecl",
 +        "//go/analysis/analysistest",
@@ -2438,7 +2433,7 @@ diff -urN b/go/analysis/passes/asmdecl/testdata/src/a/BUILD.bazel c/go/analysis/
 diff -urN b/go/analysis/passes/assign/BUILD.bazel c/go/analysis/passes/assign/BUILD.bazel
 --- b/go/analysis/passes/assign/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/assign/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2463,7 +2458,6 @@ diff -urN b/go/analysis/passes/assign/BUILD.bazel c/go/analysis/passes/assign/BU
 +go_test(
 +    name = "assign_test",
 +    srcs = ["assign_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":assign",
 +        "//go/analysis/analysistest",
@@ -2509,7 +2503,7 @@ diff -urN b/go/analysis/passes/assign/testdata/src/typeparams/BUILD.bazel c/go/a
 diff -urN b/go/analysis/passes/atomic/BUILD.bazel c/go/analysis/passes/atomic/BUILD.bazel
 --- b/go/analysis/passes/atomic/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/atomic/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2534,7 +2528,6 @@ diff -urN b/go/analysis/passes/atomic/BUILD.bazel c/go/analysis/passes/atomic/BU
 +go_test(
 +    name = "atomic_test",
 +    srcs = ["atomic_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":atomic",
 +        "//go/analysis/analysistest",
@@ -2580,7 +2573,7 @@ diff -urN b/go/analysis/passes/atomic/testdata/src/typeparams/BUILD.bazel c/go/a
 diff -urN b/go/analysis/passes/atomicalign/BUILD.bazel c/go/analysis/passes/atomicalign/BUILD.bazel
 --- b/go/analysis/passes/atomicalign/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/atomicalign/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2605,7 +2598,6 @@ diff -urN b/go/analysis/passes/atomicalign/BUILD.bazel c/go/analysis/passes/atom
 +go_test(
 +    name = "atomicalign_test",
 +    srcs = ["atomicalign_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":atomicalign",
 +        "//go/analysis/analysistest",
@@ -2656,7 +2648,7 @@ diff -urN b/go/analysis/passes/atomicalign/testdata/src/b/BUILD.bazel c/go/analy
 diff -urN b/go/analysis/passes/bools/BUILD.bazel c/go/analysis/passes/bools/BUILD.bazel
 --- b/go/analysis/passes/bools/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/bools/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2681,7 +2673,6 @@ diff -urN b/go/analysis/passes/bools/BUILD.bazel c/go/analysis/passes/bools/BUIL
 +go_test(
 +    name = "bools_test",
 +    srcs = ["bools_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":bools",
 +        "//go/analysis/analysistest",
@@ -2727,7 +2718,7 @@ diff -urN b/go/analysis/passes/bools/testdata/src/typeparams/BUILD.bazel c/go/an
 diff -urN b/go/analysis/passes/buildssa/BUILD.bazel c/go/analysis/passes/buildssa/BUILD.bazel
 --- b/go/analysis/passes/buildssa/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/buildssa/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2750,7 +2741,6 @@ diff -urN b/go/analysis/passes/buildssa/BUILD.bazel c/go/analysis/passes/buildss
 +go_test(
 +    name = "buildssa_test",
 +    srcs = ["buildssa_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":buildssa",
 +        "//go/analysis/analysistest",
@@ -2814,7 +2804,7 @@ diff -urN b/go/analysis/passes/buildssa/testdata/src/c/BUILD.bazel c/go/analysis
 diff -urN b/go/analysis/passes/buildtag/BUILD.bazel c/go/analysis/passes/buildtag/BUILD.bazel
 --- b/go/analysis/passes/buildtag/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/buildtag/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2840,7 +2830,6 @@ diff -urN b/go/analysis/passes/buildtag/BUILD.bazel c/go/analysis/passes/buildta
 +go_test(
 +    name = "buildtag_test",
 +    srcs = ["buildtag_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":buildtag",
 +        "//go/analysis",
@@ -2872,7 +2861,7 @@ diff -urN b/go/analysis/passes/buildtag/testdata/src/a/BUILD.bazel c/go/analysis
 diff -urN b/go/analysis/passes/cgocall/BUILD.bazel c/go/analysis/passes/cgocall/BUILD.bazel
 --- b/go/analysis/passes/cgocall/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/cgocall/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -2895,7 +2884,6 @@ diff -urN b/go/analysis/passes/cgocall/BUILD.bazel c/go/analysis/passes/cgocall/
 +go_test(
 +    name = "cgocall_test",
 +    srcs = ["cgocall_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":cgocall",
 +        "//go/analysis/analysistest",
@@ -2982,7 +2970,7 @@ diff -urN b/go/analysis/passes/cgocall/testdata/src/typeparams/BUILD.bazel c/go/
 diff -urN b/go/analysis/passes/composite/BUILD.bazel c/go/analysis/passes/composite/BUILD.bazel
 --- b/go/analysis/passes/composite/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/composite/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3010,7 +2998,6 @@ diff -urN b/go/analysis/passes/composite/BUILD.bazel c/go/analysis/passes/compos
 +go_test(
 +    name = "composite_test",
 +    srcs = ["composite_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":composite",
 +        "//go/analysis/analysistest",
@@ -3080,7 +3067,7 @@ diff -urN b/go/analysis/passes/composite/testdata/src/typeparams/lib/BUILD.bazel
 diff -urN b/go/analysis/passes/copylock/BUILD.bazel c/go/analysis/passes/copylock/BUILD.bazel
 --- b/go/analysis/passes/copylock/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/copylock/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3106,7 +3093,6 @@ diff -urN b/go/analysis/passes/copylock/BUILD.bazel c/go/analysis/passes/copyloc
 +go_test(
 +    name = "copylock_test",
 +    srcs = ["copylock_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":copylock",
 +        "//go/analysis/analysistest",
@@ -3156,7 +3142,7 @@ diff -urN b/go/analysis/passes/copylock/testdata/src/typeparams/BUILD.bazel c/go
 diff -urN b/go/analysis/passes/ctrlflow/BUILD.bazel c/go/analysis/passes/ctrlflow/BUILD.bazel
 --- b/go/analysis/passes/ctrlflow/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/ctrlflow/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3182,7 +3168,6 @@ diff -urN b/go/analysis/passes/ctrlflow/BUILD.bazel c/go/analysis/passes/ctrlflo
 +go_test(
 +    name = "ctrlflow_test",
 +    srcs = ["ctrlflow_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":ctrlflow",
 +        "//go/analysis/analysistest",
@@ -3246,7 +3231,7 @@ diff -urN b/go/analysis/passes/ctrlflow/testdata/src/typeparams/BUILD.bazel c/go
 diff -urN b/go/analysis/passes/deepequalerrors/BUILD.bazel c/go/analysis/passes/deepequalerrors/BUILD.bazel
 --- b/go/analysis/passes/deepequalerrors/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/deepequalerrors/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3271,7 +3256,6 @@ diff -urN b/go/analysis/passes/deepequalerrors/BUILD.bazel c/go/analysis/passes/
 +go_test(
 +    name = "deepequalerrors_test",
 +    srcs = ["deepequalerrors_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":deepequalerrors",
 +        "//go/analysis/analysistest",
@@ -3317,7 +3301,7 @@ diff -urN b/go/analysis/passes/deepequalerrors/testdata/src/typeparams/BUILD.baz
 diff -urN b/go/analysis/passes/errorsas/BUILD.bazel c/go/analysis/passes/errorsas/BUILD.bazel
 --- b/go/analysis/passes/errorsas/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/errorsas/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3342,7 +3326,6 @@ diff -urN b/go/analysis/passes/errorsas/BUILD.bazel c/go/analysis/passes/errorsa
 +go_test(
 +    name = "errorsas_test",
 +    srcs = ["errorsas_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":errorsas",
 +        "//go/analysis/analysistest",
@@ -3388,7 +3371,7 @@ diff -urN b/go/analysis/passes/errorsas/testdata/src/typeparams/BUILD.bazel c/go
 diff -urN b/go/analysis/passes/fieldalignment/BUILD.bazel c/go/analysis/passes/fieldalignment/BUILD.bazel
 --- b/go/analysis/passes/fieldalignment/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/fieldalignment/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3412,7 +3395,6 @@ diff -urN b/go/analysis/passes/fieldalignment/BUILD.bazel c/go/analysis/passes/f
 +go_test(
 +    name = "fieldalignment_test",
 +    srcs = ["fieldalignment_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":fieldalignment",
 +        "//go/analysis/analysistest",
@@ -3465,7 +3447,7 @@ diff -urN b/go/analysis/passes/fieldalignment/testdata/src/a/BUILD.bazel c/go/an
 diff -urN b/go/analysis/passes/findcall/BUILD.bazel c/go/analysis/passes/findcall/BUILD.bazel
 --- b/go/analysis/passes/findcall/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/findcall/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3485,7 +3467,6 @@ diff -urN b/go/analysis/passes/findcall/BUILD.bazel c/go/analysis/passes/findcal
 +go_test(
 +    name = "findcall_test",
 +    srcs = ["findcall_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":findcall",
 +        "//go/analysis/analysistest",
@@ -3534,7 +3515,7 @@ diff -urN b/go/analysis/passes/findcall/testdata/src/a/BUILD.bazel c/go/analysis
 diff -urN b/go/analysis/passes/framepointer/BUILD.bazel c/go/analysis/passes/framepointer/BUILD.bazel
 --- b/go/analysis/passes/framepointer/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/framepointer/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3557,7 +3538,6 @@ diff -urN b/go/analysis/passes/framepointer/BUILD.bazel c/go/analysis/passes/fra
 +go_test(
 +    name = "framepointer_test",
 +    srcs = ["framepointer_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":framepointer",
 +        "//go/analysis/analysistest",
@@ -3590,7 +3570,7 @@ diff -urN b/go/analysis/passes/framepointer/testdata/src/a/BUILD.bazel c/go/anal
 diff -urN b/go/analysis/passes/httpresponse/BUILD.bazel c/go/analysis/passes/httpresponse/BUILD.bazel
 --- b/go/analysis/passes/httpresponse/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/httpresponse/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3615,7 +3595,6 @@ diff -urN b/go/analysis/passes/httpresponse/BUILD.bazel c/go/analysis/passes/htt
 +go_test(
 +    name = "httpresponse_test",
 +    srcs = ["httpresponse_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":httpresponse",
 +        "//go/analysis/analysistest",
@@ -3661,7 +3640,7 @@ diff -urN b/go/analysis/passes/httpresponse/testdata/src/typeparams/BUILD.bazel 
 diff -urN b/go/analysis/passes/ifaceassert/BUILD.bazel c/go/analysis/passes/ifaceassert/BUILD.bazel
 --- b/go/analysis/passes/ifaceassert/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/ifaceassert/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3689,7 +3668,6 @@ diff -urN b/go/analysis/passes/ifaceassert/BUILD.bazel c/go/analysis/passes/ifac
 +go_test(
 +    name = "ifaceassert_test",
 +    srcs = ["ifaceassert_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":ifaceassert",
 +        "//go/analysis/analysistest",
@@ -3806,7 +3784,7 @@ diff -urN b/go/analysis/passes/internal/analysisutil/BUILD.bazel c/go/analysis/p
 diff -urN b/go/analysis/passes/loopclosure/BUILD.bazel c/go/analysis/passes/loopclosure/BUILD.bazel
 --- b/go/analysis/passes/loopclosure/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/loopclosure/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3831,7 +3809,6 @@ diff -urN b/go/analysis/passes/loopclosure/BUILD.bazel c/go/analysis/passes/loop
 +go_test(
 +    name = "loopclosure_test",
 +    srcs = ["loopclosure_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":loopclosure",
 +        "//go/analysis/analysistest",
@@ -3918,7 +3895,7 @@ diff -urN b/go/analysis/passes/loopclosure/testdata/src/typeparams/BUILD.bazel c
 diff -urN b/go/analysis/passes/lostcancel/BUILD.bazel c/go/analysis/passes/lostcancel/BUILD.bazel
 --- b/go/analysis/passes/lostcancel/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/lostcancel/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3944,7 +3921,6 @@ diff -urN b/go/analysis/passes/lostcancel/BUILD.bazel c/go/analysis/passes/lostc
 +go_test(
 +    name = "lostcancel_test",
 +    srcs = ["lostcancel_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":lostcancel",
 +        "//go/analysis/analysistest",
@@ -4030,7 +4006,7 @@ diff -urN b/go/analysis/passes/lostcancel/testdata/src/typeparams/BUILD.bazel c/
 diff -urN b/go/analysis/passes/nilfunc/BUILD.bazel c/go/analysis/passes/nilfunc/BUILD.bazel
 --- b/go/analysis/passes/nilfunc/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/nilfunc/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4055,7 +4031,6 @@ diff -urN b/go/analysis/passes/nilfunc/BUILD.bazel c/go/analysis/passes/nilfunc/
 +go_test(
 +    name = "nilfunc_test",
 +    srcs = ["nilfunc_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":nilfunc",
 +        "//go/analysis/analysistest",
@@ -4101,7 +4076,7 @@ diff -urN b/go/analysis/passes/nilfunc/testdata/src/typeparams/BUILD.bazel c/go/
 diff -urN b/go/analysis/passes/nilness/BUILD.bazel c/go/analysis/passes/nilness/BUILD.bazel
 --- b/go/analysis/passes/nilness/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/nilness/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4129,7 +4104,6 @@ diff -urN b/go/analysis/passes/nilness/BUILD.bazel c/go/analysis/passes/nilness/
 +        "nilness_go117_test.go",
 +        "nilness_test.go",
 +    ],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":nilness",
 +        "//go/analysis/analysistest",
@@ -4233,7 +4207,7 @@ diff -urN b/go/analysis/passes/nilness/testdata/src/d/BUILD.bazel c/go/analysis/
 diff -urN b/go/analysis/passes/pkgfact/BUILD.bazel c/go/analysis/passes/pkgfact/BUILD.bazel
 --- b/go/analysis/passes/pkgfact/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/pkgfact/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4253,7 +4227,6 @@ diff -urN b/go/analysis/passes/pkgfact/BUILD.bazel c/go/analysis/passes/pkgfact/
 +go_test(
 +    name = "pkgfact_test",
 +    srcs = ["pkgfact_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":pkgfact",
 +        "//go/analysis/analysistest",
@@ -4316,7 +4289,7 @@ diff -urN b/go/analysis/passes/pkgfact/testdata/src/c/BUILD.bazel c/go/analysis/
 diff -urN b/go/analysis/passes/printf/BUILD.bazel c/go/analysis/passes/printf/BUILD.bazel
 --- b/go/analysis/passes/printf/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/printf/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4346,7 +4319,6 @@ diff -urN b/go/analysis/passes/printf/BUILD.bazel c/go/analysis/passes/printf/BU
 +go_test(
 +    name = "printf_test",
 +    srcs = ["printf_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":printf",
 +        "//go/analysis/analysistest",
@@ -4431,7 +4403,7 @@ diff -urN b/go/analysis/passes/printf/testdata/src/typeparams/BUILD.bazel c/go/a
 diff -urN b/go/analysis/passes/reflectvaluecompare/BUILD.bazel c/go/analysis/passes/reflectvaluecompare/BUILD.bazel
 --- b/go/analysis/passes/reflectvaluecompare/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/reflectvaluecompare/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4456,7 +4428,6 @@ diff -urN b/go/analysis/passes/reflectvaluecompare/BUILD.bazel c/go/analysis/pas
 +go_test(
 +    name = "reflectvaluecompare_test",
 +    srcs = ["reflectvaluecompare_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":reflectvaluecompare",
 +        "//go/analysis/analysistest",
@@ -4483,7 +4454,7 @@ diff -urN b/go/analysis/passes/reflectvaluecompare/testdata/src/a/BUILD.bazel c/
 diff -urN b/go/analysis/passes/shadow/BUILD.bazel c/go/analysis/passes/shadow/BUILD.bazel
 --- b/go/analysis/passes/shadow/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/shadow/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4507,7 +4478,6 @@ diff -urN b/go/analysis/passes/shadow/BUILD.bazel c/go/analysis/passes/shadow/BU
 +go_test(
 +    name = "shadow_test",
 +    srcs = ["shadow_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":shadow",
 +        "//go/analysis/analysistest",
@@ -4556,7 +4526,7 @@ diff -urN b/go/analysis/passes/shadow/testdata/src/a/BUILD.bazel c/go/analysis/p
 diff -urN b/go/analysis/passes/shift/BUILD.bazel c/go/analysis/passes/shift/BUILD.bazel
 --- b/go/analysis/passes/shift/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/shift/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4585,7 +4555,6 @@ diff -urN b/go/analysis/passes/shift/BUILD.bazel c/go/analysis/passes/shift/BUIL
 +go_test(
 +    name = "shift_test",
 +    srcs = ["shift_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":shift",
 +        "//go/analysis/analysistest",
@@ -4631,7 +4600,7 @@ diff -urN b/go/analysis/passes/shift/testdata/src/typeparams/BUILD.bazel c/go/an
 diff -urN b/go/analysis/passes/sigchanyzer/BUILD.bazel c/go/analysis/passes/sigchanyzer/BUILD.bazel
 --- b/go/analysis/passes/sigchanyzer/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/sigchanyzer/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4655,7 +4624,6 @@ diff -urN b/go/analysis/passes/sigchanyzer/BUILD.bazel c/go/analysis/passes/sigc
 +go_test(
 +    name = "sigchanyzer_test",
 +    srcs = ["sigchanyzer_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":sigchanyzer",
 +        "//go/analysis/analysistest",
@@ -4682,7 +4650,7 @@ diff -urN b/go/analysis/passes/sigchanyzer/testdata/src/a/BUILD.bazel c/go/analy
 diff -urN b/go/analysis/passes/sortslice/BUILD.bazel c/go/analysis/passes/sortslice/BUILD.bazel
 --- b/go/analysis/passes/sortslice/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/sortslice/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4707,7 +4675,6 @@ diff -urN b/go/analysis/passes/sortslice/BUILD.bazel c/go/analysis/passes/sortsl
 +go_test(
 +    name = "sortslice_test",
 +    srcs = ["analyzer_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":sortslice",
 +        "//go/analysis/analysistest",
@@ -4734,7 +4701,7 @@ diff -urN b/go/analysis/passes/sortslice/testdata/src/a/BUILD.bazel c/go/analysi
 diff -urN b/go/analysis/passes/stdmethods/BUILD.bazel c/go/analysis/passes/stdmethods/BUILD.bazel
 --- b/go/analysis/passes/stdmethods/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/stdmethods/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4758,7 +4725,6 @@ diff -urN b/go/analysis/passes/stdmethods/BUILD.bazel c/go/analysis/passes/stdme
 +go_test(
 +    name = "stdmethods_test",
 +    srcs = ["stdmethods_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":stdmethods",
 +        "//go/analysis/analysistest",
@@ -4807,7 +4773,7 @@ diff -urN b/go/analysis/passes/stdmethods/testdata/src/typeparams/BUILD.bazel c/
 diff -urN b/go/analysis/passes/stringintconv/BUILD.bazel c/go/analysis/passes/stringintconv/BUILD.bazel
 --- b/go/analysis/passes/stringintconv/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/stringintconv/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4832,7 +4798,6 @@ diff -urN b/go/analysis/passes/stringintconv/BUILD.bazel c/go/analysis/passes/st
 +go_test(
 +    name = "stringintconv_test",
 +    srcs = ["string_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":stringintconv",
 +        "//go/analysis/analysistest",
@@ -4900,7 +4865,7 @@ diff -urN b/go/analysis/passes/stringintconv/testdata/src/typeparams/BUILD.bazel
 diff -urN b/go/analysis/passes/structtag/BUILD.bazel c/go/analysis/passes/structtag/BUILD.bazel
 --- b/go/analysis/passes/structtag/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/structtag/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4924,7 +4889,6 @@ diff -urN b/go/analysis/passes/structtag/BUILD.bazel c/go/analysis/passes/struct
 +go_test(
 +    name = "structtag_test",
 +    srcs = ["structtag_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":structtag",
 +        "//go/analysis/analysistest",
@@ -4969,7 +4933,7 @@ diff -urN b/go/analysis/passes/structtag/testdata/src/a/b/BUILD.bazel c/go/analy
 diff -urN b/go/analysis/passes/testinggoroutine/BUILD.bazel c/go/analysis/passes/testinggoroutine/BUILD.bazel
 --- b/go/analysis/passes/testinggoroutine/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/testinggoroutine/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4995,7 +4959,6 @@ diff -urN b/go/analysis/passes/testinggoroutine/BUILD.bazel c/go/analysis/passes
 +go_test(
 +    name = "testinggoroutine_test",
 +    srcs = ["testinggoroutine_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":testinggoroutine",
 +        "//go/analysis/analysistest",
@@ -5044,7 +5007,7 @@ diff -urN b/go/analysis/passes/testinggoroutine/testdata/src/typeparams/BUILD.ba
 diff -urN b/go/analysis/passes/tests/BUILD.bazel c/go/analysis/passes/tests/BUILD.bazel
 --- b/go/analysis/passes/tests/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/tests/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5068,7 +5031,6 @@ diff -urN b/go/analysis/passes/tests/BUILD.bazel c/go/analysis/passes/tests/BUIL
 +go_test(
 +    name = "tests_test",
 +    srcs = ["tests_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":tests",
 +        "//go/analysis/analysistest",
@@ -5183,7 +5145,7 @@ diff -urN b/go/analysis/passes/tests/testdata/src/typeparams/BUILD.bazel c/go/an
 diff -urN b/go/analysis/passes/timeformat/BUILD.bazel c/go/analysis/passes/timeformat/BUILD.bazel
 --- b/go/analysis/passes/timeformat/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/timeformat/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5208,7 +5170,6 @@ diff -urN b/go/analysis/passes/timeformat/BUILD.bazel c/go/analysis/passes/timef
 +go_test(
 +    name = "timeformat_test",
 +    srcs = ["timeformat_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":timeformat",
 +        "//go/analysis/analysistest",
@@ -5253,7 +5214,7 @@ diff -urN b/go/analysis/passes/timeformat/testdata/src/b/BUILD.bazel c/go/analys
 diff -urN b/go/analysis/passes/unmarshal/BUILD.bazel c/go/analysis/passes/unmarshal/BUILD.bazel
 --- b/go/analysis/passes/unmarshal/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/unmarshal/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5279,7 +5240,6 @@ diff -urN b/go/analysis/passes/unmarshal/BUILD.bazel c/go/analysis/passes/unmars
 +go_test(
 +    name = "unmarshal_test",
 +    srcs = ["unmarshal_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":unmarshal",
 +        "//go/analysis/analysistest",
@@ -5347,7 +5307,7 @@ diff -urN b/go/analysis/passes/unmarshal/testdata/src/typeparams/BUILD.bazel c/g
 diff -urN b/go/analysis/passes/unreachable/BUILD.bazel c/go/analysis/passes/unreachable/BUILD.bazel
 --- b/go/analysis/passes/unreachable/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/unreachable/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5371,7 +5331,6 @@ diff -urN b/go/analysis/passes/unreachable/BUILD.bazel c/go/analysis/passes/unre
 +go_test(
 +    name = "unreachable_test",
 +    srcs = ["unreachable_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":unreachable",
 +        "//go/analysis/analysistest",
@@ -5398,7 +5357,7 @@ diff -urN b/go/analysis/passes/unreachable/testdata/src/a/BUILD.bazel c/go/analy
 diff -urN b/go/analysis/passes/unsafeptr/BUILD.bazel c/go/analysis/passes/unsafeptr/BUILD.bazel
 --- b/go/analysis/passes/unsafeptr/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/unsafeptr/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5423,7 +5382,6 @@ diff -urN b/go/analysis/passes/unsafeptr/BUILD.bazel c/go/analysis/passes/unsafe
 +go_test(
 +    name = "unsafeptr_test",
 +    srcs = ["unsafeptr_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":unsafeptr",
 +        "//go/analysis/analysistest",
@@ -5472,7 +5430,7 @@ diff -urN b/go/analysis/passes/unsafeptr/testdata/src/typeparams/BUILD.bazel c/g
 diff -urN b/go/analysis/passes/unusedresult/BUILD.bazel c/go/analysis/passes/unusedresult/BUILD.bazel
 --- b/go/analysis/passes/unusedresult/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/unusedresult/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,31 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5498,7 +5456,6 @@ diff -urN b/go/analysis/passes/unusedresult/BUILD.bazel c/go/analysis/passes/unu
 +go_test(
 +    name = "unusedresult_test",
 +    srcs = ["unusedresult_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":unusedresult",
 +        "//go/analysis/analysistest",
@@ -5562,7 +5519,7 @@ diff -urN b/go/analysis/passes/unusedresult/testdata/src/typeparams/userdefs/BUI
 diff -urN b/go/analysis/passes/unusedwrite/BUILD.bazel c/go/analysis/passes/unusedwrite/BUILD.bazel
 --- b/go/analysis/passes/unusedwrite/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/unusedwrite/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5586,7 +5543,6 @@ diff -urN b/go/analysis/passes/unusedwrite/BUILD.bazel c/go/analysis/passes/unus
 +go_test(
 +    name = "unusedwrite_test",
 +    srcs = ["unusedwrite_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":unusedwrite",
 +        "//go/analysis/analysistest",
@@ -5613,7 +5569,7 @@ diff -urN b/go/analysis/passes/unusedwrite/testdata/src/a/BUILD.bazel c/go/analy
 diff -urN b/go/analysis/passes/usesgenerics/BUILD.bazel c/go/analysis/passes/usesgenerics/BUILD.bazel
 --- b/go/analysis/passes/usesgenerics/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/analysis/passes/usesgenerics/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,30 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5638,7 +5594,6 @@ diff -urN b/go/analysis/passes/usesgenerics/BUILD.bazel c/go/analysis/passes/use
 +go_test(
 +    name = "usesgenerics_test",
 +    srcs = ["usesgenerics_test.go"],
-+    data = glob(["testdata/**"]),
 +    deps = [
 +        ":usesgenerics",
 +        "//go/analysis/analysistest",
@@ -7236,7 +7191,7 @@ diff -urN b/go/pointer/testdata/BUILD.bazel c/go/pointer/testdata/BUILD.bazel
 diff -urN b/go/ssa/BUILD.bazel c/go/ssa/BUILD.bazel
 --- b/go/ssa/BUILD.bazel	1969-12-31 16:00:00
 +++ c/go/ssa/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,117 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -7302,7 +7257,6 @@ diff -urN b/go/ssa/BUILD.bazel c/go/ssa/BUILD.bazel
 +        "subst_test.go",
 +        "testhelper_test.go",
 +    ],
-+    data = glob(["testdata/**"]),
 +    embed = [":ssa"],
 +    deps = [
 +        "//go/ast/astutil",
