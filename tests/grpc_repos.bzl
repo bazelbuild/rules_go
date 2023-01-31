@@ -24,6 +24,14 @@ def grpc_dependencies():
     )
 
     go_repository(
+        name = "org_golang_google_grpc_cmd_protoc_gen_go_grpc",
+        build_file_proto_mode = "disable",
+        importpath = "google.golang.org/grpc/cmd/protoc-gen-go-grpc",
+        sum = "h1:TLkBREm4nIsEcexnCjgQd5GQWaHcqMzwQV0TX9pq8S0=",
+        version = "v1.2.0",
+    )
+
+    go_repository(
         name = "org_golang_x_net",
         importpath = "golang.org/x/net",
         sum = "h1:oWX7TPOiFAMXLq8o0ikBYfCJVlRHBcsciT5bXOrH628=",
