@@ -154,8 +154,8 @@ gRPC dependencies
 
 In order to build ``go_proto_library`` rules with the gRPC plugin,
 several additional dependencies are needed. At minimum, you'll need to
-declare ``org_golang_google_grpc``, ``org_golang_x_net``, and
-``org_golang_x_text``.
+declare ``org_golang_google_grpc``, ``org_golang_google_grpc_cmd_protoc_gen_go_grpc``,
+``org_golang_x_net``, and ``org_golang_x_text``.
 
 If you're using Gazelle, and you already import ``google.golang.org/grpc``
 from a .go file somewhere in your repository, and you're also using Go modules
@@ -179,6 +179,14 @@ For example:
         importpath = "google.golang.org/grpc",
         sum = "h1:J0UbZOIrCAl+fpTOf8YLs4dJo8L/owV4LYVtAXQoPkw=",
         version = "v1.22.0",
+    )
+
+    go_repository(
+        name = "org_golang_google_grpc_cmd_protoc_gen_go_grpc",
+        build_file_proto_mode = "disable",
+        importpath = "google.golang.org/grpc/cmd/protoc-gen-go-grpc",
+        sum = "h1:TLkBREm4nIsEcexnCjgQd5GQWaHcqMzwQV0TX9pq8S0=",
+        version = "v1.2.0",
     )
 
     go_repository(
