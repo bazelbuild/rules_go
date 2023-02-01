@@ -30,7 +30,7 @@ def _go_host_sdk_impl(ctx):
     _sdk_build_file(ctx, platform, version, experiments = ctx.attr.experiments)
     _local_sdk(ctx, goroot)
 
-_go_host_sdk = repository_rule(
+go_host_sdk_rule = repository_rule(
     implementation = _go_host_sdk_impl,
     environ = ["GOROOT"],
     attrs = {
@@ -42,7 +42,7 @@ _go_host_sdk = repository_rule(
 )
 
 def go_host_sdk(name, register_toolchains = True, **kwargs):
-    _go_host_sdk(name = name, **kwargs)
+    go_host_sdk_rule(name = name, **kwargs)
     _go_toolchains(
         name = name + "_toolchains",
         sdk_repo = name,
@@ -127,7 +127,7 @@ def _go_download_sdk_impl(ctx):
         }
     return None
 
-_go_download_sdk = repository_rule(
+go_download_sdk_rule = repository_rule(
     implementation = _go_download_sdk_impl,
     attrs = {
         "goos": attr.string(),
@@ -142,73 +142,164 @@ _go_download_sdk = repository_rule(
     },
 )
 
-def _define_version_constants(version):
+def _define_version_constants(version, prefix = ""):
     pv = _parse_version(version)
     if pv == None or len(pv) < 3:
         fail("error parsing sdk version: " + version)
     major, minor, patch = pv[0], pv[1], pv[2]
     prerelease = pv[3] if len(pv) > 3 else ""
     return """
-MAJOR_VERSION = "{major}"
-MINOR_VERSION = "{minor}"
-PATCH_VERSION = "{patch}"
-PRERELEASE_SUFFIX = "{prerelease}"
+{prefix}MAJOR_VERSION = "{major}"
+{prefix}MINOR_VERSION = "{minor}"
+{prefix}PATCH_VERSION = "{patch}"
+{prefix}PRERELEASE_SUFFIX = "{prerelease}"
 """.format(
+        prefix = prefix,
         major = major,
         minor = minor,
         patch = patch,
         prerelease = prerelease,
     )
 
-def _go_toolchains_impl(ctx):
-    if not ctx.attr.goos and not ctx.attr.goarch:
+def _to_constant_name(s):
+    return "".join([c if c.isalnum() else "_" for c in s.elems()]).upper()
+
+def _go_toolchains_single_definition(ctx, *, prefix, goos, goarch, sdk_repo, sdk_type, sdk_version):
+    if not goos and not goarch:
         goos, goarch = _detect_host_platform(ctx)
     else:
-        if not ctx.attr.goos:
+        if not goos:
             fail("goarch set but goos not set")
-        if not ctx.attr.goarch:
+        if not goarch:
             fail("goos set but goarch not set")
-        goos, goarch = ctx.attr.goos, ctx.attr.goarch
 
-    sdk_repo = ctx.attr.sdk_repo
-    sdk_type = ctx.attr.sdk_type
+    chunks = []
+    loads = []
+    identifier_prefix = _to_constant_name(prefix)
 
     # If a sdk_version attribute is provided, use that version. This avoids
     # eagerly fetching the SDK repository. But if it's not provided, we have
     # no choice and must load version constants from the version.bzl file that
     # _sdk_build_file creates. This will trigger an eager fetch.
-    version = ctx.attr.sdk_version
-    if version:
-        version_constants = _define_version_constants(version)
+    if sdk_version:
+        chunks.append(_define_version_constants(sdk_version, prefix = identifier_prefix))
     else:
-        version_constants = 'load("@{}//:version.bzl", "MAJOR_VERSION", "MINOR_VERSION", "PATCH_VERSION", "PRERELEASE_SUFFIX")'.format(sdk_repo)
+        loads.append("""load(
+    "@{sdk_repo}//:version.bzl",
+    {identifier_prefix}MAJOR_VERSION = "MAJOR_VERSION",
+    {identifier_prefix}MINOR_VERSION = "MINOR_VERSION",
+    {identifier_prefix}PATCH_VERSION = "PATCH_VERSION",
+    {identifier_prefix}PRERELEASE_SUFFIX = "PRERELEASE_SUFFIX",
+)""".format(
+            sdk_repo = sdk_repo,
+            identifier_prefix = identifier_prefix,
+        ))
 
-    ctx.template(
-        "BUILD.bazel",
-        Label("//go/private:BUILD.toolchains.bazel"),
-        executable = False,
-        substitutions = {
-            "{goos}": goos,
-            "{goarch}": goarch,
-            "{sdk_repo}": sdk_repo,
-            "{sdk_type}": sdk_type,
-            "{version_constants}": version_constants,
-        },
+    chunks.append("""declare_bazel_toolchains(
+    prefix = "{prefix}",
+    go_toolchain_repo = "@{sdk_repo}",
+    host_goarch = "{goarch}",
+    host_goos = "{goos}",
+    major = {identifier_prefix}MAJOR_VERSION,
+    minor = {identifier_prefix}MINOR_VERSION,
+    patch = {identifier_prefix}PATCH_VERSION,
+    prerelease = {identifier_prefix}PRERELEASE_SUFFIX,
+    sdk_type = "{sdk_type}",
+)
+""".format(
+        prefix = prefix,
+        identifier_prefix = identifier_prefix,
+        sdk_repo = sdk_repo,
+        goarch = goarch,
+        goos = goos,
+        sdk_type = sdk_type,
+    ))
+
+    return struct(
+        loads = loads,
+        chunks = chunks,
     )
 
-_go_toolchains = repository_rule(
-    implementation = _go_toolchains_impl,
+def go_toolchains_build_file_content(
+        ctx,
+        prefixes,
+        geese,
+        goarchs,
+        sdk_repos,
+        sdk_types,
+        sdk_versions):
+    if len({len(l): None for l in [
+        prefixes,
+        geese,
+        goarchs,
+        sdk_repos,
+        sdk_types,
+        sdk_versions,
+    ]}) != 1:
+        fail("all lists must have the same length")
+
+    loads = [
+        """load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "declare_bazel_toolchains")""",
+    ]
+    chunks = [
+        """package(default_visibility = ["//visibility:public"])""",
+    ]
+
+    for i in range(len(geese)):
+        definition = _go_toolchains_single_definition(
+            ctx,
+            prefix = prefixes[i],
+            goos = geese[i],
+            goarch = goarchs[i],
+            sdk_repo = sdk_repos[i],
+            sdk_type = sdk_types[i],
+            sdk_version = sdk_versions[i],
+        )
+        loads.extend(definition.loads)
+        chunks.extend(definition.chunks)
+
+    return "\n".join(loads + chunks)
+
+def _go_multiple_toolchains_impl(ctx):
+    ctx.file(
+        "BUILD.bazel",
+        go_toolchains_build_file_content(
+            ctx,
+            prefixes = ctx.attr.prefixes,
+            geese = ctx.attr.geese,
+            goarchs = ctx.attr.goarchs,
+            sdk_repos = ctx.attr.sdk_repos,
+            sdk_types = ctx.attr.sdk_types,
+            sdk_versions = ctx.attr.sdk_versions,
+        ),
+        executable = False,
+    )
+
+go_multiple_toolchains = repository_rule(
+    implementation = _go_multiple_toolchains_impl,
     attrs = {
-        "sdk_repo": attr.string(mandatory = True),
-        "sdk_type": attr.string(mandatory = True),
-        "sdk_version": attr.string(),
-        "goos": attr.string(),
-        "goarch": attr.string(),
+        "prefixes": attr.string_list(mandatory = True),
+        "sdk_repos": attr.string_list(mandatory = True),
+        "sdk_types": attr.string_list(mandatory = True),
+        "sdk_versions": attr.string_list(mandatory = True),
+        "geese": attr.string_list(mandatory = True),
+        "goarchs": attr.string_list(mandatory = True),
     },
 )
 
+def _go_toolchains(name, sdk_repo, sdk_type, sdk_version = None, goos = None, goarch = None):
+    go_multiple_toolchains(
+        name = name,
+        prefixes = [""],
+        geese = [goos or ""],
+        goarchs = [goarch or ""],
+        sdk_repos = [sdk_repo],
+        sdk_types = [sdk_type],
+        sdk_versions = [sdk_version or ""],
+    )
+
 def go_download_sdk(name, register_toolchains = True, **kwargs):
-    _go_download_sdk(name = name, **kwargs)
+    go_download_sdk_rule(name = name, **kwargs)
     _go_toolchains(
         name = name + "_toolchains",
         sdk_repo = name,

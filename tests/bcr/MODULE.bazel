@@ -1,6 +1,15 @@
 module(
     name = "rules_go_bcr_tests",
     # Test that the default SDK is registered by not registering one from the test module.
+    version = "1.2.3",
+)
+
+# Keep this dep first so that its toolchain takes precedence over the default SDK registered by
+# rules_go.
+bazel_dep(name = "other_module", version = "")
+local_path_override(
+    module_name = "other_module",
+    path = "other_module",
 )
 
 bazel_dep(name = "rules_go", version = "", repo_name = "my_rules_go")
@@ -11,19 +20,15 @@ local_path_override(
 
 bazel_dep(name = "gazelle", version = "0.26.0")
 bazel_dep(name = "protobuf", version = "3.19.6")
-bazel_dep(name = "other_module", version = "")
-local_path_override(
-    module_name = "other_module",
-    path = "other_module",
-)
 
-# Test that this correctly downloads the SDK by requesting it from the commandline (see presubmit.yml).
 go_sdk = use_extension("@my_rules_go//go:extensions.bzl", "go_sdk")
-go_sdk.download(
-    name = "go_sdk",
-    version = "1.17.5",
-)
-use_repo(go_sdk, "go_sdk")
+go_sdk.download(version = "1.19.5")
+
+# Request an invalid SDK to verify that it isn't fetched since the first tag takes precedence.
+go_sdk.host(version = "3.0.0")
+
+# Bring the default SDK into scope to verify that it exists.
+use_repo(go_sdk, "go_default_sdk")
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.module(

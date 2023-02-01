@@ -31,7 +31,7 @@ tasks:
       - "--allow_yanked_versions=all"
     build_targets:
       - "//..."
-      - "@go_sdk//..."
+      - "@go_default_sdk//..."
     test_targets:
       - "//..."
   macos:

@@ -22,9 +22,9 @@ go_sdk.download(
     name = "go_default_sdk",
     version = "1.18.3",
 )
-use_repo(go_sdk, "go_default_sdk_toolchains")
+use_repo(go_sdk, "go_toolchains")
 
-register_toolchains("@go_default_sdk_toolchains//:all")
+register_toolchains("@go_toolchains//:all")
 
 bazel_dep(name = "gazelle", version = "0.27.0")
 
