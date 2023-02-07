@@ -258,6 +258,10 @@ It helps catch changes that might break a large number of users.
 
 """.lstrip()
 
+LOAD_BAZEL_TEST_RULE = """
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+"""
+
 def popular_repos_bzl():
   with open(path.join(path.dirname(__file__), "popular_repos.bzl"), "w") as f:
     f.write(BZL_HEADER)
@@ -272,6 +276,8 @@ def popular_repos_bzl():
 def build_bazel():
   with open(path.join(path.dirname(__file__), "BUILD.bazel"), "w") as f:
     f.write(BUILD_HEADER)
+    f.write("\n" + LOAD_BAZEL_TEST_RULE)
+    need_test = []
     for repo in POPULAR_REPOS:
       name = repo["name"]
       tests = check_output(["bazel", "query", "kind(go_test, \"@{}//...\")".format(name)], text=True).split("\n")
@@ -282,6 +288,7 @@ def build_bazel():
       invalid_excludes = [t for t in excludes if not t in tests]
       if invalid_excludes:
         exit("Invalid excludes found: {}".format(invalid_excludes))
+      need_test.extend(excludes)
       f.write('\ntest_suite(\n')
       f.write('    name = "{}",\n'.format(name))
       f.write('    tests = [\n')
@@ -294,6 +301,19 @@ def build_bazel():
       #TODO: add in the platform "select" tests
       f.write(')\n')
       repo["actual"] = actual
+
+    # add bazel test rule
+    f.write('\nbuild_test(\n')
+    f.write('    name = "{}",\n'.format("need_test"))
+    f.write('    targets = [\n')
+    for package in need_test:
+        if "/internal/" not in package and "/testdata/" not in package:
+            if package.endswith("_test"):
+                f.write('        "{}",\n'.format(package[:-5]))
+            else:
+                f.write('        "{}",\n'.format(package))
+    f.write('    ],\n')
+    f.write(')\n')
 
 def readme_rst():
   with open(path.join(path.dirname(__file__), "README.rst"), "w") as f:
