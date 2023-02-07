@@ -277,7 +277,7 @@ def build_bazel():
   with open(path.join(path.dirname(__file__), "BUILD.bazel"), "w") as f:
     f.write(BUILD_HEADER)
     f.write("\n" + LOAD_BAZEL_TEST_RULE)
-    need_test = []
+    build_only = []
     for repo in POPULAR_REPOS:
       name = repo["name"]
       tests = check_output(["bazel", "query", "kind(go_test, \"@{}//...\")".format(name)], text=True).split("\n")
@@ -288,7 +288,7 @@ def build_bazel():
       invalid_excludes = [t for t in excludes if not t in tests]
       if invalid_excludes:
         exit("Invalid excludes found: {}".format(invalid_excludes))
-      need_test.extend(excludes)
+      build_only.extend(excludes)
       f.write('\ntest_suite(\n')
       f.write('    name = "{}",\n'.format(name))
       f.write('    tests = [\n')
@@ -304,9 +304,9 @@ def build_bazel():
 
     # add bazel test rule
     f.write('\nbuild_test(\n')
-    f.write('    name = "{}",\n'.format("need_test"))
+    f.write('    name = "{}",\n'.format("build_only"))
     f.write('    targets = [\n')
-    for package in need_test:
+    for package in build_only:
         if "/internal/" not in package and "/testdata/" not in package:
             if package.endswith("_test"):
                 f.write('        "{}",\n'.format(package[:-5]))

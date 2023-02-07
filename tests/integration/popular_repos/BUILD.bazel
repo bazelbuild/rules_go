@@ -235,7 +235,7 @@ test_suite(
 )
 
 build_test(
-    name = "need_test",
+    name = "build_only",
     targets = [
         "@org_golang_x_crypto//ssh/agent:agent",
         "@org_golang_x_crypto//ssh/test:test",
