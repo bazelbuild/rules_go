@@ -300,7 +300,7 @@ API
 nogo
 ~~~~
 
-This generates a program that that analyzes the source code of Go programs. It
+This generates a program that analyzes the source code of Go programs. It
 runs alongside the Go compiler in the Bazel Go rules and rejects programs that
 contain disallowed coding patterns.
 
