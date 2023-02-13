@@ -112,7 +112,7 @@ func buildEmbedcfgFile(goSrcs []fileInfo, embedSrcs, embedRootDirs []string, wor
 		return "", err
 	}
 	embedcfgName := filepath.Join(workDir, "embedcfg")
-	if err := ioutil.WriteFile(embedcfgName, embedcfgData, 0666); err != nil {
+	if err := ioutil.WriteFile(embedcfgName, embedcfgData, 0o666); err != nil {
 		return "", err
 	}
 	return embedcfgName, nil
