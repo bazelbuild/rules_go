@@ -37,6 +37,12 @@ var transitioned embed.FS
 //go:embed *
 var star embed.FS
 
+//go:embed all:embedsrcs_static/contains_hidden
+var all embed.FS
+
+//go:embed embedsrcs_static/contains_hidden
+var allButHidden embed.FS
+
 func TestFiles(t *testing.T) {
 	for _, test := range []struct {
 		desc string
@@ -109,6 +115,9 @@ func TestFiles(t *testing.T) {
 				"embedsrcs_dynamic/glob/f",
 				"embedsrcs_dynamic/no",
 				"embedsrcs_static",
+				"embedsrcs_static/contains_hidden",
+				"embedsrcs_static/contains_hidden/visible",
+				"embedsrcs_static/contains_hidden/visible/visible_file",
 				"embedsrcs_static/dir",
 				"embedsrcs_static/dir/f",
 				"embedsrcs_static/file",
@@ -117,6 +126,33 @@ func TestFiles(t *testing.T) {
 				"embedsrcs_static/no",
 				"embedsrcs_test.go",
 				"embedsrcs_transitioned",
+			},
+		},
+		{
+			desc: "all",
+			fsys: all,
+			want: []string{
+				".",
+				"embedsrcs_static",
+				"embedsrcs_static/contains_hidden",
+				"embedsrcs_static/contains_hidden/.hidden_dir",
+				"embedsrcs_static/contains_hidden/.hidden_dir/.env",
+				"embedsrcs_static/contains_hidden/_hidden_dir",
+				"embedsrcs_static/contains_hidden/_hidden_dir/.bashrc",
+				"embedsrcs_static/contains_hidden/_hidden_dir/_hidden_file",
+				"embedsrcs_static/contains_hidden/visible",
+				"embedsrcs_static/contains_hidden/visible/visible_file",
+			},
+		},
+		{
+			desc: "allButHidden",
+			fsys: allButHidden,
+			want: []string{
+				".",
+				"embedsrcs_static",
+				"embedsrcs_static/contains_hidden",
+				"embedsrcs_static/contains_hidden/visible",
+				"embedsrcs_static/contains_hidden/visible/visible_file",
 			},
 		},
 	} {

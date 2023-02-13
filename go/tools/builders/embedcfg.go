@@ -295,14 +295,23 @@ func resolveEmbed(embed fileEmbed, root *embedNode) (matchedPaths, matchedFiles 
 		}
 	}()
 
+	// Remove optional "all:" prefix from pattern and set matchAll flag if present.
+	// See https://pkg.go.dev/embed#hdr-Directives for details.
+	pattern := embed.pattern
+	var matchAll bool
+	if strings.HasPrefix(pattern, "all:") {
+		matchAll = true
+		pattern = pattern[4:]
+	}
+
 	// Check that the pattern has valid syntax.
-	if _, err := path.Match(embed.pattern, ""); err != nil || !validEmbedPattern(embed.pattern) {
+	if _, err := path.Match(pattern, ""); err != nil || !validEmbedPattern(pattern) {
 		return nil, nil, fmt.Errorf("invalid pattern syntax")
 	}
 
 	// Search for matching files.
 	err = root.walk(func(matchRel string, matchNode *embedNode) error {
-		if ok, _ := path.Match(embed.pattern, matchRel); !ok {
+		if ok, _ := path.Match(pattern, matchRel); !ok {
 			// Non-matching file or directory.
 			return nil
 		}
@@ -318,7 +327,7 @@ func resolveEmbed(embed fileEmbed, root *embedNode) (matchedPaths, matchedFiles 
 		// See golang/go#42328.
 		matchTreeErr := matchNode.walk(func(childRel string, childNode *embedNode) error {
 			if childRel != "" {
-				if base := path.Base(childRel); strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") {
+				if base := path.Base(childRel); !matchAll && (strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_")) {
 					return errSkip
 				}
 			}
