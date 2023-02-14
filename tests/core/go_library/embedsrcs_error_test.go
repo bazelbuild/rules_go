@@ -51,6 +51,13 @@ go_library(
     ],
     importpath = "multi_dir",
 )
+
+go_library(
+    name = "embeds_vcs_dir",
+    srcs = ["c/c.go"],
+    embedsrcs = ["c/.bzr/c.txt"],
+    importpath = "embeds_vcs_dir",
+)
 -- invalid.go --
 package invalid
 
@@ -81,6 +88,14 @@ import _ "embed"
 //go:embed b.txt
 var y string
 -- b/b.txt --
+-- c/c.go --
+package a
+
+import _ "embed"
+
+//go:embed .bzr
+var z string
+-- c/.bzr/c.txt --
 `,
 	})
 }
@@ -103,6 +118,11 @@ func Test(t *testing.T) {
 			desc:   "multi_dir",
 			target: "//:multi_dir",
 			want:   "source files with //go:embed should be in same directory",
+		},
+		{
+			desc:   "embeds_vcs_dir",
+			target: "//:embeds_vcs_dir",
+			want:   "could not embed .bzr: cannot embed directory .bzr: invalid name .bzr",
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {

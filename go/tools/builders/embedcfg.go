@@ -315,6 +315,23 @@ func resolveEmbed(embed fileEmbed, root *embedNode) (matchedPaths, matchedFiles 
 			// Non-matching file or directory.
 			return nil
 		}
+
+		// TODO: Should check that directories along path do not begin a new module
+		// (do not contain a go.mod).
+		for dir := matchRel; len(dir) > 1; dir = filepath.Dir(dir) {
+			if base := path.Base(matchRel); isBadEmbedName(base) {
+				what := "file"
+				if matchNode.isDir() {
+					what = "directory"
+				}
+				if dir == matchRel {
+					return fmt.Errorf("cannot embed %s %s: invalid name %s", what, matchRel, base)
+				} else {
+					return fmt.Errorf("cannot embed %s %s: in invalid directory %s", what, matchRel, base)
+				}
+			}
+		}
+
 		if !matchNode.isDir() {
 			// Matching file. Add to list.
 			matchedPaths = append(matchedPaths, matchRel)
@@ -323,12 +340,18 @@ func resolveEmbed(embed fileEmbed, root *embedNode) (matchedPaths, matchedFiles 
 		}
 
 		// Matching directory. Recursively add all files in subdirectories.
-		// Don't add hidden files or directories (starting with "." or "_").
+		// Don't add hidden files or directories (starting with "." or "_"),
+		// unless "all:" prefix was set.
 		// See golang/go#42328.
 		matchTreeErr := matchNode.walk(func(childRel string, childNode *embedNode) error {
+			// TODO: Should check that directories along path do not begin a new module
 			if childRel != "" {
-				if base := path.Base(childRel); !matchAll && (strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_")) {
-					return errSkip
+				base := path.Base(childRel)
+				if isBadEmbedName(base) || (!matchAll && (strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_"))) {
+					if childNode.isDir() {
+						return errSkip
+					}
+					return nil
 				}
 			}
 			if !childNode.isDir() {
@@ -390,4 +413,24 @@ func fsValidPath(name string) bool {
 		}
 		name = name[i+1:]
 	}
+}
+
+// isBadEmbedName reports whether name is the base name of a file that
+// can't or won't be included in modules and therefore shouldn't be treated
+// as existing for embedding.
+//
+// TODO: This should use the equivalent of golang.org/x/mod/module.CheckFilePath instead of fsValidPath.
+func isBadEmbedName(name string) bool {
+	if !fsValidPath(name) {
+		return true
+	}
+	switch name {
+	// Empty string should be impossible but make it bad.
+	case "":
+		return true
+	// Version control directories won't be present in module.
+	case ".bzr", ".hg", ".git", ".svn":
+		return true
+	}
+	return false
 }
