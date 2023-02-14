@@ -318,6 +318,7 @@ func resolveEmbed(embed fileEmbed, root *embedNode) (matchedPaths, matchedFiles 
 
 		// TODO: Should check that directories along path do not begin a new module
 		// (do not contain a go.mod).
+		// https://cs.opensource.google/go/go/+/master:src/cmd/go/internal/load/pkg.go;l=2158;drc=261fe25c83a94fc3defe064baed3944cd3d16959
 		for dir := matchRel; len(dir) > 1; dir = filepath.Dir(dir) {
 			if base := path.Base(matchRel); isBadEmbedName(base) {
 				what := "file"
@@ -345,6 +346,7 @@ func resolveEmbed(embed fileEmbed, root *embedNode) (matchedPaths, matchedFiles 
 		// See golang/go#42328.
 		matchTreeErr := matchNode.walk(func(childRel string, childNode *embedNode) error {
 			// TODO: Should check that directories along path do not begin a new module
+			// https://cs.opensource.google/go/go/+/master:src/cmd/go/internal/load/pkg.go;l=2158;drc=261fe25c83a94fc3defe064baed3944cd3d16959
 			if childRel != "" {
 				base := path.Base(childRel)
 				if isBadEmbedName(base) || (!matchAll && (strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_"))) {
@@ -420,6 +422,7 @@ func fsValidPath(name string) bool {
 // as existing for embedding.
 //
 // TODO: This should use the equivalent of golang.org/x/mod/module.CheckFilePath instead of fsValidPath.
+// https://cs.opensource.google/go/go/+/master:src/cmd/go/internal/load/pkg.go;l=2200;drc=261fe25c83a94fc3defe064baed3944cd3d16959
 func isBadEmbedName(name string) bool {
 	if !fsValidPath(name) {
 		return true
