@@ -419,6 +419,10 @@ go_library(
     name = "use_external_symbol",
     srcs = ["use_external_symbol.go"],
     cgo = True,
+    clinkopts = select({
+        "@platforms//os:osx": ["-Wl,-undefined,dynamic_lookup"],
+        "//conditions:default": [],
+    }),
     importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/use_external_symbol",
     tags = ["manual"],
 )
