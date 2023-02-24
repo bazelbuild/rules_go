@@ -427,6 +427,10 @@ go_binary(
     name = "provide_external_symbol",
     srcs = ["provide_external_symbol.go"],
     cgo = True,
+    clinkopts = select({
+        "@platforms//os:osx": ["-Wl,-undefined,dynamic_lookup"],
+        "//conditions:default": [],
+    }),
     target_compatible_with = select({
         "@platforms//os:osx": [],
         "@platforms//os:linux": [],
