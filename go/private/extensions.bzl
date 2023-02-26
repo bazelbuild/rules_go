@@ -46,8 +46,8 @@ def _go_sdk_impl(ctx):
             # This is acceptable if brought in by the root module as the user is responsible for any
             # conflicts that arise. rules_go itself provides "go_default_sdk", which is used by
             # Gazelle to bootstrap itself.
-            # TODO: Investigate whether Gazelle can use the first user-defined SDK instead to
-            #  prevent unnecessary downloads.
+            # TODO(https://github.com/bazelbuild/bazel-gazelle/issues/1469): Investigate whether
+            #  Gazelle can use the first user-defined SDK instead to prevent unnecessary downloads.
             if (not module.is_root and not module.name == "rules_go") and download_tag.name:
                 fail("go_sdk.download: name must not be specified in non-root module " + module.name)
 
@@ -132,6 +132,12 @@ def _default_go_sdk_name(*, module, multi_version, tag_type, index):
     )
 
 def _toolchain_prefix(index, name):
+    """Prefixes the given name with the index, padded with zeros to ensure lexicographic sorting.
+
+    Examples:
+      _toolchain_prefix(   2, "foo") == "_0002_foo_"
+      _toolchain_prefix(2000, "foo") == "_2000_foo_"
+    """
     return "_{}_{}_".format(_left_pad_zero(index, _TOOLCHAIN_INDEX_PAD_LENGTH), name)
 
 def _left_pad_zero(index, length):

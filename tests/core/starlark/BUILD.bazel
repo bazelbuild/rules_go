@@ -1,3 +1,6 @@
 load(":common_tests.bzl", "common_test_suite")
+load(":sdk_tests.bzl", "sdk_test_suite")
 
 common_test_suite()
+
+sdk_test_suite()

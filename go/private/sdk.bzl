@@ -162,9 +162,10 @@ def _define_version_constants(version, prefix = ""):
     )
 
 def _to_constant_name(s):
-    return "".join([c if c.isalnum() else "_" for c in s.elems()]).upper()
+    # Prefix with _ as identifiers are not allowed to start with numbers.
+    return "_" + "".join([c if c.isalnum() else "_" for c in s.elems()]).upper()
 
-def _go_toolchains_single_definition(ctx, *, prefix, goos, goarch, sdk_repo, sdk_type, sdk_version):
+def go_toolchains_single_definition(ctx, *, prefix, goos, goarch, sdk_repo, sdk_type, sdk_version):
     if not goos and not goarch:
         goos, goarch = _detect_host_platform(ctx)
     else:
@@ -190,7 +191,8 @@ def _go_toolchains_single_definition(ctx, *, prefix, goos, goarch, sdk_repo, sdk
     {identifier_prefix}MINOR_VERSION = "MINOR_VERSION",
     {identifier_prefix}PATCH_VERSION = "PATCH_VERSION",
     {identifier_prefix}PRERELEASE_SUFFIX = "PRERELEASE_SUFFIX",
-)""".format(
+)
+""".format(
             sdk_repo = sdk_repo,
             identifier_prefix = identifier_prefix,
         ))
@@ -228,14 +230,7 @@ def go_toolchains_build_file_content(
         sdk_repos,
         sdk_types,
         sdk_versions):
-    if len({len(l): None for l in [
-        prefixes,
-        geese,
-        goarchs,
-        sdk_repos,
-        sdk_types,
-        sdk_versions,
-    ]}) != 1:
+    if not _have_same_length(prefixes, geese, goarchs, sdk_repos, sdk_types, sdk_versions):
         fail("all lists must have the same length")
 
     loads = [
@@ -246,7 +241,7 @@ def go_toolchains_build_file_content(
     ]
 
     for i in range(len(geese)):
-        definition = _go_toolchains_single_definition(
+        definition = go_toolchains_single_definition(
             ctx,
             prefix = prefixes[i],
             goos = geese[i],
@@ -621,6 +616,11 @@ def _version_string(v):
     if v[-1] == 0:
         v = v[:-1]
     return ".".join([str(n) for n in v]) + suffix
+
+def _have_same_length(*lists):
+    if not lists:
+        fail("expected at least one list")
+    return len({len(l): None for l in lists}) == 1
 
 def go_register_toolchains(version = None, nogo = None, go_version = None, experiments = None):
     """See /go/toolchains.rst#go-register-toolchains for full documentation."""
