@@ -21,6 +21,9 @@ value. You can also override stamp values from libraries using `x_defs`
 on the `go_binary` rule if needed. The `--[no]stamp` option controls whether
 stamping of workspace variables is enabled.
 
+The values of the `x_defs` dictionary are subject to
+[location expansion](https://bazel.build/reference/be/make-variables#predefined_label_variables).
+
 **Example**
 
 Suppose we have a small library that contains the current version.

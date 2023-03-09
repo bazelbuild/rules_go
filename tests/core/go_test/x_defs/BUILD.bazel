@@ -48,3 +48,26 @@ go_library(
     visibility = ["//visibility:public"],
     x_defs = {"Qux": "Qux"},
 )
+
+go_library(
+    name = "x_defs_lib",
+    srcs = ["x_defs_lib.go"],
+    data = ["x_defs_lib.go"],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/go_test/x_defs/x_defs_lib",
+    x_defs = {
+        "LibGo": "$(rlocationpath x_defs_lib.go)",
+    },
+)
+
+go_test(
+    name = "x_defs_test",
+    srcs = ["x_defs_test.go"],
+    data = ["x_defs_test.go"],
+    x_defs = {
+        "BinGo": "$(rlocationpath x_defs_test.go)",
+    },
+    deps = [
+        ":x_defs_lib",
+        "//go/runfiles",
+    ],
+)

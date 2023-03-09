@@ -268,6 +268,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     source["deps"] = _dedup_deps(source["deps"])
     x_defs = source["x_defs"]
     for k, v in getattr(attr, "x_defs", {}).items():
+        v = _expand_location(go, attr, v)
         if "." not in k:
             k = "{}.{}".format(library.importmap, k)
         x_defs[k] = v
@@ -878,6 +879,9 @@ go_config = rule(
 
 def _expand_opts(go, attribute_name, opts):
     return [go._ctx.expand_make_variables(attribute_name, opt, {}) for opt in opts]
+
+def _expand_location(go, attr, s):
+    return go._ctx.expand_location(s, getattr(attr, "data", []))
 
 _LIST_TYPE = type([])
 
