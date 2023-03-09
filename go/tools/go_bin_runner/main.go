@@ -9,9 +9,10 @@ import (
 	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
+var GoBinRlocationPath = "not set"
+
 func main() {
-	goBinRlocation := os.Getenv("GO_BIN_RLOCATIONPATH")
-	goBin, err := runfiles.Rlocation(goBinRlocation)
+	goBin, err := runfiles.Rlocation(GoBinRlocationPath)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,7 +5,7 @@ load("//go/private/rules:go_bin_for_host.bzl", "go_bin_for_host")
 
 go_bin_for_host(
     name = "go_bin_for_host",
-    visibility = ["//go:__pkg__"],
+    visibility = ["//visibility:private"],
 )
 
 go_library(
@@ -30,10 +30,10 @@ go_binary(
     name = "go_bin_runner",
     data = [":go_bin_for_host"],
     embed = [":go_bin_runner_lib"],
-    env = {
-        "GO_BIN_RLOCATIONPATH": "$(rlocationpath :go_bin_for_host)",
+    visibility = ["//go:__pkg__"],
+    x_defs = {
+        "GoBinRlocationPath": "$(rlocationpath :go_bin_for_host)",
     },
-    visibility = ["//visibility:public"],
 )
 
 filegroup(

@@ -1,10 +1,14 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+# The 'go' binary of the current Go toolchain compatible with the host.
+# Use this with `bazel run` to perform utility actions such as `go mod tidy` in
+# a hermetic fashion.
+# Note: This is not meant to and cannot be used as a tool in e.g. a genrule. If
+# you need this functionality, please file an issue describing your use case.
 alias(
     name = "go",
     actual = "//go/tools/go_bin_runner",
-    # Meant to be run with `bazel run`, but should not be depended on.
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
