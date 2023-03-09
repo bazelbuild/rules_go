@@ -1,10 +1,11 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+# Provides a nice way to execute the Go binary used by rules_go. This can be
+# handy when running certain utility functions like `go mod tidy`.
 alias(
     name = "go",
     actual = "//go/tools/go_bin_runner",
-    # Meant to be run with `bazel run`, but should not be depended on.
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
