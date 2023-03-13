@@ -38,6 +38,9 @@ go_host_sdk_rule = repository_rule(
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
         ),
+        "_sdk_build_file": attr.label(
+            default = Label("//go/private:BUILD.sdk.bazel"),
+        ),
     },
 )
 
@@ -139,6 +142,9 @@ go_download_sdk_rule = repository_rule(
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "version": attr.string(),
         "strip_prefix": attr.string(default = "go"),
+        "_sdk_build_file": attr.label(
+            default = Label("//go/private:BUILD.sdk.bazel"),
+        ),
     },
 )
 
@@ -321,6 +327,9 @@ _go_local_sdk = repository_rule(
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
         ),
+        "_sdk_build_file": attr.label(
+            default = Label("//go/private:BUILD.sdk.bazel"),
+        ),
     },
 )
 
@@ -370,6 +379,9 @@ _go_wrap_sdk = repository_rule(
         "version": attr.string(),
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
+        "_sdk_build_file": attr.label(
+            default = Label("//go/private:BUILD.sdk.bazel"),
         ),
     },
 )
@@ -437,7 +449,7 @@ def _sdk_build_file(ctx, platform, version, experiments):
 
     ctx.template(
         "BUILD.bazel",
-        Label("//go/private:BUILD.sdk.bazel"),
+        ctx.path(ctx.attr._sdk_build_file),
         executable = False,
         substitutions = {
             "{goos}": goos,
