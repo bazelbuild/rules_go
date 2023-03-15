@@ -1,4 +1,10 @@
 ---
+matrix:
+  platform:
+    - ubuntu2004
+    - macos
+    - windows
+
 tasks:
   ubuntu1804_bazel400:
     platform: ubuntu1804
@@ -21,9 +27,9 @@ tasks:
     - "//..."
     test_targets:
     - "//..."
-  ubuntu2004_bcr_tests:
+  bcr_tests:
     name: BCR test module
-    platform: ubuntu2004
+    platform: ${{ platform }}
     working_directory: tests/bcr
     build_flags:
       - "--allow_yanked_versions=all"
