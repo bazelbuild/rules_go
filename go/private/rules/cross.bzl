@@ -42,11 +42,11 @@ def _error_script(ctx):
         ctx.attr.target.label,
     )
     if _is_windows(ctx):
-        error_script = ctx.actions.declare_file("error.bat")
+        error_script = ctx.actions.declare_file("fake_executable_for_bazel_run.bat")
         ctx.actions.write(error_script, WINDOWS_ERR_SCRIPT.format(errmsg), is_executable = True)
         return error_script
 
-    error_script = ctx.actions.declare_file("error")
+    error_script = ctx.actions.declare_file("fake_executable_for_bazel_run")
     ctx.actions.write(error_script, UNIX_ERR_SCRIPT.format(errmsg), is_executable = True)
     return error_script
 
