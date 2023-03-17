@@ -31,6 +31,13 @@ LINKMODES = [LINKMODE_NORMAL, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_C_ARC
 # All link modes that produce executables to be run with bazel run.
 LINKMODES_EXECUTABLE = [LINKMODE_NORMAL, LINKMODE_PIE]
 
+# All link modes that require external linking and thus a cgo context.
+LINKMODES_REQUIRING_EXTERNAL_LINKING = [
+    LINKMODE_PLUGIN,
+    LINKMODE_C_ARCHIVE,
+    LINKMODE_C_SHARED,
+]
+
 def mode_string(mode):
     result = [mode.goos, mode.goarch]
     if mode.static:
@@ -92,6 +99,9 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         fail("race instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
     if pure and msan:
         fail("msan instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
+    if pure and linkmode in LINKMODES_REQUIRING_EXTERNAL_LINKING:
+        fail(("linkmode '{}' can't be used when cgo is disabled. Check that pure is not set to \"off\" and that a C/C++ toolchain is configured for " +
+              "your current platform. If you defined a custom platform, make sure that it has the @io_bazel_rules_go//go/toolchain:cgo_on constraint value.").format(linkmode))
 
     gc_linkopts = list(go_config_info.gc_linkopts) if go_config_info else []
     tags = list(go_config_info.tags) if go_config_info else []
