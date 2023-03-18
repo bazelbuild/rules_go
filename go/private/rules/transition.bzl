@@ -49,6 +49,9 @@ TRANSITIONED_GO_SETTING_KEYS = [
     "//go/config:tags",
 ]
 
+def _deduped_and_sorted(strs):
+    return sorted({s: None for s in strs}.keys())
+
 def _original_setting_key(key):
     if not "//go/config:" in key:
         fail("_original_setting_key currently assumes that all Go settings live under //go/config, got: " + key)
@@ -117,15 +120,13 @@ def _go_transition_impl(settings, attr):
 
     tags = getattr(attr, "gotags", [])
     if tags:
-        tags_label = "//go/config:tags"
-        settings[tags_label] = tags
+        settings["//go/config:tags"] = _deduped_and_sorted(tags)
 
     linkmode = getattr(attr, "linkmode", "auto")
     if linkmode != "auto":
         if linkmode not in LINKMODES:
             fail("linkmode: invalid mode {}; want one of {}".format(linkmode, ", ".join(LINKMODES)))
-        linkmode_label = "//go/config:linkmode"
-        settings[linkmode_label] = linkmode
+        settings["//go/config:tags"] = linkmode
 
     for key, original_key in _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.items():
         old_value = original_settings[key]
