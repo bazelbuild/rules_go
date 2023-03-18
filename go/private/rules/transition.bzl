@@ -37,6 +37,9 @@ load(
     "platform_from_crosstool",
 )
 
+_DEFAULT_PLATFORMS_VALUE = [Label("@local_config_platform//:host")]
+_PLATFORMS_LABEL = "//command_line_option:platforms"
+
 # A list of rules_go settings that are possibly set by go_transition.
 # Keep their package name in sync with the implementation of
 # _original_setting_key.
@@ -110,10 +113,16 @@ def _go_transition_impl(settings, attr):
         platform = "@io_bazel_rules_go//go/toolchain:{}_{}{}".format(goos, goarch, "_cgo" if cgo else "")
         settings["//command_line_option:platforms"] = platform
     else:
-        # If not auto, try to detect the platform the inbound crosstool/cpu.
-        platform = platform_from_crosstool(crosstool_top, cpu)
-        if platform:
-            settings["//command_line_option:platforms"] = platform
+        # If the current target platform differs from the default value (the
+        # host platform), then we don't want to override it with a value
+        # inferred from the legacy --cpu and --crosstool_top flags. Otherwise
+        # it would become impossible to "platformize" a Go build without having
+        # a matching platform mappings file.
+        if settings[_PLATFORMS_LABEL] == _DEFAULT_PLATFORMS_VALUE:
+            # Detect the platform the inbound crosstool/cpu.
+            platform = platform_from_crosstool(crosstool_top, cpu)
+            if platform:
+                settings[_PLATFORMS_LABEL] = platform
 
     tags = getattr(attr, "gotags", [])
     if tags:
