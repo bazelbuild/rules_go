@@ -126,7 +126,7 @@ def _go_transition_impl(settings, attr):
     if linkmode != "auto":
         if linkmode not in LINKMODES:
             fail("linkmode: invalid mode {}; want one of {}".format(linkmode, ", ".join(LINKMODES)))
-        settings["//go/config:tags"] = linkmode
+        settings["//go/config:linkmode"] = linkmode
 
     for key, original_key in _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.items():
         old_value = original_settings[key]
