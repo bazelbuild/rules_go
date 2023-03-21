@@ -505,23 +505,13 @@ go_context
 ~~~~~~~~~~
 
 This collects the information needed to form and return a :type:`GoContext` from
-a rule ctx.  It uses the attributes and the toolchains.  It can only be used in
-the implementation of a rule that has the go toolchain attached and the go
-context data as an attribute. To do this declare the rule using the go_rule
-wrapper.
+a rule ctx.  It uses the attributes and the toolchains.
 
 .. code:: bzl
 
   def _my_rule_impl(ctx):
       go = go_context(ctx)
       ...
-
-  my_rule = go_rule(
-      _my_rule_impl,
-      attrs = {
-          ...
-      },
-  )
 
 
 +--------------------------------+-----------------------------+-----------------------------------+
