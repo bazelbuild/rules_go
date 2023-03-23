@@ -19,6 +19,13 @@ local_path_override(
 )
 
 bazel_dep(name = "gazelle", version = "0.26.0")
+archive_override(
+    module_name = "gazelle",
+    strip_prefix = "bazel-gazelle-981986502a5545665145d84720fdce9653fb06b9",
+    urls = ["https://github.com/bazelbuild/bazel-gazelle/archive/981986502a5545665145d84720fdce9653fb06b9.zip"],
+    integrity = "sha256-IOoRvb0VrReEb0FMieq0ZQo9go5t4LersnASwqs07LY=",
+)
+
 bazel_dep(name = "protobuf", version = "3.19.6")
 
 go_sdk = use_extension("@my_rules_go//go:extensions.bzl", "go_sdk")

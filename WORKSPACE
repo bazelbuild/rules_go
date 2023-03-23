@@ -74,11 +74,9 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "ecba0f04f96b4960a5b250c8e8eeec42281035970aa8852dda73098274d14a1d",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.29.0/bazel-gazelle-v0.29.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.29.0/bazel-gazelle-v0.29.0.tar.gz",
-    ],
+    sha256 = "20ea11bdbd15ad17846f414c89eab4650a3d828e6de0b7abb27012c2ab34ecb6",
+    strip_prefix = "bazel-gazelle-981986502a5545665145d84720fdce9653fb06b9",
+    urls = ["https://github.com/bazelbuild/bazel-gazelle/archive/981986502a5545665145d84720fdce9653fb06b9.zip"],
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
