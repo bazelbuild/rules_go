@@ -66,10 +66,12 @@ type env struct {
 // configured with those flags.
 func envFlags(flags *flag.FlagSet) *env {
 	env := &env{}
+	var dontUse bool
 	flags.StringVar(&env.sdk, "sdk", "", "Path to the Go SDK.")
 	flags.Var(&tagFlag{}, "tags", "List of build tags considered true.")
 	flags.StringVar(&env.installSuffix, "installsuffix", "", "Standard library under GOROOT/pkg")
-	flags.BoolVar(&env.verbose, "v", false, "Whether subprocess command lines should be printed")
+	flags.BoolVar(&dontUse, "v", false, "Whether subprocess command lines should be printed")
+	env.verbose = true
 	flags.BoolVar(&env.shouldPreserveWorkDir, "work", false, "if true, the temporary work directory will be preserved")
 	return env
 }
