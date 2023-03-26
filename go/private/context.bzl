@@ -792,7 +792,6 @@ cgo_context_data = rule(
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["apple", "cpp"],
-    provides = [CgoContextInfo],
     doc = """Collects information about the C/C++ toolchain. The C/C++ toolchain
     is needed to build cgo code, but is generally optional. Rules can't have
     optional toolchains, so instead, we have an optional dependency on this
@@ -800,7 +799,11 @@ cgo_context_data = rule(
 )
 
 def _cgo_context_data_proxy_impl(ctx):
-    return [ctx.attr.actual[CgoContextInfo]] if ctx.attr.actual else []
+    if not ctx.attr.actual:
+        return []
+    if not CgoContextInfo in ctx.attr.actual:
+        return []
+    return [ctx.attr.actual[CgoContextInfo]]
 
 cgo_context_data_proxy = rule(
     implementation = _cgo_context_data_proxy_impl,
