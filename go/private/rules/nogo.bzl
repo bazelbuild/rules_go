@@ -102,8 +102,8 @@ _nogo = rule(
         "_cgo_context_data": attr.label(default = "//:cgo_context_data_proxy"),
         "_go_config": attr.label(default = "//:go_config"),
         "_stdlib": attr.label(default = "//:stdlib"),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     toolchains = [GO_TOOLCHAIN],
