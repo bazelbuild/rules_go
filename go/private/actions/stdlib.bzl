@@ -82,6 +82,9 @@ def _build_stdlib(go):
     if go.mode.race:
         args.add("-race")
     args.add_all(go.sdk.experiments, before_each = "-experiment")
+    args.add("-package", "std")
+    if not go.mode.pure:
+        args.add("-package", "runtime/cgo")
     args.add_all(link_mode_args(go.mode))
     env = go.env
     if go.mode.pure:
