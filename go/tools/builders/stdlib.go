@@ -79,7 +79,7 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
-	os.Setenv("CC", abs(os.Getenv("CC")))
+	os.Setenv("CC", quotePathIfNeeded(abs(os.Getenv("CC"))))
 
 	// Ensure paths are absolute.
 	absPaths := []string{}

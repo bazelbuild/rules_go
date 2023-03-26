@@ -438,6 +438,23 @@ func passLongArgsInResponseFiles(cmd *exec.Cmd) (cleanup func()) {
 	return cleanup
 }
 
+// quotePathIfNeeded quotes path if it contains whitespace and isn't already quoted.
+// Use this for paths that will be passed through
+// https://github.com/golang/go/blob/06264b740e3bfe619f5e90359d8f0d521bd47806/src/cmd/internal/quoted/quoted.go#L25
+func quotePathIfNeeded(path string) string {
+	if strings.HasPrefix(path, "\"") || strings.HasSuffix(path, "'") {
+		// Assume already quoted
+		return path
+	}
+	// https://github.com/golang/go/blob/06264b740e3bfe619f5e90359d8f0d521bd47806/src/cmd/internal/quoted/quoted.go#L16
+	if strings.IndexAny(path, " \t\n\r") < 0 {
+		// Does not require quoting
+		return path
+	}
+	// Escaping quotes is not supported, so we can assume path doesn't contain any quotes.
+	return "'" + path + "'"
+}
+
 func useResponseFile(path string, argLen int) bool {
 	// Unless the program uses objabi.Flagparse, which understands
 	// response files, don't use response files.
