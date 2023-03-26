@@ -73,6 +73,12 @@ load(
     "request_nogo_transition",
 )
 
+# cgo requires a gcc/clang style compiler.
+_UNSUPPORTED_C_COMPILERS = {
+    "msvc-cl": None,
+    "clang-cl": None,
+}
+
 _COMPILER_OPTIONS_BLACKLIST = {
     # cgo parses the error messages from the compiler.  It can't handle colors.
     # Ignore both variants of the diagnostics color flag.
@@ -590,6 +596,9 @@ def _cgo_context_data_impl(ctx):
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
     # is switched on.
     cc_toolchain = find_cpp_toolchain(ctx)
+    if cc_toolchain.compiler in _UNSUPPORTED_C_COMPILERS:
+        return []
+
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
