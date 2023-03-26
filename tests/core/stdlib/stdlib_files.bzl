@@ -14,18 +14,18 @@
 
 load("//go/private:providers.bzl", "GoStdLib")
 
-def _pure_transition_impl(settings, attr):
-    return {"//go/config:pure": True}
+def _force_rebuild_transition_impl(settings, attr):
+    return {"//go/config:race": True}
 
-pure_transition = transition(
-    implementation = _pure_transition_impl,
-    inputs = ["//go/config:pure"],
-    outputs = ["//go/config:pure"],
+force_rebuild_transition = transition(
+    implementation = _force_rebuild_transition_impl,
+    inputs = ["//go/config:race"],
+    outputs = ["//go/config:race"],
 )
 
 def _stdlib_files_impl(ctx):
-    # When a transition is used, ctx.attr._stdlib is a list of Target instead
-    # of a Target. Possibly a bug?
+    # When an outgoing transition (aka split transition) is used,
+    # ctx.attr._stdlib is a list of Target.
     stdlib = ctx.attr._stdlib[0][GoStdLib]
     libs = stdlib.libs
     runfiles = ctx.runfiles(files = libs)
@@ -40,7 +40,7 @@ stdlib_files = rule(
         "_stdlib": attr.label(
             default = "@io_bazel_rules_go//:stdlib",
             providers = [GoStdLib],
-            cfg = pure_transition,  # force recompilation
+            cfg = force_rebuild_transition,
         ),
         "_whitelist_function_transition": attr.label(
             default = "@bazel_tools//tools/whitelists/function_transition_whitelist",

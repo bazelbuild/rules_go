@@ -33,6 +33,8 @@ func stdlib(args []string) error {
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
 	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
+	var packages multiFlag
+	flags.Var(&packages, "package", "Packages to build")
 	var experiments multiFlag
 	flags.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
 	if err := flags.Parse(args); err != nil {
@@ -164,8 +166,7 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 		return fmt.Errorf("error modifying cgo environment to absolute path: %v", err)
 	}
 
-	// TODO(#1885): don't install runtime/cgo in pure mode.
-	installArgs = append(installArgs, "std", "runtime/cgo")
+	installArgs = append(installArgs, packages...)
 	if err := goenv.runCommand(installArgs); err != nil {
 		return err
 	}

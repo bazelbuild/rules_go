@@ -1,3 +1,4 @@
+//go:build go1.10
 // +build go1.10
 
 /* Copyright 2018 The Bazel Authors. All rights reserved.
@@ -24,6 +25,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
 func TestEmptyBuildID(t *testing.T) {
@@ -39,19 +42,16 @@ func TestEmptyBuildID(t *testing.T) {
 		"aes.a": "",
 		"cgo.a": "",
 	}
+	stdlibPkgDir, err := runfiles.Rlocation("io_bazel_rules_go/stdlib_/pkg")
+	if err != nil {
+		t.Fatal(err)
+	}
 	n := len(pkgPaths)
 	done := errors.New("done")
 	var visit filepath.WalkFunc
 	visit = func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
-		}
-		if (info.Mode() & os.ModeType) == os.ModeSymlink {
-			path, err = filepath.EvalSymlinks(path)
-			if err != nil {
-				return err
-			}
-			return filepath.Walk(path, visit)
 		}
 		if filepath.Base(path) == "buildid" && (info.Mode()&0111) != 0 {
 			buildidPath = path
@@ -67,9 +67,7 @@ func TestEmptyBuildID(t *testing.T) {
 		}
 		return nil
 	}
-	if err := filepath.Walk(".", visit); err == nil {
-		t.Fatal("could not locate stdlib ROOT file")
-	} else if err != done {
+	if err = filepath.Walk(stdlibPkgDir, visit); err != nil && err != done {
 		t.Fatal(err)
 	}
 	if buildidPath == "" {
