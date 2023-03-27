@@ -260,7 +260,6 @@ build_test(
         "@org_golang_x_tools//blog:blog",
         "@org_golang_x_tools//cmd/bundle:bundle",
         "@org_golang_x_tools//cmd/callgraph:callgraph",
-        "@org_golang_x_tools//cmd/cover:cover",
         "@org_golang_x_tools//cmd/file2fuzz:file2fuzz",
         "@org_golang_x_tools//cmd/fiximports:fiximports",
         "@org_golang_x_tools//cmd/godoc:godoc",
