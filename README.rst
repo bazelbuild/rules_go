@@ -72,6 +72,13 @@ Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 
 Announcements
 -------------
+2023-03-27
+  Release
+  `v0.39.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.39.0>`_
+  is now available. This release includes a simpler interface for Bzlmod
+  `go_sdk` registration, makes the `//go` tool available to users, and
+  fixes various bugs.
+
 2022-12-06
   Release
   `v0.37.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.37.0>`_
