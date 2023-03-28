@@ -494,15 +494,15 @@ def _detect_host_sdk(ctx):
     return root
 
 def _detect_sdk_platform(ctx, goroot):
-    path = goroot + "/pkg/tool"
-    res = ctx.execute(["ls", path])
-    if res.return_code != 0:
-        fail("Could not detect SDK platform: unable to list %s: %s" % (path, res.stderr))
+    path = ctx.path(goroot + "/pkg/tool")
+    if not path.exists:
+        fail("Could not detect SDK platform: failed to find " + str(path))
+    tool_entries = path.readdir()
 
     platforms = []
-    for f in res.stdout.strip().split("\n"):
-        if f.find("_") >= 0:
-            platforms.append(f)
+    for f in tool_entries:
+        if f.basename.find("_") >= 0:
+            platforms.append(f.basename)
 
     if len(platforms) == 0:
         fail("Could not detect SDK platform: found no platforms in %s" % path)
