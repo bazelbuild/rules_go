@@ -43,8 +43,16 @@ tasks:
   macos:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
+    build_flags:
+      - "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
+      - "--crosstool_top=@local_config_apple_cc//:toolchain"
+      - "--host_crosstool_top=@local_config_apple_cc//:toolchain"
     build_targets:
     - "//..."
+    test_flags:
+      - "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
+      - "--crosstool_top=@local_config_apple_cc//:toolchain"
+      - "--host_crosstool_top=@local_config_apple_cc//:toolchain"
     test_targets:
     - "//..."
   rbe_ubuntu1604:
