@@ -92,9 +92,9 @@ go_source(
     tags = ["manual"],
     visibility = ["//visibility:public"],
     deps = [
+        "@org_golang_x_tools//analysis/internal/facts",
         "@org_golang_x_tools//go/analysis",
         "@org_golang_x_tools//go/gcexportdata",
-        "@org_golang_x_tools//internal/facts",
     ],
 )
 

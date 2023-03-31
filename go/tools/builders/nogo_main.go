@@ -38,9 +38,9 @@ import (
 	"strings"
 	"sync"
 
+	"golang.org/x/tools/analysis/internal/facts"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/gcexportdata"
-	"golang.org/x/tools/internal/facts"
 )
 
 const nogoBaseConfigName = "_base"
@@ -346,7 +346,7 @@ func load(packagePath string, imp *importer, filenames []string) (*goPackage, er
 	}
 	pkg.types, pkg.typesInfo = types, info
 
-	pkg.facts, err = facts.NewDecoder(pkg.types).Decode(imp.readFacts)
+	pkg.facts, err = facts.Decode(pkg.types, imp.readFacts)
 	if err != nil {
 		return nil, fmt.Errorf("internal error decoding facts: %v", err)
 	}
@@ -558,9 +558,8 @@ func (i *importer) Import(path string) (*types.Package, error) {
 
 	return gcexportdata.Read(r, i.fset, i.packageCache, path)
 }
-
-func (i *importer) readFacts(pkg *types.Package) ([]byte, error) {
-	archive := i.factMap[pkg.Path()]
+func (i *importer) readFacts(packagePath string) ([]byte, error) {
+	archive := i.factMap[packagePath]
 	if archive == "" {
 		// Packages that were not built with the nogo toolchain will not be
 		// analyzed, so there's no opportunity to store facts. This includes
