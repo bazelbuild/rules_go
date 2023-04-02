@@ -12,18 +12,13 @@ go_library(
     name = "go_bin_runner_lib",
     srcs = [
         "main.go",
-    ] + select({
-        "@platforms//os:windows": ["process.go"],
-        "//conditions:default": ["process_unix.go"],
-    }),
+        "process.go",
+    ],
     importpath = "github.com/bazelbuild/rules_go/go/tools/go_bin_runner",
     visibility = ["//visibility:private"],
     deps = [
         "//go/runfiles",
-    ] + select({
-        "@platforms//os:windows": [],
-        "//conditions:default": ["@org_golang_x_sys//unix"],
-    }),
+    ],
 )
 
 go_binary(
