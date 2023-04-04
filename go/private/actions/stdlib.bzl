@@ -23,6 +23,7 @@ load(
     "link_mode_args",
 )
 load("//go/private:sdk.bzl", "parse_version")
+load("//go/private/actions:utils.bzl", "quote_opts")
 
 def emit_stdlib(go):
     """Returns a standard library for the target configuration.
@@ -55,6 +56,7 @@ def _should_use_sdk_stdlib(go):
             not go.mode.race and  # TODO(jayconrod): use precompiled race
             not go.mode.msan and
             not go.mode.pure and
+            not go.mode.gc_goopts and
             go.mode.link == LINKMODE_NORMAL)
 
 def _build_stdlib_list_json(go):
@@ -107,6 +109,7 @@ def _build_stdlib(go):
             "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
             "CGO_LDFLAGS": " ".join(ldflags),
         })
+    args.add("-gcflags", quote_opts(go.mode.gc_goopts))
     inputs = (go.sdk.srcs +
               go.sdk.headers +
               go.sdk.tools +
