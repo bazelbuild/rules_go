@@ -7,6 +7,8 @@ Go rules for Bazel_
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
 .. _Bazel: https://bazel.build/
 .. _Build modes: go/modes.rst
+.. _Bzlmod: https://bazel.build/external/overview#bzlmod
+.. _Go with Bzlmod: docs/go/core/bzlmod.md
 .. _Core rules: docs/go/core/rules.md
 .. _Coverage: https://bazel.google.cn/docs/coverage
 .. _Dependencies: go/dependencies.rst
@@ -225,6 +227,9 @@ Several additional tools need to be installed and configured.
 
 Initial project setup
 ~~~~~~~~~~~~~~~~~~~~~
+
+If you are using Bazel's new external dependency management system `Bzlmod`_,
+refer to the dedicated `Go with Bzlmod`_ guide instead.
 
 Create a file at the top of your repository named ``WORKSPACE``, and add the
 snippet below (or add to your existing ``WORKSPACE``). This tells Bazel to
