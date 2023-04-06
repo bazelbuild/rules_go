@@ -42,7 +42,7 @@ const (
 	NeedDeps
 
 	// NeedExportsFile adds ExportFile.
-	NeedExportsFile
+	NeedExportFile
 
 	// NeedTypes adds Types, Fset, and IllTyped.
 	NeedTypes
@@ -64,6 +64,9 @@ const (
 	NeedModule
 )
 
+// Deprecated: NeedExportsFile is a historical misspelling of NeedExportFile.
+const NeedExportsFile = NeedExportFile
+
 // From https://github.com/golang/tools/blob/v0.1.0/go/packages/external.go#L32
 // Most fields are disabled since there is no need for them
 type DriverRequest struct {
@@ -73,7 +76,7 @@ type DriverRequest struct {
 	// BuildFlags are flags that should be passed to the underlying build system.
 	// BuildFlags []string `json:"build_flags"`
 	// Tests specifies whether the patterns should also return test packages.
-	// Tests bool `json:"tests"`
+	Tests bool `json:"tests"`
 	// Overlay maps file paths (relative to the driver's working directory) to the byte contents
 	// of overlay files.
 	// Overlay map[string][]byte `json:"overlay"`

@@ -32,6 +32,7 @@ DEPS_ATTRS = [
 PROTO_COMPILER_ATTRS = [
     "compiler",
     "compilers",
+    "library",
 ]
 
 def bazel_supports_canonical_label_literals():
@@ -68,6 +69,10 @@ def _go_archive_to_pkg(archive):
             for src in archive.data.orig_srcs
             if not src.path.endswith(".go")
         ],
+        Imports = {
+            pkg.data.importpath: str(pkg.data.label)
+            for pkg in archive.direct
+        },
     )
 
 def make_pkg_json(ctx, name, pkg_info):
@@ -84,7 +89,13 @@ def _go_pkg_info_aspect_impl(target, ctx):
     transitive_compiled_go_files = []
 
     for attr in DEPS_ATTRS + PROTO_COMPILER_ATTRS:
-        for dep in getattr(ctx.rule.attr, attr, []) or []:
+        deps = getattr(ctx.rule.attr, attr, []) or []
+
+        # Some attrs are not iterable, ensure that deps is always iterable.
+        if type(deps) != type([]):
+            deps = [deps]
+
+        for dep in deps:
             if GoPkgInfo in dep:
                 pkg_info = dep[GoPkgInfo]
                 transitive_json_files.append(pkg_info.pkg_json_files)

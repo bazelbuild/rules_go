@@ -2,7 +2,6 @@ package main
 
 import (
 	"go/build"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -10,27 +9,24 @@ import (
 var buildContext = makeBuildContext()
 
 func makeBuildContext() *build.Context {
-	bctx := &build.Context{
-		GOOS:        getenvDefault("GOOS", build.Default.GOOS),
-		GOARCH:      getenvDefault("GOARCH", build.Default.GOARCH),
-		GOROOT:      getenvDefault("GOROOT", build.Default.GOROOT),
-		GOPATH:      getenvDefault("GOPATH", build.Default.GOPATH),
-		BuildTags:   strings.Split(getenvDefault("GOTAGS", ""), ","),
-		ReleaseTags: build.Default.ReleaseTags[:],
-	}
-	if v, ok := os.LookupEnv("CGO_ENABLED"); ok {
-		bctx.CgoEnabled = v == "1"
-	} else {
-		bctx.CgoEnabled = build.Default.CgoEnabled
-	}
-	return bctx
+	bctx := build.Default
+	bctx.BuildTags = strings.Split(getenvDefault("GOTAGS", ""), ",")
+
+	return &bctx
 }
 
 func filterSourceFilesForTags(files []string) []string {
 	ret := make([]string, 0, len(files))
+
 	for _, f := range files {
 		dir, filename := filepath.Split(f)
-		if match, _ := buildContext.MatchFile(dir, filename); match {
+		ext := filepath.Ext(f)
+
+		match, _ := buildContext.MatchFile(dir, filename)
+		// MatchFile filters out anything without a file extension. In the
+		// case of CompiledGoFiles (in particular gco processed files from
+		// the cache), we want them.
+		if match || ext == "" {
 			ret = append(ret, f)
 		}
 	}
