@@ -105,6 +105,8 @@ _COMPILER_OPTIONS_DENYLIST = {
     "--coverage": None,
     "-ftest-coverage": None,
     "-fprofile-arcs": None,
+    "-fprofile-instr-generate": None,
+    "-fcoverage-mapping": None,
 }
 
 _LINKER_OPTIONS_DENYLIST = {
