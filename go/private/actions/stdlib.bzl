@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "//go/private:common.bzl",
+    "COVERAGE_OPTIONS_DENYLIST",
+)
+load(
     "//go/private:providers.bzl",
     "GoStdLib",
 )
@@ -98,10 +102,12 @@ def _build_stdlib(go):
     else:
         # NOTE(#2545): avoid unnecessary dynamic link
         # go std library doesn't use C++, so should not have -lstdc++
+        # Also drop coverage flags as nothing in the stdlib is compiled with
+        # coverage - we disable it for all CGo code anyway.
         ldflags = [
             option
             for option in extldflags_from_cc_toolchain(go)
-            if option not in ("-lstdc++", "-lc++")
+            if option not in ("-lstdc++", "-lc++") and option not in COVERAGE_OPTIONS_DENYLIST
         ]
         env.update({
             "CGO_ENABLED": "1",

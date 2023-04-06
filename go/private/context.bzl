@@ -51,6 +51,7 @@ load(
 )
 load(
     ":common.bzl",
+    "COVERAGE_OPTIONS_DENYLIST",
     "as_iterable",
     "goos_to_extension",
     "goos_to_shared_extension",
@@ -86,7 +87,7 @@ _UNSUPPORTED_C_COMPILERS = {
     "clang-cl": None,
 }
 
-_COMPILER_OPTIONS_DENYLIST = {
+_COMPILER_OPTIONS_DENYLIST = dict({
     # cgo parses the error messages from the compiler.  It can't handle colors.
     # Ignore both variants of the diagnostics color flag.
     "-fcolor-diagnostics": None,
@@ -107,7 +108,7 @@ _COMPILER_OPTIONS_DENYLIST = {
     "-fprofile-arcs": None,
     "-fprofile-instr-generate": None,
     "-fcoverage-mapping": None,
-}
+}, **COVERAGE_OPTIONS_DENYLIST)
 
 _LINKER_OPTIONS_DENYLIST = {
     "-Wl,--gc-sections": None,
