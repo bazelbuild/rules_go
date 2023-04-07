@@ -5,7 +5,7 @@ go_test(
     name = "buildid_test",
     srcs = ["buildid_test.go"],
     data = [":stdlib_files"],
-    rundir = ".",
+    deps = ["//go/runfiles"],
 )
 
 stdlib_files(name = "stdlib_files")

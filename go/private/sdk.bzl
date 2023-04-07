@@ -95,7 +95,7 @@ def _go_download_sdk_impl(ctx):
         if not version:
             highest_version = None
             for v in sdks_by_version.keys():
-                pv = _parse_version(v)
+                pv = parse_version(v)
                 if not pv or _version_is_prerelease(pv):
                     # skip parse errors and pre-release versions
                     continue
@@ -149,7 +149,7 @@ go_download_sdk_rule = repository_rule(
 )
 
 def _define_version_constants(version, prefix = ""):
-    pv = _parse_version(version)
+    pv = parse_version(version)
     if pv == None or len(pv) < 3:
         fail("error parsing sdk version: " + version)
     major, minor, patch = pv[0], pv[1], pv[2]
@@ -439,7 +439,7 @@ def _sdk_build_file(ctx, platform, version, experiments):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
 
-    pv = _parse_version(version)
+    pv = parse_version(version)
     if pv != None and pv[1] >= 20:
         # Turn off coverageredesign GOEXPERIMENT on 1.20+
         # until rules_go is updated to work with the
@@ -494,15 +494,15 @@ def _detect_host_sdk(ctx):
     return root
 
 def _detect_sdk_platform(ctx, goroot):
-    path = goroot + "/pkg/tool"
-    res = ctx.execute(["ls", path])
-    if res.return_code != 0:
-        fail("Could not detect SDK platform: unable to list %s: %s" % (path, res.stderr))
+    path = ctx.path(goroot + "/pkg/tool")
+    if not path.exists:
+        fail("Could not detect SDK platform: failed to find " + str(path))
+    tool_entries = path.readdir()
 
     platforms = []
-    for f in res.stdout.strip().split("\n"):
-        if f.find("_") >= 0:
-            platforms.append(f)
+    for f in tool_entries:
+        if f.basename.find("_") >= 0:
+            platforms.append(f.basename)
 
     if len(platforms) == 0:
         fail("Could not detect SDK platform: found no platforms in %s" % path)
@@ -541,7 +541,7 @@ def _detect_sdk_version(ctx, goroot):
         version = output_parts[3][len("go"):]
     else:
         fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
-    if _parse_version(version) == None:
+    if parse_version(version) == None:
         fail("Could not parse SDK version from '%s version' output: %s" % (go_binary_path, result.stdout))
     if ctx.attr.version and ctx.attr.version != version:
         fail("SDK is version %s, but version %s was expected" % (version, ctx.attr.version))
@@ -573,7 +573,7 @@ def _parse_versions_json(data):
         for sdk in sdks
     }
 
-def _parse_version(version):
+def parse_version(version):
     """Parses a version string like "1.15.5" and returns a tuple of numbers or None"""
     l, r = 0, 0
     parsed = []
@@ -639,7 +639,7 @@ def go_register_toolchains(version = None, nogo = None, go_version = None, exper
     if not version:
         version = go_version  # old name
 
-    sdk_kinds = ("_go_download_sdk", "_go_host_sdk", "_go_local_sdk", "_go_wrap_sdk")
+    sdk_kinds = ("go_download_sdk_rule", "go_host_sdk_rule", "_go_local_sdk", "_go_wrap_sdk")
     existing_rules = native.existing_rules()
     sdk_rules = [r for r in existing_rules.values() if r["kind"] in sdk_kinds]
     if len(sdk_rules) == 0 and "go_sdk" in existing_rules:
@@ -654,7 +654,7 @@ def go_register_toolchains(version = None, nogo = None, go_version = None, exper
         elif version == "host":
             go_host_sdk(name = "go_sdk", experiments = experiments)
         else:
-            pv = _parse_version(version)
+            pv = parse_version(version)
             if not pv:
                 fail('go_register_toolchains: version must be a string like "1.15.5" or "host"')
             if _version_less(pv, MIN_SUPPORTED_VERSION):

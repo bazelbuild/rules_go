@@ -22,6 +22,8 @@ load(
     "extldflags_from_cc_toolchain",
     "link_mode_args",
 )
+load("//go/private:sdk.bzl", "parse_version")
+load("//go/private/actions:utils.bzl", "quote_opts")
 
 def emit_stdlib(go):
     """Returns a standard library for the target configuration.
@@ -44,13 +46,17 @@ def _stdlib_library_to_source(go, _attr, source, _merge):
         source["stdlib"] = _build_stdlib(go)
 
 def _should_use_sdk_stdlib(go):
+    version = parse_version(go.sdk.version)
+    if version and version[0] <= 1 and version[1] <= 19 and go.sdk.experiments:
+        # The precompiled stdlib shipped with 1.19 or below doesn't have experiments
+        return False
     return (go.sdk.libs and  # go.sdk.libs is non-empty if sdk ships with precompiled .a files
             go.mode.goos == go.sdk.goos and
             go.mode.goarch == go.sdk.goarch and
             not go.mode.race and  # TODO(jayconrod): use precompiled race
             not go.mode.msan and
             not go.mode.pure and
-            not go.sdk.experiments and
+            not go.mode.gc_goopts and
             go.mode.link == LINKMODE_NORMAL)
 
 def _build_stdlib_list_json(go):
@@ -82,6 +88,9 @@ def _build_stdlib(go):
     if go.mode.race:
         args.add("-race")
     args.add_all(go.sdk.experiments, before_each = "-experiment")
+    args.add("-package", "std")
+    if not go.mode.pure:
+        args.add("-package", "runtime/cgo")
     args.add_all(link_mode_args(go.mode))
     env = go.env
     if go.mode.pure:
@@ -100,6 +109,7 @@ def _build_stdlib(go):
             "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
             "CGO_LDFLAGS": " ".join(ldflags),
         })
+    args.add("-gcflags", quote_opts(go.mode.gc_goopts))
     inputs = (go.sdk.srcs +
               go.sdk.headers +
               go.sdk.tools +

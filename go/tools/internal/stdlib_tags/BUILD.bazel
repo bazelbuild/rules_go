@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "stdlib_tags_lib",
+    srcs = ["stdlib_tags.go"],
+    importpath = "github.com/bazelbuild/rules_go/go/tools/internal/stdlib_tags",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "stdlib_tags",
+    embed = [":stdlib_tags_lib"],
+    visibility = ["//go/tools:__subpackages__"],
+)

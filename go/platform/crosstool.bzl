@@ -17,7 +17,9 @@ def _match_apple(_crosstool_top, cpu):
     targeting the Apple ecosystem. Apple crosstool CPUs are prefixed, so
     matching is easy."""
     platform = {
+        "darwin": "darwin_amd64",
         "darwin_x86_64": "darwin_amd64",
+        "darwin_arm64": "darwin_arm64",
         "ios_arm64": "ios_arm64",
         "ios_armv7": "ios_arm",
         "ios_i386": "ios_386",

@@ -52,6 +52,9 @@ TRANSITIONED_GO_SETTING_KEYS = [
     "//go/config:tags",
 ]
 
+def _deduped_and_sorted(strs):
+    return sorted({s: None for s in strs}.keys())
+
 def _original_setting_key(key):
     if not "//go/config:" in key:
         fail("_original_setting_key currently assumes that all Go settings live under //go/config, got: " + key)
@@ -126,15 +129,13 @@ def _go_transition_impl(settings, attr):
 
     tags = getattr(attr, "gotags", [])
     if tags:
-        tags_label = "//go/config:tags"
-        settings[tags_label] = tags
+        settings["//go/config:tags"] = _deduped_and_sorted(tags)
 
     linkmode = getattr(attr, "linkmode", "auto")
     if linkmode != "auto":
         if linkmode not in LINKMODES:
             fail("linkmode: invalid mode {}; want one of {}".format(linkmode, ", ".join(LINKMODES)))
-        linkmode_label = "//go/config:linkmode"
-        settings[linkmode_label] = linkmode
+        settings["//go/config:linkmode"] = linkmode
 
     for key, original_key in _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.items():
         old_value = original_settings[key]
@@ -212,6 +213,7 @@ _stdlib_keep_keys = sorted([
     "//go/config:race",
     "//go/config:pure",
     "//go/config:linkmode",
+    "//go/config:tags",
 ])
 
 def _go_tool_transition_impl(settings, _attr):
@@ -268,6 +270,7 @@ def _go_stdlib_transition_impl(settings, _attr):
     for label, value in _reset_transition_dict.items():
         if label not in _stdlib_keep_keys:
             settings[label] = value
+    settings["//go/config:tags"] = [t for t in settings["//go/config:tags"] if t in _TAG_AFFECTS_STDLIB]
     settings["//go/private:bootstrap_nogo"] = False
     return settings
 
@@ -433,3 +436,47 @@ go_cross_transition = transition(
     inputs = TRANSITIONED_GO_CROSS_SETTING_KEYS,
     outputs = TRANSITIONED_GO_CROSS_SETTING_KEYS,
 )
+
+# A list of Go build tags that potentially affect the build of the standard
+# library.
+#
+# This should be updated to contain the union of all tags relevant for all
+# versions of Go that are still relevant.
+#
+# Currently supported versions: 1.18, 1.19, 1.20
+#
+# To regenerate, run and paste the output of
+#     bazel run //go/tools/internal/stdlib_tags:stdlib_tags -- path/to/go_sdk_1/src ...
+_TAG_AFFECTS_STDLIB = {
+    "alpha": None,
+    "appengine": None,
+    "asan": None,
+    "boringcrypto": None,
+    "cmd_go_bootstrap": None,
+    "compiler_bootstrap": None,
+    "debuglog": None,
+    "faketime": None,
+    "gc": None,
+    "gccgo": None,
+    "gen": None,
+    "generate": None,
+    "gofuzz": None,
+    "ignore": None,
+    "libfuzzer": None,
+    "m68k": None,
+    "math_big_pure_go": None,
+    "msan": None,
+    "netcgo": None,
+    "netgo": None,
+    "nethttpomithttp2": None,
+    "nios2": None,
+    "noopt": None,
+    "osusergo": None,
+    "purego": None,
+    "race": None,
+    "sh": None,
+    "shbe": None,
+    "tablegen": None,
+    "testgo": None,
+    "timetzdata": None,
+}

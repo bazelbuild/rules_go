@@ -1,4 +1,5 @@
 load("//go:def.bzl", "go_binary", "go_library")
+load(":aspect.bzl", "bazel_supports_canonical_label_literals")
 
 go_library(
     name = "gopackagesdriver_lib",
@@ -20,5 +21,19 @@ go_library(
 go_binary(
     name = "gopackagesdriver",
     embed = [":gopackagesdriver_lib"],
+    x_defs = {
+        # Determine the name of the rules_go repository as we need to specify it when invoking the
+        # aspect.
+        # If canonical label literals are supported, we can use a canonical label literal (starting
+        # with @@) to pass the repository_name() through repo mapping unchanged.
+        # If canonical label literals are not supported, then bzlmod is certainly not enabled and
+        # we can assume that the repository name is not affected by repo mappings.
+        # If run in the rules_go repo itself, repository_name() returns "@", which is equivalent to
+        # "@io_bazel_rules_go" since Bazel 6:
+        # https://github.com/bazelbuild/bazel/commit/7694cf75e6366b92e3905c2ad60234cda57627ee
+        # TODO: Once we drop support for Bazel 5, we can remove the feature detection logic and
+        #       use "@" + repository_name().
+        "rulesGoRepositoryName": "@" + repository_name() if bazel_supports_canonical_label_literals() else repository_name(),
+    },
     visibility = ["//visibility:public"],
 )

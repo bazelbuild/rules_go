@@ -5,7 +5,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.19.7")
+go_register_toolchains(version = "1.20.2")
 
 http_archive(
     name = "com_google_protobuf",
@@ -29,9 +29,10 @@ go_embed_data_dependencies()
 # Used by //tests:buildifier_test.
 http_archive(
     name = "com_github_bazelbuild_buildtools",
-    sha256 = "05eff86c1d444dde18d55ac890f766bce5e4db56c180ee86b5aacd6704a5feb9",
-    strip_prefix = "buildtools-6.0.0",
-    urls = ["https://github.com/bazelbuild/buildtools/archive/refs/tags/6.0.0.tar.gz"],
+    sha256 = "ca524d4df8c91838b9e80543832cf54d945e8045f6a2b9db1a1d02eec20e8b8c",
+    strip_prefix = "buildtools-6.0.1",
+    # latest, as of 2023-03-27
+    urls = ["https://github.com/bazelbuild/buildtools/archive/refs/tags/6.0.1.tar.gz"],
 )
 
 # For manual testing against an LLVM toolchain.
@@ -100,22 +101,22 @@ go_repository(
 go_repository(
     name = "org_golang_x_mod",
     importpath = "golang.org/x/mod",
-    sum = "h1:6zppjxzCulZykYSLyVDYbneBfbaBIQPYMevg0bEwv2s=",
-    version = "v0.6.0-dev.0.20220419223038-86c51ed26bb4",
+    sum = "h1:KENHtAZL2y3NLMYZeHY9DW8HW8V+kQyJsY/V9JlKvCs=",
+    version = "v0.9.0",
 )
 
 go_repository(
     name = "org_golang_x_sync",
     importpath = "golang.org/x/sync",
-    sum = "h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=",
-    version = "v0.0.0-20210220032951-036812b2e83c",
+    sum = "h1:wsuoTGHzEhffawBOhz5CYhcrV4IdKZbEyZjBMuTp12o=",
+    version = "v0.1.0",
 )
 
 go_repository(
     name = "org_golang_x_oauth2",
     importpath = "golang.org/x/oauth2",
-    sum = "h1:3B43BWw0xEBsLZ/NO1VALz6fppU3481pik+2Ksv45z8=",
-    version = "v0.0.0-20210628180205-a41e5a781914",
+    sum = "h1:Lh8GPgSKBfWSwFvtuWOfeI3aAAnbXTSutYxJiOJFgIw=",
+    version = "v0.6.0",
 )
 
 # TODO(sluongng): Gazelle v0.25.0 switched to static dependency resolution which cause

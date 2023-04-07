@@ -33,8 +33,12 @@ func stdlib(args []string) error {
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
 	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
+	var packages multiFlag
+	flags.Var(&packages, "package", "Packages to build")
 	var experiments multiFlag
 	flags.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
+	var gcflags quoteMultiFlag
+	flags.Var(&gcflags, "gcflags", "Go compiler flags")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -79,7 +83,7 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
-	os.Setenv("CC", abs(os.Getenv("CC")))
+	os.Setenv("CC", quotePathIfNeeded(abs(os.Getenv("CC"))))
 
 	// Ensure paths are absolute.
 	absPaths := []string{}
@@ -127,7 +131,6 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, ","))
 	}
 
-	gcflags := []string{}
 	ldflags := []string{"-trimpath", sandboxPath}
 	asmflags := []string{"-trimpath", output}
 	if *race {
@@ -164,8 +167,7 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 		return fmt.Errorf("error modifying cgo environment to absolute path: %v", err)
 	}
 
-	// TODO(#1885): don't install runtime/cgo in pure mode.
-	installArgs = append(installArgs, "std", "runtime/cgo")
+	installArgs = append(installArgs, packages...)
 	if err := goenv.runCommand(installArgs); err != nil {
 		return err
 	}

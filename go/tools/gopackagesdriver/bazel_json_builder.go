@@ -31,9 +31,7 @@ type BazelJSONBuilder struct {
 	requests []string
 }
 
-const (
-	RulesGoStdlibLabel = "@io_bazel_rules_go//:stdlib"
-)
+var RulesGoStdlibLabel = rulesGoRepositoryName + "//:stdlib"
 
 var _defaultKinds = []string{"go_library", "go_test", "go_binary"}
 

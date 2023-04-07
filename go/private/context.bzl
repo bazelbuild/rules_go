@@ -73,7 +73,20 @@ load(
     "request_nogo_transition",
 )
 
-_COMPILER_OPTIONS_BLACKLIST = {
+# cgo requires a gcc/clang style compiler.
+# We use a denylist instead of an allowlist:
+# - Bazel's auto-detected toolchains used to set the compiler name to "compiler"
+#   for gcc (fixed in 6.0.0), which defeats the purpose of an allowlist.
+# - The compiler name field is free-form and user-defined, so we would have to
+#   provide a way to override this list.
+# TODO: Convert to a denylist once we can assume Bazel 6.0.0 or later and have a
+#       way for users to extend the list.
+_UNSUPPORTED_C_COMPILERS = {
+    "msvc-cl": None,
+    "clang-cl": None,
+}
+
+_COMPILER_OPTIONS_DENYLIST = {
     # cgo parses the error messages from the compiler.  It can't handle colors.
     # Ignore both variants of the diagnostics color flag.
     "-fcolor-diagnostics": None,
@@ -94,7 +107,7 @@ _COMPILER_OPTIONS_BLACKLIST = {
     "-fprofile-arcs": None,
 }
 
-_LINKER_OPTIONS_BLACKLIST = {
+_LINKER_OPTIONS_DENYLIST = {
     "-Wl,--gc-sections": None,
 }
 
@@ -115,11 +128,11 @@ def _match_option(option, pattern):
     else:
         return option == pattern
 
-def _filter_options(options, blacklist):
+def _filter_options(options, denylist):
     return [
         option
         for option in options
-        if not any([_match_option(option, pattern) for pattern in blacklist])
+        if not any([_match_option(option, pattern) for pattern in denylist])
     ]
 
 def _child_name(go, path, ext, name):
@@ -574,8 +587,8 @@ go_context_data = rule(
             mandatory = True,
             providers = [GoStdLib],
         ),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     doc = """go_context_data gathers information about the build configuration.
@@ -590,6 +603,9 @@ def _cgo_context_data_impl(ctx):
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
     # is switched on.
     cc_toolchain = find_cpp_toolchain(ctx)
+    if cc_toolchain.compiler in _UNSUPPORTED_C_COMPILERS:
+        return []
+
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
@@ -614,7 +630,7 @@ def _cgo_context_data_impl(ctx):
             action_name = C_COMPILE_ACTION_NAME,
             variables = c_compile_variables,
         ) + ctx.fragments.cpp.copts + ctx.fragments.cpp.conlyopts,
-        _COMPILER_OPTIONS_BLACKLIST,
+        _COMPILER_OPTIONS_DENYLIST,
     )
     env.update(cc_common.get_environment_variables(
         feature_configuration = feature_configuration,
@@ -632,7 +648,7 @@ def _cgo_context_data_impl(ctx):
             action_name = CPP_COMPILE_ACTION_NAME,
             variables = cxx_compile_variables,
         ) + ctx.fragments.cpp.copts + ctx.fragments.cpp.cxxopts,
-        _COMPILER_OPTIONS_BLACKLIST,
+        _COMPILER_OPTIONS_DENYLIST,
     )
     env.update(cc_common.get_environment_variables(
         feature_configuration = feature_configuration,
@@ -650,7 +666,7 @@ def _cgo_context_data_impl(ctx):
             action_name = OBJC_COMPILE_ACTION_NAME,
             variables = objc_compile_variables,
         ),
-        _COMPILER_OPTIONS_BLACKLIST,
+        _COMPILER_OPTIONS_DENYLIST,
     )
     env.update(cc_common.get_environment_variables(
         feature_configuration = feature_configuration,
@@ -668,7 +684,7 @@ def _cgo_context_data_impl(ctx):
             action_name = OBJCPP_COMPILE_ACTION_NAME,
             variables = objcxx_compile_variables,
         ),
-        _COMPILER_OPTIONS_BLACKLIST,
+        _COMPILER_OPTIONS_DENYLIST,
     )
     env.update(cc_common.get_environment_variables(
         feature_configuration = feature_configuration,
@@ -691,7 +707,7 @@ def _cgo_context_data_impl(ctx):
             action_name = CPP_LINK_EXECUTABLE_ACTION_NAME,
             variables = ld_executable_variables,
         ) + ctx.fragments.cpp.linkopts,
-        _LINKER_OPTIONS_BLACKLIST,
+        _LINKER_OPTIONS_DENYLIST,
     )
     env.update(cc_common.get_environment_variables(
         feature_configuration = feature_configuration,
@@ -732,7 +748,7 @@ def _cgo_context_data_impl(ctx):
             action_name = CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
             variables = ld_dynamic_lib_variables,
         ) + ctx.fragments.cpp.linkopts,
-        _LINKER_OPTIONS_BLACKLIST,
+        _LINKER_OPTIONS_DENYLIST,
     )
 
     env.update(cc_common.get_environment_variables(
@@ -783,7 +799,6 @@ cgo_context_data = rule(
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     fragments = ["apple", "cpp"],
-    provides = [CgoContextInfo],
     doc = """Collects information about the C/C++ toolchain. The C/C++ toolchain
     is needed to build cgo code, but is generally optional. Rules can't have
     optional toolchains, so instead, we have an optional dependency on this
@@ -791,7 +806,9 @@ cgo_context_data = rule(
 )
 
 def _cgo_context_data_proxy_impl(ctx):
-    return [ctx.attr.actual[CgoContextInfo]] if ctx.attr.actual else []
+    if ctx.attr.actual and CgoContextInfo in ctx.attr.actual:
+        return [ctx.attr.actual[CgoContextInfo]]
+    return []
 
 cgo_context_data_proxy = rule(
     implementation = _cgo_context_data_proxy_impl,

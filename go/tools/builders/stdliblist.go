@@ -202,7 +202,7 @@ func stdliblist(args []string) error {
 	os.Setenv("GOROOT", newGoRoot)
 	// Make sure we have an absolute path to the C compiler.
 	// TODO(#1357): also take absolute paths of includes and other paths in flags.
-	os.Setenv("CC", abs(os.Getenv("CC")))
+	os.Setenv("CC", quotePathIfNeeded(abs(os.Getenv("CC"))))
 
 	cachePath := abs(*out + ".gocache")
 	defer os.RemoveAll(cachePath)

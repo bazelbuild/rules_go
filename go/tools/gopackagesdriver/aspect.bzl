@@ -34,6 +34,9 @@ PROTO_COMPILER_ATTRS = [
     "compilers",
 ]
 
+def bazel_supports_canonical_label_literals():
+    return str(Label("//:bogus")).startswith("@@")
+
 def is_file_external(f):
     return f.owner.workspace_root != ""
 

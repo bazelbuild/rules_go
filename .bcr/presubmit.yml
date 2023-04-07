@@ -26,6 +26,6 @@ bcr_test_module:
       platform: ${{ platform }}
       build_targets:
         - //...
-        - '@go_sdk//...'
+        - '@go_default_sdk//...'
       test_targets:
         - //...
