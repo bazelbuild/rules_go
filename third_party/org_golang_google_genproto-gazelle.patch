@@ -1703,7 +1703,7 @@ diff -urN a/googleapis/chromeos/moblab/v1beta1/BUILD.bazel b/googleapis/chromeos
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
-+        "//googleapis/longrunning",
++        "@com_google_cloud_go_longrunning//autogen/longrunningpb:go_default_library",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",

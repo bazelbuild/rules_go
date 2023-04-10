@@ -50,7 +50,7 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "bazel_skylib",
-        # 1.4.1, latest as of 2023-03-27
+        # 1.4.1, latest as of 2023-04-10
         urls = [
             "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
             "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
@@ -64,13 +64,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_tools",
-        # v0.7.0, latest as of 2023-03-27
+        # v0.8.0, latest as of 2023-04-10
         urls = [
-            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.7.0.zip",
-            "https://github.com/golang/tools/archive/refs/tags/v0.7.0.zip",
+            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.8.0.zip",
+            "https://github.com/golang/tools/archive/refs/tags/v0.8.0.zip",
         ],
-        sha256 = "9f20a20f29f4008d797a8be882ef82b69cf8f7f2b96dbdfe3814c57d8280fa4b",
-        strip_prefix = "tools-0.7.0",
+        sha256 = "e4a28b45875d39f7b7f98a401c9fd54b64fb6f6198e89b9363be287131c72cc4",
+        strip_prefix = "tools-0.8.0",
         patches = [
             # deletegopls removes the gopls subdirectory. It contains a nested
             # module with additional dependencies. It's not needed by rules_go.
@@ -86,13 +86,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_sys",
-        # v0.6.0, latest as of 2023-03-27
+        # v0.7.0, latest as of 2023-04-10
         urls = [
-            "https://mirror.bazel.build/github.com/golang/sys/archive/refs/tags/v0.6.0.zip",
-            "https://github.com/golang/sys/archive/refs/tags/v0.6.0.zip",
+            "https://mirror.bazel.build/github.com/golang/sys/archive/refs/tags/v0.7.0.zip",
+            "https://github.com/golang/sys/archive/refs/tags/v0.7.0.zip",
         ],
-        sha256 = "7f2399398b2eb4f1f495cc754d6353566e0ad934ee0eb46505e55162e0def56d",
-        strip_prefix = "sys-0.6.0",
+        sha256 = "f013d4afb49025d5c2bd9cfbfb00e5a8259cba800ffebf4a4b5e651151c5f38b",
+        strip_prefix = "sys-0.7.0",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/sys -go_naming_convention import_alias
             Label("//third_party:org_golang_x_sys-gazelle.patch"),
@@ -105,7 +105,7 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_xerrors",
-        # master, as of 2023-03-27
+        # master, as of 2023-04-10
         urls = [
             "https://mirror.bazel.build/github.com/golang/xerrors/archive/04be3eba64a22a838cdb17b8dca15a52871c08b4.zip",
             "https://github.com/golang/xerrors/archive/04be3eba64a22a838cdb17b8dca15a52871c08b4.zip",
@@ -141,7 +141,7 @@ def go_rules_dependencies(force = False):
         http_archive,
         name = "org_golang_google_protobuf",
         sha256 = "cb1a05581c33b3705ede6c08edf9b9c1dbc579559ba30f532704c324e42bf801",
-        # v1.30.0, latest as of 2023-03-27
+        # v1.30.0, latest as of 2023-04-10
         urls = [
             "https://mirror.bazel.build/github.com/protocolbuffers/protobuf-go/archive/refs/tags/v1.30.0.zip",
             "https://github.com/protocolbuffers/protobuf-go/archive/refs/tags/v1.30.0.zip",
@@ -163,7 +163,7 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "com_github_golang_protobuf",
-        # v1.5.3, latest as of 2023-03-27
+        # v1.5.3, latest as of 2023-04-10
         urls = [
             "https://mirror.bazel.build/github.com/golang/protobuf/archive/refs/tags/v1.5.3.zip",
             "https://github.com/golang/protobuf/archive/refs/tags/v1.5.3.zip",
@@ -183,7 +183,7 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "com_github_mwitkow_go_proto_validators",
-        # v0.3.2, latest as of 2023-03-27
+        # v0.3.2, latest as of 2023-04-10
         urls = [
             "https://mirror.bazel.build/github.com/mwitkow/go-proto-validators/archive/refs/tags/v0.3.2.zip",
             "https://github.com/mwitkow/go-proto-validators/archive/refs/tags/v0.3.2.zip",
@@ -197,7 +197,7 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "com_github_gogo_protobuf",
-        # v1.3.2, latest as of 2023-03-27
+        # v1.3.2, latest as of 2023-04-10
         urls = [
             "https://mirror.bazel.build/github.com/gogo/protobuf/archive/refs/tags/v1.3.2.zip",
             "https://github.com/gogo/protobuf/archive/refs/tags/v1.3.2.zip",
@@ -224,13 +224,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_google_genproto",
-        # main, as of 2023-03-27
+        # main, as of 2023-04-10
         urls = [
-            "https://mirror.bazel.build/github.com/googleapis/go-genproto/archive/6ac7f18bb9d5eeeb13a9f1ae4f21e4374a1952f8.zip",
-            "https://github.com/googleapis/go-genproto/archive/6ac7f18bb9d5eeeb13a9f1ae4f21e4374a1952f8.zip",
+            "https://mirror.bazel.build/github.com/googleapis/go-genproto/archive/c38d8f061ccd2687fa7a5171ccf796309ba09629.zip",
+            "https://github.com/googleapis/go-genproto/archive/c38d8f061ccd2687fa7a5171ccf796309ba09629.zip",
         ],
-        sha256 = "3470e7a89b24971b20c4bb8900a668df25279e4b741f72bc09418c1f22543215",
-        strip_prefix = "go-genproto-6ac7f18bb9d5eeeb13a9f1ae4f21e4374a1952f8",
+        sha256 = "3ed6f7555bf8dbb71cebadee7cbbf0b3063b65aa03a09b5495c8c501f247dbaa",
+        strip_prefix = "go-genproto-c38d8f061ccd2687fa7a5171ccf796309ba09629",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix google.golang.org/genproto -go_naming_convention import_alias -proto disable_global
             Label("//third_party:org_golang_google_genproto-gazelle.patch"),
@@ -247,13 +247,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "go_googleapis",
-        # master, as of 2022-12-05
+        # master, as of 2023-04-10
         urls = [
-            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/83c3605afb5a39952bf0a0809875d41cf2a558ca.zip",
-            "https://github.com/googleapis/googleapis/archive/83c3605afb5a39952bf0a0809875d41cf2a558ca.zip",
+            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/5fd971f2d2e33eb51ea20ebcf19993b78652d4c3.zip",
+            "https://github.com/googleapis/googleapis/archive/5fd971f2d2e33eb51ea20ebcf19993b78652d4c3.zip",
         ],
-        sha256 = "ba694861340e792fd31cb77274eacaf6e4ca8bda97707898f41d8bebfd8a4984",
-        strip_prefix = "googleapis-83c3605afb5a39952bf0a0809875d41cf2a558ca",
+        sha256 = "9c5c2aa28a4b033e5ef56b2b684910a2bd3abf9a79a6afac69cc6fe73bd228a3",
+        strip_prefix = "googleapis-5fd971f2d2e33eb51ea20ebcf19993b78652d4c3",
         patches = [
             # releaser:patch-cmd find . -name BUILD.bazel -delete
             Label("//third_party:go_googleapis-deletebuild.patch"),
@@ -269,7 +269,7 @@ def go_rules_dependencies(force = False):
     _maybe(
         http_archive,
         name = "com_github_golang_mock",
-        # v1.7.0-rc.1, latest as of 2023-03-27
+        # v1.7.0-rc.1, latest as of 2023-04-10
         urls = [
             "https://mirror.bazel.build/github.com/golang/mock/archive/refs/tags/v1.7.0-rc.1.zip",
             "https://github.com/golang/mock/archive/refs/tags/v1.7.0-rc.1.zip",
