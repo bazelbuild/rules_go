@@ -87,7 +87,7 @@ func buildSymabisFile(goenv *env, sFiles, hFiles []fileInfo, asmhdr string) (str
 			seenHdrDirs[hdrDir] = true
 		}
 	}
-	asmDefines(asmargs)
+	asmargs = asmDefines(asmargs)
 	asmargs = append(asmargs, "-gensymabis", "-o", symabisName, "--")
 	for _, sFile := range sFiles {
 		asmargs = append(asmargs, sFile.filename)
@@ -106,7 +106,7 @@ func asmFile(goenv *env, srcPath, packagePath string, asmFlags []string, outPath
 	if packagePath != "" && isGo119OrHigher() {
 		args = append(args, "-p", packagePath)
 	}
-	asmDefines(args)
+	args = asmDefines(args)
 	args = append(args, "-trimpath", ".")
 	args = append(args, "-o", outPath)
 	args = append(args, "--", srcPath)
@@ -114,8 +114,8 @@ func asmFile(goenv *env, srcPath, packagePath string, asmFlags []string, outPath
 	return goenv.runCommand(args)
 }
 
-func asmDefines(args []string) {
-	args = append(args,
+func asmDefines(args []string) []string {
+	return append(args,
 		"-D", "GOOS_"+runtime.GOOS,
 		"-D", "GOARCH_"+runtime.GOARCH,
 		"-D", "GOOS_GOARCH_"+runtime.GOOS+"_"+runtime.GOARCH,
