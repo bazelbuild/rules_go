@@ -47,12 +47,20 @@ tasks:
       - "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
       - "--crosstool_top=@local_config_apple_cc//:toolchain"
       - "--host_crosstool_top=@local_config_apple_cc//:toolchain"
+      # Temporary rollback to fix //tests/core/cgo:versioned_dylib_test
+      # https://github.com/bazelbuild/continuous-integration/commit/a95a916098d3015bb4ea20b7e33bc7d27d00bffc
+      - "--remote_download_outputs=all"
+      - "--build_runfile_links"
     build_targets:
     - "//..."
     test_flags:
       - "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
       - "--crosstool_top=@local_config_apple_cc//:toolchain"
       - "--host_crosstool_top=@local_config_apple_cc//:toolchain"
+      # Temporary rollback to fix //tests/core/cgo:versioned_dylib_test
+      # https://github.com/bazelbuild/continuous-integration/commit/a95a916098d3015bb4ea20b7e33bc7d27d00bffc
+      - "--remote_download_outputs=all"
+      - "--build_runfile_links"
     test_targets:
     - "//..."
   rbe_ubuntu1604:
