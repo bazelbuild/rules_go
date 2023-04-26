@@ -146,6 +146,11 @@ func testsInShard() []testing.InternalTest {
 	if err != nil || totalShards <= 1 {
 		return allTests
 	}
+	file, err := os.Create(os.Getenv("TEST_SHARD_STATUS_FILE"))
+	if err != nil {
+		log.Fatalf("Failed to touch TEST_SHARD_STATUS_FILE: %v", err)
+	}
+	_ = file.Close()
 	shardIndex, err := strconv.Atoi(os.Getenv("TEST_SHARD_INDEX"))
 	if err != nil || shardIndex < 0 {
 		return allTests
