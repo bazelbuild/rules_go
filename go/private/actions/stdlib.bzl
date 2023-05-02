@@ -68,15 +68,45 @@ def _build_stdlib_list_json(go):
     args = go.builder_args(go, "stdliblist")
     args.add("-sdk", go.sdk.root_file.dirname)
     args.add("-out", out)
+
+    inputs = go.sdk_files
+    if not go.mode.pure:
+        inputs += go.crosstool
+
     go.actions.run(
-        inputs = go.sdk_files,
+        inputs = inputs,
         outputs = [out],
         mnemonic = "GoStdlibList",
         executable = go.toolchain._builder,
         arguments = [args],
-        env = go.env,
+        env = _build_env(go),
     )
     return out
+
+def _build_env(go):
+    env = go.env
+
+    if go.mode.pure:
+        env.update({"CGO_ENABLED": "0"})
+        return env
+
+    # NOTE(#2545): avoid unnecessary dynamic link
+    # go std library doesn't use C++, so should not have -lstdc++
+    # Also drop coverage flags as nothing in the stdlib is compiled with
+    # coverage - we disable it for all CGo code anyway.
+    ldflags = [
+        option
+        for option in extldflags_from_cc_toolchain(go)
+        if option not in ("-lstdc++", "-lc++") and option not in COVERAGE_OPTIONS_DENYLIST
+    ]
+    env.update({
+        "CGO_ENABLED": "1",
+        "CC": go.cgo_tools.c_compiler_path,
+        "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
+        "CGO_LDFLAGS": " ".join(ldflags),
+    })
+
+    return env
 
 def _sdk_stdlib(go):
     return GoStdLib(
@@ -96,26 +126,9 @@ def _build_stdlib(go):
     if not go.mode.pure:
         args.add("-package", "runtime/cgo")
     args.add_all(link_mode_args(go.mode))
-    env = go.env
-    if go.mode.pure:
-        env.update({"CGO_ENABLED": "0"})
-    else:
-        # NOTE(#2545): avoid unnecessary dynamic link
-        # go std library doesn't use C++, so should not have -lstdc++
-        # Also drop coverage flags as nothing in the stdlib is compiled with
-        # coverage - we disable it for all CGo code anyway.
-        ldflags = [
-            option
-            for option in extldflags_from_cc_toolchain(go)
-            if option not in ("-lstdc++", "-lc++") and option not in COVERAGE_OPTIONS_DENYLIST
-        ]
-        env.update({
-            "CGO_ENABLED": "1",
-            "CC": go.cgo_tools.c_compiler_path,
-            "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
-            "CGO_LDFLAGS": " ".join(ldflags),
-        })
+
     args.add("-gcflags", quote_opts(go.mode.gc_goopts))
+
     inputs = (go.sdk.srcs +
               go.sdk.headers +
               go.sdk.tools +
@@ -128,7 +141,7 @@ def _build_stdlib(go):
         mnemonic = "GoStdlib",
         executable = go.toolchain._builder,
         arguments = [args],
-        env = env,
+        env = _build_env(go),
     )
     return GoStdLib(
         _list_json = _build_stdlib_list_json(go),
