@@ -69,12 +69,6 @@ or using `Bazel configuration transitions`_.
 | ``CGO_ENABLED=0``). Packages that contain cgo code may still be built, but   |
 | the cgo code will be filtered out, and the ``cgo`` build tag will be false.  |
 +-------------------+---------------------+------------------------------------+
-| :param:`strip`    | :type:`bool`        | :value:`false`                     |
-+-------------------+---------------------+------------------------------------+
-| Strips symbols from compiled packages and linked binaries (using the ``-w``  |
-| flag). May also be set with the ``--strip`` command line option, which       |
-| affects C/C++ targets, too.                                                  |
-+-------------------+---------------------+------------------------------------+
 | :param:`debug`    | :type:`bool`        | :value:`false`                     |
 +-------------------+---------------------+------------------------------------+
 | Includes debugging information in compiled packages (using the ``-N`` and    |

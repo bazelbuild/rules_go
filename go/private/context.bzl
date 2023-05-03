@@ -830,7 +830,7 @@ def _go_config_impl(ctx):
         race = ctx.attr.race[BuildSettingInfo].value,
         msan = ctx.attr.msan[BuildSettingInfo].value,
         pure = ctx.attr.pure[BuildSettingInfo].value,
-        strip = ctx.attr.strip[BuildSettingInfo].value,
+        strip = ctx.attr.strip,
         debug = ctx.attr.debug[BuildSettingInfo].value,
         linkmode = ctx.attr.linkmode[BuildSettingInfo].value,
         gc_linkopts = ctx.attr.gc_linkopts[BuildSettingInfo].value,
@@ -860,10 +860,7 @@ go_config = rule(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
-        "strip": attr.label(
-            mandatory = True,
-            providers = [BuildSettingInfo],
-        ),
+        "strip": attr.bool(mandatory = True),
         "debug": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
