@@ -77,7 +77,6 @@ tasks:
     test_targets:
     - "--"
     - "//..."
-    - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/stdlib:buildid_test"
   windows:
     build_flags:
