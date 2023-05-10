@@ -130,7 +130,11 @@ go_config(
         "//conditions:default": False,
     }),
     static = "//go/config:static",
-    strip = "//go/config:strip",
+    strip = select({
+        "//go/private:is_strip_always": True,
+        "//go/private:is_strip_sometimes_fastbuild": True,
+        "//conditions:default": False,
+    }),
     visibility = ["//visibility:public"],
 )
 

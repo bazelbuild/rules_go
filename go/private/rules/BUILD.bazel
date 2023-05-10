@@ -144,7 +144,6 @@ bzl_library(
         "//proto:__pkg__",
     ],
     deps = [
-        "//go/platform:crosstool",
         "//go/private:mode",
         "//go/private:platforms",
         "//go/private:providers",

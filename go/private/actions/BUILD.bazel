@@ -41,6 +41,7 @@ bzl_library(
     srcs = ["compilepkg.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
+        ":utils",
         "//go/private:mode",
         "@bazel_skylib//lib:shell",
     ],
@@ -63,8 +64,14 @@ bzl_library(
     srcs = ["stdlib.bzl"],
     visibility = ["//go:__subpackages__"],
     deps = [
+        ":utils",
         "//go/private:mode",
         "//go/private:providers",
         "//go/private:sdk",
     ],
+)
+
+bzl_library(
+    name = "utils",
+    srcs = ["utils.bzl"],
 )

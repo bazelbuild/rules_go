@@ -30,6 +30,21 @@ config_setting(
     visibility = ["//:__pkg__"],
 )
 
+config_setting(
+    name = "is_strip_always",
+    values = {"strip": "always"},
+    visibility = ["//:__pkg__"],
+)
+
+config_setting(
+    name = "is_strip_sometimes_fastbuild",
+    values = {
+        "strip": "sometimes",
+        "compilation_mode": "fastbuild",
+    },
+    visibility = ["//:__pkg__"],
+)
+
 bzl_library(
     name = "context",
     srcs = ["context.bzl"],

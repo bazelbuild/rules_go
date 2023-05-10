@@ -181,7 +181,7 @@ def emit_link(
     # Do not remove, somehow this is needed when building for darwin/arm only.
     tool_args.add("-buildid=redacted")
     if go.mode.strip:
-        tool_args.add("-w")
+        tool_args.add("-s", "-w")
     tool_args.add_joined("-extldflags", extldflags, join_with = " ")
 
     conflict_err = _check_conflicts(arcs)

@@ -2,6 +2,7 @@
 ====================================
 
 .. _nogo: nogo.rst#nogo
+.. _configuring-analyzers: nogo.rst#configuring-analyzers
 .. _go_library: /docs/go/core/rules.md#go_library
 .. _analysis: https://godoc.org/golang.org/x/tools/go/analysis
 .. _Analyzer: https://godoc.org/golang.org/x/tools/go/analysis#Analyzer
@@ -9,6 +10,9 @@
 .. _GoSource: providers.rst#GoSource
 .. _GoArchive: providers.rst#GoArchive
 .. _vet: https://golang.org/cmd/vet/
+.. _golangci-lint: https://github.com/golangci/golangci-lint
+.. _staticcheck: https://staticcheck.io/
+.. _sluongng/nogo-analyzer: https://github.com/sluongng/nogo-analyzer
 
 .. role:: param(kbd)
 .. role:: type(emphasis)
@@ -116,6 +120,54 @@ the ``TOOLS_NOGO`` list of dependencies.
         deps = ["@org_golang_x_tools//go/analysis:go_library"],
         visibility = ["//visibility:public"],
     )
+
+Usage
+---------------------------------
+
+``nogo``, upon configured, will be invoked automatically when building any Go target in your
+workspace.  If any of the analyzers reject the program, the build will fail.
+
+``nogo`` will run on all Go targets in your workspace, including tests and binary targets.
+It will also run on targets that are imported from other workspaces by default. You could
+exclude the external repositories from ``nogo`` by using the `exclude_files` regex in
+`configuring-analyzers`_.
+
+Relationship with other linters
+~~~~~~~~~~~~~~~~~~~~~
+
+In Golang, a linter is composed of multiple parts:
+- A collection of rules (checks) that define different validations against the source code
+- Optionally, each rules could be coupled with a fixer that can automatically fix the code.
+- A configuration framework that allows users to enable/disable rules, and configure the rules.
+- A runner binary that orchestrate the above components.
+
+To help with the above, Go provides a framework called `analysis`_ that allows
+you to write a linter in a modular way. In which, you could define each rules as a separate
+`Analyzer`_, and then compose them together in a runner binary.
+
+For example, `golangci-lint`_ or `staticcheck`_ are popular linters that are composed of multiple
+analyzers, each of which is a collection of rules.
+
+``nogo`` is a runner binary that runs a collection of analyzers while leveraging Bazel's
+action orchestration framework. In particular, ``nogo`` is run as part of rules_go GoCompilePkg
+action, and it is run in parallel with the Go compiler. This allows ``nogo`` to benefit from
+Bazel's incremental build and caching as well as the Remote Build Execution framework.
+
+There are examples of how to re-use the analyzers from `golangci-lint`_ and `staticcheck`_ in
+`nogo`_ here: `sluongng/nogo-analyzer`_.
+
+Should I use ``nogo`` or ``golangci-lint``?
+~~~~~~~~~~~~~~~~~~~~~
+
+Because ``nogo`` benefits from Bazel's incremental build and caching, it is more suitable for
+large code bases. If you have a smaller code base, you could use ``golangci-lint`` instead.
+
+If ``golangci-lint`` takes a really long time to run in your repository, you could try to use
+``nogo`` instead.
+
+As of the moment of this writing, there is no way for ``nogo`` to apply the fixers coupled
+with the analyzers. So separate linters such as ``golangci-lint`` or ``staticcheck`` are more
+ergonomic to apply the fixes to the code base.
 
 Writing and registering analyzers
 ---------------------------------

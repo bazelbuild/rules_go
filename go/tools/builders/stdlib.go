@@ -37,6 +37,8 @@ func stdlib(args []string) error {
 	flags.Var(&packages, "package", "Packages to build")
 	var experiments multiFlag
 	flags.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
+	var gcflags quoteMultiFlag
+	flags.Var(&gcflags, "gcflags", "Go compiler flags")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -129,7 +131,6 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 		installArgs = append(installArgs, "-tags", strings.Join(build.Default.BuildTags, ","))
 	}
 
-	gcflags := []string{}
 	ldflags := []string{"-trimpath", sandboxPath}
 	asmflags := []string{"-trimpath", output}
 	if *race {

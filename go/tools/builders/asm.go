@@ -15,6 +15,7 @@
 package main
 
 import (
+	"go/build"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -23,6 +24,12 @@ import (
 	"strconv"
 	"strings"
 )
+
+var ASM_DEFINES = []string{
+	"-D", "GOOS_" + build.Default.GOOS,
+	"-D", "GOARCH_" + build.Default.GOARCH,
+	"-D", "GOOS_GOARCH_" + build.Default.GOOS + "_" + build.Default.GOARCH,
+}
 
 // buildSymabisFile generates a file from assembly files that is consumed
 // by the compiler. This is only needed in go1.12+ when there is at least one
@@ -87,8 +94,7 @@ func buildSymabisFile(goenv *env, sFiles, hFiles []fileInfo, asmhdr string) (str
 			seenHdrDirs[hdrDir] = true
 		}
 	}
-	// TODO(#1894): define GOOS_goos, GOARCH_goarch, both here and in the
-	// GoAsm action.
+	asmargs = append(asmargs, ASM_DEFINES...)
 	asmargs = append(asmargs, "-gensymabis", "-o", symabisName, "--")
 	for _, sFile := range sFiles {
 		asmargs = append(asmargs, sFile.filename)
@@ -107,6 +113,7 @@ func asmFile(goenv *env, srcPath, packagePath string, asmFlags []string, outPath
 	if packagePath != "" && isGo119OrHigher() {
 		args = append(args, "-p", packagePath)
 	}
+	args = append(args, ASM_DEFINES...)
 	args = append(args, "-trimpath", ".")
 	args = append(args, "-o", outPath)
 	args = append(args, "--", srcPath)

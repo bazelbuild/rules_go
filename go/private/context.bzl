@@ -51,6 +51,7 @@ load(
 )
 load(
     ":common.bzl",
+    "COVERAGE_OPTIONS_DENYLIST",
     "as_iterable",
     "goos_to_extension",
     "goos_to_shared_extension",
@@ -86,7 +87,7 @@ _UNSUPPORTED_C_COMPILERS = {
     "clang-cl": None,
 }
 
-_COMPILER_OPTIONS_DENYLIST = {
+_COMPILER_OPTIONS_DENYLIST = dict({
     # cgo parses the error messages from the compiler.  It can't handle colors.
     # Ignore both variants of the diagnostics color flag.
     "-fcolor-diagnostics": None,
@@ -105,7 +106,9 @@ _COMPILER_OPTIONS_DENYLIST = {
     "--coverage": None,
     "-ftest-coverage": None,
     "-fprofile-arcs": None,
-}
+    "-fprofile-instr-generate": None,
+    "-fcoverage-mapping": None,
+}, **COVERAGE_OPTIONS_DENYLIST)
 
 _LINKER_OPTIONS_DENYLIST = {
     "-Wl,--gc-sections": None,
@@ -827,7 +830,7 @@ def _go_config_impl(ctx):
         race = ctx.attr.race[BuildSettingInfo].value,
         msan = ctx.attr.msan[BuildSettingInfo].value,
         pure = ctx.attr.pure[BuildSettingInfo].value,
-        strip = ctx.attr.strip[BuildSettingInfo].value,
+        strip = ctx.attr.strip,
         debug = ctx.attr.debug[BuildSettingInfo].value,
         linkmode = ctx.attr.linkmode[BuildSettingInfo].value,
         gc_linkopts = ctx.attr.gc_linkopts[BuildSettingInfo].value,
@@ -857,10 +860,7 @@ go_config = rule(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),
-        "strip": attr.label(
-            mandatory = True,
-            providers = [BuildSettingInfo],
-        ),
+        "strip": attr.bool(mandatory = True),
         "debug": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],

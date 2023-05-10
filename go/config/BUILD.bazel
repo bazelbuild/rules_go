@@ -1,7 +1,6 @@
 load(
     "@bazel_skylib//rules:common_settings.bzl",
     "bool_flag",
-    "bool_setting",
     "string_flag",
     "string_list_flag",
 )
@@ -30,12 +29,6 @@ bool_flag(
 
 bool_flag(
     name = "pure",
-    build_setting_default = False,
-    visibility = ["//visibility:public"],
-)
-
-bool_setting(
-    name = "strip",
     build_setting_default = False,
     visibility = ["//visibility:public"],
 )

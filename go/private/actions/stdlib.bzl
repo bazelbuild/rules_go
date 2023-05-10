@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "//go/private:common.bzl",
+    "COVERAGE_OPTIONS_DENYLIST",
+)
+load(
     "//go/private:providers.bzl",
     "GoStdLib",
 )
@@ -23,6 +27,7 @@ load(
     "link_mode_args",
 )
 load("//go/private:sdk.bzl", "parse_version")
+load("//go/private/actions:utils.bzl", "quote_opts")
 
 def emit_stdlib(go):
     """Returns a standard library for the target configuration.
@@ -55,6 +60,7 @@ def _should_use_sdk_stdlib(go):
             not go.mode.race and  # TODO(jayconrod): use precompiled race
             not go.mode.msan and
             not go.mode.pure and
+            not go.mode.gc_goopts and
             go.mode.link == LINKMODE_NORMAL)
 
 def _build_stdlib_list_json(go):
@@ -96,10 +102,12 @@ def _build_stdlib(go):
     else:
         # NOTE(#2545): avoid unnecessary dynamic link
         # go std library doesn't use C++, so should not have -lstdc++
+        # Also drop coverage flags as nothing in the stdlib is compiled with
+        # coverage - we disable it for all CGo code anyway.
         ldflags = [
             option
             for option in extldflags_from_cc_toolchain(go)
-            if option not in ("-lstdc++", "-lc++")
+            if option not in ("-lstdc++", "-lc++") and option not in COVERAGE_OPTIONS_DENYLIST
         ]
         env.update({
             "CGO_ENABLED": "1",
@@ -107,6 +115,7 @@ def _build_stdlib(go):
             "CGO_CFLAGS": " ".join(go.cgo_tools.c_compile_options),
             "CGO_LDFLAGS": " ".join(ldflags),
         })
+    args.add("-gcflags", quote_opts(go.mode.gc_goopts))
     inputs = (go.sdk.srcs +
               go.sdk.headers +
               go.sdk.tools +

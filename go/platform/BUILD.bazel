@@ -36,8 +36,3 @@ bzl_library(
     name = "apple",
     srcs = ["apple.bzl"],
 )
-
-bzl_library(
-    name = "crosstool",
-    srcs = ["crosstool.bzl"],
-)

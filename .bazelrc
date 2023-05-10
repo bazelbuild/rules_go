@@ -1,5 +1,21 @@
+common --enable_platform_specific_config
+
+# //tests/core/go_path is incompatible with BwoB, which is enabled in Bazel CI.
+# https://github.com/bazelbuild/continuous-integration/commit/a95a916098d3015bb4ea20b7e33bc7d27d00bffc
+build --remote_download_outputs=all
+build --build_runfile_links
+build --experimental_remote_download_regex=.*tests/core/go_path/.*
+
+# Go requires a C toolchain that accepts options and emits errors like
+# gcc or clang. The Go SDK does not support MSVC.
 build:windows --cpu=x64_windows
 build:windows --compiler=mingw-gcc
+# NOTE(bazelbuild/bazel#10529): bazel doesn't register the mingw toolchain automatically.
+# We also need the host and target platforms to have the mingw constraint value.
+build:windows --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw
+build:windows --host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo
+build:windows --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo
+build:windows --incompatible_enable_cc_toolchain_resolution
 
 build:check --all_incompatible_changes
 

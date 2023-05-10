@@ -243,3 +243,12 @@ def count_group_matches(v, prefix, suffix):
         count = count + 1
 
     return count
+
+# C/C++ compiler and linker options related to coverage instrumentation.
+COVERAGE_OPTIONS_DENYLIST = {
+    "--coverage": None,
+    "-ftest-coverage": None,
+    "-fprofile-arcs": None,
+    "-fprofile-instr-generate": None,
+    "-fcoverage-mapping": None,
+}

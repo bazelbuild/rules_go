@@ -430,7 +430,7 @@ def _go_tool_binary_impl(ctx):
     if sdk.goos == "windows":
         gopath = ctx.actions.declare_directory("gopath")
         gocache = ctx.actions.declare_directory("gocache")
-        cmd = "@echo off\nset GOCACHE=%cd%\\{gocache}\nset GOPATH=%cd%\\{gopath}\n{go} build -o {out} -trimpath {srcs}".format(
+        cmd = "@echo off\nset GOMAXPROCS=1\nset GOCACHE=%cd%\\{gocache}\nset GOPATH=%cd%\\{gopath}\n{go} build -o {out} -trimpath {srcs}".format(
             gopath = gopath.path,
             gocache = gocache.path,
             go = sdk.go.path.replace("/", "\\"),
@@ -450,7 +450,7 @@ def _go_tool_binary_impl(ctx):
         )
     else:
         # Note: GOPATH is needed for Go 1.16.
-        cmd = "GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath {srcs}".format(
+        cmd = "GOMAXPROCS=1 GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath {srcs}".format(
             go = sdk.go.path,
             out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),

@@ -32,13 +32,6 @@ load(
     "GoLibrary",
     "GoSource",
 )
-load(
-    "//go/platform:crosstool.bzl",
-    "platform_from_crosstool",
-)
-
-_DEFAULT_PLATFORMS_VALUE = [Label("@local_config_platform//:host")]
-_PLATFORMS_LABEL = "//command_line_option:platforms"
 
 # A list of rules_go settings that are possibly set by go_transition.
 # Keep their package name in sync with the implementation of
@@ -101,8 +94,6 @@ def _go_transition_impl(settings, attr):
 
     goos = getattr(attr, "goos", "auto")
     goarch = getattr(attr, "goarch", "auto")
-    crosstool_top = settings.pop("//command_line_option:crosstool_top")
-    cpu = settings.pop("//command_line_option:cpu")
     _check_ternary("pure", pure)
     if goos != "auto" or goarch != "auto":
         if goos == "auto":
@@ -115,17 +106,6 @@ def _go_transition_impl(settings, attr):
             fail('pure is "off" but cgo is not supported on {} {}'.format(goos, goarch))
         platform = "@io_bazel_rules_go//go/toolchain:{}_{}{}".format(goos, goarch, "_cgo" if cgo else "")
         settings["//command_line_option:platforms"] = platform
-    else:
-        # If the current target platform differs from the default value (the
-        # host platform), then we don't want to override it with a value
-        # inferred from the legacy --cpu and --crosstool_top flags. Otherwise
-        # it would become impossible to "platformize" a Go build without having
-        # a matching platform mappings file.
-        if settings[_PLATFORMS_LABEL] == _DEFAULT_PLATFORMS_VALUE:
-            # Detect the platform the inbound crosstool/cpu.
-            platform = platform_from_crosstool(crosstool_top, cpu)
-            if platform:
-                settings[_PLATFORMS_LABEL] = platform
 
     tags = getattr(attr, "gotags", [])
     if tags:
@@ -181,8 +161,6 @@ request_nogo_transition = transition(
 go_transition = transition(
     implementation = _go_transition_impl,
     inputs = [
-        "//command_line_option:cpu",
-        "//command_line_option:crosstool_top",
         "//command_line_option:platforms",
     ] + TRANSITIONED_GO_SETTING_KEYS,
     outputs = [
@@ -196,7 +174,6 @@ _common_reset_transition_dict = dict({
     "//go/config:msan": False,
     "//go/config:race": False,
     "//go/config:pure": False,
-    "//go/config:strip": False,
     "//go/config:debug": False,
     "//go/config:linkmode": LINKMODE_NORMAL,
     "//go/config:tags": [],

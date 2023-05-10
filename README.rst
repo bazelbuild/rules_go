@@ -7,6 +7,8 @@ Go rules for Bazel_
 .. _Bazel labels: https://docs.bazel.build/versions/master/build-ref.html#labels
 .. _Bazel: https://bazel.build/
 .. _Build modes: go/modes.rst
+.. _Bzlmod: https://bazel.build/external/overview#bzlmod
+.. _Go with Bzlmod: docs/go/core/bzlmod.md
 .. _Core rules: docs/go/core/rules.md
 .. _Coverage: https://bazel.google.cn/docs/coverage
 .. _Dependencies: go/dependencies.rst
@@ -226,6 +228,9 @@ Several additional tools need to be installed and configured.
 Initial project setup
 ~~~~~~~~~~~~~~~~~~~~~
 
+If you are using Bazel's new external dependency management system `Bzlmod`_,
+refer to the dedicated `Go with Bzlmod`_ guide instead.
+
 Create a file at the top of your repository named ``WORKSPACE``, and add the
 snippet below (or add to your existing ``WORKSPACE``). This tells Bazel to
 fetch rules_go and its dependencies. Bazel will download a recent supported
@@ -293,10 +298,10 @@ Add the ``bazel_gazelle`` repository and its dependencies to your
 
     http_archive(
         name = "bazel_gazelle",
-        sha256 = "448e37e0dbf61d6fa8f00aaa12d191745e14f07c31cabfa731f0c8e8a4f41b97",
+        sha256 = "727f3e4edd96ea20c29e8c2ca9e8d2af724d8c7778e7923a854b2c80952bc405",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.28.0/bazel-gazelle-v0.28.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.28.0/bazel-gazelle-v0.28.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz",
         ],
     )
 
@@ -420,10 +425,10 @@ automatically from a go.mod or Gopkg.lock file.
     # Download Gazelle.
     http_archive(
         name = "bazel_gazelle",
-        sha256 = "448e37e0dbf61d6fa8f00aaa12d191745e14f07c31cabfa731f0c8e8a4f41b97",
+        sha256 = "727f3e4edd96ea20c29e8c2ca9e8d2af724d8c7778e7923a854b2c80952bc405",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.28.0/bazel-gazelle-v0.28.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.28.0/bazel-gazelle-v0.28.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz",
         ],
     )
 

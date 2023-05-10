@@ -16,10 +16,7 @@ load(
     "//go/private:mode.bzl",
     "link_mode_args",
 )
-load(
-    "@bazel_skylib//lib:shell.bzl",
-    "shell",
-)
+load("//go/private/actions:utils.bzl", "quote_opts")
 
 def _archive(v):
     importpaths = [v.data.importpath]
@@ -134,8 +131,8 @@ def emit_compilepkg(
     gc_flags.extend(go.toolchain.flags.compile)
     gc_flags.extend(link_mode_args(go.mode))
     asm_flags.extend(link_mode_args(go.mode))
-    args.add("-gcflags", _quote_opts(gc_flags))
-    args.add("-asmflags", _quote_opts(asm_flags))
+    args.add("-gcflags", quote_opts(gc_flags))
+    args.add("-asmflags", quote_opts(asm_flags))
 
     env = go.env
     if cgo:
@@ -143,17 +140,17 @@ def emit_compilepkg(
         inputs.extend(go.crosstool)
         env["CC"] = go.cgo_tools.c_compiler_path
         if cppopts:
-            args.add("-cppflags", _quote_opts(cppopts))
+            args.add("-cppflags", quote_opts(cppopts))
         if copts:
-            args.add("-cflags", _quote_opts(copts))
+            args.add("-cflags", quote_opts(copts))
         if cxxopts:
-            args.add("-cxxflags", _quote_opts(cxxopts))
+            args.add("-cxxflags", quote_opts(cxxopts))
         if objcopts:
-            args.add("-objcflags", _quote_opts(objcopts))
+            args.add("-objcflags", quote_opts(objcopts))
         if objcxxopts:
-            args.add("-objcxxflags", _quote_opts(objcxxopts))
+            args.add("-objcxxflags", quote_opts(objcxxopts))
         if clinkopts:
-            args.add("-ldflags", _quote_opts(clinkopts))
+            args.add("-ldflags", quote_opts(clinkopts))
 
     go.actions.run(
         inputs = inputs,
@@ -163,6 +160,3 @@ def emit_compilepkg(
         arguments = [args],
         env = go.env,
     )
-
-def _quote_opts(opts):
-    return " ".join([shell.quote(opt) if " " in opt else opt for opt in opts])

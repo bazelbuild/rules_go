@@ -244,6 +244,12 @@ go_test(
     ],
 )
 
+go_test(
+    name = "sharding_test",
+    srcs = ["sharding_test.go"],
+    shard_count = 2,
+)
+
 go_bazel_test(
     name = "env_inherit_test",
     srcs = ["env_inherit_test.go"],
