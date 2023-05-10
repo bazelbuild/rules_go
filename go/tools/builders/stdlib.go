@@ -35,8 +35,6 @@ func stdlib(args []string) error {
 	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
 	var packages multiFlag
 	flags.Var(&packages, "package", "Packages to build")
-	var experiments multiFlag
-	flags.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
 	var gcflags quoteMultiFlag
 	flags.Var(&gcflags, "gcflags", "Go compiler flags")
 	if err := flags.Parse(args); err != nil {
@@ -115,10 +113,6 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 	}
 	os.Setenv("CGO_LDFLAGS_ALLOW", b.String())
 	os.Setenv("GODEBUG", "installgoroot=all")
-
-	if len(experiments) > 0 {
-		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
-	}
 
 	// Build the commands needed to build the std library in the right mode
 	// NOTE: the go command stamps compiled .a files with build ids, which are

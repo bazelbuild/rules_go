@@ -43,6 +43,8 @@ go_library(
 	importpath = "example.com/library"
 )
 -- main.go --
+//go:build goexperiment.boringcrypto
+
 package main
 
 import "example.com/library"
