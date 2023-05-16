@@ -134,7 +134,11 @@ func compilePkg(args []string) error {
 	}
 
 	if len(experiments) > 0 {
-		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+		if fromEnv := os.Getenv("GOEXPERIMENT"); fromEnv != "" {
+			os.Setenv("GOEXPERIMENT", fromEnv+","+strings.Join(experiments, ","))
+		} else {
+			os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+		}
 	}
 
 	return compileArchive(

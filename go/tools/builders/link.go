@@ -149,7 +149,11 @@ func link(args []string) error {
 	goargs = append(goargs, "-o", *outFile)
 
 	if len(experiments) > 0 {
-		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+		if fromEnv := os.Getenv("GOEXPERIMENT"); fromEnv != "" {
+			os.Setenv("GOEXPERIMENT", fromEnv+","+strings.Join(experiments, ","))
+		} else {
+			os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+		}
 	}
 
 	// add in the unprocess pass through options

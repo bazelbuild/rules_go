@@ -117,7 +117,11 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 	os.Setenv("GODEBUG", "installgoroot=all")
 
 	if len(experiments) > 0 {
-		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+		if fromEnv := os.Getenv("GOEXPERIMENT"); fromEnv != "" {
+			os.Setenv("GOEXPERIMENT", fromEnv+","+strings.Join(experiments, ","))
+		} else {
+			os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
+		}
 	}
 
 	// Build the commands needed to build the std library in the right mode
