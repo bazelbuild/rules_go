@@ -405,14 +405,17 @@ def _register_toolchains(repo):
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
     if len(urls) == 0:
         fail("no urls specified")
+    host_goos, _ = _detect_host_platform(ctx)
+
     ctx.report_progress("Downloading and extracting Go toolchain")
+
+    # BUG(#2771): Use a system tool to extract the archive instead of
+    # Bazel's implementation. With some configurations (macOS + Docker +
+    # some particular file system binding), Bazel's implementation rejects
+    # files with invalid unicode names. Go has at least one test case with a
+    # file like this, but we haven't been able to reproduce the failure, so
+    # instead, we use this workaround.
     if urls[0].endswith(".tar.gz"):
-        # BUG(#2771): Use a system tool to extract the archive instead of
-        # Bazel's implementation. With some configurations (macOS + Docker +
-        # some particular file system binding), Bazel's implementation rejects
-        # files with invalid unicode names. Go has at least one test case with a
-        # file like this, but we haven't been able to reproduce the failure, so
-        # instead, we use this workaround.
         if strip_prefix != "go":
             fail("strip_prefix not supported")
         ctx.download(
@@ -424,6 +427,19 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
         if res.return_code:
             fail("error extracting Go SDK:\n" + res.stdout + res.stderr)
         ctx.delete("go_sdk.tar.gz")
+    elif urls[0].endswith(".zip") and host_goos != "windows":
+        # Bazel on Windows does not have this bug, but we still need this
+        # workaround to extract a Windows .zip file from a Darwin or Linux host.
+        if strip_prefix != "go":
+            fail("strip_prefix not supported")
+        ctx.download(
+            url = urls,
+            sha256 = sha256,
+            output = "go_sdk.zip",
+        )
+        res = ctx.execute(["bash", "-c", "unzip go_sdk.zip && mv go/* . && rmdir go"])
+        if res.return_code:
+            fail("error extracting Go SDK:\n" + res.stdout + res.stderr)
     else:
         ctx.download_and_extract(
             url = urls,
