@@ -202,6 +202,55 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 		act.pkg = pkg
 	}
 
+	// Process nolint directives similar to golangci-lint.
+	for _, f := range pkg.syntax {
+		// First, gather all comments and apply a range to the entire comment block.
+		// This will cover inline comments and allow us to detect comments above a
+		// node later.
+		for _, group := range f.Comments {
+			for _, comm := range group.List {
+				linters, ok := parseNolint(comm.Text)
+				if !ok {
+					continue
+				}
+				nl := &Range{
+					from: pkg.fset.Position(group.Pos()),
+					to:   pkg.fset.Position(group.End()).Line,
+				}
+				for analyzer, act := range actions {
+					if linters.Contains(analyzer.Name) {
+						act.nolint = append(act.nolint, nl)
+					}
+				}
+			}
+		}
+
+		// For each node in the ast, check if the previous line is covered by a
+		// range for the linter and expand it.
+		ast.Inspect(f, func(n ast.Node) bool {
+			if n == nil {
+				return true
+			}
+
+			nodeStart := pkg.fset.Position(n.Pos())
+			nodeEnd := pkg.fset.Position(n.End())
+			for _, act := range actions {
+				for _, rng := range act.nolint {
+					if rng.from.Filename != nodeStart.Filename {
+						continue
+					}
+					if rng.to != nodeStart.Line-1 || rng.from.Column != nodeStart.Column {
+						continue
+					}
+					// Expand the range to cover this node
+					rng.to = nodeEnd.Line
+				}
+			}
+
+			return true
+		})
+	}
+
 	// Execute the analyzers.
 	execAll(roots)
 
@@ -209,6 +258,11 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 	diagnostics := checkAnalysisResults(roots, pkg)
 	facts := pkg.facts.Encode()
 	return diagnostics, facts, nil
+}
+
+type Range struct {
+	from token.Position
+	to   int
 }
 
 // An action represents one unit of analysis work: the application of
@@ -226,6 +280,7 @@ type action struct {
 	diagnostics []analysis.Diagnostic
 	usesFacts   bool
 	err         error
+	nolint      []*Range
 }
 
 func (act *action) String() string {
@@ -279,13 +334,26 @@ func (act *action) execOnce() {
 		factFilter[reflect.TypeOf(f)] = true
 	}
 	pass := &analysis.Pass{
-		Analyzer:          act.a,
-		Fset:              act.pkg.fset,
-		Files:             act.pkg.syntax,
-		Pkg:               act.pkg.types,
-		TypesInfo:         act.pkg.typesInfo,
-		ResultOf:          inputs,
-		Report:            func(d analysis.Diagnostic) { act.diagnostics = append(act.diagnostics, d) },
+		Analyzer:  act.a,
+		Fset:      act.pkg.fset,
+		Files:     act.pkg.syntax,
+		Pkg:       act.pkg.types,
+		TypesInfo: act.pkg.typesInfo,
+		ResultOf:  inputs,
+		Report: func(d analysis.Diagnostic) {
+			pos := act.pkg.fset.Position(d.Pos)
+			for _, rng := range act.nolint {
+				if pos.Filename != rng.from.Filename {
+					continue
+				}
+				if pos.Line < rng.from.Line || pos.Line > rng.to {
+					continue
+				}
+				// Found a nolint range. Ignore the issue.
+				return
+			}
+			act.diagnostics = append(act.diagnostics, d)
+		},
 		ImportPackageFact: act.pkg.facts.ImportPackageFact,
 		ExportPackageFact: act.pkg.facts.ExportPackageFact,
 		ImportObjectFact:  act.pkg.facts.ImportObjectFact,

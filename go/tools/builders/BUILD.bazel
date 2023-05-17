@@ -37,6 +37,15 @@ go_test(
     rundir = ".",
 )
 
+go_test(
+    name = "nolint_test",
+    size = "small",
+    srcs = [
+        "nolint.go",
+        "nolint_test.go",
+    ],
+)
+
 filegroup(
     name = "builder_srcs",
     srcs = [
@@ -82,6 +91,7 @@ go_source(
         "nogo_main.go",
         "nogo_typeparams_go117.go",
         "nogo_typeparams_go118.go",
+        "nolint.go",
         "pack.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
