@@ -20,7 +20,7 @@ import (
 )
 
 func TestParseNolint(t *testing.T) {
-	assert := func(text string, linters Linters, valid bool) {
+	assert := func(text string, linters map[string]bool, valid bool) {
 		result, ok := parseNolint(text)
 		if valid != ok {
 			t.Fatalf("parseNolint expect %t got %t", valid, ok)
@@ -34,20 +34,14 @@ func TestParseNolint(t *testing.T) {
 	assert("// comment", nil, false)
 	assert("//nolint", nil, true)
 	assert("//nolint:all", nil, true)
-	assert("// nolint:foo", Linters{"foo"}, true)
-	assert("// nolint:foo,bar,baz", Linters{"foo", "bar", "baz"}, true)
-}
-
-func TestLintersContains(t *testing.T) {
-	var linters Linters
-	if !linters.Contains("any") {
-		t.Fatalf("expected nil to contain any linter")
-	}
-	linters = Linters{"bools"}
-	if linters.Contains("any") {
-		t.Fatalf("unexpected match of linter")
-	}
-	if !linters.Contains("bools") {
-		t.Fatalf("expected linters to match")
-	}
+	assert("// nolint:foo", map[string]bool{"foo": true}, true)
+	assert(
+		"// nolint:foo,bar,baz",
+		map[string]bool{
+			"foo": true,
+			"bar": true,
+			"baz": true,
+		},
+		true,
+	)
 }

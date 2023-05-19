@@ -16,24 +16,9 @@ package main
 
 import "strings"
 
-type Linters []string
-
-func (l Linters) Contains(s string) bool {
-	if len(l) == 0 {
-		return true
-	}
-	for _, name := range l {
-		if s == name {
-			return true
-		}
-	}
-	return false
-}
-
-// From a comment like '//nolint:foo,bar' returns [foo, bar], true. If no
-// comment is found, returns nil, false. For 'nolint:all' or 'nolint', returns
-// nil, true.
-func parseNolint(text string) (Linters, bool) {
+// Parse nolint directives and return the applicable linters. If all linters
+// apply, returns (nil, true).
+func parseNolint(text string) (map[string]bool, bool) {
 	text = strings.TrimLeft(text, "/ ")
 	if !strings.HasPrefix(text, "nolint") {
 		return nil, false
@@ -43,10 +28,12 @@ func parseNolint(text string) (Linters, bool) {
 		return nil, true
 	}
 	linters := strings.Split(parts[1], ",")
+	result := map[string]bool{}
 	for _, linter := range linters {
 		if strings.EqualFold(linter, "all") {
 			return nil, true
 		}
+		result[linter] = true
 	}
-	return Linters(linters), true
+	return result, true
 }

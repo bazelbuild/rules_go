@@ -218,7 +218,7 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 					to:   pkg.fset.Position(group.End()).Line,
 				}
 				for analyzer, act := range actions {
-					if linters.Contains(analyzer.Name) {
+					if linters == nil || linters[analyzer.Name] {
 						act.nolint = append(act.nolint, nl)
 					}
 				}
@@ -226,7 +226,15 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 		}
 
 		// For each node in the ast, check if the previous line is covered by a
-		// range for the linter and expand it.
+		// range for the linter and expand it. The idea is to find instances of
+		//
+		//   //nolint
+		//   someExpression(that{
+		//     may: split,
+		//     multiple: lines,
+		//   })
+		//
+		// We should apply the range to the entire function call expression.
 		ast.Inspect(f, func(n ast.Node) bool {
 			if n == nil {
 				return true
@@ -243,7 +251,9 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 						continue
 					}
 					// Expand the range to cover this node
-					rng.to = nodeEnd.Line
+					if nodeEnd.Line > rng.to {
+						rng.to = nodeEnd.Line
+					}
 				}
 			}
 
@@ -328,32 +338,36 @@ func (act *action) execOnce() {
 		inputs[dep.a] = dep.result
 	}
 
+	ignoreNolintReporter := func(d analysis.Diagnostic) {
+		pos := act.pkg.fset.Position(d.Pos)
+		for _, rng := range act.nolint {
+			// The list of nolint ranges is built for the entire package. Make sure we
+			// only apply ranges to the correct file.
+			if pos.Filename != rng.from.Filename {
+				continue
+			}
+			if pos.Line < rng.from.Line || pos.Line > rng.to {
+				continue
+			}
+			// Found a nolint range. Ignore the issue.
+			return
+		}
+		act.diagnostics = append(act.diagnostics, d)
+	}
+
 	// Run the analysis.
 	factFilter := make(map[reflect.Type]bool)
 	for _, f := range act.a.FactTypes {
 		factFilter[reflect.TypeOf(f)] = true
 	}
 	pass := &analysis.Pass{
-		Analyzer:  act.a,
-		Fset:      act.pkg.fset,
-		Files:     act.pkg.syntax,
-		Pkg:       act.pkg.types,
-		TypesInfo: act.pkg.typesInfo,
-		ResultOf:  inputs,
-		Report: func(d analysis.Diagnostic) {
-			pos := act.pkg.fset.Position(d.Pos)
-			for _, rng := range act.nolint {
-				if pos.Filename != rng.from.Filename {
-					continue
-				}
-				if pos.Line < rng.from.Line || pos.Line > rng.to {
-					continue
-				}
-				// Found a nolint range. Ignore the issue.
-				return
-			}
-			act.diagnostics = append(act.diagnostics, d)
-		},
+		Analyzer:          act.a,
+		Fset:              act.pkg.fset,
+		Files:             act.pkg.syntax,
+		Pkg:               act.pkg.types,
+		TypesInfo:         act.pkg.typesInfo,
+		ResultOf:          inputs,
+		Report:            ignoreNolintReporter,
 		ImportPackageFact: act.pkg.facts.ImportPackageFact,
 		ExportPackageFact: act.pkg.facts.ExportPackageFact,
 		ImportObjectFact:  act.pkg.facts.ImportObjectFact,
