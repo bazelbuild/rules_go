@@ -1,11 +1,5 @@
 common --enable_platform_specific_config
 
-# //tests/core/go_path is incompatible with BwoB, which is enabled in Bazel CI.
-# https://github.com/bazelbuild/continuous-integration/commit/a95a916098d3015bb4ea20b7e33bc7d27d00bffc
-build --remote_download_outputs=all
-build --build_runfile_links
-build --experimental_remote_download_regex=.*tests/core/go_path/.*
-
 # Go requires a C toolchain that accepts options and emits errors like
 # gcc or clang. The Go SDK does not support MSVC.
 build:windows --cpu=x64_windows
