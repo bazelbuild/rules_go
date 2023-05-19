@@ -32,48 +32,122 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_tool_library", "nogo")
 nogo(
     name = "nogo",
     vet = True,
+    deps = ["@org_golang_x_tools//go/analysis/passes/nilness"],
     visibility = ["//visibility:public"],
 )
 
 go_library(
-    name = "has_errors",
-    srcs = ["has_errors.go"],
-    importpath = "haserrors",
+    name = "inline",
+    srcs = ["inline.go"],
+    importpath = "inline",
 )
 
--- has_errors.go --
-package haserrors
-
-//nolint:buildtag
-// +build build_tags_error
-
-import (
-	"fmt"
-	"sync/atomic"
+go_library(
+    name = "inline-filter",
+    srcs = ["inline_filter.go"],
+    importpath = "inlinefilter",
 )
 
-func F() {}
+go_library(
+    name = "block",
+    srcs = ["block.go"],
+    importpath = "block",
+)
 
-func Foo() bool {
-	x := uint64(1)
-	_ = atomic.AddUint64(&x, 1)
-	if F == nil { //nolint:all
-		return false
+go_library(
+    name = "block-multiline",
+    srcs = ["block_multiline.go"],
+    importpath = "blockmultiline",
+)
+
+go_library(
+    name = "inline-errors",
+    srcs = ["inline_errors.go"],
+    importpath = "inlineerrors",
+)
+
+go_library(
+    name = "inline-column",
+		srcs = ["inline_column.go"],
+		importpath = "inlinecolumn",
+)
+-- inline.go --
+package inline
+
+func F() {
+	s := "hello"
+	fmt.Printf("%d", s) //nolint
+}
+
+-- inline_filter.go --
+package inlinefilter
+
+func F() bool {
+	return true || true //nolint:bools
+}
+
+-- block.go --
+package block
+
+import "fmt"
+
+func F() {
+	//nolint
+	fmt.Printf("%d", "hello")
+}
+
+-- block_multiline.go --
+package blockmultiline
+
+func F() bool {
+	var i *int
+	//nolint
+	return true &&
+		i != nil
+}
+
+-- inline_errors.go --
+package inlineerrors
+
+import "fmt"
+
+func F() {
+	var i *int
+	if i == nil {
+		fmt.Printf("%d", "hello") //nolint
+		fmt.Println(*i)           // Keep nil deref error
 	}
-	fmt.Printf("%b", "hi", true || true) //nolint:printf,bools
-	return true || true //nolint
 }
 
-func InlineComment() {
-	s := "hello" // nolint
-	fmt.Printf("%d", s)
-}
+-- inline_column.go --
+package inlinecolumn
 
-func LinterMatch() bool {
-	return true || true //nolint:printf
+import "fmt"
+
+func F() {
+	// Purposely used 'helo' to align the column
+	fmt.Printf("%d", "helo") //nolint
+	superLongVariableName := true || true
+	var _ = superLongVariableName
 }
 `,
 	})
+}
+
+func runTest(t *testing.T, target string, expected string) {
+	t.Helper()
+
+	cmd := bazel_testing.BazelCmd("build", target)
+	stderr := &bytes.Buffer{}
+	cmd.Stderr = stderr
+	err := cmd.Run()
+	if expected != "" && err == nil {
+		t.Fatal("unexpected success")
+	}
+	output := stderr.String()
+	if !strings.Contains(output, expected) {
+		t.Errorf("output did not contain expected: %s\n%s", expected, output)
+	}
 }
 
 func Test(t *testing.T) {
@@ -82,24 +156,15 @@ func Test(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cmd := bazel_testing.BazelCmd("build", "//:has_errors")
-	stderr := &bytes.Buffer{}
-	cmd.Stderr = stderr
-	if err := cmd.Run(); err == nil {
-		t.Fatal("unexpected success")
-	}
+	// Execute tests that should filter out errors
+	runTest(t, "//:inline", "")
+	runTest(t, "//:inline-filter", "")
+	runTest(t, "//:block", "")
+	runTest(t, "//:block-multiline", "")
 
-	expected := []string{
-		"has_errors.go:25:2: fmt.Printf format %d has arg s of wrong type string (printf)",
-		"has_errors.go:29:9: redundant or: true || true (bools)",
-	}
-
-	output := stderr.String()
-	for _, ex := range expected {
-		if !strings.Contains(output, ex) {
-			t.Errorf("output did not match expected: %s", ex)
-		}
-	}
+	// Execute tests that should return unfiltered errors
+	runTest(t, "//:inline-errors", "inline_errors.go:9:15: nil dereference in load (nilness)")
+	runTest(t, "//:inline-column", "inline_column.go:8:27: redundant or: true || true (bools)")
 }
 
 func replaceInFile(path, old, new string) error {
