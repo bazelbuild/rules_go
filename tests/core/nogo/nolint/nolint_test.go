@@ -39,40 +39,48 @@ nogo(
 go_library(
     name = "inline",
     srcs = ["inline.go"],
-    importpath = "inline",
+    importpath = "test",
 )
 
 go_library(
-    name = "inline-filter",
+    name = "inline_filter",
     srcs = ["inline_filter.go"],
-    importpath = "inlinefilter",
+    importpath = "test",
 )
 
 go_library(
     name = "block",
     srcs = ["block.go"],
-    importpath = "block",
+    importpath = "test",
 )
 
 go_library(
-    name = "block-multiline",
+    name = "block_multiline",
     srcs = ["block_multiline.go"],
-    importpath = "blockmultiline",
+    importpath = "test",
 )
 
 go_library(
-    name = "inline-errors",
+    name = "inline_errors",
     srcs = ["inline_errors.go"],
-    importpath = "inlineerrors",
+    importpath = "test",
 )
 
 go_library(
-    name = "inline-column",
+    name = "inline_column",
 		srcs = ["inline_column.go"],
-		importpath = "inlinecolumn",
+		importpath = "test",
+)
+
+go_library(
+    name = "large_block",
+		srcs = ["large_block.go"],
+		importpath = "test",
 )
 -- inline.go --
-package inline
+package test
+
+import "fmt"
 
 func F() {
 	s := "hello"
@@ -80,14 +88,14 @@ func F() {
 }
 
 -- inline_filter.go --
-package inlinefilter
+package test
 
 func F() bool {
 	return true || true //nolint:bools
 }
 
 -- block.go --
-package block
+package test
 
 import "fmt"
 
@@ -97,7 +105,7 @@ func F() {
 }
 
 -- block_multiline.go --
-package blockmultiline
+package test
 
 func F() bool {
 	var i *int
@@ -107,7 +115,7 @@ func F() bool {
 }
 
 -- inline_errors.go --
-package inlineerrors
+package test
 
 import "fmt"
 
@@ -120,7 +128,7 @@ func F() {
 }
 
 -- inline_column.go --
-package inlinecolumn
+package test
 
 import "fmt"
 
@@ -129,6 +137,19 @@ func F() {
 	fmt.Printf("%d", "helo") //nolint
 	superLongVariableName := true || true
 	var _ = superLongVariableName
+}
+
+-- large_block.go --
+package test
+
+import "fmt"
+
+var V = struct {
+	S string
+	B bool
+} {
+	S: fmt.Sprintf("%d", "hello"), //nolint
+	B: true || true,
 }
 `,
 	})
@@ -141,10 +162,13 @@ func runTest(t *testing.T, target string, expected string) {
 	stderr := &bytes.Buffer{}
 	cmd.Stderr = stderr
 	err := cmd.Run()
-	if expected != "" && err == nil {
-		t.Fatal("unexpected success")
-	}
 	output := stderr.String()
+	if expected != "" && err == nil {
+		t.Fatal("unexpected success", output)
+	}
+	if expected == "" && err != nil {
+		t.Fatal("unexpected failure", output)
+	}
 	if !strings.Contains(output, expected) {
 		t.Errorf("output did not contain expected: %s\n%s", expected, output)
 	}
@@ -158,13 +182,14 @@ func Test(t *testing.T) {
 
 	// Execute tests that should filter out errors
 	runTest(t, "//:inline", "")
-	runTest(t, "//:inline-filter", "")
+	runTest(t, "//:inline_filter", "")
 	runTest(t, "//:block", "")
-	runTest(t, "//:block-multiline", "")
+	runTest(t, "//:block_multiline", "")
 
 	// Execute tests that should return unfiltered errors
-	runTest(t, "//:inline-errors", "inline_errors.go:9:15: nil dereference in load (nilness)")
-	runTest(t, "//:inline-column", "inline_column.go:8:27: redundant or: true || true (bools)")
+	runTest(t, "//:inline_errors", "inline_errors.go:9:15: nil dereference in load (nilness)")
+	runTest(t, "//:inline_column", "inline_column.go:8:27: redundant or: true || true (bools)")
+	runTest(t, "//:large_block", "large_block.go:10:5: redundant or: true || true (bools)")
 }
 
 func replaceInFile(path, old, new string) error {

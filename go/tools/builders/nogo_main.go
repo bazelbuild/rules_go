@@ -204,61 +204,29 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 
 	// Process nolint directives similar to golangci-lint.
 	for _, f := range pkg.syntax {
-		// First, gather all comments and apply a range to the entire comment block.
-		// This will cover inline comments and allow us to detect comments above a
-		// node later.
-		for _, group := range f.Comments {
-			for _, comm := range group.List {
-				linters, ok := parseNolint(comm.Text)
-				if !ok {
-					continue
-				}
-				nl := &Range{
-					from: pkg.fset.Position(group.Pos()),
-					to:   pkg.fset.Position(group.End()).Line,
-				}
-				for analyzer, act := range actions {
-					if linters == nil || linters[analyzer.Name] {
-						act.nolint = append(act.nolint, nl)
+		// CommentMap will correctly associate comments to the largest node group
+		// applicable. This handles inline comments that might trail a large
+		// assignment and will apply the comment to the entire assignment.
+		commentMap := ast.NewCommentMap(pkg.fset, f, f.Comments)
+		for node, groups := range commentMap {
+			rng := &Range{
+				from: pkg.fset.Position(node.Pos()),
+				to:   pkg.fset.Position(node.End()).Line,
+			}
+			for _, group := range groups {
+				for _, comm := range group.List {
+					linters, ok := parseNolint(comm.Text)
+					if !ok {
+						continue
+					}
+					for analyzer, act := range actions {
+						if linters == nil || linters[analyzer.Name] {
+							act.nolint = append(act.nolint, rng)
+						}
 					}
 				}
 			}
 		}
-
-		// For each node in the ast, check if the previous line is covered by a
-		// range for the linter and expand it. The idea is to find instances of
-		//
-		//   //nolint
-		//   someExpression(that{
-		//     may: split,
-		//     multiple: lines,
-		//   })
-		//
-		// We should apply the range to the entire function call expression.
-		ast.Inspect(f, func(n ast.Node) bool {
-			if n == nil {
-				return true
-			}
-
-			nodeStart := pkg.fset.Position(n.Pos())
-			nodeEnd := pkg.fset.Position(n.End())
-			for _, act := range actions {
-				for _, rng := range act.nolint {
-					if rng.from.Filename != nodeStart.Filename {
-						continue
-					}
-					if rng.to != nodeStart.Line-1 || rng.from.Column != nodeStart.Column {
-						continue
-					}
-					// Expand the range to cover this node
-					if nodeEnd.Line > rng.to {
-						rng.to = nodeEnd.Line
-					}
-				}
-			}
-
-			return true
-		})
 	}
 
 	// Execute the analyzers.
