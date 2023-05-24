@@ -121,7 +121,6 @@ def _build_stdlib(go):
     args.add("-out", pkg.dirname)
     if go.mode.race:
         args.add("-race")
-    args.add_all(go.sdk.experiments, before_each = "-experiment")
     args.add("-package", "std")
     if not go.mode.pure:
         args.add("-package", "runtime/cgo")
