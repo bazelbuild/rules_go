@@ -62,10 +62,6 @@ load(
     "apple_ensure_options",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@bazel_skylib//rules:common_settings.bzl",
     "BuildSettingInfo",
 )

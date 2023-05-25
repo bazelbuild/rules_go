@@ -78,7 +78,7 @@ If you have a use case that would require this, please explain it in an issue.
 Add the following to your top-level BUILD file, including your Go module's path in a [Gazelle directive](https://github.com/bazelbuild/bazel-gazelle#directives):
 
 ```starlark
-load("@gazelle//:defs.bzl", "gazelle")
+load("@gazelle//:def.bzl", "gazelle")
 
 # gazelle:prefix github.com/example/project
 gazelle(name = "gazelle")

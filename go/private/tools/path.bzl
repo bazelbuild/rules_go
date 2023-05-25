@@ -210,8 +210,9 @@ go_path = rule(
                 <li><code>"archive"</code>: The generated directory is packaged as a single .zip file.</li>
                 <li><code>"copy"</code>: The generated directory is a single tree artifact. Source files
                 are copied into the tree.</li>
-                <li><code>"link"</code>: Source files are symlinked into the tree. All of the symlink
-                files are provided as separate output files.</li>
+                <li><code>"link"</code>: <b>Unmaintained due to correctness issues</b>. Source files
+                are symlinked into the tree. All of the symlink files are provided as separate output
+                files.</li>
             </ul>
 
             ***Note:*** In <code>"copy"</code> mode, when a <code>GoPath</code> is consumed as a set of input

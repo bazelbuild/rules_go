@@ -16,8 +16,11 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"go/build"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 )
 
@@ -56,4 +59,19 @@ func signalContext(parentCtx context.Context, signals ...os.Signal) (ctx context
 	signal.Notify(ch, signals...)
 
 	return ctx, cancel
+}
+
+func isLocalPattern(pattern string) bool {
+	return build.IsLocalImport(pattern) || filepath.IsAbs(pattern)
+}
+
+func packageID(pattern string) string {
+	pattern = path.Clean(pattern)
+	if filepath.IsAbs(pattern) {
+		if relPath, err := filepath.Rel(workspaceRoot, pattern); err == nil {
+			pattern = relPath
+		}
+	}
+
+	return fmt.Sprintf("//%s", pattern)
 }

@@ -16,7 +16,7 @@ test_suite(name = "go_path")
         "//tests/core/go_path/pkg/lib:go_default_test",
         "//tests/core/go_path/pkg/lib:vendored",
     ],
-) for mode in ("archive", "copy", "link")]
+) for mode in ("archive", "copy")]
 
 go_path(
     name = "transition_path",
@@ -62,7 +62,6 @@ go_test(
     args = [
         "-archive_path=$(location :archive_path)",
         "-copy_path=$(location :copy_path)",
-        "-link_path=tests/core/go_path/link_path",  # can't use location; not a single file
         "-nodata_path=$(location :nodata_path)",
         "-embed_path=$(location :embed_path)",
         "-embed_no_srcs_path=$(location :embed_no_srcs_path)",
@@ -73,7 +72,6 @@ go_test(
         ":copy_path",
         ":embed_no_srcs_path",
         ":embed_path",
-        ":link_path",
         ":nodata_path",
         ":notransitive_path",
         ":transition_path",

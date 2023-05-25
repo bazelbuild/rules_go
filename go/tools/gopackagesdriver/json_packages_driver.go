@@ -47,8 +47,8 @@ func NewJSONPackagesDriver(jsonFiles []string, prf PathResolverFunc) (*JSONPacka
 	return jpd, nil
 }
 
-func (b *JSONPackagesDriver) Match(pattern ...string) *driverResponse {
-	rootPkgs, packages := b.registry.Match(pattern...)
+func (b *JSONPackagesDriver) GetResponse(labels []string) *driverResponse {
+	rootPkgs, packages := b.registry.Match(labels)
 
 	return &driverResponse{
 		NotHandled: false,

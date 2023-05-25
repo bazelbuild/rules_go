@@ -95,9 +95,9 @@ var outputUserRoot string
 // TestMain should be called by tests using this framework from a function named
 // "TestMain". For example:
 //
-//     func TestMain(m *testing.M) {
-//       os.Exit(bazel_testing.TestMain(m, bazel_testing.Args{...}))
-//     }
+//	func TestMain(m *testing.M) {
+//	  os.Exit(bazel_testing.TestMain(m, bazel_testing.Args{...}))
+//	}
 //
 // TestMain constructs a set of workspaces and changes the working directory to
 // the main workspace.
@@ -165,7 +165,11 @@ func TestMain(m *testing.M, args Args) {
 func BazelCmd(args ...string) *exec.Cmd {
 	cmd := exec.Command("bazel")
 	if outputUserRoot != "" {
-		cmd.Args = append(cmd.Args, "--output_user_root="+outputUserRoot)
+		cmd.Args = append(cmd.Args,
+			"--output_user_root="+outputUserRoot,
+			"--nosystem_rc",
+			"--nohome_rc",
+		)
 	}
 	cmd.Args = append(cmd.Args, args...)
 	for _, e := range os.Environ() {

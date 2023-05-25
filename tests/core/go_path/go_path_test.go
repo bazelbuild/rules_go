@@ -29,7 +29,7 @@ import (
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
 )
 
-var copyPath, embedPath, embedNoSrcsPath, linkPath, archivePath, nodataPath, notransitivePath string
+var copyPath, embedPath, embedNoSrcsPath, archivePath, nodataPath, notransitivePath string
 
 var defaultMode = runtime.GOOS + "_" + runtime.GOARCH
 
@@ -57,7 +57,6 @@ var files = []string{
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&copyPath, "copy_path", "", "path to copied go_path")
-	flag.StringVar(&linkPath, "link_path", "", "path to symlinked go_path")
 	flag.StringVar(&archivePath, "archive_path", "", "path to archive go_path")
 	flag.StringVar(&nodataPath, "nodata_path", "", "path to go_path without data")
 	flag.StringVar(&embedPath, "embed_path", "", "path to go_path with embedsrcs")
@@ -72,13 +71,6 @@ func TestCopyPath(t *testing.T) {
 		t.Fatal("-copy_path not set")
 	}
 	checkPath(t, copyPath, files)
-}
-
-func TestLinkPath(t *testing.T) {
-	if linkPath == "" {
-		t.Fatal("-link_path not set")
-	}
-	checkPath(t, linkPath, files)
 }
 
 func TestEmbedPath(t *testing.T) {
@@ -187,7 +179,7 @@ func checkPath(t *testing.T, dir string, files []string) {
 			wantAbsent = true
 		}
 		path := filepath.Join(dir, filepath.FromSlash(f))
-		st, err := os.Lstat(path)
+		st, err := os.Stat(path)
 		if wantAbsent {
 			if err == nil {
 				t.Errorf("found %s: should not be present", path)

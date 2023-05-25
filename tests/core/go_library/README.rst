@@ -2,10 +2,11 @@ Basic go_library functionality
 ==============================
 
 .. _go_library: /docs/go/core/rules.md#_go_library
-.. #1262: https://github.com/bazelbuild/rules_go/issues/1262
-.. #1520: https://github.com/bazelbuild/rules_go/issues/1520
-.. #1772: https://github.com/bazelbuild/rules_go/issues/1772
-.. #2058: https://github.com/bazelbuild/rules_go/issues/2058
+.. _#1262: https://github.com/bazelbuild/rules_go/issues/1262
+.. _#1520: https://github.com/bazelbuild/rules_go/issues/1520
+.. _#1772: https://github.com/bazelbuild/rules_go/issues/1772
+.. _#2058: https://github.com/bazelbuild/rules_go/issues/2058
+.. _#3558: https://github.com/bazelbuild/rules_go/issues/3558
 
 empty
 -----
@@ -48,3 +49,9 @@ embedsrcs_error_test
 --------------------
 
 Verifies common errors with ``//go:embed`` directives are correctly reported.
+
+no_srcs_test
+------------
+
+Verifies that `go_library`_ targets without Go source files build concurrently,
+even unsandboxed, and reproducibly. Verifies `#3558`_.

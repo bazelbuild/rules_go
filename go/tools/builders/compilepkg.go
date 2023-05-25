@@ -206,33 +206,31 @@ func compileArchive(
 	nogoSrcsOrigin := make(map[string]string)
 
 	if len(srcs.goSrcs) == 0 {
-		// We need to run the compiler to create a valid archive, even if there's
-		// nothing in it. GoPack will complain if we try to add assembly or cgo
-		// objects.
-		//
-		// _empty.go needs to be in a deterministic location (not tmpdir) in order
-		// to ensure deterministic output. The location also needs to be unique
-		// otherwise platforms without sandbox support may race to create/remove
-		// the file during parallel compilation.
-		emptyDir := filepath.Join(filepath.Dir(outPath), sanitizePathForIdentifier(importPath))
-		if err := os.Mkdir(emptyDir, 0o700); err != nil {
-			return fmt.Errorf("could not create directory for _empty.go: %v", err)
+		// We need to run the compiler to create a valid archive, even if there's nothing in it.
+		// Otherwise, GoPack will complain if we try to add assembly or cgo objects.
+		// A truly empty archive does not include any references to source file paths, which
+		// ensures hermeticity even though the temp file path is random.
+		emptyGoFile, err := os.CreateTemp(filepath.Dir(outPath), "*.go")
+		if err != nil {
+			return err
 		}
-		defer os.RemoveAll(emptyDir)
-
-		emptyPath := filepath.Join(emptyDir, "_empty.go")
-		if err := os.WriteFile(emptyPath, []byte("package empty\n"), 0o666); err != nil {
+		defer os.Remove(emptyGoFile.Name())
+		defer emptyGoFile.Close()
+		if _, err := emptyGoFile.WriteString("package empty\n"); err != nil {
+			return err
+		}
+		if err := emptyGoFile.Close(); err != nil {
 			return err
 		}
 
 		srcs.goSrcs = append(srcs.goSrcs, fileInfo{
-			filename: emptyPath,
+			filename: emptyGoFile.Name(),
 			ext:      goExt,
 			matched:  true,
 			pkg:      "empty",
 		})
 
-		nogoSrcsOrigin[emptyPath] = ""
+		nogoSrcsOrigin[emptyGoFile.Name()] = ""
 	}
 	packageName := srcs.goSrcs[0].pkg
 	var goSrcs, cgoSrcs []string
