@@ -409,12 +409,22 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
 
     ctx.report_progress("Downloading and extracting Go toolchain")
 
-    # BUG(#2771): Use a system tool to extract the archive instead of
-    # Bazel's implementation. With some configurations (macOS + Docker +
-    # some particular file system binding), Bazel's implementation rejects
-    # files with invalid unicode names. Go has at least one test case with a
-    # file like this, but we haven't been able to reproduce the failure, so
-    # instead, we use this workaround.
+    # TODO(#2771): After bazelbuild/bazel#18448 is merged and available in
+    # the minimum supported version of Bazel, remove the workarounds below.
+    #
+    # Go ships archives containing some non-ASCII file names, used in
+    # test cases for Go's build system. Bazel has a bug extracting these
+    # archives on certain file systems (macOS AFS at least, possibly also
+    # Docker on macOS with a bind mount).
+    #
+    # For .tar.gz files (available for most platforms), we work around this bug
+    # by using the system tar instead of ctx.download_and_extract.
+    #
+    # For .zip files, we use ctx.download_and_extract but with rename_files,
+    # changing certain paths that trigger the bug. This is only available
+    # in Bazel 6.0.0+ (bazelbuild/bazel#16052). The only situation where
+    # .zip files are needed seems to be a macOS host using a Windows toolchain
+    # for remote execution.
     if urls[0].endswith(".tar.gz"):
         if strip_prefix != "go":
             fail("strip_prefix not supported")
@@ -428,18 +438,15 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
             fail("error extracting Go SDK:\n" + res.stdout + res.stderr)
         ctx.delete("go_sdk.tar.gz")
     elif urls[0].endswith(".zip") and host_goos != "windows":
-        # Bazel on Windows does not have this bug, but we still need this
-        # workaround to extract a Windows .zip file from a Darwin or Linux host.
-        if strip_prefix != "go":
-            fail("strip_prefix not supported")
-        ctx.download(
+        ctx.download_and_extract(
             url = urls,
+            stripPrefix = strip_prefix,
             sha256 = sha256,
-            output = "go_sdk.zip",
+            rename_files = {
+                "go/test/fixedbugs/issue27836.dir/\336foo.go": "go/test/fixedbugs/issue27836.dir/thfoo.go",
+                "go/test/fixedbugs/issue27836.dir/\336main.go": "go/test/fixedbugs/issue27836.dir/thmain.go",
+            },
         )
-        res = ctx.execute(["bash", "-c", "unzip go_sdk.zip && mv go/* . && rmdir go"])
-        if res.return_code:
-            fail("error extracting Go SDK:\n" + res.stdout + res.stderr)
     else:
         ctx.download_and_extract(
             url = urls,
