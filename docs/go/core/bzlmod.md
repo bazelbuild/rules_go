@@ -170,7 +170,7 @@ go_deps.gazelle_override(
 )
 ```
 
-If you need to use a `gazelle_override` to get a public Go module to build with Bazel, consider contributing the directives to the [public registry for Gazelle directives](https://github.com/bazelbuild/bazel-gazelle/blob/master/internal/bzlmod/directives.bzl) via a PR.
+If you need to use a `gazelle_override` to get a public Go module to build with Bazel, consider contributing the directives to the [public registry for default Gazelle overrides](https://github.com/bazelbuild/bazel-gazelle/blob/master/internal/bzlmod/default_gazelle_overrides.bzl) via a PR.
 This will allow you to drop the `gazelle_override` tag and also makes the Go module usable in non-root Bazel modules.
 
 ### Not yet supported
