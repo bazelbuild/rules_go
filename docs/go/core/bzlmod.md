@@ -9,7 +9,7 @@ Add the following lines to your `MODULE.bazel` file:
 
 ```starlark
 bazel_dep(name = "rules_go", version = "0.39.1")
-bazel_dep(name = "gazelle", version = "0.29.0")
+bazel_dep(name = "gazelle", version = "0.31.0")
 ```
 
 The latest versions are always listed on https://registry.bazel.build/.
@@ -18,7 +18,7 @@ If you have WORKSPACE dependencies that reference rules_go and/or Gazelle, you c
 
 ```starlark
 bazel_dep(name = "rules_go", version = "0.39.1", repo_name = "io_bazel_rules_go")
-bazel_dep(name = "gazelle", version = "0.29.0", repo_name = "bazel_gazelle")
+bazel_dep(name = "gazelle", version = "0.31.0", repo_name = "bazel_gazelle")
 ```
 
 ## Registering Go SDKs
@@ -113,7 +113,8 @@ use_repo(
 )
 ```
 
-There is [ongoing work](https://github.com/bazelbuild/bazel-gazelle/pull/1511) targeted for Bazel 6.2.0 to automate the generation of the `use_repo` statement.
+Bazel emits a warning if the `use_repo` statement is out of date or missing entirely (requires Bazel 6.2.0 or higher).
+The warning contains a `buildozer` command to automatically fix the `MODULE.bazel` file (requires buildozer 6.1.1 or higher).
 
 Alternatively, you can specify a module extension tag to add an individual dependency.
 This can be useful for dependencies of generated code that `go mod tidy` would remove. (There is [ongoing work](https://github.com/bazelbuild/bazel-gazelle/pull/1495) to provide a Bazel-aware version of `tidy`.)
