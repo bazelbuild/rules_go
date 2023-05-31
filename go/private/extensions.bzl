@@ -4,7 +4,7 @@ load("//go/private:repositories.bzl", "go_rules_dependencies")
 def host_compatible_toolchain_impl(ctx):
     ctx.file("BUILD.bazel")
     ctx.file("defs.bzl", content = """
-host_compatible_sdk = Label({})
+HOST_COMPATIBLE_SDK = Label({})
 """.format(repr(ctx.attr.toolchain)))
 
 host_compatible_toolchain = repository_rule(
