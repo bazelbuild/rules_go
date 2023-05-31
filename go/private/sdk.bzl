@@ -59,7 +59,7 @@ def go_host_sdk(name, register_toolchains = True, **kwargs):
 
 def _go_download_sdk_impl(ctx):
     if not ctx.attr.goos and not ctx.attr.goarch:
-        goos, goarch = _detect_host_platform(ctx)
+        goos, goarch = detect_host_platform(ctx)
     else:
         if not ctx.attr.goos:
             fail("goarch set but goos not set")
@@ -173,7 +173,7 @@ def _to_constant_name(s):
 
 def go_toolchains_single_definition(ctx, *, prefix, goos, goarch, sdk_repo, sdk_type, sdk_version):
     if not goos and not goarch:
-        goos, goarch = _detect_host_platform(ctx)
+        goos, goarch = detect_host_platform(ctx)
     else:
         if not goos:
             fail("goarch set but goos not set")
@@ -354,7 +354,7 @@ def _go_wrap_sdk_impl(ctx):
     if ctx.attr.root_file:
         root_file = ctx.attr.root_file
     else:
-        goos, goarch = _detect_host_platform(ctx)
+        goos, goarch = detect_host_platform(ctx)
         platform = goos + "_" + goarch
         if platform not in ctx.attr.root_files:
             fail("unsupported platform {}".format(platform))
@@ -466,7 +466,7 @@ def _sdk_build_file(ctx, platform, version, experiments):
         content = _define_version_constants(version),
     )
 
-def _detect_host_platform(ctx):
+def detect_host_platform(ctx):
     goos = ctx.os.name
     if goos == "mac os x":
         goos = "darwin"

@@ -30,6 +30,9 @@ go_sdk.host(version = "3.0.0")
 # Bring the default SDK into scope to verify that it exists.
 use_repo(go_sdk, "go_default_sdk")
 
+# Bring the selected host compatible SDK into scope to verify that it exists.
+use_repo(go_sdk, "go_host_compatible_sdk_label")
+
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.module(
     path = "google.golang.org/grpc",

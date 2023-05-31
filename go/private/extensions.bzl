@@ -1,5 +1,24 @@
-load("//go/private:sdk.bzl", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
+load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
 load("//go/private:repositories.bzl", "go_rules_dependencies")
+
+def host_compatible_toolchain_impl(ctx):
+    ctx.file("BUILD.bazel")
+    ctx.file("defs.bzl", content = """
+host_compatible_sdk = Label({})
+""".format(repr(ctx.attr.toolchain)))
+
+host_compatible_toolchain = repository_rule(
+    implementation = host_compatible_toolchain_impl,
+    attrs = {
+        # We cannot use attr.label for the `toolchain` attribute since the module extension cannot
+        # refer to the repositories it creates by their apparent repository names.
+        "toolchain": attr.string(
+            doc = "The apparent label of a `ROOT` file in the repository of a host compatible toolchain created by the `go_sdk` extension",
+            mandatory = True,
+        ),
+    },
+    doc = "An external repository to expose the first host compatible toolchain",
+)
 
 _download_tag = tag_class(
     attrs = {
@@ -33,6 +52,11 @@ def _go_sdk_impl(ctx):
         else:
             multi_version_module[module.name] = False
 
+    # We remember the first host compatible toolchain declared by the download and host tags.
+    # The order follows bazel's iteration over modules (the toolchains declared by the root module are considered first).
+    # We know that at least `go_default_sdk` (which is declared by the `rules_go` module itself) is host compatible.
+    first_host_compatible_toolchain = None
+    host_detected_goos, host_detected_goarch = detect_host_platform(ctx)
     toolchains = []
     for module in ctx.modules:
         for index, download_tag in enumerate(module.tags.download):
@@ -65,6 +89,9 @@ def _go_sdk_impl(ctx):
                 urls = download_tag.urls,
                 version = download_tag.version,
             )
+
+            if (not download_tag.goos or download_tag.goos == host_detected_goos) and (not download_tag.goarch or download_tag.goarch == host_detected_goarch):
+                first_host_compatible_toolchain = first_host_compatible_toolchain or "@{}//:ROOT".format(name)
 
             toolchains.append(struct(
                 goos = download_tag.goos,
@@ -99,7 +126,9 @@ def _go_sdk_impl(ctx):
                 sdk_type = "host",
                 sdk_version = host_tag.version,
             ))
+            first_host_compatible_toolchain = first_host_compatible_toolchain or "@{}//:ROOT".format(name)
 
+    host_compatible_toolchain(name = "go_host_compatible_sdk_label", toolchain = first_host_compatible_toolchain)
     if len(toolchains) > _MAX_NUM_TOOLCHAINS:
         fail("more than {} go_sdk tags are not supported".format(_MAX_NUM_TOOLCHAINS))
 
