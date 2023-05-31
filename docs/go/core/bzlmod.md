@@ -75,13 +75,18 @@ If you have a use case that would require this, please explain it in an issue.
 
 ## Generating BUILD files
 
-Add the following to your top-level BUILD file, including your Go module's path in a [Gazelle directive](https://github.com/bazelbuild/bazel-gazelle#directives):
+Add the following to your top-level BUILD file:
 
 ```starlark
 load("@gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix github.com/example/project
 gazelle(name = "gazelle")
+```
+
+If there is no `go.mod` file in the same directory as your top-level BUILD file, also add the following [Gazelle directive](https://github.com/bazelbuild/bazel-gazelle#directives) to that BUILD file to supply Gazelle with your Go module's path:
+
+```starlark
+# gazelle:prefix github.com/example/project
 ```
 
 Then, use `bazel run //:gazelle` to (re-)generate BUILD files.
