@@ -1,4 +1,5 @@
 load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
+load("//go/private:nogo.bzl", "go_register_nogo")
 load("//go/private:repositories.bzl", "go_rules_dependencies")
 
 def host_compatible_toolchain_impl(ctx):
@@ -36,6 +37,12 @@ _host_tag = tag_class(
     attrs = {
         "name": attr.string(),
         "version": attr.string(),
+    },
+)
+
+_nogo_tag = tag_class(
+    attrs = {
+        "nogo": attr.string(mandatory = True),
     },
 )
 
@@ -128,6 +135,12 @@ def _go_sdk_impl(ctx):
             ))
             first_host_compatible_toolchain = first_host_compatible_toolchain or "@{}//:ROOT".format(name)
 
+        for index, nogo in enumerate(module.tags.nogo):
+            go_register_nogo(
+                nogo = nogo.nogo,
+                name = "io_bazel_rules_nogo",
+            )
+
     host_compatible_toolchain(name = "go_host_compatible_sdk_label", toolchain = first_host_compatible_toolchain)
     if len(toolchains) > _MAX_NUM_TOOLCHAINS:
         fail("more than {} go_sdk tags are not supported".format(_MAX_NUM_TOOLCHAINS))
@@ -179,6 +192,7 @@ go_sdk = module_extension(
     tag_classes = {
         "download": _download_tag,
         "host": _host_tag,
+        "nogo": _nogo_tag,
     },
 )
 
