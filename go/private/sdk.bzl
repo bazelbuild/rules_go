@@ -20,6 +20,10 @@ load(
     "//go/private:nogo.bzl",
     "go_register_nogo",
 )
+load(
+    "//go/private/skylib/lib:versions.bzl",
+    "versions",
+)
 
 MIN_SUPPORTED_VERSION = (1, 14, 0)
 
@@ -405,7 +409,7 @@ def _register_toolchains(repo):
 def _remote_sdk(ctx, urls, strip_prefix, sha256):
     if len(urls) == 0:
         fail("no urls specified")
-    host_goos, _ = _detect_host_platform(ctx)
+    host_goos, _ = detect_host_platform(ctx)
 
     ctx.report_progress("Downloading and extracting Go toolchain")
 
@@ -437,7 +441,9 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
         if res.return_code:
             fail("error extracting Go SDK:\n" + res.stdout + res.stderr)
         ctx.delete("go_sdk.tar.gz")
-    elif urls[0].endswith(".zip") and host_goos != "windows":
+    elif (urls[0].endswith(".zip") and
+          host_goos != "windows" and
+          versions.is_at_least("6.0.0", versions.get())):
         ctx.download_and_extract(
             url = urls,
             stripPrefix = strip_prefix,
