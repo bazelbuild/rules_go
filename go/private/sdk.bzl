@@ -443,7 +443,9 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
         ctx.delete("go_sdk.tar.gz")
     elif (urls[0].endswith(".zip") and
           host_goos != "windows" and
-          versions.is_at_least("6.0.0", versions.get())):
+          # Development versions of Bazel have an empty version string. We assume that they are
+          # more recent than the version that introduced rename_files.
+          versions.is_at_least("6.0.0", versions.get() or "6.0.0")):
         ctx.download_and_extract(
             url = urls,
             stripPrefix = strip_prefix,
