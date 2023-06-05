@@ -20,28 +20,60 @@ import (
 )
 
 func TestParseNolint(t *testing.T) {
-	assert := func(text string, linters map[string]bool, valid bool) {
-		result, ok := parseNolint(text)
-		if valid != ok {
-			t.Fatalf("parseNolint expect %t got %t", valid, ok)
-		}
-		if !reflect.DeepEqual(result, linters) {
-			t.Fatalf("parseNolint expect %v got %v", linters, result)
-		}
+	tests := []struct {
+		Name    string
+		Comment string
+		Valid   bool
+		Linters []string
+	}{
+		{
+			Name:    "Invalid",
+			Comment: "not a comment",
+		},
+		{
+			Name:    "No match",
+			Comment: "// comment",
+		},
+		{
+			Name:    "All linters",
+			Comment: "//nolint",
+			Valid:   true,
+		},
+		{
+			Name:    "All linters (explicit)",
+			Comment: "//nolint:all",
+			Valid:   true,
+		},
+		{
+			Name:    "Single linter",
+			Comment: "// nolint:foo",
+			Valid:   true,
+			Linters: []string{"foo"},
+		},
+		{
+			Name:    "Multiple linters",
+			Comment: "// nolint:a,b,c",
+			Valid:   true,
+			Linters: []string{"a", "b", "c"},
+		},
 	}
 
-	assert("not a comment", nil, false)
-	assert("// comment", nil, false)
-	assert("//nolint", nil, true)
-	assert("//nolint:all", nil, true)
-	assert("// nolint:foo", map[string]bool{"foo": true}, true)
-	assert(
-		"// nolint:foo,bar,baz",
-		map[string]bool{
-			"foo": true,
-			"bar": true,
-			"baz": true,
-		},
-		true,
-	)
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			result, ok := parseNolint(tc.Comment)
+			if tc.Valid != ok {
+				t.Fatalf("parseNolint expect %t got %t", tc.Valid, ok)
+			}
+			var linters map[string]bool
+			if len(tc.Linters) != 0 {
+				linters = make(map[string]bool)
+				for _, l := range tc.Linters {
+					linters[l] = true
+				}
+			}
+			if !reflect.DeepEqual(result, linters) {
+				t.Fatalf("parseNolint expect %v got %v", linters, result)
+			}
+		})
+	}
 }

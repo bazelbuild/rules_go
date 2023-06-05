@@ -155,41 +155,66 @@ var V = struct {
 	})
 }
 
-func runTest(t *testing.T, target string, expected string) {
-	t.Helper()
-
-	cmd := bazel_testing.BazelCmd("build", target)
-	stderr := &bytes.Buffer{}
-	cmd.Stderr = stderr
-	err := cmd.Run()
-	output := stderr.String()
-	if expected != "" && err == nil {
-		t.Fatal("unexpected success", output)
-	}
-	if expected == "" && err != nil {
-		t.Fatal("unexpected failure", output)
-	}
-	if !strings.Contains(output, expected) {
-		t.Errorf("output did not contain expected: %s\n%s", expected, output)
-	}
-}
-
 func Test(t *testing.T) {
 	customRegister := `go_register_toolchains(nogo = "@//:nogo")`
 	if err := replaceInFile("WORKSPACE", "go_register_toolchains()", customRegister); err != nil {
 		t.Fatal(err)
 	}
 
-	// Execute tests that should filter out errors
-	runTest(t, "//:inline", "")
-	runTest(t, "//:inline_filter", "")
-	runTest(t, "//:block", "")
-	runTest(t, "//:block_multiline", "")
+	tests := []struct {
+		Name     string
+		Target   string
+		Expected string
+	}{
+		{
+			Name:   "Inline comment",
+			Target: "//:inline",
+		},
+		{
+			Name:   "Inline with lint filter",
+			Target: "//:inline_filter",
+		},
+		{
+			Name:   "Block comment",
+			Target: "//:block",
+		},
+		{
+			Name:   "Multiline block comment",
+			Target: "//:block_multiline",
+		},
+		{
+			Name:     "Inline with errors",
+			Target:   "//:inline_errors",
+			Expected: "inline_errors.go:9:15: nil dereference in load (nilness)",
+		},
+		{
+			Name:     "Inline comment on same column does not apply",
+			Target:   "//:inline_column",
+			Expected: "inline_column.go:8:27: redundant or: true || true (bools)",
+		},
+		{
+			Name:     "Inline comment does not apply to larger block",
+			Target:   "//:large_block",
+			Expected: "large_block.go:10:5: redundant or: true || true (bools)",
+		},
+	}
 
-	// Execute tests that should return unfiltered errors
-	runTest(t, "//:inline_errors", "inline_errors.go:9:15: nil dereference in load (nilness)")
-	runTest(t, "//:inline_column", "inline_column.go:8:27: redundant or: true || true (bools)")
-	runTest(t, "//:large_block", "large_block.go:10:5: redundant or: true || true (bools)")
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			cmd := bazel_testing.BazelCmd("build", tc.Target)
+			b, err := cmd.CombinedOutput()
+			output := string(b)
+			if tc.Expected != "" && err == nil {
+				t.Fatal("unexpected success", output)
+			}
+			if tc.Expected == "" && err != nil {
+				t.Fatal("unexpected failure", output)
+			}
+			if !strings.Contains(output, tc.Expected) {
+				t.Errorf("output did not contain expected: %s\n%s", tc.Expected, output)
+			}
+		})
+	}
 }
 
 func replaceInFile(path, old, new string) error {
