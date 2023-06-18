@@ -94,10 +94,11 @@ def _build_env(go):
     # go std library doesn't use C++, so should not have -lstdc++
     # Also drop coverage flags as nothing in the stdlib is compiled with
     # coverage - we disable it for all CGo code anyway.
+    # NOTE(#3590): avoid forcing static linking.
     ldflags = [
         option
         for option in extldflags_from_cc_toolchain(go)
-        if option not in ("-lstdc++", "-lc++") and option not in COVERAGE_OPTIONS_DENYLIST
+        if option not in ("-lstdc++", "-lc++", "-static") and option not in COVERAGE_OPTIONS_DENYLIST
     ]
     env.update({
         "CGO_ENABLED": "1",
