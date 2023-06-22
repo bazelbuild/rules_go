@@ -546,7 +546,8 @@ def _detect_sdk_version(ctx, goroot):
     if ctx.path(version_file_path).exists:
         # VERSION file has version prefixed by go, eg. go1.18.3
         # 1.21: The version is the first line
-        version = ctx.read(version_file_path)[2:].splitlines()[0]
+        version_line = ctx.read(version_file_path).splitlines()[0]
+        version = version_line[2:]
         if ctx.attr.version and ctx.attr.version != version:
             fail("SDK is version %s, but version %s was expected" % (version, ctx.attr.version))
         return version
