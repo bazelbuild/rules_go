@@ -247,13 +247,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "go_googleapis",
-        # master, as of 2023-06-08
+        # master, as of 2022-12-05
         urls = [
-            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/77c99e43177c76ae1c1edacee7b6ac4e35a42f3d.zip",
-            "https://github.com/googleapis/googleapis/archive/77c99e43177c76ae1c1edacee7b6ac4e35a42f3d.zip",
+            "https://mirror.bazel.build/github.com/googleapis/googleapis/archive/83c3605afb5a39952bf0a0809875d41cf2a558ca.zip",
+            "https://github.com/googleapis/googleapis/archive/83c3605afb5a39952bf0a0809875d41cf2a558ca.zip",
         ],
-        sha256 = "34ac509ced3e261ef8093c3af3c6030be6c856d9b599620ce35781850a1e6010",
-        strip_prefix = "googleapis-77c99e43177c76ae1c1edacee7b6ac4e35a42f3d",
+        sha256 = "ba694861340e792fd31cb77274eacaf6e4ca8bda97707898f41d8bebfd8a4984",
+        strip_prefix = "googleapis-83c3605afb5a39952bf0a0809875d41cf2a558ca",
         patches = [
             # releaser:patch-cmd find . -name BUILD.bazel -delete
             Label("//third_party:go_googleapis-deletebuild.patch"),
