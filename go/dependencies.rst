@@ -7,7 +7,6 @@ Go workspace rules
 .. _github.com/gogo/protobuf: https://github.com/gogo/protobuf
 .. _github.com/golang/protobuf: https://github.com/golang/protobuf/
 .. _github.com/google/protobuf: https://github.com/google/protobuf/
-.. _github.com/googleapis/googleapis: https://github.com/googleapis/googleapis
 .. _github.com/mwitkow/go-proto-validators: https://github.com/mwitkow/go-proto-validators
 .. _golang.org/x/net: https://github.com/golang/net/
 .. _golang.org/x/sys: https://github.com/golang/sys/
@@ -106,13 +105,6 @@ It also declares some internal repositories not described here.
 | Pre-generated proto libraries for gRPC and Google APIs. Ideally,                            |
 | ``go_rules_dependencies`` should provide this, but it doesn't change often,                 |
 | and many things break without it.                                                           |
-+-------------------------------------------------+-------------------------------------------+
-| :value:`go_googleapis`                          | `github.com/googleapis/googleapis`_       |
-+-------------------------------------------------+-------------------------------------------+
-| Like :value:`org_golang_google_genproto` but provides ``go_proto_library``                  |
-| targets instead of ``go_library``. Ideally we should use                                    |
-| ``com_google_googleapis``, but Gazelle still resolves imports to this repo.                 |
-| See `#1986`_.                                                                               |
 +-------------------------------------------------+-------------------------------------------+
 
 Proto dependencies

@@ -75,10 +75,10 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "727f3e4edd96ea20c29e8c2ca9e8d2af724d8c7778e7923a854b2c80952bc405",
+    sha256 = "178eba9540a616bda314afa25a91f195758a9fed178eda72e149eb0d20e9b670",
+    strip_prefix = "bazel-gazelle-9fe0a3ff751647789690293dcbb3c87ea33b7566",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/archive/9fe0a3ff751647789690293dcbb3c87ea33b7566.zip",
     ],
 )
 
@@ -117,6 +117,30 @@ go_repository(
     importpath = "golang.org/x/oauth2",
     sum = "h1:Lh8GPgSKBfWSwFvtuWOfeI3aAAnbXTSutYxJiOJFgIw=",
     version = "v0.6.0",
+)
+
+go_repository(
+    name = "googleapis",
+    build_directives = [
+        "gazelle:go_generate_proto false",
+        "gazelle:resolve proto google/protobuf/wrappers.proto @com_google_protobuf//:wrappers_proto",
+    ],
+    build_file_generation = "on",
+    importpath = "github.com/googleapis/googleapis",
+    strip_prefix = "googleapis-64926d52febbf298cb82a8f472ade4a3969ba922",
+    urls = [
+        "https://github.com/googleapis/googleapis/archive/64926d52febbf298cb82a8f472ade4a3969ba922.zip",
+    ],
+)
+
+go_repository(
+    name = "org_golang_google_genproto",
+    build_extra_args = ["-exclude=vendor"],
+    build_file_generation = "on",
+    build_file_proto_mode = "disable_global",
+    importpath = "google.golang.org/genproto",
+    sum = "h1:S9GbmC1iCgvbLyAokVCwiO6tVIrU9Y7c5oMx1V/ki/Y=",
+    version = "v0.0.0-20221024183307-1bc688fe9f3e",
 )
 
 # TODO(sluongng): Gazelle v0.25.0 switched to static dependency resolution which cause
@@ -180,8 +204,13 @@ load(
 
 apple_support_dependencies()
 
-# For testing the compatibility with a hermetic cc toolchain. Users should not have to enable it.
+load("@googleapis//:repository_rules.bzl", "switched_rules_by_language")
 
+switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+)
+
+# For testing the compatibility with a hermetic cc toolchain. Users should not have to enable it.
 http_archive(
     name = "hermetic_cc_toolchain",
     sha256 = "bd2234acd0837251361be3270d7d3ce599b418be123d902d84762302e31a3014",

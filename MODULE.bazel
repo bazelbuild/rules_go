@@ -13,7 +13,6 @@ bazel_dep(name = "protobuf", version = "3.19.2", repo_name = "com_google_protobu
 non_module_dependencies = use_extension("//go/private:extensions.bzl", "non_module_dependencies")
 use_repo(
     non_module_dependencies,
-    "go_googleapis",
     "io_bazel_rules_nogo",
 )
 
