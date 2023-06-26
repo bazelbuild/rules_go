@@ -92,7 +92,17 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 			label = fmt.Sprintf("@%s", label)
 		}
 
-		roots[label] = struct{}{}
+		if label == RulesGoStdlibLabel {
+			// For stdlib, we need to append all the subpackages as roots
+			// since RulesGoStdLibLabel doesn't actually show up in the stdlib pkg.json
+			for _, pkg := range pr.packagesByID {
+				if pkg.Standard {
+					roots[pkg.ID] = struct{}{}
+				}
+			}
+		} else {
+			roots[label] = struct{}{}
+		}
 	}
 
 	walkedPackages := map[string]*FlatPackage{}
