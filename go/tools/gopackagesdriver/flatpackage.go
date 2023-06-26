@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-type ResolvePkgFunc func(importPath string) *FlatPackage
+type ResolvePkgFunc func(importPath string) string
 
 // Copy and pasted from golang.org/x/tools/go/packages
 type FlatPackagesError struct {
@@ -89,6 +89,7 @@ func WalkFlatPackagesFromJSON(jsonFile string, onPkg PackageFunc) error {
 		if err := decoder.Decode(&pkg); err != nil {
 			return fmt.Errorf("unable to decode package in %s: %w", f.Name(), err)
 		}
+
 		onPkg(pkg)
 	}
 	return nil
@@ -113,10 +114,10 @@ func (fp *FlatPackage) IsStdlib() bool {
 	return fp.Standard
 }
 
-func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) {
+func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) error {
 	// Stdlib packages are already complete import wise
 	if fp.IsStdlib() {
-		return
+		return nil
 	}
 
 	fset := token.NewFileSet()
@@ -124,12 +125,13 @@ func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) {
 	for _, file := range fp.CompiledGoFiles {
 		f, err := parser.ParseFile(fset, file, nil, parser.ImportsOnly)
 		if err != nil {
-			continue
+			return err
 		}
 		// If the name is not provided, fetch it from the sources
 		if fp.Name == "" {
 			fp.Name = f.Name.Name
 		}
+
 		for _, rawImport := range f.Imports {
 			imp, err := strconv.Unquote(rawImport.Path.Value)
 			if err != nil {
@@ -142,14 +144,14 @@ func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) {
 			if _, ok := fp.Imports[imp]; ok {
 				continue
 			}
-			if pkg := resolve(imp); pkg != nil {
-				if fp.Imports == nil {
-					fp.Imports = map[string]string{}
-				}
-				fp.Imports[imp] = pkg.ID
+
+			if pkgID := resolve(imp); pkgID != "" {
+				fp.Imports[imp] = pkgID
 			}
 		}
 	}
+
+	return nil
 }
 
 func (fp *FlatPackage) IsRoot() bool {

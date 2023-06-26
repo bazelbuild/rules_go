@@ -62,10 +62,6 @@ load(
     "apple_ensure_options",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
-)
-load(
     "@bazel_skylib//rules:common_settings.bzl",
     "BuildSettingInfo",
 )
@@ -437,6 +433,7 @@ def go_context(ctx, attr = None):
     env = {
         "GOARCH": mode.goarch,
         "GOOS": mode.goos,
+        "GOEXPERIMENT": ",".join(toolchain.sdk.experiments),
         "GOROOT": goroot,
         "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",

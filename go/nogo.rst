@@ -136,9 +136,13 @@ Relationship with other linters
 ~~~~~~~~~~~~~~~~~~~~~
 
 In Golang, a linter is composed of multiple parts:
+
 - A collection of rules (checks) that define different validations against the source code
+
 - Optionally, each rules could be coupled with a fixer that can automatically fix the code.
+
 - A configuration framework that allows users to enable/disable rules, and configure the rules.
+
 - A runner binary that orchestrate the above components.
 
 To help with the above, Go provides a framework called `analysis`_ that allows

@@ -56,7 +56,6 @@ func compilePkg(args []string) error {
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
-	var experiments multiFlag
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&coverSrcs, "cover", ".go file that should be instrumented for coverage (must also be a -src)")
 	fs.Var(&embedSrcs, "embedsrc", "file that may be compiled into the package with a //go:embed directive")
@@ -72,7 +71,6 @@ func compilePkg(args []string) error {
 	fs.Var(&cxxFlags, "cxxflags", "C++ compiler flags")
 	fs.Var(&objcFlags, "objcflags", "Objective-C compiler flags")
 	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
-	fs.Var(&experiments, "experiment", "Go experiments to enable via GOEXPERIMENT")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
@@ -131,10 +129,6 @@ func compilePkg(args []string) error {
 		srcs.goSrcs = libSrcs
 	default:
 		return fmt.Errorf("invalid test filter %q", testFilter)
-	}
-
-	if len(experiments) > 0 {
-		os.Setenv("GOEXPERIMENT", strings.Join(experiments, ","))
 	}
 
 	return compileArchive(
@@ -212,33 +206,31 @@ func compileArchive(
 	nogoSrcsOrigin := make(map[string]string)
 
 	if len(srcs.goSrcs) == 0 {
-		// We need to run the compiler to create a valid archive, even if there's
-		// nothing in it. GoPack will complain if we try to add assembly or cgo
-		// objects.
-		//
-		// _empty.go needs to be in a deterministic location (not tmpdir) in order
-		// to ensure deterministic output. The location also needs to be unique
-		// otherwise platforms without sandbox support may race to create/remove
-		// the file during parallel compilation.
-		emptyDir := filepath.Join(filepath.Dir(outPath), sanitizePathForIdentifier(importPath))
-		if err := os.Mkdir(emptyDir, 0o700); err != nil {
-			return fmt.Errorf("could not create directory for _empty.go: %v", err)
+		// We need to run the compiler to create a valid archive, even if there's nothing in it.
+		// Otherwise, GoPack will complain if we try to add assembly or cgo objects.
+		// A truly empty archive does not include any references to source file paths, which
+		// ensures hermeticity even though the temp file path is random.
+		emptyGoFile, err := os.CreateTemp(filepath.Dir(outPath), "*.go")
+		if err != nil {
+			return err
 		}
-		defer os.RemoveAll(emptyDir)
-
-		emptyPath := filepath.Join(emptyDir, "_empty.go")
-		if err := os.WriteFile(emptyPath, []byte("package empty\n"), 0o666); err != nil {
+		defer os.Remove(emptyGoFile.Name())
+		defer emptyGoFile.Close()
+		if _, err := emptyGoFile.WriteString("package empty\n"); err != nil {
+			return err
+		}
+		if err := emptyGoFile.Close(); err != nil {
 			return err
 		}
 
 		srcs.goSrcs = append(srcs.goSrcs, fileInfo{
-			filename: emptyPath,
+			filename: emptyGoFile.Name(),
 			ext:      goExt,
 			matched:  true,
 			pkg:      "empty",
 		})
 
-		nogoSrcsOrigin[emptyPath] = ""
+		nogoSrcsOrigin[emptyGoFile.Name()] = ""
 	}
 	packageName := srcs.goSrcs[0].pkg
 	var goSrcs, cgoSrcs []string

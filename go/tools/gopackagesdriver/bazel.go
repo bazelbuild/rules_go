@@ -122,6 +122,7 @@ func (b *Bazel) Build(ctx context.Context, args ...string) ([]string, error) {
 		if err := decoder.Decode(&namedSet); err != nil {
 			return nil, fmt.Errorf("unable to decode %s: %w", jsonFile.Name(), err)
 		}
+
 		if namedSet.NamedSetOfFiles != nil {
 			for _, f := range namedSet.NamedSetOfFiles.Files {
 				fileUrl, err := url.Parse(f.URI)

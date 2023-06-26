@@ -85,12 +85,17 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to create bazel instance: %w", err)
 	}
 
-	bazelJsonBuilder, err := NewBazelJSONBuilder(bazel, queries...)
+	bazelJsonBuilder, err := NewBazelJSONBuilder(bazel, request.Tests)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("unable to build JSON files: %w", err)
 	}
 
-	jsonFiles, err := bazelJsonBuilder.Build(ctx, request.Mode)
+	labels, err := bazelJsonBuilder.Labels(ctx, queries)
+	if err != nil {
+		return emptyResponse, fmt.Errorf("unable to lookup package: %w", err)
+	}
+
+	jsonFiles, err := bazelJsonBuilder.Build(ctx, labels, request.Mode)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("unable to build JSON files: %w", err)
 	}
@@ -100,7 +105,10 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to load JSON files: %w", err)
 	}
 
-	return driver.Match(queries...), nil
+	// Note: we are returning all files required to build a specific package.
+	// For file queries (`file=`), this means that the CompiledGoFiles will
+	// include more than the only file being specified.
+	return driver.GetResponse(labels), nil
 }
 
 func main() {

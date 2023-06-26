@@ -78,7 +78,7 @@ def emit_link(
     # Exclude -lstdc++ from link options. We don't want to link against it
     # unless we actually have some C++ code. _cgo_codegen will include it
     # in archives via CGO_LDFLAGS if it's needed.
-    extldflags = [f for f in extldflags_from_cc_toolchain(go) if f not in ("-lstdc++", "-lc++")]
+    extldflags = [f for f in extldflags_from_cc_toolchain(go) if f not in ("-lstdc++", "-lc++", "-static")]
 
     if go.coverage_enabled:
         extldflags.append("--coverage")
@@ -176,7 +176,6 @@ def emit_link(
     builder_args.add("-p", archive.data.importmap)
     tool_args.add_all(gc_linkopts)
     tool_args.add_all(go.toolchain.flags.link)
-    builder_args.add_all(go.sdk.experiments, before_each = "-experiment")
 
     # Do not remove, somehow this is needed when building for darwin/arm only.
     tool_args.add("-buildid=redacted")

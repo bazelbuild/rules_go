@@ -57,6 +57,7 @@ func Test(t *testing.T) {
 	for _, test := range []struct {
 		desc, rule       string
 		optToWantVersion map[string]string
+		fetchOnly        string
 	}{
 		{
 			desc: "version",
@@ -70,7 +71,8 @@ go_download_sdk(
 
 `,
 			optToWantVersion: map[string]string{"": "go1.16"},
-		}, {
+		},
+		{
 			desc: "custom_archives",
 			rule: `
 load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
@@ -114,6 +116,21 @@ go_download_sdk(
 				"--@io_bazel_rules_go//go/toolchain:sdk_version=1.17.1": "go1.17.1",
 			},
 		},
+		{
+			// Cover workaround for #2771.
+			desc: "windows_zip",
+			rule: `
+load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
+
+go_download_sdk(
+    name = "go_sdk",
+		goarch = "amd64",
+		goos = "windows",
+		version = "1.20.4",
+)
+`,
+			fetchOnly: "@go_sdk//:BUILD.bazel",
+		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
 			origWorkspaceData, err := ioutil.ReadFile("WORKSPACE")
@@ -142,6 +159,13 @@ go_register_toolchains()
 					t.Errorf("error restoring WORKSPACE: %v", err)
 				}
 			}()
+
+			if test.fetchOnly != "" {
+				if err := bazel_testing.RunBazel("fetch", test.fetchOnly); err != nil {
+					t.Fatal(err)
+				}
+				return
+			}
 
 			for opt, wantVersion := range test.optToWantVersion {
 				t.Run(wantVersion, func(t *testing.T) {

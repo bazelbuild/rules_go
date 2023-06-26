@@ -202,6 +202,33 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 		act.pkg = pkg
 	}
 
+	// Process nolint directives similar to golangci-lint.
+	for _, f := range pkg.syntax {
+		// CommentMap will correctly associate comments to the largest node group
+		// applicable. This handles inline comments that might trail a large
+		// assignment and will apply the comment to the entire assignment.
+		commentMap := ast.NewCommentMap(pkg.fset, f, f.Comments)
+		for node, groups := range commentMap {
+			rng := &Range{
+				from: pkg.fset.Position(node.Pos()),
+				to:   pkg.fset.Position(node.End()).Line,
+			}
+			for _, group := range groups {
+				for _, comm := range group.List {
+					linters, ok := parseNolint(comm.Text)
+					if !ok {
+						continue
+					}
+					for analyzer, act := range actions {
+						if linters == nil || linters[analyzer.Name] {
+							act.nolint = append(act.nolint, rng)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	// Execute the analyzers.
 	execAll(roots)
 
@@ -209,6 +236,11 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 	diagnostics := checkAnalysisResults(roots, pkg)
 	facts := pkg.facts.Encode()
 	return diagnostics, facts, nil
+}
+
+type Range struct {
+	from token.Position
+	to   int
 }
 
 // An action represents one unit of analysis work: the application of
@@ -226,6 +258,7 @@ type action struct {
 	diagnostics []analysis.Diagnostic
 	usesFacts   bool
 	err         error
+	nolint      []*Range
 }
 
 func (act *action) String() string {
@@ -273,6 +306,23 @@ func (act *action) execOnce() {
 		inputs[dep.a] = dep.result
 	}
 
+	ignoreNolintReporter := func(d analysis.Diagnostic) {
+		pos := act.pkg.fset.Position(d.Pos)
+		for _, rng := range act.nolint {
+			// The list of nolint ranges is built for the entire package. Make sure we
+			// only apply ranges to the correct file.
+			if pos.Filename != rng.from.Filename {
+				continue
+			}
+			if pos.Line < rng.from.Line || pos.Line > rng.to {
+				continue
+			}
+			// Found a nolint range. Ignore the issue.
+			return
+		}
+		act.diagnostics = append(act.diagnostics, d)
+	}
+
 	// Run the analysis.
 	factFilter := make(map[reflect.Type]bool)
 	for _, f := range act.a.FactTypes {
@@ -285,7 +335,7 @@ func (act *action) execOnce() {
 		Pkg:               act.pkg.types,
 		TypesInfo:         act.pkg.typesInfo,
 		ResultOf:          inputs,
-		Report:            func(d analysis.Diagnostic) { act.diagnostics = append(act.diagnostics, d) },
+		Report:            ignoreNolintReporter,
 		ImportPackageFact: act.pkg.facts.ImportPackageFact,
 		ExportPackageFact: act.pkg.facts.ExportPackageFact,
 		ImportObjectFact:  act.pkg.facts.ImportObjectFact,

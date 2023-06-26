@@ -21,14 +21,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
 
 type BazelJSONBuilder struct {
-	bazel    *Bazel
-	requests []string
+	bazel        *Bazel
+	includeTests bool
 }
 
 var RulesGoStdlibLabel = rulesGoRepositoryName + "//:stdlib"
@@ -42,6 +43,8 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 
 	if filepath.IsAbs(filename) {
 		label, _ = filepath.Rel(b.bazel.WorkspaceRoot(), filename)
+	} else if strings.HasPrefix(filename, "./") {
+		label = strings.TrimPrefix(filename, "./")
 	}
 
 	if matches := externalRe.FindStringSubmatch(filename); len(matches) == 5 {
@@ -79,31 +82,57 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 	return fmt.Sprintf(`kind("%s", same_pkg_direct_rdeps("%s"))`, strings.Join(kinds, "|"), label)
 }
 
+func (b *BazelJSONBuilder) getKind() string {
+	kinds := []string{"go_library"}
+	if b.includeTests {
+		kinds = append(kinds, "go_test")
+	}
+
+	return strings.Join(kinds, "|")
+}
+
+func (b *BazelJSONBuilder) localQuery(request string) string {
+	request = path.Clean(request)
+	if filepath.IsAbs(request) {
+		if relPath, err := filepath.Rel(workspaceRoot, request); err == nil {
+			request = relPath
+		}
+	}
+
+	if !strings.HasSuffix(request, "...") {
+		request = fmt.Sprintf("%s:*", request)
+	}
+
+	return fmt.Sprintf(`kind("%s", %s)`, b.getKind(), request)
+}
+
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
 	if strings.HasSuffix(importPath, "/...") {
 		importPath = fmt.Sprintf(`^%s(/.+)?$`, strings.TrimSuffix(importPath, "/..."))
 	}
-	return fmt.Sprintf(`kind("go_library", attr(importpath, "%s", deps(%s)))`, importPath, bazelQueryScope)
+
+	return fmt.Sprintf(
+		`kind("%s", attr(importpath, "%s", deps(%s)))`,
+		b.getKind(),
+		importPath,
+		bazelQueryScope)
 }
 
 func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
 	ret := make([]string, 0, len(requests))
 	for _, request := range requests {
 		result := ""
-		if request == "." || request == "./..." {
-			if bazelQueryScope != "" {
-				result = fmt.Sprintf(`kind("go_library", %s)`, bazelQueryScope)
-			} else {
-				result = fmt.Sprintf(RulesGoStdlibLabel)
-			}
-		} else if request == "builtin" || request == "std" {
-			result = fmt.Sprintf(RulesGoStdlibLabel)
-		} else if strings.HasPrefix(request, "file=") {
+		if strings.HasSuffix(request, ".go") {
 			f := strings.TrimPrefix(request, "file=")
 			result = b.fileQuery(f)
+		} else if isLocalPattern(request) {
+			result = b.localQuery(request)
+		} else if request == "builtin" || request == "std" {
+			result = fmt.Sprintf(RulesGoStdlibLabel)
 		} else if bazelQueryScope != "" {
 			result = b.packageQuery(request)
 		}
+
 		if result != "" {
 			ret = append(ret, result)
 		}
@@ -114,10 +143,10 @@ func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
 	return strings.Join(ret, " union ")
 }
 
-func NewBazelJSONBuilder(bazel *Bazel, requests ...string) (*BazelJSONBuilder, error) {
+func NewBazelJSONBuilder(bazel *Bazel, includeTests bool) (*BazelJSONBuilder, error) {
 	return &BazelJSONBuilder{
-		bazel:    bazel,
-		requests: requests,
+		bazel:        bazel,
+		includeTests: includeTests,
 	}, nil
 }
 
@@ -144,11 +173,12 @@ func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, e
 	if err != nil {
 		return nil, fmt.Errorf("unable to query: %w", err)
 	}
+
 	return labels, nil
 }
 
-func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, error) {
-	labels, err := b.query(ctx, b.queryFromRequests(b.requests...))
+func (b *BazelJSONBuilder) Labels(ctx context.Context, requests []string) ([]string, error) {
+	labels, err := b.query(ctx, b.queryFromRequests(requests...))
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
@@ -157,6 +187,10 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		return nil, fmt.Errorf("found no labels matching the requests")
 	}
 
+	return labels, nil
+}
+
+func (b *BazelJSONBuilder) Build(ctx context.Context, labels []string, mode LoadMode) ([]string, error) {
 	aspects := append(additionalAspects, goDefaultAspect)
 
 	buildArgs := concatStringsArrays([]string{
@@ -179,7 +213,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, mode LoadMode) ([]string, 
 		writer := bufio.NewWriter(targetsFile)
 		defer writer.Flush()
 		for _, l := range labels {
-			writer.WriteString(l+"\n")
+			writer.WriteString(l + "\n")
 		}
 		if err := writer.Flush(); err != nil {
 			return nil, fmt.Errorf("unable to flush data to target pattern file: %w", err)

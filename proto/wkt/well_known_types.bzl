@@ -1,6 +1,3 @@
-load("//go:def.bzl", "GoArchive", "GoLibrary", "GoSource")
-load("//proto:compiler.bzl", "GoProtoCompiler")
-
 _go_proto_library_suffix = "go_proto"
 
 # NOTE: since protobuf 3.14, the WKTs no longer use these paths. They're only
@@ -65,32 +62,3 @@ WELL_KNOWN_TYPES_APIV2 = [
     "@org_golang_google_protobuf//types/known/wrapperspb",
     "@org_golang_google_protobuf//types/pluginpb",
 ]
-
-# buildifier: disable=unused-variable
-def _go_proto_wrapper_compile(go, compiler, protos, imports, importpath):
-    return []
-
-def _go_proto_wrapper_impl(ctx):
-    return [
-        ctx.attr.library[GoLibrary],
-        ctx.attr.library[GoSource],
-        GoProtoCompiler(
-            deps = ctx.attr._deps,
-            compile = _go_proto_wrapper_compile,
-            valid_archive = True,
-        ),
-    ]
-
-go_proto_wrapper = rule(
-    implementation = _go_proto_wrapper_impl,
-    attrs = {
-        "library": attr.label(
-            mandatory = True,
-            providers = [GoLibrary, GoSource],
-        ),
-        "_deps": attr.label_list(
-            default = PROTO_RUNTIME_DEPS,
-            providers = [GoLibrary, GoSource, GoArchive],
-        ),
-    },
-)

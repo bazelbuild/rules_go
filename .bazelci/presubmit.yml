@@ -13,11 +13,6 @@ tasks:
       - tests/core/cgo/generate_imported_dylib.sh
     build_targets:
     - "//..."
-    test_flags:
-      # Temporary rollback to fix //tests/core/go_path builds
-      # https://github.com/bazelbuild/continuous-integration/commit/a95a916098d3015bb4ea20b7e33bc7d27d00bffc
-      - "--remote_download_outputs=all"
-      - "--build_runfile_links"
     test_targets:
     - "//..."
   ubuntu2004:
@@ -88,8 +83,6 @@ tasks:
     # TODO(#1787): There is a cc_import target in //tests/core/cgo that
     # doesn't set the interface_library attribute. This causes an
     # analysis failure.
-    # TODO(#1789): go_path tests that require symlinks fail. These should
-    # be skipped automatically.
     # TODO(#1790): Tests that require data should use bazel.Runfile.
     # TODO(#2516): Tests that require protoc fail when protoc is built with mingw-gcc.
     - "--"
@@ -188,7 +181,6 @@ tasks:
     - "-//tests/core/go_path:go_path"
     - "-//tests/core/go_path:go_path_test"
     - "-//tests/core/go_path:nodata_path"
-    - "-//tests/core/go_path:link_path"
     - "-//tests/core/go_path:copy_path"
     - "-//tests/core/go_path:archive_path"
     - "-//tests/core/go_path/pkg/lib:vendored"
@@ -293,7 +285,6 @@ tasks:
     - "-//tests/extras/go_embed_data:go_default_test"
     - "-//tests/core/go_path:go_path"
     - "-//tests/core/go_path:go_path_test"
-    - "-//tests/core/go_path:link_path"
     - "-//tests/core/go_path/pkg/lib:embed_test"
     - "-//tests/core/go_path/pkg/lib:go_default_test"
     - "-//tests/core/go_plugin:go_plugin"
@@ -341,8 +332,9 @@ tasks:
     platform: ubuntu2004
     working_directory: examples/basic-gazelle
     build_flags:
-      - "--incompatible_config_setting_private_default_visibility"
-      - "--incompatible_enforce_config_setting_visibility"
+      - "--config=incompatible"
+    test_flags:
+      - "--config=incompatible"
     build_targets:
       - "//..."
     test_targets:
@@ -352,8 +344,9 @@ tasks:
     platform: macos
     working_directory: examples/basic-gazelle
     build_flags:
-      - "--incompatible_config_setting_private_default_visibility"
-      - "--incompatible_enforce_config_setting_visibility"
+      - "--config=incompatible"
+    test_flags:
+      - "--config=incompatible"
     build_targets:
     - "//..."
     test_targets:
@@ -363,33 +356,19 @@ tasks:
     platform: windows
     working_directory: examples/basic-gazelle
     build_flags:
-    - "--incompatible_config_setting_private_default_visibility"
-    - "--incompatible_enforce_config_setting_visibility"
+    - "--config=incompatible"
     # Go requires a C toolchain that accepts options and emits errors like
     # gcc or clang. The Go SDK does not support MSVC.
-    - "--cpu=x64_windows"
-    - "--compiler=mingw-gcc"
     - '--action_env=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
     # NOTE(bazelbuild/bazel#10529): bazel doesn't register the mingw toolchain automatically.
     # We also need the host and target platforms to have the mingw constraint value.
-    - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
-    - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
-    - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
-    - "--incompatible_enable_cc_toolchain_resolution"
     build_targets:
     - "//..."
     test_targets:
     - "//..."
     test_flags:
-    # Go requires a C toolchain that accepts options and emits errors like
-    # gcc or clang. The Go SDK does not support MSVC.
-    - "--cpu=x64_windows"
-    - "--compiler=mingw-gcc"
+    - "--config=incompatible"
     - '--action_env=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
-    - "--extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw"
-    - "--host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
-    - "--platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo"
-    - "--incompatible_enable_cc_toolchain_resolution"
     # On Windows CI, bazel (bazelisk) needs %LocalAppData% to find the cache directory.
     # We invoke bazel in tests, so the tests need this, too.
     - "--test_env=LOCALAPPDATA"
