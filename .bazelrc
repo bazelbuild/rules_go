@@ -1,4 +1,5 @@
 common --enable_platform_specific_config
+test --test_output=errors
 
 # Go requires a C toolchain that accepts options and emits errors like
 
@@ -24,7 +25,6 @@ build:ci --sandbox_debug
 build:ci --spawn_strategy=standalone
 build:ci --genrule_strategy=standalone
 test:ci --test_strategy=standalone
-test:ci --test_output=errors
 
 # Incompatible flags to test in a dedicated CI pipeline.
 

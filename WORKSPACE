@@ -181,18 +181,19 @@ load(
 apple_support_dependencies()
 
 # For testing the compatibility with a hermetic cc toolchain. Users should not have to enable it.
-HERMETIC_CC_TOOLCHAIN_VERSION = "v1.0.1"
 
 http_archive(
-    name = "bazel-zig-cc",
-    sha256 = "e9f82bfb74b3df5ca0e67f4d4989e7f1f7ce3386c295fd7fda881ab91f83e509",
-    strip_prefix = "bazel-zig-cc-{}".format(HERMETIC_CC_TOOLCHAIN_VERSION),
-    urls = [
-        "https://mirror.bazel.build/github.com/uber/bazel-zig-cc/releases/download/{0}/{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
-        "https://github.com/uber/hermetic_cc_toolchain/releases/download/{0}/{0}.tar.gz".format(HERMETIC_CC_TOOLCHAIN_VERSION),
-    ],
+    name = "hermetic_cc_toolchain",
+    sha256 = "bd2234acd0837251361be3270d7d3ce599b418be123d902d84762302e31a3014",
+    strip_prefix = "hermetic_cc_toolchain-13c904dce0cb9b6d07f0d557e6ce3cf7013a562e",
+    urls = ["https://github.com/uber/hermetic_cc_toolchain/archive/13c904dce0cb9b6d07f0d557e6ce3cf7013a562e.zip"],
 )
 
-load("@bazel-zig-cc//toolchain:defs.bzl", zig_toolchains = "toolchains")
+load("@hermetic_cc_toolchain//toolchain:defs.bzl", zig_toolchains = "toolchains")
 
-zig_toolchains()
+zig_toolchains(
+    host_platform_sha256 = {
+        "linux-x86_64": "",
+    },
+    version = "0.11.0-dev.3857+7322aa118",
+)
