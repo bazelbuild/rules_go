@@ -65,11 +65,11 @@ def _should_use_sdk_stdlib(go):
 
 def _build_stdlib_list_json(go):
     out = go.declare_file(go, "stdlib.pkg.json")
-    cachepath = go.declare_directory(go, "stdlib.pkg.json.gocache")
+    cache_dir = go.declare_directory(go, "gocache")
     args = go.builder_args(go, "stdliblist")
     args.add("-sdk", go.sdk.root_file.dirname)
     args.add("-out", out)
-    args.add("-cachepath", cachepath.path)
+    args.add("-cache", cache_dir.path)
 
     inputs = go.sdk_files
     if not go.mode.pure:
@@ -77,7 +77,7 @@ def _build_stdlib_list_json(go):
 
     go.actions.run(
         inputs = inputs,
-        outputs = [out, cachepath],
+        outputs = [out, cache_dir],
         mnemonic = "GoStdlibList",
         executable = go.toolchain._builder,
         arguments = [args],

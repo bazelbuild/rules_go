@@ -194,7 +194,7 @@ func stdliblist(args []string) error {
 	flags := flag.NewFlagSet("stdliblist", flag.ExitOnError)
 	goenv := envFlags(flags)
 	out := flags.String("out", "", "Path to output go list json")
-	cachePath := flags.String("cachepath", "", "Path to use for GOCACHE")
+	cachePath := flags.String("cache", "", "Path to use for GOCACHE")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
