@@ -16,6 +16,7 @@ package cc_libs_test
 
 import (
 	"debug/elf"
+	"os"
 	"path"
 	"strings"
 	"testing"
@@ -30,16 +31,16 @@ func TestBinaries(t *testing.T) {
 	}{
 		{
 			shortPath: "tests/core/cgo/pure_bin",
-			wantLibs:  map[string]bool{"libc": false, "libstdc++": false},
+			wantLibs:  map[string]bool{"libc": false},
 		}, {
 			shortPath: "tests/core/cgo/c_srcs_bin",
-			wantLibs:  map[string]bool{"libc": true, "libstdc++": false},
+			wantLibs:  map[string]bool{"libc": true},
 		}, {
 			shortPath: "tests/core/cgo/cc_srcs_bin",
-			wantLibs:  map[string]bool{"libc": true, "libstdc++": true},
+			wantLibs:  map[string]bool{"libc": true},
 		}, {
 			shortPath: "tests/core/cgo/cc_deps_bin",
-			wantLibs:  map[string]bool{"libc": true, "libstdc++": true},
+			wantLibs:  map[string]bool{"libc": true},
 		},
 	} {
 		t.Run(path.Base(test.shortPath), func(t *testing.T) {
@@ -63,6 +64,54 @@ func TestBinaries(t *testing.T) {
 			}
 
 			verifyNoCachePaths(t, test.shortPath)
+		})
+	}
+}
+
+// zig cc statically links libstdc++: https://github.com/ziglang/zig/issues/12147
+// Consider merging this into TestBinaries once the above issue is resolved.
+func TestBinaries_libstdcpp(t *testing.T) {
+	if os.Getenv("ZIG_CC") == "1" {
+		t.Skip()
+	}
+
+	for _, test := range []struct {
+		shortPath string
+		wantLibs  map[string]bool
+	}{
+		{
+			shortPath: "tests/core/cgo/pure_bin",
+			wantLibs:  map[string]bool{"libstdc++": false},
+		}, {
+			shortPath: "tests/core/cgo/c_srcs_bin",
+			wantLibs:  map[string]bool{"libstdc++": false},
+		}, {
+			shortPath: "tests/core/cgo/cc_srcs_bin",
+			wantLibs:  map[string]bool{"libstdc++": true},
+		}, {
+			shortPath: "tests/core/cgo/cc_deps_bin",
+			wantLibs:  map[string]bool{"libstdc++": true},
+		},
+	} {
+		t.Run(path.Base(test.shortPath), func(t *testing.T) {
+			libs, err := listLibs(test.shortPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			haveLibs := make(map[string]bool)
+			for _, lib := range libs {
+				haveLibs[lib] = true
+			}
+			for haveLib := range haveLibs {
+				if wantLib, ok := test.wantLibs[haveLib]; ok && !wantLib {
+					t.Errorf("unexpected dependency on library %q", haveLib)
+				}
+			}
+			for wantLib, want := range test.wantLibs {
+				if want && !haveLibs[wantLib] {
+					t.Errorf("wanted dependency on library %q", wantLib)
+				}
+			}
 		})
 	}
 }

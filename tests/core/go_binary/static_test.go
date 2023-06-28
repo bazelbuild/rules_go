@@ -18,6 +18,7 @@ package static_cgo_test
 
 import (
 	"debug/elf"
+	"os"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel"
@@ -25,6 +26,11 @@ import (
 
 func TestStatic(t *testing.T) {
 	for _, name := range []string{"static_bin", "static_cgo_bin", "static_pure_bin"} {
+		if name != "static_pure_bin" && os.Getenv("ZIG_CC") == "1" {
+			// zig does not statically link glibc, by design or accident.
+			t.Skip()
+		}
+
 		t.Run(name, func(t *testing.T) {
 			path, ok := bazel.FindBinary("tests/core/go_binary", name)
 			if !ok {
