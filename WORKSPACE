@@ -193,10 +193,10 @@ load("@hermetic_cc_toolchain//toolchain:defs.bzl", zig_toolchains = "toolchains"
 
 zig_toolchains(
     host_platform_sha256 = {
-        "linux-aarch64": "",
-        "linux-x86_64": "",
-        "macos-aarch64": "",
-        "macos-x86_64": "",
-    },  # TODO(zplin): update with real sha
-    version = "0.11.0-dev.3857+7322aa118",
+        "linux-aarch64": "12be476ed53c219507e77737dbb7f2a77b280760b8acbc6ba2eaaeb42b7d145e",
+        "linux-x86_64": "1b1c115c4ccbdc215cc3b07833c7957336d9f5fff816f97e5cafee556a9d8be8",
+        "macos-aarch64": "3943612c560dd066fba5698968317a146a0f585f6cdaa1e7c1df86685c7c4eaf",
+        "macos-x86_64": "0c89e5d934ecbf9f4d2dea6e3b8dfcc548a3d4184a856178b3db74e361031a2b",
+    },
+    version = "0.11.0-dev.3886+0c1bfe271",
 )
