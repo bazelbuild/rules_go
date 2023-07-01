@@ -154,7 +154,8 @@ def _default_go_sdk_name(*, module, multi_version, tag_type, index):
     # Keep the version out of the repository name if possible to prevent unnecessary rebuilds when
     # it changes.
     return "{name}_{version}_{tag_type}_{index}".format(
-        name = module.name,
+        # "main_" is not a valid module name and thus can't collide.
+        name = module.name or "main_",
         version = module.version if multi_version else "",
         tag_type = tag_type,
         index = index,
