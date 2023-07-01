@@ -139,18 +139,18 @@ func absoluteSourcesPaths(cloneBase, pkgDir string, srcs []string) []string {
 // extension (which are from the cache). This is a work around for
 // https://golang.org/issue/28749: cmd/go puts assembly, C, and C++ files in
 // CompiledGoFiles.
-func filterGoFiles(srcs []string) []string {
+func filterGoFiles(srcs []string, pathReplaceFn func(p string) string) []string {
 	ret := make([]string, 0, len(srcs))
 	for _, f := range srcs {
 		if ext := filepath.Ext(f); ext == ".go" || ext == "" {
-			ret = append(ret, f)
+			ret = append(ret, pathReplaceFn(f))
 		}
 	}
 
 	return ret
 }
 
-func flatPackageForStd(cloneBase string, pkg *goListPackage) *flatPackage {
+func flatPackageForStd(cloneBase string, pkg *goListPackage, pathReplaceFn func(p string) string) *flatPackage {
 	goFiles := absoluteSourcesPaths(cloneBase, pkg.Dir, pkg.GoFiles)
 	compiledGoFiles := absoluteSourcesPaths(cloneBase, pkg.Dir, pkg.CompiledGoFiles)
 
@@ -162,7 +162,7 @@ func flatPackageForStd(cloneBase string, pkg *goListPackage) *flatPackage {
 		Imports:         map[string]string{},
 		Standard:        pkg.Standard,
 		GoFiles:         goFiles,
-		CompiledGoFiles: filterGoFiles(compiledGoFiles),
+		CompiledGoFiles: filterGoFiles(compiledGoFiles, pathReplaceFn),
 	}
 
 	// imports
@@ -194,6 +194,7 @@ func stdliblist(args []string) error {
 	flags := flag.NewFlagSet("stdliblist", flag.ExitOnError)
 	goenv := envFlags(flags)
 	out := flags.String("out", "", "Path to output go list json")
+	cachePath := flags.String("cache", "", "Path to use for GOCACHE")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -250,10 +251,10 @@ func stdliblist(args []string) error {
 	os.Setenv("CC", quotePathIfNeeded(abs(ccEnv)))
 
 	// We want to keep the cache around so that the processed files can be used by other tools.
-	cachePath := abs(*out + ".gocache")
-	os.Setenv("GOCACHE", cachePath)
-	os.Setenv("GOMODCACHE", cachePath)
-	os.Setenv("GOPATH", cachePath)
+	absCachePath := abs(*cachePath)
+	os.Setenv("GOCACHE", absCachePath)
+	os.Setenv("GOMODCACHE", absCachePath)
+	os.Setenv("GOPATH", absCachePath)
 
 	listArgs := goenv.goCmd("list")
 	if len(build.Default.BuildTags) > 0 {
@@ -279,12 +280,19 @@ func stdliblist(args []string) error {
 
 	encoder := json.NewEncoder(jsonFile)
 	decoder := json.NewDecoder(jsonData)
+	pathReplaceFn := func (s string) string {
+		if strings.HasPrefix(s, absCachePath) {
+			return strings.Replace(s, absCachePath, filepath.Join("__BAZEL_EXECROOT__", *cachePath), 1)
+		}
+
+		return s
+	}
 	for decoder.More() {
 		var pkg *goListPackage
 		if err := decoder.Decode(&pkg); err != nil {
 			return err
 		}
-		if err := encoder.Encode(flatPackageForStd(cloneBase, pkg)); err != nil {
+		if err := encoder.Encode(flatPackageForStd(cloneBase, pkg, pathReplaceFn)); err != nil {
 			return err
 		}
 	}
