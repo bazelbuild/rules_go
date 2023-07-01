@@ -27,9 +27,8 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
-  ubuntu2004_uber_hermetic_cc:
-    platform: ubuntu2004
-    # enable some unflipped incompatible flags on this platform to ensure we don't regress.
+  debian11_zig_cc:
+    platform: debian11
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
     build_flags:
