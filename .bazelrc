@@ -2,16 +2,12 @@ common --enable_platform_specific_config
 test --test_output=errors
 
 # Go requires a C toolchain that accepts options and emits errors like
-
 # gcc or clang. The Go SDK does not support MSVC.
-
 build:windows --cpu=x64_windows
 build:windows --compiler=mingw-gcc
 
 # NOTE(bazelbuild/bazel#10529): bazel doesn't register the mingw toolchain automatically.
-
 # We also need the host and target platforms to have the mingw constraint value.
-
 build:windows --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw
 build:windows --host_platform=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo
 build:windows --platforms=@io_bazel_rules_go//go/toolchain:windows_amd64_cgo
@@ -27,18 +23,13 @@ build:ci --genrule_strategy=standalone
 test:ci --test_strategy=standalone
 
 # Incompatible flags to test in a dedicated CI pipeline.
-
 build:incompatible --incompatible_load_proto_rules_from_bzl
 build:incompatible --incompatible_enable_cc_toolchain_resolution
 build:incompatible --incompatible_config_setting_private_default_visibility
 build:incompatible --incompatible_enforce_config_setting_visibility
 build:incompatible --incompatible_disallow_empty_glob
 build:incompatible --incompatible_disable_starlark_host_transitions
-
 # Also enable all incompatible flags in go_bazel_test by default.
-
 # TODO: Add --incompatible_disallow_empty_glob once
-
 # https://github.com/bazelbuild/bazel-gazelle/pull/1405 has been released.
-
 test:incompatible --test_env=GO_BAZEL_TEST_BAZELFLAGS='--incompatible_load_proto_rules_from_bzl --incompatible_enable_cc_toolchain_resolution --incompatible_config_setting_private_default_visibility --incompatible_enforce_config_setting_visibility --incompatible_disable_starlark_host_transitions'
