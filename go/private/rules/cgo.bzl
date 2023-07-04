@@ -60,7 +60,7 @@ def cgo_configure(go, srcs, cdeps, cppopts, copts, cxxopts, clinkopts):
     objcxxopts = go.cgo_tools.objcxx_compile_options + cxxopts
     clinkopts = [
         option for option in extldflags_from_cc_toolchain(go)
-        if option not in ("-static")
+        if option != "-static"
     ] + clinkopts
 
     # NOTE(#2545): avoid unnecessary dynamic link
