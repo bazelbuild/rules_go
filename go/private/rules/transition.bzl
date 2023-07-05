@@ -111,8 +111,10 @@ def _go_transition_impl(settings, attr):
     if tags:
         settings["//go/config:tags"] = _deduped_and_sorted(tags)
 
-    linkmode = getattr(attr, "linkmode", "auto")
-    if linkmode != "auto":
+    linkmode = getattr(attr, "linkmode", LINKMODE_NORMAL)
+    if linkmode != LINKMODE_NORMAL:
+        # linkmode takes precedence over //go/config:linkmode,
+        # because it offers a more detailed level of control.
         if linkmode not in LINKMODES:
             fail("linkmode: invalid mode {}; want one of {}".format(linkmode, ", ".join(LINKMODES)))
         settings["//go/config:linkmode"] = linkmode
