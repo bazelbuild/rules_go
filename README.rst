@@ -75,13 +75,13 @@ Slack: `#go on Bazel Slack`_, `#bazel on Go Slack`_
 Announcements
 -------------
 
-2023-03-27
+2023-06-28
   Release
   `v0.40.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.40.1>`_
   is now available. This release includes fixes a couple bugs in
   the go packages driver that were introduces in 0.40.0.
 
-2023-03-27
+2023-06-22
   Release
   `v0.40.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.40.0>`_
   is now available. Please check the release notes for details on what changed.
