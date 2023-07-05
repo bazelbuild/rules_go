@@ -20,7 +20,7 @@ load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 load("//proto:gogo.bzl", "gogo_special_proto")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def go_rules_dependencies(force = False):
+def go_rules_dependencies(force = False, is_bsd = False):
     """Declares workspaces the Go rules depend on. Workspaces that use
     rules_go should call this.
 
@@ -262,7 +262,17 @@ def go_rules_dependencies(force = False):
             # releaser:patch-cmd gazelle -repo_root .
             Label("//third_party:go_googleapis-gazelle.patch"),
         ],
-        patch_args = ["-E", "-p1"],
+        patch_args =
+            # https://github.com/bazelbuild/rules_go/pull/1954: on BSD, we need an extra argument.
+            # The patches that are shipped with googleapis have the intent of removing
+            # files from the input. Though GNU patch does this properly, the copy of
+            # patch shipped with FreeBSD does not do this explicitly. It needs the -E
+            # flag to do so.
+            ["-E", "-p1"] if is_bsd else
+            # Typical usage should have patch_args which contains only -p arguments, as this allows
+            # Bazel to use a built-in patch(1) implementation rather than depend on a patch command
+            # appearing on the user's $PATH
+            ["-p1"],
     )
 
     # releaser:upgrade-dep golang mock
