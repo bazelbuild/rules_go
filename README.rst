@@ -84,7 +84,9 @@ Announcements
 2023-06-22
   Release
   `v0.40.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.40.0>`_
-  is now available. Please check the release notes for details on what changed.
+  is now available. This release includes support for `//nolint` parsing,
+  as well as a large set of additional changes. Please check the release notes
+  for details.
 
 2023-03-27
   Release
