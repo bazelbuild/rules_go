@@ -119,14 +119,9 @@ go_repository(
     version = "v0.6.0",
 )
 
-go_repository(
+http_archive(
     name = "googleapis",
-    build_directives = [
-        "gazelle:go_generate_proto false",
-        "gazelle:resolve proto google/protobuf/wrappers.proto @com_google_protobuf//:wrappers_proto",
-    ],
-    build_file_generation = "on",
-    importpath = "github.com/googleapis/googleapis",
+    sha256 = "9d1a930e767c93c825398b8f8692eca3fe353b9aaadedfbcf1fca2282c85df88",
     strip_prefix = "googleapis-64926d52febbf298cb82a8f472ade4a3969ba922",
     urls = [
         "https://github.com/googleapis/googleapis/archive/64926d52febbf298cb82a8f472ade4a3969ba922.zip",
