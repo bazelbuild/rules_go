@@ -4,6 +4,7 @@ matrix:
     - debian10
     - ubuntu2004
     - macos
+    - macos_arm64
     - windows
 tasks:
   verify_targets:
