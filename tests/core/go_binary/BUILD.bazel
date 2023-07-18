@@ -109,6 +109,20 @@ linkmode_pie_wrapper(
 )
 
 go_test(
+    name = "hello_nopie_test_bin",
+    srcs = ["hello.go"],
+    cgo = True,
+    tags = ["manual"],
+)
+
+linkmode_pie_wrapper(
+    name = "hello_pie_setting_test_bin",
+    testonly = True,
+    tags = ["manual"],
+    target = ":hello_nopie_test_bin",
+)
+
+go_test(
     name = "pie_test",
     srcs = [
         "pie_darwin_amd64_test.go",
@@ -120,11 +134,13 @@ go_test(
             ":hello_nopie_bin",
             ":hello_pie_bin",
             ":hello_pie_setting_bin",
+            ":hello_pie_setting_test_bin",
         ],
         "@io_bazel_rules_go//go/platform:linux": [
             ":hello_nopie_bin",
             ":hello_pie_bin",
             ":hello_pie_setting_bin",
+            ":hello_pie_setting_test_bin",
         ],
         "//conditions:default": [],
     }),

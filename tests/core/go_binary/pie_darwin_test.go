@@ -30,6 +30,28 @@ func TestPIE(t *testing.T) {
 	}
 
 	if m.Flags&macho.FlagPIE == 0 {
-		t.Error("ELF binary is not position-independent.")
+		t.Error("MachO binary is not position-independent.")
+	}
+}
+
+func TestPIESetting(t *testing.T) {
+	m, err := openMachO("tests/core/go_binary", "hello_pie_setting_bin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if m.Flags&macho.FlagPIE == 0 {
+		t.Error("MachO binary is not position-independent.")
+	}
+}
+
+func TestPIESettingTest(t *testing.T) {
+	m, err := openMachO("tests/core/go_binary", "hello_pie_setting_test_bin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if m.Flags&macho.FlagPIE == 0 {
+		t.Error("MachO binary is not position-independent.")
 	}
 }

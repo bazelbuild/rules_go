@@ -35,6 +35,18 @@ func TestPIESetting(t *testing.T) {
 	}
 }
 
+func TestPIESettingTest(t *testing.T) {
+	e, err := openELF("tests/core/go_binary", "hello_pie_setting_test_bin")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// PIE binaries are implemented as shared libraries.
+	if e.Type != elf.ET_DYN {
+		t.Error("ELF binary is not position-independent.")
+	}
+}
+
 func TestPIE(t *testing.T) {
 	e, err := openELF("tests/core/go_binary", "hello_pie_bin")
 	if err != nil {
