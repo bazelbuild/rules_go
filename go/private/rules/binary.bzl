@@ -339,6 +339,12 @@ _go_binary_kwargs = {
             specifically [static].
             """,
         ),
+        "cover": attr.string(
+            default = "auto",
+            doc = """Controls whether code is instrumented for cover. May be one of `on`,
+            `off`, or `auto`. See [mode attributes], specifically [cover].
+            """,
+        ),
         "race": attr.string(
             default = "auto",
             doc = """Controls whether code is instrumented for race detection. May be one of

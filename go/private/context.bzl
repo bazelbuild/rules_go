@@ -824,6 +824,7 @@ cgo_context_data_proxy = rule(
 def _go_config_impl(ctx):
     return [GoConfigInfo(
         static = ctx.attr.static[BuildSettingInfo].value,
+        cover = ctx.attr.cover[BuildSettingInfo].value,
         race = ctx.attr.race[BuildSettingInfo].value,
         msan = ctx.attr.msan[BuildSettingInfo].value,
         pure = ctx.attr.pure[BuildSettingInfo].value,
@@ -842,6 +843,10 @@ go_config = rule(
     implementation = _go_config_impl,
     attrs = {
         "static": attr.label(
+            mandatory = True,
+            providers = [BuildSettingInfo],
+        ),
+        "cover": attr.label(
             mandatory = True,
             providers = [BuildSettingInfo],
         ),

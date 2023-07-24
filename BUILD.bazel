@@ -124,6 +124,7 @@ go_config(
     linkmode = "//go/config:linkmode",
     msan = "//go/config:msan",
     pure = "//go/config:pure",
+    cover = "//go/config:cover",
     race = "//go/config:race",
     stamp = select({
         "//go/private:stamp": True,

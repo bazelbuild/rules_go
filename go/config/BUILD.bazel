@@ -16,6 +16,12 @@ bool_flag(
 )
 
 bool_flag(
+    name = "cover",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+bool_flag(
     name = "race",
     build_setting_default = False,
     visibility = ["//visibility:public"],

@@ -16,6 +16,7 @@
   [mode attributes]: /go/modes.rst#mode-attributes
   [nogo]: /go/nogo.rst#nogo
   [pure]: /go/modes.rst#pure
+  [cover]: /go/modes.rst#cover
   [race]: /go/modes.rst#race
   [msan]: /go/modes.rst#msan
   [select]: https://docs.bazel.build/versions/master/be/functions.html#select
@@ -63,6 +64,7 @@ sufficient to match the capabilities of the normal go tools.
 - [mode attributes]
 - [nogo]
 - [pure]
+- [cover]
 - [race]
 - [msan]
 - [select]:
@@ -106,7 +108,7 @@ Here is an example of a Bazel build graph for a project using these core rules:
 
 ![](./buildgraph.svg)
 
-By instrumenting the lower level go tooling, we can cache smaller, finer 
+By instrumenting the lower level go tooling, we can cache smaller, finer
 artifacts with Bazel and thus, speed up incremental builds.
 
 Rules
