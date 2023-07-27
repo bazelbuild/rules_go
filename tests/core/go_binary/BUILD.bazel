@@ -216,8 +216,3 @@ go_bazel_test(
     name = "non_executable_test",
     srcs = ["non_executable_test.go"],
 )
-
-go_binary(
-    name = "cover_test",
-
-)
