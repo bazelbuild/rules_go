@@ -85,14 +85,14 @@ cc_library(
 genrule(
     name = "gen_go",
     outs = ["gen.go"],
-    exec_tools = [":helper"],
+    tools = [":helper"],
     cmd = "# Not needed for bazel cquery",
 )
 
 genrule(
     name = "gen_indirect_go",
     outs = ["gen_indirect.go"],
-    exec_tools = [":indirect_helper"],
+    tools = [":indirect_helper"],
     cmd = "# Not needed for bazel cquery",
 )
 
