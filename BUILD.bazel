@@ -123,6 +123,7 @@ go_config(
     gotags = "//go/config:tags",
     linkmode = "//go/config:linkmode",
     msan = "//go/config:msan",
+    pgoprofile = "//go/config:pgoprofile",
     pure = "//go/config:pure",
     race = "//go/config:race",
     stamp = select({

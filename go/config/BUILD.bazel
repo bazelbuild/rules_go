@@ -79,3 +79,14 @@ string_list_flag(
     build_setting_default = [],
     visibility = ["//visibility:public"],
 )
+
+label_flag(
+    name = "pgoprofile",
+    build_setting_default = ":empty",
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "empty",
+    visibility = ["//visibility:public"],
+)

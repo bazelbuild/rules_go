@@ -33,6 +33,7 @@ func stdlib(args []string) error {
 	race := flags.Bool("race", false, "Build in race mode")
 	shared := flags.Bool("shared", false, "Build in shared mode")
 	dynlink := flags.Bool("dynlink", false, "Build in dynlink mode")
+	pgoprofile := flags.String("pgoprofile", "", "Build with pgo using the given pprof file")
 	var packages multiFlag
 	flags.Var(&packages, "package", "Packages to build")
 	var gcflags quoteMultiFlag
@@ -129,6 +130,9 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 	asmflags := []string{"-trimpath", output}
 	if *race {
 		installArgs = append(installArgs, "-race")
+	}
+	if *pgoprofile != "" {
+		installArgs = append(installArgs, "-pgo", abs(*pgoprofile))
 	}
 	if *shared {
 		gcflags = append(gcflags, "-shared")

@@ -56,6 +56,7 @@ func compilePkg(args []string) error {
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
+	var pgoprofile string
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&coverSrcs, "cover", ".go file that should be instrumented for coverage (must also be a -src)")
 	fs.Var(&embedSrcs, "embedsrc", "file that may be compiled into the package with a //go:embed directive")
@@ -81,6 +82,7 @@ func compilePkg(args []string) error {
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
 	fs.StringVar(&coverFormat, "cover_format", "", "Emit source file paths in coverage instrumentation suitable for the specified coverage format")
 	fs.Var(&recompileInternalDeps, "recompile_internal_deps", "The import path of the direct dependencies that needs to be recompiled.")
+	fs.StringVar(&pgoprofile, "pgoprofile", "", "The pprof profile to consider for profile guided optimization.")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -98,6 +100,9 @@ func compilePkg(args []string) error {
 	}
 	for i := range embedSrcs {
 		embedSrcs[i] = abs(embedSrcs[i])
+	}
+	if pgoprofile != "" {
+		pgoprofile = abs(pgoprofile)
 	}
 
 	// Filter sources.
@@ -158,7 +163,8 @@ func compilePkg(args []string) error {
 		outFactsPath,
 		cgoExportHPath,
 		coverFormat,
-		recompileInternalDeps)
+		recompileInternalDeps,
+		pgoprofile)
 }
 
 func compileArchive(
@@ -189,6 +195,7 @@ func compileArchive(
 	cgoExportHPath string,
 	coverFormat string,
 	recompileInternalDeps []string,
+	pgoprofile string,
 ) error {
 	workDir, cleanup, err := goenv.workDir()
 	if err != nil {
@@ -467,7 +474,7 @@ func compileArchive(
 	}
 
 	// Compile the filtered .go files.
-	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath, gcFlags, outPath); err != nil {
+	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath, gcFlags, pgoprofile, outPath); err != nil {
 		return err
 	}
 
@@ -537,7 +544,7 @@ func compileArchive(
 	return appendFiles(goenv, outXPath, []string{pkgDefPath})
 }
 
-func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath string, gcFlags []string, outPath string) error {
+func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath string, gcFlags []string, pgoprofile string, outPath string) error {
 	args := goenv.goTool("compile")
 	args = append(args, "-p", packagePath, "-importcfg", importcfgPath, "-pack")
 	if embedcfgPath != "" {
@@ -548,6 +555,9 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPa
 	}
 	if symabisPath != "" {
 		args = append(args, "-symabis", symabisPath)
+	}
+	if pgoprofile != "" {
+		args = append(args, "-pgoprofile", pgoprofile)
 	}
 	args = append(args, gcFlags...)
 	args = append(args, "-o", outPath)

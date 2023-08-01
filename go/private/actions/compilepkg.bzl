@@ -151,6 +151,10 @@ def emit_compilepkg(
         if clinkopts:
             args.add("-ldflags", quote_opts(clinkopts))
 
+    if go.mode.pgoprofile:
+        args.add("-pgoprofile", go.mode.pgoprofile)
+        inputs.extend([go.mode.pgoprofile])
+
     go.actions.run(
         inputs = inputs,
         outputs = outputs,

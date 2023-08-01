@@ -136,6 +136,11 @@ def _build_stdlib(go):
               go.sdk.tools +
               [go.sdk.go, go.sdk.package_list, go.sdk.root_file] +
               go.crosstool)
+
+    if go.mode.pgoprofile:
+        args.add("-pgoprofile", go.mode.pgoprofile)
+        inputs += [go.mode.pgoprofile]
+
     outputs = [pkg]
     go.actions.run(
         inputs = inputs,

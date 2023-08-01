@@ -400,6 +400,15 @@ _go_binary_kwargs = {
             </ul>
             """,
         ),
+        "pgoprofile": attr.label(
+            allow_files = True,
+            doc = """Provides a pprof file to be used for profile guided optimization when compiling go targets.
+            A pprof file can also be provided via `--@io_bazel_rules_go//go/config:pgoprofile`.
+            Profile guided optimization is only supported on go 1.20+.
+            See https://go.dev/doc/pgo for more information.
+            """,
+            default = "//go/config:empty",
+        ),
         "_go_context_data": attr.label(default = "//:go_context_data", cfg = go_transition),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",

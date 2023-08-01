@@ -43,6 +43,7 @@ TRANSITIONED_GO_SETTING_KEYS = [
     "//go/config:pure",
     "//go/config:linkmode",
     "//go/config:tags",
+    "//go/config:pgoprofile",
 ]
 
 def _deduped_and_sorted(strs):
@@ -117,6 +118,10 @@ def _go_transition_impl(settings, attr):
             fail("linkmode: invalid mode {}; want one of {}".format(linkmode, ", ".join(LINKMODES)))
         settings["//go/config:linkmode"] = linkmode
 
+    pgoprofile = getattr(attr, "pgoprofile", "auto")
+    if pgoprofile != "auto":
+        settings["//go/config:pgoprofile"] = pgoprofile
+
     for key, original_key in _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.items():
         old_value = original_settings[key]
         value = settings[key]
@@ -132,6 +137,9 @@ def _go_transition_impl(settings, attr):
             # original setting wasn't set explicitly (empty string) or was set
             # explicitly to its default  (always a non-empty string with JSON
             # encoding, e.g. "\"\"" or "[]").
+            if type(old_value) == "Label":
+                # Label is not JSON serializable, so we need to convert it to a string.
+                old_value = str(old_value)
             settings[original_key] = json.encode(old_value)
         else:
             settings[original_key] = ""
@@ -191,6 +199,7 @@ _stdlib_keep_keys = sorted([
     "//go/config:pure",
     "//go/config:linkmode",
     "//go/config:tags",
+    "//go/config:pgoprofile",
 ])
 
 def _go_tool_transition_impl(settings, _attr):

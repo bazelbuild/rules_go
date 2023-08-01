@@ -93,6 +93,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     goos = go_toolchain.default_goos if getattr(ctx.attr, "goos", "auto") == "auto" else ctx.attr.goos
     goarch = go_toolchain.default_goarch if getattr(ctx.attr, "goarch", "auto") == "auto" else ctx.attr.goarch
     gc_goopts = go_config_info.gc_goopts if go_config_info else []
+    pgoprofile = go_config_info.pgoprofile.files.to_list()[0] if go_config_info and len(go_config_info.pgoprofile.files.to_list()) > 0 else None
 
     # TODO(jayconrod): check for more invalid and contradictory settings.
     if pure and race:
@@ -130,6 +131,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         cover_format = cover_format,
         amd64 = amd64,
         gc_goopts = gc_goopts,
+        pgoprofile = pgoprofile,
     )
 
 def installsuffix(mode):

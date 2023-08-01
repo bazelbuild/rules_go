@@ -216,3 +216,11 @@ go_bazel_test(
     name = "non_executable_test",
     srcs = ["non_executable_test.go"],
 )
+
+exports_files(["pgo.pprof"])
+
+go_binary(
+    name = "pgo",
+    srcs = ["pgo.go"],
+    pgoprofile = "pgo.pprof",
+)

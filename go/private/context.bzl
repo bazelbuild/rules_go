@@ -269,6 +269,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "cgo_deps": [],
         "cgo_exports": [],
         "cc_info": None,
+        "pgoprofile": getattr(attr, "pgoprofile", None),
     }
     if coverage_instrumented:
         source["cover"] = attr_srcs
@@ -530,6 +531,7 @@ def go_context(ctx, attr = None):
         stamp = mode.stamp,
         label = ctx.label,
         cover_format = mode.cover_format,
+        pgoprofile = mode.pgoprofile,
         # Action generators
         archive = toolchain.actions.archive,
         binary = toolchain.actions.binary,
@@ -836,6 +838,7 @@ def _go_config_impl(ctx):
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
         gc_goopts = ctx.attr.gc_goopts[BuildSettingInfo].value,
         amd64 = ctx.attr.amd64,
+        pgoprofile = ctx.attr.pgoprofile,
     )]
 
 go_config = rule(
@@ -884,6 +887,11 @@ go_config = rule(
             providers = [BuildSettingInfo],
         ),
         "amd64": attr.string(),
+        "pgoprofile": attr.label(
+            mandatory = True,
+            providers = ["files"],
+            allow_files = True,
+        ),
     },
     provides = [GoConfigInfo],
     doc = """Collects information about build settings in the current
