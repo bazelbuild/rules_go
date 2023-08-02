@@ -51,7 +51,7 @@ func compilePkg(args []string) error {
 	goenv := envFlags(fs)
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
 	var deps archiveMultiFlag
-	var importPath, packagePath, nogoPath, packageListPath, coverMode string
+	var importPath, packagePath, stackPath, nogoPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
@@ -64,6 +64,7 @@ func compilePkg(args []string) error {
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	fs.StringVar(&importPath, "importpath", "", "The import path of the package being compiled. Not passed to the compiler, but may be displayed in debug data.")
 	fs.StringVar(&packagePath, "p", "", "The package path (importmap) of the package being compiled")
+	fs.StringVar(&stackPath, "stackpath", "", "The source code path in stacktrace output")
 	fs.Var(&gcFlags, "gcflags", "Go compiler flags")
 	fs.Var(&asmFlags, "asmflags", "Go assembler flags")
 	fs.Var(&cppFlags, "cppflags", "C preprocessor flags")
@@ -158,7 +159,8 @@ func compilePkg(args []string) error {
 		outFactsPath,
 		cgoExportHPath,
 		coverFormat,
-		recompileInternalDeps)
+		recompileInternalDeps,
+		stackPath)
 }
 
 func compileArchive(
@@ -189,6 +191,7 @@ func compileArchive(
 	cgoExportHPath string,
 	coverFormat string,
 	recompileInternalDeps []string,
+	stackPath string,
 ) error {
 	workDir, cleanup, err := goenv.workDir()
 	if err != nil {
@@ -332,14 +335,14 @@ func compileArchive(
 			return err
 		}
 
-		gcFlags = append(gcFlags, createTrimPath(gcFlags, srcDir))
+		gcFlags = append(gcFlags, createTrimPath(gcFlags, srcDir, stackPath, goSrcs))
 	} else {
 		if cgoExportHPath != "" {
 			if err := ioutil.WriteFile(cgoExportHPath, nil, 0o666); err != nil {
 				return err
 			}
 		}
-		gcFlags = append(gcFlags, createTrimPath(gcFlags, "."))
+		gcFlags = append(gcFlags, createTrimPath(gcFlags, ".", stackPath, goSrcs))
 	}
 
 	// Check that the filtered sources don't import anything outside of
@@ -456,7 +459,7 @@ func compileArchive(
 	if len(srcs.sSrcs) > 0 {
 		asmHdrPath = filepath.Join(workDir, "go_asm.h")
 	}
-	symabisPath, err := buildSymabisFile(goenv, srcs.sSrcs, srcs.hSrcs, asmHdrPath)
+	symabisPath, err := buildSymabisFile(goenv, srcs.sSrcs, srcs.hSrcs, asmHdrPath, stackPath)
 	if symabisPath != "" {
 		if !goenv.shouldPreserveWorkDir {
 			defer os.Remove(symabisPath)
@@ -490,7 +493,7 @@ func compileArchive(
 		}
 		for i, sSrc := range srcs.sSrcs {
 			obj := filepath.Join(workDir, fmt.Sprintf("s%d.o", i))
-			if err := asmFile(goenv, sSrc.filename, packagePath, asmFlags, obj); err != nil {
+			if err := asmFile(goenv, sSrc.filename, packagePath, asmFlags, obj, stackPath); err != nil {
 				return err
 			}
 			objFiles = append(objFiles, obj)
@@ -592,14 +595,31 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 	return nil
 }
 
-func createTrimPath(gcFlags []string, path string) string {
+func createTrimPath(gcFlags []string, workDir string, stackPath string, goSrcs []string) string {
+	trimpath := workDir
+
+	if stackPath != "" {
+		var replaces []string
+		prefixSet := make(map[string]struct{})
+		for _, goSrc := range goSrcs {
+			prefix := filepath.ToSlash(filepath.Dir(goSrc))
+			if _, ok := prefixSet[prefix]; ok {
+				continue
+			}
+			prefixSet[prefix] = struct{}{}
+			replaces = append(replaces, prefix+"=>"+stackPath)
+		}
+		sort.Strings(replaces)
+		trimpath = strings.Join(replaces, ";")
+	}
+
 	for _, flag := range gcFlags {
 		if strings.HasPrefix(flag, "-trimpath=") {
-			return flag + ":" + path
+			return flag + ":" + trimpath
 		}
 	}
 
-	return "-trimpath=" + path
+	return "-trimpath=" + trimpath
 }
 
 func sanitizePathForIdentifier(path string) string {
