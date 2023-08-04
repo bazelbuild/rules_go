@@ -224,3 +224,9 @@ go_binary(
     srcs = ["pgo.go"],
     pgoprofile = "pgo.pprof",
 )
+
+go_bazel_test(
+    name = "pgo_test",
+    srcs = ["pgo_test.go"],
+    embedsrcs = ["pgo.pprof"],
+)
