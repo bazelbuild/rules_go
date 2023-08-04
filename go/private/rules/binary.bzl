@@ -403,7 +403,7 @@ _go_binary_kwargs = {
         "pgoprofile": attr.label(
             allow_files = True,
             doc = """Provides a pprof file to be used for profile guided optimization when compiling go targets.
-            A pprof file can also be provided via `--@io_bazel_rules_go//go/config:pgoprofile`.
+            A pprof file can also be provided via `--@io_bazel_rules_go//go/config:pgoprofile=<label of a pprof file>`.
             Profile guided optimization is only supported on go 1.20+.
             See https://go.dev/doc/pgo for more information.
             """,

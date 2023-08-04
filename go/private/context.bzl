@@ -889,7 +889,6 @@ go_config = rule(
         "amd64": attr.string(),
         "pgoprofile": attr.label(
             mandatory = True,
-            providers = ["files"],
             allow_files = True,
         ),
     },
