@@ -185,6 +185,7 @@ _common_reset_transition_dict = dict({
     "//go/config:debug": False,
     "//go/config:linkmode": LINKMODE_NORMAL,
     "//go/config:tags": [],
+    "//go/config:pgoprofile": Label("//go/config:empty"),
 }, **{setting: "" for setting in _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.values()})
 
 _reset_transition_dict = dict(_common_reset_transition_dict, **{
