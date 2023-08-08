@@ -5,7 +5,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.20.7")
+go_register_toolchains(version = "1.21.1")
 
 http_archive(
     name = "com_google_protobuf",
@@ -71,14 +71,16 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "178eba9540a616bda314afa25a91f195758a9fed178eda72e149eb0d20e9b670",
-    strip_prefix = "bazel-gazelle-9fe0a3ff751647789690293dcbb3c87ea33b7566",
+    sha256 = "d3fa66a39028e97d76f9e2db8f1b0c11c099e8e01bf363a923074784e451f809",
     urls = [
-        "https://github.com/bazelbuild/bazel-gazelle/archive/9fe0a3ff751647789690293dcbb3c87ea33b7566.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.33.0/bazel-gazelle-v0.33.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.33.0/bazel-gazelle-v0.33.0.tar.gz",
     ],
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+gazelle_dependencies()
 
 go_repository(
     name = "com_github_google_go_github_v36",
@@ -157,8 +159,6 @@ popular_repos()
 load("@io_bazel_rules_go//tests:grpc_repos.bzl", "grpc_dependencies")
 
 grpc_dependencies()
-
-gazelle_dependencies()
 
 local_repository(
     name = "runfiles_remote_test",
