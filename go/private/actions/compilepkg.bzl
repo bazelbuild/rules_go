@@ -153,7 +153,7 @@ def emit_compilepkg(
 
     if go.mode.pgoprofile:
         args.add("-pgoprofile", go.mode.pgoprofile)
-        inputs.extend([go.mode.pgoprofile])
+        inputs.append(go.mode.pgoprofile)
 
     go.actions.run(
         inputs = inputs,

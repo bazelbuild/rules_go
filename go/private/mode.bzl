@@ -96,7 +96,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     pgoprofile = None
     if go_config_info:
         if len(go_config_info.pgoprofile.files.to_list()) > 2:
-            fail("providing more than one pgoprofile pprof file is not supported")
+            fail("providing more than one pprof file to pgoprofile is not supported")
         elif len(go_config_info.pgoprofile.files.to_list()) == 1:
             pgoprofile = go_config_info.pgoprofile.files.to_list()[0]
 

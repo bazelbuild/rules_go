@@ -139,7 +139,7 @@ def _build_stdlib(go):
 
     if go.mode.pgoprofile:
         args.add("-pgoprofile", go.mode.pgoprofile)
-        inputs += [go.mode.pgoprofile]
+        inputs.append(go.mode.pgoprofile)
 
     outputs = [pkg]
     go.actions.run(
