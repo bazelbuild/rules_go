@@ -18,6 +18,8 @@ import (
 	_ "embed"
 	"os"
 	"path"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel_testing"
@@ -43,16 +45,6 @@ go_binary(
     srcs = ["pgo.go"],
 )
 
-go_test(
-    name = "compare_results_test",
-    data = [
-        ":pgo_with_profile",
-        ":pgo_without_profile",
-    ],
-    srcs = ["compare_results_test.go"],
-    deps = ["@io_bazel_rules_go//go/tools/bazel:go_default_library"],
-)
-
 -- src/pgo.go --
 package main
 
@@ -60,60 +52,6 @@ import "fmt"
 
 func main() {
   fmt.Println("Did you know that profile guided optimization was added to the go compiler in go version 1.20?")
-}
-
--- src/compare_results_test.go --
-package compare_results_test
-
-import (
-    "crypto/sha256"
-    "os"
-    "strings"
-    "testing"
-
-    "github.com/bazelbuild/rules_go/go/tools/bazel"
-)
-
-func TestResultsAreSame(t *testing.T) {
-    rfs, err := bazel.ListRunfiles()
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    var files []bazel.RunfileEntry
-    for _, rf := range rfs {
-        rf := rf
-        s, err := os.Stat(rf.Path)
-        if err != nil {
-            t.Fatal(err)
-        }
-        if !s.IsDir() && !strings.HasPrefix(s.Name(), "compare_results_test") {
-            files = append(files, rf)
-        }
-    }
-
-    if len(files) != 2 {
-        for i, rf := range files {
-            t.Logf("files[%d] = %s", i, rf.Path)
-        }
-        t.Fatalf("expected 2 runfiles, got %d", len(files))
-    }
-
-    f1, err := os.ReadFile(files[0].Path)
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    f2, err := os.ReadFile(files[1].Path)
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    a, b := sha256.Sum256(f1), sha256.Sum256(f2)
-
-    if a == b {
-        t.Fatal("outputs are equal when they should be different")
-    }
 }
 `,
 	})
@@ -131,16 +69,31 @@ func TestGoBinaryOutputWithPgoProfileDiffersFromGoBinaryWithoutPgoProfile(t *tes
 	}
 
 	// Ensure both targets can be built
-	if err := bazel_testing.RunBazel("build", "//src:pgo_without_profile"); err != nil {
-		t.Fatal(err)
-	}
-	if err := bazel_testing.RunBazel("build", "//src:pgo_with_profile"); err != nil {
+	if err := bazel_testing.RunBazel("build", "//src:all"); err != nil {
 		t.Fatal(err)
 	}
 
-	// Run the comparison test.
-	if result, err := bazel_testing.BazelOutput("test", "//src:compare_results_test", "--test_output=errors"); err != nil {
-		t.Logf("%s", result)
+	// Get the paths to the two binaries.
+	var out []byte
+	if out, err = bazel_testing.BazelOutput("cquery", "--output=files", "//src:all"); err != nil {
 		t.Fatal(err)
+	}
+	files := strings.Split(strings.TrimSpace(string(out)), "\n")
+	if len(files) != 2 {
+		t.Fatalf("expected 2 files, got %+v", files)
+	}
+
+	// Verify that the binaries differs.
+	firstBinary, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondBinary, err := os.ReadFile(files[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if reflect.DeepEqual(firstBinary, secondBinary) {
+		t.Fatal("the two binaries are equal when they should be different")
 	}
 }
