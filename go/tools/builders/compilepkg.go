@@ -273,6 +273,7 @@ func compileArchive(
 		hSrcs[i] = src.filename
 	}
 	haveCgo := len(cgoSrcs)+len(cSrcs)+len(cxxSrcs)+len(objcSrcs)+len(objcxxSrcs) > 0
+	packageUsesCgo := cgoEnabled && haveCgo
 
 	// Instrument source files for coverage.
 	if coverMode != "" {
@@ -329,12 +330,11 @@ func compileArchive(
 	// If we have cgo, generate separate C and go files, and compile the
 	// C files.
 	var objFiles []string
-	if cgoEnabled && haveCgo {
-		// TODO(#2006): Compile .s and .S files with cgo2, not the Go assembler.
-		// If cgo is not enabled or we don't have other cgo sources, don't
-		// compile .S files.
+	if packageUsesCgo {
+		// If the package uses Cgo, compile .s and .S files with cgo2, not the Go assembler.
+		// Otherwise: the .s/.S files will be compiled with the Go assembler later
 		var srcDir string
-		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, nil, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
+		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
 		if err != nil {
 			return err
 		}
@@ -355,7 +355,7 @@ func compileArchive(
 	if err != nil {
 		return err
 	}
-	if cgoEnabled && len(cgoSrcs) != 0 {
+	if packageUsesCgo {
 		// cgo generated code imports some extra packages.
 		imports["runtime/cgo"] = nil
 		imports["syscall"] = nil
@@ -458,19 +458,23 @@ func compileArchive(
 		}()
 	}
 
-	// If there are assembly files, and this is go1.12+, generate symbol ABIs.
+	// If there are Go assembly files and this is go1.12+: generate symbol ABIs.
+	// This excludes Cgo packages: they use the C compiler for assembly.
 	asmHdrPath := ""
 	if len(srcs.sSrcs) > 0 {
 		asmHdrPath = filepath.Join(workDir, "go_asm.h")
 	}
-	symabisPath, err := buildSymabisFile(goenv, srcs.sSrcs, srcs.hSrcs, asmHdrPath)
-	if symabisPath != "" {
-		if !goenv.shouldPreserveWorkDir {
-			defer os.Remove(symabisPath)
+	var symabisPath string
+	if !packageUsesCgo {
+		symabisPath, err = buildSymabisFile(goenv, srcs.sSrcs, srcs.hSrcs, asmHdrPath)
+		if symabisPath != "" {
+			if !goenv.shouldPreserveWorkDir {
+				defer os.Remove(symabisPath)
+			}
 		}
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	// Compile the filtered .go files.
@@ -478,8 +482,8 @@ func compileArchive(
 		return err
 	}
 
-	// Compile the .s files.
-	if len(srcs.sSrcs) > 0 {
+	// Compile the .s files if we are not a cgo package; cgo is assembled by cc above
+	if len(srcs.sSrcs) > 0 && !packageUsesCgo {
 		includeSet := map[string]struct{}{
 			filepath.Join(os.Getenv("GOROOT"), "pkg", "include"): {},
 			workDir: {},

@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_library")
+
+go_library(
+    name = "asm",
+    srcs = [
+        "asm_amd64.S",
+        "asm_arm64.S",
+        "cgoasm.go",
+    ],
+    cgo = True,
+    importpath = "github.com/bazelbuild/rules_go/tests/cgo/asm"
+)
+
+go_test(
+    name = "asm_test",
+    srcs = [
+        "cgoasm_test.go",
+    ],
+    embed = [":asm"],
+)
