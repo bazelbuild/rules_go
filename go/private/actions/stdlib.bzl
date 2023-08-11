@@ -70,6 +70,8 @@ def _build_stdlib_list_json(go):
     args.add("-sdk", go.sdk.root_file.dirname)
     args.add("-out", out)
     args.add("-cache", cache_dir.path)
+    if go.sdk.exports_for_stdlib:
+        args.add("-export")
 
     inputs = go.sdk_files
     if not go.mode.pure:

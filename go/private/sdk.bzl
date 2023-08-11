@@ -31,7 +31,7 @@ def _go_host_sdk_impl(ctx):
     goroot = _detect_host_sdk(ctx)
     platform = _detect_sdk_platform(ctx, goroot)
     version = _detect_sdk_version(ctx, goroot)
-    _sdk_build_file(ctx, platform, version, experiments = ctx.attr.experiments)
+    _sdk_build_file(ctx, platform, version, experiments = ctx.attr.experiments, exports_for_stdlib = ctx.attr.exports_for_stdlib)
     _local_sdk(ctx, goroot)
 
 go_host_sdk_rule = repository_rule(
@@ -41,6 +41,9 @@ go_host_sdk_rule = repository_rule(
         "version": attr.string(),
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
+        "exports_for_stdlib": attr.bool(
+            doc = "Generate export files for the stdlib.",
         ),
         "_sdk_build_file": attr.label(
             default = Label("//go/private:BUILD.sdk.bazel"),
@@ -118,7 +121,7 @@ def _go_download_sdk_impl(ctx):
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
 
     detected_version = _detect_sdk_version(ctx, ".")
-    _sdk_build_file(ctx, platform, detected_version, experiments = ctx.attr.experiments)
+    _sdk_build_file(ctx, platform, detected_version, experiments = ctx.attr.experiments, exports_for_stdlib = ctx.attr.exports_for_stdlib)
 
     if not ctx.attr.sdks and not ctx.attr.version:
         # Returning this makes Bazel print a message that 'version' must be
@@ -142,6 +145,9 @@ go_download_sdk_rule = repository_rule(
         "sdks": attr.string_list_dict(),
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
+        "exports_for_stdlib": attr.bool(
+            doc = "Generate export files for the stdlib.",
         ),
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "version": attr.string(),
@@ -320,7 +326,7 @@ def _go_local_sdk_impl(ctx):
     goroot = ctx.attr.path
     platform = _detect_sdk_platform(ctx, goroot)
     version = _detect_sdk_version(ctx, goroot)
-    _sdk_build_file(ctx, platform, version, ctx.attr.experiments)
+    _sdk_build_file(ctx, platform, version, ctx.attr.experiments, ctx.attr.exports_for_stdlib)
     _local_sdk(ctx, goroot)
 
 _go_local_sdk = repository_rule(
@@ -330,6 +336,9 @@ _go_local_sdk = repository_rule(
         "version": attr.string(),
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
+        "exports_for_stdlib": attr.bool(
+            doc = "Generate export files for the stdlib.",
         ),
         "_sdk_build_file": attr.label(
             default = Label("//go/private:BUILD.sdk.bazel"),
@@ -366,7 +375,7 @@ def _go_wrap_sdk_impl(ctx):
     goroot = str(ctx.path(root_file).dirname)
     platform = _detect_sdk_platform(ctx, goroot)
     version = _detect_sdk_version(ctx, goroot)
-    _sdk_build_file(ctx, platform, version, ctx.attr.experiments)
+    _sdk_build_file(ctx, platform, version, ctx.attr.experiments, ctx.attr.exports_for_stdlib)
     _local_sdk(ctx, goroot)
 
 _go_wrap_sdk = repository_rule(
@@ -383,6 +392,9 @@ _go_wrap_sdk = repository_rule(
         "version": attr.string(),
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
+        "exports_for_stdlib": attr.bool(
+            doc = "Generate export files for the stdlib.",
         ),
         "_sdk_build_file": attr.label(
             default = Label("//go/private:BUILD.sdk.bazel"),
@@ -466,7 +478,7 @@ def _local_sdk(ctx, path):
     for entry in ["src", "pkg", "bin", "lib", "misc"]:
         ctx.symlink(path + "/" + entry, entry)
 
-def _sdk_build_file(ctx, platform, version, experiments):
+def _sdk_build_file(ctx, platform, version, experiments, exports_for_stdlib):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
 
@@ -488,6 +500,7 @@ def _sdk_build_file(ctx, platform, version, experiments):
             "{exe}": ".exe" if goos == "windows" else "",
             "{version}": version,
             "{experiments}": repr(experiments),
+            "{exports_for_stdlib}": "True" if exports_for_stdlib else "False",
         },
     )
 
@@ -667,7 +680,7 @@ def _have_same_length(*lists):
         fail("expected at least one list")
     return len({len(l): None for l in lists}) == 1
 
-def go_register_toolchains(version = None, nogo = None, go_version = None, experiments = None):
+def go_register_toolchains(version = None, nogo = None, go_version = None, experiments = None, exports_for_stdlib = False):
     """See /go/toolchains.rst#go-register-toolchains for full documentation."""
     if not version:
         version = go_version  # old name
@@ -685,7 +698,7 @@ def go_register_toolchains(version = None, nogo = None, go_version = None, exper
         if not version:
             fail('go_register_toolchains: version must be a string like "1.15.5" or "host"')
         elif version == "host":
-            go_host_sdk(name = "go_sdk", experiments = experiments)
+            go_host_sdk(name = "go_sdk", experiments = experiments, exports_for_stdlib = exports_for_stdlib)
         else:
             pv = parse_version(version)
             if not pv:
@@ -696,6 +709,7 @@ def go_register_toolchains(version = None, nogo = None, go_version = None, exper
                 name = "go_sdk",
                 version = version,
                 experiments = experiments,
+                exports_for_stdlib = exports_for_stdlib,
             )
 
     if nogo:
