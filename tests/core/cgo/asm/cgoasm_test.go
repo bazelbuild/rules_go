@@ -1,8 +1,10 @@
+//go:build unix && (amd64 || arm64)
+
 package asm
 
 import (
-	"testing"
 	"runtime"
+	"testing"
 )
 
 func TestNativeAssembly(t *testing.T) {

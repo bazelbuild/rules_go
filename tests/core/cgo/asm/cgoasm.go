@@ -1,3 +1,5 @@
+//go:build unix && (amd64 || arm64)
+
 package asm
 
 /*
