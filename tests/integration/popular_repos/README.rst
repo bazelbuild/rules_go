@@ -168,12 +168,10 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//go/callgraph/static:static_test
 * @org_golang_x_tools//go/callgraph/vta/internal/trie:trie_test
 * @org_golang_x_tools//go/cfg:cfg_test
-* @org_golang_x_tools//go/vcs:vcs_test
 * @org_golang_x_tools//godoc/redirect:redirect_test
 * @org_golang_x_tools//godoc/vfs:vfs_test
 * @org_golang_x_tools//godoc/vfs/gatefs:gatefs_test
 * @org_golang_x_tools//godoc/vfs/mapfs:mapfs_test
-* @org_golang_x_tools//internal/bug:bug_test
 * @org_golang_x_tools//internal/diff:diff_test
 * @org_golang_x_tools//internal/diff/lcs:lcs_test
 * @org_golang_x_tools//internal/diff/myers:myers_test
