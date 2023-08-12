@@ -5,5 +5,5 @@ _example_asm_func:
     ret
 
 #if NOT_DEFINED
-#error "should not fail
+#error "should not fail"
 #endif

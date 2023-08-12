@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_test", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "asm",
@@ -8,7 +8,7 @@ go_library(
         "cgoasm.go",
     ],
     cgo = True,
-    importpath = "github.com/bazelbuild/rules_go/tests/cgo/asm"
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/asm",
 )
 
 go_test(
