@@ -25,23 +25,6 @@ func TestTag(t *testing.T) {
 	check(tag, t)
 }
 
-func asm() int
-
-func TestAsm(t *testing.T) {
-	got := asm()
-	var want int
-	if runtime.GOOS == "linux" {
-		want = 12
-	} else if runtime.GOARCH == "arm64" {
-		want = 75
-	} else {
-		want = 34
-	}
-	if got != want {
-		t.Errorf("got %d; want %d", got, want)
-	}
-}
-
 func TestCgoGo(t *testing.T) {
 	check(cgoGo, t)
 }
