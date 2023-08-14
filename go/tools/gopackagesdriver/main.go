@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go/types"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -31,8 +31,10 @@ type driverResponse struct {
 	// lists of multiple drivers, go/packages will fall back to the next driver.
 	NotHandled bool
 
-	// Sizes, if not nil, is the types.Sizes to use when type checking.
-	Sizes *types.StdSizes
+	// Compiler and Arch are the arguments pass of types.SizesFor
+	// to get a types.Sizes to use when type checking.
+	Compiler string
+	Arch     string
 
 	// Roots is the set of package IDs that make up the root packages.
 	// We have to encode this separately because when we encode a single package
@@ -63,9 +65,14 @@ var (
 	additionalKinds       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
 	emptyResponse         = &driverResponse{
 		NotHandled: true,
-		Sizes:      types.SizesFor("gc", "amd64").(*types.StdSizes),
-		Roots:      []string{},
-		Packages:   []*FlatPackage{},
+		// For the reviewer: Does bazel ever use gccgo? I assume bazel can build for other
+		// platforms. If that's the case, how do we find out the actual arch to use here?
+		// Is it reasonable to assume that the configuration that gopackagesdriver is built
+		// with matches the configuration
+		Compiler: "gc",
+		Arch:     runtime.GOARCH,
+		Roots:    []string{},
+		Packages: []*FlatPackage{},
 	}
 )
 
