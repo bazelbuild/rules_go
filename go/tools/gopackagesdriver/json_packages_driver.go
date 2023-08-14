@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"go/types"
+	"runtime"
 )
 
 type JSONPackagesDriver struct {
@@ -52,8 +52,10 @@ func (b *JSONPackagesDriver) GetResponse(labels []string) *driverResponse {
 
 	return &driverResponse{
 		NotHandled: false,
-		Sizes:      types.SizesFor("gc", "amd64").(*types.StdSizes),
-		Roots:      rootPkgs,
-		Packages:   packages,
+		// Reviewer: see comment in main.go about the Arch field in the driver response.
+		Compiler: "gc",
+		Arch:     runtime.GOARCH,
+		Roots:    rootPkgs,
+		Packages: packages,
 	}
 }
