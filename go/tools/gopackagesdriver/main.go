@@ -65,14 +65,10 @@ var (
 	additionalKinds       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
 	emptyResponse         = &driverResponse{
 		NotHandled: true,
-		// For the reviewer: Does bazel ever use gccgo? I assume bazel can build for other
-		// platforms. If that's the case, how do we find out the actual arch to use here?
-		// Is it reasonable to assume that the configuration that gopackagesdriver is built
-		// with matches the configuration
-		Compiler: "gc",
-		Arch:     runtime.GOARCH,
-		Roots:    []string{},
-		Packages: []*FlatPackage{},
+		Compiler:   "gc",
+		Arch:       runtime.GOARCH,
+		Roots:      []string{},
+		Packages:   []*FlatPackage{},
 	}
 )
 
