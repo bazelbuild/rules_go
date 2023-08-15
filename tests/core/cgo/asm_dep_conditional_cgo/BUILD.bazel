@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "asm_dep_conditional_cgo",
+    srcs = [
+        "asm_dep_cgo.go",
+        "asm_dep_nocgo.go",
+    ],
+    importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/asm_dep_conditional_cgo",
+    deps = ["//tests/core/cgo/asm"],
+)
+
+# this is a "native" target: it uses cgo and calls the assembly function as expected
+go_test(
+    name = "asm_dep_conditional_cgo_test",
+    srcs = [
+        "asm_dep_conditional_cgo_test.go",
+    ],
+    embed = [":asm_dep_conditional_cgo"],
+)
+
+# this is a CGO_ENABLED=0 target: it does not import the cgo target
+go_test(
+    name = "asm_dep_conditional_nocgo_test",
+    srcs = [
+        "asm_dep_conditional_cgo_test.go",
+    ],
+    embed = [":asm_dep_conditional_cgo"],
+    pure = "on",
+)

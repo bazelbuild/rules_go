@@ -9,6 +9,7 @@ go_library(
     ],
     cgo = True,
     importpath = "github.com/bazelbuild/rules_go/tests/core/cgo/asm",
+    visibility = ["//tests/core/cgo:__subpackages__"],
 )
 
 go_test(

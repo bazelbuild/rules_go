@@ -69,10 +69,14 @@ type archiveSrcs struct {
 // them by extension.
 func filterAndSplitFiles(fileNames []string) (archiveSrcs, error) {
 	var res archiveSrcs
+	packageContainsCgo := false
 	for _, s := range fileNames {
 		src, err := readFileInfo(build.Default, s)
 		if err != nil {
 			return archiveSrcs{}, err
+		}
+		if src.isCgo {
+			packageContainsCgo = true
 		}
 		if !src.matched {
 			continue
@@ -95,6 +99,12 @@ func filterAndSplitFiles(fileNames []string) (archiveSrcs, error) {
 			srcs = &res.hSrcs
 		}
 		*srcs = append(*srcs, src)
+	}
+	if packageContainsCgo && !build.Default.CgoEnabled {
+		// Cgo packages use the C compiler for asm files, rather than Go's assembler.
+		// This is a package with cgo files, but we are compiling with Cgo disabled:
+		// Remove the assembly files.
+		res.sSrcs = nil
 	}
 	return res, nil
 }

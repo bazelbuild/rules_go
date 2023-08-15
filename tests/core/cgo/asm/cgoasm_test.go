@@ -16,7 +16,7 @@ func TestNativeAssembly(t *testing.T) {
 	if expected == 0 {
 		t.Fatalf("expected=0 for GOARCH=%s; missing value?", runtime.GOARCH)
 	}
-	actual := callAssembly()
+	actual := CallAssembly()
 	if actual != expected {
 		t.Errorf("callAssembly()=%d; expected=%d", actual, expected)
 	}
