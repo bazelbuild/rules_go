@@ -26,6 +26,9 @@ _download_tag = tag_class(
         "goos": attr.string(),
         "goarch": attr.string(),
         "sdks": attr.string_list_dict(),
+        "experiments": attr.string_list(
+            doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "version": attr.string(),
         "strip_prefix": attr.string(default = "go"),
@@ -36,6 +39,9 @@ _host_tag = tag_class(
     attrs = {
         "name": attr.string(),
         "version": attr.string(),
+        "experiments": attr.string_list(
+            doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
     },
 )
 
@@ -86,8 +92,10 @@ def _go_sdk_impl(ctx):
                 goos = download_tag.goos,
                 goarch = download_tag.goarch,
                 sdks = download_tag.sdks,
+                experiments = download_tag.experiments,
                 urls = download_tag.urls,
                 version = download_tag.version,
+                strip_prefix = download_tag.strip_prefix,
             )
 
             if (not download_tag.goos or download_tag.goos == host_detected_goos) and (not download_tag.goarch or download_tag.goarch == host_detected_goarch):
@@ -117,6 +125,7 @@ def _go_sdk_impl(ctx):
             go_host_sdk_rule(
                 name = name,
                 version = host_tag.version,
+                experiments = host_tag.experiments,
             )
 
             toolchains.append(struct(
