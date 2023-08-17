@@ -478,9 +478,6 @@ def _sdk_build_file(ctx, platform, version, experiments):
         if not "nocoverageredesign" in experiments and not "coverageredesign" in experiments:
             experiments = experiments + ["nocoverageredesign"]
 
-    # TODO(sluongng): Remove this once we drop support for Go 1.20
-    include_go_env = pv[1] >= 21
-
     ctx.template(
         "BUILD.bazel",
         ctx.path(ctx.attr._sdk_build_file),
@@ -491,7 +488,6 @@ def _sdk_build_file(ctx, platform, version, experiments):
             "{exe}": ".exe" if goos == "windows" else "",
             "{version}": version,
             "{experiments}": repr(experiments),
-            "{goenv}": "\"go.env\"," if include_go_env else "",
         },
     )
 
