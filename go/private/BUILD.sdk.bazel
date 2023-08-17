@@ -80,6 +80,7 @@ filegroup(
         "bin/go*",
         "src/**",
         "pkg/**",
+        {goenv}
     ]),
 )
 
