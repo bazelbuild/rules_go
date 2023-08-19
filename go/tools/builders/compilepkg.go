@@ -272,10 +272,13 @@ func compileArchive(
 	for i, src := range srcs.hSrcs {
 		hSrcs[i] = src.filename
 	}
+
+	// haveCgo is true if the package contains Cgo files.
 	haveCgo := len(cgoSrcs)+len(cSrcs)+len(cxxSrcs)+len(objcSrcs)+len(objcxxSrcs) > 0
-	// NOTE: We build cgo packages with cgoEnabled both set to true and false.
-	// This uses build constraints to exclude files.
-	compilingWithCgo := cgoEnabled && haveCgo
+	// compilingWithCgo is true if the package contains Cgo files AND Cgo is enabled. A package
+	// containing Cgo files can also be built with Cgo disabled, and will work if there are build
+	// constraints.
+	compilingWithCgo := haveCgo && cgoEnabled
 
 	// Instrument source files for coverage.
 	if coverMode != "" {
@@ -484,7 +487,8 @@ func compileArchive(
 		return err
 	}
 
-	// Compile the .s files if we are not a cgo package; cgo is assembled by cc above
+	// Compile the .s files with Go's assembler, if this is not a cgo package.
+	// Cgo is assembled by cc above.
 	if len(srcs.sSrcs) > 0 && !haveCgo {
 		includeSet := map[string]struct{}{
 			filepath.Join(os.Getenv("GOROOT"), "pkg", "include"): {},
