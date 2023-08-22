@@ -1,4 +1,4 @@
-load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
+load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains", "go_wrap_sdk_rule")
 load("//go/private:repositories.bzl", "go_rules_dependencies")
 
 def host_compatible_toolchain_impl(ctx):
@@ -38,6 +38,20 @@ _download_tag = tag_class(
 _host_tag = tag_class(
     attrs = {
         "name": attr.string(),
+        "version": attr.string(),
+        "experiments": attr.string_list(
+            doc = "Go experiments to enable via GOEXPERIMENT",
+        ),
+    },
+)
+
+_wrap_tag = tag_class(
+    attrs = {
+        "name": attr.string(),
+        "root_file": attr.label(
+            mandatory = False,
+            doc = "A set of mappings from the host platform to a file in the SDK's root directory",
+        ),
         "version": attr.string(),
         "experiments": attr.string_list(
             doc = "Go experiments to enable via GOEXPERIMENT",
@@ -137,6 +151,27 @@ def _go_sdk_impl(ctx):
             ))
             first_host_compatible_toolchain = first_host_compatible_toolchain or "@{}//:ROOT".format(name)
 
+        for index, wrap_tag in enumerate(module.tags.wrap):
+            if not module.is_root:
+                fail("go_sdk.wrap: cannot be used in non-root module " + module.name)
+
+            name = wrap_tag.name
+            go_wrap_sdk_rule(
+                name = name,
+                root_file = wrap_tag.root_file,
+                version = wrap_tag.version,
+                experiments = wrap_tag.experiments,
+            )
+
+            toolchains.append(struct(
+                goos = "",
+                goarch = "",
+                sdk_repo = name,
+                sdk_type = "wrap",
+                sdk_version = wrap_tag.version,
+            ))
+            first_host_compatible_toolchain = first_host_compatible_toolchain or "@{}//:ROOT".format(name)
+
     host_compatible_toolchain(name = "go_host_compatible_sdk_label", toolchain = first_host_compatible_toolchain)
     if len(toolchains) > _MAX_NUM_TOOLCHAINS:
         fail("more than {} go_sdk tags are not supported".format(_MAX_NUM_TOOLCHAINS))
@@ -189,6 +224,7 @@ go_sdk = module_extension(
     tag_classes = {
         "download": _download_tag,
         "host": _host_tag,
+        "wrap": _wrap_tag,
     },
 )
 
