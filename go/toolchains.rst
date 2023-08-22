@@ -313,6 +313,27 @@ This downloads a Go SDK for use in toolchains.
 | Go distribution (with a different SHA-256 sum) or a version of Go                                          |
 | not supported by rules_go (for example, a beta or release candidate).                                      |
 +--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`patches`               | :type:`label_list`          | :value:`[]`                                 |
++--------------------------------+-----------------------------+---------------------------------------------+
+| A list of files that are to be applied to go sdk. By default, it uses the Bazel-native patch               |
+| implementation which doesn't support fuzz match and binary patch, but Bazel will fall back to use          |
+| patch command line tool if `patch_tool` attribute is specified.                                            |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`remote_patches`        | :type:`string_dict`         | :value:`{}`                                 |
++--------------------------------+-----------------------------+---------------------------------------------+
+| A map of patch file URL to its integrity value, they are applied before applying patch files               |
+| from the `patches` attribute. It uses the Bazel-native patch implementation, you can specify               |
+| the patch strip number with `remote_patch_strip`.                                                          |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`remote_patch_strip`    | :type:`int`                 | :value:`0`                                  |
++--------------------------------+-----------------------------+---------------------------------------------+
+| The number of leading slashes to be stripped from the file name in the remote patches.                     |
++--------------------------------+-----------------------------+---------------------------------------------+
+| :param:`patch_strip`           | :type:`int`                 | :value:`0`                                  |
++--------------------------------+-----------------------------+---------------------------------------------+
+| The number of leading slashes to be stripped from the file name in thepatches.                             |
++--------------------------------+-----------------------------+---------------------------------------------+
+
 
 **Example**:
 
@@ -343,6 +364,10 @@ This downloads a Go SDK for use in toolchains.
             "linux_amd64": ("go1.18.1.linux-amd64.tar.gz", "b3b815f47ababac13810fc6021eb73d65478e0b2db4b09d348eefad9581a2334"),
             "darwin_amd64": ("go1.18.1.darwin-amd64.tar.gz", "3703e9a0db1000f18c0c7b524f3d378aac71219b4715a6a4c5683eb639f41a4d"),
         },
+        patch_strip = 1,
+        patches = [
+            "//patches:cgo_issue_fix.patch",
+        ]
     )
 
     go_rules_dependencies()

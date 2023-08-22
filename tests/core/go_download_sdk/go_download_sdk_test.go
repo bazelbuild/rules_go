@@ -16,7 +16,7 @@ package go_download_sdk_test
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel_testing"
@@ -25,12 +25,26 @@ import (
 func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
 		Main: `
+-- go.patch --
+--- src/runtime/extern.go	1969-12-31 16:00:00
++++ src/runtime/extern.go	2000-01-01 00:00:00.000000000 -0000
+@@ -244,7 +244,7 @@
+ // It is either the commit hash and date at the time of the build or,
+ // when possible, a release tag like "go1.3".
+ func Version() string {
+-	return sys.TheVersion
++	return "go100.0"
+ }
+
+ // GOOS is the running program's operating system target:
+
 -- BUILD.bazel --
 load("@io_bazel_rules_go//go:def.bzl", "go_test")
 
 go_test(
     name = "version_test",
     srcs = ["version_test.go"],
+    pure = "on",
 )
 
 go_test(
@@ -77,6 +91,20 @@ func Test(t *testing.T) {
 		optToWantVersion map[string]string
 		fetchOnly        string
 	}{
+		{
+			desc: "patch",
+			rule: `
+load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk")
+
+go_download_sdk(
+    name = "go_sdk_patch",
+    version = "1.16",
+    patches = ["//:go.patch"],
+)
+
+`,
+			optToWantVersion: map[string]string{"": "go100.0"},
+		},
 		{
 			desc: "version",
 			rule: `
@@ -151,7 +179,7 @@ go_download_sdk(
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			origWorkspaceData, err := ioutil.ReadFile("WORKSPACE")
+			origWorkspaceData, err := os.ReadFile("WORKSPACE")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -169,11 +197,11 @@ go_rules_dependencies()
 
 go_register_toolchains()
 `)
-			if err := ioutil.WriteFile("WORKSPACE", buf.Bytes(), 0666); err != nil {
+			if err := os.WriteFile("WORKSPACE", buf.Bytes(), 0666); err != nil {
 				t.Fatal(err)
 			}
 			defer func() {
-				if err := ioutil.WriteFile("WORKSPACE", origWorkspaceData, 0666); err != nil {
+				if err := os.WriteFile("WORKSPACE", origWorkspaceData, 0666); err != nil {
 					t.Errorf("error restoring WORKSPACE: %v", err)
 				}
 			}()
@@ -205,7 +233,7 @@ go_register_toolchains()
 }
 
 func TestPatch(t *testing.T) {
-	origWorkspaceData, err := ioutil.ReadFile("WORKSPACE")
+	origWorkspaceData, err := os.ReadFile("WORKSPACE")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -231,7 +259,7 @@ go_rules_dependencies()
 
 go_register_toolchains()
 `)
-	if err := ioutil.WriteFile("WORKSPACE", buf.Bytes(), 0666); err != nil {
+	if err := os.WriteFile("WORKSPACE", buf.Bytes(), 0666); err != nil {
 		t.Fatal(err)
 	}
 
@@ -250,11 +278,11 @@ index 5306bcb..d110a19 100644
  // by Lstat, in directory order. Subsequent calls on the same file will yield
 `)
 
-	if err := ioutil.WriteFile("test.patch", patchContent, 0666); err != nil {
+	if err := os.WriteFile("test.patch", patchContent, 0666); err != nil {
 		t.Fatal(err)
 	}
 	defer func() {
-		if err := ioutil.WriteFile("WORKSPACE", origWorkspaceData, 0666); err != nil {
+		if err := os.WriteFile("WORKSPACE", origWorkspaceData, 0666); err != nil {
 			t.Errorf("error restoring WORKSPACE: %v", err)
 		}
 	}()

@@ -17,6 +17,34 @@ load("//go/private:nogo.bzl", "go_register_nogo")
 load("//go/private/skylib/lib:versions.bzl", "versions")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "patch")
 
+patch_attrs = {
+    "patches": attr.label_list(
+        default = [],
+        doc =
+            "A list of files that are to be applied as patches to go sdk. " +
+            "By default, it uses the Bazel-native patch implementation " +
+            "which doesn't support fuzz match and binary patch, but Bazel will fall back to use " +
+            "patch command line tool if `patch_tool` attribute is specified or there are " +
+            "arguments other than `-p` in `patch_args` attribute.",
+    ),
+    "remote_patches": attr.string_dict(
+        default = {},
+        doc =
+            "A map of patch file URL to its integrity value, they are applied before applying patch" +
+            "files from the `patches` attribute. It uses the Bazel-native patch implementation, " +
+            "you can specify the patch strip number with `remote_patch_strip`",
+    ),
+    "remote_patch_strip": attr.int(
+        default = 0,
+        doc =
+            "The number of leading slashes to be stripped from the file name in the remote patches.",
+    ),
+    "patch_strip": attr.int(
+        default = 0,
+        doc = "The number of leading path segments to be stripped from the file name in the patches.",
+    ),
+}
+
 MIN_SUPPORTED_VERSION = (1, 14, 0)
 
 def _go_host_sdk_impl(ctx):
@@ -113,9 +141,9 @@ def _go_download_sdk_impl(ctx):
     filename, sha256 = sdks[platform]
 
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
-    patch(ctx, patch_args = _get_patch_args(ctx.attr.patch_strip))
 
     detected_version = _detect_sdk_version(ctx, ".")
+    patch(ctx, patch_args = _get_patch_args(ctx.attr.patch_strip))
     _sdk_build_file(ctx, platform, detected_version, experiments = ctx.attr.experiments)
 
     if not ctx.attr.sdks and not ctx.attr.version:
@@ -134,7 +162,7 @@ def _go_download_sdk_impl(ctx):
 
 go_download_sdk_rule = repository_rule(
     implementation = _go_download_sdk_impl,
-    attrs = {
+    attrs = dict({
         "goos": attr.string(),
         "goarch": attr.string(),
         "sdks": attr.string_list_dict(),
@@ -144,17 +172,10 @@ go_download_sdk_rule = repository_rule(
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "version": attr.string(),
         "strip_prefix": attr.string(default = "go"),
-        "patches": attr.label_list(
-            doc = "A list of patches to apply to the SDK after downloading it",
-        ),
-        "patch_strip": attr.int(
-            default = 0,
-            doc = "The number of leading path segments to be stripped from the file name in the patches.",
-        ),
         "_sdk_build_file": attr.label(
             default = Label("//go/private:BUILD.sdk.bazel"),
         ),
-    },
+    }, **patch_attrs),
 )
 
 def _define_version_constants(version, prefix = ""):
