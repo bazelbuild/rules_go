@@ -11,7 +11,7 @@ go_library(
     srcs = ["main.go"],
     importpath = "github.com/bazelbuild/rules_go/go/tools/fetch_repo",
     visibility = ["//visibility:private"],
-    deps = ["@org_golang_x_tools//go/vcs:go_default_library"],
+    deps = ["@org_golang_x_tools_go_vcs//:go_default_library"],
 )
 
 go_test(
@@ -19,5 +19,5 @@ go_test(
     size = "small",
     srcs = ["fetch_repo_test.go"],
     embed = [":go_default_library"],
-    deps = ["@org_golang_x_tools//go/vcs:go_default_library"],
+    deps = ["@org_golang_x_tools_go_vcs//:go_default_library"],
 )

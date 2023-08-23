@@ -82,6 +82,25 @@ def go_rules_dependencies(force = False):
         patch_args = ["-p1"],
     )
 
+    # Needed for go/tools/fetch_repo
+    # releaser:upgrade-dep golang tools
+    wrapper(
+        http_archive,
+        name = "org_golang_x_tools_go_vcs",
+        # v0.12.0, latest as of 2023-08-12
+        urls = [
+            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/go/vcs/v0.1.0-deprecated.zip",
+            "https://github.com/golang/tools/archive/refs/tags/go/vcs/v0.1.0-deprecated.zip",
+        ],
+        sha256 = "1b389268d126467105305ae4482df0189cc80a13aaab28d0946192b4ad0737a8",
+        strip_prefix = "tools-go-vcs-v0.1.0-deprecated/go/vcs",
+        patches = [
+            # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/tools/go/vcs -go_naming_convention import_alias
+            Label("//third_party:org_golang_x_tools_go_vcs-gazelle.patch"),
+        ],
+        patch_args = ["-p1"],
+    )
+
     # releaser:upgrade-dep golang sys
     wrapper(
         http_archive,
