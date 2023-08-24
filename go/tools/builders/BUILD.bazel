@@ -9,6 +9,13 @@ go_test(
         "filter.go",
         "filter_test.go",
         "read.go",
+        "read_test.go",
+    ],
+    data = [
+        "read_test_fixture.go",
+    ],
+    deps = [
+        "//go/runfiles",
     ],
 )
 
