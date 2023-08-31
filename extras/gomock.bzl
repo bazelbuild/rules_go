@@ -202,10 +202,7 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
     interfaces = kwargs.pop("interfaces", None)
-
-    mockgen_model_lib = _MOCKGEN_MODEL_LIB
-    if kwargs.get("mockgen_model_library", None):
-        mockgen_model_lib = kwargs["mockgen_model_library"]
+    mockgen_model_lib = kwargs.pop("mockgen_model_library", _MOCKGEN_MODEL_LIB)
 
     prog_src = name + "_gomock_prog"
     prog_src_out = prog_src + ".go"
