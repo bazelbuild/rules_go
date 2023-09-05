@@ -9,6 +9,9 @@ go_tool_library(
         "wrap.go",
         "xml.go",
     ],
+    # We add "+initfirst/" to the package path so this package is initialized
+    # before user code. See comment above the init function in init.go.
+    importmap = "+initfirst/github.com/bazelbuild/rules_go/go/tools/bzltestutil",
     importpath = "github.com/bazelbuild/rules_go/go/tools/bzltestutil",
     visibility = ["//visibility:public"],
 )

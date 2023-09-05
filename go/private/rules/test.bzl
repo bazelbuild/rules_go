@@ -128,8 +128,11 @@ def _go_test_impl(ctx):
         # Disable symbol table and DWARF generation for test binaries.
         test_gc_linkopts.extend(["-s", "-w"])
 
-    # Link in the run_dir global for bzltestutil
-    test_gc_linkopts.extend(["-X", "github.com/bazelbuild/rules_go/go/tools/bzltestutil.RunDir=" + run_dir])
+    # Link in the run_dir global for bzltestutil.
+    # We add "+initfirst/" to the package path so the package is initialized
+    # before user code. See comment above the init function
+    # in bzltestutil/init.go.
+    test_gc_linkopts.extend(["-X", "+initfirst/github.com/bazelbuild/rules_go/go/tools/bzltestutil.RunDir=" + run_dir])
 
     # Now compile the test binary itself
     test_library = GoLibrary(

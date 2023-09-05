@@ -8,6 +8,13 @@ import (
 
 const file = "data.txt"
 
+func init() {
+	_, err := os.Stat(file)
+	if err != nil {
+		log.Fatalf("in init(), could not stat %s: %v", file, err)
+	}
+}
+
 func TestMain(m *testing.M) {
 	_, err := os.Stat(file)
 	if err != nil {

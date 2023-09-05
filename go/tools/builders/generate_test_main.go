@@ -87,11 +87,10 @@ func (c *Cases) Version(v string) bool {
 const testMainTpl = `
 package main
 
-// This package must be initialized before packages being tested.
-// NOTE: this relies on the order of package initialization, which is the spec
-// is somewhat unclear about-- it only clearly guarantees that imported packages
-// are initialized before their importers, though in practice (and implied) it
-// also respects declaration order, which we're relying on here.
+// bzltestutil may change the current directory in its init function to emulate
+// 'go test' behavior. It must be initialized before user packages.
+// In Go 1.20 and earlier, this import declaration must appear before
+// imports of user packages. See comment in bzltestutil/init.go.
 import "github.com/bazelbuild/rules_go/go/tools/bzltestutil"
 
 import (
