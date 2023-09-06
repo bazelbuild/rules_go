@@ -1,0 +1,21 @@
+load("//go:def.bzl", "go_tool_library")
+
+go_tool_library(
+    name = "chdir",
+    srcs = ["init.go"],
+    # We add "+initfirst/" to the package path so this package is initialized
+    # before user code. See comment above the init function in init.go.
+    importmap = "+initfirst/github.com/bazelbuild/rules_go/go/tools/bzltestutil/chdir",
+    importpath = "github.com/bazelbuild/rules_go/go/tools/bzltestutil/chdir",
+    visibility = ["//go/tools/bzltestutil:__pkg__"],
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = glob(
+        ["**"],
+        exclude = ["testdata/*"],
+    ),
+    visibility = ["//visibility:public"],
+)

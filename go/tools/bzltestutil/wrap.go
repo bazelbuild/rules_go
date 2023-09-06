@@ -27,6 +27,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/bazelbuild/rules_go/go/tools/bzltestutil/chdir"
 )
 
 // TestWrapperAbnormalExit is used by Wrap to indicate the child
@@ -117,8 +119,8 @@ func Wrap(pkg string) error {
 		args = append([]string{"-test.v"}, args...)
 	}
 	exePath := os.Args[0]
-	if !filepath.IsAbs(exePath) && strings.ContainsRune(exePath, filepath.Separator) && testExecDir != "" {
-		exePath = filepath.Join(testExecDir, exePath)
+	if !filepath.IsAbs(exePath) && strings.ContainsRune(exePath, filepath.Separator) && chdir.TestExecDir != "" {
+		exePath = filepath.Join(chdir.TestExecDir, exePath)
 	}
 	cmd := exec.Command(exePath, args...)
 	cmd.Env = append(os.Environ(), "GO_TEST_WRAP=0")

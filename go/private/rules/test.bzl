@@ -132,7 +132,7 @@ def _go_test_impl(ctx):
     # We add "+initfirst/" to the package path so the package is initialized
     # before user code. See comment above the init function
     # in bzltestutil/init.go.
-    test_gc_linkopts.extend(["-X", "+initfirst/github.com/bazelbuild/rules_go/go/tools/bzltestutil.RunDir=" + run_dir])
+    test_gc_linkopts.extend(["-X", "+initfirst/github.com/bazelbuild/rules_go/go/tools/bzltestutil/chdir.RunDir=" + run_dir])
 
     # Now compile the test binary itself
     test_library = GoLibrary(

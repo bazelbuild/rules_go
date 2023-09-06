@@ -3,17 +3,15 @@ load("//go:def.bzl", "go_test", "go_tool_library")
 go_tool_library(
     name = "bzltestutil",
     srcs = [
-        "init.go",
         "lcov.go",
         "test2json.go",
         "wrap.go",
         "xml.go",
     ],
-    # We add "+initfirst/" to the package path so this package is initialized
-    # before user code. See comment above the init function in init.go.
     importmap = "+initfirst/github.com/bazelbuild/rules_go/go/tools/bzltestutil",
     importpath = "github.com/bazelbuild/rules_go/go/tools/bzltestutil",
     visibility = ["//visibility:public"],
+    deps = ["//go/tools/bzltestutil/chdir"],
 )
 
 go_test(
@@ -34,7 +32,7 @@ go_test(
 filegroup(
     name = "all_files",
     testonly = True,
-    srcs = glob(
+    srcs = ["//go/tools/bzltestutil/chdir:all_files"] + glob(
         ["**"],
         exclude = ["testdata/*"],
     ),
