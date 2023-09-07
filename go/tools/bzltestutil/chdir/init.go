@@ -61,11 +61,8 @@
 package chdir
 
 // This package should import nothing other than "os"
-// and packages imported by "os".
-import (
-	"os"
-	"runtime"
-)
+// and packages imported by "os" (run 'go list -deps os').
+import "os"
 
 var (
 	// Initialized by linker.
@@ -74,6 +71,8 @@ var (
 	// Initial working directory.
 	TestExecDir string
 )
+
+const isWindows = os.PathSeparator == '\\'
 
 func init() {
 	var err error
@@ -94,7 +93,7 @@ func init() {
 		err := os.Chdir(abs)
 		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
 		// https://github.com/bazelbuild/rules_go/pull/1721#issuecomment-422145904
-		if err != nil && runtime.GOOS != "windows" {
+		if err != nil && isWindows {
 			panic("could not change to test directory: " + err.Error())
 		}
 		if err == nil {
@@ -103,8 +102,12 @@ func init() {
 	}
 }
 
+// filepathIsAbs is a primitive version of filepath.IsAbs. It handles the
+// cases we are likely to encounter but is not specialized at compile time
+// and does not support DOS device paths (\\.\UNC\host\share\...) nor
+// Plan 9 absolute paths (starting with #).
 func filepathIsAbs(path string) bool {
-	if runtime.GOOS == "windows" {
+	if isWindows {
 		// Drive-letter path
 		if len(path) >= 3 &&
 			('A' <= path[0] && path[0] <= 'Z' || 'a' <= path[0] && path[0] <= 'z') &&
@@ -123,6 +126,8 @@ func filepathIsAbs(path string) bool {
 	return len(path) > 0 && path[0] == '/'
 }
 
+// filepathJoin is a primitive version of filepath.Join. It only joins
+// its arguments with os.PathSeparator. It does not clean arguments first.
 func filepathJoin(base string, parts ...string) string {
 	n := len(base)
 	for _, part := range parts {

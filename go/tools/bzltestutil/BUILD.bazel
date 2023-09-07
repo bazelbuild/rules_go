@@ -8,7 +8,6 @@ go_tool_library(
         "wrap.go",
         "xml.go",
     ],
-    importmap = "+initfirst/github.com/bazelbuild/rules_go/go/tools/bzltestutil",
     importpath = "github.com/bazelbuild/rules_go/go/tools/bzltestutil",
     visibility = ["//visibility:public"],
     deps = ["//go/tools/bzltestutil/chdir"],
