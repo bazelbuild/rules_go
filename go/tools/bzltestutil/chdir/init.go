@@ -93,7 +93,7 @@ func init() {
 		err := os.Chdir(abs)
 		// Ignore the Chdir err when on Windows, since it might have have runfiles symlinks.
 		// https://github.com/bazelbuild/rules_go/pull/1721#issuecomment-422145904
-		if err != nil && isWindows {
+		if err != nil && !isWindows {
 			panic("could not change to test directory: " + err.Error())
 		}
 		if err == nil {
