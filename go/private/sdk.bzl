@@ -12,18 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(
-    "//go/private:common.bzl",
-    "executable_path",
-)
-load(
-    "//go/private:nogo.bzl",
-    "go_register_nogo",
-)
-load(
-    "//go/private/skylib/lib:versions.bzl",
-    "versions",
-)
+load("//go/private:common.bzl", "executable_path")
+load("//go/private:nogo.bzl", "go_register_nogo")
+load("//go/private/skylib/lib:versions.bzl", "versions")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "patch")
 
 MIN_SUPPORTED_VERSION = (1, 14, 0)
 
@@ -75,6 +67,10 @@ def _go_download_sdk_impl(ctx):
     version = ctx.attr.version
     sdks = ctx.attr.sdks
 
+    if not version:
+        if ctx.attr.patches:
+            fail("a single version must be specified to apply patches")
+
     if not sdks:
         # If sdks was unspecified, download a full list of files.
         # If version was unspecified, pick the latest version.
@@ -115,7 +111,9 @@ def _go_download_sdk_impl(ctx):
     if platform not in sdks:
         fail("unsupported platform {}".format(platform))
     filename, sha256 = sdks[platform]
+
     _remote_sdk(ctx, [url.format(filename) for url in ctx.attr.urls], ctx.attr.strip_prefix, sha256)
+    patch(ctx, patch_args = _get_patch_args(ctx.attr.patch_strip))
 
     detected_version = _detect_sdk_version(ctx, ".")
     _sdk_build_file(ctx, platform, detected_version, experiments = ctx.attr.experiments)
@@ -146,6 +144,13 @@ go_download_sdk_rule = repository_rule(
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "version": attr.string(),
         "strip_prefix": attr.string(default = "go"),
+        "patches": attr.label_list(
+            doc = "A list of patches to apply to the SDK after downloading it",
+        ),
+        "patch_strip": attr.int(
+            default = 0,
+            doc = "The number of leading path segments to be stripped from the file name in the patches.",
+        ),
         "_sdk_build_file": attr.label(
             default = Label("//go/private:BUILD.sdk.bazel"),
         ),
@@ -174,6 +179,11 @@ def _define_version_constants(version, prefix = ""):
 def _to_constant_name(s):
     # Prefix with _ as identifiers are not allowed to start with numbers.
     return "_" + "".join([c if c.isalnum() else "_" for c in s.elems()]).upper()
+
+def _get_patch_args(patch_strip):
+    if patch_strip:
+        return ["-p{}".format(patch_strip)]
+    return []
 
 def go_toolchains_single_definition(ctx, *, prefix, goos, goarch, sdk_repo, sdk_type, sdk_version):
     if not goos and not goarch:

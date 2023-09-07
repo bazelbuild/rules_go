@@ -107,6 +107,7 @@ bzl_library(
         "//go/private:nogo",
         "//go/private:platforms",
         "//go/private/skylib/lib:versions",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
     ],
 )
 

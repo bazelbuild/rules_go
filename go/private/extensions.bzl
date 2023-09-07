@@ -1,3 +1,17 @@
+# Copyright 2023 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
 load("//go/private:repositories.bzl", "go_rules_dependencies")
 
@@ -31,6 +45,13 @@ _download_tag = tag_class(
         ),
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
         "version": attr.string(),
+        "patches": attr.label_list(
+            doc = "A list of patches to apply to the SDK after downloading it",
+        ),
+        "patch_strip": attr.int(
+            default = 0,
+            doc = "The number of leading path segments to be stripped from the file name in the patches.",
+        ),
         "strip_prefix": attr.string(default = "go"),
     },
 )
@@ -93,6 +114,8 @@ def _go_sdk_impl(ctx):
                 goarch = download_tag.goarch,
                 sdks = download_tag.sdks,
                 experiments = download_tag.experiments,
+                patches = download_tag.patches,
+                patch_strip = download_tag.patch_strip,
                 urls = download_tag.urls,
                 version = download_tag.version,
                 strip_prefix = download_tag.strip_prefix,

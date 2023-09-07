@@ -22,7 +22,13 @@ bazel_dep(name = "gazelle", version = "0.32.0")
 bazel_dep(name = "protobuf", version = "3.19.6")
 
 go_sdk = use_extension("@my_rules_go//go:extensions.bzl", "go_sdk")
-go_sdk.download(version = "1.19.5")
+go_sdk.download(
+    version = "1.21.1",
+    patch_strip = 1,
+    patches = [
+        "//:test_go_sdk.patch",
+    ],
+)
 
 # Request an invalid SDK to verify that it isn't fetched since the first tag takes precedence.
 go_sdk.host(version = "3.0.0")
