@@ -125,12 +125,12 @@ func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
 		if strings.HasSuffix(request, ".go") {
 			f := strings.TrimPrefix(request, "file=")
 			result = b.fileQuery(f)
+		} else if bazelQueryScope != "" {
+			result = b.packageQuery(request)
 		} else if isLocalPattern(request) {
 			result = b.localQuery(request)
 		} else if request == "builtin" || request == "std" {
 			result = fmt.Sprintf(RulesGoStdlibLabel)
-		} else if bazelQueryScope != "" {
-			result = b.packageQuery(request)
 		}
 
 		if result != "" {
