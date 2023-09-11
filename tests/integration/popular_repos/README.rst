@@ -22,17 +22,16 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 * @org_golang_x_crypto//blowfish:blowfish_test
 * @org_golang_x_crypto//bn256:bn256_test
 * @org_golang_x_crypto//cast5:cast5_test
-* @org_golang_x_crypto//chacha20:chacha20_test
 * @org_golang_x_crypto//chacha20poly1305:chacha20poly1305_test
 * @org_golang_x_crypto//cryptobyte:cryptobyte_test
 * @org_golang_x_crypto//curve25519:curve25519_test
 * @org_golang_x_crypto//ed25519:ed25519_test
 * @org_golang_x_crypto//hkdf:hkdf_test
+* @org_golang_x_crypto//internal/chacha20:chacha20_test
 * @org_golang_x_crypto//internal/subtle:subtle_test
 * @org_golang_x_crypto//md4:md4_test
 * @org_golang_x_crypto//nacl/auth:auth_test
 * @org_golang_x_crypto//nacl/box:box_test
-* @org_golang_x_crypto//nacl/secretbox:secretbox_test
 * @org_golang_x_crypto//nacl/sign:sign_test
 * @org_golang_x_crypto//ocsp:ocsp_test
 * @org_golang_x_crypto//openpgp:openpgp_test
@@ -51,8 +50,8 @@ This runs tests from the repository `golang.org/x/crypto <https://golang.org/x/c
 * @org_golang_x_crypto//salsa20/salsa:salsa_test
 * @org_golang_x_crypto//scrypt:scrypt_test
 * @org_golang_x_crypto//sha3:sha3_test
-* @org_golang_x_crypto//ssh/internal/bcrypt_pbkdf:bcrypt_pbkdf_test
 * @org_golang_x_crypto//ssh/knownhosts:knownhosts_test
+* @org_golang_x_crypto//ssh/terminal:terminal_test
 * @org_golang_x_crypto//tea:tea_test
 * @org_golang_x_crypto//twofish:twofish_test
 * @org_golang_x_crypto//xtea:xtea_test
@@ -82,6 +81,7 @@ This runs tests from the repository `golang.org/x/net <https://golang.org/x/net>
 * @org_golang_x_net//netutil:netutil_test
 * @org_golang_x_net//proxy:proxy_test
 * @org_golang_x_net//publicsuffix:publicsuffix_test
+* @org_golang_x_net//route:route_test
 * @org_golang_x_net//trace:trace_test
 * @org_golang_x_net//webdav:webdav_test
 * @org_golang_x_net//webdav/internal/xml:xml_test
@@ -99,6 +99,7 @@ This runs tests from the repository `golang.org/x/sys <https://golang.org/x/sys>
 * @org_golang_x_sys//internal/unsafeheader:unsafeheader_test
 * @org_golang_x_sys//plan9:plan9_test
 * @org_golang_x_sys//unix/internal/mkmerge:mkmerge_test
+* @org_golang_x_sys//windows/mkwinsyscall:mkwinsyscall_test
 * @org_golang_x_sys//windows/registry:registry_test
 * @org_golang_x_sys//windows/svc:svc_test
 * @org_golang_x_sys//windows/svc/eventlog:eventlog_test
@@ -163,8 +164,10 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//cmd/splitdwarf/internal/macho:macho_test
 * @org_golang_x_tools//cover:cover_test
 * @org_golang_x_tools//go/analysis:analysis_test
+* @org_golang_x_tools//go/analysis/passes/directive/testdata/src/a:a_test
 * @org_golang_x_tools//go/analysis/passes/internal/analysisutil:analysisutil_test
 * @org_golang_x_tools//go/ast/astutil:astutil_test
+* @org_golang_x_tools//go/callgraph:callgraph_test
 * @org_golang_x_tools//go/callgraph/static:static_test
 * @org_golang_x_tools//go/callgraph/vta/internal/trie:trie_test
 * @org_golang_x_tools//go/cfg:cfg_test
@@ -188,6 +191,8 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/jsonrpc2:jsonrpc2_test
 * @org_golang_x_tools//internal/jsonrpc2/servertest:servertest_test
 * @org_golang_x_tools//internal/jsonrpc2_v2:jsonrpc2_v2_test
+* @org_golang_x_tools//internal/lockedfile:lockedfile_test
+* @org_golang_x_tools//internal/lockedfile/internal/filelock:filelock_test
 * @org_golang_x_tools//internal/memoize:memoize_test
 * @org_golang_x_tools//internal/persistent:persistent_test
 * @org_golang_x_tools//internal/proxydir:proxydir_test
