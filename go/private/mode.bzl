@@ -241,7 +241,9 @@ def extld_from_cc_toolchain(go):
     if not go.cgo_tools:
         return []
     elif go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_PIE):
-        return ["-extld", go.cgo_tools.ld_dynamic_lib_path]
+        # NOTE: Use '=' to help distinguish between `extld` and `extldflags` in
+        # cgoAbsLinkFlags.
+        return ["-extld=" + go.cgo_tools.ld_dynamic_lib_path]
     elif go.mode.link == LINKMODE_C_ARCHIVE:
         if go.mode.goos in ["darwin", "ios"]:
             # TODO(jayconrod): on macOS, set -extar. At this time, wrapped_ar is
@@ -255,4 +257,6 @@ def extld_from_cc_toolchain(go):
         # on macOS, Bazel returns wrapped_ar, which is not executable.
         # /usr/bin/ar (the default) should be visible though, and we have a
         # hack in link.go to strip out non-reproducible stuff.
-        return ["-extld", go.cgo_tools.ld_executable_path]
+        # NOTE: Use '=' to help distinguish between `extld` and `extldflags` in
+        # cgoAbsLinkFlags.
+        return ["-extld=" + go.cgo_tools.ld_executable_path]

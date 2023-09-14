@@ -35,6 +35,11 @@ var (
 	cgoEnvVars = []string{"CGO_CFLAGS", "CGO_CXXFLAGS", "CGO_CPPFLAGS", "CGO_LDFLAGS"}
 	// cgoAbsEnvFlags are all the flags that need absolute path in cgoEnvVars
 	cgoAbsEnvFlags = []string{"-I", "-L", "-isysroot", "-isystem", "-iquote", "-include", "-gcc-toolchain", "--sysroot", "-resource-dir", "-fsanitize-blacklist", "-fsanitize-ignorelist"}
+	// cgoAbsLinkFlags are all the flags in the generated link command that need absolute paths.
+	// Need absolute path for -extld because of https://github.com/golang/go/issues/59952.
+	// Can be reverted after dropping support for Go versions older than 1.21.0.
+	// Also see note for `-extld=` vs `-extld` in go/private/mode.bzl.
+	cgoAbsLinkFlags = []string{"-extld="}
 )
 
 // env holds a small amount of Go environment and toolchain information

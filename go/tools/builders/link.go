@@ -36,6 +36,7 @@ func link(args []string) error {
 	if err != nil {
 		return err
 	}
+	absArgs(args, cgoAbsLinkFlags)
 	builderArgs, toolArgs := splitArgs(args)
 	stamps := multiFlag{}
 	xdefs := multiFlag{}
