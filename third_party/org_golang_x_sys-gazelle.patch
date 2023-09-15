@@ -1,7 +1,7 @@
 diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
---- a/cpu/BUILD.bazel	1969-12-31 16:00:00
+--- a/cpu/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/cpu/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,68 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -64,13 +64,14 @@ diff -urN a/cpu/BUILD.bazel b/cpu/BUILD.bazel
 +    srcs = [
 +        "cpu_s390x_test.go",
 +        "cpu_test.go",
++        "endian_test.go",
 +        "parse_test.go",
 +        "runtime_auxv_go121_test.go",
 +    ],
 +    embed = [":cpu"],
 +)
 diff -urN a/execabs/BUILD.bazel b/execabs/BUILD.bazel
---- a/execabs/BUILD.bazel	1969-12-31 16:00:00
+--- a/execabs/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/execabs/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,24 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
@@ -98,7 +99,7 @@ diff -urN a/execabs/BUILD.bazel b/execabs/BUILD.bazel
 +    embed = [":execabs"],
 +)
 diff -urN a/internal/unsafeheader/BUILD.bazel b/internal/unsafeheader/BUILD.bazel
---- a/internal/unsafeheader/BUILD.bazel	1969-12-31 16:00:00
+--- a/internal/unsafeheader/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/internal/unsafeheader/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
@@ -122,7 +123,7 @@ diff -urN a/internal/unsafeheader/BUILD.bazel b/internal/unsafeheader/BUILD.baze
 +    deps = [":unsafeheader"],
 +)
 diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
---- a/plan9/BUILD.bazel	1969-12-31 16:00:00
+--- a/plan9/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/plan9/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,45 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
@@ -171,9 +172,9 @@ diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 +    }),
 +)
 diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
---- a/unix/BUILD.bazel	1969-12-31 16:00:00
+--- a/unix/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/unix/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,297 @@
+@@ -0,0 +1,301 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -218,6 +219,8 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "ioctl_linux.go",
 +        "ioctl_signed.go",
 +        "ioctl_unsigned.go",
++        "mmap_nomremap.go",
++        "mremap.go",
 +        "pagesize_unix.go",
 +        "pledge_openbsd.go",
 +        "ptrace_darwin.go",
@@ -442,11 +445,13 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +        "example_exec_test.go",
 +        "example_flock_test.go",
 +        "example_sysvshm_test.go",
++        "export_mremap_test.go",
 +        "fdset_test.go",
 +        "getdirentries_test.go",
 +        "getfsstat_test.go",
 +        "ifreq_linux_test.go",
 +        "mmap_unix_test.go",
++        "mremap_test.go",
 +        "openbsd_test.go",
 +        "pipe2_test.go",
 +        "sendfile_test.go",
@@ -472,7 +477,7 @@ diff -urN a/unix/BUILD.bazel b/unix/BUILD.bazel
 +    embed = [":unix"],
 +)
 diff -urN a/unix/internal/mkmerge/BUILD.bazel b/unix/internal/mkmerge/BUILD.bazel
---- a/unix/internal/mkmerge/BUILD.bazel	1969-12-31 16:00:00
+--- a/unix/internal/mkmerge/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/unix/internal/mkmerge/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
@@ -496,7 +501,7 @@ diff -urN a/unix/internal/mkmerge/BUILD.bazel b/unix/internal/mkmerge/BUILD.baze
 +    embed = [":mkmerge_lib"],
 +)
 diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
---- a/windows/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,60 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
@@ -560,7 +565,7 @@ diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 +    }),
 +)
 diff -urN a/windows/mkwinsyscall/BUILD.bazel b/windows/mkwinsyscall/BUILD.bazel
---- a/windows/mkwinsyscall/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/mkwinsyscall/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/mkwinsyscall/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,20 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
@@ -584,7 +589,7 @@ diff -urN a/windows/mkwinsyscall/BUILD.bazel b/windows/mkwinsyscall/BUILD.bazel
 +    embed = [":mkwinsyscall_lib"],
 +)
 diff -urN a/windows/registry/BUILD.bazel b/windows/registry/BUILD.bazel
---- a/windows/registry/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/registry/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/registry/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
@@ -622,7 +627,7 @@ diff -urN a/windows/registry/BUILD.bazel b/windows/registry/BUILD.bazel
 +    embed = [":registry"],
 +)
 diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
---- a/windows/svc/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/svc/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/svc/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,36 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
@@ -662,7 +667,7 @@ diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
 +    }),
 +)
 diff -urN a/windows/svc/debug/BUILD.bazel b/windows/svc/debug/BUILD.bazel
---- a/windows/svc/debug/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/svc/debug/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/svc/debug/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library")
@@ -689,7 +694,7 @@ diff -urN a/windows/svc/debug/BUILD.bazel b/windows/svc/debug/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +)
 diff -urN a/windows/svc/eventlog/BUILD.bazel b/windows/svc/eventlog/BUILD.bazel
---- a/windows/svc/eventlog/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/svc/eventlog/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/svc/eventlog/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
@@ -728,7 +733,7 @@ diff -urN a/windows/svc/eventlog/BUILD.bazel b/windows/svc/eventlog/BUILD.bazel
 +    }),
 +)
 diff -urN a/windows/svc/example/BUILD.bazel b/windows/svc/example/BUILD.bazel
---- a/windows/svc/example/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/svc/example/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/svc/example/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,29 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
@@ -761,7 +766,7 @@ diff -urN a/windows/svc/example/BUILD.bazel b/windows/svc/example/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +)
 diff -urN a/windows/svc/mgr/BUILD.bazel b/windows/svc/mgr/BUILD.bazel
---- a/windows/svc/mgr/BUILD.bazel	1969-12-31 16:00:00
+--- a/windows/svc/mgr/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/svc/mgr/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
 @@ -0,0 +1,40 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
