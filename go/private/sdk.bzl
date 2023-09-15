@@ -473,8 +473,10 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
         )
 
 def _local_sdk(ctx, path):
-    for entry in ["src", "pkg", "bin", "lib", "misc"]:
-        ctx.symlink(path + "/" + entry, entry)
+    for entry in ctx.path(path).readdir():
+        if ctx.path(entry.basename).exists:
+            continue
+        ctx.symlink(entry, entry.basename)
 
 def _sdk_build_file(ctx, platform, version, experiments):
     ctx.file("ROOT")
