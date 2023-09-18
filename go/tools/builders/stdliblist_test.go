@@ -33,8 +33,8 @@ func Test_stdliblist(t *testing.T) {
 			t.Errorf("unable to decode output json: %v\n", err)
 		}
 
-		if !strings.HasPrefix(result.ID, "@io_bazel_rules_go//stdlib") {
-			t.Errorf("ID should be prefixed with @io_bazel_rules_go//stdlib :%v", result)
+		if !strings.HasPrefix(result.ID, "@//stdlib:") {
+			t.Errorf("ID should be prefixed with @//stdlib: :%v", result)
 		}
 		if !strings.HasPrefix(result.ExportFile, "__BAZEL_OUTPUT_BASE__") {
 			t.Errorf("export file should be prefixed with __BAZEL_OUTPUT_BASE__ :%v", result)

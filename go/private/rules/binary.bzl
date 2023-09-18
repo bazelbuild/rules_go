@@ -441,12 +441,13 @@ def _go_tool_binary_impl(ctx):
     if sdk.goos == "windows":
         gopath = ctx.actions.declare_directory("gopath")
         gocache = ctx.actions.declare_directory("gocache")
-        cmd = "@echo off\nset GOMAXPROCS=1\nset GOCACHE=%cd%\\{gocache}\nset GOPATH=%cd%\\{gopath}\n{go} build -o {out} -trimpath {srcs}".format(
+        cmd = "@echo off\nset GOMAXPROCS=1\nset GOCACHE=%cd%\\{gocache}\nset GOPATH=%cd%\\{gopath}\n{go} build -o {out} -trimpath -ldflags \"{ldflags}\" {srcs}".format(
             gopath = gopath.path,
             gocache = gocache.path,
             go = sdk.go.path.replace("/", "\\"),
             out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
+            ldflags = ctx.attr.ldflags,
         )
         bat = ctx.actions.declare_file(name + ".bat")
         ctx.actions.write(
@@ -461,10 +462,11 @@ def _go_tool_binary_impl(ctx):
         )
     else:
         # Note: GOPATH is needed for Go 1.16.
-        cmd = "GOMAXPROCS=1 GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath {srcs}".format(
+        cmd = "GOMAXPROCS=1 GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath -ldflags '{ldflags}' {srcs}".format(
             go = sdk.go.path,
             out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
+            ldflags = ctx.attr.ldflags,
         )
         ctx.actions.run_shell(
             command = cmd,
@@ -489,6 +491,9 @@ go_tool_binary = rule(
             mandatory = True,
             providers = [GoSDK],
             doc = "The SDK containing tools and libraries to build this binary",
+        ),
+        "ldflags": attr.string(
+            doc = "Raw value to pass to go build via -ldflags without tokenization",
         ),
     },
     executable = True,

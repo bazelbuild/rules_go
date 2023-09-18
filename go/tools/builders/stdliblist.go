@@ -106,8 +106,16 @@ type goListPackage struct {
 	DepsErrors []*flatPackagesError // errors loading dependencies
 }
 
+var rulesGoStdlibPrefix string
+
+func init() {
+	if rulesGoStdlibPrefix == "" {
+		panic("rulesGoStdlibPrefix should have been set via -X")
+	}
+}
+
 func stdlibPackageID(importPath string) string {
-	return "@io_bazel_rules_go//stdlib:" + importPath
+	return rulesGoStdlibPrefix + importPath
 }
 
 // outputBasePath replace the cloneBase with output base label
@@ -280,7 +288,7 @@ func stdliblist(args []string) error {
 
 	encoder := json.NewEncoder(jsonFile)
 	decoder := json.NewDecoder(jsonData)
-	pathReplaceFn := func (s string) string {
+	pathReplaceFn := func(s string) string {
 		if strings.HasPrefix(s, absCachePath) {
 			return strings.Replace(s, absCachePath, filepath.Join("__BAZEL_EXECROOT__", *cachePath), 1)
 		}

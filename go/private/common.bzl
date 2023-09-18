@@ -252,3 +252,10 @@ COVERAGE_OPTIONS_DENYLIST = {
     "-fprofile-instr-generate": None,
     "-fcoverage-mapping": None,
 }
+
+_RULES_GO_RAW_REPO_NAME = str(Label("//:unused"))[:-len("//:unused")]
+
+# When rules_go is the main repository and Bazel < 6 is used, the repo name does
+# not start with a "@", so we need to add it.
+RULES_GO_REPO_NAME = _RULES_GO_RAW_REPO_NAME if _RULES_GO_RAW_REPO_NAME.startswith("@") else "@" + _RULES_GO_RAW_REPO_NAME
+RULES_GO_STDLIB_PREFIX = RULES_GO_REPO_NAME + "//stdlib:"
