@@ -71,10 +71,10 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "178eba9540a616bda314afa25a91f195758a9fed178eda72e149eb0d20e9b670",
-    strip_prefix = "bazel-gazelle-9fe0a3ff751647789690293dcbb3c87ea33b7566",
+    sha256 = "d3fa66a39028e97d76f9e2db8f1b0c11c099e8e01bf363a923074784e451f809",
     urls = [
-        "https://github.com/bazelbuild/bazel-gazelle/archive/9fe0a3ff751647789690293dcbb3c87ea33b7566.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.33.0/bazel-gazelle-v0.33.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.33.0/bazel-gazelle-v0.33.0.tar.gz",
     ],
 )
 
