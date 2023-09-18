@@ -65,6 +65,18 @@ func isLocalPattern(pattern string) bool {
 	return build.IsLocalImport(pattern) || filepath.IsAbs(pattern)
 }
 
+func isRulesGoStdlibLabel(pattern string) bool {
+	if pattern == RulesGoStdlibLabel {
+		return true
+	} else if pattern == "@io_bazel_rules_go//:stdlib" {
+		// Check also for a static repository name since bazel query does
+		// not return the canonical repository name when bzlmod is enabled.
+		// The static name is also used while building the stdliblist.
+		return true
+	}
+	return false
+}
+
 func packageID(pattern string) string {
 	pattern = path.Clean(pattern)
 	if filepath.IsAbs(pattern) {

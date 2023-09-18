@@ -89,10 +89,14 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 
 	for _, label := range labels {
 		if !strings.HasPrefix(label, "@") {
-			label = fmt.Sprintf("@%s", label)
+			if bazelSupportsCanonicalLabelLiterals {
+				label = fmt.Sprintf("@@%s", label)
+			} else {
+				label = fmt.Sprintf("@%s", label)
+			}
 		}
 
-		if label == RulesGoStdlibLabel {
+		if isRulesGoStdlibLabel(label) {
 			// For stdlib, we need to append all the subpackages as roots
 			// since RulesGoStdLibLabel doesn't actually show up in the stdlib pkg.json
 			for _, pkg := range pr.packagesByID {

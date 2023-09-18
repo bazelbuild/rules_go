@@ -53,17 +53,18 @@ type driverResponse struct {
 var (
 	// Injected via x_defs.
 
-	rulesGoRepositoryName string
-	goDefaultAspect       = rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect"
-	bazelBin              = getenvDefault("GOPACKAGESDRIVER_BAZEL", "bazel")
-	bazelStartupFlags     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_FLAGS"))
-	bazelQueryFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY_FLAGS"))
-	bazelQueryScope       = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "")
-	bazelBuildFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_BUILD_FLAGS"))
-	workspaceRoot         = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
-	additionalAspects     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_ADDTL_ASPECTS"))
-	additionalKinds       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
-	emptyResponse         = &driverResponse{
+	rulesGoRepositoryName               string
+	goDefaultAspect                     = rulesGoRepositoryName + "//go/tools/gopackagesdriver:aspect.bzl%go_pkg_info_aspect"
+	bazelSupportsCanonicalLabelLiterals = strings.HasPrefix(rulesGoRepositoryName, "@@")
+	bazelBin                            = getenvDefault("GOPACKAGESDRIVER_BAZEL", "bazel")
+	bazelStartupFlags                   = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_FLAGS"))
+	bazelQueryFlags                     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_QUERY_FLAGS"))
+	bazelQueryScope                     = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "")
+	bazelBuildFlags                     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_BUILD_FLAGS"))
+	workspaceRoot                       = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
+	additionalAspects                   = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_ADDTL_ASPECTS"))
+	additionalKinds                     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
+	emptyResponse                       = &driverResponse{
 		NotHandled: true,
 		Compiler:   "gc",
 		Arch:       runtime.GOARCH,
