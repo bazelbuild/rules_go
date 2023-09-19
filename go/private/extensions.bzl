@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
 load("//go/private:repositories.bzl", "go_rules_dependencies")
 
@@ -207,12 +208,21 @@ def _left_pad_zero(index, length):
         fail("index must be non-negative")
     return ("0" * length + str(index))[-length:]
 
+go_sdk_extra_kwargs = {
+    # The choice of a host-compatible SDK is expressed in repository rule attribute values and
+    # depends on host OS and architecture.
+    "os_dependent": True,
+    "arch_dependent": True,
+} if bazel_features.external_deps.module_extension_has_os_arch_dependent else {}
+print(go_sdk_extra_kwargs)
+
 go_sdk = module_extension(
     implementation = _go_sdk_impl,
     tag_classes = {
         "download": _download_tag,
         "host": _host_tag,
     },
+    **go_sdk_extra_kwargs
 )
 
 def _non_module_dependencies_impl(_ctx):
