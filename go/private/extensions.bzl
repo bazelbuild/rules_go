@@ -214,7 +214,6 @@ go_sdk_extra_kwargs = {
     "os_dependent": True,
     "arch_dependent": True,
 } if bazel_features.external_deps.module_extension_has_os_arch_dependent else {}
-print(go_sdk_extra_kwargs)
 
 go_sdk = module_extension(
     implementation = _go_sdk_impl,
