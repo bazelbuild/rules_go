@@ -88,10 +88,10 @@ POPULAR_REPOS = [
             "cmd/bundle:bundle_test", # Needs testdata directory
             "cmd/callgraph/testdata/src/pkg:pkg_test", # is testdata
             "cmd/callgraph:callgraph_test", # Needs testdata directory
-            "cmd/cover:cover_test", # Needs testdata directory
             "cmd/file2fuzz:file2fuzz_test", # Requires working GOROOT, uses go build
             "cmd/fiximports:fiximports_test", # requires working GOROOT, not present in CI.
             "cmd/godoc:godoc_test", # TODO(#417)
+            "cmd/gonew:gonew_test", # Requires working GOROOT
             "cmd/gorename:gorename_test", # TODO(#417)
             "cmd/guru/testdata/src/referrers:referrers_test", # Not a real test
             "cmd/guru:guru_test", # Needs testdata directory
@@ -113,11 +113,13 @@ POPULAR_REPOS = [
             "go/analysis/passes/buildssa:buildssa_test", # Needs testdata directory
             "go/analysis/passes/buildtag:buildtag_test", # Needs testdata directory
             "go/analysis/passes/cgocall:cgocall_test", # Needs testdata directory
-            "go/analysis/passes/composite:composite_test", # Needs testdata directory
             "go/analysis/passes/composite/testdata/src/a:a_test", # Does not compile
+            "go/analysis/passes/composite:composite_test", # Needs testdata directory
             "go/analysis/passes/copylock:copylock_test", # Needs testdata directory
             "go/analysis/passes/ctrlflow:ctrlflow_test", # Needs testdata directory
             "go/analysis/passes/deepequalerrors:deepequalerrors_test", # requires go list
+            "go/analysis/passes/defers:defers_test", # Requires working GOROOT
+            "go/analysis/passes/directive:directive_test", # Requires working GOROOT
             "go/analysis/passes/errorsas:errorsas_test", # requires go list and testdata
             "go/analysis/passes/fieldalignment:fieldalignment_test", # Needs GOROOT
             "go/analysis/passes/findcall:findcall_test", # requires build cache
@@ -144,12 +146,12 @@ POPULAR_REPOS = [
             "go/analysis/passes/tests/testdata/src/divergent:divergent_test", # Not a real test
             "go/analysis/passes/tests/testdata/src/typeparams:typeparams_test", # Not a real test
             "go/analysis/passes/tests:tests_test", # Needs testdata directory
+            "go/analysis/passes/timeformat:timeformat_test", # Needs go tool
             "go/analysis/passes/unmarshal:unmarshal_test", # Needs go list
             "go/analysis/passes/unreachable:unreachable_test", # Needs testdata directory
             "go/analysis/passes/unsafeptr:unsafeptr_test", # Needs testdata directory
             "go/analysis/passes/unusedresult:unusedresult_test", # Needs testdata directory
             "go/analysis/passes/unusedwrite:unusedwrite_test", # Needs testdata directory
-            "go/analysis/passes/timeformat:timeformat_test", # Needs go tool
             "go/analysis/passes/usesgenerics:usesgenerics_test", # Needs go tool
             "go/analysis/unitchecker:unitchecker_test", # requires go vet
             "go/ast/inspector:inspector_test", # requires GOROOT and GOPATH
@@ -166,16 +168,16 @@ POPULAR_REPOS = [
             "go/packages/packagestest/testdata:testdata_test", # Is testdata
             "go/packages/packagestest:packagestest_test", # requires build cache
             "go/packages:packages_test", # Hah!
-            "go/pointer:pointer_test", # Needs testdata directory
             "go/ssa/interp:interp_test", # Needs testdata directory
             "go/ssa/ssautil:ssautil_test", # Needs testdata directory
             "go/ssa:ssa_test", # Needs testdata directory
-            "go/types/typeutil:typeutil_test", # requires GOROOT
             "go/types/objectpath:objectpath_test", # Incomaptible with Go SDK 1.18.3. Fixed in master but not yet released. TODO: fixme
+            "go/types/typeutil:typeutil_test", # requires GOROOT
             "godoc/static:static_test", # requires data files
             "godoc/vfs/zipfs:zipfs_test", # requires GOROOT
             "godoc:godoc_test", # requires GOROOT and GOPATH
             "internal/apidiff:apidiff_test", # Needs testdata directory
+            "internal/cmd/deadcode:deadcode_test", # Requires working GOROOT
             "internal/diff/difftest:difftest_test", # Needs diff tool
             "internal/facts:facts_test", # loads test package with go/packages, which probably needs go list
             "internal/gcimporter:gcimporter_test", # Needs testdata directory
