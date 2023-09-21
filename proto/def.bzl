@@ -32,10 +32,6 @@ load(
     "GO_TOOLCHAIN",
 )
 load(
-    "//go/private:providers.bzl",
-    "INFERRED_PATH",
-)
-load(
     "//go/private/rules:transition.bzl",
     "non_go_tool_transition",
 )
@@ -46,7 +42,7 @@ load(
 
 GoProtoImports = provider()
 
-def get_imports(attr):
+def get_imports(attr, importpath):
     proto_deps = []
 
     # ctx.attr.proto is a one-element array since there is a Starlark transition attached to it.
@@ -60,7 +56,7 @@ def get_imports(attr):
     direct = dict()
     for dep in proto_deps:
         for src in dep[ProtoInfo].check_deps_sources.to_list():
-            direct["{}={}".format(proto_path(src, dep[ProtoInfo]), attr.importpath)] = True
+            direct["{}={}".format(proto_path(src, dep[ProtoInfo]), importpath)] = True
 
     deps = getattr(attr, "deps", []) + getattr(attr, "embed", [])
     transitive = [
@@ -71,7 +67,8 @@ def get_imports(attr):
     return depset(direct = direct.keys(), transitive = transitive)
 
 def _go_proto_aspect_impl(_target, ctx):
-    imports = get_imports(ctx.rule.attr)
+    go = go_context(ctx, ctx.rule.attr)
+    imports = get_imports(ctx.rule.attr, go.importpath)
     return [GoProtoImports(imports = imports)]
 
 _go_proto_aspect = aspect(
@@ -80,6 +77,7 @@ _go_proto_aspect = aspect(
         "deps",
         "embed",
     ],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def _proto_library_to_source(_go, attr, source, merge):
@@ -93,8 +91,6 @@ def _proto_library_to_source(_go, attr, source, merge):
 
 def _go_proto_library_impl(ctx):
     go = go_context(ctx)
-    if go.pathtype == INFERRED_PATH:
-        fail("importpath must be specified in this library or one of its embedded libraries")
     if ctx.attr.compiler:
         #TODO: print("DEPRECATED: compiler attribute on {}, use compilers instead".format(ctx.label))
         compilers = [ctx.attr.compiler]
@@ -124,7 +120,7 @@ def _go_proto_library_impl(ctx):
             go,
             compiler = compiler,
             protos = [d[ProtoInfo] for d in proto_deps],
-            imports = get_imports(ctx.attr),
+            imports = get_imports(ctx.attr, go.importpath),
             importpath = go.importpath,
         ))
     library = go.new_library(

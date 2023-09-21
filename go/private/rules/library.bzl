@@ -29,7 +29,6 @@ load(
 load(
     "//go/private:providers.bzl",
     "GoLibrary",
-    "INFERRED_PATH",
 )
 load(
     "//go/private/rules:transition.bzl",
@@ -39,8 +38,6 @@ load(
 def _go_library_impl(ctx):
     """Implements the go_library() rule."""
     go = go_context(ctx)
-    if go.pathtype == INFERRED_PATH:
-        fail("importpath must be specified in this library or one of its embedded libraries")
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     archive = go.archive(go, source)

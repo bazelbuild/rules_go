@@ -357,17 +357,17 @@ def _check_importpaths(ctx):
         if ":" in p:
             fail("import path '%s' contains invalid character :" % p)
 
-def _infer_importpath(ctx):
+def _infer_importpath(ctx, attr):
     DEFAULT_LIB = "go_default_library"
     VENDOR_PREFIX = "/vendor/"
 
     # Check if paths were explicitly set, either in this rule or in an
     # embedded rule.
-    attr_importpath = getattr(ctx.attr, "importpath", "")
-    attr_importmap = getattr(ctx.attr, "importmap", "")
+    attr_importpath = getattr(attr, "importpath", "")
+    attr_importmap = getattr(attr, "importmap", "")
     embed_importpath = ""
     embed_importmap = ""
-    for embed in getattr(ctx.attr, "embed", []):
+    for embed in getattr(attr, "embed", []):
         if GoLibrary not in embed:
             continue
         lib = embed[GoLibrary]
@@ -504,7 +504,7 @@ def go_context(ctx, attr = None):
                  toolchain.sdk.tools)
 
     _check_importpaths(ctx)
-    importpath, importmap, pathtype = _infer_importpath(ctx)
+    importpath, importmap, pathtype = _infer_importpath(ctx, attr)
     importpath_aliases = tuple(getattr(attr, "importpath_aliases", ()))
 
     return struct(
