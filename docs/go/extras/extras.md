@@ -2,7 +2,7 @@
 
 
   [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
-  [golang/mock]: https://github.com/golang/mock
+  [uber-go/mock]: https://github.com/uber-go/mock
   [core go rules]: /docs/go/core/rules.md
 
 # Extra rules
@@ -16,7 +16,7 @@ to make life a little easier.
 
 ## Additional resources
 - [gazelle rule]
-- [golang/mock]
+- [uber-go/mock]
 - [core go rules]
 
 ------------------------------------------------------------------------
@@ -37,7 +37,7 @@ gomock(<a href="#gomock-name">name</a>, <a href="#gomock-library">library</a>, <
        <a href="#gomock-imports">imports</a>, <a href="#gomock-copyright_file">copyright_file</a>, <a href="#gomock-mock_names">mock_names</a>, <a href="#gomock-kwargs">kwargs</a>)
 </pre>
 
-Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
+Calls [mockgen](https://github.com/uber-go/mock) to generates a Go file containing mocks from the given library.
 
 If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
 
@@ -52,13 +52,13 @@ If `source` is given, the mocks are generated in source mode; otherwise in refle
 | <a id="gomock-out"></a>out |  the output Go file name.   |  none |
 | <a id="gomock-source"></a>source |  a Go file in the given <code>library</code>. If this is given, <code>gomock</code> will call mockgen in source mode to mock all interfaces in the file.   |  <code>None</code> |
 | <a id="gomock-interfaces"></a>interfaces |  a list of interfaces in the given <code>library</code> to be mocked in reflective mode.   |  <code>[]</code> |
-| <a id="gomock-package"></a>package |  the name of the package the generated mocks should be in. If not specified, uses mockgen's default. See [mockgen's -package](https://github.com/golang/mock#flags) for more information.   |  <code>""</code> |
-| <a id="gomock-self_package"></a>self_package |  the full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. See [mockgen's -self_package](https://github.com/golang/mock#flags) for more information.   |  <code>""</code> |
-| <a id="gomock-aux_files"></a>aux_files |  a map from source files to their package path. This only needed when <code>source</code> is provided. See [mockgen's -aux_files](https://github.com/golang/mock#flags) for more information.   |  <code>{}</code> |
+| <a id="gomock-package"></a>package |  the name of the package the generated mocks should be in. If not specified, uses mockgen's default. See [mockgen's -package](https://github.com/uber-go/mock#flags) for more information.   |  <code>""</code> |
+| <a id="gomock-self_package"></a>self_package |  the full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. See [mockgen's -self_package](https://github.com/uber-go/mock#flags) for more information.   |  <code>""</code> |
+| <a id="gomock-aux_files"></a>aux_files |  a map from source files to their package path. This only needed when <code>source</code> is provided. See [mockgen's -aux_files](https://github.com/uber-go/mock#flags) for more information.   |  <code>{}</code> |
 | <a id="gomock-mockgen_tool"></a>mockgen_tool |  the mockgen tool to run.   |  <code>Label("//extras/gomock:mockgen")</code> |
-| <a id="gomock-imports"></a>imports |  dictionary of name-path pairs of explicit imports to use. See [mockgen's -imports](https://github.com/golang/mock#flags) for more information.   |  <code>{}</code> |
-| <a id="gomock-copyright_file"></a>copyright_file |  optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/golang/mock#flags) for more information.   |  <code>None</code> |
-| <a id="gomock-mock_names"></a>mock_names |  dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/golang/mock#flags) for more information.   |  <code>{}</code> |
+| <a id="gomock-imports"></a>imports |  dictionary of name-path pairs of explicit imports to use. See [mockgen's -imports](https://github.com/uber-go/mock#flags) for more information.   |  <code>{}</code> |
+| <a id="gomock-copyright_file"></a>copyright_file |  optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/uber-go/mock#flags) for more information.   |  <code>None</code> |
+| <a id="gomock-mock_names"></a>mock_names |  dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/uber-go/mock#flags) for more information.   |  <code>{}</code> |
 | <a id="gomock-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 

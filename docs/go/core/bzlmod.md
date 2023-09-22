@@ -112,9 +112,9 @@ go_deps.from_file(go_mod = "//:go.mod")
 use_repo(
     go_deps,
     "com_github_gogo_protobuf",
-    "com_github_golang_mock",
     "com_github_golang_protobuf",
     "org_golang_x_net",
+    "org_uber_go_mock",
 )
 ```
 

@@ -1,6 +1,6 @@
 """
   [gazelle rule]: https://github.com/bazelbuild/bazel-gazelle#bazel-rule
-  [golang/mock]: https://github.com/golang/mock
+  [uber-go/mock]: https://github.com/uber-go/mock
   [core go rules]: /docs/go/core/rules.md
 
 # Extra rules
@@ -14,7 +14,7 @@ to make life a little easier.
 
 ## Additional resources
 - [gazelle rule]
-- [golang/mock]
+- [uber-go/mock]
 - [core go rules]
 
 ------------------------------------------------------------------------

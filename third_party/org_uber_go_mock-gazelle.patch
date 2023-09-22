@@ -13,7 +13,7 @@ diff -urN a/gomock/BUILD.bazel b/gomock/BUILD.bazel
 +        "doc.go",
 +        "matchers.go",
 +    ],
-+    importpath = "github.com/golang/mock/gomock",
++    importpath = "go.uber.org/mock/gomock",
 +    visibility = ["//visibility:public"],
 +)
 +
@@ -45,7 +45,7 @@ diff -urN a/gomock/internal/mock_gomock/BUILD.bazel b/gomock/internal/mock_gomoc
 +go_library(
 +    name = "mock_gomock",
 +    srcs = ["mock_matcher.go"],
-+    importpath = "github.com/golang/mock/gomock/internal/mock_gomock",
++    importpath = "go.uber.org/mock/gomock/internal/mock_gomock",
 +    visibility = ["//gomock:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -71,7 +71,7 @@ diff -urN a/mockgen/BUILD.bazel b/mockgen/BUILD.bazel
 +        "reflect.go",
 +        "version.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen",
++    importpath = "go.uber.org/mock/mockgen",
 +    visibility = ["//visibility:private"],
 +    deps = [
 +        "//mockgen/model",
@@ -107,7 +107,7 @@ diff -urN a/mockgen/internal/tests/aux_imports_embedded_interface/BUILD.bazel b/
 +        "bugreport.go",
 +        "bugreport_mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/aux_imports_embedded_interface",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/aux_imports_embedded_interface",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -136,7 +136,7 @@ diff -urN a/mockgen/internal/tests/aux_imports_embedded_interface/faux/BUILD.baz
 +go_library(
 +    name = "faux",
 +    srcs = ["faux.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/aux_imports_embedded_interface/faux",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/aux_imports_embedded_interface/faux",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -157,7 +157,7 @@ diff -urN a/mockgen/internal/tests/const_array_length/BUILD.bazel b/mockgen/inte
 +        "input.go",
 +        "mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/const_array_length",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/const_array_length",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -179,7 +179,7 @@ diff -urN a/mockgen/internal/tests/copyright_file/BUILD.bazel b/mockgen/internal
 +        "input.go",
 +        "mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/copyright_file",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/copyright_file",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -198,7 +198,7 @@ diff -urN a/mockgen/internal/tests/custom_package_name/client/v1/BUILD.bazel b/m
 +go_library(
 +    name = "client",
 +    srcs = ["client.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/custom_package_name/client/v1",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/custom_package_name/client/v1",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -216,7 +216,7 @@ diff -urN a/mockgen/internal/tests/custom_package_name/greeter/BUILD.bazel b/moc
 +go_library(
 +    name = "greeter",
 +    srcs = ["greeter.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/custom_package_name/greeter",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/custom_package_name/greeter",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//mockgen/internal/tests/custom_package_name/client/v1:client",
@@ -251,7 +251,7 @@ diff -urN a/mockgen/internal/tests/custom_package_name/validator/BUILD.bazel b/m
 +go_library(
 +    name = "validator",
 +    srcs = ["validate.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/custom_package_name/validator",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/custom_package_name/validator",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -272,7 +272,7 @@ diff -urN a/mockgen/internal/tests/dot_imports/BUILD.bazel b/mockgen/internal/te
 +        "input.go",
 +        "mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/dot_imports",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/dot_imports",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -294,7 +294,7 @@ diff -urN a/mockgen/internal/tests/empty_interface/BUILD.bazel b/mockgen/interna
 +        "input.go",
 +        "mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/empty_interface",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/empty_interface",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -316,7 +316,7 @@ diff -urN a/mockgen/internal/tests/extra_import/BUILD.bazel b/mockgen/internal/t
 +        "import.go",
 +        "mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/extra_import",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/extra_import",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -338,7 +338,7 @@ diff -urN a/mockgen/internal/tests/generated_identifier_conflict/BUILD.bazel b/m
 +        "bugreport.go",
 +        "bugreport_mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/generated_identifier_conflict",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/generated_identifier_conflict",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -367,7 +367,7 @@ diff -urN a/mockgen/internal/tests/generics/BUILD.bazel b/mockgen/internal/tests
 +        "external.go",
 +        "generics.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/generics",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/generics",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//mockgen/internal/tests/generics/other",
@@ -389,7 +389,7 @@ diff -urN a/mockgen/internal/tests/generics/other/BUILD.bazel b/mockgen/internal
 +go_library(
 +    name = "other",
 +    srcs = ["other.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/generics/other",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/generics/other",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -432,7 +432,7 @@ diff -urN a/mockgen/internal/tests/import_embedded_interface/BUILD.bazel b/mockg
 +        "net.go",
 +        "net_mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/import_embedded_interface",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -466,7 +466,7 @@ diff -urN a/mockgen/internal/tests/import_embedded_interface/ersatz/BUILD.bazel 
 +go_library(
 +    name = "ersatz",
 +    srcs = ["ersatz.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/ersatz",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/import_embedded_interface/ersatz",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -487,7 +487,7 @@ diff -urN a/mockgen/internal/tests/import_embedded_interface/faux/BUILD.bazel b/
 +        "conflict.go",
 +        "faux.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/faux",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/import_embedded_interface/faux",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//mockgen/internal/tests/import_embedded_interface/other/ersatz",
@@ -509,7 +509,7 @@ diff -urN a/mockgen/internal/tests/import_embedded_interface/other/ersatz/BUILD.
 +go_library(
 +    name = "ersatz",
 +    srcs = ["ersatz.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/other/ersatz",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/import_embedded_interface/other/ersatz",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -527,7 +527,7 @@ diff -urN a/mockgen/internal/tests/import_embedded_interface/other/log/BUILD.baz
 +go_library(
 +    name = "log",
 +    srcs = ["log.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/import_embedded_interface/other/log",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/import_embedded_interface/other/log",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -545,7 +545,7 @@ diff -urN a/mockgen/internal/tests/import_source/BUILD.bazel b/mockgen/internal/
 +go_library(
 +    name = "import_source",
 +    srcs = ["source_mock.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/import_source",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/import_source",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -570,7 +570,7 @@ diff -urN a/mockgen/internal/tests/import_source/definition/BUILD.bazel b/mockge
 +        "source.go",
 +        "source_mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/import_source/definition",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/import_source/definition",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -589,7 +589,7 @@ diff -urN a/mockgen/internal/tests/internal_pkg/BUILD.bazel b/mockgen/internal/t
 +go_library(
 +    name = "internal_pkg",
 +    srcs = ["generate.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/internal_pkg",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -607,7 +607,7 @@ diff -urN a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/BUILD.bazel 
 +go_library(
 +    name = "pkg",
 +    srcs = ["input.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -625,7 +625,7 @@ diff -urN a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_outp
 +go_library(
 +    name = "reflect_output",
 +    srcs = ["mock.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_output",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/reflect_output",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -647,7 +647,7 @@ diff -urN a/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_outpu
 +go_library(
 +    name = "source_output",
 +    srcs = ["mock.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_output",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/internal_pkg/subdir/internal/pkg/source_output",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -669,7 +669,7 @@ diff -urN a/mockgen/internal/tests/missing_import/output/BUILD.bazel b/mockgen/i
 +go_library(
 +    name = "output",
 +    srcs = ["source_mock.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/missing_import/output",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/missing_import/output",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -691,7 +691,7 @@ diff -urN a/mockgen/internal/tests/missing_import/source/BUILD.bazel b/mockgen/i
 +go_library(
 +    name = "source",
 +    srcs = ["source.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/missing_import/source",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/missing_import/source",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -709,7 +709,7 @@ diff -urN a/mockgen/internal/tests/mock_in_test_package/BUILD.bazel b/mockgen/in
 +go_library(
 +    name = "mock_in_test_package",
 +    srcs = ["user.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/mock_in_test_package",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/mock_in_test_package",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -740,7 +740,7 @@ diff -urN a/mockgen/internal/tests/overlapping_methods/BUILD.bazel b/mockgen/int
 +        "mock.go",
 +        "overlap.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/overlapping_methods",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/overlapping_methods",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -766,7 +766,7 @@ diff -urN a/mockgen/internal/tests/panicing_test/BUILD.bazel b/mockgen/internal/
 +go_library(
 +    name = "panicing_test",
 +    srcs = ["panic.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/panicing_test",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/panicing_test",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -794,7 +794,7 @@ diff -urN a/mockgen/internal/tests/parenthesized_parameter_type/BUILD.bazel b/mo
 +        "input.go",
 +        "mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/parenthesized_parameter_type",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/parenthesized_parameter_type",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -813,7 +813,7 @@ diff -urN a/mockgen/internal/tests/performance/big_interface/BUILD.bazel b/mockg
 +go_library(
 +    name = "big_interface",
 +    srcs = ["big_interface.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/performance/big_interface",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/performance/big_interface",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -834,7 +834,7 @@ diff -urN a/mockgen/internal/tests/self_package/BUILD.bazel b/mockgen/internal/t
 +        "mock.go",
 +        "types.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/self_package",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/self_package",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -853,7 +853,7 @@ diff -urN a/mockgen/internal/tests/test_package/BUILD.bazel b/mockgen/internal/t
 +go_library(
 +    name = "test_package",
 +    srcs = ["foo.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/test_package",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/test_package",
 +    visibility = ["//mockgen:__subpackages__"],
 +)
 +
@@ -883,7 +883,7 @@ diff -urN a/mockgen/internal/tests/unexported_method/BUILD.bazel b/mockgen/inter
 +        "bugreport.go",
 +        "bugreport_mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/unexported_method",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/unexported_method",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -913,7 +913,7 @@ diff -urN a/mockgen/internal/tests/vendor_dep/BUILD.bazel b/mockgen/internal/tes
 +        "mock.go",
 +        "vendor_dep.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/vendor_dep",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/vendor_dep",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -935,7 +935,7 @@ diff -urN a/mockgen/internal/tests/vendor_dep/source_mock_package/BUILD.bazel b/
 +go_library(
 +    name = "source_mock_package",
 +    srcs = ["mock.go"],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/vendor_dep/source_mock_package",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/vendor_dep/source_mock_package",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = [
 +        "//gomock",
@@ -960,7 +960,7 @@ diff -urN a/mockgen/internal/tests/vendor_pkg/BUILD.bazel b/mockgen/internal/tes
 +        "doc.go",
 +        "mock.go",
 +    ],
-+    importpath = "github.com/golang/mock/mockgen/internal/tests/vendor_pkg",
++    importpath = "go.uber.org/mock/mockgen/internal/tests/vendor_pkg",
 +    visibility = ["//mockgen:__subpackages__"],
 +    deps = ["//gomock"],
 +)
@@ -979,7 +979,7 @@ diff -urN a/mockgen/model/BUILD.bazel b/mockgen/model/BUILD.bazel
 +go_library(
 +    name = "model",
 +    srcs = ["model.go"],
-+    importpath = "github.com/golang/mock/mockgen/model",
++    importpath = "go.uber.org/mock/mockgen/model",
 +    visibility = ["//visibility:public"],
 +)
 +
@@ -1003,7 +1003,7 @@ diff -urN a/sample/BUILD.bazel b/sample/BUILD.bazel
 +go_library(
 +    name = "sample",
 +    srcs = ["user.go"],
-+    importpath = "github.com/golang/mock/sample",
++    importpath = "go.uber.org/mock/sample",
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//sample/imp1",
@@ -1043,7 +1043,7 @@ diff -urN a/sample/concurrent/BUILD.bazel b/sample/concurrent/BUILD.bazel
 +go_library(
 +    name = "concurrent",
 +    srcs = ["concurrent.go"],
-+    importpath = "github.com/golang/mock/sample/concurrent",
++    importpath = "go.uber.org/mock/sample/concurrent",
 +    visibility = ["//visibility:public"],
 +)
 +
@@ -1071,7 +1071,7 @@ diff -urN a/sample/concurrent/mock/BUILD.bazel b/sample/concurrent/mock/BUILD.ba
 +go_library(
 +    name = "mock",
 +    srcs = ["concurrent_mock.go"],
-+    importpath = "github.com/golang/mock/sample/concurrent/mock",
++    importpath = "go.uber.org/mock/sample/concurrent/mock",
 +    visibility = ["//visibility:public"],
 +    deps = ["//gomock"],
 +)
@@ -1090,7 +1090,7 @@ diff -urN a/sample/imp1/BUILD.bazel b/sample/imp1/BUILD.bazel
 +go_library(
 +    name = "imp1",
 +    srcs = ["imp1.go"],
-+    importpath = "github.com/golang/mock/sample/imp1",
++    importpath = "go.uber.org/mock/sample/imp1",
 +    visibility = ["//visibility:public"],
 +)
 +
@@ -1108,7 +1108,7 @@ diff -urN a/sample/imp2/BUILD.bazel b/sample/imp2/BUILD.bazel
 +go_library(
 +    name = "imp2",
 +    srcs = ["imp2.go"],
-+    importpath = "github.com/golang/mock/sample/imp2",
++    importpath = "go.uber.org/mock/sample/imp2",
 +    visibility = ["//visibility:public"],
 +)
 +
@@ -1126,7 +1126,7 @@ diff -urN a/sample/imp3/BUILD.bazel b/sample/imp3/BUILD.bazel
 +go_library(
 +    name = "imp3",
 +    srcs = ["imp3.go"],
-+    importpath = "github.com/golang/mock/sample/imp3",
++    importpath = "go.uber.org/mock/sample/imp3",
 +    visibility = ["//visibility:public"],
 +)
 +
@@ -1144,7 +1144,7 @@ diff -urN a/sample/imp4/BUILD.bazel b/sample/imp4/BUILD.bazel
 +go_library(
 +    name = "imp4",
 +    srcs = ["imp4.go"],
-+    importpath = "github.com/golang/mock/sample/imp4",
++    importpath = "go.uber.org/mock/sample/imp4",
 +    visibility = ["//visibility:public"],
 +)
 +
