@@ -182,6 +182,7 @@ def _go_test_impl(ctx):
         ),
         OutputGroupInfo(
             compilation_outputs = [internal_archive.data.file],
+            _validation = test_archive.validations,
         ),
         coverage_common.instrumented_files_info(
             ctx,

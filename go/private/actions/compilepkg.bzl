@@ -54,6 +54,7 @@ def emit_compilepkg(
         clinkopts = [],
         out_lib = None,
         out_export = None,
+        out_nogo_log = None,
         out_cgo_export_h = None,
         gc_goopts = [],
         testfilter = None,  # TODO: remove when test action compiles packages
@@ -112,6 +113,9 @@ def emit_compilepkg(
     if go.nogo:
         args.add("-nogo", go.nogo)
         inputs.append(go.nogo)
+        if out_nogo_log:
+            args.add("-nogo_log", out_nogo_log.path)
+            outputs.append(out_nogo_log)
     if out_cgo_export_h:
         args.add("-cgoexport", out_cgo_export_h)
         outputs.append(out_cgo_export_h)

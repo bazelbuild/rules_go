@@ -62,9 +62,17 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
     out_export = go.declare_file(go, name = source.library.name, ext = pre_ext + ".x")
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
 
+    # capture the nogo_log output but don't fail the compile, later we assert that the log is empty
+    out_nogo_log = None
+    out_nogo_validation = None
+    if go.nogo:
+        out_nogo_log = go.declare_file(go, name = source.library.name, ext = pre_ext + ".nogo.log")
+        out_nogo_validation = go.declare_file(go, name = source.library.name, ext = pre_ext + ".nogo")
+
     direct = [get_archive(dep) for dep in source.deps]
     runfiles = source.runfiles
     data_files = runfiles.files
+    validations = []
 
     files = []
     for a in direct:
@@ -106,6 +114,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             out_lib = out_lib,
             out_export = out_export,
             out_cgo_export_h = out_cgo_export_h,
+            out_nogo_log = out_nogo_log,
             gc_goopts = source.gc_goopts,
             cgo = True,
             cgo_inputs = cgo.inputs,
@@ -129,10 +138,26 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             archives = direct,
             out_lib = out_lib,
             out_export = out_export,
+            out_nogo_log = out_nogo_log,
             gc_goopts = source.gc_goopts,
             cgo = False,
             testfilter = testfilter,
             recompile_internal_deps = recompile_internal_deps,
+        )
+
+    if go.nogo:
+        validations.append(out_nogo_validation)
+        go.actions.run_shell(
+            inputs = [out_nogo_log],
+            outputs = [out_nogo_validation],
+            # Create the expected output file if there are no errors, otherwise print the errors to stderr.
+            command = '[ -s "$1" ] && cat <(echo) "$1" <(echo) 1>&2 || touch $2',
+            arguments = [
+                out_nogo_log.path,
+                out_nogo_validation.path,
+            ],
+            progress_message = "Nogo Static Analysis",
+            mnemonic = "GoNogo",
         )
 
     data = GoArchiveData(
@@ -198,4 +223,5 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         cgo_exports = cgo_exports,
         runfiles = runfiles,
         mode = go.mode,
+        validations = validations,
     )

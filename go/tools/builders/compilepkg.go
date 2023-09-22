@@ -51,7 +51,7 @@ func compilePkg(args []string) error {
 	goenv := envFlags(fs)
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
 	var deps archiveMultiFlag
-	var importPath, packagePath, nogoPath, packageListPath, coverMode string
+	var importPath, packagePath, nogoPath, nogoLogPath, packageListPath, coverMode string
 	var outPath, outFactsPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
@@ -74,6 +74,7 @@ func compilePkg(args []string) error {
 	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
+	fs.StringVar(&nogoLogPath, "nogo_log", "", "The path of the nogo log to write to. Required if -nogo is set.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
 	fs.StringVar(&outPath, "o", "", "The output archive file to write compiled code")
@@ -158,6 +159,7 @@ func compilePkg(args []string) error {
 		objcxxFlags,
 		ldFlags,
 		nogoPath,
+		nogoLogPath,
 		packageListPath,
 		outPath,
 		outFactsPath,
@@ -189,6 +191,7 @@ func compileArchive(
 	objcxxFlags []string,
 	ldFlags []string,
 	nogoPath string,
+	nogoLogPath string,
 	packageListPath string,
 	outPath string,
 	outXPath string,
@@ -449,18 +452,25 @@ func compileArchive(
 		// Add unknown origin source files into the mix.
 		nogoSrcs = append(nogoSrcs, goSrc)
 	}
-	if nogoPath != "" && len(nogoSrcs) > 0 {
-		ctx, cancel := context.WithCancel(context.Background())
-		nogoChan = make(chan error)
-		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, nogoSrcs, deps, packagePath, importcfgPath, outFactsPath)
-		}()
-		defer func() {
-			if nogoChan != nil {
-				cancel()
-				<-nogoChan
-			}
-		}()
+	if nogoPath != "" {
+		nogoLogFile, err := os.OpenFile(nogoLogPath, os.O_CREATE|os.O_RDWR, 0644)
+		if err != nil {
+			return fmt.Errorf("error opening nogo log file: %v", err)
+		}
+		defer nogoLogFile.Close()
+		if len(nogoSrcs) > 0 {
+			ctx, cancel := context.WithCancel(context.Background())
+			nogoChan = make(chan error)
+			go func() {
+				nogoChan <- runNogo(ctx, workDir, nogoPath, nogoSrcs, deps, packagePath, importcfgPath, outFactsPath, nogoLogFile)
+			}()
+			defer func() {
+				if nogoChan != nil {
+					cancel()
+					<-nogoChan
+				}
+			}()
+		}
 	}
 
 	// If there are Go assembly files and this is go1.12+: generate symbol ABIs.
@@ -577,7 +587,7 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPa
 	return goenv.runCommand(args)
 }
 
-func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string, deps []archive, packagePath, importcfgPath, outFactsPath string) error {
+func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string, deps []archive, packagePath, importcfgPath, outFactsPath string, logFile *os.File) error {
 	args := []string{nogoPath}
 	args = append(args, "-p", packagePath)
 	args = append(args, "-importcfg", importcfgPath)
@@ -601,7 +611,10 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 				cmdLine := strings.Join(args, " ")
 				return fmt.Errorf("nogo command '%s' exited unexpectedly: %s", cmdLine, exitErr.String())
 			}
-			return errors.New(string(relativizePaths(out.Bytes())))
+			_, err := logFile.Write(relativizePaths(out.Bytes()))
+			if err != nil {
+				return fmt.Errorf("error writing nogo log: %v", err)
+			}
 		} else {
 			if out.Len() != 0 {
 				fmt.Fprintln(os.Stderr, out.String())

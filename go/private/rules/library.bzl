@@ -61,6 +61,7 @@ def _go_library_impl(ctx):
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
             compilation_outputs = [archive.data.file],
+            _validation = depset(archive.validations),
         ),
     ]
 
