@@ -18,7 +18,7 @@ local_path_override(
     path = "../..",
 )
 
-bazel_dep(name = "gazelle", version = "0.32.0")
+bazel_dep(name = "gazelle", version = "0.33.0")
 bazel_dep(name = "protobuf", version = "3.19.6")
 
 go_sdk = use_extension("@my_rules_go//go:extensions.bzl", "go_sdk")

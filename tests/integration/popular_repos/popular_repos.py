@@ -21,11 +21,10 @@ POPULAR_REPOS = [
     dict(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        urls = "https://codeload.github.com/golang/crypto/zip/5ea612d1eb830b38bc4e914e37f55311eb58adce",
-        strip_prefix = "crypto-5ea612d1eb830b38bc4e914e37f55311eb58adce",
-        type = "zip",
+        commit = "0d375be9b61cb69eb94173d0375a05e90875bbf6",
         excludes = [
-            "internal/wycheproof:wycheproof_test", # Needs GOROOT
+            # "internal/wycheproof:wycheproof_test", # Needs GOROOT
+            "nacl/secretbox:secretbox_test", # panics in salsa2020_amd64.s
             "ssh/agent:agent_test",
             "ssh/test:test_test",
             "ssh:ssh_test",
@@ -45,9 +44,6 @@ POPULAR_REPOS = [
             "nettest:nettest_test", #
             "lif:lif_test",
         ],
-        darwin_tests = [
-            "route:route_test", # Not supported on linux
-        ]
     ),
 
     dict(
@@ -88,7 +84,6 @@ POPULAR_REPOS = [
             "cmd/bundle:bundle_test", # Needs testdata directory
             "cmd/callgraph/testdata/src/pkg:pkg_test", # is testdata
             "cmd/callgraph:callgraph_test", # Needs testdata directory
-            "cmd/cover:cover_test", # Needs testdata directory
             "cmd/file2fuzz:file2fuzz_test", # Requires working GOROOT, uses go build
             "cmd/fiximports:fiximports_test", # requires working GOROOT, not present in CI.
             "cmd/godoc:godoc_test", # TODO(#417)
@@ -118,6 +113,7 @@ POPULAR_REPOS = [
             "go/analysis/passes/copylock:copylock_test", # Needs testdata directory
             "go/analysis/passes/ctrlflow:ctrlflow_test", # Needs testdata directory
             "go/analysis/passes/deepequalerrors:deepequalerrors_test", # requires go list
+            "go/analysis/passes/directive:directive_test", # Needs GOROOT
             "go/analysis/passes/errorsas:errorsas_test", # requires go list and testdata
             "go/analysis/passes/fieldalignment:fieldalignment_test", # Needs GOROOT
             "go/analysis/passes/findcall:findcall_test", # requires build cache
@@ -186,6 +182,12 @@ POPULAR_REPOS = [
             "refactor/eg:eg_test", # Needs testdata directory
             "refactor/importgraph:importgraph_test", # TODO(#417)
             "refactor/rename:rename_test", # TODO(#417)
+        ],
+        build_excludes = [
+            "blog:blog", # requires present
+            "cmd/godoc:godoc", # requires godoc
+            "godoc:godoc", # requires goldmark
+            "present:present", # Needs goldmark
         ],
     ),
 
@@ -278,16 +280,15 @@ def build_bazel():
     f.write(BUILD_HEADER)
     f.write("\n" + LOAD_BAZEL_TEST_RULE)
     build_only = []
+    build_excludes = []
     for repo in POPULAR_REPOS:
       name = repo["name"]
       tests = check_output(["bazel", "query", "kind(go_test, \"@{}//...\")".format(name)], text=True).split("\n")
       excludes = ["@{}//{}".format(name, l) for l in repo.get("excludes", [])]
+      build_excludes.extend(["@{}//{}".format(name, l) for l in repo.get("build_excludes", [])])
       for k in repo:
         if k.endswith("_excludes") or k.endswith("_tests"):
           excludes.extend(["@{}//{}".format(name, l) for l in repo[k]])
-      invalid_excludes = [t for t in excludes if not t in tests]
-      if invalid_excludes:
-        exit("Invalid excludes found: {}".format(invalid_excludes))
       build_only.extend(excludes)
       f.write('\ntest_suite(\n')
       f.write('    name = "{}",\n'.format(name))
@@ -307,11 +308,10 @@ def build_bazel():
     f.write('    name = "{}",\n'.format("build_only"))
     f.write('    targets = [\n')
     for package in build_only:
-        if "/internal/" not in package and "/testdata/" not in package:
-            if package.endswith("_test"):
-                f.write('        "{}",\n'.format(package[:-5]))
-            else:
-                f.write('        "{}",\n'.format(package))
+      if "/internal/" not in package and "/testdata/" not in package:
+        p = package[:-5] if package.endswith("_test") else package
+        if p not in build_excludes:
+          f.write('        "{}",\n'.format(p))
     f.write('    ],\n')
     f.write(')\n')
 
