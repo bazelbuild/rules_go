@@ -386,7 +386,7 @@ _go_binary_kwargs = {
         ),
         "linkmode": attr.string(
             default = "auto",
-            values = ["auto"] + LINKMODES,
+            # values = ["auto"] + LINKMODES,
             doc = """Determines how the binary should be built and linked. This accepts some of
             the same values as `go build -buildmode` and works the same way.
             <br><br>
