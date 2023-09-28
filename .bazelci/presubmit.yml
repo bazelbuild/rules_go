@@ -3,6 +3,7 @@ matrix:
   platform:
     - ubuntu2004
     - macos
+    - macos_arm64
     - windows
 
 tasks:
