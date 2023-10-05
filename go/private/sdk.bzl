@@ -448,7 +448,7 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
             url = urls,
             sha256 = sha256,
             output = "go_sdk.tar.gz",
-            auth = auth
+            auth = auth,
         )
         res = ctx.execute(["tar", "-xf", "go_sdk.tar.gz", "--strip-components=1"])
         if res.return_code:
@@ -467,14 +467,14 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
                 "go/test/fixedbugs/issue27836.dir/\336foo.go": "go/test/fixedbugs/issue27836.dir/thfoo.go",
                 "go/test/fixedbugs/issue27836.dir/\336main.go": "go/test/fixedbugs/issue27836.dir/thmain.go",
             },
-            auth = auth
+            auth = auth,
         )
     else:
         ctx.download_and_extract(
             url = urls,
             stripPrefix = strip_prefix,
             sha256 = sha256,
-            auth = auth
+            auth = auth,
         )
 
 def _local_sdk(ctx, path):
