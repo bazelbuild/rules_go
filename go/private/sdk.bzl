@@ -423,7 +423,7 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
 
     ctx.report_progress("Downloading and extracting Go toolchain")
 
-    auth = use_netrc(read_user_netrc(ctx), ctx.attr.urls, {})
+    auth = use_netrc(read_user_netrc(ctx), urls, {})
 
     # TODO(#2771): After bazelbuild/bazel#18448 is merged and available in
     # the minimum supported version of Bazel, remove the workarounds below.
