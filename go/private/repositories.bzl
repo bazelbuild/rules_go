@@ -64,13 +64,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_tools",
-        # v0.7.0, latest as of 2023-03-27
+        # v0.14.0, latest as of 2023-10-29
         urls = [
-            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.7.0.zip",
-            "https://github.com/golang/tools/archive/refs/tags/v0.7.0.zip",
+            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.14.0.zip",
+            "https://github.com/golang/tools/archive/refs/tags/v0.14.0.zip",
         ],
-        sha256 = "9f20a20f29f4008d797a8be882ef82b69cf8f7f2b96dbdfe3814c57d8280fa4b",
-        strip_prefix = "tools-0.7.0",
+        sha256 = "9c71911c61a791d8b13368ffbc409a0b38859cac80a4b5039487d2a27399e8b9",
+        strip_prefix = "tools-0.14.0",
         patches = [
             # deletegopls removes the gopls subdirectory. It contains a nested
             # module with additional dependencies. It's not needed by rules_go.
@@ -105,13 +105,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_sys",
-        # v0.12.0, latest as of 2023-09-18
+        # v0.13.0, latest as of 2023-10-29
         urls = [
-            "https://mirror.bazel.build/github.com/golang/sys/archive/refs/tags/v0.12.0.zip",
-            "https://github.com/golang/sys/archive/refs/tags/v0.12.0.zip",
+            "https://mirror.bazel.build/github.com/golang/sys/archive/refs/tags/v0.13.0.zip",
+            "https://github.com/golang/sys/archive/refs/tags/v0.13.0.zip",
         ],
-        sha256 = "229b079d23d18f5b1a0c46335020cddc6e5d543da2dae6e45b59d84b5d074e3a",
-        strip_prefix = "sys-0.12.0",
+        sha256 = "24abdcbecddb288fb1007f8cb814b1592531d5bb62817bc30925e3175f3f5749",
+        strip_prefix = "sys-0.13.0",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/sys -go_naming_convention import_alias
             Label("//third_party:org_golang_x_sys-gazelle.patch"),

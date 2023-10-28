@@ -234,7 +234,7 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 
 	// Process diagnostics and encode facts for importers of this package.
 	diagnostics := checkAnalysisResults(roots, pkg)
-	facts := pkg.facts.Encode()
+	facts := pkg.facts.Encode(true/* skipMethodSorting */)
 	return diagnostics, facts, nil
 }
 
@@ -396,7 +396,7 @@ func load(packagePath string, imp *importer, filenames []string) (*goPackage, er
 	}
 	pkg.types, pkg.typesInfo = types, info
 
-	pkg.facts, err = facts.NewDecoder(pkg.types).Decode(imp.readFacts)
+	pkg.facts, err = facts.NewDecoder(pkg.types).Decode(true/* skipMethodSorting */, imp.readFacts)
 	if err != nil {
 		return nil, fmt.Errorf("internal error decoding facts: %v", err)
 	}
@@ -609,8 +609,8 @@ func (i *importer) Import(path string) (*types.Package, error) {
 	return gcexportdata.Read(r, i.fset, i.packageCache, path)
 }
 
-func (i *importer) readFacts(pkg *types.Package) ([]byte, error) {
-	archive := i.factMap[pkg.Path()]
+func (i *importer) readFacts(pkgPath string) ([]byte, error) {
+	archive := i.factMap[pkgPath]
 	if archive == "" {
 		// Packages that were not built with the nogo toolchain will not be
 		// analyzed, so there's no opportunity to store facts. This includes
