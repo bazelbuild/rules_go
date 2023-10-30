@@ -82,6 +82,7 @@ def _build_stdlib_list_json(go):
         executable = go.toolchain._builder,
         arguments = [args],
         env = _build_env(go),
+        toolchain = "@io_bazel_rules_go//go:toolchain",
     )
     return out
 
@@ -149,6 +150,7 @@ def _build_stdlib(go):
         executable = go.toolchain._builder,
         arguments = [args],
         env = _build_env(go),
+        toolchain = "@io_bazel_rules_go//go:toolchain",
     )
     return GoStdLib(
         _list_json = _build_stdlib_list_json(go),

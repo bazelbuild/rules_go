@@ -162,4 +162,5 @@ def emit_compilepkg(
         executable = go.toolchain._builder,
         arguments = [args],
         env = go.env,
+        toolchain = "@io_bazel_rules_go//go:toolchain",
     )

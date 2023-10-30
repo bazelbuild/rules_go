@@ -209,6 +209,7 @@ def emit_link(
         executable = go.toolchain._builder,
         arguments = [builder_args, "--", tool_args],
         env = go.env,
+        toolchain = "@io_bazel_rules_go//go:toolchain",
     )
 
 def _extract_extldflags(gc_linkopts, extldflags):
