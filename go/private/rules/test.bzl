@@ -18,12 +18,12 @@ load(
 )
 load(
     "//go/private:common.bzl",
+    "GO_TOOLCHAIN",
     "as_list",
     "asm_exts",
     "cgo_exts",
     "go_exts",
     "split_srcs",
-    "GO_TOOLCHAIN",
 )
 load(
     "//go/private/rules:binary.bzl",

@@ -48,9 +48,9 @@ load(
 load(
     ":common.bzl",
     "COVERAGE_OPTIONS_DENYLIST",
+    "GO_TOOLCHAIN",
     "as_iterable",
     "goos_to_extension",
-    "GO_TOOLCHAIN",
     "goos_to_shared_extension",
     "is_struct",
 )

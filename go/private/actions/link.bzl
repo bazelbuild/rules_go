@@ -14,10 +14,10 @@
 
 load(
     "//go/private:common.bzl",
+    "GO_TOOLCHAIN",
     "as_set",
     "count_group_matches",
     "has_shared_lib_extension",
-    "GO_TOOLCHAIN",
 )
 load(
     "//go/private:mode.bzl",
