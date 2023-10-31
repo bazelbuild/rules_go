@@ -23,9 +23,6 @@ load(
     "cgo_exts",
     "go_exts",
     "split_srcs",
-)
-load(
-    "//go/private:go_toolchain.bzl",
     "GO_TOOLCHAIN",
 )
 load(

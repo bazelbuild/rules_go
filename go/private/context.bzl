@@ -27,7 +27,7 @@ load(
     "OBJC_COMPILE_ACTION_NAME",
 )
 load(
-    ":go_toolchain.bzl",
+    ":common.bzl",
     "GO_TOOLCHAIN",
 )
 load(
