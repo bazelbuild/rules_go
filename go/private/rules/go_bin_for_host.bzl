@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
-load("//go/private:go_toolchain.bzl", "GO_TOOLCHAIN")
+load("//go/private:common.bzl", "GO_TOOLCHAIN")
 
 def _ensure_target_cfg(ctx):
     # A target is assumed to be built in the target configuration if it is neither in the exec nor

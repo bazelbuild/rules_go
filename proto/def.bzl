@@ -28,7 +28,7 @@ load(
     "proto_path",
 )
 load(
-    "//go/private:go_toolchain.bzl",
+    "//go/private:common.bzl",
     "GO_TOOLCHAIN",
 )
 load(
