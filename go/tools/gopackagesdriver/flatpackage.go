@@ -110,6 +110,61 @@ func (fp *FlatPackage) FilterFilesForBuildTags() {
 	fp.CompiledGoFiles = filterSourceFilesForTags(fp.CompiledGoFiles)
 }
 
+func (fp *FlatPackage) filterTestSuffix(files []string) (err error, testFiles []string, xTestFiles, nonTestFiles []string) {
+	for _, filename := range files {
+		if strings.HasSuffix(filename, "_test.go") {
+			fset := token.NewFileSet()
+			f, err := parser.ParseFile(fset, filename, nil, parser.PackageClauseOnly)
+			if err != nil {
+				return err, nil, nil, nil
+			}
+			if f.Name.Name == fp.Name {
+				testFiles = append(testFiles, filename)
+			} else {
+				xTestFiles = append(xTestFiles, filename)
+			}
+		} else {
+			nonTestFiles = append(nonTestFiles, filename)
+		}
+	}
+	return
+}
+
+func (fp *FlatPackage) MoveTestFiles() *FlatPackage {
+	err, tgf, xtgf, gf := fp.filterTestSuffix(fp.GoFiles)
+
+	if err != nil {
+		return nil
+	}
+	fp.GoFiles = append(gf, tgf...)
+	fp.CompiledGoFiles = append(gf, tgf...)
+
+	if len(xtgf) == 0 {
+		return nil
+	}
+
+	newImports := make(map[string]string, len(fp.Imports))
+	for k, v := range fp.Imports {
+		newImports[k] = v
+	}
+
+	newImports[fp.PkgPath] = fp.ID
+
+	// Clone package, only xtgf files
+	return &FlatPackage{
+		ID:              fp.ID + "_xtest",
+		Name:            fp.Name + "_test",
+		PkgPath:         fp.PkgPath,
+		Imports:         newImports,
+		Errors:          fp.Errors,
+		GoFiles:         append([]string{}, xtgf...),
+		CompiledGoFiles: append([]string{}, xtgf...),
+		OtherFiles:      fp.OtherFiles,
+		ExportFile:      fp.ExportFile,
+		Standard:        fp.Standard,
+	}
+}
+
 func (fp *FlatPackage) IsStdlib() bool {
 	return fp.Standard
 }

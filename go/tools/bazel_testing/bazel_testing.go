@@ -206,7 +206,8 @@ func RunBazel(args ...string) error {
 // If the command starts but exits with a non-zero status, a *StderrExitError
 // will be returned which wraps the original *exec.ExitError.
 func BazelOutput(args ...string) ([]byte, error) {
-	return BazelOutputWithInput(nil, args...)
+	stdout, _, err := BazelOutputWithInput(nil, args...)
+	return stdout, err
 }
 
 // BazelOutputWithInput invokes a bazel command with a list of arguments and
@@ -214,7 +215,7 @@ func BazelOutput(args ...string) ([]byte, error) {
 //
 // If the command starts but exits with a non-zero status, a *StderrExitError
 // will be returned which wraps the original *exec.ExitError.
-func BazelOutputWithInput(stdin io.Reader, args ...string) ([]byte, error) {
+func BazelOutputWithInput(stdin io.Reader, args ...string) ([]byte, []byte, error) {
 	cmd := BazelCmd(args...)
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
@@ -228,7 +229,7 @@ func BazelOutputWithInput(stdin io.Reader, args ...string) ([]byte, error) {
 		eErr.Stderr = stderr.Bytes()
 		err = &StderrExitError{Err: eErr}
 	}
-	return stdout.Bytes(), err
+	return stdout.Bytes(), stderr.Bytes(), err
 }
 
 // StderrExitError wraps *exec.ExitError and prints the complete stderr output
