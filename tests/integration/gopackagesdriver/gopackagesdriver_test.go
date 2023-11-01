@@ -2,7 +2,6 @@ package gopackagesdriver_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"path"
 	"strings"
 	"testing"
@@ -51,7 +50,6 @@ func TestBaseFileLookup(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %w", err.Error())
 	}
-	fmt.Println(string(out))
 	var resp response
 	err = json.Unmarshal(out, &resp)
 	if err != nil {
