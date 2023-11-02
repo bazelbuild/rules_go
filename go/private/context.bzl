@@ -244,7 +244,9 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     attr_srcs = [f for t in getattr(attr, "srcs", []) for f in as_iterable(t.files)]
     generated_srcs = getattr(library, "srcs", [])
     srcs = attr_srcs + generated_srcs
-    embedsrcs = [f for t in getattr(attr, "embedsrcs", []) for f in as_iterable(t.files)]
+    attr_embedsrcs = [f for t in getattr(attr, "embedsrcs", []) for f in as_iterable(t.files)]
+    generated_embedsrcs = getattr(library, "embedsrcs", [])
+    embedsrcs = attr_embedsrcs + generated_embedsrcs
     source = {
         "library": library,
         "mode": go.mode,
