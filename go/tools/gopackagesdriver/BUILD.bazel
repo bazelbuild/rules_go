@@ -1,5 +1,4 @@
 load("//go:def.bzl", "go_binary", "go_library")
-load(":aspect.bzl", "bazel_supports_canonical_label_literals")
 load("//go/private:common.bzl", "RULES_GO_REPO_NAME")
 
 go_library(
