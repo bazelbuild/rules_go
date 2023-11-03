@@ -49,20 +49,24 @@ func TestBaseFileLookup(t *testing.T) {
 	out, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello.go")
 	if err != nil {
 		t.Errorf("Unexpected error: %w", err.Error())
+		return
 	}
 	var resp response
 	err = json.Unmarshal(out, &resp)
 	if err != nil {
 		t.Errorf("Failed to unmarshal packages driver response: %w\n%w", err.Error(), out)
+		return
 	}
 
 	t.Run("roots", func(t *testing.T) {
 		if len(resp.Roots) != 1 {
-			t.Errorf("Excpected 1 package root: %+v", resp.Roots)
+			t.Errorf("Expected 1 package root: %+v", resp.Roots)
+			return
 		}
 
 		if resp.Roots[0] != "@//:hello" {
-			t.Errorf("Unecpected package id: %q", resp.Roots[0])
+			t.Errorf("Unexpected package id: %q", resp.Roots[0])
+			return
 		}
 	})
 
@@ -76,23 +80,28 @@ func TestBaseFileLookup(t *testing.T) {
 
 		if pkg == nil {
 			t.Errorf("Expected to find %q in resp.Packages", resp.Roots[0])
+			return
 		}
 
 		if len(pkg.CompiledGoFiles) != 1 || len(pkg.GoFiles) != 1 ||
 			path.Base(pkg.GoFiles[0]) != "hello.go" || path.Base(pkg.CompiledGoFiles[0]) != "hello.go" {
 			t.Errorf("Expected to find 1 file (hello.go) in (Compiled)GoFiles:\n%+v", pkg)
+			return
 		}
 
 		if pkg.Standard {
 			t.Errorf("Expected package to not be Standard:\n%+v", pkg)
+			return
 		}
 
 		if len(pkg.Imports) != 1 {
 			t.Errorf("Expected one import:\n%+v", pkg)
+			return
 		}
 
 		if pkg.Imports["os"] != osPkgID {
 			t.Errorf("Expected os import to map to %q:\n%+v", osPkgID, pkg)
+			return
 		}
 	})
 
@@ -106,10 +115,12 @@ func TestBaseFileLookup(t *testing.T) {
 
 		if osPkg == nil {
 			t.Errorf("Expected os package to be included:\n%+v", osPkg)
+			return
 		}
 
 		if !osPkg.Standard {
 			t.Errorf("Expected os import to be standard:\n%+v", osPkg)
+			return
 		}
 	})
 }
