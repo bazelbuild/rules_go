@@ -75,6 +75,9 @@ func (pr *PackageRegistry) ResolveImports() error {
 
 func (pr *PackageRegistry) walk(acc map[string]*FlatPackage, root string) {
 	pkg := pr.packagesByID[root]
+	if pkg == nil {
+		panic("nil package: " + root)
+	}
 
 	acc[pkg.ID] = pkg
 	for _, pkgID := range pkg.Imports {
