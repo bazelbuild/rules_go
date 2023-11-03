@@ -95,7 +95,8 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 	roots := map[string]struct{}{}
 
 	for _, label := range labels {
-		if !strings.HasPrefix(label, "@") {
+		if strings.HasPrefix(rulesGoRepositoryName, "@@") && !strings.HasPrefix(label, "@") {
+			// Canonical labels is only since Bazel 6.0.0
 			label = fmt.Sprintf("@%s", label)
 		}
 
