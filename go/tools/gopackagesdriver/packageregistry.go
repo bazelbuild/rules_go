@@ -75,13 +75,6 @@ func (pr *PackageRegistry) ResolveImports() error {
 
 func (pr *PackageRegistry) walk(acc map[string]*FlatPackage, root string) {
 	pkg := pr.packagesByID[root]
-	if pkg == nil {
-		str := ""
-		for _, pkg := range pr.packagesByID {
-			str += pkg.ID + "; "
-		}
-		panic("nil package: " + str)
-	}
 
 	acc[pkg.ID] = pkg
 	for _, pkgID := range pkg.Imports {
@@ -95,7 +88,9 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 	roots := map[string]struct{}{}
 
 	for _, label := range labels {
-		if strings.HasPrefix(rulesGoRepositoryName, "@@") && !strings.HasPrefix(label, "@") {
+		// When packagesdriver is ran from rules go, rulesGoRepositoryName will just be @
+		if (strings.HasPrefix(rulesGoRepositoryName, "@@") || rulesGoRepositoryName == "@") &&
+			!strings.HasPrefix(label, "@") {
 			// Canonical labels is only since Bazel 6.0.0
 			label = fmt.Sprintf("@%s", label)
 		}
