@@ -103,7 +103,7 @@ func run() (*driverResponse, error) {
 		return emptyResponse, fmt.Errorf("unable to build JSON files: %w", err)
 	}
 
-	driver, err := NewJSONPackagesDriver(jsonFiles, bazelJsonBuilder.PathResolver())
+	driver, err := NewJSONPackagesDriver(jsonFiles, bazelJsonBuilder.PathResolver(), bazel.version)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("unable to load JSON files: %w", err)
 	}

@@ -16,18 +16,21 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 type PackageRegistry struct {
 	packagesByID map[string]*FlatPackage
 	stdlib       map[string]string
+	bazelVersion []int
 }
 
-func NewPackageRegistry(pkgs ...*FlatPackage) *PackageRegistry {
+func NewPackageRegistry(bazelVersion string, pkgs ...*FlatPackage) *PackageRegistry {
 	pr := &PackageRegistry{
 		packagesByID: map[string]*FlatPackage{},
 		stdlib:       map[string]string{},
+		bazelVersion: parseVersion(bazelVersion),
 	}
 	pr.Add(pkgs...)
 	return pr
@@ -89,7 +92,7 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 
 	for _, label := range labels {
 		// When packagesdriver is ran from rules go, rulesGoRepositoryName will just be @
-		if (strings.HasPrefix(rulesGoRepositoryName, "@@") || rulesGoRepositoryName == "@") &&
+		if pr.bazelVersion[0] >= 6 &&
 			!strings.HasPrefix(label, "@") {
 			// Canonical labels is only since Bazel 6.0.0
 			label = fmt.Sprintf("@%s", label)
@@ -121,4 +124,20 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 	}
 
 	return retRoots, retPkgs
+}
+
+func parseVersion(v string) []int {
+	parts := strings.Split(v, ".")
+	version := make([]int, len(parts))
+
+	var err error
+	for i, p := range parts {
+		version[i], err = strconv.Atoi(p)
+		if err != nil {
+			// Failsafe default
+			return []int{6, 0, 0}
+		}
+	}
+
+	return version
 }
