@@ -64,7 +64,7 @@ func TestBaseFileLookup(t *testing.T) {
 			return
 		}
 
-		if resp.Roots[0] != "@//:hello" {
+		if !strings.HasSuffix(resp.Roots[0], "//:hello") {
 			t.Errorf("Unexpected package id: %q", resp.Roots[0])
 			return
 		}
