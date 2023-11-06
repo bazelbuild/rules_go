@@ -676,9 +676,9 @@ dependencies with ``select`` expressions (Gazelle does this automatically).
       }),
   )
 
-To build a specific `go_binary`_ target for a target platform, use the
-`go_cross_binary`_ rule. This is useful for producing multiple binaries
-for different platforms in a single build.
+To build a specific `go_binary`_ target for a target platform or using a
+specific golang SDK version, use the `go_cross_binary`_ rule. This is useful
+for producing multiple binaries for different platforms in a single build.
 
 To build a specific `go_test`_ target for a target platform, set the
 ``goos`` and ``goarch`` attributes on that rule.
