@@ -51,6 +51,7 @@ Go rules for Bazel_
 .. _go_rules_dependencies: go/dependencies.rst#go_rules_dependencies
 .. _go_source: docs/go/core/rules.md#go_source
 .. _go_test: docs/go/core/rules.md#go_test
+.. _go_cross_binary: docs/go/core/rules.md#go_cross_binary
 .. _go_toolchain: go/toolchains.rst#go_toolchain
 .. _go_wrap_sdk: go/toolchains.rst#go_wrap_sdk
 
@@ -161,6 +162,7 @@ Documentation
   * `go_test`_
   * `go_source`_
   * `go_path`_
+  * `go_cross_binary`_
 
 * `Proto rules`_
 
@@ -674,9 +676,13 @@ dependencies with ``select`` expressions (Gazelle does this automatically).
       }),
   )
 
-To build a specific `go_binary`_ or `go_test`_ target for a target platform,
-set the ``goos`` and ``goarch`` attributes on that rule. This is useful for
-producing multiple binaries for different platforms in a single build.
+To build a specific `go_binary`_ target for a target platform, use the
+`go_cross_binary`_ rule. This is useful for producing multiple binaries
+for different platforms in a single build.
+
+To build a specific `go_test`_ target for a target platform, set the
+``goos`` and ``goarch`` attributes on that rule.
+
 You can equivalently depend on a `go_binary`_ or `go_test`_ rule through
 a Bazel `configuration transition`_ on ``//command_line_option:platforms``
 (there are problems with this approach prior to rules_go 0.23.0).
