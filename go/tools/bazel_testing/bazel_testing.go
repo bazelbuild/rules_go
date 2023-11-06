@@ -206,17 +206,7 @@ func RunBazel(args ...string) error {
 // If the command starts but exits with a non-zero status, a *StderrExitError
 // will be returned which wraps the original *exec.ExitError.
 func BazelOutput(args ...string) ([]byte, error) {
-	cmd := BazelCmd(args...)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	err := cmd.Run()
-	if eErr, ok := err.(*exec.ExitError); ok {
-		eErr.Stderr = stderr.Bytes()
-		err = &StderrExitError{Err: eErr}
-	}
-	return stdout.Bytes(), err
+	return BazelOutputWithInput(nil, args...)
 }
 
 // BazelOutputWithInput invokes a bazel command with a list of arguments and
