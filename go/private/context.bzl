@@ -245,6 +245,9 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     generated_srcs = getattr(library, "srcs", [])
     srcs = attr_srcs + generated_srcs
     embedsrcs = [f for t in getattr(attr, "embedsrcs", []) for f in as_iterable(t.files)]
+    attr_deps = getattr(attr, "deps", [])
+    generated_deps = getattr(library, "deps", [])
+    deps = attr_deps + generated_deps
     source = {
         "library": library,
         "mode": go.mode,
@@ -254,7 +257,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "cover": [],
         "embedsrcs": embedsrcs,
         "x_defs": {},
-        "deps": getattr(attr, "deps", []),
+        "deps": deps,
         "gc_goopts": _expand_opts(go, "gc_goopts", getattr(attr, "gc_goopts", [])),
         "runfiles": _collect_runfiles(go, getattr(attr, "data", []), getattr(attr, "deps", [])),
         "cgo": getattr(attr, "cgo", False),

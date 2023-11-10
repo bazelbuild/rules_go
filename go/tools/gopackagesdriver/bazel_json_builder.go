@@ -24,6 +24,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -238,7 +239,7 @@ func (b *BazelJSONBuilder) Build(ctx context.Context, labels []string, mode Load
 	ret := []string{}
 	for _, f := range files {
 		if strings.HasSuffix(f, ".pkg.json") {
-			ret = append(ret, f)
+			ret = append(ret, cleanPath(f))
 		}
 	}
 
@@ -252,4 +253,13 @@ func (b *BazelJSONBuilder) PathResolver() PathResolverFunc {
 		p = strings.Replace(p, "__BAZEL_OUTPUT_BASE__", b.bazel.OutputBase(), 1)
 		return p
 	}
+}
+
+func cleanPath(p string) string {
+	// On Windows the paths may contain a starting `\`, this would make them not resolve
+	if runtime.GOOS == "windows" && p[0] == '\\' {
+		return p[1:]
+	}
+
+	return p
 }

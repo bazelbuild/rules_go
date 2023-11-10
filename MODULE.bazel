@@ -5,7 +5,7 @@ module(
     repo_name = "io_bazel_rules_go",
 )
 
-bazel_dep(name = "bazel_features", version = "1.1.0")
+bazel_dep(name = "bazel_features", version = "1.1.1")
 bazel_dep(name = "bazel_skylib", version = "1.2.0")
 bazel_dep(name = "platforms", version = "0.0.4")
 bazel_dep(name = "rules_proto", version = "4.0.0")
