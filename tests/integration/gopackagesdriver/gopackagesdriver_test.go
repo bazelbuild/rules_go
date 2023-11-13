@@ -150,9 +150,9 @@ func TestBaseFileLookup(t *testing.T) {
 
 func TestExternalTests(t *testing.T) {
 	reader := strings.NewReader("{}")
-	out, _, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello_external_test.go")
+	out, stderr, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello_external_test.go")
 	if err != nil {
-		t.Errorf("Unexpected error: %w", err.Error())
+		t.Errorf("Unexpected error: %w\n=====\n%s\n=====", err.Error(), stderr)
 	}
 	var resp response
 	err = json.Unmarshal(out, &resp)
@@ -174,10 +174,23 @@ func TestExternalTests(t *testing.T) {
 	}
 
 	for _, p := range resp.Packages {
-		if p.ID == xTestId && !strings.HasSuffix(p.GoFiles[0], "external_test.go") {
+		if p.ID == xTestId && len(p.GoFiles) == 1 && !strings.HasSuffix(p.GoFiles[0], "external_test.go") {
 			t.Errorf("Expected only one file in _xtest pkg, got %+v", p.GoFiles)
-		} else if p.ID == testId && len(p.GoFiles) != 2 {
-			t.Errorf("Expected only 2 files in _test pkg, got %+v", p.GoFiles)
+		} else if p.ID == testId {
+			assertSuffixesInList(t, p.GoFiles, "/hello.go", "/hello_test.go")
+		}
+	}
+}
+
+func assertSuffixesInList(t *testing.T, list []string, expectedSuffixes ...string) {
+	for _, suffix := range expectedSuffixes {
+		itemFound := false
+		for _, listItem := range list {
+			itemFound = itemFound || strings.HasSuffix(listItem, suffix)
+		}
+
+		if !itemFound {
+			t.Errorf("Expected suffix %q in list, but was not found: %+v", suffix, list)
 		}
 	}
 }
