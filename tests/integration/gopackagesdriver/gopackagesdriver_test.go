@@ -174,8 +174,8 @@ func TestExternalTests(t *testing.T) {
 	}
 
 	for _, p := range resp.Packages {
-		if p.ID == xTestId && len(p.GoFiles) == 1 && !strings.HasSuffix(p.GoFiles[0], "external_test.go") {
-			t.Errorf("Expected only one file in _xtest pkg, got %+v", p.GoFiles)
+		if p.ID == xTestId {
+			assertSuffixesInList(t, p.GoFiles, "/hello_external_test.go")
 		} else if p.ID == testId {
 			assertSuffixesInList(t, p.GoFiles, "/hello.go", "/hello_test.go")
 		}
