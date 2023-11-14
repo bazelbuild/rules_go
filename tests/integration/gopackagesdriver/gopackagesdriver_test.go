@@ -19,13 +19,22 @@ func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
 		Main: `
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "hello",
     srcs = ["hello.go"],
     importpath = "example.com/hello",
     visibility = ["//visibility:public"],
+)
+
+go_test(
+	name = "hello_test",
+	srcs = [
+		"hello_test.go",
+		"hello_external_test.go",
+	],
+	embed = [":hello"],
 )
 
 -- hello.go --
@@ -36,6 +45,20 @@ import "os"
 func main() {
 	fmt.Fprintln(os.Stderr, "Hello World!")
 }
+
+-- hello_test.go --
+package hello
+
+import "testing"
+
+func TestHelloInternal(t *testing.T) {}
+
+-- hello_external_test.go --
+package hello_test
+
+import "testing"
+
+func TestHelloExternal(t *testing.T) {}
 		`,
 	})
 }
@@ -46,7 +69,7 @@ const (
 
 func TestBaseFileLookup(t *testing.T) {
 	reader := strings.NewReader("{}")
-	out, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello.go")
+	out, _, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello.go")
 	if err != nil {
 		t.Errorf("Unexpected error: %w", err.Error())
 		return
@@ -123,4 +146,51 @@ func TestBaseFileLookup(t *testing.T) {
 			return
 		}
 	})
+}
+
+func TestExternalTests(t *testing.T) {
+	reader := strings.NewReader("{}")
+	out, stderr, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello_external_test.go")
+	if err != nil {
+		t.Errorf("Unexpected error: %w\n=====\n%s\n=====", err.Error(), stderr)
+	}
+	var resp response
+	err = json.Unmarshal(out, &resp)
+	if err != nil {
+		t.Errorf("Failed to unmarshal packages driver response: %w\n%w", err.Error(), out)
+	}
+
+	if len(resp.Roots) != 2 {
+		t.Errorf("Expected exactly two roots for package: %+v", resp.Roots)
+	}
+
+	var testId, xTestId string
+	for _, id := range resp.Roots {
+		if strings.HasSuffix(id, "_xtest") {
+			xTestId = id
+		} else {
+			testId = id
+		}
+	}
+
+	for _, p := range resp.Packages {
+		if p.ID == xTestId {
+			assertSuffixesInList(t, p.GoFiles, "/hello_external_test.go")
+		} else if p.ID == testId {
+			assertSuffixesInList(t, p.GoFiles, "/hello.go", "/hello_test.go")
+		}
+	}
+}
+
+func assertSuffixesInList(t *testing.T, list []string, expectedSuffixes ...string) {
+	for _, suffix := range expectedSuffixes {
+		itemFound := false
+		for _, listItem := range list {
+			itemFound = itemFound || strings.HasSuffix(listItem, suffix)
+		}
+
+		if !itemFound {
+			t.Errorf("Expected suffix %q in list, but was not found: %+v", suffix, list)
+		}
+	}
 }

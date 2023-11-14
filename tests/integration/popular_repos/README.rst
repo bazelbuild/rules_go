@@ -184,7 +184,6 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/event/export/ocagent:ocagent_test
 * @org_golang_x_tools//internal/event/export/ocagent/wire:wire_test
 * @org_golang_x_tools//internal/event/label:label_test
-* @org_golang_x_tools//internal/fastwalk:fastwalk_test
 * @org_golang_x_tools//internal/fuzzy:fuzzy_test
 * @org_golang_x_tools//internal/gopathwalk:gopathwalk_test
 * @org_golang_x_tools//internal/jsonrpc2:jsonrpc2_test
@@ -232,5 +231,3 @@ This runs tests from the repository `golang.org/x/mod <https://golang.org/x/mod>
 * @org_golang_x_mod//sumdb/dirhash:dirhash_test
 * @org_golang_x_mod//sumdb/note:note_test
 * @org_golang_x_mod//sumdb/storage:storage_test
-
-
