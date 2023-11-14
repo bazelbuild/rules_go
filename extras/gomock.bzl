@@ -55,7 +55,7 @@ def _gomock_source_impl(ctx):
         aux_files = []
         for target, pkg in ctx.attr.aux_files.items():
             f = target.files.to_list()[0]
-            aux = ctx.actions.declare_file(paths.join(gopath, "src", pkg, f.basename))
+            aux = ctx.actions.declare_file(paths.join("gopath", "src", pkg, f.basename))
             ctx.actions.run_shell(
                 outputs = [aux],
                 inputs = [f],
@@ -63,6 +63,7 @@ def _gomock_source_impl(ctx):
             )
             aux_files.append("{0}={1}".format(pkg, aux.path))
             needed_files.append(f)
+            needed_files.append(aux)
         args += ["-aux_files", ",".join(aux_files)]
 
     inputs = (
