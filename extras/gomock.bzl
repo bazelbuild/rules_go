@@ -82,9 +82,11 @@ def _gomock_source_impl(ctx):
         ],
         command = """
             export GOPATH=$(pwd)/{gopath} &&
+            export GOROOT=$(pwd)/{goroot} &&
             {cmd} {args} > {out}
         """.format(
             gopath = gopath,
+            goroot = go_ctx.sdk.root_file.dirname,
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
             args = " ".join(args),
             out = ctx.outputs.out.path,
@@ -93,6 +95,8 @@ def _gomock_source_impl(ctx):
         env = {
             # GOCACHE is required starting in Go 1.12
             "GOCACHE": "./.gocache",
+            # gomock runs in the special GOPATH environment
+            "GO111MODULE": "off",
         },
     )
 
