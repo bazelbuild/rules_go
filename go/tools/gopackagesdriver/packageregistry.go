@@ -71,6 +71,10 @@ func (pr *PackageRegistry) ResolveImports() error {
 		if err := pkg.ResolveImports(resolve); err != nil {
 			return err
 		}
+		testFp := pkg.MoveTestFiles()
+		if testFp != nil {
+			pr.packagesByID[testFp.ID] = testFp
+		}
 	}
 
 	return nil
@@ -108,6 +112,10 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 			}
 		} else {
 			roots[label] = struct{}{}
+			// If an xtest package exists for this package add it to the roots
+			if _, ok := pr.packagesByID[label+"_xtest"]; ok {
+				roots[label+"_xtest"] = struct{}{}
+			}
 		}
 	}
 
