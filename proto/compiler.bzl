@@ -122,14 +122,14 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
             direct = [
                 compiler.internal.go_protoc,
                 compiler.internal.protoc,
-                compiler.internal.plugin,
-            ],
+            ] + compiler.internal.data,
             transitive = [transitive_descriptor_sets],
         ),
         outputs = go_srcs,
         progress_message = "Generating into %s" % go_srcs[0].dirname,
         mnemonic = "GoProtocGen",
         executable = compiler.internal.go_protoc,
+        tools = [compiler.internal.plugin],
         arguments = [args],
         env = go.env,
         # We may need the shell environment (potentially augmented with --action_env)
@@ -170,13 +170,19 @@ def _go_proto_compiler_impl(ctx):
     go = go_context(ctx)
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
+
+    expanded_options = []
+    for opt in ctx.attr.options:
+        expanded_options.append(ctx.expand_location(opt, ctx.attr.data))
+
     return [
         GoProtoCompiler(
             deps = ctx.attr.deps,
             compile = go_proto_compile,
             valid_archive = ctx.attr.valid_archive,
             internal = struct(
-                options = ctx.attr.options,
+                data = ctx.files.data,
+                options = expanded_options,
                 suffix = ctx.attr.suffix,
                 suffixes = ctx.attr.suffixes,
                 protoc = ctx.executable._protoc,
@@ -192,6 +198,7 @@ def _go_proto_compiler_impl(ctx):
 _go_proto_compiler = rule(
     implementation = _go_proto_compiler_impl,
     attrs = {
+        "data": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
