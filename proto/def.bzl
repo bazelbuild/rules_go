@@ -66,20 +66,6 @@ def get_imports(attr, importpath):
     ]
     return depset(direct = direct.keys(), transitive = transitive)
 
-def _go_proto_aspect_impl(_target, ctx):
-    go = go_context(ctx, ctx.rule.attr)
-    imports = get_imports(ctx.rule.attr, go.importpath)
-    return [GoProtoImports(imports = imports)]
-
-_go_proto_aspect = aspect(
-    _go_proto_aspect_impl,
-    attr_aspects = [
-        "deps",
-        "embed",
-    ],
-    toolchains = [GO_TOOLCHAIN],
-)
-
 def _proto_library_to_source(_go, attr, source, merge):
     if attr.compiler:
         compilers = [attr.compiler]
@@ -159,7 +145,6 @@ go_proto_library = rule(
         ),
         "deps": attr.label_list(
             providers = [GoLibrary],
-            aspects = [_go_proto_aspect],
         ),
         "importpath": attr.string(),
         "importmap": attr.string(),
