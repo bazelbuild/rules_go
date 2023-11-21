@@ -38,6 +38,7 @@ type Bazel struct {
 	workspaceRoot     string
 	bazelStartupFlags []string
 	info              map[string]string
+	version           string
 }
 
 // Minimal BEP structs to access the build outputs
@@ -55,6 +56,7 @@ func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, bazelStartupF
 		bazelBin:          bazelBin,
 		workspaceRoot:     workspaceRoot,
 		bazelStartupFlags: bazelStartupFlags,
+		version:           "6",
 	}
 	if err := b.fillInfo(ctx); err != nil {
 		return nil, fmt.Errorf("unable to query bazel info: %w", err)
@@ -72,6 +74,10 @@ func (b *Bazel) fillInfo(ctx context.Context) error {
 	for scanner.Scan() {
 		parts := strings.SplitN(strings.TrimSpace(scanner.Text()), ":", 2)
 		b.info[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+	}
+	release := strings.Split(b.info["release"], " ")
+	if len(release) == 2 {
+		b.version = release[1]
 	}
 	return nil
 }

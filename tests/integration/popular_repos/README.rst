@@ -96,7 +96,6 @@ This runs tests from the repository `golang.org/x/sys <https://golang.org/x/sys>
 
 * @org_golang_x_sys//cpu:cpu_test
 * @org_golang_x_sys//execabs:execabs_test
-* @org_golang_x_sys//internal/unsafeheader:unsafeheader_test
 * @org_golang_x_sys//plan9:plan9_test
 * @org_golang_x_sys//unix/internal/mkmerge:mkmerge_test
 * @org_golang_x_sys//windows/mkwinsyscall:mkwinsyscall_test
@@ -185,14 +184,11 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/event/export/ocagent:ocagent_test
 * @org_golang_x_tools//internal/event/export/ocagent/wire:wire_test
 * @org_golang_x_tools//internal/event/label:label_test
-* @org_golang_x_tools//internal/fastwalk:fastwalk_test
 * @org_golang_x_tools//internal/fuzzy:fuzzy_test
 * @org_golang_x_tools//internal/gopathwalk:gopathwalk_test
 * @org_golang_x_tools//internal/jsonrpc2:jsonrpc2_test
 * @org_golang_x_tools//internal/jsonrpc2/servertest:servertest_test
 * @org_golang_x_tools//internal/jsonrpc2_v2:jsonrpc2_v2_test
-* @org_golang_x_tools//internal/lockedfile:lockedfile_test
-* @org_golang_x_tools//internal/lockedfile/internal/filelock:filelock_test
 * @org_golang_x_tools//internal/memoize:memoize_test
 * @org_golang_x_tools//internal/persistent:persistent_test
 * @org_golang_x_tools//internal/proxydir:proxydir_test
@@ -235,5 +231,3 @@ This runs tests from the repository `golang.org/x/mod <https://golang.org/x/mod>
 * @org_golang_x_mod//sumdb/dirhash:dirhash_test
 * @org_golang_x_mod//sumdb/note:note_test
 * @org_golang_x_mod//sumdb/storage:storage_test
-
-

@@ -609,8 +609,8 @@ func (i *importer) Import(path string) (*types.Package, error) {
 	return gcexportdata.Read(r, i.fset, i.packageCache, path)
 }
 
-func (i *importer) readFacts(pkg *types.Package) ([]byte, error) {
-	archive := i.factMap[pkg.Path()]
+func (i *importer) readFacts(pkgPath string) ([]byte, error) {
+	archive := i.factMap[pkgPath]
 	if archive == "" {
 		// Packages that were not built with the nogo toolchain will not be
 		// analyzed, so there's no opportunity to store facts. This includes
