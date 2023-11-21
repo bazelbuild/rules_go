@@ -23,13 +23,18 @@ go_proto_compiler(
 
 go_proto_compiler(
     name = "go_proto",
+    plugin = "@org_golang_google_protobuf//cmd/protoc-gen-go",
     visibility = ["//visibility:public"],
     deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPES_APIV2,
 )
 
 go_proto_compiler(
     name = "go_grpc",
-    options = ["plugins=grpc"],
+    # Do not break existing code with this upgrade
+    # See https://github.com/grpc/grpc-go/blob/master/cmd/protoc-gen-go-grpc/README.md#future-proofing-services
+    options = ["require_unimplemented_servers=false"],
+    plugin = "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+    suffix = "_grpc.pb.go",
     visibility = ["//visibility:public"],
     deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPES_APIV2 + [
         "@org_golang_google_grpc//:go_default_library",

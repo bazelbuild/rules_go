@@ -173,9 +173,26 @@ def go_rules_dependencies(force = False):
         patch_args = ["-p1"],
     )
 
+    # gRPC protoc plugin
+    # releaser:upgrade-dep grpc grpc-go
+    wrapper(
+        http_archive,
+        name = "org_golang_google_grpc_cmd_protoc_gen_go_grpc",
+        sha256 = "1e84df03c94d1cded8e94da7a2df162463f3be4c7a94289d85c0871f14c7b8e3",
+        # v1.3.0, latest as of 2023-12-07
+        urls = [
+            "https://mirror.bazel.build/github.com/grpc/grpc-go/archive/refs/tags/cmd/protoc-gen-go-grpc/v1.3.0.zip",
+            "https://github.com/grpc/grpc-go/archive/refs/tags/cmd/protoc-gen-go-grpc/v1.3.0.zip",
+        ],
+        strip_prefix = "grpc-go-cmd-protoc-gen-go-grpc-v1.3.0/cmd/protoc-gen-go-grpc",
+        patches = [
+            # releaser:patch-cmd gazelle -repo_root ./cmd/protoc-gen-go-grpc -go_prefix google.golang.org/grpc/cmd/protoc-gen-go-grpc -go_naming_convention import_alias -proto disable_global ./cmd/protoc-gen-go-grpc
+            Label("//third_party:org_golang_google_grpc_cmd_protoc_gen_go_grpc.patch"),
+        ],
+        patch_args = ["-p1"],
+    )
+
     # Legacy protobuf compiler, runtime, and utilities.
-    # We still use protoc-gen-go because the new one doesn't support gRPC, and
-    # the gRPC compiler doesn't exist yet.
     # We need to apply a patch to enable both go_proto_library and
     # go_library with pre-generated sources.
     # releaser:upgrade-dep golang protobuf
