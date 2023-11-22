@@ -72,7 +72,7 @@ cgo_exts = [
 ]
 
 syso_exts = [
-    ".syso"
+    ".syso",
 ]
 
 def split_srcs(srcs):
@@ -84,7 +84,7 @@ def split_srcs(srcs):
         c = [],
         cxx = [],
         objc = [],
-        syso = []
+        syso = [],
     )
     ext_pairs = (
         (sources.go, go_exts),
