@@ -18,6 +18,7 @@ load(
     "asm_exts",
     "cgo_exts",
     "go_exts",
+    "syso_exts",
 )
 load(
     "//go/private:context.bzl",
@@ -188,7 +189,7 @@ _go_binary_kwargs = {
     "implementation": _go_binary_impl,
     "attrs": {
         "srcs": attr.label_list(
-            allow_files = go_exts + asm_exts + cgo_exts,
+            allow_files = go_exts + asm_exts + cgo_exts + syso_exts,
             doc = """The list of Go source files that are compiled to create the package.
             Only `.go` and `.s` files are permitted, unless the `cgo`
             attribute is set, in which case,

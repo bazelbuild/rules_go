@@ -522,6 +522,16 @@ func compileArchive(
 		}
 	}
 
+	sysoFiles := make([]string, 0, len(srcs.sysoSrcs))
+	for _, src := range srcs.sysoSrcs {
+		sysoFiles = append(sysoFiles, src.filename)
+	}
+	if len(sysoFiles) > 0 {
+		if err := appendToArchive(goenv, outLinkObj, sysoFiles); err != nil {
+			return err
+		}
+	}
+
 	// Check results from nogo.
 	if nogoChan != nil {
 		err := <-nogoChan
