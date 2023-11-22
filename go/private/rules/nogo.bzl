@@ -106,7 +106,7 @@ _nogo = rule(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    toolchains = [GO_TOOLCHAIN],
+    toolchains = [str(GO_TOOLCHAIN)],
     cfg = go_tool_transition,
 )
 

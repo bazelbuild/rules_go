@@ -42,7 +42,7 @@ def _go_bin_for_host_impl(ctx):
 
 go_bin_for_host = rule(
     implementation = _go_bin_for_host_impl,
-    toolchains = [GO_TOOLCHAIN],
+    toolchains = [str(GO_TOOLCHAIN)],
     # Resolve a toolchain that runs on the host platform.
     exec_compatible_with = HOST_CONSTRAINTS,
 )
