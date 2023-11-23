@@ -15,7 +15,7 @@
 load(
     "//go/private:common.bzl",
     "COVERAGE_OPTIONS_DENYLIST",
-    "GO_TOOLCHAIN",
+    "GO_TOOLCHAIN_LABEL",
 )
 load(
     "//go/private:providers.bzl",
@@ -83,7 +83,7 @@ def _build_stdlib_list_json(go):
         executable = go.toolchain._builder,
         arguments = [args],
         env = _build_env(go),
-        toolchain = GO_TOOLCHAIN,
+        toolchain = GO_TOOLCHAIN_LABEL,
     )
     return out
 
@@ -151,7 +151,7 @@ def _build_stdlib(go):
         executable = go.toolchain._builder,
         arguments = [args],
         env = _build_env(go),
-        toolchain = GO_TOOLCHAIN,
+        toolchain = GO_TOOLCHAIN_LABEL,
     )
     return GoStdLib(
         _list_json = _build_stdlib_list_json(go),

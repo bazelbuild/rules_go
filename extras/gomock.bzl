@@ -23,7 +23,7 @@
 # DO NOT USE IT.
 
 load("//go/private:context.bzl", "go_context")
-load("//go/private:common.bzl", "GO_TOOLCHAIN")
+load("//go/private:common.bzl", "GO_TOOLCHAIN", "GO_TOOLCHAIN_LABEL")
 load("//go/private/rules:wrappers.bzl", go_binary = "go_binary_macro")
 load("//go/private:providers.bzl", "GoLibrary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -79,7 +79,7 @@ def _gomock_source_impl(ctx):
             ctx.file.mockgen_tool,
             go_ctx.go,
         ],
-        toolchain = GO_TOOLCHAIN,
+        toolchain = GO_TOOLCHAIN_LABEL,
         command = """
             export GOPATH=$(pwd)/{gopath} &&
             {cmd} {args} > {out}

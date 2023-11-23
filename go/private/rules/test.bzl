@@ -19,6 +19,7 @@ load(
 load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN",
+    "GO_TOOLCHAIN_LABEL",
     "as_list",
     "asm_exts",
     "cgo_exts",
@@ -118,7 +119,7 @@ def _go_test_impl(ctx):
         mnemonic = "GoTestGenTest",
         executable = go.toolchain._builder,
         arguments = [arguments],
-        toolchain = GO_TOOLCHAIN,
+        toolchain = GO_TOOLCHAIN_LABEL,
     )
 
     test_gc_linkopts = gc_linkopts(ctx)
