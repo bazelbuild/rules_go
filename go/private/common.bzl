@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GO_TOOLCHAIN = Label("@io_bazel_rules_go//go:toolchain")
+GO_TOOLCHAIN = str(Label("@io_bazel_rules_go//go:toolchain"))
 
 go_exts = [
     ".go",

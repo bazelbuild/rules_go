@@ -77,7 +77,7 @@ _go_proto_aspect = aspect(
         "deps",
         "embed",
     ],
-    toolchains = [str(GO_TOOLCHAIN)],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def _proto_library_to_source(_go, attr, source, merge):
@@ -178,7 +178,7 @@ go_proto_library = rule(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    toolchains = [str(GO_TOOLCHAIN)],
+    toolchains = [GO_TOOLCHAIN],
 )
 # go_proto_library is a rule that takes a proto_library (in the proto
 # attribute) and produces a go library for it.

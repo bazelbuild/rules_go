@@ -148,7 +148,7 @@ _gomock_source = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = [str(GO_TOOLCHAIN)],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}, **kwargs):
@@ -279,7 +279,7 @@ _gomock_prog_gen = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = [str(GO_TOOLCHAIN)],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def _gomock_prog_exec_impl(ctx):
@@ -361,7 +361,7 @@ _gomock_prog_exec = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = [str(GO_TOOLCHAIN)],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def _handle_shared_args(ctx, args):

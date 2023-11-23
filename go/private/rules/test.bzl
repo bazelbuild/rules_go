@@ -441,7 +441,7 @@ _go_test_kwargs = {
     },
     "executable": True,
     "test": True,
-    "toolchains": [str(GO_TOOLCHAIN)],
+    "toolchains": [GO_TOOLCHAIN],
     "doc": """This builds a set of tests that can be run with `bazel test`.<br><br>
     To run all tests in the workspace, and print output on failure (the
     equivalent of `go test ./...`), run<br>

@@ -601,7 +601,7 @@ go_context_data = rule(
     },
     doc = """go_context_data gathers information about the build configuration.
     It is a common dependency of all Go targets.""",
-    toolchains = [str(GO_TOOLCHAIN)],
+    toolchains = [GO_TOOLCHAIN],
     cfg = request_nogo_transition,
 )
 

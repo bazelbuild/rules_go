@@ -50,7 +50,7 @@ _go_info = rule(
             default = "//:go_context_data",
         ),
     },
-    toolchains = [str(GO_TOOLCHAIN)],
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def go_info():
