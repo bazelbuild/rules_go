@@ -251,12 +251,17 @@ func stdliblist(args []string) error {
 
 	cgoEnabled := os.Getenv("CGO_ENABLED") == "1"
 	// Make sure we have an absolute path to the C compiler.
-	// TODO(#1357): also take absolute paths of includes and other paths in flags.
 	ccEnv, ok := os.LookupEnv("CC")
 	if cgoEnabled && !ok {
 		return fmt.Errorf("CC must be set")
 	}
 	os.Setenv("CC", quotePathIfNeeded(abs(ccEnv)))
+
+	// Modify CGO flags to use only absolute path
+	// because go is having its own sandbox, all CGO flags must use absolute path
+	if err := absEnv(cgoEnvVars, cgoAbsEnvFlags); err != nil {
+		return fmt.Errorf("error modifying cgo environment to absolute path: %v", err)
+	}
 
 	// We want to keep the cache around so that the processed files can be used by other tools.
 	absCachePath := abs(*cachePath)

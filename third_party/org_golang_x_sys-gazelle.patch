@@ -98,30 +98,6 @@ diff -urN a/execabs/BUILD.bazel b/execabs/BUILD.bazel
 +    srcs = ["execabs_test.go"],
 +    embed = [":execabs"],
 +)
-diff -urN a/internal/unsafeheader/BUILD.bazel b/internal/unsafeheader/BUILD.bazel
---- a/internal/unsafeheader/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
-+++ b/internal/unsafeheader/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,20 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-+
-+go_library(
-+    name = "unsafeheader",
-+    srcs = ["unsafeheader.go"],
-+    importpath = "golang.org/x/sys/internal/unsafeheader",
-+    visibility = ["//:__subpackages__"],
-+)
-+
-+alias(
-+    name = "go_default_library",
-+    actual = ":unsafeheader",
-+    visibility = ["//:__subpackages__"],
-+)
-+
-+go_test(
-+    name = "unsafeheader_test",
-+    srcs = ["unsafeheader_test.go"],
-+    deps = [":unsafeheader"],
-+)
 diff -urN a/plan9/BUILD.bazel b/plan9/BUILD.bazel
 --- a/plan9/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/plan9/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
@@ -503,7 +479,7 @@ diff -urN a/unix/internal/mkmerge/BUILD.bazel b/unix/internal/mkmerge/BUILD.baze
 diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 --- a/windows/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,53 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -535,12 +511,6 @@ diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 +    ],
 +    importpath = "golang.org/x/sys/windows",
 +    visibility = ["//visibility:public"],
-+    deps = select({
-+        "@io_bazel_rules_go//go/platform:windows": [
-+            "//internal/unsafeheader",
-+        ],
-+        "//conditions:default": [],
-+    }),
 +)
 +
 +alias(
@@ -559,7 +529,6 @@ diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 +    deps = select({
 +        "@io_bazel_rules_go//go/platform:windows": [
 +            ":windows",
-+            "//internal/unsafeheader",
 +        ],
 +        "//conditions:default": [],
 +    }),
@@ -629,7 +598,7 @@ diff -urN a/windows/registry/BUILD.bazel b/windows/registry/BUILD.bazel
 diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
 --- a/windows/svc/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/svc/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -642,7 +611,6 @@ diff -urN a/windows/svc/BUILD.bazel b/windows/svc/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +    deps = select({
 +        "@io_bazel_rules_go//go/platform:windows": [
-+            "//internal/unsafeheader",
 +            "//windows",
 +        ],
 +        "//conditions:default": [],
@@ -768,7 +736,7 @@ diff -urN a/windows/svc/example/BUILD.bazel b/windows/svc/example/BUILD.bazel
 diff -urN a/windows/svc/mgr/BUILD.bazel b/windows/svc/mgr/BUILD.bazel
 --- a/windows/svc/mgr/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/svc/mgr/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,39 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -783,7 +751,6 @@ diff -urN a/windows/svc/mgr/BUILD.bazel b/windows/svc/mgr/BUILD.bazel
 +    visibility = ["//visibility:public"],
 +    deps = select({
 +        "@io_bazel_rules_go//go/platform:windows": [
-+            "//internal/unsafeheader",
 +            "//windows",
 +            "//windows/svc",
 +        ],

@@ -1,6 +1,5 @@
 matrix:
   platform:
-    - centos7
     - debian10
     - ubuntu2004
     - macos
@@ -16,10 +15,10 @@ bcr_test_module:
   module_path: tests/bcr
   matrix:
     platform:
-      - centos7
       - debian10
       - ubuntu2004
       - macos
+      - macos_arm64
       - windows
   tasks:
     run_test_module:

@@ -31,7 +31,17 @@ filegroup(
     srcs = glob([
         "pkg/tool/**",
         "bin/gofmt*",
-    ]),
+    ]) + [
+        ":config",
+    ],
+)
+
+filegroup(
+    name = "config",
+    srcs = glob(
+        ["go.env*"],
+        allow_empty = True,
+    ),
 )
 
 go_sdk(
@@ -82,10 +92,9 @@ filegroup(
         "bin/go*",
         "src/**",
         "pkg/**",
-    ]) + glob(
-        ["go.env*"],
-        allow_empty = True,
-    ),
+    ]) + [
+        ":config",
+    ],
 )
 
 exports_files(

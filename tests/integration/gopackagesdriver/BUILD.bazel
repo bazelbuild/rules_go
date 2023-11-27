@@ -1,0 +1,13 @@
+load("//go/tools/bazel_testing:def.bzl", "go_bazel_test")
+
+go_bazel_test(
+    name = "gopackagesdriver_test",
+    size = "enormous",
+    srcs = ["gopackagesdriver_test.go"],
+    rule_files = [
+        "//:all_files",
+    ],
+    deps = [
+        "@io_bazel_rules_go//go/tools/gopackagesdriver:gopackagesdriver_lib",
+    ]
+)

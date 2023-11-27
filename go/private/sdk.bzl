@@ -15,7 +15,7 @@
 load("//go/private:common.bzl", "executable_path")
 load("//go/private:nogo.bzl", "go_register_nogo")
 load("//go/private/skylib/lib:versions.bzl", "versions")
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "patch")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "patch", "read_user_netrc", "use_netrc")
 
 MIN_SUPPORTED_VERSION = (1, 14, 0)
 
@@ -423,6 +423,8 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
 
     ctx.report_progress("Downloading and extracting Go toolchain")
 
+    auth = use_netrc(read_user_netrc(ctx), urls, {})
+
     # TODO(#2771): After bazelbuild/bazel#18448 is merged and available in
     # the minimum supported version of Bazel, remove the workarounds below.
     #
@@ -446,6 +448,7 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
             url = urls,
             sha256 = sha256,
             output = "go_sdk.tar.gz",
+            auth = auth,
         )
         res = ctx.execute(["tar", "-xf", "go_sdk.tar.gz", "--strip-components=1"])
         if res.return_code:
@@ -464,12 +467,14 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
                 "go/test/fixedbugs/issue27836.dir/\336foo.go": "go/test/fixedbugs/issue27836.dir/thfoo.go",
                 "go/test/fixedbugs/issue27836.dir/\336main.go": "go/test/fixedbugs/issue27836.dir/thmain.go",
             },
+            auth = auth,
         )
     else:
         ctx.download_and_extract(
             url = urls,
             stripPrefix = strip_prefix,
             sha256 = sha256,
+            auth = auth,
         )
 
 def _local_sdk(ctx, path):

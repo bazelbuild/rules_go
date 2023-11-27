@@ -16,18 +16,21 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 type PackageRegistry struct {
 	packagesByID map[string]*FlatPackage
 	stdlib       map[string]string
+	bazelVersion []int
 }
 
-func NewPackageRegistry(pkgs ...*FlatPackage) *PackageRegistry {
+func NewPackageRegistry(bazelVersion string, pkgs ...*FlatPackage) *PackageRegistry {
 	pr := &PackageRegistry{
 		packagesByID: map[string]*FlatPackage{},
 		stdlib:       map[string]string{},
+		bazelVersion: parseVersion(bazelVersion),
 	}
 	pr.Add(pkgs...)
 	return pr
@@ -68,6 +71,10 @@ func (pr *PackageRegistry) ResolveImports() error {
 		if err := pkg.ResolveImports(resolve); err != nil {
 			return err
 		}
+		testFp := pkg.MoveTestFiles()
+		if testFp != nil {
+			pr.packagesByID[testFp.ID] = testFp
+		}
 	}
 
 	return nil
@@ -88,7 +95,10 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 	roots := map[string]struct{}{}
 
 	for _, label := range labels {
-		if !strings.HasPrefix(label, "@") {
+		// When packagesdriver is ran from rules go, rulesGoRepositoryName will just be @
+		if pr.bazelVersion[0] >= 6 &&
+			!strings.HasPrefix(label, "@") {
+			// Canonical labels is only since Bazel 6.0.0
 			label = fmt.Sprintf("@%s", label)
 		}
 
@@ -102,6 +112,10 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 			}
 		} else {
 			roots[label] = struct{}{}
+			// If an xtest package exists for this package add it to the roots
+			if _, ok := pr.packagesByID[label+"_xtest"]; ok {
+				roots[label+"_xtest"] = struct{}{}
+			}
 		}
 	}
 
@@ -118,4 +132,20 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 	}
 
 	return retRoots, retPkgs
+}
+
+func parseVersion(v string) []int {
+	parts := strings.Split(v, ".")
+	version := make([]int, len(parts))
+
+	var err error
+	for i, p := range parts {
+		version[i], err = strconv.Atoi(p)
+		if err != nil {
+			// Failsafe default
+			return []int{6, 0, 0}
+		}
+	}
+
+	return version
 }

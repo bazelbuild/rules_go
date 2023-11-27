@@ -18,13 +18,10 @@ load(
 )
 load(
     "//go/private:common.bzl",
+    "GO_TOOLCHAIN",
     "asm_exts",
     "cgo_exts",
     "go_exts",
-)
-load(
-    "//go/private:go_toolchain.bzl",
-    "GO_TOOLCHAIN",
 )
 load(
     "//go/private:providers.bzl",

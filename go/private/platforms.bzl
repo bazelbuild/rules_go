@@ -28,7 +28,7 @@ BAZEL_GOOS_CONSTRAINTS = {
 BAZEL_GOARCH_CONSTRAINTS = {
     "386": "@platforms//cpu:x86_32",
     "amd64": "@platforms//cpu:x86_64",
-    "arm": "@platforms//cpu:arm",
+    "arm": "@platforms//cpu:armv7",
     "arm64": "@platforms//cpu:aarch64",
     "ppc64": "@platforms//cpu:ppc",
     "ppc64le": "@platforms//cpu:ppc",
