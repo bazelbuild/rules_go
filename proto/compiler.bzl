@@ -117,15 +117,15 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     args.add_all(imports, before_each = "-import")
     args.add_all(proto_paths.keys())
     args.use_param_file("-param=%s")
-    data = [file for target in compiler.internal.data for file in target.files.to_list()]
+    data_depsets = [target.files for target in compiler.internal.data]
     go.actions.run(
         inputs = depset(
             direct = [
                 compiler.internal.go_protoc,
                 compiler.internal.protoc,
                 compiler.internal.plugin,
-            ] + data,
-            transitive = [transitive_descriptor_sets],
+            ],
+            transitive = [transitive_descriptor_sets] + data_depsets,
         ),
         outputs = go_srcs,
         progress_message = "Generating into %s" % go_srcs[0].dirname,
