@@ -196,22 +196,6 @@ def go_rules_dependencies(force = False):
         patch_args = ["-p1"],
     )
 
-    # Extra protoc plugins and libraries.
-    # Doesn't belong here, but low maintenance.
-    # releaser:upgrade-dep mwitkow go-proto-validators
-    wrapper(
-        http_archive,
-        name = "com_github_mwitkow_go_proto_validators",
-        # v0.3.2, latest as of 2023-11-16
-        urls = [
-            "https://mirror.bazel.build/github.com/mwitkow/go-proto-validators/archive/refs/tags/v0.3.2.zip",
-            "https://github.com/mwitkow/go-proto-validators/archive/refs/tags/v0.3.2.zip",
-        ],
-        sha256 = "d8697f05a2f0eaeb65261b480e1e6035301892d9fc07ed945622f41b12a68142",
-        strip_prefix = "go-proto-validators-0.3.2",
-        # Bazel support added in v0.3.0, so no patches needed.
-    )
-
     # releaser:upgrade-dep gogo protobuf
     wrapper(
         http_archive,

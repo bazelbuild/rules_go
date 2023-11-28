@@ -39,18 +39,6 @@ go_proto_compiler(
     ],
 )
 
-go_proto_compiler(
-    name = "go_proto_validate",
-    plugin = "@com_github_mwitkow_go_proto_validators//protoc-gen-govalidators",
-    suffix = ".validator.pb.go",
-    valid_archive = False,
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@com_github_mwitkow_go_proto_validators//:validators_golang",
-    ],
-)
-
 GOGO_VARIANTS = [
     "combo",
     "gogo",
