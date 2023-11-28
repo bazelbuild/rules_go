@@ -280,8 +280,16 @@ func compileArchive(
 	// constraints.
 	compilingWithCgo := haveCgo && cgoEnabled
 
+	// source files for nogo static analysis
+	goSrcsNogo := goSrcs
+	cgoSrcsNogo := cgoSrcs
+
 	// Instrument source files for coverage.
 	if coverMode != "" {
+		// deep copy original source files for nogo static analysis, avoid being modified by coverage.
+		goSrcsNogo = append([]string{}, goSrcs...)
+		cgoSrcsNogo = append([]string{}, cgoSrcs...)
+
 		relCoverPath := make(map[string]string)
 		for _, s := range coverSrcs {
 			relCoverPath[abs(s)] = s
@@ -342,6 +350,15 @@ func compileArchive(
 		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
 		if err != nil {
 			return err
+		}
+		if coverMode != "" {
+			// Compile original source files, not coverage instrumented, for nogo
+			_, goSrcsNogo, _, err = cgo2(goenv, goSrcsNogo, cgoSrcsNogo, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			goSrcsNogo = goSrcs
 		}
 
 		gcFlags = append(gcFlags, createTrimPath(gcFlags, srcDir))
@@ -429,24 +446,10 @@ func compileArchive(
 	// Run nogo concurrently.
 	var nogoChan chan error
 	outFactsPath := filepath.Join(workDir, nogoFact)
-	nogoSrcs := make([]string, 0, len(goSrcs))
-	for _, goSrc := range goSrcs {
-		// If source is found in the origin map, that means it's likely to be a generated source file
-		// so feed the original source file to static analyzers instead of the generated one.
-		//
-		// If origin is empty, that means the generated source file is not based on a user-provided source file
-		// thus ignore that entry entirely.
-		if originSrc, ok := nogoSrcsOrigin[goSrc]; ok {
-			if originSrc != "" {
-				nogoSrcs = append(nogoSrcs, originSrc)
-			}
-			continue
-		}
-
-		// TODO(sluongng): most likely what remains here are CGO-generated source files as the result of calling cgo2()
-		// Need to determine whether we want to feed these CGO-generated files into static analyzers.
-		//
-		// Add unknown origin source files into the mix.
+	nogoSrcs := make([]string, 0, len(goSrcsNogo))
+	// goSrcsNogo contains original source files that are not coverage-instrumented in case coverage mode is set
+	// to avoid nogo reporting errors introduced by the modification.
+	for _, goSrc := range goSrcsNogo {
 		nogoSrcs = append(nogoSrcs, goSrc)
 	}
 	if nogoPath != "" && len(nogoSrcs) > 0 {
