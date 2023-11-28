@@ -459,12 +459,21 @@ def _go_tool_binary_impl(ctx):
         )
     else:
         # Note: GOPATH is needed for Go 1.16.
-        cmd = "GOMAXPROCS=1 GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath -ldflags '{ldflags}' {srcs}".format(
-            go = sdk.go.path,
-            out = out.path,
-            srcs = " ".join([f.path for f in ctx.files.srcs]),
-            ldflags = ctx.attr.ldflags,
-        )
+        if sdk.goos == "darwin":
+            # if goos is darwin, then build with a single process (see https://github.com/bazelbuild/rules_go/pull/3536).
+            cmd = "GOMAXPROCS=1 GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath -ldflags '{ldflags}' {srcs}".format(
+                go = sdk.go.path,
+                out = out.path,
+                srcs = " ".join([f.path for f in ctx.files.srcs]),
+                ldflags = ctx.attr.ldflags,
+            )
+        else:
+            cmd = "GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath -ldflags '{ldflags}' {srcs}".format(
+                go = sdk.go.path,
+                out = out.path,
+                srcs = " ".join([f.path for f in ctx.files.srcs]),
+                ldflags = ctx.attr.ldflags,
+            )
         ctx.actions.run_shell(
             command = cmd,
             inputs = sdk.headers + sdk.tools + sdk.srcs + sdk.libs + ctx.files.srcs + [sdk.go],
