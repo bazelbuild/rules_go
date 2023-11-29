@@ -183,9 +183,24 @@ go_proto_library = rule(
 # go_proto_library is a rule that takes a proto_library (in the proto
 # attribute) and produces a go library for it.
 
-def go_grpc_library(**kwargs):
-    # TODO: Deprecate once gazelle generates just go_proto_library
-    go_proto_library(compilers = [Label("//proto:go_grpc")], **kwargs)
+def go_grpc_library(name, importpath = None, **kwargs):
+    # Importpath needs to be the same for embed to work correctly.
+    # This is roughly equivalent to _infer_importpath() from rules_go/go/private/context.bzl
+    if not importpath:
+        importpath = "%s/%s" % (native.package_name(), name)
+
+    go_proto_library(
+        name = name + "_proto",
+        importpath = importpath,
+        **kwargs
+    )
+    go_proto_library(
+        name = name,
+        compilers = [Label("//proto:go_grpc")],
+        embed = [":" + name + "_proto"],
+        importpath = importpath,
+        **kwargs
+    )
 
 def proto_register_toolchains():
     print("You no longer need to call proto_register_toolchains(), it does nothing")

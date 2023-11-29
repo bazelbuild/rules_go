@@ -36,6 +36,7 @@ load(
     "GoContextInfo",
     "GoLibrary",
     "GoSource",
+    "GoProtoInfo",
     "GoStdLib",
     "INFERRED_PATH",
     "get_source",
@@ -231,6 +232,8 @@ def _dedup_deps(deps):
     for dep in deps:
         if hasattr(dep, "data") and hasattr(dep.data, "importpath"):
             importpath = dep.data.importpath
+        elif GoProtoInfo in dep:
+            importpath = dep[GoProtoInfo].library.importpath
         else:
             importpath = dep[GoLibrary].importpath
         if importpath in importpaths:
@@ -321,6 +324,8 @@ def _collect_cc_infos(deps, cdeps):
         # dep may be a struct, which doesn't support indexing by providers.
         if is_struct(dep):
             continue
+        if GoProtoInfo in dep:
+            cc_infos.append(dep[GoProtoInfo].source.cc_info)
         if GoSource in dep:
             cc_infos.append(dep[GoSource].cc_info)
     return cc_common.merge_cc_infos(cc_infos = cc_infos)

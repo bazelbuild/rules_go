@@ -23,13 +23,16 @@ go_proto_compiler(
 
 go_proto_compiler(
     name = "go_proto",
+    plugin = "@org_golang_google_protobuf//cmd/protoc-gen-go",
     visibility = ["//visibility:public"],
     deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPES_APIV2,
 )
 
 go_proto_compiler(
     name = "go_grpc",
-    options = ["plugins=grpc"],
+    options = ["require_unimplemented_servers=false"],
+    plugin = "@org_golang_google_grpc//cmd/protoc-gen-go-grpc",
+    suffix = "_grpc.pb.go",
     visibility = ["//visibility:public"],
     deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPES_APIV2 + [
         "@org_golang_google_grpc//:go_default_library",

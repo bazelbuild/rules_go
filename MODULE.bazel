@@ -35,6 +35,17 @@ go_deps.module(
     sum = "h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=",
     version = "v1.3.2",
 )
+
+# TODO Request addition to DEFAULT_BUILD_FILE_GENERATION_BY_PATH in https://github.com/bazelbuild/bazel-gazelle/tree/master/internal/bzlmod/default_gazelle_overrides.bzl
+# go_deps.gazelle_override(
+#     path = "google.golang.org/grpc",
+#     build_file_generation = "on",
+# )
+# go_deps.module_override(
+#     path = "google.golang.org/grpc",
+#     patches = ["//third_party:com_github_golang_protobuf-gazelle.patch"],
+#     patch_strip = 1,
+# )
 use_repo(
     go_deps,
     "com_github_gogo_protobuf",
