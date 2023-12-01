@@ -203,15 +203,6 @@ func compileArchive(
 	}
 	defer cleanup()
 
-	// As part of compilation process, rules_go does generate and/or rewrite code
-	// based on the original source files.  We should only run static analysis
-	// over original source files and not the generated source as end users have
-	// little control over the generated source.
-	//
-	// nogoSrcsOrigin maps generated/rewritten source files back to original source.
-	// If the original source path is an empty string, exclude generated source from nogo run.
-	nogoSrcsOrigin := make(map[string]string)
-
 	if len(srcs.goSrcs) == 0 {
 		// We need to run the compiler to create a valid archive, even if there's nothing in it.
 		// Otherwise, GoPack will complain if we try to add assembly or cgo objects.
@@ -237,7 +228,6 @@ func compileArchive(
 			pkg:      "empty",
 		})
 
-		nogoSrcsOrigin[emptyGoFile.Name()] = ""
 	}
 	packageName := srcs.goSrcs[0].pkg
 	var goSrcs, cgoSrcs []string
@@ -280,7 +270,9 @@ func compileArchive(
 	// constraints.
 	compilingWithCgo := haveCgo && cgoEnabled
 
-	// source files for nogo static analysis
+	// When coverage is set, source files will be modified during instrumentation. We should only run static analysis
+	// over original source files and not the modified ones.
+	// goSrcsNogo and cgoSrcsNogo are copies of the original source files for nogo to run static analysis.
 	goSrcsNogo := goSrcs
 	cgoSrcsNogo := cgoSrcs
 
@@ -332,7 +324,6 @@ func compileArchive(
 
 			if i < len(goSrcs) {
 				goSrcs[i] = coverSrc
-				nogoSrcsOrigin[coverSrc] = origSrc
 				continue
 			}
 
