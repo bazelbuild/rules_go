@@ -175,6 +175,9 @@ func TestExternalTests(t *testing.T) {
 
 	for _, p := range resp.Packages {
 		if p.ID == xTestId {
+			if !strings.HasSuffix(p.PkgPath, "_test") {
+				t.Errorf("PkgPath missing _test suffix")
+			}
 			assertSuffixesInList(t, p.GoFiles, "/hello_external_test.go")
 		} else if p.ID == testId {
 			assertSuffixesInList(t, p.GoFiles, "/hello.go", "/hello_test.go")
