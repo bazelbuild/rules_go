@@ -437,17 +437,11 @@ func compileArchive(
 	// Run nogo concurrently.
 	var nogoChan chan error
 	outFactsPath := filepath.Join(workDir, nogoFact)
-	nogoSrcs := make([]string, 0, len(goSrcsNogo))
-	// goSrcsNogo contains original source files that are not coverage-instrumented in case coverage mode is set
-	// to avoid nogo reporting errors introduced by the modification.
-	for _, goSrc := range goSrcsNogo {
-		nogoSrcs = append(nogoSrcs, goSrc)
-	}
-	if nogoPath != "" && len(nogoSrcs) > 0 {
+	if nogoPath != "" && len(goSrcsNogo) > 0 {
 		ctx, cancel := context.WithCancel(context.Background())
 		nogoChan = make(chan error)
 		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, nogoSrcs, deps, packagePath, importcfgPath, outFactsPath)
+			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcsNogo, deps, packagePath, importcfgPath, outFactsPath)
 		}()
 		defer func() {
 			if nogoChan != nil {
