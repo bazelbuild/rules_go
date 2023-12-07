@@ -154,7 +154,7 @@ func (fp *FlatPackage) MoveTestFiles() *FlatPackage {
 	return &FlatPackage{
 		ID:              fp.ID + "_xtest",
 		Name:            fp.Name + "_test",
-		PkgPath:         fp.PkgPath,
+		PkgPath:         fp.PkgPath + "_test",
 		Imports:         newImports,
 		Errors:          fp.Errors,
 		GoFiles:         append([]string{}, xtgf...),
