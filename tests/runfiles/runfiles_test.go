@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -145,5 +146,44 @@ func TestRunfiles_manifestWithDir(t *testing.T) {
 				t.Errorf("Rlocation failed: got %q, want %q", got, want)
 			}
 		})
+	}
+}
+
+func TestRunfiles_dirEnv(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows doesn't have a runfiles directory by default")
+	}
+
+	dir := t.TempDir()
+	r, err := runfiles.New(runfiles.Directory(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"RUNFILES_DIR=" + dir, "JAVA_RUNFILES=" + dir}
+	if !reflect.DeepEqual(r.Env(), want) {
+		t.Errorf("Env: got %v, want %v", r.Env(), want)
+	}
+}
+
+func TestRunfiles_manifestEnv(t *testing.T) {
+	tmp := t.TempDir()
+	dir := filepath.Join(tmp, "foo.runfiles")
+	err := os.Mkdir(dir, 0o755)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest := filepath.Join(tmp, "foo.runfiles_manifest")
+	if err = os.WriteFile(manifest, []byte("foo/dir path/to/foo/dir\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	r, err := runfiles.New(runfiles.ManifestFile(manifest))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"RUNFILES_MANIFEST_FILE=" + manifest, "RUNFILES_DIR=" + dir, "JAVA_RUNFILES=" + dir}
+	if !reflect.DeepEqual(r.Env(), want) {
+		t.Errorf("Env: got %v, want %v", r.Env(), want)
 	}
 }

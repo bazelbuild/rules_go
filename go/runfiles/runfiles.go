@@ -14,19 +14,19 @@
 
 // Package runfiles provides access to Bazel runfiles.
 //
-// Usage
+// # Usage
 //
 // This package has two main entry points, the global functions Rlocation and Env,
 // and the Runfiles type.
 //
-// Global functions
+// # Global functions
 //
 // For simple use cases that don’t require hermetic behavior, use the Rlocation and
 // Env functions to access runfiles.  Use Rlocation to find the filesystem location
 // of a runfile, and use Env to obtain environmental variables to pass on to
 // subprocesses.
 //
-// Runfiles type
+// # Runfiles type
 //
 // If you need hermetic behavior or want to change the runfiles discovery
 // process, use New to create a Runfiles object.  New accepts a few options to
@@ -45,8 +45,9 @@ import (
 )
 
 const (
-	directoryVar    = "RUNFILES_DIR"
-	manifestFileVar = "RUNFILES_MANIFEST_FILE"
+	directoryVar       = "RUNFILES_DIR"
+	legacyDirectoryVar = "JAVA_RUNFILES"
+	manifestFileVar    = "RUNFILES_MANIFEST_FILE"
 )
 
 type repoMappingKey struct {
@@ -62,7 +63,7 @@ type Runfiles struct {
 	// We don’t need concurrency control since Runfiles objects are
 	// immutable once created.
 	impl        runfiles
-	env         string
+	env         []string
 	repoMapping map[repoMappingKey]string
 	sourceRepo  string
 }
@@ -198,10 +199,7 @@ func (r *Runfiles) loadRepoMapping() error {
 // The return value is a newly-allocated slice; you can modify it at will.  If
 // r is the zero Runfiles object, the return value is nil.
 func (r *Runfiles) Env() []string {
-	if r.env == "" {
-		return nil
-	}
-	return []string{r.env}
+	return r.env
 }
 
 // WithSourceRepo returns a Runfiles instance identical to the current one,

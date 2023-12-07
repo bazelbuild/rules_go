@@ -23,8 +23,11 @@ type Directory string
 
 func (d Directory) new(sourceRepo SourceRepo) (*Runfiles, error) {
 	r := &Runfiles{
-		impl:       d,
-		env:        directoryVar + "=" + string(d),
+		impl: d,
+		env: []string{
+			directoryVar + "=" + string(d),
+			legacyDirectoryVar + "=" + string(d),
+		},
 		sourceRepo: string(sourceRepo),
 	}
 	err := r.loadRepoMapping()
