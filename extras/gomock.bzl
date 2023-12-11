@@ -62,7 +62,6 @@ def _gomock_source_impl(ctx):
                 command = "mkdir -p {0} && cp -L {1} {0}".format(aux.dirname, f.path),
             )
             aux_files.append("{0}={1}".format(pkg, aux.path))
-            needed_files.append(f)
             needed_files.append(aux)
         args += ["-aux_files", ",".join(aux_files)]
 
