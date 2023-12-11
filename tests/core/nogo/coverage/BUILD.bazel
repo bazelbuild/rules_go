@@ -9,3 +9,8 @@ go_bazel_test(
     name = "gen_code_test",
     srcs = ["gen_code_test.go"],
 )
+
+go_bazel_test(
+    name = "coverage_cgo_test",
+    srcs = ["coverage_cgo_test.go"],
+)
