@@ -74,11 +74,7 @@ load(
     _go_cross_binary = "go_cross_binary",
 )
 
-# TOOLS_NOGO is a list of all analysis passes in
-# golang.org/x/tools/go/analysis/passes.
-# This is not backward compatible, so use caution when depending on this --
-# new analyses may discover issues in existing builds.
-TOOLS_NOGO = [
+_TOOLS_NOGO = [
     "@org_golang_x_tools//go/analysis/passes/asmdecl:go_default_library",
     "@org_golang_x_tools//go/analysis/passes/assign:go_default_library",
     "@org_golang_x_tools//go/analysis/passes/atomic:go_default_library",
@@ -116,6 +112,12 @@ TOOLS_NOGO = [
     "@org_golang_x_tools//go/analysis/passes/unsafeptr:go_default_library",
     "@org_golang_x_tools//go/analysis/passes/unusedresult:go_default_library",
 ]
+
+# TOOLS_NOGO is a list of all analysis passes in
+# golang.org/x/tools/go/analysis/passes.
+# This is not backward compatible, so use caution when depending on this --
+# new analyses may discover issues in existing builds.
+TOOLS_NOGO = [str(Label(l)) for l in _TOOLS_NOGO]
 
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.

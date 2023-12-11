@@ -21,7 +21,7 @@ bazel_dep(name = "rules_go", version = "0.39.1", repo_name = "io_bazel_rules_go"
 bazel_dep(name = "gazelle", version = "0.31.0", repo_name = "bazel_gazelle")
 ```
 
-## Registering Go SDKs
+## Go SDKs
 
 rules_go automatically downloads and registers a recent Go SDK, so unless a particular version is required, no manual steps are required.
 
@@ -68,11 +68,39 @@ If you really do need direct access to a Go SDK, you can provide the `name` attr
 Note that modules using this attribute cannot be added to registries such as the Bazel Central Registry (BCR).
 If you have a use case that would require this, please explain it in an issue.
 
+### Configuring `nogo`
+
+The `nogo` tool is a static analyzer for Go code that is run as part of compilation.
+It is configured via an instance of the [`nogo`](/go/nogo.rst) rule, which can then be registered with the `go_sdk` extension:
+
+```starlark
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.nogo(nogo = "//:my_nogo")
+```
+
+By default, the `nogo` tool is executed for all Go targets in the main repository, but not any external repositories.
+Each module can only provide at most one `go_sdk.nogo` tag and only the tag of the root module is honored.
+
+It is also possible to include only or exclude particular packages from `nogo` analysis, using syntax that matches the `visibility` attribute on rules:
+
+```starlark
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.nogo(
+    nogo = "//:my_nogo",
+    includes = [
+        "//:__subpackages__",
+        "@my_own_go_dep//logic:__pkg__",
+    ],
+    excludes = [
+        "//third_party:__subpackages__",
+    ],
+)
+```
+
 ### Not yet supported
 
 * `go_local_sdk`
 * `go_wrap_sdk`
-* nogo ([#3529](https://github.com/bazelbuild/rules_go/issues/3529))
 
 ## Generating BUILD files
 

@@ -66,6 +66,11 @@ load(
     "//go/private/rules:transition.bzl",
     "request_nogo_transition",
 )
+load(
+    "@io_bazel_rules_nogo//:scope.bzl",
+    NOGO_EXCLUDES = "EXCLUDES",
+    NOGO_INCLUDES = "INCLUDES",
+)
 
 # cgo requires a gcc/clang style compiler.
 # We use a denylist instead of an allowlist:
@@ -392,6 +397,30 @@ def _infer_importpath(ctx, attr):
         importpath = importpath[1:]
     return importpath, importpath, INFERRED_PATH
 
+def _matches_scope(label, scope):
+    if scope == "all":
+        return True
+    if scope.workspace_name != label.workspace_name:
+        return False
+    if scope.name == "__pkg__":
+        return scope.package == label.package
+    if scope.name == "__subpackages__":
+        if not scope.package:
+            return True
+        return scope.package == label.package or label.package.startswith(scope.package + "/")
+    fail("invalid scope '%s'" % scope.name)
+
+def _matches_scopes(label, scopes):
+    return any([_matches_scope(label, scope) for scope in scopes])
+
+def _get_nogo(go):
+    """Returns the nogo file for this target, if enabled and in scope."""
+    label = go._ctx.label
+    if _matches_scopes(label, NOGO_INCLUDES) and not _matches_scopes(label, NOGO_EXCLUDES):
+        return go.nogo
+    else:
+        return None
+
 def go_context(ctx, attr = None):
     """Returns an API used to build Go code.
 
@@ -551,6 +580,7 @@ def go_context(ctx, attr = None):
         library_to_source = _library_to_source,
         declare_file = _declare_file,
         declare_directory = _declare_directory,
+        get_nogo = _get_nogo,
 
         # Private
         # TODO: All uses of this should be removed
