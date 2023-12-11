@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "GO_TOOLCHAIN")
+load("//go/private:common.bzl", "GO_TOOLCHAIN_LABEL")
 load(
     "//go/private:mode.bzl",
     "link_mode_args",
@@ -163,5 +163,5 @@ def emit_compilepkg(
         executable = go.toolchain._builder,
         arguments = [args],
         env = go.env,
-        toolchain = GO_TOOLCHAIN,
+        toolchain = GO_TOOLCHAIN_LABEL,
     )

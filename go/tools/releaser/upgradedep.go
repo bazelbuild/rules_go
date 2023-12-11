@@ -310,6 +310,9 @@ func upgradeDepDecl(ctx context.Context, gh *githubClient, workDir, name string,
 		if name != semver.Canonical(name) {
 			continue
 		}
+		if semver.Prerelease(name) != "" {
+			continue
+		}
 		tags[w] = tags[r]
 		w++
 	}

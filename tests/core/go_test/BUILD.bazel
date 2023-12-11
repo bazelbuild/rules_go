@@ -264,3 +264,8 @@ go_bazel_test(
     name = "filter_test_cases_test",
     srcs = ["filter_test_cases_test.go"],
 )
+
+go_bazel_test(
+    name = "timeout_test",
+    srcs = ["timeout_test.go"],
+)

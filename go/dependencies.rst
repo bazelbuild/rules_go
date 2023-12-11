@@ -90,11 +90,6 @@ It also declares some internal repositories not described here.
 | This is needed to support both pre-generated and dynamically generated                      |
 | proto libraries.                                                                            |
 +-------------------------------------------------+-------------------------------------------+
-| :value:`com_github_mwitkow_go_proto_validators` | `github.com/mwitkow/go-proto-validators`_ |
-+-------------------------------------------------+-------------------------------------------+
-| Legacy definition for proto plugin. Ideally ``go_rules_dependencies`` should                |
-| not provide this.                                                                           |
-+-------------------------------------------------+-------------------------------------------+
 | :value:`com_github_gogo_protobuf`               | `github.com/gogo/protobuf`_               |
 +-------------------------------------------------+-------------------------------------------+
 | Legacy definition for proto plugins. Ideally ``go_rules_dependencies`` should               |

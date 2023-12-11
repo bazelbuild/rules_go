@@ -195,6 +195,12 @@ func TestGoProtoLibraryToolAttrsAreReset(t *testing.T) {
 }
 
 func assertDependsCleanlyOnWithFlags(t *testing.T, targetA, targetB string, flags ...string) {
+	// Analyze the targets to ensure that MODULE.bazel.lock has been created, otherwise bazel config
+	// will fail after the cquery command due to the Skyframe invalidation caused by a changed file.
+	err := bazel_testing.RunBazel(append([]string{"build", targetA, targetB, "--nobuild"}, flags...)...)
+	if err != nil {
+		t.Fatalf("bazel build %s %s: %v", targetA, targetB, err)
+	}
 	query := fmt.Sprintf("deps(%s) intersect %s", targetA, targetB)
 	out, err := bazel_testing.BazelOutput(append(
 		[]string{

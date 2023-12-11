@@ -13,6 +13,7 @@
 # limitations under the License.
 
 GO_TOOLCHAIN = "@io_bazel_rules_go//go:toolchain"
+GO_TOOLCHAIN_LABEL = Label(GO_TOOLCHAIN)
 
 go_exts = [
     ".go",

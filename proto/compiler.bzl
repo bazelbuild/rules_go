@@ -24,6 +24,7 @@ load(
 load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN",
+    "GO_TOOLCHAIN_LABEL",
 )
 load(
     "//go/private/rules:transition.bzl",
@@ -130,6 +131,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
         progress_message = "Generating into %s" % go_srcs[0].dirname,
         mnemonic = "GoProtocGen",
         executable = compiler.internal.go_protoc,
+        toolchain = GO_TOOLCHAIN_LABEL,
         arguments = [args],
         env = go.env,
         # We may need the shell environment (potentially augmented with --action_env)
