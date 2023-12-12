@@ -30,10 +30,10 @@ To register a particular version of the Go SDK, use the `go_sdk` module extensio
 ```starlark
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 
-# Download an SDK for the host OS & architecture.
+# Download an SDK for the host OS & architecture as well as common remote execution platforms.
 go_sdk.download(version = "1.20.3")
 
-# Alternately, download an SDK for a fixed OS/architecture, e.g. for remote execution.
+# Alternately, download an SDK for a fixed OS/architecture.
 go_sdk.download(
     version = "1.20.3",
     goarch = "amd64",
@@ -45,6 +45,7 @@ go_sdk.host()
 ```
 
 You can register multiple Go SDKs and select which one to use on a per-target basis using [`go_cross_binary`](rules.md#go_cross_binary).
+As long as you specify the `version` of an SDK, it will be downloaded lazily, that is, only when it is actually needed during a particular build.
 The usual rules of [toolchain resolution](https://bazel.build/extending/toolchains#toolchain-resolution) apply, with SDKs registered in the root module taking precedence over those registered in dependencies.
 
 ### Using a Go SDK
