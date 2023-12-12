@@ -397,7 +397,7 @@ def _infer_importpath(ctx, attr):
         importpath = importpath[1:]
     return importpath, importpath, INFERRED_PATH
 
-def _matches_scope(label, scope):
+def matches_scope(label, scope):
     if scope == "all":
         return True
     if scope.workspace_name != label.workspace_name:
@@ -411,7 +411,7 @@ def _matches_scope(label, scope):
     fail("invalid scope '%s'" % scope.name)
 
 def _matches_scopes(label, scopes):
-    return any([_matches_scope(label, scope) for scope in scopes])
+    return any([matches_scope(label, scope) for scope in scopes])
 
 def _get_nogo(go):
     """Returns the nogo file for this target, if enabled and in scope."""
