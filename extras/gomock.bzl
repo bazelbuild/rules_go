@@ -35,8 +35,9 @@ def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)
 
     # create GOPATH and copy source into GOPATH
+    go_path_prefix = "gopath"
     source_relative_path = paths.join("src", ctx.attr.library[GoLibrary].importmap, ctx.file.source.basename)
-    source = ctx.actions.declare_file(paths.join("gopath", source_relative_path))
+    source = ctx.actions.declare_file(paths.join(go_path_prefix, source_relative_path))
 
     # trim the relative path of source to get GOPATH
     gopath = source.path[:-len(source_relative_path)]
@@ -55,7 +56,7 @@ def _gomock_source_impl(ctx):
         aux_files = []
         for target, pkg in ctx.attr.aux_files.items():
             f = target.files.to_list()[0]
-            aux = ctx.actions.declare_file(paths.join("gopath", "src", pkg, f.basename))
+            aux = ctx.actions.declare_file(paths.join(go_path_prefix, "src", pkg, f.basename))
             ctx.actions.run_shell(
                 outputs = [aux],
                 inputs = [f],
