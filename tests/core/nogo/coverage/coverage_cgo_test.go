@@ -28,7 +28,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "nogo")
 
 go_library(
     name = "foo",
-	cgo = True,
+    cgo = True,
     srcs = ["foo.go"],
     importpath = "foo"
 )
@@ -87,7 +87,7 @@ const Name = "gochecknoinits"
 
 var Analyzer = &analysis.Analyzer{
 	Name: Name,
-	Doc:  "Checks that no init functions are present in Go cod",
+	Doc:  "Checks that no init() functions are present in Go code",
 	Run:  run,
 }
 
@@ -116,7 +116,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	})
 }
 
-func TestCoverageWithNogo(t *testing.T) {
+func TestNogoWithCoverageAndCgo(t *testing.T) {
 	if out, err := bazel_testing.BazelOutput("coverage", "//:foo_test"); err != nil {
 		println(string(out))
 		t.Fatal(err)
