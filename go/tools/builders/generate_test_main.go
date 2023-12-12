@@ -235,7 +235,7 @@ func main() {
 		}
 	}
 	{{end}}
-
+	bzltestutil.RegisterTimeoutHandler()
 	{{if not .TestMain}}
 	res := m.Run()
 	{{else}}

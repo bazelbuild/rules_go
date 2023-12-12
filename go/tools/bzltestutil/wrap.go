@@ -23,10 +23,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/bazelbuild/rules_go/go/tools/bzltestutil/chdir"
 )
@@ -67,9 +69,9 @@ func shouldAddTestV() bool {
 // ensure that one line at a time is written to the inner writer.
 type streamMerger struct {
 	OutW, ErrW *io.PipeWriter
-	mutex sync.Mutex
-	inner io.Writer
-	wg sync.WaitGroup
+	mutex      sync.Mutex
+	inner      io.Writer
+	wg         sync.WaitGroup
 	outR, errR *bufio.Reader
 }
 
@@ -78,10 +80,10 @@ func NewStreamMerger(w io.Writer) *streamMerger {
 	errR, errW := io.Pipe()
 	return &streamMerger{
 		inner: w,
-		OutW: outW,
-		ErrW: errW,
-		outR: bufio.NewReader(outR),
-		errR: bufio.NewReader(errR),
+		OutW:  outW,
+		ErrW:  errW,
+		outR:  bufio.NewReader(outR),
+		errR:  bufio.NewReader(errR),
 	}
 }
 
@@ -126,6 +128,17 @@ func Wrap(pkg string) error {
 	cmd.Env = append(os.Environ(), "GO_TEST_WRAP=0")
 	cmd.Stderr = io.MultiWriter(os.Stderr, streamMerger.ErrW)
 	cmd.Stdout = io.MultiWriter(os.Stdout, streamMerger.OutW)
+	go func() {
+		// When the Bazel test timeout is reached, Bazel sends a SIGTERM that
+		// we need to forward to the inner process.
+		// TODO: This never triggers on Windows, even though Go should simulate
+		//  a SIGTERM when Windows asks the process to close. It is not clear
+		//  whether Bazel uses the required graceful shutdown mechanism.
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGTERM)
+		<-c
+		cmd.Process.Signal(syscall.SIGTERM)
+	}()
 	streamMerger.Start()
 	err := cmd.Run()
 	streamMerger.ErrW.Close()

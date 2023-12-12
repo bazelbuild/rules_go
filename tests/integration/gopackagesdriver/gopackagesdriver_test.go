@@ -64,7 +64,8 @@ func TestHelloExternal(t *testing.T) {}
 }
 
 const (
-	osPkgID = "@io_bazel_rules_go//stdlib:os"
+	osPkgID       = "@io_bazel_rules_go//stdlib:os"
+	bzlmodOsPkgID = "@@io_bazel_rules_go//stdlib:os"
 )
 
 func TestBaseFileLookup(t *testing.T) {
@@ -122,8 +123,8 @@ func TestBaseFileLookup(t *testing.T) {
 			return
 		}
 
-		if pkg.Imports["os"] != osPkgID {
-			t.Errorf("Expected os import to map to %q:\n%+v", osPkgID, pkg)
+		if pkg.Imports["os"] != osPkgID && pkg.Imports["os"] != bzlmodOsPkgID {
+			t.Errorf("Expected os import to map to %q or %q:\n%+v", osPkgID, bzlmodOsPkgID, pkg)
 			return
 		}
 	})
@@ -131,7 +132,7 @@ func TestBaseFileLookup(t *testing.T) {
 	t.Run("dependency", func(t *testing.T) {
 		var osPkg *gpd.FlatPackage
 		for _, p := range resp.Packages {
-			if p.ID == osPkgID {
+			if p.ID == osPkgID || p.ID == bzlmodOsPkgID {
 				osPkg = p
 			}
 		}
