@@ -3,6 +3,7 @@
 
 .. _nogo: nogo.rst#nogo
 .. _configuring-analyzers: nogo.rst#configuring-analyzers
+.. _Bzlmod: /docs/go/core/bzlmod.md#configuring-nogo
 .. _go_library: /docs/go/core/rules.md#go_library
 .. _analysis: https://godoc.org/golang.org/x/tools/go/analysis
 .. _Analyzer: https://godoc.org/golang.org/x/tools/go/analysis#Analyzer
@@ -71,7 +72,8 @@ want to run.
     )
 
 Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
-``WORKSPACE`` file.
+``WORKSPACE`` file. When using ``MODULE.bazel``, see the Bzlmod_ documentation
+instead.
 
 .. code:: bzl
 
