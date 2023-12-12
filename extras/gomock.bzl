@@ -35,8 +35,9 @@ def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)
 
     # create GOPATH and copy source into GOPATH
+    go_path_prefix = "gopath"
     source_relative_path = paths.join("src", ctx.attr.library[GoLibrary].importmap, ctx.file.source.basename)
-    source = ctx.actions.declare_file(paths.join("gopath", source_relative_path))
+    source = ctx.actions.declare_file(paths.join(go_path_prefix, source_relative_path))
 
     # trim the relative path of source to get GOPATH
     gopath = source.path[:-len(source_relative_path)]
@@ -55,14 +56,14 @@ def _gomock_source_impl(ctx):
         aux_files = []
         for target, pkg in ctx.attr.aux_files.items():
             f = target.files.to_list()[0]
-            aux = ctx.actions.declare_file(paths.join(gopath, "src", pkg, f.basename))
+            aux = ctx.actions.declare_file(paths.join(go_path_prefix, "src", pkg, f.basename))
             ctx.actions.run_shell(
                 outputs = [aux],
                 inputs = [f],
                 command = "mkdir -p {0} && cp -L {1} {0}".format(aux.dirname, f.path),
             )
             aux_files.append("{0}={1}".format(pkg, aux.path))
-            needed_files.append(f)
+            needed_files.append(aux)
         args += ["-aux_files", ",".join(aux_files)]
 
     inputs = (
@@ -82,9 +83,11 @@ def _gomock_source_impl(ctx):
         toolchain = GO_TOOLCHAIN_LABEL,
         command = """
             export GOPATH=$(pwd)/{gopath} &&
+            export GOROOT=$(pwd)/{goroot} &&
             {cmd} {args} > {out}
         """.format(
             gopath = gopath,
+            goroot = go_ctx.sdk.root_file.dirname,
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
             args = " ".join(args),
             out = ctx.outputs.out.path,
@@ -93,6 +96,8 @@ def _gomock_source_impl(ctx):
         env = {
             # GOCACHE is required starting in Go 1.12
             "GOCACHE": "./.gocache",
+            # gomock runs in the special GOPATH environment
+            "GO111MODULE": "off",
         },
     )
 

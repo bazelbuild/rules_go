@@ -67,6 +67,18 @@ _host_tag = tag_class(
     },
 )
 
+# A list of (goos, goarch) pairs that are commonly used for remote executors in cross-platform
+# builds (where host != exec platform). By default, we register toolchains for all of these
+# platforms in addition to the host platform.
+_COMMON_EXEC_PLATFORMS = [
+    ("darwin", "amd64"),
+    ("darwin", "arm64"),
+    ("linux", "amd64"),
+    ("linux", "arm64"),
+    ("windows", "amd64"),
+    ("windows", "arm64"),
+]
+
 # This limit can be increased essentially arbitrarily, but doing so will cause a rebuild of all
 # targets using any of these toolchains due to the changed repository name.
 _MAX_NUM_TOOLCHAINS = 9999
@@ -96,10 +108,9 @@ def _go_sdk_impl(ctx):
 
             # SDKs with an explicit name are at risk of colliding with those from other modules.
             # This is acceptable if brought in by the root module as the user is responsible for any
-            # conflicts that arise. rules_go itself provides "go_default_sdk", which is used by
-            # Gazelle to bootstrap itself.
-            # TODO(https://github.com/bazelbuild/bazel-gazelle/issues/1469): Investigate whether
-            #  Gazelle can use the first user-defined SDK instead to prevent unnecessary downloads.
+            # conflicts that arise. rules_go itself provides "go_default_sdk".
+            # TODO: Now that Gazelle relies on the go_host_compatible_sdk_label repo, remove the
+            #       special case for "go_default_sdk". Users should migrate to @rules_go//go.
             if (not module.is_root and not module.name == "rules_go") and download_tag.name:
                 fail("go_sdk.download: name must not be specified in non-root module " + module.name)
 
@@ -132,6 +143,42 @@ def _go_sdk_impl(ctx):
                 sdk_type = "remote",
                 sdk_version = download_tag.version,
             ))
+
+            # Additionally register SDKs for all common execution platforms, but only if the user
+            # specified a version to prevent eager fetches.
+            if download_tag.version and not download_tag.goos and not download_tag.goarch:
+                for goos, goarch in _COMMON_EXEC_PLATFORMS:
+                    if goos == host_detected_goos and goarch == host_detected_goarch:
+                        # We already added the host-compatible toolchain above.
+                        continue
+
+                    if download_tag.sdks and not "{}_{}".format(goos, goarch) in download_tag.sdks:
+                        # The user supplied custom download links, but not for this tuple.
+                        continue
+
+                    default_name = _default_go_sdk_name(
+                        module = module,
+                        multi_version = multi_version_module[module.name],
+                        tag_type = "download",
+                        index = index,
+                        suffix = "_{}_{}".format(goos, goarch),
+                    )
+                    go_download_sdk_rule(
+                        name = default_name,
+                        goos = download_tag.goos,
+                        goarch = download_tag.goarch,
+                        sdks = download_tag.sdks,
+                        urls = download_tag.urls,
+                        version = download_tag.version,
+                    )
+
+                    toolchains.append(struct(
+                        goos = goos,
+                        goarch = goarch,
+                        sdk_repo = default_name,
+                        sdk_type = "remote",
+                        sdk_version = download_tag.version,
+                    ))
 
         for index, host_tag in enumerate(module.tags.host):
             # Dependencies can rely on rules_go providing a default remote SDK. They can also
@@ -183,15 +230,16 @@ def _go_sdk_impl(ctx):
         sdk_versions = [toolchain.sdk_version for toolchain in toolchains],
     )
 
-def _default_go_sdk_name(*, module, multi_version, tag_type, index):
+def _default_go_sdk_name(*, module, multi_version, tag_type, index, suffix = ""):
     # Keep the version out of the repository name if possible to prevent unnecessary rebuilds when
     # it changes.
-    return "{name}_{version}_{tag_type}_{index}".format(
+    return "{name}_{version}_{tag_type}_{index}{suffix}".format(
         # "main_" is not a valid module name and thus can't collide.
         name = module.name or "main_",
         version = module.version if multi_version else "",
         tag_type = tag_type,
         index = index,
+        suffix = suffix,
     )
 
 def _toolchain_prefix(index, name):
