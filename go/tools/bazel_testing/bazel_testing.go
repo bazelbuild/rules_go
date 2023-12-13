@@ -75,6 +75,11 @@ type Args struct {
 	// of the default generated WORKSPACE file.
 	WorkspaceSuffix string
 
+	// ModuleFileSuffix is a string that should be appended to the end of a
+	// default generated MODULE.bazel file. If this is empty, no such file is
+	// generated.
+	ModuleFileSuffix string
+
 	// SetUp is a function that is executed inside the context of the testing
 	// workspace. It is executed once and only once before the beginning of
 	// all tests. If SetUp returns a non-nil error, execution is halted and
@@ -384,8 +389,9 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 
 	// If there's no WORKSPACE file, create one.
 	workspacePath := filepath.Join(mainDir, "WORKSPACE")
-	if _, err := os.Stat(workspacePath); os.IsNotExist(err) {
-		w, err := os.Create(workspacePath)
+	if _, err = os.Stat(workspacePath); os.IsNotExist(err) {
+		var w *os.File
+		w, err = os.Create(workspacePath)
 		if err != nil {
 			return "", cleanup, err
 		}
@@ -413,6 +419,46 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		}
 		if err := defaultWorkspaceTpl.Execute(w, info); err != nil {
 			return "", cleanup, err
+		}
+	}
+
+	// If a MODULE.bazel file is requested, create one.
+	if args.ModuleFileSuffix != "" {
+		moduleBazelPath := filepath.Join(mainDir, "MODULE.bazel")
+		if _, err = os.Stat(moduleBazelPath); err == nil {
+			return "", cleanup, fmt.Errorf("ModuleFileSuffix set but MODULE.bazel exists")
+		}
+		var w *os.File
+		w, err = os.Create(moduleBazelPath)
+		if err != nil {
+			return "", cleanup, err
+		}
+		defer func() {
+			if cerr := w.Close(); err == nil && cerr != nil {
+				err = cerr
+			}
+		}()
+		rulesGoAbsPath := filepath.Join(execDir, "io_bazel_rules_go")
+		rulesGoPath, err := filepath.Rel(mainDir, rulesGoAbsPath)
+		if err != nil {
+			return "", cleanup, fmt.Errorf("could not find relative path from %q to %q for io_bazel_rules_go", mainDir, rulesGoAbsPath)
+		}
+		rulesGoPath = filepath.ToSlash(rulesGoPath)
+		info := moduleFileTemplateInfo{
+			RulesGoPath: rulesGoPath,
+			Suffix:      args.ModuleFileSuffix,
+		}
+		if err := defaultModuleBazelTpl.Execute(w, info); err != nil {
+			return "", cleanup, err
+		}
+
+		// Enable Bzlmod.
+		bazelrcPath := filepath.Join(mainDir, ".bazelrc")
+		if _, err = os.Stat(bazelrcPath); os.IsNotExist(err) {
+			err = os.WriteFile(bazelrcPath, []byte("common --enable_bzlmod"), 0666)
+			if err != nil {
+				return "", cleanup, err
+			}
 		}
 	}
 
@@ -508,6 +554,20 @@ go_wrap_sdk(
 
 go_register_toolchains({{if .Nogo}}nogo = "{{.Nogo}}"{{end}})
 {{end}}
+{{.Suffix}}
+`))
+
+type moduleFileTemplateInfo struct {
+	RulesGoPath string
+	Suffix      string
+}
+
+var defaultModuleBazelTpl = template.Must(template.New("").Parse(`
+bazel_dep(name = "rules_go", version = "", repo_name = "io_bazel_rules_go")
+local_path_override(
+    module_name = "rules_go",
+    path = "{{.RulesGoPath}}",
+)
 {{.Suffix}}
 `))
 
