@@ -77,6 +77,9 @@ _nogo_tag = tag_class(
         ),
         "includes": attr.label_list(
             default = _NOGO_DEFAULT_INCLUDES,
+            # The special include "all" is undocumented on purpose: With it, adding a new transitive
+            # dependency to a Go module can cause a build failure if the new dependency has lint
+            # issues.
             doc = """
 A Go target is checked with nogo if its package matches at least one of the entries in 'includes'
 and none of the entries in 'excludes'. By default, nogo is applied to all targets in the main

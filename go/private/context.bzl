@@ -411,7 +411,10 @@ def matches_scope(label, scope):
     fail("invalid scope '%s'" % scope.name)
 
 def _matches_scopes(label, scopes):
-    return any([matches_scope(label, scope) for scope in scopes])
+    for scope in scopes:
+        if matches_scope(label, scope):
+            return True
+    return False
 
 def _get_nogo(go):
     """Returns the nogo file for this target, if enabled and in scope."""
