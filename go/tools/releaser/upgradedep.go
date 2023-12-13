@@ -206,7 +206,7 @@ func runUpgradeDep(ctx context.Context, stderr io.Writer, args []string) error {
 	if upgradeAll {
 		for name := range depIndex {
 			name := name
-			if _, _, err := parseUpgradeDepDirective(depIndex[name]); err != nil {
+			if _, _, _, err := parseUpgradeDepDirective(depIndex[name]); err != nil {
 				continue
 			}
 			eg.Go(func() error {
@@ -250,7 +250,7 @@ func upgradeDepDecl(ctx context.Context, gh *githubClient, workDir, name string,
 	// Find a '# releaser:upgrade-dep org repo' comment. We could probably
 	// figure this out from URLs but this also serves to mark a dependency as
 	// being automatically upgradeable.
-	orgName, repoName, err := parseUpgradeDepDirective(call)
+	orgName, repoName, relPath, err := parseUpgradeDepDirective(call)
 	if err != nil {
 		return err
 	}
@@ -297,7 +297,18 @@ func upgradeDepDecl(ctx context.Context, gh *githubClient, workDir, name string,
 		return err
 	}
 
+	if relPath != "" {
+		var filteredTags []*github.RepositoryTag
+		for _, tag := range tags {
+			if strings.HasPrefix(*tag.Name, relPath+"/") {
+				filteredTags = append(filteredTags, tag)
+			}
+		}
+		tags = filteredTags
+	}
+
 	vname := func(name string) string {
+		name = strings.TrimPrefix(name, relPath+"/")
 		if !strings.HasPrefix(name, "v") {
 			return "v" + name
 		}
@@ -353,6 +364,10 @@ func upgradeDepDecl(ctx context.Context, gh *githubClient, workDir, name string,
 		if ghURL == "" {
 			ghURL = fmt.Sprintf("https://github.com/%s/%s/archive/refs/tags/%s.zip", orgName, repoName, *highestTag.Name)
 			stripPrefix = repoName + "-" + strings.TrimPrefix(*highestTag.Name, "v")
+			stripPrefix = strings.ReplaceAll(stripPrefix, "/", "-")
+			if relPath != "" {
+				stripPrefix += "/" + relPath
+			}
 		}
 		urlComment = fmt.Sprintf("%s, latest as of %s", *highestTag.Name, date)
 	} else {
@@ -523,7 +538,7 @@ func parsePatchesItem(patchLabelExpr bzl.Expr) (value string, comments *bzl.Comm
 // parseUpgradeDepDirective parses a '# releaser:upgrade-dep org repo' directive
 // and returns the organization and repository name or an error if the directive
 // was not found or malformed.
-func parseUpgradeDepDirective(call *bzl.CallExpr) (orgName, repoName string, err error) {
+func parseUpgradeDepDirective(call *bzl.CallExpr) (orgName, repoName, relPath string, err error) {
 	// TODO: support other upgrade strategies. For example, support git_repository
 	// and go_repository (possibly wrapped in _maybe).
 	for _, c := range call.Comment().Before {
@@ -531,12 +546,15 @@ func parseUpgradeDepDirective(call *bzl.CallExpr) (orgName, repoName string, err
 		if len(words) == 0 || words[0] != "releaser:upgrade-dep" {
 			continue
 		}
-		if len(words) != 3 {
-			return "", "", errors.New("invalid upgrade-dep directive; expected org, and name fields")
+		if len(words) == 3 {
+			return words[1], words[2], "", nil
 		}
-		return words[1], words[2], nil
+		if len(words) == 4 {
+			return words[1], words[2], words[3], nil
+		}
+		return "", "", "", errors.New("invalid upgrade-dep directive; expected org, and name fields with optional rel_path field")
 	}
-	return "", "", errors.New("releaser:upgrade-dep directive not found")
+	return "", "", "", errors.New("releaser:upgrade-dep directive not found")
 }
 
 // sanitizePatch sets all of the non-zero patch dates to the same value. This

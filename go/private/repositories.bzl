@@ -174,19 +174,19 @@ def go_rules_dependencies(force = False):
     )
 
     # gRPC protoc plugin
-    # releaser:upgrade-dep grpc grpc-go
+    # releaser:upgrade-dep grpc grpc-go cmd/protoc-gen-go-grpc
     wrapper(
         http_archive,
         name = "org_golang_google_grpc_cmd_protoc_gen_go_grpc",
         sha256 = "1e84df03c94d1cded8e94da7a2df162463f3be4c7a94289d85c0871f14c7b8e3",
-        # v1.3.0, latest as of 2023-12-07
+        # cmd/protoc-gen-go-grpc/v1.3.0, latest as of 2023-12-13
         urls = [
             "https://mirror.bazel.build/github.com/grpc/grpc-go/archive/refs/tags/cmd/protoc-gen-go-grpc/v1.3.0.zip",
             "https://github.com/grpc/grpc-go/archive/refs/tags/cmd/protoc-gen-go-grpc/v1.3.0.zip",
         ],
         strip_prefix = "grpc-go-cmd-protoc-gen-go-grpc-v1.3.0/cmd/protoc-gen-go-grpc",
         patches = [
-            # releaser:patch-cmd gazelle -repo_root ./cmd/protoc-gen-go-grpc -go_prefix google.golang.org/grpc/cmd/protoc-gen-go-grpc -go_naming_convention import_alias -proto disable_global ./cmd/protoc-gen-go-grpc
+            # releaser:patch-cmd gazelle -repo_root . -go_prefix google.golang.org/grpc/cmd/protoc-gen-go-grpc -go_naming_convention import_alias -proto disable_global
             Label("//third_party:org_golang_google_grpc_cmd_protoc_gen_go_grpc.patch"),
         ],
         patch_args = ["-p1"],
