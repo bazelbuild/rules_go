@@ -120,6 +120,7 @@ def _go_test_impl(ctx):
         executable = go.toolchain._builder,
         arguments = [arguments],
         toolchain = GO_TOOLCHAIN_LABEL,
+        env = go.env,
     )
 
     test_gc_linkopts = gc_linkopts(ctx)

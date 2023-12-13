@@ -472,3 +472,9 @@ cc_binary(
     srcs = ["use_c_symbol_through_go.c"],
     deps = [":use_transitive_symbol"],
 )
+
+go_test(
+    name = "cgo_required",
+    srcs = ["cgo_required_test.go"],
+    pure = "on",
+)
