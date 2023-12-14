@@ -27,16 +27,16 @@ func TestMain(m *testing.M) {
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "nogo")
 
 go_library(
-    name = "foo",
+    name = "foo_cgo",
     cgo = True,
-    srcs = ["foo.go"],
-    importpath = "foo"
+    srcs = ["foo_cgo.go"],
+    importpath = "foo_cgo"
 )
 
 go_test(
-    name = "foo_test",
-    srcs = ["foo_test.go"],
-    embed = [":foo"]
+    name = "foo_cgo_test",
+    srcs = ["foo_cgo_test.go"],
+    embed = [":foo_cgo"]
 )
 
 nogo(
@@ -44,22 +44,22 @@ nogo(
     deps = ["//noinit"],
     visibility = ["//visibility:public"],
 )
--- foo.go --
-package foo
+-- foo_cgo.go --
+package foo_cgo
 
 import "C"
 
-func Foo() string {
-	return "foo"
+func FooCgo() string {
+	return "foo_cgo"
 }
--- foo_test.go --
-package foo
+-- foo_cgo_test.go --
+package foo_cgo
 
 import "testing"
 
-func TestFoo(t *testing.T) {
-	if actual, expected := Foo(), "foo"; actual != expected {
-		t.Errorf("Foo() should return foo")
+func TestFooCgo(t *testing.T) {
+	if actual, expected := FooCgo(), "foo_cgo"; actual != expected {
+		t.Errorf("FooCgo() should return foo_cgo")
 	}
 }
 -- noinit/BUILD.bazel --
@@ -117,7 +117,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 }
 
 func TestNogoWithCoverageAndCgo(t *testing.T) {
-	if out, err := bazel_testing.BazelOutput("coverage", "//:foo_test"); err != nil {
+	if out, err := bazel_testing.BazelOutput("coverage", "//:foo_cgo_test"); err != nil {
 		println(string(out))
 		t.Fatal(err)
 	}

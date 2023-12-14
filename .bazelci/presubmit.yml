@@ -293,6 +293,7 @@ tasks:
       - "-//tests/core/go_proto_library_importmap:importmap_test"
       - "-//tests/core/go_test:data_test"
       - "-//tests/core/go_test:pwd_test"
+      - "-//tests/core/nogo/coverage:coverage_cgo_test"
       - "-//tests/core/nogo/coverage:coverage_test"
       - "-//tests/core/nogo/coverage:gen_code_test"
       - "-//tests/core/race:race_test" # fails on Windows due to upstream bug, see issue #2911

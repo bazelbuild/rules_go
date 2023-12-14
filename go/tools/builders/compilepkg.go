@@ -342,7 +342,7 @@ func compileArchive(
 		if err != nil {
 			return err
 		}
-		if coverMode != "" {
+		if coverMode != "" && nogoPath != "" {
 			// Compile original source files, not coverage instrumented, for nogo
 			_, goSrcsNogo, _, err = cgo2(goenv, goSrcsNogo, cgoSrcsNogo, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
 			if err != nil {
