@@ -23,13 +23,32 @@ go_proto_compiler(
 
 go_proto_compiler(
     name = "go_proto",
+    plugin = "@org_golang_google_protobuf//cmd/protoc-gen-go",
     visibility = ["//visibility:public"],
     deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPES_APIV2,
 )
 
 go_proto_compiler(
     name = "go_grpc",
+    deprecation = "Migrate to //proto:go_grpc_v2 compiler via go_grpc_library() rule.",
     options = ["plugins=grpc"],
+    plugin = "@com_github_golang_protobuf//protoc-gen-go",
+    visibility = ["//visibility:public"],
+    deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPES_APIV2 + [
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_x_net//context:go_default_library",
+    ],
+)
+
+go_proto_compiler(
+    name = "go_grpc_v2",
+    # Do not break existing code with this upgrade
+    # See https://github.com/grpc/grpc-go/blob/master/cmd/protoc-gen-go-grpc/README.md#future-proofing-services
+    options = ["require_unimplemented_servers=false"],
+    plugin = "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+    suffix = "_grpc.pb.go",
     visibility = ["//visibility:public"],
     deps = PROTO_RUNTIME_DEPS + WELL_KNOWN_TYPES_APIV2 + [
         "@org_golang_google_grpc//:go_default_library",

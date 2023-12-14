@@ -169,7 +169,10 @@ filegroup(
     testonly = True,
     srcs = [
         "BUILD.bazel",
+        "MODULE.bazel",
         "WORKSPACE",
+        "go.mod",
+        "go.sum",
         "//extras:all_files",
         "//go:all_files",
         "//proto:all_files",

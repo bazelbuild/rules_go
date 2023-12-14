@@ -14,7 +14,7 @@
 
 load("@bazel_features//:features.bzl", "bazel_features")
 load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
-load("//go/private:repositories.bzl", "go_rules_dependencies")
+load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 
 def host_compatible_toolchain_impl(ctx):
     ctx.file("BUILD.bazel")
@@ -67,6 +67,35 @@ _host_tag = tag_class(
     },
 )
 
+_NOGO_DEFAULT_INCLUDES = ["@@//:__subpackages__"]
+_NOGO_DEFAULT_EXCLUDES = []
+
+_nogo_tag = tag_class(
+    attrs = {
+        "nogo": attr.label(
+            doc = "The nogo target to use when this module is the root module.",
+        ),
+        "includes": attr.label_list(
+            default = _NOGO_DEFAULT_INCLUDES,
+            # The special include "all" is undocumented on purpose: With it, adding a new transitive
+            # dependency to a Go module can cause a build failure if the new dependency has lint
+            # issues.
+            doc = """
+A Go target is checked with nogo if its package matches at least one of the entries in 'includes'
+and none of the entries in 'excludes'. By default, nogo is applied to all targets in the main
+repository.
+
+Uses the same format as 'visibility', i.e., every entry must be a label that ends with ':__pkg__' or
+':__subpackages__'.
+""",
+        ),
+        "excludes": attr.label_list(
+            default = _NOGO_DEFAULT_EXCLUDES,
+            doc = "See 'includes'.",
+        ),
+    },
+)
+
 # A list of (goos, goarch) pairs that are commonly used for remote executors in cross-platform
 # builds (where host != exec platform). By default, we register toolchains for all of these
 # platforms in addition to the host platform.
@@ -85,6 +114,39 @@ _MAX_NUM_TOOLCHAINS = 9999
 _TOOLCHAIN_INDEX_PAD_LENGTH = len(str(_MAX_NUM_TOOLCHAINS))
 
 def _go_sdk_impl(ctx):
+    nogo_tag = struct(
+        nogo = DEFAULT_NOGO,
+        includes = _NOGO_DEFAULT_INCLUDES,
+        excludes = _NOGO_DEFAULT_EXCLUDES,
+    )
+    for module in ctx.modules:
+        if not module.is_root or not module.tags.nogo:
+            continue
+        if len(module.tags.nogo) > 1:
+            # Make use of the special formatting applied to tags by fail.
+            fail(
+                "go_sdk.nogo: only one tag can be specified per module, got:\n",
+                *[t for p in zip(module.tags.nogo, len(module.tags.nogo) * ["\n"]) for t in p]
+            )
+        nogo_tag = module.tags.nogo[0]
+        for scope in nogo_tag.includes + nogo_tag.excludes:
+            # Validate that the scope references a valid, visible repository.
+            # buildifier: disable=no-effect
+            scope.workspace_name
+            if scope.name != "__pkg__" and scope.name != "__subpackages__":
+                fail(
+                    "go_sdk.nogo: all entries in includes and excludes must end with ':__pkg__' or ':__subpackages__', got '{}' in".format(scope.name),
+                    nogo_tag,
+                )
+    go_register_nogo(
+        name = "io_bazel_rules_nogo",
+        nogo = str(nogo_tag.nogo),
+        # Go through canonical label literals to avoid a dependency edge on the packages in the
+        # scope.
+        includes = [str(l) for l in nogo_tag.includes],
+        excludes = [str(l) for l in nogo_tag.excludes],
+    )
+
     multi_version_module = {}
     for module in ctx.modules:
         if module.name in multi_version_module:
@@ -268,13 +330,7 @@ go_sdk = module_extension(
     tag_classes = {
         "download": _download_tag,
         "host": _host_tag,
+        "nogo": _nogo_tag,
     },
     **go_sdk_extra_kwargs
-)
-
-def _non_module_dependencies_impl(_ctx):
-    go_rules_dependencies(force = True)
-
-non_module_dependencies = module_extension(
-    implementation = _non_module_dependencies_impl,
 )

@@ -64,6 +64,7 @@ bzl_library(
         "@bazel_skylib//rules:common_settings",
         "@bazel_tools//tools/build_defs/cc:action_names.bzl",
         "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+        "@io_bazel_rules_nogo//:scope.bzl",
     ],
 )
 

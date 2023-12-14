@@ -16,6 +16,8 @@ tasks:
       - "//..."
     test_targets:
       - "//..."
+      # Bzlmod tests require Bazel 6+
+      - "-//tests/core/nogo/bzlmod/..."
   ubuntu2004:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     shell_commands:

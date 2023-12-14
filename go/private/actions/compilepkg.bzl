@@ -110,9 +110,10 @@ def emit_compilepkg(
 
     args.add("-o", out_lib)
     args.add("-x", out_export)
-    if go.nogo:
-        args.add("-nogo", go.nogo)
-        inputs.append(go.nogo)
+    nogo = go.get_nogo(go)
+    if nogo:
+        args.add("-nogo", nogo)
+        inputs.append(nogo)
     if out_cgo_export_h:
         args.add("-cgoexport", out_cgo_export_h)
         outputs.append(out_cgo_export_h)

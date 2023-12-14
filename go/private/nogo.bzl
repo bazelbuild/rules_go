@@ -14,6 +14,15 @@
 
 DEFAULT_NOGO = "@io_bazel_rules_go//:default_nogo"
 
+# repr(Label(...)) does not emit a canonical label literal.
+def _label_repr(label):
+    return "Label(\"{}\")".format(label)
+
+def _scope_list_repr(scopes):
+    if scopes == ["all"]:
+        return repr(["all"])
+    return "[" + ", ".join([_label_repr(Label(l)) for l in scopes]) + "]"
+
 def _go_register_nogo_impl(ctx):
     ctx.template(
         "BUILD.bazel",
@@ -23,14 +32,30 @@ def _go_register_nogo_impl(ctx):
         },
         executable = False,
     )
+    ctx.file(
+        "scope.bzl",
+        """
+INCLUDES = {includes}
+EXCLUDES = {excludes}
+""".format(
+            includes = _scope_list_repr(ctx.attr.includes),
+            excludes = _scope_list_repr(ctx.attr.excludes),
+        ),
+        executable = False,
+    )
 
 # go_register_nogo creates a repository with an alias that points
 # to the nogo rule that should be used globally by go rules in the workspace.
 # This may be called automatically by go_rules_dependencies or by
 # go_register_toolchains.
+# With Bzlmod, it is created by the go_sdk extension.
 go_register_nogo = repository_rule(
     _go_register_nogo_impl,
     attrs = {
         "nogo": attr.string(mandatory = True),
+        # Special sentinel value used to let nogo run on all targets when using
+        # WORKSPACE, for backwards compatibility.
+        "includes": attr.string_list(default = ["all"]),
+        "excludes": attr.string_list(),
     },
 )

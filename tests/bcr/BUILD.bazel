@@ -1,5 +1,18 @@
 load("@my_rules_go//extras:gomock.bzl", "gomock")
-load("@my_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load(
+    "@my_rules_go//go:def.bzl",
+    "TOOLS_NOGO",
+    "go_binary",
+    "go_library",
+    "go_test",
+    "nogo",
+)
+
+nogo(
+    name = "my_nogo",
+    visibility = ["//visibility:public"],
+    deps = TOOLS_NOGO,
+)
 
 go_library(
     name = "lib",
@@ -26,9 +39,7 @@ go_test(
 
 go_library(
     name = "mockable",
-    srcs = [
-        "mockable.go",
-    ],
+    srcs = ["mockable.go"],
     importpath = "example.com/mockable",
 )
 

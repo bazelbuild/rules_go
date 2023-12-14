@@ -11,18 +11,17 @@ bazel_dep(name = "platforms", version = "0.0.4")
 bazel_dep(name = "rules_proto", version = "4.0.0")
 bazel_dep(name = "protobuf", version = "3.19.2", repo_name = "com_google_protobuf")
 
-non_module_dependencies = use_extension("//go/private:extensions.bzl", "non_module_dependencies")
-use_repo(
-    non_module_dependencies,
-    "io_bazel_rules_nogo",
-)
-
 go_sdk = use_extension("//go:extensions.bzl", "go_sdk")
 go_sdk.download(
     name = "go_default_sdk",
     version = "1.21.1",
 )
-use_repo(go_sdk, "go_toolchains")
+use_repo(
+    go_sdk,
+    "go_toolchains",
+    # This name is ugly on purpose to avoid a conflict with a user-named SDK.
+    "io_bazel_rules_nogo",
+)
 
 register_toolchains("@go_toolchains//:all")
 
@@ -37,6 +36,8 @@ use_repo(
     "com_github_golang_protobuf",
     "org_golang_google_genproto",
     "org_golang_google_grpc",
+    "org_golang_google_grpc_cmd_protoc_gen_go_grpc",
     "org_golang_google_protobuf",
     "org_golang_x_net",
+    "org_golang_x_tools",
 )
