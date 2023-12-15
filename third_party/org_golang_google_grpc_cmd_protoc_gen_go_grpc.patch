@@ -1,6 +1,8 @@
-diff -urN a/BUILD.bazel b/BUILD.bazel
---- a/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
-+++ b/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+diff --git a/BUILD.bazel b/BUILD.bazel
+new file mode 100644
+index 00000000..c87b2ab8
+--- /dev/null
++++ b/BUILD.bazel
 @@ -0,0 +1,23 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 +
