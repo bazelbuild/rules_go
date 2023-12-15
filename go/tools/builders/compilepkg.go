@@ -52,7 +52,7 @@ func compilePkg(args []string) error {
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
 	var deps archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
-	var outPath, outFactsPath, cgoExportHPath string
+	var outPath, outXPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
@@ -76,8 +76,8 @@ func compilePkg(args []string) error {
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
-	fs.StringVar(&outPath, "o", "", "The output archive file to write compiled code")
-	fs.StringVar(&outFactsPath, "x", "", "The output archive file to write export data and nogo facts")
+	fs.StringVar(&outPath, "o", "", "The full output archive file required by the linker")
+	fs.StringVar(&outXPath, "x", "", "The export-only output archive required to compile dependent packages (may includes nogo facts)")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
 	fs.StringVar(&coverFormat, "cover_format", "", "Emit source file paths in coverage instrumentation suitable for the specified coverage format")
@@ -160,7 +160,7 @@ func compilePkg(args []string) error {
 		nogoPath,
 		packageListPath,
 		outPath,
-		outFactsPath,
+		outXPath,
 		cgoExportHPath,
 		coverFormat,
 		recompileInternalDeps,
@@ -478,7 +478,7 @@ func compileArchive(
 	}
 
 	// Compile the filtered .go files.
-	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath, gcFlags, pgoprofile, outPath); err != nil {
+	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath, gcFlags, pgoprofile, outPath, outXPath); err != nil {
 		return err
 	}
 
@@ -512,7 +512,7 @@ func compileArchive(
 	// Pack .o files into the archive. These may come from cgo generated code,
 	// cgo dependencies (cdeps), or assembly.
 	if len(objFiles) > 0 {
-		if err := appendFiles(goenv, outPath, objFiles); err != nil {
+		if err := appendFiles(goenv, outPath, objFiles...); err != nil {
 			return err
 		}
 	}
@@ -530,26 +530,13 @@ func compileArchive(
 		nogoStatus = nogoSucceeded
 	}
 
-	// Extract the export data file and pack it in an .x archive together with the
-	// nogo facts file (if there is one). This allows compile actions to depend
-	// on .x files only, so we don't need to recompile a package when one of its
-	// imports changes in a way that doesn't affect export data.
-	// TODO(golang/go#33820): After Go 1.16 is the minimum supported version,
-	// use -linkobj to tell the compiler to create separate .a and .x files for
-	// compiled code and export data. Before that version, the linker needed
-	// export data in the .a file when building a plugin. To work around that,
-	// we copy the export data into .x ourselves.
-	if err = extractFileFromArchive(outPath, workDir, pkgDef); err != nil {
-		return err
-	}
-	pkgDefPath := filepath.Join(workDir, pkgDef)
 	if nogoStatus == nogoSucceeded {
-		return appendFiles(goenv, outXPath, []string{pkgDefPath, outFactsPath})
+		return appendFiles(goenv, outXPath, outFactsPath)
 	}
-	return appendFiles(goenv, outXPath, []string{pkgDefPath})
+	return nil
 }
 
-func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath string, gcFlags []string, pgoprofile string, outPath string) error {
+func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath string, gcFlags []string, pgoprofile, outPath, outXPath string) error {
 	args := goenv.goTool("compile")
 	args = append(args, "-p", packagePath, "-importcfg", importcfgPath, "-pack")
 	if embedcfgPath != "" {
@@ -565,7 +552,8 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPa
 		args = append(args, "-pgoprofile", pgoprofile)
 	}
 	args = append(args, gcFlags...)
-	args = append(args, "-o", outPath)
+	args = append(args, "-o", outXPath)
+	args = append(args, "-linkobj", outPath)
 	args = append(args, "--")
 	args = append(args, srcs...)
 	absArgs(args, []string{"-I", "-o", "-trimpath", "-importcfg"})

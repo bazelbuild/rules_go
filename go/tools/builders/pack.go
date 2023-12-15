@@ -68,9 +68,6 @@ const (
 	// in an archive.
 	entryLength = 60
 
-	// pkgDef is the name of the export data file within an archive
-	pkgDef = "__.PKGDEF"
-
 	// nogoFact is the name of the nogo fact file
 	nogoFact = "nogo.out"
 )
@@ -295,7 +292,7 @@ func simpleName(name string, names map[string]struct{}) (string, error) {
 	return "", fmt.Errorf("cannot shorten file name: %q", name)
 }
 
-func appendFiles(goenv *env, archive string, files []string) error {
+func appendFiles(goenv *env, archive string, files ...string) error {
 	archive = abs(archive) // required for long filenames on Windows.
 
 	// Create an empty archive if one doesn't already exist.
@@ -355,34 +352,4 @@ func readFileInArchive(fileName, archive string) (io.ReadCloser, error) {
 	}
 	rc.Close()
 	return nil, err
-}
-
-func extractFileFromArchive(archive, dir, name string) (err error) {
-	archiveReader, err := readFileInArchive(name, archive)
-	if err != nil {
-		return fmt.Errorf("error reading %s from %s: %v", name, archive, err)
-	}
-	defer func() {
-		e := archiveReader.Close()
-		if e != nil && err == nil {
-			err = fmt.Errorf("error closing %q: %v", archive, e)
-		}
-	}()
-	outPath := filepath.Join(dir, pkgDef)
-	outFile, err := os.Create(outPath)
-	if err != nil {
-		return fmt.Errorf("error creating %s: %v", outPath, err)
-	}
-	defer func() {
-		e := outFile.Close()
-		if e != nil && err == nil {
-			err = fmt.Errorf("error closing %q: %v", outPath, e)
-		}
-	}()
-	if size, err := io.Copy(outFile, archiveReader); err != nil {
-		return fmt.Errorf("error writing %s: %v", outPath, err)
-	} else if size == 0 {
-		return fmt.Errorf("%s is empty in %s", name, archive)
-	}
-	return err
 }
