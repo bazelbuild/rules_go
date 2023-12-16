@@ -58,9 +58,13 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         pre_ext += _recompile_suffix
     out_lib = go.declare_file(go, name = source.library.name, ext = pre_ext + ".a")
 
-    # store __.PKGDEF and nogo facts in .x
+    # store export information for compiling dependent packages separately
     out_export = go.declare_file(go, name = source.library.name, ext = pre_ext + ".x")
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
+    out_facts = None
+    nogo = go.get_nogo(go)
+    if nogo:
+        out_facts = go.declare_file(go, name = source.library.name, ext = pre_ext + ".facts")
 
     direct = [get_archive(dep) for dep in source.deps]
     runfiles = source.runfiles
@@ -105,6 +109,8 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             archives = direct,
             out_lib = out_lib,
             out_export = out_export,
+            out_facts = out_facts,
+            nogo = nogo,
             out_cgo_export_h = out_cgo_export_h,
             gc_goopts = source.gc_goopts,
             cgo = True,
@@ -129,6 +135,8 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             archives = direct,
             out_lib = out_lib,
             out_export = out_export,
+            out_facts = out_facts,
+            nogo = nogo,
             gc_goopts = source.gc_goopts,
             cgo = False,
             testfilter = testfilter,
@@ -173,6 +181,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         # Information needed by dependents
         file = out_lib,
         export_file = out_export,
+        facts_file = out_facts,
         data_files = as_tuple(data_files),
         _cgo_deps = as_tuple(cgo_deps),
     )

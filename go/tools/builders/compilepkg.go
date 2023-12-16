@@ -50,9 +50,9 @@ func compilePkg(args []string) error {
 	fs := flag.NewFlagSet("GoCompilePkg", flag.ExitOnError)
 	goenv := envFlags(fs)
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
-	var deps archiveMultiFlag
+	var deps, facts archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
-	var outPath, outXPath, cgoExportHPath string
+	var outPath, outXPath, outFactsPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
@@ -63,6 +63,7 @@ func compilePkg(args []string) error {
 	fs.Var(&embedLookupDirs, "embedlookupdir", "Root-relative paths to directories relative to which //go:embed directives are resolved")
 	fs.Var(&embedRoots, "embedroot", "Bazel output root under which a file passed via -embedsrc resides")
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
+	fs.Var(&facts, "facts", "Import path, package path, and file name of a direct dependency's nogo facts file, separated by '='")
 	fs.StringVar(&importPath, "importpath", "", "The import path of the package being compiled. Not passed to the compiler, but may be displayed in debug data.")
 	fs.StringVar(&packagePath, "p", "", "The package path (importmap) of the package being compiled")
 	fs.Var(&gcFlags, "gcflags", "Go compiler flags")
@@ -77,7 +78,8 @@ func compilePkg(args []string) error {
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
 	fs.StringVar(&outPath, "o", "", "The full output archive file required by the linker")
-	fs.StringVar(&outXPath, "x", "", "The export-only output archive required to compile dependent packages (may includes nogo facts)")
+	fs.StringVar(&outXPath, "x", "", "The export-only output archive required to compile dependent packages")
+	fs.StringVar(&outFactsPath, "out_facts", "", "The file to emit serialized nogo facts to (must be set if -nogo is set")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
 	fs.StringVar(&coverFormat, "cover_format", "", "Emit source file paths in coverage instrumentation suitable for the specified coverage format")
@@ -142,6 +144,7 @@ func compilePkg(args []string) error {
 		packagePath,
 		srcs,
 		deps,
+		facts,
 		coverMode,
 		coverSrcs,
 		embedSrcs,
@@ -161,6 +164,7 @@ func compilePkg(args []string) error {
 		packageListPath,
 		outPath,
 		outXPath,
+		outFactsPath,
 		cgoExportHPath,
 		coverFormat,
 		recompileInternalDeps,
@@ -173,6 +177,7 @@ func compileArchive(
 	packagePath string,
 	srcs archiveSrcs,
 	deps []archive,
+	facts []archive,
 	coverMode string,
 	coverSrcs []string,
 	embedSrcs []string,
@@ -192,6 +197,7 @@ func compileArchive(
 	packageListPath string,
 	outPath string,
 	outXPath string,
+	outFactsPath string,
 	cgoExportHPath string,
 	coverFormat string,
 	recompileInternalDeps []string,
@@ -443,12 +449,11 @@ func compileArchive(
 
 	// Run nogo concurrently.
 	var nogoChan chan error
-	outFactsPath := filepath.Join(workDir, nogoFact)
-	if nogoPath != "" && len(goSrcsNogo) > 0 {
+	if nogoPath != "" {
 		ctx, cancel := context.WithCancel(context.Background())
 		nogoChan = make(chan error)
 		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcsNogo, deps, packagePath, importcfgPath, outFactsPath)
+			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcsNogo, facts, packagePath, importcfgPath, outFactsPath)
 		}()
 		defer func() {
 			if nogoChan != nil {
@@ -512,27 +517,21 @@ func compileArchive(
 	// Pack .o files into the archive. These may come from cgo generated code,
 	// cgo dependencies (cdeps), or assembly.
 	if len(objFiles) > 0 {
-		if err := appendFiles(goenv, outPath, objFiles...); err != nil {
+		if err := appendToArchive(goenv, outPath, objFiles); err != nil {
 			return err
 		}
 	}
 
 	// Check results from nogo.
-	nogoStatus := nogoNotRun
 	if nogoChan != nil {
 		err := <-nogoChan
 		nogoChan = nil // no cancellation needed
 		if err != nil {
-			nogoStatus = nogoFailed
-			// TODO: should we still create the .x file without nogo facts in this case?
+			// TODO: Move nogo into a separate action so we don't fail the compilation here.
 			return err
 		}
-		nogoStatus = nogoSucceeded
 	}
 
-	if nogoStatus == nogoSucceeded {
-		return appendFiles(goenv, outXPath, outFactsPath)
-	}
 	return nil
 }
 
@@ -560,12 +559,16 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPa
 	return goenv.runCommand(args)
 }
 
-func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string, deps []archive, packagePath, importcfgPath, outFactsPath string) error {
+func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string, facts []archive, packagePath, importcfgPath, outFactsPath string) error {
+	if len(srcs) == 0 {
+		// emit_compilepkg expects a nogo facts file, even if it's empty.
+		return os.WriteFile(outFactsPath, nil, 0o666)
+	}
 	args := []string{nogoPath}
 	args = append(args, "-p", packagePath)
 	args = append(args, "-importcfg", importcfgPath)
-	for _, dep := range deps {
-		args = append(args, "-fact", fmt.Sprintf("%s=%s", dep.importPath, dep.file))
+	for _, fact := range facts {
+		args = append(args, "-fact", fmt.Sprintf("%s=%s", fact.importPath, fact.file))
 	}
 	args = append(args, "-x", outFactsPath)
 	args = append(args, srcs...)
@@ -593,6 +596,15 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 		}
 	}
 	return nil
+}
+
+func appendToArchive(goenv *env, outPath string, objFiles []string) error {
+	// Use abs to work around long path issues on Windows.
+	// TODO(jayconrod): copy cmd/internal/archive and use that instead of
+	// shelling out to cmd/pack.
+	args := goenv.goTool("pack", "r", abs(outPath))
+	args = append(args, objFiles...)
+	return goenv.runCommand(args)
 }
 
 func createTrimPath(gcFlags []string, path string) string {

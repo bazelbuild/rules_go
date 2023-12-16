@@ -28,6 +28,18 @@ def _archive(v):
         v.data.export_file.path if v.data.export_file else v.data.file.path,
     )
 
+def _facts(v):
+    facts_file = v.data.facts_file
+    if not facts_file:
+        return None
+    importpaths = [v.data.importpath]
+    importpaths.extend(v.data.importpath_aliases)
+    return "{}={}={}".format(
+        ":".join(importpaths),
+        v.data.importmap,
+        facts_file.path,
+    )
+
 def _embedroot_arg(src):
     return src.root.path
 
@@ -55,6 +67,8 @@ def emit_compilepkg(
         clinkopts = [],
         out_lib = None,
         out_export = None,
+        out_facts = None,
+        nogo = None,
         out_cgo_export_h = None,
         gc_goopts = [],
         testfilter = None,  # TODO: remove when test action compiles packages
@@ -64,6 +78,8 @@ def emit_compilepkg(
         fail("sources is a required parameter")
     if out_lib == None:
         fail("out_lib is a required parameter")
+    if bool(nogo) != bool(out_facts):
+        fail("nogo must be specified if and only if out_facts is specified")
 
     inputs = (sources + embedsrcs + [go.package_list] +
               [archive.data.export_file for archive in archives] +
@@ -110,8 +126,11 @@ def emit_compilepkg(
 
     args.add("-o", out_lib)
     args.add("-x", out_export)
-    nogo = go.get_nogo(go)
     if nogo:
+        args.add_all(archives, before_each = "-facts", map_each = _facts)
+        inputs.extend([archive.data.facts_file for archive in archives if archive.data.facts_file])
+        args.add("-out_facts", out_facts)
+        outputs.append(out_facts)
         args.add("-nogo", nogo)
         inputs.append(nogo)
     if out_cgo_export_h:

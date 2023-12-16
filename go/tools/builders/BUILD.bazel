@@ -76,11 +76,11 @@ filegroup(
         "generate_test_main.go",
         "importcfg.go",
         "link.go",
-        "pack.go",
         "read.go",
         "replicate.go",
         "stdlib.go",
         "stdliblist.go",
+        "utils.go",
     ] + select({
         "@bazel_tools//src/conditions:windows": ["path_windows.go"],
         "//conditions:default": ["path.go"],
@@ -97,7 +97,6 @@ go_source(
         "nogo_typeparams_go117.go",
         "nogo_typeparams_go118.go",
         "nolint.go",
-        "pack.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
     # Bazel's visibility check than
