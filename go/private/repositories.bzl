@@ -17,7 +17,6 @@
 load("//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
 load("//go/private/skylib/lib:versions.bzl", "versions")
 load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
-load("//proto:gogo.bzl", "gogo_special_proto")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def go_rules_dependencies(force = False):
@@ -146,8 +145,8 @@ def go_rules_dependencies(force = False):
     #
     # * com_google_protobuf has its own dependency macro. We can't load
     #   the macro here.
-    # * rules_proto also has a dependency macro. It's only needed by tests and
-    #   by gogo_special_proto. Users will need to declare it anyway.
+    # * rules_proto also has a dependency macro. It's only needed by tests.
+    #   Users will need to declare it anyway.
     # * org_golang_google_grpc has too many dependencies for us to maintain.
     # * In general, declaring dependencies here confuses users when they
     #   declare their own dependencies later. Bazel ignores these.
@@ -211,29 +210,6 @@ def go_rules_dependencies(force = False):
             Label("//third_party:com_github_golang_protobuf-gazelle.patch"),
         ],
         patch_args = ["-p1"],
-    )
-
-    # releaser:upgrade-dep gogo protobuf
-    wrapper(
-        http_archive,
-        name = "com_github_gogo_protobuf",
-        # v1.3.2, latest as of 2023-11-16
-        urls = [
-            "https://mirror.bazel.build/github.com/gogo/protobuf/archive/refs/tags/v1.3.2.zip",
-            "https://github.com/gogo/protobuf/archive/refs/tags/v1.3.2.zip",
-        ],
-        sha256 = "f89f8241af909ce3226562d135c25b28e656ae173337b3e58ede917aa26e1e3c",
-        strip_prefix = "protobuf-1.3.2",
-        patches = [
-            # releaser:patch-cmd gazelle -repo_root . -go_prefix github.com/gogo/protobuf -go_naming_convention import_alias -proto legacy
-            Label("//third_party:com_github_gogo_protobuf-gazelle.patch"),
-        ],
-        patch_args = ["-p1"],
-    )
-
-    wrapper(
-        gogo_special_proto,
-        name = "gogo_special_proto",
     )
 
     # go_library targets with pre-generated sources for Well Known Types.

@@ -11,7 +11,6 @@ Go Protocol buffers
 .. _Gazelle: https://github.com/bazelbuild/bazel-gazelle
 .. _Make variable substitution: https://docs.bazel.build/versions/master/be/make-variables.html#make-var-substitution
 .. _Bourne shell tokenization: https://docs.bazel.build/versions/master/be/common-definitions.html#sh-tokenization
-.. _gogoprotobuf: https://github.com/gogo/protobuf
 .. _compiler.bzl: compiler.bzl
 
 .. role:: param(kbd)
@@ -427,10 +426,6 @@ Several ``go_proto_compiler`` rules are predefined in
 
 * ``go_proto``: default plugin from github.com/golang/protobuf.
 * ``go_grpc``: default gRPC plugin.
-* gogoprotobuf_ plugins for the variants ``combo``, ``gofast``, ``gogo``,
-  ``gogofast``, ``gogofaster``, ``gogoslick``, ``gogotypes``, ``gostring``.
-  For each variant, there is a regular version (e.g., ``gogo_proto``) and a
-  gRPC version (e.g., ``gogo_grpc``).
 
 Providers
 ---------
@@ -486,8 +481,6 @@ will only be downloaded if proto rules are used.
   general proto support.
 * ``@com_github_golang_protobuf (github.com/golang/protobuf)``: standard
   Go proto plugin.
-* ``@com_github_gogo_protobuf (github.com/gogo/protobuf)``: gogoprotobuf
-  plugins.
 * ``@org_golang_google_grpc (github.com/grpc/grpc-go``: gRPC support.
 * gRPC dependencies
 

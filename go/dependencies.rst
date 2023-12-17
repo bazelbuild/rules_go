@@ -4,7 +4,6 @@ Go workspace rules
 .. Links to other sites and pages
 .. _gazelle: tools/gazelle/README.rst
 .. _github.com/bazelbuild/bazel-skylib: https://github.com/bazelbuild/bazel-skylib
-.. _github.com/gogo/protobuf: https://github.com/gogo/protobuf
 .. _github.com/golang/protobuf: https://github.com/golang/protobuf/
 .. _github.com/google/protobuf: https://github.com/google/protobuf/
 .. _github.com/mwitkow/go-proto-validators: https://github.com/mwitkow/go-proto-validators
@@ -89,11 +88,6 @@ It also declares some internal repositories not described here.
 | ``@io_bazel_rules_go//third_party:com_github_golang_protobuf-extras.patch``.                |
 | This is needed to support both pre-generated and dynamically generated                      |
 | proto libraries.                                                                            |
-+-------------------------------------------------+-------------------------------------------+
-| :value:`com_github_gogo_protobuf`               | `github.com/gogo/protobuf`_               |
-+-------------------------------------------------+-------------------------------------------+
-| Legacy definition for proto plugins. Ideally ``go_rules_dependencies`` should               |
-| not provide this.                                                                           |
 +-------------------------------------------------+-------------------------------------------+
 | :value:`org_golang_google_genproto`             | `google.golang.org/genproto`_             |
 +-------------------------------------------------+-------------------------------------------+

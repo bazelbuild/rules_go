@@ -9,10 +9,8 @@ load(
 )
 load(
     "//proto/wkt:well_known_types.bzl",
-    "GOGO_WELL_KNOWN_TYPE_REMAPS",
     "PROTO_RUNTIME_DEPS",
     "WELL_KNOWN_TYPES_APIV2",
-    "WELL_KNOWN_TYPE_RULES",
 )
 
 go_proto_compiler(
@@ -58,71 +56,6 @@ go_proto_compiler(
     ],
 )
 
-GOGO_VARIANTS = [
-    "combo",
-    "gogo",
-    "gogofast",
-    "gogofaster",
-    "gogoslick",
-    "gogotypes",
-    "gostring",
-]
-
-[go_proto_compiler(
-    name = variant + "_proto",
-    options = GOGO_WELL_KNOWN_TYPE_REMAPS,
-    plugin = "@com_github_gogo_protobuf//protoc-gen-" + variant,
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_gogo_protobuf//gogoproto:go_default_library",
-        "@com_github_gogo_protobuf//proto:go_default_library",
-        "@com_github_gogo_protobuf//protoc-gen-gogo/descriptor:go_default_library",
-        "@com_github_gogo_protobuf//sortkeys:go_default_library",
-        "@com_github_gogo_protobuf//types:go_default_library",
-    ] + WELL_KNOWN_TYPE_RULES.values(),
-) for variant in GOGO_VARIANTS]
-
-go_proto_compiler(
-    name = "gofast_proto",
-    plugin = "@com_github_gogo_protobuf//protoc-gen-gofast",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
-    ] + WELL_KNOWN_TYPE_RULES.values(),
-)
-
-[go_proto_compiler(
-    name = variant + "_grpc",
-    options = ["plugins=grpc"] + GOGO_WELL_KNOWN_TYPE_REMAPS,
-    plugin = "@com_github_gogo_protobuf//protoc-gen-" + variant,
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_gogo_protobuf//gogoproto:go_default_library",
-        "@com_github_gogo_protobuf//proto:go_default_library",
-        "@com_github_gogo_protobuf//protoc-gen-gogo/descriptor:go_default_library",
-        "@com_github_gogo_protobuf//sortkeys:go_default_library",
-        "@com_github_gogo_protobuf//types:go_default_library",
-        "@org_golang_google_grpc//:go_default_library",
-        "@org_golang_google_grpc//codes:go_default_library",
-        "@org_golang_google_grpc//status:go_default_library",
-        "@org_golang_x_net//context:go_default_library",
-    ] + WELL_KNOWN_TYPE_RULES.values(),
-) for variant in GOGO_VARIANTS]
-
-go_proto_compiler(
-    name = "gofast_grpc",
-    options = ["plugins=grpc"],
-    plugin = "@com_github_gogo_protobuf//protoc-gen-gofast",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_golang_protobuf//proto:go_default_library",
-        "@org_golang_google_grpc//:go_default_library",
-        "@org_golang_google_grpc//codes:go_default_library",
-        "@org_golang_google_grpc//status:go_default_library",
-        "@org_golang_x_net//context:go_default_library",
-    ] + WELL_KNOWN_TYPE_RULES.values(),
-)
-
 non_go_reset_target(
     name = "protoc",
     dep = "@com_google_protobuf//:protoc",
@@ -164,10 +97,4 @@ bzl_library(
         "//go/private:providers",
         "//proto:compiler",
     ],  # keep
-)
-
-bzl_library(
-    name = "gogo",
-    srcs = ["gogo.bzl"],
-    visibility = ["//visibility:public"],
 )

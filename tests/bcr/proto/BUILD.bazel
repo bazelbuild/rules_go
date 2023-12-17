@@ -36,16 +36,3 @@ go_test(
         "@org_golang_google_grpc//credentials/insecure",
     ],
 )
-
-go_proto_library(
-    name = "foo_go_proto_gogo",
-    compilers = ["@my_rules_go//proto:gogo_proto"],
-    importpath = "example.com/foo_proto",
-    protos = [":foo_proto"],
-)
-
-go_test(
-    name = "foo_proto_gogo_test",
-    srcs = ["foo_proto_test.go"],
-    deps = [":foo_go_proto_gogo"],
-)
