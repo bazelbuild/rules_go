@@ -124,8 +124,8 @@ def emit_compilepkg(
         args.add("-p", importmap)
     args.add("-package_list", go.package_list)
 
-    args.add("-o", out_lib)
-    args.add("-x", out_export)
+    args.add("-lo", out_lib)
+    args.add("-o", out_export)
     if nogo:
         args.add_all(archives, before_each = "-facts", map_each = _facts)
         inputs.extend([archive.data.facts_file for archive in archives if archive.data.facts_file])

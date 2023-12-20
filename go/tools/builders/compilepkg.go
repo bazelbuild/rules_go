@@ -52,7 +52,7 @@ func compilePkg(args []string) error {
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
 	var deps, facts archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
-	var outPath, outXPath, outFactsPath, cgoExportHPath string
+	var outLinkobjPath, outInterfacePath, outFactsPath, cgoExportHPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
@@ -77,8 +77,8 @@ func compilePkg(args []string) error {
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
-	fs.StringVar(&outPath, "o", "", "The full output archive file required by the linker")
-	fs.StringVar(&outXPath, "x", "", "The export-only output archive required to compile dependent packages")
+	fs.StringVar(&outLinkobjPath, "lo", "", "The full output archive file required by the linker")
+	fs.StringVar(&outInterfacePath, "o", "", "The export-only output archive required to compile dependent packages")
 	fs.StringVar(&outFactsPath, "out_facts", "", "The file to emit serialized nogo facts to (must be set if -nogo is set")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
@@ -96,7 +96,7 @@ func compilePkg(args []string) error {
 	}
 	cgoEnabled := os.Getenv("CGO_ENABLED") == "1"
 	cc := os.Getenv("CC")
-	outPath = abs(outPath)
+	outLinkobjPath = abs(outLinkobjPath)
 	for i := range unfilteredSrcs {
 		unfilteredSrcs[i] = abs(unfilteredSrcs[i])
 	}
@@ -162,8 +162,8 @@ func compilePkg(args []string) error {
 		ldFlags,
 		nogoPath,
 		packageListPath,
-		outPath,
-		outXPath,
+		outLinkobjPath,
+		outInterfacePath,
 		outFactsPath,
 		cgoExportHPath,
 		coverFormat,
@@ -195,8 +195,8 @@ func compileArchive(
 	ldFlags []string,
 	nogoPath string,
 	packageListPath string,
-	outPath string,
-	outXPath string,
+	outLinkObj string,
+	outInterfacePath string,
 	outFactsPath string,
 	cgoExportHPath string,
 	coverFormat string,
@@ -215,7 +215,7 @@ func compileArchive(
 		// Otherwise, GoPack will complain if we try to add assembly or cgo objects.
 		// A truly empty archive does not include any references to source file paths, which
 		// ensures hermeticity even though the temp file path is random.
-		emptyGoFile, err := os.CreateTemp(filepath.Dir(outPath), "*.go")
+		emptyGoFile, err := os.CreateTemp(filepath.Dir(outLinkObj), "*.go")
 		if err != nil {
 			return err
 		}
@@ -406,7 +406,7 @@ func compileArchive(
 	}
 
 	// Build an importcfg file for the compiler.
-	importcfgPath, err := buildImportcfgFileForCompile(imports, goenv.installSuffix, filepath.Dir(outPath))
+	importcfgPath, err := buildImportcfgFileForCompile(imports, goenv.installSuffix, filepath.Dir(outLinkObj))
 	if err != nil {
 		return err
 	}
@@ -483,7 +483,7 @@ func compileArchive(
 	}
 
 	// Compile the filtered .go files.
-	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath, gcFlags, pgoprofile, outPath, outXPath); err != nil {
+	if err := compileGo(goenv, goSrcs, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath, gcFlags, pgoprofile, outLinkObj, outInterfacePath); err != nil {
 		return err
 	}
 
@@ -517,7 +517,7 @@ func compileArchive(
 	// Pack .o files into the archive. These may come from cgo generated code,
 	// cgo dependencies (cdeps), or assembly.
 	if len(objFiles) > 0 {
-		if err := appendToArchive(goenv, outPath, objFiles); err != nil {
+		if err := appendToArchive(goenv, outLinkObj, objFiles); err != nil {
 			return err
 		}
 	}
@@ -535,7 +535,7 @@ func compileArchive(
 	return nil
 }
 
-func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath string, gcFlags []string, pgoprofile, outPath, outXPath string) error {
+func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPath, asmHdrPath, symabisPath string, gcFlags []string, pgoprofile, outLinkobjPath, outInterfacePath string) error {
 	args := goenv.goTool("compile")
 	args = append(args, "-p", packagePath, "-importcfg", importcfgPath, "-pack")
 	if embedcfgPath != "" {
@@ -551,8 +551,8 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPa
 		args = append(args, "-pgoprofile", pgoprofile)
 	}
 	args = append(args, gcFlags...)
-	args = append(args, "-o", outXPath)
-	args = append(args, "-linkobj", outPath)
+	args = append(args, "-o", outInterfacePath)
+	args = append(args, "-linkobj", outLinkobjPath)
 	args = append(args, "--")
 	args = append(args, srcs...)
 	absArgs(args, []string{"-I", "-o", "-trimpath", "-importcfg"})
@@ -600,8 +600,6 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 
 func appendToArchive(goenv *env, outPath string, objFiles []string) error {
 	// Use abs to work around long path issues on Windows.
-	// TODO(jayconrod): copy cmd/internal/archive and use that instead of
-	// shelling out to cmd/pack.
 	args := goenv.goTool("pack", "r", abs(outPath))
 	args = append(args, objFiles...)
 	return goenv.runCommand(args)

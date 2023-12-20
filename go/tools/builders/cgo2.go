@@ -23,9 +23,11 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -394,4 +396,35 @@ func (e cgoError) Error() string {
 	}
 	fmt.Fprintf(b, "Ensure that 'cgo = True' is set and the C/C++ toolchain is configured.")
 	return b.String()
+}
+
+func copyFile(inPath, outPath string) error {
+	inFile, err := os.Open(inPath)
+	if err != nil {
+		return err
+	}
+	defer inFile.Close()
+	outFile, err := os.OpenFile(outPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0666)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+	_, err = io.Copy(outFile, inFile)
+	return err
+}
+
+func linkFile(inPath, outPath string) error {
+	inPath, err := filepath.Abs(inPath)
+	if err != nil {
+		return err
+	}
+	return os.Symlink(inPath, outPath)
+}
+
+func copyOrLinkFile(inPath, outPath string) error {
+	if runtime.GOOS == "windows" {
+		return copyFile(inPath, outPath)
+	} else {
+		return linkFile(inPath, outPath)
+	}
 }

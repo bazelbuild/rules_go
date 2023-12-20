@@ -80,7 +80,6 @@ filegroup(
         "replicate.go",
         "stdlib.go",
         "stdliblist.go",
-        "utils.go",
     ] + select({
         "@bazel_tools//src/conditions:windows": ["path_windows.go"],
         "//conditions:default": ["path.go"],
