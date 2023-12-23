@@ -395,7 +395,7 @@ func initRunfiles() {
 					entry.ShortPath = entry.ShortPath[i+1:]
 				}
 			}
-		        if strings.HasPrefix(entry.ShortPath, "../") {
+			if strings.HasPrefix(entry.ShortPath, "../") {
 				entry.ShortPath = entry.ShortPath[len("../"):]
 				if i := strings.IndexByte(entry.ShortPath, '/'); i >= 0 {
 					entry.Workspace = entry.ShortPath[:i]
