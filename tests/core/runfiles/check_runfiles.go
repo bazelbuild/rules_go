@@ -36,7 +36,7 @@ var DefaultTestFiles = []TestFile{
 	{Workspace: "io_bazel_rules_go", Path: "tests/core/runfiles/local_bin", Binary: true},
 	{Workspace: "runfiles_remote_test", Path: "remote_file.txt"},
 	{Workspace: "runfiles_remote_test", Path: "remote_group.txt"},
-	{Workspace: "runfiles_remote_test", Path: "remote_bin", Binary: true},
+	{Workspace: "runfiles_remote_test", Path: "../runfiles_remote_test/remote_bin", Binary: true},
 }
 
 func CheckRunfiles(files []TestFile) error {

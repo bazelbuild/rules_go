@@ -237,10 +237,10 @@ go_test(
     srcs = ["env_test.go"],
     data = ["@go_sdk//:lib/time/zoneinfo.zip"],
     env = {
-        "ZONEINFO": "$(execpath @go_sdk//:lib/time/zoneinfo.zip)",
+        "ZONEINFO": "$(rlocationpath @go_sdk//:lib/time/zoneinfo.zip)",
     },
     deps = [
-        "@io_bazel_rules_go//go/tools/bazel",
+        "//go/runfiles",
     ],
 )
 

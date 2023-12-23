@@ -482,16 +482,22 @@ func extractTxtar(dir, txt string) error {
 
 func parseLocationArg(arg string) (workspace, shortPath string, err error) {
 	cleanPath := path.Clean(arg)
-	if !strings.HasPrefix(cleanPath, "external/") {
+	// Support both states of --legacy_external_runfiles.
+	if !strings.HasPrefix(cleanPath, "../") && !strings.HasPrefix(cleanPath, "external/") {
 		return "", cleanPath, nil
 	}
-	i := strings.IndexByte(arg[len("external/"):], '/')
-	if i < 0 {
-		return "", "", fmt.Errorf("unexpected file (missing / after external/): %s", arg)
+	var trimmedPath string
+	if strings.HasPrefix(cleanPath, "../") {
+		trimmedPath = cleanPath[len("../"):]
+	} else {
+		trimmedPath = cleanPath[len("external/"):]
 	}
-	i += len("external/")
-	workspace = cleanPath[len("external/"):i]
-	shortPath = cleanPath[i+1:]
+	i := strings.IndexByte(trimmedPath, '/')
+	if i < 0 {
+		return "", "", fmt.Errorf("unexpected file (missing / after ../): %s", arg)
+	}
+	workspace = trimmedPath[:i]
+	shortPath = trimmedPath[i+1:]
 	return workspace, shortPath, nil
 }
 
