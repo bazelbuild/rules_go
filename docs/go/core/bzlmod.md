@@ -180,7 +180,7 @@ If you need to depend on Go modules that are only used as tools, you can use the
 
 2. Run `bazel run @rules_go//go mod tidy` to populate the `go.mod` file with the dependencies of the tools.
 
-Instead, if you want the tools' dependencies to be resolved independently of the dependencies of your regular code (experimental):
+Instead, if you want the tools' dependencies to be resolved independently of the dependencies of your regular code ([experimental](https://github.com/bazelbuild/bazel/issues/20186)):
 
 2. Run `bazel run @rules_go//go mod init` in the directory containing the `tools.go` file to create a new `go.mod` file and then run `bazel run @rules_go//go mod tidy` in that directory.
 3. Add `common --experimental_isolated_extension_usages` to your `.bazelrc` file to enable isolated usages of extensions.
