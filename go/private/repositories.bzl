@@ -15,7 +15,7 @@
 # Once nested repositories work, this file should cease to exist.
 
 load("//go/private:common.bzl", "MINIMUM_BAZEL_VERSION")
-load("//go/private:fake_bazel_features.bzl", "fake_bazel_features")
+load("//go/private:polyfill_bazel_features.bzl", "polyfill_bazel_features")
 load("//go/private/skylib/lib:versions.bzl", "versions")
 load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 load("//proto:gogo.bzl", "gogo_special_proto")
@@ -286,7 +286,7 @@ def go_rules_dependencies(force = False):
     )
 
     _maybe(
-        fake_bazel_features,
+        polyfill_bazel_features,
         name = "bazel_features",
     )
 

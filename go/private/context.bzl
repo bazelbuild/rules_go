@@ -644,11 +644,10 @@ def _cgo_context_data_impl(ctx):
     # toolchain (to be inputs into actions that need it).
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
     # is switched on.
-    find_cpp_toolchain_kwargs = {}
     if bazel_features.cc.find_cpp_toolchain_has_mandatory_param:
-        find_cpp_toolchain_kwargs["mandatory"] = False
-
-    cc_toolchain = find_cpp_toolchain(ctx, **find_cpp_toolchain_kwargs)
+        cc_toolchain = find_cpp_toolchain(ctx, mandatory = False)
+    else:
+        cc_toolchain = find_cpp_toolchain(ctx)
     if not cc_toolchain or cc_toolchain.compiler in _UNSUPPORTED_C_COMPILERS:
         return []
 
@@ -848,7 +847,7 @@ cgo_context_data = rule(
         # But if we declare a mandatory toolchain dependency here, a cross-compiling C++ toolchain is required at toolchain resolution time.
         # So we make this toolchain dependency optional, so that it's only attempted to be looked up if it's actually needed.
         # Optional toolchain support was added in bazel 6.0.0.
-        config_common.toolchain_type("@bazel_tools//tools/cpp:toolchain_type", mandatory = False) if bazel_features.cc.find_cpp_toolchain_has_mandatory_param else "@bazel_tools//tools/cpp:toolchain_type",
+        config_common.toolchain_type("@bazel_tools//tools/cpp:toolchain_type", mandatory = False) if hasattr(config_common, "toolchain_type") else "@bazel_tools//tools/cpp:toolchain_type",
     ],
     fragments = ["apple", "cpp"],
     doc = """Collects information about the C/C++ toolchain. The C/C++ toolchain

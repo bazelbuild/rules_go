@@ -78,6 +78,8 @@ def _ternary(*values):
 
 def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     static = _ternary(go_config_info.static if go_config_info else "off")
+    if getattr(ctx.attr, "pure", None) == "off" and not cgo_context_info:
+        fail("{} has pure explicitly set to off, but no C++ toolchain could be found for its platform".format(ctx.label))
     pure = _ternary(
         "on" if not cgo_context_info else "auto",
         go_config_info.pure if go_config_info else "off",
