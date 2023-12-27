@@ -47,7 +47,7 @@ use_repo(go_sdk, "go_host_compatible_sdk_label")
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.module(
     path = "google.golang.org/grpc",
-    sum = "h1:Z5Iec2pjwb+LEOqzpB2MR12/eKFhDPhuqW91O+4bwUk=",
-    version = "v1.59.0",
+    sum = "h1:pnP7OclFFFgFi4VHQDQDaoXUVauOFyktqTsqqgzFKbc=",
+    version = "v1.40.1",
 )
 use_repo(go_deps, "org_golang_google_grpc")
