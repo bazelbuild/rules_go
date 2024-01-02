@@ -31,12 +31,19 @@ go_library(
 )
 
 go_test(
-	name = "hello_test",
-	srcs = [
-		"hello_test.go",
-		"hello_external_test.go",
-	],
-	embed = [":hello"],
+    name = "hello_test",
+    srcs = [
+        "hello_test.go",
+        "hello_external_test.go",
+    ],
+    embed = [":hello"],
+)
+
+go_library(
+    name = "incompatible",
+    srcs = ["incompatible.go"],
+    importpath = "example.com/incompatible",
+    target_compatible_with = ["@platforms//:incompatible"],
 )
 
 -- hello.go --
@@ -61,7 +68,11 @@ package hello_test
 import "testing"
 
 func TestHelloExternal(t *testing.T) {}
-		`,
+
+-- incompatible.go --
+//go:build ignore
+package hello
+`,
 	})
 }
 
@@ -164,6 +175,35 @@ func TestExternalTests(t *testing.T) {
 		} else if p.ID == testId {
 			assertSuffixesInList(t, p.GoFiles, "/hello.go", "/hello_test.go")
 		}
+	}
+}
+
+// TestIncompatible checks that a target that can be queried but not analyzed
+// does not appear in .Roots.
+func TestIncompatible(t *testing.T) {
+	reader := strings.NewReader("{}")
+	out, _, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "./...")
+	if err != nil {
+		t.Fatalf("error running bazel: %v", err)
+	}
+	var resp response
+	if err := json.Unmarshal(out, &resp); err != nil {
+		t.Fatalf("unmarshaling response: %v", err)
+	}
+
+	helloLabel := "@@//:hello"
+	incompatibleLabel := "@@//:incompatible"
+	var foundHello bool
+	for _, root := range resp.Roots {
+		if root == helloLabel {
+			foundHello = true
+		}
+		if root == incompatibleLabel {
+			t.Errorf("response contains root %s", incompatibleLabel)
+		}
+	}
+	if !foundHello {
+		t.Errorf("response does not contain root %s; roots were %s", helloLabel, strings.Join(resp.Roots, ", "))
 	}
 }
 
