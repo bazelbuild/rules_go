@@ -124,6 +124,10 @@ func Wrap(pkg string) error {
 	if !filepath.IsAbs(exePath) && strings.ContainsRune(exePath, filepath.Separator) && chdir.TestExecDir != "" {
 		exePath = filepath.Join(chdir.TestExecDir, exePath)
 	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+
 	cmd := exec.Command(exePath, args...)
 	cmd.Env = append(os.Environ(), "GO_TEST_WRAP=0")
 	cmd.Stderr = io.MultiWriter(os.Stderr, streamMerger.ErrW)
@@ -137,8 +141,6 @@ func Wrap(pkg string) error {
 			// TODO: This never triggers on Windows, even though Go should simulate
 			//  a SIGTERM when Windows asks the process to close. It is not clear
 			//  whether Bazel uses the required graceful shutdown mechanism.
-			c := make(chan os.Signal, 1)
-			signal.Notify(c, syscall.SIGTERM)
 			<-c
 			cmd.Process.Signal(syscall.SIGTERM)
 		}()
