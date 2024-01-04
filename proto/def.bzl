@@ -184,12 +184,13 @@ go_proto_library = rule(
 # attribute) and produces a go library for it.
 
 def go_grpc_library(name, **kwargs):
-    go_proto_library(
-        name = name,
-        compilers = [
+    if "compilers" not in kwargs:
+        kwargs["compilers"] = [
             Label("//proto:go_proto"),
             Label("//proto:go_grpc_v2"),
-        ],
+        ]
+    go_proto_library(
+        name = name,
         **kwargs
     )
 
