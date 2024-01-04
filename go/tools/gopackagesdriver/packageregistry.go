@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -82,6 +83,11 @@ func (pr *PackageRegistry) ResolveImports() error {
 
 func (pr *PackageRegistry) walk(acc map[string]*FlatPackage, root string) {
 	pkg := pr.packagesByID[root]
+
+	if pkg == nil {
+		fmt.Fprintf(os.Stderr, "Error: package ID not found %v\n", root)
+		return
+	}
 
 	acc[pkg.ID] = pkg
 	for _, pkgID := range pkg.Imports {

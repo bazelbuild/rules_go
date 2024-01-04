@@ -33,9 +33,24 @@ func (f ManifestFile) new(sourceRepo SourceRepo) (*Runfiles, error) {
 	if err != nil {
 		return nil, err
 	}
+	env := []string{
+		manifestFileVar + "=" + string(f),
+	}
+	// Certain tools (e.g., Java tools) may need the runfiles directory, so try to find it even if
+	// running with a manifest file.
+	if strings.HasSuffix(string(f), ".runfiles_manifest") ||
+		strings.HasSuffix(string(f), "/MANIFEST") ||
+		strings.HasSuffix(string(f), "\\MANIFEST") {
+		// Cut off either "_manifest" or "/MANIFEST" or "\\MANIFEST", all of length 9, from the end
+		// of the path to obtain the runfiles directory.
+		d := string(f)[:len(string(f))-len("_manifest")]
+		env = append(env,
+			directoryVar+"="+d,
+			legacyDirectoryVar+"="+d)
+	}
 	r := &Runfiles{
 		impl:       m,
-		env:        manifestFileVar + "=" + string(f),
+		env:        env,
 		sourceRepo: string(sourceRepo),
 	}
 	err = r.loadRepoMapping()

@@ -23,6 +23,11 @@ go_library(
 
 go_binary(
     name = "go_bin_runner",
+    # Make this binary usable as a drop-in replacement for the actual go binary with external tools.
+    out = select({
+        "@platforms//os:windows": "bin/go.exe",
+        "//conditions:default": "bin/go",
+    }),
     data = [":go_bin_for_host"],
     embed = [":go_bin_runner_lib"],
     visibility = ["//go:__pkg__"],

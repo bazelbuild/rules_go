@@ -150,8 +150,7 @@ use_repo(
 Bazel emits a warning if the `use_repo` statement is out of date or missing entirely (requires Bazel 6.2.0 or higher).
 The warning contains a `buildozer` command to automatically fix the `MODULE.bazel` file (requires buildozer 6.1.1 or higher).
 
-Alternatively, you can specify a module extension tag to add an individual dependency.
-This can be useful for dependencies of generated code that `go mod tidy` would remove. (There is [ongoing work](https://github.com/bazelbuild/bazel-gazelle/pull/1495) to provide a Bazel-aware version of `tidy`.)
+Alternatively, you can specify a module extension tag to add an individual dependency:
 
 ```starlark
 go_deps.module(
@@ -160,6 +159,37 @@ go_deps.module(
     version = "v1.50.0",
 )
 ```
+
+#### Depending on tools
+
+If you need to depend on Go modules that are only used as tools, you can use the [`tools.go` technique](https://github.com/golang/go/issues/25922#issuecomment-1038394599):
+
+1. In a new subdirectory of your repository, create a `tools.go` file that imports the tools' main packages:
+
+    ```go
+    //go:build tools
+    // +build tools
+
+    package my_tools
+
+    import (
+        _ "github.com/the/tool"
+        _ "golang.org/x/tools/cmd/stringer"
+    )
+    ```
+
+2. Run `bazel run @rules_go//go mod tidy` to populate the `go.mod` file with the dependencies of the tools.
+
+Instead, if you want the tools' dependencies to be resolved independently of the dependencies of your regular code ([experimental](https://github.com/bazelbuild/bazel/issues/20186)):
+
+2. Run `bazel run @rules_go//go mod init` in the directory containing the `tools.go` file to create a new `go.mod` file and then run `bazel run @rules_go//go mod tidy` in that directory.
+3. Add `common --experimental_isolated_extension_usages` to your `.bazelrc` file to enable isolated usages of extensions.
+4. Add an isolated usage of the `go_deps` extension to your module file:
+
+    ```starlark
+    go_tool_deps = use_extension("@gazelle//:extensions.bzl", "go_deps", isolated = True)
+    go_tool_deps.from_file(go_mod = "//tools:go.mod")
+    ```
 
 ### Managing `go.mod`
 
@@ -181,12 +211,12 @@ The root module can override certain aspects of the dependency resolution perfor
 
 #### `replace`
 
-[`replace` directives](https://go.dev/ref/mod#go-mod-file-replace) in `go.mod` can be used to replace particular versions of dependencies with other versions or entirely different modules.
-At the moment the only supported form is:
+[`replace` directives](https://go.dev/ref/mod#go-mod-file-replace) in `go.mod` can be used to replace particular or all versions of dependencies with other versions or entirely different modules.
 
 ```
 replace(
     golang.org/x/net v1.2.3 => example.com/fork/net v1.4.5
+    golang.org/x/mod => example.com/my/mod v1.4.5
 )
 ```
 
@@ -207,9 +237,41 @@ go_deps.gazelle_override(
 If you need to use a `gazelle_override` to get a public Go module to build with Bazel, consider contributing the directives to the [public registry for default Gazelle overrides](https://github.com/bazelbuild/bazel-gazelle/blob/master/internal/bzlmod/default_gazelle_overrides.bzl) via a PR.
 This will allow you to drop the `gazelle_override` tag and also makes the Go module usable in non-root Bazel modules.
 
+#### `go_deps.module_override`
+
+A `go_deps.module_override` can be used to apply patches to a Go module:
+
+```starlark
+go_deps.module_override(
+    patch_strip = 1,
+    patches = [
+        "//patches:testify.patch",
+    ],
+    path = "github.com/stretchr/testify",
+)
+```
+
+#### `go_deps.archive_override`
+
+A `go_deps.archive_override` can be used to replace a Go module with an archive fetched from a URL and is very similar to the `archive_override` for Bazel modules:
+
+```starlark
+go_deps.archive_override(
+    urls = [
+        "https://github.com/bazelbuild/buildtools/archive/ae8e3206e815d086269eb208b01f300639a4b194.tar.gz",
+    ],
+    patch_strip = 1,
+    patches = [
+        "//patches:buildtools.patch",
+    ],
+    strip_prefix = "buildtools-ae8e3206e815d086269eb208b01f300639a4b194",
+    path = "github.com/bazelbuild/buildtools",
+    sha256 = "05d7c3d2bd3cc0b02d15672fefa0d6be48c7aebe459c1c99dced7ac5e598508f",
+)
+```
+
 ### Not yet supported
 
-* Fetching dependencies from Git repositories or via HTTP
-* `go.mod` `replace` directives matching all versions of a module
+* Fetching dependencies from Git repositories
 * `go.mod` `replace` directives referencing local files
 * `go.mod` `exclude` directices

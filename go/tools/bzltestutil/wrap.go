@@ -124,23 +124,28 @@ func Wrap(pkg string) error {
 	if !filepath.IsAbs(exePath) && strings.ContainsRune(exePath, filepath.Separator) && chdir.TestExecDir != "" {
 		exePath = filepath.Join(chdir.TestExecDir, exePath)
 	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+
 	cmd := exec.Command(exePath, args...)
 	cmd.Env = append(os.Environ(), "GO_TEST_WRAP=0")
 	cmd.Stderr = io.MultiWriter(os.Stderr, streamMerger.ErrW)
 	cmd.Stdout = io.MultiWriter(os.Stdout, streamMerger.OutW)
-	go func() {
-		// When the Bazel test timeout is reached, Bazel sends a SIGTERM that
-		// we need to forward to the inner process.
-		// TODO: This never triggers on Windows, even though Go should simulate
-		//  a SIGTERM when Windows asks the process to close. It is not clear
-		//  whether Bazel uses the required graceful shutdown mechanism.
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGTERM)
-		<-c
-		cmd.Process.Signal(syscall.SIGTERM)
-	}()
 	streamMerger.Start()
-	err := cmd.Run()
+	err := cmd.Start()
+	if err == nil {
+		go func() {
+			// When the Bazel test timeout is reached, Bazel sends a SIGTERM that
+			// we need to forward to the inner process.
+			// TODO: This never triggers on Windows, even though Go should simulate
+			//  a SIGTERM when Windows asks the process to close. It is not clear
+			//  whether Bazel uses the required graceful shutdown mechanism.
+			<-c
+			cmd.Process.Signal(syscall.SIGTERM)
+		}()
+		err = cmd.Wait()
+	}
 	streamMerger.ErrW.Close()
 	streamMerger.OutW.Close()
 	streamMerger.Wait()

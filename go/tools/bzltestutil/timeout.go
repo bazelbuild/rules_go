@@ -22,13 +22,13 @@ import (
 )
 
 func RegisterTimeoutHandler() {
+	// When the Bazel test timeout is reached, Bazel sends a SIGTERM. We
+	// panic just like native go test would so that the user gets stack
+	// traces of all running go routines.
+	// See https://github.com/golang/go/blob/e816eb50140841c524fd07ecb4eaa078954eb47c/src/testing/testing.go#L2351
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
 	go func() {
-		// When the Bazel test timeout is reached, Bazel sends a SIGTERM. We
-		// panic just like native go test would so that the user gets stack
-		// traces of all running go routines.
-		// See https://github.com/golang/go/blob/e816eb50140841c524fd07ecb4eaa078954eb47c/src/testing/testing.go#L2351
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGTERM)
 		<-c
 		debug.SetTraceback("all")
 		panic("test timed out")
