@@ -287,7 +287,7 @@ def go_rules_dependencies(force = False):
 
     _maybe(
         polyfill_bazel_features,
-        name = "bazel_features",
+        name = "io_bazel_rules_go_bazel_features",
     )
 
 def _maybe(repo_rule, name, **kwargs):

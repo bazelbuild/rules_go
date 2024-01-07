@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_features//:features.bzl", "bazel_features")
+load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
 load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
 load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
 

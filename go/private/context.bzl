@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_features//:features.bzl", "bazel_features")
+load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
 load(
     "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     "find_cpp_toolchain",
