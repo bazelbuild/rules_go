@@ -30,7 +30,8 @@ go_proto_compiler(
 
 go_proto_compiler(
     name = "go_grpc",
-    deprecation = "Migrate to //proto:go_grpc_v2 compiler (which you'll get automatically if you use the go_grpc_library() rule).",
+    # TODO: Bring back the deprecation once Gazelle emits go_grpc_library.
+    #    deprecation = "Migrate to //proto:go_grpc_v2 compiler (which you'll get automatically if you use the go_grpc_library() rule).",
     options = ["plugins=grpc"],
     plugin = "@com_github_golang_protobuf//protoc-gen-go",
     visibility = ["//visibility:public"],
