@@ -14,7 +14,7 @@ _POLYFILL_BAZEL_FEATURES = """bazel_features = struct(
 def _polyfill_bazel_features_impl(rctx):
     # An empty string is treated as a "dev version", which is greater than anything.
     bazel_version = native.bazel_version or "999999.999999.999999"
-    version_parts = bazel_version.split(".")
+    version_parts = bazel_version.split("-")[0].split(".")
     if len(version_parts) != 3:
         fail("invalid Bazel version '{}': got {} dot-separated segments, want 3".format(bazel_version, len(version_parts)))
     major_version_int = int(version_parts[0])
