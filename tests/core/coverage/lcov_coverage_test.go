@@ -116,6 +116,7 @@ public class Tool {
 package lib_test
 
 import (
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -125,6 +126,8 @@ import (
 )
 
 func TestLib(t *testing.T) {
+	// Test that coverage is collected even if this variable is corrupted by a test.
+	os.Setenv("COVERAGE_DIR", "invalid")
 	if !strings.Contains(lib.HelloFromLib(false), "\n") {
 		t.Error("Expected a newline in the output")
 	}
