@@ -28,6 +28,9 @@ import (
 	"testing/internal/testdeps"
 )
 
+// Lock in the COVERAGE_DIR during test setup in case the test uses e.g. os.Clearenv.
+var coverageDir = os.Getenv("COVERAGE_DIR")
+
 // ConvertCoverToLcov converts the go coverprofile file coverage.dat.cover to
 // the expectedLcov format and stores it in coverage.dat, where it is picked up by
 // Bazel.
@@ -42,8 +45,12 @@ func ConvertCoverToLcov() error {
 	}
 	defer in.Close()
 
+	if coverageDir == "" {
+		log.Printf("Not collecting coverage: COVERAGE_DIR is not set")
+		return nil
+	}
 	// All *.dat files in $COVERAGE_DIR will be merged by Bazel's lcov_merger tool.
-	out, err := os.CreateTemp(os.Getenv("COVERAGE_DIR"), "go_coverage.*.dat")
+	out, err := os.CreateTemp(coverageDir, "go_coverage.*.dat")
 	if err != nil {
 		return err
 	}
