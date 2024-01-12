@@ -250,6 +250,16 @@ go_test(
     shard_count = 2,
 )
 
+go_test(
+    name = "sigterm_handler_test",
+    srcs = ["sigterm_handler_test.go"],
+    register_timeout_handler = False,
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
 go_bazel_test(
     name = "env_inherit_test",
     srcs = ["env_inherit_test.go"],
