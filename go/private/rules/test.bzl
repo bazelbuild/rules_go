@@ -112,6 +112,10 @@ def _go_test_impl(ctx):
         "l_test=" + external_source.library.importpath,
     )
     arguments.add("-pkgname", internal_source.library.importpath)
+
+    if not ctx.attr.register_timeout_handler:
+        # Boolean Go flags require =, so we can't just use the attr as an arg value, we need to convert it ourselves.
+        arguments.add("-register_timeout_handler=false")
     arguments.add_all(go_srcs, before_each = "-src", format_each = "l=%s")
     ctx.actions.run(
         inputs = go_srcs,
@@ -414,6 +418,12 @@ _go_test_kwargs = {
 
             See [Cross compilation] for more information.
             """,
+        ),
+        "register_timeout_handler": attr.bool(
+            default = True,
+            doc = """Whether to register a SIGTERM handler to give improved output on test timeouts.
+
+            Setting this to False may be useful if your test itself also handles signals.""",
         ),
         "_go_context_data": attr.label(default = "//:go_context_data", cfg = go_transition),
         "_testmain_additional_deps": attr.label_list(

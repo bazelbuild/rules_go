@@ -63,15 +63,16 @@ type Example struct {
 
 // Cases holds template data.
 type Cases struct {
-	Imports     []*Import
-	Tests       []TestCase
-	Benchmarks  []TestCase
-	FuzzTargets []TestCase
-	Examples    []Example
-	TestMain    string
-	CoverMode   string
-	CoverFormat string
-	Pkgname     string
+	Imports                []*Import
+	Tests                  []TestCase
+	Benchmarks             []TestCase
+	FuzzTargets            []TestCase
+	Examples               []Example
+	TestMain               string
+	CoverMode              string
+	CoverFormat            string
+	Pkgname                string
+	RegisterTimeoutHandler bool
 }
 
 // Version returns whether v is a supported Go version (like "go1.18").
@@ -235,7 +236,9 @@ func main() {
 		}
 	}
 	{{end}}
+	{{if .RegisterTimeoutHandler}}
 	bzltestutil.RegisterTimeoutHandler()
+	{{end}}
 	{{if not .TestMain}}
 	res := m.Run()
 	{{else}}
@@ -261,6 +264,7 @@ func genTestMain(args []string) error {
 	coverMode := flags.String("cover_mode", "", "the coverage mode to use")
 	coverFormat := flags.String("cover_format", "", "the coverage report type to generate (go_cover or lcov)")
 	pkgname := flags.String("pkgname", "", "package name of test")
+	registerTimeoutHandler := flags.Bool("register_timeout_handler", true, "whether to register a SIGTERM handler for improved timeout reporting")
 	flags.Var(&imports, "import", "Packages to import")
 	flags.Var(&sources, "src", "Sources to process for tests")
 	if err := flags.Parse(args); err != nil {
@@ -268,6 +272,12 @@ func genTestMain(args []string) error {
 	}
 	if err := goenv.checkFlags(); err != nil {
 		return err
+	}
+	// Boolean flags must be specified using `--foo=bar`, not `--foo bar`.
+	// Verify that there are no unexpected positional arguments, which may be the case if e.g. someone naively called
+	// args.add("-register_timeout_handler", ctx.attr.register_timeout_handler)
+	if len(flag.Args()) > 0 {
+		return fmt.Errorf("unexpected positional args: %v", flag.Args())
 	}
 	// Process import args
 	importMap := map[string]*Import{}
@@ -309,9 +319,10 @@ func genTestMain(args []string) error {
 	}
 
 	cases := Cases{
-		CoverFormat: *coverFormat,
-		CoverMode:   *coverMode,
-		Pkgname:     *pkgname,
+		CoverFormat:            *coverFormat,
+		CoverMode:              *coverMode,
+		Pkgname:                *pkgname,
+		RegisterTimeoutHandler: *registerTimeoutHandler,
 	}
 
 	testFileSet := token.NewFileSet()
