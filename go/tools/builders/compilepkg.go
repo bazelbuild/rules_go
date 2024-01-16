@@ -203,6 +203,7 @@ func compileArchive(
 	}
 	defer cleanup()
 
+	emptyGoFilePath := ""
 	if len(srcs.goSrcs) == 0 {
 		// We need to run the compiler to create a valid archive, even if there's nothing in it.
 		// Otherwise, GoPack will complain if we try to add assembly or cgo objects.
@@ -227,7 +228,7 @@ func compileArchive(
 			matched:  true,
 			pkg:      "empty",
 		})
-
+		emptyGoFilePath = emptyGoFile.Name()
 	}
 	packageName := srcs.goSrcs[0].pkg
 	var goSrcs, cgoSrcs []string
@@ -270,18 +271,24 @@ func compileArchive(
 	// constraints.
 	compilingWithCgo := haveCgo && cgoEnabled
 
+	filterForNogo := func(slice []string) []string {
+		var filtered []string
+		for _, s := range slice {
+			// Do not subject the generated empty .go file to nogo checks.
+			if s != emptyGoFilePath {
+				filtered = append(filtered, s)
+			}
+		}
+		return filtered
+	}
 	// When coverage is set, source files will be modified during instrumentation. We should only run static analysis
 	// over original source files and not the modified ones.
 	// goSrcsNogo and cgoSrcsNogo are copies of the original source files for nogo to run static analysis.
-	goSrcsNogo := goSrcs
-	cgoSrcsNogo := cgoSrcs
+	goSrcsNogo := filterForNogo(goSrcs)
+	cgoSrcsNogo := append([]string{}, cgoSrcs...)
 
 	// Instrument source files for coverage.
 	if coverMode != "" {
-		// deep copy original source files for nogo static analysis, avoid being modified by coverage.
-		goSrcsNogo = append([]string{}, goSrcs...)
-		cgoSrcsNogo = append([]string{}, cgoSrcs...)
-
 		relCoverPath := make(map[string]string)
 		for _, s := range coverSrcs {
 			relCoverPath[abs(s)] = s
