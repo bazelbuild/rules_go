@@ -38,7 +38,7 @@ func neverTerminates() {
 
 func TestTimeout(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skip("panics on timeouts are not yet supported on Windows")
+		t.Skip("stack traces on timeouts are not yet supported on Windows")
 	}
 
 	if err := bazel_testing.RunBazel("test", "//:timeout_test", "--test_timeout=3"); err == nil {
@@ -57,8 +57,8 @@ func TestTimeout(t *testing.T) {
 	}
 
 	testLog := string(b)
-	if !strings.Contains(testLog, "panic: test timed out") {
-		t.Fatalf("test log does not contain expected panic:\n%s", testLog)
+	if !strings.Contains(testLog, "Received SIGTERM, printing stack traces of all goroutines:") {
+		t.Fatalf("test log does not contain expected header:\n%s", testLog)
 	}
 	if !strings.Contains(testLog, "timeout_test.neverTerminates(") {
 		t.Fatalf("test log does not contain expected stack trace:\n%s", testLog)

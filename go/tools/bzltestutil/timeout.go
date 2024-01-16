@@ -15,22 +15,25 @@
 package bzltestutil
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
-	"runtime/debug"
+	"runtime"
 	"syscall"
 )
 
 func RegisterTimeoutHandler() {
-	// When the Bazel test timeout is reached, Bazel sends a SIGTERM. We
-	// panic just like native go test would so that the user gets stack
-	// traces of all running go routines.
+	// When the Bazel test timeout is reached, Bazel sends a SIGTERM. We print stack traces for all
+	// goroutines just like native go test would. We do not panic (like native go test does) because
+	// users may legitimately want to use SIGTERM in tests and prints are less disruptive than
+	// panics in that case.
 	// See https://github.com/golang/go/blob/e816eb50140841c524fd07ecb4eaa078954eb47c/src/testing/testing.go#L2351
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGTERM)
 	go func() {
 		<-c
-		debug.SetTraceback("all")
-		panic("test timed out")
+		buf := make([]byte, 1<<24)
+		stacklen := runtime.Stack(buf, true)
+		fmt.Printf("Received SIGTERM, printing stack traces of all goroutines:\n%s", buf[:stacklen])
 	}()
 }
