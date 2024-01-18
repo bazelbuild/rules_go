@@ -272,7 +272,7 @@ func compileArchive(
 	compilingWithCgo := haveCgo && cgoEnabled
 
 	filterForNogo := func(slice []string) []string {
-		var filtered []string
+		filtered := make([]string, 0, len(slice))
 		for _, s := range slice {
 			// Do not subject the generated empty .go file to nogo checks.
 			if s != emptyGoFilePath {
