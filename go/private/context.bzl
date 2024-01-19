@@ -489,7 +489,7 @@ def go_context(ctx, attr = None):
 
     # The level of support is determined by the platform constraints in
     # //go/constraints/amd64.
-    # See https://github.com/golang/go/wiki/MinimumRequirements#amd64
+    # See https://go.dev/wiki/MinimumRequirements#amd64
     if mode.amd64:
         env["GOAMD64"] = mode.amd64
     if not cgo_context_info:
