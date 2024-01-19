@@ -492,6 +492,12 @@ def go_context(ctx, attr = None):
     # See https://go.dev/wiki/MinimumRequirements#amd64
     if mode.amd64:
         env["GOAMD64"] = mode.amd64
+
+    # Similarly, set GOARM based on platform constraints in //go/constraints/arm.
+    # See https://go.dev/wiki/MinimumRequirements#arm
+    if mode.arm:
+        env["GOARM"] = mode.arm
+
     if not cgo_context_info:
         crosstool = []
         cgo_tools = None
@@ -887,6 +893,7 @@ def _go_config_impl(ctx):
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
         gc_goopts = ctx.attr.gc_goopts[BuildSettingInfo].value,
         amd64 = ctx.attr.amd64,
+        arm = ctx.attr.arm,
         pgoprofile = ctx.attr.pgoprofile,
     )]
 
@@ -936,6 +943,7 @@ go_config = rule(
             providers = [BuildSettingInfo],
         ),
         "amd64": attr.string(),
+        "arm": attr.string(),
         "pgoprofile": attr.label(
             mandatory = True,
             allow_files = True,

@@ -92,6 +92,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
     linkmode = go_config_info.linkmode if go_config_info else LINKMODE_NORMAL
     cover_format = go_config_info and go_config_info.cover_format
     amd64 = go_config_info.amd64 if go_config_info else None
+    arm = go_config_info.arm if go_config_info else None
     goos = go_toolchain.default_goos if getattr(ctx.attr, "goos", "auto") == "auto" else ctx.attr.goos
     goarch = go_toolchain.default_goarch if getattr(ctx.attr, "goarch", "auto") == "auto" else ctx.attr.goarch
     gc_goopts = go_config_info.gc_goopts if go_config_info else []
@@ -137,6 +138,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         tags = tags,
         cover_format = cover_format,
         amd64 = amd64,
+        arm = arm,
         gc_goopts = gc_goopts,
         pgoprofile = pgoprofile,
     )
