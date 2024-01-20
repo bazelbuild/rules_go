@@ -23,22 +23,41 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-// cgo2 processes a set of mixed source files with cgo.
-func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []string, packagePath, packageName string, cc string, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags []string, cgoExportHPath string) (srcDir string, allGoSrcs, cObjs []string, err error) {
+type sourceFiles struct {
+	goSrcs, cgo  []string
+	c, cxx       []string
+	objc, objcxx []string
+	s, h         []string
+}
+
+type ccToolchain struct {
+	cc                                                          string
+	cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags []string
+}
+
+type cgoOption struct {
+	packagePath, packageName string
+	cgoExportHPath           string
+	source                   *sourceFiles
+	ccToolchain              *ccToolchain
+}
+
+// cgo processes a set of mixed source files with cgo.
+func cgo(goenv *env, opt *cgoOption) (srcDir string, allGoSrcs, cObjs []string, err error) {
 	// Report an error if the C/C++ toolchain wasn't configured.
-	if cc == "" {
-		err := cgoError(cgoSrcs[:])
-		err = append(err, cSrcs...)
-		err = append(err, cxxSrcs...)
-		err = append(err, objcSrcs...)
-		err = append(err, objcxxSrcs...)
-		err = append(err, sSrcs...)
+	if opt.ccToolchain.cc == "" {
+		err := cgoError(opt.source.cgo[:])
+		err = append(err, opt.source.c...)
+		err = append(err, opt.source.cxx...)
+		err = append(err, opt.source.objc...)
+		err = append(err, opt.source.objcxx...)
+		err = append(err, opt.source.s...)
 		return "", nil, nil, err
 	}
 
@@ -48,8 +67,8 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	// TODO(jayconrod): this doesn't write CGO_LDFLAGS into the archive. We
 	// might miss dependencies like -lstdc++ if they aren't referenced in
 	// some other way.
-	if len(cgoSrcs) == 0 {
-		cObjs, err = compileCSources(goenv, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags)
+	if len(opt.source.cgo) == 0 {
+		cObjs, err = compileCSources(goenv, opt.source, opt.ccToolchain)
 		return ".", nil, cObjs, err
 	}
 
@@ -63,7 +82,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	// scanners might want to include or exclude these sources we need to ensure
 	// that a fragment of the path is stable and human friendly enough to be
 	// referenced in nogo configuration.
-	workDir = filepath.Join(workDir, "cgo", packagePath)
+	workDir = filepath.Join(workDir, "cgo", opt.packagePath)
 	if err := os.MkdirAll(workDir, 0700); err != nil {
 		return "", nil, nil, err
 	}
@@ -72,9 +91,9 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	// and set CGO_LDFLAGS. These flags get written as special comments into cgo
 	// generated sources. The compiler encodes those flags in the compiled .a
 	// file, and the linker passes them on to the external linker.
-	haveCxx := len(cxxSrcs)+len(objcxxSrcs) > 0
+	haveCxx := len(opt.source.cxx)+len(opt.source.objcxx) > 0
 	if !haveCxx {
-		for _, f := range ldFlags {
+		for _, f := range opt.ccToolchain.ldFlags {
 			if strings.HasSuffix(f, ".a") {
 				// These flags come from cdeps options. Assume C++.
 				haveCxx = true
@@ -84,9 +103,9 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	}
 	var combinedLdFlags []string
 	if haveCxx {
-		combinedLdFlags = append(combinedLdFlags, ldFlags...)
+		combinedLdFlags = append(combinedLdFlags, opt.ccToolchain.ldFlags...)
 	} else {
-		for _, f := range ldFlags {
+		for _, f := range opt.ccToolchain.ldFlags {
 			if f != "-lc++" && f != "-lstdc++" {
 				combinedLdFlags = append(combinedLdFlags, f)
 			}
@@ -97,9 +116,9 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 
 	// If cgo sources are in different directories, gather them into a temporary
 	// directory so we can use -srcdir.
-	srcDir = filepath.Dir(cgoSrcs[0])
+	srcDir = filepath.Dir(opt.source.cgo[0])
 	srcsInSingleDir := true
-	for _, src := range cgoSrcs[1:] {
+	for _, src := range opt.source.cgo[1:] {
 		if filepath.Dir(src) != srcDir {
 			srcsInSingleDir = false
 			break
@@ -107,25 +126,25 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	}
 
 	if srcsInSingleDir {
-		for i := range cgoSrcs {
-			cgoSrcs[i] = filepath.Base(cgoSrcs[i])
+		for i := range opt.source.cgo {
+			opt.source.cgo[i] = filepath.Base(opt.source.cgo[i])
 		}
 	} else {
 		srcDir = filepath.Join(workDir, "cgosrcs")
 		if err := os.Mkdir(srcDir, 0777); err != nil {
 			return "", nil, nil, err
 		}
-		copiedSrcs, err := gatherSrcs(srcDir, cgoSrcs)
+		copiedSrcs, err := gatherSrcs(srcDir, opt.source.cgo)
 		if err != nil {
 			return "", nil, nil, err
 		}
-		cgoSrcs = copiedSrcs
+		opt.source.cgo = copiedSrcs
 	}
 
 	// Generate Go and C code.
 	hdrDirs := map[string]bool{}
 	var hdrIncludes []string
-	for _, hdr := range hSrcs {
+	for _, hdr := range opt.source.h {
 		hdrDir := filepath.Dir(hdr)
 		if !hdrDirs[hdrDir] {
 			hdrDirs[hdrDir] = true
@@ -140,28 +159,28 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	}
 	// Trim the execroot from the //line comments emitted by cgo.
 	args := goenv.goTool("cgo", "-srcdir", srcDir, "-objdir", workDir, "-trimpath", execRoot)
-	if packagePath != "" {
-		args = append(args, "-importpath", packagePath)
+	if opt.packagePath != "" {
+		args = append(args, "-importpath", opt.packagePath)
 	}
 	args = append(args, "--")
-	args = append(args, cppFlags...)
+	args = append(args, opt.ccToolchain.cppFlags...)
 	args = append(args, hdrIncludes...)
-	args = append(args, cFlags...)
-	args = append(args, cgoSrcs...)
+	args = append(args, opt.ccToolchain.cFlags...)
+	args = append(args, opt.source.cgo...)
 	if err := goenv.runCommand(args); err != nil {
 		return "", nil, nil, err
 	}
 
-	if cgoExportHPath != "" {
-		if err := copyFile(filepath.Join(workDir, "_cgo_export.h"), cgoExportHPath); err != nil {
+	if opt.cgoExportHPath != "" {
+		if err := copyFile(filepath.Join(workDir, "_cgo_export.h"), opt.cgoExportHPath); err != nil {
 			return "", nil, nil, err
 		}
 	}
-	genGoSrcs := make([]string, 1+len(cgoSrcs))
+	genGoSrcs := make([]string, 1+len(opt.source.cgo))
 	genGoSrcs[0] = filepath.Join(workDir, "_cgo_gotypes.go")
-	genCSrcs := make([]string, 1+len(cgoSrcs))
+	genCSrcs := make([]string, 1+len(opt.source.cgo))
 	genCSrcs[0] = filepath.Join(workDir, "_cgo_export.c")
-	for i, src := range cgoSrcs {
+	for i, src := range opt.source.cgo {
 		stem := strings.TrimSuffix(filepath.Base(src), ".go")
 		genGoSrcs[i+1] = filepath.Join(workDir, stem+".cgo1.go")
 		genCSrcs[i+1] = filepath.Join(workDir, stem+".cgo2.c")
@@ -170,32 +189,32 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 
 	// Compile C, C++, Objective-C/C++, and assembly code.
 	defaultCFlags := defaultCFlags(workDir)
-	combinedCFlags := combineFlags(cppFlags, hdrIncludes, cFlags, defaultCFlags)
+	combinedCFlags := combineFlags(opt.ccToolchain.cppFlags, hdrIncludes, opt.ccToolchain.cFlags, defaultCFlags)
 	for _, lang := range []struct{ srcs, flags []string }{
 		{genCSrcs, combinedCFlags},
-		{cSrcs, combinedCFlags},
-		{cxxSrcs, combineFlags(cppFlags, hdrIncludes, cxxFlags, defaultCFlags)},
-		{objcSrcs, combineFlags(cppFlags, hdrIncludes, objcFlags, defaultCFlags)},
-		{objcxxSrcs, combineFlags(cppFlags, hdrIncludes, objcxxFlags, defaultCFlags)},
-		{sSrcs, nil},
+		{opt.source.c, combinedCFlags},
+		{opt.source.cxx, combineFlags(opt.ccToolchain.cppFlags, hdrIncludes, opt.ccToolchain.cxxFlags, defaultCFlags)},
+		{opt.source.objc, combineFlags(opt.ccToolchain.cppFlags, hdrIncludes, opt.ccToolchain.objcFlags, defaultCFlags)},
+		{opt.source.objcxx, combineFlags(opt.ccToolchain.cppFlags, hdrIncludes, opt.ccToolchain.objcxxFlags, defaultCFlags)},
+		{opt.source.s, nil},
 	} {
 		for _, src := range lang.srcs {
 			obj := filepath.Join(workDir, fmt.Sprintf("_x%d.o", len(cObjs)))
 			cObjs = append(cObjs, obj)
-			if err := cCompile(goenv, src, cc, lang.flags, obj); err != nil {
+			if err := cCompile(goenv, src, opt.ccToolchain.cc, lang.flags, obj); err != nil {
 				return "", nil, nil, err
 			}
 		}
 	}
 
 	mainObj := filepath.Join(workDir, "_cgo_main.o")
-	if err := cCompile(goenv, cgoMainC, cc, combinedCFlags, mainObj); err != nil {
+	if err := cCompile(goenv, cgoMainC, opt.ccToolchain.cc, combinedCFlags, mainObj); err != nil {
 		return "", nil, nil, err
 	}
 
 	// Link cgo binary and use the symbols to generate _cgo_import.go.
 	mainBin := filepath.Join(workDir, "_cgo_.o") // .o is a lie; it's an executable
-	args = append([]string{cc, "-o", mainBin, mainObj}, cObjs...)
+	args = append([]string{opt.ccToolchain.cc, "-o", mainBin, mainObj}, cObjs...)
 	args = append(args, combinedLdFlags...)
 	var originalErrBuf bytes.Buffer
 	if err := goenv.runCommandToFile(os.Stdout, &originalErrBuf, args); err != nil {
@@ -222,7 +241,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 		// the failure of the original command.
 		if err2 := goenv.runCommandToFile(
 			os.Stdout,
-			ioutil.Discard,
+			io.Discard,
 			append(args, allowUnresolvedSymbolsLdFlag),
 		); err2 != nil {
 			os.Stderr.Write(relativizePaths(originalErrBuf.Bytes()))
@@ -233,7 +252,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	}
 
 	cgoImportsGo := filepath.Join(workDir, "_cgo_imports.go")
-	args = goenv.goTool("cgo", "-dynpackage", packageName, "-dynimport", mainBin, "-dynout", cgoImportsGo)
+	args = goenv.goTool("cgo", "-dynpackage", opt.packageName, "-dynimport", mainBin, "-dynout", cgoImportsGo)
 	if err := goenv.runCommand(args); err != nil {
 		return "", nil, nil, err
 	}
@@ -241,16 +260,16 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 
 	// Copy regular Go source files into the work directory so that we can
 	// use -trimpath=workDir.
-	goBases, err := gatherSrcs(workDir, goSrcs)
+	goBases, err := gatherSrcs(workDir, opt.source.goSrcs)
 	if err != nil {
 		return "", nil, nil, err
 	}
 
-	allGoSrcs = make([]string, len(goSrcs)+len(genGoSrcs))
-	for i := range goSrcs {
+	allGoSrcs = make([]string, len(opt.source.goSrcs)+len(genGoSrcs))
+	for i := range opt.source.goSrcs {
 		allGoSrcs[i] = filepath.Join(workDir, goBases[i])
 	}
-	copy(allGoSrcs[len(goSrcs):], genGoSrcs)
+	copy(allGoSrcs[len(opt.source.goSrcs):], genGoSrcs)
 	return workDir, allGoSrcs, cObjs, nil
 }
 
@@ -259,7 +278,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 // It does not run cgo. This is used for packages with "cgo = True" but
 // without any .go files that import "C". The Go command forbids this,
 // but we have historically allowed it.
-func compileCSources(goenv *env, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []string, cc string, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags []string) (cObjs []string, err error) {
+func compileCSources(goenv *env, source *sourceFiles, ccToolchain *ccToolchain) (cObjs []string, err error) {
 	workDir, cleanup, err := goenv.workDir()
 	if err != nil {
 		return nil, err
@@ -268,7 +287,7 @@ func compileCSources(goenv *env, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hS
 
 	hdrDirs := map[string]bool{}
 	var hdrIncludes []string
-	for _, hdr := range hSrcs {
+	for _, hdr := range source.h {
 		hdrDir := filepath.Dir(hdr)
 		if !hdrDirs[hdrDir] {
 			hdrDirs[hdrDir] = true
@@ -278,16 +297,16 @@ func compileCSources(goenv *env, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hS
 
 	defaultCFlags := defaultCFlags(workDir)
 	for _, lang := range []struct{ srcs, flags []string }{
-		{cSrcs, combineFlags(cppFlags, hdrIncludes, cFlags, defaultCFlags)},
-		{cxxSrcs, combineFlags(cppFlags, hdrIncludes, cxxFlags, defaultCFlags)},
-		{objcSrcs, combineFlags(cppFlags, hdrIncludes, objcFlags, defaultCFlags)},
-		{objcxxSrcs, combineFlags(cppFlags, hdrIncludes, objcxxFlags, defaultCFlags)},
-		{sSrcs, nil},
+		{source.c, combineFlags(ccToolchain.cppFlags, hdrIncludes, ccToolchain.cFlags, defaultCFlags)},
+		{source.cxx, combineFlags(ccToolchain.cppFlags, hdrIncludes, ccToolchain.cxxFlags, defaultCFlags)},
+		{source.objc, combineFlags(ccToolchain.cppFlags, hdrIncludes, ccToolchain.objcFlags, defaultCFlags)},
+		{source.objcxx, combineFlags(ccToolchain.cppFlags, hdrIncludes, ccToolchain.objcxxFlags, defaultCFlags)},
+		{source.s, nil},
 	} {
 		for _, src := range lang.srcs {
 			obj := filepath.Join(workDir, fmt.Sprintf("_x%d.o", len(cObjs)))
 			cObjs = append(cObjs, obj)
-			if err := cCompile(goenv, src, cc, lang.flags, obj); err != nil {
+			if err := cCompile(goenv, src, ccToolchain.cc, lang.flags, obj); err != nil {
 				return nil, err
 			}
 		}

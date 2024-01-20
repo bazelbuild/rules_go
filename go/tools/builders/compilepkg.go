@@ -22,7 +22,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -345,7 +344,31 @@ func compileArchive(
 		// If the package uses Cgo, compile .s and .S files with cgo2, not the Go assembler.
 		// Otherwise: the .s/.S files will be compiled with the Go assembler later
 		var srcDir string
-		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
+		cgoOpt := &cgoOption{
+			packageName:    packageName,
+			packagePath:    packagePath,
+			cgoExportHPath: cgoExportHPath,
+			source: &sourceFiles{
+				goSrcs: goSrcs,
+				cgo:    cgoSrcs,
+				c:      cSrcs,
+				cxx:    cxxSrcs,
+				objc:   objcSrcs,
+				objcxx: objcxxSrcs,
+				s:      sSrcs,
+				h:      hSrcs,
+			},
+			ccToolchain: &ccToolchain{
+				cc:          cc,
+				cppFlags:    cppFlags,
+				cFlags:      cFlags,
+				cxxFlags:    cxxFlags,
+				objcFlags:   objcFlags,
+				objcxxFlags: objcxxFlags,
+				ldFlags:     ldFlags,
+			},
+		}
+		srcDir, goSrcs, objFiles, err = cgo(goenv, cgoOpt)
 		if err != nil {
 			return err
 		}
@@ -362,7 +385,7 @@ func compileArchive(
 		gcFlags = append(gcFlags, createTrimPath(gcFlags, srcDir))
 	} else {
 		if cgoExportHPath != "" {
-			if err := ioutil.WriteFile(cgoExportHPath, nil, 0o666); err != nil {
+			if err := os.WriteFile(cgoExportHPath, nil, 0o666); err != nil {
 				return err
 			}
 		}
