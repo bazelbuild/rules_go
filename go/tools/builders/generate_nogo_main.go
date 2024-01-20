@@ -81,6 +81,26 @@ var configs = map[string]config{
 			{{- end}}
 		},
 		{{- end}}
+		{{- if $config.OnlyPkgs}}
+		onlyPkgs: []*regexp.Regexp{
+			{{- range $path, $comment := $config.OnlyPkgs}}
+			{{- if $comment}}
+			// {{$comment}}
+			{{end -}}
+			{{printf "regexp.MustCompile(%q)" $path}},
+			{{- end}}
+		},
+		{{- end -}}
+		{{- if $config.ExcludePkgs}}
+		excludePkgs: []*regexp.Regexp{
+			{{- range $path, $comment := $config.ExcludePkgs}}
+			{{- if $comment}}
+			// {{$comment}}
+			{{end -}}
+			{{printf "regexp.MustCompile(%q)" $path}},
+			{{- end}}
+		},
+		{{- end}}
 	},
 {{- end}}
 }
@@ -125,7 +145,8 @@ func genNogoMain(args []string) error {
 	for _, path := range analyzerImportPaths {
 		imports = append(imports, Import{
 			Path: path,
-			Name: "analyzer" + strconv.Itoa(suffix)})
+			Name: "analyzer" + strconv.Itoa(suffix),
+		})
 		if suffix == math.MaxInt32 {
 			return fmt.Errorf("cannot generate more than %d analyzers", suffix)
 		}
@@ -140,7 +161,7 @@ func genNogoMain(args []string) error {
 		Configs: config,
 	}
 	for _, c := range config {
-		if len(c.OnlyFiles) > 0 || len(c.ExcludeFiles) > 0 {
+		if len(c.OnlyFiles) > 0 || len(c.ExcludeFiles) > 0 || len(c.OnlyPkgs) > 0 || len(c.ExcludePkgs) > 0 {
 			data.NeedRegexp = true
 			break
 		}
@@ -176,11 +197,24 @@ func buildConfig(path string) (Configs, error) {
 				return Configs{}, fmt.Errorf("invalid pattern for analysis %q: %v", name, err)
 			}
 		}
+		for pattern := range config.OnlyPkgs {
+			if _, err := regexp.Compile(pattern); err != nil {
+				return Configs{}, fmt.Errorf("invalid pattern for analysis %q: %v", name, err)
+			}
+		}
+		for pattern := range config.ExcludePkgs {
+			if _, err := regexp.Compile(pattern); err != nil {
+				return Configs{}, fmt.Errorf("invalid pattern for analysis %q: %v", name, err)
+			}
+		}
+
 		configs[name] = Config{
 			// Description is currently unused.
 			OnlyFiles:     config.OnlyFiles,
 			ExcludeFiles:  config.ExcludeFiles,
 			AnalyzerFlags: config.AnalyzerFlags,
+			OnlyPkgs:      config.OnlyPkgs,
+			ExcludePkgs:   config.ExcludePkgs,
 		}
 	}
 	return configs, nil
@@ -193,4 +227,6 @@ type Config struct {
 	OnlyFiles     map[string]string `json:"only_files"`
 	ExcludeFiles  map[string]string `json:"exclude_files"`
 	AnalyzerFlags map[string]string `json:"analyzer_flags"`
+	OnlyPkgs      map[string]string `json:"only_pkgs"`
+	ExcludePkgs   map[string]string `json:"exclude_pkgs"`
 }

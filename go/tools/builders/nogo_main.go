@@ -56,6 +56,7 @@ var typesSizes = types.SizesFor("gc", os.Getenv("GOARCH"))
 func main() {
 	log.SetFlags(0) // no timestamp
 	log.SetPrefix("nogo: ")
+	log.SetOutput(os.Stderr)
 	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
@@ -189,7 +190,48 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 				}
 			}
 		}
-		roots = append(roots, visit(a))
+		var currentConfig config
+		// Use the base config if it exists.
+		if baseConfig, ok := configs[nogoBaseConfigName]; ok {
+			currentConfig = baseConfig
+		}
+		// Overwrite the config with the desired config. Any unset fields
+		// in the config will default to the base config.
+		if actionConfig, ok := configs[a.Name]; ok {
+			if actionConfig.onlyPkgs != nil {
+				currentConfig.onlyPkgs = actionConfig.onlyPkgs
+			}
+			if actionConfig.excludePkgs != nil {
+				currentConfig.excludePkgs = actionConfig.excludePkgs
+			}
+		}
+
+		include := true
+		if len(currentConfig.onlyPkgs) > 0 {
+			// Run this analyzer for *only* matching packages.
+			include = false
+			for _, pattern := range currentConfig.onlyPkgs {
+				if pattern.MatchString(packagePath) {
+					include = true
+					break
+				}
+			}
+		}
+		if include {
+			for _, pattern := range currentConfig.excludePkgs {
+				if pattern.MatchString(packagePath) {
+					include = false
+					break
+				}
+			}
+		}
+		if include {
+			roots = append(roots, visit(a))
+		}
+	}
+
+	if len(roots) == 0 {
+		return "", nil, nil
 	}
 
 	// Load the package, including AST, types, and facts.
@@ -548,6 +590,14 @@ type config struct {
 	// to Analyzer.Flags. Note that no leading '-' should be present in a flag
 	// name
 	analyzerFlags map[string]string
+
+	// onlyPkgs is a list of regular expressions that match packages an analyzer
+	// will emit run for. When empty, the analyzer will run on all packages.
+	onlyPkgs []*regexp.Regexp
+
+	// excludePkgs is a list of regular expressions that match packages that an
+	// analyzer will not run on.
+	excludePkgs []*regexp.Regexp
 }
 
 // importer is an implementation of go/types.Importer that imports type

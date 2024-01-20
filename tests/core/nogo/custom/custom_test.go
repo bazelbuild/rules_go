@@ -39,6 +39,7 @@ nogo(
         ":foofuncname",
         ":importfmt",
         ":visibility",
+		":exitanalyzer",
     ],
     # config = "",
     visibility = ["//visibility:public"],
@@ -56,6 +57,14 @@ go_library(
     name = "foofuncname",
     srcs = ["foofuncname.go"],
     importpath = "foofuncanalyzer",
+    deps = ["@org_golang_x_tools//go/analysis"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "exitanalyzer",
+    srcs = ["exitanalyzer.go"],
+    importpath = "exitanalyzer",
     deps = ["@org_golang_x_tools//go/analysis"],
     visibility = ["//visibility:public"],
 )
@@ -280,6 +289,35 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
+-- exitanalyzer.go --
+// exitanalyzer exits uncleanly when run
+package exitanalyzer
+
+import (
+	"os"
+	"flag"
+	"golang.org/x/tools/go/analysis"
+)
+
+const doc = "exitanalyzer exits uncleanly when run."
+
+var fs = *flag.NewFlagSet("exitanalyzer", flag.ContinueOnError)
+var exit = fs.Bool("exit", false, "exit uncleanly")
+
+var Analyzer = &analysis.Analyzer{
+	Name: "exitanalyzer",
+	Run:  run,
+	Doc:  doc,
+	Flags: fs,
+}
+
+func run(pass *analysis.Pass) (interface{}, error) {
+	if *exit {
+		os.Exit(-1)
+	}
+	return nil, nil
+}
+
 -- config.json --
 {
   "importfmt": {
@@ -314,6 +352,27 @@ func run(pass *analysis.Pass) (interface{}, error) {
     "exclude_files": {}
   }
 }
+
+-- exclude_config.json --
+{
+  "exitanalyzer": {
+	"analyzer_flags": {
+		"exit": "true"
+	},
+    "exclude_pkgs": {
+      ".*": "don't run at all"
+    }
+  }
+}
+
+-- exit_config.json --
+{
+	"exitanalyzer": {
+	  "analyzer_flags": {
+		  "exit": "true"
+	  }
+	}
+  }
 
 -- has_errors.go --
 package haserrors
@@ -458,6 +517,16 @@ func Test(t *testing.T) {
 				`.*[\\/]cgo[\\/]examplepkg[\\/]pure_src_with_err_calling_native.go:.*function must not be named Foo \(foofuncname\)`,
 			},
 		}, {
+			desc:        "do_not_run_analyzer",
+			config:      "exclude_config.json",
+			target:      "//:no_errors",
+			wantSuccess: true,
+		}, {
+			desc:        "run_and_exit",
+			config:      "exit_config.json",
+			target:      "//:no_errors",
+			wantSuccess: false,
+		}, {
 			desc:        "no_errors",
 			target:      "//:no_errors",
 			wantSuccess: true,
@@ -479,7 +548,7 @@ func Test(t *testing.T) {
 			if err := cmd.Run(); err == nil && !test.wantSuccess {
 				t.Fatal("unexpected success")
 			} else if err != nil && test.wantSuccess {
-				t.Fatalf("unexpected error: %v", err)
+				t.Fatalf("unexpected error: %v: %v", err, stderr.String())
 			}
 
 			for _, pattern := range test.includes {
