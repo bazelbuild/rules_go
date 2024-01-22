@@ -71,6 +71,12 @@ type Args struct {
 	// nogo is not used.
 	Nogo string
 
+	// NogoIncludes is the list of targets to include for Nogo linting.
+	NogoIncludes []string
+
+	// NogoExcludes is the list of targets to include for Nogo linting.
+	NogoExcludes []string
+
 	// WorkspaceSuffix is a string that should be appended to the end
 	// of the default generated WORKSPACE file.
 	WorkspaceSuffix string
@@ -401,8 +407,10 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 			}
 		}()
 		info := workspaceTemplateInfo{
-			Suffix: args.WorkspaceSuffix,
-			Nogo:   args.Nogo,
+			Suffix:       args.WorkspaceSuffix,
+			Nogo:         args.Nogo,
+			NogoIncludes: args.NogoIncludes,
+			NogoExcludes: args.NogoExcludes,
 		}
 		for name := range workspaceNames {
 			info.WorkspaceNames = append(info.WorkspaceNames, name)
@@ -526,6 +534,8 @@ type workspaceTemplateInfo struct {
 	WorkspaceNames []string
 	GoSDKPath      string
 	Nogo           string
+	NogoIncludes   []string
+	NogoExcludes   []string
 	Suffix         string
 }
 
@@ -549,7 +559,7 @@ local_repository(
     path = "{{.GoSDKPath}}",
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk", "go_register_nogo")
 
 go_rules_dependencies()
 
@@ -558,7 +568,31 @@ go_wrap_sdk(
     root_file = "@local_go_sdk//:ROOT",
 )
 
-go_register_toolchains({{if .Nogo}}nogo = "{{.Nogo}}"{{end}})
+go_register_toolchains()
+
+{{if .Nogo}}
+go_register_nogo(
+	nogo = "{{.Nogo}}",
+	{{ if .NogoIncludes }}
+	includes = [
+	{{range .NogoIncludes }}
+		"{{ . }}",
+	{{ end }}
+	],
+	{{ else }}
+	includes = ["all"],
+	{{ end}}
+	{{ if .NogoExcludes }}
+	excludes = [
+	{{range .NogoExcludes }}
+		"{{ . }}",
+	{{ end }}
+	],
+	{{ else }}
+	excludes = None,
+	{{ end}}
+)
+{{end}}
 {{end}}
 {{.Suffix}}
 `))

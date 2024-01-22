@@ -71,18 +71,24 @@ want to run.
         visibility = ["//visibility:public"],
     )
 
-Pass a label for your `nogo`_ target to ``go_register_toolchains`` in your
+Pass a label for your `nogo`_ target to ``go_register_nogo`` in your
 ``WORKSPACE`` file. When using ``MODULE.bazel``, see the Bzlmod_ documentation
 instead.
 
 .. code:: bzl
 
-    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+    load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_nogo")
     go_rules_dependencies()
-    go_register_toolchains(nogo = "@//:my_nogo") # my_nogo is in the top-level BUILD file of this workspace
+    go_register_toolchains(version = "1.20.7")
+    go_register_nogo(
+      nogo = "@//:my_nogo"  # my_nogo is in the top-level BUILD file of this workspace
+      includes = ["@//:__subpackages__"],  # Labels to lint. By default only lints code in workspace.
+      excludes = ["@//generated:__subpackages__"],  # Labels to exclude.
+    )
 
 **NOTE**: You must include ``"@//"`` prefix when referring to targets in the local
-workspace.
+workspace. Also note that you cannot use this to refer to bzlmod repos, as the labels
+don't go though repo mapping.
 
 The `nogo`_ rule will generate a program that executes all the supplied
 analyzers at build-time. The generated ``nogo`` program will run alongside the

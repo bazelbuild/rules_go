@@ -30,6 +30,10 @@ load(
     _go_register_toolchains = "go_register_toolchains",
     _go_wrap_sdk = "go_wrap_sdk",
 )
+load(
+    "//go/private:nogo.bzl",
+    "go_register_nogo_wrapper",
+)
 
 go_rules_dependencies = _go_rules_dependencies
 go_register_toolchains = _go_register_toolchains
@@ -37,3 +41,4 @@ go_download_sdk = _go_download_sdk
 go_host_sdk = _go_host_sdk
 go_local_sdk = _go_local_sdk
 go_wrap_sdk = _go_wrap_sdk
+go_register_nogo = go_register_nogo_wrapper

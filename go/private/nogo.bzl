@@ -13,6 +13,8 @@
 # limitations under the License.
 
 DEFAULT_NOGO = "@io_bazel_rules_go//:default_nogo"
+NOGO_DEFAULT_INCLUDES = ["@@//:__subpackages__"]
+NOGO_DEFAULT_EXCLUDES = []
 
 # repr(Label(...)) does not emit a canonical label literal.
 def _label_repr(label):
@@ -59,3 +61,12 @@ go_register_nogo = repository_rule(
         "excludes": attr.string_list(),
     },
 )
+
+def go_register_nogo_wrapper(nogo, includes = NOGO_DEFAULT_INCLUDES, excludes = NOGO_DEFAULT_EXCLUDES):
+    """See go/nogo.rst"""
+    go_register_nogo(
+        name = "io_bazel_rules_nogo",
+        nogo = nogo,
+        includes = includes,
+        excludes = excludes,
+    )

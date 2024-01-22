@@ -14,7 +14,7 @@
 
 load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
 load("//go/private:sdk.bzl", "detect_host_platform", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains")
-load("//go/private:nogo.bzl", "DEFAULT_NOGO", "go_register_nogo")
+load("//go/private:nogo.bzl", "DEFAULT_NOGO", "NOGO_DEFAULT_EXCLUDES", "NOGO_DEFAULT_INCLUDES", "go_register_nogo")
 
 def host_compatible_toolchain_impl(ctx):
     ctx.file("BUILD.bazel")
@@ -67,16 +67,13 @@ _host_tag = tag_class(
     },
 )
 
-_NOGO_DEFAULT_INCLUDES = ["@@//:__subpackages__"]
-_NOGO_DEFAULT_EXCLUDES = []
-
 _nogo_tag = tag_class(
     attrs = {
         "nogo": attr.label(
             doc = "The nogo target to use when this module is the root module.",
         ),
         "includes": attr.label_list(
-            default = _NOGO_DEFAULT_INCLUDES,
+            default = NOGO_DEFAULT_INCLUDES,
             # The special include "all" is undocumented on purpose: With it, adding a new transitive
             # dependency to a Go module can cause a build failure if the new dependency has lint
             # issues.
@@ -90,7 +87,7 @@ Uses the same format as 'visibility', i.e., every entry must be a label that end
 """,
         ),
         "excludes": attr.label_list(
-            default = _NOGO_DEFAULT_EXCLUDES,
+            default = NOGO_DEFAULT_EXCLUDES,
             doc = "See 'includes'.",
         ),
     },
@@ -116,8 +113,8 @@ _TOOLCHAIN_INDEX_PAD_LENGTH = len(str(_MAX_NUM_TOOLCHAINS))
 def _go_sdk_impl(ctx):
     nogo_tag = struct(
         nogo = DEFAULT_NOGO,
-        includes = _NOGO_DEFAULT_INCLUDES,
-        excludes = _NOGO_DEFAULT_EXCLUDES,
+        includes = NOGO_DEFAULT_INCLUDES,
+        excludes = NOGO_DEFAULT_EXCLUDES,
     )
     for module in ctx.modules:
         if not module.is_root or not module.tags.nogo:
