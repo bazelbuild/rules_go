@@ -27,6 +27,8 @@ tasks:
       - "-//tests/core/starlark/cgo/..."  # Doesn't work before bazel 6
       # Bzlmod tests require Bazel 6+
       - "-//tests/core/nogo/bzlmod/..."
+      # Nogo includes/excludes doesn't work before bazel 6
+      - "-//tests/core/nogo/includes_excludes:includes_exclude_test"
   ubuntu2004:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     shell_commands:
