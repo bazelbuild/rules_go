@@ -27,7 +27,7 @@ go_sdk.download(
     patches = [
         "//:test_go_sdk.patch",
     ],
-    version = "1.21.1",
+    version = "1.22.0",
 )
 
 # Request an invalid SDK to verify that it isn't fetched since the first tag takes precedence.

@@ -1,6 +1,6 @@
 module github.com/bazelbuild/rules_go
 
-go 1.21.1
+go 1.22.0
 
 require (
 	github.com/gogo/protobuf v1.3.2
