@@ -161,8 +161,7 @@ func (b *BazelJSONBuilder) outputGroupsForMode(mode LoadMode) string {
 
 func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, error) {
 	var bzlmodQueryFlags []string
-	if strings.HasPrefix(rulesGoRepositoryName, "@@") {
-		// Requires Bazel 6.4.0.
+	if b.bazel.version.compare(bazelVersion{6, 4, 0}) >= 0 {
 		bzlmodQueryFlags = []string{"--consistent_labels"}
 	}
 	queryArgs := concatStringsArrays(bazelQueryFlags, bzlmodQueryFlags, []string{
