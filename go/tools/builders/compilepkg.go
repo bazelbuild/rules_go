@@ -453,7 +453,7 @@ func compileArchive(
 		ctx, cancel := context.WithCancel(context.Background())
 		nogoChan = make(chan error)
 		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcsNogo, facts, packagePath, importcfgPath, outFactsPath)
+			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcsNogo, facts, importPath, importcfgPath, outFactsPath)
 		}()
 		defer func() {
 			if nogoChan != nil {
