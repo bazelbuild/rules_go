@@ -35,9 +35,9 @@ http_archive(
 # Use --crosstool_top=@llvm_toolchain//:toolchain
 http_archive(
     name = "com_grail_bazel_toolchain",
-    sha256 = "d312c8e3a19ff843fce3065bb9ff40964401e8525674c842a5724b939cb6e1ac",
-    strip_prefix = "bazel-toolchain-0.4.4",
-    urls = ["https://github.com/grailbio/bazel-toolchain/archive/0.4.4.tar.gz"],
+    sha256 = "fb762268ca70ced1a0f65d24f92cd881098afd34990ae5767df0ab325217620e",
+    strip_prefix = "toolchains_llvm-0.4.4",
+    urls = ["https://github.com/bazel-contrib/toolchains_llvm/archive/0.4.4.tar.gz"],
 )
 
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
