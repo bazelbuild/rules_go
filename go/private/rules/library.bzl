@@ -44,7 +44,7 @@ def _go_library_impl(ctx):
         source,
         archive,
         DefaultInfo(
-            files = depset([archive.data.file]),
+            files = depset([archive.data.export_file]),
         ),
         coverage_common.instrumented_files_info(
             ctx,
