@@ -16,7 +16,6 @@ load("//go/private:common.bzl", "executable_path")
 load("//go/private:nogo.bzl", "go_register_nogo")
 load("//go/private/skylib/lib:versions.bzl", "versions")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "patch", "read_user_netrc", "use_netrc")
-load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
 
 MIN_SUPPORTED_VERSION = (1, 14, 0)
 
@@ -442,7 +441,7 @@ def _remote_sdk(ctx, urls, strip_prefix, sha256):
     # in Bazel 6.0.0+ (bazelbuild/bazel#16052). The only situation where
     # .zip files are needed seems to be a macOS host using a Windows toolchain
     # for remote execution.
-    if bazel_features.external_deps.extract_supports_unicode_filenames:
+    if versions.is_at_least("6.4.0", versions.get() or "6.4.0"):
         ctx.download_and_extract(
             url = urls,
             stripPrefix = strip_prefix,
