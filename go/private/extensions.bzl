@@ -224,8 +224,8 @@ def _go_sdk_impl(ctx):
                     )
                     go_download_sdk_rule(
                         name = default_name,
-                        goos = download_tag.goos,
-                        goarch = download_tag.goarch,
+                        goos = goos,
+                        goarch = goarch,
                         sdks = download_tag.sdks,
                         urls = download_tag.urls,
                         version = download_tag.version,
