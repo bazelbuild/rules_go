@@ -27,7 +27,7 @@ use_repo(
 
 register_toolchains("@go_toolchains//:all")
 
-bazel_dep(name = "gazelle", version = "0.34.0")
+bazel_dep(name = "gazelle", version = "0.36.0")
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")
@@ -42,4 +42,6 @@ use_repo(
     "org_golang_google_protobuf",
     "org_golang_x_net",
     "org_golang_x_tools",
+    # Exported by gazelle specifically for rules_go.
+    "bazel_gazelle_go_repository_config",
 )

@@ -63,8 +63,8 @@ go_test(
 )
 
 sh_test(
-    name = "go_version_test",
-    srcs = ["go_version_test.sh"],
+    name = "go_tool_test",
+    srcs = ["go_tool_test.sh"],
     data = ["@my_rules_go//go"],
     env = {"GO_TOOL_RLOCATION": "$(rlocationpath @my_rules_go//go)"},
     deps = ["@bazel_tools//tools/bash/runfiles"],

@@ -205,6 +205,21 @@ A dependency can be added via
 bazel run @rules_go//go get golang.org/x/text@v0.3.2
 ```
 
+### Environment variables
+
+Environment variables (such as `GOPROXY` and `GOPRIVATE`) required for fetching Go dependencies can be set as follows:
+
+```starlark
+go_deps.config(
+   go_env = {
+      "GOPRIVATE": "...",
+   },
+)
+```
+
+Variables set in this way are used by `go_deps` as well as `@rules_go//go`, with other variables inheriting their value from the host environment.
+`go_env` does *not* affect Go build actions.
+
 ### Overrides
 
 The root module can override certain aspects of the dependency resolution performed by the `go_deps` extension.

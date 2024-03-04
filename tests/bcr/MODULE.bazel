@@ -50,4 +50,9 @@ go_deps.module(
     sum = "h1:pnP7OclFFFgFi4VHQDQDaoXUVauOFyktqTsqqgzFKbc=",
     version = "v1.40.1",
 )
+
+# Read in go_tool_test.sh.
+go_deps.config(
+    go_env = {"GOPRIVATE": "example.com"},
+)
 use_repo(go_deps, "org_golang_google_grpc")
