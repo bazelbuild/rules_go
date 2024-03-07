@@ -83,13 +83,13 @@ Announcements
 
 2023-12-29
   Release
-  `v0.44.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.43.0>`_
+  `v0.44.1 <https://github.com/bazelbuild/rules_go/releases/tag/v0.44.1>`_
   is now available. This release reverts a forced upgrade (https://github.com/bazelbuild/rules_go/pull/3803) of genproto from
   `v0.44.0`.
 
 2023-12-15
   Release
-  `v0.44.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.43.0>`_
+  `v0.44.0 <https://github.com/bazelbuild/rules_go/releases/tag/v0.44.0>`_
   is now available. This release adds a stacktrace when a test times out and
   adds support for nogo in Bzlmod.
 
