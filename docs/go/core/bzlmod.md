@@ -187,7 +187,7 @@ Instead, if you want the tools' dependencies to be resolved independently of the
 4. Add an isolated usage of the `go_deps` extension to your module file:
 
     ```starlark
-    go_tool_deps = use_extension("@gazelle//:extensions.bzl", "go_deps", isolated = True)
+    go_tool_deps = use_extension("@gazelle//:extensions.bzl", "go_deps", isolate = True)
     go_tool_deps.from_file(go_mod = "//tools:go.mod")
     ```
 
