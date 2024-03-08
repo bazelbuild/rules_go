@@ -285,7 +285,7 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		tmpDir = filepath.Clean(tmpDir)
 		if i := strings.Index(tmpDir, string(os.PathSeparator)+"execroot"+string(os.PathSeparator)); i >= 0 {
 			outBaseDir = tmpDir[:i]
-			if dir, err := filepath.Abs(outBaseDir); err == nil {
+			if dir, err := filepath.Abs(filepath.Dir(outBaseDir)); err == nil {
 				// Use forward slashes, even on Windows. Bazel's rc file parser
 				// reports an error if there are backslashes.
 				outputUserRoot = strings.ReplaceAll(dir, `\`, `/`)
