@@ -436,11 +436,20 @@ def _go_tool_binary_impl(ctx):
 
     out = ctx.actions.declare_file(name)
     if sdk.goos == "windows":
-        gopath = ctx.actions.declare_directory("gopath")
-        gocache = ctx.actions.declare_directory("gocache")
-        cmd = "@echo off\nset GOMAXPROCS=1\nset GOCACHE=%cd%\\{gocache}\nset GOPATH=%cd%\\{gopath}\n{go} build -o {out} -trimpath -ldflags \"{ldflags}\" {srcs}".format(
-            gopath = gopath.path,
-            gocache = gocache.path,
+        # Using pre-declared directory for temporary output as there is no safe
+        # way under Windows to create unique temporary dir.
+        gotmp = ctx.actions.declare_directory("gotmp")
+        cmd = """@echo off
+set GOMAXPROCS=1
+set GOCACHE=%cd%\\{gotmp}\\gocache
+set GOPATH=%cd%"\\{gotmp}\\gopath
+{go} build -o {out} -trimpath -ldflags \"{ldflags}\" {srcs}
+set GO_EXIT_CODE=%ERRORLEVEL%
+RMDIR /S /Q "{gotmp}"
+MKDIR "{gotmp}"
+exit /b %GO_EXIT_CODE%
+""".format(
+            gotmp = gotmp.path.replace("/", "\\"),
             go = sdk.go.path.replace("/", "\\"),
             out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
@@ -454,12 +463,12 @@ def _go_tool_binary_impl(ctx):
         ctx.actions.run(
             executable = bat,
             inputs = sdk.headers + sdk.tools + sdk.srcs + ctx.files.srcs + [sdk.go],
-            outputs = [out, gopath, gocache],
+            outputs = [out, gotmp],
             mnemonic = "GoToolchainBinaryBuild",
         )
     else:
         # Note: GOPATH is needed for Go 1.16.
-        cmd = "GOMAXPROCS=1 GOCACHE=$(mktemp -d) GOPATH=$(mktemp -d) {go} build -o {out} -trimpath -ldflags '{ldflags}' {srcs}".format(
+        cmd = """GOTMP=$(mktemp -d);trap "rm -rf \"$GOTMP\"" EXIT;GOMAXPROCS=1 GOCACHE="$GOTMP"/gocache GOPATH="$GOTMP"/gopath {go} build -o {out} -trimpath -ldflags '{ldflags}' {srcs}""".format(
             go = sdk.go.path,
             out = out.path,
             srcs = " ".join([f.path for f in ctx.files.srcs]),
