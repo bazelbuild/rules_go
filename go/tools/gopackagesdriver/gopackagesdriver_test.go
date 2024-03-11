@@ -182,21 +182,24 @@ func runForTest(t *testing.T, args ...string) driverResponse {
 	// This only works if TEST_TMPDIR is not set when invoking bazel.
 	// bazel_testing.BazelCmd normally unsets that, but since gopackagesdriver
 	// invokes bazel directly, we need to unset it here.
-	allowEnv := map[string]bool{
-		"HOME":        true,
-		"PATH":        true,
-		"PWD":         true,
-		"SYSTEMDRIVE": true,
-		"SYSTEMROOT":  true,
-		"TEMP":        true,
-		"TMP":         true,
-		"TZ":          true,
-		"USER":        true,
+	allowEnv := map[string]struct{}{
+		"HOME":        {},
+		"PATH":        {},
+		"PWD":         {},
+		"SYSTEMDRIVE": {},
+		"SYSTEMROOT":  {},
+		"TEMP":        {},
+		"TMP":         {},
+		"TZ":          {},
+		"USER":        {},
 	}
 	var oldEnv []string
 	for _, env := range os.Environ() {
-		key, value, ok := strings.Cut(env, "=")
-		if ok && !allowEnv[key] {
+		key, value, cut := strings.Cut(env, "=")
+		if !cut {
+			continue
+		}
+		if _, allowed := allowEnv[key]; !allowed {
 			os.Unsetenv(key)
 			oldEnv = append(oldEnv, key, value)
 		}
