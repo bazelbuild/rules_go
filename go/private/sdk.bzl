@@ -685,8 +685,6 @@ def _version_less(a, b):
 
 def _version_string(v):
     suffix = v[3] if _version_is_prerelease(v) else ""
-    if v[-1] == 0:
-        v = v[:-1]
     return ".".join([str(n) for n in v]) + suffix
 
 def _have_same_length(*lists):
