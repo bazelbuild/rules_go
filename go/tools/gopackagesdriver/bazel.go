@@ -57,7 +57,6 @@ func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, bazelStartupF
 		bazelBin:          bazelBin,
 		workspaceRoot:     workspaceRoot,
 		bazelStartupFlags: bazelStartupFlags,
-		version:           bazelVersion{6, 0, 0}, // assumed until 'bazel info' output parsed
 	}
 	if err := b.fillInfo(ctx); err != nil {
 		return nil, fmt.Errorf("unable to query bazel info: %w", err)
@@ -197,4 +196,15 @@ func (a bazelVersion) compare(b bazelVersion) int {
 		}
 	}
 	return 0
+}
+
+// isAtLeast returns true if a.compare(b) >= 0 (that is, if a is greater than
+// or equal to be) or if a is the zero value.
+//
+// Development versions of Bazel do not have valid version strings, not even a
+// prerelease, so parseBazelVersion fails and returns the zero value. If we
+// have such a version, we assume it's newer than whatever we're comparing
+// it with.
+func (a bazelVersion) isAtLeast(b bazelVersion) bool {
+	return a.compare(b) >= 0 || a == bazelVersion{}
 }

@@ -101,7 +101,7 @@ func (pr *PackageRegistry) Match(labels []string) ([]string, []*FlatPackage) {
 
 	for _, label := range labels {
 		// When packagesdriver is ran from rules go, rulesGoRepositoryName will just be @
-		if pr.bazelVersion.compare(bazelVersion{6, 0, 0}) >= 0 &&
+		if pr.bazelVersion.isAtLeast(bazelVersion{6, 0, 0}) &&
 			!strings.HasPrefix(label, "@") {
 			// Canonical labels is only since Bazel 6.0.0
 			label = fmt.Sprintf("@%s", label)
