@@ -32,6 +32,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
@@ -442,6 +443,10 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 	}
 	var diagnostics []entry
 	var errs []error
+	cwd, err := os.Getwd()
+	if cwd == "" || err != nil {
+		errs = append(errs, fmt.Errorf("nogo failed to get CWD: %w", err))
+	}
 	for _, act := range actions {
 		if act.err != nil {
 			// Analyzer failed.
@@ -484,6 +489,11 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 			filename := "-"
 			if p.IsValid() {
 				filename = p.Filename
+			}
+			if cwd != "" {
+				if relname, err := filepath.Rel(cwd, filename); err == nil {
+					filename = relname
+				}
 			}
 			include := true
 			if len(currentConfig.onlyFiles) > 0 {
