@@ -122,6 +122,8 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         tags.append("race")
     if msan:
         tags.append("msan")
+    if pure:
+        tags.append("purego")
 
     return struct(
         static = static,
