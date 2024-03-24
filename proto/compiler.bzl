@@ -118,6 +118,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
     args.add_all(imports, before_each = "-import")
     args.add_all(proto_paths.keys())
     args.use_param_file("-param=%s")
+    data_depsets = [target.files for target in compiler.internal.data]
     go.actions.run(
         inputs = depset(
             direct = [
@@ -125,7 +126,7 @@ def go_proto_compile(go, compiler, protos, imports, importpath):
                 compiler.internal.protoc,
                 compiler.internal.plugin,
             ],
-            transitive = [transitive_descriptor_sets],
+            transitive = [transitive_descriptor_sets] + data_depsets,
         ),
         outputs = go_srcs,
         progress_message = "Generating into %s" % go_srcs[0].dirname,
@@ -178,6 +179,7 @@ def _go_proto_compiler_impl(ctx):
             compile = go_proto_compile,
             valid_archive = ctx.attr.valid_archive,
             internal = struct(
+                data = ctx.attr.data,
                 options = ctx.attr.options,
                 suffix = ctx.attr.suffix,
                 suffixes = ctx.attr.suffixes,
@@ -194,6 +196,7 @@ def _go_proto_compiler_impl(ctx):
 _go_proto_compiler = rule(
     implementation = _go_proto_compiler_impl,
     attrs = {
+        "data": attr.label_list(),
         "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
