@@ -48,6 +48,7 @@ const (
 	objcxxExt
 	sExt
 	hExt
+	sysoExt
 )
 
 type fileImport struct {
@@ -62,7 +63,7 @@ type fileEmbed struct {
 }
 
 type archiveSrcs struct {
-	goSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []fileInfo
+	goSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, sysoSrcs []fileInfo
 }
 
 // filterAndSplitFiles filters files using build constraints and collates
@@ -97,6 +98,8 @@ func filterAndSplitFiles(fileNames []string) (archiveSrcs, error) {
 			srcs = &res.sSrcs
 		case hExt:
 			srcs = &res.hSrcs
+		case sysoExt:
+			srcs = &res.sysoSrcs
 		}
 		*srcs = append(*srcs, src)
 	}
@@ -131,6 +134,8 @@ func readFileInfo(bctx build.Context, input string) (fileInfo, error) {
 			fi.ext = sExt
 		case ".h", ".hh", ".hpp", ".hxx":
 			fi.ext = hExt
+		case ".syso":
+			fi.ext = sysoExt
 		default:
 			return fileInfo{}, fmt.Errorf("unrecognized file extension: %s", ext)
 		}

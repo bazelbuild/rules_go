@@ -88,7 +88,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         clinkopts = [f for fs in source.clinkopts for f in fs.split(" ")]
         cgo = cgo_configure(
             go,
-            srcs = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
+            srcs = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
             cdeps = source.cdeps,
             cppopts = cppopts,
             copts = copts,
@@ -101,7 +101,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         runfiles = runfiles.merge(cgo.runfiles)
         emit_compilepkg(
             go,
-            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
+            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
             cover = source.cover,
             embedsrcs = source.embedsrcs,
             importpath = importpath,
@@ -127,7 +127,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         cgo_deps = depset()
         emit_compilepkg(
             go,
-            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
+            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
             cover = source.cover,
             embedsrcs = source.embedsrcs,
             importpath = importpath,
