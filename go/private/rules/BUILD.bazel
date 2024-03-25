@@ -42,6 +42,7 @@ bzl_library(
         "//go/private:mode",
         "//go/private:providers",
         "//go/private:rpath",
+        "//go/private/rules:execgroup",
         "//go/private/rules:transition",
     ],
 )
@@ -54,6 +55,14 @@ bzl_library(
         "//go/private:common",
         "//go/private:mode",
     ],  # keep
+)
+
+bzl_library(
+    name = "execgroup",
+    srcs = ["execgroup.bzl"],
+    visibility = [
+        "//go:__subpackages__",
+    ],
 )
 
 bzl_library(
@@ -84,6 +93,7 @@ bzl_library(
     deps = [
         "//go/private:context",
         "//go/private:providers",
+        "//go/private/rules:execgroup",
         "//go/private/rules:transition",
     ],
 )
@@ -131,6 +141,7 @@ bzl_library(
         "//go/private:mode",
         "//go/private:providers",
         "//go/private/rules:binary",
+        "//go/private/rules:execgroup",
         "//go/private/rules:transition",
         "@bazel_skylib//lib:structs",
     ],

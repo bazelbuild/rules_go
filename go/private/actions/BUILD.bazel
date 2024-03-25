@@ -55,6 +55,7 @@ bzl_library(
         "//go/private:common",
         "//go/private:mode",
         "//go/private:rpath",
+        "//go/private/rules:execgroup",
         "@bazel_skylib//lib:collections",
     ],
 )
