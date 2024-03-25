@@ -22,6 +22,7 @@ load(
 load(
     "//go/private:mode.bzl",
     "LINKMODE_NORMAL",
+    "LINKMODE_PIE",
     "LINKMODE_PLUGIN",
     "extld_from_cc_toolchain",
     "extldflags_from_cc_toolchain",
@@ -126,6 +127,14 @@ def emit_link(
         builder_args.add("-buildmode", go.mode.link)
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
+    if go.mode.link != LINKMODE_PIE:
+        # If the Bazel build is running under --force_pic, the compiler
+        # toolchain will add -pie to the linker flags. Go toolchain already
+        # provides -nopie when PIE linking is default in the toolchain, but can
+        # not override the -pie flag in extldflags.
+        # TODO: Match the conditions in
+        # https://github.com/golang/go/blob/495830acd6976c8a2b39dd4aa4fdc105ad72de52/src/cmd/link/internal/ld/lib.go#L1815.
+        extldflags = [f for f in extldflags if f not in ("-pie")]
 
     arcs = _transitive_archives_without_test_archives(archive, test_archives)
     arcs.extend(test_archives)
