@@ -39,6 +39,7 @@ load(
 TRANSITIONED_GO_SETTING_KEYS = [
     "//go/config:static",
     "//go/config:msan",
+    "//go/config:cover",
     "//go/config:race",
     "//go/config:pure",
     "//go/config:linkmode",
@@ -73,6 +74,7 @@ def _go_transition_impl(settings, attr):
     settings = dict(settings)
 
     _set_ternary(settings, attr, "static")
+    cover = _set_ternary(settings, attr, "cover")
     race = _set_ternary(settings, attr, "race")
     msan = _set_ternary(settings, attr, "msan")
     pure = _set_ternary(settings, attr, "pure")
@@ -180,6 +182,7 @@ _common_reset_transition_dict = dict({
     "//go/private:request_nogo": False,
     "//go/config:static": False,
     "//go/config:msan": False,
+    "//go/config:cover": False,
     "//go/config:race": False,
     "//go/config:pure": False,
     "//go/config:debug": False,
@@ -196,6 +199,7 @@ _reset_transition_keys = sorted(_reset_transition_dict.keys())
 
 _stdlib_keep_keys = sorted([
     "//go/config:msan",
+    "//go/config:cover",
     "//go/config:race",
     "//go/config:pure",
     "//go/config:linkmode",

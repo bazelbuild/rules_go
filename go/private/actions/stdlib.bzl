@@ -58,6 +58,7 @@ def _should_use_sdk_stdlib(go):
     return (go.sdk.libs and  # go.sdk.libs is non-empty if sdk ships with precompiled .a files
             go.mode.goos == go.sdk.goos and
             go.mode.goarch == go.sdk.goarch and
+            not go.mode.cover and
             not go.mode.race and  # TODO(jayconrod): use precompiled race
             not go.mode.msan and
             not go.mode.pure and
@@ -124,6 +125,8 @@ def _build_stdlib(go):
     pkg = go.declare_directory(go, path = "pkg")
     args = go.builder_args(go, "stdlib")
     args.add("-out", pkg.dirname)
+    if go.mod.cover:
+        args.add("-cover")
     if go.mode.race:
         args.add("-race")
     args.add("-package", "std")
