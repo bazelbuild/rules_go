@@ -125,9 +125,16 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         )
     else:
         cgo_deps = depset()
+        sources = split.go + split.c + split.cxx + split.objc + split.headers
+        # If the package has cgo, cgo processes the Assembly files first.
+        # Implicitly, this means a package with cgo cannot have pure Go
+        # assembly files.
+        if len(split.headers) + len(split.c) == 0:
+            sources += split.asm
+
         emit_compilepkg(
             go,
-            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers,
+            sources = sources,
             cover = source.cover,
             embedsrcs = source.embedsrcs,
             importpath = importpath,
