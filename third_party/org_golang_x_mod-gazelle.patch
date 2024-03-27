@@ -1,0 +1,320 @@
+diff -urN a/gosumcheck/BUILD.bazel b/gosumcheck/BUILD.bazel
+--- a/gosumcheck/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/gosumcheck/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,15 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
++
++go_library(
++    name = "gosumcheck_lib",
++    srcs = ["main.go"],
++    importpath = "golang.org/x/mod/gosumcheck",
++    visibility = ["//visibility:private"],
++    deps = ["//sumdb"],
++)
++
++go_binary(
++    name = "gosumcheck",
++    embed = [":gosumcheck_lib"],
++    visibility = ["//visibility:public"],
++)
+diff -urN a/internal/lazyregexp/BUILD.bazel b/internal/lazyregexp/BUILD.bazel
+--- a/internal/lazyregexp/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/internal/lazyregexp/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "lazyregexp",
++    srcs = ["lazyre.go"],
++    importpath = "golang.org/x/mod/internal/lazyregexp",
++    visibility = ["//:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":lazyregexp",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN a/modfile/BUILD.bazel b/modfile/BUILD.bazel
+--- a/modfile/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/modfile/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,36 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "modfile",
++    srcs = [
++        "print.go",
++        "read.go",
++        "rule.go",
++        "work.go",
++    ],
++    importpath = "golang.org/x/mod/modfile",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/lazyregexp",
++        "//module",
++        "//semver",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":modfile",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "modfile_test",
++    srcs = [
++        "read_test.go",
++        "rule_test.go",
++        "work_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":modfile"],
++    deps = ["//module"],
++)
+diff -urN a/module/BUILD.bazel b/module/BUILD.bazel
+--- a/module/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/module/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "module",
++    srcs = [
++        "module.go",
++        "pseudo.go",
++    ],
++    importpath = "golang.org/x/mod/module",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/lazyregexp",
++        "//semver",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":module",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "module_test",
++    srcs = [
++        "module_test.go",
++        "pseudo_test.go",
++    ],
++    embed = [":module"],
++)
+diff -urN a/semver/BUILD.bazel b/semver/BUILD.bazel
+--- a/semver/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/semver/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "semver",
++    srcs = ["semver.go"],
++    importpath = "golang.org/x/mod/semver",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":semver",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "semver_test",
++    srcs = ["semver_test.go"],
++    embed = [":semver"],
++)
+diff -urN a/sumdb/BUILD.bazel b/sumdb/BUILD.bazel
+--- a/sumdb/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/sumdb/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,35 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "sumdb",
++    srcs = [
++        "cache.go",
++        "client.go",
++        "server.go",
++        "test.go",
++    ],
++    importpath = "golang.org/x/mod/sumdb",
++    visibility = ["//visibility:public"],
++    deps = [
++        "//internal/lazyregexp",
++        "//module",
++        "//sumdb/note",
++        "//sumdb/tlog",
++    ],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":sumdb",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "sumdb_test",
++    srcs = ["client_test.go"],
++    embed = [":sumdb"],
++    deps = [
++        "//sumdb/note",
++        "//sumdb/tlog",
++    ],
++)
+diff -urN a/sumdb/dirhash/BUILD.bazel b/sumdb/dirhash/BUILD.bazel
+--- a/sumdb/dirhash/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/sumdb/dirhash/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,20 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "dirhash",
++    srcs = ["hash.go"],
++    importpath = "golang.org/x/mod/sumdb/dirhash",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":dirhash",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "dirhash_test",
++    srcs = ["hash_test.go"],
++    embed = [":dirhash"],
++)
+diff -urN a/sumdb/note/BUILD.bazel b/sumdb/note/BUILD.bazel
+--- a/sumdb/note/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/sumdb/note/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,23 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "note",
++    srcs = ["note.go"],
++    importpath = "golang.org/x/mod/sumdb/note",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":note",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "note_test",
++    srcs = [
++        "example_test.go",
++        "note_test.go",
++    ],
++    embed = [":note"],
++)
+diff -urN a/sumdb/storage/BUILD.bazel b/sumdb/storage/BUILD.bazel
+--- a/sumdb/storage/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/sumdb/storage/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,24 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "storage",
++    srcs = [
++        "mem.go",
++        "storage.go",
++        "test.go",
++    ],
++    importpath = "golang.org/x/mod/sumdb/storage",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":storage",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "storage_test",
++    srcs = ["mem_test.go"],
++    embed = [":storage"],
++)
+diff -urN a/sumdb/tlog/BUILD.bazel b/sumdb/tlog/BUILD.bazel
+--- a/sumdb/tlog/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/sumdb/tlog/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,29 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "tlog",
++    srcs = [
++        "note.go",
++        "tile.go",
++        "tlog.go",
++    ],
++    importpath = "golang.org/x/mod/sumdb/tlog",
++    visibility = ["//visibility:public"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":tlog",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "tlog_test",
++    srcs = [
++        "ct_test.go",
++        "note_test.go",
++        "tile_test.go",
++        "tlog_test.go",
++    ],
++    embed = [":tlog"],
++)
+diff -urN a/zip/BUILD.bazel b/zip/BUILD.bazel
+--- a/zip/BUILD.bazel	1970-01-01 01:00:00.000000000 +0100
++++ b/zip/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,30 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "zip",
++    srcs = ["zip.go"],
++    importpath = "golang.org/x/mod/zip",
++    visibility = ["//visibility:public"],
++    deps = ["//module"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":zip",
++    visibility = ["//visibility:public"],
++)
++
++go_test(
++    name = "zip_test",
++    srcs = [
++        "vendor_test.go",
++        "zip_test.go",
++    ],
++    data = glob(["testdata/**"]),
++    embed = [":zip"],
++    deps = [
++        "//module",
++        "//sumdb/dirhash",
++        "@org_golang_x_tools//txtar:go_default_library",
++    ],
++)

@@ -1,0 +1,12 @@
+diff --git a/BUILD.bazel b/BUILD.bazel
+index a57a1c3..0248e56 100644
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -40,7 +40,6 @@ nogo(
+     name = "nogo",
+     vet = True,
+     visibility = ["//visibility:public"],
+-    deps = ["@org_golang_x_tools//go/analysis/passes/copylock"],
+ )
+ 
+ exports_files([

@@ -157,6 +157,7 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 
 * @org_golang_x_tools//benchmark/parse:parse_test
 * @org_golang_x_tools//cmd/benchcmp:benchcmp_test
+* @org_golang_x_tools//cmd/bisect:bisect_test
 * @org_golang_x_tools//cmd/digraph:digraph_test
 * @org_golang_x_tools//cmd/getgo:getgo_test
 * @org_golang_x_tools//cmd/go-contrib-init:go-contrib-init_test
@@ -170,19 +171,22 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//go/callgraph/static:static_test
 * @org_golang_x_tools//go/callgraph/vta/internal/trie:trie_test
 * @org_golang_x_tools//go/cfg:cfg_test
-* @org_golang_x_tools//go/vcs:vcs_test
 * @org_golang_x_tools//godoc/redirect:redirect_test
 * @org_golang_x_tools//godoc/vfs:vfs_test
 * @org_golang_x_tools//godoc/vfs/gatefs:gatefs_test
 * @org_golang_x_tools//godoc/vfs/mapfs:mapfs_test
-* @org_golang_x_tools//internal/bug:bug_test
+* @org_golang_x_tools//internal/aliases:aliases_test
+* @org_golang_x_tools//internal/analysisinternal:analysisinternal_test
+* @org_golang_x_tools//internal/bisect:bisect_test
 * @org_golang_x_tools//internal/diff:diff_test
 * @org_golang_x_tools//internal/diff/lcs:lcs_test
 * @org_golang_x_tools//internal/diff/myers:myers_test
+* @org_golang_x_tools//internal/edit:edit_test
 * @org_golang_x_tools//internal/event:event_test
 * @org_golang_x_tools//internal/event/export:export_test
 * @org_golang_x_tools//internal/event/export/ocagent:ocagent_test
 * @org_golang_x_tools//internal/event/export/ocagent/wire:wire_test
+* @org_golang_x_tools//internal/event/keys:keys_test
 * @org_golang_x_tools//internal/event/label:label_test
 * @org_golang_x_tools//internal/fuzzy:fuzzy_test
 * @org_golang_x_tools//internal/gopathwalk:gopathwalk_test
@@ -190,11 +194,13 @@ This runs tests from the repository `golang.org/x/tools <https://golang.org/x/to
 * @org_golang_x_tools//internal/jsonrpc2/servertest:servertest_test
 * @org_golang_x_tools//internal/jsonrpc2_v2:jsonrpc2_v2_test
 * @org_golang_x_tools//internal/memoize:memoize_test
-* @org_golang_x_tools//internal/persistent:persistent_test
+* @org_golang_x_tools//internal/pprof:pprof_test
 * @org_golang_x_tools//internal/proxydir:proxydir_test
 * @org_golang_x_tools//internal/robustio:robustio_test
 * @org_golang_x_tools//internal/stack:stack_test
+* @org_golang_x_tools//internal/tokeninternal:tokeninternal_test
 * @org_golang_x_tools//internal/typesinternal:typesinternal_test
+* @org_golang_x_tools//internal/versions:versions_test
 * @org_golang_x_tools//playground/socket:socket_test
 * @org_golang_x_tools//refactor/satisfy:satisfy_test
 * @org_golang_x_tools//txtar:txtar_test
@@ -231,3 +237,5 @@ This runs tests from the repository `golang.org/x/mod <https://golang.org/x/mod>
 * @org_golang_x_mod//sumdb/dirhash:dirhash_test
 * @org_golang_x_mod//sumdb/note:note_test
 * @org_golang_x_mod//sumdb/storage:storage_test
+
+
