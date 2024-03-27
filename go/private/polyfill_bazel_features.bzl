@@ -22,7 +22,14 @@ def _polyfill_bazel_features_impl(rctx):
 
     find_cpp_toolchain_has_mandatory_param = major_version_int > 6 or (major_version_int == 6 and minor_version_int >= 1)
 
-    rctx.file("BUILD.bazel", """exports_files(["features.bzl"])
+    rctx.file("BUILD.bazel", """
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+bzl_library(
+    name = "features",
+    srcs = ["features.bzl"],
+    visibility = ["//visibility:public"],
+)
+exports_files(["features.bzl"])
 """)
     rctx.file("features.bzl", _POLYFILL_BAZEL_FEATURES.format(
         find_cpp_toolchain_has_mandatory_param = repr(find_cpp_toolchain_has_mandatory_param),
