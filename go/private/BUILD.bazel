@@ -89,7 +89,10 @@ bzl_library(
 
 bzl_library(
     name = "repositories",
-    srcs = ["polyfill_bazel_features.bzl", "repositories.bzl"],
+    srcs = [
+        "polyfill_bazel_features.bzl",
+        "repositories.bzl",
+    ],
     visibility = ["//go:__subpackages__"],
     # Don't list dependency on @bazel_tools//tools/build_defs/repo:http.bzl
     deps = [
