@@ -289,6 +289,11 @@ def _go_sdk_impl(ctx):
         sdk_versions = [toolchain.sdk_version for toolchain in toolchains],
     )
 
+    if bazel_features.external_deps.extension_metadata_has_reproducible:
+        return ctx.extension_metadata(reproducible = True)
+    else:
+        return None
+
 def _default_go_sdk_name(*, module, multi_version, tag_type, index, suffix = ""):
     # Keep the version out of the repository name if possible to prevent unnecessary rebuilds when
     # it changes.
