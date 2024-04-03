@@ -23,8 +23,16 @@ may change without notice.
 """
 
 load(
+    "//extras:gomock.bzl",
+    _gomock = "gomock",
+)
+load(
     "//go/private:context.bzl",
     _go_context = "go_context",
+)
+load(
+    "//go/private:go_toolchain.bzl",
+    _go_toolchain = "go_toolchain",
 )
 load(
     "//go/private:providers.bzl",
@@ -36,30 +44,8 @@ load(
     _GoSource = "GoSource",
 )
 load(
-    "//go/private/rules:sdk.bzl",
-    _go_sdk = "go_sdk",
-)
-load(
-    "//go/private:go_toolchain.bzl",
-    _go_toolchain = "go_toolchain",
-)
-load(
-    "//go/private/rules:wrappers.bzl",
-    _go_binary_macro = "go_binary_macro",
-    _go_library_macro = "go_library_macro",
-    _go_test_macro = "go_test_macro",
-)
-load(
-    "//go/private/rules:source.bzl",
-    _go_source = "go_source",
-)
-load(
-    "//extras:gomock.bzl",
-    _gomock = "gomock",
-)
-load(
-    "//go/private/tools:path.bzl",
-    _go_path = "go_path",
+    "//go/private/rules:cross.bzl",
+    _go_cross_binary = "go_cross_binary",
 )
 load(
     "//go/private/rules:library.bzl",
@@ -70,8 +56,22 @@ load(
     _nogo = "nogo_wrapper",
 )
 load(
-    "//go/private/rules:cross.bzl",
-    _go_cross_binary = "go_cross_binary",
+    "//go/private/rules:sdk.bzl",
+    _go_sdk = "go_sdk",
+)
+load(
+    "//go/private/rules:source.bzl",
+    _go_source = "go_source",
+)
+load(
+    "//go/private/rules:wrappers.bzl",
+    _go_binary_macro = "go_binary_macro",
+    _go_library_macro = "go_library_macro",
+    _go_test_macro = "go_test_macro",
+)
+load(
+    "//go/private/tools:path.bzl",
+    _go_path = "go_path",
 )
 
 _TOOLS_NOGO = [

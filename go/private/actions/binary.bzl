@@ -13,15 +13,15 @@
 # limitations under the License.
 
 load(
+    "//go/private:common.bzl",
+    "ARCHIVE_EXTENSION",
+    "has_shared_lib_extension",
+)
+load(
     "//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
-)
-load(
-    "//go/private:common.bzl",
-    "ARCHIVE_EXTENSION",
-    "has_shared_lib_extension",
 )
 
 def emit_binary(

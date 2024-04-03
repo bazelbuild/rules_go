@@ -13,12 +13,12 @@
 # limitations under the License.
 
 load(
-    "//go/private:context.bzl",
-    "go_context",
-)
-load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN",
+)
+load(
+    "//go/private:context.bzl",
+    "go_context",
 )
 
 def _go_info_impl(ctx):

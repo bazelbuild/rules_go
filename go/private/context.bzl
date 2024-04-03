@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
 load(
-    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
-    "find_cpp_toolchain",
+    "@bazel_skylib//rules:common_settings.bzl",
+    "BuildSettingInfo",
 )
 load(
     "@bazel_tools//tools/build_defs/cc:action_names.bzl",
@@ -26,6 +25,38 @@ load(
     "C_COMPILE_ACTION_NAME",
     "OBJCPP_COMPILE_ACTION_NAME",
     "OBJC_COMPILE_ACTION_NAME",
+)
+load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+)
+load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
+load(
+    "@io_bazel_rules_nogo//:scope.bzl",
+    NOGO_EXCLUDES = "EXCLUDES",
+    NOGO_INCLUDES = "INCLUDES",
+)
+load(
+    "//go/platform:apple.bzl",
+    "apple_ensure_options",
+)
+load(
+    "//go/private/rules:transition.bzl",
+    "request_nogo_transition",
+)
+load(
+    ":common.bzl",
+    "COVERAGE_OPTIONS_DENYLIST",
+    "GO_TOOLCHAIN",
+    "as_iterable",
+    "goos_to_extension",
+    "goos_to_shared_extension",
+    "is_struct",
+)
+load(
+    ":mode.bzl",
+    "get_mode",
+    "installsuffix",
 )
 load(
     ":providers.bzl",
@@ -40,37 +71,6 @@ load(
     "GoStdLib",
     "INFERRED_PATH",
     "get_source",
-)
-load(
-    ":mode.bzl",
-    "get_mode",
-    "installsuffix",
-)
-load(
-    ":common.bzl",
-    "COVERAGE_OPTIONS_DENYLIST",
-    "GO_TOOLCHAIN",
-    "as_iterable",
-    "goos_to_extension",
-    "goos_to_shared_extension",
-    "is_struct",
-)
-load(
-    "//go/platform:apple.bzl",
-    "apple_ensure_options",
-)
-load(
-    "@bazel_skylib//rules:common_settings.bzl",
-    "BuildSettingInfo",
-)
-load(
-    "//go/private/rules:transition.bzl",
-    "request_nogo_transition",
-)
-load(
-    "@io_bazel_rules_nogo//:scope.bzl",
-    NOGO_EXCLUDES = "EXCLUDES",
-    NOGO_INCLUDES = "INCLUDES",
 )
 
 # cgo requires a gcc/clang style compiler.

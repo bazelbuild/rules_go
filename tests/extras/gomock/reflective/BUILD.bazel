@@ -17,9 +17,9 @@ go_library(
 gomock(
     name = "mocks",
     out = "client_mock.go",
+    interfaces = ["Client"],
     library = ":client",
     package = "client",
-    interfaces = ["Client"],
     visibility = ["//visibility:public"],
 )
 

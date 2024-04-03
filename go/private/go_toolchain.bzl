@@ -15,6 +15,7 @@
 Toolchain rules used by go.
 """
 
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("//go/private:common.bzl", "GO_TOOLCHAIN")
 load("//go/private:platforms.bzl", "PLATFORMS")
 load("//go/private:providers.bzl", "GoSDK")
@@ -22,7 +23,6 @@ load("//go/private/actions:archive.bzl", "emit_archive")
 load("//go/private/actions:binary.bzl", "emit_binary")
 load("//go/private/actions:link.bzl", "emit_link")
 load("//go/private/actions:stdlib.bzl", "emit_stdlib")
-load("@bazel_skylib//lib:selects.bzl", "selects")
 
 def _go_toolchain_impl(ctx):
     sdk = ctx.attr.sdk[GoSDK]

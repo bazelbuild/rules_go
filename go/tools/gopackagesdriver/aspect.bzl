@@ -13,13 +13,13 @@
 # limitations under the License.
 
 load(
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
+)
+load(
     "//go/private:providers.bzl",
     "GoArchive",
     "GoStdLib",
-)
-load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
 )
 
 GoPkgInfo = provider()

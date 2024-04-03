@@ -19,6 +19,10 @@
 # anything has been declared.
 
 load(
+    "//go/private:nogo.bzl",
+    "go_register_nogo_wrapper",
+)
+load(
     "//go/private:repositories.bzl",
     _go_rules_dependencies = "go_rules_dependencies",
 )
@@ -29,10 +33,6 @@ load(
     _go_local_sdk = "go_local_sdk",
     _go_register_toolchains = "go_register_toolchains",
     _go_wrap_sdk = "go_wrap_sdk",
-)
-load(
-    "//go/private:nogo.bzl",
-    "go_register_nogo_wrapper",
 )
 
 go_rules_dependencies = _go_rules_dependencies

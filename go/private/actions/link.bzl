@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN_LABEL",
     "as_set",
@@ -29,10 +33,6 @@ load(
 load(
     "//go/private:rpath.bzl",
     "rpath",
-)
-load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
 )
 
 def _format_archive(d):

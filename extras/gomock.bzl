@@ -22,11 +22,11 @@
 # The rules in this files are still under development. Breaking changes are planned.
 # DO NOT USE IT.
 
-load("//go/private:context.bzl", "go_context")
-load("//go/private:common.bzl", "GO_TOOLCHAIN", "GO_TOOLCHAIN_LABEL")
-load("//go/private/rules:wrappers.bzl", go_binary = "go_binary_macro")
-load("//go/private:providers.bzl", "GoLibrary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//go/private:common.bzl", "GO_TOOLCHAIN", "GO_TOOLCHAIN_LABEL")
+load("//go/private:context.bzl", "go_context")
+load("//go/private:providers.bzl", "GoLibrary")
+load("//go/private/rules:wrappers.bzl", go_binary = "go_binary_macro")
 
 _MOCKGEN_TOOL = Label("//extras/gomock:mockgen")
 _MOCKGEN_MODEL_LIB = Label("//extras/gomock:mockgen_model")

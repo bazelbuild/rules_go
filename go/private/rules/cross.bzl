@@ -13,14 +13,14 @@
 # limitations under the License.
 
 load(
-    "//go/private/rules:transition.bzl",
-    "go_cross_transition",
-)
-load(
     "//go/private:providers.bzl",
     "GoArchive",
     "GoLibrary",
     "GoSource",
+)
+load(
+    "//go/private/rules:transition.bzl",
+    "go_cross_transition",
 )
 
 def _is_windows(ctx):

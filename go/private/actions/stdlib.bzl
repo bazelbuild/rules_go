@@ -18,14 +18,14 @@ load(
     "GO_TOOLCHAIN_LABEL",
 )
 load(
-    "//go/private:providers.bzl",
-    "GoStdLib",
-)
-load(
     "//go/private:mode.bzl",
     "LINKMODE_NORMAL",
     "extldflags_from_cc_toolchain",
     "link_mode_args",
+)
+load(
+    "//go/private:providers.bzl",
+    "GoStdLib",
 )
 load("//go/private:sdk.bzl", "parse_version")
 load("//go/private/actions:utils.bzl", "quote_opts")

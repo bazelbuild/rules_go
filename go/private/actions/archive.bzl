@@ -31,12 +31,12 @@ load(
     "get_archive",
 )
 load(
-    "//go/private/rules:cgo.bzl",
-    "cgo_configure",
-)
-load(
     "//go/private/actions:compilepkg.bzl",
     "emit_compilepkg",
+)
+load(
+    "//go/private/rules:cgo.bzl",
+    "cgo_configure",
 )
 
 def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_deps = None):

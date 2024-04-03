@@ -35,7 +35,10 @@ go_binary(
 
 go_binary(
     name = "asm_cross",
-    srcs = ["asm.s", "main.go"],
+    srcs = [
+        "asm.s",
+        "main.go",
+    ],
     goarch = "386",
     goos = "linux",
     deps = [":platform_lib"],

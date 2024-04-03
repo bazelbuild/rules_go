@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load(
-    "//go/private:context.bzl",
-    "go_context",
-)
-load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN",
     "asm_exts",
@@ -24,13 +20,8 @@ load(
     "go_exts",
 )
 load(
-    "//go/private:providers.bzl",
-    "GoLibrary",
-    "GoSDK",
-)
-load(
-    "//go/private/rules:transition.bzl",
-    "go_transition",
+    "//go/private:context.bzl",
+    "go_context",
 )
 load(
     "//go/private:mode.bzl",
@@ -40,6 +31,15 @@ load(
     "LINKMODE_C_SHARED",
     "LINKMODE_PLUGIN",
     "LINKMODE_SHARED",
+)
+load(
+    "//go/private:providers.bzl",
+    "GoLibrary",
+    "GoSDK",
+)
+load(
+    "//go/private/rules:transition.bzl",
+    "go_transition",
 )
 
 _EMPTY_DEPSET = depset([])

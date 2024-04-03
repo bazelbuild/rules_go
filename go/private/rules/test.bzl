@@ -13,8 +13,8 @@
 # limitations under the License.
 
 load(
-    "//go/private:context.bzl",
-    "go_context",
+    "@bazel_skylib//lib:structs.bzl",
+    "structs",
 )
 load(
     "//go/private:common.bzl",
@@ -27,8 +27,12 @@ load(
     "split_srcs",
 )
 load(
-    "//go/private/rules:binary.bzl",
-    "gc_linkopts",
+    "//go/private:context.bzl",
+    "go_context",
+)
+load(
+    "//go/private:mode.bzl",
+    "LINKMODES",
 )
 load(
     "//go/private:providers.bzl",
@@ -39,16 +43,12 @@ load(
     "get_archive",
 )
 load(
+    "//go/private/rules:binary.bzl",
+    "gc_linkopts",
+)
+load(
     "//go/private/rules:transition.bzl",
     "go_transition",
-)
-load(
-    "//go/private:mode.bzl",
-    "LINKMODES",
-)
-load(
-    "@bazel_skylib//lib:structs.bzl",
-    "structs",
 )
 
 def _go_test_impl(ctx):

@@ -13,11 +13,8 @@
 # limitations under the License.
 
 load(
-    "//go/private:providers.bzl",
-    "GoArchive",
-    "GoPath",
-    "effective_importpath_pkgpath",
-    "get_archive",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
     "//go/private:common.bzl",
@@ -25,8 +22,11 @@ load(
     "as_list",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "//go/private:providers.bzl",
+    "GoArchive",
+    "GoPath",
+    "effective_importpath_pkgpath",
+    "get_archive",
 )
 
 def _go_path_impl(ctx):

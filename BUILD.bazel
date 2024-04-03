@@ -1,16 +1,4 @@
 load(
-    "//go/private/tools:lines_sorted_test.bzl",
-    "lines_sorted_test",
-)
-load(
-    "//go/private/rules:nogo.bzl",
-    "nogo",
-)
-load(
-    "//go/private/rules:info.bzl",
-    "go_info",
-)
-load(
     "//go:def.bzl",
     "TOOLS_NOGO",
 )
@@ -22,8 +10,20 @@ load(
     "go_context_data",
 )
 load(
+    "//go/private/rules:info.bzl",
+    "go_info",
+)
+load(
+    "//go/private/rules:nogo.bzl",
+    "nogo",
+)
+load(
     "//go/private/rules:stdlib.bzl",
     "stdlib",
+)
+load(
+    "//go/private/tools:lines_sorted_test.bzl",
+    "lines_sorted_test",
 )
 
 # gazelle:prefix github.com/bazelbuild/rules_go

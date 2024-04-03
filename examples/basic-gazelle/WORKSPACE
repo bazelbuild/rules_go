@@ -23,12 +23,12 @@ http_archive(
     ],
 )
 
-# Load rules_go ruleset and expose the toolchain and dep rules.
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-
 # the line below instructs gazelle to save the go dependency definitions
 # in the deps.bzl file. Located under '//'.
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+# Load rules_go ruleset and expose the toolchain and dep rules.
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 ############################################################
 # Define your own dependencies here using go_repository.

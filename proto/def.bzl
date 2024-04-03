@@ -13,19 +13,18 @@
 # limitations under the License.
 
 load(
-    "//go:def.bzl",
-    "GoLibrary",
-    "GoSource",
-    "go_context",
-)
-load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
 load(
-    "//proto:compiler.bzl",
-    "GoProtoCompiler",
-    "proto_path",
+    "@rules_proto//proto:defs.bzl",
+    "ProtoInfo",
+)
+load(
+    "//go:def.bzl",
+    "GoLibrary",
+    "GoSource",
+    "go_context",
 )
 load(
     "//go/private:common.bzl",
@@ -36,8 +35,9 @@ load(
     "non_go_tool_transition",
 )
 load(
-    "@rules_proto//proto:defs.bzl",
-    "ProtoInfo",
+    "//proto:compiler.bzl",
+    "GoProtoCompiler",
+    "proto_path",
 )
 
 GoProtoImports = provider()
