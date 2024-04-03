@@ -28,6 +28,10 @@ load(
     "get_archive",
 )
 load(
+    "//go/private/rules:execgroup.bzl",
+    "RULES_GO_EXEC_GROUPS",
+)
+load(
     "//go/private/rules:transition.bzl",
     "go_tool_transition",
 )
@@ -106,6 +110,7 @@ _nogo = rule(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
+    exec_groups = RULES_GO_EXEC_GROUPS,
     toolchains = [GO_TOOLCHAIN],
     cfg = go_tool_transition,
 )

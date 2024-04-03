@@ -43,6 +43,10 @@ load(
     "go_transition",
 )
 load(
+    "//go/private/rules:execgroup.bzl",
+    "RULES_GO_EXEC_GROUPS",
+)
+load(
     "//go/private:mode.bzl",
     "LINKMODES",
 )
@@ -444,6 +448,7 @@ _go_test_kwargs = {
     },
     "executable": True,
     "test": True,
+    "exec_groups": RULES_GO_EXEC_GROUPS,
     "toolchains": [GO_TOOLCHAIN],
     "doc": """This builds a set of tests that can be run with `bazel test`.<br><br>
     To run all tests in the workspace, and print output on failure (the
