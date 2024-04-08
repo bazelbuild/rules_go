@@ -837,6 +837,7 @@ def _cgo_context_data_impl(ctx):
             ld_static_lib_path = ld_static_lib_path,
             ld_dynamic_lib_path = ld_dynamic_lib_path,
             ld_dynamic_lib_options = ld_dynamic_lib_options,
+            ar_path = cc_toolchain.ar_executable,
         ),
     )]
 

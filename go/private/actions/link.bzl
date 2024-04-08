@@ -89,6 +89,10 @@ def emit_link(
     builder_args = go.builder_args(go, "link")
     tool_args = go.tool_args(go)
 
+    # use ar tool from cc toolchain if cc toolchain provides it
+    if go.cgo_tools and go.cgo_tools.ar_path and go.cgo_tools.ar_path.endswith("ar"):
+        tool_args.add_all(["-extar", go.cgo_tools.ar_path])
+
     # Add in any mode specific behaviours
     if go.mode.race:
         tool_args.add("-race")
