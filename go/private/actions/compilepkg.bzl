@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//go/private:common.bzl", "GO_TOOLCHAIN_LABEL")
+load("//go/private:common.bzl", "GO_TOOLCHAIN_LABEL", "SUPPORTS_PATH_MAPPING_REQUIREMENT")
 load(
     "//go/private:mode.bzl",
     "link_mode_args",
@@ -86,9 +86,8 @@ def emit_compilepkg(
               [archive.data.export_file for archive in archives] +
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
     outputs = [out_lib, out_export]
-    env = go.env
 
-    args = go.builder_args(go, "compilepkg")
+    args = go.builder_args(go, "compilepkg", use_path_mapping = True)
     args.add_all(sources, before_each = "-src")
     args.add_all(embedsrcs, before_each = "-embedsrc", expand_directories = False)
     args.add_all(
@@ -155,7 +154,15 @@ def emit_compilepkg(
     args.add("-gcflags", quote_opts(gc_flags))
     args.add("-asmflags", quote_opts(asm_flags))
 
-    env = go.env
+    # cgo and the linker action don't support path mapping yet
+    # TODO: Remove the second condition after https://github.com/bazelbuild/bazel/pull/21921.
+    if cgo or "local" in go._ctx.attr.tags:
+        # cgo doesn't support path mapping yet
+        env = go.env
+        execution_requirements = {}
+    else:
+        env = go.env_for_path_mapping
+        execution_requirements = SUPPORTS_PATH_MAPPING_REQUIREMENT
     if cgo:
         inputs.extend(cgo_inputs.to_list())  # OPT: don't expand depset
         inputs.extend(go.crosstool)
@@ -183,6 +190,7 @@ def emit_compilepkg(
         mnemonic = "GoCompilePkgExternal" if is_external_pkg else "GoCompilePkg",
         executable = go.toolchain._builder,
         arguments = [args],
-        env = go.env,
+        env = env,
         toolchain = GO_TOOLCHAIN_LABEL,
+        execution_requirements = execution_requirements,
     )

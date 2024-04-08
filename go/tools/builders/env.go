@@ -48,6 +48,9 @@ type env struct {
 	// platform. This may be different than GOROOT.
 	sdk string
 
+	// goroot is set as the value of GOROOT if non-empty.
+	goroot string
+
 	// installSuffix is the name of the directory below GOROOT/pkg that contains
 	// the .a files for the standard library we should build against.
 	// For example, linux_amd64_race.
@@ -67,6 +70,7 @@ type env struct {
 func envFlags(flags *flag.FlagSet) *env {
 	env := &env{}
 	flags.StringVar(&env.sdk, "sdk", "", "Path to the Go SDK.")
+	flags.StringVar(&env.goroot, "goroot", "", "The value to set for GOROOT.")
 	flags.Var(&tagFlag{}, "tags", "List of build tags considered true.")
 	flags.StringVar(&env.installSuffix, "installsuffix", "", "Standard library under GOROOT/pkg")
 	flags.BoolVar(&env.verbose, "v", false, "Whether subprocess command lines should be printed")
@@ -74,11 +78,17 @@ func envFlags(flags *flag.FlagSet) *env {
 	return env
 }
 
-// checkFlags checks whether env flags were set to valid values. checkFlags
-// should be called after parsing flags.
-func (e *env) checkFlags() error {
+// checkFlagsAndSetGoroot checks whether env flags were set to valid values and sets GOROOT.
+// checkFlagsAndSetGoroot should be called after parsing flags.
+func (e *env) checkFlagsAndSetGoroot() error {
 	if e.sdk == "" {
 		return errors.New("-sdk was not set")
+	}
+	if e.goroot != "" {
+		err := os.Setenv("GOROOT", e.goroot)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -160,13 +160,28 @@ def _new_args(go):
     # TODO(jayconrod): print warning.
     return go.builder_args(go)
 
-def _builder_args(go, command = None):
+def _dirname(file):
+    return file.dirname
+
+def _builder_args(go, command = None, use_path_mapping = False):
     args = go.actions.args()
     args.use_param_file("-param=%s")
     args.set_param_file_format("shell")
     if command:
         args.add(command)
     args.add("-sdk", go.sdk.root_file.dirname)
+
+    # Path mapping can't map the values of environment variables, so we need to pass GOROOT to the
+    # action via an argument instead.
+    if use_path_mapping:
+        if go.stdlib:
+            goroot_file = go.stdlib.root_file
+        else:
+            goroot_file = go.sdk_root
+
+        # Use a file rather than goroot as the latter is just a string and thus
+        # not subject to path mapping.
+        args.add_all("-goroot", [goroot_file], map_each = _dirname, expand_directories = False)
     args.add("-installsuffix", installsuffix(go.mode))
     args.add_joined("-tags", go.tags, join_with = ",")
     return args
@@ -487,6 +502,12 @@ def go_context(ctx, attr = None):
         "GOTOOLCHAIN": "local",
     }
 
+    # Path mapping can't map the values of environment variables, so we pass GOROOT to the action
+    # via an argument instead in builder_args. We need to drop it from the environment to get cache
+    # hits across different configurations since the stdlib path typically contains a Bazel
+    # configuration segment.
+    env_for_path_mapping = {k: v for k, v in env.items() if k != "GOROOT"}
+
     # The level of support is determined by the platform constraints in
     # //go/constraints/amd64.
     # See https://go.dev/wiki/MinimumRequirements#amd64
@@ -572,6 +593,7 @@ def go_context(ctx, attr = None):
         coverage_enabled = ctx.configuration.coverage_enabled,
         coverage_instrumented = ctx.coverage_instrumented(),
         env = env,
+        env_for_path_mapping = env_for_path_mapping,
         tags = tags,
         stamp = mode.stamp,
         label = ctx.label,

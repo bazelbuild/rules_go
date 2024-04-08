@@ -88,7 +88,7 @@ func compilePkg(args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	if err := goenv.checkFlags(); err != nil {
+	if err := goenv.checkFlagsAndSetGoroot(); err != nil {
 		return err
 	}
 	if importPath == "" {

@@ -54,7 +54,7 @@ func link(args []string) error {
 	if err := flags.Parse(builderArgs); err != nil {
 		return err
 	}
-	if err := goenv.checkFlags(); err != nil {
+	if err := goenv.checkFlagsAndSetGoroot(); err != nil {
 		return err
 	}
 
