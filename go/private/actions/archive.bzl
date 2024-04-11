@@ -75,7 +75,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         files.append(a.runfiles)
         if a.source.mode != go.mode:
             fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
-    runfiles.merge_all(files)
+    runfiles = runfiles.merge_all(files)
 
     importmap = "main" if source.library.is_main else source.library.importmap
     importpath, _ = effective_importpath_pkgpath(source.library)
