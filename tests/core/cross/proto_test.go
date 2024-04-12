@@ -21,6 +21,19 @@ import (
 )
 
 var testArgs = bazel_testing.Args{
+	WorkspacePrefix: `
+# The non-polyfill version of this is needed by rules_proto below.
+http_archive(
+    name = "bazel_features",
+    sha256 = "d7787da289a7fb497352211ad200ec9f698822a9e0757a4976fd9f713ff372b3",
+    strip_prefix = "bazel_features-1.9.1",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.9.1/bazel_features-v1.9.1.tar.gz",
+)
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+`,
 	WorkspaceSuffix: `
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

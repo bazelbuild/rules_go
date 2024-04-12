@@ -77,6 +77,10 @@ type Args struct {
 	// NogoExcludes is the list of targets to include for Nogo linting.
 	NogoExcludes []string
 
+	// WorkspacePrefix is a string that should be inserted at the beginning
+	// of the default generated WORKSPACE file.
+	WorkspacePrefix string
+
 	// WorkspaceSuffix is a string that should be appended to the end
 	// of the default generated WORKSPACE file.
 	WorkspaceSuffix string
@@ -90,7 +94,7 @@ type Args struct {
 	// workspace. It is executed once and only once before the beginning of
 	// all tests. If SetUp returns a non-nil error, execution is halted and
 	// tests cases are not executed.
-	SetUp func() error
+	SetUp           func() error
 }
 
 // debug may be set to make the test print the test workspace path and stop
@@ -409,6 +413,7 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 			}
 		}()
 		info := workspaceTemplateInfo{
+			Prefix:       args.WorkspacePrefix,
 			Suffix:       args.WorkspaceSuffix,
 			Nogo:         args.Nogo,
 			NogoIncludes: args.NogoIncludes,
@@ -538,6 +543,7 @@ type workspaceTemplateInfo struct {
 	Nogo           string
 	NogoIncludes   []string
 	NogoExcludes   []string
+	Prefix         string
 	Suffix         string
 }
 
@@ -548,6 +554,8 @@ local_repository(
     path = "../{{.}}",
 )
 {{end}}
+
+{{.Prefix}}
 
 {{if not .GoSDKPath}}
 load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
