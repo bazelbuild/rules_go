@@ -21,7 +21,6 @@ load(
 )
 load(
     "//go/private/rules:transition.bzl",
-    "go_reset_target",
     "non_go_tool_transition",
 )
 
