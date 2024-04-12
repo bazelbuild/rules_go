@@ -18,7 +18,6 @@ load(
 )
 load(
     "@rules_proto//proto:proto_common.bzl",
-    "ProtoLangToolchainInfo",
     proto_toolchains = "toolchains",
 )
 load(
