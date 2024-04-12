@@ -22,6 +22,8 @@ import (
 
 var testArgs = bazel_testing.Args{
 	WorkspacePrefix: `
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 # The non-polyfill version of this is needed by rules_proto below.
 http_archive(
     name = "bazel_features",
