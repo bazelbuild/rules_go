@@ -127,6 +127,7 @@ go_proto_compiler(
 non_go_reset_target(
     name = "protoc",
     dep = "@com_google_protobuf//:protoc",
+    deprecation = "No longer used by rules_go, will be removed in a future release.",
     visibility = ["//visibility:public"],
 )
 

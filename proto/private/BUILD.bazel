@@ -1,0 +1,6 @@
+load(":toolchain.bzl", "legacy_proto_toolchain")
+
+legacy_proto_toolchain(
+    name = "legacy_proto_toolchain",
+    visibility = ["//proto:__pkg__"],
+)

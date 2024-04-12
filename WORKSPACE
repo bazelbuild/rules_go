@@ -3,9 +3,60 @@ workspace(name = "io_bazel_rules_go")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
+# Required by toolchains_protoc.
+http_archive(
+    name = "platforms",
+    sha256 = "5eda539c841265031c2f82d8ae7a3a6490bd62176e0c038fc469eabf91f6149b",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
+    ],
+)
+
+# The non-polyfill version of this is needed by rules_proto below.
+http_archive(
+    name = "bazel_features",
+    sha256 = "d7787da289a7fb497352211ad200ec9f698822a9e0757a4976fd9f713ff372b3",
+    strip_prefix = "bazel_features-1.9.1",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.9.1/bazel_features-v1.9.1.tar.gz",
+)
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
 go_rules_dependencies()
 
 go_register_toolchains(version = "1.21.8")
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "71fdbed00a0709521ad212058c60d13997b922a5d01dbfd997f0d57d689e7b67",
+    strip_prefix = "rules_proto-6.0.0-rc2",
+    url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.0-rc2/rules_proto-6.0.0-rc2.tar.gz",
+)
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+
+rules_proto_dependencies()
+
+load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+
+rules_proto_toolchains()
+
+http_archive(
+    name = "toolchains_protoc",
+    sha256 = "b312e6de6485e01f753cb87fa09b4193f1762593141790dd0a90abf5e520b1d7",
+    strip_prefix = "toolchains_protoc-0.2.1",
+    url = "https://github.com/alexeagle/toolchains_protoc/releases/download/v0.2.1/toolchains_protoc-v0.2.1.tar.gz",
+)
+
+load("@toolchains_protoc//protoc:toolchain.bzl", "protoc_toolchains")
+
+protoc_toolchains(
+    name = "protoc_toolchains",
+    version = "v25.3",
+)
 
 http_archive(
     name = "com_google_protobuf",

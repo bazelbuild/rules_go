@@ -74,6 +74,22 @@ tasks:
       - "@go_default_sdk//..."
     test_targets:
       - "//..."
+  bcr_tests_proto:
+    name: BCR test module (--incompatible_enable_proto_toolchain_resolution)
+    platform: ${{ platform }}
+    bazel: 7.1.1
+    working_directory: tests/bcr
+    build_flags:
+      - "--allow_yanked_versions=all"
+      - "--incompatible_enable_proto_toolchain_resolution"
+    test_flags:
+      - "--allow_yanked_versions=all"
+      - "--incompatible_enable_proto_toolchain_resolution"
+    build_targets:
+      - "//..."
+      - "@go_default_sdk//..."
+    test_targets:
+      - "//..."
   macos:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
