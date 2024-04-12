@@ -212,7 +212,7 @@ def _go_proto_compiler_impl(ctx):
 
 _go_proto_compiler = rule(
     implementation = _go_proto_compiler_impl,
-    attrs = {
+    attrs = dict({
         "deps": attr.label_list(providers = [GoLibrary]),
         "options": attr.string_list(),
         "suffix": attr.string(default = ".pb.go"),
@@ -232,7 +232,7 @@ _go_proto_compiler = rule(
         "_go_context_data": attr.label(
             default = "//:go_context_data",
         ),
-    } | proto_toolchains.if_legacy_toolchain({
+    }, **proto_toolchains.if_legacy_toolchain({
         "_legacy_proto_toolchain": attr.label(
             # Setting cfg = "exec" here as the legacy_proto_toolchain target
             # already needs to apply the non_go_tool_transition. Flipping the
@@ -241,7 +241,7 @@ _go_proto_compiler = rule(
             cfg = "exec",
             default = "//proto/private:legacy_proto_toolchain",
         ),
-    }),
+    })),
     toolchains = [GO_TOOLCHAIN] + proto_toolchains.use_toolchain(_PROTO_TOOLCHAIN_TYPE),
 )
 
