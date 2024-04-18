@@ -5,7 +5,6 @@ go_tool_library(
     srcs = [
         "lcov.go",
         "test2json.go",
-        "timeout.go",
         "wrap.go",
         "xml.go",
     ],
