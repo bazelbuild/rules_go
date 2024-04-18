@@ -243,7 +243,7 @@ func main() {
 		flag.Lookup("test.timeout").Value.Set(testTimeout+"s")
 		// If Bazel sends a SIGTERM because the test timed out, it sends it to all child processes. Because
 		// we already set -test.timeout according to the TEST_TIMEOUT, we need to ignore the signal so the
-		// test has time to clean up. It will be killed by Bazel after the grace period instead.
+		// test has time to clean up. It will be killed by Bazel after the grace period (15s) expires.
 		signal.Ignore(syscall.SIGTERM)
 	}
 

@@ -125,10 +125,10 @@ func Wrap(pkg string) error {
 		exePath = filepath.Join(chdir.TestExecDir, exePath)
 	}
 
-	// If Bazel sends a SIGTERM because the test timed out, it sends it to all child processes. As
-	// a result, the child process will print stack traces of all Go routines and we want the
-	// wrapper to be around to capute and forward this output. Thus, we need to ignore the signal
-	// and will be killed by Bazel after the grace period instead.
+	// Bazel sends a SIGTERM because the test timed out. However, we instead set -test.timeout to the
+	// Go test, allowing it to properly clean up and log stack trace and want the wrapper to be around
+	// to capute and forward this output. Thus, we need to ignore the signal. The test and this warpper
+	// will be killed by Bazel after the grace period (15s) expires.
 	signal.Ignore(syscall.SIGTERM)
 
 	cmd := exec.Command(exePath, args...)
