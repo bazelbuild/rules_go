@@ -71,6 +71,8 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "bazel_gazelle",
+    patch_args = ["-p1"],
+    patches = ["//third_party:bazel-gazelle.patch"],
     sha256 = "b7387f72efb59f876e4daae42f1d3912d0d45563eac7cb23d1de0b094ab588cf",
     urls = [
         "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.34.0/bazel-gazelle-v0.34.0.tar.gz",
@@ -99,8 +101,8 @@ go_repository(
 go_repository(
     name = "org_golang_x_mod",
     importpath = "golang.org/x/mod",
-    sum = "h1:KENHtAZL2y3NLMYZeHY9DW8HW8V+kQyJsY/V9JlKvCs=",
-    version = "v0.9.0",
+    sum = "h1:SernR4v+D55NyBH2QiEQrlBAnj1ECL6AGrA5+dPaMY8=",
+    version = "v0.15.0",
 )
 
 go_repository(

@@ -140,11 +140,49 @@ def nogo(name, visibility = None, **kwargs):
 def nogo_wrapper(**kwargs):
     if kwargs.get("vet"):
         kwargs["deps"] = kwargs.get("deps", []) + [
-            Label("@org_golang_x_tools//go/analysis/passes/atomic:go_default_library"),
-            Label("@org_golang_x_tools//go/analysis/passes/bools:go_default_library"),
-            Label("@org_golang_x_tools//go/analysis/passes/buildtag:go_default_library"),
-            Label("@org_golang_x_tools//go/analysis/passes/nilfunc:go_default_library"),
-            Label("@org_golang_x_tools//go/analysis/passes/printf:go_default_library"),
+            Label("@org_golang_x_tools//go/analysis/passes/{}".format(p))
+            for p in [
+                # Taken from 'go tool vet help'.
+                # keep sorted
+                "appends",
+                "asmdecl",
+                "assign",
+                "atomic",
+                "bools",
+                "buildtag",
+                "cgocall",
+                # note that the 'go tool vet help' documented this
+                # with a plural name 'composites'.
+                # The actual package is singular.
+                "composite",
+                # note that the 'go tool vet help' documented this
+                # with a plural name 'copylocks'.
+                # The actual package is singular.
+                "copylock",
+                "defers",
+                "directive",
+                "errorsas",
+                "framepointer",
+                "httpresponse",
+                "ifaceassert",
+                "loopclosure",
+                "lostcancel",
+                "nilfunc",
+                "printf",
+                "shift",
+                "sigchanyzer",
+                "slog",
+                "stdmethods",
+                "stringintconv",
+                "structtag",
+                "testinggoroutine",
+                "tests",
+                "timeformat",
+                "unmarshal",
+                "unreachable",
+                "unsafeptr",
+                "unusedresult",
+            ]
         ]
         kwargs = {k: v for k, v in kwargs.items() if k != "vet"}
     nogo(**kwargs)

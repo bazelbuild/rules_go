@@ -65,13 +65,13 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_tools",
-        # v0.15.0, latest as of 2023-11-16
+        # v0.18.0, latest as of 2024-03-26
         urls = [
-            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.15.0.zip",
-            "https://github.com/golang/tools/archive/refs/tags/v0.15.0.zip",
+            "https://mirror.bazel.build/github.com/golang/tools/archive/refs/tags/v0.18.0.zip",
+            "https://github.com/golang/tools/archive/refs/tags/v0.18.0.zip",
         ],
-        sha256 = "e76a03b11719138502c7fef44d5e1dc4469f8c2fcb2ee4a1d96fb09aaea13362",
-        strip_prefix = "tools-0.15.0",
+        sha256 = "5b79d9c1a66bd27fd5ba3db6b9f1e3e7dcc201df7d2a11281424129ac2db56ae",
+        strip_prefix = "tools-0.18.0",
         patches = [
             # deletegopls removes the gopls subdirectory. It contains a nested
             # module with additional dependencies. It's not needed by rules_go.
@@ -106,16 +106,35 @@ def go_rules_dependencies(force = False):
     wrapper(
         http_archive,
         name = "org_golang_x_sys",
-        # v0.15.0, latest as of 2023-12-15
+        # v0.18.0, latest as of 2024-03-26
         urls = [
-            "https://mirror.bazel.build/github.com/golang/sys/archive/refs/tags/v0.15.0.zip",
-            "https://github.com/golang/sys/archive/refs/tags/v0.15.0.zip",
+            "https://mirror.bazel.build/github.com/golang/sys/archive/refs/tags/v0.18.0.zip",
+            "https://github.com/golang/sys/archive/refs/tags/v0.18.0.zip",
         ],
-        sha256 = "36e7b6587b60eabebcd5102211ef5fabc6c6f40d93dd0db83dcefd13cdeb1b71",
-        strip_prefix = "sys-0.15.0",
+        sha256 = "d5ffb367cf0b672a6b97e2e0cf775dbae36276986485cf665cef5fd677563651",
+        strip_prefix = "sys-0.18.0",
         patches = [
             # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/sys -go_naming_convention import_alias
             Label("//third_party:org_golang_x_sys-gazelle.patch"),
+        ],
+        patch_args = ["-p1"],
+    )
+
+    # Needed by golang.org/x/tools
+    # releaser:upgrade-dep golang mod
+    wrapper(
+        http_archive,
+        name = "org_golang_x_mod",
+        # v0.16.0, latest as of 2024-03-26
+        urls = [
+            "https://mirror.bazel.build/github.com/golang/mod/archive/refs/tags/v0.16.0.zip",
+            "https://github.com/golang/mod/archive/refs/tags/v0.16.0.zip",
+        ],
+        sha256 = "429f03a3eb0982540cc6b9bdfd1bc1e8dd07d43708a4e92aae6848b25316575e",
+        strip_prefix = "mod-0.16.0",
+        patches = [
+            # releaser:patch-cmd gazelle -repo_root . -go_prefix golang.org/x/mod -go_naming_convention import_alias
+            Label("//third_party:org_golang_x_mod-gazelle.patch"),
         ],
         patch_args = ["-p1"],
     )
