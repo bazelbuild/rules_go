@@ -479,7 +479,7 @@ diff -urN a/unix/internal/mkmerge/BUILD.bazel b/unix/internal/mkmerge/BUILD.baze
 diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 --- a/windows/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/windows/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,54 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -522,6 +522,7 @@ diff -urN a/windows/BUILD.bazel b/windows/BUILD.bazel
 +go_test(
 +    name = "windows_test",
 +    srcs = [
++        "env_windows_test.go",
 +        "syscall_test.go",
 +        "syscall_windows_test.go",
 +    ],
