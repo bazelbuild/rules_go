@@ -147,8 +147,8 @@ use_repo(
 )
 ```
 
-Bazel emits a warning if the `use_repo` statement is out of date or missing entirely (requires Bazel 6.2.0 or higher).
-The warning contains a `buildozer` command to automatically fix the `MODULE.bazel` file (requires buildozer 6.1.1 or higher).
+When using Bazel 7.1.1 or higher, the [`@rules_go//go` target](#using-a-go-sdk) automatically updates the `use_repo` call whenever the `go.mod` file changes, using `bazel mod tidy`.
+With older versions of Bazel, a warning with a fixup command will be emitted during a build if the `use_repo` call is out of date or missing.
 
 Alternatively, you can specify a module extension tag to add an individual dependency:
 

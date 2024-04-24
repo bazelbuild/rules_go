@@ -5,3 +5,5 @@
 /examples/*/bazel-*
 /.ijwb/
 /tests/bcr/.ijwb/
+
+MODULE.bazel.lock
