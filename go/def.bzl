@@ -23,8 +23,16 @@ may change without notice.
 """
 
 load(
+    "//extras:gomock.bzl",
+    _gomock = "gomock",
+)
+load(
     "//go/private:context.bzl",
     _go_context = "go_context",
+)
+load(
+    "//go/private:go_toolchain.bzl",
+    _go_toolchain = "go_toolchain",
 )
 load(
     "//go/private:providers.bzl",
@@ -36,30 +44,8 @@ load(
     _GoSource = "GoSource",
 )
 load(
-    "//go/private/rules:sdk.bzl",
-    _go_sdk = "go_sdk",
-)
-load(
-    "//go/private:go_toolchain.bzl",
-    _go_toolchain = "go_toolchain",
-)
-load(
-    "//go/private/rules:wrappers.bzl",
-    _go_binary_macro = "go_binary_macro",
-    _go_library_macro = "go_library_macro",
-    _go_test_macro = "go_test_macro",
-)
-load(
-    "//go/private/rules:source.bzl",
-    _go_source = "go_source",
-)
-load(
-    "//extras:gomock.bzl",
-    _gomock = "gomock",
-)
-load(
-    "//go/private/tools:path.bzl",
-    _go_path = "go_path",
+    "//go/private/rules:cross.bzl",
+    _go_cross_binary = "go_cross_binary",
 )
 load(
     "//go/private/rules:library.bzl",
@@ -70,15 +56,25 @@ load(
     _nogo = "nogo_wrapper",
 )
 load(
-    "//go/private/rules:cross.bzl",
-    _go_cross_binary = "go_cross_binary",
+    "//go/private/rules:sdk.bzl",
+    _go_sdk = "go_sdk",
+)
+load(
+    "//go/private/rules:source.bzl",
+    _go_source = "go_source",
+)
+load(
+    "//go/private/rules:wrappers.bzl",
+    _go_binary_macro = "go_binary_macro",
+    _go_library_macro = "go_library_macro",
+    _go_test_macro = "go_test_macro",
+)
+load(
+    "//go/private/tools:path.bzl",
+    _go_path = "go_path",
 )
 
-# TOOLS_NOGO is a list of all analysis passes in
-# golang.org/x/tools/go/analysis/passes.
-# This is not backward compatible, so use caution when depending on this --
-# new analyses may discover issues in existing builds.
-TOOLS_NOGO = [
+_TOOLS_NOGO = [
     "@org_golang_x_tools//go/analysis/passes/asmdecl:go_default_library",
     "@org_golang_x_tools//go/analysis/passes/assign:go_default_library",
     "@org_golang_x_tools//go/analysis/passes/atomic:go_default_library",
@@ -117,9 +113,15 @@ TOOLS_NOGO = [
     "@org_golang_x_tools//go/analysis/passes/unusedresult:go_default_library",
 ]
 
+# TOOLS_NOGO is a list of all analysis passes in
+# golang.org/x/tools/go/analysis/passes.
+# This is not backward compatible, so use caution when depending on this --
+# new analyses may discover issues in existing builds.
+TOOLS_NOGO = [str(Label(l)) for l in _TOOLS_NOGO]
+
 # Current version or next version to be tagged. Gazelle and other tools may
 # check this to determine compatibility.
-RULES_GO_VERSION = "0.43.0"
+RULES_GO_VERSION = "0.47.0"
 
 go_context = _go_context
 gomock = _gomock

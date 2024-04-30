@@ -260,7 +260,15 @@ rule.  Instead, it's referenced in the ``data`` field of GoArchive_.
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`file`                  | :type:`File`                                                    |
 +--------------------------------+-----------------------------------------------------------------+
-| The archive file produced when this library is compiled.                                         |
+| The archive file for the linker produced when this library is compiled.                          |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`export_file`           | :type:`File`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| The archive file for compilation of dependent libraries produced when this library is compiled.  |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`facts_file`            | :type:`File`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| The serialized facts for this library produced when nogo ran for this library.                   |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`srcs`                  | :type:`tuple of File`                                           |
 +--------------------------------+-----------------------------------------------------------------+

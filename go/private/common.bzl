@@ -262,3 +262,6 @@ _RULES_GO_RAW_REPO_NAME = str(Label("//:unused"))[:-len("//:unused")]
 # not start with a "@", so we need to add it.
 RULES_GO_REPO_NAME = _RULES_GO_RAW_REPO_NAME if _RULES_GO_RAW_REPO_NAME.startswith("@") else "@" + _RULES_GO_RAW_REPO_NAME
 RULES_GO_STDLIB_PREFIX = RULES_GO_REPO_NAME + "//stdlib:"
+
+# TODO: Remove the "and" once the rules_go repo itself uses Bzlmod.
+RULES_GO_IS_BZLMOD_REPO = _RULES_GO_RAW_REPO_NAME.lstrip("@") != "io_bazel_rules_go" and _RULES_GO_RAW_REPO_NAME.lstrip("@")

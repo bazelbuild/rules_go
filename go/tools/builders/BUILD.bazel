@@ -1,6 +1,6 @@
 load("//go:def.bzl", "go_binary", "go_source", "go_test")
-load("//go/private/rules:transition.bzl", "go_reset_target")
 load("//go/private:common.bzl", "RULES_GO_STDLIB_PREFIX")
+load("//go/private/rules:transition.bzl", "go_reset_target")
 
 go_test(
     name = "filter_test",
@@ -76,7 +76,6 @@ filegroup(
         "generate_test_main.go",
         "importcfg.go",
         "link.go",
-        "pack.go",
         "read.go",
         "replicate.go",
         "stdlib.go",
@@ -97,7 +96,6 @@ go_source(
         "nogo_typeparams_go117.go",
         "nogo_typeparams_go118.go",
         "nolint.go",
-        "pack.go",
     ],
     # //go/tools/builders:nogo_srcs is considered a different target by
     # Bazel's visibility check than

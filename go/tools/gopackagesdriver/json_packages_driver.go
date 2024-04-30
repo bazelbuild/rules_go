@@ -23,7 +23,7 @@ type JSONPackagesDriver struct {
 	registry *PackageRegistry
 }
 
-func NewJSONPackagesDriver(jsonFiles []string, prf PathResolverFunc, bazelVersion string) (*JSONPackagesDriver, error) {
+func NewJSONPackagesDriver(jsonFiles []string, prf PathResolverFunc, bazelVersion bazelVersion) (*JSONPackagesDriver, error) {
 	jpd := &JSONPackagesDriver{
 		registry: NewPackageRegistry(bazelVersion),
 	}

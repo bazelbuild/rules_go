@@ -32,6 +32,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
@@ -442,6 +443,10 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 	}
 	var diagnostics []entry
 	var errs []error
+	cwd, err := os.Getwd()
+	if cwd == "" || err != nil {
+		errs = append(errs, fmt.Errorf("nogo failed to get CWD: %w", err))
+	}
 	for _, act := range actions {
 		if act.err != nil {
 			// Analyzer failed.
@@ -484,6 +489,11 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 			filename := "-"
 			if p.IsValid() {
 				filename = p.Filename
+			}
+			if cwd != "" {
+				if relname, err := filepath.Rel(cwd, filename); err == nil {
+					filename = relname
+				}
 			}
 			include := true
 			if len(currentConfig.onlyFiles) > 0 {
@@ -610,8 +620,8 @@ func (i *importer) Import(path string) (*types.Package, error) {
 }
 
 func (i *importer) readFacts(pkgPath string) ([]byte, error) {
-	archive := i.factMap[pkgPath]
-	if archive == "" {
+	facts := i.factMap[pkgPath]
+	if facts == "" {
 		// Packages that were not built with the nogo toolchain will not be
 		// analyzed, so there's no opportunity to store facts. This includes
 		// packages in the standard library and packages built with go_tool_library,
@@ -621,18 +631,7 @@ func (i *importer) readFacts(pkgPath string) ([]byte, error) {
 		// fmt.Printf accepts a format string.
 		return nil, nil
 	}
-	factReader, err := readFileInArchive(nogoFact, archive)
-	if os.IsNotExist(err) {
-		// Packages that were not built with the nogo toolchain will not be
-		// analyzed, so there's no opportunity to store facts. This includes
-		// packages in the standard library and packages built with go_tool_library,
-		// such as coverdata.
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
-	defer factReader.Close()
-	return ioutil.ReadAll(factReader)
+	return os.ReadFile(facts)
 }
 
 type factMultiFlag map[string]string

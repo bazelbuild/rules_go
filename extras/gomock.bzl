@@ -22,11 +22,11 @@
 # The rules in this files are still under development. Breaking changes are planned.
 # DO NOT USE IT.
 
-load("//go/private:context.bzl", "go_context")
-load("//go/private:common.bzl", "GO_TOOLCHAIN", "GO_TOOLCHAIN_LABEL")
-load("//go/private/rules:wrappers.bzl", go_binary = "go_binary_macro")
-load("//go/private:providers.bzl", "GoLibrary")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//go/private:common.bzl", "GO_TOOLCHAIN", "GO_TOOLCHAIN_LABEL")
+load("//go/private:context.bzl", "go_context")
+load("//go/private:providers.bzl", "GoLibrary")
+load("//go/private/rules:wrappers.bzl", go_binary = "go_binary_macro")
 
 _MOCKGEN_TOOL = Label("//extras/gomock:mockgen")
 _MOCKGEN_MODEL_LIB = Label("//extras/gomock:mockgen_model")
@@ -34,8 +34,16 @@ _MOCKGEN_MODEL_LIB = Label("//extras/gomock:mockgen_model")
 def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)
 
+    # In Source mode, it's not necessary to pass through a library, as the only thing we use it for is setting up
+    # the relative file locations. Forcing users to pass a library makes it difficult in the case where a mock should
+    # be included as part of that same library, as it results in a dependency loop (GoMock -> GoLibrary -> GoMock).
+    # Allowing users to pass an importpath directly bypasses this issue.
+    # See the test case in //tests/extras/gomock/source_with_importpath for an example.
+    importpath = ctx.attr.source_importpath if ctx.attr.source_importpath else ctx.attr.library[GoLibrary].importmap
+
     # create GOPATH and copy source into GOPATH
-    source_relative_path = paths.join("src", ctx.attr.library[GoLibrary].importmap, ctx.file.source.basename)
+    go_path_prefix = "gopath"
+    source_relative_path = paths.join("src", importpath, ctx.file.source.basename)
     source = ctx.actions.declare_file(paths.join("gopath", source_relative_path))
 
     # trim the relative path of source to get GOPATH
@@ -55,14 +63,14 @@ def _gomock_source_impl(ctx):
         aux_files = []
         for target, pkg in ctx.attr.aux_files.items():
             f = target.files.to_list()[0]
-            aux = ctx.actions.declare_file(paths.join(gopath, "src", pkg, f.basename))
+            aux = ctx.actions.declare_file(paths.join(go_path_prefix, "src", pkg, f.basename))
             ctx.actions.run_shell(
                 outputs = [aux],
                 inputs = [f],
                 command = "mkdir -p {0} && cp -L {1} {0}".format(aux.dirname, f.path),
             )
             aux_files.append("{0}={1}".format(pkg, aux.path))
-            needed_files.append(f)
+            needed_files.append(aux)
         args += ["-aux_files", ",".join(aux_files)]
 
     inputs = (
@@ -82,9 +90,11 @@ def _gomock_source_impl(ctx):
         toolchain = GO_TOOLCHAIN_LABEL,
         command = """
             export GOPATH=$(pwd)/{gopath} &&
+            export GOROOT=$(pwd)/{goroot} &&
             {cmd} {args} > {out}
         """.format(
             gopath = gopath,
+            goroot = go_ctx.sdk.root_file.dirname,
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
             args = " ".join(args),
             out = ctx.outputs.out.path,
@@ -93,6 +103,8 @@ def _gomock_source_impl(ctx):
         env = {
             # GOCACHE is required starting in Go 1.12
             "GOCACHE": "./.gocache",
+            # gomock runs in the special GOPATH environment
+            "GO111MODULE": "off",
         },
     )
 
@@ -102,7 +114,11 @@ _gomock_source = rule(
         "library": attr.label(
             doc = "The target the Go library where this source file belongs",
             providers = [GoLibrary],
-            mandatory = True,
+            mandatory = False,
+        ),
+        "source_importpath": attr.string(
+            doc = "The importpath for the source file. Alternative to passing library, which can lead to circular dependencies between mock and library targets.",
+            mandatory = False,
         ),
         "source": attr.label(
             doc = "A Go source file to find all the interfaces to generate mocks for. See also the docs for library.",
@@ -151,15 +167,16 @@ _gomock_source = rule(
     toolchains = [GO_TOOLCHAIN],
 )
 
-def gomock(name, library, out, source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}, **kwargs):
+def gomock(name, out, library = None, source_importpath = "", source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}, **kwargs):
     """Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
 
     If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
 
     Args:
         name: the target name.
-        library: the Go library to took for the interfaces (reflecitve mode) or source (source mode).
         out: the output Go file name.
+        library: the Go library to look into for the interfaces (reflective mode) or source (source mode). If running in source mode, you can specify source_importpath instead of this parameter.
+        source_importpath: the importpath for the source file. Alternative to passing library, which can lead to circular dependencies between mock and library targets. Only valid for source mode.
         source: a Go file in the given `library`. If this is given, `gomock` will call mockgen in source mode to mock all interfaces in the file.
         interfaces: a list of interfaces in the given `library` to be mocked in reflective mode.
         package: the name of the package the generated mocks should be in. If not specified, uses mockgen's default. See [mockgen's -package](https://github.com/golang/mock#flags) for more information.
@@ -174,8 +191,9 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
     if source:
         _gomock_source(
             name = name,
-            library = library,
             out = out,
+            library = library,
+            source_importpath = source_importpath,
             source = source,
             package = package,
             self_package = self_package,
@@ -189,8 +207,8 @@ def gomock(name, library, out, source = None, interfaces = [], package = "", sel
     else:
         _gomock_reflect(
             name = name,
-            library = library,
             out = out,
+            library = library,
             interfaces = interfaces,
             package = package,
             self_package = self_package,

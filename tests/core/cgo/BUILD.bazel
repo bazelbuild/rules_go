@@ -1,6 +1,11 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 
+package(
+    # go_* rules do not emit module maps.
+    features = ["-layering_check"],
+)
+
 go_test(
     name = "opts_test",
     srcs = ["adder_test.go"],
@@ -471,4 +476,10 @@ cc_binary(
     name = "use_c_symbol_through_go",
     srcs = ["use_c_symbol_through_go.c"],
     deps = [":use_transitive_symbol"],
+)
+
+go_test(
+    name = "cgo_required",
+    srcs = ["cgo_required_test.go"],
+    pure = "on",
 )

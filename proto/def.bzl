@@ -13,19 +13,18 @@
 # limitations under the License.
 
 load(
-    "//go:def.bzl",
-    "GoLibrary",
-    "GoSource",
-    "go_context",
-)
-load(
     "@bazel_skylib//lib:types.bzl",
     "types",
 )
 load(
-    "//proto:compiler.bzl",
-    "GoProtoCompiler",
-    "proto_path",
+    "@rules_proto//proto:defs.bzl",
+    "ProtoInfo",
+)
+load(
+    "//go:def.bzl",
+    "GoLibrary",
+    "GoSource",
+    "go_context",
 )
 load(
     "//go/private:common.bzl",
@@ -36,8 +35,9 @@ load(
     "non_go_tool_transition",
 )
 load(
-    "@rules_proto//proto:defs.bzl",
-    "ProtoInfo",
+    "//proto:compiler.bzl",
+    "GoProtoCompiler",
+    "proto_path",
 )
 
 GoProtoImports = provider()
@@ -183,9 +183,16 @@ go_proto_library = rule(
 # go_proto_library is a rule that takes a proto_library (in the proto
 # attribute) and produces a go library for it.
 
-def go_grpc_library(**kwargs):
-    # TODO: Deprecate once gazelle generates just go_proto_library
-    go_proto_library(compilers = [Label("//proto:go_grpc")], **kwargs)
+def go_grpc_library(name, **kwargs):
+    if "compilers" not in kwargs:
+        kwargs["compilers"] = [
+            Label("//proto:go_proto"),
+            Label("//proto:go_grpc_v2"),
+        ]
+    go_proto_library(
+        name = name,
+        **kwargs
+    )
 
 def proto_register_toolchains():
     print("You no longer need to call proto_register_toolchains(), it does nothing")

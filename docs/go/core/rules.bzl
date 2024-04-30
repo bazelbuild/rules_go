@@ -114,12 +114,12 @@ Rules
 
 """
 
-load("//go/private/rules:library.bzl", _go_library = "go_library")
 load("//go/private/rules:binary.bzl", _go_binary = "go_binary")
-load("//go/private/rules:test.bzl", _go_test = "go_test")
-load("//go/private/rules:source.bzl", _go_source = "go_source")
-load("//go/private/tools:path.bzl", _go_path = "go_path")
 load("//go/private/rules:cross.bzl", _go_cross_binary = "go_cross_binary")
+load("//go/private/rules:library.bzl", _go_library = "go_library")
+load("//go/private/rules:source.bzl", _go_source = "go_source")
+load("//go/private/rules:test.bzl", _go_test = "go_test")
+load("//go/private/tools:path.bzl", _go_path = "go_path")
 
 go_library = _go_library
 go_binary = _go_binary

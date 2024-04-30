@@ -13,8 +13,8 @@
 # limitations under the License.
 
 load(
-    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
-    "find_cpp_toolchain",
+    "@bazel_skylib//rules:common_settings.bzl",
+    "BuildSettingInfo",
 )
 load(
     "@bazel_tools//tools/build_defs/cc:action_names.bzl",
@@ -25,6 +25,38 @@ load(
     "C_COMPILE_ACTION_NAME",
     "OBJCPP_COMPILE_ACTION_NAME",
     "OBJC_COMPILE_ACTION_NAME",
+)
+load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+)
+load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
+load(
+    "@io_bazel_rules_nogo//:scope.bzl",
+    NOGO_EXCLUDES = "EXCLUDES",
+    NOGO_INCLUDES = "INCLUDES",
+)
+load(
+    "//go/platform:apple.bzl",
+    "apple_ensure_options",
+)
+load(
+    "//go/private/rules:transition.bzl",
+    "request_nogo_transition",
+)
+load(
+    ":common.bzl",
+    "COVERAGE_OPTIONS_DENYLIST",
+    "GO_TOOLCHAIN",
+    "as_iterable",
+    "goos_to_extension",
+    "goos_to_shared_extension",
+    "is_struct",
+)
+load(
+    ":mode.bzl",
+    "get_mode",
+    "installsuffix",
 )
 load(
     ":providers.bzl",
@@ -39,32 +71,6 @@ load(
     "GoStdLib",
     "INFERRED_PATH",
     "get_source",
-)
-load(
-    ":mode.bzl",
-    "get_mode",
-    "installsuffix",
-)
-load(
-    ":common.bzl",
-    "COVERAGE_OPTIONS_DENYLIST",
-    "GO_TOOLCHAIN",
-    "as_iterable",
-    "goos_to_extension",
-    "goos_to_shared_extension",
-    "is_struct",
-)
-load(
-    "//go/platform:apple.bzl",
-    "apple_ensure_options",
-)
-load(
-    "@bazel_skylib//rules:common_settings.bzl",
-    "BuildSettingInfo",
-)
-load(
-    "//go/private/rules:transition.bzl",
-    "request_nogo_transition",
 )
 
 # cgo requires a gcc/clang style compiler.
@@ -392,6 +398,33 @@ def _infer_importpath(ctx, attr):
         importpath = importpath[1:]
     return importpath, importpath, INFERRED_PATH
 
+def matches_scope(label, scope):
+    if scope == "all":
+        return True
+    if scope.workspace_name != label.workspace_name:
+        return False
+    if scope.name == "__pkg__":
+        return scope.package == label.package
+    if scope.name == "__subpackages__":
+        if not scope.package:
+            return True
+        return scope.package == label.package or label.package.startswith(scope.package + "/")
+    fail("invalid scope '%s'" % scope.name)
+
+def _matches_scopes(label, scopes):
+    for scope in scopes:
+        if matches_scope(label, scope):
+            return True
+    return False
+
+def _get_nogo(go):
+    """Returns the nogo file for this target, if enabled and in scope."""
+    label = go._ctx.label
+    if _matches_scopes(label, NOGO_INCLUDES) and not _matches_scopes(label, NOGO_EXCLUDES):
+        return go.nogo
+    else:
+        return None
+
 def go_context(ctx, attr = None):
     """Returns an API used to build Go code.
 
@@ -456,9 +489,15 @@ def go_context(ctx, attr = None):
 
     # The level of support is determined by the platform constraints in
     # //go/constraints/amd64.
-    # See https://github.com/golang/go/wiki/MinimumRequirements#amd64
+    # See https://go.dev/wiki/MinimumRequirements#amd64
     if mode.amd64:
         env["GOAMD64"] = mode.amd64
+
+    # Similarly, set GOARM based on platform constraints in //go/constraints/arm.
+    # See https://go.dev/wiki/MinimumRequirements#arm
+    if mode.arm:
+        env["GOARM"] = mode.arm
+
     if not cgo_context_info:
         crosstool = []
         cgo_tools = None
@@ -551,6 +590,7 @@ def go_context(ctx, attr = None):
         library_to_source = _library_to_source,
         declare_file = _declare_file,
         declare_directory = _declare_directory,
+        get_nogo = _get_nogo,
 
         # Private
         # TODO: All uses of this should be removed
@@ -610,8 +650,11 @@ def _cgo_context_data_impl(ctx):
     # toolchain (to be inputs into actions that need it).
     # ctx.files._cc_toolchain won't work when cc toolchain resolution
     # is switched on.
-    cc_toolchain = find_cpp_toolchain(ctx)
-    if cc_toolchain.compiler in _UNSUPPORTED_C_COMPILERS:
+    if bazel_features.cc.find_cpp_toolchain_has_mandatory_param:
+        cc_toolchain = find_cpp_toolchain(ctx, mandatory = False)
+    else:
+        cc_toolchain = find_cpp_toolchain(ctx)
+    if not cc_toolchain or cc_toolchain.compiler in _UNSUPPORTED_C_COMPILERS:
         return []
 
     feature_configuration = cc_common.configure_features(
@@ -794,18 +837,25 @@ def _cgo_context_data_impl(ctx):
             ld_static_lib_path = ld_static_lib_path,
             ld_dynamic_lib_path = ld_dynamic_lib_path,
             ld_dynamic_lib_options = ld_dynamic_lib_options,
+            ar_path = cc_toolchain.ar_executable,
         ),
     )]
 
 cgo_context_data = rule(
     implementation = _cgo_context_data_impl,
     attrs = {
-        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:current_cc_toolchain"),
+        "_cc_toolchain": attr.label(default = "@bazel_tools//tools/cpp:optional_current_cc_toolchain" if bazel_features.cc.find_cpp_toolchain_has_mandatory_param else "@bazel_tools//tools/cpp:current_cc_toolchain"),
         "_xcode_config": attr.label(
             default = "@bazel_tools//tools/osx:current_xcode_config",
         ),
     },
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    toolchains = [
+        # In pure mode, a C++ toolchain isn't needed when transitioning.
+        # But if we declare a mandatory toolchain dependency here, a cross-compiling C++ toolchain is required at toolchain resolution time.
+        # So we make this toolchain dependency optional, so that it's only attempted to be looked up if it's actually needed.
+        # Optional toolchain support was added in bazel 6.0.0.
+        config_common.toolchain_type("@bazel_tools//tools/cpp:toolchain_type", mandatory = False) if hasattr(config_common, "toolchain_type") else "@bazel_tools//tools/cpp:toolchain_type",
+    ],
     fragments = ["apple", "cpp"],
     doc = """Collects information about the C/C++ toolchain. The C/C++ toolchain
     is needed to build cgo code, but is generally optional. Rules can't have
@@ -844,6 +894,7 @@ def _go_config_impl(ctx):
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
         gc_goopts = ctx.attr.gc_goopts[BuildSettingInfo].value,
         amd64 = ctx.attr.amd64,
+        arm = ctx.attr.arm,
         pgoprofile = ctx.attr.pgoprofile,
     )]
 
@@ -893,6 +944,7 @@ go_config = rule(
             providers = [BuildSettingInfo],
         ),
         "amd64": attr.string(),
+        "arm": attr.string(),
         "pgoprofile": attr.label(
             mandatory = True,
             allow_files = True,

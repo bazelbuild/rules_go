@@ -20,13 +20,13 @@ load(
     "LINKMODE_NORMAL",
 )
 load(
-    "//go/private/rules:library.bzl",
-    "go_library",
-)
-load(
     "//go/private/rules:binary.bzl",
     "go_binary",
     "go_non_executable_binary",
+)
+load(
+    "//go/private/rules:library.bzl",
+    "go_library",
 )
 load(
     "//go/private/rules:test.bzl",

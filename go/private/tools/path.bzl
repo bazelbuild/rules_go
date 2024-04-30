@@ -13,11 +13,8 @@
 # limitations under the License.
 
 load(
-    "//go/private:providers.bzl",
-    "GoArchive",
-    "GoPath",
-    "effective_importpath_pkgpath",
-    "get_archive",
+    "@bazel_skylib//lib:paths.bzl",
+    "paths",
 )
 load(
     "//go/private:common.bzl",
@@ -25,8 +22,11 @@ load(
     "as_list",
 )
 load(
-    "@bazel_skylib//lib:paths.bzl",
-    "paths",
+    "//go/private:providers.bzl",
+    "GoArchive",
+    "GoPath",
+    "effective_importpath_pkgpath",
+    "get_archive",
 )
 
 def _go_path_impl(ctx):
@@ -112,7 +112,7 @@ def _go_path_impl(ctx):
             f.basename,
         )
     manifest_file = ctx.actions.declare_file(ctx.label.name + "~manifest")
-    manifest_entries_json = [e.to_json() for e in manifest_entries]
+    manifest_entries_json = [json.encode(e) for e in manifest_entries]
     manifest_content = "[\n  " + ",\n  ".join(manifest_entries_json) + "\n]"
     ctx.actions.write(manifest_file, manifest_content)
     inputs.append(manifest_file)

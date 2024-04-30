@@ -237,10 +237,10 @@ go_test(
     srcs = ["env_test.go"],
     data = ["@go_sdk//:lib/time/zoneinfo.zip"],
     env = {
-        "ZONEINFO": "$(execpath @go_sdk//:lib/time/zoneinfo.zip)",
+        "ZONEINFO": "$(rlocationpath @go_sdk//:lib/time/zoneinfo.zip)",
     },
     deps = [
-        "@io_bazel_rules_go//go/tools/bazel",
+        "//go/runfiles",
     ],
 )
 
@@ -248,6 +248,15 @@ go_test(
     name = "sharding_test",
     srcs = ["sharding_test.go"],
     shard_count = 2,
+)
+
+go_test(
+    name = "sigterm_handler_test",
+    srcs = ["sigterm_handler_test.go"],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 go_bazel_test(
@@ -263,4 +272,9 @@ go_bazel_test(
 go_bazel_test(
     name = "filter_test_cases_test",
     srcs = ["filter_test_cases_test.go"],
+)
+
+go_bazel_test(
+    name = "timeout_test",
+    srcs = ["timeout_test.go"],
 )

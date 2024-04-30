@@ -1,5 +1,6 @@
 load("//go:def.bzl", "go_binary", "go_library")
 load("//go/private:common.bzl", "RULES_GO_REPO_NAME")
+load("//go/tools/bazel_testing:def.bzl", "go_bazel_test")
 
 go_library(
     name = "gopackagesdriver_lib",
@@ -28,6 +29,19 @@ go_binary(
         # Determine the repository part of labels pointing into the rules_go repo. This is needed
         # both to specify the aspect and to match labels in query output.
         "rulesGoRepositoryName": RULES_GO_REPO_NAME,
+    },
+)
+
+RULES_GO_REPO_NAME_FOR_TEST = RULES_GO_REPO_NAME if RULES_GO_REPO_NAME != "@" else "@io_bazel_rules_go"
+
+go_bazel_test(
+    name = "gopackagesdriver_test",
+    size = "enormous",
+    srcs = ["gopackagesdriver_test.go"],
+    embed = [":gopackagesdriver_lib"],
+    rule_files = ["//:all_files"],
+    x_defs = {
+        "rulesGoRepositoryName": RULES_GO_REPO_NAME_FOR_TEST,
     },
 )
 

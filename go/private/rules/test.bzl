@@ -13,8 +13,8 @@
 # limitations under the License.
 
 load(
-    "//go/private:context.bzl",
-    "go_context",
+    "@bazel_skylib//lib:structs.bzl",
+    "structs",
 )
 load(
     "//go/private:common.bzl",
@@ -27,8 +27,12 @@ load(
     "split_srcs",
 )
 load(
-    "//go/private/rules:binary.bzl",
-    "gc_linkopts",
+    "//go/private:context.bzl",
+    "go_context",
+)
+load(
+    "//go/private:mode.bzl",
+    "LINKMODES",
 )
 load(
     "//go/private:providers.bzl",
@@ -39,16 +43,12 @@ load(
     "get_archive",
 )
 load(
+    "//go/private/rules:binary.bzl",
+    "gc_linkopts",
+)
+load(
     "//go/private/rules:transition.bzl",
     "go_transition",
-)
-load(
-    "//go/private:mode.bzl",
-    "LINKMODES",
-)
-load(
-    "@bazel_skylib//lib:structs.bzl",
-    "structs",
 )
 
 def _go_test_impl(ctx):
@@ -74,6 +74,7 @@ def _go_test_impl(ctx):
     )
     external_source = go.library_to_source(go, struct(
         srcs = [struct(files = go_srcs)],
+        data = ctx.attr.data,
         embedsrcs = [struct(files = internal_source.embedsrcs)],
         deps = internal_archive.direct + [internal_archive],
         x_defs = ctx.attr.x_defs,
@@ -120,6 +121,7 @@ def _go_test_impl(ctx):
         executable = go.toolchain._builder,
         arguments = [arguments],
         toolchain = GO_TOOLCHAIN_LABEL,
+        env = go.env,
     )
 
     test_gc_linkopts = gc_linkopts(ctx)
@@ -458,7 +460,7 @@ _go_test_kwargs = {
     `--test_arg=arg <test_arg_>` arguments to Bazel, and you can set environment
     variables in the test environment by passing
     `--test_env=VAR=value <test_env_>`. You can terminate test execution after the first
-    failure by passing the `--test_runner_fast_fast <test_runner_fail_fast_>` argument
+    failure by passing the `--test_runner_fail_fast <test_runner_fail_fast_>` argument
     to Bazel. This is equivalent to passing `--test_arg=-failfast <test_arg_>`.<br><br>
     To write structured testlog information to Bazel's `XML_OUTPUT_FILE`, tests
     ran with `bazel test` execute using a wrapper. This functionality can be

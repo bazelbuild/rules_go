@@ -13,12 +13,12 @@
 # limitations under the License.
 
 load(
-    "//go/private:context.bzl",
-    "go_context",
-)
-load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN",
+)
+load(
+    "//go/private:context.bzl",
+    "go_context",
 )
 load(
     "//go/private:providers.bzl",
@@ -115,7 +115,7 @@ def nogo(name, visibility = None, **kwargs):
     native.alias(
         name = name,
         actual = select({
-            "@io_bazel_rules_go//go/private:nogo_active": actual_name,
+            str(Label("//go/private:nogo_active")): actual_name,
             "//conditions:default": Label("//:default_nogo"),
         }),
         visibility = visibility,
@@ -140,11 +140,11 @@ def nogo(name, visibility = None, **kwargs):
 def nogo_wrapper(**kwargs):
     if kwargs.get("vet"):
         kwargs["deps"] = kwargs.get("deps", []) + [
-            "@org_golang_x_tools//go/analysis/passes/atomic:go_default_library",
-            "@org_golang_x_tools//go/analysis/passes/bools:go_default_library",
-            "@org_golang_x_tools//go/analysis/passes/buildtag:go_default_library",
-            "@org_golang_x_tools//go/analysis/passes/nilfunc:go_default_library",
-            "@org_golang_x_tools//go/analysis/passes/printf:go_default_library",
+            Label("@org_golang_x_tools//go/analysis/passes/atomic:go_default_library"),
+            Label("@org_golang_x_tools//go/analysis/passes/bools:go_default_library"),
+            Label("@org_golang_x_tools//go/analysis/passes/buildtag:go_default_library"),
+            Label("@org_golang_x_tools//go/analysis/passes/nilfunc:go_default_library"),
+            Label("@org_golang_x_tools//go/analysis/passes/printf:go_default_library"),
         ]
         kwargs = {k: v for k, v in kwargs.items() if k != "vet"}
     nogo(**kwargs)

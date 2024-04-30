@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "@bazel_skylib//lib:collections.bzl",
+    "collections",
+)
+load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN_LABEL",
     "as_set",
@@ -29,10 +33,6 @@ load(
 load(
     "//go/private:rpath.bzl",
     "rpath",
-)
-load(
-    "@bazel_skylib//lib:collections.bzl",
-    "collections",
 )
 
 def _format_archive(d):
@@ -88,6 +88,10 @@ def emit_link(
     gc_linkopts, extldflags = _extract_extldflags(gc_linkopts, extldflags)
     builder_args = go.builder_args(go, "link")
     tool_args = go.tool_args(go)
+
+    # use ar tool from cc toolchain if cc toolchain provides it
+    if go.cgo_tools and go.cgo_tools.ar_path and go.cgo_tools.ar_path.endswith("ar"):
+        tool_args.add_all(["-extar", go.cgo_tools.ar_path])
 
     # Add in any mode specific behaviours
     if go.mode.race:

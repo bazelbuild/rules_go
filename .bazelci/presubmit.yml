@@ -14,8 +14,21 @@ tasks:
       - tests/core/cgo/generate_imported_dylib.sh
     build_targets:
       - "//..."
+      - "--"
+      - "-//tests/core/cross:darwin_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:linux_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:windows_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/starlark/cgo/..."  # Doesn't work before bazel 6
     test_targets:
       - "//..."
+      - "-//tests/core/cross:darwin_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:linux_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:windows_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/starlark/cgo/..."  # Doesn't work before bazel 6
+      # Bzlmod tests require Bazel 6+
+      - "-//tests/core/nogo/bzlmod/..."
+      # Nogo includes/excludes doesn't work before bazel 6
+      - "-//tests/core/nogo/includes_excludes:includes_exclude_test"
   ubuntu2004:
     # enable some unflipped incompatible flags on this platform to ensure we don't regress.
     shell_commands:
@@ -26,6 +39,10 @@ tasks:
       - "--config=incompatible"
     build_targets:
       - "//..."
+      - "--"
+      - "-//tests/core/cross:darwin_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:linux_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:windows_go_cross_cgo"  # Doesn't work before bazel 6
     test_targets:
       - "//..."
   debian11_zig_cc:
@@ -65,6 +82,10 @@ tasks:
       - "--host_crosstool_top=@local_config_apple_cc//:toolchain"
     build_targets:
       - "//..."
+      - "--"
+      - "-//tests/core/cross:darwin_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:linux_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:windows_go_cross_cgo"  # Doesn't work before bazel 6
     test_flags:
       - "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
       - "--crosstool_top=@local_config_apple_cc//:toolchain"
@@ -76,6 +97,10 @@ tasks:
       - tests/core/cgo/generate_imported_dylib.sh
     build_targets:
       - "//..."
+      - "--"
+      - "-//tests/core/cross:darwin_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:linux_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:windows_go_cross_cgo"  # Doesn't work before bazel 6
     test_flags:
       # Some tests depend on this feature being disabled. However, because it's
       # enabled by default in the rbe_ubuntu1604 platform, we cannot simply remove
@@ -125,7 +150,6 @@ tasks:
       - "-@io_bazel_rules_go//proto:go_grpc"
       - "-@io_bazel_rules_go//proto:go_proto"
       - "-@io_bazel_rules_go//proto:go_proto_bootstrap"
-      - "-@io_bazel_rules_go//proto:go_proto_validate"
       - "-@org_golang_x_crypto//ed25519:ed25519_test"
       - "-@org_golang_x_crypto//sha3:sha3_test"
       - "-@org_golang_x_sys//windows/registry:registry_test"
@@ -149,7 +173,6 @@ tasks:
       - "-//proto:go_grpc"
       - "-//proto:go_proto"
       - "-//proto:go_proto_bootstrap"
-      - "-//proto:go_proto_validate"
       - "-//proto:gostring_grpc"
       - "-//proto:gostring_proto"
       - "-//proto/wkt:any_go_proto"
@@ -243,6 +266,9 @@ tasks:
       - "-//tests/legacy/test_chdir:go_default_test"
       - "-//tests/legacy/test_rundir:go_default_test"
       - "-//tests/legacy/transitive_data:go_default_test"
+      - "-//tests/core/cross:darwin_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:linux_go_cross_cgo"  # Doesn't work before bazel 6
+      - "-//tests/core/cross:windows_go_cross_cgo"  # Doesn't work before bazel 6
     test_flags:
       - '--action_env=PATH=C:\tools\msys64\usr\bin;C:\tools\msys64\bin;C:\tools\msys64\mingw64\bin;C:\python3\Scripts\;C:\python3;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\System32\OpenSSH;C:\ProgramData\GooGet;C:\Program Files\Google\Compute Engine\metadata_scripts;C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin;C:\Program Files\Google\Compute Engine\sysprep;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\msys64\usr\bin;c:\openjdk\bin;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\CMake\bin;c:\ninja;c:\bazel;c:\buildkite'
       # On Windows CI, bazel (bazelisk) needs %LocalAppData% to find the cache directory.
@@ -293,6 +319,7 @@ tasks:
       - "-//tests/core/go_proto_library_importmap:importmap_test"
       - "-//tests/core/go_test:data_test"
       - "-//tests/core/go_test:pwd_test"
+      - "-//tests/core/nogo/coverage:coverage_cgo_test"
       - "-//tests/core/nogo/coverage:coverage_test"
       - "-//tests/core/nogo/coverage:gen_code_test"
       - "-//tests/core/race:race_test" # fails on Windows due to upstream bug, see issue #2911

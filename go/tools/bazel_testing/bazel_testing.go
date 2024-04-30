@@ -71,9 +71,20 @@ type Args struct {
 	// nogo is not used.
 	Nogo string
 
+	// NogoIncludes is the list of targets to include for Nogo linting.
+	NogoIncludes []string
+
+	// NogoExcludes is the list of targets to include for Nogo linting.
+	NogoExcludes []string
+
 	// WorkspaceSuffix is a string that should be appended to the end
 	// of the default generated WORKSPACE file.
 	WorkspaceSuffix string
+
+	// ModuleFileSuffix is a string that should be appended to the end of a
+	// default generated MODULE.bazel file. If this is empty, no such file is
+	// generated.
+	ModuleFileSuffix string
 
 	// SetUp is a function that is executed inside the context of the testing
 	// workspace. It is executed once and only once before the beginning of
@@ -124,7 +135,7 @@ func TestMain(m *testing.M, args Args) {
 	workspaceDir, cleanup, err := setupWorkspace(args, files)
 	defer func() {
 		if err := cleanup(); err != nil {
-			fmt.Fprintf(os.Stderr, "cleanup error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "cleanup warning: %v\n", err)
 			// Don't fail the test on a cleanup error.
 			// Some operating systems (windows, maybe also darwin) can't reliably
 			// delete executable files after they're run.
@@ -164,13 +175,7 @@ func TestMain(m *testing.M, args Args) {
 // hide that this code is executing inside a bazel test.
 func BazelCmd(args ...string) *exec.Cmd {
 	cmd := exec.Command("bazel")
-	if outputUserRoot != "" {
-		cmd.Args = append(cmd.Args,
-			"--output_user_root="+outputUserRoot,
-			"--nosystem_rc",
-			"--nohome_rc",
-		)
-	}
+	cmd.Args = append(cmd.Args, "--nosystem_rc", "--nohome_rc")
 	cmd.Args = append(cmd.Args, args...)
 	for _, e := range os.Environ() {
 		// Filter environment variables set by the bazel test wrapper script.
@@ -280,7 +285,11 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		tmpDir = filepath.Clean(tmpDir)
 		if i := strings.Index(tmpDir, string(os.PathSeparator)+"execroot"+string(os.PathSeparator)); i >= 0 {
 			outBaseDir = tmpDir[:i]
-			outputUserRoot = filepath.Dir(outBaseDir)
+			if dir, err := filepath.Abs(filepath.Dir(outBaseDir)); err == nil {
+				// Use forward slashes, even on Windows. Bazel's rc file parser
+				// reports an error if there are backslashes.
+				outputUserRoot = strings.ReplaceAll(dir, `\`, `/`)
+			}
 			cacheDir = filepath.Join(outBaseDir, "bazel_testing")
 		} else {
 			cacheDir = filepath.Join(tmpDir, "bazel_testing")
@@ -307,14 +316,18 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		return "", cleanup, err
 	}
 
-	// Create a .bazelrc file if GO_BAZEL_TEST_BAZELFLAGS is set.
+	// Create a .bazelrc file with the contents of GO_BAZEL_TEST_BAZELFLAGS is set.
 	// The test can override this with its own .bazelrc or with flags in commands.
+	bazelrcPath := filepath.Join(mainDir, ".bazelrc")
+	bazelrcBuf := &bytes.Buffer{}
+	if outputUserRoot != "" {
+		fmt.Fprintf(bazelrcBuf, "startup --output_user_root=%s\n", outputUserRoot)
+	}
 	if flags := os.Getenv("GO_BAZEL_TEST_BAZELFLAGS"); flags != "" {
-		bazelrcPath := filepath.Join(mainDir, ".bazelrc")
-		content := "build " + flags
-		if err := ioutil.WriteFile(bazelrcPath, []byte(content), 0666); err != nil {
-			return "", cleanup, err
-		}
+		fmt.Fprintf(bazelrcBuf, "build %s\n", flags)
+	}
+	if err := os.WriteFile(bazelrcPath, bazelrcBuf.Bytes(), 0666); err != nil {
+		return "", cleanup, err
 	}
 
 	// Extract test files for the main workspace.
@@ -384,8 +397,9 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 
 	// If there's no WORKSPACE file, create one.
 	workspacePath := filepath.Join(mainDir, "WORKSPACE")
-	if _, err := os.Stat(workspacePath); os.IsNotExist(err) {
-		w, err := os.Create(workspacePath)
+	if _, err = os.Stat(workspacePath); os.IsNotExist(err) {
+		var w *os.File
+		w, err = os.Create(workspacePath)
 		if err != nil {
 			return "", cleanup, err
 		}
@@ -395,8 +409,10 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 			}
 		}()
 		info := workspaceTemplateInfo{
-			Suffix: args.WorkspaceSuffix,
-			Nogo:   args.Nogo,
+			Suffix:       args.WorkspaceSuffix,
+			Nogo:         args.Nogo,
+			NogoIncludes: args.NogoIncludes,
+			NogoExcludes: args.NogoExcludes,
 		}
 		for name := range workspaceNames {
 			info.WorkspaceNames = append(info.WorkspaceNames, name)
@@ -413,6 +429,46 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		}
 		if err := defaultWorkspaceTpl.Execute(w, info); err != nil {
 			return "", cleanup, err
+		}
+	}
+
+	// If a MODULE.bazel file is requested, create one.
+	if args.ModuleFileSuffix != "" {
+		moduleBazelPath := filepath.Join(mainDir, "MODULE.bazel")
+		if _, err = os.Stat(moduleBazelPath); err == nil {
+			return "", cleanup, fmt.Errorf("ModuleFileSuffix set but MODULE.bazel exists")
+		}
+		var w *os.File
+		w, err = os.Create(moduleBazelPath)
+		if err != nil {
+			return "", cleanup, err
+		}
+		defer func() {
+			if cerr := w.Close(); err == nil && cerr != nil {
+				err = cerr
+			}
+		}()
+		rulesGoAbsPath := filepath.Join(execDir, "io_bazel_rules_go")
+		rulesGoPath, err := filepath.Rel(mainDir, rulesGoAbsPath)
+		if err != nil {
+			return "", cleanup, fmt.Errorf("could not find relative path from %q to %q for io_bazel_rules_go", mainDir, rulesGoAbsPath)
+		}
+		rulesGoPath = filepath.ToSlash(rulesGoPath)
+		info := moduleFileTemplateInfo{
+			RulesGoPath: rulesGoPath,
+			Suffix:      args.ModuleFileSuffix,
+		}
+		if err := defaultModuleBazelTpl.Execute(w, info); err != nil {
+			return "", cleanup, err
+		}
+
+		// Enable Bzlmod.
+		bazelrcPath := filepath.Join(mainDir, ".bazelrc")
+		if _, err = os.Stat(bazelrcPath); os.IsNotExist(err) {
+			err = os.WriteFile(bazelrcPath, []byte("common --enable_bzlmod"), 0666)
+			if err != nil {
+				return "", cleanup, err
+			}
 		}
 	}
 
@@ -436,16 +492,22 @@ func extractTxtar(dir, txt string) error {
 
 func parseLocationArg(arg string) (workspace, shortPath string, err error) {
 	cleanPath := path.Clean(arg)
-	if !strings.HasPrefix(cleanPath, "external/") {
+	// Support both states of --legacy_external_runfiles.
+	if !strings.HasPrefix(cleanPath, "../") && !strings.HasPrefix(cleanPath, "external/") {
 		return "", cleanPath, nil
 	}
-	i := strings.IndexByte(arg[len("external/"):], '/')
-	if i < 0 {
-		return "", "", fmt.Errorf("unexpected file (missing / after external/): %s", arg)
+	var trimmedPath string
+	if strings.HasPrefix(cleanPath, "../") {
+		trimmedPath = cleanPath[len("../"):]
+	} else {
+		trimmedPath = cleanPath[len("external/"):]
 	}
-	i += len("external/")
-	workspace = cleanPath[len("external/"):i]
-	shortPath = cleanPath[i+1:]
+	i := strings.IndexByte(trimmedPath, '/')
+	if i < 0 {
+		return "", "", fmt.Errorf("unexpected file (missing / after ../): %s", arg)
+	}
+	workspace = trimmedPath[:i]
+	shortPath = trimmedPath[i+1:]
 	return workspace, shortPath, nil
 }
 
@@ -474,6 +536,8 @@ type workspaceTemplateInfo struct {
 	WorkspaceNames []string
 	GoSDKPath      string
 	Nogo           string
+	NogoIncludes   []string
+	NogoExcludes   []string
 	Suffix         string
 }
 
@@ -497,7 +561,7 @@ local_repository(
     path = "{{.GoSDKPath}}",
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains", "go_wrap_sdk", "go_register_nogo")
 
 go_rules_dependencies()
 
@@ -506,8 +570,46 @@ go_wrap_sdk(
     root_file = "@local_go_sdk//:ROOT",
 )
 
-go_register_toolchains({{if .Nogo}}nogo = "{{.Nogo}}"{{end}})
+go_register_toolchains()
+
+{{if .Nogo}}
+go_register_nogo(
+	nogo = "{{.Nogo}}",
+	{{ if .NogoIncludes }}
+	includes = [
+	{{range .NogoIncludes }}
+		"{{ . }}",
+	{{ end }}
+	],
+	{{ else }}
+	includes = ["all"],
+	{{ end}}
+	{{ if .NogoExcludes }}
+	excludes = [
+	{{range .NogoExcludes }}
+		"{{ . }}",
+	{{ end }}
+	],
+	{{ else }}
+	excludes = None,
+	{{ end}}
+)
 {{end}}
+{{end}}
+{{.Suffix}}
+`))
+
+type moduleFileTemplateInfo struct {
+	RulesGoPath string
+	Suffix      string
+}
+
+var defaultModuleBazelTpl = template.Must(template.New("").Parse(`
+bazel_dep(name = "rules_go", version = "", repo_name = "io_bazel_rules_go")
+local_path_override(
+    module_name = "rules_go",
+    path = "{{.RulesGoPath}}",
+)
 {{.Suffix}}
 `))
 

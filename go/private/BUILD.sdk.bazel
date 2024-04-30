@@ -1,9 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_sdk")
+load("@io_bazel_rules_go//go/private:common.bzl", "RULES_GO_STDLIB_PREFIX")
+load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "declare_go_toolchains")
 load("@io_bazel_rules_go//go/private/rules:binary.bzl", "go_tool_binary")
 load("@io_bazel_rules_go//go/private/rules:sdk.bzl", "package_list")
 load("@io_bazel_rules_go//go/private/rules:transition.bzl", "non_go_reset_target")
-load("@io_bazel_rules_go//go/private:common.bzl", "RULES_GO_STDLIB_PREFIX")
-load("@io_bazel_rules_go//go/private:go_toolchain.bzl", "declare_go_toolchains")
-load("@io_bazel_rules_go//go:def.bzl", "go_sdk")
 
 package(default_visibility = ["//visibility:public"])
 

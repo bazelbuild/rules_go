@@ -17,3 +17,4 @@ runfiles_export_envvars
 # Simulate a bazel run environment.
 export BUILD_WORKING_DIRECTORY=$(pwd)
 [[ "$("$GO_TOOL" version)" =~ ^go ]]
+[[ "$("$GO_TOOL" env GOPRIVATE)" == example.com ]]

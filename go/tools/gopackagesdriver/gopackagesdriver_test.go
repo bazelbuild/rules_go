@@ -1,18 +1,20 @@
-package gopackagesdriver_test
+package main
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"os"
 	"path"
 	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel_testing"
-	gpd "github.com/bazelbuild/rules_go/go/tools/gopackagesdriver"
 )
 
 type response struct {
 	Roots    []string `json:",omitempty"`
-	Packages []*gpd.FlatPackage
+	Packages []*FlatPackage
 }
 
 func TestMain(m *testing.M) {
@@ -64,22 +66,12 @@ func TestHelloExternal(t *testing.T) {}
 }
 
 const (
-	osPkgID = "@io_bazel_rules_go//stdlib:os"
+	osPkgID       = "@io_bazel_rules_go//stdlib:os"
+	bzlmodOsPkgID = "@@io_bazel_rules_go//stdlib:os"
 )
 
 func TestBaseFileLookup(t *testing.T) {
-	reader := strings.NewReader("{}")
-	out, _, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello.go")
-	if err != nil {
-		t.Errorf("Unexpected error: %w", err.Error())
-		return
-	}
-	var resp response
-	err = json.Unmarshal(out, &resp)
-	if err != nil {
-		t.Errorf("Failed to unmarshal packages driver response: %w\n%w", err.Error(), out)
-		return
-	}
+	resp := runForTest(t, "file=hello.go")
 
 	t.Run("roots", func(t *testing.T) {
 		if len(resp.Roots) != 1 {
@@ -94,7 +86,7 @@ func TestBaseFileLookup(t *testing.T) {
 	})
 
 	t.Run("package", func(t *testing.T) {
-		var pkg *gpd.FlatPackage
+		var pkg *FlatPackage
 		for _, p := range resp.Packages {
 			if p.ID == resp.Roots[0] {
 				pkg = p
@@ -122,16 +114,16 @@ func TestBaseFileLookup(t *testing.T) {
 			return
 		}
 
-		if pkg.Imports["os"] != osPkgID {
-			t.Errorf("Expected os import to map to %q:\n%+v", osPkgID, pkg)
+		if pkg.Imports["os"] != osPkgID && pkg.Imports["os"] != bzlmodOsPkgID {
+			t.Errorf("Expected os import to map to %q or %q:\n%+v", osPkgID, bzlmodOsPkgID, pkg)
 			return
 		}
 	})
 
 	t.Run("dependency", func(t *testing.T) {
-		var osPkg *gpd.FlatPackage
+		var osPkg *FlatPackage
 		for _, p := range resp.Packages {
-			if p.ID == osPkgID {
+			if p.ID == osPkgID || p.ID == bzlmodOsPkgID {
 				osPkg = p
 			}
 		}
@@ -149,17 +141,7 @@ func TestBaseFileLookup(t *testing.T) {
 }
 
 func TestExternalTests(t *testing.T) {
-	reader := strings.NewReader("{}")
-	out, stderr, err := bazel_testing.BazelOutputWithInput(reader, "run", "@io_bazel_rules_go//go/tools/gopackagesdriver", "--", "file=hello_external_test.go")
-	if err != nil {
-		t.Errorf("Unexpected error: %w\n=====\n%s\n=====", err.Error(), stderr)
-	}
-	var resp response
-	err = json.Unmarshal(out, &resp)
-	if err != nil {
-		t.Errorf("Failed to unmarshal packages driver response: %w\n%w", err.Error(), out)
-	}
-
+	resp := runForTest(t, "file=hello_external_test.go")
 	if len(resp.Roots) != 2 {
 		t.Errorf("Expected exactly two roots for package: %+v", resp.Roots)
 	}
@@ -175,6 +157,9 @@ func TestExternalTests(t *testing.T) {
 
 	for _, p := range resp.Packages {
 		if p.ID == xTestId {
+			if !strings.HasSuffix(p.PkgPath, "_test") {
+				t.Errorf("PkgPath missing _test suffix")
+			}
 			assertSuffixesInList(t, p.GoFiles, "/hello_external_test.go")
 		} else if p.ID == testId {
 			assertSuffixesInList(t, p.GoFiles, "/hello.go", "/hello_test.go")
@@ -182,7 +167,74 @@ func TestExternalTests(t *testing.T) {
 	}
 }
 
+func runForTest(t *testing.T, args ...string) driverResponse {
+	t.Helper()
+
+	// Remove most environment variables, other than those on an allowlist.
+	//
+	// Bazel sets TEST_* and RUNFILES_* and a bunch of other variables.
+	// If Bazel is invoked when these variables, it assumes (correctly)
+	// that it's being invoked by a test, and it does different things that
+	// we don't want. For example, it randomizes the output directory, which
+	// is extremely expensive here. Out test framework creates an output
+	// directory shared among go_bazel_tests and points to it using .bazelrc.
+	//
+	// This only works if TEST_TMPDIR is not set when invoking bazel.
+	// bazel_testing.BazelCmd normally unsets that, but since gopackagesdriver
+	// invokes bazel directly, we need to unset it here.
+	allowEnv := map[string]struct{}{
+		"HOME":        {},
+		"PATH":        {},
+		"PWD":         {},
+		"SYSTEMDRIVE": {},
+		"SYSTEMROOT":  {},
+		"TEMP":        {},
+		"TMP":         {},
+		"TZ":          {},
+		"USER":        {},
+	}
+	var oldEnv []string
+	for _, env := range os.Environ() {
+		key, value, cut := strings.Cut(env, "=")
+		if !cut {
+			continue
+		}
+		if _, allowed := allowEnv[key]; !allowed {
+			os.Unsetenv(key)
+			oldEnv = append(oldEnv, key, value)
+		}
+	}
+	defer func() {
+		for i := 0; i < len(oldEnv); i += 2 {
+			os.Setenv(oldEnv[i], oldEnv[i+1])
+		}
+	}()
+
+	// Set workspaceRoot global variable.
+	// It's initialized to the BUILD_WORKSPACE_DIRECTORY environment variable
+	// before this point.
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldWorkspaceRoot := workspaceRoot
+	workspaceRoot = wd
+	defer func() { workspaceRoot = oldWorkspaceRoot }()
+
+	in := strings.NewReader("{}")
+	out := &bytes.Buffer{}
+	if err := run(context.Background(), in, out, args); err != nil {
+		t.Fatalf("running gopackagesdriver: %v", err)
+	}
+	var resp driverResponse
+	if err := json.Unmarshal(out.Bytes(), &resp); err != nil {
+		t.Fatalf("unmarshaling response: %v", err)
+	}
+	return resp
+}
+
 func assertSuffixesInList(t *testing.T, list []string, expectedSuffixes ...string) {
+	t.Helper()
 	for _, suffix := range expectedSuffixes {
 		itemFound := false
 		for _, listItem := range list {

@@ -5,7 +5,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.21.1")
+go_register_toolchains(version = "1.21.8")
 
 http_archive(
     name = "com_google_protobuf",
@@ -35,9 +35,9 @@ http_archive(
 # Use --crosstool_top=@llvm_toolchain//:toolchain
 http_archive(
     name = "com_grail_bazel_toolchain",
-    sha256 = "d312c8e3a19ff843fce3065bb9ff40964401e8525674c842a5724b939cb6e1ac",
-    strip_prefix = "bazel-toolchain-0.4.4",
-    urls = ["https://github.com/grailbio/bazel-toolchain/archive/0.4.4.tar.gz"],
+    sha256 = "fb762268ca70ced1a0f65d24f92cd881098afd34990ae5767df0ab325217620e",
+    strip_prefix = "toolchains_llvm-0.4.4",
+    urls = ["https://github.com/bazel-contrib/toolchains_llvm/archive/0.4.4.tar.gz"],
 )
 
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
@@ -184,8 +184,8 @@ stardoc_repositories()
 # For testing objc_library interop, users should not need to install it
 http_archive(
     name = "build_bazel_apple_support",
-    sha256 = "77a121a0f5d4cd88824429464ad2bfb54bdc8a3bccdb4d31a6c846003a3f5e44",
-    url = "https://github.com/bazelbuild/apple_support/releases/download/1.4.1/apple_support.1.4.1.tar.gz",
+    sha256 = "100d12617a84ebc7ee7a10ecf3b3e2fdadaebc167ad93a21f820a6cb60158ead",
+    url = "https://github.com/bazelbuild/apple_support/releases/download/1.12.0/apple_support.1.12.0.tar.gz",
 )
 
 load(
