@@ -191,7 +191,7 @@ _go_binary_kwargs = {
         "srcs": attr.label_list(
             allow_files = go_exts + asm_exts + cgo_exts + syso_exts,
             doc = """The list of Go source files that are compiled to create the package.
-            Only `.go` and `.s` files are permitted, unless the `cgo`
+            Only `.go`, `.s`, and `.syso` files are permitted, unless the `cgo`
             attribute is set, in which case,
             `.c .cc .cpp .cxx .h .hh .hpp .hxx .inc .m .mm`
             files are also permitted. Files may be filtered at build time

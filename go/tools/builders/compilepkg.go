@@ -514,20 +514,15 @@ func compileArchive(
 		}
 	}
 
-	// Pack .o files into the archive. These may come from cgo generated code,
-	// cgo dependencies (cdeps), or assembly.
-	if len(objFiles) > 0 {
-		if err := appendToArchive(goenv, outLinkObj, objFiles); err != nil {
-			return err
-		}
+	// Windows resource files (.syso) are treated the same as object files.
+	for _, src := range srcs.sysoSrcs {
+		objFiles = append(objFiles, src.filename)
 	}
 
-	sysoFiles := make([]string, 0, len(srcs.sysoSrcs))
-	for _, src := range srcs.sysoSrcs {
-		sysoFiles = append(sysoFiles, src.filename)
-	}
-	if len(sysoFiles) > 0 {
-		if err := appendToArchive(goenv, outLinkObj, sysoFiles); err != nil {
+	// Pack .o and .syso files into the archive. These may come from cgo generated code,
+	// cgo dependencies (cdeps), windows resource file generation, or assembly.
+	if len(objFiles) > 0 {
+		if err := appendToArchive(goenv, outLinkObj, objFiles); err != nil {
 			return err
 		}
 	}

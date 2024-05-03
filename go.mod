@@ -6,7 +6,6 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/mock v1.7.0-rc.1
 	github.com/golang/protobuf v1.5.3
-	github.com/josephspurrier/goversioninfo v1.4.0
 	golang.org/x/net v0.18.0
 	golang.org/x/tools v0.15.0
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
@@ -16,7 +15,6 @@ require (
 )
 
 require (
-	github.com/akavel/rsrc v0.10.2 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

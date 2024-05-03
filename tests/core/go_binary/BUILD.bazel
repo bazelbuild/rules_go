@@ -230,13 +230,3 @@ go_bazel_test(
     srcs = ["pgo_test.go"],
     embedsrcs = ["pgo.pprof"],
 )
-
-go_binary(
-    name = "hello_syso",
-    srcs = [
-        "hello_syso.go",
-        "resource.syso",
-    ],
-    goarch = "amd64",
-    goos = "windows",
-)
