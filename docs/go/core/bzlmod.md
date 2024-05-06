@@ -232,6 +232,7 @@ The root module can override certain aspects of the dependency resolution perfor
 replace(
     golang.org/x/net v1.2.3 => example.com/fork/net v1.4.5
     golang.org/x/mod => example.com/my/mod v1.4.5
+    example.org/hello => ../../../fixtures/hello
 )
 ```
 
@@ -288,5 +289,4 @@ go_deps.archive_override(
 ### Not yet supported
 
 * Fetching dependencies from Git repositories
-* `go.mod` `replace` directives referencing local files
 * `go.mod` `exclude` directices
