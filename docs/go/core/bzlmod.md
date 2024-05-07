@@ -160,6 +160,28 @@ go_deps.module(
 )
 ```
 
+#### Specifying Workspaces
+
+The `go.work` functionality is supported by the `go_deps` module extension in Gazelle.
+
+```starlark
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_work = "//:go.work")
+
+# All *direct* Go dependencies of all `go.mod` files referenced by the `go.work` file have to be listed explicitly.
+use_repo(
+    go_deps,
+    "com_github_gogo_protobuf",
+    "com_github_golang_mock",
+    "com_github_golang_protobuf",
+    "org_golang_x_net",
+)
+```
+
+Limitations:
+* `go.work` is supported exclusively in the root module.
+* Dependencies that are indirect and depend on a go module specified in `go.work` will have that dependency diverge from the one in `go.work`. More details can be found here: https://github.com/bazelbuild/bazel-gazelle/issues/1797.
+
 #### Depending on tools
 
 If you need to depend on Go modules that are only used as tools, you can use the [`tools.go` technique](https://github.com/golang/go/issues/25922#issuecomment-1038394599):
