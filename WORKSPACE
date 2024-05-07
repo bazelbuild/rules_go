@@ -6,10 +6,10 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 # Required by toolchains_protoc.
 http_archive(
     name = "platforms",
-    sha256 = "5eda539c841265031c2f82d8ae7a3a6490bd62176e0c038fc469eabf91f6149b",
+    sha256 = "218efe8ee736d26a3572663b374a253c012b716d8af0c07e842e82f238a0a7ee",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
-        "https://github.com/bazelbuild/platforms/releases/download/0.0.9/platforms-0.0.9.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.10/platforms-0.0.10.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/0.0.10/platforms-0.0.10.tar.gz",
     ],
 )
 
@@ -31,9 +31,9 @@ go_register_toolchains(version = "1.21.8")
 
 http_archive(
     name = "rules_proto",
-    sha256 = "71fdbed00a0709521ad212058c60d13997b922a5d01dbfd997f0d57d689e7b67",
-    strip_prefix = "rules_proto-6.0.0-rc2",
-    url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.0-rc2/rules_proto-6.0.0-rc2.tar.gz",
+    sha256 = "303e86e722a520f6f326a50b41cfc16b98fe6d1955ce46642a5b7a67c11c0f5d",
+    strip_prefix = "rules_proto-6.0.0",
+    url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.0/rules_proto-6.0.0.tar.gz",
 )
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
@@ -46,9 +46,9 @@ rules_proto_toolchains()
 
 http_archive(
     name = "toolchains_protoc",
-    sha256 = "b312e6de6485e01f753cb87fa09b4193f1762593141790dd0a90abf5e520b1d7",
-    strip_prefix = "toolchains_protoc-0.2.1",
-    url = "https://github.com/alexeagle/toolchains_protoc/releases/download/v0.2.1/toolchains_protoc-v0.2.1.tar.gz",
+    sha256 = "1f3cd768bbb92164952301228bac5e5079743843488598f2b17fecd41163cadb",
+    strip_prefix = "toolchains_protoc-0.2.4",
+    url = "https://github.com/aspect-build/toolchains_protoc/releases/download/v0.2.4/toolchains_protoc-v0.2.4.tar.gz",
 )
 
 load("@toolchains_protoc//protoc:toolchain.bzl", "protoc_toolchains")
