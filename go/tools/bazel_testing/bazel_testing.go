@@ -466,15 +466,6 @@ func setupWorkspace(args Args, files []string) (dir string, cleanup func() error
 		if err := defaultModuleBazelTpl.Execute(w, info); err != nil {
 			return "", cleanup, err
 		}
-
-		// Enable Bzlmod.
-		bazelrcPath := filepath.Join(mainDir, ".bazelrc")
-		if _, err = os.Stat(bazelrcPath); os.IsNotExist(err) {
-			err = os.WriteFile(bazelrcPath, []byte("common --enable_bzlmod"), 0666)
-			if err != nil {
-				return "", cleanup, err
-			}
-		}
 	}
 
 	return mainDir, cleanup, nil
