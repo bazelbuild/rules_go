@@ -64,6 +64,7 @@ go_tool_binary(
     srcs = ["@io_bazel_rules_go//go/tools/builders:builder_srcs"],
     ldflags = "-X main.rulesGoStdlibPrefix={}".format(RULES_GO_STDLIB_PREFIX),
     sdk = ":go_sdk",
+    exec_compatible_with = {exec_compatible_with},
 )
 
 non_go_reset_target(

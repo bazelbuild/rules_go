@@ -15,6 +15,7 @@
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "patch", "read_user_netrc", "use_netrc")
 load("//go/private:common.bzl", "executable_path")
 load("//go/private:nogo.bzl", "go_register_nogo")
+load("//go/private:platforms.bzl", "GOARCH_CONSTRAINTS", "GOOS_CONSTRAINTS")
 load("//go/private/skylib/lib:versions.bzl", "versions")
 
 MIN_SUPPORTED_VERSION = (1, 14, 0)
@@ -515,6 +516,10 @@ def _sdk_build_file(ctx, platform, version, experiments):
             "{exe}": ".exe" if goos == "windows" else "",
             "{version}": version,
             "{experiments}": repr(experiments),
+            "{exec_compatible_with}": repr([
+                GOARCH_CONSTRAINTS[goarch],
+                GOOS_CONSTRAINTS[goos],
+            ]),
         },
     )
 
