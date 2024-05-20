@@ -1567,7 +1567,7 @@ diff -urN b/go/analysis/internal/analysisflags/BUILD.bazel c/go/analysis/interna
 diff -urN b/go/analysis/internal/checker/BUILD.bazel c/go/analysis/internal/checker/BUILD.bazel
 --- b/go/analysis/internal/checker/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/analysis/internal/checker/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,42 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -1579,6 +1579,7 @@ diff -urN b/go/analysis/internal/checker/BUILD.bazel c/go/analysis/internal/chec
 +        "//go/analysis",
 +        "//go/analysis/internal/analysisflags",
 +        "//go/packages",
++        "//internal/analysisinternal",
 +        "//internal/diff",
 +        "//internal/robustio",
 +    ],
@@ -1605,6 +1606,8 @@ diff -urN b/go/analysis/internal/checker/BUILD.bazel c/go/analysis/internal/chec
 +        "//go/analysis/passes/inspect",
 +        "//go/ast/inspector",
 +        "//internal/testenv",
++        "//internal/testfiles",
++        "//txtar",
 +    ],
 +)
 diff -urN b/go/analysis/internal/versiontest/BUILD.bazel c/go/analysis/internal/versiontest/BUILD.bazel
@@ -3347,7 +3350,7 @@ diff -urN b/go/analysis/passes/inspect/BUILD.bazel c/go/analysis/passes/inspect/
 diff -urN b/go/analysis/passes/internal/analysisutil/BUILD.bazel c/go/analysis/passes/internal/analysisutil/BUILD.bazel
 --- b/go/analysis/passes/internal/analysisutil/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/analysis/passes/internal/analysisutil/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,25 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3356,6 +3359,7 @@ diff -urN b/go/analysis/passes/internal/analysisutil/BUILD.bazel c/go/analysis/p
 +    importpath = "golang.org/x/tools/go/analysis/passes/internal/analysisutil",
 +    visibility = ["//go/analysis/passes:__subpackages__"],
 +    deps = [
++        "//go/analysis",
 +        "//internal/aliases",
 +        "//internal/analysisinternal",
 +    ],
@@ -3375,7 +3379,7 @@ diff -urN b/go/analysis/passes/internal/analysisutil/BUILD.bazel c/go/analysis/p
 diff -urN b/go/analysis/passes/loopclosure/BUILD.bazel c/go/analysis/passes/loopclosure/BUILD.bazel
 --- b/go/analysis/passes/loopclosure/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/analysis/passes/loopclosure/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,39 @@
+@@ -0,0 +1,38 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3409,10 +3413,9 @@ diff -urN b/go/analysis/passes/loopclosure/BUILD.bazel c/go/analysis/passes/loop
 +    srcs = ["loopclosure_test.go"],
 +    deps = [
 +        ":loopclosure",
-+        "//go/analysis",
 +        "//go/analysis/analysistest",
 +        "//internal/testenv",
-+        "//txtar",
++        "//internal/testfiles",
 +    ],
 +)
 diff -urN b/go/analysis/passes/loopclosure/testdata/src/a/BUILD.bazel c/go/analysis/passes/loopclosure/testdata/src/a/BUILD.bazel
@@ -4480,7 +4483,7 @@ diff -urN b/go/analysis/passes/stdmethods/testdata/src/typeparams/BUILD.bazel c/
 diff -urN b/go/analysis/passes/stdversion/BUILD.bazel c/go/analysis/passes/stdversion/BUILD.bazel
 --- b/go/analysis/passes/stdversion/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/analysis/passes/stdversion/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,33 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -4509,10 +4512,9 @@ diff -urN b/go/analysis/passes/stdversion/BUILD.bazel c/go/analysis/passes/stdve
 +    data = glob(["testdata/**"]),
 +    deps = [
 +        ":stdversion",
-+        "//go/analysis",
 +        "//go/analysis/analysistest",
 +        "//internal/testenv",
-+        "//txtar",
++        "//internal/testfiles",
 +    ],
 +)
 diff -urN b/go/analysis/passes/stringintconv/BUILD.bazel c/go/analysis/passes/stringintconv/BUILD.bazel
@@ -5513,7 +5515,7 @@ diff -urN b/go/analysis/singlechecker/BUILD.bazel c/go/analysis/singlechecker/BU
 diff -urN b/go/analysis/unitchecker/BUILD.bazel c/go/analysis/unitchecker/BUILD.bazel
 --- b/go/analysis/unitchecker/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/analysis/unitchecker/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,72 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5524,6 +5526,7 @@ diff -urN b/go/analysis/unitchecker/BUILD.bazel c/go/analysis/unitchecker/BUILD.
 +    deps = [
 +        "//go/analysis",
 +        "//go/analysis/internal/analysisflags",
++        "//internal/analysisinternal",
 +        "//internal/facts",
 +        "//internal/versions",
 +    ],
@@ -5581,6 +5584,7 @@ diff -urN b/go/analysis/unitchecker/BUILD.bazel c/go/analysis/unitchecker/BUILD.
 +        "//go/packages",
 +        "//go/packages/packagestest",
 +        "//internal/testenv",
++        "//internal/testfiles",
 +        "//txtar",
 +    ],
 +)
@@ -5724,7 +5728,7 @@ diff -urN b/go/callgraph/BUILD.bazel c/go/callgraph/BUILD.bazel
 diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 --- b/go/callgraph/cha/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/callgraph/cha/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,132 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -5752,6 +5756,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +    deps = select({
 +        "@io_bazel_rules_go//go/platform:aix": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5759,6 +5764,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:darwin": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5766,6 +5772,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:dragonfly": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5773,6 +5780,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:freebsd": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5780,6 +5788,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:illumos": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5787,6 +5796,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:ios": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5794,6 +5804,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:js": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5801,6 +5812,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:linux": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5808,6 +5820,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:netbsd": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5815,6 +5828,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:openbsd": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5822,6 +5836,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:plan9": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5829,6 +5844,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:solaris": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -5836,6 +5852,7 @@ diff -urN b/go/callgraph/cha/BUILD.bazel c/go/callgraph/cha/BUILD.bazel
 +        ],
 +        "@io_bazel_rules_go//go/platform:windows": [
 +            ":cha",
++            "//go/buildutil",
 +            "//go/callgraph",
 +            "//go/loader",
 +            "//go/ssa",
@@ -6587,7 +6604,7 @@ diff -urN b/go/packages/internal/nodecount/BUILD.bazel c/go/packages/internal/no
 diff -urN b/go/packages/packagestest/BUILD.bazel c/go/packages/packagestest/BUILD.bazel
 --- b/go/packages/packagestest/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/packages/packagestest/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,40 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -6597,7 +6614,6 @@ diff -urN b/go/packages/packagestest/BUILD.bazel c/go/packages/packagestest/BUIL
 +        "export.go",
 +        "gopath.go",
 +        "modules.go",
-+        "modules_111.go",
 +    ],
 +    importpath = "golang.org/x/tools/go/packages/packagestest",
 +    visibility = ["//visibility:public"],
@@ -6862,7 +6878,7 @@ diff -urN b/go/packages/packagestest/testdata/groups/two/primarymod/expect/BUILD
 diff -urN b/go/ssa/BUILD.bazel c/go/ssa/BUILD.bazel
 --- b/go/ssa/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/go/ssa/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,79 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -6929,6 +6945,7 @@ diff -urN b/go/ssa/BUILD.bazel c/go/ssa/BUILD.bazel
 +    ],
 +    embed = [":ssa"],
 +    deps = [
++        "//go/analysis/analysistest",
 +        "//go/ast/astutil",
 +        "//go/buildutil",
 +        "//go/expect",
@@ -6937,8 +6954,8 @@ diff -urN b/go/ssa/BUILD.bazel c/go/ssa/BUILD.bazel
 +        "//go/ssa/ssautil",
 +        "//internal/aliases",
 +        "//internal/testenv",
++        "//internal/testfiles",
 +        "//internal/typeparams",
-+        "//txtar",
 +    ],
 +)
 diff -urN b/go/ssa/interp/BUILD.bazel c/go/ssa/interp/BUILD.bazel
@@ -8204,7 +8221,7 @@ diff -urN b/internal/aliases/BUILD.bazel c/internal/aliases/BUILD.bazel
 diff -urN b/internal/analysisinternal/BUILD.bazel c/internal/analysisinternal/BUILD.bazel
 --- b/internal/analysisinternal/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/internal/analysisinternal/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,27 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -8215,7 +8232,10 @@ diff -urN b/internal/analysisinternal/BUILD.bazel c/internal/analysisinternal/BU
 +    ],
 +    importpath = "golang.org/x/tools/internal/analysisinternal",
 +    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/aliases"],
++    deps = [
++        "//go/analysis",
++        "//internal/aliases",
++    ],
 +)
 +
 +alias(
@@ -8232,7 +8252,7 @@ diff -urN b/internal/analysisinternal/BUILD.bazel c/internal/analysisinternal/BU
 diff -urN b/internal/apidiff/BUILD.bazel c/internal/apidiff/BUILD.bazel
 --- b/internal/apidiff/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/internal/apidiff/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,35 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -8265,6 +8285,7 @@ diff -urN b/internal/apidiff/BUILD.bazel c/internal/apidiff/BUILD.bazel
 +    deps = [
 +        "//go/packages",
 +        "//internal/testenv",
++        "@com_github_google_go_cmp//cmp:go_default_library",
 +    ],
 +)
 diff -urN b/internal/apidiff/testdata/BUILD.bazel c/internal/apidiff/testdata/BUILD.bazel
@@ -8594,9 +8615,9 @@ diff -urN b/internal/event/export/BUILD.bazel c/internal/event/export/BUILD.baze
 +    name = "export",
 +    srcs = [
 +        "id.go",
++        "labels.go",
 +        "log.go",
 +        "printer.go",
-+        "tag.go",
 +        "trace.go",
 +    ],
 +    importpath = "golang.org/x/tools/internal/event/export",
@@ -8834,25 +8855,6 @@ diff -urN b/internal/event/label/BUILD.bazel c/internal/event/label/BUILD.bazel
 +        ":label",
 +        "//internal/event/keys",
 +    ],
-+)
-diff -urN b/internal/event/tag/BUILD.bazel c/internal/event/tag/BUILD.bazel
---- b/internal/event/tag/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
-+++ c/internal/event/tag/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,15 @@
-+load("@io_bazel_rules_go//go:def.bzl", "go_library")
-+
-+go_library(
-+    name = "tag",
-+    srcs = ["tag.go"],
-+    importpath = "golang.org/x/tools/internal/event/tag",
-+    visibility = ["//:__subpackages__"],
-+    deps = ["//internal/event/keys"],
-+)
-+
-+alias(
-+    name = "go_default_library",
-+    actual = ":tag",
-+    visibility = ["//:__subpackages__"],
 +)
 diff -urN b/internal/facts/BUILD.bazel c/internal/facts/BUILD.bazel
 --- b/internal/facts/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
@@ -9142,7 +9144,7 @@ diff -urN b/internal/gcimporter/testdata/versions/BUILD.bazel c/internal/gcimpor
 diff -urN b/internal/gocommand/BUILD.bazel c/internal/gocommand/BUILD.bazel
 --- b/internal/gocommand/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/internal/gocommand/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,34 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -9158,7 +9160,6 @@ diff -urN b/internal/gocommand/BUILD.bazel c/internal/gocommand/BUILD.bazel
 +        "//internal/event",
 +        "//internal/event/keys",
 +        "//internal/event/label",
-+        "//internal/event/tag",
 +        "@org_golang_x_mod//semver:go_default_library",
 +    ],
 +)
@@ -9223,7 +9224,7 @@ diff -urN b/internal/goroot/BUILD.bazel c/internal/goroot/BUILD.bazel
 diff -urN b/internal/imports/BUILD.bazel c/internal/imports/BUILD.bazel
 --- b/internal/imports/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/internal/imports/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,51 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -9259,6 +9260,7 @@ diff -urN b/internal/imports/BUILD.bazel c/internal/imports/BUILD.bazel
 +        "fix_test.go",
 +        "imports_test.go",
 +        "mod_cache_test.go",
++        "mod_go122_test.go",
 +        "mod_test.go",
 +    ],
 +    data = glob(["testdata/**"]),
@@ -9277,7 +9279,7 @@ diff -urN b/internal/imports/BUILD.bazel c/internal/imports/BUILD.bazel
 diff -urN b/internal/jsonrpc2/BUILD.bazel c/internal/jsonrpc2/BUILD.bazel
 --- b/internal/jsonrpc2/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/internal/jsonrpc2/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,42 @@
+@@ -0,0 +1,43 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -9286,6 +9288,7 @@ diff -urN b/internal/jsonrpc2/BUILD.bazel c/internal/jsonrpc2/BUILD.bazel
 +        "conn.go",
 +        "handler.go",
 +        "jsonrpc2.go",
++        "labels.go",
 +        "messages.go",
 +        "serve.go",
 +        "stream.go",
@@ -9295,8 +9298,8 @@ diff -urN b/internal/jsonrpc2/BUILD.bazel c/internal/jsonrpc2/BUILD.bazel
 +    visibility = ["//:__subpackages__"],
 +    deps = [
 +        "//internal/event",
++        "//internal/event/keys",
 +        "//internal/event/label",
-+        "//internal/event/tag",
 +    ],
 +)
 +
@@ -9371,7 +9374,7 @@ diff -urN b/internal/jsonrpc2_v2/BUILD.bazel c/internal/jsonrpc2_v2/BUILD.bazel
 +        "//internal/event",
 +        "//internal/event/keys",
 +        "//internal/event/label",
-+        "//internal/event/tag",
++        "//internal/jsonrpc2",
 +    ],
 +)
 +
@@ -9790,6 +9793,77 @@ diff -urN b/internal/testenv/BUILD.bazel c/internal/testenv/BUILD.bazel
 +alias(
 +    name = "go_default_library",
 +    actual = ":testenv",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN b/internal/testfiles/BUILD.bazel c/internal/testfiles/BUILD.bazel
+--- b/internal/testfiles/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
++++ c/internal/testfiles/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,27 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
++
++go_library(
++    name = "testfiles",
++    srcs = ["testfiles.go"],
++    importpath = "golang.org/x/tools/internal/testfiles",
++    visibility = ["//:__subpackages__"],
++    deps = ["//txtar"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":testfiles",
++    visibility = ["//:__subpackages__"],
++)
++
++go_test(
++    name = "testfiles_test",
++    srcs = ["testfiles_test.go"],
++    deps = [
++        ":testfiles",
++        "//go/analysis",
++        "//go/analysis/analysistest",
++        "//internal/testenv",
++        "//internal/versions",
++    ],
++)
+diff -urN b/internal/testfiles/testdata/versions/BUILD.bazel c/internal/testfiles/testdata/versions/BUILD.bazel
+--- b/internal/testfiles/testdata/versions/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
++++ c/internal/testfiles/testdata/versions/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,18 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "versions",
++    srcs = [
++        "mod.go",
++        "post.go",
++        "pre.go",
++    ],
++    importpath = "golang.org/x/tools/internal/testfiles/testdata/versions",
++    visibility = ["//:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":versions",
++    visibility = ["//:__subpackages__"],
++)
+diff -urN b/internal/testfiles/testdata/versions/sub.test/BUILD.bazel c/internal/testfiles/testdata/versions/sub.test/BUILD.bazel
+--- b/internal/testfiles/testdata/versions/sub.test/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
++++ c/internal/testfiles/testdata/versions/sub.test/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
+@@ -0,0 +1,14 @@
++load("@io_bazel_rules_go//go:def.bzl", "go_library")
++
++go_library(
++    name = "sub_test",
++    srcs = ["sub.go"],
++    importpath = "golang.org/x/tools/internal/testfiles/testdata/versions/sub.test",
++    visibility = ["//:__subpackages__"],
++)
++
++alias(
++    name = "go_default_library",
++    actual = ":sub_test",
 +    visibility = ["//:__subpackages__"],
 +)
 diff -urN b/internal/tokeninternal/BUILD.bazel c/internal/tokeninternal/BUILD.bazel
@@ -10259,7 +10333,7 @@ diff -urN b/refactor/importgraph/BUILD.bazel c/refactor/importgraph/BUILD.bazel
 diff -urN b/refactor/rename/BUILD.bazel c/refactor/rename/BUILD.bazel
 --- b/refactor/rename/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ c/refactor/rename/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,44 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -10300,6 +10374,7 @@ diff -urN b/refactor/rename/BUILD.bazel c/refactor/rename/BUILD.bazel
 +    embed = [":rename"],
 +    deps = [
 +        "//go/buildutil",
++        "//internal/aliases",
 +        "//internal/testenv",
 +    ],
 +)

@@ -9135,7 +9135,7 @@ diff -urN a/googleapis/datastore/admin/v1beta1/BUILD.bazel b/googleapis/datastor
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
-+        "//googleapis/longrunning",
++        "@com_google_cloud_go_longrunning//autogen/longrunningpb:go_default_library",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",
@@ -10150,9 +10150,9 @@ diff -urN a/googleapis/genomics/v1/BUILD.bazel b/googleapis/genomics/v1/BUILD.ba
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
-+        "//googleapis/iam/v1:iam",
-+        "//googleapis/longrunning",
 +        "//googleapis/rpc/status",
++        "@com_google_cloud_go_iam//apiv1/iampb:go_default_library",
++        "@com_google_cloud_go_longrunning//autogen/longrunningpb:go_default_library",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",
@@ -10185,8 +10185,8 @@ diff -urN a/googleapis/genomics/v1alpha2/BUILD.bazel b/googleapis/genomics/v1alp
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
-+        "//googleapis/longrunning",
 +        "//googleapis/rpc/code",
++        "@com_google_cloud_go_longrunning//autogen/longrunningpb:go_default_library",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",
@@ -11066,7 +11066,7 @@ diff -urN a/googleapis/partner/aistreams/v1alpha1/BUILD.bazel b/googleapis/partn
 +    visibility = ["//visibility:public"],
 +    deps = [
 +        "//googleapis/api/annotations",
-+        "//googleapis/longrunning",
++        "@com_google_cloud_go_longrunning//autogen/longrunningpb:go_default_library",
 +        "@org_golang_google_grpc//:go_default_library",
 +        "@org_golang_google_grpc//codes:go_default_library",
 +        "@org_golang_google_grpc//status:go_default_library",
