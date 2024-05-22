@@ -42,6 +42,8 @@ def mode_string(mode):
     result = [mode.goos, mode.goarch]
     if mode.static:
         result.append("static")
+    if mode.cover:
+        result.append("cover")
     if mode.race:
         result.append("race")
     if mode.msan:
@@ -84,6 +86,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         "on" if not cgo_context_info else "auto",
         go_config_info.pure if go_config_info else "off",
     )
+    cover = _ternary(go_config_info.cover if go_config_info else "off")
     race = _ternary(go_config_info.race if go_config_info else "off")
     msan = _ternary(go_config_info.msan if go_config_info else "off")
     strip = go_config_info.strip if go_config_info else False
@@ -118,6 +121,8 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         tags.extend(ctx.var["gotags"].split(","))
     if cgo_context_info:
         tags.extend(cgo_context_info.tags)
+    if cover:
+        tags.append("cover")
     if race:
         tags.append("race")
     if msan:
@@ -127,6 +132,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
 
     return struct(
         static = static,
+        cover = cover,
         race = race,
         msan = msan,
         pure = pure,

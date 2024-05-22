@@ -58,6 +58,10 @@ or using `Bazel configuration transitions`_.
 | Instruments the binary for race detection. Programs will panic when a data   |
 | race is detected. Requires cgo. Mutually exclusive with ``msan``.            |
 +-------------------+---------------------+------------------------------------+
+| :param:`cover`    | :type:`bool`        | :value:`false`                     |
++-------------------+---------------------+------------------------------------+
+| Instruments the binary for code coverage for Go integration tests.           |
++-------------------+---------------------+------------------------------------+
 | :param:`msan`     | :type:`bool`        | :value:`false`                     |
 +-------------------+---------------------+------------------------------------+
 | Instruments the binary for memory sanitization. Requires cgo. Mutually       |
@@ -170,4 +174,18 @@ Alternatively, you can activate race detection for specific tests.
         srcs = ["lib_test.go"],
         embed = [":go_default_library"],
         race = "on",
+  )
+
+Using the code coverage
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can build coverage-instrumented programs by using
+
+.. code::
+
+    go_test(
+        name = "go_default_test",
+        srcs = ["lib_test.go"],
+        embed = [":go_default_library"],
+        cover = "on",
   )

@@ -131,6 +131,7 @@ go_config(
     msan = "//go/config:msan",
     pgoprofile = "//go/config:pgoprofile",
     pure = "//go/config:pure",
+    cover = "//go/config:cover",
     race = "//go/config:race",
     stamp = select({
         "//go/private:stamp": True,
