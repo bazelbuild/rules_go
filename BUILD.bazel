@@ -39,13 +39,25 @@ load(
 # It can't go here though, because it would break anything that depends on
 # rules_go but not Gazelle, including our own go_bazel_tests.
 
-stdlib(
+alias(
     name = "stdlib",
-    cgo_context_data = select({
-        "//go/platform:internal_cgo_off": None,
-        "//conditions:default": ":cgo_context_data",
+    actual = select({
+        "//go/platform:internal_cgo_off": ":stdlib_pure",
+        "//conditions:default": ":stdlib_cgo",
     }),
     visibility = ["//visibility:public"],
+)
+
+stdlib(
+    name = "stdlib_pure",
+    cgo_context_data = None,
+    tags = ["manual"],
+)
+
+stdlib(
+    name = "stdlib_cgo",
+    cgo_context_data = ":cgo_context_data",
+    tags = ["manual"],
 )
 
 # default_nogo is the nogo target that nogo references by default. It
