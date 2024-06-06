@@ -122,6 +122,9 @@ _UNSUPPORTED_FEATURES = [
     "use_header_modules",
     "fdo_instrument",
     "fdo_optimize",
+    # This is a nonspecific unsupported feature which allows the authors of C++
+    # toolchain to apply separate flags when compiling Go code.
+    "rules_go_unsupported_feature",
 ]
 
 def _match_option(option, pattern):
