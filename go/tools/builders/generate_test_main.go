@@ -167,14 +167,14 @@ func testsInShard() []testing.InternalTest {
 func main() {
 	if bzltestutil.ShouldWrap() {
 		err := bzltestutil.Wrap("{{.Pkgname}}")
+		exitCode := 0
 		if xerr, ok := err.(*exec.ExitError); ok {
-			os.Exit(xerr.ExitCode())
+			exitCode = xerr.ExitCode()
 		} else if err != nil {
 			log.Print(err)
-			os.Exit(bzltestutil.TestWrapperAbnormalExit)
-		} else {
-			os.Exit(0)
+			exitCode = bzltestutil.TestWrapperAbnormalExit
 		}
+		os.Exit(exitCode)
 	}
 
 	testDeps :=
