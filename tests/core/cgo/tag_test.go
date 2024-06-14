@@ -16,9 +16,6 @@ func Test(t *testing.T) {
 			name: "tag_pure_bin",
 			want: "pure",
 		}, {
-			name: "tag_purego_bin",
-			want: "purego",
-		}, {
 			name: "tag_cgo_bin",
 			want: "cgo",
 		},

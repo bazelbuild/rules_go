@@ -1635,7 +1635,7 @@ diff -urN a/internal/genid/BUILD.bazel b/internal/genid/BUILD.bazel
 diff -urN a/internal/impl/BUILD.bazel b/internal/impl/BUILD.bazel
 --- a/internal/impl/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/internal/impl/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,113 @@
+@@ -0,0 +1,111 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -1651,7 +1651,6 @@ diff -urN a/internal/impl/BUILD.bazel b/internal/impl/BUILD.bazel
 +        "codec_map_go112.go",
 +        "codec_message.go",
 +        "codec_messageset.go",
-+        "codec_reflect.go",
 +        "codec_tables.go",
 +        "codec_unsafe.go",
 +        "convert.go",
@@ -1672,7 +1671,6 @@ diff -urN a/internal/impl/BUILD.bazel b/internal/impl/BUILD.bazel
 +        "message_reflect.go",
 +        "message_reflect_field.go",
 +        "message_reflect_gen.go",
-+        "pointer_reflect.go",
 +        "pointer_unsafe.go",
 +        "validate.go",
 +        "weak.go",
@@ -1919,14 +1917,13 @@ diff -urN a/internal/set/BUILD.bazel b/internal/set/BUILD.bazel
 diff -urN a/internal/strs/BUILD.bazel b/internal/strs/BUILD.bazel
 --- a/internal/strs/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/internal/strs/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,28 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
 +    name = "strs",
 +    srcs = [
 +        "strings.go",
-+        "strings_pure.go",
 +        "strings_unsafe_go120.go",
 +        "strings_unsafe_go121.go",
 +    ],
@@ -3355,7 +3352,7 @@ diff -urN a/reflect/protorange/BUILD.bazel b/reflect/protorange/BUILD.bazel
 diff -urN a/reflect/protoreflect/BUILD.bazel b/reflect/protoreflect/BUILD.bazel
 --- a/reflect/protoreflect/BUILD.bazel	1970-01-01 00:00:00.000000000 +0000
 +++ b/reflect/protoreflect/BUILD.bazel	2000-01-01 00:00:00.000000000 -0000
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,39 @@
 +load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 +
 +go_library(
@@ -3368,7 +3365,6 @@ diff -urN a/reflect/protoreflect/BUILD.bazel b/reflect/protoreflect/BUILD.bazel
 +        "type.go",
 +        "value.go",
 +        "value_equal.go",
-+        "value_pure.go",
 +        "value_union.go",
 +        "value_unsafe_go120.go",
 +        "value_unsafe_go121.go",

@@ -62,7 +62,6 @@ tasks:
       - "//..."
   bcr_tests:
     name: BCR test module
-    bazel: 6.3.0 # silent ignore override in `gazelle@0.36.0`
     platform: ${{ platform }}
     working_directory: tests/bcr
     build_flags:

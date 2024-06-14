@@ -334,7 +334,6 @@ go_test(
     data = [
         ":tag_cgo_bin",
         ":tag_pure_bin",
-        ":tag_purego_bin",
     ],
     rundir = ".",
     deps = ["//go/tools/bazel:go_default_library"],
@@ -346,17 +345,6 @@ go_binary(
         "tag_pure.go",
         "tag_pure_err.c",
         "tag_pure_err.go",
-    ],
-    cgo = True,
-    pure = "on",
-)
-
-go_binary(
-    name = "tag_purego_bin",
-    srcs = [
-        "tag_purego.go",
-        "tag_purego_err.c",
-        "tag_purego_err.go",
     ],
     cgo = True,
     pure = "on",

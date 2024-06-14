@@ -68,8 +68,6 @@ or using `Bazel configuration transitions`_.
 | Disables cgo, even when a C/C++ toolchain is configured (similar to setting  |
 | ``CGO_ENABLED=0``). Packages that contain cgo code may still be built, but   |
 | the cgo code will be filtered out, and the ``cgo`` build tag will be false.  |
-| Sets the de-facto ``purego`` build tag for conditional inclusion of source   |
-| files.                                                                       |
 +-------------------+---------------------+------------------------------------+
 | :param:`debug`    | :type:`bool`        | :value:`false`                     |
 +-------------------+---------------------+------------------------------------+
