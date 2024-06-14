@@ -12,7 +12,7 @@
   [cc_library deps]: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
   [cgo]: http://golang.org/cmd/cgo/
   [config_setting]: https://docs.bazel.build/versions/master/be/general.html#config_setting
-  [data dependencies]: https://docs.bazel.build/versions/master/build-ref.html#data
+  [data dependencies]: https://bazel.build/concepts/dependencies#data-dependencies
   [goarch]: /go/modes.rst#goarch
   [goos]: /go/modes.rst#goos
   [mode attributes]: /go/modes.rst#mode-attributes

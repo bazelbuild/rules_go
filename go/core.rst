@@ -12,7 +12,7 @@ Core Go rules
 .. _cc_library deps: https://docs.bazel.build/versions/master/be/c-cpp.html#cc_library.deps
 .. _cgo: http://golang.org/cmd/cgo/
 .. _config_setting: https://docs.bazel.build/versions/master/be/general.html#config_setting
-.. _data dependencies: https://docs.bazel.build/versions/master/build-ref.html#data
+.. _data dependencies: https://bazel.build/concepts/dependencies#data-dependencies
 .. _goarch: modes.rst#goarch
 .. _goos: modes.rst#goos
 .. _mode attributes: modes.rst#mode-attributes
