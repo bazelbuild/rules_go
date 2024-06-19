@@ -35,6 +35,7 @@
   [go_path]: #go_path
   [go_source]: #go_source
   [go_test]: #go_test
+  [go_reset_target]: #go_reset_target
   [Examples]: examples.md#examples
   [Defines and stamping]: defines_and_stamping.md#defines-and-stamping
   [Stamping with the workspace status script]: defines_and_stamping.md#stamping-with-the-workspace-status-script
@@ -288,6 +289,42 @@ go_path(<a href="#go_path-name">name</a>, <a href="#go_path-data">data</a>, <a h
 | <a id="go_path-include_pkg"></a>include_pkg |  When true, a <code>pkg</code> subdirectory containing the compiled libraries will be created in the             generated <code>GOPATH</code> containing compiled libraries.   | Boolean | optional | False |
 | <a id="go_path-include_transitive"></a>include_transitive |  When true, the transitive dependency graph will be included in the generated <code>GOPATH</code>. This is             the default behaviour. When false, only the direct dependencies will be included in the             generated <code>GOPATH</code>.   | Boolean | optional | True |
 | <a id="go_path-mode"></a>mode |  Determines how the generated directory is provided. May be one of:             <ul>                 <li><code>"archive"</code>: The generated directory is packaged as a single .zip file.</li>                 <li><code>"copy"</code>: The generated directory is a single tree artifact. Source files                 are copied into the tree.</li>                 <li><code>"link"</code>: <b>Unmaintained due to correctness issues</b>. Source files                 are symlinked into the tree. All of the symlink files are provided as separate output                 files.</li>             </ul>              ***Note:*** In <code>"copy"</code> mode, when a <code>GoPath</code> is consumed as a set of input             files or run files, Bazel may provide symbolic links instead of regular files.             Any program that consumes these files should dereference links, e.g., if you             run <code>tar</code>, use the <code>--dereference</code> flag.   | String | optional | "copy" |
+
+
+
+
+
+<a id="#go_reset_target"></a>
+
+## go_reset_target
+
+<pre>
+go_reset_target(<a href="#go_reset_target-name">name</a>, <a href="#go_reset_target-dep">dep</a>)
+</pre>
+
+Forwards providers from a target and default Go binary settings.
+
+go_reset_target depends on a single target and builds it to be a Go tool binary. It
+forwards Go providers and DefaultInfo.
+
+go_reset_target does two things using transitions:
+   1. builds the tool with 'cfg = "exec"' so they work on the execution platform.
+   2. Sets most Go settings to default value and disables nogo.
+
+This is used for Go tool binaries that shouldn't depend on the link mode or tags of the
+target configuration and neither the tools nor the code they potentially
+generate should be subject to Nogo's static analysis. This is helpful, for example, so
+a tool isn't built as a shared library with race instrumentation. This acts as an
+intermediate rule that allows users to apply these transitions.
+
+
+### **Attributes**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="go_reset_target-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="go_reset_target-dep"></a>dep |  The target to forward providers from and apply go_tool_transition to.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
 

@@ -318,21 +318,26 @@ go_reset_target = rule(
         "dep": attr.label(
             mandatory = True,
             cfg = go_tool_transition,
+            doc = """The target to forward providers from and apply go_tool_transition to.""",
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    doc = """Forwards providers from a target and applies go_tool_transition.
+    doc = """Forwards providers from a target and default Go binary settings.
 
-go_reset_target depends on a single target, built using go_tool_transition. It
+go_reset_target depends on a single target and builds it to be a Go tool binary. It
 forwards Go providers and DefaultInfo.
 
-This is used to work around a problem with building tools: Go tools should be
-built with 'cfg = "exec"' so they work on the execution platform, but we also
-need to apply go_tool_transition so that e.g. a tool isn't built as a shared
-library with race instrumentation. This acts as an intermediate rule that allows
-to apply both both transitions.
+go_reset_target does two things using transitions:
+   1. builds the tool with 'cfg = "exec"' so they work on the execution platform.
+   2. Sets most Go settings to default value and disables nogo.
+
+This is used for Go tool binaries that shouldn't depend on the link mode or tags of the
+target configuration and neither the tools nor the code they potentially
+generate should be subject to Nogo's static analysis. This is helpful, for example, so
+a tool isn't built as a shared library with race instrumentation. This acts as an
+intermediate rule that allows users to apply these transitions.
 """,
 )
 

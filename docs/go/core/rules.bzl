@@ -33,6 +33,7 @@
   [go_path]: #go_path
   [go_source]: #go_source
   [go_test]: #go_test
+  [go_reset_target]: #go_reset_target
   [Examples]: examples.md#examples
   [Defines and stamping]: defines_and_stamping.md#defines-and-stamping
   [Stamping with the workspace status script]: defines_and_stamping.md#stamping-with-the-workspace-status-script
@@ -119,6 +120,7 @@ load("//go/private/rules:cross.bzl", _go_cross_binary = "go_cross_binary")
 load("//go/private/rules:library.bzl", _go_library = "go_library")
 load("//go/private/rules:source.bzl", _go_source = "go_source")
 load("//go/private/rules:test.bzl", _go_test = "go_test")
+load("//go/private/rules:transition.bzl", _go_reset_target = "go_reset_target")
 load("//go/private/tools:path.bzl", _go_path = "go_path")
 
 go_library = _go_library
@@ -127,3 +129,4 @@ go_test = _go_test
 go_source = _go_source
 go_path = _go_path
 go_cross_binary = _go_cross_binary
+go_reset_target = _go_reset_target
