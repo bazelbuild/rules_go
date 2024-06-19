@@ -108,7 +108,7 @@ Here is an example of a Bazel build graph for a project using these core rules:
 
 ![](./buildgraph.svg)
 
-By instrumenting the lower level go tooling, we can cache smaller, finer 
+By instrumenting the lower level go tooling, we can cache smaller, finer
 artifacts with Bazel and thus, speed up incremental builds.
 
 Rules
