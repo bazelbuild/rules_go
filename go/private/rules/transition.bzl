@@ -307,6 +307,7 @@ go_reset_target = rule(
         "dep": attr.label(
             mandatory = True,
             cfg = go_tool_transition,
+            doc = """The target to forward providers from and apply go_tool_transition to.""",
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
@@ -319,8 +320,8 @@ forwards Go providers and DefaultInfo.
 
 This is used to work around a problem with building tools: Go tools should be
 built with 'cfg = "exec"' so they work on the execution platform, but we also
-need to apply go_tool_transition so that e.g. a tool isn't built as a shared
-library with race instrumentation. This acts as an intermediate rule that allows
+need to apply go_tool_transition so that, for example, a tool isn't built as a shared
+library with race instrumentation. This acts as an intermediate rule that allows users
 to apply both both transitions.
 """,
 )

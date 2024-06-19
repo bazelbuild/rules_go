@@ -64,6 +64,10 @@ load(
     _go_source = "go_source",
 )
 load(
+    "//go/private/rules:transition.bzl",
+    _go_reset_target = "go_reset_target",
+)
+load(
     "//go/private/rules:wrappers.bzl",
     _go_binary_macro = "go_binary_macro",
     _go_library_macro = "go_library_macro",
@@ -162,6 +166,9 @@ go_source = _go_source
 
 # See docs/go/core/rules.md#go_path for full documentation.
 go_path = _go_path
+
+# See docs/go/core/rules.md#go_reset_target for full documentation.
+go_reset_target = _go_reset_target
 
 # See docs/go/core/rules.md#go_cross_binary for full documentation.
 go_cross_binary = _go_cross_binary
