@@ -14,7 +14,11 @@
 
 package runfiles
 
-import "path/filepath"
+import (
+	"io/fs"
+	"os"
+	"path/filepath"
+)
 
 // Directory specifies the location of the runfiles directory.  You can pass
 // this as an option to New.  If unset or empty, use the value of the
@@ -36,4 +40,8 @@ func (d Directory) new(sourceRepo SourceRepo) (*Runfiles, error) {
 
 func (d Directory) path(s string) (string, error) {
 	return filepath.Join(string(d), filepath.FromSlash(s)), nil
+}
+
+func (d Directory) open(name string) (fs.File, error) {
+	return os.DirFS(string(d)).Open(name)
 }

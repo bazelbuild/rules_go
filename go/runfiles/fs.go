@@ -20,7 +20,6 @@ package runfiles
 import (
 	"io"
 	"io/fs"
-	"os"
 	"sort"
 	"strings"
 	"syscall"
@@ -31,30 +30,30 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
-	if d, ok := r.impl.(Directory); ok {
-		if name == "." {
-			return &rootDir{r, nil}, nil
-		}
-		split := strings.SplitN(name, "/", 2)
-		key := repoMappingKey{r.sourceRepo, split[0]}
-		targetRepoDirectory, exists := r.repoMapping[key]
-		if !exists {
-			return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrNotExist}
-		}
-		mappedPath := targetRepoDirectory
-		if len(split) > 1 {
-			mappedPath += "/" + split[1]
-		}
-		f, err := os.DirFS(string(d)).Open(mappedPath)
-		if err != nil {
-			return nil, err
-		}
-		if len(split) > 1 {
-			return f, nil
-		}
-		return &repoDir{f.(fs.ReadDirFile), split[0]}, nil
+	if name == "." {
+		return &rootDir{r, nil}, nil
 	}
-	panic("not implemented")
+	split := strings.SplitN(name, "/", 2)
+	key := repoMappingKey{r.sourceRepo, split[0]}
+	targetRepoDirectory, exists := r.repoMapping[key]
+	if !exists {
+		// There may be a file with this name at the root of the runfiles
+		// tree if someone is using `root_symlinks`.
+		return r.impl.open(name)
+	}
+	mappedPath := targetRepoDirectory
+	if len(split) > 1 {
+		mappedPath += "/" + split[1]
+	}
+	f, err := r.impl.open(mappedPath)
+	if err != nil {
+		return nil, err
+	}
+	if len(split) > 1 {
+		return f, nil
+	}
+	// Return a special file for the repo dir that knows its apparent name.
+	return &repoDir{f.(fs.ReadDirFile), split[0]}, nil
 }
 
 type repoDir struct {
