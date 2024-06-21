@@ -22,7 +22,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 	"testing/fstest"
 
@@ -39,25 +38,6 @@ func TestFS(t *testing.T) {
 	var _ fs.FS = fsys
 	var _ fs.StatFS = fsys
 	var _ fs.ReadFileFS = fsys
-
-	if runtime.GOOS == "windows" {
-		// Currently the result of
-		//
-		//  fsys.Rlocation("io_bazel_rules_go/go/runfiles/test.txt")
-		//  fsys.Rlocation("bazel_tools/tools/bash/runfiles/runfiles.bash")
-		//  fsys.Rlocation("io_bazel_rules_go/go/runfiles/testprog/testprog")
-		//
-		// would be a full path like these
-		//
-		//  C:\b\bk-windows-1z0z\bazel\rules-go-golang\go\tools\bazel\runfiles\test.txt
-		//  C:\b\zslxztin\external\bazel_tools\tools\bash\runfiles\runfiles.bash
-		//  C:\b\pm4ep4b2\execroot\io_bazel_rules_go\bazel-out\x64_windows-fastbuild\bin\go\tools\bazel\runfiles\testprog\testprog
-		//
-		// Which does not follow any particular patter / rules.
-		// This makes it very hard to define what we are looking for on Windows.
-		// So let's skip this for now.
-		return
-	}
 
 	expected1 := "io_bazel_rules_go/tests/runfiles/test.txt"
 	expected2 := "io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog"
