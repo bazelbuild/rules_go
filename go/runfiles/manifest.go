@@ -151,12 +151,12 @@ func (m manifest) open(name string) (fs.File, error) {
 	}
 	var entries []fs.DirEntry
 	for k := range current {
-		entries = append(entries, manifestDirEntry{k, current[k] != nil})
+		entries = append(entries, manifestDirEntry{k, m.m[path.Join(name, k)]})
 	}
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].Name() < entries[j].Name()
 	})
-	return &manifestReadDirFile{name, entries}, nil
+	return &manifestReadDirFile{segments[len(segments)-1], entries}, nil
 }
 
 type manifestReadDirFile struct {
@@ -192,14 +192,14 @@ type manifestDirFileInfo string
 
 func (i manifestDirFileInfo) Name() string     { return string(i) }
 func (manifestDirFileInfo) Size() int64        { return 0 }
-func (manifestDirFileInfo) Mode() fs.FileMode  { return 0555 }
+func (manifestDirFileInfo) Mode() fs.FileMode  { return fs.ModeDir | 0555 }
 func (manifestDirFileInfo) ModTime() time.Time { return time.Time{} }
 func (manifestDirFileInfo) IsDir() bool        { return true }
 func (manifestDirFileInfo) Sys() interface{}   { return nil }
 
 type manifestDirEntry struct {
 	name string
-	isDir bool
+	path string
 }
 
 func (e manifestDirEntry) Name() string {
@@ -207,11 +207,11 @@ func (e manifestDirEntry) Name() string {
 }
 
 func (e manifestDirEntry) IsDir() bool {
-	return e.isDir
+	return e.path == ""
 }
 
 func (e manifestDirEntry) Type() fs.FileMode {
-	if e.isDir {
+	if e.IsDir() {
 		return fs.ModeDir
 	} else {
 		return 0
@@ -222,7 +222,6 @@ func (e manifestDirEntry) Info() (fs.FileInfo, error) {
 	if e.IsDir() {
 		return manifestDirFileInfo(e.name), nil
 	} else {
-		// TODO: Return real file info.
-		return emptyFileInfo(e.name), nil
+		return fs.Stat(os.DirFS(path.Dir(e.path)), path.Base(e.path))
 	}
 }
