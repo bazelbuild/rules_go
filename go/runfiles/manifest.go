@@ -17,6 +17,7 @@ package runfiles
 import (
 	"bufio"
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -103,4 +104,8 @@ func (m manifest) path(s string) (string, error) {
 	}
 
 	return "", os.ErrNotExist
+}
+
+func (m manifest) open(name string) (fs.File, error) {
+	panic("not implemented")
 }

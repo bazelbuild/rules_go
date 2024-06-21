@@ -39,6 +39,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -264,6 +265,7 @@ func (sr SourceRepo) apply(o *options)  { o.sourceRepo = sr }
 
 type runfiles interface {
 	path(string) (string, error)
+	open(name string) (fs.File, error)
 }
 
 // The runfiles root symlink under which the repository mapping can be found.
