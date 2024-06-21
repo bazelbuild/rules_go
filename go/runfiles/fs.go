@@ -61,7 +61,7 @@ type repoDir struct {
 	name string
 }
 
-func (r *repoDir) Stat() (fs.FileInfo, error) {
+func (r repoDir) Stat() (fs.FileInfo, error) {
 	info, err := r.ReadDirFile.Stat()
 	if err != nil {
 		return nil, err
@@ -122,19 +122,19 @@ type runfilesDirEntry struct {
 	rf   *Runfiles
 }
 
-func (r *runfilesDirEntry) Name() string {
+func (r runfilesDirEntry) Name() string {
 	return r.name
 }
 
-func (r *runfilesDirEntry) IsDir() bool {
+func (r runfilesDirEntry) IsDir() bool {
 	return true
 }
 
-func (r *runfilesDirEntry) Type() fs.FileMode {
+func (r runfilesDirEntry) Type() fs.FileMode {
 	return fs.ModeDir
 }
 
-func (r *runfilesDirEntry) Info() (fs.FileInfo, error) {
+func (r runfilesDirEntry) Info() (fs.FileInfo, error) {
 	return fs.Stat(r.rf, r.name)
 }
 
