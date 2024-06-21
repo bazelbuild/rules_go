@@ -107,5 +107,12 @@ func (m manifest) path(s string) (string, error) {
 }
 
 func (m manifest) open(name string) (fs.File, error) {
-	panic("not implemented")
+	r, ok := m[name]
+	if ok && r == "" {
+		return emptyFile(name), nil
+	}
+	if ok {
+		return os.Open(name)
+	}
+	return nil, fs.ErrNotExist
 }
