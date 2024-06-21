@@ -222,6 +222,6 @@ func (e manifestDirEntry) Info() (fs.FileInfo, error) {
 	if e.IsDir() {
 		return manifestDirFileInfo(e.name), nil
 	} else {
-		return fs.Stat(os.DirFS(path.Dir(e.path)), path.Base(e.path))
+		return os.Stat(e.path)
 	}
 }
