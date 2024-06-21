@@ -17,10 +17,12 @@ package runfiles
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -60,34 +62,40 @@ func (f ManifestFile) new(sourceRepo SourceRepo) (*Runfiles, error) {
 	return r, err
 }
 
-type manifest map[string]string
+type trie map[string]trie
+
+type manifest struct {
+	m map[string]string
+
+	trie
+}
 
 func (f ManifestFile) parse() (manifest, error) {
 	r, err := os.Open(string(f))
 	if err != nil {
-		return nil, fmt.Errorf("runfiles: can’t open manifest file: %w", err)
+		return manifest{}, fmt.Errorf("runfiles: can’t open manifest file: %w", err)
 	}
 	defer r.Close()
 
 	s := bufio.NewScanner(r)
-	m := make(manifest)
+	m := manifest{make(map[string]string),  nil}
 	for s.Scan() {
 		fields := strings.SplitN(s.Text(), " ", 2)
 		if len(fields) != 2 || fields[0] == "" {
-			return nil, fmt.Errorf("runfiles: bad manifest line %q in file %s", s.Text(), f)
+			return manifest{}, fmt.Errorf("runfiles: bad manifest line %q in file %s", s.Text(), f)
 		}
-		m[fields[0]] = filepath.FromSlash(fields[1])
+		m.m[fields[0]] = filepath.FromSlash(fields[1])
 	}
 
 	if err := s.Err(); err != nil {
-		return nil, fmt.Errorf("runfiles: error parsing manifest file %s: %w", f, err)
+		return manifest{}, fmt.Errorf("runfiles: error parsing manifest file %s: %w", f, err)
 	}
 
 	return m, nil
 }
 
 func (m manifest) path(s string) (string, error) {
-	r, ok := m[s]
+	r, ok := m.m[s]
 	if ok && r == "" {
 		return "", ErrEmpty
 	}
@@ -100,7 +108,7 @@ func (m manifest) path(s string) (string, error) {
 	// prefixes of path in the manifest.
 	for prefix := s; prefix != ""; prefix, _ = path.Split(prefix) {
 		prefix = strings.TrimSuffix(prefix, "/")
-		if prefixMatch, ok := m[prefix]; ok {
+		if prefixMatch, ok := m.m[prefix]; ok {
 			return prefixMatch + filepath.FromSlash(strings.TrimPrefix(s, prefix)), nil
 		}
 	}
@@ -109,39 +117,75 @@ func (m manifest) path(s string) (string, error) {
 }
 
 func (m manifest) open(name string) (fs.File, error) {
-	r, ok := m[name]
-	if ok && r == "" {
+	r, err := m.path(name)
+	if err == ErrEmpty {
 		return emptyFile(name), nil
-	}
-	if ok {
-		return os.Open(name)
+	} else if err == nil {
+		return os.Open(r)
 	}
 
-	for source := range m {
-		if strings.HasPrefix(source, name+"/") {
-			return manifestReadDirFile(name), nil
+	if m.trie == nil {
+		m.trie = make(map[string]trie)
+		for k := range m.m {
+			segments := strings.Split(k, "/")
+			current := m.trie
+			for _, s := range segments {
+				if current[s] == nil {
+					current[s] = make(map[string]trie)
+				}
+				current = current[s]
+			}
 		}
 	}
-	return nil, fs.ErrNotExist
+
+	segments := strings.Split(name, "/")
+	current := m.trie
+	for _, s := range segments {
+		if current == nil {
+			break
+		}
+		current = current[s]
+	}
+	if current == nil {
+		return nil, os.ErrNotExist
+	}
+	var entries []fs.DirEntry
+	for k := range current {
+		entries = append(entries, manifestDirEntry{k, current[k] != nil})
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Name() < entries[j].Name()
+	})
+	return &manifestReadDirFile{name, entries}, nil
 }
 
-type manifestReadDirFile string
-
-func (m manifestReadDirFile) Stat() (fs.FileInfo, error) {
-	return manifestDirFileInfo(m), nil
+type manifestReadDirFile struct {
+	name string
+	entries []fs.DirEntry
 }
 
-func (m manifestReadDirFile) Read(_ []byte) (int, error) {
+func (m *manifestReadDirFile) Stat() (fs.FileInfo, error) {
+	return manifestDirFileInfo(m.name), nil
+}
+
+func (m *manifestReadDirFile) Read(_ []byte) (int, error) {
 	return 0, syscall.EISDIR
 }
 
-func (m manifestReadDirFile) Close() error {
+func (m *manifestReadDirFile) Close() error {
 	return nil
 }
 
-func (m manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
-	//TODO implement me
-	panic("implement me")
+func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
+	if n > 0 && len(m.entries) == 0 {
+		return nil, io.EOF
+	}
+	if n <= 0 || n > len(m.entries) {
+		n = len(m.entries)
+	}
+	entries := m.entries[:n]
+	m.entries = m.entries[n:]
+	return entries, nil
 }
 
 type manifestDirFileInfo string
@@ -152,3 +196,33 @@ func (manifestDirFileInfo) Mode() fs.FileMode  { return 0555 }
 func (manifestDirFileInfo) ModTime() time.Time { return time.Time{} }
 func (manifestDirFileInfo) IsDir() bool        { return true }
 func (manifestDirFileInfo) Sys() interface{}   { return nil }
+
+type manifestDirEntry struct {
+	name string
+	isDir bool
+}
+
+func (e manifestDirEntry) Name() string {
+	return e.name
+}
+
+func (e manifestDirEntry) IsDir() bool {
+	return e.isDir
+}
+
+func (e manifestDirEntry) Type() fs.FileMode {
+	if e.isDir {
+		return fs.ModeDir
+	} else {
+		return 0
+	}
+}
+
+func (e manifestDirEntry) Info() (fs.FileInfo, error) {
+	if e.IsDir() {
+		return manifestDirFileInfo(e.name), nil
+	} else {
+		// TODO: Return real file info.
+		return emptyFileInfo(e.name), nil
+	}
+}
