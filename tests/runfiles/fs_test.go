@@ -99,6 +99,15 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	if info.Name() != "test.txt" {
 		t.Errorf("Name: got %q, want %q", info.Name(), "test.txt")
 	}
+	if info.IsDir() {
+		t.Errorf("IsDir: got %v, want %v", info.IsDir(), false)
+	}
+	if !info.Mode().IsRegular() {
+		t.Errorf("IsRegular: got %v, want %v", info.Mode().IsRegular(), true)
+	}
+	if info.Size() != 4 {
+		t.Errorf("Size: got %d, want %d", info.Size(), 4)
+	}
 }
 
 func TestFS_empty(t *testing.T) {
