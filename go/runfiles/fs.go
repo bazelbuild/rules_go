@@ -38,7 +38,8 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 	targetRepoDirectory, exists := r.repoMapping[key]
 	if !exists {
 		// There may be a file with this name at the root of the runfiles
-		// tree if someone is using `root_symlinks`.
+		// tree if someone is using `root_symlinks` or the path already uses a
+		// canonical repo name.
 		return r.impl.open(name)
 	}
 	mappedPath := targetRepoDirectory
