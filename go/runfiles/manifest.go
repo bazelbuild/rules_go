@@ -22,6 +22,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"syscall"
+	"time"
 )
 
 // ManifestFile specifies the location of the runfile manifest file.  You can
@@ -114,5 +116,39 @@ func (m manifest) open(name string) (fs.File, error) {
 	if ok {
 		return os.Open(name)
 	}
+
+	for source := range m {
+		if strings.HasPrefix(source, name+"/") {
+			return manifestReadDirFile(name), nil
+		}
+	}
 	return nil, fs.ErrNotExist
 }
+
+type manifestReadDirFile string
+
+func (m manifestReadDirFile) Stat() (fs.FileInfo, error) {
+	return manifestDirFileInfo(m), nil
+}
+
+func (m manifestReadDirFile) Read(_ []byte) (int, error) {
+	return 0, syscall.EISDIR
+}
+
+func (m manifestReadDirFile) Close() error {
+	return nil
+}
+
+func (m manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+type manifestDirFileInfo string
+
+func (i manifestDirFileInfo) Name() string     { return string(i) }
+func (manifestDirFileInfo) Size() int64        { return 0 }
+func (manifestDirFileInfo) Mode() fs.FileMode  { return 0555 }
+func (manifestDirFileInfo) ModTime() time.Time { return time.Time{} }
+func (manifestDirFileInfo) IsDir() bool        { return true }
+func (manifestDirFileInfo) Sys() interface{}   { return nil }

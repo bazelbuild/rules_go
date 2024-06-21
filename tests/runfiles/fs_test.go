@@ -28,22 +28,76 @@ import (
 	"github.com/bazelbuild/rules_go/go/runfiles"
 )
 
-func TestFS(t *testing.T) {
-	fsys, err := runfiles.New()
+func TestFS_native(t *testing.T) {
+	r, err := runfiles.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	testFS(t, r)
+}
+
+func TestFS_manifest(t *testing.T) {
+	// Turn our own runfiles (whatever the form) into a valid manifest file.
+	tempdir := t.TempDir()
+	manifest := filepath.Join(tempdir, "manifest")
+	manifestFile, err := os.Create(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, source := range []string{
+		"_main/tests/runfiles/runfiles_test_/runfiles_test",
+		"_main/tests/runfiles/test.txt",
+		"_main/tests/runfiles/testprog/testprog_/testprog",
+		"_repo_mapping",
+		"bazel_tools/tools/bash/runfiles/runfiles.bash",
+	} {
+		target, err := runfiles.Rlocation(source)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = manifestFile.WriteString(source + " " + target + "\n")
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err = manifestFile.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	fsys, err := runfiles.New(runfiles.ManifestFile(manifest))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Ensure that the Runfiles object implements FS interfaces.
-	var _ fs.FS = fsys
-	var _ fs.StatFS = fsys
-	var _ fs.ReadFileFS = fsys
+	testFS(t, fsys)
+}
 
-	expected1 := "io_bazel_rules_go/tests/runfiles/test.txt"
-	expected2 := "io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog"
-	expected3 := "bazel_tools/tools/bash/runfiles/runfiles.bash"
-	if err := fstest.TestFS(fsys, expected1, expected2, expected3); err != nil {
+func testFS(t *testing.T, r *runfiles.Runfiles) {
+	// Ensure that the Runfiles object implements FS interfaces.
+	var _ fs.FS = r
+	var _ fs.StatFS = r
+	var _ fs.ReadFileFS = r
+
+	if err := fstest.TestFS(
+		r,
+		"io_bazel_rules_go/tests/runfiles/test.txt",
+		"io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog",
+		"bazel_tools/tools/bash/runfiles/runfiles.bash",
+	); err != nil {
 		t.Error(err)
+	}
+
+	// Canonical repo names are not returned by readdir, but can still be accessed.
+	f, err := r.Open("_main/tests/runfiles/test.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := f.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Name() != "test.txt" {
+		t.Errorf("Name: got %q, want %q", info.Name(), "test.txt")
 	}
 }
 
