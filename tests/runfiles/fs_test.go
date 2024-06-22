@@ -21,11 +21,12 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
-	"testing/fstest"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
+	"github.com/bazelbuild/rules_go/go/tests/runfiles/testfs"
 )
 
 func TestFS_native(t *testing.T) {
@@ -46,6 +47,7 @@ func TestFS_manifest(t *testing.T) {
 	}
 	for _, source := range []string{
 		"_main/tests/runfiles/runfiles_test_/runfiles_test",
+		"_main/tests/runfiles/test_dir",
 		"_main/tests/runfiles/test.txt",
 		"_main/tests/runfiles/testprog/testprog_/testprog",
 		"_repo_mapping",
@@ -78,9 +80,11 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	var _ fs.StatFS = r
 	var _ fs.ReadFileFS = r
 
-	if err := fstest.TestFS(
+	if err := testfs.TestFS(
 		r,
 		"io_bazel_rules_go/tests/runfiles/test.txt",
+		"io_bazel_rules_go/tests/runfiles/test_dir/file.txt",
+		"io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt",
 		"io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog",
 		"bazel_tools/tools/bash/runfiles/runfiles.bash",
 	); err != nil {
@@ -88,16 +92,24 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	}
 
 	// Canonical repo names are not returned by readdir, but can still be accessed.
-	f, err := r.Open("_main/tests/runfiles/test.txt")
+	testFile(t, r, "_main/tests/runfiles/test.txt", "hi!\n")
+	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test.txt", "hi!\n")
+	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/file.txt", "file\n")
+	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt", "other_file\n")
+}
+
+func testFile(t *testing.T, r *runfiles.Runfiles, name, content string) {
+	f, err := r.Open(name)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer f.Close()
 	info, err := f.Stat()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Name() != "test.txt" {
-		t.Errorf("Name: got %q, want %q", info.Name(), "test.txt")
+	if info.Name() != path.Base(name) {
+		t.Errorf("Name: got %q, want %q", info.Name(), path.Base(name))
 	}
 	if info.IsDir() {
 		t.Errorf("IsDir: got %v, want %v", info.IsDir(), false)
@@ -105,8 +117,15 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	if !info.Mode().IsRegular() {
 		t.Errorf("IsRegular: got %v, want %v", info.Mode().IsRegular(), true)
 	}
-	if info.Size() != 4 {
-		t.Errorf("Size: got %d, want %d", info.Size(), 4)
+	if info.Size() != int64(len(content)) {
+		t.Errorf("Size: got %d, want %d", info.Size(), len(content))
+	}
+	got, err := fs.ReadFile(r, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != content {
+		t.Errorf("got %q, want %q", got, content)
 	}
 }
 
