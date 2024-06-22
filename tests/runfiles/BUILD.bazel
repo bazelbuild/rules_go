@@ -23,11 +23,13 @@ go_test(
     ],
     data = [
         "test.txt",
+        "test_dir",
         "//tests/runfiles/testprog",
         "@bazel_tools//tools/bash/runfiles",
     ],
     deps = [
         "//go/runfiles",
+        "//tests/runfiles/testfs",
     ],
 )
 
