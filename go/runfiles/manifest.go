@@ -149,19 +149,19 @@ func (m manifest) open(name string) (fs.File, error) {
 	if current == nil {
 		return nil, os.ErrNotExist
 	}
-	var entries []fs.DirEntry
+	var entries []manifestDirEntry
 	for k := range current {
 		entries = append(entries, manifestDirEntry{k, m.m[path.Join(name, k)]})
 	}
 	sort.Slice(entries, func(i, j int) bool {
-		return entries[i].Name() < entries[j].Name()
+		return entries[i].name < entries[j].name
 	})
 	return &manifestReadDirFile{segments[len(segments)-1], entries}, nil
 }
 
 type manifestReadDirFile struct {
 	name string
-	entries []fs.DirEntry
+	entries []manifestDirEntry
 }
 
 func (m *manifestReadDirFile) Stat() (fs.FileInfo, error) {
@@ -185,7 +185,21 @@ func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 	}
 	entries := m.entries[:n]
 	m.entries = m.entries[n:]
-	return entries, nil
+	var dirEntries []fs.DirEntry
+	for _, e := range entries {
+		var dirEntry fs.DirEntry
+		if e.path == "" {
+			dirEntry = fs.FileInfoToDirEntry(manifestDirFileInfo(e.name))
+		} else {
+			info, err := os.Stat(e.path)
+			if err != nil {
+				return nil, err
+			}
+			dirEntry = fs.FileInfoToDirEntry(info)
+		}
+		dirEntries = append(dirEntries, dirEntry)
+	}
+	return dirEntries, nil
 }
 
 type manifestDirFileInfo string
@@ -200,28 +214,4 @@ func (manifestDirFileInfo) Sys() interface{}   { return nil }
 type manifestDirEntry struct {
 	name string
 	path string
-}
-
-func (e manifestDirEntry) Name() string {
-	return e.name
-}
-
-func (e manifestDirEntry) IsDir() bool {
-	return e.path == ""
-}
-
-func (e manifestDirEntry) Type() fs.FileMode {
-	if e.IsDir() {
-		return fs.ModeDir
-	} else {
-		return 0
-	}
-}
-
-func (e manifestDirEntry) Info() (fs.FileInfo, error) {
-	if e.IsDir() {
-		return manifestDirFileInfo(e.name), nil
-	} else {
-		return os.Stat(e.path)
-	}
 }

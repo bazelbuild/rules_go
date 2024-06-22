@@ -167,7 +167,9 @@ func (t *fsTester) checkDir(dir string) {
 		path := prefix + name
 		t.checkStat(path, info)
 		t.checkOpen(path)
-		if info.IsDir() {
+		// Fix for https://github.com/golang/go/issues/50401: Also check whether the file is a
+		// symlink that resolves to a directory.
+		if resolvesToDir(t.fsys, path, info) {
 			t.checkDir(path)
 		} else {
 			t.checkFile(path)
@@ -273,6 +275,25 @@ func (t *fsTester) checkDir(dir string) {
 	}
 
 	t.checkGlob(dir, list2)
+}
+
+func resolvesToDir(fsys fs.FS, name string, info fs.DirEntry) bool {
+	if info.IsDir() {
+		return true
+	}
+	if info.Type() != fs.ModeSymlink {
+		return false
+	}
+	f, err := fsys.Open(name)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+	resolvedInfo, err := f.Stat()
+	if err != nil {
+		return false
+	}
+	return resolvedInfo.IsDir()
 }
 
 // formatEntry formats an fs.DirEntry into a string for error messages and comparison.
