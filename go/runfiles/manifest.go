@@ -197,17 +197,9 @@ func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 
 type dirFile string
 
-func (r dirFile) Stat() (fs.FileInfo, error) {
-	return dirFileInfo(string(r)), nil
-}
-
-func (r dirFile) Read(_ []byte) (int, error) {
-	return 0, syscall.EISDIR
-}
-
-func (r dirFile) Close() error {
-	return nil
-}
+func (r dirFile) Stat() (fs.FileInfo, error) { return dirFileInfo(r), nil }
+func (r dirFile) Read(_ []byte) (int, error) { return 0, syscall.EISDIR }
+func (r dirFile) Close() error { return nil }
 
 type dirFileInfo string
 

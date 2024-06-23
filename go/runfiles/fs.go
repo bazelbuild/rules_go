@@ -19,7 +19,6 @@ import (
 	"io/fs"
 	"sort"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -28,7 +27,7 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 	if name == "." {
-		return &rootDir{r, nil}, nil
+		return &rootDir{dirFile("."), r, nil}, nil
 	}
 	split := strings.SplitN(name, "/", 2)
 	key := repoMappingKey{r.sourceRepo, split[0]}
@@ -77,20 +76,9 @@ func (r repoDirFileInfo) Name() string {
 }
 
 type rootDir struct {
+	dirFile
 	rf      *Runfiles
 	entries []fs.DirEntry
-}
-
-func (r *rootDir) Stat() (fs.FileInfo, error) {
-	return emptyFileInfo("."), nil
-}
-
-func (r *rootDir) Read(_ []byte) (int, error) {
-	return 0, syscall.EISDIR
-}
-
-func (r *rootDir) Close() error {
-	return nil
 }
 
 func (r *rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
