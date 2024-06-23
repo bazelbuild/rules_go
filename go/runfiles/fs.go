@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build go1.16
-// +build go1.16
-
 package runfiles
 
 import (
@@ -153,48 +150,3 @@ func (emptyFileInfo) Mode() fs.FileMode  { return 0444 }
 func (emptyFileInfo) ModTime() time.Time { return time.Time{} }
 func (emptyFileInfo) IsDir() bool        { return false }
 func (emptyFileInfo) Sys() interface{}   { return nil }
-
-// Methods below are provided for backwards compatibility with previous versions only.
-
-// Stat is the default implementation of the fs.StatFS method.
-func (r *Runfiles) Stat(name string) (fs.FileInfo, error) {
-	file, err := r.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	return file.Stat()
-}
-
-// ReadFile is the default implementation of the fs.ReadFileFS method.
-func (r *Runfiles) ReadFile(name string) ([]byte, error) {
-	file, err := r.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var size int
-	if info, err := file.Stat(); err == nil {
-		size64 := info.Size()
-		if int64(int(size64)) == size64 {
-			size = int(size64)
-		}
-	}
-
-	data := make([]byte, 0, size+1)
-	for {
-		if len(data) >= cap(data) {
-			d := append(data[:cap(data)], 0)
-			data = d[:len(data)]
-		}
-		n, err := file.Read(data[len(data):cap(data)])
-		data = data[:len(data)+n]
-		if err != nil {
-			if err == io.EOF {
-				err = nil
-			}
-			return data, err
-		}
-	}
-}

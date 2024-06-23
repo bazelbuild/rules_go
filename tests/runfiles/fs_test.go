@@ -77,8 +77,6 @@ func TestFS_manifest(t *testing.T) {
 func testFS(t *testing.T, r *runfiles.Runfiles) {
 	// Ensure that the Runfiles object implements FS interfaces.
 	var _ fs.FS = r
-	var _ fs.StatFS = r
-	var _ fs.ReadFileFS = r
 
 	if err := testfs.TestFS(
 		r,
@@ -154,7 +152,7 @@ func TestFS_empty(t *testing.T) {
 		}
 	})
 	t.Run("Stat", func(t *testing.T) {
-		got, err := fsys.Stat("__init__.py")
+		got, err := fs.Stat(fsys, "__init__.py")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -172,7 +170,7 @@ func TestFS_empty(t *testing.T) {
 		}
 	})
 	t.Run("ReadFile", func(t *testing.T) {
-		got, err := fsys.ReadFile("__init__.py")
+		got, err := fs.ReadFile(fsys, "__init__.py")
 		if err != nil {
 			t.Error(err)
 		}

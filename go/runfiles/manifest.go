@@ -156,24 +156,17 @@ func (m manifest) open(name string) (fs.File, error) {
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].name < entries[j].name
 	})
-	return &manifestReadDirFile{segments[len(segments)-1], entries}, nil
+	return &manifestReadDirFile{dirFile(segments[len(segments)-1]), entries}, nil
+}
+
+type manifestDirEntry struct {
+	name string
+	path string
 }
 
 type manifestReadDirFile struct {
-	name string
+	dirFile
 	entries []manifestDirEntry
-}
-
-func (m *manifestReadDirFile) Stat() (fs.FileInfo, error) {
-	return manifestDirFileInfo(m.name), nil
-}
-
-func (m *manifestReadDirFile) Read(_ []byte) (int, error) {
-	return 0, syscall.EISDIR
-}
-
-func (m *manifestReadDirFile) Close() error {
-	return nil
 }
 
 func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
@@ -187,31 +180,40 @@ func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 	m.entries = m.entries[n:]
 	var dirEntries []fs.DirEntry
 	for _, e := range entries {
-		var dirEntry fs.DirEntry
+		var info fs.FileInfo
 		if e.path == "" {
-			dirEntry = fs.FileInfoToDirEntry(manifestDirFileInfo(e.name))
+			info = dirFileInfo(e.name)
 		} else {
-			info, err := os.Stat(e.path)
+			var err error
+			info, err = os.Stat(e.path)
 			if err != nil {
 				return nil, err
 			}
-			dirEntry = fs.FileInfoToDirEntry(info)
 		}
-		dirEntries = append(dirEntries, dirEntry)
+		dirEntries = append(dirEntries, fs.FileInfoToDirEntry(info))
 	}
 	return dirEntries, nil
 }
 
-type manifestDirFileInfo string
+type dirFile string
 
-func (i manifestDirFileInfo) Name() string     { return string(i) }
-func (manifestDirFileInfo) Size() int64        { return 0 }
-func (manifestDirFileInfo) Mode() fs.FileMode  { return fs.ModeDir | 0555 }
-func (manifestDirFileInfo) ModTime() time.Time { return time.Time{} }
-func (manifestDirFileInfo) IsDir() bool        { return true }
-func (manifestDirFileInfo) Sys() interface{}   { return nil }
-
-type manifestDirEntry struct {
-	name string
-	path string
+func (r dirFile) Stat() (fs.FileInfo, error) {
+	return dirFileInfo(string(r)), nil
 }
+
+func (r dirFile) Read(_ []byte) (int, error) {
+	return 0, syscall.EISDIR
+}
+
+func (r dirFile) Close() error {
+	return nil
+}
+
+type dirFileInfo string
+
+func (i dirFileInfo) Name() string     { return string(i) }
+func (dirFileInfo) Size() int64        { return 0 }
+func (dirFileInfo) Mode() fs.FileMode  { return fs.ModeDir | 0555 }
+func (dirFileInfo) ModTime() time.Time { return time.Time{} }
+func (dirFileInfo) IsDir() bool        { return true }
+func (dirFileInfo) Sys() interface{}   { return nil }
