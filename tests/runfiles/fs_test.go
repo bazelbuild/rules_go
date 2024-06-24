@@ -54,7 +54,7 @@ func mainRepoRunfiles(useCanonicalName bool) []string {
 		exeSuffix = ".exe"
 	}
 	return []string{
-		mainRepo + "/tests/runfiles/runfiles_test_/runfiles_test",
+		mainRepo + "/tests/runfiles/runfiles_test_/runfiles_test" + exeSuffix,
 		mainRepo + "/tests/runfiles/test.txt",
 		mainRepo + "/tests/runfiles/test_dir",
 		mainRepo + "/tests/runfiles/testprog/testprog_/testprog" + exeSuffix,
