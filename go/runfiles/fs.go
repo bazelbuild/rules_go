@@ -25,8 +25,8 @@ import (
 // Open implements fs.FS for a Runfiles instance.
 //
 // Rlocation-style paths are supported with both apparent and canonical repo
-// names. The root directory of the filesystem (".") only lists the apparent
-// repo names that are visible to the current source repo
+// names. The root directory of the filesystem (".") additionally lists the
+// apparent repo names that are visible to the current source repo
 // (with --enable_bzlmod).
 func (r *Runfiles) Open(name string) (fs.File, error) {
 	if !fs.ValidPath(name) {
