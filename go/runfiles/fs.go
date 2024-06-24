@@ -22,6 +22,12 @@ import (
 	"time"
 )
 
+// Open implements fs.FS for a Runfiles instance.
+//
+// Rlocation-style paths are supported with both apparent and canonical repo
+// names. The root directory of the filesystem (".") only lists the apparent
+// repo names that are visible to the current source repo
+// (with --enable_bzlmod).
 func (r *Runfiles) Open(name string) (fs.File, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
@@ -33,9 +39,8 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 	key := repoMappingKey{r.sourceRepo, split[0]}
 	targetRepoDirectory, exists := r.repoMapping[key]
 	if !exists {
-		// There may be a file with this name at the root of the runfiles
-		// tree if someone is using `root_symlinks` or the path already uses a
-		// canonical repo name.
+		// Either name uses a canonical repo name or refers to a root symlink.
+		// In both cases, we can just open the file directly.
 		return r.impl.open(name)
 	}
 	mappedPath := targetRepoDirectory
@@ -49,8 +54,73 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 	if len(split) > 1 {
 		return f, nil
 	}
-	// Return a special file for the repo dir that knows its apparent name.
+	// Return a special file for a repo dir that knows its apparent name.
 	return &repoDir{f.(fs.ReadDirFile), split[0]}, nil
+}
+
+type rootDir struct {
+	dirFile
+	rf      *Runfiles
+	entries []fs.DirEntry
+}
+
+func (r *rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
+	if err := r.initEntries(); err != nil {
+		return nil, err
+	}
+	if n > 0 && len(r.entries) == 0 {
+		return nil, io.EOF
+	}
+	if n <= 0 || n > len(r.entries) {
+		n = len(r.entries)
+	}
+	entries := r.entries[:n]
+	r.entries = r.entries[n:]
+	return entries, nil
+}
+
+func (r *rootDir) initEntries() error {
+	if r.entries != nil {
+		return nil
+	}
+	// The entries of the root dir should be the apparent names of the repos
+	// visible to the main repo (plus root symlinks). We thus need to read
+	// the real entries and then transform and filter them.
+	canonicalToApparentName := make(map[string]string)
+	allCanonicalNames := make(map[string]struct{})
+	for k, v := range r.rf.repoMapping {
+		allCanonicalNames[v] = struct{}{}
+		if k.sourceRepo == r.rf.sourceRepo {
+			canonicalToApparentName[v] = k.targetRepoApparentName
+		}
+	}
+	rootFile, err := r.rf.impl.open(".")
+	if err != nil {
+		return err
+	}
+	rootDirFile := rootFile.(fs.ReadDirFile)
+	realEntries, err := rootDirFile.ReadDir(-1)
+	if err != nil {
+		return err
+	}
+	for _, e := range realEntries {
+		if apparent, ok := canonicalToApparentName[e.Name()]; ok && e.IsDir() {
+			// A repo directory that is visible to the current source repo is materialized
+			// under its apparent name.
+			r.entries = append(r.entries, repoDirEntry{apparent, r.rf})
+		} else if _, ok := allCanonicalNames[e.Name()]; ok && e.IsDir() {
+			// Skip repo directory that isn't visible to the current source repo.
+		} else {
+			// This is either a root symlink or Bzlmod is not enabled. In the latter case,
+			// allCanonicalNames only contains the name of the main repo. Since without
+			// Bzlmod there is no strict repo visibility, we materialize all directories.
+			r.entries = append(r.entries, e)
+		}
+	}
+	sort.Slice(r.entries, func(i, j int) bool {
+		return r.entries[i].Name() < r.entries[j].Name()
+	})
+	return nil
 }
 
 type repoDir struct {
@@ -71,82 +141,17 @@ type repoDirFileInfo struct {
 	name string
 }
 
-func (r repoDirFileInfo) Name() string {
-	return r.name
-}
+func (r repoDirFileInfo) Name() string { return r.name }
 
-type rootDir struct {
-	dirFile
-	rf      *Runfiles
-	entries []fs.DirEntry
-}
-
-func (r *rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
-	if r.entries == nil {
-		canonicalToApparentName := make(map[string]string)
-		allCanonicalNames := make(map[string]struct{})
-		for k, v := range r.rf.repoMapping {
-			allCanonicalNames[v] = struct{}{}
-			if k.sourceRepo == r.rf.sourceRepo {
-				canonicalToApparentName[v] = k.targetRepoApparentName
-			}
-		}
-		rootFile, err := r.rf.impl.open(".")
-		if err != nil {
-			return nil, err
-		}
-		rootDirFile := rootFile.(fs.ReadDirFile)
-		realEntries, err := rootDirFile.ReadDir(-1)
-		if err != nil {
-			return nil, err
-		}
-		for _, e := range realEntries {
-			if apparent, ok := canonicalToApparentName[e.Name()]; ok && e.IsDir() {
-				// A repo directory that is visible to the current source repo is materialized
-				// under its apparent name.
-				r.entries = append(r.entries, runfilesDirEntry{apparent, r.rf})
-			} else if _, ok := allCanonicalNames[e.Name()]; ok && e.IsDir() {
-				// Skip repo directory that isn't visible to the current source repo.
-			} else {
-				// This is a root symlink.
-				r.entries = append(r.entries, e)
-			}
-		}
-		sort.Slice(r.entries, func(i, j int) bool {
-			return r.entries[i].Name() < r.entries[j].Name()
-		})
-	}
-	if n > 0 && len(r.entries) == 0 {
-		return nil, io.EOF
-	}
-	if n <= 0 || n > len(r.entries) {
-		n = len(r.entries)
-	}
-	entries := r.entries[:n]
-	r.entries = r.entries[n:]
-	return entries, nil
-}
-
-type runfilesDirEntry struct {
+type repoDirEntry struct {
 	name string
 	rf   *Runfiles
 }
 
-func (r runfilesDirEntry) Name() string {
-	return r.name
-}
-
-func (r runfilesDirEntry) IsDir() bool {
-	return true
-}
-
-func (r runfilesDirEntry) Type() fs.FileMode {
-	return fs.ModeDir
-}
-
-func (r runfilesDirEntry) Info() (fs.FileInfo, error) {
-	return fs.Stat(r.rf, r.name)
-}
+func (r repoDirEntry) Name() string { return r.name }
+func (r repoDirEntry) IsDir() bool { return true }
+func (r repoDirEntry) Type() fs.FileMode { return fs.ModeDir }
+func (r repoDirEntry) Info() (fs.FileInfo, error) { return fs.Stat(r.rf, r.name) }
 
 type emptyFile string
 
