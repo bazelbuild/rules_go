@@ -1,9 +1,13 @@
+// Taken from
+// https://github.com/golang/go/blob/e8ee1dc4f9e2632ba1018610d1a1187743ae397f/src/testing/fstest/testfs.go
+//
+// Modifications:
+// - fixed https://github.com/golang/go/issues/50401 by statting a dir entry to determine whether it
+//   is a symlink that resolves to a directory
+//
 // Copyright 2020 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
-
-//go:build go1.16
-// +build go1.16
 
 package testfs
 

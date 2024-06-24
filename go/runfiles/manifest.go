@@ -125,6 +125,9 @@ func (m *manifest) open(name string) (fs.File, error) {
 		}
 	}
 
+	// At this point the file is not directly listed in the manifest (or
+	// contained in a directory that is). We lazily build a trie to allow
+	// efficient listing of the contents of intermediate directories.
 	m.initTrie()
 
 	dir := m.trie
@@ -187,12 +190,16 @@ func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 	}
 	entries := m.entries[:n]
 	m.entries = m.entries[n:]
+
 	var dirEntries []fs.DirEntry
 	for _, e := range entries {
 		var info fs.FileInfo
 		if e.path == "" {
+			// The entry corresponds to a directory that is a prefix of some
+			// manifest entry. We represent it as a read-only directory.
 			info = dirFileInfo(e.name)
 		} else {
+			// The entry corresponds to a real file in the manifest.
 			var err error
 			info, err = os.Stat(e.path)
 			if err != nil {

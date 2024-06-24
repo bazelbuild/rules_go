@@ -55,7 +55,7 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 		return f, nil
 	}
 	// Return a special file for a repo dir that knows its apparent name.
-	return &repoDir{f.(fs.ReadDirFile), split[0]}, nil
+	return &repoDirFile{f.(fs.ReadDirFile), split[0]}, nil
 }
 
 type rootDir struct {
@@ -107,7 +107,7 @@ func (r *rootDir) initEntries() error {
 		if apparent, ok := canonicalToApparentName[e.Name()]; ok && e.IsDir() {
 			// A repo directory that is visible to the current source repo is materialized
 			// under its apparent name.
-			r.entries = append(r.entries, repoDirEntry{apparent, r.rf})
+			r.entries = append(r.entries, repoDirEntry{e, apparent})
 		} else if _, ok := allCanonicalNames[e.Name()]; ok && e.IsDir() {
 			// Skip repo directory that isn't visible to the current source repo.
 		} else {
@@ -123,13 +123,27 @@ func (r *rootDir) initEntries() error {
 	return nil
 }
 
-type repoDir struct {
+type repoDirFile struct {
 	fs.ReadDirFile
 	name string
 }
 
-func (r repoDir) Stat() (fs.FileInfo, error) {
+func (r repoDirFile) Stat() (fs.FileInfo, error) {
 	info, err := r.ReadDirFile.Stat()
+	if err != nil {
+		return nil, err
+	}
+	return repoDirFileInfo{info, r.name}, nil
+}
+
+type repoDirEntry struct {
+	fs.DirEntry
+	name string
+}
+
+func (r repoDirEntry) Name() string { return r.name }
+func (r repoDirEntry) Info() (fs.FileInfo, error) {
+	info, err := r.DirEntry.Info()
 	if err != nil {
 		return nil, err
 	}
@@ -142,16 +156,6 @@ type repoDirFileInfo struct {
 }
 
 func (r repoDirFileInfo) Name() string { return r.name }
-
-type repoDirEntry struct {
-	name string
-	rf   *Runfiles
-}
-
-func (r repoDirEntry) Name() string { return r.name }
-func (r repoDirEntry) IsDir() bool { return true }
-func (r repoDirEntry) Type() fs.FileMode { return fs.ModeDir }
-func (r repoDirEntry) Info() (fs.FileInfo, error) { return fs.Stat(r.rf, r.name) }
 
 type emptyFile string
 
