@@ -65,8 +65,8 @@ func (f ManifestFile) new(sourceRepo SourceRepo) (*Runfiles, error) {
 type trie map[string]trie
 
 type manifest struct {
-	m map[string]string
-	trie trie
+	index map[string]string
+	trie  trie
 }
 
 func (f ManifestFile) parse() (manifest, error) {
@@ -83,7 +83,7 @@ func (f ManifestFile) parse() (manifest, error) {
 		if len(fields) != 2 || fields[0] == "" {
 			return manifest{}, fmt.Errorf("runfiles: bad manifest line %q in file %s", s.Text(), f)
 		}
-		m.m[fields[0]] = filepath.FromSlash(fields[1])
+		m.index[fields[0]] = filepath.FromSlash(fields[1])
 	}
 
 	if err := s.Err(); err != nil {
@@ -94,7 +94,7 @@ func (f ManifestFile) parse() (manifest, error) {
 }
 
 func (m *manifest) path(s string) (string, error) {
-	r, ok := m.m[s]
+	r, ok := m.index[s]
 	if ok && r == "" {
 		return "", ErrEmpty
 	}
@@ -107,7 +107,7 @@ func (m *manifest) path(s string) (string, error) {
 	// prefixes of path in the manifest.
 	for prefix := s; prefix != ""; prefix, _ = path.Split(prefix) {
 		prefix = strings.TrimSuffix(prefix, "/")
-		if prefixMatch, ok := m.m[prefix]; ok {
+		if prefixMatch, ok := m.index[prefix]; ok {
 			return prefixMatch + filepath.FromSlash(strings.TrimPrefix(s, prefix)), nil
 		}
 	}
@@ -128,7 +128,19 @@ func (m *manifest) open(name string) (fs.File, error) {
 	// At this point the file is not directly listed in the manifest (or
 	// contained in a directory that is). We lazily build a trie to allow
 	// efficient listing of the contents of intermediate directories.
-	m.initTrie()
+	if m.trie == nil {
+		m.trie = make(map[string]trie)
+		for k := range m.index {
+			segments := strings.Split(k, "/")
+			current := m.trie
+			for _, s := range segments {
+				if current[s] == nil {
+					current[s] = make(map[string]trie)
+				}
+				current = current[s]
+			}
+		}
+	}
 
 	dir := m.trie
 	if name != "." {
@@ -146,7 +158,7 @@ func (m *manifest) open(name string) (fs.File, error) {
 
 	var entries []manifestDirEntry
 	for e := range dir {
-		entries = append(entries, manifestDirEntry{e, m.m[path.Join(name, e)]})
+		entries = append(entries, manifestDirEntry{e, m.index[path.Join(name, e)]})
 	}
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].name < entries[j].name
@@ -155,20 +167,6 @@ func (m *manifest) open(name string) (fs.File, error) {
 }
 
 func (m *manifest) initTrie() {
-	if m.trie != nil {
-		return
-	}
-	m.trie = make(map[string]trie)
-	for k := range m.m {
-		segments := strings.Split(k, "/")
-		current := m.trie
-		for _, s := range segments {
-			if current[s] == nil {
-				current[s] = make(map[string]trie)
-			}
-			current = current[s]
-		}
-	}
 }
 
 type manifestDirEntry struct {
