@@ -41,7 +41,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -81,7 +83,11 @@ const noSourceRepoSentinel = "_not_a_valid_repository_name"
 // The returned object implements fs.FS regardless of the type of runfiles
 // that backs it. This is the preferred way to interact with runfiles in a
 // platform-agnostic way. For example, to find all runfiles beneath a
-// directory, use fs.Glob.
+// directory, use fs.Glob. With `--enable_bzlmod`, only repositories visible to
+// the current source repository are listed as entries in the root directory
+// ("."), under their apparent repository names. Thus, walking the runfiles from
+// the root via fs.WalkDir provides a suitable way to access all runfiles
+// relevant to the current source repository.
 func New(opts ...Option) (*Runfiles, error) {
 	var o options
 	o.sourceRepo = noSourceRepoSentinel

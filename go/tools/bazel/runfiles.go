@@ -180,6 +180,9 @@ type RunfileEntry struct {
 }
 
 // ListRunfiles returns a list of available runfiles.
+//
+// Deprecated: Use fs.Glob or fs.WalkDir on the fs.FS implementation provided
+// by runfiles.New() instead.
 func ListRunfiles() ([]RunfileEntry, error) {
 	if err := ensureRunfiles(); err != nil {
 		return nil, err
