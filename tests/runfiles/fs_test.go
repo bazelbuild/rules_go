@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:build go1.16
-// +build go1.16
-
 package runfiles_test
 
 import (
@@ -23,6 +20,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
@@ -57,7 +55,11 @@ func TestFS_directory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	bzlmod := isBzlmodEnabled()
 	for _, source := range allRunfiles {
+		if !bzlmod {
+			source = strings.ReplaceAll(source, "_main/", "io_bazel_rules_go/")
+		}
 		target, err := runfiles.Rlocation(source)
 		if err != nil {
 			t.Fatal(err)
@@ -87,7 +89,11 @@ func TestFS_manifest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	bzlmod := isBzlmodEnabled()
 	for _, source := range allRunfiles {
+		if !bzlmod {
+			source = strings.ReplaceAll(source, "_main/", "io_bazel_rules_go/")
+		}
 		target, err := runfiles.Rlocation(source)
 		if err != nil {
 			t.Fatal(err)
@@ -126,8 +132,10 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 		t.Error(err)
 	}
 
-	// Canonical repo names are not returned by readdir, but can still be accessed.
-	testFile(t, r, "_main/tests/runfiles/test.txt", "hi!\n")
+	if isBzlmodEnabled() {
+		// Canonical repo names are not returned by readdir, but can still be accessed.
+		testFile(t, r, "_main/tests/runfiles/test.txt", "hi!\n")
+	}
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test.txt", "hi!\n")
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/file.txt", "file\n")
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt", "other_file\n")
@@ -165,6 +173,18 @@ func testFile(t *testing.T, r *runfiles.Runfiles, name, content string) {
 	if string(got) != content {
 		t.Errorf("got %q, want %q", got, content)
 	}
+}
+
+func isBzlmodEnabled() bool {
+	repoMapping, err := runfiles.Rlocation("_repo_mapping")
+	if err != nil {
+		return false
+	}
+	content, err := os.ReadFile(repoMapping)
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(content), ",io_bazel_rules_go,_main\n")
 }
 
 func TestFS_empty(t *testing.T) {
