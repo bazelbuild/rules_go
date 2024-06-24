@@ -54,7 +54,7 @@ func (f ManifestFile) new(sourceRepo SourceRepo) (*Runfiles, error) {
 			legacyDirectoryVar+"="+d)
 	}
 	r := &Runfiles{
-		impl:       m,
+		impl:       &m,
 		env:        env,
 		sourceRepo: string(sourceRepo),
 	}
@@ -66,8 +66,7 @@ type trie map[string]trie
 
 type manifest struct {
 	m map[string]string
-
-	trie
+	trie trie
 }
 
 func (f ManifestFile) parse() (manifest, error) {
@@ -94,7 +93,7 @@ func (f ManifestFile) parse() (manifest, error) {
 	return m, nil
 }
 
-func (m manifest) path(s string) (string, error) {
+func (m *manifest) path(s string) (string, error) {
 	r, ok := m.m[s]
 	if ok && r == "" {
 		return "", ErrEmpty
@@ -116,47 +115,57 @@ func (m manifest) path(s string) (string, error) {
 	return "", os.ErrNotExist
 }
 
-func (m manifest) open(name string) (fs.File, error) {
-	r, err := m.path(name)
-	if err == ErrEmpty {
-		return emptyFile(name), nil
-	} else if err == nil {
-		return os.Open(r)
+func (m *manifest) open(name string) (fs.File, error) {
+	if name != "." {
+		r, err := m.path(name)
+		if err == ErrEmpty {
+			return emptyFile(name), nil
+		} else if err == nil {
+			return os.Open(r)
+		}
 	}
 
-	if m.trie == nil {
-		m.trie = make(map[string]trie)
-		for k := range m.m {
-			segments := strings.Split(k, "/")
-			current := m.trie
-			for _, s := range segments {
-				if current[s] == nil {
-					current[s] = make(map[string]trie)
-				}
-				current = current[s]
+	m.initTrie()
+
+	dir := m.trie
+	if name != "." {
+		segments := strings.Split(name, "/")
+		for _, s := range segments {
+			if dir == nil {
+				break
 			}
+			dir = dir[s]
+		}
+		if dir == nil {
+			return nil, os.ErrNotExist
 		}
 	}
 
-	segments := strings.Split(name, "/")
-	current := m.trie
-	for _, s := range segments {
-		if current == nil {
-			break
-		}
-		current = current[s]
-	}
-	if current == nil {
-		return nil, os.ErrNotExist
-	}
 	var entries []manifestDirEntry
-	for k := range current {
-		entries = append(entries, manifestDirEntry{k, m.m[path.Join(name, k)]})
+	for e := range dir {
+		entries = append(entries, manifestDirEntry{e, m.m[path.Join(name, e)]})
 	}
 	sort.Slice(entries, func(i, j int) bool {
 		return entries[i].name < entries[j].name
 	})
-	return &manifestReadDirFile{dirFile(segments[len(segments)-1]), entries}, nil
+	return &manifestReadDirFile{dirFile(path.Base(name)), entries}, nil
+}
+
+func (m *manifest) initTrie() {
+	if m.trie != nil {
+		return
+	}
+	m.trie = make(map[string]trie)
+	for k := range m.m {
+		segments := strings.Split(k, "/")
+		current := m.trie
+		for _, s := range segments {
+			if current[s] == nil {
+				current[s] = make(map[string]trie)
+			}
+			current = current[s]
+		}
+	}
 }
 
 type manifestDirEntry struct {
