@@ -27,7 +27,7 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 	if name == "." {
-		return &rootDir{dirFile("."), r, nil}, nil
+		return &rootDir{".", r, nil}, nil
 	}
 	split := strings.SplitN(name, "/", 2)
 	key := repoMappingKey{r.sourceRepo, split[0]}
@@ -83,9 +83,33 @@ type rootDir struct {
 
 func (r *rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
 	if r.entries == nil {
-		for k := range r.rf.repoMapping {
+		canonicalToApparentName := make(map[string]string)
+		allCanonicalNames := make(map[string]struct{})
+		for k, v := range r.rf.repoMapping {
+			allCanonicalNames[v] = struct{}{}
 			if k.sourceRepo == r.rf.sourceRepo {
-				r.entries = append(r.entries, &runfilesDirEntry{k.targetRepoApparentName, r.rf})
+				canonicalToApparentName[v] = k.targetRepoApparentName
+			}
+		}
+		rootFile, err := r.rf.impl.open(".")
+		if err != nil {
+			return nil, err
+		}
+		rootDirFile := rootFile.(fs.ReadDirFile)
+		realEntries, err := rootDirFile.ReadDir(-1)
+		if err != nil {
+			return nil, err
+		}
+		for _, e := range realEntries {
+			if apparent, ok := canonicalToApparentName[e.Name()]; ok && e.IsDir() {
+				// A repo directory that is visible to the current source repo is materialized
+				// under its apparent name.
+				r.entries = append(r.entries, runfilesDirEntry{apparent, r.rf})
+			} else if _, ok := allCanonicalNames[e.Name()]; ok && e.IsDir() {
+				// Skip repo directory that isn't visible to the current source repo.
+			} else {
+				// This is a root symlink.
+				r.entries = append(r.entries, e)
 			}
 		}
 		sort.Slice(r.entries, func(i, j int) bool {

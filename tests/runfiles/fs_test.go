@@ -29,12 +29,54 @@ import (
 	"github.com/bazelbuild/rules_go/go/tests/runfiles/testfs"
 )
 
+var allRunfiles = []string{
+	"_main/tests/runfiles/runfiles_test_/runfiles_test",
+	"_main/tests/runfiles/test.txt",
+	"_main/tests/runfiles/test_dir",
+	"_main/tests/runfiles/testprog/testprog_/testprog",
+	"_repo_mapping",
+	"bazel_tools/tools/bash/runfiles/runfiles.bash",
+	"test.txt",
+	"test_dir/file.txt",
+	"test_dir/subdir/other_file.txt",
+}
+
 func TestFS_native(t *testing.T) {
 	r, err := runfiles.New()
 	if err != nil {
 		t.Fatal(err)
 	}
 	testFS(t, r)
+}
+
+func TestFS_directory(t *testing.T) {
+	// Turn our own runfiles (whatever the form) into a valid runfiles directory.
+	tempdir := t.TempDir()
+	directory := filepath.Join(tempdir, "directory")
+	err := os.Mkdir(directory, 0o755)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, source := range allRunfiles {
+		target, err := runfiles.Rlocation(source)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = os.MkdirAll(filepath.Dir(filepath.Join(directory, source)), 0o755)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = os.Symlink(target, filepath.Join(directory, source))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	fsys, err := runfiles.New(runfiles.Directory(directory))
+	if err != nil {
+		t.Fatal(err)
+	}
+	testFS(t, fsys)
 }
 
 func TestFS_manifest(t *testing.T) {
@@ -45,14 +87,7 @@ func TestFS_manifest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, source := range []string{
-		"_main/tests/runfiles/runfiles_test_/runfiles_test",
-		"_main/tests/runfiles/test_dir",
-		"_main/tests/runfiles/test.txt",
-		"_main/tests/runfiles/testprog/testprog_/testprog",
-		"_repo_mapping",
-		"bazel_tools/tools/bash/runfiles/runfiles.bash",
-	} {
+	for _, source := range allRunfiles {
 		target, err := runfiles.Rlocation(source)
 		if err != nil {
 			t.Fatal(err)
@@ -70,7 +105,6 @@ func TestFS_manifest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	testFS(t, fsys)
 }
 
@@ -80,11 +114,14 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 
 	if err := testfs.TestFS(
 		r,
+		"bazel_tools/tools/bash/runfiles/runfiles.bash",
 		"io_bazel_rules_go/tests/runfiles/test.txt",
 		"io_bazel_rules_go/tests/runfiles/test_dir/file.txt",
 		"io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt",
 		"io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog",
-		"bazel_tools/tools/bash/runfiles/runfiles.bash",
+		"test.txt",
+		"test_dir/file.txt",
+		"test_dir/subdir/other_file.txt",
 	); err != nil {
 		t.Error(err)
 	}
@@ -94,6 +131,9 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test.txt", "hi!\n")
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/file.txt", "file\n")
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt", "other_file\n")
+	testFile(t, r, "test.txt", "hi!\n")
+	testFile(t, r, "test_dir/file.txt", "file\n")
+	testFile(t, r, "test_dir/subdir/other_file.txt", "other_file\n")
 }
 
 func testFile(t *testing.T, r *runfiles.Runfiles, name, content string) {
