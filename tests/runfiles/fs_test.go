@@ -20,6 +20,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -48,11 +49,15 @@ func mainRepoRunfiles(useCanonicalName bool) []string {
 	} else {
 		mainRepo = "io_bazel_rules_go"
 	}
+	exeSuffix := ""
+	if runtime.GOOS == "windows" {
+		exeSuffix = ".exe"
+	}
 	return []string{
 		mainRepo + "/tests/runfiles/runfiles_test_/runfiles_test",
 		mainRepo + "/tests/runfiles/test.txt",
 		mainRepo + "/tests/runfiles/test_dir",
-		mainRepo + "/tests/runfiles/testprog/testprog_/testprog",
+		mainRepo + "/tests/runfiles/testprog/testprog_/testprog" + exeSuffix,
 	}
 }
 
