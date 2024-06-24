@@ -27,11 +27,36 @@ import (
 	"github.com/bazelbuild/rules_go/go/tests/runfiles/testfs"
 )
 
-var allRunfiles = []string{
-	"_main/tests/runfiles/runfiles_test_/runfiles_test",
-	"_main/tests/runfiles/test.txt",
-	"_main/tests/runfiles/test_dir",
-	"_main/tests/runfiles/testprog/testprog_/testprog",
+var isBzlmodEnabled bool
+
+func init() {
+	repoMapping, err := runfiles.Rlocation("_repo_mapping")
+	if err != nil {
+		return
+	}
+	content, err := os.ReadFile(repoMapping)
+	if err != nil {
+		return
+	}
+	isBzlmodEnabled = strings.Contains(string(content), ",io_bazel_rules_go,_main\n")
+}
+
+func mainRepoRunfiles(useCanonicalName bool) []string {
+	var mainRepo string
+	if useCanonicalName && isBzlmodEnabled {
+		mainRepo = "_main"
+	} else {
+		mainRepo = "io_bazel_rules_go"
+	}
+	return []string{
+		mainRepo + "/tests/runfiles/runfiles_test_/runfiles_test",
+		mainRepo + "/tests/runfiles/test.txt",
+		mainRepo + "/tests/runfiles/test_dir",
+		mainRepo + "/tests/runfiles/testprog/testprog_/testprog",
+	}
+}
+
+var commonRunfiles = []string{
 	"_repo_mapping",
 	"bazel_tools/tools/bash/runfiles/runfiles.bash",
 	"test.txt",
@@ -55,11 +80,7 @@ func TestFS_directory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bzlmod := isBzlmodEnabled()
-	for _, source := range allRunfiles {
-		if !bzlmod {
-			source = strings.ReplaceAll(source, "_main/", "io_bazel_rules_go/")
-		}
+	for _, source := range append(mainRepoRunfiles(true), commonRunfiles...) {
 		target, err := runfiles.Rlocation(source)
 		if err != nil {
 			t.Fatal(err)
@@ -89,11 +110,7 @@ func TestFS_manifest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bzlmod := isBzlmodEnabled()
-	for _, source := range allRunfiles {
-		if !bzlmod {
-			source = strings.ReplaceAll(source, "_main/", "io_bazel_rules_go/")
-		}
+	for _, source := range append(mainRepoRunfiles(true), commonRunfiles...) {
 		target, err := runfiles.Rlocation(source)
 		if err != nil {
 			t.Fatal(err)
@@ -118,23 +135,19 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	// Ensure that the Runfiles object implements FS interfaces.
 	var _ fs.FS = r
 
-	if err := testfs.TestFS(
-		r,
-		"bazel_tools/tools/bash/runfiles/runfiles.bash",
-		"io_bazel_rules_go/tests/runfiles/test.txt",
-		"io_bazel_rules_go/tests/runfiles/test_dir/file.txt",
-		"io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt",
-		"io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog",
-		"test.txt",
-		"test_dir/file.txt",
-		"test_dir/subdir/other_file.txt",
-	); err != nil {
+	runfilesToTest := commonRunfiles
+	runfilesToTest = append(runfilesToTest, mainRepoRunfiles(true)...)
+	if isBzlmodEnabled {
+		runfilesToTest = append(runfilesToTest, mainRepoRunfiles(false)...)
+	}
+	if err := testfs.TestFS(r, runfilesToTest...); err != nil {
 		t.Error(err)
 	}
 
-	if isBzlmodEnabled() {
-		// Canonical repo names are not returned by readdir, but can still be accessed.
+	if isBzlmodEnabled {
 		testFile(t, r, "_main/tests/runfiles/test.txt", "hi!\n")
+		testFile(t, r, "_main/tests/runfiles/test_dir/file.txt", "file\n")
+		testFile(t, r, "_main/tests/runfiles/test_dir/subdir/other_file.txt", "other_file\n")
 	}
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test.txt", "hi!\n")
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/file.txt", "file\n")
@@ -173,18 +186,6 @@ func testFile(t *testing.T, r *runfiles.Runfiles, name, content string) {
 	if string(got) != content {
 		t.Errorf("got %q, want %q", got, content)
 	}
-}
-
-func isBzlmodEnabled() bool {
-	repoMapping, err := runfiles.Rlocation("_repo_mapping")
-	if err != nil {
-		return false
-	}
-	content, err := os.ReadFile(repoMapping)
-	if err != nil {
-		return false
-	}
-	return strings.Contains(string(content), ",io_bazel_rules_go,_main\n")
 }
 
 func TestFS_empty(t *testing.T) {
