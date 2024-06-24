@@ -17,6 +17,7 @@ package runfiles
 import (
 	"io"
 	"io/fs"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -29,7 +30,8 @@ import (
 // apparent repo names that are visible to the current source repo
 // (with --enable_bzlmod).
 func (r *Runfiles) Open(name string) (fs.File, error) {
-	if !fs.ValidPath(name) {
+	// Required by testfs.TestFS.
+	if !fs.ValidPath(name) || (runtime.GOOS == "windows" && strings.ContainsRune(name, '\\')) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 	if name == "." {

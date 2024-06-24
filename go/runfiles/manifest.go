@@ -121,9 +121,7 @@ func (m *manifest) open(name string) (fs.File, error) {
 		if err == ErrEmpty {
 			return emptyFile(name), nil
 		} else if err == nil {
-			// Go through os.DirFs to throw the correct error on invalid paths.
-			volumePrefix := filepath.VolumeName(r) + "/"
-			return os.DirFS(volumePrefix).Open(filepath.ToSlash(r[len(volumePrefix):]))
+			return os.Open(r)
 		}
 	}
 
