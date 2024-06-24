@@ -37,27 +37,31 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 	if name == "." {
 		return &rootDirFile{".", r, nil}, nil
 	}
-	split := strings.SplitN(name, "/", 2)
-	key := repoMappingKey{r.sourceRepo, split[0]}
+	repo, inRepoPath, hasInRepoPath := strings.Cut(name, "/")
+	key := repoMappingKey{r.sourceRepo, repo}
 	targetRepoDirectory, exists := r.repoMapping[key]
 	if !exists {
 		// Either name uses a canonical repo name or refers to a root symlink.
 		// In both cases, we can just open the file directly.
 		return r.impl.open(name)
 	}
+	// Construct the path with the target repo name replaced by the canonical
+	// name.
 	mappedPath := targetRepoDirectory
-	if len(split) > 1 {
-		mappedPath += "/" + split[1]
+	if hasInRepoPath {
+		mappedPath += "/" + inRepoPath
 	}
 	f, err := r.impl.open(mappedPath)
 	if err != nil {
 		return nil, err
 	}
-	if len(split) > 1 {
+	// The requested path is a child of a repo directory, return the unmodified
+	// file the implementation returned.
+	if hasInRepoPath {
 		return f, nil
 	}
 	// Return a special file for a repo dir that knows its apparent name.
-	return &renamedDirFile{f.(fs.ReadDirFile), split[0]}, nil
+	return &renamedDirFile{f.(fs.ReadDirFile), repo}, nil
 }
 
 type rootDirFile struct {
@@ -89,9 +93,7 @@ func (r *rootDirFile) initEntries() error {
 	// visible to the main repo (plus root symlinks). We thus need to read
 	// the real entries and then transform and filter them.
 	canonicalToApparentName := make(map[string]string)
-	allCanonicalNames := make(map[string]struct{})
 	for k, v := range r.rf.repoMapping {
-		allCanonicalNames[v] = struct{}{}
 		if k.sourceRepo == r.rf.sourceRepo {
 			canonicalToApparentName[v] = k.targetRepoApparentName
 		}
@@ -101,18 +103,18 @@ func (r *rootDirFile) initEntries() error {
 		return err
 	}
 	realDirFile := rootFile.(fs.ReadDirFile)
-	realEntries, err := realDirFile.ReadDir(-1)
+	realEntries, err := realDirFile.ReadDir(0)
 	if err != nil {
 		return err
 	}
 	for _, e := range realEntries {
+		r.entries = append(r.entries, e)
 		if apparent, ok := canonicalToApparentName[e.Name()]; ok && e.IsDir() && apparent != e.Name() {
 			// A repo directory that is visible to the current source repo is additionally
 			// materialized under its apparent name. We do not use a symlink as
 			// fs.WalkDir doesn't descend into symlinks.
 			r.entries = append(r.entries, renamedDirEntry{e, apparent})
 		}
-		r.entries = append(r.entries, e)
 	}
 	sort.Slice(r.entries, func(i, j int) bool {
 		return r.entries[i].Name() < r.entries[j].Name()
