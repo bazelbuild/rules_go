@@ -33,7 +33,7 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
 	}
 	if name == "." {
-		return &rootDir{".", r, nil}, nil
+		return &rootDirFile{".", r, nil}, nil
 	}
 	split := strings.SplitN(name, "/", 2)
 	key := repoMappingKey{r.sourceRepo, split[0]}
@@ -55,16 +55,16 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 		return f, nil
 	}
 	// Return a special file for a repo dir that knows its apparent name.
-	return &repoDirFile{f.(fs.ReadDirFile), split[0]}, nil
+	return &renamedDirFile{f.(fs.ReadDirFile), split[0]}, nil
 }
 
-type rootDir struct {
+type rootDirFile struct {
 	dirFile
 	rf      *Runfiles
 	entries []fs.DirEntry
 }
 
-func (r *rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
+func (r *rootDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 	if err := r.initEntries(); err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (r *rootDir) ReadDir(n int) ([]fs.DirEntry, error) {
 	return entries, nil
 }
 
-func (r *rootDir) initEntries() error {
+func (r *rootDirFile) initEntries() error {
 	if r.entries != nil {
 		return nil
 	}
@@ -98,24 +98,19 @@ func (r *rootDir) initEntries() error {
 	if err != nil {
 		return err
 	}
-	rootDirFile := rootFile.(fs.ReadDirFile)
-	realEntries, err := rootDirFile.ReadDir(-1)
+	realDirFile := rootFile.(fs.ReadDirFile)
+	realEntries, err := realDirFile.ReadDir(-1)
 	if err != nil {
 		return err
 	}
 	for _, e := range realEntries {
-		if apparent, ok := canonicalToApparentName[e.Name()]; ok && e.IsDir() {
-			// A repo directory that is visible to the current source repo is materialized
-			// under its apparent name.
-			r.entries = append(r.entries, repoDirEntry{e, apparent})
-		} else if _, ok := allCanonicalNames[e.Name()]; ok && e.IsDir() {
-			// Skip repo directory that isn't visible to the current source repo.
-		} else {
-			// This is either a root symlink or Bzlmod is not enabled. In the latter case,
-			// allCanonicalNames only contains the name of the main repo. Since without
-			// Bzlmod there is no strict repo visibility, we materialize all directories.
-			r.entries = append(r.entries, e)
+		if apparent, ok := canonicalToApparentName[e.Name()]; ok && e.IsDir() && apparent != e.Name() {
+			// A repo directory that is visible to the current source repo is additionally
+			// materialized under its apparent name. We do not use a symlink as
+			// fs.WalkDir doesn't descend into symlinks.
+			r.entries = append(r.entries, renamedDirEntry{e, apparent})
 		}
+		r.entries = append(r.entries, e)
 	}
 	sort.Slice(r.entries, func(i, j int) bool {
 		return r.entries[i].Name() < r.entries[j].Name()
@@ -123,39 +118,39 @@ func (r *rootDir) initEntries() error {
 	return nil
 }
 
-type repoDirFile struct {
+type renamedDirFile struct {
 	fs.ReadDirFile
 	name string
 }
 
-func (r repoDirFile) Stat() (fs.FileInfo, error) {
+func (r renamedDirFile) Stat() (fs.FileInfo, error) {
 	info, err := r.ReadDirFile.Stat()
 	if err != nil {
 		return nil, err
 	}
-	return repoDirFileInfo{info, r.name}, nil
+	return renamedDirInfo{info, r.name}, nil
 }
 
-type repoDirEntry struct {
+type renamedDirEntry struct {
 	fs.DirEntry
 	name string
 }
 
-func (r repoDirEntry) Name() string { return r.name }
-func (r repoDirEntry) Info() (fs.FileInfo, error) {
+func (r renamedDirEntry) Name() string { return r.name }
+func (r renamedDirEntry) Info() (fs.FileInfo, error) {
 	info, err := r.DirEntry.Info()
 	if err != nil {
 		return nil, err
 	}
-	return repoDirFileInfo{info, r.name}, nil
+	return renamedDirInfo{info, r.name}, nil
 }
 
-type repoDirFileInfo struct {
+type renamedDirInfo struct {
 	fs.FileInfo
 	name string
 }
 
-func (r repoDirFileInfo) Name() string { return r.name }
+func (r renamedDirInfo) Name() string { return r.name }
 
 type emptyFile string
 
