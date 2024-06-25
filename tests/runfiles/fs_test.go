@@ -64,9 +64,9 @@ func mainRepoRunfiles(useCanonicalName bool) []string {
 var commonRunfiles = []string{
 	"_repo_mapping",
 	"bazel_tools/tools/bash/runfiles/runfiles.bash",
-	"test.txt",
-	"test_dir/file.txt",
-	"test_dir/subdir/other_file.txt",
+	"link_test.txt",
+	"link_test_dir/file.txt",
+	"link_test_dir/subdir/other_file.txt",
 }
 
 func TestFS_native(t *testing.T) {
@@ -157,9 +157,9 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test.txt", "hi!\n")
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/file.txt", "file\n")
 	testFile(t, r, "io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt", "other_file\n")
-	testFile(t, r, "test.txt", "hi!\n")
-	testFile(t, r, "test_dir/file.txt", "file\n")
-	testFile(t, r, "test_dir/subdir/other_file.txt", "other_file\n")
+	testFile(t, r, "link_test.txt", "hi!\n")
+	testFile(t, r, "link_test_dir/file.txt", "file\n")
+	testFile(t, r, "link_test_dir/subdir/other_file.txt", "other_file\n")
 }
 
 func testFile(t *testing.T, r *runfiles.Runfiles, name, content string) {
