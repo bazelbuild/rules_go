@@ -15,9 +15,9 @@
 package runfiles
 
 import (
-	"errors"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -44,21 +44,13 @@ func (d Directory) path(s string) (string, error) {
 }
 
 func (d Directory) open(name string) (fs.File, error) {
-	f, err := os.DirFS(string(d)).Open(name)
+	dirFS := os.DirFS(string(d))
+	f, err := dirFS.Open(name)
 	if err != nil {
 		return nil, err
 	}
 	return &resolvedFile{f.(*os.File), func(child string) (fs.FileInfo, error) {
-		path := filepath.Join(string(d), filepath.FromSlash(name), child)
-		target, err := os.Readlink(path)
-		if err != nil {
-			if errors.Is(err, os.ErrInvalid) {
-				target = path
-			} else {
-				return nil, err
-			}
-		}
-		return os.Lstat(target)
+		return fs.Stat(dirFS, path.Join(name, child))
 	}}, nil
 }
 
@@ -73,6 +65,10 @@ func (f *resolvedFile) ReadDir(n int) ([]fs.DirEntry, error) {
 		return nil, err
 	}
 	for i, entry := range entries {
+		// Bazel runfiles directories consist of symlinks to the real files, which may themselves
+		// be directories. We want fs.WalkDir to descend into these directories as it does with the
+		// manifest implementation. We do this by replacing the information about an entry that is
+		// a symlink by the info of the resolved file.
 		if entry.Type()&fs.ModeSymlink != 0 {
 			info, err := f.lstatChildAfterReadlink(entry.Name())
 			if err != nil {
