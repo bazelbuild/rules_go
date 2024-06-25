@@ -233,3 +233,4 @@ func (dirFileInfo) Mode() fs.FileMode  { return fs.ModeDir | 0555 }
 func (dirFileInfo) ModTime() time.Time { return time.Time{} }
 func (dirFileInfo) IsDir() bool        { return true }
 func (dirFileInfo) Sys() interface{}   { return nil }
+func (i dirFileInfo) String() string { return fs.FormatFileInfo(i) }
