@@ -121,8 +121,13 @@ func (m *manifest) open(name string) (fs.File, error) {
 		if err == ErrEmpty {
 			return emptyFile(name), nil
 		} else if err == nil {
+			// name refers to an actual file or dir listed in the manifest.
 			return os.Open(r)
+		} else if err != os.ErrNotExist {
+			return nil, err
 		}
+		// err == os.ErrNotExist, but name may still refer to a directory that
+		// is a prefix of some manifest entry. We fall back to a trie lookup.
 	}
 
 	// At this point the file is not directly listed in the manifest (or
@@ -156,7 +161,7 @@ func (m *manifest) open(name string) (fs.File, error) {
 		}
 	}
 
-	var entries []manifestDirEntry
+	entries := make([]manifestDirEntry, 0, len(dir))
 	for e := range dir {
 		entries = append(entries, manifestDirEntry{e, m.index[path.Join(name, e)]})
 	}
@@ -164,9 +169,6 @@ func (m *manifest) open(name string) (fs.File, error) {
 		return entries[i].name < entries[j].name
 	})
 	return &manifestReadDirFile{dirFile(path.Base(name)), entries}, nil
-}
-
-func (m *manifest) initTrie() {
 }
 
 type manifestDirEntry struct {
@@ -189,7 +191,7 @@ func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 	entries := m.entries[:n]
 	m.entries = m.entries[n:]
 
-	var dirEntries []fs.DirEntry
+	dirEntries := make([]fs.DirEntry, 0, len(entries))
 	for _, e := range entries {
 		var info fs.FileInfo
 		if e.path == "" {
