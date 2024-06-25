@@ -21,6 +21,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -165,6 +166,9 @@ func testFS(t *testing.T, r *runfiles.Runfiles) {
 	testFile(t, r, "link_test.txt", "hi!\n")
 	testFile(t, r, "link_test_dir/file.txt", "file\n")
 	testFile(t, r, "link_test_dir/subdir/other_file.txt", "other_file\n")
+
+	testGlob(t, r)
+	testWalkDir(t, r)
 }
 
 func testFile(t *testing.T, r *runfiles.Runfiles, name, content string) {
@@ -195,6 +199,51 @@ func testFile(t *testing.T, r *runfiles.Runfiles, name, content string) {
 	}
 	if string(got) != content {
 		t.Errorf("got %q, want %q", got, content)
+	}
+}
+
+func testGlob(t *testing.T, r *runfiles.Runfiles) {
+	matches, err := fs.Glob(r, "*/subdir/*.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := []string{
+		"link_test_dir/subdir/other_file.txt",
+	}
+	if !slices.Equal(matches, expected) {
+		t.Errorf("got %v, want %v", matches, expected)
+	}
+}
+
+func testWalkDir(t *testing.T, r *runfiles.Runfiles) {
+	var found []string
+	err := fs.WalkDir(r, "io_bazel_rules_go/tests/runfiles", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			found = append(found, path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	exeSuffix := ""
+	if runtime.GOOS == "windows" {
+		exeSuffix = ".exe"
+	}
+	expected := []string{
+		"io_bazel_rules_go/tests/runfiles/runfiles_test_/runfiles_test" + exeSuffix,
+		"io_bazel_rules_go/tests/runfiles/test.txt",
+		"io_bazel_rules_go/tests/runfiles/test_dir/file.txt",
+		"io_bazel_rules_go/tests/runfiles/test_dir/subdir/other_file.txt",
+		"io_bazel_rules_go/tests/runfiles/testprog/testprog_/testprog" + exeSuffix,
+	}
+	if !slices.Equal(found, expected) {
+		t.Errorf("got %v, want %v", found, expected)
 	}
 }
 

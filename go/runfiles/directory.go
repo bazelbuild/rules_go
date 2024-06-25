@@ -15,6 +15,7 @@
 package runfiles
 
 import (
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -43,5 +44,42 @@ func (d Directory) path(s string) (string, error) {
 }
 
 func (d Directory) open(name string) (fs.File, error) {
-	return os.DirFS(string(d)).Open(name)
+	f, err := os.DirFS(string(d)).Open(name)
+	if err != nil {
+		return nil, err
+	}
+	return &resolvedFile{f.(*os.File), func(child string) (fs.FileInfo, error) {
+		path := filepath.Join(string(d), filepath.FromSlash(name), child)
+		target, err := os.Readlink(path)
+		if err != nil {
+			if errors.Is(err, os.ErrInvalid) {
+				target = path
+			} else {
+				return nil, err
+			}
+		}
+		return os.Lstat(target)
+	}}, nil
+}
+
+type resolvedFile struct {
+	fs.ReadDirFile
+	lstatChildAfterReadlink func(string) (fs.FileInfo, error)
+}
+
+func (f *resolvedFile) ReadDir(n int) ([]fs.DirEntry, error) {
+	entries, err := f.ReadDirFile.ReadDir(n)
+	if err != nil {
+		return nil, err
+	}
+	for i, entry := range entries {
+		if entry.Type()&fs.ModeSymlink != 0 {
+			info, err := f.lstatChildAfterReadlink(entry.Name())
+			if err != nil {
+				return nil, err
+			}
+			entries[i] = renamedDirEntry{fs.FileInfoToDirEntry(info), entry.Name()}
+		}
+	}
+	return entries, nil
 }
