@@ -61,7 +61,7 @@ func (r *Runfiles) Open(name string) (fs.File, error) {
 		return f, nil
 	}
 	// Return a special file for a repo dir that knows its apparent name.
-	return &renamedDirFile{f.(fs.ReadDirFile), repo}, nil
+	return &renamedFile{f, repo}, nil
 }
 
 type rootDirFile struct {
@@ -122,17 +122,25 @@ func (r *rootDirFile) initEntries() error {
 	return nil
 }
 
-type renamedDirFile struct {
-	fs.ReadDirFile
+type renamedFile struct {
+	fs.File
 	name string
 }
 
-func (r renamedDirFile) Stat() (fs.FileInfo, error) {
-	info, err := r.ReadDirFile.Stat()
+func (r renamedFile) Stat() (fs.FileInfo, error) {
+	info, err := r.File.Stat()
 	if err != nil {
 		return nil, err
 	}
-	return renamedDirInfo{info, r.name}, nil
+	return renamedFileInfo{info, r.name}, nil
+}
+
+func (r renamedFile) ReadDir(n int) ([]fs.DirEntry, error) {
+	readDirFile, ok := r.File.(fs.ReadDirFile)
+	if !ok {
+		return nil, &fs.PathError{Op: "readdir", Path: r.name, Err: fs.ErrInvalid}
+	}
+	return readDirFile.ReadDir(n)
 }
 
 type renamedDirEntry struct {
@@ -146,15 +154,15 @@ func (r renamedDirEntry) Info() (fs.FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return renamedDirInfo{info, r.name}, nil
+	return renamedFileInfo{info, r.name}, nil
 }
 
-type renamedDirInfo struct {
+type renamedFileInfo struct {
 	fs.FileInfo
 	name string
 }
 
-func (r renamedDirInfo) Name() string { return r.name }
+func (r renamedFileInfo) Name() string { return r.name }
 
 type emptyFile string
 

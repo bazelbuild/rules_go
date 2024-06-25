@@ -121,8 +121,14 @@ func (m *manifest) open(name string) (fs.File, error) {
 		if err == ErrEmpty {
 			return emptyFile(name), nil
 		} else if err == nil {
-			// name refers to an actual file or dir listed in the manifest.
-			return os.Open(r)
+			// name refers to an actual file or dir listed in the manifest. The
+			// basename of name may not match the basename of the underlying
+			// file (e.g. in the case of a root symlink), so patch it.
+			f, err := os.Open(r)
+			if err != nil {
+				return nil, err
+			}
+			return renamedFile{f, path.Base(name)}, nil
 		} else if err != os.ErrNotExist {
 			return nil, err
 		}
@@ -199,12 +205,14 @@ func (m *manifestReadDirFile) ReadDir(n int) ([]fs.DirEntry, error) {
 			// manifest entry. We represent it as a read-only directory.
 			info = dirFileInfo(e.name)
 		} else {
-			// The entry corresponds to a real file in the manifest.
-			var err error
-			info, err = os.Stat(e.path)
+			// The entry corresponds to a real file in the manifest. The
+			// basename of the entry may differ from the basename of the path
+			// listed as its target, so we override it.
+			realInfo, err := os.Stat(e.path)
 			if err != nil {
 				return nil, err
 			}
+			info = renamedFileInfo{realInfo, e.name}
 		}
 		dirEntries = append(dirEntries, fs.FileInfoToDirEntry(info))
 	}
