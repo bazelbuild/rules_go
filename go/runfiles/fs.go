@@ -156,6 +156,7 @@ func (r renamedDirEntry) Info() (fs.FileInfo, error) {
 	}
 	return renamedFileInfo{info, r.name}, nil
 }
+func (r renamedDirEntry) String() string { return fs.FormatDirEntry(r) }
 
 type renamedFileInfo struct {
 	fs.FileInfo
@@ -163,6 +164,7 @@ type renamedFileInfo struct {
 }
 
 func (r renamedFileInfo) Name() string { return r.name }
+func (r renamedFileInfo) String() string { return fs.FormatFileInfo(r) }
 
 type emptyFile string
 
@@ -178,3 +180,4 @@ func (emptyFileInfo) Mode() fs.FileMode  { return 0444 }
 func (emptyFileInfo) ModTime() time.Time { return time.Time{} }
 func (emptyFileInfo) IsDir() bool        { return false }
 func (emptyFileInfo) Sys() interface{}   { return nil }
+func (i emptyFileInfo) String() string { return fs.FormatFileInfo(i) }
