@@ -3,7 +3,7 @@ def _root_symlinks_impl(ctx):
         DefaultInfo(
             runfiles = ctx.runfiles(
                 root_symlinks = {
-                    f.basename: f
+                    "link_" + f.basename: f
                     for f in ctx.files.data
                 },
             ),
