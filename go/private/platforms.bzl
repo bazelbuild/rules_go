@@ -31,7 +31,7 @@ BAZEL_GOARCH_CONSTRAINTS = {
     "arm": "@platforms//cpu:armv7",
     "arm64": "@platforms//cpu:aarch64",
     "ppc64": "@platforms//cpu:ppc",
-    "ppc64le": "@platforms//cpu:ppc",
+    "ppc64le": "@platforms//cpu:ppc64le",
     "s390x": "@platforms//cpu:s390x",
 }
 
