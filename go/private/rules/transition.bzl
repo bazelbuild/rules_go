@@ -16,6 +16,7 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
+load("@bazel_skylib//rules/private:copy_file_private.bzl", "copy_cmd")
 load(
     "//go/private:mode.bzl",
     "LINKMODES",
@@ -45,6 +46,9 @@ TRANSITIONED_GO_SETTING_KEYS = [
     "//go/config:tags",
     "//go/config:pgoprofile",
 ]
+
+def _is_windows(ctx):
+    return ctx.configuration.host_path_separator == ";"
 
 def _deduped_and_sorted(strs):
     return sorted({s: None for s in strs}.keys())
@@ -283,12 +287,17 @@ def _go_reset_target_impl(ctx):
         # In order for the symlink to have the same basename as the original
         # executable (important in the case of proto plugins), put it in a
         # subdirectory named after the label to prevent collisions.
+        # On windows symlinks are not reliable when using remote cache so we copy the binary instead.
+        # See https://github.com/bazelbuild/bazel/issues/21747
         new_executable = ctx.actions.declare_file(paths.join(ctx.label.name, original_executable.basename))
-        ctx.actions.symlink(
-            output = new_executable,
-            target_file = original_executable,
-            is_executable = True,
-        )
+        if _is_windows(ctx):
+            copy_cmd(ctx, original_executable, new_executable)
+        else:
+            ctx.actions.symlink(
+                output = new_executable,
+                target_file = original_executable,
+                is_executable = True,
+            )
         default_runfiles = default_runfiles.merge(ctx.runfiles([new_executable]))
 
     providers.append(

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//rules/private:copy_file_private.bzl", "copy_cmd")
 load(
     "//go/private:providers.bzl",
     "GoArchive",
@@ -58,8 +59,13 @@ def _go_cross_impl(ctx):
     if old_executable:
         # Bazel requires executable rules to created the executable themselves,
         # so we create a symlink in this rule so that it appears this rule created its executable.
+        # On windows symlinks are not reliable when using remote cache so we copy the binary instead.
+        # See https://github.com/bazelbuild/bazel/issues/21747
         new_executable = ctx.actions.declare_file(ctx.attr.name)
-        ctx.actions.symlink(output = new_executable, target_file = old_executable)
+        if _is_windows(ctx):
+            copy_cmd(ctx, old_executable, new_executable)
+        else:
+            ctx.actions.symlink(output = new_executable, target_file = old_executable)
         new_default_info = DefaultInfo(
             files = depset([new_executable]),
             runfiles = old_default_info.default_runfiles,
