@@ -16,7 +16,6 @@ load(
     "@bazel_skylib//lib:paths.bzl",
     "paths",
 )
-load("@bazel_skylib//rules/private:copy_file_private.bzl", "copy_cmd")
 load(
     "//go/private:mode.bzl",
     "LINKMODES",
@@ -33,6 +32,7 @@ load(
     "GoLibrary",
     "GoSource",
 )
+load("//go/private/tools:copy_cmd.bzl", "copy_cmd")
 
 # A list of rules_go settings that are possibly set by go_transition.
 # Keep their package name in sync with the implementation of

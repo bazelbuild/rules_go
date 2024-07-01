@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//rules/private:copy_file_private.bzl", "copy_cmd")
 load(
     "//go/private:providers.bzl",
     "GoArchive",
@@ -23,6 +22,7 @@ load(
     "//go/private/rules:transition.bzl",
     "go_cross_transition",
 )
+load("//go/private/tools:copy_cmd.bzl", "copy_cmd")
 
 def _is_windows(ctx):
     return ctx.configuration.host_path_separator == ";"

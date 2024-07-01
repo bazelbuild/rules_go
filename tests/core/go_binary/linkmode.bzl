@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules/private:copy_file_private.bzl", "copy_cmd")
+load("//go/private/tools:copy_cmd.bzl", "copy_cmd")
 
 _LINKMODE_SETTING = "//go/config:linkmode"
 
