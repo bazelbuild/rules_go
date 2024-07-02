@@ -145,6 +145,7 @@ def _go_test_impl(ctx):
         importpath = "testmain",
         importmap = "testmain",
         importpath_aliases = (),
+        stackpath = go.stackpath,
         pathtype = INFERRED_PATH,
         is_main = True,
         resolve = None,
@@ -261,6 +262,11 @@ _go_test_kwargs = {
             doc = """The import path of this test. Tests can't actually be imported, but this
             may be used by [go_path] and other tools to report the location of source
             files. This may be inferred from embedded libraries.
+            """,
+        ),
+        "stackpath": attr.string(
+            doc = """
+            Stacktrace path for this package sources. By default, this path is relative to rule execution directory.
             """,
         ),
         "gc_goopts": attr.string_list(
@@ -662,6 +668,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
             importpath = arc_data.importpath,
             importmap = arc_data.importmap,
             importpath_aliases = arc_data.importpath_aliases,
+            stackpath = arc_data.stackpath,
             pathtype = arc_data.pathtype,
             resolve = None,
             testfilter = None,

@@ -158,6 +158,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         importpath = source.library.importpath,
         importmap = source.library.importmap,
         importpath_aliases = source.library.importpath_aliases,
+        stackpath = source.library.stackpath,
         pathtype = source.library.pathtype,
 
         # GoSource fields

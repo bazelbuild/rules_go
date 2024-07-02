@@ -164,6 +164,11 @@ go_proto_library = rule(
         "importpath": attr.string(),
         "importmap": attr.string(),
         "importpath_aliases": attr.string_list(),  # experimental, undocumented
+        "stackpath": attr.string(
+            doc = """
+            Stacktrace path for this package sources. By default, this path is relative to rule execution directory.
+            """,
+        ),
         "embed": attr.label_list(providers = [GoLibrary]),
         "gc_goopts": attr.string_list(),
         "compiler": attr.label(providers = [GoProtoCompiler]),

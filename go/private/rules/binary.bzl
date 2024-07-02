@@ -249,6 +249,11 @@ _go_binary_kwargs = {
             files. This may be inferred from embedded libraries.
             """,
         ),
+        "stackpath": attr.string(
+            doc = """
+            Stacktrace path for this package sources. By default, this path is relative to rule execution directory.
+            """,
+        ),
         "gc_goopts": attr.string_list(
             doc = """List of flags to add to the Go compilation command when using the gc compiler.
             Subject to ["Make variable"] substitution and [Bourne shell tokenization].

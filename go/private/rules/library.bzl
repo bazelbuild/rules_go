@@ -104,6 +104,11 @@ go_library = rule(
         ),
         "importpath_aliases": attr.string_list(
         ),  # experimental, undocumented
+        "stackpath": attr.string(
+            doc = """
+            Stacktrace path for this package sources. By default, this path is relative to rule execution directory.
+            """,
+        ),
         "embed": attr.label_list(
             providers = [GoLibrary],
             doc = """

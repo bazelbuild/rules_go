@@ -195,12 +195,14 @@ def _tool_args(go):
     args.set_param_file_format("shell")
     return args
 
-def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, is_main = False, **kwargs):
+def _new_library(go, name = None, importpath = None, resolver = None, importable = True, testfilter = None, is_main = False, stackpath = None, **kwargs):
     if not importpath:
         importpath = go.importpath
         importmap = go.importmap
     else:
         importmap = importpath
+    if not stackpath:
+        stackpath = go.stackpath
     pathtype = go.pathtype
     if not importable and pathtype == EXPLICIT_PATH:
         pathtype = EXPORT_PATH
@@ -211,6 +213,7 @@ def _new_library(go, name = None, importpath = None, resolver = None, importable
         importpath = importpath,
         importmap = importmap,
         importpath_aliases = go.importpath_aliases,
+        stackpath = stackpath,
         pathtype = pathtype,
         resolve = resolver,
         testfilter = testfilter,
@@ -443,6 +446,22 @@ def _get_nogo(go):
     else:
         return None
 
+def _infer_stackpath(ctx):
+    # Check if paths were explicitly set, either in this rule or in an
+    # embedded rule.
+    attr_stackpath = getattr(ctx.attr, "stackpath", "")
+    if attr_stackpath:
+        return attr_stackpath
+    embed_stackpath = ""
+    for embed in getattr(ctx.attr, "embed", []):
+        if GoLibrary not in embed:
+            continue
+        lib = embed[GoLibrary]
+        if lib.stackpath:
+            embed_stackpath = lib.stackpath
+            break
+    return embed_stackpath
+
 def go_context(ctx, attr = None):
     """Returns an API used to build Go code.
 
@@ -569,6 +588,7 @@ def go_context(ctx, attr = None):
     _check_importpaths(ctx)
     importpath, importmap, pathtype = _infer_importpath(ctx, attr)
     importpath_aliases = tuple(getattr(attr, "importpath_aliases", ()))
+    stackpath = _infer_stackpath(ctx)
 
     return struct(
         # Fields
@@ -589,6 +609,7 @@ def go_context(ctx, attr = None):
         importpath = importpath,
         importmap = importmap,
         importpath_aliases = importpath_aliases,
+        stackpath = stackpath,
         pathtype = pathtype,
         cgo_tools = cgo_tools,
         nogo = nogo,

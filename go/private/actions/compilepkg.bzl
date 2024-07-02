@@ -116,6 +116,8 @@ def emit_compilepkg(
     args.add_all(archives, before_each = "-arc", map_each = _archive)
     if recompile_internal_deps:
         args.add_all(recompile_internal_deps, before_each = "-recompile_internal_deps")
+    if go.stackpath:
+        args.add("-stackpath", go.stackpath)
     if importpath:
         args.add("-importpath", importpath)
     else:

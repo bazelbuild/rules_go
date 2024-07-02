@@ -35,7 +35,7 @@ var ASM_DEFINES = []string{
 // by the compiler. This is only needed in go1.12+ when there is at least one
 // .s file. If the symabis file is not needed, no file will be generated,
 // and "", nil will be returned.
-func buildSymabisFile(goenv *env, packagePath string, sFiles, hFiles []fileInfo, asmhdr string) (string, error) {
+func buildSymabisFile(goenv *env, packagePath string, sFiles, hFiles []fileInfo, asmhdr string, stackPath string) (string, error) {
 	if len(sFiles) == 0 {
 		return "", nil
 	}
@@ -76,13 +76,18 @@ func buildSymabisFile(goenv *env, packagePath string, sFiles, hFiles []fileInfo,
 	symabisName = symabisFile.Name()
 	symabisFile.Close()
 
+	asmFiles := make([]string, 0, len(sFiles))
+	for _, sFile := range sFiles {
+		asmFiles = append(asmFiles, sFile.filename)
+	}
+
 	// Run the assembler.
 	wd, err := os.Getwd()
 	if err != nil {
 		return symabisName, err
 	}
 	asmargs := goenv.goTool("asm")
-	asmargs = append(asmargs, "-trimpath", wd)
+	asmargs = append(asmargs, createTrimPath(nil, wd, stackPath, asmFiles))
 	asmargs = append(asmargs, "-I", wd)
 	asmargs = append(asmargs, "-I", filepath.Join(os.Getenv("GOROOT"), "pkg", "include"))
 	asmargs = append(asmargs, "-I", asmhdrDir)
@@ -103,15 +108,13 @@ func buildSymabisFile(goenv *env, packagePath string, sFiles, hFiles []fileInfo,
 	}
 	asmargs = append(asmargs, ASM_DEFINES...)
 	asmargs = append(asmargs, "-gensymabis", "-o", symabisName, "--")
-	for _, sFile := range sFiles {
-		asmargs = append(asmargs, sFile.filename)
-	}
+	asmargs = append(asmargs, asmFiles...)
 
 	err = goenv.runCommand(asmargs)
 	return symabisName, err
 }
 
-func asmFile(goenv *env, srcPath, packagePath string, asmFlags []string, outPath string) error {
+func asmFile(goenv *env, srcPath, packagePath string, asmFlags []string, outPath string, stackPath string) error {
 	args := goenv.goTool("asm")
 	args = append(args, asmFlags...)
 	// The package path has to be specified as of Go 1.19 or the resulting
@@ -121,7 +124,7 @@ func asmFile(goenv *env, srcPath, packagePath string, asmFlags []string, outPath
 		args = append(args, "-p", packagePath)
 	}
 	args = append(args, ASM_DEFINES...)
-	args = append(args, "-trimpath", ".")
+	args = append(args, createTrimPath(nil, ".", stackPath, []string{srcPath}))
 	args = append(args, "-o", outPath)
 	args = append(args, "--", srcPath)
 	absArgs(args, []string{"-I", "-o", "-trimpath"})

@@ -66,6 +66,7 @@ def _nogo_impl(ctx):
         importpath = "nogomain",
         importmap = "nogomain",
         importpath_aliases = (),
+        stackpath = None,
         pathtype = EXPORT_PATH,
         is_main = True,
         resolve = None,
