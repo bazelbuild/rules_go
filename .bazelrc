@@ -1,8 +1,11 @@
 common --enable_platform_specific_config
+test --test_output=errors
 # TODO: Temporarily disable while rules_go migrates to Bzlmod for its dev build.
 # https://github.com/bazelbuild/bazel/issues/18958
 common --noexperimental_enable_bzlmod
-test --test_output=errors
+# rules_go is not typically used as a root module, so we want our
+# dependency versions to be as low as possible.
+common --check_direct_dependencies=off
 
 # Go requires a C toolchain that accepts options and emits errors like
 # gcc or clang. The Go SDK does not support MSVC.
