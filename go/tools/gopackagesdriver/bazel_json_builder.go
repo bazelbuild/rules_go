@@ -80,7 +80,7 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 	}
 
 	kinds := append(_defaultKinds, additionalKinds...)
-	return fmt.Sprintf(`kind("%s", same_pkg_direct_rdeps("%s"))`, strings.Join(kinds, "|"), label)
+	return fmt.Sprintf(`kind("^(%s) rule$", same_pkg_direct_rdeps("%s"))`, strings.Join(kinds, "|"), label)
 }
 
 func (b *BazelJSONBuilder) getKind() string {
@@ -104,7 +104,7 @@ func (b *BazelJSONBuilder) localQuery(request string) string {
 		request = fmt.Sprintf("%s:*", request)
 	}
 
-	return fmt.Sprintf(`kind("%s", %s)`, b.getKind(), request)
+	return fmt.Sprintf(`kind("^(%s) rule$", %s)`, b.getKind(), request)
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
@@ -113,7 +113,7 @@ func (b *BazelJSONBuilder) packageQuery(importPath string) string {
 	}
 
 	return fmt.Sprintf(
-		`kind("%s", attr(importpath, "%s", deps(%s)))`,
+		`kind("^(%s) rule$", attr(importpath, "%s", deps(%s)))`,
 		b.getKind(),
 		importPath,
 		bazelQueryScope)
