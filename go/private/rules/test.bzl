@@ -677,6 +677,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
             cover = arc_data._cover,
             embedsrcs = as_list(arc_data._embedsrcs),
             x_defs = dict(arc_data._x_defs),
+            stamp = arc_data._stamp,
             deps = deps,
             gc_goopts = as_list(arc_data._gc_goopts),
             runfiles = go._ctx.runfiles(files = arc_data.data_files),
