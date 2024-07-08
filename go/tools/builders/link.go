@@ -149,6 +149,13 @@ func link(args []string) error {
 	// add in the unprocess pass through options
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, *main)
+
+	// Explicitly set GOROOT to a dummy value when running linker.
+	// This ensures that the GOROOT written into the binary
+	// is constant and thus builds are reproducible.
+	oldroot := os.Getenv("GOROOT")
+	defer os.Setenv("GOROOT", oldroot)
+	os.Setenv("GOROOT", "GOROOT")
 	if err := goenv.runCommand(goargs); err != nil {
 		return err
 	}

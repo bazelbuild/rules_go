@@ -487,7 +487,6 @@ def go_context(ctx, attr = None):
         "GOOS": mode.goos,
         "GOEXPERIMENT": ",".join(toolchain.sdk.experiments),
         "GOROOT": goroot,
-        "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",
 
         # If we use --action_env=GOPATH, or in other cases where environment
