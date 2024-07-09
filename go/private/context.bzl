@@ -523,11 +523,11 @@ def go_context(ctx, attr = None):
         env["GOARM"] = mode.arm
 
     if not cgo_context_info:
-        crosstool = []
+        cc_toolchain_files = []
         cgo_tools = None
     else:
         env.update(cgo_context_info.env)
-        crosstool = cgo_context_info.crosstool
+        cc_toolchain_files = cgo_context_info.cc_toolchain_files
 
         # Add C toolchain directories to PATH.
         # On ARM, go tool link uses some features of gcc to complete its work,
@@ -584,7 +584,7 @@ def go_context(ctx, attr = None):
         actions = ctx.actions,
         exe_extension = goos_to_extension(mode.goos),
         shared_extension = goos_to_shared_extension(mode.goos),
-        crosstool = crosstool,
+        cc_toolchain_files = cc_toolchain_files,
         package_list = toolchain.sdk.package_list,
         importpath = importpath,
         importmap = importmap,
@@ -846,7 +846,7 @@ def _cgo_context_data_impl(ctx):
     )
 
     return [CgoContextInfo(
-        crosstool = cc_toolchain.all_files.to_list(),
+        cc_toolchain_files = cc_toolchain.all_files.to_list(),
         tags = tags,
         env = env,
         cgo_tools = struct(

@@ -165,7 +165,7 @@ def emit_compilepkg(
         execution_requirements = SUPPORTS_PATH_MAPPING_REQUIREMENT
     if cgo:
         inputs.extend(cgo_inputs.to_list())  # OPT: don't expand depset
-        inputs.extend(go.crosstool)
+        inputs.extend(go.cc_toolchain_files)
         env["CC"] = go.cgo_tools.c_compiler_path
         if cppopts:
             args.add("-cppflags", quote_opts(cppopts))

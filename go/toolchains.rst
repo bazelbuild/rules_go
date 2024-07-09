@@ -601,7 +601,7 @@ Fields
 | The suffix to use for shared libraries in this build mode. Mostly used when                      |
 | generating output filenames of binary rules.                                                     |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`crosstool`             | :type:`list of File`                                            |
+| :param:`cc_toolchain_files`    | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
 | The files you need to add to the inputs of an action in order to use the cc toolchain.           |
 +--------------------------------+-----------------------------------------------------------------+

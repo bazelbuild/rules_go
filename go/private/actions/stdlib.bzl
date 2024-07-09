@@ -75,7 +75,7 @@ def _build_stdlib_list_json(go):
 
     inputs = go.sdk_files
     if not go.mode.pure:
-        inputs += go.crosstool
+        inputs += go.cc_toolchain_files
 
     go.actions.run(
         inputs = inputs,
@@ -144,7 +144,7 @@ def _build_stdlib(go):
               go.sdk.headers +
               go.sdk.tools +
               [go.sdk.go, go.sdk.package_list, go.sdk.root_file] +
-              go.crosstool)
+              go.cc_toolchain_files)
 
     if go.mode.pgoprofile:
         args.add("-pgoprofile", go.mode.pgoprofile)
