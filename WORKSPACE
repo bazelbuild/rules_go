@@ -83,7 +83,7 @@ http_archive(
 )
 
 # For manual testing against an LLVM toolchain.
-# Use --extra_toolchains=@llvm_toolchain//:toolchain
+# Use --extra_toolchains=@llvm_toolchain//:cc-toolchain-linux,@llvm_toolchain//:cc-toolchain-darwin
 http_archive(
     name = "com_grail_bazel_toolchain",
     sha256 = "fb762268ca70ced1a0f65d24f92cd881098afd34990ae5767df0ab325217620e",
