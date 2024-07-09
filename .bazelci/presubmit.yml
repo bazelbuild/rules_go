@@ -91,7 +91,7 @@ tasks:
       - "@go_default_sdk//..."
     test_targets:
       - "//..."
-  macos_arm64:
+  macos:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
     build_flags:
@@ -108,7 +108,6 @@ tasks:
       - "--apple_crosstool_top=@local_config_apple_cc//:toolchain"
       - "--crosstool_top=@local_config_apple_cc//:toolchain"
       - "--host_crosstool_top=@local_config_apple_cc//:toolchain"
-      - "--local_test_jobs=2"
     test_targets:
       - "//..."
   rbe_ubuntu1604:
