@@ -27,7 +27,7 @@
   [test_filter]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_filter
   [test_env]: https://docs.bazel.build/versions/master/user-manual.html#flag--test_env
   [test_runner_fail_fast]: https://docs.bazel.build/versions/master/command-line-reference.html#flag--test_runner_fail_fast
-  [write a CROSSTOOL file]: https://github.com/bazelbuild/bazel/wiki/Yet-Another-CROSSTOOL-Writing-Tutorial
+  [define and register a C/C++ toolchain and platforms]: https://bazel.build/extending/toolchains#toolchain-definitions
   [bazel]: https://pkg.go.dev/github.com/bazelbuild/rules_go/go/tools/bazel?tab=doc
   [go_library]: #go_library
   [go_binary]: #go_binary
@@ -74,7 +74,7 @@ sufficient to match the capabilities of the normal go tools.
 - [test_filter]
 - [test_env]
 - [test_runner_fail_fast]
-- [write a CROSSTOOL file]
+- [define and register a C/C++ toolchain and platforms]
 - [bazel]
 
 
