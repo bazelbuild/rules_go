@@ -91,7 +91,7 @@ tasks:
       - "@go_default_sdk//..."
     test_targets:
       - "//..."
-  macos:
+  macos_legacy:
     shell_commands:
       - tests/core/cgo/generate_imported_dylib.sh
     build_flags:
