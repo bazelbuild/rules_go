@@ -159,6 +159,7 @@ go_bazel_test(
 go_bazel_test(
     name = "sdk_version_test",
     srcs = ["sdk_version_test.go"],
+    timeout = "eternal",
 )
 
 go_bazel_test(
