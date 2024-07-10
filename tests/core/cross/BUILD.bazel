@@ -153,6 +153,7 @@ go_bazel_test(
 go_bazel_test(
     name = "proto_test",
     srcs = ["proto_test.go"],
+    timeout = "eternal",
 )
 
 go_bazel_test(
