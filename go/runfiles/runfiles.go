@@ -39,6 +39,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,6 +77,11 @@ const noSourceRepoSentinel = "_not_a_valid_repository_name"
 //
 // See section “Runfiles discovery” in
 // https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub.
+//
+// The returned object implements fs.FS regardless of the type of runfiles
+// that backs it. This is the preferred way to interact with runfiles in a
+// platform-agnostic way. For example, to find all runfiles beneath a
+// directory, use fs.Glob or fs.WalkDir.
 func New(opts ...Option) (*Runfiles, error) {
 	var o options
 	o.sourceRepo = noSourceRepoSentinel
@@ -264,6 +270,7 @@ func (sr SourceRepo) apply(o *options)  { o.sourceRepo = sr }
 
 type runfiles interface {
 	path(string) (string, error)
+	open(name string) (fs.File, error)
 }
 
 // The runfiles root symlink under which the repository mapping can be found.

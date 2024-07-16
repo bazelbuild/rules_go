@@ -97,6 +97,11 @@ func Runfile(path string) (string, error) {
 // FindBinary may be called from tests invoked with 'bazel test' and
 // binaries invoked with 'bazel run'. On Windows,
 // only tests invoked with 'bazel test' are supported.
+//
+// Deprecated: Use runfiles.Rlocation instead. The path argument can be
+// obtained by passing `$(rlocationpath //pkg:name)` to the `go_*` target
+// via `args`, `env` or `x_defs` (the latter is also available on `go_library`).
+// This avoids hardcoding the package and name of the binary in the source code.
 func FindBinary(pkg, name string) (string, bool) {
 	if err := ensureRunfiles(); err != nil {
 		return "", false
@@ -165,6 +170,8 @@ func FindBinary(pkg, name string) (string, bool) {
 }
 
 // A RunfileEntry describes a runfile.
+//
+// Deprecated: See comment on ListRunfiles.
 type RunfileEntry struct {
 	// Workspace is the bazel workspace the file came from. For example,
 	// this would be "io_bazel_rules_go" for a file in rules_go.
@@ -180,6 +187,9 @@ type RunfileEntry struct {
 }
 
 // ListRunfiles returns a list of available runfiles.
+//
+// Deprecated: Use fs.Glob or fs.WalkDir on the fs.FS implementation provided
+// by runfiles.New() instead.
 func ListRunfiles() ([]RunfileEntry, error) {
 	if err := ensureRunfiles(); err != nil {
 		return nil, err
