@@ -179,9 +179,9 @@ func TestMain(m *testing.M, args Args) {
 // hide that this code is executing inside a bazel test.
 func BazelCmd(args ...string) *exec.Cmd {
 	cmd := exec.Command("bazel")
-    // --nosystem_rc isn't used here because Bazel may need essential flags set in
-    // system rc to be able to work correctly
-    // See https://github.com/bazelbuild/rules_go/pull/3969#issuecomment-2220405416
+	// --nosystem_rc isn't used here because Bazel may need essential flags set in
+	// system rc to be able to work correctly
+	// See https://github.com/bazelbuild/rules_go/pull/3969#issuecomment-2220405416
 	cmd.Args = append(cmd.Args, "--nohome_rc")
 	cmd.Args = append(cmd.Args, args...)
 	for _, e := range os.Environ() {
