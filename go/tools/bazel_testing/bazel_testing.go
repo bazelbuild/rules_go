@@ -179,7 +179,7 @@ func TestMain(m *testing.M, args Args) {
 // hide that this code is executing inside a bazel test.
 func BazelCmd(args ...string) *exec.Cmd {
 	cmd := exec.Command("bazel")
-	cmd.Args = append(cmd.Args, "--nosystem_rc", "--nohome_rc")
+	cmd.Args = append(cmd.Args, "--nohome_rc")
 	cmd.Args = append(cmd.Args, args...)
 	for _, e := range os.Environ() {
 		// Filter environment variables set by the bazel test wrapper script.
