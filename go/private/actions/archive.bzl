@@ -62,9 +62,13 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
     out_export = go.declare_file(go, name = source.library.name, ext = pre_ext + ".x")
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
     out_facts = None
+    out_nogo_log = None
+    out_nogo_validation = None
     nogo = go.get_nogo(go)
     if nogo:
         out_facts = go.declare_file(go, name = source.library.name, ext = pre_ext + ".facts")
+        out_nogo_log = go.declare_file(go, name = source.library.name, ext = pre_ext + ".nogo.log")
+        out_nogo_validation = go.declare_file(go, name = source.library.name, ext = pre_ext + ".nogo")
 
     direct = [get_archive(dep) for dep in source.deps]
     runfiles = source.runfiles
@@ -99,7 +103,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             out_cgo_export_h = go.declare_file(go, path = "_cgo_install.h")
         cgo_deps = cgo.deps
         runfiles = runfiles.merge(cgo.runfiles)
-        validation_output = emit_compilepkg(
+        emit_compilepkg(
             go,
             sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
             cover = source.cover,
@@ -110,6 +114,8 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             out_lib = out_lib,
             out_export = out_export,
             out_facts = out_facts,
+            out_nogo_log = out_nogo_log,
+            out_nogo_validation = out_nogo_validation,
             nogo = nogo,
             out_cgo_export_h = out_cgo_export_h,
             gc_goopts = source.gc_goopts,
@@ -126,7 +132,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         )
     else:
         cgo_deps = depset()
-        validation_output = emit_compilepkg(
+        emit_compilepkg(
             go,
             sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
             cover = source.cover,
@@ -137,6 +143,8 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             out_lib = out_lib,
             out_export = out_export,
             out_facts = out_facts,
+            out_nogo_log = out_nogo_log,
+            out_nogo_validation = out_nogo_validation,
             nogo = nogo,
             gc_goopts = source.gc_goopts,
             cgo = False,
@@ -185,7 +193,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         export_file = out_export,
         facts_file = out_facts,
         data_files = as_tuple(data_files),
-        _validation_output = validation_output,
+        _validation_output = out_nogo_validation,
         _cgo_deps = as_tuple(cgo_deps),
     )
     x_defs = dict(source.x_defs)
