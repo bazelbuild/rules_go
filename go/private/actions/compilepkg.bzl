@@ -206,6 +206,7 @@ def emit_compilepkg(
             importpath = importpath,
             importmap = importmap,
             archives = archives,
+            recompile_internal_deps = recompile_internal_deps,
             cgo_go_srcs = cgo_go_srcs,
             out_facts = out_facts,
             out_log = out_nogo_log,
@@ -220,6 +221,7 @@ def _run_nogo(
         importpath,
         importmap,
         archives,
+        recompile_internal_deps,
         cgo_go_srcs,
         out_facts,
         out_log,
@@ -236,6 +238,8 @@ def _run_nogo(
     args.add_all(sources, before_each = "-src")
     if cgo_go_srcs:
         args.add_all([cgo_go_srcs], before_each = "-src")
+    if recompile_internal_deps:
+        args.add_all(recompile_internal_deps, before_each = "-recompile_internal_deps")
     args.add_all(archives, before_each = "-arc", map_each = _archive)
     if importpath:
         args.add("-importpath", importpath)

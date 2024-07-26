@@ -19,7 +19,7 @@ func nogo(args []string) error {
 
 	fs := flag.NewFlagSet("GoNogo", flag.ExitOnError)
 	goenv := envFlags(fs)
-	var unfilteredSrcs multiFlag
+	var unfilteredSrcs, recompileInternalDeps multiFlag
 	var deps, facts archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath string
 	var outFactsPath, outLogPath string
@@ -29,6 +29,7 @@ func nogo(args []string) error {
 	fs.StringVar(&importPath, "importpath", "", "The import path of the package being compiled. Not passed to the compiler, but may be displayed in debug data.")
 	fs.StringVar(&packagePath, "p", "", "The package path (importmap) of the package being compiled")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
+	fs.Var(&recompileInternalDeps, "recompile_internal_deps", "The import path of the direct dependencies that needs to be recompiled.")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary")
 	fs.StringVar(&outFactsPath, "out_facts", "", "The file to emit serialized nogo facts to")
 	fs.StringVar(&outLogPath, "out_log", "", "The file to emit nogo logs into")
@@ -64,7 +65,7 @@ func nogo(args []string) error {
 	}
 	defer cleanup()
 
-	imports, err := checkImports(srcs.goSrcs, deps, packageListPath, importPath, []string{})
+	imports, err := checkImports(srcs.goSrcs, deps, packageListPath, importPath, recompileInternalDeps)
 	if err != nil {
 		return err
 	}
