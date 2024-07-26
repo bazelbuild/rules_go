@@ -126,7 +126,6 @@ func runNogo(workDir string, nogoPath string, srcs []string, facts []archive, pa
 			// Do not fail the action if nogo has findings so that facts are
 			// still generated for downstream targets.
 			_, err := outLog.Write(relativizePaths(out.Bytes()))
-			println(string(relativizePaths(out.Bytes())))
 			if err != nil {
 				return fmt.Errorf("error writing nogo log file: %v", err)
 			}
