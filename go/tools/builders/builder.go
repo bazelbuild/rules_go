@@ -39,8 +39,8 @@ func main() {
 
 	var action func(args []string) error
 	switch verb {
-	case "compilepkg":
-		action = compilePkg
+	case "compilepkg": action = compilePkg
+	case "nogo": action = nogo
 	case "filterbuildid":
 		action = filterBuildID
 	case "gentestmain":

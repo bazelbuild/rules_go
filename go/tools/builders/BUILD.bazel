@@ -76,6 +76,7 @@ filegroup(
         "generate_test_main.go",
         "importcfg.go",
         "link.go",
+        "nogo.go",
         "read.go",
         "replicate.go",
         "stdlib.go",

@@ -17,27 +17,16 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
-)
-
-type nogoResult int
-
-const (
-	nogoNotRun nogoResult = iota
-	nogoError
-	nogoFailed
-	nogoSucceeded
 )
 
 func compilePkg(args []string) error {
@@ -565,45 +554,6 @@ func compileGo(goenv *env, srcs []string, packagePath, importcfgPath, embedcfgPa
 	args = append(args, srcs...)
 	absArgs(args, []string{"-I", "-o", "-trimpath", "-importcfg"})
 	return goenv.runCommand(args)
-}
-
-func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string, facts []archive, packagePath, importcfgPath, outFactsPath string) error {
-	if len(srcs) == 0 {
-		// emit_compilepkg expects a nogo facts file, even if it's empty.
-		return os.WriteFile(outFactsPath, nil, 0o666)
-	}
-	args := []string{nogoPath}
-	args = append(args, "-p", packagePath)
-	args = append(args, "-importcfg", importcfgPath)
-	for _, fact := range facts {
-		args = append(args, "-fact", fmt.Sprintf("%s=%s", fact.importPath, fact.file))
-	}
-	args = append(args, "-x", outFactsPath)
-	args = append(args, srcs...)
-
-	paramsFile := filepath.Join(workDir, "nogo.param")
-	if err := writeParamsFile(paramsFile, args[1:]); err != nil {
-		return fmt.Errorf("error writing nogo params file: %v", err)
-	}
-
-	cmd := exec.CommandContext(ctx, args[0], "-param="+paramsFile)
-	out := &bytes.Buffer{}
-	cmd.Stdout, cmd.Stderr = out, out
-	if err := cmd.Run(); err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			if !exitErr.Exited() {
-				cmdLine := strings.Join(args, " ")
-				return fmt.Errorf("nogo command '%s' exited unexpectedly: %s", cmdLine, exitErr.String())
-			}
-			return errors.New(string(relativizePaths(out.Bytes())))
-		} else {
-			if out.Len() != 0 {
-				fmt.Fprintln(os.Stderr, out.String())
-			}
-			return fmt.Errorf("error running nogo: %v", err)
-		}
-	}
-	return nil
 }
 
 func appendToArchive(goenv *env, outPath string, objFiles []string) error {

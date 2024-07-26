@@ -38,6 +38,7 @@ def _go_library_impl(ctx):
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     archive = go.archive(go, source)
+    facts_file = archive.data.facts_file
 
     return [
         library,
@@ -55,6 +56,7 @@ def _go_library_impl(ctx):
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
             compilation_outputs = [archive.data.file],
+            _validation = [facts_file] if facts_file else [],
         ),
     ]
 
