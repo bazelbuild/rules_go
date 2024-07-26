@@ -88,13 +88,14 @@ func run(args []string) error {
 	if err != nil {
 		return fmt.Errorf("error running analyzers: %v", err)
 	}
-	if diagnostics != "" {
-		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics)
-	}
+	// Write the facts file for downstream consumers before failing due to diagnostics.
 	if *xPath != "" {
 		if err := ioutil.WriteFile(abs(*xPath), facts, 0o666); err != nil {
 			return fmt.Errorf("error writing facts: %v", err)
 		}
+	}
+	if diagnostics != "" {
+		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics)
 	}
 
 	return nil

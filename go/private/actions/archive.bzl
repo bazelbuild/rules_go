@@ -99,7 +99,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             out_cgo_export_h = go.declare_file(go, path = "_cgo_install.h")
         cgo_deps = cgo.deps
         runfiles = runfiles.merge(cgo.runfiles)
-        emit_compilepkg(
+        validation_output = emit_compilepkg(
             go,
             sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
             cover = source.cover,
@@ -126,7 +126,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         )
     else:
         cgo_deps = depset()
-        emit_compilepkg(
+        validation_output = emit_compilepkg(
             go,
             sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
             cover = source.cover,
@@ -185,6 +185,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         export_file = out_export,
         facts_file = out_facts,
         data_files = as_tuple(data_files),
+        _validation_output = validation_output,
         _cgo_deps = as_tuple(cgo_deps),
     )
     x_defs = dict(source.x_defs)
