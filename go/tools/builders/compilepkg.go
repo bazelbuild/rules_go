@@ -17,7 +17,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -40,8 +39,8 @@ func compilePkg(args []string) error {
 	goenv := envFlags(fs)
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
 	var deps, facts archiveMultiFlag
-	var importPath, packagePath, nogoPath, packageListPath, coverMode string
-	var outLinkobjPath, outInterfacePath, outFactsPath, cgoExportHPath, cgoGoSrcsPath string
+	var importPath, packagePath, packageListPath, coverMode string
+	var outLinkobjPath, outInterfacePath, cgoExportHPath, cgoGoSrcsPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
@@ -63,12 +62,10 @@ func compilePkg(args []string) error {
 	fs.Var(&objcFlags, "objcflags", "Objective-C compiler flags")
 	fs.Var(&objcxxFlags, "objcxxflags", "Objective-C++ compiler flags")
 	fs.Var(&ldFlags, "ldflags", "C linker flags")
-	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary. If unset, nogo will not be run.")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
 	fs.StringVar(&outLinkobjPath, "lo", "", "The full output archive file required by the linker")
 	fs.StringVar(&outInterfacePath, "o", "", "The export-only output archive required to compile dependent packages")
-	fs.StringVar(&outFactsPath, "out_facts", "", "The file to emit serialized nogo facts to (must be set if -nogo is set")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
 	fs.StringVar(&cgoGoSrcsPath, "cgo_go_srcs", "", "The directory to emit cgo-generated Go sources to")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
@@ -150,11 +147,9 @@ func compilePkg(args []string) error {
 		objcFlags,
 		objcxxFlags,
 		ldFlags,
-		nogoPath,
 		packageListPath,
 		outLinkobjPath,
 		outInterfacePath,
-		outFactsPath,
 		cgoExportHPath,
 		cgoGoSrcsPath,
 		coverFormat,
@@ -184,11 +179,9 @@ func compileArchive(
 	objcFlags []string,
 	objcxxFlags []string,
 	ldFlags []string,
-	nogoPath string,
 	packageListPath string,
 	outLinkObj string,
 	outInterfacePath string,
-	outFactsPath string,
 	cgoExportHPath string,
 	cgoGoSrcsPath string,
 	coverFormat string,
@@ -201,7 +194,6 @@ func compileArchive(
 	}
 	defer cleanup()
 
-	emptyGoFilePath := ""
 	if len(srcs.goSrcs) == 0 {
 		// We need to run the compiler to create a valid archive, even if there's nothing in it.
 		// Otherwise, GoPack will complain if we try to add assembly or cgo objects.
@@ -226,7 +218,6 @@ func compileArchive(
 			matched:  true,
 			pkg:      "empty",
 		})
-		emptyGoFilePath = emptyGoFile.Name()
 	}
 	packageName := srcs.goSrcs[0].pkg
 	var goSrcs, cgoSrcs []string
@@ -268,22 +259,6 @@ func compileArchive(
 	// containing Cgo files can also be built with Cgo disabled, and will work if there are build
 	// constraints.
 	compilingWithCgo := haveCgo && cgoEnabled
-
-	filterForNogo := func(slice []string) []string {
-		filtered := make([]string, 0, len(slice))
-		for _, s := range slice {
-			// Do not subject the generated empty .go file to nogo checks.
-			if s != emptyGoFilePath {
-				filtered = append(filtered, s)
-			}
-		}
-		return filtered
-	}
-	// When coverage is set, source files will be modified during instrumentation. We should only run static analysis
-	// over original source files and not the modified ones.
-	// goSrcsNogo and cgoSrcsNogo are copies of the original source files for nogo to run static analysis.
-	goSrcsNogo := filterForNogo(goSrcs)
-	cgoSrcsNogo := append([]string{}, cgoSrcs...)
 
 	// Instrument source files for coverage.
 	if coverMode != "" {
@@ -347,16 +322,6 @@ func compileArchive(
 		if err != nil {
 			return err
 		}
-		if coverMode != "" && nogoPath != "" {
-			// Compile original source files, not coverage instrumented, for nogo
-			_, goSrcsNogo, _, err = cgo2(goenv, goSrcsNogo, cgoSrcsNogo, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, cgoGoSrcsPath)
-			if err != nil {
-				return err
-			}
-		} else {
-			goSrcsNogo = goSrcs
-		}
-
 		gcFlags = append(gcFlags, createTrimPath(gcFlags, srcDir))
 	} else {
 		if cgoExportHPath != "" {
@@ -439,22 +404,6 @@ func compileArchive(
 		}
 	}
 
-	// Run nogo concurrently.
-	var nogoChan chan error
-	if nogoPath != "" {
-		ctx, cancel := context.WithCancel(context.Background())
-		nogoChan = make(chan error)
-		go func() {
-			nogoChan <- runNogo(ctx, workDir, nogoPath, goSrcsNogo, facts, importPath, importcfgPath, outFactsPath)
-		}()
-		defer func() {
-			if nogoChan != nil {
-				cancel()
-				<-nogoChan
-			}
-		}()
-	}
-
 	// If there are Go assembly files and this is go1.12+: generate symbol ABIs.
 	// This excludes Cgo packages: they use the C compiler for assembly.
 	asmHdrPath := ""
@@ -515,16 +464,6 @@ func compileArchive(
 	// cgo dependencies (cdeps), windows resource file generation, or assembly.
 	if len(objFiles) > 0 {
 		if err := appendToArchive(goenv, outLinkObj, objFiles); err != nil {
-			return err
-		}
-	}
-
-	// Check results from nogo.
-	if nogoChan != nil {
-		err := <-nogoChan
-		nogoChan = nil // no cancellation needed
-		if err != nil {
-			// TODO: Move nogo into a separate action so we don't fail the compilation here.
 			return err
 		}
 	}

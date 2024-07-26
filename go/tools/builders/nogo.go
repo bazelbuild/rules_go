@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -85,10 +84,10 @@ func nogo(args []string) error {
 		defer os.Remove(importcfgPath)
 	}
 
-	return runNogo(context.TODO(), workDir, nogoPath, goSrcs, facts, importPath, importcfgPath, outFactsPath)
+	return runNogo(workDir, nogoPath, goSrcs, facts, importPath, importcfgPath, outFactsPath)
 }
 
-func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string, facts []archive, packagePath, importcfgPath, outFactsPath string) error {
+func runNogo(workDir string, nogoPath string, srcs []string, facts []archive, packagePath, importcfgPath, outFactsPath string) error {
 	if len(srcs) == 0 {
 		// emit_compilepkg expects a nogo facts file, even if it's empty.
 		return os.WriteFile(outFactsPath, nil, 0o666)
@@ -107,7 +106,7 @@ func runNogo(ctx context.Context, workDir string, nogoPath string, srcs []string
 		return fmt.Errorf("error writing nogo params file: %v", err)
 	}
 
-	cmd := exec.CommandContext(ctx, args[0], "-param="+paramsFile)
+	cmd := exec.Command(args[0], "-param="+paramsFile)
 	out := &bytes.Buffer{}
 	cmd.Stdout, cmd.Stderr = out, out
 	if err := cmd.Run(); err != nil {
