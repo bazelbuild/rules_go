@@ -52,7 +52,7 @@ func compilePkg(args []string) error {
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
 	var deps, facts archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath, coverMode string
-	var outLinkobjPath, outInterfacePath, outFactsPath, cgoExportHPath string
+	var outLinkobjPath, outInterfacePath, outFactsPath, cgoExportHPath, cgoGoSrcsPath string
 	var testFilter string
 	var gcFlags, asmFlags, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags quoteMultiFlag
 	var coverFormat string
@@ -81,6 +81,7 @@ func compilePkg(args []string) error {
 	fs.StringVar(&outInterfacePath, "o", "", "The export-only output archive required to compile dependent packages")
 	fs.StringVar(&outFactsPath, "out_facts", "", "The file to emit serialized nogo facts to (must be set if -nogo is set")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
+	fs.StringVar(&cgoGoSrcsPath, "cgo_go_srcs", "", "The directory to emit cgo-generated Go sources to")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
 	fs.StringVar(&coverFormat, "cover_format", "", "Emit source file paths in coverage instrumentation suitable for the specified coverage format")
 	fs.Var(&recompileInternalDeps, "recompile_internal_deps", "The import path of the direct dependencies that needs to be recompiled.")
@@ -166,6 +167,7 @@ func compilePkg(args []string) error {
 		outInterfacePath,
 		outFactsPath,
 		cgoExportHPath,
+		cgoGoSrcsPath,
 		coverFormat,
 		recompileInternalDeps,
 		pgoprofile)
@@ -199,6 +201,7 @@ func compileArchive(
 	outInterfacePath string,
 	outFactsPath string,
 	cgoExportHPath string,
+	cgoGoSrcsPath string,
 	coverFormat string,
 	recompileInternalDeps []string,
 	pgoprofile string,
@@ -351,13 +354,13 @@ func compileArchive(
 		// If the package uses Cgo, compile .s and .S files with cgo2, not the Go assembler.
 		// Otherwise: the .s/.S files will be compiled with the Go assembler later
 		var srcDir string
-		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
+		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, cgoGoSrcsPath)
 		if err != nil {
 			return err
 		}
 		if coverMode != "" && nogoPath != "" {
 			// Compile original source files, not coverage instrumented, for nogo
-			_, goSrcsNogo, _, err = cgo2(goenv, goSrcsNogo, cgoSrcsNogo, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath)
+			_, goSrcsNogo, _, err = cgo2(goenv, goSrcsNogo, cgoSrcsNogo, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, cgoGoSrcsPath)
 			if err != nil {
 				return err
 			}

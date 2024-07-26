@@ -32,7 +32,7 @@ import (
 )
 
 // cgo2 processes a set of mixed source files with cgo.
-func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []string, packagePath, packageName string, cc string, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags []string, cgoExportHPath string) (srcDir string, allGoSrcs, cObjs []string, err error) {
+func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs []string, packagePath, packageName string, cc string, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags []string, cgoExportHPath string, cgoGoSrcsPath string) (srcDir string, allGoSrcs, cObjs []string, err error) {
 	// Report an error if the C/C++ toolchain wasn't configured.
 	if cc == "" {
 		err := cgoError(cgoSrcs[:])
@@ -240,6 +240,12 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 		return "", nil, nil, err
 	}
 	genGoSrcs = append(genGoSrcs, cgoImportsGo)
+	for _, src := range genGoSrcs {
+		err = copyFile(src, filepath.Join(cgoGoSrcsPath, filepath.Base(src)))
+		if err != nil {
+			return "", nil, nil, err
+		}
+	}
 
 	// Copy regular Go source files into the work directory so that we can
 	// use -trimpath=workDir.

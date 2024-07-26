@@ -164,6 +164,9 @@ def emit_compilepkg(
         env = go.env_for_path_mapping
         execution_requirements = SUPPORTS_PATH_MAPPING_REQUIREMENT
     if cgo:
+        cgo_go_srcs = go.declare_directory(go, path = out_lib.basename + ".cgo")
+        outputs.append(cgo_go_srcs)
+        args.add("-cgo_go_srcs", cgo_go_srcs.path)
         inputs.extend(cgo_inputs.to_list())  # OPT: don't expand depset
         inputs.extend(go.cc_toolchain_files)
         env["CC"] = go.cgo_tools.c_compiler_path
