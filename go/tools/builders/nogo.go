@@ -147,7 +147,7 @@ func runNogo(workDir string, nogoPath string, srcs []string, facts []archive, pa
 			return fmt.Errorf("nogo command '%s' exited unexpectedly: %s", cmdLine, exitErr.String())
 		}
 		prettyOut := relativizePaths(out.Bytes())
-		if exitErr.ExitCode() != nogoHasFindings {
+		if exitErr.ExitCode() != nogoHadFindings {
 			return errors.New(string(prettyOut))
 		}
 		// Do not fail the action if nogo has findings so that facts are
