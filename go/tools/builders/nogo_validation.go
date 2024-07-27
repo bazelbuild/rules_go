@@ -14,7 +14,7 @@ func nogoValidation(args []string) error {
 	if err != nil {
 		return err
 	}
-	err := os.WriteFile(validationOutput, logContent)
+	err = os.WriteFile(validationOutput, logContent, 0755)
 	if err != nil {
 		return err
 	}
