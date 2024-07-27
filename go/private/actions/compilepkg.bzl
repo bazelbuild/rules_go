@@ -275,22 +275,16 @@ def _run_nogo(
         progress_message = "Running nogo on %{label}",
     )
 
-    go.actions.run_shell(
+    validation_args = go.actions.args()
+    validation_args.add("nogovalidation")
+    validation_args.add(out_validation)
+    validation_args.add(out_log)
+    go.actions.run(
         inputs = [out_log],
         outputs = [out_validation],
-        # Always create the output file, but fail if the log file is non-empty.
-        command = """
-touch $1
-if [ -s "$2" ]; then
-  echo >&2
-  cat "$2" >&2
-  exit 1
-fi
-""",
-        arguments = [
-            out_validation.path,
-            out_log.path,
-        ],
         mnemonic = "GoNogoValidation",
+        executable = go.toolchain._builder,
+        arguments = [validation_args],
+        execution_requirements = SUPPORTS_PATH_MAPPING_REQUIREMENT,
         progress_message = "Validating nogo output for %{label}",
     )

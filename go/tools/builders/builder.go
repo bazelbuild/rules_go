@@ -41,6 +41,7 @@ func main() {
 	switch verb {
 	case "compilepkg": action = compilePkg
 	case "nogo": action = nogo
+	case "nogovalidation": action = nogoValidation
 	case "filterbuildid":
 		action = filterBuildID
 	case "gentestmain":
