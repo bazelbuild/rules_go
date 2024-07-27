@@ -68,7 +68,7 @@ func main() {
 func run(args []string) (error, int) {
 	args, _, err := expandParamsFiles(args)
 	if err != nil {
-		return fmt.Errorf("error reading paramfiles: %v", err), 1
+		return fmt.Errorf("error reading paramfiles: %v", err), nogoError
 	}
 
 	factMap := factMultiFlag{}
@@ -82,24 +82,24 @@ func run(args []string) (error, int) {
 
 	packageFile, importMap, err := readImportCfg(*importcfg)
 	if err != nil {
-		return fmt.Errorf("error parsing importcfg: %v", err), 1
+		return fmt.Errorf("error parsing importcfg: %v", err), nogoError
 	}
 
 	diagnostics, facts, err := checkPackage(analyzers, *packagePath, packageFile, importMap, factMap, srcs)
 	if err != nil {
-		return fmt.Errorf("error running analyzers: %v", err), 1
+		return fmt.Errorf("error running analyzers: %v", err), nogoError
 	}
 	// Write the facts file for downstream consumers before failing due to diagnostics.
 	if *xPath != "" {
 		if err := ioutil.WriteFile(abs(*xPath), facts, 0o666); err != nil {
-			return fmt.Errorf("error writing facts: %v", err), 1
+			return fmt.Errorf("error writing facts: %v", err), nogoError
 		}
 	}
 	if diagnostics != "" {
-		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), 2
+		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), nogoHasFindings
 	}
 
-	return nil, 0
+	return nil, nogoSucceeded
 }
 
 // Adapted from go/src/cmd/compile/internal/gc/main.go. Keep in sync.

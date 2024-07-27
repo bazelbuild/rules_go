@@ -65,6 +65,7 @@ filegroup(
         "builder.go",
         "cgo2.go",
         "compilepkg.go",
+        "constants.go",
         "cover.go",
         "edit.go",
         "embedcfg.go",
@@ -92,6 +93,7 @@ filegroup(
 go_source(
     name = "nogo_srcs",
     srcs = [
+        "constants.go",
         "env.go",
         "flags.go",
         "nogo_main.go",
