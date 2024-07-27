@@ -96,7 +96,7 @@ func run(args []string) (error, int) {
 		}
 	}
 	if diagnostics != "" {
-		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), nogoHasFindings
+		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), nogoHadFindings
 	}
 
 	return nil, nogoSucceeded
