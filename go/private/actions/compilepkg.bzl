@@ -266,7 +266,7 @@ def _run_nogo(
     go.actions.run(
         inputs = inputs,
         outputs = outputs,
-        mnemonic = "GoNogo",
+        mnemonic = "RunNogo",
         executable = go.toolchain._builder,
         arguments = [args],
         env = go.env_for_path_mapping,
@@ -282,7 +282,7 @@ def _run_nogo(
     go.actions.run(
         inputs = [out_log],
         outputs = [out_validation],
-        mnemonic = "GoNogoValidation",
+        mnemonic = "ValidateNogo",
         executable = go.toolchain._builder,
         arguments = [validation_args],
         execution_requirements = SUPPORTS_PATH_MAPPING_REQUIREMENT,

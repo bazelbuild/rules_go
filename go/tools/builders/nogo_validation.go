@@ -10,7 +10,7 @@ func nogoValidation(args []string) error {
 	logFile := args[1]
 	// Always create the output file, but fail if the log file is non-empty, to
 	// avoid a "action failed to create outputs" error.
-	if err := os.WriteFile(validationOutput, []byte{}, 0644); err != nil {
+	if err := os.Symlink(logFile, validationOutput); err != nil {
 		return err
 	}
 
