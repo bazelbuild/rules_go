@@ -240,9 +240,11 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 		return "", nil, nil, err
 	}
 	genGoSrcs = append(genGoSrcs, cgoImportsGo)
-	for _, src := range genGoSrcs {
-		if err := copyFile(src, filepath.Join(cgoGoSrcsPath, filepath.Base(src))); err != nil {
-			return "", nil, nil, err
+	if cgoGoSrcsPath != "" {
+		for _, src := range genGoSrcs {
+			if err := copyFile(src, filepath.Join(cgoGoSrcsPath, filepath.Base(src))); err != nil {
+				return "", nil, nil, err
+			}
 		}
 	}
 

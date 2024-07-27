@@ -166,10 +166,12 @@ def emit_compilepkg(
     else:
         env = go.env_for_path_mapping
         execution_requirements = SUPPORTS_PATH_MAPPING_REQUIREMENT
+    cgo_go_srcs_for_nogo = None
     if cgo:
-        cgo_go_srcs = go.declare_directory(go, path = out_lib.basename + ".cgo")
-        outputs.append(cgo_go_srcs)
-        args.add("-cgo_go_srcs", cgo_go_srcs.path)
+        if nogo:
+            cgo_go_srcs_for_nogo = go.declare_directory(go, path = out_lib.basename + ".cgo")
+            outputs.append(cgo_go_srcs_for_nogo)
+            args.add("-cgo_go_srcs", cgo_go_srcs_for_nogo.path)
         inputs.extend(cgo_inputs.to_list())  # OPT: don't expand depset
         inputs.extend(go.cc_toolchain_files)
         env["CC"] = go.cgo_tools.c_compiler_path
@@ -185,8 +187,6 @@ def emit_compilepkg(
             args.add("-objcxxflags", quote_opts(objcxxopts))
         if clinkopts:
             args.add("-ldflags", quote_opts(clinkopts))
-    else:
-        cgo_go_srcs = None
 
     if go.mode.pgoprofile:
         args.add("-pgoprofile", go.mode.pgoprofile)
@@ -212,7 +212,7 @@ def emit_compilepkg(
             archives = archives + ([cover_archive] if cover_archive else []),
             recompile_internal_deps = recompile_internal_deps,
             cover_mode = cover_mode,
-            cgo_go_srcs = cgo_go_srcs,
+            cgo_go_srcs = cgo_go_srcs_for_nogo,
             out_facts = out_facts,
             out_log = out_nogo_log,
             out_validation = out_nogo_validation,

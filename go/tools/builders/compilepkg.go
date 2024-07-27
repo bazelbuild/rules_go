@@ -66,7 +66,7 @@ func compilePkg(args []string) error {
 	fs.StringVar(&outLinkobjPath, "lo", "", "The full output archive file required by the linker")
 	fs.StringVar(&outInterfacePath, "o", "", "The export-only output archive required to compile dependent packages")
 	fs.StringVar(&cgoExportHPath, "cgoexport", "", "The _cgo_exports.h file to write")
-	fs.StringVar(&cgoGoSrcsPath, "cgo_go_srcs", "", "The directory to emit cgo-generated Go sources to")
+	fs.StringVar(&cgoGoSrcsPath, "cgo_go_srcs", "", "The directory to emit cgo-generated Go sources for nogo consumption to")
 	fs.StringVar(&testFilter, "testfilter", "off", "Controls test package filtering")
 	fs.StringVar(&coverFormat, "cover_format", "", "Emit source file paths in coverage instrumentation suitable for the specified coverage format")
 	fs.Var(&recompileInternalDeps, "recompile_internal_deps", "The import path of the direct dependencies that needs to be recompiled.")
@@ -180,7 +180,7 @@ func compileArchive(
 	outLinkObj string,
 	outInterfacePath string,
 	cgoExportHPath string,
-	cgoGoSrcsPath string,
+	cgoGoSrcsForNogoPath string,
 	coverFormat string,
 	recompileInternalDeps []string,
 	pgoprofile string,
@@ -257,6 +257,12 @@ func compileArchive(
 	// constraints.
 	compilingWithCgo := haveCgo && cgoEnabled
 
+	// When coverage is set, source files will be modified during instrumentation. We should only run static analysis
+	// over original source files and not the modified ones.
+	// goSrcsNogo and cgoSrcsNogo are copies of the original source files for nogo to run static analysis.
+	goSrcsNogo := append([]string{}, goSrcs...)
+	cgoSrcsNogo := append([]string{}, cgoSrcs...)
+
 	// Instrument source files for coverage.
 	if coverMode != "" {
 		relCoverPath := make(map[string]string)
@@ -312,12 +318,25 @@ func compileArchive(
 	// C files.
 	var objFiles []string
 	if compilingWithCgo {
-		// If the package uses Cgo, compile .s and .S files with cgo2, not the Go assembler.
-		// Otherwise: the .s/.S files will be compiled with the Go assembler later
 		var srcDir string
-		srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, cgoGoSrcsPath)
-		if err != nil {
-			return err
+		// Also run cgo on original source files, not coverage instrumented, if
+		// using nogo.
+		if coverMode != "" && cgoGoSrcsForNogoPath != "" {
+			srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, "")
+			if err != nil {
+				return err
+			}
+			_, _, _, err = cgo2(goenv, goSrcsNogo, cgoSrcsNogo, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, cgoGoSrcsForNogoPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// If the package uses Cgo, compile .s and .S files with cgo2, not the Go assembler.
+			// Otherwise: the .s/.S files will be compiled with the Go assembler later
+			srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, cgoGoSrcsForNogoPath)
+			if err != nil {
+				return err
+			}
 		}
 		gcFlags = append(gcFlags, createTrimPath(gcFlags, srcDir))
 	} else {
