@@ -241,8 +241,7 @@ func cgo2(goenv *env, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSr
 	}
 	genGoSrcs = append(genGoSrcs, cgoImportsGo)
 	for _, src := range genGoSrcs {
-		err = copyFile(src, filepath.Join(cgoGoSrcsPath, filepath.Base(src)))
-		if err != nil {
+		if err := copyFile(src, filepath.Join(cgoGoSrcsPath, filepath.Base(src))); err != nil {
 			return "", nil, nil, err
 		}
 	}

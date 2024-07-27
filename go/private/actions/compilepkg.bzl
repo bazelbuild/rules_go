@@ -111,9 +111,11 @@ def emit_compilepkg(
         expand_directories = False,
     )
     cover_mode = None
+    cover_archive = None
     if cover and go.coverdata:
-        inputs.append(go.coverdata.data.export_file)
-        args.add("-arc", _archive(go.coverdata))
+        cover_archive = go.coverdata
+        inputs.append(cover_archive.data.export_file)
+        args.add("-arc", _archive(cover_archive))
         if go.mode.race:
             cover_mode = "atomic"
         else:
@@ -207,7 +209,7 @@ def emit_compilepkg(
             sources = sources,
             importpath = importpath,
             importmap = importmap,
-            archives = archives,
+            archives = archives + ([cover_archive] if cover_archive else []),
             recompile_internal_deps = recompile_internal_deps,
             cover_mode = cover_mode,
             cgo_go_srcs = cgo_go_srcs,
