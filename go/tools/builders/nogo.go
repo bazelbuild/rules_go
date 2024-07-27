@@ -137,8 +137,11 @@ func runNogo(workDir string, nogoPath string, srcs []string, facts []archive, pa
 		return fmt.Errorf("error creating nogo log file: %v", err)
 	}
 	defer outLog.Close()
-	if err := cmd.Run(); err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
+	err := cmd.Run()
+	if err == nil {
+		return nil
+	}
+	if exitErr, ok := err.(*exec.ExitError); ok {
 			if !exitErr.Exited() {
 				cmdLine := strings.Join(args, " ")
 				return fmt.Errorf("nogo command '%s' exited unexpectedly: %s", cmdLine, exitErr.String())
