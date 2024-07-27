@@ -165,6 +165,7 @@ def _go_test_impl(ctx):
         version_file = ctx.version_file,
         info_file = ctx.info_file,
     )
+    validation_output = test_archive.data._validation_output
 
     env = {}
     for k, v in ctx.attr.env.items():
@@ -186,6 +187,7 @@ def _go_test_impl(ctx):
         ),
         OutputGroupInfo(
             compilation_outputs = [internal_archive.data.file],
+            _validation = [validation_output] if validation_output else [],
         ),
         coverage_common.instrumented_files_info(
             ctx,

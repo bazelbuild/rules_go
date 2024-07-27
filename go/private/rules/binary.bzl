@@ -119,6 +119,7 @@ def _go_binary_impl(ctx):
         info_file = ctx.info_file,
         executable = executable,
     )
+    validation_output = archive.data._validation_output
 
     providers = [
         library,
@@ -127,6 +128,7 @@ def _go_binary_impl(ctx):
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
             compilation_outputs = [archive.data.file],
+            _validation = [validation_output] if validation_output else [],
         ),
     ]
 
