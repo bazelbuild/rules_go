@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -23,6 +24,7 @@ func nogo(args []string) error {
 	var deps, facts archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath string
 	var outFactsPath, outLogPath string
+	var coverMode string
 	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	fs.Var(&facts, "facts", "Import path, package path, and file name of a direct dependency's nogo facts file, separated by '='")
@@ -30,6 +32,7 @@ func nogo(args []string) error {
 	fs.StringVar(&packagePath, "p", "", "The package path (importmap) of the package being compiled")
 	fs.StringVar(&packageListPath, "package_list", "", "The file containing the list of standard library packages")
 	fs.Var(&recompileInternalDeps, "recompile_internal_deps", "The import path of the direct dependencies that needs to be recompiled.")
+	fs.StringVar(&coverMode, "cover_mode", "", "The coverage mode to use. Empty if coverage instrumentation should not be added.")
 	fs.StringVar(&nogoPath, "nogo", "", "The nogo binary")
 	fs.StringVar(&outFactsPath, "out_facts", "", "The file to emit serialized nogo facts to")
 	fs.StringVar(&outLogPath, "out_log", "", "The file to emit nogo logs into")
@@ -75,6 +78,23 @@ func nogo(args []string) error {
 		imports["runtime/cgo"] = nil
 		imports["syscall"] = nil
 		imports["unsafe"] = nil
+	}
+	if coverMode != "" {
+		if coverMode == "atomic" {
+			imports["sync/atomic"] = nil
+		}
+		const coverdataPath = "github.com/bazelbuild/rules_go/go/tools/coverdata"
+		var coverdata *archive
+		for i := range deps {
+			if deps[i].importPath == coverdataPath {
+				coverdata = &deps[i]
+				break
+			}
+		}
+		if coverdata == nil {
+			return errors.New("coverage requested but coverdata dependency not provided")
+		}
+		imports[coverdataPath] = coverdata
 	}
 
 	importcfgPath, err := buildImportcfgFileForCompile(imports, goenv.installSuffix, filepath.Dir(outFactsPath))

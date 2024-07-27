@@ -110,13 +110,15 @@ def emit_compilepkg(
         uniquify = True,
         expand_directories = False,
     )
+    cover_mode = None
     if cover and go.coverdata:
         inputs.append(go.coverdata.data.export_file)
         args.add("-arc", _archive(go.coverdata))
         if go.mode.race:
-            args.add("-cover_mode", "atomic")
+            cover_mode = "atomic"
         else:
-            args.add("-cover_mode", "set")
+            cover_mode = "set"
+        args.add("-cover_mode", cover_mode)
         args.add("-cover_format", go.cover_format)
         args.add_all(cover, before_each = "-cover")
     args.add_all(archives, before_each = "-arc", map_each = _archive)
@@ -207,6 +209,7 @@ def emit_compilepkg(
             importmap = importmap,
             archives = archives,
             recompile_internal_deps = recompile_internal_deps,
+            cover_mode = cover_mode,
             cgo_go_srcs = cgo_go_srcs,
             out_facts = out_facts,
             out_log = out_nogo_log,
@@ -222,6 +225,7 @@ def _run_nogo(
         importmap,
         archives,
         recompile_internal_deps,
+        cover_mode,
         cgo_go_srcs,
         out_facts,
         out_log,
@@ -237,7 +241,10 @@ def _run_nogo(
     args = go.builder_args(go, "nogo", use_path_mapping = True)
     args.add_all(sources, before_each = "-src")
     if cgo_go_srcs:
+        inputs.append(cgo_go_srcs)
         args.add_all([cgo_go_srcs], before_each = "-src")
+    if cover_mode:
+        args.add("-cover_mode", cover_mode)
     if recompile_internal_deps:
         args.add_all(recompile_internal_deps, before_each = "-recompile_internal_deps")
     args.add_all(archives, before_each = "-arc", map_each = _archive)

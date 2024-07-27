@@ -38,7 +38,7 @@ func compilePkg(args []string) error {
 	fs := flag.NewFlagSet("GoCompilePkg", flag.ExitOnError)
 	goenv := envFlags(fs)
 	var unfilteredSrcs, coverSrcs, embedSrcs, embedLookupDirs, embedRoots, recompileInternalDeps multiFlag
-	var deps, facts archiveMultiFlag
+	var deps archiveMultiFlag
 	var importPath, packagePath, packageListPath, coverMode string
 	var outLinkobjPath, outInterfacePath, cgoExportHPath, cgoGoSrcsPath string
 	var testFilter string
@@ -51,7 +51,6 @@ func compilePkg(args []string) error {
 	fs.Var(&embedLookupDirs, "embedlookupdir", "Root-relative paths to directories relative to which //go:embed directives are resolved")
 	fs.Var(&embedRoots, "embedroot", "Bazel output root under which a file passed via -embedsrc resides")
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
-	fs.Var(&facts, "facts", "Import path, package path, and file name of a direct dependency's nogo facts file, separated by '='")
 	fs.StringVar(&importPath, "importpath", "", "The import path of the package being compiled. Not passed to the compiler, but may be displayed in debug data.")
 	fs.StringVar(&packagePath, "p", "", "The package path (importmap) of the package being compiled")
 	fs.Var(&gcFlags, "gcflags", "Go compiler flags")
@@ -131,7 +130,6 @@ func compilePkg(args []string) error {
 		packagePath,
 		srcs,
 		deps,
-		facts,
 		coverMode,
 		coverSrcs,
 		embedSrcs,
@@ -163,7 +161,6 @@ func compileArchive(
 	packagePath string,
 	srcs archiveSrcs,
 	deps []archive,
-	facts []archive,
 	coverMode string,
 	coverSrcs []string,
 	embedSrcs []string,
