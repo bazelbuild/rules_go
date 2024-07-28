@@ -15,7 +15,7 @@
 package main
 
 const (
-	nogoSucceeded int = iota
+	nogoSuccess int = iota
 	nogoError
-	nogoHadFindings
+	nogoViolation
 )

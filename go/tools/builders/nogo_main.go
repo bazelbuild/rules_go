@@ -96,10 +96,10 @@ func run(args []string) (error, int) {
 		}
 	}
 	if diagnostics != "" {
-		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), nogoHadFindings
+		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), nogoViolation
 	}
 
-	return nil, nogoSucceeded
+	return nil, nogoSuccess
 }
 
 // Adapted from go/src/cmd/compile/internal/gc/main.go. Keep in sync.
