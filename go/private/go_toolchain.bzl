@@ -171,6 +171,14 @@ def declare_bazel_toolchains(
     )
 
     native.config_setting(
+        name = prefix + "match_minor_release_candidate",
+        flag_values = {
+            sdk_version_label: major + "." + minor + prerelease,
+        },
+        visibility = ["//visibility:private"],
+    )
+
+    native.config_setting(
         name = prefix + "match_sdk_type",
         flag_values = {
             sdk_version_label: sdk_type,
@@ -186,6 +194,7 @@ def declare_bazel_toolchains(
             ":" + prefix + "match_major_minor_version",
             ":" + prefix + "match_patch_version",
             ":" + prefix + "match_prerelease_version",
+            ":" + prefix + "match_minor_release_candidate",
             ":" + prefix + "match_sdk_type",
         ],
         visibility = ["//visibility:private"],

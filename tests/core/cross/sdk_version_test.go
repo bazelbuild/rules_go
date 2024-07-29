@@ -53,6 +53,11 @@ var testCases = []testcase{
 		SDKVersion:      "1.17.1",
 		expectedVersion: "go1.17.1",
 	},
+	{
+		Name:             "1_17_release_candidate",
+		SDKVersion:       "1.17rc1",
+		expectedVersion:  "go1.17rc1",
+	},
 }
 
 func TestMain(m *testing.M) {
@@ -79,6 +84,11 @@ go_download_sdk(
     name = "go_sdk_1_17_1",
     version = "1.17.1",
 )
+go_download_sdk(
+    name = "go_sdk_1_17_rc1",
+    version = "1.17rc1",
+)
+
 go_register_toolchains()
 -- main.go --
 package main
