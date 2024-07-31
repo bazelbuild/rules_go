@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// This file contains constants used by nogo binaries.
+// Note that this file is shared between the nogo binary and the builder.
+// Sharing it as a library isn't possible as libraries depend on nogo, creating
+// a circular dependency.
 package main
 
+// The exit codes for nogo binaries.
 const (
 	nogoSuccess int = iota
 	nogoError

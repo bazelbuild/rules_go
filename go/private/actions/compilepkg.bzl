@@ -263,6 +263,12 @@ def _run_nogo(
     args.add("-out_log", out_log)
     args.add("-nogo", nogo)
 
+    # This action runs nogo and produces the facts files for downstream nogo actions.
+    # It is important that this action doesn't fail if nogo produces findings, which allows users
+    # to get the nogo findings for all targets with --keep_going rather than stopping at the first
+    # target with findings.
+    # If nogo fails for any other reason, the action still fails, which allows users to debug their
+    # analyzers with --sandbox_debug.
     go.actions.run(
         inputs = inputs,
         outputs = outputs,
@@ -275,6 +281,9 @@ def _run_nogo(
         progress_message = "Running nogo on %{label}",
     )
 
+    # This is a separate action that produces the validation output registered with Bazel. It
+    # prints any nogo findings and, crucially, fails if there are any findings. This is necessary
+    # to actually fail the build on nogo findings, which RunNogo doesn't do.
     validation_args = go.actions.args()
     validation_args.add("nogovalidation")
     validation_args.add(out_validation)

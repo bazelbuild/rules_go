@@ -260,6 +260,7 @@ func compileArchive(
 	// When coverage is set, source files will be modified during instrumentation. We should only run static analysis
 	// over original source files and not the modified ones.
 	// goSrcsNogo and cgoSrcsNogo are copies of the original source files for nogo to run static analysis.
+	// TODO: Use slices.Clone when 1.21 is the minimal supported version.
 	goSrcsNogo := append([]string{}, goSrcs...)
 	cgoSrcsNogo := append([]string{}, cgoSrcs...)
 
@@ -319,13 +320,16 @@ func compileArchive(
 	var objFiles []string
 	if compilingWithCgo {
 		var srcDir string
-		// Also run cgo on original source files, not coverage instrumented, if
-		// using nogo.
 		if coverMode != "" && cgoGoSrcsForNogoPath != "" {
+			// If the package uses Cgo, compile .s and .S files with cgo2, not the Go assembler.
+			// Otherwise: the .s/.S files will be compiled with the Go assembler later
 			srcDir, goSrcs, objFiles, err = cgo2(goenv, goSrcs, cgoSrcs, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, "")
 			if err != nil {
 				return err
 			}
+			// Also run cgo on original source files, not coverage instrumented, if using nogo.
+			// The compilation outputs are only used to run cgo, but the generated sources are
+			// passed to the separate nogo action via cgoGoSrcsForNogoPath.
 			_, _, _, err = cgo2(goenv, goSrcsNogo, cgoSrcsNogo, cSrcs, cxxSrcs, objcSrcs, objcxxSrcs, sSrcs, hSrcs, packagePath, packageName, cc, cppFlags, cFlags, cxxFlags, objcFlags, objcxxFlags, ldFlags, cgoExportHPath, cgoGoSrcsForNogoPath)
 			if err != nil {
 				return err
