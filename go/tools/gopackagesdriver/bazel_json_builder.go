@@ -46,6 +46,8 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		filename = filepath.Join(b.bazel.BuildWorkingDirectory(), filename)
 	}
 	label, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
+	// Note: Using ToSlash for handling windows backslashes
+	label = filepath.ToSlash(label)
 
 	if matches := externalRe.FindStringSubmatch(filename); len(matches) == 5 {
 		// if filepath is for a third party lib, we need to know, what external
@@ -100,7 +102,8 @@ func (b *BazelJSONBuilder) localQuery(request string) string {
 		absRequest = filepath.Join(b.bazel.BuildWorkingDirectory(), request)
 	}
 	if relPath, err := filepath.Rel(workspaceRoot, absRequest); err == nil {
-		request = relPath
+		// Note: Using ToSlash for handling windows backslashes
+		request = filepath.ToSlash(relPath)
 	}
 
 	if !strings.HasSuffix(request, "...") {
