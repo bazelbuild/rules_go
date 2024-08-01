@@ -35,11 +35,12 @@ const (
 )
 
 type Bazel struct {
-	bazelBin          string
-	workspaceRoot     string
-	bazelStartupFlags []string
-	info              map[string]string
-	version           bazelVersion
+	bazelBin              string
+	workspaceRoot         string
+	buildWorkingDirectory string
+	bazelStartupFlags     []string
+	info                  map[string]string
+	version               bazelVersion
 }
 
 // Minimal BEP structs to access the build outputs
@@ -52,11 +53,12 @@ type BEPNamedSet struct {
 	} `json:"namedSetOfFiles"`
 }
 
-func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, bazelStartupFlags []string) (*Bazel, error) {
+func NewBazel(ctx context.Context, bazelBin, workspaceRoot string, buildWorkingDirectory string, bazelStartupFlags []string) (*Bazel, error) {
 	b := &Bazel{
-		bazelBin:          bazelBin,
-		workspaceRoot:     workspaceRoot,
-		bazelStartupFlags: bazelStartupFlags,
+		bazelBin:              bazelBin,
+		workspaceRoot:         workspaceRoot,
+		buildWorkingDirectory: buildWorkingDirectory,
+		bazelStartupFlags:     bazelStartupFlags,
 	}
 	if err := b.fillInfo(ctx); err != nil {
 		return nil, fmt.Errorf("unable to query bazel info: %w", err)
@@ -161,6 +163,10 @@ func (b *Bazel) Query(ctx context.Context, args ...string) ([]string, error) {
 
 func (b *Bazel) WorkspaceRoot() string {
 	return b.workspaceRoot
+}
+
+func (b *Bazel) BuildWorkingDirectory() string {
+	return b.buildWorkingDirectory
 }
 
 func (b *Bazel) ExecutionRoot() string {

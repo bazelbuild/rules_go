@@ -40,13 +40,12 @@ var _defaultKinds = []string{"go_library", "go_test", "go_binary"}
 var externalRe = regexp.MustCompile(".*\\/external\\/([^\\/]+)(\\/(.*))?\\/([^\\/]+.go)")
 
 func (b *BazelJSONBuilder) fileQuery(filename string) string {
-	label := filename
-
-	if filepath.IsAbs(filename) {
-		label, _ = filepath.Rel(b.bazel.WorkspaceRoot(), filename)
-	} else if strings.HasPrefix(filename, "./") {
-		label = strings.TrimPrefix(filename, "./")
+	// If filename is a relative path and gopackagesdriver is ran within a subdirectory of the
+	// workspace, we must first resolve the absolute path for it.
+	if !filepath.IsAbs(filename) {
+		filename = filepath.Join(b.bazel.BuildWorkingDirectory(), filename)
 	}
+	label, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
 
 	if matches := externalRe.FindStringSubmatch(filename); len(matches) == 5 {
 		// if filepath is for a third party lib, we need to know, what external
@@ -94,10 +93,14 @@ func (b *BazelJSONBuilder) getKind() string {
 
 func (b *BazelJSONBuilder) localQuery(request string) string {
 	request = path.Clean(request)
-	if filepath.IsAbs(request) {
-		if relPath, err := filepath.Rel(workspaceRoot, request); err == nil {
-			request = relPath
-		}
+	// If request is a relative path and gopackagesdriver is ran within a subdirectory of the
+	// workspace, we must first resolve the absolute path for it.
+	absRequest := request
+	if !filepath.IsAbs(request) {
+		absRequest = filepath.Join(b.bazel.BuildWorkingDirectory(), request)
+	}
+	if relPath, err := filepath.Rel(workspaceRoot, absRequest); err == nil {
+		request = relPath
 	}
 
 	if !strings.HasSuffix(request, "...") {
@@ -128,10 +131,10 @@ func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
 			result = b.fileQuery(f)
 		} else if bazelQueryScope != "" {
 			result = b.packageQuery(request)
-		} else if isLocalPattern(request) {
-			result = b.localQuery(request)
 		} else if request == "builtin" || request == "std" {
 			result = fmt.Sprintf(RulesGoStdlibLabel)
+		} else if isLocalPattern(request) {
+			result = b.localQuery(request)
 		}
 
 		if result != "" {
