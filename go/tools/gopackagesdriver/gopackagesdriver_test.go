@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -61,6 +62,25 @@ package hello_test
 import "testing"
 
 func TestHelloExternal(t *testing.T) {}
+
+-- subhello/BUILD.bazel --
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "subhello",
+    srcs = ["subhello.go"],
+    importpath = "example.com/hello/subhello",
+    visibility = ["//visibility:public"],
+)
+
+-- subhello/subhello.go --
+package subhello
+
+import "os"
+
+func main() {
+	fmt.Fprintln(os.Stderr, "Subdirectory Hello World!")
+}
 		`,
 	})
 }
@@ -71,7 +91,7 @@ const (
 )
 
 func TestBaseFileLookup(t *testing.T) {
-	resp := runForTest(t, "file=hello.go")
+	resp := runForTest(t, ".", "file=hello.go")
 
 	t.Run("roots", func(t *testing.T) {
 		if len(resp.Roots) != 1 {
@@ -140,8 +160,80 @@ func TestBaseFileLookup(t *testing.T) {
 	})
 }
 
+func TestRelativeFileLookup(t *testing.T) {
+	resp := runForTest(t, "subhello", "file=./subhello.go")
+
+	t.Run("roots", func(t *testing.T) {
+		if len(resp.Roots) != 1 {
+			t.Errorf("Expected 1 package root: %+v", resp.Roots)
+			return
+		}
+
+		if !strings.HasSuffix(resp.Roots[0], "//subhello:subhello") {
+			t.Errorf("Unexpected package id: %q", resp.Roots[0])
+			return
+		}
+	})
+
+	t.Run("package", func(t *testing.T) {
+		var pkg *FlatPackage
+		for _, p := range resp.Packages {
+			if p.ID == resp.Roots[0] {
+				pkg = p
+			}
+		}
+
+		if pkg == nil {
+			t.Errorf("Expected to find %q in resp.Packages", resp.Roots[0])
+			return
+		}
+
+		if len(pkg.CompiledGoFiles) != 1 || len(pkg.GoFiles) != 1 ||
+			path.Base(pkg.GoFiles[0]) != "subhello.go" || path.Base(pkg.CompiledGoFiles[0]) != "subhello.go" {
+			t.Errorf("Expected to find 1 file (subhello.go) in (Compiled)GoFiles:\n%+v", pkg)
+			return
+		}
+	})
+}
+
+func TestRelativePatternWildcardLookup(t *testing.T) {
+	resp := runForTest(t, "subhello", "./...")
+
+	t.Run("roots", func(t *testing.T) {
+		if len(resp.Roots) != 1 {
+			t.Errorf("Expected 1 package root: %+v", resp.Roots)
+			return
+		}
+
+		if !strings.HasSuffix(resp.Roots[0], "//subhello:subhello") {
+			t.Errorf("Unexpected package id: %q", resp.Roots[0])
+			return
+		}
+	})
+
+	t.Run("package", func(t *testing.T) {
+		var pkg *FlatPackage
+		for _, p := range resp.Packages {
+			if p.ID == resp.Roots[0] {
+				pkg = p
+			}
+		}
+
+		if pkg == nil {
+			t.Errorf("Expected to find %q in resp.Packages", resp.Roots[0])
+			return
+		}
+
+		if len(pkg.CompiledGoFiles) != 1 || len(pkg.GoFiles) != 1 ||
+			path.Base(pkg.GoFiles[0]) != "subhello.go" || path.Base(pkg.CompiledGoFiles[0]) != "subhello.go" {
+			t.Errorf("Expected to find 1 file (subhello.go) in (Compiled)GoFiles:\n%+v", pkg)
+			return
+		}
+	})
+}
+
 func TestExternalTests(t *testing.T) {
-	resp := runForTest(t, "file=hello_external_test.go")
+	resp := runForTest(t, ".", "file=hello_external_test.go")
 	if len(resp.Roots) != 2 {
 		t.Errorf("Expected exactly two roots for package: %+v", resp.Roots)
 	}
@@ -167,7 +259,7 @@ func TestExternalTests(t *testing.T) {
 	}
 }
 
-func runForTest(t *testing.T, args ...string) driverResponse {
+func runForTest(t *testing.T, relativeWorkingDir string, args ...string) driverResponse {
 	t.Helper()
 
 	// Remove most environment variables, other than those on an allowlist.
@@ -210,7 +302,7 @@ func runForTest(t *testing.T, args ...string) driverResponse {
 		}
 	}()
 
-	// Set workspaceRoot global variable.
+	// Set workspaceRoot and buildWorkingDirectory global variable.
 	// It's initialized to the BUILD_WORKSPACE_DIRECTORY environment variable
 	// before this point.
 	wd, err := os.Getwd()
@@ -218,8 +310,13 @@ func runForTest(t *testing.T, args ...string) driverResponse {
 		t.Fatal(err)
 	}
 	oldWorkspaceRoot := workspaceRoot
+	oldBuildWorkingDirectory := buildWorkingDirectory
 	workspaceRoot = wd
-	defer func() { workspaceRoot = oldWorkspaceRoot }()
+	buildWorkingDirectory = filepath.Join(wd, relativeWorkingDir)
+	defer func() {
+		workspaceRoot = oldWorkspaceRoot
+		buildWorkingDirectory = oldBuildWorkingDirectory
+	}()
 
 	in := strings.NewReader("{}")
 	out := &bytes.Buffer{}
