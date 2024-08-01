@@ -46,8 +46,6 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		filename = filepath.Join(b.bazel.BuildWorkingDirectory(), filename)
 	}
 	label, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
-	// Note: Using ToSlash for handling windows backslashes
-	label = filepath.ToSlash(label)
 
 	if matches := externalRe.FindStringSubmatch(filename); len(matches) == 5 {
 		// if filepath is for a third party lib, we need to know, what external
@@ -57,7 +55,7 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 	}
 
 	relToBin, err := filepath.Rel(b.bazel.info["output_path"], filename)
-	if err == nil && !strings.HasPrefix(relToBin, "../") {
+	if err == nil && !strings.HasPrefix(relToBin, filepath.FromSlash("../")) {
 		parts := strings.SplitN(relToBin, string(filepath.Separator), 3)
 		relToBin = parts[2]
 		// We've effectively converted filename from bazel-bin/some/path.go to some/path.go;
@@ -80,6 +78,8 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		}
 	}
 
+	// Note: Using ToSlash for handling windows backslashes
+	label = filepath.ToSlash(label)
 	kinds := append(_defaultKinds, additionalKinds...)
 	return fmt.Sprintf(`kind("^(%s) rule$", same_pkg_direct_rdeps("%s"))`, strings.Join(kinds, "|"), label)
 }
@@ -97,12 +97,12 @@ func (b *BazelJSONBuilder) localQuery(request string) string {
 	request = path.Clean(request)
 	// If request is a relative path and gopackagesdriver is ran within a subdirectory of the
 	// workspace, we must first resolve the absolute path for it.
-	absRequest := request
-	if !filepath.IsAbs(request) {
-		absRequest = filepath.Join(b.bazel.BuildWorkingDirectory(), request)
+	// Note: Using FromSlash/ToSlash for handling windows
+	absRequest := filepath.FromSlash(request)
+	if !filepath.IsAbs(absRequest) {
+		absRequest = filepath.Join(b.bazel.BuildWorkingDirectory(), absRequest)
 	}
 	if relPath, err := filepath.Rel(workspaceRoot, absRequest); err == nil {
-		// Note: Using ToSlash for handling windows backslashes
 		request = filepath.ToSlash(relPath)
 	}
 
