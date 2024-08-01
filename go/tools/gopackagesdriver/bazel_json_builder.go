@@ -39,13 +39,9 @@ var _defaultKinds = []string{"go_library", "go_test", "go_binary"}
 
 var externalRe = regexp.MustCompile(".*\\/external\\/([^\\/]+)(\\/(.*))?\\/([^\\/]+.go)")
 
-func (b *BazelJSONBuilder) fileQuery(filename string) string {
-	// If filename is a relative path and gopackagesdriver is ran within a subdirectory of the
-	// workspace, we must first resolve the absolute path for it.
-	if !filepath.IsAbs(filename) {
-		filename = filepath.Join(b.bazel.BuildWorkingDirectory(), filename)
-	}
-	label, _ := filepath.Rel(b.bazel.WorkspaceRoot(), filename)
+func (b *BazelJSONBuilder) fileQuery(label string) string {
+	label = b.adjustToRelativePathIfPossible(label)
+	filename := filepath.FromSlash(label)
 
 	if matches := externalRe.FindStringSubmatch(filename); len(matches) == 5 {
 		// if filepath is for a third party lib, we need to know, what external
@@ -78,8 +74,6 @@ func (b *BazelJSONBuilder) fileQuery(filename string) string {
 		}
 	}
 
-	// Note: Using ToSlash for handling windows backslashes
-	label = filepath.ToSlash(label)
 	kinds := append(_defaultKinds, additionalKinds...)
 	return fmt.Sprintf(`kind("^(%s) rule$", same_pkg_direct_rdeps("%s"))`, strings.Join(kinds, "|"), label)
 }
@@ -94,7 +88,16 @@ func (b *BazelJSONBuilder) getKind() string {
 }
 
 func (b *BazelJSONBuilder) localQuery(request string) string {
-	request = path.Clean(request)
+	request = path.Clean(b.adjustToRelativePathIfPossible(request))
+
+	if !strings.HasSuffix(request, "...") {
+		request = fmt.Sprintf("%s:*", request)
+	}
+
+	return fmt.Sprintf(`kind("^(%s) rule$", %s)`, b.getKind(), request)
+}
+
+func (b *BazelJSONBuilder) adjustToRelativePathIfPossible(request string) string {
 	// If request is a relative path and gopackagesdriver is ran within a subdirectory of the
 	// workspace, we must first resolve the absolute path for it.
 	// Note: Using FromSlash/ToSlash for handling windows
@@ -105,12 +108,7 @@ func (b *BazelJSONBuilder) localQuery(request string) string {
 	if relPath, err := filepath.Rel(workspaceRoot, absRequest); err == nil {
 		request = filepath.ToSlash(relPath)
 	}
-
-	if !strings.HasSuffix(request, "...") {
-		request = fmt.Sprintf("%s:*", request)
-	}
-
-	return fmt.Sprintf(`kind("^(%s) rule$", %s)`, b.getKind(), request)
+	return request
 }
 
 func (b *BazelJSONBuilder) packageQuery(importPath string) string {
@@ -134,10 +132,10 @@ func (b *BazelJSONBuilder) queryFromRequests(requests ...string) string {
 			result = b.fileQuery(f)
 		} else if bazelQueryScope != "" {
 			result = b.packageQuery(request)
-		} else if request == "builtin" || request == "std" {
-			result = fmt.Sprintf(RulesGoStdlibLabel)
 		} else if isLocalPattern(request) {
 			result = b.localQuery(request)
+		} else if request == "builtin" || request == "std" {
+			result = fmt.Sprintf(RulesGoStdlibLabel)
 		}
 
 		if result != "" {
