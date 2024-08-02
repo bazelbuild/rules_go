@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"os"
 )
 
@@ -21,7 +21,9 @@ func nogoValidation(args []string) error {
 	if len(logContent) > 0 {
 		// Separate nogo output from Bazel's --sandbox_debug message via an
 		// empty line.
-		return errors.New("\n" + string(logContent))
+		// Don't return to avoid printing the "nogovalidation:" prefix.
+		fmt.Printf("\n%s\n", logContent)
+		os.Exit(1)
 	}
 	return nil
 }
