@@ -39,7 +39,4 @@ func RegisterTimeoutHandler() {
 	// (2): https://github.com/bazelbuild/rules_go/pull/3929
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGTERM)
-	go func() {
-		<-c
-	}()
 }
