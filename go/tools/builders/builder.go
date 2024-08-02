@@ -41,8 +41,8 @@ func main() {
 	switch verb {
 	case "compilepkg":
 		action = compilePkg
-	case "filterbuildid":
-		action = filterBuildID
+	case "make_hermetic":
+		action = makeHermetic
 	case "gentestmain":
 		action = genTestMain
 	case "link":
