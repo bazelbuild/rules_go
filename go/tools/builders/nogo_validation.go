@@ -22,7 +22,7 @@ func nogoValidation(args []string) error {
 		// Separate nogo output from Bazel's --sandbox_debug message via an
 		// empty line.
 		// Don't return to avoid printing the "nogovalidation:" prefix.
-		fmt.Printf("\n%s\n", logContent)
+		_, _ = fmt.Fprintf(os.Stderr, "\n%s\n", logContent)
 		os.Exit(1)
 	}
 	return nil
