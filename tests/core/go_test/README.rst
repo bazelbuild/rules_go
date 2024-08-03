@@ -124,3 +124,24 @@ fuzz_test
 ---------
 
 Checks that a ``go_test`` with a fuzz target builds correctly.
+
+stackpath_default_test
+---------
+
+Check that packages have default stacktrace paths.
+
+stackpath_foo_qux_test
+---------
+
+Check that packages have stacktrace path assigned by ``stackpath`` directly in ``go_test``/``go_library`` rule.
+
+stackpath_embed_foo_baz_test
+---------
+
+Check that packages have stacktrace path assigned by ``stackpath`` in embedded ``go_library`` rule.
+
+stackpath_embed_foo_quux_test
+---------
+
+Check that if ``stackpath`` is defined directly in ``go_test``/``go_library`` and in embedded ``go_library`` rule, then
+the directly defined ``stackpath`` wins.

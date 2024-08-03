@@ -278,3 +278,97 @@ go_bazel_test(
     name = "timeout_test",
     srcs = ["timeout_test.go"],
 )
+
+go_library(
+    name = "stackpath_default_lib",
+    srcs = ["stackpath_default_lib.go"],
+    importpath = "stackpath_default_lib",
+)
+
+go_library(
+    name = "stackpath_foo_lib",
+    srcs = ["stackpath_lib.go"],
+    importpath = "stackpath_lib",
+    stackpath = "foo",
+)
+
+go_library(
+    name = "stackpath_embed_foo_lib",
+    embed = [":stackpath_foo_lib"],
+)
+
+go_library(
+    name = "stackpath_embed_bar_lib",
+    embed = [":stackpath_foo_lib"],
+    stackpath = "bar",
+)
+
+go_library(
+    name = "stackpath_foo_baz_test_lib",
+    srcs = [
+        "a/stackpath_subdir_test.go",
+        "stackpath_test.go",
+    ],
+    importpath = "stackpath_test",
+    stackpath = "baz",
+    deps = [
+        ":stackpath_default_lib",
+        ":stackpath_foo_lib",
+    ],
+)
+
+go_test(
+    name = "stackpath_default_test",
+    srcs = [
+        "a/stackpath_subdir_test.go",
+        "stackpath_test.go",
+    ],
+    x_defs = {
+        "expectedLibFile": "foo/stackpath_lib.go",
+        "expectedTestFile": "tests/core/go_test/stackpath_test.go",
+        "expectedSubdirTestFile": "tests/core/go_test/a/stackpath_subdir_test.go",
+    },
+    deps = [
+        ":stackpath_default_lib",
+        ":stackpath_foo_lib",
+    ],
+)
+
+go_test(
+    name = "stackpath_foo_qux_test",
+    srcs = [
+        "a/stackpath_subdir_test.go",
+        "stackpath_test.go",
+    ],
+    stackpath = "qux",
+    x_defs = {
+        "expectedLibFile": "foo/stackpath_lib.go",
+        "expectedTestFile": "qux/stackpath_test.go",
+        "expectedSubdirTestFile": "qux/stackpath_subdir_test.go",
+    },
+    deps = [
+        ":stackpath_default_lib",
+        ":stackpath_foo_lib",
+    ],
+)
+
+go_test(
+    name = "stackpath_embed_foo_baz_test",
+    embed = [":stackpath_foo_baz_test_lib"],
+    x_defs = {
+        "expectedLibFile": "foo/stackpath_lib.go",
+        "expectedTestFile": "baz/stackpath_test.go",
+        "expectedSubdirTestFile": "baz/stackpath_subdir_test.go",
+    },
+)
+
+go_test(
+    name = "stackpath_embed_foo_quux_test",
+    embed = [":stackpath_foo_baz_test_lib"],
+    stackpath = "quux",
+    x_defs = {
+        "expectedLibFile": "foo/stackpath_lib.go",
+        "expectedTestFile": "quux/stackpath_test.go",
+        "expectedSubdirTestFile": "quux/stackpath_subdir_test.go",
+    },
+)
