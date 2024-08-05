@@ -268,7 +268,8 @@ def _run_nogo(
     # to get the nogo findings for all targets with --keep_going rather than stopping at the first
     # target with findings.
     # If nogo fails for any other reason, the action still fails, which allows users to debug their
-    # analyzers with --sandbox_debug.
+    # analyzers with --sandbox_debug. Users can set debug = True on the nogo target to have it fail
+    # on findings to get the same debugging experience as with other failures.
     go.actions.run(
         inputs = inputs,
         outputs = outputs,

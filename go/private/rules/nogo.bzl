@@ -44,6 +44,8 @@ def _nogo_impl(ctx):
     nogo_args = ctx.actions.args()
     nogo_args.add("gennogomain")
     nogo_args.add("-output", nogo_main)
+    if ctx.attr.debug:
+        nogo_args.add("-debug")
     nogo_inputs = []
     analyzer_archives = [get_archive(dep) for dep in ctx.attr.deps]
     analyzer_importpaths = [archive.data.importpath for archive in analyzer_archives]
@@ -95,6 +97,9 @@ _nogo = rule(
         ),
         "config": attr.label(
             allow_single_file = True,
+        ),
+        "debug": attr.bool(
+            default = False,
         ),
         "_nogo_srcs": attr.label(
             default = "//go/tools/builders:nogo_srcs",

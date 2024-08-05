@@ -140,6 +140,10 @@ workspace.  If any of the analyzers reject the program, the build will fail. How
 from the first failing target. You can also specify ``--norun_validations`` to disable all
 validations, including ``nogo``.
 
+Note: Since the action that runs ``nogo`` doesn't fail if ``nogo`` produces findings, it
+is not possible to debug it with ``--sandbox_debug``. If necessary, set the ``debug``
+attribute of the ``nogo`` rule to ``True`` to have ``nogo`` fail in this case.
+
 ``nogo`` will run on all Go targets in your workspace, including tests and binary targets.
 When using WORKSPACE, it will also run on targets that are imported from other workspaces
 by default. You could exclude the external repositories from ``nogo`` by using the

@@ -96,7 +96,13 @@ func run(args []string) (error, int) {
 		}
 	}
 	if diagnostics != "" {
-		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), nogoViolation
+		// debugMode is defined by the template in generate_nogo_main.go.
+		exitCode := nogoViolation
+		if debugMode {
+			// Force actions running nogo to fail to help debug issues.
+			exitCode = nogoError
+		}
+		return fmt.Errorf("errors found by nogo during build-time code analysis:\n%s\n", diagnostics), exitCode
 	}
 
 	return nil, nogoSuccess
