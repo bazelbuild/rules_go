@@ -35,6 +35,8 @@ var (
 	cgoEnvVars = []string{"CGO_CFLAGS", "CGO_CXXFLAGS", "CGO_CPPFLAGS", "CGO_LDFLAGS"}
 	// cgoAbsEnvFlags are all the flags that need absolute path in cgoEnvVars
 	cgoAbsEnvFlags = []string{"-I", "-L", "-isysroot", "-isystem", "-iquote", "-include", "-gcc-toolchain", "--sysroot", "-resource-dir", "-fsanitize-blacklist", "-fsanitize-ignorelist"}
+	// cgoAbsPlaceholder is placed in front of flag values that must be absolutized
+	cgoAbsPlaceholder = "__GO_BAZEL_CC_PLACEHOLDER__"
 )
 
 // env holds a small amount of Go environment and toolchain information
@@ -160,10 +162,33 @@ func (e *env) runCommandToFile(out, err io.Writer, args []string) error {
 	return runAndLogCommand(cmd, e.verbose)
 }
 
-func absEnv(envNameList []string, argList []string) error {
+// absCCCompiler modifies CGO flags to workaround relative paths.
+// Because go is having its own sandbox, all CGO flags should use
+// absolute paths. However, CGO flags are embedded in the output
+// so we cannot use absolute paths directly. Instead, use a placeholder
+// for the absolute path and we replace CC with this builder so that
+// we can expand the placeholder later.
+func absCCCompiler(envNameList []string, argList []string) error {
+	err := os.Setenv("GO_CC", os.Getenv("CC"))
+	if err != nil {
+		return err
+	}
+	err = os.Setenv("GO_CC_ROOT", abs("."))
+	if err != nil {
+		return err
+	}
+	err = os.Setenv("CC", abs(os.Args[0])+" cc")
+	if err != nil {
+		return err
+	}
 	for _, envName := range envNameList {
 		splitedEnv := strings.Fields(os.Getenv(envName))
-		absArgs(splitedEnv, argList)
+		transformArgs(splitedEnv, argList, func(s string) string {
+			if filepath.IsAbs(s) {
+				return s
+			}
+			return cgoAbsPlaceholder + s
+		})
 		if err := os.Setenv(envName, strings.Join(splitedEnv, " ")); err != nil {
 			return err
 		}
@@ -320,10 +345,16 @@ func abs(path string) string {
 // absArgs applies abs to strings that appear in args. Only paths that are
 // part of options named by flags are modified.
 func absArgs(args []string, flags []string) {
+	transformArgs(args, flags, abs)
+}
+
+// transformArgs applies fn to strings that appear in args. Only paths that are
+// part of options named by flags are modified.
+func transformArgs(args []string, flags []string, fn func(string) string) {
 	absNext := false
 	for i := range args {
 		if absNext {
-			args[i] = abs(args[i])
+			args[i] = fn(args[i])
 			absNext = false
 			continue
 		}
@@ -341,7 +372,7 @@ func absArgs(args []string, flags []string) {
 				possibleValue = possibleValue[1:]
 				separator = "="
 			}
-			args[i] = fmt.Sprintf("%s%s%s", f, separator, abs(possibleValue))
+			args[i] = fmt.Sprintf("%s%s%s", f, separator, fn(possibleValue))
 			break
 		}
 	}

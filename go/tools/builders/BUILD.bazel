@@ -63,6 +63,7 @@ filegroup(
         "ar.go",
         "asm.go",
         "builder.go",
+        "cc.go",
         "cgo2.go",
         "compilepkg.go",
         "constants.go",

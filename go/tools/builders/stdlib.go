@@ -158,9 +158,7 @@ You may need to use the flags --cpu=x64_windows --compiler=mingw-gcc.`)
 	installArgs = append(installArgs, "-ldflags="+allSlug+strings.Join(ldflags, " "))
 	installArgs = append(installArgs, "-asmflags="+allSlug+strings.Join(asmflags, " "))
 
-	// Modify CGO flags to use only absolute path
-	// because go is having its own sandbox, all CGO flags must use absolute path
-	if err := absEnv(cgoEnvVars, cgoAbsEnvFlags); err != nil {
+	if err := absCCCompiler(cgoEnvVars, cgoAbsEnvFlags); err != nil {
 		return fmt.Errorf("error modifying cgo environment to absolute path: %v", err)
 	}
 

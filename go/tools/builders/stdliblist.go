@@ -257,9 +257,7 @@ func stdliblist(args []string) error {
 	}
 	os.Setenv("CC", quotePathIfNeeded(abs(ccEnv)))
 
-	// Modify CGO flags to use only absolute path
-	// because go is having its own sandbox, all CGO flags must use absolute path
-	if err := absEnv(cgoEnvVars, cgoAbsEnvFlags); err != nil {
+	if err := absCCCompiler(cgoEnvVars, cgoAbsEnvFlags); err != nil {
 		return fmt.Errorf("error modifying cgo environment to absolute path: %v", err)
 	}
 
