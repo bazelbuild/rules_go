@@ -141,9 +141,11 @@ from the first failing target. You can also specify ``--norun_validations`` to d
 validations, including ``nogo``.
 
 ``nogo`` will run on all Go targets in your workspace, including tests and binary targets.
-It will also run on targets that are imported from other workspaces by default. You could
-exclude the external repositories from ``nogo`` by using the `exclude_files` regex in
-`configuring-analyzers`_.
+When using WORKSPACE, it will also run on targets that are imported from other workspaces
+by default. You could exclude the external repositories from ``nogo`` by using the
+`exclude_files` regex in `configuring-analyzers`_. With Bzlmod, external repositories are
+not validated with ``nogo`` by default. See the Bzlmod_ guide for more information
+on how to configure the ``nogo`` scope in this case.
 
 Relationship with other linters
 ~~~~~~~~~~~~~~~~~~~~~
