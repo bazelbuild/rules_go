@@ -189,6 +189,8 @@ func Test(t *testing.T) {
 			defer wg.Done()
 			cmd := bazel_testing.BazelCmd("build",
 				"//:all",
+				"--copt=-Irelative/path/does/not/exist",
+				"--linkopt=-Lrelative/path/does/not/exist",
 				"@io_bazel_rules_go//go/tools/builders:go_path",
 				"@go_sdk//:builder",
 			)
@@ -200,49 +202,92 @@ func Test(t *testing.T) {
 	}
 	wg.Wait()
 
-	// Hash files in each bazel-bin directory.
-	dirHashes := make([][]fileHash, len(dirs))
-	errs := make([]error, len(dirs))
-	wg.Add(len(dirs))
-	for i := range dirs {
-		go func(i int) {
-			defer wg.Done()
-			dirHashes[i], errs[i] = hashFiles(filepath.Join(dirs[i], "bazel-bin"))
-		}(i)
-	}
-	wg.Wait()
-	for _, err := range errs {
+	t.Run("Check Hashes", func(t *testing.T) {
+		// Hash files in each bazel-bin directory.
+		dirHashes := make([][]fileHash, len(dirs))
+		errs := make([]error, len(dirs))
+		wg.Add(len(dirs))
+		for i := range dirs {
+			go func(i int) {
+				defer wg.Done()
+				dirHashes[i], errs[i] = hashFiles(filepath.Join(dirs[i], "bazel-out/"), func(root, path string) bool {
+					// Hash everything but actions stdout/stderr and the volatile-status.txt file
+					// as they are expected to change
+					return strings.HasPrefix(path, filepath.Join(root, "_tmp")) ||
+						path == filepath.Join(root, "volatile-status.txt")
+				})
+			}(i)
+		}
+		wg.Wait()
+		for _, err := range errs {
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Compare dir0 and dir1. They should be identical.
+		if err := compareHashes(dirHashes[0], dirHashes[1]); err != nil {
+			t.Fatal(err)
+		}
+
+		// Compare dir0 and dir2. They should be different.
+		if err := compareHashes(dirHashes[0], dirHashes[2]); err == nil {
+			t.Fatalf("dir0 and dir2 are the same)", len(dirHashes[0]))
+		}
+	})
+
+	t.Run("Check builder", func(t *testing.T) {
+		// Check that the go_sdk path doesn't appear in the builder binary. This path is different
+		// nominally different per workspace (but in these tests, the go_sdk paths are all set to the same
+		// path in WORKSPACE) -- so if this path is in the builder binary, then builds between workspaces
+		// would be partially non cacheable.
+		builder_file, err := os.Open(filepath.Join(dirs[0], "bazel-bin", "external", "go_sdk", "builder"))
 		if err != nil {
 			t.Fatal(err)
 		}
-	}
+		defer builder_file.Close()
+		builder_data, err := ioutil.ReadAll(builder_file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if bytes.Index(builder_data, []byte("go_sdk")) != -1 {
+			t.Fatalf("Found go_sdk path in builder binary, builder tool won't be reproducible")
+		}
+	})
 
-	// Compare dir0 and dir1. They should be identical.
-	if err := compareHashes(dirHashes[0], dirHashes[1]); err != nil {
-		t.Fatal(err)
-	}
+	t.Run("Check stdlib", func(t *testing.T) {
+		for _, dir := range dirs {
+			found := false
+			root, err := os.Readlink(filepath.Join(dir, "bazel-out/"))
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	// Compare dir0 and dir2. They should be different.
-	if err := compareHashes(dirHashes[0], dirHashes[2]); err == nil {
-		t.Fatalf("dir0 and dir2 are the same)", len(dirHashes[0]))
-	}
-
-	// Check that the go_sdk path doesn't appear in the builder binary. This path is different
-	// nominally different per workspace (but in these tests, the go_sdk paths are all set to the same
-	// path in WORKSPACE) -- so if this path is in the builder binary, then builds between workspaces
-	// would be partially non cacheable.
-	builder_file, err := os.Open(filepath.Join(dirs[0], "bazel-bin", "external", "go_sdk", "builder"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer builder_file.Close()
-	builder_data, err := ioutil.ReadAll(builder_file)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if bytes.Index(builder_data, []byte("go_sdk")) != -1 {
-		t.Fatalf("Found go_sdk path in builder binary, builder tool won't be reproducible")
-	}
+			filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if !strings.Contains(path, "io_bazel_rules_go/stdlib_/pkg") {
+					return nil
+				}
+				if !strings.HasSuffix(path, ".a") {
+					return nil
+				}
+				data, err := ioutil.ReadFile(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if bytes.Index(data, []byte("__GO_BAZEL_CC_PLACEHOLDER__")) == -1 {
+					found = true
+					return filepath.SkipAll
+				}
+				return nil
+			})
+			if !found {
+				t.Fatal("Placeholder not found in stdlib of " + dir)
+			}
+		}
+	})
 }
 
 func copyTree(dstRoot, srcRoot string) error {
@@ -311,7 +356,7 @@ type fileHash struct {
 	rel, hash string
 }
 
-func hashFiles(dir string) ([]fileHash, error) {
+func hashFiles(dir string, exclude func(root, path string) bool) ([]fileHash, error) {
 	// Follow top-level symbolic link
 	root := dir
 	for {
@@ -348,7 +393,15 @@ func hashFiles(dir string) ([]fileHash, error) {
 				return err
 			}
 		}
+
 		if info.IsDir() {
+			if exclude(root, path) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		if exclude(root, path) {
 			return nil
 		}
 
