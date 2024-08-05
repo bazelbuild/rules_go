@@ -23,7 +23,12 @@ func cc(args []string) error {
 	normalized = append(normalized, args...)
 	transformArgs(normalized, cgoAbsEnvFlags, func(s string) string {
 		if strings.HasPrefix(s, cgoAbsPlaceholder) {
-			return filepath.Join(ccroot, strings.TrimPrefix(s, cgoAbsPlaceholder))
+			trimmed := strings.TrimPrefix(s, cgoAbsPlaceholder)
+			abspath := filepath.Join(ccroot, trimmed)
+			if _, err := os.Stat(abspath); err == nil {
+				return abspath
+			}
+			return trimmed
 		}
 		return s
 	})
