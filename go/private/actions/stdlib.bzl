@@ -56,7 +56,7 @@ def _should_use_sdk_stdlib(go):
     if version and version[0] <= 1 and version[1] <= 19 and go.sdk.experiments:
         # The precompiled stdlib shipped with 1.19 or below doesn't have experiments
         return False
-    return (go.sdk.libs and  # go.sdk.libs is non-empty if sdk ships with precompiled .a files
+    return (go.sdk.libs.to_list() and  # go.sdk.libs is non-empty if sdk ships with precompiled .a files
             go.mode.goos == go.sdk.goos and
             go.mode.goarch == go.sdk.goarch and
             not go.mode.race and  # TODO(jayconrod): use precompiled race
@@ -76,17 +76,16 @@ def _build_stdlib_list_json(go):
     args.add("-cache", cache_dir.path)
 
     # TODO(jayconrod): do we need all of these?
-    inputs = ([sdk.go] +
-              sdk.srcs +
-              sdk.headers +
-              sdk.libs +
-              sdk.tools)
+    inputs_direct = ([sdk.go] +
+                     sdk.srcs +
+                     sdk.headers)
+    inputs_transitive = [sdk.tools, sdk.libs]
 
     if not go.mode.pure:
-        inputs += go.cc_toolchain_files
+        inputs_transitive.append(go.cc_toolchain_files)
 
     go.actions.run(
-        inputs = inputs,
+        inputs = depset(inputs_direct, transitive = inputs_transitive),
         outputs = [out, cache_dir],
         mnemonic = "GoStdlibList",
         executable = go.toolchain._builder,
@@ -148,19 +147,18 @@ def _build_stdlib(go):
 
     args.add("-gcflags", quote_opts(go.mode.gc_goopts))
 
-    inputs = (go.sdk.srcs +
-              go.sdk.headers +
-              go.sdk.tools +
-              [go.sdk.go, go.sdk.package_list, go.sdk.root_file] +
-              go.cc_toolchain_files)
+    inputs_direct = (go.sdk.srcs +
+                     go.sdk.headers +
+                     [go.sdk.go, go.sdk.package_list, go.sdk.root_file])
+    inputs_transitive = [go.sdk.tools, go.cc_toolchain_files]
 
     if go.mode.pgoprofile:
         args.add("-pgoprofile", go.mode.pgoprofile)
-        inputs.append(go.mode.pgoprofile)
+        inputs_direct.append(go.mode.pgoprofile)
 
     outputs = [pkg]
     go.actions.run(
-        inputs = inputs,
+        inputs = depset(direct = inputs_direct, transitive = inputs_transitive),
         outputs = outputs,
         mnemonic = "GoStdlib",
         executable = go.toolchain._builder,
@@ -171,6 +169,6 @@ def _build_stdlib(go):
     )
     return GoStdLib(
         _list_json = _build_stdlib_list_json(go),
-        libs = [pkg],
+        libs = depset([pkg]),
         root_file = pkg,
     )

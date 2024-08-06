@@ -28,10 +28,10 @@ def _go_sdk_impl(ctx):
         experiments = ctx.attr.experiments,
         root_file = ctx.file.root_file,
         package_list = package_list,
-        libs = ctx.files.libs,
+        libs = depset(ctx.files.libs),
         headers = ctx.files.headers,
         srcs = ctx.files.srcs,
-        tools = ctx.files.tools,
+        tools = depset(ctx.files.tools),
         go = ctx.executable.go,
         version = ctx.attr.version,
     )]

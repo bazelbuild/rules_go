@@ -524,7 +524,7 @@ def go_context(ctx, attr = None):
         env["GOARM"] = mode.arm
 
     if not cgo_context_info:
-        cc_toolchain_files = []
+        cc_toolchain_files = depset()
         cgo_tools = None
     else:
         env.update(cgo_context_info.env)
@@ -829,7 +829,7 @@ def _cgo_context_data_impl(ctx):
     )
 
     return [CgoContextInfo(
-        cc_toolchain_files = cc_toolchain.all_files.to_list(),
+        cc_toolchain_files = cc_toolchain.all_files,
         tags = tags,
         env = env,
         cgo_tools = struct(

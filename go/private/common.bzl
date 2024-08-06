@@ -210,16 +210,6 @@ def as_tuple(v):
         return tuple(v.to_list())
     fail("as_tuple failed on {}".format(v))
 
-def as_set(v):
-    """Returns a list, tuple, or depset as a depset."""
-    if type(v) == "depset":
-        return v
-    if type(v) == "list":
-        return depset(v)
-    if type(v) == "tuple":
-        return depset(v)
-    fail("as_tuple failed on {}".format(v))
-
 _STRUCT_TYPE = type(struct())
 
 def is_struct(v):

@@ -29,14 +29,11 @@ def _go_info_impl(ctx):
 
     # TODO(jayconrod): do we need all of these?
     sdk = go.sdk
-    inputs = ([sdk.go] +
-              sdk.srcs +
-              sdk.headers +
-              sdk.libs +
-              sdk.tools)
+    inputs_direct = [sdk.go] + sdk.srcs + sdk.headers
+    inputs_transitive = [sdk.libs, sdk.tools]
 
     go.actions.run(
-        inputs = inputs,
+        inputs = depset(inputs_direct, transitive = inputs_transitive),
         outputs = [report],
         mnemonic = "GoInfo",
         executable = ctx.executable._go_info,

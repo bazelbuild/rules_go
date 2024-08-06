@@ -31,7 +31,10 @@ def _go_bin_for_host_impl(ctx):
     _ensure_target_cfg(ctx)
 
     sdk = ctx.toolchains[GO_TOOLCHAIN].sdk
-    sdk_files = ctx.runfiles([sdk.go] + sdk.headers + sdk.libs + sdk.srcs + sdk.tools)
+    sdk_files = ctx.runfiles(
+        [sdk.go] + sdk.headers + sdk.srcs,
+        transitive_files = depset(transitive = [sdk.libs, sdk.tools]),
+    )
 
     return [
         DefaultInfo(

@@ -82,9 +82,10 @@ def emit_compilepkg(
     if bool(nogo) != bool(out_facts):
         fail("nogo must be specified if and only if out_facts is specified")
 
-    inputs = (sources + embedsrcs + [go.sdk.package_list] +
-              [archive.data.export_file for archive in archives] +
-              go.sdk.tools + go.sdk.headers + go.stdlib.libs)
+    inputs_direct = (sources + embedsrcs + [go.sdk.package_list] +
+                     [archive.data.export_file for archive in archives] +
+                     go.sdk.headers)
+    inputs_transitive = [go.sdk.tools, go.stdlib.libs]
     outputs = [out_lib, out_export]
 
     args = go.builder_args(go, "compilepkg", use_path_mapping = True)
@@ -105,7 +106,7 @@ def emit_compilepkg(
         expand_directories = False,
     )
     if cover and go.coverdata:
-        inputs.append(go.coverdata.data.export_file)
+        inputs_direct.append(go.coverdata.data.export_file)
         args.add("-arc", _archive(go.coverdata))
         if go.mode.race:
             args.add("-cover_mode", "atomic")
@@ -128,11 +129,11 @@ def emit_compilepkg(
     args.add("-o", out_export)
     if nogo:
         args.add_all(archives, before_each = "-facts", map_each = _facts)
-        inputs.extend([archive.data.facts_file for archive in archives if archive.data.facts_file])
+        inputs_direct.extend([archive.data.facts_file for archive in archives if archive.data.facts_file])
         args.add("-out_facts", out_facts)
         outputs.append(out_facts)
         args.add("-nogo", nogo)
-        inputs.append(nogo)
+        inputs_direct.append(nogo)
     if out_cgo_export_h:
         args.add("-cgoexport", out_cgo_export_h)
         outputs.append(out_cgo_export_h)
@@ -166,8 +167,8 @@ def emit_compilepkg(
         env = go.env_for_path_mapping
         execution_requirements = SUPPORTS_PATH_MAPPING_REQUIREMENT
     if cgo:
-        inputs.extend(cgo_inputs.to_list())  # OPT: don't expand depset
-        inputs.extend(go.cc_toolchain_files)
+        inputs_transitive.append(cgo_inputs)
+        inputs_transitive.append(go.cc_toolchain_files)
         env["CC"] = go.cgo_tools.c_compiler_path
         if cppopts:
             args.add("-cppflags", quote_opts(cppopts))
@@ -184,10 +185,10 @@ def emit_compilepkg(
 
     if go.mode.pgoprofile:
         args.add("-pgoprofile", go.mode.pgoprofile)
-        inputs.append(go.mode.pgoprofile)
+        inputs_direct.append(go.mode.pgoprofile)
 
     go.actions.run(
-        inputs = inputs,
+        inputs = depset(inputs_direct, transitive = inputs_transitive),
         outputs = outputs,
         mnemonic = "GoCompilePkgExternal" if is_external_pkg else "GoCompilePkg",
         executable = go.toolchain._builder,

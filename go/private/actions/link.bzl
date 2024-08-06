@@ -19,7 +19,6 @@ load(
 load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN_LABEL",
-    "as_set",
     "count_group_matches",
     "has_shared_lib_extension",
 )
@@ -201,9 +200,9 @@ def emit_link(
     inputs_transitive = [
         archive.libs,
         archive.cgo_deps,
-        as_set(go.cc_toolchain_files),
-        as_set(go.sdk.tools),
-        as_set(go.stdlib.libs),
+        go.cc_toolchain_files,
+        go.sdk.tools,
+        go.stdlib.libs,
     ]
     inputs = depset(direct = inputs_direct, transitive = inputs_transitive)
 
