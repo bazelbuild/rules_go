@@ -103,7 +103,7 @@ def split_srcs(srcs):
             if ext in extmap:
                 break
             extmap[ext] = outs
-    for src in as_iterable(srcs):
+    for src in srcs:
         extouts = extmap.get(src.extension)
         if extouts == None:
             fail("Unknown source type {0}".format(src.basename))

@@ -15,6 +15,8 @@
 load(
     "//go/private:common.bzl",
     "ARCHIVE_EXTENSION",
+    "goos_to_extension",
+    "goos_to_shared_extension",
     "has_shared_lib_extension",
 )
 load(
@@ -40,14 +42,15 @@ def emit_binary(
 
     archive = go.archive(go, source)
     if not executable:
-        extension = go.exe_extension
         if go.mode.link == LINKMODE_C_SHARED:
             name = "lib" + name  # shared libraries need a "lib" prefix in their name
-            extension = go.shared_extension
+            extension = goos_to_shared_extension(go.mode.goos)
         elif go.mode.link == LINKMODE_C_ARCHIVE:
             extension = ARCHIVE_EXTENSION
         elif go.mode.link == LINKMODE_PLUGIN:
-            extension = go.shared_extension
+            extension = goos_to_shared_extension(go.mode.goos)
+        else:
+            extension = goos_to_extension(go.mode.goos)
         executable = go.declare_file(go, path = name, ext = extension)
     go.link(
         go,

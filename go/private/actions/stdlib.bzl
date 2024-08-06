@@ -66,14 +66,22 @@ def _should_use_sdk_stdlib(go):
             go.mode.link == LINKMODE_NORMAL)
 
 def _build_stdlib_list_json(go):
+    sdk = go.sdk
+
     out = go.declare_file(go, "stdlib.pkg.json")
     cache_dir = go.declare_directory(go, "gocache")
     args = go.builder_args(go, "stdliblist")
-    args.add("-sdk", go.sdk.root_file.dirname)
+    args.add("-sdk", sdk.root_file.dirname)
     args.add("-out", out)
     args.add("-cache", cache_dir.path)
 
-    inputs = go.sdk_files
+    # TODO(jayconrod): do we need all of these?
+    inputs = ([sdk.go] +
+              sdk.srcs +
+              sdk.headers +
+              sdk.libs +
+              sdk.tools)
+
     if not go.mode.pure:
         inputs += go.cc_toolchain_files
 

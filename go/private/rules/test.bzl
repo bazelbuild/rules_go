@@ -102,16 +102,18 @@ def _go_test_impl(ctx):
             arguments.add("-cover_mode", "atomic")
         else:
             arguments.add("-cover_mode", "set")
-        arguments.add("-cover_format", go.cover_format)
+        arguments.add("-cover_format", go.mode.cover_format)
     arguments.add(
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
         "-import",
-        "l=" + internal_source.library.importpath,
+        internal_source.library.importpath,
+        format = "l=%s",
     )
     arguments.add(
         "-import",
-        "l_test=" + external_source.library.importpath,
+        external_source.library.importpath,
+        format = "l_test=%s",
     )
     arguments.add("-pkgname", internal_source.library.importpath)
     arguments.add_all(go_srcs, before_each = "-src", format_each = "l=%s")

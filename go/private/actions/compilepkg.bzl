@@ -82,7 +82,7 @@ def emit_compilepkg(
     if bool(nogo) != bool(out_facts):
         fail("nogo must be specified if and only if out_facts is specified")
 
-    inputs = (sources + embedsrcs + [go.package_list] +
+    inputs = (sources + embedsrcs + [go.sdk.package_list] +
               [archive.data.export_file for archive in archives] +
               go.sdk.tools + go.sdk.headers + go.stdlib.libs)
     outputs = [out_lib, out_export]
@@ -111,7 +111,7 @@ def emit_compilepkg(
             args.add("-cover_mode", "atomic")
         else:
             args.add("-cover_mode", "set")
-        args.add("-cover_format", go.cover_format)
+        args.add("-cover_format", go.mode.cover_format)
         args.add_all(cover, before_each = "-cover")
     args.add_all(archives, before_each = "-arc", map_each = _archive)
     if recompile_internal_deps:
@@ -122,7 +122,7 @@ def emit_compilepkg(
         args.add("-importpath", go.label.name)
     if importmap:
         args.add("-p", importmap)
-    args.add("-package_list", go.package_list)
+    args.add("-package_list", go.sdk.package_list)
 
     args.add("-lo", out_lib)
     args.add("-o", out_export)
@@ -139,8 +139,7 @@ def emit_compilepkg(
     if testfilter:
         args.add("-testfilter", testfilter)
 
-    gc_flags = list(gc_goopts)
-    gc_flags.extend(go.mode.gc_goopts)
+    gc_flags = gc_goopts + go.mode.gc_goopts
     asm_flags = []
     if go.mode.race:
         gc_flags.append("-race")
@@ -149,8 +148,11 @@ def emit_compilepkg(
     if go.mode.debug:
         gc_flags.extend(["-N", "-l"])
     gc_flags.extend(go.toolchain.flags.compile)
-    gc_flags.extend(link_mode_args(go.mode))
-    asm_flags.extend(link_mode_args(go.mode))
+
+    link_mode_flags = link_mode_args(go.mode)
+    gc_flags.extend(link_mode_flags)
+    asm_flags.extend(link_mode_flags)
+
     args.add("-gcflags", quote_opts(gc_flags))
     args.add("-asmflags", quote_opts(asm_flags))
 

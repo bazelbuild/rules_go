@@ -49,8 +49,6 @@ load(
     "COVERAGE_OPTIONS_DENYLIST",
     "GO_TOOLCHAIN",
     "as_iterable",
-    "goos_to_extension",
-    "goos_to_shared_extension",
     "is_struct",
 )
 load(
@@ -133,12 +131,14 @@ def _match_option(option, pattern):
     else:
         return option == pattern
 
+def _matches_options(option, patterns):
+    for p in patterns:
+        if _match_option(option, p):
+            return True
+    return False
+
 def _filter_options(options, denylist):
-    return [
-        option
-        for option in options
-        if not any([_match_option(option, pattern) for pattern in denylist])
-    ]
+    return [o for o in options if not _matches_options(o, denylist)]
 
 def _child_name(go, path, ext, name):
     if not name:
@@ -159,10 +159,6 @@ def _declare_file(go, path = "", ext = "", name = ""):
 def _declare_directory(go, path = "", ext = "", name = ""):
     return go.actions.declare_directory(_child_name(go, path, ext, name))
 
-def _new_args(go):
-    # TODO(jayconrod): print warning.
-    return go.builder_args(go)
-
 def _dirname(file):
     return file.dirname
 
@@ -180,7 +176,7 @@ def _builder_args(go, command = None, use_path_mapping = False):
         if go.stdlib:
             goroot_file = go.stdlib.root_file
         else:
-            goroot_file = go.sdk_root
+            goroot_file = go.sdk.root_file
 
         # Use a file rather than goroot as the latter is just a string and thus
         # not subject to path mapping.
@@ -367,15 +363,20 @@ def _check_binary_dep(go, dep, edge):
             edge = edge,
         ))
 
-def _check_importpaths(ctx):
+def check_importpaths(ctx):
+    """Checks that this rule doesn't have importpath attributes with invalid chars.
+
+    Args:
+        ctx: The context object.
+    """
     paths = []
-    p = getattr(ctx.attr, "importpath", "")
+    p = ctx.attr.importpath
     if p:
         paths.append(p)
-    p = getattr(ctx.attr, "importmap", "")
+    p = ctx.attr.importmap
     if p:
         paths.append(p)
-    paths.extend(getattr(ctx.attr, "importpath_aliases", ()))
+    paths.extend(ctx.attr.importpath_aliases)
 
     for p in paths:
         if ":" in p:
@@ -437,7 +438,7 @@ def _matches_scopes(label, scopes):
 
 def _get_nogo(go):
     """Returns the nogo file for this target, if enabled and in scope."""
-    label = go._ctx.label
+    label = go.label
     if _matches_scopes(label, NOGO_INCLUDES) and not _matches_scopes(label, NOGO_EXCLUDES):
         return go.nogo
     else:
@@ -485,7 +486,7 @@ def go_context(ctx, attr = None):
     env = {
         "GOARCH": mode.goarch,
         "GOOS": mode.goos,
-        "GOEXPERIMENT": ",".join(toolchain.sdk.experiments),
+        "GOEXPERIMENT": toolchain.sdk.experiments,
         "GOROOT": goroot,
         "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",
@@ -544,7 +545,7 @@ def go_context(ctx, attr = None):
             cgo_tools.ld_dynamic_lib_path,
         ]
         for tool_path in tool_paths:
-            tool_dir, _, _ = tool_path.rpartition("/")
+            tool_dir = tool_path[:tool_path.rindex("/")]
             path_set[tool_dir] = None
         paths = sorted(path_set.keys())
         if ctx.configuration.host_path_separator == ":":
@@ -558,15 +559,6 @@ def go_context(ctx, attr = None):
                 paths.append("/usr/bin")
         env["PATH"] = ctx.configuration.host_path_separator.join(paths)
 
-    # TODO(jayconrod): remove this. It's way too broad. Everything should
-    # depend on more specific lists.
-    sdk_files = ([toolchain.sdk.go] +
-                 toolchain.sdk.srcs +
-                 toolchain.sdk.headers +
-                 toolchain.sdk.libs +
-                 toolchain.sdk.tools)
-
-    _check_importpaths(ctx)
     importpath, importmap, pathtype = _infer_importpath(ctx, attr)
     importpath_aliases = tuple(getattr(attr, "importpath_aliases", ()))
 
@@ -578,14 +570,9 @@ def go_context(ctx, attr = None):
         root = goroot,
         go = binary,
         stdlib = stdlib,
-        sdk_root = toolchain.sdk.root_file,
-        sdk_files = sdk_files,
-        sdk_tools = toolchain.sdk.tools,
         actions = ctx.actions,
-        exe_extension = goos_to_extension(mode.goos),
-        shared_extension = goos_to_shared_extension(mode.goos),
         cc_toolchain_files = cc_toolchain_files,
-        package_list = toolchain.sdk.package_list,
+        package_list = toolchain.sdk.package_list,  # Can be removed once Gazelle is updated
         importpath = importpath,
         importmap = importmap,
         importpath_aliases = importpath_aliases,
@@ -598,17 +585,13 @@ def go_context(ctx, attr = None):
         env = env,
         env_for_path_mapping = env_for_path_mapping,
         tags = tags,
-        stamp = mode.stamp,
         label = ctx.label,
-        cover_format = mode.cover_format,
-        pgoprofile = mode.pgoprofile,
         # Action generators
         archive = toolchain.actions.archive,
         binary = toolchain.actions.binary,
         link = toolchain.actions.link,
 
         # Helpers
-        args = _new_args,  # deprecated
         builder_args = _builder_args,
         tool_args = _tool_args,
         new_library = _new_library,

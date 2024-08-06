@@ -47,7 +47,7 @@ go_sdk = rule(
             mandatory = True,
             doc = "The host architecture the SDK was built for",
         ),
-        "experiments": attr.string_list(
+        "experiments": attr.string(
             mandatory = False,
             doc = "Go experiments to enable via GOEXPERIMENT",
         ),

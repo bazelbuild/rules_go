@@ -26,8 +26,17 @@ def _go_info_impl(ctx):
     report = go.declare_file(go, ext = ".txt")
     args = go.builder_args(go)
     args.add("-out", report)
+
+    # TODO(jayconrod): do we need all of these?
+    sdk = go.sdk
+    inputs = ([sdk.go] +
+              sdk.srcs +
+              sdk.headers +
+              sdk.libs +
+              sdk.tools)
+
     go.actions.run(
-        inputs = go.sdk_files,
+        inputs = inputs,
         outputs = [report],
         mnemonic = "GoInfo",
         executable = ctx.executable._go_info,

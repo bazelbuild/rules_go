@@ -31,6 +31,10 @@ load(
     "GO_TOOLCHAIN",
 )
 load(
+    "//go/private:context.bzl",
+    "check_importpaths",
+)
+load(
     "//go/private/rules:transition.bzl",
     "non_go_tool_transition",
 )
@@ -90,6 +94,8 @@ def _proto_library_to_source(_go, attr, source, merge):
             merge(source, compiler[GoSource])
 
 def _go_proto_library_impl(ctx):
+    check_importpaths(ctx)
+
     go = go_context(ctx)
     if ctx.attr.compiler:
         #TODO: print("DEPRECATED: compiler attribute on {}, use compilers instead".format(ctx.label))
