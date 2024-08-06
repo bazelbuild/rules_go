@@ -28,10 +28,10 @@ def _go_sdk_impl(ctx):
         experiments = ctx.attr.experiments,
         root_file = ctx.file.root_file,
         package_list = package_list,
-        libs = ctx.files.libs,
+        libs = depset(ctx.files.libs),
         headers = ctx.files.headers,
         srcs = ctx.files.srcs,
-        tools = ctx.files.tools,
+        tools = depset(ctx.files.tools),
         go = ctx.executable.go,
         version = ctx.attr.version,
     )]
@@ -47,7 +47,7 @@ go_sdk = rule(
             mandatory = True,
             doc = "The host architecture the SDK was built for",
         ),
-        "experiments": attr.string_list(
+        "experiments": attr.string(
             mandatory = False,
             doc = "Go experiments to enable via GOEXPERIMENT",
         ),

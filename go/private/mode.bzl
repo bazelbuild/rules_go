@@ -58,34 +58,18 @@ def mode_string(mode):
         result.extend(mode.gc_goopts)
     return "_".join(result)
 
-def _ternary(*values):
-    for v in values:
-        if v == None:
-            continue
-        if type(v) == "bool":
-            return v
-        if type(v) != "string":
-            fail("Invalid value type {}".format(type(v)))
-        v = v.lower()
-        if v == "on":
-            return True
-        if v == "off":
-            return False
-        if v == "auto":
-            continue
-        fail("Invalid value {}".format(v))
-    fail("_ternary failed to produce a final result from {}".format(values))
-
 def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
-    static = _ternary(go_config_info.static if go_config_info else "off")
+    static = go_config_info.static if go_config_info else False
     if getattr(ctx.attr, "pure", None) == "off" and not cgo_context_info:
         fail("{} has pure explicitly set to off, but no C++ toolchain could be found for its platform".format(ctx.label))
-    pure = _ternary(
-        "on" if not cgo_context_info else "auto",
-        go_config_info.pure if go_config_info else "off",
-    )
-    race = _ternary(go_config_info.race if go_config_info else "off")
-    msan = _ternary(go_config_info.msan if go_config_info else "off")
+    if not cgo_context_info:
+        pure = True
+    elif go_config_info:
+        pure = go_config_info.pure
+    else:
+        pure = False
+    race = go_config_info.race if go_config_info else False
+    msan = go_config_info.msan if go_config_info else False
     strip = go_config_info.strip if go_config_info else False
     stamp = go_config_info.stamp if go_config_info else False
     debug = go_config_info.debug if go_config_info else False

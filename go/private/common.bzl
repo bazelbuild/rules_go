@@ -103,7 +103,7 @@ def split_srcs(srcs):
             if ext in extmap:
                 break
             extmap[ext] = outs
-    for src in as_iterable(srcs):
+    for src in srcs:
         extouts = extmap.get(src.extension)
         if extouts == None:
             fail("Unknown source type {0}".format(src.basename))
@@ -208,16 +208,6 @@ def as_tuple(v):
         return tuple(v)
     if type(v) == "depset":
         return tuple(v.to_list())
-    fail("as_tuple failed on {}".format(v))
-
-def as_set(v):
-    """Returns a list, tuple, or depset as a depset."""
-    if type(v) == "depset":
-        return v
-    if type(v) == "list":
-        return depset(v)
-    if type(v) == "tuple":
-        return depset(v)
     fail("as_tuple failed on {}".format(v))
 
 _STRUCT_TYPE = type(struct())

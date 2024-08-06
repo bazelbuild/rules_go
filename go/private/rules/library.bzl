@@ -21,6 +21,7 @@ load(
 )
 load(
     "//go/private:context.bzl",
+    "check_importpaths",
     "go_context",
 )
 load(
@@ -34,6 +35,10 @@ load(
 
 def _go_library_impl(ctx):
     """Implements the go_library() rule."""
+    check_importpaths(ctx)
+    return _go_library_base_impl(ctx)
+
+def _go_library_base_impl(ctx):
     go = go_context(ctx)
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
@@ -197,7 +202,7 @@ go_library = rule(
 # See docs/go/core/rules.md#go_library for full documentation.
 
 go_tool_library = rule(
-    _go_library_impl,
+    _go_library_base_impl,
     attrs = {
         "data": attr.label_list(allow_files = True),
         "srcs": attr.label_list(allow_files = True),
