@@ -267,7 +267,7 @@ func Test(t *testing.T) {
 				if err != nil {
 					return err
 				}
-				if !strings.Contains(path, "io_bazel_rules_go/stdlib_/pkg") {
+				if !strings.Contains(path, "stdlib_/pkg") {
 					return nil
 				}
 				if !strings.HasSuffix(path, ".a") {

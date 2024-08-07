@@ -26,6 +26,10 @@ func cc(args []string) error {
 			trimmed := strings.TrimPrefix(s, cgoAbsPlaceholder)
 			abspath := filepath.Join(ccroot, trimmed)
 			if _, err := os.Stat(abspath); err == nil {
+                                // Only return the abspath if it exists, otherwise it
+                                // means that either it won't have any effect or the original
+                                // value was not a relpath (e.g. a path with a XCODE placehold from
+                                // macos cc_wrapper)
 				return abspath
 			}
 			return trimmed
