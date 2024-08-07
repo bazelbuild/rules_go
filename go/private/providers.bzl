@@ -43,16 +43,16 @@ GoSDK = provider(
         "goarch": "The host architecture the SDK was built for.",
         "experiments": "Go experiments to enable via GOEXPERIMENT.",
         "root_file": "A file in the SDK root directory",
-        "libs": ("List of pre-compiled .a files for the standard library " +
+        "libs": ("Depset of pre-compiled .a files for the standard library " +
                  "built for the execution platform."),
-        "headers": ("List of .h files from pkg/include that may be included " +
+        "headers": ("Depset of .h files from pkg/include that may be included " +
                     "in assembly sources."),
-        "srcs": ("List of source files for importable packages in the " +
+        "srcs": ("Depset of source files for importable packages in the " +
                  "standard library. Internal, vendored, and tool packages " +
                  "may not be included."),
         "package_list": ("A file containing a list of importable packages " +
                          "in the standard library."),
-        "tools": ("List of executable files in the SDK built for " +
+        "tools": ("Depset of executable files in the SDK built for " +
                   "the execution platform, excluding the go binary file"),
         "go": "The go binary file",
         "version": "The Go SDK version",
