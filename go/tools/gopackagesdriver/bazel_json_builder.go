@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -88,7 +87,7 @@ func (b *BazelJSONBuilder) getKind() string {
 }
 
 func (b *BazelJSONBuilder) localQuery(request string) string {
-	request = path.Clean(b.adjustToRelativePathIfPossible(request))
+	request = b.adjustToRelativePathIfPossible(request)
 
 	if !strings.HasSuffix(request, "...") {
 		request = fmt.Sprintf("%s:*", request)
@@ -107,6 +106,8 @@ func (b *BazelJSONBuilder) adjustToRelativePathIfPossible(request string) string
 	}
 	if relPath, err := filepath.Rel(workspaceRoot, absRequest); err == nil {
 		request = filepath.ToSlash(relPath)
+	} else {
+		fmt.Fprintf(os.Stderr, "error adjusting path to be relative to the workspace root from request %s: %v\n", request, err)
 	}
 	return request
 }
