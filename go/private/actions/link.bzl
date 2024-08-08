@@ -38,29 +38,6 @@ load(
 def _format_archive(d):
     return "{}={}={}".format(d.label, d.importmap, d.file.path)
 
-def _transitive_archives_without_test_archives(archive, test_archives):
-    # Build the set of transitive dependencies. Currently, we tolerate multiple
-    # archives with the same importmap (though this will be an error in the
-    # future), but there is a special case which is difficult to avoid:
-    # If a go_test has internal and external archives, and the external test
-    # transitively depends on the library under test, we need to exclude the
-    # library under test and use the internal test archive instead.
-    deps = depset(transitive = [d.transitive for d in archive.direct])
-    result = {}
-
-    # Unfortunately, Starlark doesn't support set()
-    test_imports = {}
-    for t in test_archives:
-        test_imports[t.importmap] = True
-    for d in deps.to_list():
-        if d.importmap in test_imports:
-            continue
-        if d.importmap in result:
-            print("Multiple copies of {} passed to the linker. Ignoring {} in favor of {}".format(d.importmap, d.file.path, result[d.importmap].file.path))
-            continue
-        result[d.importmap] = d
-    return result.values()
-
 def emit_link(
         go,
         archive = None,
@@ -131,8 +108,7 @@ def emit_link(
     if go.mode.link == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
 
-    arcs = _transitive_archives_without_test_archives(archive, test_archives)
-    arcs.extend(test_archives)
+    arcs = depset(test_archives, transitive = [d.transitive for d in archive.direct]).to_list()
     if (go.coverage_enabled and go.coverdata and
         not any([arc.importmap == go.coverdata.data.importmap for arc in arcs])):
         arcs.append(go.coverdata.data)
