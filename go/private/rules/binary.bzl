@@ -21,6 +21,10 @@ load(
     "syso_exts",
 )
 load(
+    "//go/private:cc_info.bzl",
+    "go_cc_aspect",
+)
+load(
     "//go/private:context.bzl",
     "go_context",
 )
@@ -35,6 +39,7 @@ load(
 )
 load(
     "//go/private:providers.bzl",
+    "GoCcInfo",
     "GoLibrary",
     "GoSDK",
 )
@@ -179,10 +184,11 @@ def _go_binary_impl(ctx):
         elif go.mode.link == LINKMODE_C_ARCHIVE:
             cc_import_kwargs["static_library"] = executable
             cc_import_kwargs["alwayslink"] = True
-        ccinfo = new_cc_import(go, **cc_import_kwargs)
-        ccinfo = cc_common.merge_cc_infos(
-            cc_infos = [ccinfo, source.cc_info],
-        )
+
+        cc_infos = ([dep[GoCcInfo].cc_info for dep in ctx.attr.deps if GoCcInfo in dep] + [dep[CcInfo] for dep in ctx.attr.cdeps])
+        cc_infos.append(new_cc_import(go, **cc_import_kwargs))
+
+        ccinfo = cc_common.merge_cc_infos(cc_infos = cc_infos)
         providers.append(ccinfo)
 
     return providers
@@ -211,6 +217,7 @@ _go_binary_kwargs = {
         ),
         "deps": attr.label_list(
             providers = [GoLibrary],
+            aspects = [go_cc_aspect],
             doc = """List of Go libraries this package imports directly.
             These may be `go_library` rules or compatible rules with the [GoLibrary] provider.
             """,
