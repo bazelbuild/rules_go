@@ -106,13 +106,13 @@ def _go_test_impl(ctx):
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
         "-import",
-        "l=" + internal_source.library.importpath,
+        "l=" + internal_library.importpath,
     )
     arguments.add(
         "-import",
-        "l_test=" + external_source.library.importpath,
+        "l_test=" + external_library.importpath,
     )
-    arguments.add("-pkgname", internal_source.library.importpath)
+    arguments.add("-pkgname", internal_library.importpath)
     arguments.add_all(go_srcs, before_each = "-src", format_each = "l=%s")
 
     ctx.actions.run(
