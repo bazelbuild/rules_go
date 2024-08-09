@@ -53,7 +53,10 @@ many_deps(name = "many_deps")
 go_test(
     name = "stamp_test",
     srcs = ["stamp_test.go"],
-    data = [":stamp_bin"],
+    data = [
+        ":nostamp_bin",
+        ":stamp_bin",
+    ],
     rundir = ".",
     deps = ["@io_bazel_rules_go//go/tools/bazel:go_default_library"],
 )
@@ -62,9 +65,24 @@ go_binary(
     name = "stamp_bin",
     srcs = ["stamp_bin.go"],
     embed = [":stamp_embed"],
+    stamp = 1,
     x_defs = {
         "Bin": "Bin",
         "example.com/stamp_dep.DepBin": "DepBin",
+        "BuildTime": "{BUILD_TIMESTAMP}",
+    },
+    deps = [":stamp_dep"],
+)
+
+go_binary(
+    name = "nostamp_bin",
+    srcs = ["stamp_bin.go"],
+    embed = [":stamp_embed"],
+    stamp = 0,
+    x_defs = {
+        "Bin": "Bin",
+        "example.com/stamp_dep.DepBin": "DepBin",
+        "BuildTime": "{BUILD_TIMESTAMP}",
     },
     deps = [":stamp_dep"],
 )
