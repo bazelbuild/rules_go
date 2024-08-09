@@ -19,9 +19,11 @@ load(
 
 def _go_cc_aspect_impl(target, _ctx):
     if CcInfo in target:
+        print(target, "already has CcInfo")
         return []
 
     if GoSource in target:
+        print(target, "has GoSource")
         source = target[GoSource]
         return [
             cc_common.merge_cc_infos(cc_infos = [
@@ -31,6 +33,7 @@ def _go_cc_aspect_impl(target, _ctx):
             ]),
         ]
 
+    print(target, "has nothing")
     return []
 
 go_cc_aspect = aspect(
