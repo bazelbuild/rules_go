@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# A represenatation of the inputs to a go package.
+# A representation of the inputs to a go package.
 # This is a configuration independent provider.
 # You must call resolve with a mode to produce a GoSource.
 # See go/providers.rst#GoLibrary for full documentation.
