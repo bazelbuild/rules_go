@@ -103,8 +103,8 @@ go_sdk.nogo(
 
 ### Not yet supported
 
-* `go_local_sdk`
-* `go_wrap_sdk`
+-   `go_local_sdk`
+-   `go_wrap_sdk`
 
 ## Generating BUILD files
 
@@ -183,8 +183,9 @@ use_repo(
 ```
 
 Limitations:
-* `go.work` is supported exclusively in the root module.
-* Dependencies that are indirect and depend on a go module specified in `go.work` will have that dependency diverge from the one in `go.work`. More details can be found here: https://github.com/bazelbuild/bazel-gazelle/issues/1797.
+
+-   `go.work` is supported exclusively in the root module.
+-   Dependencies that are indirect and depend on a go module specified in `go.work` will have that dependency diverge from the one in `go.work`. More details can be found here: https://github.com/bazelbuild/bazel-gazelle/issues/1797.
 
 #### Depending on tools
 
@@ -244,7 +245,7 @@ go_deps.config(
 ```
 
 Variables set in this way are used by `go_deps` as well as `@rules_go//go`, with other variables inheriting their value from the host environment.
-`go_env` does *not* affect Go build actions.
+`go_env` does **no** affect Go build actions.
 
 ### Overrides
 
@@ -278,6 +279,29 @@ go_deps.gazelle_override(
 
 If you need to use a `gazelle_override` to get a public Go module to build with Bazel, consider contributing the directives to the [public registry for default Gazelle overrides](https://github.com/bazelbuild/bazel-gazelle/blob/master/internal/bzlmod/default_gazelle_overrides.bzl) via a PR.
 This will allow you to drop the `gazelle_override` tag and also makes the Go module usable in non-root Bazel modules.
+
+Users can apply custom default directives or extra args to **all** modules, these can be added via a `go_deps.gazelle_default_attributes`. These will
+disable/overwrite the [public registry overrides](https://github.com/bazelbuild/bazel-gazelle/blob/master/internal/bzlmod/default_gazelle_overrides.bzl).
+
+```
+go_deps.gazelle_default_attributes(
+    build_extra_args = [
+        "-go_naming_convention_external=go_default_library",
+    ],
+    build_file_generation = "on",
+    directives = [
+        "gazelle:proto disable",
+    ],
+)
+```
+
+Overrides are applied with precedence decreasing in this order::
+
+1. Specific `go_deps.gazelle_override` overrides per module
+2. `go_deps.gazelle_default_attributes`, which will overwrite #3 (which now must be applied manually by users).
+3. [public registry for default Gazelle overrides](https://github.com/bazelbuild/bazel-gazelle/blob/master/internal/bzlmod/default_gazelle_overrides.bzl)
+
+It is recommended to avoid `go_deps.gazelle_default_attributes` and upstream the overrides to the [public registry for default Gazelle overrides](https://github.com/bazelbuild/bazel-gazelle/blob/master/internal/bzlmod/default_gazelle_overrides.bzl).
 
 #### `go_deps.module_override`
 
@@ -314,5 +338,5 @@ go_deps.archive_override(
 
 ### Not yet supported
 
-* Fetching dependencies from Git repositories
-* `go.mod` `exclude` directices
+-   Fetching dependencies from Git repositories
+-   `go.mod` `exclude` directices
