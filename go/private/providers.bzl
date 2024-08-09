@@ -36,12 +36,6 @@ GoArchive = provider()
 
 GoPath = provider()
 
-GoCcInfo = provider(
-    fields = {
-        "cc_info": "The CcInfo",
-    },
-)
-
 GoSDK = provider(
     doc = "Contains information about the Go SDK used in the toolchain",
     fields = {

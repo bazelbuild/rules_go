@@ -39,7 +39,6 @@ load(
 )
 load(
     "//go/private:providers.bzl",
-    "GoCcInfo",
     "GoLibrary",
     "GoSDK",
 )
@@ -185,7 +184,7 @@ def _go_binary_impl(ctx):
             cc_import_kwargs["static_library"] = executable
             cc_import_kwargs["alwayslink"] = True
 
-        cc_infos = ([dep[GoCcInfo].cc_info for dep in ctx.attr.deps if GoCcInfo in dep] + [dep[CcInfo] for dep in ctx.attr.cdeps])
+        cc_infos = [dep[CcInfo] for dep in ctx.attr.cdeps + ctx.attr.deps]
         cc_infos.append(new_cc_import(go, **cc_import_kwargs))
 
         ccinfo = cc_common.merge_cc_infos(cc_infos = cc_infos)

@@ -14,27 +14,26 @@
 
 load(
     ":providers.bzl",
-    "GoCcInfo",
     "GoSource",
 )
 
 def _go_cc_aspect_impl(target, _ctx):
     if CcInfo in target:
-        return [GoCcInfo(cc_info = target[CcInfo])]
+        return []
 
     if GoSource in target:
-        cc_infos = []
         source = target[GoSource]
-        for dep in source.deps + source.cdeps:
-            if GoCcInfo in dep:
-                cc_infos.append(dep[GoCcInfo].cc_info)
         return [
-            GoCcInfo(cc_info = cc_common.merge_cc_infos(cc_infos = cc_infos)),
+            cc_common.merge_cc_infos(cc_infos = [
+                dep[CcInfo]
+                for dep in source.deps + source.cdeps
+                if CcInfo in dep
+            ]),
         ]
 
-    return None
+    return []
 
 go_cc_aspect = aspect(
     implementation = _go_cc_aspect_impl,
-    attr_aspects = ["deps"],
+    attr_aspects = ["cdeps", "deps"],
 )
