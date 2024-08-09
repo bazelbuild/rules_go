@@ -523,7 +523,7 @@ def go_context(ctx, attr = None):
         env["GOARM"] = mode.arm
 
     if not cgo_context_info:
-        cc_toolchain_files = []
+        cc_toolchain_files = depset()
         cgo_tools = None
     else:
         env.update(cgo_context_info.env)
@@ -558,14 +558,6 @@ def go_context(ctx, attr = None):
                 paths.append("/usr/bin")
         env["PATH"] = ctx.configuration.host_path_separator.join(paths)
 
-    # TODO(jayconrod): remove this. It's way too broad. Everything should
-    # depend on more specific lists.
-    sdk_files = ([toolchain.sdk.go] +
-                 toolchain.sdk.srcs +
-                 toolchain.sdk.headers +
-                 toolchain.sdk.libs +
-                 toolchain.sdk.tools)
-
     _check_importpaths(ctx)
     importpath, importmap, pathtype = _infer_importpath(ctx, attr)
     importpath_aliases = tuple(getattr(attr, "importpath_aliases", ()))
@@ -579,7 +571,6 @@ def go_context(ctx, attr = None):
         go = binary,
         stdlib = stdlib,
         sdk_root = toolchain.sdk.root_file,
-        sdk_files = sdk_files,
         sdk_tools = toolchain.sdk.tools,
         actions = ctx.actions,
         exe_extension = goos_to_extension(mode.goos),
@@ -846,7 +837,7 @@ def _cgo_context_data_impl(ctx):
     )
 
     return [CgoContextInfo(
-        cc_toolchain_files = cc_toolchain.all_files.to_list(),
+        cc_toolchain_files = cc_toolchain.all_files,
         tags = tags,
         env = env,
         cgo_tools = struct(
