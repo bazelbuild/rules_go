@@ -58,14 +58,13 @@ def _go_path_impl(ctx):
                 importpath = importpath,
                 dir = "src/" + pkgpath,
                 srcs = as_list(archive.orig_srcs),
-                data = as_list(archive.data_files),
+                runfiles = archive.runfiles,
                 embedsrcs = as_list(archive._embedsrcs),
                 pkgs = {mode: archive.file},
             )
             if pkgpath in pkg_map:
-                _merge_pkg(pkg_map[pkgpath], pkg)
-            else:
-                pkg_map[pkgpath] = pkg
+                pkg = _merge_pkg(pkg_map[pkgpath], pkg)
+            pkg_map[pkgpath] = pkg
 
     # Build a manifest file that includes all files to copy/link/zip.
     inputs = []
@@ -95,7 +94,7 @@ def _go_path_impl(ctx):
                 _add_manifest_entry(manifest_entries, manifest_entry_map, inputs, f, dst)
     if ctx.attr.include_data:
         for pkg in pkg_map.values():
-            for f in pkg.data:
+            for f in pkg.runfiles.files.to_list():
                 parts = f.path.split("/")
                 if "testdata" in parts:
                     i = parts.index("testdata")
@@ -261,12 +260,21 @@ go_path = rule(
 
 def _merge_pkg(x, y):
     x_srcs = {f.path: None for f in x.srcs}
-    x_data = {f.path: None for f in x.data}
     x_embedsrcs = {f.path: None for f in x.embedsrcs}
-    x.srcs.extend([f for f in y.srcs if f.path not in x_srcs])
-    x.data.extend([f for f in y.data if f.path not in x_data])
-    x.embedsrcs.extend([f for f in y.embedsrcs if f.path not in x_embedsrcs])
-    x.pkgs.update(y.pkgs)
+
+    # Not all bazel versions support `dict1 | dict2` yet.
+    pkgs = dict()
+    pkgs.update(x.pkgs)
+    pkgs.update(y.pkgs)
+
+    return struct(
+        importpath = x.importpath,
+        dir = x.dir,
+        srcs = x.srcs + [f for f in y.srcs if f.path not in x_srcs],
+        runfiles = x.runfiles.merge(y.runfiles),
+        embedsrcs = x.embedsrcs + [f for f in y.embedsrcs if f.path not in x_embedsrcs],
+        pkgs = pkgs,
+    )
 
 def _add_manifest_entry(entries, entry_map, inputs, src, dst):
     if dst in entry_map:

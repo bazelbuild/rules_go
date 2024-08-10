@@ -274,7 +274,7 @@ rule.  Instead, it's referenced in the ``data`` field of GoArchive_.
 +--------------------------------+-----------------------------------------------------------------+
 | The unmodified sources provided to the rule, including .go, .s, .h, .c files.                    |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`data_files`            | :type:`tuple of File`                                           |
+| :param:`runfiles`              | :type:`runfiles`                                           |
 +--------------------------------+-----------------------------------------------------------------+
 | Data files that should be available at runtime to binaries and tests built                       |
 | from this archive.                                                                               |

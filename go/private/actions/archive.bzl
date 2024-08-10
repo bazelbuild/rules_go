@@ -69,15 +69,13 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         out_nogo_validation = go.declare_file(go, name = source.library.name, ext = pre_ext + ".nogo")
 
     direct = [get_archive(dep) for dep in source.deps]
-    runfiles = source.runfiles
-    data_files = runfiles.files
 
     files = []
     for a in direct:
         files.append(a.runfiles)
         if a.source.mode != go.mode:
             fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
-    runfiles = runfiles.merge_all(files)
+    runfiles = source.runfiles.merge_all(files)
 
     importmap = "main" if source.library.is_main else source.library.importmap
     importpath, _ = effective_importpath_pkgpath(source.library)
@@ -189,7 +187,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         file = out_lib,
         export_file = out_export,
         facts_file = out_facts,
-        data_files = as_tuple(data_files),
+        runfiles = source.runfiles,
         _validation_output = out_nogo_validation,
         _cgo_deps = as_tuple(cgo_deps),
     )
