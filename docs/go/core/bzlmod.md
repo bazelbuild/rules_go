@@ -245,7 +245,7 @@ go_deps.config(
 ```
 
 Variables set in this way are used by `go_deps` as well as `@rules_go//go`, with other variables inheriting their value from the host environment.
-`go_env` does **no** affect Go build actions.
+`go_env` does **not** affect Go build actions.
 
 ### Overrides
 
