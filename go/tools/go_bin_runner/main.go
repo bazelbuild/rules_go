@@ -20,7 +20,7 @@ var GoBinRlocationPath = "not set"
 var ConfigRlocationPath = "not set"
 var HasBazelModTidy = "not set"
 
-var bazelWorkingDir = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
+var bazelWorkingDir = os.Getenv("BUILD_WORKING_DIRECTORY")
 var bazelWorkspaceDir = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
 
 // Produced by gazelle's go_deps extension.
