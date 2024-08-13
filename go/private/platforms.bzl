@@ -22,6 +22,7 @@ BAZEL_GOOS_CONSTRAINTS = {
     "freebsd": "@platforms//os:freebsd",
     "ios": "@platforms//os:ios",
     "linux": "@platforms//os:linux",
+    "qnx": "@platforms//os:qnx",
     "windows": "@platforms//os:windows",
 }
 
@@ -77,6 +78,14 @@ GOOS_GOARCH = (
     ("openbsd", "amd64"),
     ("openbsd", "arm"),
     ("openbsd", "arm64"),
+    ("osx", "386"),
+    ("osx", "amd64"),
+    ("osx", "arm"),
+    ("osx", "arm64"),
+    ("qnx", "386"),
+    ("qnx", "amd64"),
+    ("qnx", "arm"),
+    ("qnx", "arm64"),
     ("plan9", "386"),
     ("plan9", "amd64"),
     ("plan9", "arm"),
