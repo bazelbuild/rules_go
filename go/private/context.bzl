@@ -516,41 +516,13 @@ def go_context(ctx, attr = None):
     if mode.arm:
         env["GOARM"] = mode.arm
 
-    if not cgo_context_info:
-        cc_toolchain_files = depset()
-        cgo_tools = None
-    else:
+    if cgo_context_info:
         env.update(cgo_context_info.env)
         cc_toolchain_files = cgo_context_info.cc_toolchain_files
-
-        # Add C toolchain directories to PATH.
-        # On ARM, go tool link uses some features of gcc to complete its work,
-        # so PATH is needed on ARM.
-        path_set = {}
-        if "PATH" in env:
-            for p in env["PATH"].split(ctx.configuration.host_path_separator):
-                path_set[p] = None
         cgo_tools = cgo_context_info.cgo_tools
-        tool_paths = [
-            cgo_tools.c_compiler_path,
-            cgo_tools.ld_executable_path,
-            cgo_tools.ld_static_lib_path,
-            cgo_tools.ld_dynamic_lib_path,
-        ]
-        for tool_path in tool_paths:
-            tool_dir = tool_path[:tool_path.rfind("/")]
-            path_set[tool_dir] = None
-        paths = sorted(path_set.keys())
-        if ctx.configuration.host_path_separator == ":":
-            # HACK: ":" is a proxy for a UNIX-like host.
-            # The tools returned above may be bash scripts that reference commands
-            # in directories we might not otherwise include. For example,
-            # on macOS, wrapped_ar calls dirname.
-            if "/bin" not in path_set:
-                paths.append("/bin")
-            if "/usr/bin" not in path_set:
-                paths.append("/usr/bin")
-        env["PATH"] = ctx.configuration.host_path_separator.join(paths)
+    else:
+        cc_toolchain_files = depset()
+        cgo_tools = None
 
     _check_importpaths(ctx)
     importpath, importmap, pathtype = _infer_importpath(ctx, attr)
@@ -826,6 +798,34 @@ def _cgo_context_data_impl(ctx):
         (ld_executable_options, ld_dynamic_lib_options),
         cc_toolchain.target_gnu_system_name,
     )
+
+    # Add C toolchain directories to PATH.
+    # On ARM, go tool link uses some features of gcc to complete its work,
+    # so PATH is needed on ARM.
+    path_set = {}
+    if "PATH" in env:
+        for p in env["PATH"].split(ctx.configuration.host_path_separator):
+            path_set[p] = None
+    tool_paths = [
+        c_compiler_path,
+        ld_executable_path,
+        ld_static_lib_path,
+        ld_dynamic_lib_path,
+    ]
+    for tool_path in tool_paths:
+        tool_dir = tool_path[:tool_path.rfind("/")]
+        path_set[tool_dir] = None
+    paths = sorted(path_set.keys())
+    if ctx.configuration.host_path_separator == ":":
+        # HACK: ":" is a proxy for a UNIX-like host.
+        # The tools returned above may be bash scripts that reference commands
+        # in directories we might not otherwise include. For example,
+        # on macOS, wrapped_ar calls dirname.
+        if "/bin" not in path_set:
+            paths.append("/bin")
+        if "/usr/bin" not in path_set:
+            paths.append("/usr/bin")
+    env["PATH"] = ctx.configuration.host_path_separator.join(paths)
 
     return [CgoContextInfo(
         cc_toolchain_files = cc_toolchain.all_files,
