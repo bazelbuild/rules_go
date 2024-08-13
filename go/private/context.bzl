@@ -221,7 +221,7 @@ def _merge_embed(source, embed):
     source["srcs"] = s.srcs + source["srcs"]
     source["orig_srcs"] = s.orig_srcs + source["orig_srcs"]
     source["embedsrcs"] = source["embedsrcs"] + s.embedsrcs
-    source["cover"] = source["cover"] + s.cover
+    source["cover"] = depset(transitive = [source["cover"], s.cover])
     source["deps"] = source["deps"] + s.deps
     source["x_defs"].update(s.x_defs)
     source["gc_goopts"] = source["gc_goopts"] + s.gc_goopts
@@ -273,8 +273,8 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "mode": go.mode,
         "srcs": srcs,
         "orig_srcs": srcs,
-        "cover": [],
         "embedsrcs": embedsrcs,
+        "cover": depset(attr_srcs) if coverage_instrumented else depset(),
         "x_defs": {},
         "deps": deps,
         "gc_goopts": _expand_opts(go, "gc_goopts", getattr(attr, "gc_goopts", [])),
@@ -289,8 +289,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "cc_info": None,
         "pgoprofile": getattr(attr, "pgoprofile", None),
     }
-    if coverage_instrumented:
-        source["cover"] = attr_srcs
+
     for dep in source["deps"]:
         _check_binary_dep(go, dep, "deps")
     for e in getattr(attr, "embed", []):
