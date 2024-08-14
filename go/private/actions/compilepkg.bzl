@@ -15,7 +15,7 @@
 load("//go/private:common.bzl", "GO_TOOLCHAIN_LABEL", "SUPPORTS_PATH_MAPPING_REQUIREMENT")
 load(
     "//go/private:mode.bzl",
-    "link_mode_args",
+    "link_mode_arg",
 )
 load("//go/private/actions:utils.bzl", "quote_opts")
 
@@ -143,9 +143,9 @@ def emit_compilepkg(
     if testfilter:
         args.add("-testfilter", testfilter)
 
-    gc_flags = list(gc_goopts)
-    gc_flags.extend(go.mode.gc_goopts)
-    asm_flags = []
+    link_mode_flag = link_mode_arg(go.mode)
+
+    gc_flags = gc_goopts + go.mode.gc_goopts
     if go.mode.race:
         gc_flags.append("-race")
     if go.mode.msan:
@@ -153,10 +153,12 @@ def emit_compilepkg(
     if go.mode.debug:
         gc_flags.extend(["-N", "-l"])
     gc_flags.extend(go.toolchain.flags.compile)
-    gc_flags.extend(link_mode_args(go.mode))
-    asm_flags.extend(link_mode_args(go.mode))
+    if link_mode_flag:
+        gc_flags.append(link_mode_flag)
     args.add("-gcflags", quote_opts(gc_flags))
-    args.add("-asmflags", quote_opts(asm_flags))
+
+    if link_mode_flag:
+        args.add("-asmflags", link_mode_flag)
 
     # cgo and the linker action don't support path mapping yet
     # TODO: Remove the second condition after https://github.com/bazelbuild/bazel/pull/21921.

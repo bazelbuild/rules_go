@@ -22,7 +22,7 @@ load(
     "//go/private:mode.bzl",
     "LINKMODE_NORMAL",
     "extldflags_from_cc_toolchain",
-    "link_mode_args",
+    "link_mode_arg",
 )
 load(
     "//go/private:providers.bzl",
@@ -133,7 +133,10 @@ def _build_stdlib(go):
     args.add("-package", "std")
     if not go.mode.pure:
         args.add("-package", "runtime/cgo")
-    args.add_all(link_mode_args(go.mode))
+
+    link_mode_flag = link_mode_arg(go.mode)
+    if link_mode_flag:
+        args.add(link_mode_flag)
 
     args.add("-gcflags", quote_opts(go.mode.gc_goopts))
 
