@@ -154,9 +154,11 @@ def emit_link(
     # Process x_defs, and record whether stamping is used.
     stamp_x_defs_volatile = False
     stamp_x_defs_stable = False
+    should_stamp = go.stamp if (archive.stamp == -1) else bool(archive.stamp)
+
     for k, v in archive.x_defs.items():
         builder_args.add("-X", "%s=%s" % (k, v))
-        if go.stamp:
+        if should_stamp:
             stable_vars_count = (count_group_matches(v, "{STABLE_", "}") +
                                  v.count("{BUILD_EMBED_LABEL}") +
                                  v.count("{BUILD_USER}") +

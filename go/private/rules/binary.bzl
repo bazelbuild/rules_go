@@ -266,6 +266,16 @@ _go_binary_kwargs = {
             See [Defines and stamping] for examples of how to use these.
             """,
         ),
+        "stamp": attr.int(
+            doc = """Whether to stamp this binary (0 for false, 1 for true).
+            See [Defines and stamping] for more details on the behavior of stamping.
+            If set to -1 (the default), stamping will be controlled by the `--[no]stamp` flag.
+            """,
+            default = -1,
+            # Optional bool would be nicer, but isn't supported:
+            # https://github.com/bazelbuild/bazel/issues/14434
+            values = [-1, 0, 1],
+        ),
         "basename": attr.string(
             doc = """The basename of this binary. The binary
             basename may also be platform-dependent: on Windows, we add an .exe extension.

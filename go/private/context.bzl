@@ -275,6 +275,7 @@ def _library_to_source(go, attr, library, coverage_instrumented):
         "embedsrcs": embedsrcs,
         "cover": depset(attr_srcs) if coverage_instrumented else depset(),
         "x_defs": {},
+        "stamp": getattr(attr, "stamp", -1),
         "deps": deps,
         "gc_goopts": _expand_opts(go, "gc_goopts", getattr(attr, "gc_goopts", [])),
         "runfiles": _collect_runfiles(go, getattr(attr, "data", []), attr_deps),
