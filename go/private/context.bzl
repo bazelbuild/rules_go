@@ -49,9 +49,6 @@ load(
     "COVERAGE_OPTIONS_DENYLIST",
     "GO_TOOLCHAIN",
     "as_iterable",
-    "goos_to_extension",
-    "goos_to_shared_extension",
-    "is_struct",
 )
 load(
     ":mode.bzl",
@@ -70,6 +67,7 @@ load(
     "GoSource",
     "GoStdLib",
     "INFERRED_PATH",
+    "get_archive",
     "get_source",
 )
 
@@ -159,10 +157,6 @@ def _declare_file(go, path = "", ext = "", name = ""):
 def _declare_directory(go, path = "", ext = "", name = ""):
     return go.actions.declare_directory(_child_name(go, path, ext, name))
 
-def _new_args(go):
-    # TODO(jayconrod): print warning.
-    return go.builder_args(go)
-
 def _dirname(file):
     return file.dirname
 
@@ -172,7 +166,8 @@ def _builder_args(go, command = None, use_path_mapping = False):
     args.set_param_file_format("shell")
     if command:
         args.add(command)
-    args.add("-sdk", go.sdk.root_file.dirname)
+    sdk_root_file = go.sdk.root_file
+    args.add("-sdk", sdk_root_file.dirname)
 
     # Path mapping can't map the values of environment variables, so we need to pass GOROOT to the
     # action via an argument instead.
@@ -180,13 +175,13 @@ def _builder_args(go, command = None, use_path_mapping = False):
         if go.stdlib:
             goroot_file = go.stdlib.root_file
         else:
-            goroot_file = go.sdk_root
+            goroot_file = sdk_root_file
 
         # Use a file rather than goroot as the latter is just a string and thus
         # not subject to path mapping.
         args.add_all("-goroot", [goroot_file], map_each = _dirname, expand_directories = False)
     args.add("-installsuffix", installsuffix(go.mode))
-    args.add_joined("-tags", go.tags, join_with = ",")
+    args.add_joined("-tags", go.mode.tags, join_with = ",")
     return args
 
 def _tool_args(go):
@@ -221,10 +216,8 @@ def _new_library(go, name = None, importpath = None, resolver = None, importable
 def _merge_embed(source, embed):
     s = get_source(embed)
     source["srcs"] = s.srcs + source["srcs"]
-    source["orig_srcs"] = s.orig_srcs + source["orig_srcs"]
-    source["orig_src_map"].update(s.orig_src_map)
     source["embedsrcs"] = source["embedsrcs"] + s.embedsrcs
-    source["cover"] = source["cover"] + s.cover
+    source["cover"] = depset(transitive = [source["cover"], s.cover])
     source["deps"] = source["deps"] + s.deps
     source["x_defs"].update(s.x_defs)
     source["gc_goopts"] = source["gc_goopts"] + s.gc_goopts
@@ -237,31 +230,26 @@ def _merge_embed(source, embed):
     source["copts"] = source["copts"] or s.copts
     source["cxxopts"] = source["cxxopts"] or s.cxxopts
     source["clinkopts"] = source["clinkopts"] or s.clinkopts
-    source["cgo_deps"] = source["cgo_deps"] + s.cgo_deps
-    source["cgo_exports"] = source["cgo_exports"] + s.cgo_exports
 
-def _dedup_deps(deps):
-    """Returns a list of deps without duplicate import paths.
+def _dedup_archives(archives):
+    """Returns a list of archives without duplicate import paths.
 
-    Earlier targets take precedence over later targets. This is intended to
+    Earlier archives take precedence over later targets. This is intended to
     allow an embedding library to override the dependencies of its
     embedded libraries.
 
     Args:
-      deps: an iterable containing either Targets or GoArchives.
+      archives: an iterable of GoArchives.
     """
-    deduped_deps = []
+    deduped_archives = []
     importpaths = {}
-    for dep in deps:
-        if hasattr(dep, "data") and hasattr(dep.data, "importpath"):
-            importpath = dep.data.importpath
-        else:
-            importpath = dep[GoLibrary].importpath
+    for arc in archives:
+        importpath = arc.data.importpath
         if importpath in importpaths:
             continue
         importpaths[importpath] = None
-        deduped_deps.append(dep)
-    return deduped_deps
+        deduped_archives.append(arc)
+    return deduped_archives
 
 def _library_to_source(go, attr, library, coverage_instrumented):
     #TODO: stop collapsing a depset in this line...
@@ -272,37 +260,31 @@ def _library_to_source(go, attr, library, coverage_instrumented):
     attr_deps = getattr(attr, "deps", [])
     generated_deps = getattr(library, "deps", [])
     deps = attr_deps + generated_deps
+    deps = [get_archive(dep) for dep in deps]
     source = {
         "library": library,
         "mode": go.mode,
         "srcs": srcs,
-        "orig_srcs": srcs,
-        "orig_src_map": {},
-        "cover": [],
         "embedsrcs": embedsrcs,
+        "cover": depset(attr_srcs) if coverage_instrumented else depset(),
         "x_defs": {},
         "deps": deps,
         "gc_goopts": _expand_opts(go, "gc_goopts", getattr(attr, "gc_goopts", [])),
-        "runfiles": _collect_runfiles(go, getattr(attr, "data", []), getattr(attr, "deps", [])),
+        "runfiles": _collect_runfiles(go, getattr(attr, "data", []), attr_deps),
         "cgo": getattr(attr, "cgo", False),
         "cdeps": getattr(attr, "cdeps", []),
         "cppopts": _expand_opts(go, "cppopts", getattr(attr, "cppopts", [])),
         "copts": _expand_opts(go, "copts", getattr(attr, "copts", [])),
         "cxxopts": _expand_opts(go, "cxxopts", getattr(attr, "cxxopts", [])),
         "clinkopts": _expand_opts(go, "clinkopts", getattr(attr, "clinkopts", [])),
-        "cgo_deps": [],
-        "cgo_exports": [],
-        "cc_info": None,
         "pgoprofile": getattr(attr, "pgoprofile", None),
     }
-    if coverage_instrumented:
-        source["cover"] = attr_srcs
-    for dep in source["deps"]:
-        _check_binary_dep(go, dep, "deps")
+
     for e in getattr(attr, "embed", []):
-        _check_binary_dep(go, e, "embed")
         _merge_embed(source, e)
-    source["deps"] = _dedup_deps(source["deps"])
+
+    source["deps"] = _dedup_archives(source["deps"])
+
     x_defs = source["x_defs"]
     for k, v in getattr(attr, "x_defs", {}).items():
         v = _expand_location(go, attr, v)
@@ -319,9 +301,10 @@ def _library_to_source(go, attr, library, coverage_instrumented):
             # sources. compilepkg will catch these instead.
             if f.extension in ("c", "cc", "cxx", "cpp", "hh", "hpp", "hxx"):
                 fail("source {} has C/C++ extension, but cgo was not enabled (set 'cgo = True')".format(f.path))
+
     if library.resolve:
         library.resolve(go, attr, source, _merge_embed)
-    source["cc_info"] = _collect_cc_infos(source["deps"], source["cdeps"])
+
     return GoSource(**source)
 
 def _collect_runfiles(go, data, deps):
@@ -329,86 +312,34 @@ def _collect_runfiles(go, data, deps):
 
     srcs and their runfiles are not included."""
     files = depset(transitive = [t[DefaultInfo].files for t in data])
-    runfiles = go._ctx.runfiles(transitive_files = files)
-    for t in data:
-        runfiles = runfiles.merge(t[DefaultInfo].data_runfiles)
-    for t in deps:
-        runfiles = runfiles.merge(get_source(t).runfiles)
-    return runfiles
+    return go._ctx.runfiles(transitive_files = files).merge_all(
+        [t[DefaultInfo].data_runfiles for t in data] +
+        [get_source(t).runfiles for t in deps],
+    )
 
-def _collect_cc_infos(deps, cdeps):
-    cc_infos = []
-    for dep in cdeps:
-        if CcInfo in dep:
-            cc_infos.append(dep[CcInfo])
-    for dep in deps:
-        # dep may be a struct, which doesn't support indexing by providers.
-        if is_struct(dep):
-            continue
-        if GoSource in dep:
-            cc_infos.append(dep[GoSource].cc_info)
-    return cc_common.merge_cc_infos(cc_infos = cc_infos)
-
-def _check_binary_dep(go, dep, edge):
-    """Checks that this rule doesn't depend on a go_binary or go_test.
-
-    go_binary and go_test may return provides with useful information for other
-    rules (like go_path), but go_binary and go_test may not depend on other
-    go_binary and go_binary targets. Their dependencies may be built in
-    different modes, resulting in conflicts and opaque errors.
-    """
-    if (type(dep) == "Target" and
-        DefaultInfo in dep and
-        getattr(dep[DefaultInfo], "files_to_run", None) and
-        dep[DefaultInfo].files_to_run.executable):
-        fail("rule {rule} depends on executable {dep} via {edge}. This is not safe for cross-compilation. Depend on go_library instead.".format(
-            rule = str(go.label),
-            dep = str(dep.label),
-            edge = edge,
-        ))
-
-def _check_importpaths(ctx):
-    paths = []
-    p = getattr(ctx.attr, "importpath", "")
-    if p:
-        paths.append(p)
-    p = getattr(ctx.attr, "importmap", "")
-    if p:
-        paths.append(p)
-    paths.extend(getattr(ctx.attr, "importpath_aliases", ()))
-
-    for p in paths:
-        if ":" in p:
-            fail("import path '%s' contains invalid character :" % p)
-
-def _infer_importpath(ctx, attr):
-    DEFAULT_LIB = "go_default_library"
+def _infer_importpath(ctx, embeds, importpath, importmap):
     VENDOR_PREFIX = "/vendor/"
 
     # Check if paths were explicitly set, either in this rule or in an
     # embedded rule.
-    attr_importpath = getattr(attr, "importpath", "")
-    attr_importmap = getattr(attr, "importmap", "")
     embed_importpath = ""
     embed_importmap = ""
-    for embed in getattr(attr, "embed", []):
-        if GoLibrary not in embed:
-            continue
+    for embed in embeds:
         lib = embed[GoLibrary]
         if lib.pathtype == EXPLICIT_PATH:
             embed_importpath = lib.importpath
             embed_importmap = lib.importmap
             break
 
-    importpath = attr_importpath or embed_importpath
-    importmap = attr_importmap or embed_importmap or importpath
+    importpath = importpath or embed_importpath
+    importmap = importmap or embed_importmap or importpath
     if importpath:
         return importpath, importmap, EXPLICIT_PATH
 
     # Guess an import path based on the directory structure
-    # This should only really be relied on for binaries
+    # This should only be executed for binaries, since Gazelle generates importpath for libraries.
     importpath = ctx.label.package
-    if ctx.label.name != DEFAULT_LIB and not importpath.endswith(ctx.label.name):
+    if not importpath.endswith(ctx.label.name):
         importpath += "/" + ctx.label.name
     if importpath.rfind(VENDOR_PREFIX) != -1:
         importpath = importpath[len(VENDOR_PREFIX) + importpath.rfind(VENDOR_PREFIX):]
@@ -435,15 +366,22 @@ def _matches_scopes(label, scopes):
             return True
     return False
 
-def _get_nogo(go):
+def get_nogo(go):
     """Returns the nogo file for this target, if enabled and in scope."""
-    label = go._ctx.label
+    label = go.label
     if _matches_scopes(label, NOGO_INCLUDES) and not _matches_scopes(label, NOGO_EXCLUDES):
         return go.nogo
     else:
         return None
 
-def go_context(ctx, attr = None):
+def go_context(
+        ctx,
+        attr = None,
+        include_deprecated_properties = True,
+        importpath = None,
+        importmap = None,
+        embed = None,
+        importpath_aliases = None):
     """Returns an API used to build Go code.
 
     See /go/toolchains.rst#go-context
@@ -474,8 +412,6 @@ def go_context(ctx, attr = None):
         stdlib = _flatten_possibly_transitioned_attr(attr._stdlib)[GoStdLib]
 
     mode = get_mode(ctx, toolchain, cgo_context_info, go_config_info)
-    tags = mode.tags
-    binary = toolchain.sdk.go
 
     if stdlib:
         goroot = stdlib.root_file.dirname
@@ -485,7 +421,7 @@ def go_context(ctx, attr = None):
     env = {
         "GOARCH": mode.goarch,
         "GOOS": mode.goos,
-        "GOEXPERIMENT": ",".join(toolchain.sdk.experiments),
+        "GOEXPERIMENT": toolchain.sdk.experiments,
         "GOROOT": goroot,
         "GOROOT_FINAL": "GOROOT",
         "CGO_ENABLED": "0" if mode.pure else "1",
@@ -522,70 +458,58 @@ def go_context(ctx, attr = None):
     if mode.arm:
         env["GOARM"] = mode.arm
 
-    if not cgo_context_info:
-        cc_toolchain_files = []
-        cgo_tools = None
-    else:
+    if cgo_context_info:
         env.update(cgo_context_info.env)
         cc_toolchain_files = cgo_context_info.cc_toolchain_files
-
-        # Add C toolchain directories to PATH.
-        # On ARM, go tool link uses some features of gcc to complete its work,
-        # so PATH is needed on ARM.
-        path_set = {}
-        if "PATH" in env:
-            for p in env["PATH"].split(ctx.configuration.host_path_separator):
-                path_set[p] = None
         cgo_tools = cgo_context_info.cgo_tools
-        tool_paths = [
-            cgo_tools.c_compiler_path,
-            cgo_tools.ld_executable_path,
-            cgo_tools.ld_static_lib_path,
-            cgo_tools.ld_dynamic_lib_path,
-        ]
-        for tool_path in tool_paths:
-            tool_dir, _, _ = tool_path.rpartition("/")
-            path_set[tool_dir] = None
-        paths = sorted(path_set.keys())
-        if ctx.configuration.host_path_separator == ":":
-            # HACK: ":" is a proxy for a UNIX-like host.
-            # The tools returned above may be bash scripts that reference commands
-            # in directories we might not otherwise include. For example,
-            # on macOS, wrapped_ar calls dirname.
-            if "/bin" not in path_set:
-                paths.append("/bin")
-            if "/usr/bin" not in path_set:
-                paths.append("/usr/bin")
-        env["PATH"] = ctx.configuration.host_path_separator.join(paths)
+    else:
+        cc_toolchain_files = depset()
+        cgo_tools = None
 
-    # TODO(jayconrod): remove this. It's way too broad. Everything should
-    # depend on more specific lists.
-    sdk_files = ([toolchain.sdk.go] +
-                 toolchain.sdk.srcs +
-                 toolchain.sdk.headers +
-                 toolchain.sdk.libs +
-                 toolchain.sdk.tools)
+    if importpath == None:
+        importpath = getattr(attr, "importpath", "")
+    if ":" in importpath:
+        fail("import path '%s' contains invalid character :" % importpath)
 
-    _check_importpaths(ctx)
-    importpath, importmap, pathtype = _infer_importpath(ctx, attr)
-    importpath_aliases = tuple(getattr(attr, "importpath_aliases", ()))
+    if importmap == None:
+        importmap = getattr(attr, "importmap", "")
+    if ":" in importmap:
+        fail("import path '%s' contains invalid character :" % importmap)
+
+    if importpath_aliases == None:
+        importpath_aliases = getattr(attr, "importpath_aliases", ())
+    for p in importpath_aliases:
+        if ":" in p:
+            fail("import path '%s' contains invalid character :" % p)
+
+    if embed == None:
+        embed = getattr(attr, "embed", [])
+
+    importpath, importmap, pathtype = _infer_importpath(ctx, embed, importpath, importmap)
+
+    if include_deprecated_properties:
+        deprecated_properties = {
+            "root": goroot,
+            "go": toolchain.sdk.go,
+            "sdk_root": toolchain.sdk.root_file,
+            "sdk_tools": toolchain.sdk.tools,
+            "package_list": toolchain.sdk.package_list,
+            "tags": mode.tags,
+            "stamp": mode.stamp,
+            "cover_format": mode.cover_format,
+            "pgoprofile": mode.pgoprofile,
+        }
+    else:
+        deprecated_properties = {}
 
     return struct(
         # Fields
         toolchain = toolchain,
         sdk = toolchain.sdk,
         mode = mode,
-        root = goroot,
-        go = binary,
         stdlib = stdlib,
-        sdk_root = toolchain.sdk.root_file,
-        sdk_files = sdk_files,
-        sdk_tools = toolchain.sdk.tools,
         actions = ctx.actions,
-        exe_extension = goos_to_extension(mode.goos),
-        shared_extension = goos_to_shared_extension(mode.goos),
         cc_toolchain_files = cc_toolchain_files,
-        package_list = toolchain.sdk.package_list,
         importpath = importpath,
         importmap = importmap,
         importpath_aliases = importpath_aliases,
@@ -597,29 +521,27 @@ def go_context(ctx, attr = None):
         coverage_instrumented = ctx.coverage_instrumented(),
         env = env,
         env_for_path_mapping = env_for_path_mapping,
-        tags = tags,
-        stamp = mode.stamp,
         label = ctx.label,
-        cover_format = mode.cover_format,
-        pgoprofile = mode.pgoprofile,
+
         # Action generators
         archive = toolchain.actions.archive,
         binary = toolchain.actions.binary,
         link = toolchain.actions.link,
 
         # Helpers
-        args = _new_args,  # deprecated
         builder_args = _builder_args,
         tool_args = _tool_args,
         new_library = _new_library,
         library_to_source = _library_to_source,
         declare_file = _declare_file,
         declare_directory = _declare_directory,
-        get_nogo = _get_nogo,
 
         # Private
         # TODO: All uses of this should be removed
         _ctx = ctx,
+
+        # Deprecated
+        **deprecated_properties
     )
 
 def _go_context_data_impl(ctx):
@@ -845,8 +767,36 @@ def _cgo_context_data_impl(ctx):
         cc_toolchain.target_gnu_system_name,
     )
 
+    # Add C toolchain directories to PATH.
+    # On ARM, go tool link uses some features of gcc to complete its work,
+    # so PATH is needed on ARM.
+    path_set = {}
+    if "PATH" in env:
+        for p in env["PATH"].split(ctx.configuration.host_path_separator):
+            path_set[p] = None
+    tool_paths = [
+        c_compiler_path,
+        ld_executable_path,
+        ld_static_lib_path,
+        ld_dynamic_lib_path,
+    ]
+    for tool_path in tool_paths:
+        tool_dir = tool_path[:tool_path.rfind("/")]
+        path_set[tool_dir] = None
+    paths = sorted(path_set.keys())
+    if ctx.configuration.host_path_separator == ":":
+        # HACK: ":" is a proxy for a UNIX-like host.
+        # The tools returned above may be bash scripts that reference commands
+        # in directories we might not otherwise include. For example,
+        # on macOS, wrapped_ar calls dirname.
+        if "/bin" not in path_set:
+            paths.append("/bin")
+        if "/usr/bin" not in path_set:
+            paths.append("/usr/bin")
+    env["PATH"] = ctx.configuration.host_path_separator.join(paths)
+
     return [CgoContextInfo(
-        cc_toolchain_files = cc_toolchain.all_files.to_list(),
+        cc_toolchain_files = cc_toolchain.all_files,
         tags = tags,
         env = env,
         cgo_tools = struct(

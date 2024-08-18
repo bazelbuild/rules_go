@@ -12,6 +12,9 @@ go_library(
         "@io_bazel_rules_go//go/platform:linux_amd64": [
             "cgo_linux.go",
         ],
+        "@io_bazel_rules_go//go/platform:linux_arm64": [
+            "cgo_linux.go",
+        ],
         "@io_bazel_rules_go//go/platform:windows_amd64": [
             "cgo_windows.go",
         ],
@@ -24,6 +27,9 @@ go_library(
             ":darwin_lib",
         ],
         "@io_bazel_rules_go//go/platform:linux_amd64": [
+            ":linux_lib",
+        ],
+        "@io_bazel_rules_go//go/platform:linux_arm64": [
             ":linux_lib",
         ],
         "@io_bazel_rules_go//go/platform:windows_amd64": [

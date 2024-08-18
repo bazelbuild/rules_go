@@ -19,7 +19,6 @@ load(
 load(
     "//go/private:common.bzl",
     "GO_TOOLCHAIN_LABEL",
-    "as_set",
     "count_group_matches",
     "has_shared_lib_extension",
 )
@@ -137,7 +136,7 @@ def emit_link(
         not any([arc.importmap == go.coverdata.data.importmap for arc in arcs])):
         arcs.append(go.coverdata.data)
     builder_args.add_all(arcs, before_each = "-arc", map_each = _format_archive)
-    builder_args.add("-package_list", go.package_list)
+    builder_args.add("-package_list", go.sdk.package_list)
 
     # Build a list of rpaths for dynamic libraries we need to find.
     # rpaths are relative paths from the binary to directories where libraries
@@ -157,7 +156,7 @@ def emit_link(
     stamp_x_defs_stable = False
     for k, v in archive.x_defs.items():
         builder_args.add("-X", "%s=%s" % (k, v))
-        if go.stamp:
+        if go.mode.stamp:
             stable_vars_count = (count_group_matches(v, "{STABLE_", "}") +
                                  v.count("{BUILD_EMBED_LABEL}") +
                                  v.count("{BUILD_USER}") +
@@ -201,9 +200,9 @@ def emit_link(
     inputs_transitive = [
         archive.libs,
         archive.cgo_deps,
-        as_set(go.cc_toolchain_files),
-        as_set(go.sdk.tools),
-        as_set(go.stdlib.libs),
+        go.cc_toolchain_files,
+        go.sdk.tools,
+        go.stdlib.libs,
     ]
     inputs = depset(direct = inputs_direct, transitive = inputs_transitive)
 

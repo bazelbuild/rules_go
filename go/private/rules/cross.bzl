@@ -15,8 +15,6 @@
 load(
     "//go/private:providers.bzl",
     "GoArchive",
-    "GoLibrary",
-    "GoSource",
 )
 load(
     "//go/private/rules:transition.bzl",
@@ -84,8 +82,6 @@ def _go_cross_impl(ctx):
     providers = [
         ctx.attr.target[provider]
         for provider in [
-            GoLibrary,
-            GoSource,
             GoArchive,
             OutputGroupInfo,
             CcInfo,
@@ -100,7 +96,7 @@ _go_cross_kwargs = {
         "target": attr.label(
             doc = """Go binary target to transition to the given platform and/or sdk_version.
             """,
-            providers = [GoLibrary, GoSource, GoArchive],
+            providers = [GoArchive],
             mandatory = True,
         ),
         "platform": attr.label(

@@ -182,7 +182,7 @@ def proto_path(src, proto):
     return src.path[len(prefix):]
 
 def _go_proto_compiler_impl(ctx):
-    go = go_context(ctx)
+    go = go_context(ctx, include_deprecated_properties = False)
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     proto_toolchain = proto_toolchains.find_toolchain(

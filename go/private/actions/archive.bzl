@@ -15,7 +15,10 @@
 load(
     "//go/private:common.bzl",
     "as_tuple",
-    "split_srcs",
+)
+load(
+    "//go/private:context.bzl",
+    "get_nogo",
 )
 load(
     "//go/private:mode.bzl",
@@ -28,7 +31,6 @@ load(
     "GoArchive",
     "GoArchiveData",
     "effective_importpath_pkgpath",
-    "get_archive",
 )
 load(
     "//go/private/actions:compilepkg.bzl",
@@ -45,7 +47,6 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
     if source == None:
         fail("source is a required parameter")
 
-    split = split_srcs(source.srcs)
     testfilter = getattr(source.library, "testfilter", None)
     pre_ext = ""
     if go.mode.link == LINKMODE_C_ARCHIVE:
@@ -61,25 +62,25 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
     # store export information for compiling dependent packages separately
     out_export = go.declare_file(go, name = source.library.name, ext = pre_ext + ".x")
     out_cgo_export_h = None  # set if cgo used in c-shared or c-archive mode
-    out_facts = None
-    out_nogo_log = None
-    out_nogo_validation = None
-    nogo = go.get_nogo(go)
+
+    nogo = get_nogo(go)
     if nogo:
         out_facts = go.declare_file(go, name = source.library.name, ext = pre_ext + ".facts")
         out_nogo_log = go.declare_file(go, name = source.library.name, ext = pre_ext + ".nogo.log")
         out_nogo_validation = go.declare_file(go, name = source.library.name, ext = pre_ext + ".nogo")
+    else:
+        out_facts = None
+        out_nogo_log = None
+        out_nogo_validation = None
 
-    direct = [get_archive(dep) for dep in source.deps]
-    runfiles = source.runfiles
-    data_files = runfiles.files
+    direct = source.deps
 
     files = []
     for a in direct:
         files.append(a.runfiles)
         if a.source.mode != go.mode:
             fail("Archive mode does not match {} is {} expected {}".format(a.data.label, mode_string(a.source.mode), mode_string(go.mode)))
-    runfiles = runfiles.merge_all(files)
+    runfiles = source.runfiles.merge_all(files)
 
     importmap = "main" if source.library.is_main else source.library.importmap
     importpath, _ = effective_importpath_pkgpath(source.library)
@@ -92,7 +93,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         clinkopts = [f for fs in source.clinkopts for f in fs.split(" ")]
         cgo = cgo_configure(
             go,
-            srcs = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
+            srcs = source.srcs,
             cdeps = source.cdeps,
             cppopts = cppopts,
             copts = copts,
@@ -105,7 +106,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         runfiles = runfiles.merge(cgo.runfiles)
         emit_compilepkg(
             go,
-            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
+            sources = source.srcs,
             cover = source.cover,
             embedsrcs = source.embedsrcs,
             importpath = importpath,
@@ -134,7 +135,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         cgo_deps = depset()
         emit_compilepkg(
             go,
-            sources = split.go + split.c + split.asm + split.cxx + split.objc + split.headers + split.syso,
+            sources = source.srcs,
             cover = source.cover,
             embedsrcs = source.embedsrcs,
             importpath = importpath,
@@ -170,9 +171,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
 
         # GoSource fields
         srcs = as_tuple(source.srcs),
-        orig_srcs = as_tuple(source.orig_srcs),
-        _orig_src_map = tuple([source.orig_src_map.get(src, src) for src in source.srcs]),
-        _cover = as_tuple(source.cover),
+        _cover = source.cover,
         _embedsrcs = as_tuple(source.embedsrcs),
         _x_defs = tuple(source.x_defs.items()),
         _gc_goopts = as_tuple(source.gc_goopts),
@@ -182,7 +181,6 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         _copts = as_tuple(source.copts),
         _cxxopts = as_tuple(source.cxxopts),
         _clinkopts = as_tuple(source.clinkopts),
-        _cgo_exports = as_tuple(source.cgo_exports),
 
         # Information on dependencies
         _dep_labels = tuple([d.data.label for d in direct]),
@@ -192,20 +190,18 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         file = out_lib,
         export_file = out_export,
         facts_file = out_facts,
-        data_files = as_tuple(data_files),
+        runfiles = source.runfiles,
         _validation_output = out_nogo_validation,
         _cgo_deps = as_tuple(cgo_deps),
     )
     x_defs = dict(source.x_defs)
     for a in direct:
         x_defs.update(a.x_defs)
-    cgo_exports_direct = list(source.cgo_exports)
 
     # Ensure that the _cgo_export.h of the current target comes first when cgo_exports is iterated
     # by prepending it and specifying the order explicitly. This is required as the CcInfo attached
     # to the archive only exposes a single header rather than combining all headers.
-    if out_cgo_export_h:
-        cgo_exports_direct.insert(0, out_cgo_export_h)
+    cgo_exports_direct = [out_cgo_export_h] if out_cgo_export_h else []
     cgo_exports = depset(direct = cgo_exports_direct, transitive = [a.cgo_exports for a in direct], order = "preorder")
     return GoArchive(
         source = source,
@@ -217,5 +213,4 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
         cgo_deps = depset(transitive = [cgo_deps] + [a.cgo_deps for a in direct]),
         cgo_exports = cgo_exports,
         runfiles = runfiles,
-        mode = go.mode,
     )

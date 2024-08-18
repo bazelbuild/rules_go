@@ -34,7 +34,13 @@ load(
 
 def _go_library_impl(ctx):
     """Implements the go_library() rule."""
-    go = go_context(ctx)
+    go = go_context(
+        ctx,
+        include_deprecated_properties = False,
+        importpath = ctx.attr.importpath,
+        importmap = ctx.attr.importmap,
+        embed = ctx.attr.embed,
+    )
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     archive = go.archive(go, source)

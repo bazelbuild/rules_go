@@ -570,16 +570,6 @@ Fields
 | Controls the compilation setup affecting things like enabling profilers and sanitizers.          |
 | See `compilation modes`_ for more information about the allowed values.                          |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`root`                  | :type:`string`                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| Path of the effective GOROOT. If :param:`stdlib` is set, this is the same                        |
-| as ``go.stdlib.root_file.dirname``. Otherwise, this is the same as                               |
-| ``go.sdk.root_file.dirname``.                                                                    |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`go`                    | :type:`File`                                                    |
-+--------------------------------+-----------------------------------------------------------------+
-| The main "go" binary used to run go sdk tools.                                                   |
-+--------------------------------+-----------------------------------------------------------------+
 | :param:`stdlib`                | :type:`GoStdLib`                                                |
 +--------------------------------+-----------------------------------------------------------------+
 | The standard library and tools to use in this build mode. This may be the                        |
@@ -591,32 +581,40 @@ Fields
 | The actions structure from the Bazel context, which has all the methods for building new         |
 | bazel actions.                                                                                   |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`exe_extension`         | :type:`string`                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| The suffix to use for all executables in this build mode. Mostly used when generating the output |
-| filenames of binary rules.                                                                       |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`shared_extension`      | :type:`string`                                                  |
-+--------------------------------+-----------------------------------------------------------------+
-| The suffix to use for shared libraries in this build mode. Mostly used when                      |
-| generating output filenames of binary rules.                                                     |
-+--------------------------------+-----------------------------------------------------------------+
 | :param:`cc_toolchain_files`    | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
 | The files you need to add to the inputs of an action in order to use the cc toolchain.           |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`package_list`          | :type:`File`                                                    |
-+--------------------------------+-----------------------------------------------------------------+
-| A file that contains the package list of the standard library.                                   |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`env`                   | :type:`dict of string to string`                                |
 +--------------------------------+-----------------------------------------------------------------+
 | Environment variables to pass to actions. Includes ``GOARCH``, ``GOOS``,                         |
 | ``GOROOT``, ``GOROOT_FINAL``, ``CGO_ENABLED``, and ``PATH``.                                     |
 +--------------------------------+-----------------------------------------------------------------+
+
+Deprecated Fields
+^^^^^^
+
++--------------------------------+-----------------------------------------------------------------+
+| **Name**                       | **Type**                                                        |
++--------------------------------+-----------------------------------------------------------------+
++--------------------------------+-----------------------------------------------------------------+
+| :param:`root`                  | :type:`string`                                                  |
++--------------------------------+-----------------------------------------------------------------+
+| Prefer `go.env["GOROOT"]`. Path of the effective GOROOT. If :param:`stdlib` is set,              |
+| this is the same as ``go.stdlib.root_file.dirname``. Otherwise, this is the same as              |
+| ``go.sdk.root_file.dirname``.                                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`go`                    | :type:`File`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| Prefer `go.sdk.go`. The main "go" binary used to run go sdk tools.                               |
++--------------------------------+-----------------------------------------------------------------+
+| :param:`package_list`          | :type:`File`                                                    |
++--------------------------------+-----------------------------------------------------------------+
+| Prefer `go.sdk.package_list`. A file that contains the package list of the standard library.     |
++--------------------------------+-----------------------------------------------------------------+
 | :param:`tags`                  | :type:`list of string`                                          |
 +--------------------------------+-----------------------------------------------------------------+
-| List of build tags used to filter source files.                                                  |
+| Prefer `go.mode.tags`. List of build tags used to filter source files.                           |
 +--------------------------------+-----------------------------------------------------------------+
 
 Methods

@@ -25,7 +25,6 @@ load(
     "asm_exts",
     "cgo_exts",
     "go_exts",
-    "split_srcs",
 )
 load(
     "//go/private:context.bzl",
@@ -41,7 +40,6 @@ load(
     "GoLibrary",
     "GoSource",
     "INFERRED_PATH",
-    "get_archive",
 )
 load(
     "//go/private/rules:binary.bzl",
@@ -58,13 +56,13 @@ def _go_test_impl(ctx):
     It emits an action to run the test generator, and then compiles the
     test into a binary."""
 
-    go = go_context(ctx)
+    go = go_context(ctx, include_deprecated_properties = False)
 
     # Compile the library to test with internal white box tests
     internal_library = go.new_library(go, testfilter = "exclude")
     internal_source = go.library_to_source(go, ctx.attr, internal_library, ctx.coverage_instrumented())
     internal_archive = go.archive(go, internal_source)
-    go_srcs = split_srcs(internal_source.srcs).go
+    go_srcs = [src for src in internal_source.srcs if src.extension == "go"]
 
     # Compile the library with the external black box tests
     external_library = go.new_library(
@@ -102,7 +100,7 @@ def _go_test_impl(ctx):
             arguments.add("-cover_mode", "atomic")
         else:
             arguments.add("-cover_mode", "set")
-        arguments.add("-cover_format", go.cover_format)
+        arguments.add("-cover_format", go.mode.cover_format)
     arguments.add(
         # the l is the alias for the package under test, the l_test must be the
         # same with the test suffix
@@ -150,7 +148,7 @@ def _go_test_impl(ctx):
         resolve = None,
     )
     test_deps = external_archive.direct + [external_archive] + ctx.attr._testmain_additional_deps
-    if ctx.configuration.coverage_enabled:
+    if go.coverage_enabled:
         test_deps.append(go.coverdata)
     test_source = go.library_to_source(go, struct(
         srcs = [struct(files = [main_go])],
@@ -526,7 +524,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     # Build a map from labels to GoArchiveData.
     # If none of the librares embedded in the internal archive are in the
     # dependency graph, then nothing needs to be recompiled.
-    arc_data_list = depset(transitive = [get_archive(dep).transitive for dep in external_source.deps]).to_list()
+    arc_data_list = depset(transitive = [archive.transitive for archive in external_source.deps]).to_list()
     label_to_arc_data = {a.label: a for a in arc_data_list}
     if all([l not in label_to_arc_data for l in library_labels]):
         return external_source, internal_archive
@@ -544,7 +542,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     dep_list = []
 
     # stack is a stack of targets to process. We're done when it's empty.
-    stack = [get_archive(dep).data.label for dep in external_source.deps]
+    stack = [archive.data.label for archive in external_source.deps]
 
     # deps_pushed tracks the status of each target.
     # DEPS_UNPROCESSED means the target is on the stack, but its dependencies
@@ -623,10 +621,10 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     # Pass internal dependencies that need to be recompiled down to the builder to check if the internal archive
     # tries to import any of the dependencies. If there is, that means that there is a dependency cycle.
     need_recompile_deps = []
-    for dep in internal_source.deps:
-        dep_data = get_archive(dep).data
+    for archive in internal_source.deps:
+        dep_data = archive.data
         if not need_recompile[dep_data.label]:
-            internal_deps.append(dep)
+            internal_deps.append(archive)
         else:
             need_recompile_deps.append(dep_data.importpath)
 
@@ -674,21 +672,18 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
             library = library,
             mode = go.mode,
             srcs = as_list(arc_data.srcs),
-            orig_srcs = as_list(arc_data.orig_srcs),
-            orig_src_map = dict(zip(arc_data.srcs, arc_data._orig_src_map)),
             cover = arc_data._cover,
             embedsrcs = as_list(arc_data._embedsrcs),
             x_defs = dict(arc_data._x_defs),
             deps = deps,
             gc_goopts = as_list(arc_data._gc_goopts),
-            runfiles = go._ctx.runfiles(files = arc_data.data_files),
+            runfiles = arc_data.runfiles,
             cgo = arc_data._cgo,
             cdeps = as_list(arc_data._cdeps),
             cppopts = as_list(arc_data._cppopts),
             copts = as_list(arc_data._copts),
             cxxopts = as_list(arc_data._cxxopts),
             clinkopts = as_list(arc_data._clinkopts),
-            cgo_exports = as_list(arc_data._cgo_exports),
         )
 
         # If this archive needs to be recompiled, use go.archive.
@@ -705,7 +700,7 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
                 transitive = depset(direct = [arc_data], transitive = [a.transitive for a in deps]),
                 x_defs = source.x_defs,
                 cgo_deps = depset(direct = arc_data._cgo_deps, transitive = [a.cgo_deps for a in deps]),
-                cgo_exports = depset(direct = list(source.cgo_exports), transitive = [a.cgo_exports for a in deps]),
+                cgo_exports = depset(transitive = [a.cgo_exports for a in deps]),
                 runfiles = source.runfiles,
                 mode = go.mode,
             )
@@ -714,5 +709,5 @@ def _recompile_external_deps(go, external_source, internal_archive, library_labe
     # Finally, we need to replace external_source.deps with the recompiled
     # archives.
     attrs = structs.to_dict(external_source)
-    attrs["deps"] = [label_to_archive[get_archive(dep).data.label] for dep in external_source.deps]
+    attrs["deps"] = [label_to_archive[archive.data.label] for archive in external_source.deps]
     return GoSource(**attrs), internal_archive

@@ -27,7 +27,7 @@ load(
 
 def _go_source_impl(ctx):
     """Implements the go_source() rule."""
-    go = go_context(ctx)
+    go = go_context(ctx, include_deprecated_properties = False)
     library = go.new_library(go)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     return [

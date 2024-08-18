@@ -50,23 +50,20 @@ def file_path(f):
     return paths.join(prefix, f.path)
 
 def _go_archive_to_pkg(archive):
+    go_files = [
+        file_path(src)
+        for src in archive.data.srcs
+        if src.path.endswith(".go")
+    ]
     return struct(
         ID = str(archive.data.label),
         PkgPath = archive.data.importpath,
         ExportFile = file_path(archive.data.export_file),
-        GoFiles = [
-            file_path(src)
-            for src in archive.data.orig_srcs
-            if src.path.endswith(".go")
-        ],
-        CompiledGoFiles = [
-            file_path(src)
-            for src in archive.data.srcs
-            if src.path.endswith(".go")
-        ],
+        GoFiles = go_files,
+        CompiledGoFiles = go_files,
         OtherFiles = [
             file_path(src)
-            for src in archive.data.orig_srcs
+            for src in archive.data.srcs
             if not src.path.endswith(".go")
         ],
         Imports = {

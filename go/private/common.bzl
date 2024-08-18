@@ -76,44 +76,6 @@ syso_exts = [
     ".syso",
 ]
 
-def split_srcs(srcs):
-    """Returns a struct of sources, divided by extension."""
-    sources = struct(
-        go = [],
-        asm = [],
-        headers = [],
-        c = [],
-        cxx = [],
-        objc = [],
-        syso = [],
-    )
-    ext_pairs = (
-        (sources.go, go_exts),
-        (sources.headers, hdr_exts),
-        (sources.asm, asm_exts),
-        (sources.c, c_exts),
-        (sources.cxx, cxx_exts),
-        (sources.objc, objc_exts),
-        (sources.syso, syso_exts),
-    )
-    extmap = {}
-    for outs, exts in ext_pairs:
-        for ext in exts:
-            ext = ext[1:]  # strip the dot
-            if ext in extmap:
-                break
-            extmap[ext] = outs
-    for src in as_iterable(srcs):
-        extouts = extmap.get(src.extension)
-        if extouts == None:
-            fail("Unknown source type {0}".format(src.basename))
-        extouts.append(src)
-    return sources
-
-def join_srcs(source):
-    """Combines source from a split_srcs struct into a single list."""
-    return source.go + source.headers + source.asm + source.c + source.cxx + source.objc + source.syso
-
 def os_path(ctx, path):
     path = str(path)  # maybe convert from path type
     if ctx.os.name.startswith("windows"):
@@ -209,22 +171,6 @@ def as_tuple(v):
     if type(v) == "depset":
         return tuple(v.to_list())
     fail("as_tuple failed on {}".format(v))
-
-def as_set(v):
-    """Returns a list, tuple, or depset as a depset."""
-    if type(v) == "depset":
-        return v
-    if type(v) == "list":
-        return depset(v)
-    if type(v) == "tuple":
-        return depset(v)
-    fail("as_tuple failed on {}".format(v))
-
-_STRUCT_TYPE = type(struct())
-
-def is_struct(v):
-    """Returns true if v is a struct."""
-    return type(v) == _STRUCT_TYPE
 
 def count_group_matches(v, prefix, suffix):
     """Counts reluctant substring matches between prefix and suffix.

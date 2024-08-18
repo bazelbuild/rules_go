@@ -129,16 +129,6 @@ method. In general, only rules_go should need to build or handle these.
 +--------------------------------+-----------------------------------------------------------------+
 | The sources to compile into the archive.                                                         |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`orig_srcs`             | :type:`list of File`                                            |
-+--------------------------------+-----------------------------------------------------------------+
-| The original source files this library is based on. This may differ from                         |
-| :param:`srcs` if processing tools such as cgo or cover are applied.                              |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`orig_src_map`          | :type:`dict of File to File`                                    |
-+--------------------------------+-----------------------------------------------------------------+
-| Maps generated files in :param:`srcs` back to :param:`orig_srcs`. Not all                        |
-| generated files may appear in here.                                                              |
-+--------------------------------+-----------------------------------------------------------------+
 | :param:`embedsrcs`             | :type:`list of File`                                            |
 +--------------------------------+-----------------------------------------------------------------+
 | Files that may be embedded into the compiled package using ``//go:embed``                        |
@@ -154,7 +144,7 @@ method. In general, only rules_go should need to build or handle these.
 +--------------------------------+-----------------------------------------------------------------+
 | Map of defines to add to the go link command.                                                    |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`deps`                  | :type:`list of Target`                                          |
+| :param:`deps`                  | :type:`list of GoArchive`                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | The direct dependencies needed by this library.                                                  |
 +--------------------------------+-----------------------------------------------------------------+
@@ -195,14 +185,6 @@ method. In general, only rules_go should need to build or handle these.
 | :param:`clinkopts`             | :type:`list of string`                                          |
 +--------------------------------+-----------------------------------------------------------------+
 | List of additional flags to pass to the external linker.                                         |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`cgo_deps`              | :type:`list of File`                                            |
-+--------------------------------+-----------------------------------------------------------------+
-| Deprecated; use ``cdeps`` instead. The direct cgo dependencies of this library.                  |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`cgo_exports`           | :type:`list of File`                                            |
-+--------------------------------+-----------------------------------------------------------------+
-| The exposed cc headers for these sources.                                                        |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`cc_info`               | :type:`CcInfo`                                                  |
 +--------------------------------+-----------------------------------------------------------------+
@@ -275,11 +257,7 @@ rule.  Instead, it's referenced in the ``data`` field of GoArchive_.
 | The .go sources compiled into the archive. May have been generated or                            |
 | transformed with tools like cgo and cover.                                                       |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`orig_srcs`             | :type:`tuple of File`                                           |
-+--------------------------------+-----------------------------------------------------------------+
-| The unmodified sources provided to the rule, including .go, .s, .h, .c files.                    |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`data_files`            | :type:`tuple of File`                                           |
+| :param:`runfiles`              | :type:`runfiles`                                           |
 +--------------------------------+-----------------------------------------------------------------+
 | Data files that should be available at runtime to binaries and tests built                       |
 | from this archive.                                                                               |
@@ -330,15 +308,11 @@ which is available through the :param:`data` field.
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`cgo_exports`           | :type:`depset of GoSource`                                      |
 +--------------------------------+-----------------------------------------------------------------+
-| The the transitive set of c headers needed to reference exports of this archive.                 |
+| The transitive set of c headers needed to reference exports of this archive.                     |
 +--------------------------------+-----------------------------------------------------------------+
 | :param:`runfiles`              | runfiles_                                                       |
 +--------------------------------+-----------------------------------------------------------------+
 | The files needed to run anything that includes this library.                                     |
-+--------------------------------+-----------------------------------------------------------------+
-| :param:`mode`                  | :type:`Mode`                                                    |
-+--------------------------------+-----------------------------------------------------------------+
-| The mode this archive was compiled in.                                                           |
 +--------------------------------+-----------------------------------------------------------------+
 
 GoPath
@@ -397,16 +371,16 @@ GoSDK
 +--------------------------------+-----------------------------------------------------------------+
 | A file in the SDK root directory. Used to determine ``GOROOT``.                                  |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`libs`                  | :type:`list of File`                                            |
+| :param:`libs`                  | :type:`depset of File`                                          |
 +--------------------------------+-----------------------------------------------------------------+
 | Pre-compiled .a files for the standard library, built for the                                    |
 | execution platform.                                                                              |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`headers`               | :type:`list of File`                                            |
+| :param:`headers`               | :type:`depset of File`                                          |
 +--------------------------------+-----------------------------------------------------------------+
 | .h files from pkg/include that may be included in assembly sources.                              |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`srcs`                  | :type:`list of File`                                            |
+| :param:`srcs`                  | :type:`depset of File`                                          |
 +--------------------------------+-----------------------------------------------------------------+
 | Source files for importable packages in the standard library.                                    |
 | Internal, vendored, and tool packages might not be included.                                     |
@@ -415,7 +389,7 @@ GoSDK
 +--------------------------------+-----------------------------------------------------------------+
 | A file containing a list of importable packages in the standard library.                         |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`tools`                 | :type:`list of File`                                            |
+| :param:`tools`                 | :type:`depset of File`                                          |
 +--------------------------------+-----------------------------------------------------------------+
 | Executable files from pkg/tool built for the execution platform.                                 |
 +--------------------------------+-----------------------------------------------------------------+
