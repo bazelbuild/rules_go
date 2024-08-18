@@ -62,6 +62,7 @@ var (
 	bazelQueryScope       = getenvDefault("GOPACKAGESDRIVER_BAZEL_QUERY_SCOPE", "")
 	bazelBuildFlags       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_BUILD_FLAGS"))
 	workspaceRoot         = os.Getenv("BUILD_WORKSPACE_DIRECTORY")
+	buildWorkingDirectory = os.Getenv("BUILD_WORKING_DIRECTORY")
 	additionalAspects     = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_ADDTL_ASPECTS"))
 	additionalKinds       = strings.Fields(os.Getenv("GOPACKAGESDRIVER_BAZEL_KINDS"))
 	emptyResponse         = &driverResponse{
@@ -81,7 +82,7 @@ func run(ctx context.Context, in io.Reader, out io.Writer, args []string) error 
 		return fmt.Errorf("unable to read request: %w", err)
 	}
 
-	bazel, err := NewBazel(ctx, bazelBin, workspaceRoot, bazelStartupFlags)
+	bazel, err := NewBazel(ctx, bazelBin, workspaceRoot, buildWorkingDirectory, bazelStartupFlags)
 	if err != nil {
 		return fmt.Errorf("unable to create bazel instance: %w", err)
 	}
