@@ -763,13 +763,9 @@ def _cgo_context_data_impl(ctx):
         variables = ld_dynamic_lib_variables,
     ))
 
-    tags = []
-    if "gotags" in ctx.var:
-        tags = ctx.var["gotags"].split(",")
     apple_ensure_options(
         ctx,
         env,
-        tags,
         (c_compile_options, cxx_compile_options, objc_compile_options, objcxx_compile_options),
         (ld_executable_options, ld_dynamic_lib_options),
         cc_toolchain.target_gnu_system_name,
@@ -805,7 +801,6 @@ def _cgo_context_data_impl(ctx):
 
     return [CgoContextInfo(
         cc_toolchain_files = cc_toolchain.all_files,
-        tags = tags,
         env = env,
         cgo_tools = struct(
             cc_toolchain = cc_toolchain,
@@ -871,16 +866,28 @@ def _go_config_impl(ctx):
     else:
         pgoprofile = None
 
+    tags = list(ctx.attr.gotags[BuildSettingInfo].value)
+    if "gotags" in ctx.var:
+        tags += ctx.var["gotags"].split(",")
+
+    race = ctx.attr.race[BuildSettingInfo].value
+    if race:
+        tags.append("race")
+
+    msan = ctx.attr.msan[BuildSettingInfo].value
+    if msan:
+        tags.append("msan")
+
     return [GoConfigInfo(
         static = ctx.attr.static[BuildSettingInfo].value,
-        race = ctx.attr.race[BuildSettingInfo].value,
-        msan = ctx.attr.msan[BuildSettingInfo].value,
+        race = race,
+        msan = msan,
         pure = ctx.attr.pure[BuildSettingInfo].value,
         strip = ctx.attr.strip,
         debug = ctx.attr.debug[BuildSettingInfo].value,
         linkmode = ctx.attr.linkmode[BuildSettingInfo].value,
         gc_linkopts = ctx.attr.gc_linkopts[BuildSettingInfo].value,
-        tags = ctx.attr.gotags[BuildSettingInfo].value,
+        tags = tags,
         stamp = ctx.attr.stamp,
         cover_format = ctx.attr.cover_format[BuildSettingInfo].value,
         gc_goopts = ctx.attr.gc_goopts[BuildSettingInfo].value,

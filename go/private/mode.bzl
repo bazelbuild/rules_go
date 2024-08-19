@@ -105,16 +105,6 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
             fail(("linkmode '{}' can't be used when cgo is disabled. Check that pure is not set to \"off\" and that a C/C++ toolchain is configured for " +
                   "your current platform. If you defined a custom platform, make sure that it has the @io_bazel_rules_go//go/toolchain:cgo_on constraint value.").format(linkmode))
 
-    tags = list(go_config_info.tags)
-    if "gotags" in ctx.var:
-        tags += ctx.var["gotags"].split(",")
-    if cgo_context_info:
-        tags += cgo_context_info.tags
-    if race:
-        tags.append("race")
-    if msan:
-        tags.append("msan")
-
     return struct(
         static = go_config_info.static,
         race = race,
@@ -127,7 +117,7 @@ def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
         debug = go_config_info.debug,
         goos = goos,
         goarch = goarch,
-        tags = tags,
+        tags = go_config_info.tags,
         cover_format = go_config_info.cover_format,
         amd64 = go_config_info.amd64,
         arm = go_config_info.arm,
