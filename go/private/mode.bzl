@@ -143,14 +143,6 @@ def installsuffix(mode):
         s += "_msan"
     return s
 
-def mode_tags_equivalent(l, r):
-    # Returns whether two modes are equivalent for Go build tags. For example,
-    # goos and goarch must match, but static doesn't matter.
-    return (l.goos == r.goos and
-            l.goarch == r.goarch and
-            l.race == r.race and
-            l.msan == r.msan)
-
 # Ported from https://github.com/golang/go/blob/master/src/cmd/go/internal/work/init.go#L76
 _LINK_C_ARCHIVE_PLATFORMS = {
     "darwin/arm64": None,
