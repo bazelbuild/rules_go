@@ -30,15 +30,13 @@ const (
 	softlinkMode
 )
 
-type (
-	replicateOption func(*replicateConfig)
-	replicateConfig struct {
-		removeFirst bool
-		fileMode    replicateMode
-		dirMode     replicateMode
-		paths       []string
-	}
-)
+type replicateOption func(*replicateConfig)
+type replicateConfig struct {
+	removeFirst bool
+	fileMode    replicateMode
+	dirMode     replicateMode
+	paths       []string
+}
 
 func replicatePaths(paths ...string) replicateOption {
 	return func(config *replicateConfig) {
@@ -130,6 +128,11 @@ func replicateDir(src, dst string, config *replicateConfig) error {
 func replicateTree(src, dst string, config *replicateConfig) error {
 	if err := os.RemoveAll(dst); err != nil {
 		return fmt.Errorf("Failed to remove file at destination %s: %v", dst, err)
+	}
+	if l, err := filepath.EvalSymlinks(src); err != nil {
+		return err
+	} else {
+		src = l
 	}
 	if s, err := os.Stat(src); err != nil {
 		return err
