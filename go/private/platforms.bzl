@@ -90,6 +90,7 @@ GOOS_GOARCH = (
     ("plan9", "amd64"),
     ("plan9", "arm"),
     ("solaris", "amd64"),
+    ("wasip1", "wasm"),
     ("windows", "386"),
     ("windows", "amd64"),
     ("windows", "arm"),

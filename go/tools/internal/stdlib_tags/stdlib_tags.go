@@ -125,7 +125,7 @@ func isConstraint(line string) bool {
 }
 
 // Taken from
-// https://github.com/golang/go/blob/3d5391ed87d813110e10b954c62bf7ed578b591f/src/go/build/syslist.go
+// https://github.com/golang/go/blob/2693f77b3583585172810427e12a634b28d34493/src/internal/syslist/syslist.go
 var knownOS = map[string]bool{
 	"aix":       true,
 	"android":   true,
@@ -142,6 +142,7 @@ var knownOS = map[string]bool{
 	"openbsd":   true,
 	"plan9":     true,
 	"solaris":   true,
+	"wasip1":    true,
 	"windows":   true,
 	"zos":       true,
 }
