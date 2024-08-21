@@ -12,6 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// NOTE(#4049): Since Go 1.23.0, os.Readlink (and consequently
+// filepath.EvalSymlinks) stopped treating Windows mount points and
+// reparse points (junctions) as symbolic links. Bazel uses junctions
+// when constructing exec roots, and we use filepath.EvalSymlinks in
+// GoStdlib, so this broke us. Setting winsymlink=0 restores
+// the old behavior.
+//go:debug winsymlink=0
+
 // builder implements most of the actions for Bazel to compile and link
 // go code. We use a single binary for most actions, since this reduces
 // the number of inputs needed for each action and allows us to build
@@ -39,9 +47,12 @@ func main() {
 
 	var action func(args []string) error
 	switch verb {
-	case "compilepkg": action = compilePkg
-	case "nogo": action = nogo
-	case "nogovalidation": action = nogoValidation
+	case "compilepkg":
+		action = compilePkg
+	case "nogo":
+		action = nogo
+	case "nogovalidation":
+		action = nogoValidation
 	case "filterbuildid":
 		action = filterBuildID
 	case "gentestmain":
